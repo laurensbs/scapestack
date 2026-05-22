@@ -1,0 +1,13 @@
+node_modules
+.next
+out
+dist
+.env*.local
+*.log
+.DS_Store
+*.tsbuildinfo
+
+# Old / duplicate working copies — kept locally, never published.
+_legacy/
+_rebuild/
+_rebuild_dup/
