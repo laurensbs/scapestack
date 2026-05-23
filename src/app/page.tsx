@@ -7,7 +7,7 @@ import { BuyMeCoffee } from "@/components/buy-me-coffee";
 export default function HomePage() {
   const liveTools = TOOLS.filter((t) => t.status === "live");
   const soonTools = TOOLS.filter((t) => t.status === "soon");
-  const plannedTools = TOOLS.filter((t) => t.status === "planned");
+  // plannedTools removed — Roadmap section dropped per STRATEGY.md.
 
   return (
     <main className="relative z-10 mx-auto max-w-6xl px-5 sm:px-8 py-14 pb-24">
@@ -72,18 +72,22 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Live tools — section label fades in after the hero (≈0.5s), then
-          tool cards stagger in starting at 0.55s. Each card adds 60ms on
-          top so the eye reads them as a wave instead of a pop. */}
+      {/* More tools — secondary tools beneath the /next hero. Per
+          docs/STRATEGY.md /next is the identity of Scapestack; the
+          Bank Organizer, Goal Tracker, DPS Calculator, and Hiscore
+          lookup are useful niche tools but no longer the main offer.
+          The /next card is filtered out — it lives in the hero. */}
       <section className="mb-16">
-        <SectionLabel delay={0.45}>Live tools</SectionLabel>
+        <SectionLabel delay={0.45}>More tools</SectionLabel>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {liveTools.map((tool, i) => (
+          {liveTools.filter((t) => t.slug !== "next").map((tool, i) => (
             <ToolCard key={tool.slug} tool={tool} index={i} />
           ))}
         </div>
       </section>
 
+      {/* "In progress" only rendered if any soon-tools survive; currently
+          empty after STRATEGY.md dropped GP and GE Price trackers. */}
       {soonTools.length > 0 && (
         <section className="mb-16">
           <SectionLabel delay={0.55}>In progress</SectionLabel>
@@ -95,16 +99,10 @@ export default function HomePage() {
         </section>
       )}
 
-      {plannedTools.length > 0 && (
-        <section className="mb-16">
-          <SectionLabel delay={0.65}>Roadmap</SectionLabel>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-            {plannedTools.map((tool, i) => (
-              <PlannedCard key={tool.slug} tool={tool} index={i} />
-            ))}
-          </div>
-        </section>
-      )}
+      {/* Roadmap section removed per STRATEGY.md — Quest / Skill / Diary
+          Tracker land inside /next as new rec-types, not as separate
+          tools that need their own marketing on the homepage. The
+          ComingSoon stub routes still exist so cached links don't 404. */}
 
       <footer className="mt-24 pt-10 border-t border-[var(--color-border)]">
         <div className="relative overflow-hidden rounded-2xl max-w-3xl mx-auto bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] border border-[var(--color-accent)]/25 animate-[slide-up_0.5s_cubic-bezier(0.22,1,0.36,1)_0.2s_both]">
@@ -244,20 +242,6 @@ function ToolCard({ tool, index }: { tool: Tool; index: number }) {
     <div style={{ animation: `slide-up 0.35s ease-out ${0.05 + index * 0.05}s both` }}>
       <Link href={tool.href}>{inner}</Link>
     </div>
-  );
-}
-
-function PlannedCard({ tool, index }: { tool: Tool; index: number }) {
-  const Icon = tool.icon;
-  return (
-    <Link
-      href={tool.href}
-      className="group/planned flex items-center gap-2 rounded-lg px-3 py-2.5 border border-[var(--color-border)] bg-[var(--color-panel)]/40 text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)] transition-colors"
-      style={{ animation: `tile-rise 0.55s cubic-bezier(0.22,1,0.36,1) ${0.7 + index * 0.04}s both` }}
-    >
-      <Icon className="size-3.5 shrink-0 opacity-60 group-hover/planned:opacity-100 transition-opacity" strokeWidth={1.75} />
-      <span className="text-[12px] font-medium truncate">{tool.name}</span>
-    </Link>
   );
 }
 

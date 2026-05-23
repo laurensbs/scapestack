@@ -2,7 +2,7 @@
 // landing page. Add a tool here and it shows up everywhere.
 
 import type { LucideIcon } from "lucide-react";
-import { Layers, Coins, LineChart, Trophy, Compass, Sword, Scroll, Hammer, Target, Sparkles } from "lucide-react";
+import { Layers, Trophy, Compass, Sword, Scroll, Hammer, Target, Sparkles } from "lucide-react";
 
 export type ToolStatus = "live" | "soon" | "planned";
 
@@ -43,30 +43,11 @@ export const TOOLS: Tool[] = [
     status: "live",
     accent: "amber"
   },
-  {
-    slug: "gp",
-    href: "/gp",
-    name: "GP Tracker",
-    short: "See what your bank is actually worth",
-    tagline: "Wealth snapshot from your Bank Memory export",
-    description:
-      "Paste your bank, see total GP, top 20 items by value, biggest movers this week, and where your wealth is locked up. Built on the OSRS Wiki live price feed.",
-    icon: Coins,
-    status: "soon",
-    accent: "emerald"
-  },
-  {
-    slug: "ge",
-    href: "/ge",
-    name: "GE Price Tracker",
-    short: "Live Grand Exchange prices & flip finder",
-    tagline: "Live prices, charts, flip margins",
-    description:
-      "Search any tradeable, see live high/low, daily volume, charts, and a margin calculator. Save a watchlist of items you flip regularly.",
-    icon: LineChart,
-    status: "soon",
-    accent: "sky"
-  },
+  // GP Tracker and GE Price Tracker removed per docs/STRATEGY.md.
+  // OSRS Wiki Prices + ge-tracker.com do this better — no moat for us.
+  // The /gp and /ge routes still exist (ComingSoon stubs) to avoid 404s
+  // from cached external links, but they're no longer surfaced on the
+  // homepage tool grid.
   {
     slug: "hiscore",
     href: "/hiscore",
