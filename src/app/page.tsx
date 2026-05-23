@@ -183,14 +183,15 @@ function ToolCard({ tool, index }: { tool: Tool; index: number }) {
       className={cn(
         "group/tool relative overflow-hidden rounded-xl p-5 h-full",
         "surface",
-        // No whole-card lift any more — the hover affordance is the
-        // per-icon thematic animation (see globals.css). The card stays
-        // put; only its border + glow + icon respond.
-        isLive && "surface-interactive cursor-pointer transition-colors duration-200 ease-out",
-        !isLive && "opacity-75"
+        // All cards are clickable now — even soon/planned link to a
+        // ComingSoon page so visitors can read what's coming. Hover
+        // affordance is the per-icon thematic animation (see globals.css).
+        "surface-interactive cursor-pointer transition-colors duration-200 ease-out",
+        !isLive && "opacity-80"
       )}
     >
-      {/* Subtle mint glow on hover, only for live tools */}
+      {/* Subtle mint glow on hover, only for live tools (Coming-soon
+          cards stay calmer to signal "not yet, but click for details"). */}
       {isLive && (
         <div
           className="pointer-events-none absolute inset-0 opacity-0 group-hover/tool:opacity-100 transition-opacity duration-300"
@@ -204,7 +205,7 @@ function ToolCard({ tool, index }: { tool: Tool; index: number }) {
           "shrink-0 size-10 rounded-lg flex items-center justify-center border border-[var(--color-border)] transition-colors duration-200",
           isLive
             ? "bg-[var(--color-panel-2)] text-[var(--color-accent)] group-hover/tool:bg-[var(--color-accent)]/15 group-hover/tool:border-[var(--color-accent)]/40"
-            : "bg-[var(--color-panel-2)] text-[var(--color-text-muted)]"
+            : "bg-[var(--color-panel-2)] text-[var(--color-text-muted)] group-hover/tool:border-[var(--color-border-strong)]"
         )}>
           <Icon data-tool-icon={tool.slug} className="size-5" strokeWidth={1.75} />
         </div>
@@ -227,8 +228,8 @@ function ToolCard({ tool, index }: { tool: Tool; index: number }) {
               Open <ArrowRight className="size-3.5" />
             </div>
           ) : (
-            <div className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-[var(--color-text-muted)]">
-              <Lock className="size-3" /> Coming soon
+            <div className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-[var(--color-text-muted)] group-hover/tool:text-[var(--color-text-dim)] transition-colors">
+              <Lock className="size-3" /> Coming soon — read more
             </div>
           )}
         </div>
@@ -236,9 +237,13 @@ function ToolCard({ tool, index }: { tool: Tool; index: number }) {
     </article>
   );
 
+  // Every card links to a real page now: live tools to their tool, soon/
+  // planned tools to a ComingSoon stub at the same /<slug> route. The
+  // ComingSoon stub is a 5-line file under src/app/<slug>/page.tsx that
+  // renders <ComingSoon slug=... />.
   return (
     <div style={{ animation: `slide-up 0.35s ease-out ${0.05 + index * 0.05}s both` }}>
-      {isLive ? <Link href={tool.href}>{inner}</Link> : inner}
+      <Link href={tool.href}>{inner}</Link>
     </div>
   );
 }
@@ -246,13 +251,14 @@ function ToolCard({ tool, index }: { tool: Tool; index: number }) {
 function PlannedCard({ tool, index }: { tool: Tool; index: number }) {
   const Icon = tool.icon;
   return (
-    <div
-      className="flex items-center gap-2 rounded-lg px-3 py-2.5 border border-[var(--color-border)] bg-[var(--color-panel)]/40 text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)] transition-colors"
+    <Link
+      href={tool.href}
+      className="group/planned flex items-center gap-2 rounded-lg px-3 py-2.5 border border-[var(--color-border)] bg-[var(--color-panel)]/40 text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)] transition-colors"
       style={{ animation: `tile-rise 0.55s cubic-bezier(0.22,1,0.36,1) ${0.7 + index * 0.04}s both` }}
     >
-      <Icon className="size-3.5 shrink-0 opacity-60" strokeWidth={1.75} />
+      <Icon className="size-3.5 shrink-0 opacity-60 group-hover/planned:opacity-100 transition-opacity" strokeWidth={1.75} />
       <span className="text-[12px] font-medium truncate">{tool.name}</span>
-    </div>
+    </Link>
   );
 }
 
