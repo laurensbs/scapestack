@@ -6,7 +6,6 @@ import {
   ArrowRight, Edit3, Target, Sword, TrendingUp, Layers, Sparkles, Trophy,
   Gamepad2, Coins, Scroll, Map as MapIcon, Dices
 } from "lucide-react";
-import { Intake } from "@/components/intake";
 import { SupportCard } from "@/components/support-card";
 import { organizeAction, nextUpAction } from "@/app/actions";
 import { fetchHiscores, type HiscoreSkill } from "@/lib/hiscores";
@@ -35,23 +34,37 @@ export function NextClient() {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const run = (input: string, _junkFilter: boolean, rsn: string) => {
+  // Three intake paths feed the same engine: RSN-only (no bank),
+  // RSN + bank (full data), or sample data (demo). Each just builds
+  // the same {skills, bank, questPoints, bossKc} shape — keeps the
+  // engine simple, branches at the edges.
+  const run = (opts: { input?: string; rsn?: string }) => {
     setError(null);
     startTransition(async () => {
-      // Bank + Hiscores in parallel, mirroring the Goal Tracker's intake.
-      const [bankRes, hiscores] = await Promise.all([
-        organizeAction(input, { junkFilter: false, includePrices: false }),
-        rsn.trim() ? fetchHiscores(rsn.trim()) : Promise.resolve(null)
-      ]);
-      if (bankRes.error || !bankRes.result) {
-        setError(bankRes.error || "Couldn't read that bank — check the paste.");
-        return;
+      const rsn = (opts.rsn ?? "").trim();
+      const input = (opts.input ?? "").trim();
+
+      // Hiscores fetch is best-effort. If RSN was given but the lookup
+      // fails, we still build something useful from the bank alone.
+      const hiscores = rsn ? await fetchHiscores(rsn) : null;
+
+      // Only call organizeAction when there's actually a bank to parse.
+      // RSN-only path skips it entirely.
+      let bank: Array<{ id: number; name: string }> = [];
+      if (input) {
+        const bankRes = await organizeAction(input, { junkFilter: false, includePrices: false });
+        if (bankRes.error || !bankRes.result) {
+          setError(bankRes.error || "Couldn't read that bank — check the paste.");
+          return;
+        }
+        bank = bankRes.result.tabs.flatMap((t) =>
+          t.items.map((it) => ({ id: it.id, name: it.name }))
+        );
       }
-      // Flatten the bank, then fold in 99-skill capes synthesised from the
-      // Hiscores so goal-completion reflects what the player has *earned*.
-      const bank = bankRes.result.tabs.flatMap((t) =>
-        t.items.map((it) => ({ id: it.id, name: it.name }))
-      );
+
+      // Fold in 99-skill capes synthesised from the Hiscores so goal-
+      // completion reflects what the player has *earned*, not just what
+      // sits in their bank.
       const skills: HiscoreSkill[] = hiscores?.skills ?? [];
       if (skills.length > 0) {
         const seen = new Set(bank.map((it) => it.id));
@@ -59,15 +72,22 @@ export function NextClient() {
           if (!seen.has(cape.id)) { bank.push(cape); seen.add(cape.id); }
         }
       }
-      // Pull Quest points + every positive boss KC from the Hiscores
-      // activities list. QP gates quest recs; boss KC feeds the kcRecs
-      // ("142 Vorkath KC ≈ 0.85 visages expected") drop-rate insight.
+
+      // Pull Quest points + every positive boss KC from Hiscores activities.
       const qpActivity = hiscores?.activities.find((a) => a.name === "Quest points");
       const questPoints = qpActivity && qpActivity.score >= 0 ? qpActivity.score : 0;
       const bossKc: Record<string, number> = {};
       for (const a of hiscores?.activities ?? []) {
         if (a.score > 0) bossKc[a.name] = a.score;
       }
+
+      // If neither RSN nor bank gave us anything, that's an error worth
+      // showing (sample path should never hit this).
+      if (skills.length === 0 && bank.length === 0) {
+        setError("Enter your OSRS name or paste a bank to get advice.");
+        return;
+      }
+
       setResult(await nextUpAction({ skills, bank, questPoints, bossKc }));
       setView("result");
     });
@@ -75,10 +95,11 @@ export function NextClient() {
 
   if (view === "intake") {
     return (
-      <>
-        <IntroCard />
-        <Intake onSubmit={run} loading={pending} error={error} askRsn />
-      </>
+      <NextIntake
+        onRun={run}
+        loading={pending}
+        error={error}
+      />
     );
   }
 
@@ -87,27 +108,123 @@ export function NextClient() {
   ) : null;
 }
 
-// Short framing card above the intake — sets expectations for what the hub
-// does, so a first-time visitor knows why it's asking for a bank + RSN.
-function IntroCard() {
+// ── Intake UI ─────────────────────────────────────────────────────────────
+// Three paths, surfaced explicitly — that's the whole point of the empty-
+// state redesign. RSN-only is the lightest entry (most returning players
+// can't export a bank from a session they haven't started). Sample data
+// gives a "show me what this looks like" preview. Adding a bank is opt-in
+// for sharper advice.
+const SAMPLE_RSN = "Lynx Titan";
+function NextIntake({
+  onRun, loading, error
+}: {
+  onRun: (opts: { input?: string; rsn?: string }) => void;
+  loading: boolean;
+  error: string | null;
+}) {
+  const [rsn, setRsn] = useState("");
+  const [showBankField, setShowBankField] = useState(false);
+  const [bank, setBank] = useState("");
+
+  const submitRsn = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rsn.trim()) return;
+    onRun({ rsn, input: showBankField ? bank : undefined });
+  };
+
   return (
-    <section className="surface p-5 mb-5 animate-[slide-up_0.4s_ease-out]">
-      <div className="flex items-start gap-3.5">
-        <div className="size-10 shrink-0 rounded-lg flex items-center justify-center bg-[var(--color-accent)]/12 text-[var(--color-accent)] border border-[var(--color-accent)]/30">
-          <Sparkles className="size-5" strokeWidth={1.75} />
+    <section className="animate-[slide-up_0.4s_ease-out] max-w-2xl mx-auto">
+      <header className="mb-6">
+        <h2 className="text-[24px] sm:text-[28px] font-bold text-[var(--color-text)] tracking-tight leading-tight">
+          What should you do next in Old School?
+        </h2>
+        <p className="mt-2 text-[14px] text-[var(--color-text-dim)] leading-relaxed">
+          Type your OSRS name. We&apos;ll read your stats and rank what&apos;s worth doing —
+          goals you&apos;re close to, bosses your stats now support, drops you&apos;re
+          statistically due.
+        </p>
+      </header>
+
+      {/* Primary path: RSN-only lookup */}
+      <form onSubmit={submitRsn} className="surface p-5">
+        <label className="block">
+          <span className="text-[12px] font-semibold tracking-tight text-[var(--color-text)]">
+            OSRS name
+          </span>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <input
+              type="text"
+              value={rsn}
+              onChange={(e) => setRsn(e.target.value)}
+              placeholder="e.g. Lynx Titan"
+              autoFocus
+              className="flex-1 min-w-[200px] rounded-md bg-[var(--color-bg)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none px-3 py-2 text-[14px] font-mono text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]"
+            />
+            <button
+              type="submit"
+              disabled={loading || !rsn.trim()}
+              className="btn-primary group disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Reading account…" : "Show me what to do"}
+              {!loading && <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform" />}
+            </button>
+          </div>
+        </label>
+
+        {/* Secondary: optional bank paste for sharper advice */}
+        <div className="mt-4 pt-4 border-t border-[var(--color-border)]">
+          {showBankField ? (
+            <label className="block">
+              <span className="text-[12px] font-semibold tracking-tight text-[var(--color-text)]">
+                Bank export <span className="text-[var(--color-text-muted)] font-normal">(optional — sharper advice)</span>
+              </span>
+              <textarea
+                value={bank}
+                onChange={(e) => setBank(e.target.value)}
+                placeholder="Paste your RuneLite Bank Memory export here…"
+                rows={4}
+                className="mt-2 w-full rounded-md bg-[var(--color-bg)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none px-3 py-2 text-[12px] font-mono text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] resize-y"
+              />
+              <button
+                type="button"
+                onClick={() => { setShowBankField(false); setBank(""); }}
+                className="mt-2 text-[11.5px] text-[var(--color-text-muted)] hover:text-[var(--color-text-dim)] transition-colors"
+              >
+                Skip the bank — just use my stats
+              </button>
+            </label>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowBankField(true)}
+              className="text-[12.5px] text-[var(--color-accent)] hover:underline"
+            >
+              + Add my bank for sharper advice
+            </button>
+          )}
         </div>
-        <div>
-          <h2 className="text-[15px] font-semibold text-[var(--color-text)] tracking-tight">
-            No idea what to do next?
-          </h2>
-          <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-dim)] max-w-2xl">
-            Paste your bank and add your OSRS name below. The hub reads your
-            stats, your gear and 30+ goal sets, then ranks what&apos;s actually
-            worth doing right now — and links you straight to the tool to do it.
-            More data in = sharper advice; either one alone still works.
-          </p>
-        </div>
+
+        {error && (
+          <p className="mt-3 text-[12px] text-[var(--color-warning)]">{error}</p>
+        )}
+      </form>
+
+      {/* Tertiary: sample run, no input needed */}
+      <div className="mt-4 text-center">
+        <button
+          type="button"
+          onClick={() => onRun({ rsn: SAMPLE_RSN })}
+          disabled={loading}
+          className="text-[12.5px] text-[var(--color-text-dim)] hover:text-[var(--color-text)] underline underline-offset-4 decoration-dotted transition-colors disabled:opacity-50"
+        >
+          Or see it with a sample account ({SAMPLE_RSN})
+        </button>
       </div>
+
+      <p className="mt-8 text-[11.5px] text-[var(--color-text-muted)] text-center leading-relaxed">
+        Free, no account, no plugin. We never store your bank — everything
+        runs in your browser and on Scapestack&apos;s own server.
+      </p>
     </section>
   );
 }
