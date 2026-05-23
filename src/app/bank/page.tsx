@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useCallback, useEffect } from "react";
+import { Suspense, useState, useTransition, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Sparkles } from "lucide-react";
 import { Intro } from "@/components/intro";
@@ -15,7 +15,26 @@ import type { OrganizeResult } from "@/lib/organizer";
 
 type View = "intake" | "result";
 
+// Next.js 16 refuses to statically prerender any component that calls
+// useSearchParams() unless it sits inside a <Suspense> boundary — without
+// one, the production build aborts at /bank with "useSearchParams() should
+// be wrapped in a suspense boundary". So the default export is just a
+// Suspense wrapper around the real page content.
 export default function BankPage() {
+  return (
+    <Suspense fallback={<BankPageFallback />}>
+      <BankPageContent />
+    </Suspense>
+  );
+}
+
+// Minimal placeholder while Suspense resolves the searchParams snapshot.
+// Matches the page's <main> wrapper so layout doesn't jump.
+function BankPageFallback() {
+  return <main className="relative z-10 mx-auto max-w-6xl px-5 py-7 pb-20" />;
+}
+
+function BankPageContent() {
   const [view, setView] = useState<View>("intake");
   const [result, setResult] = useState<OrganizeResult | null>(null);
   const [strings, setStrings] = useState<string[]>([]);
