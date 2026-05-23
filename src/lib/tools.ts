@@ -2,7 +2,7 @@
 // landing page. Add a tool here and it shows up everywhere.
 
 import type { LucideIcon } from "lucide-react";
-import { Layers, Coins, LineChart, Trophy, Compass, Sword, Scroll, Hammer, Target } from "lucide-react";
+import { Layers, Coins, LineChart, Trophy, Compass, Sword, Scroll, Hammer, Target, Sparkles } from "lucide-react";
 
 export type ToolStatus = "live" | "soon" | "planned";
 
@@ -19,6 +19,18 @@ export interface Tool {
 }
 
 export const TOOLS: Tool[] = [
+  {
+    slug: "next",
+    href: "/next",
+    name: "What to do now",
+    short: "Stuck? Get a ranked list of what's worth doing next",
+    tagline: "Paste your bank, look up your stats → a clear plan",
+    description:
+      "No idea what to do next? Paste your bank and look up your account — the hub combines your Hiscores, your bank and 30+ goal sets into one ranked list: the goal you're closest to, bosses your combat level now supports, skills a few levels off a milestone, and more. Every suggestion links straight into the tool you'd use to act on it.",
+    icon: Sparkles,
+    status: "live",
+    accent: "emerald"
+  },
   {
     slug: "bank",
     href: "/bank",

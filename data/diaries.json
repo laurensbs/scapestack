@@ -1,0 +1,2806 @@
+{
+  "Ardougne": {
+    "name": "Ardougne Diary",
+    "tiers": {
+      "Easy": {
+        "skills": [
+          {
+            "skill": "Thieving",
+            "level": 5
+          }
+        ]
+      },
+      "Medium": {
+        "skills": [
+          {
+            "skill": "Magic",
+            "level": 51
+          },
+          {
+            "skill": "Firemaking",
+            "level": 50
+          },
+          {
+            "skill": "Crafting",
+            "level": 49
+          },
+          {
+            "skill": "Agility",
+            "level": 39
+          },
+          {
+            "skill": "Strength",
+            "level": 38
+          },
+          {
+            "skill": "Thieving",
+            "level": 38
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 36
+          },
+          {
+            "skill": "Farming",
+            "level": 31
+          },
+          {
+            "skill": "Ranged",
+            "level": 25
+          },
+          {
+            "skill": "Construction",
+            "level": 10
+          },
+          {
+            "skill": "Smithing",
+            "level": 1
+          },
+          {
+            "skill": "Fletching",
+            "level": 1
+          }
+        ]
+      },
+      "Hard": {
+        "skills": [
+          {
+            "skill": "Thieving",
+            "level": 72
+          },
+          {
+            "skill": "Farming",
+            "level": 70
+          },
+          {
+            "skill": "Smithing",
+            "level": 68
+          },
+          {
+            "skill": "Magic",
+            "level": 66
+          },
+          {
+            "skill": "Runecraft",
+            "level": 65
+          },
+          {
+            "skill": "Ranged",
+            "level": 60
+          },
+          {
+            "skill": "Hunter",
+            "level": 59
+          },
+          {
+            "skill": "Agility",
+            "level": 56
+          },
+          {
+            "skill": "Fishing",
+            "level": 53
+          },
+          {
+            "skill": "Cooking",
+            "level": 53
+          },
+          {
+            "skill": "Mining",
+            "level": 52
+          },
+          {
+            "skill": "Strength",
+            "level": 50
+          },
+          {
+            "skill": "Crafting",
+            "level": 50
+          },
+          {
+            "skill": "Firemaking",
+            "level": 50
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 50
+          },
+          {
+            "skill": "Construction",
+            "level": 50
+          },
+          {
+            "skill": "Herblore",
+            "level": 45
+          },
+          {
+            "skill": "Prayer",
+            "level": 42
+          },
+          {
+            "skill": "Fletching",
+            "level": 5
+          }
+        ]
+      },
+      "Elite": {
+        "skills": [
+          {
+            "skill": "Magic",
+            "level": 94
+          },
+          {
+            "skill": "Smithing",
+            "level": 91
+          },
+          {
+            "skill": "Cooking",
+            "level": 91
+          },
+          {
+            "skill": "Agility",
+            "level": 90
+          },
+          {
+            "skill": "Farming",
+            "level": 85
+          },
+          {
+            "skill": "Thieving",
+            "level": 82
+          },
+          {
+            "skill": "Fishing",
+            "level": 81
+          },
+          {
+            "skill": "Fletching",
+            "level": 69
+          },
+          {
+            "skill": "Runecraft",
+            "level": 65
+          },
+          {
+            "skill": "Ranged",
+            "level": 60
+          },
+          {
+            "skill": "Hunter",
+            "level": 59
+          },
+          {
+            "skill": "Mining",
+            "level": 52
+          },
+          {
+            "skill": "Strength",
+            "level": 50
+          },
+          {
+            "skill": "Crafting",
+            "level": 50
+          },
+          {
+            "skill": "Firemaking",
+            "level": 50
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 50
+          },
+          {
+            "skill": "Construction",
+            "level": 50
+          },
+          {
+            "skill": "Herblore",
+            "level": 45
+          },
+          {
+            "skill": "Prayer",
+            "level": 42
+          }
+        ]
+      }
+    }
+  },
+  "Desert": {
+    "name": "Desert Diary",
+    "tiers": {
+      "Easy": {
+        "skills": [
+          {
+            "skill": "Thieving",
+            "level": 21
+          },
+          {
+            "skill": "Hunter",
+            "level": 5
+          }
+        ]
+      },
+      "Medium": {
+        "skills": [
+          {
+            "skill": "Crafting",
+            "level": 50
+          },
+          {
+            "skill": "Hunter",
+            "level": 47
+          },
+          {
+            "skill": "Firemaking",
+            "level": 45
+          },
+          {
+            "skill": "Prayer",
+            "level": 43
+          },
+          {
+            "skill": "Magic",
+            "level": 39
+          },
+          {
+            "skill": "Mining",
+            "level": 37
+          },
+          {
+            "skill": "Ranged",
+            "level": 37
+          },
+          {
+            "skill": "Thieving",
+            "level": 37
+          },
+          {
+            "skill": "Herblore",
+            "level": 36
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 35
+          },
+          {
+            "skill": "Agility",
+            "level": 30
+          },
+          {
+            "skill": "Slayer",
+            "level": 22
+          },
+          {
+            "skill": "Construction",
+            "level": 20
+          }
+        ]
+      },
+      "Hard": {
+        "skills": [
+          {
+            "skill": "Agility",
+            "level": 70
+          },
+          {
+            "skill": "Smithing",
+            "level": 68
+          },
+          {
+            "skill": "Magic",
+            "level": 68
+          },
+          {
+            "skill": "Thieving",
+            "level": 65
+          },
+          {
+            "skill": "Slayer",
+            "level": 65
+          },
+          {
+            "skill": "Crafting",
+            "level": 61
+          },
+          {
+            "skill": "Mining",
+            "level": 60
+          },
+          {
+            "skill": "Firemaking",
+            "level": 60
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 55
+          },
+          {
+            "skill": "Attack",
+            "level": 50
+          },
+          {
+            "skill": "Hunter",
+            "level": 47
+          },
+          {
+            "skill": "Prayer",
+            "level": 43
+          },
+          {
+            "skill": "Defence",
+            "level": 40
+          },
+          {
+            "skill": "Ranged",
+            "level": 40
+          },
+          {
+            "skill": "Herblore",
+            "level": 36
+          },
+          {
+            "skill": "Construction",
+            "level": 20
+          },
+          {
+            "skill": "Fletching",
+            "level": 10
+          }
+        ]
+      },
+      "Elite": {
+        "skills": [
+          {
+            "skill": "Fletching",
+            "level": 95
+          },
+          {
+            "skill": "Magic",
+            "level": 94
+          },
+          {
+            "skill": "Thieving",
+            "level": 91
+          },
+          {
+            "skill": "Cooking",
+            "level": 85
+          },
+          {
+            "skill": "Prayer",
+            "level": 85
+          },
+          {
+            "skill": "Construction",
+            "level": 78
+          },
+          {
+            "skill": "Agility",
+            "level": 70
+          },
+          {
+            "skill": "Smithing",
+            "level": 68
+          },
+          {
+            "skill": "Slayer",
+            "level": 65
+          },
+          {
+            "skill": "Crafting",
+            "level": 61
+          },
+          {
+            "skill": "Mining",
+            "level": 60
+          },
+          {
+            "skill": "Firemaking",
+            "level": 60
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 55
+          },
+          {
+            "skill": "Attack",
+            "level": 50
+          },
+          {
+            "skill": "Hunter",
+            "level": 47
+          },
+          {
+            "skill": "Defence",
+            "level": 40
+          },
+          {
+            "skill": "Ranged",
+            "level": 40
+          },
+          {
+            "skill": "Herblore",
+            "level": 36
+          }
+        ]
+      }
+    }
+  },
+  "Falador": {
+    "name": "Falador Diary",
+    "tiers": {
+      "Easy": {
+        "skills": [
+          {
+            "skill": "Construction",
+            "level": 16
+          },
+          {
+            "skill": "Smithing",
+            "level": 13
+          },
+          {
+            "skill": "Mining",
+            "level": 10
+          },
+          {
+            "skill": "Agility",
+            "level": 5
+          }
+        ]
+      },
+      "Medium": {
+        "skills": [
+          {
+            "skill": "Firemaking",
+            "level": 49
+          },
+          {
+            "skill": "Agility",
+            "level": 42
+          },
+          {
+            "skill": "Mining",
+            "level": 40
+          },
+          {
+            "skill": "Thieving",
+            "level": 40
+          },
+          {
+            "skill": "Crafting",
+            "level": 40
+          },
+          {
+            "skill": "Strength",
+            "level": 37
+          },
+          {
+            "skill": "Magic",
+            "level": 37
+          },
+          {
+            "skill": "Slayer",
+            "level": 32
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 30
+          },
+          {
+            "skill": "Farming",
+            "level": 23
+          },
+          {
+            "skill": "Defence",
+            "level": 20
+          },
+          {
+            "skill": "Cooking",
+            "level": 20
+          },
+          {
+            "skill": "Ranged",
+            "level": 19
+          },
+          {
+            "skill": "Construction",
+            "level": 16
+          },
+          {
+            "skill": "Smithing",
+            "level": 13
+          },
+          {
+            "skill": "Prayer",
+            "level": 10
+          },
+          {
+            "skill": "Fletching",
+            "level": 1
+          }
+        ]
+      },
+      "Hard": {
+        "skills": [
+          {
+            "skill": "Slayer",
+            "level": 72
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 71
+          },
+          {
+            "skill": "Prayer",
+            "level": 70
+          },
+          {
+            "skill": "Mining",
+            "level": 60
+          },
+          {
+            "skill": "Agility",
+            "level": 59
+          },
+          {
+            "skill": "Thieving",
+            "level": 58
+          },
+          {
+            "skill": "Runecraft",
+            "level": 56
+          },
+          {
+            "skill": "Fishing",
+            "level": 53
+          },
+          {
+            "skill": "Cooking",
+            "level": 53
+          },
+          {
+            "skill": "Herblore",
+            "level": 52
+          },
+          {
+            "skill": "Defence",
+            "level": 50
+          },
+          {
+            "skill": "Firemaking",
+            "level": 49
+          },
+          {
+            "skill": "Farming",
+            "level": 45
+          },
+          {
+            "skill": "Crafting",
+            "level": 40
+          },
+          {
+            "skill": "Strength",
+            "level": 37
+          },
+          {
+            "skill": "Magic",
+            "level": 37
+          },
+          {
+            "skill": "Ranged",
+            "level": 19
+          },
+          {
+            "skill": "Construction",
+            "level": 16
+          },
+          {
+            "skill": "Smithing",
+            "level": 13
+          },
+          {
+            "skill": "Attack",
+            "level": 1
+          },
+          {
+            "skill": "Fletching",
+            "level": 1
+          }
+        ]
+      },
+      "Elite": {
+        "skills": [
+          {
+            "skill": "Farming",
+            "level": 91
+          },
+          {
+            "skill": "Runecraft",
+            "level": 88
+          },
+          {
+            "skill": "Herblore",
+            "level": 81
+          },
+          {
+            "skill": "Agility",
+            "level": 80
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 75
+          },
+          {
+            "skill": "Slayer",
+            "level": 72
+          },
+          {
+            "skill": "Prayer",
+            "level": 70
+          },
+          {
+            "skill": "Mining",
+            "level": 60
+          },
+          {
+            "skill": "Thieving",
+            "level": 58
+          },
+          {
+            "skill": "Fishing",
+            "level": 53
+          },
+          {
+            "skill": "Cooking",
+            "level": 53
+          },
+          {
+            "skill": "Defence",
+            "level": 50
+          },
+          {
+            "skill": "Firemaking",
+            "level": 49
+          },
+          {
+            "skill": "Crafting",
+            "level": 40
+          },
+          {
+            "skill": "Strength",
+            "level": 37
+          },
+          {
+            "skill": "Magic",
+            "level": 37
+          },
+          {
+            "skill": "Ranged",
+            "level": 19
+          },
+          {
+            "skill": "Construction",
+            "level": 16
+          },
+          {
+            "skill": "Smithing",
+            "level": 13
+          },
+          {
+            "skill": "Attack",
+            "level": 1
+          },
+          {
+            "skill": "Fletching",
+            "level": 1
+          }
+        ]
+      }
+    }
+  },
+  "Fremennik": {
+    "name": "Fremennik Diary",
+    "tiers": {
+      "Easy": {
+        "skills": [
+          {
+            "skill": "Crafting",
+            "level": 23
+          },
+          {
+            "skill": "Mining",
+            "level": 20
+          },
+          {
+            "skill": "Smithing",
+            "level": 20
+          },
+          {
+            "skill": "Firemaking",
+            "level": 15
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 15
+          },
+          {
+            "skill": "Hunter",
+            "level": 11
+          },
+          {
+            "skill": "Thieving",
+            "level": 5
+          }
+        ]
+      },
+      "Medium": {
+        "skills": [
+          {
+            "skill": "Smithing",
+            "level": 50
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 50
+          },
+          {
+            "skill": "Slayer",
+            "level": 47
+          },
+          {
+            "skill": "Thieving",
+            "level": 42
+          },
+          {
+            "skill": "Mining",
+            "level": 40
+          },
+          {
+            "skill": "Firemaking",
+            "level": 40
+          },
+          {
+            "skill": "Construction",
+            "level": 37
+          },
+          {
+            "skill": "Agility",
+            "level": 35
+          },
+          {
+            "skill": "Hunter",
+            "level": 35
+          },
+          {
+            "skill": "Crafting",
+            "level": 31
+          },
+          {
+            "skill": "Defence",
+            "level": 30
+          }
+        ]
+      },
+      "Hard": {
+        "skills": [
+          {
+            "skill": "Thieving",
+            "level": 75
+          },
+          {
+            "skill": "Magic",
+            "level": 72
+          },
+          {
+            "skill": "Mining",
+            "level": 70
+          },
+          {
+            "skill": "Herblore",
+            "level": 66
+          },
+          {
+            "skill": "Crafting",
+            "level": 61
+          },
+          {
+            "skill": "Smithing",
+            "level": 60
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 56
+          },
+          {
+            "skill": "Hunter",
+            "level": 55
+          },
+          {
+            "skill": "Fishing",
+            "level": 53
+          },
+          {
+            "skill": "Cooking",
+            "level": 53
+          },
+          {
+            "skill": "Firemaking",
+            "level": 49
+          },
+          {
+            "skill": "Slayer",
+            "level": 47
+          },
+          {
+            "skill": "Defence",
+            "level": 40
+          },
+          {
+            "skill": "Construction",
+            "level": 37
+          },
+          {
+            "skill": "Agility",
+            "level": 35
+          }
+        ]
+      },
+      "Elite": {
+        "skills": [
+          {
+            "skill": "Slayer",
+            "level": 83
+          },
+          {
+            "skill": "Runecraft",
+            "level": 82
+          },
+          {
+            "skill": "Agility",
+            "level": 80
+          },
+          {
+            "skill": "Crafting",
+            "level": 80
+          },
+          {
+            "skill": "Thieving",
+            "level": 75
+          },
+          {
+            "skill": "Magic",
+            "level": 72
+          },
+          {
+            "skill": "Hitpoints",
+            "level": 70
+          },
+          {
+            "skill": "Mining",
+            "level": 70
+          },
+          {
+            "skill": "Strength",
+            "level": 70
+          },
+          {
+            "skill": "Ranged",
+            "level": 70
+          },
+          {
+            "skill": "Herblore",
+            "level": 66
+          },
+          {
+            "skill": "Smithing",
+            "level": 60
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 56
+          },
+          {
+            "skill": "Hunter",
+            "level": 55
+          },
+          {
+            "skill": "Fishing",
+            "level": 53
+          },
+          {
+            "skill": "Cooking",
+            "level": 53
+          },
+          {
+            "skill": "Firemaking",
+            "level": 49
+          },
+          {
+            "skill": "Defence",
+            "level": 40
+          },
+          {
+            "skill": "Construction",
+            "level": 37
+          }
+        ]
+      }
+    }
+  },
+  "Kandarin": {
+    "name": "Kandarin Diary",
+    "tiers": {
+      "Easy": {
+        "skills": [
+          {
+            "skill": "Agility",
+            "level": 20
+          },
+          {
+            "skill": "Fishing",
+            "level": 16
+          },
+          {
+            "skill": "Farming",
+            "level": 13
+          },
+          {
+            "skill": "Crafting",
+            "level": 1
+          },
+          {
+            "skill": "Slayer",
+            "level": 1
+          }
+        ]
+      },
+      "Medium": {
+        "skills": [
+          {
+            "skill": "Fletching",
+            "level": 50
+          },
+          {
+            "skill": "Herblore",
+            "level": 48
+          },
+          {
+            "skill": "Thieving",
+            "level": 47
+          },
+          {
+            "skill": "Fishing",
+            "level": 46
+          },
+          {
+            "skill": "Magic",
+            "level": 45
+          },
+          {
+            "skill": "Cooking",
+            "level": 43
+          },
+          {
+            "skill": "Ranged",
+            "level": 40
+          },
+          {
+            "skill": "Agility",
+            "level": 36
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 36
+          },
+          {
+            "skill": "Crafting",
+            "level": 31
+          },
+          {
+            "skill": "Mining",
+            "level": 30
+          },
+          {
+            "skill": "Smithing",
+            "level": 30
+          },
+          {
+            "skill": "Farming",
+            "level": 26
+          },
+          {
+            "skill": "Strength",
+            "level": 22
+          },
+          {
+            "skill": "Slayer",
+            "level": 1
+          }
+        ]
+      },
+      "Hard": {
+        "skills": [
+          {
+            "skill": "Smithing",
+            "level": 75
+          },
+          {
+            "skill": "Defence",
+            "level": 70
+          },
+          {
+            "skill": "Fishing",
+            "level": 70
+          },
+          {
+            "skill": "Prayer",
+            "level": 70
+          },
+          {
+            "skill": "Fletching",
+            "level": 70
+          },
+          {
+            "skill": "Firemaking",
+            "level": 65
+          },
+          {
+            "skill": "Agility",
+            "level": 60
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 60
+          },
+          {
+            "skill": "Magic",
+            "level": 56
+          },
+          {
+            "skill": "Thieving",
+            "level": 53
+          },
+          {
+            "skill": "Strength",
+            "level": 50
+          },
+          {
+            "skill": "Construction",
+            "level": 50
+          },
+          {
+            "skill": "Herblore",
+            "level": 48
+          },
+          {
+            "skill": "Cooking",
+            "level": 43
+          },
+          {
+            "skill": "Ranged",
+            "level": 40
+          },
+          {
+            "skill": "Crafting",
+            "level": 31
+          },
+          {
+            "skill": "Mining",
+            "level": 30
+          },
+          {
+            "skill": "Farming",
+            "level": 26
+          },
+          {
+            "skill": "Attack",
+            "level": 20
+          },
+          {
+            "skill": "Slayer",
+            "level": 1
+          }
+        ]
+      },
+      "Elite": {
+        "skills": [
+          {
+            "skill": "Smithing",
+            "level": 90
+          },
+          {
+            "skill": "Magic",
+            "level": 87
+          },
+          {
+            "skill": "Herblore",
+            "level": 86
+          },
+          {
+            "skill": "Crafting",
+            "level": 85
+          },
+          {
+            "skill": "Firemaking",
+            "level": 85
+          },
+          {
+            "skill": "Cooking",
+            "level": 80
+          },
+          {
+            "skill": "Farming",
+            "level": 79
+          },
+          {
+            "skill": "Fishing",
+            "level": 76
+          },
+          {
+            "skill": "Defence",
+            "level": 70
+          },
+          {
+            "skill": "Prayer",
+            "level": 70
+          },
+          {
+            "skill": "Fletching",
+            "level": 70
+          },
+          {
+            "skill": "Mining",
+            "level": 60
+          },
+          {
+            "skill": "Agility",
+            "level": 60
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 60
+          },
+          {
+            "skill": "Thieving",
+            "level": 53
+          },
+          {
+            "skill": "Strength",
+            "level": 50
+          },
+          {
+            "skill": "Construction",
+            "level": 50
+          },
+          {
+            "skill": "Ranged",
+            "level": 40
+          },
+          {
+            "skill": "Attack",
+            "level": 20
+          }
+        ]
+      }
+    }
+  },
+  "Karamja": {
+    "name": "Karamja Diary",
+    "tiers": {
+      "Easy": {
+        "skills": [
+          {
+            "skill": "Mining",
+            "level": 40
+          },
+          {
+            "skill": "Agility",
+            "level": 15
+          }
+        ]
+      },
+      "Medium": {
+        "skills": [
+          {
+            "skill": "Fishing",
+            "level": 65
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 50
+          },
+          {
+            "skill": "Hunter",
+            "level": 41
+          },
+          {
+            "skill": "Mining",
+            "level": 40
+          },
+          {
+            "skill": "Agility",
+            "level": 32
+          },
+          {
+            "skill": "Farming",
+            "level": 27
+          },
+          {
+            "skill": "Crafting",
+            "level": 20
+          },
+          {
+            "skill": "Cooking",
+            "level": 16
+          },
+          {
+            "skill": "Herblore",
+            "level": 3
+          }
+        ]
+      },
+      "Hard": {
+        "skills": [
+          {
+            "skill": "Fishing",
+            "level": 65
+          },
+          {
+            "skill": "Magic",
+            "level": 59
+          },
+          {
+            "skill": "Agility",
+            "level": 53
+          },
+          {
+            "skill": "Cooking",
+            "level": 53
+          },
+          {
+            "skill": "Mining",
+            "level": 52
+          },
+          {
+            "skill": "Strength",
+            "level": 50
+          },
+          {
+            "skill": "Thieving",
+            "level": 50
+          },
+          {
+            "skill": "Crafting",
+            "level": 50
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 50
+          },
+          {
+            "skill": "Slayer",
+            "level": 50
+          },
+          {
+            "skill": "Runecraft",
+            "level": 44
+          },
+          {
+            "skill": "Ranged",
+            "level": 42
+          },
+          {
+            "skill": "Hunter",
+            "level": 41
+          },
+          {
+            "skill": "Smithing",
+            "level": 40
+          },
+          {
+            "skill": "Farming",
+            "level": 27
+          },
+          {
+            "skill": "Herblore",
+            "level": 25
+          },
+          {
+            "skill": "Fletching",
+            "level": 1
+          }
+        ]
+      },
+      "Elite": {
+        "skills": [
+          {
+            "skill": "Runecraft",
+            "level": 91
+          },
+          {
+            "skill": "Herblore",
+            "level": 87
+          },
+          {
+            "skill": "Farming",
+            "level": 72
+          },
+          {
+            "skill": "Fishing",
+            "level": 65
+          },
+          {
+            "skill": "Magic",
+            "level": 59
+          },
+          {
+            "skill": "Agility",
+            "level": 53
+          },
+          {
+            "skill": "Cooking",
+            "level": 53
+          },
+          {
+            "skill": "Mining",
+            "level": 52
+          },
+          {
+            "skill": "Strength",
+            "level": 50
+          },
+          {
+            "skill": "Thieving",
+            "level": 50
+          },
+          {
+            "skill": "Crafting",
+            "level": 50
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 50
+          },
+          {
+            "skill": "Slayer",
+            "level": 50
+          },
+          {
+            "skill": "Ranged",
+            "level": 42
+          },
+          {
+            "skill": "Hunter",
+            "level": 41
+          },
+          {
+            "skill": "Smithing",
+            "level": 40
+          },
+          {
+            "skill": "Fletching",
+            "level": 1
+          }
+        ]
+      }
+    }
+  },
+  "Kourend & Kebos": {
+    "name": "Kourend & Kebos Diary",
+    "tiers": {
+      "Easy": {
+        "skills": [
+          {
+            "skill": "Thieving",
+            "level": 25
+          },
+          {
+            "skill": "Construction",
+            "level": 25
+          },
+          {
+            "skill": "Fishing",
+            "level": 20
+          },
+          {
+            "skill": "Mining",
+            "level": 15
+          },
+          {
+            "skill": "Herblore",
+            "level": 12
+          }
+        ]
+      },
+      "Medium": {
+        "skills": [
+          {
+            "skill": "Hunter",
+            "level": 53
+          },
+          {
+            "skill": "Firemaking",
+            "level": 50
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 50
+          },
+          {
+            "skill": "Agility",
+            "level": 49
+          },
+          {
+            "skill": "Farming",
+            "level": 45
+          },
+          {
+            "skill": "Fishing",
+            "level": 43
+          },
+          {
+            "skill": "Mining",
+            "level": 42
+          },
+          {
+            "skill": "Crafting",
+            "level": 31
+          },
+          {
+            "skill": "Construction",
+            "level": 30
+          },
+          {
+            "skill": "Thieving",
+            "level": 25
+          },
+          {
+            "skill": "Strength",
+            "level": 16
+          },
+          {
+            "skill": "Herblore",
+            "level": 12
+          }
+        ]
+      },
+      "Hard": {
+        "skills": [
+          {
+            "skill": "Farming",
+            "level": 74
+          },
+          {
+            "skill": "Smithing",
+            "level": 70
+          },
+          {
+            "skill": "Magic",
+            "level": 66
+          },
+          {
+            "skill": "Mining",
+            "level": 65
+          },
+          {
+            "skill": "Slayer",
+            "level": 62
+          },
+          {
+            "skill": "Crafting",
+            "level": 61
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 60
+          },
+          {
+            "skill": "Hunter",
+            "level": 53
+          },
+          {
+            "skill": "Firemaking",
+            "level": 50
+          },
+          {
+            "skill": "Agility",
+            "level": 49
+          },
+          {
+            "skill": "Thieving",
+            "level": 49
+          },
+          {
+            "skill": "Fishing",
+            "level": 43
+          },
+          {
+            "skill": "Defence",
+            "level": 40
+          },
+          {
+            "skill": "Herblore",
+            "level": 31
+          },
+          {
+            "skill": "Construction",
+            "level": 30
+          },
+          {
+            "skill": "Fletching",
+            "level": 25
+          },
+          {
+            "skill": "Strength",
+            "level": 16
+          }
+        ]
+      },
+      "Elite": {
+        "skills": [
+          {
+            "skill": "Slayer",
+            "level": 95
+          },
+          {
+            "skill": "Magic",
+            "level": 90
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 90
+          },
+          {
+            "skill": "Farming",
+            "level": 85
+          },
+          {
+            "skill": "Cooking",
+            "level": 84
+          },
+          {
+            "skill": "Fishing",
+            "level": 82
+          },
+          {
+            "skill": "Runecraft",
+            "level": 77
+          },
+          {
+            "skill": "Smithing",
+            "level": 70
+          },
+          {
+            "skill": "Mining",
+            "level": 65
+          },
+          {
+            "skill": "Crafting",
+            "level": 61
+          },
+          {
+            "skill": "Hunter",
+            "level": 53
+          },
+          {
+            "skill": "Firemaking",
+            "level": 50
+          },
+          {
+            "skill": "Agility",
+            "level": 49
+          },
+          {
+            "skill": "Thieving",
+            "level": 49
+          },
+          {
+            "skill": "Defence",
+            "level": 40
+          },
+          {
+            "skill": "Fletching",
+            "level": 40
+          },
+          {
+            "skill": "Herblore",
+            "level": 31
+          },
+          {
+            "skill": "Construction",
+            "level": 30
+          },
+          {
+            "skill": "Strength",
+            "level": 16
+          }
+        ]
+      }
+    }
+  },
+  "Lumbridge & Draynor": {
+    "name": "Lumbridge & Draynor Diary",
+    "tiers": {
+      "Easy": {
+        "skills": [
+          {
+            "skill": "Mining",
+            "level": 15
+          },
+          {
+            "skill": "Fishing",
+            "level": 15
+          },
+          {
+            "skill": "Firemaking",
+            "level": 15
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 15
+          },
+          {
+            "skill": "Slayer",
+            "level": 7
+          },
+          {
+            "skill": "Runecraft",
+            "level": 5
+          }
+        ]
+      },
+      "Medium": {
+        "skills": [
+          {
+            "skill": "Ranged",
+            "level": 50
+          },
+          {
+            "skill": "Hunter",
+            "level": 42
+          },
+          {
+            "skill": "Thieving",
+            "level": 38
+          },
+          {
+            "skill": "Crafting",
+            "level": 38
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 36
+          },
+          {
+            "skill": "Magic",
+            "level": 31
+          },
+          {
+            "skill": "Fishing",
+            "level": 30
+          },
+          {
+            "skill": "Runecraft",
+            "level": 23
+          },
+          {
+            "skill": "Agility",
+            "level": 20
+          },
+          {
+            "skill": "Strength",
+            "level": 19
+          },
+          {
+            "skill": "Slayer",
+            "level": 18
+          },
+          {
+            "skill": "Mining",
+            "level": 15
+          },
+          {
+            "skill": "Firemaking",
+            "level": 15
+          },
+          {
+            "skill": "Smithing",
+            "level": 1
+          },
+          {
+            "skill": "Prayer",
+            "level": 1
+          },
+          {
+            "skill": "Fletching",
+            "level": 1
+          }
+        ]
+      },
+      "Hard": {
+        "skills": [
+          {
+            "skill": "Cooking",
+            "level": 70
+          },
+          {
+            "skill": "Crafting",
+            "level": 70
+          },
+          {
+            "skill": "Firemaking",
+            "level": 65
+          },
+          {
+            "skill": "Farming",
+            "level": 63
+          },
+          {
+            "skill": "Magic",
+            "level": 60
+          },
+          {
+            "skill": "Runecraft",
+            "level": 59
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 57
+          },
+          {
+            "skill": "Fishing",
+            "level": 53
+          },
+          {
+            "skill": "Thieving",
+            "level": 53
+          },
+          {
+            "skill": "Prayer",
+            "level": 52
+          },
+          {
+            "skill": "Mining",
+            "level": 50
+          },
+          {
+            "skill": "Ranged",
+            "level": 50
+          },
+          {
+            "skill": "Agility",
+            "level": 46
+          },
+          {
+            "skill": "Hunter",
+            "level": 42
+          },
+          {
+            "skill": "Smithing",
+            "level": 40
+          },
+          {
+            "skill": "Herblore",
+            "level": 25
+          },
+          {
+            "skill": "Strength",
+            "level": 19
+          },
+          {
+            "skill": "Slayer",
+            "level": 18
+          },
+          {
+            "skill": "Fletching",
+            "level": 10
+          }
+        ]
+      },
+      "Elite": {
+        "skills": [
+          {
+            "skill": "Smithing",
+            "level": 88
+          },
+          {
+            "skill": "Thieving",
+            "level": 78
+          },
+          {
+            "skill": "Runecraft",
+            "level": 76
+          },
+          {
+            "skill": "Firemaking",
+            "level": 75
+          },
+          {
+            "skill": "Magic",
+            "level": 75
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 75
+          },
+          {
+            "skill": "Mining",
+            "level": 72
+          },
+          {
+            "skill": "Strength",
+            "level": 70
+          },
+          {
+            "skill": "Agility",
+            "level": 70
+          },
+          {
+            "skill": "Herblore",
+            "level": 70
+          },
+          {
+            "skill": "Ranged",
+            "level": 70
+          },
+          {
+            "skill": "Cooking",
+            "level": 70
+          },
+          {
+            "skill": "Crafting",
+            "level": 70
+          },
+          {
+            "skill": "Farming",
+            "level": 70
+          },
+          {
+            "skill": "Construction",
+            "level": 70
+          },
+          {
+            "skill": "Hunter",
+            "level": 70
+          },
+          {
+            "skill": "Slayer",
+            "level": 69
+          },
+          {
+            "skill": "Defence",
+            "level": 65
+          },
+          {
+            "skill": "Fishing",
+            "level": 62
+          },
+          {
+            "skill": "Fletching",
+            "level": 60
+          },
+          {
+            "skill": "Prayer",
+            "level": 52
+          },
+          {
+            "skill": "Attack",
+            "level": 50
+          },
+          {
+            "skill": "Hitpoints",
+            "level": 50
+          }
+        ]
+      }
+    }
+  },
+  "Morytania": {
+    "name": "Morytania Diary",
+    "tiers": {
+      "Easy": {
+        "skills": [
+          {
+            "skill": "Farming",
+            "level": 23
+          },
+          {
+            "skill": "Crafting",
+            "level": 15
+          },
+          {
+            "skill": "Slayer",
+            "level": 15
+          },
+          {
+            "skill": "Cooking",
+            "level": 12
+          }
+        ]
+      },
+      "Medium": {
+        "skills": [
+          {
+            "skill": "Smithing",
+            "level": 50
+          },
+          {
+            "skill": "Fishing",
+            "level": 50
+          },
+          {
+            "skill": "Prayer",
+            "level": 47
+          },
+          {
+            "skill": "Crafting",
+            "level": 45
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 45
+          },
+          {
+            "skill": "Agility",
+            "level": 42
+          },
+          {
+            "skill": "Slayer",
+            "level": 42
+          },
+          {
+            "skill": "Ranged",
+            "level": 40
+          },
+          {
+            "skill": "Cooking",
+            "level": 40
+          },
+          {
+            "skill": "Farming",
+            "level": 40
+          },
+          {
+            "skill": "Hunter",
+            "level": 29
+          },
+          {
+            "skill": "Herblore",
+            "level": 22
+          },
+          {
+            "skill": "Mining",
+            "level": 15
+          },
+          {
+            "skill": "Magic",
+            "level": 7
+          },
+          {
+            "skill": "Fletching",
+            "level": 5
+          }
+        ]
+      },
+      "Hard": {
+        "skills": [
+          {
+            "skill": "Agility",
+            "level": 71
+          },
+          {
+            "skill": "Defence",
+            "level": 70
+          },
+          {
+            "skill": "Prayer",
+            "level": 70
+          },
+          {
+            "skill": "Magic",
+            "level": 66
+          },
+          {
+            "skill": "Slayer",
+            "level": 58
+          },
+          {
+            "skill": "Mining",
+            "level": 55
+          },
+          {
+            "skill": "Thieving",
+            "level": 53
+          },
+          {
+            "skill": "Farming",
+            "level": 53
+          },
+          {
+            "skill": "Smithing",
+            "level": 50
+          },
+          {
+            "skill": "Fishing",
+            "level": 50
+          },
+          {
+            "skill": "Firemaking",
+            "level": 50
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 50
+          },
+          {
+            "skill": "Construction",
+            "level": 50
+          },
+          {
+            "skill": "Crafting",
+            "level": 45
+          },
+          {
+            "skill": "Ranged",
+            "level": 40
+          },
+          {
+            "skill": "Cooking",
+            "level": 40
+          },
+          {
+            "skill": "Hunter",
+            "level": 29
+          },
+          {
+            "skill": "Herblore",
+            "level": 22
+          },
+          {
+            "skill": "Attack",
+            "level": 20
+          },
+          {
+            "skill": "Fletching",
+            "level": 10
+          }
+        ]
+      },
+      "Elite": {
+        "skills": [
+          {
+            "skill": "Fishing",
+            "level": 96
+          },
+          {
+            "skill": "Slayer",
+            "level": 85
+          },
+          {
+            "skill": "Crafting",
+            "level": 84
+          },
+          {
+            "skill": "Magic",
+            "level": 83
+          },
+          {
+            "skill": "Firemaking",
+            "level": 80
+          },
+          {
+            "skill": "Strength",
+            "level": 76
+          },
+          {
+            "skill": "Agility",
+            "level": 71
+          },
+          {
+            "skill": "Defence",
+            "level": 70
+          },
+          {
+            "skill": "Prayer",
+            "level": 70
+          },
+          {
+            "skill": "Mining",
+            "level": 60
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 55
+          },
+          {
+            "skill": "Thieving",
+            "level": 53
+          },
+          {
+            "skill": "Farming",
+            "level": 53
+          },
+          {
+            "skill": "Smithing",
+            "level": 50
+          },
+          {
+            "skill": "Construction",
+            "level": 50
+          },
+          {
+            "skill": "Ranged",
+            "level": 40
+          },
+          {
+            "skill": "Cooking",
+            "level": 40
+          },
+          {
+            "skill": "Hunter",
+            "level": 29
+          },
+          {
+            "skill": "Herblore",
+            "level": 22
+          },
+          {
+            "skill": "Attack",
+            "level": 20
+          },
+          {
+            "skill": "Fletching",
+            "level": 10
+          }
+        ]
+      }
+    }
+  },
+  "Varrock": {
+    "name": "Varrock Diary",
+    "tiers": {
+      "Easy": {
+        "skills": [
+          {
+            "skill": "Fishing",
+            "level": 20
+          },
+          {
+            "skill": "Mining",
+            "level": 15
+          },
+          {
+            "skill": "Agility",
+            "level": 13
+          },
+          {
+            "skill": "Runecraft",
+            "level": 9
+          },
+          {
+            "skill": "Crafting",
+            "level": 8
+          },
+          {
+            "skill": "Thieving",
+            "level": 5
+          }
+        ]
+      },
+      "Medium": {
+        "skills": [
+          {
+            "skill": "Firemaking",
+            "level": 40
+          },
+          {
+            "skill": "Crafting",
+            "level": 36
+          },
+          {
+            "skill": "Agility",
+            "level": 30
+          },
+          {
+            "skill": "Farming",
+            "level": 30
+          },
+          {
+            "skill": "Thieving",
+            "level": 25
+          },
+          {
+            "skill": "Magic",
+            "level": 25
+          },
+          {
+            "skill": "Fishing",
+            "level": 20
+          },
+          {
+            "skill": "Mining",
+            "level": 15
+          },
+          {
+            "skill": "Herblore",
+            "level": 10
+          },
+          {
+            "skill": "Runecraft",
+            "level": 9
+          }
+        ]
+      },
+      "Hard": {
+        "skills": [
+          {
+            "skill": "Farming",
+            "level": 68
+          },
+          {
+            "skill": "Hunter",
+            "level": 66
+          },
+          {
+            "skill": "Firemaking",
+            "level": 60
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 60
+          },
+          {
+            "skill": "Magic",
+            "level": 54
+          },
+          {
+            "skill": "Thieving",
+            "level": 53
+          },
+          {
+            "skill": "Prayer",
+            "level": 52
+          },
+          {
+            "skill": "Agility",
+            "level": 51
+          },
+          {
+            "skill": "Construction",
+            "level": 50
+          },
+          {
+            "skill": "Ranged",
+            "level": 40
+          },
+          {
+            "skill": "Crafting",
+            "level": 36
+          },
+          {
+            "skill": "Smithing",
+            "level": 20
+          },
+          {
+            "skill": "Fishing",
+            "level": 20
+          },
+          {
+            "skill": "Mining",
+            "level": 15
+          },
+          {
+            "skill": "Herblore",
+            "level": 10
+          },
+          {
+            "skill": "Fletching",
+            "level": 10
+          },
+          {
+            "skill": "Runecraft",
+            "level": 9
+          }
+        ]
+      },
+      "Elite": {
+        "skills": [
+          {
+            "skill": "Cooking",
+            "level": 95
+          },
+          {
+            "skill": "Herblore",
+            "level": 90
+          },
+          {
+            "skill": "Smithing",
+            "level": 89
+          },
+          {
+            "skill": "Magic",
+            "level": 86
+          },
+          {
+            "skill": "Fletching",
+            "level": 81
+          },
+          {
+            "skill": "Runecraft",
+            "level": 78
+          },
+          {
+            "skill": "Farming",
+            "level": 68
+          },
+          {
+            "skill": "Hunter",
+            "level": 66
+          },
+          {
+            "skill": "Crafting",
+            "level": 61
+          },
+          {
+            "skill": "Mining",
+            "level": 60
+          },
+          {
+            "skill": "Firemaking",
+            "level": 60
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 60
+          },
+          {
+            "skill": "Thieving",
+            "level": 53
+          },
+          {
+            "skill": "Prayer",
+            "level": 52
+          },
+          {
+            "skill": "Agility",
+            "level": 51
+          },
+          {
+            "skill": "Construction",
+            "level": 50
+          },
+          {
+            "skill": "Defence",
+            "level": 40
+          },
+          {
+            "skill": "Ranged",
+            "level": 40
+          },
+          {
+            "skill": "Fishing",
+            "level": 20
+          }
+        ]
+      }
+    }
+  },
+  "Western Provinces": {
+    "name": "Western Provinces Diary",
+    "tiers": {
+      "Easy": {
+        "skills": [
+          {
+            "skill": "Ranged",
+            "level": 30
+          },
+          {
+            "skill": "Cooking",
+            "level": 30
+          },
+          {
+            "skill": "Fletching",
+            "level": 20
+          },
+          {
+            "skill": "Mining",
+            "level": 15
+          },
+          {
+            "skill": "Hunter",
+            "level": 9
+          }
+        ]
+      },
+      "Medium": {
+        "skills": [
+          {
+            "skill": "Fishing",
+            "level": 46
+          },
+          {
+            "skill": "Magic",
+            "level": 46
+          },
+          {
+            "skill": "Cooking",
+            "level": 42
+          },
+          {
+            "skill": "Mining",
+            "level": 40
+          },
+          {
+            "skill": "Agility",
+            "level": 37
+          },
+          {
+            "skill": "Firemaking",
+            "level": 35
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 35
+          },
+          {
+            "skill": "Hunter",
+            "level": 31
+          },
+          {
+            "skill": "Smithing",
+            "level": 30
+          },
+          {
+            "skill": "Ranged",
+            "level": 30
+          },
+          {
+            "skill": "Crafting",
+            "level": 25
+          },
+          {
+            "skill": "Fletching",
+            "level": 20
+          },
+          {
+            "skill": "Herblore",
+            "level": 18
+          },
+          {
+            "skill": "Construction",
+            "level": 5
+          }
+        ]
+      },
+      "Hard": {
+        "skills": [
+          {
+            "skill": "Thieving",
+            "level": 75
+          },
+          {
+            "skill": "Mining",
+            "level": 70
+          },
+          {
+            "skill": "Ranged",
+            "level": 70
+          },
+          {
+            "skill": "Cooking",
+            "level": 70
+          },
+          {
+            "skill": "Hunter",
+            "level": 69
+          },
+          {
+            "skill": "Farming",
+            "level": 68
+          },
+          {
+            "skill": "Magic",
+            "level": 66
+          },
+          {
+            "skill": "Construction",
+            "level": 65
+          },
+          {
+            "skill": "Fishing",
+            "level": 62
+          },
+          {
+            "skill": "Agility",
+            "level": 56
+          },
+          {
+            "skill": "Firemaking",
+            "level": 50
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 50
+          },
+          {
+            "skill": "Smithing",
+            "level": 45
+          },
+          {
+            "skill": "Crafting",
+            "level": 40
+          },
+          {
+            "skill": "Fletching",
+            "level": 20
+          },
+          {
+            "skill": "Herblore",
+            "level": 18
+          }
+        ]
+      },
+      "Elite": {
+        "skills": [
+          {
+            "skill": "Slayer",
+            "level": 93
+          },
+          {
+            "skill": "Agility",
+            "level": 85
+          },
+          {
+            "skill": "Thieving",
+            "level": 85
+          },
+          {
+            "skill": "Fletching",
+            "level": 85
+          },
+          {
+            "skill": "Farming",
+            "level": 75
+          },
+          {
+            "skill": "Mining",
+            "level": 70
+          },
+          {
+            "skill": "Ranged",
+            "level": 70
+          },
+          {
+            "skill": "Cooking",
+            "level": 70
+          },
+          {
+            "skill": "Hunter",
+            "level": 69
+          },
+          {
+            "skill": "Magic",
+            "level": 66
+          },
+          {
+            "skill": "Construction",
+            "level": 65
+          },
+          {
+            "skill": "Fishing",
+            "level": 62
+          },
+          {
+            "skill": "Firemaking",
+            "level": 50
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 50
+          },
+          {
+            "skill": "Smithing",
+            "level": 45
+          },
+          {
+            "skill": "Attack",
+            "level": 42
+          },
+          {
+            "skill": "Hitpoints",
+            "level": 42
+          },
+          {
+            "skill": "Strength",
+            "level": 42
+          },
+          {
+            "skill": "Defence",
+            "level": 42
+          },
+          {
+            "skill": "Crafting",
+            "level": 40
+          },
+          {
+            "skill": "Prayer",
+            "level": 22
+          },
+          {
+            "skill": "Herblore",
+            "level": 18
+          }
+        ]
+      }
+    }
+  },
+  "Wilderness": {
+    "name": "Wilderness Diary",
+    "tiers": {
+      "Easy": {
+        "skills": [
+          {
+            "skill": "Magic",
+            "level": 21
+          },
+          {
+            "skill": "Mining",
+            "level": 15
+          },
+          {
+            "skill": "Agility",
+            "level": 15
+          }
+        ]
+      },
+      "Medium": {
+        "skills": [
+          {
+            "skill": "Woodcutting",
+            "level": 61
+          },
+          {
+            "skill": "Magic",
+            "level": 60
+          },
+          {
+            "skill": "Mining",
+            "level": 55
+          },
+          {
+            "skill": "Agility",
+            "level": 52
+          },
+          {
+            "skill": "Smithing",
+            "level": 50
+          },
+          {
+            "skill": "Slayer",
+            "level": 50
+          },
+          {
+            "skill": "Strength",
+            "level": 1
+          }
+        ]
+      },
+      "Hard": {
+        "skills": [
+          {
+            "skill": "Smithing",
+            "level": 75
+          },
+          {
+            "skill": "Slayer",
+            "level": 68
+          },
+          {
+            "skill": "Hunter",
+            "level": 67
+          },
+          {
+            "skill": "Magic",
+            "level": 66
+          },
+          {
+            "skill": "Agility",
+            "level": 64
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 61
+          },
+          {
+            "skill": "Mining",
+            "level": 55
+          },
+          {
+            "skill": "Fishing",
+            "level": 53
+          }
+        ]
+      },
+      "Elite": {
+        "skills": [
+          {
+            "skill": "Magic",
+            "level": 96
+          },
+          {
+            "skill": "Smithing",
+            "level": 90
+          },
+          {
+            "skill": "Cooking",
+            "level": 90
+          },
+          {
+            "skill": "Mining",
+            "level": 85
+          },
+          {
+            "skill": "Fishing",
+            "level": 85
+          },
+          {
+            "skill": "Thieving",
+            "level": 84
+          },
+          {
+            "skill": "Slayer",
+            "level": 83
+          },
+          {
+            "skill": "Firemaking",
+            "level": 75
+          },
+          {
+            "skill": "Woodcutting",
+            "level": 75
+          },
+          {
+            "skill": "Hunter",
+            "level": 67
+          },
+          {
+            "skill": "Agility",
+            "level": 64
+          },
+          {
+            "skill": "Ranged",
+            "level": 40
+          },
+          {
+            "skill": "Herblore",
+            "level": 10
+          },
+          {
+            "skill": "Fletching",
+            "level": 10
+          }
+        ]
+      }
+    }
+  }
+}
