@@ -36,22 +36,21 @@ export default function HomePage() {
               style={{ animation: "hero-fade 0.7s cubic-bezier(0.22,1,0.36,1) 0.32s both" }}
             >
               <span className="text-[var(--color-text)] font-medium">
-                Paste your bank, get back nine sorted tabs you can drop straight into RuneLite.
+                One page that looks at your account and tells you what's worth doing next.
               </span>
-              {" "}Plus a "what should I do next?" hub that reads your stats and bank, and surfaces the goals,
-              bosses, and quests worth chasing. Free, no account, no plugin.
+              {" "}Goals you're close to, bosses your stats now support, drops you're statistically due. Free, no account, no plugin.
             </p>
             <div
               className="mt-8 flex flex-wrap items-center gap-3"
               style={{ animation: "hero-fade 0.7s cubic-bezier(0.22,1,0.36,1) 0.48s both" }}
             >
-              <Link href="/bank?sample=1" className="btn-primary group">
-                See it with a sample bank
+              <Link href="/next" className="btn-primary group">
+                What should I do next?
                 <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform" />
               </Link>
-              <Link href="/bank" className="btn-ghost">
+              <Link href="/bank?sample=1" className="btn-ghost">
                 <Sparkles className="size-3.5" />
-                Use my bank
+                See it with a sample bank
               </Link>
             </div>
           </div>
