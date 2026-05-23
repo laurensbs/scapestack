@@ -129,6 +129,14 @@ export async function organize(opts: OrganizeInput): Promise<OrganizeResult> {
   ids = ids.filter((id) => items.has(Math.abs(id)));
   if (!ids.length) throw new Error("No recognizable items in your paste");
 
+  // Note: an earlier attempt to dedupe noted-variant pairs (id N + id N+1
+  // sharing a name) was removed. Real RuneLite Bank Memory exports already
+  // contain only unnoted IDs, and OSRS has plenty of legitimate consecutive
+  // same-name pairs (cut gems 1601/1602, etc.) that a naive dedupe would
+  // wrongly collapse — including the padded IDs many tests rely on. If
+  // duplicate tiles ever resurface in real exports, fix the export source
+  // instead.
+
   // Playstyle-aware junk threshold: an ironman keeps every item, a maxed main
   // buries more clutter. See playstyle.ts for the per-archetype values.
   const archetype = opts.archetype ?? "unspecified";
