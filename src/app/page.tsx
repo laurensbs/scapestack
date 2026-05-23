@@ -60,7 +60,7 @@ export default function HomePage() {
             <div
               className="absolute inset-0 -inset-x-8 -inset-y-8 pointer-events-none"
               style={{
-                background: "radial-gradient(closest-side, rgba(0, 226, 154, 0.25) 0%, transparent 70%)",
+                background: "radial-gradient(closest-side, rgba(230, 165, 47, 0.25) 0%, transparent 70%)",
                 // Slow glow fade-in (1.4s) — the page seems to "warm up" as
                 // the hero content settles. Sits at 30% opacity end-state.
                 opacity: 0.3,
@@ -108,11 +108,11 @@ export default function HomePage() {
         <div className="relative overflow-hidden rounded-2xl max-w-3xl mx-auto bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] border border-[var(--color-accent)]/25 animate-[slide-up_0.5s_cubic-bezier(0.22,1,0.36,1)_0.2s_both]">
           <div
             className="absolute inset-x-0 top-0 h-px"
-            style={{ background: "linear-gradient(to right, transparent, rgba(0,226,154,0.5), transparent)" }}
+            style={{ background: "linear-gradient(to right, transparent, rgba(230, 165, 47,0.5), transparent)" }}
           />
           <div
             className="absolute -bottom-32 -right-24 size-80 rounded-full blur-3xl opacity-25 pointer-events-none"
-            style={{ background: "rgba(0, 226, 154, 0.5)" }}
+            style={{ background: "rgba(230, 165, 47, 0.5)" }}
           />
 
           <div className="relative p-8 sm:p-10 grid sm:grid-cols-[1fr_auto] items-center gap-6">
@@ -193,7 +193,7 @@ function ToolCard({ tool, index }: { tool: Tool; index: number }) {
         <div
           className="pointer-events-none absolute inset-0 opacity-0 group-hover/tool:opacity-100 transition-opacity duration-300"
           style={{
-            background: "radial-gradient(360px 140px at 80% 0%, rgba(0,226,154,0.12), transparent 70%)"
+            background: "radial-gradient(360px 140px at 80% 0%, rgba(230, 165, 47,0.12), transparent 70%)"
           }}
         />
       )}
@@ -204,7 +204,27 @@ function ToolCard({ tool, index }: { tool: Tool; index: number }) {
             ? "bg-[var(--color-panel-2)] text-[var(--color-accent)] group-hover/tool:bg-[var(--color-accent)]/15 group-hover/tool:border-[var(--color-accent)]/40"
             : "bg-[var(--color-panel-2)] text-[var(--color-text-muted)] group-hover/tool:border-[var(--color-border-strong)]"
         )}>
-          <Icon data-tool-icon={tool.slug} className="size-5" strokeWidth={1.75} />
+          {/* Prefer the OSRS sprite when the tool ships one — gives the
+              landing grid an unmistakable in-game feel. The Lucide icon
+              still renders for tools without a signature item. Either way,
+              `data-tool-icon` carries the per-tool hover animation hook
+              from globals.css (icon-stack / icon-swing / icon-pulse / …). */}
+          {tool.iconItemId ? (
+            <img
+              data-tool-icon={tool.slug}
+              src={ICON_URL(tool.iconItemId)}
+              alt=""
+              className="pixelated"
+              style={{
+                maxWidth: "70%",
+                maxHeight: "70%",
+                imageRendering: "pixelated",
+                filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))"
+              }}
+            />
+          ) : (
+            <Icon data-tool-icon={tool.slug} className="size-5" strokeWidth={1.75} />
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
@@ -293,7 +313,7 @@ function BankPreview() {
       style={{
         background: "var(--color-osrs-wood)",
         border: "1px solid var(--color-border-strong)",
-        boxShadow: "0 24px 60px -24px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(0, 226, 154, 0.08)"
+        boxShadow: "0 24px 60px -24px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(230, 165, 47, 0.08)"
       }}
     >
       {/* Title bar */}

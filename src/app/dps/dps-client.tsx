@@ -235,7 +235,7 @@ function BossRow({ boss, dps, owned, startExpanded = false }: {
         "rounded-xl border scroll-mt-24",
         "bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] border-[var(--color-border)]",
         "hover:border-[var(--color-border-strong)] transition-colors",
-        startExpanded && "border-[var(--color-accent)]/40 shadow-[0_0_0_1px_rgba(0,226,154,0.18)]"
+        startExpanded && "border-[var(--color-accent)]/40 shadow-[0_0_0_1px_rgba(230, 165, 47,0.18)]"
       )}>
       <button
         onClick={() => setExpanded((v) => !v)}

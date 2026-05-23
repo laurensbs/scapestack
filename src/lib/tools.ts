@@ -14,6 +14,11 @@ export interface Tool {
   tagline: string;      // 1-sentence card subtitle
   description: string;  // longer for landing card
   icon: LucideIcon;
+  /** OSRS item ID for the in-game sprite shown on the landing card. The
+   *  sidebar keeps the Lucide glyph (smaller surface, monochrome reads
+   *  better at 14px). Optional — tools without a perfect signature item
+   *  fall back to the Lucide icon. */
+  iconItemId?: number;
   status: ToolStatus;
   accent: "amber" | "emerald" | "sky" | "violet" | "rose"; // for landing cards
 }
@@ -28,6 +33,7 @@ export const TOOLS: Tool[] = [
     description:
       "No idea what to do next? Paste your bank and look up your account — the hub combines your Hiscores, your bank and 30+ goal sets into one ranked list: the goal you're closest to, bosses your combat level now supports, skills a few levels off a milestone, and more. Every suggestion links straight into the tool you'd use to act on it.",
     icon: Sparkles,
+    iconItemId: 11865, // Slayer helmet (i) — "what to do next" / next-task icon
     status: "live",
     accent: "emerald"
   },
@@ -40,6 +46,7 @@ export const TOOLS: Tool[] = [
     description:
       "Paste a Bank Memory or Bank Tags export and the organizer splits everything into Combat, Range, Magic, Food, Potions, Runes, Skilling, Jewellery, Trophy and more — with quantities, GP value, drag-and-drop, and copy-back-to-RuneLite strings.",
     icon: Layers,
+    iconItemId: 20594, // Bank filler — literal bank icon
     status: "live",
     accent: "amber"
   },
@@ -57,6 +64,7 @@ export const TOOLS: Tool[] = [
     description:
       "Enter a username, get a polished card with all 24 skills, combat level, XP, total level, and ranks. Live data from the official OSRS Hiscores.",
     icon: Trophy,
+    iconItemId: 13342, // Max cape — Hiscores / total-level signature
     status: "live",
     accent: "violet"
   },
@@ -69,6 +77,7 @@ export const TOOLS: Tool[] = [
     description:
       "Tracks 30+ goal sets across capes, combat prestige, diary rewards, Barrows, GWD, raids, skilling outfits and quest rewards. Surfaces sets you're 1-2 items away from completing.",
     icon: Target,
+    iconItemId: 9813,  // Quest point cape — generic completion goal
     status: "live",
     accent: "emerald"
   },
@@ -81,6 +90,7 @@ export const TOOLS: Tool[] = [
     description:
       "Tells you which quests you can do now, what's blocking the rest, and a suggested order to reach Quest Cape with the least backtracking.",
     icon: Scroll,
+    iconItemId: 9813,  // Quest point cape
     status: "planned",
     accent: "rose"
   },
@@ -93,6 +103,7 @@ export const TOOLS: Tool[] = [
     description:
       "We auto-pick the best weapon and armour from your bank for each of 10 bosses, then show max hit, accuracy, DPS, time-to-kill, GP/hr and the top upgrades that would speed you up.",
     icon: Sword,
+    iconItemId: 4151,  // Abyssal whip — combat / damage signature
     status: "live",
     accent: "amber"
   },
@@ -105,6 +116,7 @@ export const TOOLS: Tool[] = [
     description:
       "Pick a skill, set a target level, see the methods that get you there with their XP/hr, GP/hr (or cost/hr), and total time at each.",
     icon: Hammer,
+    iconItemId: 9747,  // Attack cape — skill cape signature
     status: "planned",
     accent: "emerald"
   },
@@ -117,6 +129,7 @@ export const TOOLS: Tool[] = [
     description:
       "See which Achievement Diaries you have completed, which are 1-2 tasks away, and which give the most bang for the buck (Karamja gloves 3, etc.).",
     icon: Compass,
+    iconItemId: 11140, // Karamja gloves 4 — most-recognised diary reward
     status: "planned",
     accent: "sky"
   }

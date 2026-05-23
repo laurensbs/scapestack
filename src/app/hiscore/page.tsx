@@ -34,7 +34,7 @@ export default function HiscorePage() {
             "flex items-stretch gap-2 max-w-xl mx-auto rounded-2xl p-2",
             "bg-[var(--color-panel)] border border-[var(--color-border)]",
             "focus-within:border-[var(--color-accent)]/50",
-            "focus-within:shadow-[0_0_0_3px_rgba(0,226,154,0.10)]",
+            "focus-within:shadow-[0_0_0_3px_rgba(230, 165, 47,0.10)]",
             "transition-all"
           )}
         >

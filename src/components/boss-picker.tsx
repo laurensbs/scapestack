@@ -193,7 +193,7 @@ export function BossPicker({ selected, onSelect, className, sortKey }: Props) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search bosses…"
-              className="w-full pl-7 pr-7 py-1.5 rounded-md text-[12.5px] bg-[var(--color-bg-2)] border border-[var(--color-border)] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(0,226,154,0.12)]"
+              className="w-full pl-7 pr-7 py-1.5 rounded-md text-[12.5px] bg-[var(--color-bg-2)] border border-[var(--color-border)] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(230, 165, 47,0.12)]"
             />
             {query && (
               <button

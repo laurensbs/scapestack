@@ -295,7 +295,7 @@ function TipGroupRow({ group, onOpen, onDismissGroup, onDismissTip }: {
         className={cn(
           "text-left rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/40",
           "px-3 py-2.5 transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-bg)]/70",
-          "focus:outline-none focus-visible:border-[var(--color-accent)] focus-visible:shadow-[0_0_0_3px_rgba(0,226,154,0.2)]",
+          "focus:outline-none focus-visible:border-[var(--color-accent)] focus-visible:shadow-[0_0_0_3px_rgba(230, 165, 47,0.2)]",
           "h-full flex flex-col w-full cursor-pointer"
         )}
         aria-haspopup="dialog"

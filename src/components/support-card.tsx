@@ -45,11 +45,11 @@ export function SupportCard({ context = "Saved you a minute?" }: Props) {
     )}>
       <div
         className="absolute inset-x-0 top-0 h-px"
-        style={{ background: "linear-gradient(to right, transparent, rgba(0,226,154,0.4), transparent)" }}
+        style={{ background: "linear-gradient(to right, transparent, rgba(230, 165, 47,0.4), transparent)" }}
       />
       <div
         className="absolute -top-16 -right-16 size-48 rounded-full pointer-events-none blur-3xl opacity-30"
-        style={{ background: "rgba(0, 226, 154, 0.4)" }}
+        style={{ background: "rgba(230, 165, 47, 0.4)" }}
       />
 
       <div className="relative p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">

@@ -123,7 +123,7 @@ function BrandMark() {
       style={{
         background: "linear-gradient(135deg, #00E29A 0%, #00A972 100%)",
         color: "#07090C",
-        boxShadow: "0 0 16px -4px rgba(0, 226, 154, 0.4)"
+        boxShadow: "0 0 16px -4px rgba(230, 165, 47, 0.4)"
       }}
     >
       S

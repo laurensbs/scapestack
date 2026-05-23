@@ -125,8 +125,8 @@ export function Intro({ flowStep = 0 }: IntroProps) {
               <span
                 className={cn(
                   "relative z-10 shrink-0 size-[30px] rounded-full flex items-center justify-center text-[12.5px] font-semibold border-2 transition-all duration-200",
-                  done && "bg-[var(--color-accent)] text-[var(--color-bg)] border-[var(--color-accent)] shadow-[0_0_0_4px_rgba(0,226,154,0.12)]",
-                  current && !done && "bg-[var(--color-accent)]/15 text-[var(--color-accent)] border-[var(--color-accent)] shadow-[0_0_0_4px_rgba(0,226,154,0.1)]",
+                  done && "bg-[var(--color-accent)] text-[var(--color-bg)] border-[var(--color-accent)] shadow-[0_0_0_4px_rgba(230, 165, 47,0.12)]",
+                  current && !done && "bg-[var(--color-accent)]/15 text-[var(--color-accent)] border-[var(--color-accent)] shadow-[0_0_0_4px_rgba(230, 165, 47,0.1)]",
                   !current && !done && "bg-[var(--color-bg-2)] text-[var(--color-text-muted)] border-[var(--color-border)] group-hover:border-[var(--color-border-strong)] group-hover:text-[var(--color-text-dim)]"
                 )}
               >
@@ -204,11 +204,11 @@ export function Intro({ flowStep = 0 }: IntroProps) {
 // so we let it sit centred inside the frame instead.
 function ScreenshotFrame({ src, alt, w, h }: { src: string; alt: string; w: number; h: number }) {
   return (
-    <div className="relative rounded-lg overflow-hidden border border-[var(--color-border-strong)] bg-[var(--color-bg-2)] shadow-[0_18px_40px_-20px_rgb(0_0_0/0.7),0_0_0_1px_rgba(0,226,154,0.08)] p-4 flex items-center justify-center">
+    <div className="relative rounded-lg overflow-hidden border border-[var(--color-border-strong)] bg-[var(--color-bg-2)] shadow-[0_18px_40px_-20px_rgb(0_0_0/0.7),0_0_0_1px_rgba(230, 165, 47,0.08)] p-4 flex items-center justify-center">
       <span
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-px"
-        style={{ background: "linear-gradient(to right, transparent, rgba(0,226,154,0.45), transparent)" }}
+        style={{ background: "linear-gradient(to right, transparent, rgba(230, 165, 47,0.45), transparent)" }}
       />
       <img
         src={src}
@@ -239,9 +239,9 @@ function PasteBox() {
     <svg viewBox="0 0 240 160" className="w-full max-w-[260px] h-auto">
       <defs>
         <linearGradient id="paste-top" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="rgba(0,226,154,0)" />
-          <stop offset="0.5" stopColor="rgba(0,226,154,0.45)" />
-          <stop offset="1" stopColor="rgba(0,226,154,0)" />
+          <stop offset="0" stopColor="rgba(230, 165, 47,0)" />
+          <stop offset="0.5" stopColor="rgba(230, 165, 47,0.45)" />
+          <stop offset="1" stopColor="rgba(230, 165, 47,0)" />
         </linearGradient>
       </defs>
       {/* Outer card — matches .surface */}
@@ -290,7 +290,7 @@ function CopyTabs() {
         {/* Tab 2 — done check */}
         <rect x="0" y="26" width="124" height="22" rx="6" fill="#0F1217" stroke="#1C1F26" />
         <text x="8" y="40" fontSize="8" fontFamily="ui-sans-serif" fill="#E8EAED" fontWeight="600">2/9 · Range</text>
-        <rect x="86" y="29" width="34" height="16" rx="4" fill="rgba(0,226,154,0.15)" stroke="#00E29A" />
+        <rect x="86" y="29" width="34" height="16" rx="4" fill="rgba(230, 165, 47,0.15)" stroke="#00E29A" />
         <text x="103" y="40" textAnchor="middle" fontSize="9" fontFamily="ui-sans-serif" fill="#00E29A" fontWeight="700">✓</text>
 
         {/* Tab 3 — neutral */}

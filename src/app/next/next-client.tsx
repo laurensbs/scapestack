@@ -13,20 +13,75 @@ import { unlockedFromHiscores } from "@/lib/goals";
 import type { Recommendation, RecKind, NextUpResult } from "@/lib/next-up";
 import { cn, ICON_URL } from "@/lib/utils";
 
-// Per-kind visual identity — icon + accent. Keeps the headline card and the
-// checklist rows consistent and instantly scannable by category.
-const KIND_META: Record<RecKind, { icon: typeof Target; label: string }> = {
-  goal:      { icon: Target,     label: "Goal" },
-  quest:     { icon: Scroll,     label: "Quest" },
-  diary:     { icon: MapIcon,    label: "Diary" },
-  boss:      { icon: Sword,      label: "Boss" },
-  kc:        { icon: Dices,      label: "Drop chance" },
-  minigame:  { icon: Gamepad2,   label: "Minigame" },
-  money:     { icon: Coins,      label: "Money" },
-  skill:     { icon: TrendingUp, label: "Skill" },
-  bank:      { icon: Layers,     label: "Bank" },
-  milestone: { icon: Trophy,     label: "Milestone" }
+// Per-kind visual identity — Lucide fallback + an OSRS sprite. Recs that
+// already carry their own `iconItemId` keep theirs; everything else falls
+// back to the kind's signature item so the page reads as OSRS, not generic
+// SaaS. The Lucide icon is a third-tier fallback for if the wiki sprite
+// 404s.
+//   quest → Quest point cape (signature of completionist questing)
+//   diary → Karamja gloves 4 (most-recognised diary reward)
+//   skill → Skill cape (any 99 cape stands in for skill progression)
+//   bank  → Bank filler (literal bank icon, in-game)
+//   milestone → Max cape
+const KIND_META: Record<RecKind, { icon: typeof Target; label: string; iconItemId?: number }> = {
+  goal:      { icon: Target,     label: "Goal",         iconItemId: 9813   }, // Quest point cape — generic "completion"
+  quest:     { icon: Scroll,     label: "Quest",        iconItemId: 9813   }, // Quest point cape
+  diary:     { icon: MapIcon,    label: "Diary",        iconItemId: 11140  }, // Karamja gloves 4
+  boss:      { icon: Sword,      label: "Boss",         iconItemId: 4151   }, // Abyssal whip
+  kc:        { icon: Dices,      label: "Drop chance",  iconItemId: 22325  }, // Scythe of vitur head
+  minigame:  { icon: Gamepad2,   label: "Minigame",     iconItemId: 20720  }, // Bruma torch
+  money:     { icon: Coins,      label: "Money",        iconItemId: 995    }, // Coins
+  skill:     { icon: TrendingUp, label: "Skill",        iconItemId: 9747   }, // Attack cape (any skill cape)
+  bank:      { icon: Layers,     label: "Bank",         iconItemId: 20594  }, // Bank filler
+  milestone: { icon: Trophy,     label: "Milestone",    iconItemId: 13342  }  // Max cape
 };
+
+// Render a kind's signature glyph: OSRS sprite first (with a mounted-fade-in
+// so the wiki round-trip doesn't pop), Lucide icon as a fallback when the
+// sprite 404s. Used in the kind-group header — small, monochrome-ish, no
+// border. `tone` flips the Lucide tint between muted (group headers) and
+// accent (where the sprite container is already accent-tinted).
+function KindGlyph({
+  kind,
+  size = 14,
+  tone = "muted"
+}: {
+  kind: RecKind;
+  size?: number;
+  tone?: "muted" | "accent";
+}) {
+  const meta = KIND_META[kind];
+  const [failed, setFailed] = useState(false);
+  if (meta.iconItemId && !failed) {
+    return (
+      <img
+        src={ICON_URL(meta.iconItemId)}
+        alt=""
+        aria-hidden="true"
+        className="pixelated shrink-0"
+        style={{
+          width: size,
+          height: size,
+          objectFit: "contain",
+          imageRendering: "pixelated",
+          filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))"
+        }}
+        onError={() => setFailed(true)}
+      />
+    );
+  }
+  const Icon = meta.icon;
+  return (
+    <Icon
+      className={cn(
+        "shrink-0",
+        tone === "accent" ? "text-[var(--color-accent)]" : "text-[var(--color-text-muted)]"
+      )}
+      style={{ width: size, height: size }}
+      strokeWidth={1.75}
+    />
+  );
+}
 
 export function NextClient() {
   const [view, setView] = useState<"intake" | "result">("intake");
@@ -342,7 +397,7 @@ function ResultView({ result, onEdit }: { result: NextUpResult; onEdit: () => vo
             {[...grouped.entries()].map(([kind, recs]) => (
               <div key={kind}>
                 <div className="flex items-center gap-2 mb-2">
-                  {(() => { const I = KIND_META[kind].icon; return <I className="size-3.5 text-[var(--color-text-muted)]" />; })()}
+                  <KindGlyph kind={kind} size={16} />
                   <span className="text-[11px] uppercase tracking-[0.14em] text-[var(--color-text-muted)] font-semibold">
                     {KIND_META[kind].label}
                   </span>
@@ -366,7 +421,6 @@ function ResultView({ result, onEdit }: { result: NextUpResult; onEdit: () => vo
 // The headline — the one thing the hub most wants the player to do. Big,
 // mint-accented, with the payoff and a direct link into the relevant tool.
 function HeadlineCard({ rec }: { rec: Recommendation }) {
-  const Icon = KIND_META[rec.kind].icon;
   const card = (
     <article
       className={cn(
@@ -377,7 +431,7 @@ function HeadlineCard({ rec }: { rec: Recommendation }) {
     >
       <div
         className="absolute inset-x-0 top-0 h-px"
-        style={{ background: "linear-gradient(to right, transparent, rgba(0,226,154,0.55), transparent)" }}
+        style={{ background: "linear-gradient(to right, transparent, rgba(230, 165, 47,0.55), transparent)" }}
       />
       <div className="flex items-start gap-4">
         <div className="size-12 shrink-0 rounded-lg flex items-center justify-center bg-[var(--color-accent)]/15 border border-[var(--color-accent)]/30 text-[var(--color-accent)]">
@@ -389,7 +443,9 @@ function HeadlineCard({ rec }: { rec: Recommendation }) {
               style={{ maxWidth: "70%", maxHeight: "70%", imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
             />
           ) : (
-            <Icon className="size-6" strokeWidth={1.75} />
+            // No per-rec sprite — fall back to the kind's signature sprite
+            // (Lucide is the third-tier fallback inside KindGlyph).
+            <KindGlyph kind={rec.kind} size={28} tone="accent" />
           )}
         </div>
         <div className="flex-1 min-w-0">
@@ -419,7 +475,6 @@ function HeadlineCard({ rec }: { rec: Recommendation }) {
 
 // One checklist row — compact, linkable.
 function RecRow({ rec }: { rec: Recommendation }) {
-  const Icon = KIND_META[rec.kind].icon;
   const inner = (
     <article
       className={cn(
@@ -437,7 +492,7 @@ function RecRow({ rec }: { rec: Recommendation }) {
               style={{ maxWidth: "72%", maxHeight: "72%", imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
             />
           ) : (
-            <Icon className="size-4" strokeWidth={1.75} />
+            <KindGlyph kind={rec.kind} size={20} tone="accent" />
           )}
         </div>
         <div className="flex-1 min-w-0">

@@ -227,7 +227,7 @@ export function Intake({ onSubmit, loading, error, askRsn = false, onPasteStateC
           className={cn(
             "w-full rounded-lg px-4 py-3.5 font-mono text-[12.5px] leading-relaxed",
             "bg-[var(--color-bg-2)] border border-[var(--color-border)]",
-            "focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(0,226,154,0.12)]",
+            "focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(230, 165, 47,0.12)]",
             "placeholder:text-[var(--color-text-muted)]",
             "resize-y min-h-[140px]"
           )}
@@ -333,7 +333,7 @@ export function Intake({ onSubmit, loading, error, askRsn = false, onPasteStateC
               className={cn(
                 "w-full rounded-md pl-9 pr-3 py-2.5 text-[13px] font-mono",
                 "bg-[var(--color-panel)] border border-[var(--color-border)]",
-                "focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(0,226,154,0.12)]",
+                "focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(230, 165, 47,0.12)]",
                 "placeholder:text-[var(--color-text-muted)]"
               )}
             />
