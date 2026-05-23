@@ -8,14 +8,23 @@ import { ICON_URL, NPC_SPRITE_URL, cn } from "@/lib/utils";
 
 // Reusable boss sprite. Tries the OSRS Wiki NPC portrait first (the actual
 // boss image), falls back to the boss's signature drop sprite if the wiki
-// lookup fails, then to the emoji as a last resort. onError swap keeps the
-// UI graceful when the wiki URL 404s for new content. Exported so the
+// lookup fails, then to a neutral dot as a last resort. onError swap keeps
+// the UI graceful when the wiki URL 404s for new content. Exported so the
 // bank-result page can reuse it for its boss grid.
 export function BossSprite({ boss, size = 28 }: { boss: Boss; size?: number }) {
-  const [stage, setStage] = useState<"npc" | "drop" | "emoji">("npc");
+  const [stage, setStage] = useState<"npc" | "drop" | "dot">("npc");
   const npcName = boss.npcName ?? boss.name;
-  if (stage === "emoji" || (!boss.iconItemId && stage !== "npc")) {
-    return <span className="text-base" style={{ fontSize: size * 0.7 }}>{boss.emoji ?? "•"}</span>;
+  if (stage === "dot" || (!boss.iconItemId && stage !== "npc")) {
+    // Final fallback: a neutral mint dot. No emoji — the toolkit is fully
+    // OSRS-sprite-driven, and a system emoji would clash with the in-game
+    // sprites used everywhere else.
+    return (
+      <span
+        aria-hidden="true"
+        className="rounded-full bg-[var(--color-text-muted)] inline-block"
+        style={{ width: size * 0.4, height: size * 0.4 }}
+      />
+    );
   }
   if (stage === "drop" && boss.iconItemId) {
     return (
@@ -29,7 +38,7 @@ export function BossSprite({ boss, size = 28 }: { boss: Boss; size?: number }) {
           imageRendering: "pixelated",
           filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))"
         }}
-        onError={() => setStage("emoji")}
+        onError={() => setStage("dot")}
       />
     );
   }
@@ -43,7 +52,7 @@ export function BossSprite({ boss, size = 28 }: { boss: Boss; size?: number }) {
         maxHeight: "92%",
         objectFit: "contain"
       }}
-      onError={() => setStage(boss.iconItemId ? "drop" : "emoji")}
+      onError={() => setStage(boss.iconItemId ? "drop" : "dot")}
     />
   );
 }

@@ -257,7 +257,7 @@ function BossRow({ boss, dps, owned, startExpanded = false }: {
               />
             </div>
           ) : (
-            <span className="text-2xl shrink-0">{boss.emoji}</span>
+            <span aria-hidden="true" className="size-6 shrink-0 rounded-full bg-[var(--color-text-muted)] inline-block" />
           )}
           <div className="min-w-0">
             <div className="text-[13px] font-semibold text-[var(--color-text)] truncate">{boss.name}</div>

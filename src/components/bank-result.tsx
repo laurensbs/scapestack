@@ -779,8 +779,15 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
             const meta = ARCHETYPES.find((a) => a.id === inferredArchetype);
             if (!meta) return null;
             return (
-              <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-2.5 py-1 text-[11.5px] font-medium text-[var(--color-accent)]">
-                <span>{meta.emoji}</span>
+              <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 pl-1.5 pr-2.5 py-0.5 text-[11.5px] font-medium text-[var(--color-accent)]">
+                <span className="size-4 shrink-0 inline-flex items-center justify-center">
+                  <img
+                    src={ICON_URL(meta.iconItemId)}
+                    alt=""
+                    className="pixelated"
+                    style={{ maxWidth: "100%", maxHeight: "100%", imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
+                  />
+                </span>
                 <span>Layout tuned for <span className="font-semibold">{meta.label}</span></span>
                 {inferredRsn && (
                   <span className="text-[var(--color-text-muted)] font-mono normal-case">· {inferredRsn}</span>
@@ -1247,9 +1254,9 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
                         }}
                       />
                     </span>
-                  ) : p.set.emoji ? (
-                    <span className="shrink-0 text-[14px]">{p.set.emoji}</span>
-                  ) : null}
+                  ) : (
+                    <span aria-hidden="true" className="size-3 shrink-0 rounded-full bg-[var(--color-text-muted)] inline-block" />
+                  )}
                   <span className="text-[var(--color-text-dim)] flex-1 min-w-0 truncate">{p.set.name}</span>
                   <span className="font-mono tabular-nums text-[var(--color-accent)] font-semibold shrink-0">{p.owned}/{p.total}</span>
                   <div className="w-16 h-1.5 rounded-full bg-[var(--color-border)] overflow-hidden shrink-0">
@@ -1409,8 +1416,11 @@ function ArchetypeSelect({
         title={inferred ? `Inferred from Hiscores: ${inferred}` : "Pick the profile that matches how you'd like the bank laid out"}
       >
         {ARCHETYPES.map((a) => (
+          // <option> can't host an <img>, so this dropdown is text-only —
+          // the OSRS sprite for the active archetype is rendered next to
+          // the select via the "Layout tuned for …" pill (see line ~782).
           <option key={a.id} value={a.id}>
-            {a.emoji} {a.label}
+            {a.label}
           </option>
         ))}
         <option value="unspecified">— Default</option>
@@ -1963,7 +1973,7 @@ function PresetChipRow({ tabName, active, onChange }: {
               }}
             />
           ) : (
-            <span className="text-[12px]">{p.emoji}</span>
+            <span aria-hidden="true" className="size-3 rounded-full bg-[var(--color-text-muted)] inline-block" />
           )}
           {p.name}
         </button>
@@ -2287,7 +2297,7 @@ function PresetGrid({ items, preset, hasPrices, hasQty, junkIds, staleIds, goalM
             }}
           />
         ) : (
-          <span>{preset.emoji}</span>
+          <span aria-hidden="true" className="size-3 rounded-full bg-[var(--color-text-muted)] inline-block" />
         )}
         <span>
           Each row is one stage of your <span className="text-[var(--color-accent)] not-italic font-semibold">{preset.name}</span> loadout.

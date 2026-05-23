@@ -12,7 +12,9 @@ export interface ArchetypeMeta {
   id: Archetype;
   label: string;
   description: string;
-  emoji: string;
+  /** OSRS item-id whose sprite represents this archetype. Replaces the
+   *  earlier emoji to keep the UI fully OSRS-native (no system emojis). */
+  iconItemId: number;
 }
 
 export const ARCHETYPES: ArchetypeMeta[] = [
@@ -20,25 +22,25 @@ export const ARCHETYPES: ArchetypeMeta[] = [
     id: "main",
     label: "Maxed Main",
     description: "Late-game account, everything unlocked. PvM gear, raids, lots of supplies.",
-    emoji: "👑"
+    iconItemId: 13342 // Max cape
   },
   {
     id: "pvm",
     label: "PvMer",
     description: "Mid-to-late. Boss-focused. Gear matters more than skilling resources.",
-    emoji: "⚔️"
+    iconItemId: 4151 // Abyssal whip
   },
   {
     id: "skiller",
     label: "Skiller",
     description: "Skills over combat. Resources, herbs, seeds, supplies dominate the bank.",
-    emoji: "🪓"
+    iconItemId: 6739 // Dragon axe
   },
   {
     id: "ironman",
     label: "Ironman",
     description: "Self-sufficient. Untradeables, quest items, every drop preserved.",
-    emoji: "🛡️"
+    iconItemId: 12810 // Ironman helm
   }
 ];
 

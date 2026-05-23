@@ -54,6 +54,10 @@ export interface BossRoom {
   magicLevel?: number;
   weaknesses: CombatStyle[];
   notes?: string;
+  /** OSRS item-id whose sprite represents this room (signature drop /
+   *  characteristic item). Lets BossSprite show the room with a real OSRS
+   *  icon instead of the generic fallback dot. */
+  iconItemId?: number;
 }
 
 export type BossCategory =
@@ -216,15 +220,15 @@ export const BOSSES: Boss[] = [
     notes: "5 boss rooms + Olm. Tbow + crush spec are the standard.",
     rooms: [
       { slug: "tekton",    name: "Tekton",        hp: 300,  defenceLevel: 240, defenceBonuses: { stab: 35, slash: 25, crush: 35, magic: 110, ranged: 75 },
-        weaknesses: ["crush"],            notes: "Crush + DWH spec drops his defence." },
+        weaknesses: ["crush"], notes: "Crush + DWH spec drops his defence.", iconItemId: 13652 /* Dragon claws — CoX unique table */ },
       { slug: "vasa",      name: "Vasa Nistirio", hp: 1100, defenceLevel: 110, defenceBonuses: { stab: 40, slash: 30, crush: 40, magic: 175, ranged: 50 },
-        weaknesses: ["ranged"] },
+        weaknesses: ["ranged"], iconItemId: 21000 /* Twisted buckler */ },
       { slug: "vespula",   name: "Vespula",       hp: 280,  defenceLevel: 130, defenceBonuses: { stab: 30, slash: 30, crush: 30, magic: 50, ranged: 50 },
-        weaknesses: ["stab", "slash"] },
+        weaknesses: ["stab", "slash"], iconItemId: 21003 /* Elder maul */ },
       { slug: "muttadile", name: "Muttadile",     hp: 270,  defenceLevel: 200, defenceBonuses: { stab: 40, slash: 40, crush: 40, magic: 110, ranged: 80 },
-        weaknesses: ["ranged", "magic"] },
+        weaknesses: ["ranged", "magic"], iconItemId: 20849 /* Dragon thrownaxe */ },
       { slug: "olm",       name: "Great Olm",     hp: 800,  defenceLevel: 175, defenceBonuses: { stab: 50, slash: 50, crush: 50, magic: 90, ranged: 50 },
-        weaknesses: ["ranged", "magic"],  notes: "Final boss — range + magic phases." }
+        weaknesses: ["ranged", "magic"], notes: "Final boss — range + magic phases.", iconItemId: 20997 /* Twisted bow */ }
     ]
   },
 
@@ -235,17 +239,17 @@ export const BOSSES: Boss[] = [
     notes: "6 rooms ending at Verzik. Scythe + range gear is the meta.",
     rooms: [
       { slug: "maiden",   name: "The Maiden",      hp: 2625, defenceLevel: 200, defenceBonuses: { stab: 0, slash: 0, crush: 0, magic: 200, ranged: 70 },
-        weaknesses: ["stab", "slash", "crush"], notes: "HP scales with party size." },
+        weaknesses: ["stab", "slash", "crush"], notes: "HP scales with party size.", iconItemId: 22322 /* Avernic defender */ },
       { slug: "bloat",    name: "Pestilent Bloat", hp: 1500, defenceLevel: 200, defenceBonuses: { stab: 0, slash: 0, crush: 0, magic: 250, ranged: 100 },
-        weaknesses: ["slash", "crush"] },
+        weaknesses: ["slash", "crush"], iconItemId: 22327 /* Justiciar chestguard */ },
       { slug: "nylo",     name: "Nylocas",         hp: 1200, defenceLevel: 200, defenceBonuses: { stab: 0, slash: 0, crush: 0, magic: 250, ranged: 250 },
-        weaknesses: ["stab", "slash", "crush"], notes: "Style swap waves." },
+        weaknesses: ["stab", "slash", "crush"], notes: "Style swap waves.", iconItemId: 22481 /* Sanguinesti staff */ },
       { slug: "sotetseg", name: "Sotetseg",        hp: 1800, defenceLevel: 200, defenceBonuses: { stab: 0, slash: 0, crush: 0, magic: 200, ranged: 200 },
-        weaknesses: ["ranged", "magic"] },
+        weaknesses: ["ranged", "magic"], iconItemId: 22328 /* Justiciar legguards */ },
       { slug: "xarpus",   name: "Xarpus",          hp: 1500, defenceLevel: 200, defenceBonuses: { stab: 0, slash: 0, crush: 0, magic: 200, ranged: 250 },
-        weaknesses: ["stab", "slash", "crush"] },
+        weaknesses: ["stab", "slash", "crush"], iconItemId: 22326 /* Justiciar faceguard */ },
       { slug: "verzik",   name: "Verzik Vitur",    hp: 4500, defenceLevel: 200, defenceBonuses: { stab: 0, slash: 0, crush: 0, magic: 0, ranged: 250 },
-        weaknesses: ["stab", "slash", "magic"], notes: "Three phases — mage, range, melee." }
+        weaknesses: ["stab", "slash", "magic"], notes: "Three phases — mage, range, melee.", iconItemId: 22325 /* Scythe of vitur */ }
     ]
   },
 
@@ -256,15 +260,15 @@ export const BOSSES: Boss[] = [
     notes: "4 path rooms + Warden. Tbow / Shadow / Fang carry hard.",
     rooms: [
       { slug: "akkha",   name: "Akkha",     hp: 700,  defenceLevel: 80, defenceBonuses: { stab: 80, slash: 80, crush: 80, magic: 80, ranged: 80 },
-        weaknesses: ["ranged", "magic"], notes: "Style cycles every 5 attacks." },
+        weaknesses: ["ranged", "magic"], notes: "Style cycles every 5 attacks.", iconItemId: 27285 /* Akkha's remnant */ },
       { slug: "ba-ba",   name: "Ba-Ba",     hp: 800,  defenceLevel: 80, defenceBonuses: { stab: 80, slash: 80, crush: 80, magic: 80, ranged: 80 },
-        weaknesses: ["crush"] },
+        weaknesses: ["crush"], iconItemId: 27283 /* Ba-Ba's remnant */ },
       { slug: "kephri",  name: "Kephri",    hp: 700,  defenceLevel: 80, defenceBonuses: { stab: 80, slash: 80, crush: 80, magic: 80, ranged: 80 },
-        weaknesses: ["ranged"] },
+        weaknesses: ["ranged"], iconItemId: 27279 /* Thread of Elidinis */ },
       { slug: "zebak",   name: "Zebak",     hp: 800,  defenceLevel: 80, defenceBonuses: { stab: 80, slash: 80, crush: 80, magic: 80, ranged: 80 },
-        weaknesses: ["magic"] },
+        weaknesses: ["magic"], iconItemId: 25975 /* Lightbearer */ },
       { slug: "warden",  name: "Tumeken's Warden", hp: 1500, defenceLevel: 80, defenceBonuses: { stab: 80, slash: 80, crush: 80, magic: 60, ranged: 60 },
-        weaknesses: ["ranged", "magic"], notes: "Final boss — Tbow shines." }
+        weaknesses: ["ranged", "magic"], notes: "Final boss — Tbow shines.", iconItemId: 27277 /* Tumeken's shadow */ }
     ]
   },
 

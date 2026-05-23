@@ -209,7 +209,7 @@ export function GoalsClient() {
                         }}
                       />
                     ) : (
-                      <span className="text-[14px]">{set.emoji}</span>
+                      <span aria-hidden="true" className="size-3 rounded-full bg-[var(--color-text-muted)] inline-block" />
                     )}
                     <span className="text-[12.5px] font-semibold text-[var(--color-text)] truncate">{set.name}</span>
                     <span className="ml-auto text-[10px] font-mono font-semibold text-[var(--color-accent)] tabular-nums">
@@ -457,7 +457,7 @@ function GoalSetCard({ set, completion }: { set: typeof GOAL_SETS[0]; completion
               }}
             />
           ) : (
-            <span className="text-[15px] leading-none">{set.emoji}</span>
+            <span aria-hidden="true" className="size-4 rounded-full bg-[var(--color-text-muted)] inline-block" />
           )}
         </div>
         <div className="flex-1 min-w-0">
@@ -543,9 +543,7 @@ function GoalSetCard({ set, completion }: { set: typeof GOAL_SETS[0]; completion
                     }}
                   />
                 ) : (
-                  <span className={cn("text-[20px] leading-none", !got && "opacity-30")}>
-                    {set.emoji}
-                  </span>
+                  <span aria-hidden="true" className={cn("size-4 rounded-full bg-[var(--color-text-muted)] inline-block", !got && "opacity-30")} />
                 )}
                 <span className={cn(
                   "text-[10px] text-center leading-tight truncate w-full px-0.5",
