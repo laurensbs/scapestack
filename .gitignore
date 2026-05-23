@@ -7,6 +7,10 @@ dist
 .DS_Store
 *.tsbuildinfo
 
+# Next.js auto-generates this and switches its content between dev / build
+# runs (.next/dev/types vs .next/types). Tracking it causes endless diffs.
+next-env.d.ts
+
 # Old / duplicate working copies — kept locally, never published.
 _legacy/
 _rebuild/
