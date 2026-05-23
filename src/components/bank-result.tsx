@@ -846,6 +846,27 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
             {copied === "all" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
             {copied === "all" ? "Copied!" : "Copy to RuneLite"}
           </button>
+          {/* Bank → /next handoff. Per STRATEGY.md the bank organizer is a
+              data feeder for the /next hub, so after a successful organize
+              we offer a one-click jump that carries the bank along via
+              sessionStorage. /next reads it back and skips the intake form. */}
+          <button
+            onClick={() => {
+              try {
+                const items = tabs.flatMap((t) => t.items.map((it) => ({ id: it.id, name: it.name })));
+                sessionStorage.setItem("scapestack:next:bank", JSON.stringify(items));
+              } catch { /* private mode / quota — fall through, /next still works without */ }
+              window.location.href = "/next?from=bank";
+            }}
+            className={cn(
+              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12.5px] font-medium border transition-colors",
+              "border-[var(--color-accent)]/40 text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10"
+            )}
+            title="Take this bank into the 'what to do next' hub"
+          >
+            <Sparkles className="size-3.5" />
+            What should I do next?
+          </button>
           {/* Smart tidy — secondary action, ghost-styled. Re-tidies in place
               if the user wants a different layout (each press uses a fresh
               shuffle seed, so equal-rank items shuffle a touch). */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useMemo } from "react";
+import { useState, useTransition, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
   ArrowRight, Edit3, Target, Sword, TrendingUp, Layers, Sparkles, Trophy,
@@ -33,12 +33,32 @@ export function NextClient() {
   const [result, setResult] = useState<NextUpResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  // When the user came from /bank's "What should I do next?" handoff,
+  // we surface a small banner on the intake so they know the bank is
+  // already loaded — they only need to add an RSN for stat-aware advice.
+  // Avoids `useSearchParams` (which would need a Suspense wrapper at the
+  // page level, as we discovered with /bank).
+  const [fromBank, setFromBank] = useState<{ items: Array<{ id: number; name: string }> } | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!new URLSearchParams(window.location.search).has("from")) return;
+    try {
+      const raw = sessionStorage.getItem("scapestack:next:bank");
+      if (!raw) return;
+      const items = JSON.parse(raw);
+      if (Array.isArray(items) && items.length > 0) setFromBank({ items });
+      // We deliberately DON'T clear sessionStorage here — if the user
+      // refreshes /next during the same tab session the banner stays.
+    } catch { /* malformed payload — silently ignore, fall back to intake */ }
+  }, []);
 
   // Three intake paths feed the same engine: RSN-only (no bank),
-  // RSN + bank (full data), or sample data (demo). Each just builds
-  // the same {skills, bank, questPoints, bossKc} shape — keeps the
-  // engine simple, branches at the edges.
-  const run = (opts: { input?: string; rsn?: string }) => {
+  // RSN + bank (full data), or sample data (demo). A fourth, hidden
+  // path: pre-parsed `bankItems` from /bank's "What should I do next?"
+  // handoff via sessionStorage — skips the textarea + organizeAction
+  // round-trip entirely. Each path builds the same engine input shape;
+  // we branch at the edges, not in the engine.
+  const run = (opts: { input?: string; rsn?: string; bankItems?: Array<{ id: number; name: string }> }) => {
     setError(null);
     startTransition(async () => {
       const rsn = (opts.rsn ?? "").trim();
@@ -48,10 +68,10 @@ export function NextClient() {
       // fails, we still build something useful from the bank alone.
       const hiscores = rsn ? await fetchHiscores(rsn) : null;
 
-      // Only call organizeAction when there's actually a bank to parse.
-      // RSN-only path skips it entirely.
-      let bank: Array<{ id: number; name: string }> = [];
-      if (input) {
+      // Three ways to fill `bank`: pre-parsed handoff, paste-string, or
+      // empty. organizeAction is only called for the paste-string path.
+      let bank: Array<{ id: number; name: string }> = opts.bankItems ?? [];
+      if (bank.length === 0 && input) {
         const bankRes = await organizeAction(input, { junkFilter: false, includePrices: false });
         if (bankRes.error || !bankRes.result) {
           setError(bankRes.error || "Couldn't read that bank — check the paste.");
@@ -99,6 +119,7 @@ export function NextClient() {
         onRun={run}
         loading={pending}
         error={error}
+        fromBank={fromBank}
       />
     );
   }
@@ -116,11 +137,12 @@ export function NextClient() {
 // for sharper advice.
 const SAMPLE_RSN = "Lynx Titan";
 function NextIntake({
-  onRun, loading, error
+  onRun, loading, error, fromBank
 }: {
-  onRun: (opts: { input?: string; rsn?: string }) => void;
+  onRun: (opts: { input?: string; rsn?: string; bankItems?: Array<{ id: number; name: string }> }) => void;
   loading: boolean;
   error: string | null;
+  fromBank: { items: Array<{ id: number; name: string }> } | null;
 }) {
   const [rsn, setRsn] = useState("");
   const [showBankField, setShowBankField] = useState(false);
@@ -128,8 +150,14 @@ function NextIntake({
 
   const submitRsn = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!rsn.trim()) return;
-    onRun({ rsn, input: showBankField ? bank : undefined });
+    if (!rsn.trim() && !fromBank) return;
+    onRun({
+      rsn,
+      input: showBankField ? bank : undefined,
+      // If the user came from /bank, ride that bank along so /next can
+      // give bank-aware recs even before they type their RSN.
+      bankItems: fromBank?.items
+    });
   };
 
   return (
@@ -144,6 +172,20 @@ function NextIntake({
           statistically due.
         </p>
       </header>
+
+      {/* Handoff banner — appears when the user arrived here via the
+          Bank Organizer's "What should I do next?" button. The bank is
+          already loaded; an RSN is optional but gets sharper advice. */}
+      {fromBank && (
+        <div className="mb-4 rounded-lg border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/8 px-4 py-3 flex items-start gap-3 animate-[fade-in_0.3s_ease-out]">
+          <Sparkles className="size-4 text-[var(--color-accent)] shrink-0 mt-0.5" />
+          <p className="text-[13px] text-[var(--color-text)] leading-relaxed">
+            <span className="font-semibold">Using the bank you just organised</span>
+            {" "}({fromBank.items.length} items). Add your OSRS name for stat-aware
+            advice, or just click the button — we&apos;ll do what we can with the bank alone.
+          </p>
+        </div>
+      )}
 
       {/* Primary path: RSN-only lookup */}
       <form onSubmit={submitRsn} className="surface p-5">
@@ -162,7 +204,9 @@ function NextIntake({
             />
             <button
               type="submit"
-              disabled={loading || !rsn.trim()}
+              // Allow submit on an empty RSN when we already have a bank
+              // from the /bank handoff — the engine works with one alone.
+              disabled={loading || (!rsn.trim() && !fromBank)}
               className="btn-primary group disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Reading account…" : "Show me what to do"}
