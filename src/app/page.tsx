@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Lock, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { TOOLS, type Tool } from "@/lib/tools";
 import { cn, ICON_URL } from "@/lib/utils";
 import { BuyMeCoffee } from "@/components/buy-me-coffee";
@@ -100,9 +100,8 @@ export default function HomePage() {
       )}
 
       {/* Roadmap section removed per STRATEGY.md — Quest / Skill / Diary
-          Tracker land inside /next as new rec-types, not as separate
-          tools that need their own marketing on the homepage. The
-          ComingSoon stub routes still exist so cached links don't 404. */}
+          recs live inside /next. The /quests, /skills, /diary, /gp, /ge
+          routes are now 308 redirects to /next so cached links don't 404. */}
 
       <footer className="mt-24 pt-10 border-t border-[var(--color-border)]">
         <div className="relative overflow-hidden rounded-2xl max-w-3xl mx-auto bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] border border-[var(--color-accent)]/25 animate-[slide-up_0.5s_cubic-bezier(0.22,1,0.36,1)_0.2s_both]">
@@ -167,7 +166,10 @@ function SectionLabel({ children, delay = 0 }: { children: React.ReactNode; dela
 
 function ToolCard({ tool, index }: { tool: Tool; index: number }) {
   const Icon = tool.icon;
-  const isLive = tool.status === "live";
+  // Every tool surfaced on the homepage is now live — planned tools were
+  // dropped per STRATEGY.md. "Soon" stays as a possible status so we can
+  // tease a future tool inline without re-introducing a ComingSoon stub.
+  const isSoon = tool.status === "soon";
 
   const inner = (
     <article
@@ -178,32 +180,20 @@ function ToolCard({ tool, index }: { tool: Tool; index: number }) {
       // transform stable.
       style={{ animation: `tile-rise 0.65s cubic-bezier(0.22,1,0.36,1) ${0.15 + index * 0.04}s both` }}
       className={cn(
-        "group/tool relative overflow-hidden rounded-xl p-5 h-full",
-        "surface",
-        // All cards are clickable now — even soon/planned link to a
-        // ComingSoon page so visitors can read what's coming. Hover
-        // affordance is the per-icon thematic animation (see globals.css).
+        "group/tool relative overflow-hidden rounded-xl p-5 h-full surface",
         "surface-interactive cursor-pointer transition-colors duration-200 ease-out",
-        !isLive && "opacity-80"
+        isSoon && "opacity-80"
       )}
     >
-      {/* Subtle mint glow on hover, only for live tools (Coming-soon
-          cards stay calmer to signal "not yet, but click for details"). */}
-      {isLive && (
-        <div
-          className="pointer-events-none absolute inset-0 opacity-0 group-hover/tool:opacity-100 transition-opacity duration-300"
-          style={{
-            background: "radial-gradient(360px 140px at 80% 0%, rgba(230, 165, 47,0.12), transparent 70%)"
-          }}
-        />
-      )}
+      {/* Subtle gold glow on hover (matches the new accent). */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-0 group-hover/tool:opacity-100 transition-opacity duration-300"
+        style={{
+          background: "radial-gradient(360px 140px at 80% 0%, rgba(230, 165, 47,0.12), transparent 70%)"
+        }}
+      />
       <div className="relative flex items-start gap-3.5">
-        <div className={cn(
-          "shrink-0 size-10 rounded-lg flex items-center justify-center border border-[var(--color-border)] transition-colors duration-200",
-          isLive
-            ? "bg-[var(--color-panel-2)] text-[var(--color-accent)] group-hover/tool:bg-[var(--color-accent)]/15 group-hover/tool:border-[var(--color-accent)]/40"
-            : "bg-[var(--color-panel-2)] text-[var(--color-text-muted)] group-hover/tool:border-[var(--color-border-strong)]"
-        )}>
+        <div className="shrink-0 size-10 rounded-lg flex items-center justify-center border border-[var(--color-border)] bg-[var(--color-panel-2)] text-[var(--color-accent)] group-hover/tool:bg-[var(--color-accent)]/15 group-hover/tool:border-[var(--color-accent)]/40 transition-colors duration-200">
           {/* Prefer the OSRS sprite when the tool ships one — gives the
               landing grid an unmistakable in-game feel. The Lucide icon
               still renders for tools without a signature item. Either way,
@@ -231,7 +221,7 @@ function ToolCard({ tool, index }: { tool: Tool; index: number }) {
             <h3 className="text-[14px] font-semibold text-[var(--color-text)] tracking-tight">
               {tool.name}
             </h3>
-            {tool.status === "soon" && (
+            {isSoon && (
               <span className="px-1.5 py-0.5 rounded text-[9.5px] font-semibold tracking-wider uppercase bg-[var(--color-panel-2)] border border-[var(--color-border)] text-[var(--color-text-dim)]">
                 Soon
               </span>
@@ -240,24 +230,14 @@ function ToolCard({ tool, index }: { tool: Tool; index: number }) {
           <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
             {tool.tagline}
           </p>
-          {isLive ? (
-            <div className="mt-3 inline-flex items-center gap-1 text-[12px] font-medium text-[var(--color-accent)] group-hover/tool:gap-1.5 transition-all">
-              Open <ArrowRight className="size-3.5" />
-            </div>
-          ) : (
-            <div className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-[var(--color-text-muted)] group-hover/tool:text-[var(--color-text-dim)] transition-colors">
-              <Lock className="size-3" /> Coming soon — read more
-            </div>
-          )}
+          <div className="mt-3 inline-flex items-center gap-1 text-[12px] font-medium text-[var(--color-accent)] group-hover/tool:gap-1.5 transition-all">
+            Open <ArrowRight className="size-3.5" />
+          </div>
         </div>
       </div>
     </article>
   );
 
-  // Every card links to a real page now: live tools to their tool, soon/
-  // planned tools to a ComingSoon stub at the same /<slug> route. The
-  // ComingSoon stub is a 5-line file under src/app/<slug>/page.tsx that
-  // renders <ComingSoon slug=... />.
   return (
     <div style={{ animation: `slide-up 0.35s ease-out ${0.05 + index * 0.05}s both` }}>
       <Link href={tool.href}>{inner}</Link>

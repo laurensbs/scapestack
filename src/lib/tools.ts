@@ -2,7 +2,7 @@
 // landing page. Add a tool here and it shows up everywhere.
 
 import type { LucideIcon } from "lucide-react";
-import { Layers, Trophy, Compass, Sword, Scroll, Hammer, Target, Sparkles } from "lucide-react";
+import { Layers, Trophy, Sword, Target, Sparkles } from "lucide-react";
 
 export type ToolStatus = "live" | "soon" | "planned";
 
@@ -50,11 +50,10 @@ export const TOOLS: Tool[] = [
     status: "live",
     accent: "amber"
   },
-  // GP Tracker and GE Price Tracker removed per docs/STRATEGY.md.
-  // OSRS Wiki Prices + ge-tracker.com do this better — no moat for us.
-  // The /gp and /ge routes still exist (ComingSoon stubs) to avoid 404s
-  // from cached external links, but they're no longer surfaced on the
-  // homepage tool grid.
+  // GP Tracker and GE Price Tracker removed per docs/STRATEGY.md — Wiki
+  // Prices + ge-tracker.com do that better, no moat for us. The /gp and
+  // /ge routes are kept as 308 permanent-redirects to /next (in
+  // src/app/{gp,ge}/page.tsx) so cached external links don't 404.
   {
     slug: "hiscore",
     href: "/hiscore",
@@ -81,19 +80,10 @@ export const TOOLS: Tool[] = [
     status: "live",
     accent: "emerald"
   },
-  {
-    slug: "quests",
-    href: "/quests",
-    name: "Quest Planner",
-    short: "Plan an efficient quest order",
-    tagline: "Optimal order based on requirements",
-    description:
-      "Tells you which quests you can do now, what's blocking the rest, and a suggested order to reach Quest Cape with the least backtracking.",
-    icon: Scroll,
-    iconItemId: 9813,  // Quest point cape
-    status: "planned",
-    accent: "rose"
-  },
+  // Quest / Skill / Diary planners removed as separate tools per STRATEGY.md:
+  // their functionality lives inside /next as rec-types (quest, skill,
+  // diary). The /quests, /skills, /diary routes are 308 redirects to /next
+  // so we don't break cached external links or Google results.
   {
     slug: "dps",
     href: "/dps",
@@ -106,32 +96,6 @@ export const TOOLS: Tool[] = [
     iconItemId: 4151,  // Abyssal whip — combat / damage signature
     status: "live",
     accent: "amber"
-  },
-  {
-    slug: "skills",
-    href: "/skills",
-    name: "Skill Planner",
-    short: "How long to your next goal?",
-    tagline: "XP curves + GP/hr method picker",
-    description:
-      "Pick a skill, set a target level, see the methods that get you there with their XP/hr, GP/hr (or cost/hr), and total time at each.",
-    icon: Hammer,
-    iconItemId: 9747,  // Attack cape — skill cape signature
-    status: "planned",
-    accent: "emerald"
-  },
-  {
-    slug: "diary",
-    href: "/diary",
-    name: "Diary Tracker",
-    short: "What achievement diaries to chase next",
-    tagline: "Pick the diaries you're closest to finishing",
-    description:
-      "See which Achievement Diaries you have completed, which are 1-2 tasks away, and which give the most bang for the buck (Karamja gloves 3, etc.).",
-    icon: Compass,
-    iconItemId: 11140, // Karamja gloves 4 — most-recognised diary reward
-    status: "planned",
-    accent: "sky"
   }
 ];
 
