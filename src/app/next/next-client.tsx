@@ -7,9 +7,11 @@ import {
   Gamepad2, Coins, Scroll, Map as MapIcon, Dices
 } from "lucide-react";
 import { SupportCard } from "@/components/support-card";
+import { SavedBankBanner } from "@/components/saved-bank-banner";
 import { organizeAction, nextUpAction } from "@/app/actions";
 import { fetchHiscores, type HiscoreSkill } from "@/lib/hiscores";
 import { unlockedFromHiscores } from "@/lib/goals";
+import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
 import type { Recommendation, RecKind, NextUpResult } from "@/lib/next-up";
 import { cn, ICON_URL } from "@/lib/utils";
 
@@ -94,17 +96,33 @@ export function NextClient() {
   // Avoids `useSearchParams` (which would need a Suspense wrapper at the
   // page level, as we discovered with /bank).
   const [fromBank, setFromBank] = useState<{ items: Array<{ id: number; name: string }> } | null>(null);
+  // Saved-bank welcome-back: same component as on /bank. Loaded once on
+  // mount. Beats nothing — a returning player on /next can now just click
+  // a button instead of going to /bank, pasting again, then coming back.
+  // We *don't* clobber the bank-handoff banner; if both are present
+  // fromBank wins (the user is mid-flow from /bank — that's a fresher
+  // intent than yesterday's saved bank).
+  const [savedBank, setSavedBank] = useState<SavedBank | null>(null);
+  const [savedRsn, setSavedRsn] = useState<string | null>(null);
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!new URLSearchParams(window.location.search).has("from")) return;
-    try {
-      const raw = sessionStorage.getItem("scapestack:next:bank");
-      if (!raw) return;
-      const items = JSON.parse(raw);
-      if (Array.isArray(items) && items.length > 0) setFromBank({ items });
-      // We deliberately DON'T clear sessionStorage here — if the user
-      // refreshes /next during the same tab session the banner stays.
-    } catch { /* malformed payload — silently ignore, fall back to intake */ }
+    const hasFromParam = new URLSearchParams(window.location.search).has("from");
+    if (hasFromParam) {
+      try {
+        const raw = sessionStorage.getItem("scapestack:next:bank");
+        if (raw) {
+          const items = JSON.parse(raw);
+          if (Array.isArray(items) && items.length > 0) setFromBank({ items });
+        }
+        // We deliberately DON'T clear sessionStorage here — if the user
+        // refreshes /next during the same tab session the banner stays.
+      } catch { /* malformed payload — silently ignore, fall back to intake */ }
+    } else {
+      // Only look up the saved bank when we're not in a handoff flow.
+      // Otherwise the user sees two banners stacking and that's noisy.
+      setSavedBank(loadSavedBank());
+    }
+    setSavedRsn(loadSavedRsn());
   }, []);
 
   // Three intake paths feed the same engine: RSN-only (no bank),
@@ -165,7 +183,20 @@ export function NextClient() {
 
       setResult(await nextUpAction({ skills, bank, questPoints, bossKc }));
       setView("result");
+
+      // Remember the RSN for next time — independent of bank-save. If the
+      // user is in the session opt-out (shared device), this is a no-op.
+      if (rsn) saveSavedRsn(rsn);
     });
+  };
+
+  // "Use saved bank" from the welcome-back banner. Reuses the same engine
+  // pipeline as a fresh paste — by calling run() with the stored input
+  // string, we always re-derive recommendations from the latest engine,
+  // not from any cached output.
+  const useSaved = (bank: SavedBank) => {
+    setSavedBank(null);
+    run({ input: bank.banktags, rsn: savedRsn ?? "" });
   };
 
   if (view === "intake") {
@@ -175,6 +206,10 @@ export function NextClient() {
         loading={pending}
         error={error}
         fromBank={fromBank}
+        savedBank={savedBank}
+        savedRsn={savedRsn}
+        onUseSaved={useSaved}
+        onDismissSaved={() => setSavedBank(null)}
       />
     );
   }
@@ -192,14 +227,21 @@ export function NextClient() {
 // for sharper advice.
 const SAMPLE_RSN = "Lynx Titan";
 function NextIntake({
-  onRun, loading, error, fromBank
+  onRun, loading, error, fromBank, savedBank, savedRsn, onUseSaved, onDismissSaved
 }: {
   onRun: (opts: { input?: string; rsn?: string; bankItems?: Array<{ id: number; name: string }> }) => void;
   loading: boolean;
   error: string | null;
   fromBank: { items: Array<{ id: number; name: string }> } | null;
+  savedBank: SavedBank | null;
+  savedRsn: string | null;
+  onUseSaved: (bank: SavedBank) => void;
+  onDismissSaved: () => void;
 }) {
-  const [rsn, setRsn] = useState("");
+  // Pre-fill RSN from the remembered value so a returning player doesn't
+  // re-type their name. The bank-save and rsn-save are independent — we
+  // might have one without the other.
+  const [rsn, setRsn] = useState(savedRsn ?? "");
   const [showBankField, setShowBankField] = useState(false);
   const [bank, setBank] = useState("");
 
@@ -227,6 +269,18 @@ function NextIntake({
           statistically due.
         </p>
       </header>
+
+      {/* Welcome-back banner. Only shown when there's no fresh /bank
+          handoff — the loader above already skips populating savedBank
+          in that case, but the explicit guard keeps the JSX honest. */}
+      {savedBank && !fromBank && (
+        <SavedBankBanner
+          saved={savedBank}
+          loading={loading}
+          onUse={() => onUseSaved(savedBank)}
+          onDismiss={onDismissSaved}
+        />
+      )}
 
       {/* Handoff banner — appears when the user arrived here via the
           Bank Organizer's "What should I do next?" button. The bank is

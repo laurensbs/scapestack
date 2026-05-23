@@ -7,10 +7,12 @@ import { Intro } from "@/components/intro";
 import { Intake } from "@/components/intake";
 import { BankResult } from "@/components/bank-result";
 import { ToolHeader } from "@/components/tool-header";
+import { SavedBankBanner } from "@/components/saved-bank-banner";
 import { SAMPLE_BANKTAGS } from "@/lib/utils";
 import { organizeAction } from "../actions";
 import { inferArchetype, saveArchetype, type Archetype } from "@/lib/archetype";
 import { fetchHiscores, computeCombatLevel, computeTotalLevel, type HiscoreSkill } from "@/lib/hiscores";
+import { loadSavedBank, saveSavedBank, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
 import type { OrganizeResult } from "@/lib/organizer";
 
 type View = "intake" | "result";
@@ -44,6 +46,11 @@ function BankPageContent() {
   const [inferredArchetype, setInferredArchetype] = useState<Archetype | null>(null);
   const [inferredRsn, setInferredRsn] = useState<string | null>(null);
   const [hiscoreSkills, setHiscoreSkills] = useState<HiscoreSkill[] | null>(null);
+  // Welcome-back banner state. We populate this once on mount when a saved
+  // bank is found, then the user either reuses it ("Use saved bank") or
+  // dismisses it ("Start fresh" / "Don't save on this device"). Lives at
+  // the page level because the banner needs to drive a programmatic submit.
+  const [savedBank, setSavedBank] = useState<SavedBank | null>(null);
   // Drives the Intro step rail: 0 = reading instructions, 2 = a valid bank
   // is in the textarea (steps 1-2 done, on step 3). Lifted here so the
   // instructions and the live form move together.
@@ -80,6 +87,15 @@ function BankPageContent() {
       setResult(res.result);
       setStrings(res.strings || []);
       setView("result");
+      // Auto-save on a successful organize. The module respects the
+      // session opt-out flag; if the user clicked "Don't save on this
+      // device" earlier this session it's a no-op. We skip the sample
+      // banktags — pinning the demo string as a "saved bank" would mean
+      // every welcome-back banner shows the sample, which is misleading.
+      if (input !== SAMPLE_BANKTAGS) {
+        saveSavedBank(input);
+        if (resolvedRsn) saveSavedRsn(resolvedRsn);
+      }
     });
   };
 
@@ -101,6 +117,22 @@ function BankPageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Welcome-back: look up a saved bank on mount. Skip when the URL is in
+  // sample-mode (the sample-bank effect above will take precedence) — we
+  // don't want to fight that flow with a banner that says "use your old
+  // bank instead." Only the intake view shows the banner.
+  useEffect(() => {
+    if (searchParams.get("sample") === "1") return;
+    setSavedBank(loadSavedBank());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const onUseSavedBank = useCallback((bank: SavedBank) => {
+    setSavedBank(null);
+    onIntakeSubmit(bank.banktags, false, "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <main className="relative z-10 mx-auto max-w-6xl px-5 py-7 pb-20">
       <ToolHeader
@@ -115,6 +147,14 @@ function BankPageContent() {
       />
       {view === "intake" && (
         <>
+          {savedBank && (
+            <SavedBankBanner
+              saved={savedBank}
+              loading={pending}
+              onUse={() => onUseSavedBank(savedBank)}
+              onDismiss={() => setSavedBank(null)}
+            />
+          )}
           <Intro flowStep={pasted ? 2 : 0} />
           <Intake
             key={sampleInput ?? "fresh"}
