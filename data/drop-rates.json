@@ -1,0 +1,5862 @@
+{
+  "Vorkath": {
+    "hiscoresName": "Vorkath",
+    "drops": [
+      {
+        "name": "Draconic visage",
+        "num": 1,
+        "denom": 5000,
+        "rarity": "1/5000"
+      },
+      {
+        "name": "Skeletal visage",
+        "num": 1,
+        "denom": 5000,
+        "rarity": "1/5000"
+      },
+      {
+        "name": "Jar of decay",
+        "num": 1,
+        "denom": 3000,
+        "rarity": "1/3000"
+      },
+      {
+        "name": "Vorki",
+        "num": 1,
+        "denom": 3000,
+        "rarity": "1/3000"
+      },
+      {
+        "name": "Dragonbone necklace",
+        "num": 1,
+        "denom": 1000,
+        "rarity": "1/1000"
+      },
+      {
+        "name": "Sapphire bolt tips",
+        "num": 5,
+        "denom": 2730,
+        "rarity": "5/2730"
+      },
+      {
+        "name": "Onyx bolt tips",
+        "num": 7,
+        "denom": 2730,
+        "rarity": "7/2730"
+      },
+      {
+        "name": "Dragonstone bolt tips",
+        "num": 14,
+        "denom": 2730,
+        "rarity": "14/2730"
+      },
+      {
+        "name": "Manta ray",
+        "num": 2,
+        "denom": 300,
+        "rarity": "2/300"
+      },
+      {
+        "name": "Emerald bolt tips",
+        "num": 20,
+        "denom": 2730,
+        "rarity": "20/2730"
+      },
+      {
+        "name": "Ruby bolt tips",
+        "num": 20,
+        "denom": 2730,
+        "rarity": "20/2730"
+      },
+      {
+        "name": "Diamond bolt tips",
+        "num": 25,
+        "denom": 2730,
+        "rarity": "25/2730"
+      },
+      {
+        "name": "Raw shark",
+        "num": 3,
+        "denom": 300,
+        "rarity": "3/300"
+      },
+      {
+        "name": "Shark lure",
+        "num": 3,
+        "denom": 300,
+        "rarity": "3/300"
+      },
+      {
+        "name": "Dragon battleaxe",
+        "num": 2,
+        "denom": 150,
+        "rarity": "2/150"
+      },
+      {
+        "name": "Dragon longsword",
+        "num": 2,
+        "denom": 150,
+        "rarity": "2/150"
+      },
+      {
+        "name": "Dragon platelegs",
+        "num": 2,
+        "denom": 150,
+        "rarity": "2/150"
+      },
+      {
+        "name": "Dragon plateskirt",
+        "num": 2,
+        "denom": 150,
+        "rarity": "2/150"
+      },
+      {
+        "name": "Wrath rune",
+        "num": 3,
+        "denom": 150,
+        "rarity": "3/150"
+      },
+      {
+        "name": "Rune dart tip",
+        "num": 3,
+        "denom": 150,
+        "rarity": "3/150"
+      },
+      {
+        "name": "Dragon arrowtips",
+        "num": 3,
+        "denom": 150,
+        "rarity": "3/150"
+      },
+      {
+        "name": "Dragonstone",
+        "num": 3,
+        "denom": 150,
+        "rarity": "3/150"
+      },
+      {
+        "name": "Wrath talisman",
+        "num": 3,
+        "denom": 150,
+        "rarity": "3/150"
+      },
+      {
+        "name": "Battlestaff",
+        "num": 4,
+        "denom": 150,
+        "rarity": "4/150"
+      },
+      {
+        "name": "Dragon bones",
+        "num": 4,
+        "denom": 150,
+        "rarity": "4/150"
+      },
+      {
+        "name": "Diamond",
+        "num": 4,
+        "denom": 150,
+        "rarity": "4/150"
+      },
+      {
+        "name": "Rune longsword",
+        "num": 5,
+        "denom": 150,
+        "rarity": "5/150"
+      },
+      {
+        "name": "Rune kiteshield",
+        "num": 5,
+        "denom": 150,
+        "rarity": "5/150"
+      },
+      {
+        "name": "Coins",
+        "num": 5,
+        "denom": 150,
+        "rarity": "5/150"
+      },
+      {
+        "name": "Grapes",
+        "num": 5,
+        "denom": 150,
+        "rarity": "5/150"
+      },
+      {
+        "name": "Magic logs",
+        "num": 5,
+        "denom": 150,
+        "rarity": "5/150"
+      },
+      {
+        "name": "Chaos rune",
+        "num": 6,
+        "denom": 150,
+        "rarity": "6/150"
+      },
+      {
+        "name": "Death rune",
+        "num": 6,
+        "denom": 150,
+        "rarity": "6/150"
+      },
+      {
+        "name": "Dragon dart tip",
+        "num": 6,
+        "denom": 150,
+        "rarity": "6/150"
+      },
+      {
+        "name": "Green dragonhide",
+        "num": 7,
+        "denom": 150,
+        "rarity": "7/150"
+      },
+      {
+        "name": "Red dragonhide",
+        "num": 7,
+        "denom": 150,
+        "rarity": "7/150"
+      },
+      {
+        "name": "Black dragonhide",
+        "num": 7,
+        "denom": 150,
+        "rarity": "7/150"
+      },
+      {
+        "name": "Adamantite ore",
+        "num": 7,
+        "denom": 150,
+        "rarity": "7/150"
+      },
+      {
+        "name": "Blue dragonhide",
+        "num": 8,
+        "denom": 150,
+        "rarity": "8/150"
+      },
+      {
+        "name": "Dragon bolts (unf)",
+        "num": 8,
+        "denom": 150,
+        "rarity": "8/150"
+      }
+    ]
+  },
+  "Zulrah": {
+    "hiscoresName": "Zulrah",
+    "drops": [
+      {
+        "name": "Tanzanite mutagen",
+        "num": 1,
+        "denom": 13107,
+        "rarity": "1/13107"
+      },
+      {
+        "name": "Magma mutagen",
+        "num": 1,
+        "denom": 13107,
+        "rarity": "1/13107"
+      },
+      {
+        "name": "Pet snakeling",
+        "num": 1,
+        "denom": 4000,
+        "rarity": "1/4000"
+      },
+      {
+        "name": "Jar of swamp",
+        "num": 1,
+        "denom": 3000,
+        "rarity": "1/3000"
+      },
+      {
+        "name": "Tanzanite fang",
+        "num": 1,
+        "denom": 1024,
+        "rarity": "1/1024"
+      },
+      {
+        "name": "Magic fang",
+        "num": 1,
+        "denom": 1024,
+        "rarity": "1/1024"
+      },
+      {
+        "name": "Serpentine visage",
+        "num": 1,
+        "denom": 1024,
+        "rarity": "1/1024"
+      },
+      {
+        "name": "Uncut onyx",
+        "num": 1,
+        "denom": 1024,
+        "rarity": "1/1024"
+      },
+      {
+        "name": "Spirit seed",
+        "num": 1,
+        "denom": 249,
+        "rarity": "1/249"
+      },
+      {
+        "name": "Dragon med helm",
+        "num": 2,
+        "denom": 249,
+        "rarity": "2/249"
+      },
+      {
+        "name": "Dragon halberd",
+        "num": 2,
+        "denom": 249,
+        "rarity": "2/249"
+      },
+      {
+        "name": "Snapdragon",
+        "num": 2,
+        "denom": 249,
+        "rarity": "2/249"
+      },
+      {
+        "name": "Dwarf weed",
+        "num": 2,
+        "denom": 249,
+        "rarity": "2/249"
+      },
+      {
+        "name": "Toadflax",
+        "num": 2,
+        "denom": 249,
+        "rarity": "2/249"
+      },
+      {
+        "name": "Torstol",
+        "num": 2,
+        "denom": 249,
+        "rarity": "2/249"
+      },
+      {
+        "name": "Toadflax seed",
+        "num": 2,
+        "denom": 249,
+        "rarity": "2/249"
+      },
+      {
+        "name": "Snapdragon seed",
+        "num": 2,
+        "denom": 249,
+        "rarity": "2/249"
+      },
+      {
+        "name": "Dwarf weed seed",
+        "num": 2,
+        "denom": 249,
+        "rarity": "2/249"
+      },
+      {
+        "name": "Torstol seed",
+        "num": 2,
+        "denom": 249,
+        "rarity": "2/249"
+      },
+      {
+        "name": "Manta ray",
+        "num": 3,
+        "denom": 249,
+        "rarity": "3/249"
+      },
+      {
+        "name": "Magic seed",
+        "num": 4,
+        "denom": 249,
+        "rarity": "4/249"
+      },
+      {
+        "name": "Raw shark",
+        "num": 5,
+        "denom": 249,
+        "rarity": "4.5/249"
+      },
+      {
+        "name": "Shark lure",
+        "num": 5,
+        "denom": 249,
+        "rarity": "4.5/249"
+      },
+      {
+        "name": "Swamp tar",
+        "num": 5,
+        "denom": 249,
+        "rarity": "5/249"
+      },
+      {
+        "name": "Zulrah's scales",
+        "num": 5,
+        "denom": 249,
+        "rarity": "5/249"
+      },
+      {
+        "name": "Palm tree seed",
+        "num": 6,
+        "denom": 249,
+        "rarity": "6/249"
+      },
+      {
+        "name": "Papaya tree seed",
+        "num": 6,
+        "denom": 249,
+        "rarity": "6/249"
+      },
+      {
+        "name": "Calquat tree seed",
+        "num": 6,
+        "denom": 249,
+        "rarity": "6/249"
+      },
+      {
+        "name": "Grapes",
+        "num": 6,
+        "denom": 249,
+        "rarity": "6/249"
+      },
+      {
+        "name": "Coconut",
+        "num": 6,
+        "denom": 249,
+        "rarity": "6/249"
+      },
+      {
+        "name": "Adamantite bar",
+        "num": 8,
+        "denom": 249,
+        "rarity": "8/249"
+      },
+      {
+        "name": "Coal",
+        "num": 8,
+        "denom": 249,
+        "rarity": "8/249"
+      },
+      {
+        "name": "Dragon bones",
+        "num": 8,
+        "denom": 249,
+        "rarity": "8/249"
+      },
+      {
+        "name": "Mahogany logs",
+        "num": 8,
+        "denom": 249,
+        "rarity": "8/249"
+      },
+      {
+        "name": "Dragonstone bolt tips",
+        "num": 8,
+        "denom": 249,
+        "rarity": "8/249"
+      },
+      {
+        "name": "Antidote++(4)",
+        "num": 9,
+        "denom": 249,
+        "rarity": "9/249"
+      },
+      {
+        "name": "Flax",
+        "num": 10,
+        "denom": 249,
+        "rarity": "10/249"
+      },
+      {
+        "name": "Battlestaff",
+        "num": 10,
+        "denom": 249,
+        "rarity": "10/249"
+      },
+      {
+        "name": "Pure essence",
+        "num": 10,
+        "denom": 249,
+        "rarity": "10/249"
+      },
+      {
+        "name": "Yew logs",
+        "num": 10,
+        "denom": 249,
+        "rarity": "10/249"
+      },
+      {
+        "name": "Snakeskin",
+        "num": 11,
+        "denom": 249,
+        "rarity": "11/249"
+      },
+      {
+        "name": "Runite ore",
+        "num": 11,
+        "denom": 249,
+        "rarity": "11/249"
+      },
+      {
+        "name": "Death rune",
+        "num": 12,
+        "denom": 249,
+        "rarity": "12/249"
+      },
+      {
+        "name": "Law rune",
+        "num": 12,
+        "denom": 249,
+        "rarity": "12/249"
+      },
+      {
+        "name": "Chaos rune",
+        "num": 12,
+        "denom": 249,
+        "rarity": "12/249"
+      },
+      {
+        "name": "Zul-andra teleport",
+        "num": 15,
+        "denom": 249,
+        "rarity": "15/249"
+      }
+    ]
+  },
+  "Alchemical Hydra": {
+    "hiscoresName": "Alchemical Hydra",
+    "drops": [
+      {
+        "name": "Ikkle hydra",
+        "num": 1,
+        "denom": 3000,
+        "rarity": "1/3000"
+      },
+      {
+        "name": "Dragon thrownaxe",
+        "num": 1,
+        "denom": 2000,
+        "rarity": "1/2000"
+      },
+      {
+        "name": "Jar of chemicals",
+        "num": 1,
+        "denom": 2000,
+        "rarity": "1/2000"
+      },
+      {
+        "name": "Alchemical hydra heads",
+        "num": 1,
+        "denom": 256,
+        "rarity": "1/256"
+      },
+      {
+        "name": "Mystic robe top (light)",
+        "num": 1,
+        "denom": 101,
+        "rarity": "1/101"
+      },
+      {
+        "name": "Mystic robe bottom (light)",
+        "num": 1,
+        "denom": 101,
+        "rarity": "1/101"
+      },
+      {
+        "name": "Onyx bolts (e)",
+        "num": 1,
+        "denom": 101,
+        "rarity": "1/101"
+      },
+      {
+        "name": "Crystal key",
+        "num": 1,
+        "denom": 101,
+        "rarity": "1/101"
+      },
+      {
+        "name": "Dragon battleaxe",
+        "num": 2,
+        "denom": 101,
+        "rarity": "2/101"
+      },
+      {
+        "name": "Dragonstone bolts (e)",
+        "num": 2,
+        "denom": 101,
+        "rarity": "2/101"
+      },
+      {
+        "name": "Dragon longsword",
+        "num": 3,
+        "denom": 101,
+        "rarity": "3/101"
+      },
+      {
+        "name": "Dragon med helm",
+        "num": 3,
+        "denom": 101,
+        "rarity": "3/101"
+      },
+      {
+        "name": "Rune platebody",
+        "num": 3,
+        "denom": 101,
+        "rarity": "3/101"
+      },
+      {
+        "name": "Battlestaff",
+        "num": 5,
+        "denom": 101,
+        "rarity": "5/101"
+      },
+      {
+        "name": "Black d'hide body",
+        "num": 5,
+        "denom": 101,
+        "rarity": "5/101"
+      },
+      {
+        "name": "Rune platelegs",
+        "num": 5,
+        "denom": 101,
+        "rarity": "1.5/101"
+      },
+      {
+        "name": "Rune plateskirt",
+        "num": 5,
+        "denom": 101,
+        "rarity": "1.5/101"
+      },
+      {
+        "name": "Coins",
+        "num": 5,
+        "denom": 101,
+        "rarity": "0.5/101"
+      },
+      {
+        "name": "Chaos rune",
+        "num": 6,
+        "denom": 101,
+        "rarity": "6/101"
+      },
+      {
+        "name": "Death rune",
+        "num": 6,
+        "denom": 101,
+        "rarity": "6/101"
+      },
+      {
+        "name": "Blood rune",
+        "num": 6,
+        "denom": 101,
+        "rarity": "6/101"
+      },
+      {
+        "name": "Astral rune",
+        "num": 6,
+        "denom": 101,
+        "rarity": "6/101"
+      },
+      {
+        "name": "Dragon bones",
+        "num": 6,
+        "denom": 101,
+        "rarity": "6/101"
+      },
+      {
+        "name": "Shark",
+        "num": 7,
+        "denom": 101,
+        "rarity": "7/101"
+      },
+      {
+        "name": "Ranging potion(3)",
+        "num": 7,
+        "denom": 101,
+        "rarity": "7/101"
+      },
+      {
+        "name": "Super restore(3)",
+        "num": 7,
+        "denom": 101,
+        "rarity": "7/101"
+      },
+      {
+        "name": "Mystic fire staff",
+        "num": 8,
+        "denom": 101,
+        "rarity": "8/101"
+      },
+      {
+        "name": "Mystic water staff",
+        "num": 8,
+        "denom": 101,
+        "rarity": "8/101"
+      },
+      {
+        "name": "Hydra's eye",
+        "num": 1999,
+        "denom": 2000,
+        "rarity": "1/{{#expr:180/(1999/2000*1999/2000*999/1000*511/512*511/512) round 1"
+      },
+      {
+        "name": "Hydra's fang",
+        "num": 1999,
+        "denom": 2000,
+        "rarity": "1/{{#expr:180/(1999/2000*1999/2000*999/1000*511/512*511/512) round 1"
+      },
+      {
+        "name": "Hydra's heart",
+        "num": 1999,
+        "denom": 2000,
+        "rarity": "1/{{#expr:180/(1999/2000*1999/2000*999/1000*511/512*511/512) round 1"
+      },
+      {
+        "name": "Hydra tail",
+        "num": 1999,
+        "denom": 2000,
+        "rarity": "1/{{#expr:512/(1999/2000*1999/2000*999/1000) round 1"
+      },
+      {
+        "name": "Hydra leather",
+        "num": 1999,
+        "denom": 2000,
+        "rarity": "1/{{#expr:512/(1999/2000*1999/2000*999/1000*511/512) round 1"
+      },
+      {
+        "name": "Hydra's claw",
+        "num": 1999,
+        "denom": 2000,
+        "rarity": "1/{{#expr:1000/(1999/2000*1999/2000) round 1"
+      },
+      {
+        "name": "Dragon knife",
+        "num": 1999,
+        "denom": 2000,
+        "rarity": "1/{{#expr:2000/(1999/2000) round 1"
+      }
+    ]
+  },
+  "Cerberus": {
+    "hiscoresName": "Cerberus",
+    "drops": [
+      {
+        "name": "Hellpuppy",
+        "num": 1,
+        "denom": 3000,
+        "rarity": "1/3000"
+      },
+      {
+        "name": "Jar of souls",
+        "num": 1,
+        "denom": 2000,
+        "rarity": "1/2000"
+      },
+      {
+        "name": "Primordial crystal",
+        "num": 1,
+        "denom": 520,
+        "rarity": "1/520"
+      },
+      {
+        "name": "Pegasian crystal",
+        "num": 1,
+        "denom": 520,
+        "rarity": "1/520"
+      },
+      {
+        "name": "Eternal crystal",
+        "num": 1,
+        "denom": 520,
+        "rarity": "1/520"
+      },
+      {
+        "name": "Smouldering stone",
+        "num": 1,
+        "denom": 520,
+        "rarity": "1/520"
+      },
+      {
+        "name": "Lava battlestaff",
+        "num": 2,
+        "denom": 130,
+        "rarity": "2/130"
+      },
+      {
+        "name": "Rune halberd",
+        "num": 2,
+        "denom": 130,
+        "rarity": "2/130"
+      },
+      {
+        "name": "Torstol seed",
+        "num": 2,
+        "denom": 130,
+        "rarity": "2/130"
+      },
+      {
+        "name": "Ranarr seed",
+        "num": 2,
+        "denom": 130,
+        "rarity": "2/130"
+      },
+      {
+        "name": "Key master teleport",
+        "num": 2,
+        "denom": 130,
+        "rarity": "2/130"
+      },
+      {
+        "name": "Black d'hide body",
+        "num": 3,
+        "denom": 130,
+        "rarity": "3/130"
+      },
+      {
+        "name": "Rune axe",
+        "num": 3,
+        "denom": 130,
+        "rarity": "3/130"
+      },
+      {
+        "name": "Rune pickaxe",
+        "num": 3,
+        "denom": 130,
+        "rarity": "3/130"
+      },
+      {
+        "name": "Battlestaff",
+        "num": 3,
+        "denom": 130,
+        "rarity": "3/130"
+      },
+      {
+        "name": "Rune full helm",
+        "num": 3,
+        "denom": 130,
+        "rarity": "3/130"
+      },
+      {
+        "name": "Death rune",
+        "num": 3,
+        "denom": 130,
+        "rarity": "3/130"
+      },
+      {
+        "name": "Runite ore",
+        "num": 3,
+        "denom": 130,
+        "rarity": "3/130"
+      },
+      {
+        "name": "Uncut diamond",
+        "num": 3,
+        "denom": 130,
+        "rarity": "3/130"
+      },
+      {
+        "name": "Rune chainbody",
+        "num": 4,
+        "denom": 130,
+        "rarity": "4/130"
+      },
+      {
+        "name": "Rune 2h sword",
+        "num": 4,
+        "denom": 130,
+        "rarity": "4/130"
+      },
+      {
+        "name": "Blood rune",
+        "num": 4,
+        "denom": 130,
+        "rarity": "4/130"
+      },
+      {
+        "name": "Steel cannonball",
+        "num": 4,
+        "denom": 130,
+        "rarity": "4/130"
+      },
+      {
+        "name": "Runite bolts (unf)",
+        "num": 4,
+        "denom": 130,
+        "rarity": "4/130"
+      },
+      {
+        "name": "Ashes",
+        "num": 4,
+        "denom": 130,
+        "rarity": "4/130"
+      },
+      {
+        "name": "Fire orb",
+        "num": 4,
+        "denom": 130,
+        "rarity": "4/130"
+      },
+      {
+        "name": "Grimy torstol",
+        "num": 4,
+        "denom": 130,
+        "rarity": "4/130"
+      },
+      {
+        "name": "Rune platebody",
+        "num": 5,
+        "denom": 130,
+        "rarity": "5/130"
+      },
+      {
+        "name": "Pure essence",
+        "num": 5,
+        "denom": 130,
+        "rarity": "5/130"
+      },
+      {
+        "name": "Coins",
+        "num": 5,
+        "denom": 130,
+        "rarity": "5/130"
+      },
+      {
+        "name": "Dragon bones",
+        "num": 5,
+        "denom": 130,
+        "rarity": "5/130"
+      },
+      {
+        "name": "Unholy symbol",
+        "num": 5,
+        "denom": 130,
+        "rarity": "5/130"
+      },
+      {
+        "name": "Wine of zamorak",
+        "num": 5,
+        "denom": 130,
+        "rarity": "5/130"
+      },
+      {
+        "name": "Fire rune",
+        "num": 6,
+        "denom": 130,
+        "rarity": "6/130"
+      },
+      {
+        "name": "Soul rune",
+        "num": 6,
+        "denom": 130,
+        "rarity": "6/130"
+      },
+      {
+        "name": "Coal",
+        "num": 6,
+        "denom": 130,
+        "rarity": "6/130"
+      },
+      {
+        "name": "Super restore(4)",
+        "num": 6,
+        "denom": 130,
+        "rarity": "6/130"
+      },
+      {
+        "name": "Summer pie",
+        "num": 6,
+        "denom": 130,
+        "rarity": "6/130"
+      }
+    ]
+  },
+  "Kraken": {
+    "hiscoresName": "Kraken",
+    "drops": [
+      {
+        "name": "Pet kraken",
+        "num": 1,
+        "denom": 3000,
+        "rarity": "1/3000"
+      },
+      {
+        "name": "Jar of dirt",
+        "num": 1,
+        "denom": 1000,
+        "rarity": "1/1000"
+      },
+      {
+        "name": "Trident of the seas (full)",
+        "num": 1,
+        "denom": 512,
+        "rarity": "1/512"
+      },
+      {
+        "name": "Kraken tentacle",
+        "num": 1,
+        "denom": 400,
+        "rarity": "1/400"
+      },
+      {
+        "name": "Mystic robe top",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Mystic robe bottom",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Torstol seed",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Magic seed",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Diamond",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Runite bar",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Harpoon",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Bucket",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Crystal key",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Dragonstone ring",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Rune warhammer",
+        "num": 2,
+        "denom": 128,
+        "rarity": "2/128"
+      },
+      {
+        "name": "Rune longsword",
+        "num": 2,
+        "denom": 128,
+        "rarity": "2/128"
+      },
+      {
+        "name": "Unpowered orb",
+        "num": 2,
+        "denom": 128,
+        "rarity": "2/128"
+      },
+      {
+        "name": "Raw shark",
+        "num": 2,
+        "denom": 128,
+        "rarity": "2/128"
+      },
+      {
+        "name": "Raw monkfish",
+        "num": 2,
+        "denom": 128,
+        "rarity": "2/128"
+      },
+      {
+        "name": "Grimy snapdragon",
+        "num": 2,
+        "denom": 128,
+        "rarity": "2/128"
+      },
+      {
+        "name": "Antidote++(4)",
+        "num": 2,
+        "denom": 128,
+        "rarity": "2/128"
+      },
+      {
+        "name": "Mystic water staff",
+        "num": 3,
+        "denom": 128,
+        "rarity": "3/128"
+      },
+      {
+        "name": "Watermelon seed",
+        "num": 3,
+        "denom": 128,
+        "rarity": "3/128"
+      },
+      {
+        "name": "Seaweed",
+        "num": 3,
+        "denom": 128,
+        "rarity": "3/128"
+      },
+      {
+        "name": "Oak plank",
+        "num": 3,
+        "denom": 128,
+        "rarity": "3/128"
+      },
+      {
+        "name": "Edible seaweed",
+        "num": 3,
+        "denom": 128,
+        "rarity": "3/128"
+      },
+      {
+        "name": "Mist rune",
+        "num": 4,
+        "denom": 128,
+        "rarity": "4/128"
+      },
+      {
+        "name": "Battlestaff",
+        "num": 4,
+        "denom": 128,
+        "rarity": "4/128"
+      },
+      {
+        "name": "Pirate boots",
+        "num": 4,
+        "denom": 128,
+        "rarity": "4/128"
+      },
+      {
+        "name": "Sanfew serum(4)",
+        "num": 4,
+        "denom": 128,
+        "rarity": "4/128"
+      },
+      {
+        "name": "Soul rune",
+        "num": 7,
+        "denom": 128,
+        "rarity": "7/128"
+      },
+      {
+        "name": "Shark",
+        "num": 7,
+        "denom": 128,
+        "rarity": "7/128"
+      },
+      {
+        "name": "Water rune",
+        "num": 10,
+        "denom": 128,
+        "rarity": "10/128"
+      },
+      {
+        "name": "Chaos rune",
+        "num": 10,
+        "denom": 128,
+        "rarity": "10/128"
+      },
+      {
+        "name": "Death rune",
+        "num": 10,
+        "denom": 128,
+        "rarity": "10/128"
+      },
+      {
+        "name": "Blood rune",
+        "num": 10,
+        "denom": 128,
+        "rarity": "10/128"
+      },
+      {
+        "name": "Coins",
+        "num": 15,
+        "denom": 128,
+        "rarity": "15/128"
+      },
+      {
+        "name": "Rusty sword",
+        "num": 75,
+        "denom": 128,
+        "rarity": "1.75/128"
+      }
+    ]
+  },
+  "Abyssal Sire": {
+    "hiscoresName": "Abyssal Sire",
+    "drops": [
+      {
+        "name": "Grimy lantadyme",
+        "num": 15,
+        "denom": 2224,
+        "rarity": "15/2224"
+      },
+      {
+        "name": "Grimy dwarf weed",
+        "num": 20,
+        "denom": 2224,
+        "rarity": "20/2224"
+      },
+      {
+        "name": "Grimy cadantine",
+        "num": 20,
+        "denom": 2224,
+        "rarity": "20/2224"
+      },
+      {
+        "name": "Unsired",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Grimy kwuarm",
+        "num": 25,
+        "denom": 2224,
+        "rarity": "25/2224"
+      },
+      {
+        "name": "Mystic air staff",
+        "num": 2,
+        "denom": 139,
+        "rarity": "2/139"
+      },
+      {
+        "name": "Air battlestaff",
+        "num": 2,
+        "denom": 139,
+        "rarity": "2/139"
+      },
+      {
+        "name": "Runite bar",
+        "num": 2,
+        "denom": 139,
+        "rarity": "2/139"
+      },
+      {
+        "name": "Aether catalyst",
+        "num": 2,
+        "denom": 139,
+        "rarity": "2/139"
+      },
+      {
+        "name": "Saradomin brew(3)",
+        "num": 2,
+        "denom": 139,
+        "rarity": "2/139"
+      },
+      {
+        "name": "Jug of water",
+        "num": 2,
+        "denom": 139,
+        "rarity": "2/139"
+      },
+      {
+        "name": "Rune kiteshield",
+        "num": 3,
+        "denom": 139,
+        "rarity": "3/139"
+      },
+      {
+        "name": "Onyx bolt tips",
+        "num": 3,
+        "denom": 139,
+        "rarity": "3/139"
+      },
+      {
+        "name": "Rune full helm",
+        "num": 4,
+        "denom": 139,
+        "rarity": "4/139"
+      },
+      {
+        "name": "Mystic lava staff",
+        "num": 4,
+        "denom": 139,
+        "rarity": "4/139"
+      },
+      {
+        "name": "Rune sword",
+        "num": 4,
+        "denom": 139,
+        "rarity": "4/139"
+      },
+      {
+        "name": "Rune platebody",
+        "num": 4,
+        "denom": 139,
+        "rarity": "4/139"
+      },
+      {
+        "name": "Cosmic rune",
+        "num": 4,
+        "denom": 139,
+        "rarity": "4/139"
+      },
+      {
+        "name": "Steel cannonball",
+        "num": 4,
+        "denom": 139,
+        "rarity": "4/139"
+      },
+      {
+        "name": "Coal",
+        "num": 4,
+        "denom": 139,
+        "rarity": "4/139"
+      },
+      {
+        "name": "Runite ore",
+        "num": 4,
+        "denom": 139,
+        "rarity": "4/139"
+      },
+      {
+        "name": "Binding necklace",
+        "num": 4,
+        "denom": 139,
+        "rarity": "4/139"
+      },
+      {
+        "name": "Blood rune",
+        "num": 5,
+        "denom": 139,
+        "rarity": "5/139"
+      },
+      {
+        "name": "Death rune",
+        "num": 5,
+        "denom": 139,
+        "rarity": "5/139"
+      },
+      {
+        "name": "Law rune",
+        "num": 5,
+        "denom": 139,
+        "rarity": "5/139"
+      },
+      {
+        "name": "Soul rune",
+        "num": 5,
+        "denom": 139,
+        "rarity": "5/139"
+      },
+      {
+        "name": "Earth orb",
+        "num": 5,
+        "denom": 139,
+        "rarity": "5/139"
+      },
+      {
+        "name": "Pure essence",
+        "num": 5,
+        "denom": 139,
+        "rarity": "5/139"
+      },
+      {
+        "name": "Magic logs",
+        "num": 5,
+        "denom": 139,
+        "rarity": "5/139"
+      },
+      {
+        "name": "Uncut diamond",
+        "num": 5,
+        "denom": 139,
+        "rarity": "5/139"
+      },
+      {
+        "name": "Super restore(4)",
+        "num": 5,
+        "denom": 139,
+        "rarity": "5/139"
+      },
+      {
+        "name": "Battlestaff",
+        "num": 6,
+        "denom": 139,
+        "rarity": "6/139"
+      },
+      {
+        "name": "Chilli potato",
+        "num": 7,
+        "denom": 139,
+        "rarity": "7/139"
+      },
+      {
+        "name": "Coins",
+        "num": 11,
+        "denom": 139,
+        "rarity": "11/139"
+      }
+    ]
+  },
+  "Thermonuclear smoke devil": {
+    "hiscoresName": "Thermonuclear Smoke Devil",
+    "drops": [
+      {
+        "name": "Pet smoke devil",
+        "num": 1,
+        "denom": 3000,
+        "rarity": "1/3000"
+      },
+      {
+        "name": "Dragon chainbody",
+        "num": 1,
+        "denom": 2000,
+        "rarity": "1/2000"
+      },
+      {
+        "name": "Jar of smoke",
+        "num": 1,
+        "denom": 2000,
+        "rarity": "1/2000"
+      },
+      {
+        "name": "Smoke battlestaff",
+        "num": 1,
+        "denom": 512,
+        "rarity": "1/512"
+      },
+      {
+        "name": "Occult necklace",
+        "num": 1,
+        "denom": 350,
+        "rarity": "1/350"
+      },
+      {
+        "name": "Shark lure",
+        "num": 3,
+        "denom": 856,
+        "rarity": "3/856"
+      },
+      {
+        "name": "Raw shark",
+        "num": 5,
+        "denom": 856,
+        "rarity": "5/856"
+      },
+      {
+        "name": "Rune knife(p++)",
+        "num": 1,
+        "denom": 107,
+        "rarity": "1/107"
+      },
+      {
+        "name": "Dragon scimitar",
+        "num": 1,
+        "denom": 107,
+        "rarity": "1/107"
+      },
+      {
+        "name": "Ancient staff",
+        "num": 1,
+        "denom": 107,
+        "rarity": "1/107"
+      },
+      {
+        "name": "Ugthanki kebab",
+        "num": 1,
+        "denom": 107,
+        "rarity": "1/107"
+      },
+      {
+        "name": "Prayer potion(4)",
+        "num": 1,
+        "denom": 107,
+        "rarity": "1/107"
+      },
+      {
+        "name": "Diamond",
+        "num": 1,
+        "denom": 107,
+        "rarity": "1/107"
+      },
+      {
+        "name": "Tinderbox",
+        "num": 1,
+        "denom": 107,
+        "rarity": "1/107"
+      },
+      {
+        "name": "Fire talisman",
+        "num": 1,
+        "denom": 107,
+        "rarity": "1/107"
+      },
+      {
+        "name": "Grapes",
+        "num": 1,
+        "denom": 107,
+        "rarity": "1/107"
+      },
+      {
+        "name": "Magic seed",
+        "num": 1,
+        "denom": 107,
+        "rarity": "1/107"
+      },
+      {
+        "name": "Dragonstone ring",
+        "num": 1,
+        "denom": 107,
+        "rarity": "1/107"
+      },
+      {
+        "name": "Crystal key",
+        "num": 1,
+        "denom": 107,
+        "rarity": "1/107"
+      },
+      {
+        "name": "Rune scimitar",
+        "num": 2,
+        "denom": 107,
+        "rarity": "2/107"
+      },
+      {
+        "name": "Rune arrow",
+        "num": 2,
+        "denom": 107,
+        "rarity": "2/107"
+      },
+      {
+        "name": "Pure essence",
+        "num": 2,
+        "denom": 107,
+        "rarity": "2/107"
+      },
+      {
+        "name": "Molten glass",
+        "num": 2,
+        "denom": 107,
+        "rarity": "2/107"
+      },
+      {
+        "name": "Mithril bar",
+        "num": 2,
+        "denom": 107,
+        "rarity": "2/107"
+      },
+      {
+        "name": "Magic logs",
+        "num": 2,
+        "denom": 107,
+        "rarity": "2/107"
+      },
+      {
+        "name": "Gold ore",
+        "num": 2,
+        "denom": 107,
+        "rarity": "2/107"
+      },
+      {
+        "name": "Desert goat horn",
+        "num": 2,
+        "denom": 107,
+        "rarity": "2/107"
+      },
+      {
+        "name": "Grimy toadflax",
+        "num": 2,
+        "denom": 107,
+        "rarity": "2/107"
+      },
+      {
+        "name": "Onyx bolt tips",
+        "num": 2,
+        "denom": 107,
+        "rarity": "2/107"
+      },
+      {
+        "name": "Snapdragon seed",
+        "num": 2,
+        "denom": 107,
+        "rarity": "2/107"
+      },
+      {
+        "name": "Ranarr seed",
+        "num": 2,
+        "denom": 107,
+        "rarity": "2/107"
+      },
+      {
+        "name": "Red d'hide body",
+        "num": 3,
+        "denom": 107,
+        "rarity": "3/107"
+      },
+      {
+        "name": "Rune battleaxe",
+        "num": 3,
+        "denom": 107,
+        "rarity": "3/107"
+      },
+      {
+        "name": "Mystic air staff",
+        "num": 3,
+        "denom": 107,
+        "rarity": "3/107"
+      },
+      {
+        "name": "Mystic fire staff",
+        "num": 3,
+        "denom": 107,
+        "rarity": "3/107"
+      },
+      {
+        "name": "Tuna potato",
+        "num": 3,
+        "denom": 107,
+        "rarity": "3/107"
+      },
+      {
+        "name": "Sanfew serum(4)",
+        "num": 3,
+        "denom": 107,
+        "rarity": "3/107"
+      },
+      {
+        "name": "Rune chainbody",
+        "num": 4,
+        "denom": 107,
+        "rarity": "4/107"
+      },
+      {
+        "name": "Rune dagger",
+        "num": 5,
+        "denom": 107,
+        "rarity": "5/107"
+      },
+      {
+        "name": "Air rune",
+        "num": 8,
+        "denom": 107,
+        "rarity": "8/107"
+      },
+      {
+        "name": "Soul rune",
+        "num": 8,
+        "denom": 107,
+        "rarity": "8/107"
+      },
+      {
+        "name": "Smoke rune",
+        "num": 10,
+        "denom": 107,
+        "rarity": "10/107"
+      },
+      {
+        "name": "Coins",
+        "num": 15,
+        "denom": 107,
+        "rarity": "15/107"
+      }
+    ]
+  },
+  "Skotizo": {
+    "hiscoresName": "Skotizo",
+    "drops": [
+      {
+        "name": "Uncut onyx",
+        "num": 1,
+        "denom": 1000,
+        "rarity": "1/1000"
+      },
+      {
+        "name": "Jar of darkness",
+        "num": 1,
+        "denom": 200,
+        "rarity": "1/200"
+      },
+      {
+        "name": "Dark totem",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Uncut dragonstone",
+        "num": 9,
+        "denom": 1000,
+        "rarity": "9/1000"
+      },
+      {
+        "name": "Ancient shard",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Shield left half",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Dark totem base",
+        "num": 3,
+        "denom": 128,
+        "rarity": "3/128"
+      },
+      {
+        "name": "Dark totem middle",
+        "num": 3,
+        "denom": 128,
+        "rarity": "3/128"
+      },
+      {
+        "name": "Dark totem top",
+        "num": 3,
+        "denom": 128,
+        "rarity": "3/128"
+      },
+      {
+        "name": "Rune platebody",
+        "num": 7,
+        "denom": 100,
+        "rarity": "7/100"
+      },
+      {
+        "name": "Rune platelegs",
+        "num": 7,
+        "denom": 100,
+        "rarity": "7/100"
+      },
+      {
+        "name": "Rune plateskirt",
+        "num": 7,
+        "denom": 100,
+        "rarity": "7/100"
+      },
+      {
+        "name": "Death rune",
+        "num": 7,
+        "denom": 100,
+        "rarity": "7/100"
+      },
+      {
+        "name": "Soul rune",
+        "num": 7,
+        "denom": 100,
+        "rarity": "7/100"
+      },
+      {
+        "name": "Blood rune",
+        "num": 7,
+        "denom": 100,
+        "rarity": "7/100"
+      },
+      {
+        "name": "Adamantite ore",
+        "num": 7,
+        "denom": 100,
+        "rarity": "7/100"
+      },
+      {
+        "name": "Grimy snapdragon",
+        "num": 7,
+        "denom": 100,
+        "rarity": "7/100"
+      },
+      {
+        "name": "Grimy torstol",
+        "num": 7,
+        "denom": 100,
+        "rarity": "7/100"
+      },
+      {
+        "name": "Raw anglerfish",
+        "num": 7,
+        "denom": 100,
+        "rarity": "7/100"
+      },
+      {
+        "name": "Runite bar",
+        "num": 7,
+        "denom": 100,
+        "rarity": "7/100"
+      },
+      {
+        "name": "Mahogany plank",
+        "num": 7,
+        "denom": 100,
+        "rarity": "7/100"
+      },
+      {
+        "name": "Battlestaff",
+        "num": 7,
+        "denom": 100,
+        "rarity": "7/100"
+      },
+      {
+        "name": "Onyx bolt tips",
+        "num": 7,
+        "denom": 100,
+        "rarity": "7/100"
+      }
+    ]
+  },
+  "Giant Mole": {
+    "hiscoresName": "Giant Mole",
+    "drops": [
+      {
+        "name": "Curved bone",
+        "num": 1,
+        "denom": 5012,
+        "rarity": "1/5012.5"
+      },
+      {
+        "name": "Baby mole",
+        "num": 1,
+        "denom": 3000,
+        "rarity": "1/3000"
+      },
+      {
+        "name": "Long bone",
+        "num": 1,
+        "denom": 400,
+        "rarity": "1/400"
+      },
+      {
+        "name": "Mithril battleaxe",
+        "num": 1,
+        "denom": 131,
+        "rarity": "1/131"
+      },
+      {
+        "name": "Rune med helm",
+        "num": 1,
+        "denom": 131,
+        "rarity": "1/131"
+      },
+      {
+        "name": "Oyster pearls",
+        "num": 1,
+        "denom": 131,
+        "rarity": "1/131"
+      },
+      {
+        "name": "Mithril axe",
+        "num": 2,
+        "denom": 131,
+        "rarity": "2/131"
+      },
+      {
+        "name": "Iron ore",
+        "num": 2,
+        "denom": 131,
+        "rarity": "2/131"
+      },
+      {
+        "name": "Death rune",
+        "num": 3,
+        "denom": 131,
+        "rarity": "3/131"
+      },
+      {
+        "name": "Mithril bar",
+        "num": 3,
+        "denom": 131,
+        "rarity": "3/131"
+      },
+      {
+        "name": "Ranarr seed",
+        "num": 3,
+        "denom": 131,
+        "rarity": "3/131"
+      },
+      {
+        "name": "Shark",
+        "num": 4,
+        "denom": 131,
+        "rarity": "4/131"
+      },
+      {
+        "name": "Law rune",
+        "num": 5,
+        "denom": 131,
+        "rarity": "5/131"
+      },
+      {
+        "name": "Amulet of strength",
+        "num": 7,
+        "denom": 131,
+        "rarity": "7/131"
+      },
+      {
+        "name": "Mithril platebody",
+        "num": 9,
+        "denom": 131,
+        "rarity": "9/131"
+      },
+      {
+        "name": "Adamant longsword",
+        "num": 10,
+        "denom": 131,
+        "rarity": "10/131"
+      },
+      {
+        "name": "Iron arrow",
+        "num": 10,
+        "denom": 131,
+        "rarity": "10/131"
+      },
+      {
+        "name": "Yew logs",
+        "num": 10,
+        "denom": 131,
+        "rarity": "10/131"
+      },
+      {
+        "name": "Fire rune",
+        "num": 11,
+        "denom": 131,
+        "rarity": "11/131"
+      },
+      {
+        "name": "Blood rune",
+        "num": 19,
+        "denom": 131,
+        "rarity": "19/131"
+      },
+      {
+        "name": "Air rune",
+        "num": 20,
+        "denom": 131,
+        "rarity": "20/131"
+      }
+    ]
+  },
+  "King Black Dragon": {
+    "hiscoresName": "King Black Dragon",
+    "drops": [
+      {
+        "name": "Draconic visage",
+        "num": 1,
+        "denom": 5000,
+        "rarity": "1/5000"
+      },
+      {
+        "name": "Prince black dragon",
+        "num": 1,
+        "denom": 3000,
+        "rarity": "1/3000"
+      },
+      {
+        "name": "Dragon pickaxe",
+        "num": 1,
+        "denom": 1000,
+        "rarity": "1/1000"
+      },
+      {
+        "name": "Dragon med helm",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Kbd heads",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Gold ore",
+        "num": 2,
+        "denom": 128,
+        "rarity": "2/128"
+      },
+      {
+        "name": "Adamant kiteshield",
+        "num": 3,
+        "denom": 128,
+        "rarity": "3/128"
+      },
+      {
+        "name": "Runite bar",
+        "num": 3,
+        "denom": 128,
+        "rarity": "3/128"
+      },
+      {
+        "name": "Runite limbs",
+        "num": 4,
+        "denom": 128,
+        "rarity": "4/128"
+      },
+      {
+        "name": "Shark",
+        "num": 4,
+        "denom": 128,
+        "rarity": "4/128"
+      },
+      {
+        "name": "Fire rune",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Law rune",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Blood rune",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Adamantite bar",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Dragon arrowtips",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Dragon dart tip",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Dragon javelin tips",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Amulet of power",
+        "num": 7,
+        "denom": 128,
+        "rarity": "7/128"
+      },
+      {
+        "name": "Adamant platebody",
+        "num": 9,
+        "denom": 128,
+        "rarity": "9/128"
+      },
+      {
+        "name": "Rune longsword",
+        "num": 10,
+        "denom": 128,
+        "rarity": "10/128"
+      },
+      {
+        "name": "Air rune",
+        "num": 10,
+        "denom": 128,
+        "rarity": "10/128"
+      },
+      {
+        "name": "Iron arrow",
+        "num": 10,
+        "denom": 128,
+        "rarity": "10/128"
+      },
+      {
+        "name": "Runite bolts",
+        "num": 10,
+        "denom": 128,
+        "rarity": "10/128"
+      },
+      {
+        "name": "Yew logs",
+        "num": 10,
+        "denom": 128,
+        "rarity": "10/128"
+      }
+    ]
+  },
+  "Sarachnis": {
+    "hiscoresName": "Sarachnis",
+    "drops": [
+      {
+        "name": "Sraracha",
+        "num": 1,
+        "denom": 3000,
+        "rarity": "1/3000"
+      },
+      {
+        "name": "Jar of eyes",
+        "num": 1,
+        "denom": 2000,
+        "rarity": "1/2000"
+      },
+      {
+        "name": "Sarachnis cudgel",
+        "num": 1,
+        "denom": 384,
+        "rarity": "1/384"
+      },
+      {
+        "name": "Dragon med helm",
+        "num": 2,
+        "denom": 384,
+        "rarity": "2/384"
+      },
+      {
+        "name": "Grimy torstol",
+        "num": 6,
+        "denom": 800,
+        "rarity": "6/800"
+      },
+      {
+        "name": "Maple seed",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Papaya tree seed",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Yew seed",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Grimy snapdragon",
+        "num": 8,
+        "denom": 800,
+        "rarity": "8/800"
+      },
+      {
+        "name": "Grimy ranarr weed",
+        "num": 8,
+        "denom": 800,
+        "rarity": "8/800"
+      },
+      {
+        "name": "Runite ore",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Uncut diamond",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Crystal key",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Spider carcass",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Grimy lantadyme",
+        "num": 9,
+        "denom": 800,
+        "rarity": "9/800"
+      },
+      {
+        "name": "Grimy avantoe",
+        "num": 10,
+        "denom": 800,
+        "rarity": "10/800"
+      },
+      {
+        "name": "Grimy dwarf weed",
+        "num": 12,
+        "denom": 800,
+        "rarity": "12/800"
+      },
+      {
+        "name": "Grimy cadantine",
+        "num": 12,
+        "denom": 800,
+        "rarity": "12/800"
+      },
+      {
+        "name": "Grimy kwuarm",
+        "num": 15,
+        "denom": 800,
+        "rarity": "15/800"
+      },
+      {
+        "name": "Battlestaff",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Rune platebody",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Rune med helm",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Rune 2h sword",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Mithril arrow",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Mithril bolts",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Onyx bolt tips",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Uncut ruby",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Weapon poison(++)",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Adamantite ore",
+        "num": 3,
+        "denom": 100,
+        "rarity": "3/100"
+      },
+      {
+        "name": "Uncut emerald",
+        "num": 3,
+        "denom": 100,
+        "rarity": "3/100"
+      },
+      {
+        "name": "Uncut sapphire",
+        "num": 4,
+        "denom": 100,
+        "rarity": "4/100"
+      },
+      {
+        "name": "Blood rune",
+        "num": 5,
+        "denom": 100,
+        "rarity": "5/100"
+      },
+      {
+        "name": "Chaos rune",
+        "num": 5,
+        "denom": 100,
+        "rarity": "5/100"
+      },
+      {
+        "name": "Cosmic rune",
+        "num": 5,
+        "denom": 100,
+        "rarity": "5/100"
+      },
+      {
+        "name": "Death rune",
+        "num": 5,
+        "denom": 100,
+        "rarity": "5/100"
+      },
+      {
+        "name": "Soul rune",
+        "num": 5,
+        "denom": 100,
+        "rarity": "5/100"
+      },
+      {
+        "name": "Red dragonhide",
+        "num": 5,
+        "denom": 100,
+        "rarity": "5/100"
+      },
+      {
+        "name": "Dragon bones",
+        "num": 5,
+        "denom": 100,
+        "rarity": "5/100"
+      },
+      {
+        "name": "Egg potato",
+        "num": 5,
+        "denom": 100,
+        "rarity": "5/100"
+      },
+      {
+        "name": "Mithril ore",
+        "num": 6,
+        "denom": 100,
+        "rarity": "6/100"
+      },
+      {
+        "name": "Coins",
+        "num": 6,
+        "denom": 100,
+        "rarity": "6/100"
+      }
+    ]
+  },
+  "Phantom Muspah": {
+    "hiscoresName": "Phantom Muspah",
+    "drops": [
+      {
+        "name": "Muphin",
+        "num": 1,
+        "denom": 2500,
+        "rarity": "1/2500"
+      },
+      {
+        "name": "Grimy lantadyme",
+        "num": 3,
+        "denom": 752,
+        "rarity": "3/752"
+      },
+      {
+        "name": "Rune sword",
+        "num": 1,
+        "denom": 235,
+        "rarity": "1/235"
+      },
+      {
+        "name": "Grimy dwarf weed",
+        "num": 4,
+        "denom": 752,
+        "rarity": "4/752"
+      },
+      {
+        "name": "Grimy cadantine",
+        "num": 4,
+        "denom": 752,
+        "rarity": "4/752"
+      },
+      {
+        "name": "Grimy kwuarm",
+        "num": 5,
+        "denom": 752,
+        "rarity": "5/752"
+      },
+      {
+        "name": "Spirit seed",
+        "num": 2,
+        "denom": 235,
+        "rarity": "2/235"
+      },
+      {
+        "name": "Silver ore",
+        "num": 2,
+        "denom": 235,
+        "rarity": "2/235"
+      },
+      {
+        "name": "Venator shard",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Grimy toadflax",
+        "num": 3,
+        "denom": 235,
+        "rarity": "3/235"
+      },
+      {
+        "name": "Ranarr seed",
+        "num": 3,
+        "denom": 235,
+        "rarity": "3/235"
+      },
+      {
+        "name": "Runite ore",
+        "num": 3,
+        "denom": 235,
+        "rarity": "3/235"
+      },
+      {
+        "name": "Limpwurt root",
+        "num": 3,
+        "denom": 235,
+        "rarity": "3/235"
+      },
+      {
+        "name": "Dragon platelegs",
+        "num": 4,
+        "denom": 235,
+        "rarity": "4/235"
+      },
+      {
+        "name": "Snapdragon seed",
+        "num": 4,
+        "denom": 235,
+        "rarity": "4/235"
+      },
+      {
+        "name": "Ancient icon",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Dragon plateskirt",
+        "num": 5,
+        "denom": 235,
+        "rarity": "5/235"
+      },
+      {
+        "name": "Rune platelegs",
+        "num": 5,
+        "denom": 235,
+        "rarity": "5/235"
+      },
+      {
+        "name": "Black d'hide body",
+        "num": 5,
+        "denom": 235,
+        "rarity": "5/235"
+      },
+      {
+        "name": "Chaos rune",
+        "num": 5,
+        "denom": 235,
+        "rarity": "5/235"
+      },
+      {
+        "name": "Fire rune",
+        "num": 5,
+        "denom": 235,
+        "rarity": "5/235"
+      },
+      {
+        "name": "Steel cannonball",
+        "num": 5,
+        "denom": 235,
+        "rarity": "5/235"
+      },
+      {
+        "name": "Yew seed",
+        "num": 5,
+        "denom": 235,
+        "rarity": "5/235"
+      },
+      {
+        "name": "Torstol seed",
+        "num": 5,
+        "denom": 235,
+        "rarity": "5/235"
+      },
+      {
+        "name": "Palm tree seed",
+        "num": 5,
+        "denom": 235,
+        "rarity": "5/235"
+      },
+      {
+        "name": "Pure essence",
+        "num": 5,
+        "denom": 235,
+        "rarity": "5/235"
+      },
+      {
+        "name": "Coal",
+        "num": 5,
+        "denom": 235,
+        "rarity": "5/235"
+      },
+      {
+        "name": "Manta ray",
+        "num": 5,
+        "denom": 235,
+        "rarity": "2.5/235"
+      },
+      {
+        "name": "Frozen cache",
+        "num": 4,
+        "denom": 100,
+        "rarity": "4/100"
+      },
+      {
+        "name": "Rune kiteshield",
+        "num": 10,
+        "denom": 235,
+        "rarity": "10/235"
+      },
+      {
+        "name": "Law rune",
+        "num": 10,
+        "denom": 235,
+        "rarity": "10/235"
+      },
+      {
+        "name": "Soul rune",
+        "num": 10,
+        "denom": 235,
+        "rarity": "10/235"
+      },
+      {
+        "name": "Death rune",
+        "num": 10,
+        "denom": 235,
+        "rarity": "10/235"
+      },
+      {
+        "name": "Adamantite ore",
+        "num": 10,
+        "denom": 235,
+        "rarity": "10/235"
+      },
+      {
+        "name": "Gold ore",
+        "num": 10,
+        "denom": 235,
+        "rarity": "10/235"
+      },
+      {
+        "name": "Teak plank",
+        "num": 10,
+        "denom": 235,
+        "rarity": "10/235"
+      },
+      {
+        "name": "Dragon bolts (unf)",
+        "num": 10,
+        "denom": 235,
+        "rarity": "10/235"
+      },
+      {
+        "name": "Smoke rune",
+        "num": 15,
+        "denom": 235,
+        "rarity": "15/235"
+      },
+      {
+        "name": "Molten glass",
+        "num": 15,
+        "denom": 235,
+        "rarity": "15/235"
+      },
+      {
+        "name": "Water orb",
+        "num": 15,
+        "denom": 235,
+        "rarity": "15/235"
+      },
+      {
+        "name": "Ancient essence",
+        "num": 10,
+        "denom": 100,
+        "rarity": "10/100"
+      },
+      {
+        "name": "Raw shark",
+        "num": 75,
+        "denom": 235,
+        "rarity": "3.75/235"
+      },
+      {
+        "name": "Shark lure",
+        "num": 75,
+        "denom": 235,
+        "rarity": "3.75/235"
+      }
+    ]
+  },
+  "Araxxor": {
+    "hiscoresName": "Araxxor",
+    "drops": [
+      {
+        "name": "Nid",
+        "num": 1,
+        "denom": 3000,
+        "rarity": "1/3000"
+      },
+      {
+        "name": "Jar of venom",
+        "num": 1,
+        "denom": 1500,
+        "rarity": "1/1500"
+      },
+      {
+        "name": "Araxyte fang",
+        "num": 1,
+        "denom": 600,
+        "rarity": "1/600"
+      },
+      {
+        "name": "Araxyte head",
+        "num": 1,
+        "denom": 250,
+        "rarity": "1/250"
+      },
+      {
+        "name": "Noxious pommel",
+        "num": 1,
+        "denom": 200,
+        "rarity": "1/200"
+      },
+      {
+        "name": "Noxious point",
+        "num": 1,
+        "denom": 200,
+        "rarity": "1/200"
+      },
+      {
+        "name": "Noxious blade",
+        "num": 1,
+        "denom": 200,
+        "rarity": "1/200"
+      },
+      {
+        "name": "Rune 2h sword",
+        "num": 1,
+        "denom": 115,
+        "rarity": "1/115"
+      },
+      {
+        "name": "Dragon platelegs",
+        "num": 1,
+        "denom": 115,
+        "rarity": "1/115"
+      },
+      {
+        "name": "Mud rune",
+        "num": 1,
+        "denom": 115,
+        "rarity": "1/115"
+      },
+      {
+        "name": "Blood rune",
+        "num": 1,
+        "denom": 115,
+        "rarity": "1/115"
+      },
+      {
+        "name": "Ranarr seed",
+        "num": 1,
+        "denom": 115,
+        "rarity": "1/115"
+      },
+      {
+        "name": "Snapdragon seed",
+        "num": 1,
+        "denom": 115,
+        "rarity": "1/115"
+      },
+      {
+        "name": "Magic seed",
+        "num": 1,
+        "denom": 115,
+        "rarity": "1/115"
+      },
+      {
+        "name": "Raw shark",
+        "num": 1,
+        "denom": 115,
+        "rarity": "1/115"
+      },
+      {
+        "name": "Raw monkfish",
+        "num": 1,
+        "denom": 115,
+        "rarity": "1/115"
+      },
+      {
+        "name": "Pure essence",
+        "num": 1,
+        "denom": 115,
+        "rarity": "1/115"
+      },
+      {
+        "name": "Bark",
+        "num": 1,
+        "denom": 115,
+        "rarity": "1/115"
+      },
+      {
+        "name": "Nature rune",
+        "num": 2,
+        "denom": 115,
+        "rarity": "2/115"
+      },
+      {
+        "name": "Runite ore",
+        "num": 2,
+        "denom": 115,
+        "rarity": "2/115"
+      },
+      {
+        "name": "Araxyte venom sack",
+        "num": 2,
+        "denom": 115,
+        "rarity": "2/115"
+      },
+      {
+        "name": "Red spiders' eggs",
+        "num": 2,
+        "denom": 115,
+        "rarity": "2/115"
+      },
+      {
+        "name": "Toadflax seed",
+        "num": 3,
+        "denom": 115,
+        "rarity": "3/115"
+      },
+      {
+        "name": "Yew logs",
+        "num": 3,
+        "denom": 115,
+        "rarity": "3/115"
+      },
+      {
+        "name": "Wine of zamorak",
+        "num": 3,
+        "denom": 115,
+        "rarity": "3/115"
+      },
+      {
+        "name": "Yew seed",
+        "num": 4,
+        "denom": 115,
+        "rarity": "4/115"
+      },
+      {
+        "name": "Coal",
+        "num": 4,
+        "denom": 115,
+        "rarity": "4/115"
+      },
+      {
+        "name": "Adamantite ore",
+        "num": 4,
+        "denom": 115,
+        "rarity": "4/115"
+      },
+      {
+        "name": "Mort myre fungus",
+        "num": 4,
+        "denom": 115,
+        "rarity": "4/115"
+      },
+      {
+        "name": "Antidote++(3)",
+        "num": 4,
+        "denom": 115,
+        "rarity": "4/115"
+      },
+      {
+        "name": "Death rune",
+        "num": 5,
+        "denom": 115,
+        "rarity": "5/115"
+      },
+      {
+        "name": "Dragon mace",
+        "num": 6,
+        "denom": 115,
+        "rarity": "6/115"
+      },
+      {
+        "name": "Earth orb",
+        "num": 6,
+        "denom": 115,
+        "rarity": "6/115"
+      },
+      {
+        "name": "Rune kiteshield",
+        "num": 8,
+        "denom": 115,
+        "rarity": "8/115"
+      },
+      {
+        "name": "Rune platelegs",
+        "num": 8,
+        "denom": 115,
+        "rarity": "8/115"
+      },
+      {
+        "name": "Spider cave teleport",
+        "num": 8,
+        "denom": 115,
+        "rarity": "8/115"
+      }
+    ]
+  },
+  "Hueycoatl": {
+    "hiscoresName": "The Hueycoatl",
+    "drops": []
+  },
+  "Amoxliatl": {
+    "hiscoresName": "Amoxliatl",
+    "drops": [
+      {
+        "name": "Moxi",
+        "num": 1,
+        "denom": 3000,
+        "rarity": "1/3000"
+      },
+      {
+        "name": "Tooth half of key (moon key)",
+        "num": 1,
+        "denom": 125,
+        "rarity": "1/125"
+      },
+      {
+        "name": "Glacial temotli",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      }
+    ]
+  },
+  "General Graardor": {
+    "hiscoresName": "General Graardor",
+    "drops": [
+      {
+        "name": "Curved bone",
+        "num": 1,
+        "denom": 5012,
+        "rarity": "1/5012.5"
+      },
+      {
+        "name": "Pet general graardor",
+        "num": 1,
+        "denom": 5000,
+        "rarity": "1/5000"
+      },
+      {
+        "name": "Godsword shard 1",
+        "num": 1,
+        "denom": 762,
+        "rarity": "1/762"
+      },
+      {
+        "name": "Godsword shard 2",
+        "num": 1,
+        "denom": 762,
+        "rarity": "1/762"
+      },
+      {
+        "name": "Godsword shard 3",
+        "num": 1,
+        "denom": 762,
+        "rarity": "1/762"
+      },
+      {
+        "name": "Bandos hilt",
+        "num": 1,
+        "denom": 508,
+        "rarity": "1/508"
+      },
+      {
+        "name": "Long bone",
+        "num": 1,
+        "denom": 400,
+        "rarity": "1/400"
+      },
+      {
+        "name": "Bandos chestplate",
+        "num": 1,
+        "denom": 381,
+        "rarity": "1/381"
+      },
+      {
+        "name": "Bandos tassets",
+        "num": 1,
+        "denom": 381,
+        "rarity": "1/381"
+      },
+      {
+        "name": "Bandos boots",
+        "num": 1,
+        "denom": 381,
+        "rarity": "1/381"
+      },
+      {
+        "name": "Rune pickaxe",
+        "num": 6,
+        "denom": 127,
+        "rarity": "6/127"
+      },
+      {
+        "name": "Coins",
+        "num": 7,
+        "denom": 127,
+        "rarity": "31.7/127"
+      },
+      {
+        "name": "Rune longsword",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Rune 2h sword",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Rune platebody",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Grimy snapdragon",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Snapdragon seed",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Super restore(4)",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Adamantite ore",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Coal",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Magic logs",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Nature rune",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      }
+    ]
+  },
+  "K'ril Tsutsaroth": {
+    "hiscoresName": "K'ril Tsutsaroth",
+    "drops": [
+      {
+        "name": "Pet k'ril tsutsaroth",
+        "num": 1,
+        "denom": 5000,
+        "rarity": "1/5000"
+      },
+      {
+        "name": "Godsword shard 1",
+        "num": 1,
+        "denom": 762,
+        "rarity": "1/762"
+      },
+      {
+        "name": "Godsword shard 2",
+        "num": 1,
+        "denom": 762,
+        "rarity": "1/762"
+      },
+      {
+        "name": "Godsword shard 3",
+        "num": 1,
+        "denom": 762,
+        "rarity": "1/762"
+      },
+      {
+        "name": "Staff of the dead",
+        "num": 1,
+        "denom": 508,
+        "rarity": "1/508"
+      },
+      {
+        "name": "Zamorak hilt",
+        "num": 1,
+        "denom": 508,
+        "rarity": "1/508"
+      },
+      {
+        "name": "Steam battlestaff",
+        "num": 1,
+        "denom": 127,
+        "rarity": "1/127"
+      },
+      {
+        "name": "Zamorakian spear",
+        "num": 1,
+        "denom": 127,
+        "rarity": "1/127"
+      },
+      {
+        "name": "Dragon dagger(p++)",
+        "num": 2,
+        "denom": 127,
+        "rarity": "2/127"
+      },
+      {
+        "name": "Rune platelegs",
+        "num": 7,
+        "denom": 127,
+        "rarity": "7/127"
+      },
+      {
+        "name": "Coins",
+        "num": 7,
+        "denom": 127,
+        "rarity": "36.7/127"
+      },
+      {
+        "name": "Adamant arrow(p++)",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Rune scimitar",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Adamant platebody",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Super attack(3)",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Super strength(3)",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Super restore(3)",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Zamorak brew(3)",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Grimy lantadyme",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Lantadyme seed",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Death rune",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Blood rune",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      }
+    ]
+  },
+  "Commander Zilyana": {
+    "hiscoresName": "Commander Zilyana",
+    "drops": [
+      {
+        "name": "Pet zilyana",
+        "num": 1,
+        "denom": 5000,
+        "rarity": "1/5000"
+      },
+      {
+        "name": "Godsword shard 1",
+        "num": 1,
+        "denom": 762,
+        "rarity": "1/762"
+      },
+      {
+        "name": "Godsword shard 2",
+        "num": 1,
+        "denom": 762,
+        "rarity": "1/762"
+      },
+      {
+        "name": "Godsword shard 3",
+        "num": 1,
+        "denom": 762,
+        "rarity": "1/762"
+      },
+      {
+        "name": "Armadyl crossbow",
+        "num": 1,
+        "denom": 508,
+        "rarity": "1/508"
+      },
+      {
+        "name": "Saradomin hilt",
+        "num": 1,
+        "denom": 508,
+        "rarity": "1/508"
+      },
+      {
+        "name": "Saradomin's light",
+        "num": 1,
+        "denom": 254,
+        "rarity": "1/254"
+      },
+      {
+        "name": "Saradomin sword",
+        "num": 1,
+        "denom": 127,
+        "rarity": "1/127"
+      },
+      {
+        "name": "Magic seed",
+        "num": 1,
+        "denom": 127,
+        "rarity": "1/127"
+      },
+      {
+        "name": "Coins",
+        "num": 2,
+        "denom": 127,
+        "rarity": "31.2/127"
+      },
+      {
+        "name": "Saradomin brew(3)",
+        "num": 6,
+        "denom": 127,
+        "rarity": "6/127"
+      },
+      {
+        "name": "Super restore(4)",
+        "num": 6,
+        "denom": 127,
+        "rarity": "6/127"
+      },
+      {
+        "name": "Adamant platebody",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Rune dart",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Rune kiteshield",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Rune plateskirt",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Prayer potion(4)",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Super defence(3)",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Magic potion(3)",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Diamond",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Law rune",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Grimy ranarr weed",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Ranarr seed",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      }
+    ]
+  },
+  "Kree'arra": {
+    "hiscoresName": "Kree'Arra",
+    "drops": [
+      {
+        "name": "Curved bone",
+        "num": 1,
+        "denom": 5012,
+        "rarity": "1/5012.5"
+      },
+      {
+        "name": "Pet kree'arra",
+        "num": 1,
+        "denom": 5000,
+        "rarity": "1/5000"
+      },
+      {
+        "name": "Godsword shard 1",
+        "num": 1,
+        "denom": 762,
+        "rarity": "1/762"
+      },
+      {
+        "name": "Godsword shard 2",
+        "num": 1,
+        "denom": 762,
+        "rarity": "1/762"
+      },
+      {
+        "name": "Godsword shard 3",
+        "num": 1,
+        "denom": 762,
+        "rarity": "1/762"
+      },
+      {
+        "name": "Armadyl hilt",
+        "num": 1,
+        "denom": 508,
+        "rarity": "1/508"
+      },
+      {
+        "name": "Long bone",
+        "num": 1,
+        "denom": 400,
+        "rarity": "1/400"
+      },
+      {
+        "name": "Armadyl helmet",
+        "num": 1,
+        "denom": 381,
+        "rarity": "1/381"
+      },
+      {
+        "name": "Armadyl chestplate",
+        "num": 1,
+        "denom": 381,
+        "rarity": "1/381"
+      },
+      {
+        "name": "Armadyl chainskirt",
+        "num": 1,
+        "denom": 381,
+        "rarity": "1/381"
+      },
+      {
+        "name": "Crystal key",
+        "num": 1,
+        "denom": 127,
+        "rarity": "1/127"
+      },
+      {
+        "name": "Yew seed",
+        "num": 1,
+        "denom": 127,
+        "rarity": "1/127"
+      },
+      {
+        "name": "Coins",
+        "num": 7,
+        "denom": 127,
+        "rarity": "43.7/127"
+      },
+      {
+        "name": "Black d'hide body",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Rune crossbow",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Mind rune",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Rune arrow",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Runite bolts",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Dragonstone bolts (e)",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Ranging potion(3)",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Super defence(3)",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Grimy dwarf weed",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      },
+      {
+        "name": "Dwarf weed seed",
+        "num": 8,
+        "denom": 127,
+        "rarity": "8/127"
+      }
+    ]
+  },
+  "Nex": {
+    "hiscoresName": "Nex",
+    "drops": [
+      {
+        "name": "Ancient hilt",
+        "num": 1,
+        "denom": 516,
+        "rarity": "1/516"
+      },
+      {
+        "name": "Nexling",
+        "num": 1,
+        "denom": 500,
+        "rarity": "1/500"
+      },
+      {
+        "name": "Nihil horn",
+        "num": 1,
+        "denom": 258,
+        "rarity": "1/258"
+      },
+      {
+        "name": "Torva full helm (damaged)",
+        "num": 1,
+        "denom": 258,
+        "rarity": "1/258"
+      },
+      {
+        "name": "Torva platebody (damaged)",
+        "num": 1,
+        "denom": 258,
+        "rarity": "1/258"
+      },
+      {
+        "name": "Torva platelegs (damaged)",
+        "num": 1,
+        "denom": 258,
+        "rarity": "1/258"
+      },
+      {
+        "name": "Rune sword",
+        "num": 1,
+        "denom": 209,
+        "rarity": "1/209"
+      },
+      {
+        "name": "Zaryte vambraces",
+        "num": 1,
+        "denom": 172,
+        "rarity": "1/172"
+      },
+      {
+        "name": "Nihil shard",
+        "num": 8,
+        "denom": 209,
+        "rarity": "8/209"
+      }
+    ]
+  },
+  "Vet'ion": {
+    "hiscoresName": "Vet'ion",
+    "drops": [
+      {
+        "name": "Curved bone",
+        "num": 1,
+        "denom": 5012,
+        "rarity": "1/5012.5"
+      },
+      {
+        "name": "Skeleton champion scroll",
+        "num": 1,
+        "denom": 5000,
+        "rarity": "1/5000"
+      },
+      {
+        "name": "Vet'ion jr.",
+        "num": 1,
+        "denom": 1500,
+        "rarity": "1/1500"
+      },
+      {
+        "name": "Ring of the gods",
+        "num": 1,
+        "denom": 512,
+        "rarity": "1/512"
+      },
+      {
+        "name": "Long bone",
+        "num": 1,
+        "denom": 400,
+        "rarity": "1/400"
+      },
+      {
+        "name": "Voidwaker blade",
+        "num": 1,
+        "denom": 360,
+        "rarity": "1/360"
+      },
+      {
+        "name": "Dragon 2h sword",
+        "num": 1,
+        "denom": 256,
+        "rarity": "1/256"
+      },
+      {
+        "name": "Dragon pickaxe",
+        "num": 1,
+        "denom": 256,
+        "rarity": "1/256"
+      },
+      {
+        "name": "Skull of vet'ion",
+        "num": 1,
+        "denom": 196,
+        "rarity": "1/196"
+      },
+      {
+        "name": "Grimy ranarr weed",
+        "num": 1,
+        "denom": 126,
+        "rarity": "1/126"
+      },
+      {
+        "name": "Grimy dwarf weed",
+        "num": 1,
+        "denom": 126,
+        "rarity": "1/126"
+      },
+      {
+        "name": "Grimy snapdragon",
+        "num": 1,
+        "denom": 126,
+        "rarity": "1/126"
+      },
+      {
+        "name": "Grimy toadflax",
+        "num": 1,
+        "denom": 126,
+        "rarity": "1/126"
+      },
+      {
+        "name": "Blighted anglerfish",
+        "num": 1,
+        "denom": 126,
+        "rarity": "1/126"
+      },
+      {
+        "name": "Mystic fire staff",
+        "num": 2,
+        "denom": 126,
+        "rarity": "2/126"
+      },
+      {
+        "name": "Mystic water staff",
+        "num": 2,
+        "denom": 126,
+        "rarity": "2/126"
+      },
+      {
+        "name": "Mystic robe top",
+        "num": 2,
+        "denom": 126,
+        "rarity": "2/126"
+      },
+      {
+        "name": "Mystic robe bottom",
+        "num": 2,
+        "denom": 126,
+        "rarity": "2/126"
+      },
+      {
+        "name": "Rune full helm",
+        "num": 2,
+        "denom": 126,
+        "rarity": "2/126"
+      },
+      {
+        "name": "Uncut dragonstone",
+        "num": 2,
+        "denom": 126,
+        "rarity": "2/126"
+      },
+      {
+        "name": "Mort myre fungus",
+        "num": 2,
+        "denom": 126,
+        "rarity": "2/126"
+      },
+      {
+        "name": "Rune dart",
+        "num": 3,
+        "denom": 126,
+        "rarity": "3/126"
+      },
+      {
+        "name": "Rune knife",
+        "num": 3,
+        "denom": 126,
+        "rarity": "3/126"
+      },
+      {
+        "name": "Uncut diamond",
+        "num": 3,
+        "denom": 126,
+        "rarity": "3/126"
+      },
+      {
+        "name": "Dragon bones",
+        "num": 3,
+        "denom": 126,
+        "rarity": "3/126"
+      },
+      {
+        "name": "Wilderness crabs teleport",
+        "num": 3,
+        "denom": 126,
+        "rarity": "3/126"
+      },
+      {
+        "name": "Steel cannonball",
+        "num": 4,
+        "denom": 126,
+        "rarity": "4/126"
+      },
+      {
+        "name": "Uncut ruby",
+        "num": 4,
+        "denom": 126,
+        "rarity": "4/126"
+      },
+      {
+        "name": "Supercompost",
+        "num": 4,
+        "denom": 126,
+        "rarity": "4/126"
+      },
+      {
+        "name": "Limpwurt root",
+        "num": 5,
+        "denom": 126,
+        "rarity": "5/126"
+      },
+      {
+        "name": "Wine of zamorak",
+        "num": 5,
+        "denom": 126,
+        "rarity": "5/126"
+      },
+      {
+        "name": "Magic logs",
+        "num": 5,
+        "denom": 126,
+        "rarity": "5/126"
+      },
+      {
+        "name": "Oak plank",
+        "num": 5,
+        "denom": 126,
+        "rarity": "5/126"
+      },
+      {
+        "name": "Super restore(4)",
+        "num": 5,
+        "denom": 126,
+        "rarity": "5/126"
+      },
+      {
+        "name": "Sanfew serum(4)",
+        "num": 5,
+        "denom": 126,
+        "rarity": "5/126"
+      },
+      {
+        "name": "Dark crab",
+        "num": 5,
+        "denom": 126,
+        "rarity": "5/126"
+      },
+      {
+        "name": "Gold ore",
+        "num": 6,
+        "denom": 126,
+        "rarity": "6/126"
+      },
+      {
+        "name": "Chaos rune",
+        "num": 7,
+        "denom": 126,
+        "rarity": "7/126"
+      },
+      {
+        "name": "Death rune",
+        "num": 7,
+        "denom": 126,
+        "rarity": "7/126"
+      },
+      {
+        "name": "Blood rune",
+        "num": 7,
+        "denom": 126,
+        "rarity": "7/126"
+      },
+      {
+        "name": "Rune pickaxe",
+        "num": 8,
+        "denom": 126,
+        "rarity": "8/126"
+      },
+      {
+        "name": "Coins",
+        "num": 10,
+        "denom": 126,
+        "rarity": "10/126"
+      }
+    ]
+  },
+  "Callisto": {
+    "hiscoresName": "Callisto",
+    "drops": [
+      {
+        "name": "Curved bone",
+        "num": 2,
+        "denom": 10025,
+        "rarity": "2/10025"
+      },
+      {
+        "name": "Callisto cub",
+        "num": 1,
+        "denom": 1500,
+        "rarity": "1/1500"
+      },
+      {
+        "name": "Tyrannical ring",
+        "num": 1,
+        "denom": 512,
+        "rarity": "1/512"
+      },
+      {
+        "name": "Long bone",
+        "num": 1,
+        "denom": 400,
+        "rarity": "1/400"
+      },
+      {
+        "name": "Voidwaker hilt",
+        "num": 1,
+        "denom": 360,
+        "rarity": "1/360"
+      },
+      {
+        "name": "Dragon 2h sword",
+        "num": 1,
+        "denom": 256,
+        "rarity": "1/256"
+      },
+      {
+        "name": "Dragon pickaxe",
+        "num": 1,
+        "denom": 256,
+        "rarity": "1/256"
+      },
+      {
+        "name": "Claws of callisto",
+        "num": 1,
+        "denom": 196,
+        "rarity": "1/196"
+      },
+      {
+        "name": "Grimy toadflax",
+        "num": 1,
+        "denom": 126,
+        "rarity": "1/126"
+      },
+      {
+        "name": "Grimy dwarf weed",
+        "num": 1,
+        "denom": 126,
+        "rarity": "1/126"
+      },
+      {
+        "name": "Grimy ranarr weed",
+        "num": 1,
+        "denom": 126,
+        "rarity": "1/126"
+      },
+      {
+        "name": "Grimy snapdragon",
+        "num": 1,
+        "denom": 126,
+        "rarity": "1/126"
+      },
+      {
+        "name": "Blighted anglerfish",
+        "num": 1,
+        "denom": 126,
+        "rarity": "1/126"
+      },
+      {
+        "name": "Mystic earth staff",
+        "num": 2,
+        "denom": 126,
+        "rarity": "2/126"
+      },
+      {
+        "name": "Mystic robe top",
+        "num": 2,
+        "denom": 126,
+        "rarity": "2/126"
+      },
+      {
+        "name": "Mystic robe bottom",
+        "num": 2,
+        "denom": 126,
+        "rarity": "2/126"
+      },
+      {
+        "name": "Rune kiteshield",
+        "num": 2,
+        "denom": 126,
+        "rarity": "2/126"
+      },
+      {
+        "name": "Rune platebody",
+        "num": 2,
+        "denom": 126,
+        "rarity": "2/126"
+      },
+      {
+        "name": "Uncut dragonstone",
+        "num": 2,
+        "denom": 126,
+        "rarity": "2/126"
+      },
+      {
+        "name": "Coconut",
+        "num": 2,
+        "denom": 126,
+        "rarity": "2/126"
+      },
+      {
+        "name": "Rune 2h sword",
+        "num": 3,
+        "denom": 126,
+        "rarity": "3/126"
+      },
+      {
+        "name": "Uncut diamond",
+        "num": 3,
+        "denom": 126,
+        "rarity": "3/126"
+      },
+      {
+        "name": "Red dragonhide",
+        "num": 3,
+        "denom": 126,
+        "rarity": "3/126"
+      },
+      {
+        "name": "Dragon bones",
+        "num": 3,
+        "denom": 126,
+        "rarity": "3/126"
+      },
+      {
+        "name": "Wilderness crabs teleport",
+        "num": 3,
+        "denom": 126,
+        "rarity": "3/126"
+      },
+      {
+        "name": "Steel cannonball",
+        "num": 4,
+        "denom": 126,
+        "rarity": "4/126"
+      },
+      {
+        "name": "Uncut ruby",
+        "num": 4,
+        "denom": 126,
+        "rarity": "4/126"
+      },
+      {
+        "name": "Supercompost",
+        "num": 4,
+        "denom": 126,
+        "rarity": "4/126"
+      },
+      {
+        "name": "Soul rune",
+        "num": 5,
+        "denom": 126,
+        "rarity": "5/126"
+      },
+      {
+        "name": "Limpwurt root",
+        "num": 5,
+        "denom": 126,
+        "rarity": "5/126"
+      },
+      {
+        "name": "Magic logs",
+        "num": 5,
+        "denom": 126,
+        "rarity": "5/126"
+      },
+      {
+        "name": "Ranarr seed",
+        "num": 5,
+        "denom": 126,
+        "rarity": "5/126"
+      },
+      {
+        "name": "Snapdragon seed",
+        "num": 5,
+        "denom": 126,
+        "rarity": "5/126"
+      },
+      {
+        "name": "Dark crab",
+        "num": 5,
+        "denom": 126,
+        "rarity": "5/126"
+      },
+      {
+        "name": "Super restore(4)",
+        "num": 5,
+        "denom": 126,
+        "rarity": "5/126"
+      },
+      {
+        "name": "Mahogany logs",
+        "num": 6,
+        "denom": 126,
+        "rarity": "6/126"
+      },
+      {
+        "name": "Blood rune",
+        "num": 7,
+        "denom": 126,
+        "rarity": "7/126"
+      },
+      {
+        "name": "Death rune",
+        "num": 7,
+        "denom": 126,
+        "rarity": "7/126"
+      },
+      {
+        "name": "Chaos rune",
+        "num": 7,
+        "denom": 126,
+        "rarity": "7/126"
+      },
+      {
+        "name": "Rune pickaxe",
+        "num": 8,
+        "denom": 126,
+        "rarity": "8/126"
+      },
+      {
+        "name": "Coins",
+        "num": 10,
+        "denom": 126,
+        "rarity": "10/126"
+      }
+    ]
+  },
+  "Venenatis": {
+    "hiscoresName": "Venenatis",
+    "drops": [
+      {
+        "name": "Curved bone",
+        "num": 1,
+        "denom": 5012,
+        "rarity": "1/5012.5"
+      },
+      {
+        "name": "Venenatis spiderling",
+        "num": 1,
+        "denom": 1500,
+        "rarity": "1/1500"
+      },
+      {
+        "name": "Treasonous ring",
+        "num": 1,
+        "denom": 512,
+        "rarity": "1/512"
+      },
+      {
+        "name": "Long bone",
+        "num": 1,
+        "denom": 400,
+        "rarity": "1/400"
+      },
+      {
+        "name": "Voidwaker gem",
+        "num": 1,
+        "denom": 360,
+        "rarity": "1/360"
+      },
+      {
+        "name": "Dragon 2h sword",
+        "num": 1,
+        "denom": 256,
+        "rarity": "1/256"
+      },
+      {
+        "name": "Dragon pickaxe",
+        "num": 1,
+        "denom": 256,
+        "rarity": "1/256"
+      },
+      {
+        "name": "Fangs of venenatis",
+        "num": 1,
+        "denom": 196,
+        "rarity": "1/196"
+      },
+      {
+        "name": "Uncut ruby",
+        "num": 1,
+        "denom": 126,
+        "rarity": "1/126"
+      },
+      {
+        "name": "Unicorn horn",
+        "num": 1,
+        "denom": 126,
+        "rarity": "1/126"
+      },
+      {
+        "name": "Grimy ranarr weed",
+        "num": 1,
+        "denom": 126,
+        "rarity": "1/126"
+      },
+      {
+        "name": "Grimy snapdragon",
+        "num": 1,
+        "denom": 126,
+        "rarity": "1/126"
+      },
+      {
+        "name": "Grimy toadflax",
+        "num": 1,
+        "denom": 126,
+        "rarity": "1/126"
+      },
+      {
+        "name": "Blighted anglerfish",
+        "num": 1,
+        "denom": 126,
+        "rarity": "1/126"
+      },
+      {
+        "name": "Mystic air staff",
+        "num": 2,
+        "denom": 126,
+        "rarity": "2/126"
+      },
+      {
+        "name": "Rune platelegs",
+        "num": 2,
+        "denom": 126,
+        "rarity": "2/126"
+      },
+      {
+        "name": "Rune sq shield",
+        "num": 2,
+        "denom": 126,
+        "rarity": "2/126"
+      },
+      {
+        "name": "Dragon dagger",
+        "num": 2,
+        "denom": 126,
+        "rarity": "2/126"
+      },
+      {
+        "name": "Uncut dragonstone",
+        "num": 2,
+        "denom": 126,
+        "rarity": "2/126"
+      },
+      {
+        "name": "Battlestaff",
+        "num": 2,
+        "denom": 126,
+        "rarity": "2/126"
+      },
+      {
+        "name": "Rune dart",
+        "num": 3,
+        "denom": 126,
+        "rarity": "3/126"
+      },
+      {
+        "name": "Red spiders' eggs",
+        "num": 3,
+        "denom": 126,
+        "rarity": "3/126"
+      },
+      {
+        "name": "Antidote++(4)",
+        "num": 3,
+        "denom": 126,
+        "rarity": "3/126"
+      },
+      {
+        "name": "Wilderness crabs teleport",
+        "num": 3,
+        "denom": 126,
+        "rarity": "3/126"
+      },
+      {
+        "name": "Steel cannonball",
+        "num": 4,
+        "denom": 126,
+        "rarity": "4/126"
+      },
+      {
+        "name": "Supercompost",
+        "num": 4,
+        "denom": 126,
+        "rarity": "4/126"
+      },
+      {
+        "name": "Rune knife",
+        "num": 5,
+        "denom": 126,
+        "rarity": "5/126"
+      },
+      {
+        "name": "Diamond bolts (e)",
+        "num": 5,
+        "denom": 126,
+        "rarity": "5/126"
+      },
+      {
+        "name": "Onyx bolt tips",
+        "num": 5,
+        "denom": 126,
+        "rarity": "5/126"
+      },
+      {
+        "name": "Magic logs",
+        "num": 5,
+        "denom": 126,
+        "rarity": "5/126"
+      },
+      {
+        "name": "Limpwurt root",
+        "num": 5,
+        "denom": 126,
+        "rarity": "5/126"
+      },
+      {
+        "name": "Super restore(4)",
+        "num": 5,
+        "denom": 126,
+        "rarity": "5/126"
+      },
+      {
+        "name": "Dark crab",
+        "num": 5,
+        "denom": 126,
+        "rarity": "5/126"
+      },
+      {
+        "name": "Gold ore",
+        "num": 6,
+        "denom": 126,
+        "rarity": "6/126"
+      },
+      {
+        "name": "Chaos rune",
+        "num": 7,
+        "denom": 126,
+        "rarity": "7/126"
+      },
+      {
+        "name": "Death rune",
+        "num": 7,
+        "denom": 126,
+        "rarity": "7/126"
+      },
+      {
+        "name": "Blood rune",
+        "num": 7,
+        "denom": 126,
+        "rarity": "7/126"
+      },
+      {
+        "name": "Rune pickaxe",
+        "num": 8,
+        "denom": 126,
+        "rarity": "8/126"
+      },
+      {
+        "name": "Uncut diamond",
+        "num": 8,
+        "denom": 126,
+        "rarity": "8/126"
+      },
+      {
+        "name": "Coins",
+        "num": 10,
+        "denom": 126,
+        "rarity": "10/126"
+      }
+    ]
+  },
+  "Duke Sucellus": {
+    "hiscoresName": "Duke Sucellus",
+    "drops": [
+      {
+        "name": "Baron",
+        "num": 1,
+        "denom": 2500,
+        "rarity": "1/2500"
+      },
+      {
+        "name": "Virtus mask",
+        "num": 1,
+        "denom": 2160,
+        "rarity": "1/2160"
+      },
+      {
+        "name": "Virtus robe top",
+        "num": 1,
+        "denom": 2160,
+        "rarity": "1/2160"
+      },
+      {
+        "name": "Virtus robe bottom",
+        "num": 1,
+        "denom": 2160,
+        "rarity": "1/2160"
+      },
+      {
+        "name": "Magus vestige",
+        "num": 1,
+        "denom": 720,
+        "rarity": "1/720"
+      },
+      {
+        "name": "Eye of the duke",
+        "num": 1,
+        "denom": 720,
+        "rarity": "1/720"
+      },
+      {
+        "name": "Chromium ingot",
+        "num": 3,
+        "denom": 720,
+        "rarity": "3/720"
+      },
+      {
+        "name": "Ice quartz",
+        "num": 1,
+        "denom": 206,
+        "rarity": "1/206.6"
+      },
+      {
+        "name": "Bronze chainbody",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Mithril chainbody",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Adamant chainbody",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Dragon platelegs",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Pure essence",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Iron ore",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Mithril ore",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Sapphire",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Emerald",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Ruby",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Bronze bar",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Raw sea turtle",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Air rune",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Runite ore",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Dragon arrowtips",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Soul rune",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Uncut ruby",
+        "num": 5,
+        "denom": 100,
+        "rarity": "5/100"
+      },
+      {
+        "name": "Uncut diamond",
+        "num": 5,
+        "denom": 100,
+        "rarity": "5/100"
+      },
+      {
+        "name": "Coal",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      },
+      {
+        "name": "Adamantite ore",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      },
+      {
+        "name": "Rune javelin tips",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      },
+      {
+        "name": "Dragon javelin tips",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      },
+      {
+        "name": "Mist rune",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      },
+      {
+        "name": "Chaos rune",
+        "num": 9,
+        "denom": 100,
+        "rarity": "9/100"
+      }
+    ]
+  },
+  "Vardorvis": {
+    "hiscoresName": "Vardorvis",
+    "drops": [
+      {
+        "name": "Virtus mask",
+        "num": 1,
+        "denom": 3264,
+        "rarity": "1/3264"
+      },
+      {
+        "name": "Virtus robe top",
+        "num": 1,
+        "denom": 3264,
+        "rarity": "1/3264"
+      },
+      {
+        "name": "Virtus robe bottom",
+        "num": 1,
+        "denom": 3264,
+        "rarity": "1/3264"
+      },
+      {
+        "name": "Butch",
+        "num": 1,
+        "denom": 3000,
+        "rarity": "1/3000"
+      },
+      {
+        "name": "Ultor vestige",
+        "num": 1,
+        "denom": 1088,
+        "rarity": "1/1088"
+      },
+      {
+        "name": "Executioner's axe head",
+        "num": 1,
+        "denom": 1088,
+        "rarity": "1/1088"
+      },
+      {
+        "name": "Chromium ingot",
+        "num": 3,
+        "denom": 1088,
+        "rarity": "3/1088"
+      },
+      {
+        "name": "Blood quartz",
+        "num": 1,
+        "denom": 204,
+        "rarity": "1/204.0"
+      },
+      {
+        "name": "Pure essence",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Iron ore",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Silver ore",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Mithril ore",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Sapphire",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Emerald",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Ruby",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Raw shark",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Bronze javelin",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Mithril javelin",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Adamant javelin",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Onyx bolts (e)",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Mind rune",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Fire rune",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Runite ore",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Dragon dart tip",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Soul rune",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Uncut ruby",
+        "num": 5,
+        "denom": 100,
+        "rarity": "5/100"
+      },
+      {
+        "name": "Uncut diamond",
+        "num": 5,
+        "denom": 100,
+        "rarity": "5/100"
+      },
+      {
+        "name": "Coal",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      },
+      {
+        "name": "Adamantite ore",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      },
+      {
+        "name": "Rune javelin tips",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      },
+      {
+        "name": "Dragon javelin tips",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      },
+      {
+        "name": "Lava rune",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      },
+      {
+        "name": "Blood rune",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      }
+    ]
+  },
+  "The Leviathan": {
+    "hiscoresName": "The Leviathan",
+    "drops": [
+      {
+        "name": "Lil'viathan",
+        "num": 1,
+        "denom": 2500,
+        "rarity": "1/2500"
+      },
+      {
+        "name": "Virtus mask",
+        "num": 1,
+        "denom": 2304,
+        "rarity": "1/2304"
+      },
+      {
+        "name": "Virtus robe top",
+        "num": 1,
+        "denom": 2304,
+        "rarity": "1/2304"
+      },
+      {
+        "name": "Virtus robe bottom",
+        "num": 1,
+        "denom": 2304,
+        "rarity": "1/2304"
+      },
+      {
+        "name": "Venator vestige",
+        "num": 1,
+        "denom": 768,
+        "rarity": "1/768"
+      },
+      {
+        "name": "Leviathan's lure",
+        "num": 1,
+        "denom": 768,
+        "rarity": "1/768"
+      },
+      {
+        "name": "Chromium ingot",
+        "num": 3,
+        "denom": 768,
+        "rarity": "3/768"
+      },
+      {
+        "name": "Smoke quartz",
+        "num": 1,
+        "denom": 206,
+        "rarity": "1/206.0"
+      },
+      {
+        "name": "Aether catalyst",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Iron ore",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Silver ore",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Adamantite ore",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Sapphire",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Emerald",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Ruby",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Onyx bolt tips",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Raw manta ray",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Bronze arrow",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Mithril arrow",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Adamant arrow",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Body rune",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Earth rune",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Runite ore",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Dragon bolts (unf)",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Soul rune",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Uncut ruby",
+        "num": 5,
+        "denom": 100,
+        "rarity": "5/100"
+      },
+      {
+        "name": "Uncut diamond",
+        "num": 5,
+        "denom": 100,
+        "rarity": "5/100"
+      },
+      {
+        "name": "Coal",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      },
+      {
+        "name": "Gold ore",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      },
+      {
+        "name": "Dragon javelin tips",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      },
+      {
+        "name": "Anglerfish",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      },
+      {
+        "name": "Rune arrow",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      },
+      {
+        "name": "Smoke rune",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      }
+    ]
+  },
+  "The Whisperer": {
+    "hiscoresName": "The Whisperer",
+    "drops": [
+      {
+        "name": "Wisp",
+        "num": 1,
+        "denom": 2000,
+        "rarity": "1/2000"
+      },
+      {
+        "name": "Virtus mask",
+        "num": 1,
+        "denom": 1536,
+        "rarity": "1/1536"
+      },
+      {
+        "name": "Virtus robe top",
+        "num": 1,
+        "denom": 1536,
+        "rarity": "1/1536"
+      },
+      {
+        "name": "Virtus robe bottom",
+        "num": 1,
+        "denom": 1536,
+        "rarity": "1/1536"
+      },
+      {
+        "name": "Bellator vestige",
+        "num": 1,
+        "denom": 512,
+        "rarity": "1/512"
+      },
+      {
+        "name": "Siren's staff",
+        "num": 1,
+        "denom": 512,
+        "rarity": "1/512"
+      },
+      {
+        "name": "Shadow quartz",
+        "num": 1,
+        "denom": 209,
+        "rarity": "1/209.3"
+      },
+      {
+        "name": "Chromium ingot",
+        "num": 3,
+        "denom": 512,
+        "rarity": "3/512"
+      },
+      {
+        "name": "Bronze longsword",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Mithril longsword",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Adamant longsword",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Dragon plateskirt",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Pure essence",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Iron ore",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Gold ore",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Mithril ore",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Sapphire",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Emerald",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Ruby",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Raw monkfish",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Water rune",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Chaos rune",
+        "num": 1,
+        "denom": 100,
+        "rarity": "1/100"
+      },
+      {
+        "name": "Battlestaff",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Runite ore",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Soul rune",
+        "num": 2,
+        "denom": 100,
+        "rarity": "2/100"
+      },
+      {
+        "name": "Uncut ruby",
+        "num": 5,
+        "denom": 100,
+        "rarity": "5/100"
+      },
+      {
+        "name": "Uncut diamond",
+        "num": 5,
+        "denom": 100,
+        "rarity": "5/100"
+      },
+      {
+        "name": "Coal",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      },
+      {
+        "name": "Adamantite ore",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      },
+      {
+        "name": "Dragon javelin tips",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      },
+      {
+        "name": "Runite bolts (unf)",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      },
+      {
+        "name": "Steam rune",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      },
+      {
+        "name": "Death rune",
+        "num": 8,
+        "denom": 100,
+        "rarity": "8/100"
+      }
+    ]
+  },
+  "Grotesque Guardians": {
+    "hiscoresName": "Grotesque Guardians",
+    "drops": [
+      {
+        "name": "Jar of stone",
+        "num": 1,
+        "denom": 5000,
+        "rarity": "1/5000"
+      },
+      {
+        "name": "Noon",
+        "num": 1,
+        "denom": 3000,
+        "rarity": "1/3000"
+      },
+      {
+        "name": "Black tourmaline core",
+        "num": 1,
+        "denom": 1000,
+        "rarity": "1/1000"
+      },
+      {
+        "name": "Granite hammer",
+        "num": 1,
+        "denom": 750,
+        "rarity": "1/750"
+      },
+      {
+        "name": "Granite gloves",
+        "num": 1,
+        "denom": 500,
+        "rarity": "1/500"
+      },
+      {
+        "name": "Granite ring",
+        "num": 1,
+        "denom": 500,
+        "rarity": "1/500"
+      },
+      {
+        "name": "Granite maul",
+        "num": 1,
+        "denom": 250,
+        "rarity": "1/250"
+      },
+      {
+        "name": "Dragon longsword",
+        "num": 1,
+        "denom": 142,
+        "rarity": "1/142"
+      },
+      {
+        "name": "Adamant boots",
+        "num": 1,
+        "denom": 142,
+        "rarity": "1/142"
+      },
+      {
+        "name": "Dragon med helm",
+        "num": 1,
+        "denom": 142,
+        "rarity": "1/142"
+      },
+      {
+        "name": "Raw sea turtle",
+        "num": 1,
+        "denom": 142,
+        "rarity": "1/142"
+      },
+      {
+        "name": "Dragon arrowtips",
+        "num": 1,
+        "denom": 142,
+        "rarity": "1/142"
+      },
+      {
+        "name": "Soul rune",
+        "num": 1,
+        "denom": 142,
+        "rarity": "1/142"
+      },
+      {
+        "name": "Dragonstone bolt tips",
+        "num": 2,
+        "denom": 142,
+        "rarity": "2/142"
+      },
+      {
+        "name": "Onyx bolt tips",
+        "num": 2,
+        "denom": 142,
+        "rarity": "2/142"
+      },
+      {
+        "name": "Rune battleaxe",
+        "num": 3,
+        "denom": 142,
+        "rarity": "3/142"
+      },
+      {
+        "name": "Runite bar",
+        "num": 3,
+        "denom": 142,
+        "rarity": "3/142"
+      },
+      {
+        "name": "Diamond bolt tips",
+        "num": 3,
+        "denom": 142,
+        "rarity": "3/142"
+      },
+      {
+        "name": "Rune 2h sword",
+        "num": 4,
+        "denom": 142,
+        "rarity": "4/142"
+      },
+      {
+        "name": "Prayer potion(4)",
+        "num": 4,
+        "denom": 142,
+        "rarity": "4/142"
+      },
+      {
+        "name": "Runite ore",
+        "num": 4,
+        "denom": 142,
+        "rarity": "4/142"
+      },
+      {
+        "name": "Rune full helm",
+        "num": 5,
+        "denom": 142,
+        "rarity": "5/142"
+      },
+      {
+        "name": "Rune platelegs",
+        "num": 5,
+        "denom": 142,
+        "rarity": "5/142"
+      },
+      {
+        "name": "Coal",
+        "num": 5,
+        "denom": 142,
+        "rarity": "5/142"
+      },
+      {
+        "name": "Raw shark",
+        "num": 5,
+        "denom": 142,
+        "rarity": "1.5/142"
+      },
+      {
+        "name": "Shark lure",
+        "num": 5,
+        "denom": 142,
+        "rarity": "1.5/142"
+      },
+      {
+        "name": "Coins",
+        "num": 5,
+        "denom": 142,
+        "rarity": "5/142"
+      },
+      {
+        "name": "Crystal key",
+        "num": 5,
+        "denom": 142,
+        "rarity": "5/142"
+      },
+      {
+        "name": "Death rune",
+        "num": 5,
+        "denom": 142,
+        "rarity": "5/142"
+      },
+      {
+        "name": "Dragon dart tip",
+        "num": 5,
+        "denom": 142,
+        "rarity": "5/142"
+      },
+      {
+        "name": "Rune pickaxe",
+        "num": 6,
+        "denom": 142,
+        "rarity": "6/142"
+      },
+      {
+        "name": "Magic potion(2)",
+        "num": 6,
+        "denom": 142,
+        "rarity": "6/142"
+      },
+      {
+        "name": "Ranging potion(2)",
+        "num": 6,
+        "denom": 142,
+        "rarity": "6/142"
+      },
+      {
+        "name": "Super combat potion(2)",
+        "num": 6,
+        "denom": 142,
+        "rarity": "6/142"
+      },
+      {
+        "name": "Adamantite bar",
+        "num": 6,
+        "denom": 142,
+        "rarity": "6/142"
+      },
+      {
+        "name": "Gold bar",
+        "num": 6,
+        "denom": 142,
+        "rarity": "6/142"
+      },
+      {
+        "name": "Mithril bar",
+        "num": 6,
+        "denom": 142,
+        "rarity": "6/142"
+      },
+      {
+        "name": "Gold ore",
+        "num": 7,
+        "denom": 142,
+        "rarity": "7/142"
+      },
+      {
+        "name": "Saradomin brew(4)",
+        "num": 8,
+        "denom": 142,
+        "rarity": "8/142"
+      },
+      {
+        "name": "Chaos rune",
+        "num": 8,
+        "denom": 142,
+        "rarity": "8/142"
+      },
+      {
+        "name": "Mushroom potato",
+        "num": 10,
+        "denom": 142,
+        "rarity": "10/142"
+      }
+    ]
+  },
+  "Dagannoth Rex": {
+    "hiscoresName": "Dagannoth Rex",
+    "drops": [
+      {
+        "name": "Pet dagannoth rex",
+        "num": 1,
+        "denom": 5000,
+        "rarity": "1/5000"
+      },
+      {
+        "name": "Dragon axe",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Rune axe",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Fremennik shield",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Fremennik helm",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Mithril 2h sword",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Ring of life",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Rock-shell plate",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Rock-shell legs",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Berserker ring",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Warrior ring",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Antifire potion(2)",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Prayer potion(2)",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Restore potion(2)",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Super attack(2)",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Super strength(2)",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Super defence(2)",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Zamorak brew(2)",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Iron ore",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Steel bar",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Shark",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Adamant platebody",
+        "num": 2,
+        "denom": 128,
+        "rarity": "2/128"
+      },
+      {
+        "name": "Fremennik blade",
+        "num": 2,
+        "denom": 128,
+        "rarity": "2/128"
+      },
+      {
+        "name": "Coal",
+        "num": 2,
+        "denom": 128,
+        "rarity": "2/128"
+      },
+      {
+        "name": "Mithril pickaxe",
+        "num": 3,
+        "denom": 128,
+        "rarity": "3/128"
+      },
+      {
+        "name": "Adamantite bar",
+        "num": 3,
+        "denom": 128,
+        "rarity": "3/128"
+      },
+      {
+        "name": "Steel platebody",
+        "num": 4,
+        "denom": 128,
+        "rarity": "4/128"
+      },
+      {
+        "name": "Swordfish",
+        "num": 4,
+        "denom": 128,
+        "rarity": "4/128"
+      },
+      {
+        "name": "Adamant axe",
+        "num": 7,
+        "denom": 128,
+        "rarity": "7/128"
+      },
+      {
+        "name": "Grimy ranarr weed",
+        "num": 7,
+        "denom": 128,
+        "rarity": "7/128"
+      },
+      {
+        "name": "Bass",
+        "num": 7,
+        "denom": 128,
+        "rarity": "7/128"
+      },
+      {
+        "name": "Mithril ore",
+        "num": 10,
+        "denom": 128,
+        "rarity": "10/128"
+      },
+      {
+        "name": "Coins",
+        "num": 10,
+        "denom": 128,
+        "rarity": "10/128"
+      },
+      {
+        "name": "Mithril warhammer",
+        "num": 11,
+        "denom": 128,
+        "rarity": "11/128"
+      },
+      {
+        "name": "Steel kiteshield",
+        "num": 17,
+        "denom": 128,
+        "rarity": "17/128"
+      }
+    ]
+  },
+  "Dagannoth Prime": {
+    "hiscoresName": "Dagannoth Prime",
+    "drops": [
+      {
+        "name": "Pet dagannoth prime",
+        "num": 1,
+        "denom": 5000,
+        "rarity": "1/5000"
+      },
+      {
+        "name": "Battlestaff",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Fremennik blade",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Fremennik shield",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Fremennik helm",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Mud battlestaff",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Dragon axe",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Farseer helm",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Skeletal top",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Skeletal bottoms",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Seers ring",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Blood rune",
+        "num": 2,
+        "denom": 128,
+        "rarity": "2/128"
+      },
+      {
+        "name": "Law rune",
+        "num": 2,
+        "denom": 128,
+        "rarity": "2/128"
+      },
+      {
+        "name": "Nature rune",
+        "num": 2,
+        "denom": 128,
+        "rarity": "2/128"
+      },
+      {
+        "name": "Mud rune",
+        "num": 2,
+        "denom": 128,
+        "rarity": "2/128"
+      },
+      {
+        "name": "Death rune",
+        "num": 2,
+        "denom": 128,
+        "rarity": "2/128"
+      },
+      {
+        "name": "Coins",
+        "num": 3,
+        "denom": 128,
+        "rarity": "3/128"
+      },
+      {
+        "name": "Air battlestaff",
+        "num": 4,
+        "denom": 128,
+        "rarity": "4/128"
+      },
+      {
+        "name": "Water battlestaff",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Earth rune",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Oyster pearls",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Pure essence",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Grimy ranarr weed",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Air rune",
+        "num": 6,
+        "denom": 128,
+        "rarity": "6/128"
+      },
+      {
+        "name": "Air talisman",
+        "num": 7,
+        "denom": 128,
+        "rarity": "7/128"
+      },
+      {
+        "name": "Water talisman",
+        "num": 7,
+        "denom": 128,
+        "rarity": "7/128"
+      },
+      {
+        "name": "Earth battlestaff",
+        "num": 10,
+        "denom": 128,
+        "rarity": "10/128"
+      },
+      {
+        "name": "Earth talisman",
+        "num": 10,
+        "denom": 128,
+        "rarity": "10/128"
+      },
+      {
+        "name": "Shark",
+        "num": 10,
+        "denom": 128,
+        "rarity": "10/128"
+      }
+    ]
+  },
+  "Dagannoth Supreme": {
+    "hiscoresName": "Dagannoth Supreme",
+    "drops": [
+      {
+        "name": "Pet dagannoth supreme",
+        "num": 1,
+        "denom": 5000,
+        "rarity": "1/5000"
+      },
+      {
+        "name": "Fremennik blade",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Fremennik shield",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Fremennik helm",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Seercull",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Dragon axe",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Archer helm",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Spined body",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Spined chaps",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Archers ring",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Feather",
+        "num": 1,
+        "denom": 128,
+        "rarity": "1/128"
+      },
+      {
+        "name": "Runite limbs",
+        "num": 2,
+        "denom": 128,
+        "rarity": "2/128"
+      },
+      {
+        "name": "Maple logs",
+        "num": 3,
+        "denom": 128,
+        "rarity": "3/128"
+      },
+      {
+        "name": "Iron arrow",
+        "num": 4,
+        "denom": 128,
+        "rarity": "4/128"
+      },
+      {
+        "name": "Rune thrownaxe",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Adamant dart",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Iron knife",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Steel knife",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Steel arrow",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Runite bolts",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Opal bolt tips",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Shark",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Yew logs",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Grimy ranarr weed",
+        "num": 5,
+        "denom": 128,
+        "rarity": "5/128"
+      },
+      {
+        "name": "Oyster pearls",
+        "num": 6,
+        "denom": 128,
+        "rarity": "6/128"
+      },
+      {
+        "name": "Red d'hide vambraces",
+        "num": 7,
+        "denom": 128,
+        "rarity": "7/128"
+      },
+      {
+        "name": "Mithril knife",
+        "num": 10,
+        "denom": 128,
+        "rarity": "10/128"
+      },
+      {
+        "name": "Coins",
+        "num": 10,
+        "denom": 128,
+        "rarity": "10/128"
+      }
+    ]
+  }
+}

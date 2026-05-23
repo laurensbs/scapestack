@@ -18,6 +18,7 @@ import { BOSSES } from "./bosses";
 import { computeCombatLevel, computeTotalLevel, type HiscoreSkill } from "./hiscores";
 import { getQuests, type QuestRecord } from "./quest-db";
 import { getDiaries, type DiaryRecord, type DiaryTier } from "./diary-db";
+import { getDropRates, type BossDropTable } from "./drop-rates-db";
 
 // Kind drives the icon + accent the hub renders, and groups the checklist.
 export type RecKind =
@@ -25,6 +26,7 @@ export type RecKind =
   | "quest"      // a Wiki-listed quest the player's stats now meet
   | "diary"      // an Achievement Diary tier the player's stats now meet
   | "boss"       // a boss the player's combat level now supports
+  | "kc"         // boss KC-aware insight (drop rate vs your kill count)
   | "minigame"   // a minigame the player's skill levels now unlock
   | "money"      // a money-making method matched to the player's skills
   | "skill"      // a skill sitting just short of a milestone level
@@ -52,6 +54,9 @@ export interface NextUpInput {
   bank?: CompletionItem[];
   /** Total quest points (from Hiscores activities). Used to gate quest recs. */
   questPoints?: number;
+  /** Boss kill-counts from Hiscores activities — keyed by activity name.
+   *  Used to compute expected-uniques ("142 Vorkath KC ≈ 0.85 visages"). */
+  bossKc?: Record<string, number>;
 }
 
 export interface NextUpResult {
@@ -419,6 +424,52 @@ const DIARY_REWARD_ICONS: Record<string, number> = {
   "Kourend & Kebos":      25441  // Rada's blessing 4
 };
 
+// ── Boss KC-aware insights ──────────────────────────────────────────────────
+// Combines a player's boss kill-count (from Hiscores) with the rarest unique
+// drop rate for that boss (from data/drop-rates.json) into "you've killed
+// this boss X times — statistically you'd expect Y uniques by now". Only
+// surfaces if the player has *enough* KC to make the comparison meaningful
+// (KC >= 25 % of the rarest drop's denominator) — otherwise the rec is
+// just "drop rate is 1/5000, go grind" which adds no signal.
+function kcRecs(dropTables: Map<string, BossDropTable>, bossKc: Record<string, number>): Recommendation[] {
+  if (dropTables.size === 0) return [];
+  const recs: Recommendation[] = [];
+  for (const [wikiName, table] of dropTables) {
+    const kc = bossKc[table.hiscoresName] ?? 0;
+    if (kc <= 0) continue; // never killed → no insight, just noise
+
+    // Pick the rarest "iconic" drop the player would chase — denom >= 500
+    // ensures we skip common stuff, but isn't so rare (5000+) it drowns
+    // mid-KC players in "you're statistically unlucky" messages.
+    const headline = table.drops.find((d) => d.denom >= 500 && d.denom <= 5000);
+    if (!headline) continue;
+
+    const expected = kc * (headline.num / headline.denom);
+    if (kc < headline.denom * 0.25) continue; // not enough KC to be informative
+
+    // Score: rises with how far past the drop rate you are. At 1x the rate
+    // (expected = 1), score ~60. At 3x (expected = 3), score ~75.
+    const score = Math.min(80, 55 + expected * 6);
+
+    // Look up boss meta in BOSSES so we can show a sprite.
+    const boss = BOSSES.find((b) => b.name === wikiName || b.slug === wikiName.toLowerCase().replace(/[^a-z]/g, "-"));
+
+    recs.push({
+      id: `kc:${wikiName}`,
+      kind: "kc",
+      title: `${kc.toLocaleString()} ${wikiName} KC`,
+      why: `Drop rate for ${headline.name}: ${headline.rarity}.`,
+      payoff: expected >= 1
+        ? `Statistically you'd expect ${expected.toFixed(1)} ${headline.name} by now.`
+        : `${(expected * 100).toFixed(0)}% chance of one ${headline.name} based on your KC.`,
+      score,
+      link: undefined,
+      iconItemId: boss?.iconItemId
+    });
+  }
+  return recs;
+}
+
 function diaryRecs(diaries: Map<string, DiaryRecord>, skills: HiscoreSkill[]): Recommendation[] {
   if (skills.length === 0 || diaries.size === 0) return [];
   const recs: Recommendation[] = [];
@@ -503,20 +554,23 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     ? overallStats(completions).percent
     : null;
 
-  // Quest + diary data ship as static JSON files — best-effort, the engine
-  // still works if a file is missing (the build scripts generate them).
-  const [quests, diaries] = hasHiscores
+  // Quest + diary + drop-rate data ship as static JSON files — best-effort,
+  // the engine still works if a file is missing (the build scripts generate
+  // them). All three loads are kicked off in parallel.
+  const [quests, diaries, dropTables] = hasHiscores
     ? await Promise.all([
         getQuests().catch(() => new Map()),
-        getDiaries().catch(() => new Map())
+        getDiaries().catch(() => new Map()),
+        getDropRates().catch(() => new Map())
       ])
-    : [new Map(), new Map()];
+    : [new Map(), new Map(), new Map()];
 
   const recs: Recommendation[] = [
     ...goalRecs(completions),
     ...(combatLevel !== null ? bossRecs(combatLevel) : []),
     ...questRecs(quests, skills, qp),
     ...diaryRecs(diaries, skills),
+    ...kcRecs(dropTables, input.bossKc ?? {}),
     ...minigameRecs(skills),
     ...moneyRecs(skills),
     ...skillRecs(skills),

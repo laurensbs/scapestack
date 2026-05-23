@@ -4,7 +4,7 @@ import { useState, useTransition, useMemo } from "react";
 import Link from "next/link";
 import {
   ArrowRight, Edit3, Target, Sword, TrendingUp, Layers, Sparkles, Trophy,
-  Gamepad2, Coins, Scroll, Map as MapIcon
+  Gamepad2, Coins, Scroll, Map as MapIcon, Dices
 } from "lucide-react";
 import { Intake } from "@/components/intake";
 import { SupportCard } from "@/components/support-card";
@@ -21,6 +21,7 @@ const KIND_META: Record<RecKind, { icon: typeof Target; label: string }> = {
   quest:     { icon: Scroll,     label: "Quest" },
   diary:     { icon: MapIcon,    label: "Diary" },
   boss:      { icon: Sword,      label: "Boss" },
+  kc:        { icon: Dices,      label: "Drop chance" },
   minigame:  { icon: Gamepad2,   label: "Minigame" },
   money:     { icon: Coins,      label: "Money" },
   skill:     { icon: TrendingUp, label: "Skill" },
@@ -58,11 +59,16 @@ export function NextClient() {
           if (!seen.has(cape.id)) { bank.push(cape); seen.add(cape.id); }
         }
       }
-      // Pull Quest points from the Hiscores activities list — the engine
-      // uses it to gate quest recommendations against their QP requirement.
+      // Pull Quest points + every positive boss KC from the Hiscores
+      // activities list. QP gates quest recs; boss KC feeds the kcRecs
+      // ("142 Vorkath KC ≈ 0.85 visages expected") drop-rate insight.
       const qpActivity = hiscores?.activities.find((a) => a.name === "Quest points");
       const questPoints = qpActivity && qpActivity.score >= 0 ? qpActivity.score : 0;
-      setResult(await nextUpAction({ skills, bank, questPoints }));
+      const bossKc: Record<string, number> = {};
+      for (const a of hiscores?.activities ?? []) {
+        if (a.score > 0) bossKc[a.name] = a.score;
+      }
+      setResult(await nextUpAction({ skills, bank, questPoints, bossKc }));
       setView("result");
     });
   };
