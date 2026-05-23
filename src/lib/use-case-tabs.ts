@@ -1288,12 +1288,20 @@ export function buildUseCaseTabs(
     //     labelled bank-filler in gaps, then dense overflow for the rest.
     //   - Drops: kind-banded layout (pets / jars / uniques / trophies /
     //     holiday) with an empty row between bands as a visual separator.
-    //   - everything else: dense left-to-right pack, no fillers.
+    //   - Teleports / Clue / Quest / Cosmetic: kind-banded via the shared
+    //     bandedLayout helper — items of the same kind cluster, one empty
+    //     row between bands as a visual separator.
+    //   - Misc: dense left-to-right pack (this IS the dump-tab; banding
+    //     here just hides the items further).
     const built: LayoutResult =
       name === "PvM Gear" ? buildPvmGearLayout(items)
       : name === "Potions" ? buildPotionsLayout(items)
       : name === "Skilling" ? buildSkillingLayout(items)
       : name === "Drops" ? buildDropsLayout(items)
+      : name === "Teleports" ? buildTeleportsLayout(items)
+      : name === "Clue" ? buildClueLayout(items)
+      : name === "Quest" ? buildQuestLayout(items)
+      : name === "Cosmetic" ? buildCosmeticLayout(items)
       : { layout: buildUseCaseLayout(items), fillerLabels: {} };
     out.push({
       // TypeTab union is wider than UseCaseTab; cast is safe — render layer
@@ -1383,47 +1391,185 @@ function buildUseCaseLayout(items: OrganizedItem[]): Record<number, number> {
   return layout;
 }
 
-// Drops tab — kind-banded layout. The input is already sorted by sortDrops
-// (pet → jar → unique → trophy → holiday). This builder packs each kind
-// into its own block of rows with an empty row between bands as a visual
-// separator. That fixes the old "wall of sprites" feel — at a glance a
-// player sees pets together, raid drops together, etc.
+// Generic kind-banded layout. Caller provides a band-classifier; items
+// that share the same band sit together in consecutive rows, with one
+// empty row between bands as a visual separator. Used by the Drops tab
+// and the Teleports / Clue / Quest / Cosmetic tabs — anywhere "group
+// these similar items, leave breathing room between groups" is the
+// principle from BANK-ORGANIZER-PRINCIPLES.md.
 //
-// Light-path implementation per docs/BANK-ORGANIZER-DECISIONS.md: no tier
-// system, no S-tier curation. Hierarchy comes entirely from the existing
-// sortDrops order; the layout just respects band boundaries.
-function buildDropsLayout(items: OrganizedItem[]): LayoutResult {
+// `bandOf` MUST return the same string for items that should sit next to
+// each other; the order of bands in the output follows the encounter order
+// in `items`, so the caller is responsible for pre-sorting items so the
+// desired bands appear in the desired order.
+function bandedLayout<T extends OrganizedItem>(
+  items: T[],
+  bandOf: (it: T) => string
+): Record<number, number> {
   const layout: Record<number, number> = {};
-  if (items.length === 0) return { layout, fillerLabels: {} };
+  if (items.length === 0) return layout;
 
-  // Group by kind in encounter order (sortDrops already arranged them).
-  const bands: Array<{ kind: DropKind; items: OrganizedItem[] }> = [];
-  let current: { kind: DropKind; items: OrganizedItem[] } | null = null;
+  // Group consecutively. We intentionally do NOT re-group across items of
+  // the same band that are separated by another band in the input — the
+  // caller's ordering decides band placement.
+  const bands: T[][] = [];
+  let cur: T[] | null = null;
+  let curKey = "";
   for (const it of items) {
-    const k = dropKind(it);
-    if (!current || current.kind !== k) {
-      current = { kind: k, items: [] };
-      bands.push(current);
+    const k = bandOf(it);
+    if (!cur || k !== curKey) {
+      cur = [];
+      curKey = k;
+      bands.push(cur);
     }
-    current.items.push(it);
+    cur.push(it);
   }
 
-  // Lay out each band starting on a fresh row. After every non-final band
-  // skip one row (= 8 slots) for the visual gap. Items inside a band flow
-  // left-to-right dense, wrapping to the next row when the band has > 8.
+  // Pack each band into its own row block; skip one row between bands.
   let slot = 0;
   for (let b = 0; b < bands.length; b++) {
-    const band = bands[b];
-    for (const it of band.items) {
-      layout[slot++] = it.id;
-    }
-    // Round up to the next row so the next band starts cleanly.
+    for (const it of bands[b]) layout[slot++] = it.id;
     const rem = slot % GRID_COLS;
     if (rem !== 0) slot += GRID_COLS - rem;
-    // Empty separator row between bands (skip after the final band).
     if (b < bands.length - 1) slot += GRID_COLS;
   }
-  return { layout, fillerLabels: {} };
+  return layout;
+}
+
+// Drops tab — kind-banded layout. Pets / jars / uniques / trophies /
+// holiday rares each get their own row block with a separator row between.
+// Input is pre-sorted by sortDrops so the band order is correct.
+function buildDropsLayout(items: OrganizedItem[]): LayoutResult {
+  return { layout: bandedLayout(items, dropKind), fillerLabels: {} };
+}
+
+// ── Teleports tab — banded by kind ─────────────────────────────────────────
+// Tuck's 9-tab pattern groups Teleports as: charged jewellery first (daily
+// taps), then teleport tablets, then teleport scrolls / items, then runes
+// and pouches, then worn amulets / rings without charges, diary rewards
+// last. Items are already sorted by sortTeleports upstream.
+type TeleportBand = "charged" | "tablet" | "item" | "rune" | "worn" | "diary" | "other";
+const TP_CHARGED = /(?:\((?:\d+|empty)\))$|^(?:dueling|games|skills|combat|burning|necklace of passage|amulet of glory)/i;
+const TP_TABLET = /tablet$|teleport scroll|scroll of redirection/i;
+const TP_ITEM = /^(ectophial|chronicle|royal seed pod|drakan's medallion|xeric's talisman|enchanted lyre|crystal teleport seed|book of the dead|rada's blessing)/i;
+const TP_RUNE = /\brune$|^small pouch|^medium pouch|^large pouch|^giant pouch|^colossal pouch|^divine rune pouch|^rune pouch/i;
+const TP_DIARY = /(?:ardougne cloak|explorer's ring|karamja gloves|fremennik sea boots|wilderness sword|morytania legs|desert amulet|kandarin headgear|falador shield|varrock armour|western banner|rada's blessing) ?\d?/i;
+const TP_WORN = /amulet|necklace|ring$|ring \(|talisman$/i;
+
+function teleportBand(it: OrganizedItem): TeleportBand {
+  const n = it.name.toLowerCase();
+  if (TP_DIARY.test(n)) return "diary";
+  if (TP_CHARGED.test(n)) return "charged";
+  if (TP_TABLET.test(n)) return "tablet";
+  if (TP_ITEM.test(n)) return "item";
+  if (TP_RUNE.test(n)) return "rune";
+  if (TP_WORN.test(n)) return "worn";
+  return "other";
+}
+const TP_BAND_ORDER: TeleportBand[] = ["charged", "tablet", "item", "rune", "worn", "diary", "other"];
+
+function buildTeleportsLayout(items: OrganizedItem[]): LayoutResult {
+  // Re-sort by band order — sortTeleports upstream cares about *within*
+  // groupings; we just need the bands themselves in our preferred order.
+  const sorted = [...items].sort((a, b) => {
+    const ra = TP_BAND_ORDER.indexOf(teleportBand(a));
+    const rb = TP_BAND_ORDER.indexOf(teleportBand(b));
+    if (ra !== rb) return ra - rb;
+    return 0; // stable
+  });
+  return { layout: bandedLayout(sorted, teleportBand), fillerLabels: {} };
+}
+
+// ── Clue tab — banded by clue tier + kind ──────────────────────────────────
+// Scrolls/caskets/keys first (active progress), then rewards by tier
+// (beginner → master). Within rewards, the value-sort from sortBucket is
+// preserved.
+type ClueBand = "scrolls" | "caskets" | "beginner" | "easy" | "medium" | "hard" | "elite" | "master" | "other";
+const CL_SCROLL = /^(?:clue scroll|reward casket|challenge scroll|sealed clue|clue nest|key \(.*clue)/i;
+const CL_CASKET = /(?:reward casket|clue nest|sealed clue)/i;
+
+function clueBand(it: OrganizedItem): ClueBand {
+  const n = it.name.toLowerCase();
+  if (CL_CASKET.test(n)) return "caskets";
+  if (CL_SCROLL.test(n)) return "scrolls";
+  // Tier-coded names: 3rd age = master / elite, gilded = hard, robin = medium…
+  // Light heuristic: leave un-tiered as "other" so it sits at the bottom.
+  if (/3rd age|third-age|ranger boots|robin hood|holy sandals|gilded/i.test(n)) return "master";
+  if (/(?:^|\W)elite(?:\W|$)/i.test(n)) return "elite";
+  if (/(?:^|\W)hard(?:\W|$)/i.test(n)) return "hard";
+  if (/(?:^|\W)medium(?:\W|$)/i.test(n)) return "medium";
+  if (/(?:^|\W)easy(?:\W|$)/i.test(n)) return "easy";
+  if (/(?:^|\W)beginner(?:\W|$)/i.test(n)) return "beginner";
+  return "other";
+}
+const CL_BAND_ORDER: ClueBand[] = ["scrolls", "caskets", "master", "elite", "hard", "medium", "easy", "beginner", "other"];
+
+function buildClueLayout(items: OrganizedItem[]): LayoutResult {
+  const sorted = [...items].sort((a, b) => {
+    const ra = CL_BAND_ORDER.indexOf(clueBand(a));
+    const rb = CL_BAND_ORDER.indexOf(clueBand(b));
+    if (ra !== rb) return ra - rb;
+    return 0;
+  });
+  return { layout: bandedLayout(sorted, clueBand), fillerLabels: {} };
+}
+
+// ── Quest tab — banded ─────────────────────────────────────────────────────
+// Quest items naturally split into: quest weapons / wearables (Excalibur,
+// Silverlight, Barrelchest anchor), keys (essential progression), then
+// quest-only cosmetic / books, then the rest.
+type QuestBand = "weapon" | "wearable" | "key" | "book" | "other";
+const Q_WEAPON = /(?:excalibur|silverlight|darklight|arclight|emerald lantern|barrelchest|keris|crystal grail)/i;
+const Q_KEY = /\bkey\b|grimy.*key|tooth half of key|loop half of key|crystal key|brimstone key|larran's key|grubby key|sinister key/i;
+const Q_BOOK = /book of|tome of|holy book|book of balance|book of war|book of darkness|book of law/i;
+const Q_WEARABLE = /helm|hood|cape|cloak|amulet|ring|boots|gloves|legs|robe|hat|crown/i;
+
+function questBand(it: OrganizedItem): QuestBand {
+  const n = it.name.toLowerCase();
+  if (Q_KEY.test(n)) return "key";
+  if (Q_WEAPON.test(n)) return "weapon";
+  if (Q_BOOK.test(n)) return "book";
+  if (Q_WEARABLE.test(n)) return "wearable";
+  return "other";
+}
+const Q_BAND_ORDER: QuestBand[] = ["weapon", "wearable", "book", "key", "other"];
+
+function buildQuestLayout(items: OrganizedItem[]): LayoutResult {
+  const sorted = [...items].sort((a, b) => {
+    const ra = Q_BAND_ORDER.indexOf(questBand(a));
+    const rb = Q_BAND_ORDER.indexOf(questBand(b));
+    if (ra !== rb) return ra - rb;
+    return 0;
+  });
+  return { layout: bandedLayout(sorted, questBand), fillerLabels: {} };
+}
+
+// ── Cosmetic tab — banded by category ──────────────────────────────────────
+// Holiday rares (partyhat, santa, halloween masks) first — these are the
+// real flexes. Then 3rd age / gilded (high-rarity clue), then graceful
+// (utility cosmetic), then fashion gear (low-stat costumes).
+type CosmeticBand = "holiday" | "thirdage" | "graceful" | "fashion" | "other";
+const C_HOLIDAY = /partyhat|santa hat|halloween|h'ween mask|christmas cracker|easter egg|disk of returning|cabbage cape|chicken hat|jester|gnome scarf/i;
+const C_THIRDAGE = /3rd age|third-age|gilded/i;
+const C_GRACEFUL = /^graceful /i;
+
+function cosmeticBand(it: OrganizedItem): CosmeticBand {
+  const n = it.name.toLowerCase();
+  if (C_HOLIDAY.test(n)) return "holiday";
+  if (C_THIRDAGE.test(n)) return "thirdage";
+  if (C_GRACEFUL.test(n)) return "graceful";
+  return "fashion";
+}
+const C_BAND_ORDER: CosmeticBand[] = ["holiday", "thirdage", "graceful", "fashion", "other"];
+
+function buildCosmeticLayout(items: OrganizedItem[]): LayoutResult {
+  const sorted = [...items].sort((a, b) => {
+    const ra = C_BAND_ORDER.indexOf(cosmeticBand(a));
+    const rb = C_BAND_ORDER.indexOf(cosmeticBand(b));
+    if (ra !== rb) return ra - rb;
+    return 0;
+  });
+  return { layout: bandedLayout(sorted, cosmeticBand), fillerLabels: {} };
 }
 
 // PvM Gear 2D layout — groups armour pieces of the same setId into a single

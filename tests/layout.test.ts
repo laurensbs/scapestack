@@ -340,22 +340,22 @@ describe("explainBucket — diagnostic mirror of bucketFor", () => {
 });
 
 describe("layout regression — dense packing", () => {
-  // PvM Gear deliberately uses a 2D set-grouped layout where empty slots
-  // appear inside short columns (a 2-piece Mystic column leaves the row
-  // below empty so the next strip starts cleanly). Every OTHER tab still
-  // dense-packs.
-  it("non-PvM tabs: every tab's layout dense-packs (no holes)", async () => {
+  // Almost every use-case tab now uses a banded or 2D layout (per
+  // BANK-ORGANIZER-PRINCIPLES.md): PvM Gear (set columns), Potions
+  // (herb-pipeline rows), Skilling (themed rows), Drops / Teleports /
+  // Clue / Quest / Cosmetic (kind bands with separator rows). Only the
+  // Misc tab still dense-packs — it's intentionally a dump-tab.
+  it("Misc tab: layout dense-packs (no holes)", async () => {
     const result = await organize({ itemIds: MAX_MAIN_BANK, includePrices: false });
     const useCase = buildUseCaseTabs(result.tabs);
-    for (const tab of useCase) {
-      if (String(tab.name) === "PvM Gear") continue;
-      const slots = Object.keys(tab.layout).map(Number).sort((a, b) => a - b);
-      if (slots.length === 0) continue;
-      expect(slots[0]).toBe(0);
-      expect(slots[slots.length - 1]).toBe(slots.length - 1);
-      for (let i = 0; i < slots.length; i++) {
-        expect(slots[i]).toBe(i);
-      }
+    const misc = useCase.find((t) => String(t.name) === "Misc");
+    if (!misc) return;
+    const slots = Object.keys(misc.layout).map(Number).sort((a, b) => a - b);
+    if (slots.length === 0) return;
+    expect(slots[0]).toBe(0);
+    expect(slots[slots.length - 1]).toBe(slots.length - 1);
+    for (let i = 0; i < slots.length; i++) {
+      expect(slots[i]).toBe(i);
     }
   });
 

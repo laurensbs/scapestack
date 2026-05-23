@@ -704,7 +704,15 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
     setViewSort(strategy);
     // Force "default" sort so BankList doesn't re-sort on top of our chosen
     // order. Also clear preset/subtab filters that would mask the new layout.
-    setPrefs((p) => ({ ...p, sort: "default" }));
+    // CRITICAL: smart-tidy must wipe prefs.itemOrder, otherwise visibleTabs
+    // re-applies the previous manual per-tab order on top of the new layout
+    // — the silent cause of the "still feels random after reorganize" bug.
+    // Other strategies keep itemOrder because *they* set it themselves.
+    setPrefs((p) => ({
+      ...p,
+      sort: "default",
+      ...(strategy === "smart" ? { itemOrder: {} } : {})
+    }));
     setActivePreset(null);
     setActiveSubtab(null);
     refreshStrings(next);
