@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Lock, Search } from "lucide-react";
+import { ArrowRight, Lock, Sparkles } from "lucide-react";
 import { TOOLS, type Tool } from "@/lib/tools";
 import { cn, ICON_URL } from "@/lib/utils";
 import { BuyMeCoffee } from "@/components/buy-me-coffee";
@@ -35,21 +35,23 @@ export default function HomePage() {
               className="mt-6 text-[16px] sm:text-[17px] text-[var(--color-text-dim)] max-w-xl leading-relaxed"
               style={{ animation: "hero-fade 0.7s cubic-bezier(0.22,1,0.36,1) 0.32s both" }}
             >
-              Paste your bank and have it sorted before your run energy refills.
-              Look up a stranger&apos;s stats, pick gear without opening a spreadsheet.
-              No account, no plugin — runs in your browser, even on mobile at Castle Wars.
+              <span className="text-[var(--color-text)] font-medium">
+                Paste your bank, get back nine sorted tabs you can drop straight into RuneLite.
+              </span>
+              {" "}Plus a "what should I do next?" hub that reads your stats and bank, and surfaces the goals,
+              bosses, and quests worth chasing. Free, no account, no plugin.
             </p>
             <div
               className="mt-8 flex flex-wrap items-center gap-3"
               style={{ animation: "hero-fade 0.7s cubic-bezier(0.22,1,0.36,1) 0.48s both" }}
             >
-              <Link href="/bank" className="btn-primary group">
-                Open Bank Organizer
+              <Link href="/bank?sample=1" className="btn-primary group">
+                See it with a sample bank
                 <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform" />
               </Link>
-              <Link href="/hiscore" className="btn-ghost">
-                <Search className="size-3.5" />
-                Lookup player
+              <Link href="/bank" className="btn-ghost">
+                <Sparkles className="size-3.5" />
+                Use my bank
               </Link>
             </div>
           </div>

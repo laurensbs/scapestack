@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition, useCallback } from "react";
+import { useState, useTransition, useCallback, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Sparkles } from "lucide-react";
 import { Intro } from "@/components/intro";
 import { Intake } from "@/components/intake";
@@ -63,10 +64,23 @@ export default function BankPage() {
     });
   };
 
-  const onSample = () => {
+  const onSample = useCallback(() => {
     setSampleInput(SAMPLE_BANKTAGS);
     onIntakeSubmit(SAMPLE_BANKTAGS, false, "");
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Deep-link from the homepage: /bank?sample=1 auto-organises the sample
+  // bank so a first-time visitor sees the actual output without installing
+  // a RuneLite plugin. The biggest bouncer in the old flow was "do four
+  // steps before you see anything"; this collapses that to one click.
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get("sample") === "1" && view === "intake" && !pending) {
+      onSample();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <main className="relative z-10 mx-auto max-w-6xl px-5 py-7 pb-20">
