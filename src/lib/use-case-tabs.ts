@@ -1286,11 +1286,14 @@ export function buildUseCaseTabs(
     //     (4)(3)(2)(1)) with labelled bank-filler in any gap.
     //   - Skilling: themed rows (pouches / essence / core tools) with
     //     labelled bank-filler in gaps, then dense overflow for the rest.
+    //   - Drops: kind-banded layout (pets / jars / uniques / trophies /
+    //     holiday) with an empty row between bands as a visual separator.
     //   - everything else: dense left-to-right pack, no fillers.
     const built: LayoutResult =
       name === "PvM Gear" ? buildPvmGearLayout(items)
       : name === "Potions" ? buildPotionsLayout(items)
       : name === "Skilling" ? buildSkillingLayout(items)
+      : name === "Drops" ? buildDropsLayout(items)
       : { layout: buildUseCaseLayout(items), fillerLabels: {} };
     out.push({
       // TypeTab union is wider than UseCaseTab; cast is safe — render layer
@@ -1378,6 +1381,49 @@ function buildUseCaseLayout(items: OrganizedItem[]): Record<number, number> {
   const layout: Record<number, number> = {};
   for (let i = 0; i < items.length; i++) layout[i] = items[i].id;
   return layout;
+}
+
+// Drops tab — kind-banded layout. The input is already sorted by sortDrops
+// (pet → jar → unique → trophy → holiday). This builder packs each kind
+// into its own block of rows with an empty row between bands as a visual
+// separator. That fixes the old "wall of sprites" feel — at a glance a
+// player sees pets together, raid drops together, etc.
+//
+// Light-path implementation per docs/BANK-ORGANIZER-DECISIONS.md: no tier
+// system, no S-tier curation. Hierarchy comes entirely from the existing
+// sortDrops order; the layout just respects band boundaries.
+function buildDropsLayout(items: OrganizedItem[]): LayoutResult {
+  const layout: Record<number, number> = {};
+  if (items.length === 0) return { layout, fillerLabels: {} };
+
+  // Group by kind in encounter order (sortDrops already arranged them).
+  const bands: Array<{ kind: DropKind; items: OrganizedItem[] }> = [];
+  let current: { kind: DropKind; items: OrganizedItem[] } | null = null;
+  for (const it of items) {
+    const k = dropKind(it);
+    if (!current || current.kind !== k) {
+      current = { kind: k, items: [] };
+      bands.push(current);
+    }
+    current.items.push(it);
+  }
+
+  // Lay out each band starting on a fresh row. After every non-final band
+  // skip one row (= 8 slots) for the visual gap. Items inside a band flow
+  // left-to-right dense, wrapping to the next row when the band has > 8.
+  let slot = 0;
+  for (let b = 0; b < bands.length; b++) {
+    const band = bands[b];
+    for (const it of band.items) {
+      layout[slot++] = it.id;
+    }
+    // Round up to the next row so the next band starts cleanly.
+    const rem = slot % GRID_COLS;
+    if (rem !== 0) slot += GRID_COLS - rem;
+    // Empty separator row between bands (skip after the final band).
+    if (b < bands.length - 1) slot += GRID_COLS;
+  }
+  return { layout, fillerLabels: {} };
 }
 
 // PvM Gear 2D layout — groups armour pieces of the same setId into a single
