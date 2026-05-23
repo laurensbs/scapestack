@@ -81,6 +81,10 @@ secties matcht de werkbalk in dat document.
 
 ## Fase 3 — `/returning` bouwen
 
+> ⚠ **Volgorde-noot**: pas oppakken na Fase 5 (Save bank) en Fase 6
+> (Visual rebrand). Een nieuwe acquisitie-pagina zonder retentie-fix
+> en zonder visuele identiteit verspilt het verkeer dat erop landt.
+
 ### Prompt 3.1 — Wiki update-feed POC
 
 > Doel: een script dat OSRS Wiki update-aankondigingen ophaalt en per
@@ -145,6 +149,143 @@ secties matcht de werkbalk in dat document.
 >    gebruiken je net-geplakte bank — geen RSN nodig." Eén regel.
 >
 > Verifieer met typecheck, tests, build. Push.
+
+---
+
+## Fase 5 — "Save my bank" — de #1 retentie-fix
+
+Plakken bij elke bezoek is de grootste friction die overblijft. Een
+returning speler die elke maand komt kijken hoort niet elke maand z'n
+banktags-string te zoeken. Drie sub-prompts: ontwerp, opslag, UI.
+
+### Prompt 5.1 — Ontwerpkeuze opschrijven (geen code)
+
+> Lees `docs/STRATEGY.md` en `src/lib/snapshot-history.ts`. We willen
+> dat een speler z'n bank kan **opslaan** zodat hij bij latere bezoeken
+> niet opnieuw hoeft te plakken. Schrijf `docs/SAVE-BANK-DESIGN.md`
+> waarin staat:
+>
+> 1. **Waar slaan we op?** Drie opties met voor/nadelen:
+>    - localStorage (browser-only, simpel, geen account)
+>    - URL-gedeelde snapshot-code (zoals /bank/share/[code] al doet —
+>      kan dit uitbreiden tot een persistente "mijn bank"-code?)
+>    - Account-gebaseerd (vereist auth → in STRATEGY.md uitgesloten)
+> 2. **Wat slaan we op?** Alleen de banktags-string? Of ook organisatie-
+>    voorkeuren (sort, density, tab-volgorde, pins)? Of een volledige
+>    OrganizeResult?
+> 3. **Hoeveel banks?** Eén "huidige" bank, of meerdere named slots
+>    ("main bank", "alt", "ironman")?
+> 4. **Wat als de speler een RSN heeft ingevoerd?** Koppelen we de
+>    save aan de RSN of staat hij los?
+> 5. **Privacy.** Wat als de speler de browser deelt? Banktags exposes
+>    waarde, niet identiteit, maar het is goed daar bewust van zijn.
+>
+> Eindig met **één aanbeveling** ("ik zou X doen omdat Y"), niet drie
+> opties. Bouw geen code.
+
+### Prompt 5.2 — Implementeer de opslaglaag
+
+> _Alleen uitvoeren NA prompt 5.1 en NA bevestiging van Laurens dat de
+> aanbevolen aanpak klopt._
+>
+> Bouw `src/lib/saved-bank.ts`: een client-side module met
+> `loadSavedBank()`, `saveSavedBank(items, opts)`, `clearSavedBank()`,
+> volgens het ontwerp uit `docs/SAVE-BANK-DESIGN.md`. Inclusief:
+> - Versie-veld in het payload (voor toekomstige migraties).
+> - JSON-parse foutafhandeling — corrupte storage = stille terugval
+>   naar geen-saved-bank, niet een crash.
+> - 1 vitest-bestand `tests/saved-bank.test.ts` met 3-5 tests die de
+>   round-trip + corrupt-payload + clear-flow dekken.
+>
+> Geen UI-wijziging in deze prompt. Alleen de module + tests.
+
+### Prompt 5.3 — UI-integratie in /bank
+
+> _Alleen uitvoeren NA prompt 5.2._
+>
+> Wikkel de Intake-component in /bank zodat bij paginalaad
+> `loadSavedBank()` wordt geprobeerd. Als er een saved bank is:
+> - Toon een banner bovenaan de intake: "Welcome back — we still have
+>   your bank from <datum>." Met twee knoppen: "Use saved bank" (laadt
+>   en submit automatisch) en "Start fresh" (clears en toont normale
+>   intake).
+> - In `BankResult`-header naast Copy/Smart-tidy/What-next: een
+>   discrete "Save this bank" knop (of automatic, met "Saved ✓"
+>   bevestiging). Beslissing in design-doc.
+>
+> Verifieer met typecheck, tests, build. Push.
+
+### Prompt 5.4 — UI-integratie in /next
+
+> _Alleen uitvoeren NA prompt 5.3._
+>
+> /next moet `loadSavedBank()` ook gebruiken — een returning speler
+> wil meteen z'n hub zien, niet eerst opnieuw RSN typen. Aanpak:
+> - Op /next paginalaad: probeer `loadSavedBank()` parallel aan de
+>   `?from=bank` sessionStorage-check. Als één van beide bank-data
+>   oplevert, pre-vul de intake.
+> - RSN onthouden in localStorage (separate key, niet in de bank-
+>   payload). Pre-vul het RSN-veld als die er is.
+>
+> Verifieer met typecheck, tests, build. Push.
+
+---
+
+## Fase 6 — Old-school visual rebrand
+
+_Volgorde belangrijk: alleen beginnen NADAT Fase 5 ("Save bank")
+gepubliceerd is en werkt. Reden: rebranding op een tool die elke sessie
+opnieuw geplakt moet worden voelt nog steeds frustrerend, hoe mooi de
+verf ook is._
+
+### Prompt 6.1 — Visuele audit
+
+> Open `src/app/globals.css` en de homepage + /bank + /next. Lees de
+> kleuren-tokens, font-keuzes, animaties die er al zijn. Schrijf
+> `docs/REBRAND-AUDIT.md`:
+>
+> 1. **Wat is er nu?** Welke kleuren (CSS custom properties), welke
+>    fonts (Geist Sans / Mono), welke animaties (de keyframes in
+>    globals.css), welke styling-conventies (Tailwind v4 met `@theme`).
+> 2. **Wat voelt al old-school OSRS?** Geef per element een score:
+>    item-sprites (waarschijnlijk OK), bank-grid (OK?), buttons (te
+>    modern?), typografie (modern), kleuren (mint accent is niet
+>    OSRS-natief).
+> 3. **Wat zou old-school met modern randje betekenen?** Niet kopiëren
+>    van de in-game UI (dat oogt 2007 op een 4K scherm). Wel: kleuren
+>    uit het OSRS-palet (Tab-yellow, rune-blue, herblore-green), iconen
+>    uit het spel, typografie die past bij Trebuchet (de OSRS-font) maar
+>    leesbaar blijft. Mint-accent vervangen door OSRS-goud of -rood?
+>
+> Geen code. Eindig met **drie concrete kleurwijzigingen + één font-
+> beslissing** die je zou voorstellen. Niet meer.
+
+### Prompt 6.2 — Implementeer de kleurwijzigingen
+
+> _Alleen uitvoeren NA bevestiging van Laurens op de aanbevelingen uit 6.1._
+>
+> Pas de CSS-tokens in `src/app/globals.css` aan volgens de drie
+> goedgekeurde kleurwijzigingen. **Niet meer aanpassen dan dat.** Geen
+> font-wijziging in deze prompt (die zit in 6.3). Geen animatie-
+> wijziging. Alleen de kleur-variabelen.
+>
+> Typecheck, tests, build. Visueel verifiëren op /, /bank, /next door
+> screenshots te beschrijven (welke kleuren zie je waar). Push.
+
+### Prompt 6.3 — Typografie + één signature-animatie
+
+> _Alleen uitvoeren NA prompt 6.2._
+>
+> Twee precieze wijzigingen:
+> 1. Pas de gekozen font aan (uit 6.1) — in `src/app/layout.tsx` waar
+>    Geist Sans / Mono geladen worden. Eén font, niet allebei.
+> 2. Voeg **één** nieuwe signature-animatie toe: een geïntegreerde
+>    OSRS-gevoel-animatie die op de homepage hero verschijnt. Bijv.
+>    een sprite die binnenvalt zoals een drop-melding, of een "click
+>    here" sparkle. Eén. Geen drie. Geen vier. Eén die de
+>    productpersoonlijkheid pakt.
+>
+> Verifieer typecheck, tests, build. Push.
 
 ---
 

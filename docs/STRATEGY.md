@@ -92,15 +92,29 @@ herzien we hoe (niet wat).
 
 ## Volgorde van bouwen
 
-1. **Homepage opnieuw uitlijnen** rond `/next` als primaire actie.
+1. ✓ **Homepage opnieuw uitlijnen** rond `/next` als primaire actie.
    Bank/Goals/DPS/Hiscore in een secundair "tools"-blok daaronder.
-   Schrap GP/GE-cards.
-2. **`/next` lege-staat fixen**. Een bezoeker zonder bank of RSN moet
-   *iets* zien — generieke "begin hier"-stappen of voorbeeld-uitvoer.
-3. **`/returning` bouwen** — wiki update-feed → filter op skills/bank
-   → "deze 3 updates raken jouw account". Sub-route van `/next`.
-4. **Bank Organizer als data-pijplijn herframen**. Na organize → een
-   "ga naar /next"-knop, in plaats van uitsluitend export-actie.
+   GP/GE-cards geschrapt. (Gedaan in commit `2334327` en eerder.)
+2. ✓ **`/next` lege-staat fixen**. Een bezoeker zonder bank of RSN
+   krijgt nu een RSN-only intake, een toggle voor bank-paste, en een
+   sample-link. (Gedaan.)
+3. ✓ **Bank Organizer als data-pijplijn herframen**. "What should I do
+   next?"-knop in bank-result-header die de bank doorgeeft via
+   sessionStorage. (Gedaan.)
+4. **Save bank — retentie-fix.** Bank één keer plakken, daarna
+   onthouden tussen bezoeken. De grootste resterende friction. Drie
+   sub-prompts in PROMPTS.md fase 5 (ontwerp → opslag → UI).
+5. **Visuele rebrand — old-school met modern randje.** OSRS-natief
+   kleurenpalet, één gerichte signature-animatie, font-keuze die past
+   bij Trebuchet maar leesbaar blijft. Drie sub-prompts in fase 6
+   (audit → kleuren → typografie + animatie). Niet beginnen vóór 4
+   live is.
+6. **`/returning` bouwen** — wiki update-feed → filter op skills/bank
+   → "deze 3 updates raken jouw account". Acquisitie-magneet, maar
+   pas na 4 en 5: anders verspil je het verkeer.
+
+Geen pre-emptieve features. Geen herziening voordat een fase écht
+live staat.
 
 Niet meer dan dit voordat we meten of het werkt. Geen pre-emptieve
 features.
