@@ -830,17 +830,31 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <StackScoreBadge tabs={tabs} previousScore={previousScore} />
-          {/* One-click smart tidy. Each press re-runs the playstyle-aware
-              organise with a fresh shuffle seed — the bank stays fully
-              grouped but lays out a touch differently, the way re-tidying a
-              real bank never looks identical twice. Per-item sort modes
-              (value / quantity / A-Z) live in the toolbar's Sort control. */}
+          {/* PRIMARY ACTION — the moment-of-truth: paste back into RuneLite.
+              Previously this lived 1000+ pixels below the bank in an Export
+              section, which is the wrong place for the page's main outcome.
+              Now it's right where the eye lands after "your bank is sorted". */}
           <button
-            onClick={() => applyReorganize("smart", "Tidied")}
+            onClick={copyAll}
             className={cn(
               "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12.5px] font-semibold transition-all",
               "bg-[var(--color-accent)] text-[#07090C] hover:brightness-110 shadow-[0_0_0_3px_rgba(0,226,154,0.15)]",
               "hover:shadow-[0_0_0_4px_rgba(0,226,154,0.25)]"
+            )}
+            title="Copy every tab's Bank Tags string to your clipboard — paste each into RuneLite"
+          >
+            {copied === "all" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
+            {copied === "all" ? "Copied!" : "Copy to RuneLite"}
+          </button>
+          {/* Smart tidy — secondary action, ghost-styled. Re-tidies in place
+              if the user wants a different layout (each press uses a fresh
+              shuffle seed, so equal-rank items shuffle a touch). */}
+          <button
+            onClick={() => applyReorganize("smart", "Tidied")}
+            className={cn(
+              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12.5px] font-medium border transition-colors",
+              "bg-transparent text-[var(--color-text-dim)] border-[var(--color-border)]",
+              "hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
             )}
             title="Re-tidy the bank — groups every tab and packs it neatly"
           >
@@ -1037,13 +1051,37 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
       </DndContext>
       </PinContext.Provider>
 
-      {/* ── Insights — secondary panels, below the bank ──────────────────────
-          The bank itself is the deliverable, so everything analytical (tips,
-          diffs, junk, upgrades, goals, diet) sits beneath it. A reader sees
-          their organized bank first, then scrolls into the supporting detail. */}
+      {/* ── Insights — secondary panels, collapsed below the bank ────────────
+          Six analytical panels (tips, diffs, junk, upgrades, goals, diet)
+          used to stack equally below the bank, competing for attention and
+          burying the export action. Now wrapped in a single <details>
+          element: a summary line counts what's inside, click to expand.
+          Visitors who came to "get tabs and export" never scroll past the
+          summary; analytical users find everything one click away.
+          Native <details> over a React state toggle on purpose — no extra
+          render, keyboard-accessible, survives soft navigation. */}
+      <details className="group mt-8 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/40 overflow-hidden">
+        <summary className="cursor-pointer list-none flex items-center justify-between gap-3 px-4 py-3 hover:bg-[var(--color-panel)]/60 transition-colors">
+          <div className="flex items-center gap-3 min-w-0">
+            <Sparkles className="size-4 text-[var(--color-accent)] shrink-0" />
+            <span className="text-[13px] font-semibold text-[var(--color-text)] tracking-tight">
+              Insights about this bank
+            </span>
+            <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11.5px] text-[var(--color-text-dim)] font-mono">
+              {bankTips.length > 0 && <span>· {bankTips.length} tip{bankTips.length === 1 ? "" : "s"}</span>}
+              {diff && !diffDismissed && <span className="text-[var(--color-accent)]">· diff vs last</span>}
+              {junkSummaryAll.count > 0 && <span className="text-[var(--color-danger)]">· {junkSummaryAll.count} junk</span>}
+              {upgradeSuggestions.length > 0 && <span className="text-[var(--color-accent)]">· {upgradeSuggestions.length} upgrade{upgradeSuggestions.length === 1 ? "" : "s"}</span>}
+              {goalSetProgress.length > 0 && <span>· {goalSetProgress.length} goal{goalSetProgress.length === 1 ? "" : "s"} close</span>}
+              {staleSummary.count > 0 && <span className="text-[var(--color-warning)]">· {staleSummary.count} stale</span>}
+            </span>
+          </div>
+          <ChevronDown className="size-4 text-[var(--color-text-dim)] shrink-0 transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="px-4 pt-1 pb-4 border-t border-[var(--color-border)] space-y-3">
 
       {/* Actionable tips — decant, merge, complete outfit, pick up untradeables. */}
-      <div className="mt-8">
+      <div>
         <TipsCard tips={bankTips} />
       </div>
 
@@ -1299,6 +1337,8 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
           </div>
         </div>
       )}
+        </div>
+      </details>
 
       {/* Smart suggestions based on what's in the bank */}
       <SuggestionsPanel tabs={tabs} />
