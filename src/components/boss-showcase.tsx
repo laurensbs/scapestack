@@ -76,7 +76,7 @@ export function BossShowcase() {
         type="button"
         onClick={() => navigate(active)}
         aria-label={`Open ${active.label}`}
-        className="absolute inset-0 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/60 focus-visible:rounded-2xl transition-transform duration-300 hover:scale-[1.02]"
+        className="absolute inset-0 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/60 focus-visible:rounded-2xl"
         style={{
           animation: "showcase-frame-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both"
         }}
