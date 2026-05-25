@@ -13,6 +13,7 @@ import { KcProbabilityGraph } from "@/components/kc-probability-graph";
 import { XpDropLoader } from "@/components/xp-drop-loader";
 import { BossDetailModal } from "@/components/boss-detail-modal";
 import { PathOverview } from "@/components/path-overview";
+import { TypingTitle } from "@/components/typing-title";
 import { BOSSES, type Boss } from "@/lib/bosses";
 import { ownedGear, type GearItem } from "@/lib/gear";
 import { organizeAction, nextUpAction, hiscoresAction } from "@/app/actions";
@@ -545,13 +546,18 @@ function ResultView({ result, onEdit, onBossOpen }: {
     : "Add your OSRS name or a bank for tailored advice.";
 
   return (
-    <div className="animate-[slide-up_0.35s_ease-out]">
-      {/* Header — account read-out + re-run */}
+    <div>
+      {/* Header — account read-out + re-run. No outer slide-up anymore;
+          the choreographed typing title + Path-to-Max reveal carry the
+          intro motion themselves. */}
       <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-[20px] font-semibold tracking-tight text-[var(--color-text)] leading-tight">
-            Here&apos;s what to do now
-          </h2>
+          <TypingTitle
+            as="h2"
+            text="Here's what to do now"
+            className="text-[20px] sm:text-[22px] font-semibold tracking-tight text-[var(--color-text)] leading-tight"
+            durationMs={700}
+          />
           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[13px] font-mono tabular-nums text-[var(--color-text-dim)]">
             {summary.combatLevel !== null && (
               <span className="flex items-center gap-1.5">

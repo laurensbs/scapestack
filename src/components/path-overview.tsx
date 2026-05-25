@@ -1,10 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sword, Target, Map as MapIcon, TrendingUp, ChevronRight, Check } from "lucide-react";
 import { ICON_URL, cn } from "@/lib/utils";
 import type { PathOverview as PathOverviewData, PathProgress } from "@/lib/path-progress";
 import { PathDetailModal } from "./path-detail-modal";
+
+// Choreography constants — the title types in over ~700ms, this strip
+// lands 300ms after the title starts, and the ring fill + count-up
+// runs across 1200ms once visible. Centralised so the hero feels like
+// one composed sequence, not three loose animations.
+const PATH_OVERVIEW_DELAY_MS = 1000; // title finishes ~900ms; +100ms breath
+const RING_DURATION_MS = 1200;
 
 // Path-to-Max overview — replaces the headline + grouped checklist on
 // /next. Four cards, one per axis (Skills/Quests/Diaries/Bosses), each
@@ -20,8 +27,16 @@ export function PathOverview({ data }: { data: PathOverviewData }) {
   return (
     <>
       {/* Hero progress bar — one number, big. The four ring-indicators
-          underneath show per-path balance at a glance. */}
-      <section className="mb-8">
+          underneath show per-path balance at a glance. Lands 1s after
+          the typing title finishes its reveal, so the eye can follow
+          a single beat: title → progress → cards. */}
+      <section
+        className="mb-8"
+        style={{
+          animation: `path-overview-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both`,
+          animationDelay: `${PATH_OVERVIEW_DELAY_MS}ms`
+        }}
+      >
         <div className="flex items-baseline justify-between mb-3">
           <h2 className="text-[12px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
             Path to Max
@@ -33,10 +48,19 @@ export function PathOverview({ data }: { data: PathOverviewData }) {
         <div className="rounded-2xl border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] p-6">
           <div className="flex flex-col lg:flex-row lg:items-center gap-6">
             <div className="flex items-center gap-5">
-              <BigRing percent={data.overallPercent} />
+              <BigRing
+                percent={data.overallPercent}
+                startDelayMs={PATH_OVERVIEW_DELAY_MS + 150}
+                durationMs={RING_DURATION_MS}
+              />
               <div>
                 <div className="text-[36px] sm:text-[44px] font-bold tabular-nums leading-none text-[var(--color-text)]">
-                  {data.overallPercent}<span className="text-[24px] text-[var(--color-text-dim)]">%</span>
+                  <CountUp
+                    to={data.overallPercent}
+                    startDelayMs={PATH_OVERVIEW_DELAY_MS + 150}
+                    durationMs={RING_DURATION_MS}
+                  />
+                  <span className="text-[24px] text-[var(--color-text-dim)]">%</span>
                 </div>
                 <div className="mt-1.5 text-[13px] text-[var(--color-text-dim)]">
                   of the full set complete
@@ -44,8 +68,15 @@ export function PathOverview({ data }: { data: PathOverviewData }) {
               </div>
             </div>
             <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3 lg:gap-2">
-              {data.paths.map((p) => (
-                <PathPill key={p.kind} path={p} />
+              {data.paths.map((p, i) => (
+                <PathPill
+                  key={p.kind}
+                  path={p}
+                  // Stagger the pills 80ms each, starting once the ring
+                  // is roughly half-filled (~600ms after PathOverview
+                  // appears). Gives the strip a 'building outward' feel.
+                  delayMs={PATH_OVERVIEW_DELAY_MS + 600 + i * 80}
+                />
               ))}
             </div>
           </div>
@@ -53,11 +84,21 @@ export function PathOverview({ data }: { data: PathOverviewData }) {
       </section>
 
       {/* Four large path cards, each with their own next-steps preview.
-          Click opens the drill-in modal with the full done/open list. */}
+          Click opens the drill-in modal with the full done/open list.
+          Cards stagger in 100ms apart, starting ~1.2s after the hero
+          appears (the ring is mostly full by then). */}
       <section>
         <div className="grid lg:grid-cols-2 gap-4">
-          {data.paths.map((path) => (
-            <PathCard key={path.kind} path={path} onOpen={() => setOpenPath(path)} />
+          {data.paths.map((path, i) => (
+            <div
+              key={path.kind}
+              style={{
+                animation: "path-card-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both",
+                animationDelay: `${PATH_OVERVIEW_DELAY_MS + 800 + i * 100}ms`
+              }}
+            >
+              <PathCard path={path} onOpen={() => setOpenPath(path)} />
+            </div>
           ))}
         </div>
       </section>
@@ -69,11 +110,26 @@ export function PathOverview({ data }: { data: PathOverviewData }) {
   );
 }
 
-// Big ring on the overall percent. Pure SVG, no chart lib.
-function BigRing({ percent }: { percent: number }) {
+// Big ring on the overall percent. Pure SVG, no chart lib. Animates from
+// 0 → target by starting with strokeDasharray="0 c" and flipping to
+// final on mount + a tick — react picks up the transition.
+function BigRing({
+  percent,
+  startDelayMs = 0,
+  durationMs = 1200
+}: {
+  percent: number;
+  startDelayMs?: number;
+  durationMs?: number;
+}) {
   const r = 32;
   const c = 2 * Math.PI * r;
-  const filled = (percent / 100) * c;
+  const target = (percent / 100) * c;
+  const [filled, setFilled] = useState(0);
+  useEffect(() => {
+    const t = setTimeout(() => setFilled(target), startDelayMs);
+    return () => clearTimeout(t);
+  }, [target, startDelayMs]);
   return (
     <svg width="80" height="80" viewBox="0 0 80 80" className="shrink-0">
       <circle cx="40" cy="40" r={r} fill="none" stroke="var(--color-border)" strokeWidth="5" />
@@ -85,22 +141,64 @@ function BigRing({ percent }: { percent: number }) {
         strokeLinecap="round"
         strokeDasharray={`${filled} ${c}`}
         transform="rotate(-90 40 40)"
-        style={{ transition: "stroke-dasharray 0.6s ease-out" }}
+        style={{ transition: `stroke-dasharray ${durationMs}ms cubic-bezier(0.22, 1, 0.36, 1)` }}
       />
     </svg>
   );
 }
 
+// Count-up tween for percentage numbers. Eases out so the last few
+// values feel like they're settling, not just hitting a hard stop.
+function CountUp({
+  to,
+  startDelayMs = 0,
+  durationMs = 1200
+}: {
+  to: number;
+  startDelayMs?: number;
+  durationMs?: number;
+}) {
+  const [n, setN] = useState(0);
+  const rafRef = useRef<number | null>(null);
+  useEffect(() => {
+    const startTimer = setTimeout(() => {
+      const t0 = performance.now();
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - t0) / durationMs);
+        // ease-out-cubic — matches the ring fill curve closely enough
+        // that the two move together but not so tightly that they
+        // feel mechanically locked.
+        const eased = 1 - Math.pow(1 - t, 3);
+        setN(Math.round(to * eased));
+        if (t < 1) rafRef.current = requestAnimationFrame(tick);
+      };
+      rafRef.current = requestAnimationFrame(tick);
+    }, startDelayMs);
+    return () => {
+      clearTimeout(startTimer);
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+  }, [to, startDelayMs, durationMs]);
+  return <>{n}</>;
+}
+
 // Compact pill showing per-path percent inside the hero block. Acts as
-// a legend for the bigger card grid below.
-function PathPill({ path }: { path: PathProgress }) {
+// a legend for the bigger card grid below. Animation delay is staggered
+// from the hero so the four pills build outward as the ring fills.
+function PathPill({ path, delayMs = 0 }: { path: PathProgress; delayMs?: number }) {
   return (
-    <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-[var(--color-bg-2)] border border-[var(--color-border)]">
+    <div
+      className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-[var(--color-bg-2)] border border-[var(--color-border)]"
+      style={{
+        animation: "path-pill-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both",
+        animationDelay: `${delayMs}ms`
+      }}
+    >
       <PathIcon kind={path.kind} size={20} />
       <div className="flex-1 min-w-0">
         <div className="text-[10.5px] uppercase tracking-wider text-[var(--color-text-muted)]">{path.label}</div>
         <div className="text-[13.5px] font-bold tabular-nums text-[var(--color-text)] leading-tight">
-          {path.percent}%
+          <CountUp to={path.percent} startDelayMs={delayMs} durationMs={700} />%
         </div>
       </div>
     </div>
