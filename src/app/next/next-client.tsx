@@ -656,6 +656,18 @@ function HeadlineCard({ rec }: { rec: Recommendation }) {
               {rec.payoff}
             </p>
           )}
+          {/* The probability chart is the differentiator no other tool
+              has. Render it default-open on the headline KC-rec so it
+              hits the user immediately, instead of hiding behind a
+              'click to reveal' link they'd skim past. */}
+          {rec.kcMeta && (
+            <KcProbabilityGraph
+              kc={rec.kcMeta.kc}
+              denom={rec.kcMeta.denom}
+              dropName={rec.kcMeta.dropName}
+              defaultOpen
+            />
+          )}
           {rec.link && (
             <div className="mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-[var(--color-accent)] group-hover:gap-2 transition-all">
               Open the tool <ArrowRight className="size-4" />
@@ -665,7 +677,9 @@ function HeadlineCard({ rec }: { rec: Recommendation }) {
       </div>
     </article>
   );
-  return rec.link ? <Link href={rec.link}>{card}</Link> : card;
+  // KC-headline contains an interactive chart toggle; don't wrap the
+  // whole card in <Link> or the toggle click would navigate.
+  return rec.link && !rec.kcMeta ? <Link href={rec.link}>{card}</Link> : card;
 }
 
 // One checklist row — compact, linkable.

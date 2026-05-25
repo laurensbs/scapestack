@@ -6,6 +6,11 @@ interface Props {
   kc: number;
   denom: number;        // drop rate = 1 / denom per kill
   dropName: string;
+  /** Start expanded (no toggle click required). The HeadlineCard on
+   *  /next uses this so our biggest differentiator — the
+   *  probability-vs-KC curve — is the first thing a player sees, not
+   *  a 'click to reveal' link they'll skim past. */
+  defaultOpen?: boolean;
 }
 
 // Inline probability chart for a KC-rec. Shows P(>= 1 drop after N kills),
@@ -16,8 +21,8 @@ interface Props {
 // Vertical line at the player's current KC; the label shows the probability
 // at that point. Hovering moves an info-pip along the curve. Pure SVG, no
 // chart library — 60-ish lines, no bundle cost.
-export function KcProbabilityGraph({ kc, denom, dropName }: Props) {
-  const [open, setOpen] = useState(false);
+export function KcProbabilityGraph({ kc, denom, dropName, defaultOpen = false }: Props) {
+  const [open, setOpen] = useState(defaultOpen);
 
   if (denom <= 0) return null; // guard against bad data
 
