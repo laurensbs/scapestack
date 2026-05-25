@@ -9,6 +9,7 @@ import {
 import { SupportCard } from "@/components/support-card";
 import { SavedBankBanner } from "@/components/saved-bank-banner";
 import { BossSprite } from "@/components/boss-picker";
+import { KcProbabilityGraph } from "@/components/kc-probability-graph";
 import { BOSSES } from "@/lib/bosses";
 import { organizeAction, nextUpAction } from "@/app/actions";
 import { fetchHiscores, type HiscoreSkill } from "@/lib/hiscores";
@@ -606,6 +607,13 @@ function RecRow({ rec }: { rec: Recommendation }) {
           {rec.payoff && (
             <p className="mt-1 text-[11px] text-[var(--color-text-muted)] leading-snug">{rec.payoff}</p>
           )}
+          {rec.kcMeta && (
+            <KcProbabilityGraph
+              kc={rec.kcMeta.kc}
+              denom={rec.kcMeta.denom}
+              dropName={rec.kcMeta.dropName}
+            />
+          )}
         </div>
         {rec.link && (
           <ArrowRight className="size-3.5 text-[var(--color-text-muted)] group-hover:text-[var(--color-accent)] transition-colors shrink-0 mt-0.5" />
@@ -613,5 +621,8 @@ function RecRow({ rec }: { rec: Recommendation }) {
       </div>
     </article>
   );
-  return rec.link ? <Link href={rec.link}>{inner}</Link> : inner;
+  // Avoid wrapping the row in <Link> when there's an interactive chart inside
+  // (clicking the chart toggle would also navigate). kc-recs have no link
+  // anyway — they're stat read-outs, not jump targets.
+  return rec.link && !rec.kcMeta ? <Link href={rec.link}>{inner}</Link> : inner;
 }

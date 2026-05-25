@@ -49,6 +49,14 @@ export interface Recommendation {
    *  instead of an item sprite. Used by the kc-kind recs so the player
    *  sees an actual picture of Vorkath, Olm, etc. */
   bossSlug?: string;
+  /** kc-kind only: enough data for the inline probability chart in /next.
+   *  We carry kc / denom / drop-name so the renderer doesn't have to
+   *  reverse-engineer them from the title/why strings. */
+  kcMeta?: {
+    kc: number;
+    denom: number;
+    dropName: string;
+  };
 }
 
 export interface NextUpInput {
@@ -665,7 +673,8 @@ function kcRecs(
       score,
       link: undefined,
       iconItemId: boss?.iconItemId,
-      bossSlug: boss?.slug
+      bossSlug: boss?.slug,
+      kcMeta: { kc, denom: headline.denom, dropName: headline.name }
     });
   }
   return recs;
