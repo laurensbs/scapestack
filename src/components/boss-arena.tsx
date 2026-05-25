@@ -3,38 +3,24 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { BossSprite } from "@/components/boss-picker";
-import { BOSSES, type Boss } from "@/lib/bosses";
 import { track } from "@/lib/analytics";
 
-// The eight bosses people actually want to know about. Each entry has a
-// `display` slug (used for analytics + tooltip) and a `wikiNpc` (the NPC
-// the wiki has a portrait for). For raid entries the two differ — CoX is
-// a raid, but the wiki only has a portrait for Great Olm; we show Olm,
-// label it 'Chambers of Xeric'. Order = clockwise from 12 o'clock.
-const ARENA_BOSSES: Array<{ display: string; label: string; wikiNpc: string }> = [
-  { display: "vorkath",   label: "Vorkath",            wikiNpc: "Vorkath" },
-  { display: "zulrah",    label: "Zulrah",             wikiNpc: "Zulrah" },
-  { display: "cox",       label: "Chambers of Xeric",  wikiNpc: "Great Olm" },
-  { display: "tob",       label: "Theatre of Blood",   wikiNpc: "Verzik Vitur" },
-  { display: "toa",       label: "Tombs of Amascut",   wikiNpc: "Tumeken's Warden" },
-  { display: "hydra",     label: "Alchemical Hydra",   wikiNpc: "Alchemical Hydra" },
-  { display: "nex",       label: "Nex",                wikiNpc: "Nex" },
-  { display: "vardorvis", label: "Vardorvis",          wikiNpc: "Vardorvis" }
+// The eight bosses people actually want to know about. Portraits are
+// downloaded once at build time by scripts/build-boss-sprites.mjs and
+// served from /sprites/bosses/<slug>.png — runtime wiki-fetching was
+// flaky (Special:FilePath/Zulrah.png 404s; the actual filename is
+// Zulrah_(serpentine).png). Local-first means consistent rendering
+// and no third-party request per visitor.
+const ARENA_BOSSES: Array<{ slug: string; label: string }> = [
+  { slug: "vorkath",   label: "Vorkath" },
+  { slug: "zulrah",    label: "Zulrah" },
+  { slug: "cox",       label: "Chambers of Xeric" },
+  { slug: "tob",       label: "Theatre of Blood" },
+  { slug: "toa",       label: "Tombs of Amascut" },
+  { slug: "hydra",     label: "Alchemical Hydra" },
+  { slug: "nex",       label: "Nex" },
+  { slug: "vardorvis", label: "Vardorvis" }
 ];
-
-// Build a synthetic Boss-shaped object so BossSprite's existing 3-stage
-// fallback chain works for raids too (it reads `npcName ?? name`).
-function arenaBoss(entry: typeof ARENA_BOSSES[number]): Boss {
-  // Prefer a real BOSSES entry when one exists (gets us iconItemId for
-  // the drop-sprite fallback). Otherwise synthesise the minimum shape.
-  const real = BOSSES.find((b) => b.slug === entry.display);
-  return {
-    ...(real ?? { slug: entry.display, name: entry.label, hp: 0, iconItemId: 4151 } as Boss),
-    name: entry.label,
-    npcName: entry.wikiNpc
-  };
-}
 
 // Arena radius is expressed as % of the container size so the layout
 // scales with viewport. We compute the (x, y) offset for tile `index`
@@ -65,11 +51,8 @@ export function BossArena() {
     return () => clearInterval(t);
   }, []);
 
-  // Resolve every entry to a Boss-shaped object once on mount.
-  const bosses = ARENA_BOSSES.map(arenaBoss);
-
   const active = hovered ?? spotlight;
-  const activeBoss = bosses[active];
+  const activeBoss = ARENA_BOSSES[active];
 
   return (
     <div
@@ -117,23 +100,25 @@ export function BossArena() {
       </Link>
 
       {/* The orbiting bosses */}
-      {bosses.map((boss, i) => {
-        if (!boss) return null;
+      {ARENA_BOSSES.map((entry, i) => {
         const { x, y } = calcOffset(i, ARENA_BOSSES.length);
         const isActive = i === active;
         // Position by absolute top/left as percentages of the container
-        // (50% = centre), then translate -50% / -50% by transform so the
-        // tile is centred on that point. The % on `transform` would refer
-        // to the tile's own box, which is why we keep position+transform
-        // separate.
+        // (50% = centre); transform: translate(-50%, -50%) centres the
+        // tile on the computed point. We keep position+transform separate
+        // because % on `transform` would refer to the tile's own box.
         return (
           <div
-            key={ARENA_BOSSES[i].display}
+            key={entry.slug}
             className="absolute -translate-x-1/2 -translate-y-1/2"
             style={{
               left: `calc(50% + ${x})`,
               top: `calc(50% + ${y})`,
-              animation: `tile-rise 0.55s cubic-bezier(0.22,1,0.36,1) ${0.6 + i * 0.06}s both`
+              animation: `tile-rise 0.55s cubic-bezier(0.22,1,0.36,1) ${0.6 + i * 0.06}s both`,
+              // The active tile lifts ~6px while the inactive ones float
+              // gently (via animation-delay-staggered float-y). Combined
+              // with the gold halo this gives the spotlight real weight.
+              zIndex: isActive ? 10 : 1
             }}
           >
             <button
@@ -143,36 +128,49 @@ export function BossArena() {
               onFocus={() => setHovered(i)}
               onBlur={() => setHovered(null)}
               onClick={() => {
-                track("homepage:sample", { source: "arena-boss", boss: ARENA_BOSSES[i].display });
-                // Same destination as the CTA — the arena is a fancier
-                // CTA, not a per-boss deep-link (no /boss/<slug> route).
+                track("homepage:sample", { source: "arena-boss", boss: entry.slug });
                 window.location.assign("/next");
               }}
-              aria-label={boss.name}
-              className="relative size-[58px] sm:size-[64px] rounded-full bg-[var(--color-bg-2)] border border-[var(--color-border-strong)] flex items-center justify-center overflow-hidden transition-all duration-300 hover:scale-110 focus:scale-110 outline-none focus:ring-2 focus:ring-[var(--color-accent)]/60"
+              aria-label={entry.label}
+              className="relative size-[60px] sm:size-[68px] rounded-full bg-[var(--color-bg-2)] border border-[var(--color-border-strong)] flex items-center justify-center overflow-hidden outline-none focus:ring-2 focus:ring-[var(--color-accent)]/60 transition-[transform,box-shadow] duration-500 ease-out"
               style={{
-                // Halo on the active tile. We animate the box-shadow
-                // so the transition is smooth as spotlight rotates.
+                transform: isActive ? "scale(1.18)" : "scale(1)",
                 boxShadow: isActive
-                  ? "0 0 0 2px rgba(230, 165, 47, 0.55), 0 0 28px 4px rgba(230, 165, 47, 0.35)"
-                  : "0 4px 12px -4px rgba(0, 0, 0, 0.6)"
+                  ? "0 0 0 2px rgba(230, 165, 47, 0.65), 0 0 32px 6px rgba(230, 165, 47, 0.40), 0 8px 24px -6px rgba(0, 0, 0, 0.7)"
+                  : "0 4px 12px -4px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.02)"
               }}
             >
-              <BossSprite boss={boss} size={48} />
+              <img
+                src={`/sprites/bosses/${entry.slug}.png`}
+                alt=""
+                aria-hidden="true"
+                loading="eager"
+                className="w-full h-full object-cover transition-transform duration-700"
+                style={{
+                  // Active = full vibrant + tiny zoom for parallax feel.
+                  // Inactive = slightly desaturated + dimmed so the
+                  // spotlight reads instantly.
+                  filter: isActive
+                    ? "none"
+                    : "grayscale(0.35) brightness(0.78)",
+                  transform: isActive ? "scale(1.08)" : "scale(1)"
+                }}
+              />
             </button>
           </div>
         );
       })}
 
-      {/* Tooltip — bottom-centred, shows the active boss name. Lives
-          outside the orbit ring so it doesn't get cropped by overflow. */}
+      {/* Active-boss name chip — bottom-centred, outside the orbit ring
+          so it doesn't get cropped. Only renders when something is
+          actively spotlit or hovered; never overlaps the per-tile area. */}
       {activeBoss && (
         <div
           key={activeBoss.slug}
-          className="absolute left-1/2 -translate-x-1/2 -bottom-2 sm:-bottom-4 px-3 py-1.5 rounded-full bg-[var(--color-panel)] border border-[var(--color-border-strong)] text-[11.5px] font-semibold tracking-tight text-[var(--color-text)] whitespace-nowrap shadow-[0_8px_24px_-12px_rgb(0_0_0/0.7)]"
+          className="absolute left-1/2 -translate-x-1/2 -bottom-3 sm:-bottom-5 px-3.5 py-1.5 rounded-full bg-[var(--color-panel)] border border-[var(--color-accent)]/40 text-[12px] font-semibold tracking-tight text-[var(--color-text)] whitespace-nowrap shadow-[0_8px_24px_-10px_rgb(0_0_0/0.75)]"
           style={{ animation: "fade-in 0.25s ease-out" }}
         >
-          {activeBoss.name}
+          {activeBoss.label}
         </div>
       )}
     </div>

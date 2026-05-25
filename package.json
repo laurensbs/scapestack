@@ -13,7 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "audit:next": "tsx scripts/audit-next.ts",
-    "build:sprites": "node scripts/build-skill-sprites.mjs"
+    "build:sprites": "node scripts/build-skill-sprites.mjs && node scripts/build-boss-sprites.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
