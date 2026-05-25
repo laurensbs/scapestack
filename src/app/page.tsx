@@ -26,7 +26,10 @@ export default function HomePage() {
               <span>v0.4 · OSRS toolkit</span>
             </div>
             <h1
-              className="text-[44px] sm:text-[64px] lg:text-[72px] font-bold leading-[0.95] tracking-[-0.02em] text-[var(--color-text)]"
+              // Mobile gets text-[36px] so "Gielinor" doesn't wrap onto a
+              // third line on 375px viewports (audit finding #1). Larger
+              // breakpoints keep the original premium size.
+              className="text-[36px] sm:text-[48px] md:text-[64px] lg:text-[72px] font-bold leading-[0.95] tracking-[-0.02em] text-[var(--color-text)]"
               // Longer duration + later start gives the headline its own moment;
               // the eyebrow above settles first, then the title lifts in.
               style={{ animation: "hero-fade 0.85s cubic-bezier(0.22,1,0.36,1) 0.15s both" }}
@@ -36,10 +39,14 @@ export default function HomePage() {
             </h1>
             <HeroSubhead />
             <div
-              className="mt-8 flex flex-wrap items-center gap-3"
+              // w-full on the CTA buttons + flex-col on mobile means they
+              // stack full-width as proper primary/secondary, not wrap with
+              // a half-line gap (audit finding #3). sm:flex-row restores
+              // the inline layout from 640px up.
+              className="mt-8 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3"
               style={{ animation: "hero-fade 0.7s cubic-bezier(0.22,1,0.36,1) 0.48s both" }}
             >
-              <Link href="/next" className="btn-primary group">
+              <Link href="/next" className="btn-primary group w-full sm:w-auto justify-center">
                 What should I do next?
                 <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform" />
               </Link>
@@ -48,14 +55,15 @@ export default function HomePage() {
           </div>
 
           {/* Boss arena — the hero visual. Eight wiki portraits orbit a
-              central CTA. Replaces the old BankPreview (kept lower down
-              on the page in case we want it back; the new homepage
-              priority is /next, not the bank organizer). Plausible
-              traffic data after the v0.4 launch made the call: visitors
-              hit the homepage and stalled — the visual was selling the
-              wrong thing. The arena sells what we actually do: pick a
-              boss, get a plan. */}
-          <div className="relative" style={{ animation: "hero-fade 0.7s cubic-bezier(0.22,1,0.36,1) 0.32s both" }}>
+              central CTA. mt-6 on mobile/tablet keeps it clear of the
+              CTA buttons above (audit finding #2: arena ambient-glow
+              bled into the buttons at the breakpoint where the grid
+              hasn't split yet). lg: drops the margin since the grid
+              puts arena and copy side-by-side. */}
+          <div
+            className="relative mt-6 lg:mt-0"
+            style={{ animation: "hero-fade 0.7s cubic-bezier(0.22,1,0.36,1) 0.32s both" }}
+          >
             <BossArena />
           </div>
         </div>

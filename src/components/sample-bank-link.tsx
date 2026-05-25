@@ -12,7 +12,9 @@ export function SampleBankLink() {
   return (
     <Link
       href="/bank?sample=1"
-      className="btn-ghost"
+      // Full-width stack on mobile so it's a proper secondary CTA, not a
+      // squashed afterthought next to the primary (audit finding #3).
+      className="btn-ghost w-full sm:w-auto justify-center"
       onClick={() => track("homepage:sample")}
     >
       <Sparkles className="size-3.5" />

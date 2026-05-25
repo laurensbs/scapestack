@@ -99,17 +99,14 @@ iPhone 14 (390px), iPad (768px).
    op text-overflow op rare item-kwantums. _Fix: `text-[8px]` voor
    qty op mobile zodat het nooit clipped._
 
-10. **Bank tab-row scroll op overflow.** Op 375px met 8+ tabs scrolt
-    de tab-strip horizontaal (gelukkig), maar er is geen visual cue
-    dat hij scrollbaar is. Geen scroll-indicator, geen edge-fade. Een
-    eerste-gebruiker mist dat er meer tabs zijn rechts. _Fix:
-    `mask-image: linear-gradient(...)` voor edge-fade._
+10. ~~**Bank tab-row scroll op overflow.**~~ Bij nadere inspectie:
+    de tabs zijn `flex-wrap`, niet `overflow-x-auto`. Op smal scherm
+    wrappen ze naar meerdere rijen — dat werkt prima. Audit fout.
 
-11. **Drag-drop op touch devices** — `useSensor(TouchSensor)` is
-    geconfigureerd (regel 11), maar `activationConstraint` weet ik
-    niet. Als de delay 0ms is, zal scrollen ↑↓ op een item
-    onbedoeld een drag triggeren. _Audit-actie nodig: open
-    `bank-result.tsx`, check sensor config. Concrete fix volgt._
+11. ~~**Drag-drop op touch devices** — sensor config check nodig.~~ Bij
+    nadere inspectie: `useSensor(TouchSensor, { activationConstraint:
+    { delay: 200, tolerance: 6 } })`. 200ms long-press + 6px tap-buffer
+    = correct. Geen fix nodig.
 
 ### Medium
 

@@ -75,9 +75,11 @@ export function BossArena() {
       }}
     >
       {/* Background ambient glow — same gold gradient the old BankPreview
-          had, kept for tonal continuity. */}
+          had, kept for tonal continuity. Tightened from inset-[-15%] to
+          [-8%] so it stops bleeding into the hero CTA buttons on
+          tablet (audit finding #2). */}
       <div
-        className="absolute inset-[-15%] pointer-events-none"
+        className="absolute inset-[-8%] pointer-events-none"
         style={{
           background: "radial-gradient(closest-side, rgba(230, 165, 47, 0.18) 0%, transparent 70%)",
           opacity: 0.5,

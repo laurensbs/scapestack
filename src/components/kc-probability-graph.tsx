@@ -130,7 +130,7 @@ function Chart({ kc, denom, dropName }: Props) {
           {Math.round(maxKc).toLocaleString()} KC
         </text>
       </svg>
-      <div className="mt-1.5 flex justify-between text-[10.5px] text-[var(--color-text-muted)] font-mono tabular-nums">
+      <div className="mt-1.5 flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-0 text-[10.5px] text-[var(--color-text-muted)] font-mono tabular-nums">
         <span>
           At your <span className="text-[var(--color-accent)]">{kc.toLocaleString()} KC</span>:{" "}
           <span className="text-[var(--color-text)]">{(playerProb * 100).toFixed(1)}%</span> chance

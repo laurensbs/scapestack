@@ -403,21 +403,25 @@ function NextIntake({
           <span className="text-[12px] font-semibold tracking-tight text-[var(--color-text)]">
             OSRS name
           </span>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+          {/* On mobile (≤640px) the RSN input and submit button stack
+              vertically so the focus-shadow can't push the button to a
+              new row mid-interaction (audit finding #7). sm: restores
+              the inline row at 640px+. */}
+          <div className="mt-2 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
             <input
               type="text"
               value={rsn}
               onChange={(e) => setRsn(e.target.value)}
               placeholder="e.g. Lynx Titan"
               autoFocus
-              className="flex-1 min-w-[200px] rounded-md bg-[var(--color-bg)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none px-3 py-2 text-[14px] font-mono text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]"
+              className="sm:flex-1 sm:min-w-[180px] rounded-md bg-[var(--color-bg)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none px-3 py-2 text-[14px] font-mono text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]"
             />
             <button
               type="submit"
               // Allow submit on an empty RSN when we already have a bank
               // from the /bank handoff — the engine works with one alone.
               disabled={loading || (!rsn.trim() && !fromBank)}
-              className="btn-primary group disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary group w-full sm:w-auto justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? <XpDropLoader /> : "Show me what to do"}
               {!loading && <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform" />}

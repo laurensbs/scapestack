@@ -2613,11 +2613,15 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
       {hasQty && item.quantity > 0 && (
         <span
           className={cn(
-            "absolute top-0.5 left-1 font-bold drop-shadow-[1px_1px_0_rgb(0_0_0/1)] pointer-events-none tracking-tight",
+            // On mobile the bank-grid runs at 4 columns (~72px slots) so
+            // qty text at 10px can clip on values like '10.0M'. Drop to
+            // 8px on the smallest viewport, snap back to 10px on sm+
+            // (audit finding #9). Font-size lives in className now so
+            // breakpoints apply; the rest of the inline style stays.
+            "absolute top-0.5 left-1 font-bold drop-shadow-[1px_1px_0_rgb(0_0_0/1)] pointer-events-none tracking-tight text-[8px] sm:text-[10px]",
             density === "ultra" && "opacity-0 group-hover:opacity-100 transition-opacity"
           )}
           style={{
-            fontSize: "10px",
             color: qtyColor(item.quantity),
             fontFamily: "var(--font-rs-small), 'Trebuchet MS', sans-serif",
             letterSpacing: "-0.02em"
