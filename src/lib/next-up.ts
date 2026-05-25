@@ -229,7 +229,86 @@ const BOSS_GROUPS: Record<string, { id: string; title: string; iconItemId?: numb
   "dks-prime":   { id: "boss:dks", title: "Try the Dagannoth Kings", iconItemId: 6739 }
 };
 
-function bossRecs(combatLevel: number): Recommendation[] {
+// Minimum "you have at least one of these"-list per boss. Names are
+// lowercased + matched substring-style against the player's bank — that's
+// loose enough to absorb suffixes like "(or)" / "(blood)" / "(charged)" and
+// stop us listing every variant by ID. Lists were curated for "the cheapest
+// thing where this boss starts to feel real" — not BiS, not "any damage."
+//
+// If the player has none of the listed items, the boss-rec is suppressed
+// (we don't want to point a black-d'hide player at GWD). If they have
+// something on the list, that item's name lands in the rec's `why` so the
+// player sees we know what they own.
+//
+// `null` means "no gear gate" — the boss is open to anyone with the CL.
+// `skill: 'Slayer'` adds a hidden Slayer-level gate (Kraken/Cerb/Hydra).
+const BOSS_GEAR_GATES: Record<string, {
+  needs: string[];
+  slayerLevel?: number;
+} | null> = {
+  // Free entry — combat-level only. Beginners-friendly bosses.
+  "obor": null,
+  "bryophyta": null,
+  "giant-mole": null,
+  "barrows": null,
+  "king-black-dragon": null,
+  "sarachnis": null,
+
+  // Mid-tier — wants a real weapon, not bronze. Whip OR equivalent ranged.
+  "dks-rex":     { needs: ["abyssal whip", "dragon scimitar", "leaf-bladed battleaxe", "saradomin sword"] },
+  "dks-supreme": { needs: ["abyssal whip", "dragon scimitar", "leaf-bladed battleaxe", "saradomin sword"] },
+  "dks-prime":   { needs: ["trident of the swamp", "trident of the seas", "kodai", "ancient staff", "master wand", "iban's staff"] },
+
+  // Slayer-gated bosses — combat gear AND a slayer level.
+  "kraken":  { needs: ["trident of the swamp", "trident of the seas", "kodai", "occult necklace"], slayerLevel: 87 },
+  "cerberus": { needs: ["abyssal whip", "leaf-bladed battleaxe", "saradomin sword", "blood fury", "primordial boots"], slayerLevel: 91 },
+  "hydra": { needs: ["toxic blowpipe", "twisted bow", "bow of faerdhinen", "armadyl crossbow", "dragon hunter crossbow"], slayerLevel: 95 },
+  "thermonuclear": { needs: ["abyssal whip", "dragon scimitar", "saradomin sword"], slayerLevel: 70 },
+  "sire": { needs: ["abyssal whip", "abyssal bludgeon", "leaf-bladed battleaxe"], slayerLevel: 85 },
+  "skotizo": { needs: ["arclight", "darklight", "emberlight"] },
+
+  // Wilderness / world bosses. Want an upgrade from rune.
+  "zulrah": { needs: ["toxic blowpipe", "twisted bow", "bow of faerdhinen", "trident of the swamp", "trident of the seas", "magic shortbow"] },
+  "vorkath": { needs: ["toxic blowpipe", "twisted bow", "armadyl crossbow", "dragon hunter crossbow", "dragon hunter lance"] },
+  "phantom-muspah": { needs: ["toxic blowpipe", "twisted bow", "bow of faerdhinen", "trident of the swamp", "kodai"] },
+  "demonic-gorillas": { needs: ["toxic blowpipe", "abyssal whip", "trident of the swamp", "twisted bow"] },
+  "grotesque-guardians": { needs: ["toxic blowpipe", "armadyl crossbow", "twisted bow"], slayerLevel: 75 },
+
+  // GWD — wants god-aware gear by this point.
+  "graardor": { needs: ["bandos chestplate", "armadyl chestplate", "torva platebody", "abyssal whip", "abyssal bludgeon"] },
+  "kree":     { needs: ["armadyl chestplate", "masori body", "toxic blowpipe", "twisted bow", "bow of faerdhinen", "armadyl crossbow"] },
+  "zilyana":  { needs: ["bandos chestplate", "torva platebody", "saradomin sword", "abyssal whip", "scythe of vitur"] },
+  "kril":     { needs: ["armadyl chestplate", "masori body", "ancestral robe top", "toxic blowpipe", "twisted bow", "bow of faerdhinen"] },
+
+  // DT2 — wants real upgrades. Listing a few BiS-adjacent options each.
+  "vardorvis":     { needs: ["scythe of vitur", "soulreaper axe", "abyssal whip", "osmumten's fang"] },
+  "leviathan":     { needs: ["twisted bow", "bow of faerdhinen", "toxic blowpipe", "armadyl crossbow"] },
+  "whisperer":     { needs: ["shadow of tumeken", "trident of the swamp", "kodai", "sanguinesti staff"] },
+  "duke-sucellus": { needs: ["scythe of vitur", "soulreaper axe", "osmumten's fang", "abyssal whip"] },
+  "araxxor":       { needs: ["scythe of vitur", "abyssal whip", "soulreaper axe", "osmumten's fang"] },
+
+  // Endgame — Nex needs a team and BiS-ish kit.
+  "nex": { needs: ["twisted bow", "bow of faerdhinen", "scythe of vitur", "shadow of tumeken", "armadyl crossbow", "zaryte crossbow"] }
+};
+
+/** Returns the matched item name (lowercased) for the boss's gear gate, or
+ *  null when the player has nothing on the list. `null` gate means no
+ *  gating — returns an empty string so the caller can distinguish "match
+ *  on no-gate" from "no match" without two branches. */
+function matchedGearForBoss(slug: string, bank: CompletionItem[], slayerLevel: number): { item: string } | null {
+  const gate = BOSS_GEAR_GATES[slug];
+  if (gate === undefined) return { item: "" }; // boss not in the table — let it through
+  if (gate === null) return { item: "" };       // explicit "no gate"
+  if (gate.slayerLevel !== undefined && slayerLevel < gate.slayerLevel) return null;
+  const lowered = bank.map((it) => it.name.toLowerCase());
+  for (const need of gate.needs) {
+    if (lowered.some((n) => n.includes(need))) return { item: need };
+  }
+  return null;
+}
+
+function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSkill[]): Recommendation[] {
+  const slayerLevel = lvl(skills, "Slayer");
   const seenGroups = new Set<string>();
   const recs: Recommendation[] = [];
   for (const boss of BOSSES) {
@@ -239,6 +318,16 @@ function bossRecs(combatLevel: number): Recommendation[] {
     // band above the gate, so it stays relevant rather than listing every
     // low-level boss to a maxed main.
     if (combatLevel < gate || combatLevel > gate + 25) continue;
+
+    // Gear / slayer gate. If the player has no gear from the list AND no
+    // bank was provided, we still let the rec through (we'd rather show
+    // something than nothing when we have no signal). If a bank WAS
+    // provided and nothing matched, suppress — the audit script flagged
+    // "Try GWD bosses to a Black-d'hide player" as a real failure mode.
+    const match = bank.length > 0
+      ? matchedGearForBoss(boss.slug, bank, slayerLevel)
+      : { item: "" };
+    if (match === null) continue;
 
     // Group siblings into one rec (Dagannoth Kings → one tile, not three).
     const group = BOSS_GROUPS[boss.slug];
@@ -250,7 +339,7 @@ function bossRecs(combatLevel: number): Recommendation[] {
         id: group.id,
         kind: "boss",
         title: group.title,
-        why: `Your combat level (${combatLevel}) clears the entry gate.`,
+        why: gearWhy(combatLevel, match.item) ?? `Your combat level (${combatLevel}) clears the entry gate.`,
         payoff: "Three bosses, shared room — solid mid-combat training and rare drops.",
         score: Math.max(40, score),
         link: "/dps",
@@ -264,7 +353,7 @@ function bossRecs(combatLevel: number): Recommendation[] {
       id: `boss:${boss.slug}`,
       kind: "boss",
       title: `Try ${boss.name}`,
-      why: `Your combat level (${combatLevel}) is in range for this boss.`,
+      why: gearWhy(combatLevel, match.item) ?? `Your combat level (${combatLevel}) is in range for this boss.`,
       payoff: boss.avgLootGp ? `~${Math.round(boss.avgLootGp / 1000)}k average loot per kill` : boss.notes,
       score: Math.max(40, score),
       link: "/dps",
@@ -274,6 +363,17 @@ function bossRecs(combatLevel: number): Recommendation[] {
   // Cap at top-4 — beyond that the checklist becomes "every boss in CL range"
   // which is noise. The DPS calculator is one click away for the full list.
   return recs.sort((a, b) => b.score - a.score).slice(0, 4);
+}
+
+// Build the rec's `why` line. When we matched a specific gear item we
+// surface it ("Your Twisted bow + CL 126 makes this easy") so the player
+// sees the engine read their bank. Falls back to CL-only when match.item
+// is empty (no-gate boss or no bank pasted).
+function gearWhy(combatLevel: number, matchedItem: string): string | null {
+  if (!matchedItem) return null;
+  // Title-case the item name back from the lowercased match string.
+  const display = matchedItem.replace(/\b\w/g, (c) => c.toUpperCase());
+  return `Your ${display} fits — and CL ${combatLevel} clears the gate.`;
 }
 
 // Skills sitting just short of a milestone level — a clear, finite push.
@@ -457,6 +557,20 @@ const DIARY_REWARD_ICONS: Record<string, number> = {
 };
 
 // ── Boss KC-aware insights ──────────────────────────────────────────────────
+// Hand-picked "this is THE chase at this boss" overrides — substrings
+// matched (case-insensitive) against the drop's name. When set, we prefer
+// the iconic drop over the generic 500-15000-denom window. Lets us surface
+// Tbow at CoX (1/34500, way past the window) and Shadow at ToA, which are
+// the chases every player at those bosses actually wants to know about.
+// Order doesn't matter — we use Array.find.
+const ICONIC_DROPS: Record<string, string[]> = {
+  "Chambers of Xeric":              ["twisted bow", "kodai insignia", "elder maul"],
+  "Theatre of Blood":               ["scythe of vitur", "ghrazi rapier", "sanguinesti staff"],
+  "Tombs of Amascut: Expert Mode":  ["tumeken's shadow", "osmumten's fang", "elidinis' ward"],
+  "Tombs of Amascut":               ["tumeken's shadow", "osmumten's fang"],
+  "Nex":                            ["torva", "zaryte"]
+};
+
 // Combines a player's boss kill-count (from Hiscores) with the rarest unique
 // drop rate for that boss (from data/drop-rates.json) into "you've killed
 // this boss X times — statistically you'd expect Y uniques by now". Only
@@ -470,28 +584,46 @@ function kcRecs(dropTables: Map<string, BossDropTable>, bossKc: Record<string, n
     const kc = bossKc[table.hiscoresName] ?? 0;
     if (kc <= 0) continue; // never killed → no insight, just noise
 
-    // Pick the rarest "iconic" drop the player would chase. Window widened
-    // from 500-5000 to 500-15000 so raid megararities (Tbow 1/34500 falls
-    // out, but Scythe 1/2160 and Twisted ancestral 1/13500 both qualify).
-    // First entry in table.drops is rarest, so we want the *first* drop
-    // whose denom is in range — that's the actual signature chase, not
-    // the 4th-rarest filler.
-    const headline = table.drops.find((d) => d.denom >= 500 && d.denom <= 15000);
+    // Pick the rarest "iconic" drop the player would chase. Two paths:
+    //  1. If the boss has an entry in ICONIC_DROPS, find the matching drop
+    //     in the table — this overrides the denom window so e.g. Tbow at
+    //     CoX (1/34500) and Shadow at ToA can surface as the chase, even
+    //     though they're "too rare" by the generic-window heuristic.
+    //  2. Otherwise, walk table.drops (rarest first) and pick the first
+    //     one in the 500-15000 denom window. Raid megararities like Tbow
+    //     fall out of this generic path; that's why path 1 exists.
+    const iconicNames = ICONIC_DROPS[wikiName];
+    let headline: typeof table.drops[number] | undefined;
+    let isIconic = false;
+    if (iconicNames) {
+      for (const needle of iconicNames) {
+        headline = table.drops.find((d) => d.name.toLowerCase().includes(needle));
+        if (headline) { isIconic = true; break; }
+      }
+    }
+    if (!headline) {
+      headline = table.drops.find((d) => d.denom >= 500 && d.denom <= 15000);
+    }
     if (!headline) continue;
 
     const expected = kc * (headline.num / headline.denom);
-    // KC floor relaxed from 0.25× the drop rate to 0.15×. The old floor
-    // shut out Zulrah-800 (vs tanzanite 1/4000 → needs 1000) and CoX-250
-    // (vs Twisted bow 1/34500 → needs 8625). The new floor still keeps
-    // out the "1 KC at Vorkath" noise but surfaces meaningful chases.
-    if (kc < headline.denom * 0.15) continue;
+    // KC floor: 0.15× the drop rate for the generic path. For iconic drops
+    // (Tbow at CoX, Shadow at ToA, Scythe at ToB) we soften this to a flat
+    // 25 KC minimum — players want to see "are you dry yet?" even at low
+    // expected counts because the iconic drop IS the chase, regardless of
+    // how mathematically early they are.
+    const minKc = isIconic ? 25 : headline.denom * 0.15;
+    if (kc < minKc) continue;
 
     // Score: rises with how far past the drop rate you are. Boosted from
     // (55 + expected*6, cap 80) so KC-recs can compete with Elite-diary
     // recs (which hit ~78-82 at full score). At 1x the rate score ~70,
     // at 3x ~82. Slightly-unlucky drops surface as headlines, which is
-    // the whole point of this rec-kind.
-    const score = Math.min(88, 64 + expected * 6);
+    // the whole point of this rec-kind. Iconic drops get a +6 floor bonus
+    // so e.g. Tbow at 250 CoX KC still surfaces ("0.7% chance — early but
+    // worth noting") instead of being drowned by mid-tier-KC recs.
+    const iconicBoost = isIconic ? 6 : 0;
+    const score = Math.min(88, 64 + iconicBoost + expected * 6);
 
     // Look up boss meta in BOSSES so we can show a sprite.
     const boss = BOSSES.find((b) => b.name === wikiName || b.slug === wikiName.toLowerCase().replace(/[^a-z]/g, "-"));
@@ -637,7 +769,7 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
 
   const recs: Recommendation[] = [
     ...goalRecs(completions),
-    ...(combatLevel !== null ? bossRecs(combatLevel) : []),
+    ...(combatLevel !== null ? bossRecs(combatLevel, bank, skills) : []),
     ...questRecs(quests, skills, qp),
     ...diaryRecs(diaries, skills),
     ...kcRecs(dropTables, input.bossKc ?? {}),

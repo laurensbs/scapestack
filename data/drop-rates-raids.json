@@ -1,0 +1,46 @@
+{
+  "_comment": "Hand-curated raid drop rates. scripts/build-drop-rates.mjs scrapes Wiki boss pages but doesn't cover CoX/ToB/ToA (they list raid-team-dependent drop rates which are awkward to scrape). Numbers below are 1-player effective rates derived from the Wiki's 'unique rate' tables — what a solo / small-team player would actually feel. Update by hand if Jagex tweaks rates.",
+  "Chambers of Xeric": {
+    "hiscoresName": "Chambers of Xeric",
+    "drops": [
+      { "name": "Twisted bow",           "num": 1, "denom": 34500, "rarity": "1/34,500" },
+      { "name": "Kodai insignia",        "num": 1, "denom": 23000, "rarity": "1/23,000" },
+      { "name": "Elder maul",            "num": 1, "denom": 23000, "rarity": "1/23,000" },
+      { "name": "Dragon claws",          "num": 1, "denom": 11500, "rarity": "1/11,500" },
+      { "name": "Dinh's bulwark",        "num": 1, "denom": 11500, "rarity": "1/11,500" },
+      { "name": "Ancestral hat",         "num": 1, "denom": 11500, "rarity": "1/11,500" },
+      { "name": "Olmlet",                "num": 1, "denom": 53,    "rarity": "1/53 raids" }
+    ]
+  },
+  "Theatre of Blood": {
+    "hiscoresName": "Theatre of Blood",
+    "drops": [
+      { "name": "Scythe of vitur",       "num": 1, "denom": 2160,  "rarity": "1/2,160" },
+      { "name": "Ghrazi rapier",         "num": 1, "denom": 1080,  "rarity": "1/1,080" },
+      { "name": "Sanguinesti staff",     "num": 1, "denom": 1080,  "rarity": "1/1,080" },
+      { "name": "Justiciar faceguard",   "num": 1, "denom": 1080,  "rarity": "1/1,080" },
+      { "name": "Sanguine dust",         "num": 1, "denom": 540,   "rarity": "1/540" },
+      { "name": "Lil' Zik",              "num": 1, "denom": 650,   "rarity": "1/650" }
+    ]
+  },
+  "Tombs of Amascut": {
+    "hiscoresName": "Tombs of Amascut",
+    "drops": [
+      { "name": "Tumeken's shadow",      "num": 1, "denom": 2856,  "rarity": "1/2,856" },
+      { "name": "Osmumten's fang",       "num": 1, "denom": 952,   "rarity": "1/952" },
+      { "name": "Elidinis' ward",        "num": 1, "denom": 952,   "rarity": "1/952" },
+      { "name": "Masori mask",           "num": 1, "denom": 952,   "rarity": "1/952" },
+      { "name": "Lightbearer",           "num": 1, "denom": 476,   "rarity": "1/476" },
+      { "name": "Tumeken's guardian",    "num": 1, "denom": 350,   "rarity": "1/350" }
+    ]
+  },
+  "Tombs of Amascut: Expert Mode": {
+    "hiscoresName": "Tombs of Amascut: Expert Mode",
+    "drops": [
+      { "name": "Tumeken's shadow",      "num": 1, "denom": 1996,  "rarity": "1/1,996" },
+      { "name": "Osmumten's fang",       "num": 1, "denom": 665,   "rarity": "1/665" },
+      { "name": "Elidinis' ward",        "num": 1, "denom": 665,   "rarity": "1/665" },
+      { "name": "Tumeken's guardian",    "num": 1, "denom": 245,   "rarity": "1/245" }
+    ]
+  }
+}
