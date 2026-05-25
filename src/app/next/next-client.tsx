@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { SupportCard } from "@/components/support-card";
 import { SavedBankBanner } from "@/components/saved-bank-banner";
+import { BossSprite } from "@/components/boss-picker";
+import { BOSSES } from "@/lib/bosses";
 import { organizeAction, nextUpAction } from "@/app/actions";
 import { fetchHiscores, type HiscoreSkill } from "@/lib/hiscores";
 import { unlockedFromHiscores } from "@/lib/goals";
@@ -479,6 +481,38 @@ function ResultView({ result, onEdit }: { result: NextUpResult; onEdit: () => vo
   );
 }
 
+// Renders a wiki NPC portrait for a kc-kind rec. Falls back to whatever
+// KindGlyph would have shown if we can't resolve the boss (sprite 404,
+// missing slug). `prominent` enables the pulsing-gold-ring halo for the
+// headline-card variant. Hover rumble is always on — it's the "the boss
+// notices you" cue that makes a KC-rec feel like more than a number.
+function KcPortrait({ rec, size, prominent = false }: {
+  rec: Recommendation;
+  size: number;
+  prominent?: boolean;
+}) {
+  const boss = rec.bossSlug ? BOSSES.find((b) => b.slug === rec.bossSlug) : undefined;
+  if (!boss) {
+    // Fallback identical to the non-kc path so the layout doesn't jump.
+    return rec.iconItemId
+      ? <img
+          src={ICON_URL(rec.iconItemId)}
+          alt=""
+          className="pixelated"
+          style={{ maxWidth: "72%", maxHeight: "72%", imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
+        />
+      : <KindGlyph kind={rec.kind} size={size * 0.72} tone="accent" />;
+  }
+  return (
+    <div
+      className="size-full flex items-center justify-center rounded-md overflow-hidden transition-transform duration-200 group-hover:[animation:boss-rumble_0.4s_ease-in-out]"
+      style={prominent ? { animation: "boss-halo 2.4s ease-in-out infinite" } : undefined}
+    >
+      <BossSprite boss={boss} size={size} />
+    </div>
+  );
+}
+
 // The headline — the one thing the hub most wants the player to do. Big,
 // mint-accented, with the payoff and a direct link into the relevant tool.
 function HeadlineCard({ rec }: { rec: Recommendation }) {
@@ -495,8 +529,14 @@ function HeadlineCard({ rec }: { rec: Recommendation }) {
         style={{ background: "linear-gradient(to right, transparent, rgba(230, 165, 47,0.55), transparent)" }}
       />
       <div className="flex items-start gap-4">
-        <div className="size-12 shrink-0 rounded-lg flex items-center justify-center bg-[var(--color-accent)]/15 border border-[var(--color-accent)]/30 text-[var(--color-accent)]">
-          {rec.iconItemId ? (
+        <div className="size-12 shrink-0 rounded-lg flex items-center justify-center bg-[var(--color-accent)]/15 border border-[var(--color-accent)]/30 text-[var(--color-accent)] overflow-hidden">
+          {rec.kind === "kc" && rec.bossSlug ? (
+            // KC-rec gets a live boss portrait + pulsing halo on the
+            // headline (this IS the strongest pick). The portrait is
+            // the strongest emotional signal in /next — players know
+            // their boss by face faster than by name.
+            <KcPortrait rec={rec} size={42} prominent />
+          ) : rec.iconItemId ? (
             <img
               src={ICON_URL(rec.iconItemId)}
               alt=""
@@ -544,8 +584,10 @@ function RecRow({ rec }: { rec: Recommendation }) {
       )}
     >
       <div className="flex items-start gap-3">
-        <div className="size-9 shrink-0 rounded-md flex items-center justify-center bg-[var(--color-bg-2)] border border-[var(--color-border)] text-[var(--color-accent)]">
-          {rec.iconItemId ? (
+        <div className="size-9 shrink-0 rounded-md flex items-center justify-center bg-[var(--color-bg-2)] border border-[var(--color-border)] text-[var(--color-accent)] overflow-hidden">
+          {rec.kind === "kc" && rec.bossSlug ? (
+            <KcPortrait rec={rec} size={30} />
+          ) : rec.iconItemId ? (
             <img
               src={ICON_URL(rec.iconItemId)}
               alt=""

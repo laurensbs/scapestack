@@ -45,6 +45,10 @@ export interface Recommendation {
   link?: string;
   /** Optional OSRS item id for a sprite on the card. */
   iconItemId?: number;
+  /** Optional boss slug — when set, the hub renders a wiki NPC portrait
+   *  instead of an item sprite. Used by the kc-kind recs so the player
+   *  sees an actual picture of Vorkath, Olm, etc. */
+  bossSlug?: string;
 }
 
 export interface NextUpInput {
@@ -660,7 +664,8 @@ function kcRecs(
         : `${(expected * 100).toFixed(0)}% chance of one ${headline.name} based on your KC.`,
       score,
       link: undefined,
-      iconItemId: boss?.iconItemId
+      iconItemId: boss?.iconItemId,
+      bossSlug: boss?.slug
     });
   }
   return recs;

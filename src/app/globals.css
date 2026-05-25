@@ -163,6 +163,22 @@
     0%, 100% { transform: translateY(0); }
     50%      { transform: translateY(-6px); }
   }
+  /* Boss portrait hover-rumble — used by KC-rec tiles in /next so the
+     player gets a small "the boss noticed you" cue. Two-axis shake,
+     0.4s, no rotation (rotate at this size flickers on sub-pixel). */
+  @keyframes boss-rumble {
+    0%, 100% { transform: translate(0, 0); }
+    20%      { transform: translate(-1.5px, 1px); }
+    40%      { transform: translate(2px, -1px); }
+    60%      { transform: translate(-2px, 1.5px); }
+    80%      { transform: translate(1.5px, -0.5px); }
+  }
+  /* Pulsing gold ring around the KC headline portrait — Bank-Tags-tab
+     style attention-grab on the strongest recommendation. */
+  @keyframes boss-halo {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(230, 165, 47, 0.55), inset 0 0 0 1px rgba(230, 165, 47, 0.4); }
+    50%      { box-shadow: 0 0 0 6px rgba(230, 165, 47, 0), inset 0 0 0 1px rgba(230, 165, 47, 0.7); }
+  }
 }
 
 /* ── Sidebar icon animations ──────────────────────────────────────────────
