@@ -520,7 +520,9 @@ function HeadlineCard({ rec }: { rec: Recommendation }) {
   const card = (
     <article
       className={cn(
-        "group relative overflow-hidden rounded-xl p-6",
+        // group/headline triggers the headline-shimmer-target::after sweep
+        // defined in globals.css — fires once on hover, doesn't loop.
+        "group/headline group relative overflow-hidden rounded-xl p-6 headline-shimmer-target",
         "border border-[var(--color-accent)]/30 bg-gradient-to-br from-[var(--color-accent)]/12 to-transparent",
         rec.link && "surface-interactive cursor-pointer transition-transform duration-200 hover:-translate-y-0.5"
       )}

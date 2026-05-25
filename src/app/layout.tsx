@@ -1,9 +1,19 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { GeistSans } from "geist/font/sans";
+import { Inter } from "next/font/google";
 import { GeistMono } from "geist/font/mono";
 import { Header } from "@/components/header";
 import "./globals.css";
+
+// Inter at variable axes, hosted by next/font (self-hosted under the
+// hood — no runtime request to fonts.googleapis.com). Geist was the
+// CC default; Inter has tighter kerning at the 14-15px body sizes we
+// use most and reads as more "tool-like" next to OSRS sprites.
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter"
+});
 
 // Plausible analytics — cookieless, no consent banner required, GDPR-clean.
 // `data-domain` should match the production hostname; localhost hits are
@@ -31,7 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`h-full ${GeistSans.variable} ${GeistMono.variable}`}
+      className={`h-full ${inter.variable} ${GeistMono.variable}`}
     >
       <body className="h-full subpixel-antialiased font-sans">
         {process.env.NODE_ENV === "production" && (
