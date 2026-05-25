@@ -220,7 +220,17 @@ function minigameRecs(skills: HiscoreSkill[]): Recommendation[] {
 
 // Bosses the player's combat level now comfortably supports but that they
 // likely haven't tackled — fresh content for a "what now" moment.
+// Bosses that travel as a set — we collapse them into a single rec so the
+// checklist doesn't read "Try Dagannoth Rex / Supreme / Prime" as three
+// separate ideas. Mapped slug → display group.
+const BOSS_GROUPS: Record<string, { id: string; title: string; iconItemId?: number }> = {
+  "dks-rex":     { id: "boss:dks", title: "Try the Dagannoth Kings", iconItemId: 6739 /* Berserker ring */ },
+  "dks-supreme": { id: "boss:dks", title: "Try the Dagannoth Kings", iconItemId: 6739 },
+  "dks-prime":   { id: "boss:dks", title: "Try the Dagannoth Kings", iconItemId: 6739 }
+};
+
 function bossRecs(combatLevel: number): Recommendation[] {
+  const seenGroups = new Set<string>();
   const recs: Recommendation[] = [];
   for (const boss of BOSSES) {
     const gate = BOSS_CL_GATE[boss.slug];
@@ -229,6 +239,26 @@ function bossRecs(combatLevel: number): Recommendation[] {
     // band above the gate, so it stays relevant rather than listing every
     // low-level boss to a maxed main.
     if (combatLevel < gate || combatLevel > gate + 25) continue;
+
+    // Group siblings into one rec (Dagannoth Kings → one tile, not three).
+    const group = BOSS_GROUPS[boss.slug];
+    if (group) {
+      if (seenGroups.has(group.id)) continue;
+      seenGroups.add(group.id);
+      const score = 70 - (combatLevel - gate);
+      recs.push({
+        id: group.id,
+        kind: "boss",
+        title: group.title,
+        why: `Your combat level (${combatLevel}) clears the entry gate.`,
+        payoff: "Three bosses, shared room — solid mid-combat training and rare drops.",
+        score: Math.max(40, score),
+        link: "/dps",
+        iconItemId: group.iconItemId
+      });
+      continue;
+    }
+
     const score = 70 - (combatLevel - gate); // freshly-unlocked scores higher
     recs.push({
       id: `boss:${boss.slug}`,
@@ -241,7 +271,9 @@ function bossRecs(combatLevel: number): Recommendation[] {
       iconItemId: boss.iconItemId
     });
   }
-  return recs;
+  // Cap at top-4 — beyond that the checklist becomes "every boss in CL range"
+  // which is noise. The DPS calculator is one click away for the full list.
+  return recs.sort((a, b) => b.score - a.score).slice(0, 4);
 }
 
 // Skills sitting just short of a milestone level — a clear, finite push.
@@ -438,18 +470,28 @@ function kcRecs(dropTables: Map<string, BossDropTable>, bossKc: Record<string, n
     const kc = bossKc[table.hiscoresName] ?? 0;
     if (kc <= 0) continue; // never killed → no insight, just noise
 
-    // Pick the rarest "iconic" drop the player would chase — denom >= 500
-    // ensures we skip common stuff, but isn't so rare (5000+) it drowns
-    // mid-KC players in "you're statistically unlucky" messages.
-    const headline = table.drops.find((d) => d.denom >= 500 && d.denom <= 5000);
+    // Pick the rarest "iconic" drop the player would chase. Window widened
+    // from 500-5000 to 500-15000 so raid megararities (Tbow 1/34500 falls
+    // out, but Scythe 1/2160 and Twisted ancestral 1/13500 both qualify).
+    // First entry in table.drops is rarest, so we want the *first* drop
+    // whose denom is in range — that's the actual signature chase, not
+    // the 4th-rarest filler.
+    const headline = table.drops.find((d) => d.denom >= 500 && d.denom <= 15000);
     if (!headline) continue;
 
     const expected = kc * (headline.num / headline.denom);
-    if (kc < headline.denom * 0.25) continue; // not enough KC to be informative
+    // KC floor relaxed from 0.25× the drop rate to 0.15×. The old floor
+    // shut out Zulrah-800 (vs tanzanite 1/4000 → needs 1000) and CoX-250
+    // (vs Twisted bow 1/34500 → needs 8625). The new floor still keeps
+    // out the "1 KC at Vorkath" noise but surfaces meaningful chases.
+    if (kc < headline.denom * 0.15) continue;
 
-    // Score: rises with how far past the drop rate you are. At 1x the rate
-    // (expected = 1), score ~60. At 3x (expected = 3), score ~75.
-    const score = Math.min(80, 55 + expected * 6);
+    // Score: rises with how far past the drop rate you are. Boosted from
+    // (55 + expected*6, cap 80) so KC-recs can compete with Elite-diary
+    // recs (which hit ~78-82 at full score). At 1x the rate score ~70,
+    // at 3x ~82. Slightly-unlucky drops surface as headlines, which is
+    // the whole point of this rec-kind.
+    const score = Math.min(88, 64 + expected * 6);
 
     // Look up boss meta in BOSSES so we can show a sprite.
     const boss = BOSSES.find((b) => b.name === wikiName || b.slug === wikiName.toLowerCase().replace(/[^a-z]/g, "-"));
@@ -472,6 +514,15 @@ function kcRecs(dropTables: Map<string, BossDropTable>, bossKc: Record<string, n
 
 function diaryRecs(diaries: Map<string, DiaryRecord>, skills: HiscoreSkill[]): Recommendation[] {
   if (skills.length === 0 || diaries.size === 0) return [];
+
+  // Heuristic for "this player almost certainly already finished all diaries":
+  // total level >= 2100. There's no Hiscores activity for diary completion, so
+  // we use a level proxy. Below 2100, gap-filter on a per-region basis. Above
+  // 2100, suppress all diary recs entirely — the audit found maxed accounts
+  // were getting 7 Elite-diary recs as their top picks, which is nonsense.
+  const totalLevel = computeTotalLevel(skills);
+  if (totalLevel >= 2100) return [];
+
   const recs: Recommendation[] = [];
   for (const [region, d] of diaries) {
     // Walk tiers high-to-low and find the highest the player meets.
@@ -493,13 +544,16 @@ function diaryRecs(diaries: Map<string, DiaryRecord>, skills: HiscoreSkill[]): R
     if (!metTier) continue;
 
     // Only surface a tier that's still meaningful for the player: at least
-    // one required skill is within 5 levels of their actual level. Otherwise
-    // they cleared this tier long ago and the rec is noise.
-    if (nearestGap > 5 && metTier !== "Elite") continue;
+    // one required skill is within 8 levels of their actual level. (Was 5,
+    // but that misclassified e.g. a Slayer-70 player getting Karamja Hard
+    // even though Karamja's binding skill is much lower.) Applied to every
+    // tier including Elite — the old "Elite always passes" exception was
+    // the source of the 7-Elite-diaries-for-maxed bug.
+    if (nearestGap > 8) continue;
 
     // Score: higher tier = higher score; freshly met = higher score still.
     const tierBoost = { Easy: 0, Medium: 6, Hard: 14, Elite: 22 }[metTier];
-    const freshness = Math.max(0, 5 - nearestGap);
+    const freshness = Math.max(0, 8 - nearestGap);
     const score = 56 + tierBoost + freshness * 2;
 
     recs.push({
@@ -530,6 +584,22 @@ function bankRecs(bank: CompletionItem[]): Recommendation[] {
     score: 30,
     link: "/bank"
   }];
+}
+
+// When we only have a bank and no Hiscores, be honest about the gap: the
+// best advice we can give is "let us read your stats too." Surfaces as the
+// headline for the fresh-account / no-RSN path so the user doesn't think
+// "Tidy your bank" is the best we can do.
+function noHiscoresNudge(): Recommendation {
+  return {
+    id: "meta:add-rsn",
+    kind: "goal",
+    title: "Add your OSRS name for sharper advice",
+    why: "We can only see your bank. Your Hiscores unlocks quest, diary, skill and drop-chance recs.",
+    payoff: "Free, no plugin, no account. Just your RSN.",
+    score: 95,
+    link: undefined
+  };
 }
 
 // ── Engine ──────────────────────────────────────────────────────────────────
@@ -574,7 +644,10 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     ...minigameRecs(skills),
     ...moneyRecs(skills),
     ...skillRecs(skills),
-    ...bankRecs(bank)
+    ...bankRecs(bank),
+    // No-Hiscores nudge: when the player only gave a bank, lead with "add
+    // your RSN" rather than letting "Tidy your bank" become the headline.
+    ...(!hasHiscores && hasBank ? [noHiscoresNudge()] : [])
   ].sort((a, b) => b.score - a.score);
 
   const basis: NextUpResult["summary"]["basis"] =

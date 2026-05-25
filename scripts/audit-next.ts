@@ -196,10 +196,13 @@ const cyan = (s: string) => ansi(s, "36");
 
 function fmtRec(r: Recommendation, index: number): string {
   const kindTag = `[${r.kind}]`;
+  // moneyRecs computes score with Math.log10 so it lands as a float — round
+  // for display, the engine's sort already used the full precision.
+  const scoreStr = Math.round(r.score).toString().padStart(3, " ");
   return [
     `  ${bold(String(index + 1).padStart(2, " "))}.`,
     gold(kindTag.padEnd(11, " ")),
-    `${r.score.toString().padStart(3, " ")}/100`,
+    `${scoreStr}/100`,
     bold(r.title),
     dim(`— ${r.why}`)
   ].join(" ");
