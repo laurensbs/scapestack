@@ -221,6 +221,18 @@
     from { transform: scaleX(0); }
     to   { transform: scaleX(1); }
   }
+  /* Boss-arena tile got hit. Sharper + faster than boss-rumble (which
+     is the hover-cue) — six oscillations in 220ms with a tiny scale
+     punch so it reads as 'I attacked it' before navigation. */
+  @keyframes boss-hit {
+    0%   { transform: translate(0, 0) scale(1.18); }
+    15%  { transform: translate(-3px, 1px) scale(1.22); }
+    30%  { transform: translate(3px, -1px) scale(1.22); }
+    45%  { transform: translate(-2px, 2px) scale(1.20); }
+    60%  { transform: translate(2px, -2px) scale(1.20); }
+    75%  { transform: translate(-1px, 1px) scale(1.19); }
+    100% { transform: translate(0, 0) scale(1.18); }
+  }
 }
 
 /* Outside @theme so it survives Tailwind v4's keyframe-pruning — same

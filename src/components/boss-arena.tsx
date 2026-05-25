@@ -57,6 +57,11 @@ export function BossArena() {
 
   const active = hovered ?? spotlight;
   const activeBoss = ARENA_BOSSES[active];
+  // Index of the tile that is mid-click-animation. The hit shake runs
+  // 220ms before navigation actually fires — short enough that the
+  // user doesn't feel they're waiting, long enough that the click
+  // registers as 'I attacked the boss' before the page changes.
+  const [hitting, setHitting] = useState<number | null>(null);
 
   return (
     <div
@@ -132,23 +137,26 @@ export function BossArena() {
               onFocus={() => setHovered(i)}
               onBlur={() => setHovered(null)}
               onClick={() => {
-                // Solo bosses jump straight to /dps with the boss
-                // preselected; raids fall back to /next (no single
-                // DPS target). The dest prop in the track-event lets
-                // Plausible answer 'do players follow the boss-link
-                // when it points at the calculator, or do they prefer
-                // the generic next-hub?'
+                // Fire the track event immediately (fire-and-forget),
+                // play the hit shake, then navigate after 220ms so the
+                // animation has time to land. Solo bosses jump to /dps
+                // with the boss preselected; raids fall back to /next.
                 const dest = entry.dpsTarget ? `/dps?boss=${entry.slug}` : "/next";
                 track("homepage:sample", {
                   source: "arena-boss",
                   boss: entry.slug,
                   dest: entry.dpsTarget ? "dps" : "next"
                 });
-                window.location.assign(dest);
+                setHitting(i);
+                setTimeout(() => window.location.assign(dest), 220);
               }}
               aria-label={entry.label}
-              className="relative size-[60px] sm:size-[68px] rounded-full bg-[var(--color-bg-2)] border border-[var(--color-border-strong)] flex items-center justify-center overflow-hidden outline-none focus:ring-2 focus:ring-[var(--color-accent)]/60 transition-[transform,box-shadow] duration-500 ease-out"
+              className="relative size-[60px] sm:size-[68px] rounded-full bg-[var(--color-bg-2)] border border-[var(--color-border-strong)] flex items-center justify-center overflow-hidden outline-none focus:ring-2 focus:ring-[var(--color-accent)]/60 transition-[box-shadow] duration-500 ease-out"
               style={{
+                // boss-hit overrides the resting transform during the
+                // 220ms click animation. Otherwise the active tile is
+                // scaled 1.18, inactives at 1.0.
+                animation: hitting === i ? "boss-hit 0.22s ease-out" : undefined,
                 transform: isActive ? "scale(1.18)" : "scale(1)",
                 boxShadow: isActive
                   ? "0 0 0 2px rgba(230, 165, 47, 0.65), 0 0 32px 6px rgba(230, 165, 47, 0.40), 0 8px 24px -6px rgba(0, 0, 0, 0.7)"
