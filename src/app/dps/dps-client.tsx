@@ -2,14 +2,15 @@
 
 import { useState, useTransition, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { Edit3, Sword, Zap, Target, TrendingUp, Coins, Info, Search, X } from "lucide-react";
+import { Edit3, Sword, Zap, Target, TrendingUp, Coins, Search, X } from "lucide-react";
 import { Intake } from "@/components/intake";
 import { SupportCard } from "@/components/support-card";
 import { organizeAction } from "@/app/actions";
 import { BOSSES, type Boss } from "@/lib/bosses";
 import { ownedGear, lookupGear, GEAR, type GearItem, type CombatStyle } from "@/lib/gear";
-import { bestStyleAndSetup, calcDps, autoSetup, allStyleBreakdowns, type DpsBreakdown, type Setup } from "@/lib/dps";
+import { bestStyleAndSetup, calcDps, autoSetup, type DpsBreakdown } from "@/lib/dps";
 import { cn, formatGp, ICON_URL } from "@/lib/utils";
+import { BossDetailModal } from "@/components/boss-detail-modal";
 
 export function DpsClient() {
   const [view, setView] = useState<"intake" | "result">("intake");
@@ -21,6 +22,10 @@ export function DpsClient() {
   // Replaces the old BossPicker dropdown — having the search field above
   // the table reads more directly ('type to find', not 'click to open').
   const [search, setSearch] = useState("");
+  // Currently-open boss in the detail modal. Lifted here so deep-link
+  // (?boss=<slug>) can open it on result-view mount, and so the Enter-
+  // key search shortcut can open it too.
+  const [modalBoss, setModalBoss] = useState<Boss | null>(null);
 
   // Deep-link: /dps?boss=<slug> pre-selects a boss from the home page's
   // boss-showcase. The actual focus + scroll happens once we have a result
@@ -54,13 +59,11 @@ export function DpsClient() {
         const target = BOSSES.find((b) => b.slug === pendingBossSlug);
         if (target) {
           setFocusedBoss(target);
-          // Scroll once the result-view rendered. requestAnimationFrame
-          // beats setTimeout here — fires on the first repaint, no
-          // arbitrary delay.
-          requestAnimationFrame(() => {
-            document.getElementById(`boss-${target.slug}`)
-              ?.scrollIntoView({ behavior: "smooth", block: "center" });
-          });
+          // Deep-link from /next or boss-showcase: open the full detail
+          // modal immediately so the visitor lands directly on the
+          // gear+stats+inventory view instead of having to find the row
+          // and click again.
+          setModalBoss(target);
         }
         setPendingBossSlug(null);
       }
@@ -225,12 +228,9 @@ export function DpsClient() {
               onKeyDown={(e) => {
                 if (e.key === "Escape") setSearch("");
                 if (e.key === "Enter" && filteredResults.length > 0) {
-                  const first = filteredResults[0].boss;
-                  setFocusedBoss(first);
-                  requestAnimationFrame(() => {
-                    document.getElementById(`boss-${first.slug}`)
-                      ?.scrollIntoView({ behavior: "smooth", block: "center" });
-                  });
+                  // Open the first match directly in the detail modal —
+                  // saves the user a follow-up click after typing.
+                  setModalBoss(filteredResults[0].boss);
                 }
               }}
               placeholder="Search bosses — type to filter, Enter to jump"
@@ -261,8 +261,8 @@ export function DpsClient() {
               key={boss.slug}
               boss={boss}
               dps={dps}
-              owned={owned}
-              startExpanded={focusedBoss?.slug === boss.slug}
+              isFocused={focusedBoss?.slug === boss.slug}
+              onOpen={() => setModalBoss(boss)}
             />
           ))}
         </div>
@@ -273,36 +273,34 @@ export function DpsClient() {
       </section>
 
       <SupportCard context="Helped pick your gear for tonight's trip?" />
+
+      {/* Boss detail modal — big portrait + best gear + per-boss
+          upgrades + inventory loadout. Replaces the row-expand interaction
+          for the deep view. */}
+      {modalBoss && (
+        <BossDetailModal
+          boss={modalBoss}
+          owned={owned}
+          onClose={() => setModalBoss(null)}
+        />
+      )}
     </div>
   );
 }
 
 // ── Boss row ──
 
-function BossRow({ boss, dps, owned, startExpanded = false }: {
+function BossRow({ boss, dps, isFocused, onOpen }: {
   boss: Boss;
   dps: DpsBreakdown;
-  owned: GearItem[];
-  startExpanded?: boolean;
+  isFocused: boolean;
+  onOpen: () => void;
 }) {
-  const [expanded, setExpanded] = useState(startExpanded);
-  useMemo(() => {
-    // Re-expand when external highlight changes (jump-to-boss).
-    if (startExpanded) setExpanded(true);
-  }, [startExpanded]);
-
   const usable = dps.dps > 0;
   const gpPerHour =
     usable && boss.avgLootGp && boss.killsPerHourCap
       ? Math.min(boss.killsPerHourCap, Math.floor(3600 / dps.ttk)) * boss.avgLootGp
       : null;
-
-  // All three styles side-by-side. Only computed when expanded to avoid extra
-  // work for off-screen rows.
-  const allStyles = useMemo(
-    () => expanded ? allStyleBreakdowns(owned, boss) : [],
-    [expanded, owned, boss]
-  );
 
   const styleIcon: Record<CombatStyle, React.ReactNode> = {
     stab:    <Sword className="size-3.5" />,
@@ -313,185 +311,41 @@ function BossRow({ boss, dps, owned, startExpanded = false }: {
   };
 
   return (
-    <div
+    <button
       id={`boss-${boss.slug}`}
+      onClick={onOpen}
       className={cn(
-        "rounded-xl border scroll-mt-24",
+        "w-full text-left rounded-xl border scroll-mt-24 p-3.5 flex items-center gap-4 flex-wrap",
         "bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] border-[var(--color-border)]",
-        "hover:border-[var(--color-border-strong)] transition-colors",
-        startExpanded && "border-[var(--color-accent)]/40 shadow-[0_0_0_1px_rgba(230, 165, 47,0.18)]"
+        "hover:border-[var(--color-accent)]/40 hover:shadow-[0_0_0_1px_rgba(230,165,47,0.12)] transition-all cursor-pointer",
+        isFocused && "border-[var(--color-accent)]/40 shadow-[0_0_0_1px_rgba(230,165,47,0.18)]"
       )}>
-      <button
-        onClick={() => setExpanded((v) => !v)}
-        className="w-full text-left p-3.5 flex items-center gap-4 flex-wrap"
-      >
-        <div className="flex items-center gap-2.5 min-w-0 w-[160px]">
-          <BossThumb boss={boss} />
-
-          <div className="min-w-0">
-            <div className="text-[13px] font-semibold text-[var(--color-text)] truncate">{boss.name}</div>
-            <div className="text-[10.5px] text-[var(--color-text-dim)]">{boss.hp} hp</div>
-          </div>
+      <div className="flex items-center gap-2.5 min-w-0 w-[160px]">
+        <BossThumb boss={boss} />
+        <div className="min-w-0">
+          <div className="text-[13px] font-semibold text-[var(--color-text)] truncate">{boss.name}</div>
+          <div className="text-[10.5px] text-[var(--color-text-dim)]">{boss.hp} hp</div>
         </div>
+      </div>
 
-        {usable ? (
-          <>
-            <Stat label="Style" value={dps.style.toUpperCase()} icon={styleIcon[dps.style]} />
-            <Stat label="Weapon" value={dps.weapon.name} />
-            <Stat label="Max hit" value={String(dps.maxHit)} />
-            <Stat label="Accuracy" value={`${Math.round(dps.hitChance * 100)}%`} />
-            <Stat label="DPS" value={dps.dps.toFixed(2)} highlight />
-            <Stat label="TTK" value={`${dps.ttk.toFixed(0)}s`} />
-            {gpPerHour && (
-              <Stat label="GP/hr" value={formatGp(gpPerHour)} icon={<Coins className="size-3.5 text-[var(--color-gold)]" />} />
-            )}
-          </>
-        ) : (
-          <div className="text-[12px] text-[var(--color-text-dim)] italic flex-1">
-            No usable weapon in your bank for this boss.
-          </div>
-        )}
-      </button>
-
-      {expanded && usable && (
-        <div className="px-3.5 pb-3.5 pt-1 border-t border-[var(--color-border)]/40">
-          {/* Per-style breakdown — melee/range/magic side by side. The winner
-              is highlighted with mint so the user immediately sees which gear
-              they should actually grab. */}
-          {allStyles.length > 0 && (
-            <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
-              {allStyles.map((sd) => {
-                const isWinner = sd.style === dps.style && sd.dps === dps.dps;
-                const label =
-                  sd.style === "stab" || sd.style === "slash" || sd.style === "crush"
-                    ? `Melee · ${sd.style}`
-                    : sd.style === "ranged" ? "Ranged" : "Magic";
-                return (
-                  <div
-                    key={sd.style + "-" + sd.weapon.id}
-                    className={cn(
-                      "rounded-lg border p-3",
-                      isWinner
-                        ? "border-[var(--color-accent)]/45 bg-[var(--color-accent)]/8"
-                        : "border-[var(--color-border)] bg-[var(--color-bg-2)]"
-                    )}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className={cn(
-                        "text-[10.5px] uppercase tracking-wider font-semibold flex items-center gap-1.5",
-                        isWinner ? "text-[var(--color-accent)]" : "text-[var(--color-text-muted)]"
-                      )}>
-                        {styleIcon[sd.style]}
-                        {label}
-                        {isWinner && <span className="text-[9px] font-mono bg-[var(--color-accent)]/15 px-1 py-0.5 rounded border border-[var(--color-accent)]/40">BEST</span>}
-                      </div>
-                      <div className={cn(
-                        "text-[14px] font-bold tabular-nums",
-                        isWinner ? "text-[var(--color-accent)]" : "text-[var(--color-text)]"
-                      )}>
-                        {sd.dps.toFixed(2)}
-                      </div>
-                    </div>
-                    <div className="text-[10.5px] text-[var(--color-text-dim)] flex items-baseline justify-between mb-2">
-                      <span className="truncate">{sd.weapon.name}</span>
-                      <span className="font-mono tabular-nums text-[var(--color-text-muted)] shrink-0 ml-2">
-                        max {sd.maxHit} · {Math.round(sd.hitChance * 100)}%
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-11 gap-1">
-                      {(["head","cape","neck","ammo","weapon","body","shield","legs","hands","feet","ring"] as const).map((slot) => {
-                        const g = sd.setup[slot];
-                        return (
-                          <div
-                            key={slot}
-                            className={cn(
-                              "aspect-square rounded flex items-center justify-center border",
-                              g
-                                ? "bg-[var(--color-osrs-slot)] border-[var(--color-osrs-slot-edge)]"
-                                : "bg-[var(--color-bg)]/50 border-dashed border-[var(--color-border)]"
-                            )}
-                            title={g?.name || `(no ${slot})`}
-                          >
-                            {g ? (
-                              <img
-                                src={ICON_URL(g.id)}
-                                alt={g.name}
-                                loading="lazy"
-                                decoding="async"
-                                className="pixelated pointer-events-none"
-                                style={{
-                                  maxWidth: "78%",
-                                  maxHeight: "78%",
-                                  imageRendering: "pixelated",
-                                  filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))"
-                                }}
-                              />
-                            ) : null}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+      {usable ? (
+        <>
+          <Stat label="Style" value={dps.style.toUpperCase()} icon={styleIcon[dps.style]} />
+          <Stat label="Weapon" value={dps.weapon.name} />
+          <Stat label="Max hit" value={String(dps.maxHit)} />
+          <Stat label="Accuracy" value={`${Math.round(dps.hitChance * 100)}%`} />
+          <Stat label="DPS" value={dps.dps.toFixed(2)} highlight />
+          <Stat label="TTK" value={`${dps.ttk.toFixed(0)}s`} />
+          {gpPerHour && (
+            <Stat label="GP/hr" value={formatGp(gpPerHour)} icon={<Coins className="size-3.5 text-[var(--color-gold)]" />} />
           )}
-          {boss.notes && (
-            <div className="mt-3 flex items-start gap-1.5 text-[11px] text-[var(--color-text-dim)] italic">
-              <Info className="size-3 shrink-0 mt-0.5" />
-              <span>{boss.notes}</span>
-            </div>
-          )}
-          {boss.rooms && boss.rooms.length > 0 && (
-            <div className="mt-4 pt-3 border-t border-[var(--color-border)]/40">
-              <div className="text-[10.5px] uppercase tracking-wider font-semibold text-[var(--color-text-muted)] mb-2">
-                Per room · best style
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                {boss.rooms.map((room) => {
-                  // Reuse bestStyleAndSetup by adapting the room into a Boss shape.
-                  const roomAsBoss: Boss = {
-                    slug: `${boss.slug}-${room.slug}`,
-                    name: room.name,
-                    category: boss.category,
-                    hp: room.hp,
-                    defenceLevel: room.defenceLevel,
-                    defenceBonuses: room.defenceBonuses,
-                    magicLevel: room.magicLevel,
-                    weaknesses: room.weaknesses,
-                    notes: room.notes
-                  };
-                  const roomBest = bestStyleAndSetup(owned, roomAsBoss);
-                  return (
-                    <div
-                      key={room.slug}
-                      className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)] px-3 py-2"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[12px] font-medium text-[var(--color-text)] truncate">{room.name}</span>
-                        <span className="text-[10px] font-mono tabular-nums text-[var(--color-text-muted)] shrink-0">{room.hp} hp</span>
-                      </div>
-                      {roomBest.dps > 0 ? (
-                        <div className="mt-1 flex items-center gap-1.5 text-[10.5px]">
-                          <span className="text-[var(--color-text-muted)] uppercase tracking-wider">{roomBest.style}</span>
-                          <span className="text-[var(--color-accent)] font-semibold tabular-nums">{roomBest.dps.toFixed(2)}</span>
-                          <span className="text-[var(--color-text-dim)] truncate">{roomBest.weapon.name}</span>
-                        </div>
-                      ) : (
-                        <div className="mt-1 text-[10.5px] text-[var(--color-text-muted)] italic">No weapon for this room</div>
-                      )}
-                      {room.notes && (
-                        <div className="mt-1 text-[10px] text-[var(--color-text-dim)] italic truncate" title={room.notes}>{room.notes}</div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+        </>
+      ) : (
+        <div className="text-[12px] text-[var(--color-text-dim)] italic flex-1">
+          No usable weapon in your bank for this boss.
         </div>
       )}
-    </div>
+    </button>
   );
 }
 

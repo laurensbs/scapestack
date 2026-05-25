@@ -11,7 +11,9 @@ import { SavedBankBanner } from "@/components/saved-bank-banner";
 import { BossSprite } from "@/components/boss-picker";
 import { KcProbabilityGraph } from "@/components/kc-probability-graph";
 import { XpDropLoader } from "@/components/xp-drop-loader";
-import { BOSSES } from "@/lib/bosses";
+import { BossDetailModal } from "@/components/boss-detail-modal";
+import { BOSSES, type Boss } from "@/lib/bosses";
+import { ownedGear, type GearItem } from "@/lib/gear";
 import { organizeAction, nextUpAction, hiscoresAction } from "@/app/actions";
 import { type HiscoreSkill } from "@/lib/hiscores";
 import { unlockedFromHiscores } from "@/lib/goals";
@@ -97,6 +99,13 @@ export function NextClient() {
   // When we land on the not-found view, remember what the user typed so
   // we can show 'Lynx Titan didn't return any data' and offer a retry.
   const [notFoundRsn, setNotFoundRsn] = useState<string>("");
+  // GearItem[] derived from the player's bank — needed by the boss
+  // detail modal which is shared with /dps. Stored alongside `result`
+  // so a KC-rec click opens the modal with real owned-gear instead
+  // of an empty bag.
+  const [ownedGearItems, setOwnedGearItems] = useState<GearItem[]>([]);
+  // Currently-open boss in the detail modal (KC-rec click target).
+  const [modalBoss, setModalBoss] = useState<Boss | null>(null);
   const [pending, startTransition] = useTransition();
   // When the user came from /bank's "What should I do next?" handoff,
   // we surface a small banner on the intake so they know the bank is
@@ -158,16 +167,22 @@ export function NextClient() {
       // Three ways to fill `bank`: pre-parsed handoff, paste-string, or
       // empty. organizeAction is only called for the paste-string path.
       let bank: Array<{ id: number; name: string }> = opts.bankItems ?? [];
+      // ownedGear needs richer OrganizedItem-shaped entries (with quantity)
+      // — only available when we actually called organizeAction. The
+      // pre-parsed handoff path skips this; that's acceptable — the modal
+      // just shows empty gear slots, same as a bank-less /next visit.
+      let gearItems: GearItem[] = [];
       if (bank.length === 0 && input) {
         const bankRes = await organizeAction(input, { junkFilter: false, includePrices: false });
         if (bankRes.error || !bankRes.result) {
           setError(bankRes.error || "Couldn't read that bank — check the paste.");
           return;
         }
-        bank = bankRes.result.tabs.flatMap((t) =>
-          t.items.map((it) => ({ id: it.id, name: it.name }))
-        );
+        const flat = bankRes.result.tabs.flatMap((t) => t.items);
+        bank = flat.map((it) => ({ id: it.id, name: it.name }));
+        gearItems = ownedGear(flat);
       }
+      setOwnedGearItems(gearItems);
 
       // Fold in 99-skill capes synthesised from the Hiscores so goal-
       // completion reflects what the player has *earned*, not just what
@@ -247,7 +262,23 @@ export function NextClient() {
   }
 
   return result ? (
-    <ResultView result={result} onEdit={() => setView("intake")} />
+    <>
+      <ResultView
+        result={result}
+        onEdit={() => setView("intake")}
+        onBossOpen={(slug) => {
+          const target = BOSSES.find((b) => b.slug === slug);
+          if (target) setModalBoss(target);
+        }}
+      />
+      {modalBoss && (
+        <BossDetailModal
+          boss={modalBoss}
+          owned={ownedGearItems}
+          onClose={() => setModalBoss(null)}
+        />
+      )}
+    </>
   ) : null;
 }
 
@@ -487,7 +518,13 @@ function NextIntake({
   );
 }
 
-function ResultView({ result, onEdit }: { result: NextUpResult; onEdit: () => void }) {
+function ResultView({ result, onEdit, onBossOpen }: {
+  result: NextUpResult;
+  onEdit: () => void;
+  // Called when the user clicks a KC-rec to open the boss detail modal.
+  // /next threads this from NextClient down to HeadlineCard + RecRow.
+  onBossOpen: (slug: string) => void;
+}) {
   const { headline, rest, summary } = result;
 
   // Group the checklist by kind so the eye reads "all the boss ideas", etc.
@@ -540,7 +577,7 @@ function ResultView({ result, onEdit }: { result: NextUpResult; onEdit: () => vo
 
       {/* Headline pick — the single strongest recommendation */}
       {headline ? (
-        <HeadlineCard rec={headline} />
+        <HeadlineCard rec={headline} onBossOpen={onBossOpen} />
       ) : (
         <div className="surface p-8 text-center text-[var(--color-text-muted)] text-[13px]">
           Nothing to flag right now — your account looks well on top of things.
@@ -562,7 +599,7 @@ function ResultView({ result, onEdit }: { result: NextUpResult; onEdit: () => vo
                   </span>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-2.5">
-                  {recs.map((r) => <RecRow key={r.id} rec={r} />)}
+                  {recs.map((r) => <RecRow key={r.id} rec={r} onBossOpen={onBossOpen} />)}
                 </div>
               </div>
             ))}
@@ -611,7 +648,11 @@ function KcPortrait({ rec, size, prominent = false }: {
 
 // The headline — the one thing the hub most wants the player to do. Big,
 // mint-accented, with the payoff and a direct link into the relevant tool.
-function HeadlineCard({ rec }: { rec: Recommendation }) {
+function HeadlineCard({ rec, onBossOpen }: { rec: Recommendation; onBossOpen: (slug: string) => void }) {
+  // KC-recs that resolve to a known boss become clickable — the click
+  // opens the BossDetailModal with the player's bank-derived gear set.
+  // For other rec kinds, the card stays linked to `rec.link` as before.
+  const isKcWithBoss = rec.kind === "kc" && !!rec.bossSlug;
   const card = (
     <article
       className={cn(
@@ -619,7 +660,7 @@ function HeadlineCard({ rec }: { rec: Recommendation }) {
         // defined in globals.css — fires once on hover, doesn't loop.
         "group/headline group relative overflow-hidden rounded-xl p-6 headline-shimmer-target",
         "border border-[var(--color-accent)]/30 bg-gradient-to-br from-[var(--color-accent)]/12 to-transparent",
-        rec.link && "surface-interactive cursor-pointer transition-transform duration-200 hover:-translate-y-0.5"
+        (rec.link || isKcWithBoss) && "surface-interactive cursor-pointer transition-transform duration-200 hover:-translate-y-0.5"
       )}
     >
       <div
@@ -672,27 +713,50 @@ function HeadlineCard({ rec }: { rec: Recommendation }) {
               defaultOpen
             />
           )}
-          {rec.link && (
+          {(rec.link || isKcWithBoss) && (
             <div className="mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-[var(--color-accent)] group-hover:gap-2 transition-all">
-              Open the tool <ArrowRight className="size-4" />
+              {isKcWithBoss ? "Open boss detail" : "Open the tool"} <ArrowRight className="size-4" />
             </div>
           )}
         </div>
       </div>
     </article>
   );
-  // KC-headline contains an interactive chart toggle; don't wrap the
-  // whole card in <Link> or the toggle click would navigate.
-  return rec.link && !rec.kcMeta ? <Link href={rec.link}>{card}</Link> : card;
+  // KC + boss: card becomes a clickable region that opens the modal.
+  // We use role+onClick on a div instead of a button because the card
+  // already contains the KC-graph toggle button, and nested buttons
+  // are invalid HTML. Keyboard-equivalent via Enter/Space.
+  if (isKcWithBoss && rec.bossSlug) {
+    const slug = rec.bossSlug;
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => onBossOpen(slug)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onBossOpen(slug);
+          }
+        }}
+      >
+        {card}
+      </div>
+    );
+  }
+  // Non-KC card with a link wraps in <Link>. KC without a boss (rare —
+  // raid slug that fell through) renders as a static card.
+  return rec.link ? <Link href={rec.link}>{card}</Link> : card;
 }
 
 // One checklist row — compact, linkable.
-function RecRow({ rec }: { rec: Recommendation }) {
+function RecRow({ rec, onBossOpen }: { rec: Recommendation; onBossOpen: (slug: string) => void }) {
+  const isKcWithBoss = rec.kind === "kc" && !!rec.bossSlug;
   const inner = (
     <article
       className={cn(
         "group h-full rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] p-3.5",
-        rec.link && "cursor-pointer transition-colors hover:border-[var(--color-accent)]/40"
+        (rec.link || isKcWithBoss) && "cursor-pointer transition-colors hover:border-[var(--color-accent)]/40"
       )}
     >
       <div className="flex items-start gap-3">
@@ -726,14 +790,32 @@ function RecRow({ rec }: { rec: Recommendation }) {
             />
           )}
         </div>
-        {rec.link && (
+        {(rec.link || isKcWithBoss) && (
           <ArrowRight className="size-3.5 text-[var(--color-text-muted)] group-hover:text-[var(--color-accent)] transition-colors shrink-0 mt-0.5" />
         )}
       </div>
     </article>
   );
-  // Avoid wrapping the row in <Link> when there's an interactive chart inside
-  // (clicking the chart toggle would also navigate). kc-recs have no link
-  // anyway — they're stat read-outs, not jump targets.
-  return rec.link && !rec.kcMeta ? <Link href={rec.link}>{inner}</Link> : inner;
+  // KC + boss: clickable region opens the modal. Same div-as-button
+  // pattern as HeadlineCard — the inner KC-graph button can't legally
+  // nest in a real <button>.
+  if (isKcWithBoss && rec.bossSlug) {
+    const slug = rec.bossSlug;
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => onBossOpen(slug)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onBossOpen(slug);
+          }
+        }}
+      >
+        {inner}
+      </div>
+    );
+  }
+  return rec.link ? <Link href={rec.link}>{inner}</Link> : inner;
 }
