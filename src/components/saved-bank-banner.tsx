@@ -1,6 +1,8 @@
 "use client";
 
-import { ArrowRight, Bookmark, X } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
+import { ArrowRight, X } from "lucide-react";
 import {
   clearSavedBank,
   clearSavedRsn,
@@ -13,23 +15,49 @@ import { track } from "@/lib/analytics";
 interface Props {
   saved: SavedBank;
   loading: boolean;
-  /** "Use saved bank" → caller triggers an organize flow with the stored
-   *  banktags string. Caller also closes the banner. */
+  /** "Continue" → caller triggers an organize flow with the stored
+   *  banktags string. Caller also dismisses the modal. */
   onUse: () => void;
-  /** "Start fresh" / "Don't save on this device" → caller closes the
-   *  banner. The clear actions happen in this component. */
+  /** "Decline" / "Don't save on this device" → caller dismisses the
+   *  modal. The clear actions happen here. */
   onDismiss: () => void;
 }
 
-// Welcome-back banner. Shown on /bank and /next when localStorage has a
-// previously-organised bank. Three actions:
-//   - Use saved bank — primary, runs the bank through the engine again.
-//   - Start fresh    — quiet link, clears the saved bank but allows future
-//                      saves on this device.
-//   - Don't save on this device — escape hatch for shared browsers; clears
-//                                 and blocks new saves for the session.
+// OSRS-style welcome-back modal. Replaces the original inline banner —
+// the modal version reads as 'the game noticed your previous session,
+// here's the standard yes/no dialog you've seen a thousand times in
+// OSRS', whereas the banner was just a web alert. Three escape paths
+// to keep this from being a rage-bait popup:
+//   1. The big close-X in the corner (also fires onDismiss).
+//   2. Esc closes (standard a11y).
+//   3. Clicking the dark overlay outside the frame closes.
+// And the three actions stay the same as the old banner: Continue /
+// Decline / Don't save on this device.
 export function SavedBankBanner({ saved, loading, onUse, onDismiss }: Props) {
   const when = describeSavedAt(saved.savedAt);
+  const continueBtnRef = useRef<HTMLButtonElement | null>(null);
+
+  // a11y: trap focus on the primary action when the modal mounts.
+  useEffect(() => {
+    continueBtnRef.current?.focus();
+  }, []);
+
+  // Esc closes — universally expected, missing is a smell.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onDismiss();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onDismiss]);
+
+  // Lock body scroll while modal is open. Otherwise long pages scroll
+  // behind the modal on iOS which looks broken.
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
 
   const startFresh = () => {
     clearSavedBank();
@@ -41,53 +69,125 @@ export function SavedBankBanner({ saved, loading, onUse, onDismiss }: Props) {
     clearSavedRsn();
     onDismiss();
   };
+  const handleUse = () => {
+    track("saved-bank:reuse");
+    onUse();
+  };
 
-  return (
+  // SSR-safe portal: createPortal needs document.body which doesn't exist
+  // on the server. Returning null on the server is fine — the modal
+  // re-renders client-side as soon as the effect-driven 'savedBank'
+  // state populates.
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <div
-      className="mb-6 rounded-lg border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/8 px-4 py-3.5 flex flex-wrap items-center gap-3 animate-[fade-in_0.3s_ease-out]"
-      role="region"
-      aria-label="Saved bank"
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="saved-bank-modal-title"
+      style={{ animation: "fade-in 0.2s ease-out" }}
     >
-      <div className="size-9 shrink-0 rounded-md flex items-center justify-center bg-[var(--color-accent)]/15 border border-[var(--color-accent)]/30 text-[var(--color-accent)]">
-        <Bookmark className="size-4" strokeWidth={2} />
-      </div>
-      <div className="flex-1 min-w-[200px]">
-        <p className="text-[13.5px] text-[var(--color-text)] leading-snug">
-          <span className="font-semibold">Welcome back</span>
-          {" "}— we still have your bank from{" "}
-          <span className="text-[var(--color-text-dim)]">{when}</span>.
-        </p>
-        <p className="mt-0.5 text-[11.5px] text-[var(--color-text-muted)]">
-          Saved on this device only. We never store banks on our server.
-        </p>
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => { track("saved-bank:reuse"); onUse(); }}
-          disabled={loading}
-          className="btn-primary group disabled:opacity-50 disabled:cursor-not-allowed"
+      {/* Overlay — click-outside closes. Slightly tinted gold to keep
+          the OSRS-fireplace feel of the rest of the rebrand. */}
+      <button
+        type="button"
+        aria-label="Close"
+        tabIndex={-1}
+        onClick={onDismiss}
+        className="absolute inset-0 bg-[rgba(7,9,12,0.78)] backdrop-blur-sm cursor-default"
+        style={{
+          background: "radial-gradient(closest-side, rgba(28, 24, 18, 0.85) 0%, rgba(7, 9, 12, 0.92) 100%)"
+        }}
+      />
+
+      {/* The OSRS-style wood frame. Two layers: outer wood-dark edge,
+          inner wood-light fill, with a gold inset ring as the
+          'attention'-band that an in-game dialog would have. */}
+      <div
+        className="relative w-full max-w-md rounded-md overflow-hidden"
+        style={{
+          background: "linear-gradient(180deg, var(--color-osrs-wood-light) 0%, var(--color-osrs-wood) 100%)",
+          border: "2px solid var(--color-osrs-wood-edge)",
+          boxShadow: "0 24px 60px -8px rgba(0, 0, 0, 0.75), inset 0 0 0 1px rgba(230, 165, 47, 0.32)",
+          animation: "pop-in 0.25s cubic-bezier(0.22, 1, 0.36, 1)"
+        }}
+      >
+        {/* Title bar — OSRS-yellow uppercase, mimics the header on
+            in-game dialog boxes ('Old School RuneScape' / 'Welcome!'). */}
+        <div
+          className="relative px-5 py-2.5 flex items-center justify-between"
+          style={{
+            background: "linear-gradient(180deg, var(--color-osrs-wood) 0%, var(--color-osrs-wood-dark) 100%)",
+            borderBottom: "1px solid var(--color-osrs-wood-edge)"
+          }}
         >
-          {loading ? "Loading…" : "Use saved bank"}
-          {!loading && <ArrowRight className="size-3.5 group-hover:translate-x-0.5 transition-transform" />}
-        </button>
-        <button
-          type="button"
-          onClick={startFresh}
-          className="text-[12px] text-[var(--color-text-dim)] hover:text-[var(--color-text)] underline underline-offset-4 decoration-dotted transition-colors"
-        >
-          Start fresh
-        </button>
-        <button
-          type="button"
-          onClick={dontSave}
-          className="size-7 rounded-md flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text-dim)] hover:bg-[var(--color-bg-2)] transition-colors"
-          title="Don't save on this device for this session"
-          aria-label="Don't save on this device"
-        >
-          <X className="size-4" />
-        </button>
+          <h2
+            id="saved-bank-modal-title"
+            className="text-[12px] font-bold uppercase tracking-[0.18em]"
+            style={{
+              color: "var(--color-osrs-qty-yellow)",
+              textShadow: "1px 1px 0 rgb(0 0 0)"
+            }}
+          >
+            Welcome back, adventurer
+          </h2>
+          <button
+            type="button"
+            onClick={onDismiss}
+            aria-label="Close"
+            className="size-6 -mr-1 flex items-center justify-center rounded-sm text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-osrs-wood-edge)] transition-colors"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+
+        {/* Body — the actual message + actions */}
+        <div className="px-5 py-5">
+          <p className="text-[14px] text-[var(--color-text)] leading-relaxed">
+            We still have your bank from <span className="text-[var(--color-accent)] font-semibold">{when}</span>.
+            Load it back, or start fresh?
+          </p>
+          <p className="mt-2 text-[11.5px] text-[var(--color-text-muted)] leading-relaxed">
+            Saved on this device only. Never on our server.
+          </p>
+
+          {/* Actions — primary big yellow OSRS-button, secondary as a
+              quieter link below. The 'don't save here' opt-out sits
+              under the divider as a footer-row link, so it's available
+              but not competing visually with the primary CTA. */}
+          <div className="mt-5 flex flex-col sm:flex-row sm:items-center gap-2.5">
+            <button
+              ref={continueBtnRef}
+              type="button"
+              onClick={handleUse}
+              disabled={loading}
+              className="btn-primary group flex-1 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Loading…" : "Continue"}
+              {!loading && <ArrowRight className="size-3.5 group-hover:translate-x-0.5 transition-transform" />}
+            </button>
+            <button
+              type="button"
+              onClick={startFresh}
+              className="btn-ghost flex-1 justify-center"
+            >
+              Decline
+            </button>
+          </div>
+
+          <div className="mt-4 pt-3 border-t border-[var(--color-osrs-wood-edge)] flex items-center justify-center">
+            <button
+              type="button"
+              onClick={dontSave}
+              className="text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-text-dim)] underline underline-offset-3 decoration-dotted transition-colors"
+            >
+              Don&apos;t save on this device
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
