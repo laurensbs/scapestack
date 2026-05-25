@@ -12,7 +12,8 @@ import { DropCelebration } from "@/components/drop-celebration";
 import { SAMPLE_BANKTAGS } from "@/lib/utils";
 import { organizeAction } from "../actions";
 import { inferArchetype, saveArchetype, type Archetype } from "@/lib/archetype";
-import { fetchHiscores, computeCombatLevel, computeTotalLevel, type HiscoreSkill } from "@/lib/hiscores";
+import { computeCombatLevel, computeTotalLevel, type HiscoreSkill } from "@/lib/hiscores";
+import { hiscoresAction } from "@/app/actions";
 import {
   loadSavedBank,
   saveSavedBank,
@@ -73,7 +74,7 @@ function BankPageContent() {
   // Resolve archetype from RSN (if provided) via Hiscores, else "unspecified".
   const resolveArchetype = async (rsn: string): Promise<{ archetype: Archetype; rsn: string | null; skills: HiscoreSkill[] | null }> => {
     if (!rsn) return { archetype: "unspecified", rsn: null, skills: null };
-    const hiscores = await fetchHiscores(rsn);
+    const hiscores = await hiscoresAction(rsn);
     if (!hiscores) return { archetype: "unspecified", rsn: null, skills: null };
     const archetype = inferArchetype({
       totalLevel: computeTotalLevel(hiscores.skills),

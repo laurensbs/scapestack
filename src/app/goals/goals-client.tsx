@@ -14,7 +14,7 @@ import {
   type SetCompletion, type GoalCategory
 } from "@/lib/goals";
 import { loadArchetype, type Archetype } from "@/lib/archetype";
-import { fetchHiscores } from "@/lib/hiscores";
+import { hiscoresAction } from "@/app/actions";
 import { cn, ICON_URL } from "@/lib/utils";
 
 type CompletionFilter = "all" | "complete" | "incomplete";
@@ -44,7 +44,7 @@ export function GoalsClient() {
       // sitting in the bank.
       const [bankRes, hiscores] = await Promise.all([
         organizeAction(input, { junkFilter: false, includePrices: false }),
-        rsn.trim() ? fetchHiscores(rsn.trim()) : Promise.resolve(null)
+        rsn.trim() ? hiscoresAction(rsn.trim()) : Promise.resolve(null)
       ]);
       if (bankRes.error || !bankRes.result) {
         setError(bankRes.error || "Failed to read bank");

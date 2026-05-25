@@ -12,8 +12,8 @@ import { BossSprite } from "@/components/boss-picker";
 import { KcProbabilityGraph } from "@/components/kc-probability-graph";
 import { XpDropLoader } from "@/components/xp-drop-loader";
 import { BOSSES } from "@/lib/bosses";
-import { organizeAction, nextUpAction } from "@/app/actions";
-import { fetchHiscores, type HiscoreSkill } from "@/lib/hiscores";
+import { organizeAction, nextUpAction, hiscoresAction } from "@/app/actions";
+import { type HiscoreSkill } from "@/lib/hiscores";
 import { unlockedFromHiscores } from "@/lib/goals";
 import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
 import { track } from "@/lib/analytics";
@@ -153,7 +153,7 @@ export function NextClient() {
 
       // Hiscores fetch is best-effort. If RSN was given but the lookup
       // fails, we still build something useful from the bank alone.
-      const hiscores = rsn ? await fetchHiscores(rsn) : null;
+      const hiscores = rsn ? await hiscoresAction(rsn) : null;
 
       // Three ways to fill `bank`: pre-parsed handoff, paste-string, or
       // empty. organizeAction is only called for the paste-string path.

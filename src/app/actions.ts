@@ -3,6 +3,16 @@
 import { organize, exportTabs, type OrganizeResult, type OrganizedTab } from "@/lib/organizer";
 import type { Archetype } from "@/lib/archetype";
 import { computeNextUp, type NextUpInput, type NextUpResult } from "@/lib/next-up";
+import { fetchHiscores, type PlayerHiscores } from "@/lib/hiscores";
+
+export async function hiscoresAction(rsn: string): Promise<PlayerHiscores | null> {
+  // Server-side proxy for the OSRS Hiscores fetch. The Jagex endpoint
+  // doesn't ship CORS headers, so calling it from the browser fails
+  // silently — looked like 'name not found' from the user's POV but was
+  // actually a blocked network request. Going through this action puts
+  // the fetch on Vercel/Node where CORS doesn't apply.
+  return fetchHiscores(rsn);
+}
 
 export async function nextUpAction(input: NextUpInput): Promise<NextUpResult> {
   // Server-side because the engine reads data/quests.json from disk via
