@@ -7,6 +7,7 @@ import {
 } from "@/lib/hiscores";
 import { LocalBankSummary } from "./local-bank-summary";
 import { cn } from "@/lib/utils";
+import { skillSpriteUrl } from "@/lib/sprites";
 
 interface Props {
   params: Promise<{ rsn: string }>;
@@ -150,13 +151,26 @@ function Stat({ icon: Icon, label, value }: { icon?: React.ComponentType<{ class
 }
 
 function SkillCard({ skill, rank }: { skill: import("@/lib/hiscores").HiscoreSkill; rank: number }) {
+  const spriteUrl = skillSpriteUrl(skill.name);
   return (
     <div className={cn(
       "rounded-xl p-4 border border-[var(--color-border)]",
       "bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)]"
     )}>
-      <div className="text-[10px] uppercase tracking-widest font-bold text-[var(--color-gold-soft)] mb-1">
-        #{rank} · {skill.name}
+      <div className="flex items-center gap-2 mb-1">
+        {spriteUrl && (
+          <img
+            src={spriteUrl}
+            alt=""
+            width={16}
+            height={16}
+            className="pixelated"
+            style={{ imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
+          />
+        )}
+        <span className="text-[10px] uppercase tracking-widest font-bold text-[var(--color-gold-soft)]">
+          #{rank} · {skill.name}
+        </span>
       </div>
       <div className="flex items-baseline gap-2 mb-1">
         <span className="text-3xl font-black text-[var(--color-gold)] leading-none">{skill.level}</span>
@@ -172,6 +186,7 @@ function SkillCard({ skill, rank }: { skill: import("@/lib/hiscores").HiscoreSki
 function SkillRow({ skill }: { skill: import("@/lib/hiscores").HiscoreSkill }) {
   const level = skill.level > 0 ? skill.level : 1;
   const isCape = level === 99;
+  const spriteUrl = skillSpriteUrl(skill.name);
   return (
     <div
       className={cn(
@@ -179,7 +194,19 @@ function SkillRow({ skill }: { skill: import("@/lib/hiscores").HiscoreSkill }) {
         "bg-[var(--color-panel)]/40 border border-[var(--color-border)]"
       )}
     >
-      <span className="text-[12px] text-[var(--color-text)] font-medium truncate">{skill.name}</span>
+      <span className="flex items-center gap-2 min-w-0">
+        {spriteUrl && (
+          <img
+            src={spriteUrl}
+            alt=""
+            width={14}
+            height={14}
+            className="pixelated shrink-0"
+            style={{ imageRendering: "pixelated" }}
+          />
+        )}
+        <span className="text-[12px] text-[var(--color-text)] font-medium truncate">{skill.name}</span>
+      </span>
       <span className={cn(
         "font-mono font-bold text-[12px] tabular-nums",
         isCape ? "text-[var(--color-gold)]" : "text-[var(--color-text)]"
