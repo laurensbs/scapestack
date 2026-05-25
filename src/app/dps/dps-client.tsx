@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition, useMemo } from "react";
+import { useState, useTransition, useMemo, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Edit3, Sword, Zap, Target, TrendingUp, Coins, Info } from "lucide-react";
 import { Intake } from "@/components/intake";
 import { SupportCard } from "@/components/support-card";
@@ -18,6 +19,18 @@ export function DpsClient() {
   const [pending, startTransition] = useTransition();
   const [focusedBoss, setFocusedBoss] = useState<Boss | null>(null);
 
+  // Deep-link: /dps?boss=<slug> pre-selects a boss from the home page's
+  // boss-arena. The actual focus + scroll happens once we have a result
+  // view (the player still needs to paste a bank first). We persist the
+  // intent across the intake → result transition via a stashed slug.
+  const searchParams = useSearchParams();
+  const [pendingBossSlug, setPendingBossSlug] = useState<string | null>(null);
+  useEffect(() => {
+    const slug = searchParams.get("boss");
+    if (slug) setPendingBossSlug(slug);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const run = (input: string, _junk: boolean, _rsn: string) => {
     setError(null);
     startTransition(async () => {
@@ -30,6 +43,24 @@ export function DpsClient() {
       const gear = ownedGear(flat);
       setOwned(gear);
       setView("result");
+      // Resolve the deep-linked boss now that we have a bank. If the
+      // slug doesn't match any known boss (raid slug like 'cox' / 'tob'
+      // / 'toa' falls through here — they're rooms-of-bosses in the
+      // dps engine, no single target) we silently ignore.
+      if (pendingBossSlug) {
+        const target = BOSSES.find((b) => b.slug === pendingBossSlug);
+        if (target) {
+          setFocusedBoss(target);
+          // Scroll once the result-view rendered. requestAnimationFrame
+          // beats setTimeout here — fires on the first repaint, no
+          // arbitrary delay.
+          requestAnimationFrame(() => {
+            document.getElementById(`boss-${target.slug}`)
+              ?.scrollIntoView({ behavior: "smooth", block: "center" });
+          });
+        }
+        setPendingBossSlug(null);
+      }
     });
   };
 
@@ -52,9 +83,26 @@ export function DpsClient() {
   // improve DPS by the largest factor across most bosses.
   const upgrades = useMemo(() => suggestUpgrades(owned), [owned]);
 
+  // Pretty name for the deep-linked boss banner (raid slugs fall through
+  // — the banner just doesn't show in that case).
+  const pendingBossName = useMemo(() => {
+    if (!pendingBossSlug) return null;
+    const b = BOSSES.find((x) => x.slug === pendingBossSlug);
+    return b?.name ?? null;
+  }, [pendingBossSlug]);
+
   if (view === "intake") {
     return (
       <>
+        {pendingBossName && (
+          <div className="mb-4 rounded-lg border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/8 px-4 py-3 flex items-center gap-3 animate-[fade-in_0.3s_ease-out]">
+            <Sword className="size-4 text-[var(--color-accent)] shrink-0" />
+            <p className="text-[13px] text-[var(--color-text)] leading-relaxed">
+              <span className="font-semibold">Paste your bank</span> and we&apos;ll jump straight to{" "}
+              <span className="text-[var(--color-accent)]">{pendingBossName}</span>&apos;s best setup.
+            </p>
+          </div>
+        )}
         <div className="mb-6 grid sm:grid-cols-3 gap-3">
           <FeatureCard
             icon={Sword}

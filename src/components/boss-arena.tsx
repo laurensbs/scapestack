@@ -11,15 +11,19 @@ import { track } from "@/lib/analytics";
 // flaky (Special:FilePath/Zulrah.png 404s; the actual filename is
 // Zulrah_(serpentine).png). Local-first means consistent rendering
 // and no third-party request per visitor.
-const ARENA_BOSSES: Array<{ slug: string; label: string }> = [
-  { slug: "vorkath",   label: "Vorkath" },
-  { slug: "zulrah",    label: "Zulrah" },
-  { slug: "cox",       label: "Chambers of Xeric" },
-  { slug: "tob",       label: "Theatre of Blood" },
-  { slug: "toa",       label: "Tombs of Amascut" },
-  { slug: "hydra",     label: "Alchemical Hydra" },
-  { slug: "nex",       label: "Nex" },
-  { slug: "vardorvis", label: "Vardorvis" }
+//
+// `dpsTarget` marks which bosses have a DPS-calc setup. Raids (CoX/
+// ToB/ToA) aren't single targets — they're rooms-of-bosses — so they
+// fall back to /next. Solo bosses deep-link to /dps?boss=<slug>.
+const ARENA_BOSSES: Array<{ slug: string; label: string; dpsTarget: boolean }> = [
+  { slug: "vorkath",   label: "Vorkath",            dpsTarget: true },
+  { slug: "zulrah",    label: "Zulrah",             dpsTarget: true },
+  { slug: "cox",       label: "Chambers of Xeric",  dpsTarget: false },
+  { slug: "tob",       label: "Theatre of Blood",   dpsTarget: false },
+  { slug: "toa",       label: "Tombs of Amascut",   dpsTarget: false },
+  { slug: "hydra",     label: "Alchemical Hydra",   dpsTarget: true },
+  { slug: "nex",       label: "Nex",                dpsTarget: true },
+  { slug: "vardorvis", label: "Vardorvis",          dpsTarget: true }
 ];
 
 // Arena radius is expressed as % of the container size so the layout
@@ -128,8 +132,19 @@ export function BossArena() {
               onFocus={() => setHovered(i)}
               onBlur={() => setHovered(null)}
               onClick={() => {
-                track("homepage:sample", { source: "arena-boss", boss: entry.slug });
-                window.location.assign("/next");
+                // Solo bosses jump straight to /dps with the boss
+                // preselected; raids fall back to /next (no single
+                // DPS target). The dest prop in the track-event lets
+                // Plausible answer 'do players follow the boss-link
+                // when it points at the calculator, or do they prefer
+                // the generic next-hub?'
+                const dest = entry.dpsTarget ? `/dps?boss=${entry.slug}` : "/next";
+                track("homepage:sample", {
+                  source: "arena-boss",
+                  boss: entry.slug,
+                  dest: entry.dpsTarget ? "dps" : "next"
+                });
+                window.location.assign(dest);
               }}
               aria-label={entry.label}
               className="relative size-[60px] sm:size-[68px] rounded-full bg-[var(--color-bg-2)] border border-[var(--color-border-strong)] flex items-center justify-center overflow-hidden outline-none focus:ring-2 focus:ring-[var(--color-accent)]/60 transition-[transform,box-shadow] duration-500 ease-out"
