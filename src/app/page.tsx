@@ -5,6 +5,7 @@ import { cn, ICON_URL } from "@/lib/utils";
 import { BuyMeCoffee } from "@/components/buy-me-coffee";
 import { SampleBankLink } from "@/components/sample-bank-link";
 import { BossArena } from "@/components/boss-arena";
+import { HeroSubhead } from "@/components/hero-subhead";
 
 export default function HomePage() {
   const liveTools = TOOLS.filter((t) => t.status === "live");
@@ -33,15 +34,7 @@ export default function HomePage() {
               Less bank standing,<br />
               <span className="text-gold-gradient">more Gielinor.</span>
             </h1>
-            <p
-              className="mt-6 text-[16px] sm:text-[17px] text-[var(--color-text-dim)] max-w-xl leading-relaxed"
-              style={{ animation: "hero-fade 0.7s cubic-bezier(0.22,1,0.36,1) 0.32s both" }}
-            >
-              <span className="text-[var(--color-text)] font-medium">
-                One page that looks at your account and tells you what's worth doing next.
-              </span>
-              {" "}Goals you're close to, bosses your stats now support, drops you're statistically due. Free, no account, no plugin.
-            </p>
+            <HeroSubhead />
             <div
               className="mt-8 flex flex-wrap items-center gap-3"
               style={{ animation: "hero-fade 0.7s cubic-bezier(0.22,1,0.36,1) 0.48s both" }}
