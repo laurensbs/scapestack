@@ -3,6 +3,7 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import { TOOLS, type Tool } from "@/lib/tools";
 import { cn, ICON_URL } from "@/lib/utils";
 import { BuyMeCoffee } from "@/components/buy-me-coffee";
+import { SampleBankLink } from "@/components/sample-bank-link";
 
 export default function HomePage() {
   const liveTools = TOOLS.filter((t) => t.status === "live");
@@ -48,10 +49,7 @@ export default function HomePage() {
                 What should I do next?
                 <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform" />
               </Link>
-              <Link href="/bank?sample=1" className="btn-ghost">
-                <Sparkles className="size-3.5" />
-                See it with a sample bank
-              </Link>
+              <SampleBankLink />
             </div>
           </div>
 

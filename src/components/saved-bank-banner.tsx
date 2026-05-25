@@ -8,6 +8,7 @@ import {
   disableSaveBankForSession,
   type SavedBank
 } from "@/lib/saved-bank";
+import { track } from "@/lib/analytics";
 
 interface Props {
   saved: SavedBank;
@@ -63,7 +64,7 @@ export function SavedBankBanner({ saved, loading, onUse, onDismiss }: Props) {
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          onClick={onUse}
+          onClick={() => { track("saved-bank:reuse"); onUse(); }}
           disabled={loading}
           className="btn-primary group disabled:opacity-50 disabled:cursor-not-allowed"
         >

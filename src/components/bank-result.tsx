@@ -40,6 +40,7 @@ import { SuggestionsPanel } from "./suggestions-panel";
 import { DiffBanner } from "./diff-banner";
 import { TipsCard } from "./tips-card";
 import { computeTips } from "@/lib/tips";
+import { track } from "@/lib/analytics";
 import { StackScoreBadge } from "./stack-score-badge";
 import { computeStackScore } from "@/lib/stack-score";
 import { pushScorePoint, type ScorePoint } from "@/lib/score-history";
@@ -755,16 +756,19 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
   const copyAll = async () => {
     await navigator.clipboard.writeText(strings.join("\n"));
     flash("all");
+    track("bank:copy", { mode: "all", tabs: strings.length });
   };
   const copyNumbered = async () => {
     const total = strings.length;
     const blocks = strings.map((s, i) => `--- Tab ${i + 1}/${total}: ${tabs[i]?.name || "?"} ---\n${s}`);
     await navigator.clipboard.writeText(blocks.join("\n\n"));
     flash("numbered");
+    track("bank:copy", { mode: "numbered", tabs: total });
   };
   const copyOne = async (i: number) => {
     await navigator.clipboard.writeText(strings[i]);
     flash(`one-${i}`);
+    track("bank:copy", { mode: "single", tab: tabs[i]?.name || "?" });
   };
   const flash = (key: string) => {
     setCopied(key);

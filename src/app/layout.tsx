@@ -1,8 +1,16 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { Header } from "@/components/header";
 import "./globals.css";
+
+// Plausible analytics — cookieless, no consent banner required, GDPR-clean.
+// `data-domain` should match the production hostname; localhost hits are
+// ignored by Plausible by default. We load with `defer` so it never blocks
+// first paint and gate on NODE_ENV=production so dev iteration doesn't
+// pollute the dashboard.
+const PLAUSIBLE_DOMAIN = "scapestack.app";
 
 export const metadata: Metadata = {
   // Punchier than the old "Scapestack — OSRS toolkit" — the new tagline
@@ -26,6 +34,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`h-full ${GeistSans.variable} ${GeistMono.variable}`}
     >
       <body className="h-full subpixel-antialiased font-sans">
+        {process.env.NODE_ENV === "production" && (
+          <Script
+            defer
+            strategy="afterInteractive"
+            data-domain={PLAUSIBLE_DOMAIN}
+            src="https://plausible.io/js/script.js"
+          />
+        )}
         {/* No sidebar — header carries nav. Removes ~56px of horizontal
             chrome on every page and feels less app-y for a tools landing
             page. The Sidebar component is retained in the codebase in case

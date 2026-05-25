@@ -12,6 +12,7 @@ import { organizeAction, nextUpAction } from "@/app/actions";
 import { fetchHiscores, type HiscoreSkill } from "@/lib/hiscores";
 import { unlockedFromHiscores } from "@/lib/goals";
 import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
+import { track } from "@/lib/analytics";
 import type { Recommendation, RecKind, NextUpResult } from "@/lib/next-up";
 import { cn, ICON_URL } from "@/lib/utils";
 
@@ -133,6 +134,12 @@ export function NextClient() {
   // we branch at the edges, not in the engine.
   const run = (opts: { input?: string; rsn?: string; bankItems?: Array<{ id: number; name: string }> }) => {
     setError(null);
+    // Fire the funnel event *before* the async work — Plausible is
+    // fire-and-forget; we don't want the await chain in front of it.
+    track("next:submit", {
+      hasRsn: Boolean((opts.rsn ?? "").trim()),
+      hasBank: Boolean((opts.input ?? "").trim() || (opts.bankItems && opts.bankItems.length > 0))
+    });
     startTransition(async () => {
       const rsn = (opts.rsn ?? "").trim();
       const input = (opts.input ?? "").trim();
