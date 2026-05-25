@@ -241,6 +241,18 @@
     25%  { box-shadow: 0 0 0 4px rgba(230, 165, 47, 0.55), inset 0 0 0 2px rgba(230, 165, 47, 0.65); background-color: rgba(230, 165, 47, 0.28); }
     100% { box-shadow: 0 0 0 10px rgba(230, 165, 47, 0), inset 0 0 0 2px rgba(230, 165, 47, 0); background-color: rgba(230, 165, 47, 0); }
   }
+  /* Boss-showcase frame rises with a hint of scale + blur clear. Slow
+     0.7s so it lands after the hero copy has settled. */
+  @keyframes showcase-frame-rise {
+    from { opacity: 0; transform: scale(0.92); filter: blur(8px); }
+    to   { opacity: 1; transform: scale(1);    filter: blur(0); }
+  }
+  /* Boss-showcase name plate snap-in on each boss change. Re-mounted
+     by React per cycle so the animation restarts. */
+  @keyframes showcase-label-in {
+    from { opacity: 0; transform: translate(-50%, 6px); }
+    to   { opacity: 1; transform: translate(-50%, 0); }
+  }
 }
 
 /* Outside @theme so it survives Tailwind v4's keyframe-pruning — same

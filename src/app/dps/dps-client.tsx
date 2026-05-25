@@ -20,7 +20,7 @@ export function DpsClient() {
   const [focusedBoss, setFocusedBoss] = useState<Boss | null>(null);
 
   // Deep-link: /dps?boss=<slug> pre-selects a boss from the home page's
-  // boss-arena. The actual focus + scroll happens once we have a result
+  // boss-showcase. The actual focus + scroll happens once we have a result
   // view (the player still needs to paste a bank first). We persist the
   // intent across the intake → result transition via a stashed slug.
   const searchParams = useSearchParams();

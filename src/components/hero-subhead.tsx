@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 // The hero subhead names three things /next does: goal-progress,
-// boss-readiness, drop-chance maths. After the boss-arena pulls the
+// boss-readiness, drop-chance maths. After the boss-showcase pulls the
 // reader's eye to the right, this cycle pulls it back to the copy.
 // One phrase gets a gold underline at a time, 2.4s per phrase. CSS-
 // only animation; React only handles the index rotation.

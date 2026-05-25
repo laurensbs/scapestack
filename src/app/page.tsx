@@ -4,7 +4,7 @@ import { TOOLS, type Tool } from "@/lib/tools";
 import { cn, ICON_URL } from "@/lib/utils";
 import { BuyMeCoffee } from "@/components/buy-me-coffee";
 import { SampleBankLink } from "@/components/sample-bank-link";
-import { BossArena } from "@/components/boss-arena";
+import { BossShowcase } from "@/components/boss-showcase";
 import { HeroSubhead } from "@/components/hero-subhead";
 
 export default function HomePage() {
@@ -54,17 +54,18 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Boss arena — the hero visual. Eight wiki portraits orbit a
-              central CTA. mt-6 on mobile/tablet keeps it clear of the
-              CTA buttons above (audit finding #2: arena ambient-glow
-              bled into the buttons at the breakpoint where the grid
-              hasn't split yet). lg: drops the margin since the grid
-              puts arena and copy side-by-side. */}
+          {/* Boss showcase — gallery-style. One full-bleed boss portrait
+              at a time, cross-fading every 5s. Replaces the orbit-of-8
+              arena which read as 'budget carousel.' One boss owning
+              the column is more premium than eight tiny circles
+              competing. Click navigates to /dps for solo bosses, /next
+              for raids; dots below are manual selectors + pause-on-
+              hover handles 'wait, let me read that one.' */}
           <div
             className="relative mt-6 lg:mt-0"
             style={{ animation: "hero-fade 0.7s cubic-bezier(0.22,1,0.36,1) 0.32s both" }}
           >
-            <BossArena />
+            <BossShowcase />
           </div>
         </div>
       </section>
