@@ -36,15 +36,17 @@ function arenaBoss(entry: typeof ARENA_BOSSES[number]): Boss {
   };
 }
 
-// Arena radius is a CSS variable so the layout responds to viewport size
-// without recomputing in JS. The boss tile is positioned at
-// (cos(θ), sin(θ)) × radius — see calcOffset.
+// Arena radius is expressed as % of the container size so the layout
+// scales with viewport. We compute the (x, y) offset for tile `index`
+// as a percentage of the arena box — multiplying by a literal number
+// in JS, not via CSS calc(cos()) which is patchier across browsers and
+// silently failed in the v0.5 launch by collapsing every tile to (0,0).
+const ORBIT_RADIUS_PCT = 42; // % of container size from centre
 function calcOffset(index: number, total: number): { x: string; y: string } {
   // Start at -90° (12 o'clock) and go clockwise.
   const theta = (-Math.PI / 2) + (index / total) * Math.PI * 2;
-  // Use calc() with a CSS var so the radius scales with viewport.
-  const x = `calc(cos(${theta}rad) * var(--arena-radius))`;
-  const y = `calc(sin(${theta}rad) * var(--arena-radius))`;
+  const x = `${(Math.cos(theta) * ORBIT_RADIUS_PCT).toFixed(2)}%`;
+  const y = `${(Math.sin(theta) * ORBIT_RADIUS_PCT).toFixed(2)}%`;
   return { x, y };
 }
 
@@ -73,13 +75,12 @@ export function BossArena() {
     <div
       className="relative mx-auto"
       style={{
-        // The arena container is square. Radius = 38% of side; centre
-        // CTA is ~30% wide so there's breathing room between the CTA
-        // and the closest boss tile.
-        "--arena-radius": "min(38%, 190px)",
-        width: "min(420px, 88vw)",
+        // Square arena. Orbit radius = ORBIT_RADIUS_PCT (42%) of side;
+        // centre CTA takes ~40% to leave breathing room between the
+        // text and the nearest boss tile.
+        width: "min(460px, 90vw)",
         aspectRatio: "1 / 1"
-      } as React.CSSProperties}
+      }}
     >
       {/* Background ambient glow — same gold gradient the old BankPreview
           had, kept for tonal continuity. */}
@@ -93,23 +94,24 @@ export function BossArena() {
       />
 
       {/* Centre CTA — the call-to-action sits in the middle, the bosses
-          orbit it. The intent is 'here's all the bosses you could be
-          fighting tonight; pick one and let us tell you what to do.' */}
+          orbit it. ~44% of the container (was 30%, which truncated the
+          three-line copy to 'Should ight?' as caught in the v0.5
+          screenshot review). */}
       <Link
         href="/next"
         onClick={() => track("homepage:sample", { source: "arena-cta" })}
-        className="absolute inset-0 m-auto flex flex-col items-center justify-center text-center group/cta"
+        className="absolute inset-0 m-auto flex flex-col items-center justify-center text-center group/cta px-2"
         style={{
-          width: "30%",
-          height: "30%",
+          width: "44%",
+          height: "44%",
           animation: "hero-fade 0.7s cubic-bezier(0.22,1,0.36,1) 0.5s both"
         }}
       >
         <span className="eyebrow text-[var(--color-accent)] mb-1.5">Stuck?</span>
-        <span className="text-[14px] sm:text-[15px] font-bold leading-tight tracking-tight text-[var(--color-text)]">
+        <span className="text-[13px] sm:text-[14px] font-bold leading-tight tracking-tight text-[var(--color-text)]">
           What should<br />I do tonight?
         </span>
-        <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--color-accent)] group-hover/cta:gap-1.5 transition-all">
+        <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--color-accent)] group-hover/cta:gap-1.5 transition-all whitespace-nowrap">
           Start <ArrowRight className="size-3" />
         </span>
       </Link>
@@ -119,12 +121,18 @@ export function BossArena() {
         if (!boss) return null;
         const { x, y } = calcOffset(i, ARENA_BOSSES.length);
         const isActive = i === active;
+        // Position by absolute top/left as percentages of the container
+        // (50% = centre), then translate -50% / -50% by transform so the
+        // tile is centred on that point. The % on `transform` would refer
+        // to the tile's own box, which is why we keep position+transform
+        // separate.
         return (
           <div
             key={ARENA_BOSSES[i].display}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+            className="absolute -translate-x-1/2 -translate-y-1/2"
             style={{
-              transform: `translate(calc(-50% + ${x}), calc(-50% + ${y}))`,
+              left: `calc(50% + ${x})`,
+              top: `calc(50% + ${y})`,
               animation: `tile-rise 0.55s cubic-bezier(0.22,1,0.36,1) ${0.6 + i * 0.06}s both`
             }}
           >

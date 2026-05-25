@@ -458,9 +458,12 @@ body {
   background-clip: padding-box;
 }
 
-/* Mint gradient text — replaces gold gradient */
+/* Gold gradient text — the class name is honest again after Fase 6.2.
+   Light-warm → OSRS skill-cape gold, used on hero accents like the
+   'Gielinor' in 'more Gielinor.' The old mint implementation
+   (#00E29A) was a leftover and clashed with the rest of the rebrand. */
 .text-gold-gradient {
-  background: linear-gradient(135deg, #E8EAED 0%, #00E29A 100%);
+  background: linear-gradient(135deg, #FFE6A8 0%, #E6A52F 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
