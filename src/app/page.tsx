@@ -4,6 +4,7 @@ import { TOOLS, type Tool } from "@/lib/tools";
 import { cn, ICON_URL } from "@/lib/utils";
 import { BuyMeCoffee } from "@/components/buy-me-coffee";
 import { SampleBankLink } from "@/components/sample-bank-link";
+import { BossArena } from "@/components/boss-arena";
 
 export default function HomePage() {
   const liveTools = TOOLS.filter((t) => t.status === "live");
@@ -53,19 +54,16 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Live bank preview */}
+          {/* Boss arena — the hero visual. Eight wiki portraits orbit a
+              central CTA. Replaces the old BankPreview (kept lower down
+              on the page in case we want it back; the new homepage
+              priority is /next, not the bank organizer). Plausible
+              traffic data after the v0.4 launch made the call: visitors
+              hit the homepage and stalled — the visual was selling the
+              wrong thing. The arena sells what we actually do: pick a
+              boss, get a plan. */}
           <div className="relative" style={{ animation: "hero-fade 0.7s cubic-bezier(0.22,1,0.36,1) 0.32s both" }}>
-            <div
-              className="absolute inset-0 -inset-x-8 -inset-y-8 pointer-events-none"
-              style={{
-                background: "radial-gradient(closest-side, rgba(230, 165, 47, 0.25) 0%, transparent 70%)",
-                // Slow glow fade-in (1.4s) — the page seems to "warm up" as
-                // the hero content settles. Sits at 30% opacity end-state.
-                opacity: 0.3,
-                animation: "glow-fade 1.4s ease-out 0.4s both"
-              }}
-            />
-            <BankPreview />
+            <BossArena />
           </div>
         </div>
       </section>
@@ -243,148 +241,3 @@ function ToolCard({ tool, index }: { tool: Tool; index: number }) {
   );
 }
 
-// ── Bank preview ────────────────────────────────────────────────────────────
-// Static mock of what the Bank Organizer produces, for the hero.
-
-const PREVIEW_TABS = [
-  { name: "Currency", icon: 995 },
-  { name: "Combat", icon: 4151 },
-  { name: "Range", icon: 20997 },
-  { name: "Magic", icon: 24424 },
-  { name: "Food", icon: 13441 },
-  { name: "Potions", icon: 6685 }
-];
-
-const PREVIEW_ITEMS: Array<{ id: number; qty?: string }> = [
-  { id: 4151 },           // Whip
-  { id: 11802 },          // Armadyl GS
-  { id: 13652 },          // Dragon claws
-  { id: 22324 },          // Ghrazi rapier
-  { id: 26219 },          // Osmumten's fang
-  { id: 22325 },          // Scythe of vitur
-  { id: 11804 },          // Bandos GS
-  { id: 28688 },          // Blazing blowpipe
-
-  { id: 11832 },          // Bandos chestplate
-  { id: 11834 },          // Bandos tassets
-  { id: 11836 },          // Bandos boots
-  { id: 21018, qty: "1" },// Helm of neitiznot
-  { id: 19553 },          // Amulet of torture
-  { id: 21295 },          // Infernal cape
-  { id: 7462 },           // Barrows gloves
-  { id: 28307 },          // Ultor ring
-
-  { id: 12625, qty: "120" }, // Stam pot
-  { id: 6685, qty: "240" },  // Saradomin brew
-  { id: 3024, qty: "80" },   // Super restore
-  { id: 2434, qty: "150" },  // Prayer pot
-  { id: 13441, qty: "300" }, // Anglerfish
-  { id: 385, qty: "500" },   // Shark
-  { id: 560, qty: "5000" },  // Death rune
-  { id: 565, qty: "1.2K" }   // Blood rune
-];
-
-function BankPreview() {
-  return (
-    <div
-      className="relative rounded-xl overflow-hidden"
-      style={{
-        background: "var(--color-osrs-wood)",
-        border: "1px solid var(--color-border-strong)",
-        boxShadow: "0 24px 60px -24px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(230, 165, 47, 0.08)"
-      }}
-    >
-      {/* Title bar */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-[var(--color-osrs-wood-edge)]">
-        <span className="text-[10px] uppercase tracking-[0.22em] font-semibold text-[var(--color-accent)]">
-          The Bank
-        </span>
-        <span className="text-[11px] font-mono font-semibold text-[var(--color-text-dim)] tabular-nums">
-          1.84B gp
-        </span>
-      </div>
-
-      {/* Tab strip */}
-      <div className="flex items-end gap-1 px-3 pt-2 -mb-px">
-        {PREVIEW_TABS.map((tab, i) => (
-          <div
-            key={tab.name}
-            className="relative flex items-center justify-center rounded-t-md"
-            style={{
-              width: "40px",
-              height: "32px",
-              background: i === 1 ? "var(--color-osrs-tab-active)" : "var(--color-osrs-tab-inactive)",
-              border: `1px solid ${i === 1 ? "var(--color-accent)" : "var(--color-osrs-slot-edge)"}`,
-              borderBottom: "none"
-            }}
-          >
-            <img
-              src={ICON_URL(tab.icon)}
-              alt=""
-              loading="lazy"
-              className="pixelated"
-              style={{
-                maxWidth: "24px",
-                maxHeight: "24px",
-                width: "auto",
-                height: "auto",
-                imageRendering: "pixelated"
-              }}
-            />
-            {i === 1 && (
-              <span
-                className="absolute -bottom-px inset-x-1 h-[2px] rounded-full"
-                style={{ background: "var(--color-accent)" }}
-              />
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Grid */}
-      <div className="grid grid-cols-8 bg-[var(--color-osrs-bank-bg)] border-t border-[var(--color-osrs-wood-edge)]">
-        {PREVIEW_ITEMS.map((item, i) => (
-          <div
-            key={`${item.id}-${i}`}
-            className="relative aspect-square flex items-center justify-center border border-[var(--color-osrs-slot-edge)]/40"
-            style={{
-              // Cascade tiles in left-to-right, top-to-bottom for a slick first paint.
-              // 0.45s base delay so the entire BankPreview shell appears first.
-              animation: `tile-rise 0.42s cubic-bezier(0.22,1,0.36,1) ${0.45 + i * 0.022}s both`
-            }}
-          >
-            <img
-              src={ICON_URL(item.id)}
-              alt=""
-              loading="lazy"
-              className="pixelated absolute"
-              style={{
-                maxWidth: "28px",
-                maxHeight: "28px",
-                width: "auto",
-                height: "auto",
-                imageRendering: "pixelated"
-              }}
-            />
-            {item.qty && (
-              <span
-                className="absolute top-0.5 left-1 text-[9px] font-bold pointer-events-none"
-                style={{
-                  color: "var(--color-osrs-qty-yellow)",
-                  textShadow: "1px 1px 0 rgb(0 0 0)"
-                }}
-              >
-                {item.qty}
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Footer hint */}
-      <div className="px-4 py-2 text-[10.5px] text-[var(--color-text-muted)] text-center bg-[var(--color-bg-2)] border-t border-[var(--color-border)]">
-        24 of 778 items shown · paste your bank to see yours
-      </div>
-    </div>
-  );
-}
