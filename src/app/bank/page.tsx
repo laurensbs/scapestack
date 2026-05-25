@@ -8,11 +8,19 @@ import { Intake } from "@/components/intake";
 import { BankResult } from "@/components/bank-result";
 import { ToolHeader } from "@/components/tool-header";
 import { SavedBankBanner } from "@/components/saved-bank-banner";
+import { DropCelebration } from "@/components/drop-celebration";
 import { SAMPLE_BANKTAGS } from "@/lib/utils";
 import { organizeAction } from "../actions";
 import { inferArchetype, saveArchetype, type Archetype } from "@/lib/archetype";
 import { fetchHiscores, computeCombatLevel, computeTotalLevel, type HiscoreSkill } from "@/lib/hiscores";
-import { loadSavedBank, saveSavedBank, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
+import {
+  loadSavedBank,
+  saveSavedBank,
+  saveSavedRsn,
+  diffIconicItems,
+  type SavedBank,
+  type IconicItem
+} from "@/lib/saved-bank";
 import type { OrganizeResult } from "@/lib/organizer";
 
 type View = "intake" | "result";
@@ -51,6 +59,11 @@ function BankPageContent() {
   // dismisses it ("Start fresh" / "Don't save on this device"). Lives at
   // the page level because the banner needs to drive a programmatic submit.
   const [savedBank, setSavedBank] = useState<SavedBank | null>(null);
+  // New iconic items detected by diffing the fresh paste against the
+  // previously-saved bank. Drives the one-shot drop-celebration banner
+  // above BankResult. Set right before we overwrite the saved bank;
+  // cleared when the user leaves the result view.
+  const [freshIconics, setFreshIconics] = useState<IconicItem[]>([]);
   // Drives the Intro step rail: 0 = reading instructions, 2 = a valid bank
   // is in the textarea (steps 1-2 done, on step 3). Lifted here so the
   // instructions and the live form move together.
@@ -93,6 +106,13 @@ function BankPageContent() {
       // banktags — pinning the demo string as a "saved bank" would mean
       // every welcome-back banner shows the sample, which is misleading.
       if (input !== SAMPLE_BANKTAGS) {
+        // Diff iconics *before* we overwrite the saved bank. Only fires
+        // celebrations on the second+ paste; first visit returns [].
+        const prev = loadSavedBank();
+        if (prev?.banktags && prev.banktags !== input) {
+          const fresh = diffIconicItems(prev.banktags, input);
+          if (fresh.length > 0) setFreshIconics(fresh);
+        }
         saveSavedBank(input);
         if (resolvedRsn) saveSavedRsn(resolvedRsn);
       }
@@ -167,14 +187,25 @@ function BankPageContent() {
         </>
       )}
       {view === "result" && result && (
-        <BankResult
-          initial={result}
-          initialStrings={strings}
-          onEditInput={() => setView("intake")}
-          inferredArchetype={inferredArchetype}
-          inferredRsn={inferredRsn}
-          hiscoreSkills={hiscoreSkills}
-        />
+        <>
+          {freshIconics.length > 0 && (
+            // One-shot. The key forces a remount per submit so each new
+            // drop gets a fresh entry animation; otherwise re-renders
+            // would suppress it on subsequent organizes.
+            <DropCelebration
+              key={freshIconics.map((i) => i.needle).join("|")}
+              items={freshIconics}
+            />
+          )}
+          <BankResult
+            initial={result}
+            initialStrings={strings}
+            onEditInput={() => { setFreshIconics([]); setView("intake"); }}
+            inferredArchetype={inferredArchetype}
+            inferredRsn={inferredRsn}
+            hiscoreSkills={hiscoreSkills}
+          />
+        </>
       )}
     </main>
   );

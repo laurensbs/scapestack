@@ -179,6 +179,23 @@
     0%, 100% { box-shadow: 0 0 0 0 rgba(230, 165, 47, 0.55), inset 0 0 0 1px rgba(230, 165, 47, 0.4); }
     50%      { box-shadow: 0 0 0 6px rgba(230, 165, 47, 0), inset 0 0 0 1px rgba(230, 165, 47, 0.7); }
   }
+  /* Drop-celebration banner — fires when a returning player's fresh
+     paste contains a new iconic item. Entry combines a lift + scale
+     + filter desaturate-clear; the purple-sweep overlay moves once. */
+  @keyframes drop-celebrate-in {
+    0%   { opacity: 0; transform: translateY(-8px) scale(0.96); filter: blur(4px); }
+    60%  { opacity: 1; transform: translateY(0) scale(1.02); filter: blur(0); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes drop-celebrate-out {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(-6px); }
+  }
+  @keyframes drop-celebrate-sweep {
+    0%   { background: linear-gradient(110deg, transparent 0%, rgba(124, 58, 237, 0.0) 35%, transparent 70%); }
+    50%  { background: linear-gradient(110deg, transparent 0%, rgba(124, 58, 237, 0.35) 50%, transparent 100%); }
+    100% { background: linear-gradient(110deg, transparent 0%, rgba(124, 58, 237, 0.0) 65%, transparent 100%); }
+  }
 }
 
 /* ── Sidebar icon animations ──────────────────────────────────────────────

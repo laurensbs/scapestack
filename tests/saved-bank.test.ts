@@ -135,6 +135,47 @@ describe("saved-bank: RSN round-trip", () => {
   });
 });
 
+describe("saved-bank: diffIconicItems", () => {
+  it("flags items present in next but not in prev", async () => {
+    const { diffIconicItems } = await loadModule();
+    const prev = "Abyssal whip\t1\nDragon scimitar\t1\n";
+    const next = "Abyssal whip\t1\nDragon scimitar\t1\nTwisted bow\t1\n";
+    const fresh = diffIconicItems(prev, next);
+    expect(fresh).toHaveLength(1);
+    expect(fresh[0].displayName).toBe("Twisted bow");
+  });
+
+  it("returns empty when nothing iconic changed", async () => {
+    const { diffIconicItems } = await loadModule();
+    const prev = "Twisted bow\t1\nScythe of vitur\t1\n";
+    const next = "Twisted bow\t1\nScythe of vitur\t1\nRune platebody\t1\n";
+    expect(diffIconicItems(prev, next)).toEqual([]);
+  });
+
+  it("returns empty when prev or next is empty", async () => {
+    const { diffIconicItems } = await loadModule();
+    expect(diffIconicItems("", "Twisted bow\t1\n")).toEqual([]);
+    expect(diffIconicItems("Twisted bow\t1\n", "")).toEqual([]);
+  });
+
+  it("returns empty for Bank Tags format with no item names (id-only)", async () => {
+    const { diffIconicItems } = await loadModule();
+    const prev = "combat,4151,1127";
+    const next = "combat,4151,1127,20997"; // Tbow added but no item-name lines
+    // Tag-only format isn't supported — we'd need an id-to-name lookup, and
+    // celebrations from a tag paste would be too noisy anyway.
+    expect(diffIconicItems(prev, next)).toEqual([]);
+  });
+
+  it("matches multiple iconics added in one paste", async () => {
+    const { diffIconicItems } = await loadModule();
+    const prev = "Whip\t1\n";
+    const next = "Whip\t1\nTwisted bow\t1\nScythe of vitur\t1\n";
+    const fresh = diffIconicItems(prev, next);
+    expect(fresh.map((i) => i.displayName).sort()).toEqual(["Scythe of vitur", "Twisted bow"]);
+  });
+});
+
 describe("saved-bank: describeSavedAt", () => {
   it("formats common ranges in plain English", async () => {
     const { describeSavedAt } = await loadModule();

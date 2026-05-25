@@ -136,6 +136,83 @@ function isValidSavedBank(x: unknown): x is SavedBank {
     && Number.isFinite(o.savedAt);
 }
 
+// Iconic OSRS megararities — the items players light up for. We use them
+// to detect "you actually got a purple since last visit" when a returning
+// player pastes a fresh bank. List is intentionally small and hand-curated;
+// over-counting (Bandos chestplate every visit) would dilute the moment.
+//
+// Substring-matched (case-insensitive) against banktags item names. Each
+// entry: { needle, displayName, iconItemId } so the celebration banner
+// can render the sprite without a second lookup.
+export interface IconicItem {
+  needle: string;       // lowercased substring match
+  displayName: string;  // shown in the banner
+  iconItemId: number;   // OSRS item id for the sprite
+}
+
+export const ICONIC_ITEMS: IconicItem[] = [
+  // Raids megararities
+  { needle: "twisted bow",        displayName: "Twisted bow",        iconItemId: 20997 },
+  { needle: "scythe of vitur",    displayName: "Scythe of vitur",    iconItemId: 22325 },
+  { needle: "ghrazi rapier",      displayName: "Ghrazi rapier",      iconItemId: 22324 },
+  { needle: "sanguinesti staff",  displayName: "Sanguinesti staff",  iconItemId: 22323 },
+  { needle: "justiciar",          displayName: "Justiciar set",      iconItemId: 22327 },
+  { needle: "tumeken's shadow",   displayName: "Tumeken's shadow",   iconItemId: 27275 },
+  { needle: "elidinis' ward",     displayName: "Elidinis' ward",     iconItemId: 25985 },
+  { needle: "osmumten's fang",    displayName: "Osmumten's fang",    iconItemId: 26219 },
+  { needle: "lightbearer",        displayName: "Lightbearer",        iconItemId: 25975 },
+  { needle: "masori",             displayName: "Masori set",         iconItemId: 27229 },
+  { needle: "kodai insignia",     displayName: "Kodai insignia",     iconItemId: 21043 },
+  { needle: "elder maul",         displayName: "Elder maul",         iconItemId: 21003 },
+  // DT2 + Nex
+  { needle: "soulreaper axe",     displayName: "Soulreaper axe",     iconItemId: 28997 },
+  { needle: "torva",              displayName: "Torva set",          iconItemId: 26384 },
+  { needle: "zaryte crossbow",    displayName: "Zaryte crossbow",    iconItemId: 26374 },
+  // Solo-boss signatures
+  { needle: "bow of faerdhinen",  displayName: "Bow of Faerdhinen",  iconItemId: 25865 },
+  { needle: "blowpipe",           displayName: "Toxic blowpipe",     iconItemId: 12924 }
+];
+
+/** Lowercased item names from a raw banktags paste. Strips the
+ *  `qty;id,id,id` structure and keeps only readable item-name lines for
+ *  iconic-item matching. Returns empty array on parse failures. */
+function namesFromBanktags(banktags: string): string[] {
+  const out: string[] = [];
+  for (const rawLine of banktags.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    // RuneLite Bank Memory format uses tab-separated values where col 1 is
+    // the item name. RuneLite Bank Tags format uses `bankTagName,id,...`
+    // pattern with no item names. We can only detect new items in the Memory
+    // format — Bank Tags is just IDs. That's fine; players who use this
+    // feature paste Memory exports for that exact reason.
+    if (!line.includes("\t")) continue;
+    const cells = line.split("\t");
+    if (cells.length >= 1 && cells[0]) {
+      out.push(cells[0].toLowerCase());
+    }
+  }
+  return out;
+}
+
+/** Returns iconic items present in the new paste but absent from the
+ *  previous one. Used to drive the drop-celebration banner. When the
+ *  previous paste isn't available (first visit) we return an empty array
+ *  — celebrations only fire on the second+ paste, never as a "welcome,
+ *  here's your bank" moment that the player didn't ask for. */
+export function diffIconicItems(prevBanktags: string, nextBanktags: string): IconicItem[] {
+  if (!prevBanktags || !nextBanktags) return [];
+  const prev = namesFromBanktags(prevBanktags);
+  const next = namesFromBanktags(nextBanktags);
+  if (prev.length === 0 || next.length === 0) return [];
+  const has = (names: string[], needle: string) => names.some((n) => n.includes(needle));
+  const fresh: IconicItem[] = [];
+  for (const item of ICONIC_ITEMS) {
+    if (has(next, item.needle) && !has(prev, item.needle)) fresh.push(item);
+  }
+  return fresh;
+}
+
 /** A loose, dependency-free relative formatter for the welcome-back
  *  banner — "just now", "5 minutes ago", "3 days ago". Keeps the import
  *  graph small (no Intl.RelativeTimeFormat polyfill drama). */
