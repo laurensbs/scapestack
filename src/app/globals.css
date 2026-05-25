@@ -205,6 +205,15 @@
     20%  { opacity: 1; }
     100% { transform: translateX(100%); opacity: 0; }
   }
+  /* OSRS in-game XP drop — yellow text floats up and fades. Used in the
+     /next submit button while pending; cycles per ~1.4s through the
+     stages we're actually fetching. */
+  @keyframes xp-drop {
+    0%   { transform: translateY(60%); opacity: 0; }
+    20%  { opacity: 1; }
+    70%  { transform: translateY(-30%); opacity: 1; }
+    100% { transform: translateY(-90%); opacity: 0; }
+  }
 }
 
 /* Outside @theme so it survives Tailwind v4's keyframe-pruning — same

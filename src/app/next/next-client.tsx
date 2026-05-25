@@ -10,6 +10,7 @@ import { SupportCard } from "@/components/support-card";
 import { SavedBankBanner } from "@/components/saved-bank-banner";
 import { BossSprite } from "@/components/boss-picker";
 import { KcProbabilityGraph } from "@/components/kc-probability-graph";
+import { XpDropLoader } from "@/components/xp-drop-loader";
 import { BOSSES } from "@/lib/bosses";
 import { organizeAction, nextUpAction } from "@/app/actions";
 import { fetchHiscores, type HiscoreSkill } from "@/lib/hiscores";
@@ -328,7 +329,7 @@ function NextIntake({
               disabled={loading || (!rsn.trim() && !fromBank)}
               className="btn-primary group disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Reading account…" : "Show me what to do"}
+              {loading ? <XpDropLoader /> : "Show me what to do"}
               {!loading && <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform" />}
             </button>
           </div>
