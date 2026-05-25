@@ -91,9 +91,12 @@ function KindGlyph({
 }
 
 export function NextClient() {
-  const [view, setView] = useState<"intake" | "result">("intake");
+  const [view, setView] = useState<"intake" | "result" | "not-found">("intake");
   const [result, setResult] = useState<NextUpResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // When we land on the not-found view, remember what the user typed so
+  // we can show 'Lynx Titan didn't return any data' and offer a retry.
+  const [notFoundRsn, setNotFoundRsn] = useState<string>("");
   const [pending, startTransition] = useTransition();
   // When the user came from /bank's "What should I do next?" handoff,
   // we surface a small banner on the intake so they know the bank is
@@ -185,10 +188,19 @@ export function NextClient() {
         if (a.score > 0) bossKc[a.name] = a.score;
       }
 
-      // If neither RSN nor bank gave us anything, that's an error worth
-      // showing (sample path should never hit this).
+      // If neither RSN nor bank gave us anything, branch on *why*. A
+      // player who typed an RSN that 404'd on the Hiscores (typo, or
+      // combat too low to be ranked) gets the not-found preview screen
+      // — better than a red error blob next to the button which is
+      // where v0.4 lost people. A player who submitted nothing gets
+      // the original 'fill something in' nudge.
       if (skills.length === 0 && bank.length === 0) {
-        setError("Enter your OSRS name or paste a bank to get advice.");
+        if (rsn) {
+          setNotFoundRsn(rsn);
+          setView("not-found");
+        } else {
+          setError("Enter your OSRS name or paste a bank to get advice.");
+        }
         return;
       }
 
@@ -225,9 +237,87 @@ export function NextClient() {
     );
   }
 
+  if (view === "not-found") {
+    return (
+      <NotFoundPreview
+        rsn={notFoundRsn}
+        onRetry={() => { setNotFoundRsn(""); setView("intake"); }}
+      />
+    );
+  }
+
   return result ? (
     <ResultView result={result} onEdit={() => setView("intake")} />
   ) : null;
+}
+
+// Empty-state for when an RSN lookup 404s. Instead of a red error
+// blob (which is where v0.4 lost people via "Lynx Titan" typos), we
+// show what /next *would* look like if the lookup had worked — a
+// faded sample-result + a 'try a different name' CTA. The point is
+// to keep the user oriented: this tool works, your name didn't.
+function NotFoundPreview({ rsn, onRetry }: { rsn: string; onRetry: () => void }) {
+  return (
+    <section className="animate-[slide-up_0.35s_ease-out] max-w-2xl mx-auto">
+      <header className="mb-6">
+        <h2 className="text-[22px] sm:text-[26px] font-bold text-[var(--color-text)] tracking-tight leading-tight">
+          We couldn&apos;t find <span className="text-[var(--color-accent)]">{rsn}</span> on Hiscores.
+        </h2>
+        <p className="mt-2 text-[14px] text-[var(--color-text-dim)] leading-relaxed">
+          Either it&apos;s a typo, or the account isn&apos;t ranked yet (low combat /
+          new account). Try again, or have a look at what a found account looks like.
+        </p>
+      </header>
+
+      {/* Faded sample-result preview — same shape as a real result page,
+          but greyed out and overlaid with a 'try again' CTA. Tells the
+          user 'this tool produces something useful' without forcing them
+          through the sample-flow detour. */}
+      <div className="relative rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/40 p-6 overflow-hidden">
+        <div className="opacity-40 pointer-events-none select-none" aria-hidden="true">
+          <div className="eyebrow text-[var(--color-accent)] mb-1">Start here</div>
+          <h3 className="text-[17px] font-bold text-[var(--color-text)] tracking-tight leading-tight">
+            Karamja Diary — Hard
+          </h3>
+          <p className="mt-1.5 text-[13px] text-[var(--color-text-dim)] leading-relaxed">
+            Your skills now clear every Hard task in this region.
+          </p>
+          <p className="mt-2 text-[12px] text-[var(--color-text-secondary)] border-t border-[var(--color-border)] pt-2">
+            Step toward the tier-4 reward; Hard unlocks its tier perks.
+          </p>
+          <div className="mt-4 grid sm:grid-cols-2 gap-2.5">
+            <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] p-3 text-[12px] text-[var(--color-text-dim)]">
+              <div className="font-semibold text-[var(--color-text)]">Try the Dagannoth Kings</div>
+              Your Abyssal Whip fits — and CL 89 clears the gate.
+            </div>
+            <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] p-3 text-[12px] text-[var(--color-text-dim)]">
+              <div className="font-semibold text-[var(--color-text)]">Monkey Madness II</div>
+              Grandmaster · Very Long
+            </div>
+          </div>
+        </div>
+
+        {/* Overlay CTA */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-transparent via-[var(--color-bg)]/40 to-[var(--color-bg)]/70 backdrop-blur-[1px]">
+          <button
+            onClick={onRetry}
+            className="btn-primary group"
+          >
+            Try a different name
+            <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform" />
+          </button>
+          <p className="mt-3 text-[11.5px] text-[var(--color-text-muted)]">
+            What you&apos;d see if your name had been on the list.
+          </p>
+        </div>
+      </div>
+
+      <p className="mt-6 text-[11.5px] text-[var(--color-text-muted)] text-center leading-relaxed">
+        Tip: Hiscores names are case-sensitive in some Jagex regions.
+        Try &ldquo;Lynx Titan&rdquo; (capital L, T) if you&apos;re testing.
+      </p>
+    </section>
+  );
 }
 
 // ── Intake UI ─────────────────────────────────────────────────────────────
