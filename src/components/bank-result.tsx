@@ -132,6 +132,16 @@ interface PinContextValue {
 }
 const PinContext = createContext<PinContextValue | null>(null);
 
+// After a successful drop, we trigger a short gold flash on the dragged
+// item's new slot. Done via context so we don't have to thread a prop
+// through every tab/grid/slot. Token is bumped per drop so React
+// remounts the animation even when the same id is dropped twice.
+interface DropFlashContextValue {
+  flashedId: number | null;
+  token: number;
+}
+const DropFlashContext = createContext<DropFlashContextValue>({ flashedId: null, token: 0 });
+
 export function BankResult({ initial, initialStrings, onEditInput, inferredArchetype, inferredRsn, hiscoreSkills }: BankResultProps) {
   const [tabs, setTabs] = useState<OrganizedTab[]>(initial.tabs);
   const [strings, setStrings] = useState<string[]>(initialStrings);
@@ -154,6 +164,11 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
   // size of the slot it was lifted from, so it stays under the pointer.
   const [dragSize, setDragSize] = useState<number>(56);
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
+  // Drop-success flash. Bumping the token forces the ItemSlot to remount
+  // its animation even when the same id is dropped twice in a row.
+  const [dropFlash, setDropFlash] = useState<DropFlashContextValue>({ flashedId: null, token: 0 });
+  const flashDrop = (id: number) =>
+    setDropFlash((p) => ({ flashedId: id, token: p.token + 1 }));
   const [copied, setCopied] = useState<string | null>(null);
   const [layoutOpen, setLayoutOpen] = useState(false);
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
@@ -627,6 +642,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
         ...p,
         itemOrder: { ...p.itemOrder, [String(tab.name)]: ids }
       }));
+      flashDrop(itemId);
       return;
     }
 
@@ -653,6 +669,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
         next.set(itemId, targetTabName as UseCaseTab);
         return next;
       });
+      flashDrop(itemId);
       // Strings update happens after buildUseCaseTabs re-runs via memo; the
       // export action picks up the new ordering on next render.
       return;
@@ -678,6 +695,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
 
     setTabs(next);
     refreshStrings(next);
+    flashDrop(itemId);
   };
 
   // Pin / unpin an item to the front of its tab. Pins persist via prefs.
@@ -935,6 +953,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
       />
 
       <PinContext.Provider value={pinContextValue}>
+      <DropFlashContext.Provider value={dropFlash}>
       <DndContext sensors={sensors} collisionDetection={collisionDetection} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver} onDragCancel={onDragCancel}>
         {/* Bank frame — dark slate panel, mint title accent. The "OSRS" feel
             comes from the tab strip + pixelated items inside, not the chrome. */}
@@ -1074,6 +1093,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
           )}
         </DragOverlay>
       </DndContext>
+      </DropFlashContext.Provider>
       </PinContext.Provider>
 
       {/* ── Insights — secondary panels, collapsed below the bank ────────────
@@ -2512,6 +2532,13 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
   const pinCtx = useContext(PinContext);
   const pinned = pinCtx?.isPinned(item.id) ?? false;
 
+  // Drop-success flash. When the user just dropped this item, we play a
+  // ~480ms gold pulse so they see exactly where it landed. The token in
+  // the context forces a remount when the same id is dropped twice in
+  // a row.
+  const flashCtx = useContext(DropFlashContext);
+  const isFlashing = flashCtx.flashedId === item.id;
+
   // Dose / charge count, parsed from a trailing "(N)" in the item name —
   // e.g. "Saradomin brew(4)" → 4, "Ring of dueling(8)" → 8. Shown as a small
   // always-visible badge so the player can read potion doses at a glance
@@ -2523,6 +2550,7 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
   return (
     <div
       ref={composedRef}
+      key={isFlashing ? `flash-${flashCtx.token}` : undefined}
       onMouseEnter={showTooltip}
       onMouseLeave={hideTooltip}
       onContextMenu={(e) => {
@@ -2548,7 +2576,12 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
         isStale && !isJunk && !isDropTarget && "outline outline-2 outline-[var(--color-warning)]/60 outline-offset-[-2px] bg-[var(--color-warning)]/8 [&>img]:opacity-65",
         pinned && !isJunk && !isStale && !isDropTarget && "outline outline-2 outline-[var(--color-accent)] outline-offset-[-2px]"
       )}
-      style={{ aspectRatio: "1 / 1" }}
+      style={{
+        aspectRatio: "1 / 1",
+        // Drop-success: short gold pulse that fades. Played by the slot
+        // the item *landed in* so the player can see where they put it.
+        ...(isFlashing ? { animation: "drop-flash 0.48s ease-out" } : {})
+      }}
     >
       {/* Pin indicator — top-left, shown when the item is pinned to front.
           Right-click toggles it (see onContextMenu above). */}

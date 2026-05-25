@@ -233,6 +233,14 @@
     75%  { transform: translate(-1px, 1px) scale(1.19); }
     100% { transform: translate(0, 0) scale(1.18); }
   }
+  /* Bank slot got a dropped item. Short gold pulse so the player can
+     see exactly where it landed — the dnd-kit drop animation is fine,
+     but doesn't draw the eye after the cursor releases. */
+  @keyframes drop-flash {
+    0%   { box-shadow: 0 0 0 0 rgba(230, 165, 47, 0.85), inset 0 0 0 2px rgba(230, 165, 47, 0.0); background-color: rgba(230, 165, 47, 0.0); }
+    25%  { box-shadow: 0 0 0 4px rgba(230, 165, 47, 0.55), inset 0 0 0 2px rgba(230, 165, 47, 0.65); background-color: rgba(230, 165, 47, 0.28); }
+    100% { box-shadow: 0 0 0 10px rgba(230, 165, 47, 0), inset 0 0 0 2px rgba(230, 165, 47, 0); background-color: rgba(230, 165, 47, 0); }
+  }
 }
 
 /* Outside @theme so it survives Tailwind v4's keyframe-pruning — same
