@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { Edit3, Sword, Zap, Target, TrendingUp, Coins, Info } from "lucide-react";
+import { Edit3, Sword, Zap, Target, TrendingUp, Coins, Info, Search, X } from "lucide-react";
 import { Intake } from "@/components/intake";
 import { SupportCard } from "@/components/support-card";
 import { organizeAction } from "@/app/actions";
@@ -10,7 +10,6 @@ import { BOSSES, type Boss } from "@/lib/bosses";
 import { ownedGear, lookupGear, GEAR, type GearItem, type CombatStyle } from "@/lib/gear";
 import { bestStyleAndSetup, calcDps, autoSetup, allStyleBreakdowns, type DpsBreakdown, type Setup } from "@/lib/dps";
 import { cn, formatGp, ICON_URL } from "@/lib/utils";
-import { BossPicker } from "@/components/boss-picker";
 
 export function DpsClient() {
   const [view, setView] = useState<"intake" | "result">("intake");
@@ -18,6 +17,10 @@ export function DpsClient() {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [focusedBoss, setFocusedBoss] = useState<Boss | null>(null);
+  // Live search query. Filters the visible boss-rows on every keystroke.
+  // Replaces the old BossPicker dropdown — having the search field above
+  // the table reads more directly ('type to find', not 'click to open').
+  const [search, setSearch] = useState("");
 
   // Deep-link: /dps?boss=<slug> pre-selects a boss from the home page's
   // boss-showcase. The actual focus + scroll happens once we have a result
@@ -65,23 +68,27 @@ export function DpsClient() {
   };
 
   // For each boss, compute the best style/setup. We keep input order so the
-  // table groups visually by category; the BossPicker handles search.
+  // table groups visually by category; the live search field above handles
+  // discovery.
   const bossResults = useMemo(
     () => BOSSES.map((boss) => ({ boss, dps: bestStyleAndSetup(owned, boss) })),
     [owned]
   );
 
-  // Sort hook for the picker: order suggestions by current DPS desc so the
-  // most actionable target sits at the top of the search results.
-  const dpsByBossSlug = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const r of bossResults) m.set(r.boss.slug, r.dps.dps);
-    return m;
-  }, [bossResults]);
-
   // Find global upgrade suggestions — items the player doesn't have that would
   // improve DPS by the largest factor across most bosses.
   const upgrades = useMemo(() => suggestUpgrades(owned), [owned]);
+
+  // Live-filtered boss list. Matches against boss.name (lowercased,
+  // substring) so 'gra' finds 'General Graardor' and 'demonic' finds
+  // 'Demonic Gorillas'. Empty query = full list.
+  const filteredResults = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return bossResults;
+    return bossResults.filter(({ boss }) =>
+      boss.name.toLowerCase().includes(q) || boss.slug.includes(q)
+    );
+  }, [bossResults, search]);
 
   // Pretty name for the deep-linked boss banner (raid slugs fall through
   // — the banner just doesn't show in that case).
@@ -201,26 +208,55 @@ export function DpsClient() {
 
       {/* Boss table */}
       <section>
-        <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
-          <h2 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
+        <div className="mb-3">
+          <h2 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)] mb-2">
             Per-boss DPS with your gear
           </h2>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] font-semibold">Jump to</span>
-            <BossPicker
-              selected={focusedBoss ?? BOSSES[0]}
-              onSelect={(b) => {
-                setFocusedBoss(b);
-                requestAnimationFrame(() => {
-                  document.getElementById(`boss-${b.slug}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-                });
+          {/* Live search. Filters the rows below on every keystroke;
+              ESC clears. The dropdown BossPicker is gone — for a table
+              with 50+ rows, a real input field reads more directly than
+              'click to open a hidden menu.' */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[var(--color-text-muted)]" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") setSearch("");
+                if (e.key === "Enter" && filteredResults.length > 0) {
+                  const first = filteredResults[0].boss;
+                  setFocusedBoss(first);
+                  requestAnimationFrame(() => {
+                    document.getElementById(`boss-${first.slug}`)
+                      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+                  });
+                }
               }}
-              sortKey={(b) => dpsByBossSlug.get(b.slug) ?? 0}
+              placeholder="Search bosses — type to filter, Enter to jump"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] focus:border-[var(--color-accent)]/50 focus:shadow-[0_0_0_3px_rgba(230,165,47,0.10)] text-[13.5px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none transition-all"
             />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                aria-label="Clear search"
+                className="absolute right-3 top-1/2 -translate-y-1/2 size-5 rounded flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-2)] transition-colors"
+              >
+                <X className="size-4" />
+              </button>
+            )}
           </div>
+          {search && (
+            <p className="mt-1.5 text-[11px] text-[var(--color-text-muted)]">
+              {filteredResults.length === 0
+                ? `No bosses match "${search}".`
+                : `Showing ${filteredResults.length} of ${bossResults.length} bosses.`}
+            </p>
+          )}
         </div>
         <div className="space-y-2.5">
-          {bossResults.map(({ boss, dps }) => (
+          {filteredResults.map(({ boss, dps }) => (
             <BossRow
               key={boss.slug}
               boss={boss}
@@ -290,23 +326,8 @@ function BossRow({ boss, dps, owned, startExpanded = false }: {
         className="w-full text-left p-3.5 flex items-center gap-4 flex-wrap"
       >
         <div className="flex items-center gap-2.5 min-w-0 w-[160px]">
-          {boss.iconItemId ? (
-            <div className="size-9 shrink-0 rounded-md bg-[var(--color-bg-2)] border border-[var(--color-border)] flex items-center justify-center">
-              <img
-                src={ICON_URL(boss.iconItemId)}
-                alt=""
-                className="pixelated"
-                style={{
-                  maxWidth: "78%",
-                  maxHeight: "78%",
-                  imageRendering: "pixelated",
-                  filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))"
-                }}
-              />
-            </div>
-          ) : (
-            <span aria-hidden="true" className="size-6 shrink-0 rounded-full bg-[var(--color-text-muted)] inline-block" />
-          )}
+          <BossThumb boss={boss} />
+
           <div className="min-w-0">
             <div className="text-[13px] font-semibold text-[var(--color-text)] truncate">{boss.name}</div>
             <div className="text-[10.5px] text-[var(--color-text-dim)]">{boss.hp} hp</div>
@@ -566,4 +587,46 @@ function suggestUpgrades(owned: GearItem[]): UpgradeSuggestion[] {
   return candidates
     .sort((a, b) => (b.avgGain * b.bossLabels.length) - (a.avgGain * a.bossLabels.length))
     .slice(0, 3);
+}
+
+// Boss thumbnail. Tries the local wiki portrait first
+// (public/sprites/bosses/<slug>.png — populated by build:sprites), falls
+// back to the drop-sprite that was shipping before, then to a neutral
+// dot. The visual upgrade: the cell now shows what the boss actually
+// looks like, not an item it drops.
+function BossThumb({ boss }: { boss: Boss }) {
+  const [stage, setStage] = useState<"portrait" | "drop" | "dot">("portrait");
+
+  if (stage === "portrait") {
+    return (
+      <div className="size-9 shrink-0 rounded-md bg-[var(--color-bg-2)] border border-[var(--color-border)] flex items-center justify-center overflow-hidden">
+        <img
+          src={`/sprites/bosses/${boss.slug}.png`}
+          alt=""
+          loading="lazy"
+          className="w-full h-full object-cover"
+          onError={() => setStage(boss.iconItemId ? "drop" : "dot")}
+        />
+      </div>
+    );
+  }
+  if (stage === "drop" && boss.iconItemId) {
+    return (
+      <div className="size-9 shrink-0 rounded-md bg-[var(--color-bg-2)] border border-[var(--color-border)] flex items-center justify-center">
+        <img
+          src={ICON_URL(boss.iconItemId)}
+          alt=""
+          className="pixelated"
+          style={{
+            maxWidth: "78%",
+            maxHeight: "78%",
+            imageRendering: "pixelated",
+            filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))"
+          }}
+          onError={() => setStage("dot")}
+        />
+      </div>
+    );
+  }
+  return <span aria-hidden="true" className="size-9 shrink-0 rounded-full bg-[var(--color-text-muted)]/40 inline-block" />;
 }
