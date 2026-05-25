@@ -247,12 +247,6 @@
     from { opacity: 0; transform: scale(0.92); filter: blur(8px); }
     to   { opacity: 1; transform: scale(1);    filter: blur(0); }
   }
-  /* Boss-showcase name plate snap-in on each boss change. Re-mounted
-     by React per cycle so the animation restarts. */
-  @keyframes showcase-label-in {
-    from { opacity: 0; transform: translate(-50%, 6px); }
-    to   { opacity: 1; transform: translate(-50%, 0); }
-  }
 }
 
 /* Outside @theme so it survives Tailwind v4's keyframe-pruning — same

@@ -104,17 +104,6 @@ export function BossShowcase() {
             }}
           />
         ))}
-
-        {/* Active-boss name plate at the bottom. With the frame gone it
-            sits below the portrait silhouette rather than overlapping it.
-            Re-mounts per boss-change so the fade restarts. */}
-        <div
-          key={active.slug}
-          className="absolute left-1/2 -translate-x-1/2 bottom-2 px-4 py-1.5 rounded-full bg-[var(--color-bg)]/85 backdrop-blur border border-[var(--color-accent)]/40 text-[13.5px] font-semibold tracking-tight text-[var(--color-text)] whitespace-nowrap shadow-[0_8px_24px_-10px_rgb(0_0_0/0.75)]"
-          style={{ animation: "showcase-label-in 0.45s cubic-bezier(0.22, 1, 0.36, 1)" }}
-        >
-          {active.label}
-        </div>
       </button>
 
       {/* Progress dots — clickable, doubles as a manual selector. The
