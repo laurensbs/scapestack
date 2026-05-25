@@ -55,9 +55,9 @@ export function BossShowcase() {
         aspectRatio: "1 / 1"
       }}
     >
-      {/* Ambient glow behind the frame — same gold gradient the arena had,
-          slightly stronger so the single portrait carries the same hero
-          weight as the old eight-tile orbit. */}
+      {/* Ambient glow behind the portrait — same gold gradient the arena
+          had. With the frame gone, this is what tells the eye 'something
+          important lives here.' */}
       <div
         className="absolute inset-[-10%] pointer-events-none"
         style={{
@@ -67,16 +67,17 @@ export function BossShowcase() {
         }}
       />
 
-      {/* The boss frame. Rounded square with gold inset ring and a subtle
-          radial vignette so the portraits get edge fade-out and the
-          attention pools at the centre. */}
+      {/* No frame, no border, no vignette. Just the portrait floating
+          on the page background — same treatment a magazine spread
+          uses for a hero shot. object-contain so we never crop into
+          the boss (the old object-cover + 1.04x scale was clipping
+          horns/wings/limbs). */}
       <button
         type="button"
         onClick={() => navigate(active)}
         aria-label={`Open ${active.label}`}
-        className="absolute inset-0 rounded-2xl overflow-hidden bg-[var(--color-bg-2)] border border-[var(--color-border-strong)] cursor-pointer outline-none focus:ring-2 focus:ring-[var(--color-accent)]/60 transition-transform duration-300 hover:scale-[1.02]"
+        className="absolute inset-0 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/60 focus-visible:rounded-2xl transition-transform duration-300 hover:scale-[1.02]"
         style={{
-          boxShadow: "inset 0 0 0 1px rgba(230, 165, 47, 0.18), 0 24px 60px -16px rgb(0 0 0 / 0.7)",
           animation: "showcase-frame-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both"
         }}
       >
@@ -89,34 +90,27 @@ export function BossShowcase() {
             alt=""
             aria-hidden={i === idx ? undefined : "true"}
             loading="eager"
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-contain"
             style={{
+              // Drop shadow gives the floating portrait some weight without
+              // a frame. Heavier than icon-shadows because the source is
+              // 800px and the target is ~440px — small blur reads as fuzz.
+              filter: "drop-shadow(0 14px 24px rgb(0 0 0 / 0.55))",
               opacity: i === idx ? 1 : 0,
-              transform: i === idx ? "scale(1)" : "scale(1.04)",
               // 600ms fade matches the cycle-feel — long enough to read
               // as a transition, short enough that you never see two
               // portraits at half-opacity mid-blend at 5s cadence.
-              transition: "opacity 600ms ease-out, transform 800ms ease-out"
+              transition: "opacity 600ms ease-out"
             }}
           />
         ))}
 
-        {/* Edge vignette — fades the portrait into the frame so we don't
-            see hard rectangular edges where the wiki crop ends. Pure
-            box-shadow inset; no extra image, no blur cost. */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: "radial-gradient(ellipse at center, transparent 55%, rgba(7, 9, 12, 0.55) 100%)"
-          }}
-        />
-
-        {/* Active-boss name plate at the bottom. Same chip style as the
-            old arena's tooltip but anchored to the frame so it travels
-            with the boss. Re-mounts per boss-change so the fade restarts. */}
+        {/* Active-boss name plate at the bottom. With the frame gone it
+            sits below the portrait silhouette rather than overlapping it.
+            Re-mounts per boss-change so the fade restarts. */}
         <div
           key={active.slug}
-          className="absolute left-1/2 -translate-x-1/2 bottom-4 px-4 py-2 rounded-full bg-[var(--color-bg)]/85 backdrop-blur border border-[var(--color-accent)]/40 text-[13.5px] font-semibold tracking-tight text-[var(--color-text)] whitespace-nowrap shadow-[0_8px_24px_-10px_rgb(0_0_0/0.75)]"
+          className="absolute left-1/2 -translate-x-1/2 bottom-2 px-4 py-1.5 rounded-full bg-[var(--color-bg)]/85 backdrop-blur border border-[var(--color-accent)]/40 text-[13.5px] font-semibold tracking-tight text-[var(--color-text)] whitespace-nowrap shadow-[0_8px_24px_-10px_rgb(0_0_0/0.75)]"
           style={{ animation: "showcase-label-in 0.45s cubic-bezier(0.22, 1, 0.36, 1)" }}
         >
           {active.label}

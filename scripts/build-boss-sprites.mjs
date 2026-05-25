@@ -69,10 +69,11 @@ async function readBossesFromSource() {
 }
 
 async function fetchLeadImage(pageTitle) {
-  // pithumbsize=400 asks for a thumbnail capped at 400px — large enough to
-  // look crisp at the 64px tile size with retina + 2x hover scale, small
-  // enough to keep the public/ folder under a few MB total.
-  const url = `https://oldschool.runescape.wiki/api.php?action=query&titles=${encodeURIComponent(pageTitle)}&prop=pageimages&pithumbsize=400&format=json`;
+  // pithumbsize=800 — large enough to render crisply at the 440px hero
+  // showcase frame on retina (which needs ~880px source). The old 400px
+  // looked blurry once we removed the radial vignette that was hiding it.
+  // Public/ folder stays well under 10MB total at this size.
+  const url = `https://oldschool.runescape.wiki/api.php?action=query&titles=${encodeURIComponent(pageTitle)}&prop=pageimages&pithumbsize=800&format=json`;
   const res = await fetch(url, { headers: { "user-agent": UA } });
   if (!res.ok) throw new Error(`API ${res.status}`);
   const data = await res.json();
