@@ -12,6 +12,7 @@ import { BossSprite } from "@/components/boss-picker";
 import { KcProbabilityGraph } from "@/components/kc-probability-graph";
 import { XpDropLoader } from "@/components/xp-drop-loader";
 import { BossDetailModal } from "@/components/boss-detail-modal";
+import { PathOverview } from "@/components/path-overview";
 import { BOSSES, type Boss } from "@/lib/bosses";
 import { ownedGear, type GearItem } from "@/lib/gear";
 import { organizeAction, nextUpAction, hiscoresAction } from "@/app/actions";
@@ -575,21 +576,43 @@ function ResultView({ result, onEdit, onBossOpen }: {
         </button>
       </div>
 
-      {/* Headline pick — the single strongest recommendation */}
+      {/* Tonight's pick — one concrete action for tonight. The headline
+          from the recommendation engine, framed as a single-task focus
+          card so the player has something to do *now* before they zoom
+          out to the long-term paths. */}
       {headline ? (
-        <HeadlineCard rec={headline} onBossOpen={onBossOpen} />
+        <section className="mb-10">
+          <h3 className="eyebrow mb-3 text-[var(--color-accent)]">Tonight&apos;s pick</h3>
+          <HeadlineCard rec={headline} onBossOpen={onBossOpen} />
+        </section>
       ) : (
-        <div className="surface p-8 text-center text-[var(--color-text-muted)] text-[13px]">
-          Nothing to flag right now — your account looks well on top of things.
-          Try pasting a fuller bank or looking up your stats for more ideas.
+        <div className="mb-10 surface p-8 text-center text-[var(--color-text-muted)] text-[13px]">
+          Nothing urgent to flag right now — your account looks well on top of things.
+          Scroll down for the long-term path overview.
         </div>
       )}
 
-      {/* The rest — a grouped checklist */}
+      {/* Path-to-Max — the long-term shape of the account. Four cards
+          (Skills / Quests / Diaries / Bosses) with progress + next-steps,
+          drill-in modal per path. */}
+      <PathOverview data={result.pathProgress} />
+
+      {/* "Also worth knowing" — the leftover recommendations the engine
+          generated that didn't fit into a path. Collapsed inside a
+          <details> so they're available but don't compete with the
+          path overview for the player's attention. */}
       {rest.length > 0 && (
-        <div className="mt-8">
-          <h3 className="eyebrow mb-3">Also worth doing</h3>
-          <div className="space-y-5">
+        <details className="mt-10 group/also">
+          <summary className="cursor-pointer list-none flex items-center justify-between rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]/40 hover:border-[var(--color-border-strong)] px-4 py-3 transition-colors">
+            <div>
+              <h3 className="text-[12px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">Also worth knowing</h3>
+              <p className="text-[11.5px] text-[var(--color-text-muted)] mt-0.5">
+                {rest.length} more idea{rest.length === 1 ? "" : "s"} — quick wins, money ideas, drop chances
+              </p>
+            </div>
+            <ArrowRight className="size-4 text-[var(--color-text-muted)] group-open/also:rotate-90 transition-transform" />
+          </summary>
+          <div className="mt-4 space-y-5">
             {[...grouped.entries()].map(([kind, recs]) => (
               <div key={kind}>
                 <div className="flex items-center gap-2 mb-2">
@@ -604,7 +627,7 @@ function ResultView({ result, onEdit, onBossOpen }: {
               </div>
             ))}
           </div>
-        </div>
+        </details>
       )}
 
       <div className="mt-10">

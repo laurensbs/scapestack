@@ -229,6 +229,11 @@ async function main() {
     });
 
     console.log("");
+    // Path-to-Max progress — the new hero summary on /next.
+    const pp = result.pathProgress;
+    console.log(`${dim("Path to Max:")} ${bold(gold(pp.overallPercent + "%"))}  ${dim("·")}  ` +
+      pp.paths.map((p) => `${p.label} ${p.percent}% (${p.done}/${p.total})`).join("  ·  "));
+    console.log("");
     console.log(`${dim("basis:")}  ${result.summary.basis}` +
       (result.summary.combatLevel !== null ? `   ${dim("CB:")} ${result.summary.combatLevel}` : "") +
       (result.summary.totalLevel !== null ? `   ${dim("Total:")} ${result.summary.totalLevel}` : "") +

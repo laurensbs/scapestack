@@ -19,6 +19,7 @@ import { computeCombatLevel, computeTotalLevel, type HiscoreSkill } from "./hisc
 import { getQuests, type QuestRecord } from "./quest-db";
 import { getDiaries, type DiaryRecord, type DiaryTier } from "./diary-db";
 import { getDropRates, type BossDropTable } from "./drop-rates-db";
+import { computePathProgress, type PathOverview } from "./path-progress";
 
 // Kind drives the icon + accent the hub renders, and groups the checklist.
 export type RecKind =
@@ -84,6 +85,10 @@ export interface NextUpResult {
     /** Coverage note — which inputs the advice is based on. */
     basis: "full" | "hiscores-only" | "bank-only" | "none";
   };
+  /** Path-to-Max progress across four axes (skills/quests/diaries/bosses).
+   *  Drives the new path-card layout in the UI. Always present even when
+   *  data is sparse — paths fall back to 0% with empty next-steps. */
+  pathProgress: PathOverview;
 }
 
 // Skill milestones worth nudging a player toward — levels that unlock
@@ -824,9 +829,17 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     : hasBank ? "bank-only"
     : "none";
 
+  // Path-to-Max progress — drives the new path-card UI. Cheap to compute
+  // (no extra disk reads; quests/diaries are already loaded above) and
+  // always populated even when data is sparse.
+  const pathProgress: PathOverview = computePathProgress(
+    skills, quests, diaries, input.bossKc ?? {}, qp
+  );
+
   return {
     headline: recs[0] ?? null,
     rest: recs.slice(1),
-    summary: { combatLevel, totalLevel, goalPercent, basis }
+    summary: { combatLevel, totalLevel, goalPercent, basis },
+    pathProgress
   };
 }
