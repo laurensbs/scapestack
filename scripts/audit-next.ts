@@ -117,7 +117,7 @@ const SCENARIOS: Array<{
     bank: [
       { id: 20997, name: "Twisted bow" },
       { id: 22325, name: "Scythe of vitur" },
-      { id: 27275, name: "Shadow of tumeken" },
+      { id: 27275, name: "Tumeken's shadow" },
       { id: 25865, name: "Bow of faerdhinen (c)" },
       { id: 27226, name: "Masori mask (f)" },
       { id: 27229, name: "Masori body (f)" },

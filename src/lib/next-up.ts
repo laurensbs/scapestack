@@ -571,38 +571,60 @@ const ICONIC_DROPS: Record<string, string[]> = {
   "Nex":                            ["torva", "zaryte"]
 };
 
+// Returns true if the player's bank contains anything whose lowercased name
+// includes the given needle. Used to skip KC-recs for drops the player
+// already has — there's no need to tell a player with a Tbow in their bank
+// "you're dry on Tbow at CoX."
+function bankHas(bank: CompletionItem[], needle: string): boolean {
+  for (const it of bank) {
+    if (it.name.toLowerCase().includes(needle)) return true;
+  }
+  return false;
+}
+
 // Combines a player's boss kill-count (from Hiscores) with the rarest unique
 // drop rate for that boss (from data/drop-rates.json) into "you've killed
 // this boss X times — statistically you'd expect Y uniques by now". Only
 // surfaces if the player has *enough* KC to make the comparison meaningful
 // (KC >= 25 % of the rarest drop's denominator) — otherwise the rec is
 // just "drop rate is 1/5000, go grind" which adds no signal.
-function kcRecs(dropTables: Map<string, BossDropTable>, bossKc: Record<string, number>): Recommendation[] {
+//
+// Bank-aware: when the player already has an iconic drop in their bank we
+// skip past it and recommend the next iconic they're still missing. If all
+// iconics are owned, fall through to the generic-window pick (pets, alts).
+function kcRecs(
+  dropTables: Map<string, BossDropTable>,
+  bossKc: Record<string, number>,
+  bank: CompletionItem[]
+): Recommendation[] {
   if (dropTables.size === 0) return [];
   const recs: Recommendation[] = [];
   for (const [wikiName, table] of dropTables) {
     const kc = bossKc[table.hiscoresName] ?? 0;
     if (kc <= 0) continue; // never killed → no insight, just noise
 
-    // Pick the rarest "iconic" drop the player would chase. Two paths:
-    //  1. If the boss has an entry in ICONIC_DROPS, find the matching drop
-    //     in the table — this overrides the denom window so e.g. Tbow at
-    //     CoX (1/34500) and Shadow at ToA can surface as the chase, even
-    //     though they're "too rare" by the generic-window heuristic.
+    // Pick the rarest "iconic" drop the player would chase AND doesn't
+    // already own. Two paths:
+    //  1. If the boss has an entry in ICONIC_DROPS, walk the needles in
+    //     order and pick the first one whose drop they don't have. This
+    //     overrides the denom window so e.g. Tbow at CoX (1/34500) can
+    //     still surface as a chase.
     //  2. Otherwise, walk table.drops (rarest first) and pick the first
-    //     one in the 500-15000 denom window. Raid megararities like Tbow
-    //     fall out of this generic path; that's why path 1 exists.
+    //     one in the 500-15000 denom window that the player doesn't own.
     const iconicNames = ICONIC_DROPS[wikiName];
     let headline: typeof table.drops[number] | undefined;
     let isIconic = false;
     if (iconicNames) {
       for (const needle of iconicNames) {
+        if (bankHas(bank, needle)) continue; // already owned — try next iconic
         headline = table.drops.find((d) => d.name.toLowerCase().includes(needle));
         if (headline) { isIconic = true; break; }
       }
     }
     if (!headline) {
-      headline = table.drops.find((d) => d.denom >= 500 && d.denom <= 15000);
+      headline = table.drops.find((d) =>
+        d.denom >= 500 && d.denom <= 15000 && !bankHas(bank, d.name.toLowerCase())
+      );
     }
     if (!headline) continue;
 
@@ -772,7 +794,7 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     ...(combatLevel !== null ? bossRecs(combatLevel, bank, skills) : []),
     ...questRecs(quests, skills, qp),
     ...diaryRecs(diaries, skills),
-    ...kcRecs(dropTables, input.bossKc ?? {}),
+    ...kcRecs(dropTables, input.bossKc ?? {}, bank),
     ...minigameRecs(skills),
     ...moneyRecs(skills),
     ...skillRecs(skills),
