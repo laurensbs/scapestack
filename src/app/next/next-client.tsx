@@ -23,6 +23,7 @@ import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib
 import { track } from "@/lib/analytics";
 import type { Recommendation, RecKind, NextUpResult } from "@/lib/next-up";
 import { pickForMood, MOOD_LABEL, type Mood, type TimeBudget } from "@/lib/mood";
+import { saveMood, loadMood, relativeSince, type MoodSession } from "@/lib/mood-storage";
 import { cn, ICON_URL } from "@/lib/utils";
 
 // Per-kind visual identity — Lucide fallback + an OSRS sprite. Recs that
@@ -926,17 +927,69 @@ function MoodSection({
 }) {
   const [mood, setMood] = useState<Mood | null>(null);
   const [minutes, setMinutes] = useState<TimeBudget>(60);
+  /** Vorige sessie — pas na mount gezet (SSR-veilig). Drijft welkom-
+   *  terug banner én pre-selecteert mood/minutes. */
+  const [prev, setPrev] = useState<MoodSession | null>(null);
+  const [dismissedBanner, setDismissedBanner] = useState(false);
+
+  // Eénmalige hydration uit localStorage. Niet via useState-initializer
+  // omdat dat tijdens SSR crasht.
+  useEffect(() => {
+    const last = loadMood();
+    if (last) {
+      setPrev(last);
+      setMood(last.mood);
+      setMinutes(last.minutes);
+    }
+  }, []);
 
   const pick = useMemo(
     () => (mood ? pickForMood(allRecs, mood, minutes) : null),
     [allRecs, mood, minutes]
   );
 
+  // Sla op zodra mood + pick stabiel zijn. Debounced naar effects om
+  // dubbele writes te voorkomen bij tijd-toggles.
+  useEffect(() => {
+    if (!mood || !pick) return;
+    saveMood({
+      mood,
+      minutes,
+      lastHeadlineId: pick.headline.id,
+      lastHeadlineTitle: pick.headline.title
+    });
+  }, [mood, minutes, pick]);
+
   if (allRecs.length === 0) return null;
+  const showBanner = prev && !dismissedBanner && prev.lastHeadlineTitle;
 
   return (
     <section className="mb-10">
       <h3 className="eyebrow mb-3 text-[var(--color-accent)]">Waar heb je zin in?</h3>
+
+      {/* Welkom-terug banner — toont alleen op de tweede+ bezoek wanneer
+          er een vorige mood-sessie in localStorage staat. Pre-selecteert
+          de mood/tijd automatisch hierboven. Dismissable. */}
+      {showBanner && prev && (
+        <div className="mb-3 flex items-baseline justify-between gap-3 px-3 py-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)]/60 text-[12px]">
+          <div>
+            <span className="text-[var(--color-text-muted)]">Welkom terug — </span>
+            <span className="text-[var(--color-text-dim)]">
+              {relativeSince(prev.savedAt)} keek je naar{" "}
+              <span className="text-[var(--color-text)]">{prev.lastHeadlineTitle}</span>
+              {" "}({MOOD_LABEL[prev.mood].name.toLowerCase()}, {prev.minutes} min).
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setDismissedBanner(true)}
+            className="text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-text)] shrink-0"
+            aria-label="Dismiss"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Mood-chips row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
