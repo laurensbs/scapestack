@@ -57,6 +57,16 @@ tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
+// Bundle runelite-plugin.properties in de jar — RuneLite's
+// sideloaded-plugins loader vereist deze manifest om de plugin-class
+// te identificeren. Zonder dit verschijnt de plugin niet onder
+// Configuration → Plugins in een live RuneLite sessie.
+jar {
+    from(projectDir) {
+        include 'runelite-plugin.properties'
+    }
+}
+
 // Launches RuneLite met deze plugin side-loaded. Gebruik:
 //   JAVA_HOME=~/jdk-11/jdk-11.0.31+11/Contents/Home ./gradlew runClient
 //

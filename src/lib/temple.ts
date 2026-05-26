@@ -26,7 +26,7 @@ export interface TempleData {
 }
 
 const ENDPOINT = "https://templeosrs.com/api";
-const UA = "scapestack/0.5 (+https://scapestack.app)";
+const UA = "scapestack/0.5 (+https://www.scapestack.org)";
 
 interface RawQuestRow {
   quest?: string;

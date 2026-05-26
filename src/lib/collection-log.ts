@@ -33,7 +33,7 @@ export interface CollectionLog {
 }
 
 const ENDPOINT = "https://api.collectionlog.net/collectionlog/user";
-const UA = "scapestack/0.5 (+https://scapestack.app)";
+const UA = "scapestack/0.5 (+https://www.scapestack.org)";
 
 /** Returns parsed collection-log state, or null when the player isn't on
  *  cl.net / the request failed / the payload was malformed. Never throws. */

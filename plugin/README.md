@@ -1,7 +1,7 @@
 # Scapestack Sync — RuneLite plugin
 
 Reads your quest list, diary completions, and collection log out of the
-running OSRS client and uploads them to scapestack.app/api/sync. The
+running OSRS client and uploads them to www.scapestack.org/api/sync. The
 next time you visit `/next`, the Path-to-Max progress uses real data
 instead of skill/QP heuristics.
 
@@ -49,7 +49,7 @@ quests..." messages.
 
 ## Pointing at a local backend
 
-By default the plugin POSTs to `https://scapestack.app/api/sync`. For
+By default the plugin POSTs to `https://www.scapestack.org/api/sync`. For
 local dev, change the Sync endpoint in plugin settings to
 `http://localhost:4173/api/sync` (the Next.js dev port). The claim URL
 is derived automatically (`/api/sync/claim`).

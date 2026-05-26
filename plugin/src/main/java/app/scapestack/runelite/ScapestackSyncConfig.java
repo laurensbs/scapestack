@@ -13,7 +13,7 @@ public interface ScapestackSyncConfig extends Config {
         description = "Where the plugin POSTs your progress. Leave at the default unless you're self-hosting Scapestack."
     )
     default String syncUrl() {
-        return "https://scapestack.app/api/sync";
+        return "https://www.scapestack.org/api/sync";
     }
 
     @ConfigItem(

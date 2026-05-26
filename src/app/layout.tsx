@@ -20,7 +20,7 @@ const inter = Inter({
 // ignored by Plausible by default. We load with `defer` so it never blocks
 // first paint and gate on NODE_ENV=production so dev iteration doesn't
 // pollute the dashboard.
-const PLAUSIBLE_DOMAIN = "scapestack.app";
+const PLAUSIBLE_DOMAIN = "scapestack.org";
 
 export const metadata: Metadata = {
   // Punchier than the old "Scapestack — OSRS toolkit" — the new tagline

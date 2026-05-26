@@ -39,7 +39,7 @@ export interface WomPlayer {
 }
 
 const ENDPOINT = "https://api.wiseoldman.net/v2";
-const UA = "scapestack/0.5 (+https://scapestack.app)";
+const UA = "scapestack/0.5 (+https://www.scapestack.org)";
 
 /** Returns null when the player isn't on WOM (404), when the request
  *  fails, or when the response is malformed. Never throws. Callers are

@@ -29,7 +29,7 @@ import java.util.Set;
 /**
  * Scapestack Sync — reads the player's quest list, diary completion state,
  * and collection log out of the running game client and POSTs them to
- * scapestack.app/api/sync.
+ * www.scapestack.org/api/sync.
  *
  * Triggers:
  *   - Login → full sync (autoSync config)
@@ -49,7 +49,7 @@ import java.util.Set;
 @Slf4j
 @PluginDescriptor(
     name = "Scapestack Sync",
-    description = "Sync your quest/diary/CL state to scapestack.app",
+    description = "Sync your quest/diary/CL state to scapestack.org",
     tags = {"external", "sync", "scapestack"}
 )
 public class ScapestackSyncPlugin extends Plugin {

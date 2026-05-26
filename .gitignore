@@ -15,3 +15,4 @@ next-env.d.ts
 _legacy/
 _rebuild/
 _rebuild_dup/
+.vercel

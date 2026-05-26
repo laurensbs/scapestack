@@ -15,16 +15,16 @@ public class ClaimClientTest {
     @Test
     public void derivesClaimFromDefaultSyncUrl() {
         assertEquals(
-            "https://scapestack.app/api/sync/claim",
-            ClaimClient.claimUrlFromSyncUrl("https://scapestack.app/api/sync")
+            "https://www.scapestack.org/api/sync/claim",
+            ClaimClient.claimUrlFromSyncUrl("https://www.scapestack.org/api/sync")
         );
     }
 
     @Test
     public void handlesTrailingSlashOnSync() {
         assertEquals(
-            "https://scapestack.app/api/sync/claim",
-            ClaimClient.claimUrlFromSyncUrl("https://scapestack.app/api/sync/")
+            "https://www.scapestack.org/api/sync/claim",
+            ClaimClient.claimUrlFromSyncUrl("https://www.scapestack.org/api/sync/")
         );
     }
 

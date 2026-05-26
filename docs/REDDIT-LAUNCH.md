@@ -12,7 +12,7 @@ antwoorden daarop._
    r/2007scape-comment-historie. Brand-new accounts worden door de
    spam-filter (en de subreddit-mods) automatisch verwijderd.
 2. **Plausible is live** (commit `72b1aa3`). Check
-   plausible.io/scapestack.app voordat je post — je wilt vanaf minuut 1
+   plausible.io/scapestack.org voordat je post — je wilt vanaf minuut 1
    zien wat er gebeurt.
 3. **Drie screenshots** in de volgorde hieronder. Hou ze klein (~1200px
    breed), PNG. Geüpload via Reddit's eigen image-upload, niet imgur —
@@ -63,7 +63,7 @@ schermhoogte):
 > - Not monetised. No ads, no accounts, no signups. Buy-me-a-coffee in
 >   the footer for hosting; that's it.
 >
-> Link: https://scapestack.app
+> Link: https://scapestack.org
 >
 > Try `/next` first — that's the heart of it. If you don't have time to
 > type your name, there's a "see it with a sample bank" on the homepage.
