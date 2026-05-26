@@ -730,16 +730,15 @@ function HeadlineCard({ rec, onBossOpen }: { rec: Recommendation; onBossOpen: (s
               {rec.payoff}
             </p>
           )}
-          {/* The probability chart is the differentiator no other tool
-              has. Render it default-open on the headline KC-rec so it
-              hits the user immediately, instead of hiding behind a
-              'click to reveal' link they'd skim past. */}
+          {/* Probability chart — collapsed by default. Was default-open
+              on the headline KC-rec but read as 'big chart shouting at
+              you' the moment the page loaded. Toggle still works for
+              players who want the depth. */}
           {rec.kcMeta && (
             <KcProbabilityGraph
               kc={rec.kcMeta.kc}
               denom={rec.kcMeta.denom}
               dropName={rec.kcMeta.dropName}
-              defaultOpen
             />
           )}
           {(rec.link || isKcWithBoss) && (
