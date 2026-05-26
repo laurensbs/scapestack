@@ -69,7 +69,23 @@ export default function HomePage() {
           premium. Header + sidebar still surface Bank/DPS/Goals as
           direct nav; cached /tool URLs work unchanged. */}
 
-      <footer className="mt-24 pt-10 border-t border-[var(--color-border)]">
+      {/* Plugin-status callout. Intentionally small + below the fold:
+          we don't want to over-promise something Jagex still has to
+          approve. When the PR merges this whole block becomes the
+          install-CTA instead. */}
+      <div className="mt-20 mb-4 text-center">
+        <a
+          href="https://github.com/runelite/plugin-hub/pull/12227"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 text-[12px] text-[var(--color-text-dim)] hover:text-[var(--color-accent)] transition-colors"
+        >
+          <span className="size-1.5 rounded-full bg-[var(--color-accent)] animate-pulse" aria-hidden="true" />
+          RuneLite plugin in review · syncs your real quest/diary/CL state for exact recommendations
+        </a>
+      </div>
+
+      <footer className="mt-4 pt-10 border-t border-[var(--color-border)]">
         <div className="relative overflow-hidden rounded-2xl max-w-3xl mx-auto bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] border border-[var(--color-accent)]/25 animate-[slide-up_0.5s_cubic-bezier(0.22,1,0.36,1)_0.2s_both]">
           <div
             className="absolute inset-x-0 top-0 h-px"
