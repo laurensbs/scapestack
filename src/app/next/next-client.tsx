@@ -16,7 +16,7 @@ import { PathOverview } from "@/components/path-overview";
 import { TypingTitle } from "@/components/typing-title";
 import { BOSSES, type Boss } from "@/lib/bosses";
 import { ownedGear, type GearItem } from "@/lib/gear";
-import { organizeAction, nextUpAction, hiscoresAction } from "@/app/actions";
+import { organizeAction, nextUpAction, hiscoresAction, womAction } from "@/app/actions";
 import { type HiscoreSkill } from "@/lib/hiscores";
 import { unlockedFromHiscores } from "@/lib/goals";
 import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
@@ -162,9 +162,14 @@ export function NextClient() {
       const rsn = (opts.rsn ?? "").trim();
       const input = (opts.input ?? "").trim();
 
-      // Hiscores fetch is best-effort. If RSN was given but the lookup
-      // fails, we still build something useful from the bank alone.
-      const hiscores = rsn ? await hiscoresAction(rsn) : null;
+      // Two best-effort lookups in parallel:
+      //   - Hiscores: skills + bossKC + clue/raid activities (Jagex official)
+      //   - WOM: account type + EHP/EHB + WOM-tracked boss KCs (richer
+      //          data when the player uses the WOM RuneLite plugin)
+      // Either can return null and we keep going with whatever we got.
+      const [hiscores, wom] = rsn
+        ? await Promise.all([hiscoresAction(rsn), womAction(rsn)])
+        : [null, null];
 
       // Three ways to fill `bank`: pre-parsed handoff, paste-string, or
       // empty. organizeAction is only called for the paste-string path.
@@ -221,7 +226,21 @@ export function NextClient() {
         return;
       }
 
-      setResult(await nextUpAction({ skills, bank, questPoints, bossKc }));
+      // Pass WOM enrichment when we got it. path-progress merges
+      // WOM's bossKills with the Hiscores bossKc via Math.max; the
+      // accountMeta drives the 'Synced via Wise Old Man' badge on the
+      // hero block.
+      setResult(await nextUpAction({
+        skills, bank, questPoints, bossKc,
+        womBossKills: wom?.bossKills,
+        accountMeta: wom ? {
+          displayName: wom.displayName,
+          accountType: wom.accountType,
+          ehp: wom.ehp,
+          ehb: wom.ehb,
+          lastChangedAt: wom.lastChangedAt
+        } : null
+      }));
       setView("result");
 
       // Remember the RSN for next time — independent of bank-save. If the

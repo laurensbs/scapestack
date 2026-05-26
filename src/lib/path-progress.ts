@@ -329,18 +329,33 @@ function diariesPath(diaries: Map<string, DiaryRecord>, skills: HiscoreSkill[]):
 
 // ── Bosses ──────────────────────────────────────────────────────────
 
-function bossesPath(bossKc: Record<string, number>, skills: HiscoreSkill[]): PathProgress {
+function bossesPath(
+  bossKc: Record<string, number>,
+  skills: HiscoreSkill[],
+  womBossKills?: Record<string, number>
+): PathProgress {
   // Track the iconic boss roster — same 8 the homepage showcase + KC-recs use.
-  const ROSTER: Array<{ slug: string; label: string; hiscoresName: string }> = [
-    { slug: "vorkath",   label: "Vorkath",            hiscoresName: "Vorkath" },
-    { slug: "zulrah",    label: "Zulrah",             hiscoresName: "Zulrah" },
-    { slug: "cox",       label: "Chambers of Xeric",  hiscoresName: "Chambers of Xeric" },
-    { slug: "tob",       label: "Theatre of Blood",   hiscoresName: "Theatre of Blood" },
-    { slug: "toa",       label: "Tombs of Amascut",   hiscoresName: "Tombs of Amascut" },
-    { slug: "hydra",     label: "Alchemical Hydra",   hiscoresName: "Alchemical Hydra" },
-    { slug: "nex",       label: "Nex",                hiscoresName: "Nex" },
-    { slug: "vardorvis", label: "Vardorvis",          hiscoresName: "Vardorvis" }
+  // Each entry also carries the WOM snake_case key so we can prefer WOM's
+  // KC when it's higher than Hiscores (WOM updates more often).
+  const ROSTER: Array<{ slug: string; label: string; hiscoresName: string; womName: string }> = [
+    { slug: "vorkath",   label: "Vorkath",            hiscoresName: "Vorkath",           womName: "vorkath" },
+    { slug: "zulrah",    label: "Zulrah",             hiscoresName: "Zulrah",            womName: "zulrah" },
+    { slug: "cox",       label: "Chambers of Xeric",  hiscoresName: "Chambers of Xeric", womName: "chambers_of_xeric" },
+    { slug: "tob",       label: "Theatre of Blood",   hiscoresName: "Theatre of Blood",  womName: "theatre_of_blood" },
+    { slug: "toa",       label: "Tombs of Amascut",   hiscoresName: "Tombs of Amascut",  womName: "tombs_of_amascut" },
+    { slug: "hydra",     label: "Alchemical Hydra",   hiscoresName: "Alchemical Hydra",  womName: "alchemical_hydra" },
+    { slug: "nex",       label: "Nex",                hiscoresName: "Nex",               womName: "nex" },
+    { slug: "vardorvis", label: "Vardorvis",          hiscoresName: "Vardorvis",         womName: "vardorvis" }
   ];
+
+  // Prefer WOM's KC when it's higher than Hiscores. WOM updates per
+  // RuneLite plugin/group import while Hiscores updates on Jagex's
+  // schedule; for a recently-active player WOM is often ahead.
+  const kcFor = (boss: typeof ROSTER[number]): number => {
+    const hi = bossKc[boss.hiscoresName] ?? 0;
+    const wom = womBossKills?.[boss.womName] ?? 0;
+    return Math.max(hi, wom);
+  };
 
   const total = ROSTER.length;
   let done = 0;
@@ -348,7 +363,7 @@ function bossesPath(bossKc: Record<string, number>, skills: HiscoreSkill[]): Pat
   const combatLevel = skills.length > 0 ? computeCombatLevel(skills) : 0;
 
   for (const boss of ROSTER) {
-    const kc = bossKc[boss.hiscoresName] ?? 0;
+    const kc = kcFor(boss);
     // 'Done' = ≥ 50 KC. Arbitrary threshold — under that the player is
     // experimenting; over it they've actually committed.
     const isDone = kc >= 50;
@@ -367,7 +382,7 @@ function bossesPath(bossKc: Record<string, number>, skills: HiscoreSkill[]): Pat
   // commit) + bosses they haven't tried but combat level supports.
   const nextSteps: PathStep[] = [];
   for (const boss of ROSTER) {
-    const kc = bossKc[boss.hiscoresName] ?? 0;
+    const kc = kcFor(boss);
     if (kc > 0 && kc < 50) {
       const toGo = 50 - kc;
       nextSteps.push({
@@ -381,7 +396,7 @@ function bossesPath(bossKc: Record<string, number>, skills: HiscoreSkill[]): Pat
   // Fill with untouched-but-CL-ready bosses.
   if (nextSteps.length < 3) {
     for (const boss of ROSTER) {
-      const kc = bossKc[boss.hiscoresName] ?? 0;
+      const kc = kcFor(boss);
       if (kc === 0 && combatLevel >= 100) {
         nextSteps.push({
           title: `Try ${boss.label}`,
@@ -406,27 +421,55 @@ function bossesPath(bossKc: Record<string, number>, skills: HiscoreSkill[]): Pat
 
 // ── Public API ──────────────────────────────────────────────────────
 
+/** Account-level metadata pulled from WOM (best-effort enrichment).
+ *  Drives the 'Synced via Wise Old Man' badge + account-type-aware
+ *  recommendations. Always null when the player isn't on WOM. */
+export interface AccountMeta {
+  displayName: string;
+  /** WOM's normalised account type: regular / ironman / hardcore / ultimate / skiller / pure. */
+  accountType: "regular" | "ironman" | "hardcore" | "ultimate" | "skiller" | "pure";
+  /** Efficient Hours Played — sum of optimal time invested. */
+  ehp: number;
+  /** Efficient Hours Bossed. */
+  ehb: number;
+  /** When the player last gained XP, per WOM. */
+  lastChangedAt: string | null;
+}
+
 export interface PathOverview {
   paths: [PathProgress, PathProgress, PathProgress, PathProgress];
   /** Overall % across all four paths, averaged. */
   overallPercent: number;
+  /** Set when WOM had a player record; null otherwise. UI checks this
+   *  to render the 'Synced via Wise Old Man' badge. */
+  accountMeta: AccountMeta | null;
 }
 
-export function computePathProgress(
-  skills: HiscoreSkill[],
-  quests: Map<string, QuestRecord>,
-  diaries: Map<string, DiaryRecord>,
-  bossKc: Record<string, number>,
-  questPoints: number
-): PathOverview {
+export interface ComputePathProgressInput {
+  skills: HiscoreSkill[];
+  quests: Map<string, QuestRecord>;
+  diaries: Map<string, DiaryRecord>;
+  bossKc: Record<string, number>;
+  questPoints: number;
+  /** WOM-derived enrichment. Optional — when missing we fall back to
+   *  Hiscores-only data and don't surface the synced badge. */
+  womBossKills?: Record<string, number>;
+  accountMeta?: AccountMeta | null;
+}
+
+export function computePathProgress(input: ComputePathProgressInput): PathOverview {
   const paths: [PathProgress, PathProgress, PathProgress, PathProgress] = [
-    skillsPath(skills),
-    questsPath(quests, skills, questPoints),
-    diariesPath(diaries, skills),
-    bossesPath(bossKc, skills)
+    skillsPath(input.skills),
+    questsPath(input.quests, input.skills, input.questPoints),
+    diariesPath(input.diaries, input.skills),
+    bossesPath(input.bossKc, input.skills, input.womBossKills)
   ];
   const overallPercent = Math.round(
     paths.reduce((sum, p) => sum + p.percent, 0) / paths.length
   );
-  return { paths, overallPercent };
+  return {
+    paths,
+    overallPercent,
+    accountMeta: input.accountMeta ?? null
+  };
 }

@@ -13,6 +13,18 @@ import { PathDetailModal } from "./path-detail-modal";
 const PATH_OVERVIEW_DELAY_MS = 1000; // title finishes ~900ms; +100ms breath
 const RING_DURATION_MS = 1200;
 
+// Pretty-print WOM's account-type strings for the synced badge.
+function accountTypeLabel(t: NonNullable<PathOverviewData["accountMeta"]>["accountType"]): string {
+  switch (t) {
+    case "ironman":  return "Ironman";
+    case "hardcore": return "Hardcore Ironman";
+    case "ultimate": return "Ultimate Ironman";
+    case "skiller":  return "Skiller";
+    case "pure":     return "Pure";
+    default:         return "Main";
+  }
+}
+
 // Path-to-Max overview — replaces the headline + grouped checklist on
 // /next. Four cards, one per axis (Skills/Quests/Diaries/Bosses), each
 // with a ring-progress + 3 next-steps. Click any card → drill-in modal
@@ -37,13 +49,31 @@ export function PathOverview({ data }: { data: PathOverviewData }) {
           animationDelay: `${PATH_OVERVIEW_DELAY_MS}ms`
         }}
       >
-        <div className="flex items-baseline justify-between mb-3">
+        <div className="flex items-baseline justify-between mb-3 gap-3 flex-wrap">
           <h2 className="text-[12px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
             Path to Max
           </h2>
-          <span className="text-[11.5px] text-[var(--color-text-muted)]">
-            Estimated · uses skill/QP heuristics
-          </span>
+          {/* When WOM had a record for this player we surface a small
+              badge — gives the heuristics-disclaimer some weight ('we
+              cross-checked your KC against Wise Old Man') and rewards
+              the players who use the plugin. Otherwise show the plain
+              estimate footnote. */}
+          {data.accountMeta ? (
+            <a
+              href={`https://wiseoldman.net/players/${encodeURIComponent(data.accountMeta.displayName)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors"
+              title="Cross-checked with Wise Old Man — KCs and account type pulled from your WOM profile."
+            >
+              <span className="size-1.5 rounded-full bg-[var(--color-good)]" aria-hidden="true" />
+              Synced via Wise Old Man · {accountTypeLabel(data.accountMeta.accountType)}
+            </a>
+          ) : (
+            <span className="text-[11.5px] text-[var(--color-text-muted)]">
+              Estimated · uses skill/QP heuristics
+            </span>
+          )}
         </div>
         <div className="rounded-2xl border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] p-6">
           <div className="flex flex-col lg:flex-row lg:items-center gap-6">

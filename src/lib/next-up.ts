@@ -71,6 +71,13 @@ export interface NextUpInput {
   /** Boss kill-counts from Hiscores activities — keyed by activity name.
    *  Used to compute expected-uniques ("142 Vorkath KC ≈ 0.85 visages"). */
   bossKc?: Record<string, number>;
+  /** WOM-derived boss kills (snake_case keys). Merged with Hiscores KCs
+   *  via Math.max in path-progress — WOM is often ahead because it
+   *  updates per RuneLite plugin push. */
+  womBossKills?: Record<string, number>;
+  /** WOM-derived account metadata. Drives the 'Synced via WOM' badge
+   *  and account-type-aware recommendations. */
+  accountMeta?: import("./path-progress").AccountMeta | null;
 }
 
 export interface NextUpResult {
@@ -835,10 +842,17 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
 
   // Path-to-Max progress — drives the new path-card UI. Cheap to compute
   // (no extra disk reads; quests/diaries are already loaded above) and
-  // always populated even when data is sparse.
-  const pathProgress: PathOverview = computePathProgress(
-    skills, quests, diaries, input.bossKc ?? {}, qp
-  );
+  // always populated even when data is sparse. WOM enrichment is
+  // optional; when missing we fall back to Hiscores-only behaviour.
+  const pathProgress: PathOverview = computePathProgress({
+    skills,
+    quests,
+    diaries,
+    bossKc: input.bossKc ?? {},
+    questPoints: qp,
+    womBossKills: input.womBossKills,
+    accountMeta: input.accountMeta ?? null
+  });
 
   return {
     headline: recs[0] ?? null,

@@ -4,6 +4,7 @@ import { organize, exportTabs, type OrganizeResult, type OrganizedTab } from "@/
 import type { Archetype } from "@/lib/archetype";
 import { computeNextUp, type NextUpInput, type NextUpResult } from "@/lib/next-up";
 import { fetchHiscores, type PlayerHiscores } from "@/lib/hiscores";
+import { fetchWom, type WomPlayer } from "@/lib/wom";
 
 export async function hiscoresAction(rsn: string): Promise<PlayerHiscores | null> {
   // Server-side proxy for the OSRS Hiscores fetch. The Jagex endpoint
@@ -12,6 +13,14 @@ export async function hiscoresAction(rsn: string): Promise<PlayerHiscores | null
   // actually a blocked network request. Going through this action puts
   // the fetch on Vercel/Node where CORS doesn't apply.
   return fetchHiscores(rsn);
+}
+
+export async function womAction(rsn: string): Promise<WomPlayer | null> {
+  // Best-effort enrichment. WOM returns null for accounts that aren't
+  // tracked there; the rest of /next falls back to Hiscores-only data.
+  // Runs server-side so we control the User-Agent (WOM rate-limits
+  // anonymous browser requests harder than identified server ones).
+  return fetchWom(rsn);
 }
 
 export async function nextUpAction(input: NextUpInput): Promise<NextUpResult> {
