@@ -7,6 +7,8 @@ import { rankMasters, blockSuggestions, type PlayerState } from "@/lib/slayer/si
 import type { MasterSimulation, TaskOption } from "@/lib/slayer/simulator";
 import { hiscoresAction, syncedPlayerAction } from "@/app/actions";
 import { computeCombatLevel } from "@/lib/hiscores";
+import { TASK_ID_TO_MONSTER } from "@/lib/slayer/task-ids";
+import { MONSTERS_BY_ID } from "@/lib/slayer/monsters";
 
 // Slayer Planner — eerste versie.
 //
@@ -40,7 +42,13 @@ export function SlayerClient() {
   const [lookupErr, setLookupErr] = useState<string | null>(null);
   const [lookupOk, setLookupOk] = useState<string | null>(null);
   const [pluginBlocks, setPluginBlocks] = useState<Set<string>>(new Set());
-  const [pluginSlayer, setPluginSlayer] = useState<{ points: number; streak: number; taskRemaining: number } | null>(null);
+  const [pluginSlayer, setPluginSlayer] = useState<{
+    points: number;
+    streak: number;
+    taskRemaining: number;
+    currentTaskId: number;
+    blocks: string[];
+  } | null>(null);
   const [pending, startTransition] = useTransition();
 
   const onLookup = () => {
@@ -208,9 +216,10 @@ export function SlayerClient() {
           dat de sync werkt + surfaceert points/streak die je anders
           alleen in-game ziet. */}
       {pluginSlayer && (
-        <section className="rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/5 p-4">
+        <section className="rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/5 p-4 space-y-3">
           <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
+            <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)] flex items-center gap-1.5">
+              <span className="text-[12px]">🔌</span>
               Plugin sync live
             </div>
             <div className="flex items-center gap-5 text-[13px] tabular-nums">
@@ -228,6 +237,57 @@ export function SlayerClient() {
               </div>
             </div>
           </div>
+
+          {/* Current task — toont "Doing 47 Aberrant Spectres". Vereist
+              dat het current-task-id mapt naar een bekende monster slug;
+              anders skippen we deze regel (rauwe ID is verwarrend). */}
+          {(() => {
+            const slug = TASK_ID_TO_MONSTER[pluginSlayer.currentTaskId];
+            const monster = slug ? MONSTERS_BY_ID.get(slug) : undefined;
+            if (!monster) return null;
+            const taskXp = monster.hp * 4 * pluginSlayer.taskRemaining;
+            return (
+              <div className="border-t border-[var(--color-accent)]/20 pt-3 flex items-baseline justify-between gap-3 flex-wrap text-[12.5px]">
+                <div>
+                  <span className="text-[var(--color-text-muted)]">Currently on:</span>{" "}
+                  <span className="text-[var(--color-text)] font-semibold">
+                    {pluginSlayer.taskRemaining} × {monster.name}
+                  </span>
+                  {monster.slayerLevel > 1 && (
+                    <span className="ml-2 text-[10.5px] text-[var(--color-text-muted)]">lvl {monster.slayerLevel}</span>
+                  )}
+                </div>
+                <div className="text-[var(--color-text-dim)] tabular-nums">
+                  ~{(taskXp / 1000).toFixed(1)}k slayer XP remaining
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Block-slot overview — markeert duidelijk dat deze 6 vanuit
+              de plugin komen, niet handmatig. UI gebruikt ze al automatisch
+              via blockedMonsterIds; deze rij is puur affordance. */}
+          {pluginSlayer.blocks.length > 0 && (
+            <div className="border-t border-[var(--color-accent)]/20 pt-3">
+              <div className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-1.5">
+                Blocks from plugin ({pluginSlayer.blocks.length})
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {pluginSlayer.blocks.map((slug) => {
+                  const m = MONSTERS_BY_ID.get(slug);
+                  if (!m) return null;
+                  return (
+                    <span
+                      key={slug}
+                      className="px-2 py-1 rounded text-[11px] bg-[var(--color-bg-2)] border border-[var(--color-border)] text-[var(--color-text-dim)]"
+                    >
+                      {m.name}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </section>
       )}
 

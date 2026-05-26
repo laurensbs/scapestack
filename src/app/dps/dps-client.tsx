@@ -80,8 +80,14 @@ export function DpsClient() {
   // For each boss, compute the best style/setup. We keep input order so the
   // table groups visually by category; the live search field above handles
   // discovery.
+  // Filter skilling-minigames eruit — Wintertodt/Tempoross/Zalcano/GotR
+  // hebben hp=0 en geen combat-style. Ze stonden op de DPS-page met
+  // valse ranged/melee suggesties. Hespori blijft (heeft echte combat
+  // stats al staat hij ook onder category 'skilling').
   const bossResults = useMemo(
-    () => BOSSES.map((boss) => ({ boss, dps: bestStyleAndSetup(owned, boss) })),
+    () => BOSSES
+      .filter((b) => b.hp > 0 && b.weaknesses.length > 0)
+      .map((boss) => ({ boss, dps: bestStyleAndSetup(owned, boss) })),
     [owned]
   );
 

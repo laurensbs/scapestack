@@ -76,7 +76,13 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
       quests_completed: string[];
       diaries_completed: Array<{ region: string; tier: SyncedPlayer["diariesCompleted"][number]["tier"] }>;
       collection_log_item_ids: number[];
-      slayer: { points: number; streak: number; taskRemaining: number } | null;
+      slayer: {
+        points: number;
+        streak: number;
+        taskRemaining: number;
+        currentTaskId?: number;
+        blocks?: string[];
+      } | null;
       plugin_version: string;
       synced_at: string;
     }>;
@@ -88,7 +94,18 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
       questsCompleted: row.quests_completed,
       diariesCompleted: row.diaries_completed,
       collectionLogItemIds: row.collection_log_item_ids,
-      slayer: row.slayer ?? null,
+      // Pre-3.3 rijen in de DB hebben mogelijk geen currentTaskId/blocks
+      // velden in hun JSONB blob — defaulten naar 0 / [] zodat de UI
+      // consistent kan switchen zonder runtime crash.
+      slayer: row.slayer
+        ? {
+            points: row.slayer.points,
+            streak: row.slayer.streak,
+            taskRemaining: row.slayer.taskRemaining,
+            currentTaskId: row.slayer.currentTaskId ?? 0,
+            blocks: row.slayer.blocks ?? []
+          }
+        : null,
       pluginVersion: row.plugin_version,
       syncedAt: typeof row.synced_at === "string" ? row.synced_at : new Date(row.synced_at).toISOString()
     };
