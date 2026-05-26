@@ -122,10 +122,16 @@ export function BossDetailModal({ boss, owned, onClose }: Props) {
                   {" with "}
                   <span className="text-[var(--color-text)] font-semibold">{dps.weapon.name}</span>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <Stat label="DPS"      value={dps.dps.toFixed(1)} />
                   <Stat label="Max hit"  value={String(dps.maxHit)} />
                   <Stat label="Accuracy" value={`${Math.round(dps.hitChance * 100)}%`} />
+                  {dps.ttk > 0 && (
+                    <Stat
+                      label="Kc/u"
+                      value={String(Math.min(boss.killsPerHourCap ?? Infinity, Math.floor(3600 / dps.ttk)))}
+                    />
+                  )}
                 </div>
                 {gpPerHour !== null && (
                   <div className="mt-2 text-[12px] text-[var(--color-text-dim)] flex items-center gap-1.5">
@@ -163,27 +169,42 @@ export function BossDetailModal({ boss, owned, onClose }: Props) {
                 <Target className="size-3 inline-block mr-1" />Upgrades you don&apos;t have
               </h3>
               <div className="space-y-1.5">
-                {upgrades.map((u) => (
-                  <div
-                    key={u.item.id}
-                    className="flex items-center gap-2.5 px-2.5 py-2 rounded-md bg-[var(--color-bg-2)] border border-[var(--color-border)]"
-                  >
-                    <div className="size-8 shrink-0 rounded bg-[var(--color-bg)] border border-[var(--color-border)] flex items-center justify-center">
-                      <img
-                        src={ICON_URL(u.item.id)}
-                        alt=""
-                        className="pixelated"
-                        style={{ maxWidth: "78%", maxHeight: "78%", imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[12.5px] font-semibold text-[var(--color-text)] truncate">{u.item.name}</div>
-                      <div className="text-[10.5px] text-[var(--color-text-muted)]">
-                        +{u.gain.toFixed(2)} DPS · {u.item.slot ?? "weapon"}
+                {upgrades.map((u) => {
+                  // Vertaal DPS-gain naar concrete impact: kills/uur erbij +
+                  // GP/uur erbij. Gebruikt dezelfde kph-cap als de hoofdrij.
+                  const currentKph = dps.ttk > 0 ? Math.min(boss.killsPerHourCap ?? Infinity, Math.floor(3600 / dps.ttk)) : 0;
+                  const newKph = u.newTtk > 0 ? Math.min(boss.killsPerHourCap ?? Infinity, Math.floor(3600 / u.newTtk)) : 0;
+                  const kphGain = Math.max(0, newKph - currentKph);
+                  const gpGain = kphGain && boss.avgLootGp ? kphGain * boss.avgLootGp : 0;
+                  return (
+                    <div
+                      key={u.item.id}
+                      className="flex items-center gap-2.5 px-2.5 py-2 rounded-md bg-[var(--color-bg-2)] border border-[var(--color-border)]"
+                    >
+                      <div className="size-8 shrink-0 rounded bg-[var(--color-bg)] border border-[var(--color-border)] flex items-center justify-center">
+                        <img
+                          src={ICON_URL(u.item.id)}
+                          alt=""
+                          className="pixelated"
+                          style={{ maxWidth: "78%", maxHeight: "78%", imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[12.5px] font-semibold text-[var(--color-text)] truncate">{u.item.name}</div>
+                        <div className="text-[10.5px] text-[var(--color-text-muted)] tabular-nums">
+                          <span className="text-[var(--color-good)]">+{u.gain.toFixed(2)} DPS</span>
+                          {kphGain > 0 && (
+                            <> · <span className="text-[var(--color-text-dim)]">+{kphGain} kc/u</span></>
+                          )}
+                          {gpGain > 0 && (
+                            <> · <span className="text-[var(--color-text-dim)]">+{(gpGain / 1000).toFixed(0)}k GP/u</span></>
+                          )}
+                          {" · "}{u.item.slot ?? "weapon"}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </section>
           )}
@@ -313,6 +334,9 @@ function GearSlotGrid({ setup }: { setup: Setup }) {
 interface UpgradePick {
   item: GearItem;
   gain: number;     // DPS gain over current best setup at this boss
+  /** TTK (seconds per kill) met deze upgrade. Gebruikt om kc/u en
+   *  GP/u te tonen — meer concreet dan "DPS +0.5". */
+  newTtk: number;
 }
 
 // Per-boss upgrade picker. Tries each unowned gear item against the
@@ -331,10 +355,10 @@ function suggestUpgradesForBoss(owned: GearItem[], boss: Boss, current: DpsBreak
     if (g.slot === "weapon" && g.weaponStyle && g.weaponStyle !== style) continue;
     const newSetup = autoSetup([...owned, g], style);
     if (!newSetup.weapon) continue;
-    const newDps = calcDps(newSetup, boss, style).dps;
-    const gain = newDps - baseDps;
+    const newCalc = calcDps(newSetup, boss, style);
+    const gain = newCalc.dps - baseDps;
     if (gain > 0.1) {
-      candidates.push({ item: g, gain });
+      candidates.push({ item: g, gain, newTtk: newCalc.ttk });
     }
   }
   return candidates.sort((a, b) => b.gain - a.gain).slice(0, 3);
