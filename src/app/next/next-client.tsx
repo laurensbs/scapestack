@@ -260,7 +260,12 @@ export function NextClient() {
           wom: wom !== null,
           temple: temple !== null,
           collectionLog: collectionLog !== null,
-          scapestack: scapestackSync !== null
+          scapestack: scapestackSync ? {
+            syncedAt: scapestackSync.syncedAt,
+            quests: scapestackSync.questsCompleted.length,
+            diaries: scapestackSync.diariesCompleted.length,
+            clItems: scapestackSync.collectionLogItemIds.length
+          } : null
         }
       }));
       setView("result");

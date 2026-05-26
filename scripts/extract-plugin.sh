@@ -42,17 +42,15 @@ if [[ "$CLEAN" == "--clean" ]]; then
   find "$TARGET" -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
 fi
 
-# rsync preserves timestamps + mode bits (the gradle wrapper needs +x).
-# Excludes: gradle build outputs, IDE metadata, the wrapper itself
-# (regenerated per-machine).
+# rsync preserves timestamps + mode bits (de gradle wrapper heeft +x nodig).
+# Excludes: gradle build outputs en IDE metadata.
+# De wrapper (gradlew/.bat + gradle/wrapper/) gaat WEL mee — Plugin Hub
+# CI gebruikt 'm om te bouwen zonder system-gradle te installeren.
 rsync -a \
   --exclude 'build/' \
   --exclude '.gradle/' \
   --exclude '.idea/' \
   --exclude '*.iml' \
-  --exclude 'gradle/' \
-  --exclude 'gradlew' \
-  --exclude 'gradlew.bat' \
   "$PLUGIN_DIR/" "$TARGET/"
 
 # Seed a top-level README that links back to the monorepo. Only write
@@ -62,7 +60,7 @@ if [[ ! -f "$TARGET/README.md.published" ]]; then
 # Scapestack Sync (RuneLite plugin)
 
 Syncs your OSRS quest, diary, and collection-log state to
-[scapestack.app](https://scapestack.app) so its Path-to-Max
+[scapestack.org](https://www.scapestack.org) so its Path-to-Max
 recommender works from real data instead of hiscores heuristics.
 
 This repo is the publish-ready mirror of the canonical source in

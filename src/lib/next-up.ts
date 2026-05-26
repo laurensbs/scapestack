@@ -95,8 +95,15 @@ export interface NextUpInput {
     collectionLogItemIds: number[];
   };
   /** Tracks which external trackers contributed. Surfaced as the
-   *  'Synced via X · Y · Z' badge on the hero block. */
-  syncedSources?: { wom: boolean; temple: boolean; collectionLog: boolean; scapestack: boolean };
+   *  'Synced via X · Y · Z' badge on the hero block.
+   *  scapestack is the live plugin sync metadata when present
+   *  (freshness + counts), null when the player hasn't installed it. */
+  syncedSources?: {
+    wom: boolean;
+    temple: boolean;
+    collectionLog: boolean;
+    scapestack: { syncedAt: string; quests: number; diaries: number; clItems: number } | null;
+  };
 }
 
 export interface NextUpResult {

@@ -738,8 +738,16 @@ export interface PathOverview {
    *  to render the 'Synced via Wise Old Man' badge. */
   accountMeta: AccountMeta | null;
   /** Which external trackers returned data for this player. Drives the
-   *  'Synced via WOM/Temple/CL/Scapestack' badge. */
-  syncedSources?: { wom: boolean; temple: boolean; collectionLog: boolean; scapestack: boolean };
+   *  'Synced via WOM/Temple/CL/Scapestack' badge.
+   *  scapestack is the live plugin sync — when present we also surface
+   *  freshness + counts in the badge ("Synced 2 min ago · N quests…")
+   *  so the user knows the plugin is actually working. */
+  syncedSources?: {
+    wom: boolean;
+    temple: boolean;
+    collectionLog: boolean;
+    scapestack: { syncedAt: string; quests: number; diaries: number; clItems: number } | null;
+  };
 }
 
 export interface ComputePathProgressInput {
@@ -770,7 +778,12 @@ export interface ComputePathProgressInput {
   };
   /** Tracks which external sources had data, drives the synced-badge
    *  copy. */
-  syncedSources?: { wom: boolean; temple: boolean; collectionLog: boolean; scapestack: boolean };
+  syncedSources?: {
+    wom: boolean;
+    temple: boolean;
+    collectionLog: boolean;
+    scapestack: { syncedAt: string; quests: number; diaries: number; clItems: number } | null;
+  };
 }
 
 export function computePathProgress(input: ComputePathProgressInput): PathOverview {

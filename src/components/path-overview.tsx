@@ -25,16 +25,39 @@ function accountTypeLabel(t: NonNullable<PathOverviewData["accountMeta"]>["accou
   }
 }
 
+// Pretty-prints "5 min ago" / "2 hours ago" / "3 days ago" — the
+// freshness signal next to a Scapestack sync. We round to one unit;
+// the user just wants "is this current or stale", not a stopwatch.
+function relativeTime(iso: string): string {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return "recently";
+  const diffSec = Math.max(0, Math.round((Date.now() - then) / 1000));
+  if (diffSec < 60) return "just now";
+  const min = Math.round(diffSec / 60);
+  if (min < 60) return `${min} min ago`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr} hour${hr === 1 ? "" : "s"} ago`;
+  const day = Math.round(hr / 24);
+  return `${day} day${day === 1 ? "" : "s"} ago`;
+}
+
 // Lists every tracker that returned data for this player. Falls back
 // to the plain 'estimated' footnote when nothing matched. Each source
 // gets a small dot + a link to the player's profile on that service.
+//
+// When the Scapestack plugin is the data-source we add a second line
+// underneath with freshness + counts ("Synced 2 min ago · 47 quests ·
+// 12 diaries · 234 CL items") so the user can confirm the plugin
+// actually shipped its data. Plus a third line CTA when the plugin is
+// NOT present, nudging users toward installing it.
 function SyncedBadge({ data }: { data: PathOverviewData }) {
   const sources: Array<{ name: string; url: string | null; primary: boolean }> = [];
   const meta = data.accountMeta;
   const synced = data.syncedSources;
+  const plugin = synced?.scapestack ?? null;
   // Scapestack plugin wins primary slot when present — our own data is
   // the most authoritative.
-  if (synced?.scapestack) {
+  if (plugin) {
     sources.push({
       name: "Scapestack plugin",
       url: null,
@@ -45,7 +68,7 @@ function SyncedBadge({ data }: { data: PathOverviewData }) {
     sources.push({
       name: `WOM · ${accountTypeLabel(meta.accountType)}`,
       url: `https://wiseoldman.net/players/${encodeURIComponent(meta.displayName)}`,
-      primary: !synced.scapestack
+      primary: !plugin
     });
   }
   if (synced?.temple) {
@@ -65,39 +88,56 @@ function SyncedBadge({ data }: { data: PathOverviewData }) {
 
   if (sources.length === 0) {
     return (
-      <span className="text-[11.5px] text-[var(--color-text-muted)]">
-        Estimated · uses skill/QP heuristics
-      </span>
+      <div className="flex flex-col gap-1 text-[11.5px]">
+        <span className="text-[var(--color-text-muted)]">
+          Estimated · uses skill/QP heuristics
+        </span>
+        <a
+          href="https://github.com/runelite/plugin-hub/pull/12227"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[var(--color-text-dim)] hover:text-[var(--color-accent)] transition-colors"
+        >
+          Want exact data? Install the Scapestack RuneLite plugin (in review) →
+        </a>
+      </div>
     );
   }
 
   return (
-    <div className="inline-flex items-center gap-2 flex-wrap text-[11px]">
-      <span className="inline-flex items-center gap-1.5 text-[var(--color-text-muted)]">
-        <span className="size-1.5 rounded-full bg-[var(--color-good)]" aria-hidden="true" />
-        Synced
-      </span>
-      {sources.map((s, i) => (
-        <span key={s.name} className="inline-flex items-center gap-2">
-          {i > 0 && <span className="text-[var(--color-border-strong)]">·</span>}
-          {s.url ? (
-            <a
-              href={s.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={s.primary
-                ? "text-[var(--color-accent)] hover:underline"
-                : "text-[var(--color-text-dim)] hover:text-[var(--color-accent)] transition-colors"}
-            >
-              {s.name}
-            </a>
-          ) : (
-            <span className={s.primary ? "text-[var(--color-accent)]" : "text-[var(--color-text-dim)]"}>
-              {s.name}
-            </span>
-          )}
+    <div className="flex flex-col gap-1.5">
+      <div className="inline-flex items-center gap-2 flex-wrap text-[11px]">
+        <span className="inline-flex items-center gap-1.5 text-[var(--color-text-muted)]">
+          <span className="size-1.5 rounded-full bg-[var(--color-good)]" aria-hidden="true" />
+          Synced
         </span>
-      ))}
+        {sources.map((s, i) => (
+          <span key={s.name} className="inline-flex items-center gap-2">
+            {i > 0 && <span className="text-[var(--color-border-strong)]">·</span>}
+            {s.url ? (
+              <a
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={s.primary
+                  ? "text-[var(--color-accent)] hover:underline"
+                  : "text-[var(--color-text-dim)] hover:text-[var(--color-accent)] transition-colors"}
+              >
+                {s.name}
+              </a>
+            ) : (
+              <span className={s.primary ? "text-[var(--color-accent)]" : "text-[var(--color-text-dim)]"}>
+                {s.name}
+              </span>
+            )}
+          </span>
+        ))}
+      </div>
+      {plugin && (
+        <div className="text-[11px] text-[var(--color-text-dim)] tabular-nums">
+          {relativeTime(plugin.syncedAt)} · {plugin.quests} quests · {plugin.diaries} diaries · {plugin.clItems} CL items
+        </div>
+      )}
     </div>
   );
 }
