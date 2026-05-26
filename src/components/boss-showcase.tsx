@@ -106,23 +106,10 @@ export function BossShowcase() {
         ))}
       </button>
 
-      {/* Progress dots — clickable, doubles as a manual selector. The
-          active dot is an elongated pill to mark position in the cycle. */}
-      <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
-        {SHOWCASE_BOSSES.map((entry, i) => (
-          <button
-            key={entry.slug}
-            type="button"
-            onClick={() => setIdx(i)}
-            aria-label={`Show ${entry.label}`}
-            className={
-              i === idx
-                ? "h-1.5 w-6 rounded-full bg-[var(--color-accent)] transition-all"
-                : "h-1.5 w-1.5 rounded-full bg-[var(--color-border-strong)] hover:bg-[var(--color-text-muted)] transition-all"
-            }
-          />
-        ))}
-      </div>
+      {/* Voorheen: oranje progress-pills onder de hero. Weg — voelt
+          goedkoop in de premium-stripped hero. Bossen blijven door-
+          cycelen op timer; user kan klikken op het portrait zelf om
+          door te skippen (handler stond al in de button hierboven). */}
     </div>
   );
 }

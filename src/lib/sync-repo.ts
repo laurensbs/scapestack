@@ -13,6 +13,9 @@ export interface SyncedPlayer {
   questsCompleted: string[];
   diariesCompleted: Array<{ region: string; tier: "Easy" | "Medium" | "Hard" | "Elite" }>;
   collectionLogItemIds: number[];
+  /** Slayer-state from the plugin's VarPlayer reads. Null when the
+   *  plugin couldn't read it (no session / old plugin version). */
+  slayer: { points: number; streak: number; taskRemaining: number } | null;
   pluginVersion: string;
   syncedAt: string;        // ISO timestamp
 }
@@ -25,9 +28,12 @@ CREATE TABLE IF NOT EXISTS player_sync (
   quests_completed JSONB NOT NULL DEFAULT '[]'::jsonb,
   diaries_completed JSONB NOT NULL DEFAULT '[]'::jsonb,
   collection_log_item_ids INTEGER[] NOT NULL DEFAULT ARRAY[]::INTEGER[],
+  slayer JSONB,
   plugin_version TEXT NOT NULL DEFAULT 'unknown',
   synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+-- Bestaande tables krijgen de slayer kolom ge-add'd (idempotent).
+ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS slayer JSONB;
 CREATE INDEX IF NOT EXISTS player_sync_synced_at_idx ON player_sync(synced_at DESC);
 
 -- First-claim-wins auth: each RSN binds to the first plugin token that
@@ -51,7 +57,7 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
   try {
     const rows = await sql()`
       SELECT rsn, display_name, quests_completed, diaries_completed,
-             collection_log_item_ids, plugin_version, synced_at
+             collection_log_item_ids, slayer, plugin_version, synced_at
       FROM player_sync
       WHERE rsn = ${norm}
       LIMIT 1
@@ -61,6 +67,7 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
       quests_completed: string[];
       diaries_completed: Array<{ region: string; tier: SyncedPlayer["diariesCompleted"][number]["tier"] }>;
       collection_log_item_ids: number[];
+      slayer: { points: number; streak: number; taskRemaining: number } | null;
       plugin_version: string;
       synced_at: string;
     }>;
@@ -72,6 +79,7 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
       questsCompleted: row.quests_completed,
       diariesCompleted: row.diaries_completed,
       collectionLogItemIds: row.collection_log_item_ids,
+      slayer: row.slayer ?? null,
       pluginVersion: row.plugin_version,
       syncedAt: typeof row.synced_at === "string" ? row.synced_at : new Date(row.synced_at).toISOString()
     };
@@ -87,13 +95,15 @@ export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt">): Pro
   }
   const norm = normalize(p.rsn);
   if (!norm) throw new Error("Invalid RSN");
+  const slayerJson = p.slayer ? JSON.stringify(p.slayer) : null;
   await sql()`
     INSERT INTO player_sync (rsn, display_name, quests_completed, diaries_completed,
-                              collection_log_item_ids, plugin_version, synced_at)
+                              collection_log_item_ids, slayer, plugin_version, synced_at)
     VALUES (${norm}, ${p.displayName},
             ${JSON.stringify(p.questsCompleted)}::jsonb,
             ${JSON.stringify(p.diariesCompleted)}::jsonb,
             ${p.collectionLogItemIds},
+            ${slayerJson}::jsonb,
             ${p.pluginVersion},
             NOW())
     ON CONFLICT (rsn) DO UPDATE SET
@@ -101,6 +111,7 @@ export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt">): Pro
       quests_completed = EXCLUDED.quests_completed,
       diaries_completed = EXCLUDED.diaries_completed,
       collection_log_item_ids = EXCLUDED.collection_log_item_ids,
+      slayer = EXCLUDED.slayer,
       plugin_version = EXCLUDED.plugin_version,
       synced_at = NOW()
   `;

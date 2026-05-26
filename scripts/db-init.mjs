@@ -42,9 +42,11 @@ CREATE TABLE IF NOT EXISTS player_sync (
   quests_completed JSONB NOT NULL DEFAULT '[]'::jsonb,
   diaries_completed JSONB NOT NULL DEFAULT '[]'::jsonb,
   collection_log_item_ids INTEGER[] NOT NULL DEFAULT ARRAY[]::INTEGER[],
+  slayer JSONB,
   plugin_version TEXT NOT NULL DEFAULT 'unknown',
   synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS slayer JSONB;
 CREATE INDEX IF NOT EXISTS player_sync_synced_at_idx ON player_sync(synced_at DESC);
 
 CREATE TABLE IF NOT EXISTS player_claim (

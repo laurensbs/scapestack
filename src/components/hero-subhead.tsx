@@ -47,7 +47,7 @@ export function HeroSubhead() {
           {i < PHRASES.length - 1 ? ", " : ". "}
         </span>
       ))}
-      Free, no account, no plugin.
+      Free, no account.
     </p>
   );
 }

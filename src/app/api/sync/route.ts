@@ -25,6 +25,7 @@ interface SyncBody {
   questsCompleted?: unknown;
   diariesCompleted?: unknown;
   collectionLogItemIds?: unknown;
+  slayer?: unknown;
   pluginVersion?: unknown;
 }
 
@@ -107,6 +108,20 @@ export async function POST(req: Request): Promise<Response> {
     ? body.pluginVersion.slice(0, 32)
     : "unknown";
 
+  // Slayer state — optioneel. Parsed-out om validatie netjes te
+  // houden; rejecten van ongeldige slayer-shape rejected niet de
+  // hele sync (degradeert naar slayer = null).
+  let slayer: { points: number; streak: number; taskRemaining: number } | null = null;
+  if (body.slayer && typeof body.slayer === "object") {
+    const s = body.slayer as { points?: unknown; streak?: unknown; taskRemaining?: unknown };
+    const points = typeof s.points === "number" && Number.isFinite(s.points) ? Math.max(0, Math.min(1_000_000, Math.floor(s.points))) : null;
+    const streak = typeof s.streak === "number" && Number.isFinite(s.streak) ? Math.max(0, Math.min(100_000, Math.floor(s.streak))) : null;
+    const taskRem = typeof s.taskRemaining === "number" && Number.isFinite(s.taskRemaining) ? Math.max(0, Math.min(500, Math.floor(s.taskRemaining))) : null;
+    if (points !== null && streak !== null && taskRem !== null) {
+      slayer = { points, streak, taskRemaining: taskRem };
+    }
+  }
+
   try {
     await upsertSyncedPlayer({
       rsn,
@@ -114,6 +129,7 @@ export async function POST(req: Request): Promise<Response> {
       questsCompleted,
       diariesCompleted,
       collectionLogItemIds,
+      slayer,
       pluginVersion
     });
   } catch (err) {

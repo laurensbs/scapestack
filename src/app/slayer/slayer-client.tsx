@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { ChevronDown, ChevronRight, Shield, Skull, Star } from "lucide-react";
+import { useMemo, useState, useTransition } from "react";
+import { ChevronDown, ChevronRight, Shield, Skull, Star, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { rankMasters, blockSuggestions, type PlayerState } from "@/lib/slayer/simulator";
 import type { MasterSimulation, TaskOption } from "@/lib/slayer/simulator";
+import { hiscoresAction, syncedPlayerAction } from "@/app/actions";
+import { computeCombatLevel } from "@/lib/hiscores";
 
 // Slayer Planner — eerste versie.
 //
@@ -31,13 +33,77 @@ export function SlayerClient() {
   const [questsDone, setQuestsDone] = useState<Set<string>>(new Set(QUESTS.map((q) => q.id)));
   const [expanded, setExpanded] = useState<string | null>(null);
 
+  // RSN-lookup state. Niet vereist — handmatig invullen werkt nog
+  // steeds — maar voor 95% van de gebruikers is "typ je naam → autofill"
+  // sneller dan twee numbers + drie quest-toggles.
+  const [rsn, setRsn] = useState("");
+  const [lookupErr, setLookupErr] = useState<string | null>(null);
+  const [lookupOk, setLookupOk] = useState<string | null>(null);
+  const [pluginBlocks, setPluginBlocks] = useState<Set<string>>(new Set());
+  const [pluginSlayer, setPluginSlayer] = useState<{ points: number; streak: number; taskRemaining: number } | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  const onLookup = () => {
+    const trimmed = rsn.trim();
+    if (!trimmed) return;
+    setLookupErr(null);
+    setLookupOk(null);
+    startTransition(async () => {
+      // Parallel: Hiscores (skills + combat) + onze plugin-sync (claimed
+      // RSN → quests, diaries, CL items, en in toekomst block-list).
+      const [hi, sync] = await Promise.all([
+        hiscoresAction(trimmed),
+        syncedPlayerAction(trimmed)
+      ]);
+      if (!hi) {
+        setLookupErr(`Geen Hiscores-resultaat voor "${trimmed}". Tikfout?`);
+        return;
+      }
+      const cb = computeCombatLevel(hi.skills);
+      const sl = hi.skills.find((s) => s.name.toLowerCase() === "slayer")?.level ?? 1;
+      setCombatLevel(cb);
+      setSlayerLevel(sl);
+      // We weten welke quests gedaan zijn niet uit Hiscores; aanname
+      // = alle drie voltooid bij combat 90+ (vrij safe — de meeste
+      // accounts op dat niveau hebben Lost City + Shilo + PiP).
+      // Plugin-sync overrulet dit wanneer hij quest-data heeft.
+      if (sync && sync.questsCompleted.length > 0) {
+        const lower = new Set(sync.questsCompleted.map((q) => q.toLowerCase()));
+        const next = new Set<string>();
+        for (const q of QUESTS) {
+          // Plugin gebruikt OSRS display-namen ("Lost City"), wij
+          // lower-snake ("lost_city"); doe een fuzzy contains.
+          const target = q.label.split(" (")[0].toLowerCase();
+          if (lower.has(target)) next.add(q.id);
+        }
+        // Als geen match, val terug op alle 3 (slayer-master eis is
+        // bewust laag).
+        setQuestsDone(next.size > 0 ? next : new Set(QUESTS.map((q) => q.id)));
+      } else if (cb >= 90) {
+        setQuestsDone(new Set(QUESTS.map((q) => q.id)));
+      }
+      // Plugin block-list zit nog niet in onze sync-payload (komt fase
+      // 3.3 — vereist task-id → monster-name mapping). Voor nu leeg.
+      setPluginBlocks(new Set());
+      setPluginSlayer(sync?.slayer ?? null);
+      const bits = [
+        `Combat ${cb}`,
+        `Slayer ${sl}`,
+        sync ? "+ plugin data" : "(no plugin data yet)"
+      ];
+      setLookupOk(`Loaded: ${bits.join(" · ")}`);
+    });
+  };
+
   const state: PlayerState = useMemo(() => ({
     combatLevel,
     slayerLevel,
     completedQuests: questsDone,
-    blockedMonsterIds: new Set(),
+    // Plugin-blocks worden hier ingevoerd zodra de RuneLite plugin
+    // ze in zijn sync-payload meestuurt (fase 3.2).
+    blockedMonsterIds: pluginBlocks,
     taskStreak: 50
-  }), [combatLevel, slayerLevel, questsDone]);
+  }), [combatLevel, slayerLevel, questsDone, pluginBlocks]);
 
   const masters = useMemo(() => rankMasters(state), [state]);
 
@@ -48,6 +114,43 @@ export function SlayerClient() {
         <h2 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)] mb-3">
           Your account
         </h2>
+        {/* RSN-lookup: 1 invoer-veld, alles eronder wordt
+            geautomatisch ingevuld via Hiscores + plugin-sync.
+            Handmatig invullen blijft mogelijk voor wie geen account
+            wil typen (test mode). */}
+        <div className="mb-4">
+          <span className="text-[11.5px] text-[var(--color-text-muted)] mb-1.5 block">
+            Look up your RSN (skips de handmatige sliders)
+          </span>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[var(--color-text-muted)]" />
+              <input
+                type="text"
+                value={rsn}
+                onChange={(e) => setRsn(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") onLookup(); }}
+                placeholder="e.g. Lynx Titan"
+                maxLength={12}
+                className="w-full pl-10 pr-3 py-2 rounded-lg bg-[var(--color-bg-2)] border border-[var(--color-border)] focus:border-[var(--color-accent)]/50 text-[14px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={onLookup}
+              disabled={pending || !rsn.trim()}
+              className="px-4 py-2 rounded-lg bg-[var(--color-accent)] text-[var(--color-bg)] text-[13px] font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-110 transition-all"
+            >
+              {pending ? "..." : "Lookup"}
+            </button>
+          </div>
+          {lookupErr && (
+            <p className="mt-1.5 text-[11.5px] text-[var(--color-bad)]">{lookupErr}</p>
+          )}
+          {lookupOk && (
+            <p className="mt-1.5 text-[11.5px] text-[var(--color-good)]">{lookupOk}</p>
+          )}
+        </div>
         <div className="grid sm:grid-cols-2 gap-4">
           <label className="block">
             <span className="text-[11.5px] text-[var(--color-text-muted)] mb-1.5 block">Combat level</span>
@@ -98,6 +201,34 @@ export function SlayerClient() {
           </div>
         </div>
       </section>
+
+      {/* Plugin-data callout — toont alleen als de RuneLite plugin echt
+          data heeft gepushed voor deze RSN. Geeft de speler vertrouwen
+          dat de sync werkt + surfaceert points/streak die je anders
+          alleen in-game ziet. */}
+      {pluginSlayer && (
+        <section className="rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/5 p-4">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
+              Plugin sync live
+            </div>
+            <div className="flex items-center gap-5 text-[13px] tabular-nums">
+              <div>
+                <span className="text-[var(--color-text-muted)]">Points</span>{" "}
+                <span className="text-[var(--color-text)] font-semibold">{pluginSlayer.points.toLocaleString()}</span>
+              </div>
+              <div>
+                <span className="text-[var(--color-text-muted)]">Streak</span>{" "}
+                <span className="text-[var(--color-text)] font-semibold">{pluginSlayer.streak}</span>
+              </div>
+              <div>
+                <span className="text-[var(--color-text-muted)]">Task left</span>{" "}
+                <span className="text-[var(--color-text)] font-semibold">{pluginSlayer.taskRemaining}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Masters ranking */}
       <section>

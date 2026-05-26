@@ -172,6 +172,15 @@ public class ScapestackSyncPlugin extends Plugin {
         }
         body.add("diariesCompleted", diaries);
         body.add("collectionLogItemIds", gson.toJsonTree(snap.collectionLogItemIds));
+        // Slayer-state: alleen meesturen wanneer de plugin het kon
+        // lezen (lege payload = "geen sessie / niet ingelogd").
+        if (snap.slayer != null) {
+            JsonObject slayer = new JsonObject();
+            slayer.addProperty("points", snap.slayer.points);
+            slayer.addProperty("streak", snap.slayer.streak);
+            slayer.addProperty("taskRemaining", snap.slayer.taskRemaining);
+            body.add("slayer", slayer);
+        }
 
         // Token bootstrap + claim-if-needed + sync POST all run on a
         // background thread. Claim involves an HTTP round-trip and a

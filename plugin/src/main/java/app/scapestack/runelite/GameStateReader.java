@@ -37,6 +37,20 @@ public class GameStateReader {
         public List<String> questsCompleted = new ArrayList<>();
         public List<DiaryCompletion> diariesCompleted = new ArrayList<>();
         public List<Integer> collectionLogItemIds = new ArrayList<>();
+        public SlayerState slayer = null;
+    }
+
+    /** Slayer-state read uit VarPlayers. Null wanneer geen sessie of
+     *  varp-leesfout — server-side leeg veld = "geen plugin slayer data". */
+    public static class SlayerState {
+        public final int points;             // varp 1170
+        public final int streak;             // varp 1602
+        public final int taskRemaining;      // varp 395  (huidige task quantity remaining)
+        public SlayerState(int points, int streak, int taskRemaining) {
+            this.points = points;
+            this.streak = streak;
+            this.taskRemaining = taskRemaining;
+        }
     }
 
     public static class DiaryCompletion {
@@ -123,6 +137,25 @@ public class GameStateReader {
         s.questsCompleted = readQuests(client);
         s.diariesCompleted = readDiaries(client);
         s.collectionLogItemIds = collectionLogItemIds != null ? collectionLogItemIds : Collections.emptyList();
+        s.slayer = readSlayer(client);
         return s;
+    }
+
+    /** Slayer points + streak + current-task remaining vanuit VarPlayers.
+     *  Documentatie van varp-IDs leeft op de OSRS Wiki ("VarPlayer (VarP)"
+     *  pagina) — we pinnen ze hier zodat de plugin test-baar blijft
+     *  zonder live client. */
+    private SlayerState readSlayer(Client client) {
+        try {
+            int points = client.getVarpValue(1170);
+            int streak = client.getVarpValue(1602);
+            int remaining = client.getVarpValue(395);
+            // Geen sessie / niet ingelogd → alles 0. Treat als "no data."
+            if (points == 0 && streak == 0 && remaining == 0) return null;
+            return new SlayerState(points, streak, remaining);
+        } catch (Exception ex) {
+            log.debug("Slayer state read faalde — verm. geen sessie", ex);
+            return null;
+        }
     }
 }
