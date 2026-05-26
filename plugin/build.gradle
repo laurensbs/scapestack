@@ -25,6 +25,13 @@ repositories {
 
 def runeLiteVersion = 'latest.release'
 
+// 'runClient' needs the RuneLite client + its transitive deps on a
+// real (non-test) runtime classpath. The main compileOnly dep keeps
+// the jar slim; we add a separate config for the launcher.
+configurations {
+    runClient
+}
+
 dependencies {
     compileOnly group: 'net.runelite', name: 'client', version: runeLiteVersion
 
@@ -37,6 +44,9 @@ dependencies {
     // E2E smoke-test uses JDBC to reset claim rows before assertions
     // (skipped automatically when DATABASE_URL isn't set).
     testImplementation 'org.postgresql:postgresql:42.7.4'
+
+    runClient group: 'net.runelite', name: 'client', version: runeLiteVersion
+    runClient group: 'net.runelite', name: 'jshell',  version: runeLiteVersion
 }
 
 group = 'app.scapestack.runelite'
@@ -45,6 +55,22 @@ sourceCompatibility = '11'
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
+}
+
+// Launches RuneLite met deze plugin side-loaded. Gebruik:
+//   JAVA_HOME=~/jdk-11/jdk-11.0.31+11/Contents/Home ./gradlew runClient
+// De --developer-mode flag activeert ExternalPluginManager.loadBuiltin,
+// die alle @PluginDescriptor classes op het classpath registreert —
+// onze ScapestackSyncPlugin dus ook.
+task runClient(type: JavaExec) {
+    group = 'application'
+    description = 'Start RuneLite met de Scapestack-plugin side-loaded'
+    dependsOn 'jar'
+    classpath = configurations.runClient + sourceSets.main.runtimeClasspath
+    mainClass = 'net.runelite.client.RuneLite'
+    args = ['--developer-mode', '--debug']
+    // RuneLite's eigen launcher schakelt soms native-lib loads in/uit.
+    systemProperty 'runelite.pluginhub.version', project.version
 }
 
 test {
