@@ -22,6 +22,7 @@ import { unlockedFromHiscores } from "@/lib/goals";
 import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
 import { track } from "@/lib/analytics";
 import type { Recommendation, RecKind, NextUpResult } from "@/lib/next-up";
+import { pickForMood, MOOD_LABEL, type Mood, type TimeBudget } from "@/lib/mood";
 import { cn, ICON_URL } from "@/lib/utils";
 
 // Per-kind visual identity — Lucide fallback + an OSRS sprite. Recs that
@@ -644,6 +645,14 @@ function ResultView({ result, onEdit, onBossOpen }: {
         </div>
       )}
 
+      {/* Mood-driven suggestie. Optioneel — kies een mood + tijd en
+          zie 1 hoofdsuggestie + 2 alternatieven gefilterd op vibe.
+          Tonight's pick blijft hierboven als "objectief beste" anchor. */}
+      <MoodSection
+        allRecs={headline ? [headline, ...rest] : rest}
+        onBossOpen={onBossOpen}
+      />
+
       {/* Path-to-Max — the long-term shape of the account. Four cards
           (Skills / Quests / Diaries / Bosses) with progress + next-steps,
           drill-in modal per path. */}
@@ -892,4 +901,120 @@ function RecRow({ rec, onBossOpen }: { rec: Recommendation; onBossOpen: (slug: s
     );
   }
   return rec.link ? <Link href={rec.link}>{inner}</Link> : inner;
+}
+
+// ── Mood section ───────────────────────────────────────────────────────────
+// "Wat heb je zin in?" — kies een vibe, kies een tijdsbudget, krijg
+// één concrete suggestie + 2 alternatieven. Optioneel; "Tonight's pick"
+// hierboven blijft de objectief-beste anchor voor wie deze keuze wil
+// overslaan. Engine zit in src/lib/mood.ts (pickForMood).
+
+const MOODS: Mood[] = ["chill", "focused", "cash", "quest"];
+const TIME_OPTIONS: { value: TimeBudget; label: string }[] = [
+  { value: 15,  label: "15 min" },
+  { value: 30,  label: "30 min" },
+  { value: 60,  label: "1 uur"  },
+  { value: 120, label: "2 uur"  },
+];
+
+function MoodSection({
+  allRecs,
+  onBossOpen
+}: {
+  allRecs: Recommendation[];
+  onBossOpen: (slug: string) => void;
+}) {
+  const [mood, setMood] = useState<Mood | null>(null);
+  const [minutes, setMinutes] = useState<TimeBudget>(60);
+
+  const pick = useMemo(
+    () => (mood ? pickForMood(allRecs, mood, minutes) : null),
+    [allRecs, mood, minutes]
+  );
+
+  if (allRecs.length === 0) return null;
+
+  return (
+    <section className="mb-10">
+      <h3 className="eyebrow mb-3 text-[var(--color-accent)]">Waar heb je zin in?</h3>
+
+      {/* Mood-chips row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+        {MOODS.map((m) => {
+          const label = MOOD_LABEL[m];
+          const active = mood === m;
+          return (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMood(active ? null : m)}
+              className={cn(
+                "px-3 py-3 rounded-lg border text-left transition-all",
+                active
+                  ? "border-[var(--color-accent)]/60 bg-[var(--color-accent)]/10"
+                  : "border-[var(--color-border)] bg-[var(--color-panel)] hover:border-[var(--color-border-strong)]"
+              )}
+            >
+              <div className="flex items-baseline gap-2">
+                <span className="text-[16px]">{label.emoji}</span>
+                <span className={cn(
+                  "text-[13.5px] font-semibold",
+                  active ? "text-[var(--color-accent)]" : "text-[var(--color-text)]"
+                )}>
+                  {label.name}
+                </span>
+              </div>
+              <p className="text-[11px] text-[var(--color-text-muted)] mt-1">{label.tagline}</p>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Time-budget row — alleen relevant zodra mood gekozen */}
+      {mood && (
+        <div className="flex items-center gap-2 flex-wrap mb-4">
+          <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+            Tijd
+          </span>
+          {TIME_OPTIONS.map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              onClick={() => setMinutes(t.value)}
+              className={cn(
+                "px-2.5 py-1 rounded-md text-[11px] border transition-colors",
+                minutes === t.value
+                  ? "border-[var(--color-accent)]/50 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
+                  : "border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
+              )}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Resultaat — hoofdsuggestie groot, alternatieven klein */}
+      {pick && (
+        <div className="space-y-3">
+          <div>
+            <div className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2">
+              Voor {MOOD_LABEL[pick.mood].name.toLowerCase()} · {TIME_OPTIONS.find((t) => t.value === pick.minutes)?.label}
+            </div>
+            <HeadlineCard rec={pick.headline} onBossOpen={onBossOpen} />
+          </div>
+          {pick.alternatives.length > 0 && (
+            <div>
+              <div className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2 mt-4">
+                Of liever iets anders?
+              </div>
+              <div className="grid sm:grid-cols-2 gap-2.5">
+                {pick.alternatives.map((r) => <RecRow key={r.id} rec={r} onBossOpen={onBossOpen} />)}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+  );
 }
