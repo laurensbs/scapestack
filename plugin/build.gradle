@@ -1,0 +1,49 @@
+// Scapestack RuneLite plugin — Gradle build.
+//
+// Build:   ./gradlew build
+// Dev run: ./gradlew runClient   (launches RuneLite with this plugin loaded)
+//
+// Requires:
+//   - JDK 11+ (RuneLite's baseline)
+//   - Local Gradle (or use the wrapper if/when we add one)
+//
+// First-time setup: run `gradle wrapper` once, then everything via
+// `./gradlew`. The wrapper isn't committed yet because some IDE
+// integrations regen it differently per machine.
+
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url = 'https://repo.runelite.net'
+    }
+}
+
+def runeLiteVersion = 'latest.release'
+
+dependencies {
+    compileOnly group: 'net.runelite', name: 'client', version: runeLiteVersion
+
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation group: 'net.runelite', name: 'client', version: runeLiteVersion
+    testImplementation group: 'net.runelite', name: 'jshell', version: runeLiteVersion
+}
+
+group = 'app.scapestack.runelite'
+version = '0.1.0'
+sourceCompatibility = '11'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+test {
+    useJUnit()
+}

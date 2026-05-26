@@ -86,9 +86,17 @@ export interface NextUpInput {
    *  Used to skip KC-recs whose iconic drop the player already has —
    *  exact data instead of bank-paste guesswork. */
   collectionLogOwnedItemIds?: number[];
+  /** Scapestack-plugin sync data — our own RuneLite plugin. Highest
+   *  priority signal: exact quest + diary + CL state straight from the
+   *  player's game client. */
+  scapestackSync?: {
+    questsCompleted: string[];
+    diariesCompleted: Array<{ region: string; tier: string }>;
+    collectionLogItemIds: number[];
+  };
   /** Tracks which external trackers contributed. Surfaced as the
    *  'Synced via X · Y · Z' badge on the hero block. */
-  syncedSources?: { wom: boolean; temple: boolean; collectionLog: boolean };
+  syncedSources?: { wom: boolean; temple: boolean; collectionLog: boolean; scapestack: boolean };
 }
 
 export interface NextUpResult {
@@ -925,6 +933,11 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
       ? new Set(input.templeQuestsCompleted)
       : undefined,
     collectionLogOwnedItemIds: clOwned,
+    scapestackSync: input.scapestackSync ? {
+      questsCompleted: new Set(input.scapestackSync.questsCompleted.map((q) => q.toLowerCase())),
+      diariesCompleted: new Set(input.scapestackSync.diariesCompleted.map((d) => `${d.region}:${d.tier}`)),
+      collectionLogItemIds: new Set(input.scapestackSync.collectionLogItemIds)
+    } : undefined,
     syncedSources: input.syncedSources
   });
 

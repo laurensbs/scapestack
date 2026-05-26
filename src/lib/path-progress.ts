@@ -401,7 +401,75 @@ function questsPathFromTemple(
 
 const DIARY_TIERS_ORDER: DiaryTier[] = ["Easy", "Medium", "Hard", "Elite"];
 
-function diariesPath(diaries: Map<string, DiaryRecord>, skills: HiscoreSkill[]): PathProgress {
+/** Exact-data variant of diariesPath driven by scapestack-plugin sync.
+ *  Each completed key is 'Region:Tier' (e.g. 'Karamja:Hard'). */
+function diariesPathFromSync(
+  diaries: Map<string, DiaryRecord>,
+  skills: HiscoreSkill[],
+  exactCompleted: Set<string>
+): PathProgress {
+  const lvl = (name: string) => skills.find((s) => s.name === name)?.level ?? 1;
+  const total = diaries.size * 4;
+  const allSteps: PathProgress["allSteps"] = [];
+  let done = 0;
+
+  for (const [region, d] of diaries) {
+    for (const tier of DIARY_TIERS_ORDER) {
+      const reqs = d.tiers[tier]?.skills ?? [];
+      if (reqs.length === 0) continue;
+      const isDone = exactCompleted.has(`${region}:${tier}`);
+      if (isDone) done++;
+      const whyMissing = reqs.filter((r) => lvl(r.skill) < r.level)
+        .map((r) => `${r.skill} ${r.level}`).join(", ");
+      allSteps.push({
+        title: `${region} — ${tier}`,
+        why: isDone ? "Synced from your game" : whyMissing ? `Need: ${whyMissing}` : "Open",
+        status: isDone ? "done" : "open",
+        iconItemId: 11140
+      });
+    }
+  }
+
+  // Next steps: the three highest-tier diaries the player meets stats
+  // for but hasn't completed yet (according to scapestack sync).
+  const tierRank: Record<DiaryTier, number> = { Easy: 1, Medium: 2, Hard: 3, Elite: 4 };
+  const candidates: Array<{ region: string; tier: DiaryTier; margin: number }> = [];
+  for (const [region, d] of diaries) {
+    for (const tier of DIARY_TIERS_ORDER) {
+      if (exactCompleted.has(`${region}:${tier}`)) continue;
+      const reqs = d.tiers[tier]?.skills ?? [];
+      if (reqs.length === 0) continue;
+      const margins = reqs.map((r) => lvl(r.skill) - r.level);
+      const allMet = margins.every((m) => m >= 0);
+      const minMargin = margins.length > 0 ? Math.min(...margins) : 0;
+      if (allMet) candidates.push({ region, tier, margin: minMargin });
+    }
+  }
+  candidates.sort((a, b) =>
+    (tierRank[b.tier] - tierRank[a.tier]) || (a.margin - b.margin)
+  );
+  const nextSteps: PathStep[] = candidates.slice(0, 3).map((c) => ({
+    title: `${c.region} Diary — ${c.tier}`,
+    why: `Your skills now clear every task in this tier.`,
+    iconItemId: 11140
+  }));
+
+  return {
+    kind: "diaries",
+    label: "Diaries",
+    tagline: done === total
+      ? "All diary tiers complete · synced from your game."
+      : `${total - done} open · synced from your game.`,
+    percent: Math.round((done / total) * 100),
+    done, total, nextSteps, allSteps
+  };
+}
+
+function diariesPath(
+  diaries: Map<string, DiaryRecord>,
+  skills: HiscoreSkill[],
+  exactCompleted?: Set<string>
+): PathProgress {
   if (diaries.size === 0) {
     return {
       kind: "diaries",
@@ -409,6 +477,11 @@ function diariesPath(diaries: Map<string, DiaryRecord>, skills: HiscoreSkill[]):
       tagline: "Diary data unavailable.",
       percent: 0, done: 0, total: 0, nextSteps: [], allSteps: []
     };
+  }
+  // Scapestack-sync path — exact data per region+tier. Skip the
+  // heuristics entirely when we have it.
+  if (exactCompleted && exactCompleted.size > 0) {
+    return diariesPathFromSync(diaries, skills, exactCompleted);
   }
   const lvl = (name: string) => skills.find((s) => s.name === name)?.level ?? 1;
   const xp = (name: string) => skills.find((s) => s.name === name)?.xp ?? 0;
@@ -665,8 +738,8 @@ export interface PathOverview {
    *  to render the 'Synced via Wise Old Man' badge. */
   accountMeta: AccountMeta | null;
   /** Which external trackers returned data for this player. Drives the
-   *  'Synced via WOM/Temple/CL' badge. */
-  syncedSources?: { wom: boolean; temple: boolean; collectionLog: boolean };
+   *  'Synced via WOM/Temple/CL/Scapestack' badge. */
+  syncedSources?: { wom: boolean; temple: boolean; collectionLog: boolean; scapestack: boolean };
 }
 
 export interface ComputePathProgressInput {
@@ -687,17 +760,39 @@ export interface ComputePathProgressInput {
    *  boss as 'committed' when the player has any unique drop from it,
    *  even when KC is low. Beats the 50-KC threshold for accuracy. */
   collectionLogOwnedItemIds?: Set<number>;
+  /** Our own scapestack-plugin sync data. Highest-priority signal —
+   *  exact quest + diary + CL state straight from the game client.
+   *  When present, overrides Temple/cl.net and bypasses heuristics. */
+  scapestackSync?: {
+    questsCompleted: Set<string>;
+    diariesCompleted: Set<string>; // 'Region:Tier' keys
+    collectionLogItemIds: Set<number>;
+  };
   /** Tracks which external sources had data, drives the synced-badge
    *  copy. */
-  syncedSources?: { wom: boolean; temple: boolean; collectionLog: boolean };
+  syncedSources?: { wom: boolean; temple: boolean; collectionLog: boolean; scapestack: boolean };
 }
 
 export function computePathProgress(input: ComputePathProgressInput): PathOverview {
+  // Scapestack-plugin sync has priority — when it's present, the player
+  // installed our plugin and the data is authoritative. We merge into
+  // the existing maps:
+  //   - quests: scapestack-sync overrides Temple
+  //   - CL items: scapestack-sync merges into the cl.net set
+  //   - diaries: only scapestack-sync provides this; otherwise we fall
+  //     back to the skill-margin + XP-evidence heuristics
+  const effectiveQuests = input.scapestackSync?.questsCompleted ?? input.templeQuestsCompleted;
+  const effectiveClItems = input.scapestackSync
+    ? new Set([
+        ...Array.from(input.collectionLogOwnedItemIds ?? []),
+        ...Array.from(input.scapestackSync.collectionLogItemIds)
+      ])
+    : input.collectionLogOwnedItemIds;
   const paths: [PathProgress, PathProgress, PathProgress, PathProgress] = [
     skillsPath(input.skills),
-    questsPath(input.quests, input.skills, input.questPoints, input.templeQuestsCompleted),
-    diariesPath(input.diaries, input.skills),
-    bossesPath(input.bossKc, input.skills, input.womBossKills, input.collectionLogOwnedItemIds)
+    questsPath(input.quests, input.skills, input.questPoints, effectiveQuests),
+    diariesPath(input.diaries, input.skills, input.scapestackSync?.diariesCompleted),
+    bossesPath(input.bossKc, input.skills, input.womBossKills, effectiveClItems)
   ];
   const overallPercent = Math.round(
     paths.reduce((sum, p) => sum + p.percent, 0) / paths.length

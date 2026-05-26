@@ -7,6 +7,7 @@ import { fetchHiscores, type PlayerHiscores } from "@/lib/hiscores";
 import { fetchWom, type WomPlayer } from "@/lib/wom";
 import { fetchCollectionLog, type CollectionLog } from "@/lib/collection-log";
 import { fetchTemple, type TempleData } from "@/lib/temple";
+import { getSyncedPlayer, type SyncedPlayer } from "@/lib/sync-repo";
 
 export async function hiscoresAction(rsn: string): Promise<PlayerHiscores | null> {
   // Server-side proxy for the OSRS Hiscores fetch. The Jagex endpoint
@@ -72,6 +73,14 @@ export async function templeAction(rsn: string): Promise<TemplePayload | null> {
     questsCompleted: Array.from(data.questsCompleted),
     lastUpdatedAt: data.lastUpdatedAt
   };
+}
+
+/** Our own scapestack-plugin sync data. Highest-priority signal — beats
+ *  Temple / WOM / cl.net because it's a direct feed from the player's
+ *  game client. Null when the player hasn't installed the plugin (or
+ *  when DATABASE_URL is unset in dev). */
+export async function syncedPlayerAction(rsn: string): Promise<SyncedPlayer | null> {
+  return getSyncedPlayer(rsn);
 }
 
 export async function nextUpAction(input: NextUpInput): Promise<NextUpResult> {

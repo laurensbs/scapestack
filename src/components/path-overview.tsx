@@ -29,14 +29,23 @@ function accountTypeLabel(t: NonNullable<PathOverviewData["accountMeta"]>["accou
 // to the plain 'estimated' footnote when nothing matched. Each source
 // gets a small dot + a link to the player's profile on that service.
 function SyncedBadge({ data }: { data: PathOverviewData }) {
-  const sources: Array<{ name: string; url: string; primary: boolean }> = [];
+  const sources: Array<{ name: string; url: string | null; primary: boolean }> = [];
   const meta = data.accountMeta;
   const synced = data.syncedSources;
+  // Scapestack plugin wins primary slot when present — our own data is
+  // the most authoritative.
+  if (synced?.scapestack) {
+    sources.push({
+      name: "Scapestack plugin",
+      url: null,
+      primary: true
+    });
+  }
   if (meta && synced?.wom) {
     sources.push({
       name: `WOM · ${accountTypeLabel(meta.accountType)}`,
       url: `https://wiseoldman.net/players/${encodeURIComponent(meta.displayName)}`,
-      primary: true
+      primary: !synced.scapestack
     });
   }
   if (synced?.temple) {
@@ -71,16 +80,22 @@ function SyncedBadge({ data }: { data: PathOverviewData }) {
       {sources.map((s, i) => (
         <span key={s.name} className="inline-flex items-center gap-2">
           {i > 0 && <span className="text-[var(--color-border-strong)]">·</span>}
-          <a
-            href={s.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={s.primary
-              ? "text-[var(--color-accent)] hover:underline"
-              : "text-[var(--color-text-dim)] hover:text-[var(--color-accent)] transition-colors"}
-          >
-            {s.name}
-          </a>
+          {s.url ? (
+            <a
+              href={s.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={s.primary
+                ? "text-[var(--color-accent)] hover:underline"
+                : "text-[var(--color-text-dim)] hover:text-[var(--color-accent)] transition-colors"}
+            >
+              {s.name}
+            </a>
+          ) : (
+            <span className={s.primary ? "text-[var(--color-accent)]" : "text-[var(--color-text-dim)]"}>
+              {s.name}
+            </span>
+          )}
         </span>
       ))}
     </div>

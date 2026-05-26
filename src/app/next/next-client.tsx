@@ -16,7 +16,7 @@ import { PathOverview } from "@/components/path-overview";
 import { TypingTitle } from "@/components/typing-title";
 import { BOSSES, type Boss } from "@/lib/bosses";
 import { ownedGear, type GearItem } from "@/lib/gear";
-import { organizeAction, nextUpAction, hiscoresAction, womAction, collectionLogAction, templeAction } from "@/app/actions";
+import { organizeAction, nextUpAction, hiscoresAction, womAction, collectionLogAction, templeAction, syncedPlayerAction } from "@/app/actions";
 import { type HiscoreSkill } from "@/lib/hiscores";
 import { unlockedFromHiscores } from "@/lib/goals";
 import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
@@ -162,21 +162,24 @@ export function NextClient() {
       const rsn = (opts.rsn ?? "").trim();
       const input = (opts.input ?? "").trim();
 
-      // Four best-effort lookups in parallel:
+      // Five best-effort lookups in parallel:
       //   - Hiscores: Jagex official. Skills + bossKC + activities.
       //   - WOM: account type + EHP/EHB + WOM-tracked boss KCs.
       //   - Temple: per-quest completion (real data, not heuristic).
-      //   - cl.net: per-item collection-log state (real data, not heuristic).
+      //   - cl.net: per-item collection-log state.
+      //   - scapestackSync: our own plugin (highest priority — sources
+      //     quest + diary + CL state directly from the game client).
       // Each returns null when the player isn't tracked there — we keep
       // whatever we got and fall back to heuristics for the rest.
-      const [hiscores, wom, temple, collectionLog] = rsn
+      const [hiscores, wom, temple, collectionLog, scapestackSync] = rsn
         ? await Promise.all([
             hiscoresAction(rsn),
             womAction(rsn),
             templeAction(rsn),
-            collectionLogAction(rsn)
+            collectionLogAction(rsn),
+            syncedPlayerAction(rsn)
           ])
-        : [null, null, null, null];
+        : [null, null, null, null, null];
 
       // Three ways to fill `bank`: pre-parsed handoff, paste-string, or
       // empty. organizeAction is only called for the paste-string path.
@@ -248,10 +251,16 @@ export function NextClient() {
         } : null,
         templeQuestsCompleted: temple?.questsCompleted,
         collectionLogOwnedItemIds: collectionLog?.ownedItemIds,
+        scapestackSync: scapestackSync ? {
+          questsCompleted: scapestackSync.questsCompleted,
+          diariesCompleted: scapestackSync.diariesCompleted,
+          collectionLogItemIds: scapestackSync.collectionLogItemIds
+        } : undefined,
         syncedSources: {
           wom: wom !== null,
           temple: temple !== null,
-          collectionLog: collectionLog !== null
+          collectionLog: collectionLog !== null,
+          scapestack: scapestackSync !== null
         }
       }));
       setView("result");
