@@ -58,4 +58,17 @@ test {
         if (line) dbUrl = line.substring('DATABASE_URL='.length()).trim()
     }
     if (dbUrl) systemProperty 'DATABASE_URL', dbUrl
+
+    // E2E hits a live server — gradle has no way to know if that server's
+    // state changed, so up-to-date caching gives false-silent runs.
+    // Always rerun. Pure-unit suites are fast enough that we don't care.
+    outputs.upToDateWhen { false }
+
+    // Per-test PASS/FAIL/SKIP visibility — without this you only see the
+    // summary "BUILD SUCCESSFUL" which hides what actually ran.
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        showStandardStreams = false
+        exceptionFormat = 'short'
+    }
 }
