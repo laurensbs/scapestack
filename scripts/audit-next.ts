@@ -179,6 +179,75 @@ const SCENARIOS: Array<{
       "Skill milestone (no skills > 1)",
       "Boss recommendation"
     ]
+  },
+  {
+    label: "D — Mid-game PvM player",
+    blurb: "Combat 110, 180 QP, just started DT2, no diaries past Hard.",
+    skills: buildSkills({
+      Attack: 90, Strength: 90, Defence: 80, Hitpoints: 85, Ranged: 92,
+      Magic: 85, Prayer: 74, Slayer: 80,
+      Cooking: 80, Woodcutting: 70, Fletching: 80, Fishing: 70,
+      Firemaking: 70, Crafting: 75, Smithing: 70, Mining: 72,
+      Herblore: 78, Agility: 70, Thieving: 80, Farming: 75,
+      Runecraft: 70, Hunter: 70, Construction: 75
+    }),
+    bank: [
+      { id: 4151, name: "Abyssal whip" },
+      { id: 28688, name: "Blazing blowpipe" },
+      { id: 11804, name: "Bandos godsword" },
+      { id: 11832, name: "Bandos chestplate" },
+      { id: 11834, name: "Bandos tassets" },
+      { id: 19553, name: "Amulet of torture" },
+      { id: 21295, name: "Infernal cape" },
+      { id: 21907, name: "Vorkath's head" }, // owns a Vorkath unique
+      { id: 12921, name: "Magic fang" }       // owns a Zulrah unique
+    ],
+    questPoints: 180,
+    bossKc: {
+      "Vorkath": 250,
+      "Zulrah": 180,
+      "Vardorvis": 15,        // started DT2
+      "Alchemical Hydra": 30  // partial
+    },
+    expected: [
+      "Quests path should give credit for DT2 prereqs since stats + Vard KC suggest in-progress",
+      "Vorkath + Zulrah marked done via cl.net iconic-unique even if KC test missed",
+      "Diary should mark Easy/Medium tiers via XP-evidence",
+      "Push Vardorvis to 50 KC as next step"
+    ],
+    badSigns: [
+      "Claim that DT2 itself is done (KC 15 + no DT2 uniques)",
+      "Diary path showing 0% (XP-evidence should catch most Easy/Mediums)",
+      "Skills path showing 95%+ (true XP would be ~30-40%)"
+    ]
+  },
+  {
+    label: "E — Skiller (very low combat)",
+    blurb: "Combat 3, all skills 80+ except combat skills at 1-10.",
+    skills: buildSkills({
+      Attack: 1, Strength: 1, Defence: 1, Hitpoints: 10, Ranged: 1,
+      Magic: 1, Prayer: 1, Slayer: 1,
+      Cooking: 90, Woodcutting: 99, Fletching: 90, Fishing: 90,
+      Firemaking: 99, Crafting: 85, Smithing: 80, Mining: 90,
+      Herblore: 80, Agility: 80, Thieving: 80, Farming: 85,
+      Runecraft: 80, Hunter: 80, Construction: 80
+    }),
+    bank: [
+      { id: 1351, name: "Bronze axe" },
+      { id: 1731, name: "Glory amulet" }
+    ],
+    questPoints: 60,
+    bossKc: {},
+    expected: [
+      "Skills percent should reflect ~50% (skiller has invested in non-combat)",
+      "Bosses path stays 0% — no combat skill > 10",
+      "Quest path moderate — many F2P + skill-only quests done",
+      "Diary path should give credit for skill-heavy Easy/Medium tiers"
+    ],
+    badSigns: [
+      "Boss next-step suggesting combat (CL < 50)",
+      "Skill milestone in combat skills (player explicitly skips them)"
+    ]
   }
 ];
 

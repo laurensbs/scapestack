@@ -924,6 +924,7 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     templeQuestsCompleted: input.templeQuestsCompleted
       ? new Set(input.templeQuestsCompleted)
       : undefined,
+    collectionLogOwnedItemIds: clOwned,
     syncedSources: input.syncedSources
   });
 

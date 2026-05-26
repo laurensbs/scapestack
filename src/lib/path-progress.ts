@@ -60,6 +60,25 @@ const SKILL_NAMES = [
   "Slayer", "Farming", "Runecraft", "Hunter", "Construction"
 ];
 
+// OSRS XP table — XP needed to reach each level. Standard formula.
+// Used by both the skills percentage (XP-weighted instead of level-
+// weighted) and the diary XP-evidence check below.
+const XP_AT_LEVEL: number[] = (() => {
+  const table = [0];
+  let total = 0;
+  for (let n = 1; n < 99; n++) {
+    total += Math.floor(n + 300 * Math.pow(2, n / 7));
+    table.push(Math.floor(total / 4));
+  }
+  return table;
+})();
+
+function xpForLevel(level: number): number {
+  if (level <= 1) return 0;
+  if (level > 99) return XP_AT_LEVEL[99] ?? 13_034_431;
+  return XP_AT_LEVEL[level - 1] ?? 0;
+}
+
 function skillsPath(skills: HiscoreSkill[]): PathProgress {
   if (skills.length === 0) {
     return {
@@ -70,14 +89,18 @@ function skillsPath(skills: HiscoreSkill[]): PathProgress {
     };
   }
   const lvl = (name: string) => skills.find((s) => s.name === name)?.level ?? 1;
+  const xp = (name: string) => skills.find((s) => s.name === name)?.xp ?? 0;
   const done = SKILL_NAMES.filter((n) => lvl(n) >= 99).length;
   const total = SKILL_NAMES.length;
-  // The overall percentage isn't done/total — that would say 0% to a
-  // CB-100 player with no 99s, which reads as wrong. Use the average
-  // skill level / 99 instead, so the bar moves visibly with progress
-  // and only hits 100% on a max cape.
+  // Percent is XP-based, not level-based. Avg-level/99 said 71% to an
+  // all-70 account but that's only ~12% of the XP needed for max.
+  // Cap each skill at the 99-XP threshold so 200M skills don't blow
+  // the average past max-cape parity.
+  const xpAt99 = xpForLevel(99); // 13_034_431
+  const targetTotal = xpAt99 * total;
+  const actualTotal = SKILL_NAMES.reduce((sum, n) => sum + Math.min(xpAt99, xp(n)), 0);
+  const percent = Math.round((actualTotal / targetTotal) * 100);
   const avgLevel = SKILL_NAMES.reduce((sum, n) => sum + Math.min(99, lvl(n)), 0) / total;
-  const percent = Math.round((avgLevel / 99) * 100);
 
   // Next steps: the three skills closest to a milestone (70 / 80 / 90 / 99).
   // Sort by smallest gap; tie-break on highest current level (sunk cost).
@@ -129,6 +152,38 @@ const QP_BY_DIFFICULTY: Record<string, number> = {
   Novice: 1, Intermediate: 2, Experienced: 3, Master: 4, Grandmaster: 5, Special: 4
 };
 
+// Transitive prereq closure. For each quest, returns the FULL set of
+// prerequisite quest names (direct + transitive). The Wiki's questReqs
+// is direct-only, so we walk the graph once.
+//
+// Used by the heuristic to chain-check: a quest is only likely-done if
+// every quest in its transitive prereq set is also likely-done. Stops
+// the QP-budget walk from saying 'DT2 is done' just because skill +
+// budget fit, when the player obviously can't have completed the 13
+// prerequisite quests in the chain.
+function buildTransitivePrereqs(quests: Map<string, QuestRecord>): Map<string, Set<string>> {
+  const cache = new Map<string, Set<string>>();
+  const visiting = new Set<string>(); // cycle guard
+  const resolve = (name: string): Set<string> => {
+    if (cache.has(name)) return cache.get(name)!;
+    if (visiting.has(name)) return new Set(); // cycle — shouldn't happen with quests but be safe
+    visiting.add(name);
+    const q = quests.get(name);
+    const out = new Set<string>();
+    if (q) {
+      for (const direct of q.questReqs) {
+        out.add(direct);
+        for (const indirect of resolve(direct)) out.add(indirect);
+      }
+    }
+    visiting.delete(name);
+    cache.set(name, out);
+    return out;
+  };
+  for (const name of quests.keys()) resolve(name);
+  return cache;
+}
+
 function questsPath(
   quests: Map<string, QuestRecord>,
   skills: HiscoreSkill[],
@@ -153,50 +208,82 @@ function questsPath(
     return questsPathFromTemple(quests, skills, qp, templeQuestsCompleted);
   }
 
-  // Honest heuristic: a player's QP total tells us how many quests they
-  // *could* have completed at most. We sort all quests easiest-first and
-  // accept the cheapest set whose summed QP-cost fits inside the player's
-  // QP. Anything past that point is open even if the stats meet it — we
-  // don't have the data to say otherwise.
+  // Dependency-aware heuristic. The old version sorted quests by
+  // difficulty and spent QP greedily — at 200 QP it would tick off
+  // every Novice quest and then move up, but it didn't track the
+  // dependency chain. A 200 QP account doesn't necessarily have DT2
+  // done; it might have done 50 quick quests and skipped the chain.
   //
-  // The old version (qp >= qpReq + tier-cost) claimed 89% done for a
-  // 105 QP account because each Novice quest's bar was tiny in isolation;
-  // it ignored that the player only has 105 QP to spend across them all.
+  // New approach: build the transitive prereq closure. A quest is
+  // 'likely done' iff:
+  //   (1) skills meet every requirement
+  //   (2) every transitive prereq is also likely-done
+  //   (3) sum of QP-costs for this quest + all prereqs fits in the
+  //       player's actual QP total
+  // We iterate until the set stabilises. Past the 290 QP quest-cape
+  // threshold we short-circuit to 'all done.'
   const allSteps: PathProgress["allSteps"] = [];
   let done = 0;
 
-  // 1. Build an easiest-first list of quests the player meets the skills for.
   const difficultyRank: Record<string, number> = {
     Novice: 0, Intermediate: 1, Experienced: 2, Special: 3, Master: 4, Grandmaster: 5
   };
-  const sortedQuests = [...quests.values()].sort((a, b) =>
-    (difficultyRank[a.difficulty ?? "Intermediate"] ?? 1) -
-    (difficultyRank[b.difficulty ?? "Intermediate"] ?? 1)
-  );
-
-  // 2. Walk the sorted list spending the player's QP. A quest is 'likely
-  //    done' iff its QP fits in the remaining budget AND every skill req
-  //    is met. The skill check is what stops us from saying a low-level
-  //    player has done DT2 just because they have 200 QP.
-  //
-  //    Quest-cape threshold: at ~290 QP a player has effectively done
-  //    every quest in the game (the Wiki's QP cap was 300 at the time
-  //    of writing). Past that point we mark everything done — the
-  //    skill-budget walk would still skip a few miniquests because
-  //    our dataset has 181 records and they sum past 300 QP.
   const QC_THRESHOLD = 290;
+
+  const transitivePrereqs = buildTransitivePrereqs(quests);
+
+  // Cost per quest using its difficulty tier.
+  const costOf = (q: QuestRecord) => QP_BY_DIFFICULTY[q.difficulty ?? "Intermediate"] ?? 2;
+
   const likelyDoneNames = new Set<string>();
   if (skills.length > 0) {
     if (qp >= QC_THRESHOLD) {
-      for (const q of sortedQuests) likelyDoneNames.add(q.name);
+      for (const q of quests.values()) likelyDoneNames.add(q.name);
     } else {
-      let budget = qp;
-      for (const q of sortedQuests) {
-        const meetsSkills = q.skillReqs.every((r) => lvl(r.skill) >= r.level);
-        const cost = QP_BY_DIFFICULTY[q.difficulty ?? "Intermediate"] ?? 2;
-        if (meetsSkills && budget >= cost) {
-          likelyDoneNames.add(q.name);
+      // Sort easiest-first so we resolve prereqs before their consumers.
+      const sortedQuests = [...quests.values()].sort((a, b) =>
+        (difficultyRank[a.difficulty ?? "Intermediate"] ?? 1) -
+        (difficultyRank[b.difficulty ?? "Intermediate"] ?? 1)
+      );
+
+      // Fixed-point iteration: keep adding eligible quests until nothing
+      // changes. Each pass: a quest is eligible iff skills + every
+      // prereq already-done + sum-of-QP fits in budget.
+      let changed = true;
+      while (changed) {
+        changed = false;
+        // Reset budget each pass — we re-walk the full ordering, not
+        // an incremental tally.
+        let budget = qp;
+        const newDone = new Set<string>();
+        for (const q of sortedQuests) {
+          if (newDone.has(q.name)) continue;
+          const cost = costOf(q);
+          if (cost > budget) continue;
+          // Skill check.
+          const meetsSkills = q.skillReqs.every((r) => lvl(r.skill) >= r.level);
+          if (!meetsSkills) continue;
+          // Prereq check: every transitive prereq must already be in
+          // either newDone or the running set.
+          const prereqs = transitivePrereqs.get(q.name) ?? new Set();
+          let prereqsDone = true;
+          for (const pr of prereqs) {
+            if (!quests.has(pr)) continue; // out-of-dataset prereq, skip
+            if (!newDone.has(pr) && !likelyDoneNames.has(pr)) {
+              prereqsDone = false;
+              break;
+            }
+          }
+          if (!prereqsDone) continue;
+          newDone.add(q.name);
           budget -= cost;
+        }
+        // If this pass found more quests than the previous, keep going.
+        for (const n of newDone) {
+          if (!likelyDoneNames.has(n)) {
+            likelyDoneNames.add(n);
+            changed = true;
+          }
         }
       }
     }
@@ -324,6 +411,7 @@ function diariesPath(diaries: Map<string, DiaryRecord>, skills: HiscoreSkill[]):
     };
   }
   const lvl = (name: string) => skills.find((s) => s.name === name)?.level ?? 1;
+  const xp = (name: string) => skills.find((s) => s.name === name)?.xp ?? 0;
   const totalLevel = skills.length > 0 ? computeTotalLevel(skills) : 0;
   const isMaxedish = totalLevel >= 2100;
 
@@ -331,33 +419,63 @@ function diariesPath(diaries: Map<string, DiaryRecord>, skills: HiscoreSkill[]):
   const allSteps: PathProgress["allSteps"] = [];
   let done = 0;
 
-  // Per-tier 'likely done' margin. Diaries need active completion (not
-  // just skill gates), so just barely meeting the cap doesn't mean it's
-  // done. Higher tiers need a bigger margin to credibly say 'you sailed
-  // past this.' Maxed-ish accounts (Total >= 2100) suppress everything
-  // as done since they realistically have it all.
+  // Diary completion has two signals:
+  //   1. Skill-margin: how many levels above the cap is the player?
+  //   2. XP-evidence: a player with 5× the XP needed for the cap has
+  //      almost certainly cleared the diary — they kept training past
+  //      the threshold, which means the threshold was already met long
+  //      ago. This catches the 'capped at the cap' false-positive that
+  //      the margin-only heuristic missed.
+  // 'likely done' = either signal is strong enough. Maxed-ish suppress
+  // suppresses everything as done.
   const REQUIRED_MARGIN: Record<DiaryTier, number> = {
-    Easy: 25,    // anyone with Total > 1000 has crossed Easy gates by accident
-    Medium: 25,
-    Hard: 30,
-    Elite: 30
+    Easy: 18,    // anyone with Total > 1200 typically crosses Easy gates
+    Medium: 22,
+    Hard: 26,
+    Elite: 28
   };
+  // XP-overshoot multiplier per tier — how many times the cap's XP
+  // the player should have to count as 'sailed past.' Elite needs a
+  // smaller multiplier because Elite caps are already near 99-XP
+  // territory and 1.2x of that is huge.
+  const XP_OVERSHOOT: Record<DiaryTier, number> = {
+    Easy: 8,
+    Medium: 4,
+    Hard: 2,
+    Elite: 1.5
+  };
+
   for (const [region, d] of diaries) {
     for (const tier of DIARY_TIERS_ORDER) {
       const reqs = d.tiers[tier]?.skills ?? [];
-      if (reqs.length === 0) continue; // skip unknown tiers
+      if (reqs.length === 0) continue;
+      const allMet = reqs.every((r) => lvl(r.skill) >= r.level);
       const margins = reqs.map((r) => lvl(r.skill) - r.level);
-      const allMet = margins.every((m) => m >= 0);
       const minMargin = margins.length > 0 ? Math.min(...margins) : 0;
-      const likelyDone = isMaxedish || (allMet && minMargin >= REQUIRED_MARGIN[tier]);
+      const marginEvidence = allMet && minMargin >= REQUIRED_MARGIN[tier];
+
+      // XP-evidence: every required skill's XP must overshoot the cap
+      // XP by the tier's multiplier. Strong signal when true — proves
+      // training continued past the threshold.
+      const xpEvidence = allMet && reqs.every((r) => {
+        const reqXp = xpForLevel(r.level);
+        if (reqXp === 0) return false; // level 1 reqs don't have XP-evidence
+        return xp(r.skill) >= reqXp * XP_OVERSHOOT[tier];
+      });
+
+      const likelyDone = isMaxedish || marginEvidence || xpEvidence;
       if (likelyDone) done++;
+
+      const whyMissing = reqs.filter((r) => lvl(r.skill) < r.level)
+        .map((r) => `${r.skill} ${r.level}`).join(", ");
       allSteps.push({
         title: `${region} — ${tier}`,
-        why: allMet
-          ? `Skill cap met (margin ${minMargin}+)`
-          : `Need: ${reqs.filter((r) => lvl(r.skill) < r.level).map((r) => `${r.skill} ${r.level}`).join(", ")}`,
+        why: !allMet ? `Need: ${whyMissing}`
+          : xpEvidence ? `XP shows you've trained past every cap`
+          : marginEvidence ? `Skill cap met (margin ${minMargin}+)`
+          : `Stats meet the cap — bring proof if you've done it`,
         status: likelyDone ? "done" : "open",
-        iconItemId: 11140 // karamja gloves 4
+        iconItemId: 11140
       });
     }
   }
@@ -406,20 +524,36 @@ function diariesPath(diaries: Map<string, DiaryRecord>, skills: HiscoreSkill[]):
 function bossesPath(
   bossKc: Record<string, number>,
   skills: HiscoreSkill[],
-  womBossKills?: Record<string, number>
+  womBossKills?: Record<string, number>,
+  clOwnedItemIds?: Set<number>
 ): PathProgress {
-  // Track the iconic boss roster — same 8 the homepage showcase + KC-recs use.
-  // Each entry also carries the WOM snake_case key so we can prefer WOM's
-  // KC when it's higher than Hiscores (WOM updates more often).
-  const ROSTER: Array<{ slug: string; label: string; hiscoresName: string; womName: string }> = [
-    { slug: "vorkath",   label: "Vorkath",            hiscoresName: "Vorkath",           womName: "vorkath" },
-    { slug: "zulrah",    label: "Zulrah",             hiscoresName: "Zulrah",            womName: "zulrah" },
-    { slug: "cox",       label: "Chambers of Xeric",  hiscoresName: "Chambers of Xeric", womName: "chambers_of_xeric" },
-    { slug: "tob",       label: "Theatre of Blood",   hiscoresName: "Theatre of Blood",  womName: "theatre_of_blood" },
-    { slug: "toa",       label: "Tombs of Amascut",   hiscoresName: "Tombs of Amascut",  womName: "tombs_of_amascut" },
-    { slug: "hydra",     label: "Alchemical Hydra",   hiscoresName: "Alchemical Hydra",  womName: "alchemical_hydra" },
-    { slug: "nex",       label: "Nex",                hiscoresName: "Nex",               womName: "nex" },
-    { slug: "vardorvis", label: "Vardorvis",          hiscoresName: "Vardorvis",         womName: "vardorvis" }
+  // Each entry carries the iconic-drop item-ids the cl.net plugin uses
+  // to mark this boss as 'visited.' If the player has ANY of them they
+  // have real evidence of having committed, even if KC is low (Tbow on
+  // an obvious 50 CoX KC = the player just got lucky).
+  const ROSTER: Array<{
+    slug: string;
+    label: string;
+    hiscoresName: string;
+    womName: string;
+    iconicItemIds: number[]; // any unique drop from this boss/raid
+  }> = [
+    { slug: "vorkath",   label: "Vorkath",            hiscoresName: "Vorkath",           womName: "vorkath",
+      iconicItemIds: [21907, 22006, 21748] /* head, gloves, jaw */ },
+    { slug: "zulrah",    label: "Zulrah",             hiscoresName: "Zulrah",            womName: "zulrah",
+      iconicItemIds: [12921, 12932, 12937, 12934] /* magic/tanzanite/serp/onyx fang */ },
+    { slug: "cox",       label: "Chambers of Xeric",  hiscoresName: "Chambers of Xeric", womName: "chambers_of_xeric",
+      iconicItemIds: [20997, 21043, 21003, 22324, 13652, 21000] /* Tbow, kodai, maul, etc */ },
+    { slug: "tob",       label: "Theatre of Blood",   hiscoresName: "Theatre of Blood",  womName: "theatre_of_blood",
+      iconicItemIds: [22325, 22324, 22323, 22326] /* scythe, rapier, sang, justi */ },
+    { slug: "toa",       label: "Tombs of Amascut",   hiscoresName: "Tombs of Amascut",  womName: "tombs_of_amascut",
+      iconicItemIds: [27275, 26219, 25985, 25975, 27226] /* shadow, fang, ward, lightbearer, masori */ },
+    { slug: "hydra",     label: "Alchemical Hydra",   hiscoresName: "Alchemical Hydra",  womName: "alchemical_hydra",
+      iconicItemIds: [22746, 22731, 22944, 23139] /* tail, hydra leather, claw, ring */ },
+    { slug: "nex",       label: "Nex",                hiscoresName: "Nex",               womName: "nex",
+      iconicItemIds: [26382, 26384, 26386, 26235, 26370] /* torva pieces, zaryte vambs, ancient hilt */ },
+    { slug: "vardorvis", label: "Vardorvis",          hiscoresName: "Vardorvis",         womName: "vardorvis",
+      iconicItemIds: [28997, 28307, 28316] /* soulreaper axe, ultor ring, ultor vestige */ }
   ];
 
   // Prefer WOM's KC when it's higher than Hiscores. WOM updates per
@@ -430,6 +564,11 @@ function bossesPath(
     const wom = womBossKills?.[boss.womName] ?? 0;
     return Math.max(hi, wom);
   };
+  // 'Has a unique drop from this boss in their collection log.'
+  const ownsAnyUnique = (boss: typeof ROSTER[number]): boolean => {
+    if (!clOwnedItemIds || clOwnedItemIds.size === 0) return false;
+    return boss.iconicItemIds.some((id) => clOwnedItemIds.has(id));
+  };
 
   const total = ROSTER.length;
   let done = 0;
@@ -438,26 +577,35 @@ function bossesPath(
 
   for (const boss of ROSTER) {
     const kc = kcFor(boss);
-    // 'Done' = ≥ 50 KC. Arbitrary threshold — under that the player is
-    // experimenting; over it they've actually committed.
-    const isDone = kc >= 50;
+    const hasUnique = ownsAnyUnique(boss);
+    // Tiered 'committed' signal:
+    //   - hasUnique = best signal. They have a drop, they're committed.
+    //   - kc >= 50 = strong KC signal, was the old threshold.
+    //   - kc >= 10 + (no plugin so we can't verify) = 'in progress',
+    //     still counts as open but the next-steps logic prefers it.
+    const isDone = hasUnique || kc >= 50;
     if (isDone) done++;
     allSteps.push({
       title: boss.label,
-      why: kc > 0
-        ? `${kc.toLocaleString()} KC`
-        : "Never killed",
+      why: hasUnique && kc > 0
+        ? `${kc.toLocaleString()} KC · unique drop logged`
+        : hasUnique
+          ? `Unique drop in your collection log`
+          : kc > 0
+            ? `${kc.toLocaleString()} KC`
+            : "Never killed",
       status: isDone ? "done" : "open",
       bossSlug: boss.slug
     });
   }
 
-  // Next steps: bosses with positive but low KC (they've tried, push to
-  // commit) + bosses they haven't tried but combat level supports.
+  // Next steps prefer 'in progress' bosses (10 ≤ KC < 50) over 'never
+  // touched but eligible' ones — the player has shown interest and
+  // we're nudging them past the commit-threshold.
   const nextSteps: PathStep[] = [];
   for (const boss of ROSTER) {
     const kc = kcFor(boss);
-    if (kc > 0 && kc < 50) {
+    if (kc > 0 && kc < 50 && !ownsAnyUnique(boss)) {
       const toGo = 50 - kc;
       nextSteps.push({
         title: `Push ${boss.label} to 50 KC`,
@@ -467,11 +615,10 @@ function bossesPath(
       if (nextSteps.length === 3) break;
     }
   }
-  // Fill with untouched-but-CL-ready bosses.
   if (nextSteps.length < 3) {
     for (const boss of ROSTER) {
       const kc = kcFor(boss);
-      if (kc === 0 && combatLevel >= 100) {
+      if (kc === 0 && combatLevel >= 100 && !ownsAnyUnique(boss)) {
         nextSteps.push({
           title: `Try ${boss.label}`,
           why: `New chase; you've got the combat level for it.`,
@@ -536,6 +683,10 @@ export interface ComputePathProgressInput {
    *  for players who use the Temple plugin. When present, questsPath
    *  uses these instead of the QP-budget heuristic. */
   templeQuestsCompleted?: Set<string>;
+  /** collectionlog.net owned item-IDs. Used by bossesPath to mark a
+   *  boss as 'committed' when the player has any unique drop from it,
+   *  even when KC is low. Beats the 50-KC threshold for accuracy. */
+  collectionLogOwnedItemIds?: Set<number>;
   /** Tracks which external sources had data, drives the synced-badge
    *  copy. */
   syncedSources?: { wom: boolean; temple: boolean; collectionLog: boolean };
@@ -546,7 +697,7 @@ export function computePathProgress(input: ComputePathProgressInput): PathOvervi
     skillsPath(input.skills),
     questsPath(input.quests, input.skills, input.questPoints, input.templeQuestsCompleted),
     diariesPath(input.diaries, input.skills),
-    bossesPath(input.bossKc, input.skills, input.womBossKills)
+    bossesPath(input.bossKc, input.skills, input.womBossKills, input.collectionLogOwnedItemIds)
   ];
   const overallPercent = Math.round(
     paths.reduce((sum, p) => sum + p.percent, 0) / paths.length
