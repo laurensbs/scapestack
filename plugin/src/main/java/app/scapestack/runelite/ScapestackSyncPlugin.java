@@ -179,6 +179,8 @@ public class ScapestackSyncPlugin extends Plugin {
             slayer.addProperty("points", snap.slayer.points);
             slayer.addProperty("streak", snap.slayer.streak);
             slayer.addProperty("taskRemaining", snap.slayer.taskRemaining);
+            slayer.addProperty("currentTaskId", snap.slayer.currentTaskId);
+            slayer.add("blocks", gson.toJsonTree(snap.slayer.blocks));
             body.add("slayer", slayer);
         }
 

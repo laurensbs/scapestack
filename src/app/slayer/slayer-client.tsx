@@ -82,9 +82,10 @@ export function SlayerClient() {
       } else if (cb >= 90) {
         setQuestsDone(new Set(QUESTS.map((q) => q.id)));
       }
-      // Plugin block-list zit nog niet in onze sync-payload (komt fase
-      // 3.3 — vereist task-id → monster-name mapping). Voor nu leeg.
-      setPluginBlocks(new Set());
+      // Plugin block-list: server mapt task-id → monster.id voordat
+      // we hem teruggeven. Lege array = geen blocks of plugin-versie
+      // pre-fase 3.3.
+      setPluginBlocks(new Set(sync?.slayer?.blocks ?? []));
       setPluginSlayer(sync?.slayer ?? null);
       const bits = [
         `Combat ${cb}`,

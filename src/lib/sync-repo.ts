@@ -14,8 +14,17 @@ export interface SyncedPlayer {
   diariesCompleted: Array<{ region: string; tier: "Easy" | "Medium" | "Hard" | "Elite" }>;
   collectionLogItemIds: number[];
   /** Slayer-state from the plugin's VarPlayer reads. Null when the
-   *  plugin couldn't read it (no session / old plugin version). */
-  slayer: { points: number; streak: number; taskRemaining: number } | null;
+   *  plugin couldn't read it (no session / old plugin version).
+   *  - currentTaskId: monster the player is currently assigned to (raw
+   *    OSRS task-id; UI mapt via TASK_ID_TO_MONSTER)
+   *  - blocks: vertaalde monster.id slugs uit de 6 block-slots */
+  slayer: {
+    points: number;
+    streak: number;
+    taskRemaining: number;
+    currentTaskId: number;
+    blocks: string[];
+  } | null;
   pluginVersion: string;
   syncedAt: string;        // ISO timestamp
 }

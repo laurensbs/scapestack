@@ -15,6 +15,7 @@
 import { NextResponse } from "next/server";
 import { upsertSyncedPlayer } from "@/lib/sync-repo";
 import { extractBearerToken, verifyClaim } from "@/lib/sync-auth";
+import { mapBlockTaskIds } from "@/lib/slayer/task-ids";
 
 const MAX_BODY_BYTES = 1_000_000;
 const ALLOWED_DIARY_TIERS = new Set(["Easy", "Medium", "Hard", "Elite"]);
@@ -111,14 +112,30 @@ export async function POST(req: Request): Promise<Response> {
   // Slayer state — optioneel. Parsed-out om validatie netjes te
   // houden; rejecten van ongeldige slayer-shape rejected niet de
   // hele sync (degradeert naar slayer = null).
-  let slayer: { points: number; streak: number; taskRemaining: number } | null = null;
+  let slayer: {
+    points: number; streak: number; taskRemaining: number;
+    currentTaskId: number; blocks: string[];
+  } | null = null;
   if (body.slayer && typeof body.slayer === "object") {
-    const s = body.slayer as { points?: unknown; streak?: unknown; taskRemaining?: unknown };
-    const points = typeof s.points === "number" && Number.isFinite(s.points) ? Math.max(0, Math.min(1_000_000, Math.floor(s.points))) : null;
-    const streak = typeof s.streak === "number" && Number.isFinite(s.streak) ? Math.max(0, Math.min(100_000, Math.floor(s.streak))) : null;
-    const taskRem = typeof s.taskRemaining === "number" && Number.isFinite(s.taskRemaining) ? Math.max(0, Math.min(500, Math.floor(s.taskRemaining))) : null;
+    const s = body.slayer as {
+      points?: unknown; streak?: unknown; taskRemaining?: unknown;
+      currentTaskId?: unknown; blocks?: unknown;
+    };
+    const num = (v: unknown, lo: number, hi: number) =>
+      typeof v === "number" && Number.isFinite(v) ? Math.max(lo, Math.min(hi, Math.floor(v))) : null;
+    const points = num(s.points, 0, 1_000_000);
+    const streak = num(s.streak, 0, 100_000);
+    const taskRem = num(s.taskRemaining, 0, 500);
+    const taskId = num(s.currentTaskId, 0, 10_000) ?? 0;
+    // Raw task-IDs van de plugin → server-side mappen naar monster.id
+    // slugs zodat de UI niet hoeft te weten van de OSRS varp-tabel.
+    const rawBlocks = Array.isArray(s.blocks) ? s.blocks : [];
+    const blockIds = rawBlocks
+      .filter((b): b is number => typeof b === "number" && Number.isFinite(b) && b > 0)
+      .slice(0, 12);
+    const blocks = mapBlockTaskIds(blockIds);
     if (points !== null && streak !== null && taskRem !== null) {
-      slayer = { points, streak, taskRemaining: taskRem };
+      slayer = { points, streak, taskRemaining: taskRem, currentTaskId: taskId, blocks };
     }
   }
 
