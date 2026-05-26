@@ -43,7 +43,12 @@ if [[ "$CLEAN" == "--clean" ]]; then
 fi
 
 # rsync preserves timestamps + mode bits (de gradle wrapper heeft +x nodig).
-# Excludes: gradle build outputs en IDE metadata.
+# Excludes:
+#  - build/ + .gradle/: gradle outputs
+#  - .idea/ + *.iml:    IDE metadata
+#  - README.md:         standalone repo heeft een eigen consumer-facing
+#                       README; monorepo's plugin-dev-docs zijn voor ons
+#  - LICENSE:           BSD-2 file leeft alleen in het standalone repo
 # De wrapper (gradlew/.bat + gradle/wrapper/) gaat WEL mee — Plugin Hub
 # CI gebruikt 'm om te bouwen zonder system-gradle te installeren.
 rsync -a \
@@ -51,6 +56,8 @@ rsync -a \
   --exclude '.gradle/' \
   --exclude '.idea/' \
   --exclude '*.iml' \
+  --exclude 'README.md' \
+  --exclude 'LICENSE' \
   "$PLUGIN_DIR/" "$TARGET/"
 
 # Seed a top-level README that links back to the monorepo. Only write
