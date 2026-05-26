@@ -59,17 +59,19 @@ tasks.withType(JavaCompile) {
 
 // Launches RuneLite met deze plugin side-loaded. Gebruik:
 //   JAVA_HOME=~/jdk-11/jdk-11.0.31+11/Contents/Home ./gradlew runClient
-// De --developer-mode flag activeert ExternalPluginManager.loadBuiltin,
-// die alle @PluginDescriptor classes op het classpath registreert —
-// onze ScapestackSyncPlugin dus ook.
+//
+// We starten via DevLauncher (eigen main) ipv RuneLite direct, want
+// die roept ExternalPluginManager.loadBuiltin(ScapestackSyncPlugin)
+// aan vóór RuneLite.main — pas dan verschijnt onze plugin in de
+// Configuration → Plugins lijst. De oude --developer-mode CLI flag
+// is in recente RuneLite-versies een no-op zonder safe-mode lijst.
 task runClient(type: JavaExec) {
     group = 'application'
-    description = 'Start RuneLite met de Scapestack-plugin side-loaded'
-    dependsOn 'jar'
+    description = 'Start RuneLite met de Scapestack-plugin side-loaded via DevLauncher'
+    dependsOn 'classes'
     classpath = configurations.runClient + sourceSets.main.runtimeClasspath
-    mainClass = 'net.runelite.client.RuneLite'
-    args = ['--developer-mode', '--debug']
-    // RuneLite's eigen launcher schakelt soms native-lib loads in/uit.
+    mainClass = 'app.scapestack.runelite.DevLauncher'
+    args = ['--debug']
     systemProperty 'runelite.pluginhub.version', project.version
 }
 
