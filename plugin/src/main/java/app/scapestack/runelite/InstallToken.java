@@ -19,39 +19,62 @@ import java.util.UUID;
  * through any out-of-band channel; only this install knows it.
  *
  * Threat model + caveats live in src/lib/sync-auth.ts on the server side.
+ *
+ * Test seam: the bottom-half helpers accept a {@link KeyValueStore} so
+ * unit tests can substitute an in-memory map for ConfigManager (which
+ * needs a full RuneLite DI context to instantiate). The public overloads
+ * adapt ConfigManager → KeyValueStore so plugin code stays unchanged.
  */
 public final class InstallToken {
 
     private static final String GROUP = "scapestackSync";
-    private static final String KEY   = "installToken";
+    private static final String KEY_TOKEN   = "installToken";
+    private static final String KEY_CLAIMED = "claimedRsn";
 
     private InstallToken() {}
 
-    /**
-     * Returns the persisted token if present, otherwise generates a new
-     * UUID and writes it to ConfigManager before returning it.
-     */
-    public static String getOrCreate(ConfigManager cm) {
-        String existing = cm.getConfiguration(GROUP, KEY);
+    /** Anything that can persist {key → string-value} pairs. */
+    public interface KeyValueStore {
+        String get(String key);
+        void set(String key, String value);
+    }
+
+    /** Wraps a ConfigManager so the plugin call-sites need no changes. */
+    static KeyValueStore wrap(ConfigManager cm) {
+        return new KeyValueStore() {
+            @Override public String get(String key) {
+                return cm.getConfiguration(GROUP, key);
+            }
+            @Override public void set(String key, String value) {
+                cm.setConfiguration(GROUP, key, value);
+            }
+        };
+    }
+
+    // ---------- public API used by ScapestackSyncPlugin ----------
+
+    public static String getOrCreate(ConfigManager cm)          { return getOrCreate(wrap(cm)); }
+    public static String claimedRsn(ConfigManager cm)           { return claimedRsn(wrap(cm)); }
+    public static void rememberClaimedRsn(ConfigManager cm, String rsn) { rememberClaimedRsn(wrap(cm), rsn); }
+
+    // ---------- test-facing overloads ----------
+
+    public static String getOrCreate(KeyValueStore store) {
+        String existing = store.get(KEY_TOKEN);
         if (existing != null && !existing.isBlank()) {
             return existing.trim();
         }
         String fresh = UUID.randomUUID().toString();
-        cm.setConfiguration(GROUP, KEY, fresh);
+        store.set(KEY_TOKEN, fresh);
         return fresh;
     }
 
-    /**
-     * Returns the bound RSN that this token has already claimed in a prior
-     * run (or null). Used to skip the claim POST when we've already done it
-     * for the current player.
-     */
-    public static String claimedRsn(ConfigManager cm) {
-        String v = cm.getConfiguration(GROUP, "claimedRsn");
+    public static String claimedRsn(KeyValueStore store) {
+        String v = store.get(KEY_CLAIMED);
         return v == null || v.isBlank() ? null : v.trim();
     }
 
-    public static void rememberClaimedRsn(ConfigManager cm, String rsn) {
-        cm.setConfiguration(GROUP, "claimedRsn", rsn);
+    public static void rememberClaimedRsn(KeyValueStore store, String rsn) {
+        store.set(KEY_CLAIMED, rsn);
     }
 }

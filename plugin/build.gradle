@@ -34,6 +34,9 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     testImplementation group: 'net.runelite', name: 'client', version: runeLiteVersion
     testImplementation group: 'net.runelite', name: 'jshell', version: runeLiteVersion
+    // E2E smoke-test uses JDBC to reset claim rows before assertions
+    // (skipped automatically when DATABASE_URL isn't set).
+    testImplementation 'org.postgresql:postgresql:42.7.4'
 }
 
 group = 'app.scapestack.runelite'
@@ -46,4 +49,13 @@ tasks.withType(JavaCompile) {
 
 test {
     useJUnit()
+    // Pass DATABASE_URL through to JVM so EndToEndSmokeTest can reset
+    // claim rows before assertions. Tries .env.local first, then env.
+    def dbUrl = System.getenv('DATABASE_URL')
+    if (!dbUrl && file('../.env.local').exists()) {
+        def line = file('../.env.local').readLines()
+            .find { it.startsWith('DATABASE_URL=') }
+        if (line) dbUrl = line.substring('DATABASE_URL='.length()).trim()
+    }
+    if (dbUrl) systemProperty 'DATABASE_URL', dbUrl
 }
