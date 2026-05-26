@@ -58,10 +58,19 @@ public class ScapestackSyncPlugin extends Plugin {
     @Inject private ClientThread clientThread;
     @Inject private ScapestackSyncConfig config;
     @Inject private GameStateReader reader;
+    @Inject private CollectionLogReader collectionLogReader;
+    @Inject private ConfigManager configManager;
+
+    // OSRS collection-log widget group ID. Documented on the RuneLite
+    // WidgetID enum; pinning the constant here to keep this file
+    // dependency-light for the unit tests.
+    private static final int COLLECTION_LOG_GROUP_ID = 621;
 
     private final OkHttpClient http = new OkHttpClient();
+    private final ClaimClient claimClient = new ClaimClient(http);
     private static final MediaType JSON = MediaType.parse("application/json");
     private static final String PLUGIN_VERSION = "0.1.0";
+    private static final String USER_AGENT = "scapestack-plugin/" + PLUGIN_VERSION;
 
     @Override
     protected void startUp() {
@@ -75,6 +84,12 @@ public class ScapestackSyncPlugin extends Plugin {
 
     @Subscribe
     public void onGameStateChanged(GameStateChanged e) {
+        // Reset CL accumulator on login screen — handles account-switch
+        // on a shared RuneLite installation cleanly.
+        if (e.getGameState() == GameState.LOGIN_SCREEN) {
+            collectionLogReader.reset();
+            return;
+        }
         if (!config.autoSync()) return;
         // LOGGING_IN fires once when the world handshake settles. We wait
         // for LOGGED_IN since widgets aren't readable before that.
@@ -100,10 +115,21 @@ public class ScapestackSyncPlugin extends Plugin {
 
     @Subscribe
     public void onWidgetLoaded(WidgetLoaded e) {
-        // Hook reserved for future diary widget detection — when the
-        // player opens the Diary widget we re-read its state. v0 syncs
-        // on login so this isn't critical.
+        if (e.getGroupId() != COLLECTION_LOG_GROUP_ID) return;
+        // Defer one tick — the widget tree isn't fully populated the
+        // instant WidgetLoaded fires. invokeLater puts us at the end
+        // of the current event queue.
+        clientThread.invokeLater(() -> {
+            net.runelite.api.widgets.Widget root = client.getWidget(COLLECTION_LOG_GROUP_ID, 0);
+            if (root == null) return;
+            int added = collectionLogReader.ingest(root);
+            if (added > 0) {
+                log.debug("CL widget loaded: +{} items, total {}",
+                    added, collectionLogReader.snapshot().size());
+            }
+        });
     }
+
 
     private void triggerSync() {
         String rsn = client.getLocalPlayer() != null ? client.getLocalPlayer().getName() : null;
@@ -114,7 +140,11 @@ public class ScapestackSyncPlugin extends Plugin {
 
         GameStateReader.Snapshot snap;
         try {
-            snap = reader.readSnapshot(client);
+            // CL items come from the accumulator we've been filling on
+            // WidgetLoaded. If the player hasn't opened the CL this
+            // session the list is empty — falls back to website's
+            // collectionlog.net integration for that subset.
+            snap = reader.readSnapshot(client, collectionLogReader.snapshot());
         } catch (Exception ex) {
             log.warn("Failed to read game state", ex);
             return;
@@ -136,20 +166,49 @@ public class ScapestackSyncPlugin extends Plugin {
         body.add("diariesCompleted", diaries);
         body.add("collectionLogItemIds", gson.toJsonTree(snap.collectionLogItemIds));
 
-        Request req = new Request.Builder()
-            .url(config.syncUrl())
-            .post(RequestBody.create(JSON, body.toString()))
-            .header("User-Agent", "scapestack-plugin/" + PLUGIN_VERSION)
-            .build();
-
-        // Fire-and-forget — we don't block the game thread on the sync.
+        // Token bootstrap + claim-if-needed + sync POST all run on a
+        // background thread. Claim involves an HTTP round-trip and a
+        // best-effort Hiscores lookup on the server, so we never want
+        // this on the client thread.
+        final String bodyJson = body.toString();
         new Thread(() -> {
+            String token = InstallToken.getOrCreate(configManager);
+            String claimedRsn = InstallToken.claimedRsn(configManager);
+            // Re-claim when the player name has changed OR we've never
+            // claimed before. The server is idempotent for {same rsn,
+            // same token}, so re-running is cheap.
+            if (claimedRsn == null || !claimedRsn.equalsIgnoreCase(rsn)) {
+                String claimUrl = ClaimClient.claimUrlFromSyncUrl(config.syncUrl());
+                if (claimClient.claim(claimUrl, rsn, token, USER_AGENT)) {
+                    InstallToken.rememberClaimedRsn(configManager, rsn);
+                } else {
+                    // The sync POST below will likely fail with 403; log
+                    // so the user can see what's happening, but still try
+                    // — the claim may have actually succeeded on a prior
+                    // run and our local cache is just empty.
+                    log.warn("Claim did not succeed; attempting sync anyway");
+                }
+            }
+
+            Request req = new Request.Builder()
+                .url(config.syncUrl())
+                .post(RequestBody.create(JSON, bodyJson))
+                .header("User-Agent", USER_AGENT)
+                .header("Authorization", "Bearer " + token)
+                .build();
+
             try (Response res = http.newCall(req).execute()) {
                 if (res.isSuccessful()) {
                     log.info("Synced to Scapestack: {} quests, {} diaries, {} CL items",
                         snap.questsCompleted.size(),
                         snap.diariesCompleted.size(),
                         snap.collectionLogItemIds.size());
+                } else if (res.code() == 401 || res.code() == 403) {
+                    // Local cache may be stale (token rotated, claim
+                    // wiped, RSN claimed elsewhere). Drop the claimedRsn
+                    // marker so the next sync attempts a fresh claim.
+                    log.warn("Sync rejected ({}). Will retry claim on next sync.", res.code());
+                    InstallToken.rememberClaimedRsn(configManager, "");
                 } else {
                     log.warn("Sync failed: HTTP {}", res.code());
                 }

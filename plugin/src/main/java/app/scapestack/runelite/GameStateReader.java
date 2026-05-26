@@ -78,30 +78,51 @@ public class GameStateReader {
     }
 
     /**
-     * Reads diary tier completion. v0 stub — returns empty list. The
-     * Achievement Diary widget IDs aren't exposed via a clean enum,
-     * so we'll wire this up in a follow-up using ScriptID hooks.
+     * Reads diary tier completion via the DiaryVarTable + DiaryReader.
+     * Each region+tier has a varbit (or legacy varplayer) that the
+     * game flips to 1 when the player completes that tier. We walk
+     * the table on every sync — cheap (~50 var reads).
      *
-     * Practical effect: until this is implemented, the diary path on
-     * /next falls back to the heuristic (skill-margin + XP-evidence)
-     * for our own plugin's users too. Quests + CL work end-to-end.
+     * No widget scraping; vars are the source of truth and they're
+     * populated whether or not the player has ever opened the diary
+     * interface.
      */
     private List<DiaryCompletion> readDiaries(Client client) {
-        // TODO(v0.2): hook ScriptID.DIARY_TASK_COMPLETED + read the
-        // 12 region widgets to extract per-tier flags. See:
-        //   https://oldschool.runescape.wiki/w/RuneScape:Diary_completion
-        return Collections.emptyList();
+        DiaryReader reader = new DiaryReader();
+        return reader.readFrom(
+            (id) -> client.getVarpValue(id),
+            (entry) -> entry.isVarbit
+                ? client.getVarbitValue(entry.varbitOrVar)
+                : client.getVarpValue(entry.varbitOrVar)
+        );
     }
 
     /**
-     * Reads collection log when the widget is open. Same situation as
-     * diaries — v0 stub; v0.2 scrapes the CL widget when the user opens
-     * it. Until then, /next falls back to collectionlog.net for the
-     * subset of players who use that plugin.
+     * Reads the collection-log snapshot accumulated by the
+     * CollectionLogReader on every WidgetLoaded event for the CL group.
+     * The plugin holds the accumulator across the session — we just
+     * return its current snapshot.
+     *
+     * Limitation: the player must open the CL at least once per
+     * session for non-empty data. RuneLite only loads widgets the
+     * player actually views.
      */
     private List<Integer> readCollectionLog(Client client) {
-        // TODO(v0.2): hook WidgetID.COLLECTION_LOG_GROUP_ID and walk
-        // every entry's items[] looking for quantity > 0.
+        // Threading through the CollectionLogReader singleton is done in
+        // the plugin class, not here — this method is called via the
+        // Snapshot construction path which has access to both. See
+        // ScapestackSyncPlugin#triggerSync for the live wiring.
         return Collections.emptyList();
+    }
+
+    /** Test-and-plugin entry-point that takes a pre-collected CL set
+     *  instead of relying on a class field. The plugin calls this from
+     *  triggerSync with the live reader's snapshot. */
+    public Snapshot readSnapshot(Client client, List<Integer> collectionLogItemIds) {
+        Snapshot s = new Snapshot();
+        s.questsCompleted = readQuests(client);
+        s.diariesCompleted = readDiaries(client);
+        s.collectionLogItemIds = collectionLogItemIds != null ? collectionLogItemIds : Collections.emptyList();
+        return s;
     }
 }

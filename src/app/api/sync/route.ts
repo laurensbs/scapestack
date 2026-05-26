@@ -14,6 +14,7 @@
 
 import { NextResponse } from "next/server";
 import { upsertSyncedPlayer } from "@/lib/sync-repo";
+import { extractBearerToken, verifyClaim } from "@/lib/sync-auth";
 
 const MAX_BODY_BYTES = 1_000_000;
 const ALLOWED_DIARY_TIERS = new Set(["Easy", "Medium", "Hard", "Elite"]);
@@ -38,6 +39,17 @@ export async function POST(req: Request): Promise<Response> {
     return badRequest("Body too large");
   }
 
+  // Bearer auth — the plugin's install-token must match the claim row
+  // for the supplied RSN. Without this, any client could overwrite any
+  // player's sync data.
+  const token = extractBearerToken(req.headers.get("authorization"));
+  if (!token) {
+    return NextResponse.json(
+      { ok: false, error: "Missing or malformed Authorization header" },
+      { status: 401 }
+    );
+  }
+
   let body: SyncBody;
   try {
     body = await req.json() as SyncBody;
@@ -49,6 +61,15 @@ export async function POST(req: Request): Promise<Response> {
   if (typeof body.rsn !== "string") return badRequest("rsn must be a string");
   const rsn = body.rsn.trim();
   if (rsn.length < 1 || rsn.length > 12) return badRequest("rsn length out of range");
+
+  // Verify the bearer matches the claim row for this RSN.
+  const allowed = await verifyClaim(rsn, token);
+  if (!allowed) {
+    return NextResponse.json(
+      { ok: false, error: "Token does not match RSN claim — call /api/sync/claim first" },
+      { status: 403 }
+    );
+  }
 
   const displayName = typeof body.displayName === "string" && body.displayName.trim()
     ? body.displayName.trim().slice(0, 12)

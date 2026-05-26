@@ -29,6 +29,15 @@ CREATE TABLE IF NOT EXISTS player_sync (
   synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS player_sync_synced_at_idx ON player_sync(synced_at DESC);
+
+-- First-claim-wins auth: each RSN binds to the first plugin token that
+-- claimed it. Subsequent syncs must match the bound token.
+CREATE TABLE IF NOT EXISTS player_claim (
+  rsn TEXT PRIMARY KEY,
+  token_hash TEXT NOT NULL,
+  claimed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_used_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 `;
 
 function normalize(rsn: string): string {

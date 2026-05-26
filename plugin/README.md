@@ -9,14 +9,24 @@ instead of skill/QP heuristics.
 
 | Signal | Source | Status |
 | --- | --- | --- |
-| Quests completed | `Quest.getState(client)` per quest enum | ✅ v0 |
-| Diary tier completion | Diary widget scrape | 🚧 v0.2 (stub) |
-| Collection log items | CL widget scrape | 🚧 v0.2 (stub) |
+| Quests completed | `Quest.getState(client)` per quest enum | ✅ |
+| Diary tier completion | VarPlayer/Varbit table (48 entries) | ✅ |
+| Collection log items | Widget tree walk (group 621), accumulated across session | ✅ |
 
-v0 ships with quest sync working end-to-end. Diary + CL are stubs that
-return empty lists — the website's /next page falls back to its
-heuristic + collectionlog.net integration for those signals until v0.2
-lands. The endpoint accepts the empty arrays gracefully.
+The CL accumulator fills as the player browses tabs in the in-game
+Collection Log; the player has to actually open it at least once per
+session. Diary state and quest state are read instantly on login.
+
+## Auth
+
+Each install generates a UUID on first run (stored via `ConfigManager`
+under `scapestackSync.installToken`). The first sync POSTs that token
+to `/api/sync/claim`, which binds `sha256(token) → RSN` first-wins.
+Subsequent syncs carry `Authorization: Bearer <token>`. Server rejects
+syncs whose hash doesn't match the bound claim — so a malicious peer
+can't overwrite your row by guessing your RSN.
+
+Threat model + caveats live in [src/lib/sync-auth.ts](../src/lib/sync-auth.ts).
 
 ## Local dev setup
 
@@ -28,6 +38,7 @@ Requirements:
 cd plugin
 gradle wrapper      # one-time, creates ./gradlew
 ./gradlew build     # compiles the plugin
+./gradlew test      # runs JUnit suite
 ./gradlew runClient # launches RuneLite with this plugin side-loaded
 ```
 
@@ -40,7 +51,8 @@ quests..." messages.
 
 By default the plugin POSTs to `https://scapestack.app/api/sync`. For
 local dev, change the Sync endpoint in plugin settings to
-`http://localhost:4173/api/sync` (the Next.js dev port).
+`http://localhost:4173/api/sync` (the Next.js dev port). The claim URL
+is derived automatically (`/api/sync/claim`).
 
 You'll also need to start the website locally:
 ```sh
@@ -50,22 +62,12 @@ npm run dev  # starts on localhost:4173
 
 And set `DATABASE_URL` in `.env.local` pointing at a Neon project
 (create one free at neon.tech), then run `npm run db:init` to create
-the schema.
+the schema (both `player_sync` and `player_claim` tables).
 
 ## Publishing to the Plugin Hub
 
-Out of scope for v0.1. Steps when we're ready:
-1. Move this directory into its own GitHub repo
-   (`github.com/laurensbs/scapestack-runelite-plugin`)
-2. Submit via the [RuneLite Plugin Hub
-   process](https://github.com/runelite/plugin-hub#readme)
-3. Wait 2-6 weeks for Jagex review
-4. Once approved, it's discoverable in-game under Plugin Hub
+See [PUBLISHING.md](PUBLISHING.md) for the full process.
 
-## Security note
-
-v0 trusts whichever RSN the client reports. That means a malicious
-plugin user could overwrite *another* player's sync row by spoofing
-the RSN in the payload. Production-ready auth requires signing each
-submission with a per-install token validated against the player's
-in-game identity — see the v0.2 spec in `docs/PLUGIN-AUTH.md` (TODO).
+TL;DR: the plugin must live in its own GitHub repo before Jagex/RuneLite
+will review it. Run `scripts/extract-plugin.sh` from the monorepo root
+to materialise that repo from the current `plugin/` tree.

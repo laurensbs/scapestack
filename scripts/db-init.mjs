@@ -46,6 +46,13 @@ CREATE TABLE IF NOT EXISTS player_sync (
   synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS player_sync_synced_at_idx ON player_sync(synced_at DESC);
+
+CREATE TABLE IF NOT EXISTS player_claim (
+  rsn TEXT PRIMARY KEY,
+  token_hash TEXT NOT NULL,
+  claimed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_used_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 `;
 
 const sql = neon(url);
