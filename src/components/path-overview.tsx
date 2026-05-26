@@ -25,6 +25,68 @@ function accountTypeLabel(t: NonNullable<PathOverviewData["accountMeta"]>["accou
   }
 }
 
+// Lists every tracker that returned data for this player. Falls back
+// to the plain 'estimated' footnote when nothing matched. Each source
+// gets a small dot + a link to the player's profile on that service.
+function SyncedBadge({ data }: { data: PathOverviewData }) {
+  const sources: Array<{ name: string; url: string; primary: boolean }> = [];
+  const meta = data.accountMeta;
+  const synced = data.syncedSources;
+  if (meta && synced?.wom) {
+    sources.push({
+      name: `WOM · ${accountTypeLabel(meta.accountType)}`,
+      url: `https://wiseoldman.net/players/${encodeURIComponent(meta.displayName)}`,
+      primary: true
+    });
+  }
+  if (synced?.temple) {
+    sources.push({
+      name: "Temple quests",
+      url: `https://templeosrs.com/player/quests.php?player=${encodeURIComponent(meta?.displayName ?? "")}`,
+      primary: false
+    });
+  }
+  if (synced?.collectionLog) {
+    sources.push({
+      name: "Collection log",
+      url: `https://collectionlog.net/log/${encodeURIComponent(meta?.displayName ?? "")}`,
+      primary: false
+    });
+  }
+
+  if (sources.length === 0) {
+    return (
+      <span className="text-[11.5px] text-[var(--color-text-muted)]">
+        Estimated · uses skill/QP heuristics
+      </span>
+    );
+  }
+
+  return (
+    <div className="inline-flex items-center gap-2 flex-wrap text-[11px]">
+      <span className="inline-flex items-center gap-1.5 text-[var(--color-text-muted)]">
+        <span className="size-1.5 rounded-full bg-[var(--color-good)]" aria-hidden="true" />
+        Synced
+      </span>
+      {sources.map((s, i) => (
+        <span key={s.name} className="inline-flex items-center gap-2">
+          {i > 0 && <span className="text-[var(--color-border-strong)]">·</span>}
+          <a
+            href={s.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={s.primary
+              ? "text-[var(--color-accent)] hover:underline"
+              : "text-[var(--color-text-dim)] hover:text-[var(--color-accent)] transition-colors"}
+          >
+            {s.name}
+          </a>
+        </span>
+      ))}
+    </div>
+  );
+}
+
 // Path-to-Max overview — replaces the headline + grouped checklist on
 // /next. Four cards, one per axis (Skills/Quests/Diaries/Bosses), each
 // with a ring-progress + 3 next-steps. Click any card → drill-in modal
@@ -53,27 +115,12 @@ export function PathOverview({ data }: { data: PathOverviewData }) {
           <h2 className="text-[12px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
             Path to Max
           </h2>
-          {/* When WOM had a record for this player we surface a small
-              badge — gives the heuristics-disclaimer some weight ('we
-              cross-checked your KC against Wise Old Man') and rewards
-              the players who use the plugin. Otherwise show the plain
-              estimate footnote. */}
-          {data.accountMeta ? (
-            <a
-              href={`https://wiseoldman.net/players/${encodeURIComponent(data.accountMeta.displayName)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors"
-              title="Cross-checked with Wise Old Man — KCs and account type pulled from your WOM profile."
-            >
-              <span className="size-1.5 rounded-full bg-[var(--color-good)]" aria-hidden="true" />
-              Synced via Wise Old Man · {accountTypeLabel(data.accountMeta.accountType)}
-            </a>
-          ) : (
-            <span className="text-[11.5px] text-[var(--color-text-muted)]">
-              Estimated · uses skill/QP heuristics
-            </span>
-          )}
+          {/* Synced-sources badge. Shows every external tracker that
+              had a record for this player (WOM/Temple/cl.net), so the
+              heuristics-disclaimer carries real weight: 'when we say
+              done, it's done — pulled from the plugin you use.' If no
+              tracker had data we show the plain estimate footnote. */}
+          <SyncedBadge data={data} />
         </div>
         <div className="rounded-2xl border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] p-6">
           <div className="flex flex-col lg:flex-row lg:items-center gap-6">

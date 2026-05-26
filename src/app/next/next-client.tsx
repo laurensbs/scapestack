@@ -16,7 +16,7 @@ import { PathOverview } from "@/components/path-overview";
 import { TypingTitle } from "@/components/typing-title";
 import { BOSSES, type Boss } from "@/lib/bosses";
 import { ownedGear, type GearItem } from "@/lib/gear";
-import { organizeAction, nextUpAction, hiscoresAction, womAction } from "@/app/actions";
+import { organizeAction, nextUpAction, hiscoresAction, womAction, collectionLogAction, templeAction } from "@/app/actions";
 import { type HiscoreSkill } from "@/lib/hiscores";
 import { unlockedFromHiscores } from "@/lib/goals";
 import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
@@ -162,14 +162,21 @@ export function NextClient() {
       const rsn = (opts.rsn ?? "").trim();
       const input = (opts.input ?? "").trim();
 
-      // Two best-effort lookups in parallel:
-      //   - Hiscores: skills + bossKC + clue/raid activities (Jagex official)
-      //   - WOM: account type + EHP/EHB + WOM-tracked boss KCs (richer
-      //          data when the player uses the WOM RuneLite plugin)
-      // Either can return null and we keep going with whatever we got.
-      const [hiscores, wom] = rsn
-        ? await Promise.all([hiscoresAction(rsn), womAction(rsn)])
-        : [null, null];
+      // Four best-effort lookups in parallel:
+      //   - Hiscores: Jagex official. Skills + bossKC + activities.
+      //   - WOM: account type + EHP/EHB + WOM-tracked boss KCs.
+      //   - Temple: per-quest completion (real data, not heuristic).
+      //   - cl.net: per-item collection-log state (real data, not heuristic).
+      // Each returns null when the player isn't tracked there — we keep
+      // whatever we got and fall back to heuristics for the rest.
+      const [hiscores, wom, temple, collectionLog] = rsn
+        ? await Promise.all([
+            hiscoresAction(rsn),
+            womAction(rsn),
+            templeAction(rsn),
+            collectionLogAction(rsn)
+          ])
+        : [null, null, null, null];
 
       // Three ways to fill `bank`: pre-parsed handoff, paste-string, or
       // empty. organizeAction is only called for the paste-string path.
@@ -226,10 +233,9 @@ export function NextClient() {
         return;
       }
 
-      // Pass WOM enrichment when we got it. path-progress merges
-      // WOM's bossKills with the Hiscores bossKc via Math.max; the
-      // accountMeta drives the 'Synced via Wise Old Man' badge on the
-      // hero block.
+      // Pass all four enrichments. Each is null when the player isn't
+      // tracked on that service; the engine + path-progress fall back
+      // to heuristics for whatever's missing.
       setResult(await nextUpAction({
         skills, bank, questPoints, bossKc,
         womBossKills: wom?.bossKills,
@@ -239,7 +245,14 @@ export function NextClient() {
           ehp: wom.ehp,
           ehb: wom.ehb,
           lastChangedAt: wom.lastChangedAt
-        } : null
+        } : null,
+        templeQuestsCompleted: temple?.questsCompleted,
+        collectionLogOwnedItemIds: collectionLog?.ownedItemIds,
+        syncedSources: {
+          wom: wom !== null,
+          temple: temple !== null,
+          collectionLog: collectionLog !== null
+        }
       }));
       setView("result");
 

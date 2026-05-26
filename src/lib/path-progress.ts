@@ -129,7 +129,12 @@ const QP_BY_DIFFICULTY: Record<string, number> = {
   Novice: 1, Intermediate: 2, Experienced: 3, Master: 4, Grandmaster: 5, Special: 4
 };
 
-function questsPath(quests: Map<string, QuestRecord>, skills: HiscoreSkill[], qp: number): PathProgress {
+function questsPath(
+  quests: Map<string, QuestRecord>,
+  skills: HiscoreSkill[],
+  qp: number,
+  templeQuestsCompleted?: Set<string>
+): PathProgress {
   if (quests.size === 0) {
     return {
       kind: "quests",
@@ -140,6 +145,13 @@ function questsPath(quests: Map<string, QuestRecord>, skills: HiscoreSkill[], qp
   }
   const lvl = (name: string) => skills.find((s) => s.name === name)?.level ?? 1;
   const total = quests.size;
+
+  // When Temple has real per-quest completion state we use it directly
+  // — exact, not a guess. Falls through to the QP-budget heuristic
+  // below when Temple has no record for this player.
+  if (templeQuestsCompleted && templeQuestsCompleted.size > 0) {
+    return questsPathFromTemple(quests, skills, qp, templeQuestsCompleted);
+  }
 
   // Honest heuristic: a player's QP total tells us how many quests they
   // *could* have completed at most. We sort all quests easiest-first and
@@ -231,6 +243,68 @@ function questsPath(quests: Map<string, QuestRecord>, skills: HiscoreSkill[], qp
     tagline: done === total
       ? "Quest cape earned."
       : `${total - done} quest${total - done === 1 ? "" : "s"} likely open.`,
+    percent: Math.round((done / total) * 100),
+    done, total, nextSteps, allSteps
+  };
+}
+
+// Temple-driven quest path. When TempleOSRS has a record we use the
+// exact 'completed' flag per quest instead of guessing from QP. The
+// tagline says 'Synced via Temple' so the user knows this number is
+// real, not a heuristic.
+function questsPathFromTemple(
+  quests: Map<string, QuestRecord>,
+  skills: HiscoreSkill[],
+  qp: number,
+  templeQuests: Set<string>
+): PathProgress {
+  const lvl = (name: string) => skills.find((s) => s.name === name)?.level ?? 1;
+  const total = quests.size;
+  const allSteps: PathProgress["allSteps"] = [];
+  let done = 0;
+
+  for (const q of quests.values()) {
+    const isDone = templeQuests.has(q.name.toLowerCase());
+    if (isDone) done++;
+    allSteps.push({
+      title: q.name,
+      why: q.difficulty
+        ? `${q.difficulty}${q.length ? ` · ${q.length}` : ""}${q.qpReq > 0 ? ` · ${q.qpReq} QP` : ""}`
+        : (q.length ?? ""),
+      status: isDone ? "done" : "open",
+      iconItemId: 9813
+    });
+  }
+
+  // Next steps: open quests at the highest difficulty the player meets
+  // every skill req for AND has the QP gate satisfied. Identical sort
+  // as the heuristic path so the UI is consistent.
+  const difficultyRank: Record<string, number> = {
+    Novice: 0, Intermediate: 1, Experienced: 2, Special: 3, Master: 4, Grandmaster: 5
+  };
+  const openSteps = [...quests.values()]
+    .filter((q) => {
+      if (skills.length === 0) return false;
+      const meets = q.skillReqs.every((r) => lvl(r.skill) >= r.level);
+      const qpGate = q.qpReq === 0 || qp >= q.qpReq;
+      return meets && qpGate && !templeQuests.has(q.name.toLowerCase());
+    })
+    .sort((a, b) => (difficultyRank[b.difficulty ?? "Intermediate"] ?? 1) -
+                     (difficultyRank[a.difficulty ?? "Intermediate"] ?? 1));
+  const nextSteps: PathStep[] = openSteps.slice(0, 3).map((q) => ({
+    title: q.name,
+    why: q.difficulty
+      ? `${q.difficulty}${q.qpReq > 0 ? ` · needs ${q.qpReq} QP` : " · no QP gate"}`
+      : (q.length ?? ""),
+    iconItemId: 9813
+  }));
+
+  return {
+    kind: "quests",
+    label: "Quests",
+    tagline: done === total
+      ? "Quest cape earned · synced from Temple."
+      : `${total - done} open · synced from Temple.`,
     percent: Math.round((done / total) * 100),
     done, total, nextSteps, allSteps
   };
@@ -443,6 +517,9 @@ export interface PathOverview {
   /** Set when WOM had a player record; null otherwise. UI checks this
    *  to render the 'Synced via Wise Old Man' badge. */
   accountMeta: AccountMeta | null;
+  /** Which external trackers returned data for this player. Drives the
+   *  'Synced via WOM/Temple/CL' badge. */
+  syncedSources?: { wom: boolean; temple: boolean; collectionLog: boolean };
 }
 
 export interface ComputePathProgressInput {
@@ -455,12 +532,19 @@ export interface ComputePathProgressInput {
    *  Hiscores-only data and don't surface the synced badge. */
   womBossKills?: Record<string, number>;
   accountMeta?: AccountMeta | null;
+  /** Lowercased quest-names from TempleOSRS — exact completion data
+   *  for players who use the Temple plugin. When present, questsPath
+   *  uses these instead of the QP-budget heuristic. */
+  templeQuestsCompleted?: Set<string>;
+  /** Tracks which external sources had data, drives the synced-badge
+   *  copy. */
+  syncedSources?: { wom: boolean; temple: boolean; collectionLog: boolean };
 }
 
 export function computePathProgress(input: ComputePathProgressInput): PathOverview {
   const paths: [PathProgress, PathProgress, PathProgress, PathProgress] = [
     skillsPath(input.skills),
-    questsPath(input.quests, input.skills, input.questPoints),
+    questsPath(input.quests, input.skills, input.questPoints, input.templeQuestsCompleted),
     diariesPath(input.diaries, input.skills),
     bossesPath(input.bossKc, input.skills, input.womBossKills)
   ];
@@ -470,6 +554,7 @@ export function computePathProgress(input: ComputePathProgressInput): PathOvervi
   return {
     paths,
     overallPercent,
-    accountMeta: input.accountMeta ?? null
+    accountMeta: input.accountMeta ?? null,
+    syncedSources: input.syncedSources
   };
 }

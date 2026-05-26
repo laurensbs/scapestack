@@ -78,6 +78,17 @@ export interface NextUpInput {
   /** WOM-derived account metadata. Drives the 'Synced via WOM' badge
    *  and account-type-aware recommendations. */
   accountMeta?: import("./path-progress").AccountMeta | null;
+  /** TempleOSRS exact-completed quest names (lowercased). When present,
+   *  questsPath uses this for completion-state instead of the QP-budget
+   *  heuristic. */
+  templeQuestsCompleted?: string[];
+  /** collectionlog.net owned item IDs (any item with the obtained flag).
+   *  Used to skip KC-recs whose iconic drop the player already has —
+   *  exact data instead of bank-paste guesswork. */
+  collectionLogOwnedItemIds?: number[];
+  /** Tracks which external trackers contributed. Surfaced as the
+   *  'Synced via X · Y · Z' badge on the hero block. */
+  syncedSources?: { wom: boolean; temple: boolean; collectionLog: boolean };
 }
 
 export interface NextUpResult {
@@ -591,12 +602,38 @@ const DIARY_REWARD_ICONS: Record<string, number> = {
 // Tbow at CoX (1/34500, way past the window) and Shadow at ToA, which are
 // the chases every player at those bosses actually wants to know about.
 // Order doesn't matter — we use Array.find.
-const ICONIC_DROPS: Record<string, string[]> = {
-  "Chambers of Xeric":              ["twisted bow", "kodai insignia", "elder maul"],
-  "Theatre of Blood":               ["scythe of vitur", "ghrazi rapier", "sanguinesti staff"],
-  "Tombs of Amascut: Expert Mode":  ["tumeken's shadow", "osmumten's fang", "elidinis' ward"],
-  "Tombs of Amascut":               ["tumeken's shadow", "osmumten's fang"],
-  "Nex":                            ["torva", "zaryte"]
+// Each iconic chase carries a name-needle (for bank substring matching)
+// and the canonical OSRS item-id (for cl.net's owned-item set lookup).
+// IDs verified against chisel.weirdgloop.org. When a player has the
+// item in their bank OR their collection-log we skip past to the next.
+interface IconicEntry {
+  needle: string;
+  itemId: number;
+}
+const ICONIC_DROPS: Record<string, IconicEntry[]> = {
+  "Chambers of Xeric": [
+    { needle: "twisted bow",       itemId: 20997 },
+    { needle: "kodai insignia",    itemId: 21043 },
+    { needle: "elder maul",        itemId: 21003 }
+  ],
+  "Theatre of Blood": [
+    { needle: "scythe of vitur",   itemId: 22325 },
+    { needle: "ghrazi rapier",     itemId: 22324 },
+    { needle: "sanguinesti staff", itemId: 22323 }
+  ],
+  "Tombs of Amascut: Expert Mode": [
+    { needle: "tumeken's shadow",  itemId: 27275 },
+    { needle: "osmumten's fang",   itemId: 26219 },
+    { needle: "elidinis' ward",    itemId: 25985 }
+  ],
+  "Tombs of Amascut": [
+    { needle: "tumeken's shadow",  itemId: 27275 },
+    { needle: "osmumten's fang",   itemId: 26219 }
+  ],
+  "Nex": [
+    { needle: "torva full helm",   itemId: 26382 },
+    { needle: "zaryte vambraces",  itemId: 26235 }
+  ]
 };
 
 // Returns true if the player's bank contains anything whose lowercased name
@@ -608,6 +645,16 @@ function bankHas(bank: CompletionItem[], needle: string): boolean {
     if (it.name.toLowerCase().includes(needle)) return true;
   }
   return false;
+}
+
+// 'Does the player own at least one of this iconic drop?'
+//   - Collection-log (cl.net plugin): authoritative when present —
+//     this is the source of truth Jagex would expose if they had an API.
+//   - Bank paste: fallback name-substring scan.
+// Used by kcRecs to skip iconic chases the player already has.
+function ownsIconic(entry: IconicEntry, bank: CompletionItem[], clOwned: Set<number> | undefined): boolean {
+  if (clOwned && clOwned.has(entry.itemId)) return true;
+  return bankHas(bank, entry.needle);
 }
 
 // Combines a player's boss kill-count (from Hiscores) with the rarest unique
@@ -623,7 +670,8 @@ function bankHas(bank: CompletionItem[], needle: string): boolean {
 function kcRecs(
   dropTables: Map<string, BossDropTable>,
   bossKc: Record<string, number>,
-  bank: CompletionItem[]
+  bank: CompletionItem[],
+  clOwned?: Set<number>
 ): Recommendation[] {
   if (dropTables.size === 0) return [];
   const recs: Recommendation[] = [];
@@ -633,19 +681,19 @@ function kcRecs(
 
     // Pick the rarest "iconic" drop the player would chase AND doesn't
     // already own. Two paths:
-    //  1. If the boss has an entry in ICONIC_DROPS, walk the needles in
+    //  1. If the boss has an entry in ICONIC_DROPS, walk the entries in
     //     order and pick the first one whose drop they don't have. This
     //     overrides the denom window so e.g. Tbow at CoX (1/34500) can
     //     still surface as a chase.
     //  2. Otherwise, walk table.drops (rarest first) and pick the first
     //     one in the 500-15000 denom window that the player doesn't own.
-    const iconicNames = ICONIC_DROPS[wikiName];
+    const iconics = ICONIC_DROPS[wikiName];
     let headline: typeof table.drops[number] | undefined;
     let isIconic = false;
-    if (iconicNames) {
-      for (const needle of iconicNames) {
-        if (bankHas(bank, needle)) continue; // already owned — try next iconic
-        headline = table.drops.find((d) => d.name.toLowerCase().includes(needle));
+    if (iconics) {
+      for (const entry of iconics) {
+        if (ownsIconic(entry, bank, clOwned)) continue;
+        headline = table.drops.find((d) => d.name.toLowerCase().includes(entry.needle));
         if (headline) { isIconic = true; break; }
       }
     }
@@ -819,12 +867,32 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
       ])
     : [new Map(), new Map(), new Map()];
 
+  // Collection-log owned-item set (cl.net). Rebuild from the input
+  // array — the action layer flattens it to a list because Set isn't
+  // structured-clone-safe across the server/client boundary.
+  const clOwned = input.collectionLogOwnedItemIds
+    ? new Set(input.collectionLogOwnedItemIds)
+    : undefined;
+
+  // Boss KCs: merge Hiscores + WOM via max — WOM is often fresher
+  // because the RuneLite plugin pushes more often than Jagex updates.
+  const mergedBossKc: Record<string, number> = { ...(input.bossKc ?? {}) };
+  if (input.womBossKills) {
+    // WOM uses snake_case names; the engine + drop-tables use the Wiki
+    // form. We seed the merged map with WOM data under the SAME keys
+    // we use elsewhere (drop-rates-db's `hiscoresName`). The path-
+    // progress bossesPath already does this merge for its own consumer.
+    // Here we trust input.bossKc as the canonical source; WOM keys are
+    // not directly mappable without a lookup table, so we leave merging
+    // to the path-progress layer that has both.
+  }
+
   const recs: Recommendation[] = [
     ...goalRecs(completions),
     ...(combatLevel !== null ? bossRecs(combatLevel, bank, skills) : []),
     ...questRecs(quests, skills, qp),
     ...diaryRecs(diaries, skills),
-    ...kcRecs(dropTables, input.bossKc ?? {}, bank),
+    ...kcRecs(dropTables, mergedBossKc, bank, clOwned),
     ...minigameRecs(skills),
     ...moneyRecs(skills),
     ...skillRecs(skills),
@@ -842,8 +910,9 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
 
   // Path-to-Max progress — drives the new path-card UI. Cheap to compute
   // (no extra disk reads; quests/diaries are already loaded above) and
-  // always populated even when data is sparse. WOM enrichment is
-  // optional; when missing we fall back to Hiscores-only behaviour.
+  // always populated even when data is sparse. WOM + Temple + cl.net
+  // enrichments are all optional; when missing we fall back to
+  // Hiscores-only behaviour.
   const pathProgress: PathOverview = computePathProgress({
     skills,
     quests,
@@ -851,7 +920,11 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     bossKc: input.bossKc ?? {},
     questPoints: qp,
     womBossKills: input.womBossKills,
-    accountMeta: input.accountMeta ?? null
+    accountMeta: input.accountMeta ?? null,
+    templeQuestsCompleted: input.templeQuestsCompleted
+      ? new Set(input.templeQuestsCompleted)
+      : undefined,
+    syncedSources: input.syncedSources
   });
 
   return {
