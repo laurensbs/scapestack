@@ -54,6 +54,10 @@ export const TOOLS: Tool[] = [
   // Prices + ge-tracker.com do that better, no moat for us. The /gp and
   // /ge routes are kept as 308 permanent-redirects to /next (in
   // src/app/{gp,ge}/page.tsx) so cached external links don't 404.
+  // Hiscore Lookup — no longer rendered on the homepage but still
+  // registered here so ToolHeader on /hiscore can read its metadata
+  // via getTool(). Surfaced nowhere else (header + sidebar filter
+  // bank/dps/goals).
   {
     slug: "hiscore",
     href: "/hiscore",
@@ -63,7 +67,7 @@ export const TOOLS: Tool[] = [
     description:
       "Enter a username, get a polished card with all 24 skills, combat level, XP, total level, and ranks. Live data from the official OSRS Hiscores.",
     icon: Trophy,
-    iconItemId: 13342, // Max cape — Hiscores / total-level signature
+    iconItemId: 13342,
     status: "live",
     accent: "violet"
   },

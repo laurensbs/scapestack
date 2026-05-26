@@ -20,6 +20,7 @@ import { getQuests, type QuestRecord } from "./quest-db";
 import { getDiaries, type DiaryRecord, type DiaryTier } from "./diary-db";
 import { getDropRates, type BossDropTable } from "./drop-rates-db";
 import { computePathProgress, type PathOverview } from "./path-progress";
+import { skillCapeId } from "./skill-capes";
 
 // Kind drives the icon + accent the hub renders, and groups the checklist.
 export type RecKind =
@@ -409,7 +410,10 @@ function skillRecs(skills: HiscoreSkill[]): Recommendation[] {
         payoff: `Unlocks: ${m.unlock}`,
         // Closer to the milestone = higher score, capped below top goals.
         score: 78 - gap * 6,
-        link: "/goals"
+        link: "/goals",
+        // Per-skill cape sprite — Slayer cape for 'Push Slayer', not the
+        // generic Attack cape stand-in that was shipping before.
+        iconItemId: skillCapeId(skill)
       });
       break; // only the nearest milestone per skill
     }

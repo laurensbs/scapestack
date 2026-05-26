@@ -20,6 +20,7 @@ import type { HiscoreSkill } from "./hiscores";
 import { computeTotalLevel, computeCombatLevel } from "./hiscores";
 import type { QuestRecord } from "./quest-db";
 import type { DiaryRecord, DiaryTier } from "./diary-db";
+import { skillCapeId } from "./skill-capes";
 
 export interface PathStep {
   /** Display title (e.g. "Push Slayer to 70" or "Karamja Diary — Hard"). */
@@ -92,7 +93,9 @@ function skillsPath(skills: HiscoreSkill[]): PathProgress {
   const nextSteps: PathStep[] = candidates.slice(0, 3).map((c) => ({
     title: `${c.name} ${c.current} → ${c.target}`,
     why: `${c.gap} level${c.gap === 1 ? "" : "s"} to go.`,
-    iconItemId: 9747 // generic skill cape icon
+    // Per-skill cape so the next-step preview reads as the actual goal
+    // (Slayer cape next to 'Slayer 65 → 70' instead of Attack cape).
+    iconItemId: skillCapeId(c.name)
   }));
 
   // allSteps: every skill, marked done when 99.
@@ -102,7 +105,7 @@ function skillsPath(skills: HiscoreSkill[]): PathProgress {
       title: `${name} ${cur}/99`,
       why: cur >= 99 ? "Cape earned." : `${99 - cur} levels to 99.`,
       status: cur >= 99 ? ("done" as const) : ("open" as const),
-      iconItemId: 9747
+      iconItemId: skillCapeId(name)
     };
   });
 
@@ -138,20 +141,57 @@ function questsPath(quests: Map<string, QuestRecord>, skills: HiscoreSkill[], qp
   const lvl = (name: string) => skills.find((s) => s.name === name)?.level ?? 1;
   const total = quests.size;
 
-  // Heuristic: a quest is 'likely done' when the player meets every skill
-  // req AND has more QP than what was theoretically needed to reach this
-  // one in difficulty-order. We compute an estimated 'sufficient QP' per
-  // quest based on its own QP gate plus the difficulty tier itself.
+  // Honest heuristic: a player's QP total tells us how many quests they
+  // *could* have completed at most. We sort all quests easiest-first and
+  // accept the cheapest set whose summed QP-cost fits inside the player's
+  // QP. Anything past that point is open even if the stats meet it — we
+  // don't have the data to say otherwise.
+  //
+  // The old version (qp >= qpReq + tier-cost) claimed 89% done for a
+  // 105 QP account because each Novice quest's bar was tiny in isolation;
+  // it ignored that the player only has 105 QP to spend across them all.
   const allSteps: PathProgress["allSteps"] = [];
   let done = 0;
 
+  // 1. Build an easiest-first list of quests the player meets the skills for.
+  const difficultyRank: Record<string, number> = {
+    Novice: 0, Intermediate: 1, Experienced: 2, Special: 3, Master: 4, Grandmaster: 5
+  };
+  const sortedQuests = [...quests.values()].sort((a, b) =>
+    (difficultyRank[a.difficulty ?? "Intermediate"] ?? 1) -
+    (difficultyRank[b.difficulty ?? "Intermediate"] ?? 1)
+  );
+
+  // 2. Walk the sorted list spending the player's QP. A quest is 'likely
+  //    done' iff its QP fits in the remaining budget AND every skill req
+  //    is met. The skill check is what stops us from saying a low-level
+  //    player has done DT2 just because they have 200 QP.
+  //
+  //    Quest-cape threshold: at ~290 QP a player has effectively done
+  //    every quest in the game (the Wiki's QP cap was 300 at the time
+  //    of writing). Past that point we mark everything done — the
+  //    skill-budget walk would still skip a few miniquests because
+  //    our dataset has 181 records and they sum past 300 QP.
+  const QC_THRESHOLD = 290;
+  const likelyDoneNames = new Set<string>();
+  if (skills.length > 0) {
+    if (qp >= QC_THRESHOLD) {
+      for (const q of sortedQuests) likelyDoneNames.add(q.name);
+    } else {
+      let budget = qp;
+      for (const q of sortedQuests) {
+        const meetsSkills = q.skillReqs.every((r) => lvl(r.skill) >= r.level);
+        const cost = QP_BY_DIFFICULTY[q.difficulty ?? "Intermediate"] ?? 2;
+        if (meetsSkills && budget >= cost) {
+          likelyDoneNames.add(q.name);
+          budget -= cost;
+        }
+      }
+    }
+  }
+
   for (const q of quests.values()) {
-    const meetsSkills = q.skillReqs.every((r) => lvl(r.skill) >= r.level);
-    const qpThreshold = q.qpReq + (QP_BY_DIFFICULTY[q.difficulty ?? "Intermediate"] ?? 2);
-    // 'Likely done' = stat gate met AND the player has spent enough QP to
-    // have plausibly reached this one. Conservative — won't claim quests
-    // the player can't have done, but will over-count for non-completionists.
-    const likelyDone = skills.length > 0 && meetsSkills && qp >= qpThreshold;
+    const likelyDone = likelyDoneNames.has(q.name);
     if (likelyDone) done++;
     allSteps.push({
       title: q.name,
@@ -163,20 +203,19 @@ function questsPath(quests: Map<string, QuestRecord>, skills: HiscoreSkill[], qp
     });
   }
 
-  // Next steps: open quests at higher difficulties the player meets the
-  // skills for, sorted by difficulty descending (Grandmaster first).
-  const difficultyRank: Record<string, number> = {
-    Grandmaster: 5, Master: 4, Special: 3, Experienced: 2, Intermediate: 1, Novice: 0
-  };
+  // Next steps: quests the player can attempt now (meets every skill
+  // req, QP gate satisfied) but aren't in the likely-done set. Sorted
+  // hardest-first so the suggestion is something with weight, not 'do
+  // Cook's Assistant.'
   const openSteps = [...quests.values()]
     .filter((q) => {
       if (skills.length === 0) return false;
       const meets = q.skillReqs.every((r) => lvl(r.skill) >= r.level);
-      const qpThreshold = q.qpReq + (QP_BY_DIFFICULTY[q.difficulty ?? "Intermediate"] ?? 2);
-      const likelyDone = meets && qp >= qpThreshold;
-      return meets && !likelyDone;
+      const qpGate = q.qpReq === 0 || qp >= q.qpReq;
+      return meets && qpGate && !likelyDoneNames.has(q.name);
     })
-    .sort((a, b) => (difficultyRank[b.difficulty ?? ""] ?? 0) - (difficultyRank[a.difficulty ?? ""] ?? 0));
+    .sort((a, b) => (difficultyRank[b.difficulty ?? "Intermediate"] ?? 1) -
+                     (difficultyRank[a.difficulty ?? "Intermediate"] ?? 1));
 
   const nextSteps: PathStep[] = openSteps.slice(0, 3).map((q) => ({
     title: q.name,
@@ -218,9 +257,17 @@ function diariesPath(diaries: Map<string, DiaryRecord>, skills: HiscoreSkill[]):
   const allSteps: PathProgress["allSteps"] = [];
   let done = 0;
 
-  // For each region+tier: 'likely done' if the player's skill margin over
-  // every requirement is >= 12 levels. Maxed-ish accounts likely have done
-  // every diary; we flag everything as done above 2100 total.
+  // Per-tier 'likely done' margin. Diaries need active completion (not
+  // just skill gates), so just barely meeting the cap doesn't mean it's
+  // done. Higher tiers need a bigger margin to credibly say 'you sailed
+  // past this.' Maxed-ish accounts (Total >= 2100) suppress everything
+  // as done since they realistically have it all.
+  const REQUIRED_MARGIN: Record<DiaryTier, number> = {
+    Easy: 25,    // anyone with Total > 1000 has crossed Easy gates by accident
+    Medium: 25,
+    Hard: 30,
+    Elite: 30
+  };
   for (const [region, d] of diaries) {
     for (const tier of DIARY_TIERS_ORDER) {
       const reqs = d.tiers[tier]?.skills ?? [];
@@ -228,7 +275,7 @@ function diariesPath(diaries: Map<string, DiaryRecord>, skills: HiscoreSkill[]):
       const margins = reqs.map((r) => lvl(r.skill) - r.level);
       const allMet = margins.every((m) => m >= 0);
       const minMargin = margins.length > 0 ? Math.min(...margins) : 0;
-      const likelyDone = isMaxedish || (allMet && minMargin >= 12);
+      const likelyDone = isMaxedish || (allMet && minMargin >= REQUIRED_MARGIN[tier]);
       if (likelyDone) done++;
       allSteps.push({
         title: `${region} — ${tier}`,
@@ -322,9 +369,10 @@ function bossesPath(bossKc: Record<string, number>, skills: HiscoreSkill[]): Pat
   for (const boss of ROSTER) {
     const kc = bossKc[boss.hiscoresName] ?? 0;
     if (kc > 0 && kc < 50) {
+      const toGo = 50 - kc;
       nextSteps.push({
         title: `Push ${boss.label} to 50 KC`,
-        why: `${kc} KC so far — half a Tbow's drop chance from there.`,
+        why: `${kc} KC so far · ${toGo} to go.`,
         bossSlug: boss.slug
       });
       if (nextSteps.length === 3) break;
