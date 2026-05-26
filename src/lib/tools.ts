@@ -2,7 +2,7 @@
 // landing page. Add a tool here and it shows up everywhere.
 
 import type { LucideIcon } from "lucide-react";
-import { Layers, Trophy, Sword, Target, Sparkles } from "lucide-react";
+import { Layers, Trophy, Sword, Target, Sparkles, Skull } from "lucide-react";
 
 export type ToolStatus = "live" | "soon" | "planned";
 
@@ -100,6 +100,19 @@ export const TOOLS: Tool[] = [
     iconItemId: 4151,  // Abyssal whip — combat / damage signature
     status: "live",
     accent: "amber"
+  },
+  {
+    slug: "slayer",
+    href: "/slayer",
+    name: "Slayer Planner",
+    short: "Pick the right master, see expected XP/hour",
+    tagline: "Your stats → best master, task probabilities, block list",
+    description:
+      "Enter your combat + slayer level (or paste your RSN) and we rank the 7 masters by expected XP/hour. Per master: every possible task, the chance you'll get it, expected XP, and which 5 tasks you should block for max efficiency.",
+    icon: Skull,
+    iconItemId: 11864,  // Slayer helmet — signature item
+    status: "live",
+    accent: "rose"
   }
 ];
 

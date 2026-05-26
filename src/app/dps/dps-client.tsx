@@ -22,6 +22,13 @@ export function DpsClient() {
   // Replaces the old BossPicker dropdown — having the search field above
   // the table reads more directly ('type to find', not 'click to open').
   const [search, setSearch] = useState("");
+  // Sort-order voor de boss-table. Default 'dps' = bestaande gedrag.
+  // Andere opties geven een andere lens op dezelfde data:
+  //   accuracy  → wie raakt het vaakst (1-shotbaar pures, etc.)
+  //   gpHour    → wie levert de meeste GP/u (afgeleid: kills × loot)
+  //   ttk       → wie sterft het snelst per kill (XP/u proxy)
+  type SortKey = "dps" | "accuracy" | "gpHour" | "ttk";
+  const [sortBy, setSortBy] = useState<SortKey>("dps");
   // Currently-open boss in the detail modal. Lifted here so deep-link
   // (?boss=<slug>) can open it on result-view mount, and so the Enter-
   // key search shortcut can open it too.
@@ -82,16 +89,39 @@ export function DpsClient() {
   // improve DPS by the largest factor across most bosses.
   const upgrades = useMemo(() => suggestUpgrades(owned), [owned]);
 
-  // Live-filtered boss list. Matches against boss.name (lowercased,
-  // substring) so 'gra' finds 'General Graardor' and 'demonic' finds
-  // 'Demonic Gorillas'. Empty query = full list.
+  // Live-filtered + sorted boss list. Matches against boss.name
+  // (lowercased substring) so 'gra' finds 'General Graardor'. Empty
+  // query = full list. Sort runs AFTER filter zodat het aantal blijft
+  // kloppen met de zichtbare rows.
   const filteredResults = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return bossResults;
-    return bossResults.filter(({ boss }) =>
-      boss.name.toLowerCase().includes(q) || boss.slug.includes(q)
-    );
-  }, [bossResults, search]);
+    const base = q
+      ? bossResults.filter(({ boss }) =>
+          boss.name.toLowerCase().includes(q) || boss.slug.includes(q)
+        )
+      : bossResults;
+    // GP/u berekening matched aan BossRow logica (zie regel 300):
+    //   capped kills × avgLootGp. Null = onbekend → naar achteren.
+    const gpHour = (b: typeof base[number]) => {
+      const k = b.boss.killsPerHourCap;
+      const gp = b.boss.avgLootGp;
+      if (!k || !gp || b.dps.dps <= 0) return -1;
+      return Math.min(k, Math.floor(3600 / b.dps.ttk)) * gp;
+    };
+    const sorted = [...base];
+    switch (sortBy) {
+      case "dps":      sorted.sort((a, b) => b.dps.dps - a.dps.dps); break;
+      case "accuracy": sorted.sort((a, b) => b.dps.hitChance - a.dps.hitChance); break;
+      case "gpHour":   sorted.sort((a, b) => gpHour(b) - gpHour(a)); break;
+      case "ttk":      sorted.sort((a, b) => {
+        // TTK = lager is beter; 0/negatief = "niet killbaar" → naar achteren.
+        const aT = a.dps.ttk > 0 ? a.dps.ttk : Infinity;
+        const bT = b.dps.ttk > 0 ? b.dps.ttk : Infinity;
+        return aT - bT;
+      }); break;
+    }
+    return sorted;
+  }, [bossResults, search, sortBy]);
 
   // Pretty name for the deep-linked boss banner (raid slugs fall through
   // — the banner just doesn't show in that case).
@@ -254,6 +284,35 @@ export function DpsClient() {
                 : `Showing ${filteredResults.length} of ${bossResults.length} bosses.`}
             </p>
           )}
+          {/* Sort selector — pill-style toggle group. Default DPS is de
+              standaard waar mensen voor komen; de andere drie geven
+              dezelfde lijst maar door een andere bril ('wie raakt vaakst',
+              'wie levert het meest GP', 'wie gaat snelst dood'). */}
+          <div className="mt-3 flex items-center gap-2 flex-wrap">
+            <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+              Sort
+            </span>
+            {([
+              { key: "dps",      label: "Best DPS" },
+              { key: "accuracy", label: "Most accurate" },
+              { key: "gpHour",   label: "Most GP/hour" },
+              { key: "ttk",      label: "Fastest kill" }
+            ] as const).map((opt) => (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => setSortBy(opt.key)}
+                className={cn(
+                  "px-2.5 py-1 rounded-md text-[11px] border transition-colors",
+                  sortBy === opt.key
+                    ? "border-[var(--color-accent)]/50 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
+                    : "border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="space-y-2.5">
           {filteredResults.map(({ boss, dps }) => (
