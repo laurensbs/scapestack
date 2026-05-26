@@ -44,7 +44,32 @@ const SLUG_TO_WIKI_PAGE = {
   "moons-of-peril":   "Lunar Chest",
   "guardians-of-the-rift": "The Great Guardian",
   "tzkal-zuk": "TzKal-Zuk",
-  "tztok-jad": "TzTok-Jad"
+  "tztok-jad": "TzTok-Jad",
+  // Slayer-monster bosses (wiki uses spaces/hyphens differently)
+  "demonic-gorillas": "Demonic gorilla",
+  "thermonuclear":    "Thermonuclear smoke devil",
+  // Wilderness archaeologists
+  "crazy-archaeologist":     "Crazy archaeologist",
+  "deranged-archaeologist":  "Deranged Archaeologist",
+  // ToB encounters
+  maiden:    "The Maiden of Sugadinti",
+  bloat:     "Pestilent Bloat",
+  nylo:      "Nylocas",
+  sotetseg:  "Sotetseg",
+  xarpus:    "Xarpus",
+  verzik:    "Verzik Vitur",
+  // CoX rooms
+  olm:       "Great Olm",
+  tekton:    "Tekton",
+  muttadile: "Muttadile",
+  vasa:      "Vasa Nistirio",
+  vespula:   "Vespula",
+  // ToA encounters
+  akkha:   "Akkha",
+  "ba-ba": "Ba-Ba",
+  kephri:  "Kephri",
+  zebak:   "Zebak",
+  warden:  "Tumeken's Warden"
 };
 
 // ASCII-only UA — em-dashes break Node's HTTP header check.
@@ -56,13 +81,17 @@ const UA = "scapestack-boss-sprite-builder/1.0 (+https://scapestack.app - lauren
 async function readBossesFromSource() {
   const src = await readFile(BOSSES_TS, "utf8");
   const rows = [];
-  // Match only top-level entries (2-space indent). Nested raid rooms use
-  // 6-space indent and we don't want those (the raid itself already has
-  // a top-level row pointing at the iconic room).
-  const re = /^  \{ slug: "([a-z][a-z0-9-]+)", name: "([^"]+)"/gm;
+  // Match alle entries — top-level (2-space) én nested raid-room entries
+  // (6-space). Vroeger skipte we de rooms maar de DPS-page rendert ze
+  // als losse bosses dus ze hebben eigen sprites nodig (Olm, Maiden,
+  // Akkha, etc).
+  const re = /^\s+\{\s*slug:\s*"([a-z][a-z0-9-]+)",\s*name:\s*"([^"]+)"/gm;
   let m;
+  const seen = new Set();
   while ((m = re.exec(src)) !== null) {
     const [, slug, name] = m;
+    if (seen.has(slug)) continue;
+    seen.add(slug);
     rows.push({ slug, page: SLUG_TO_WIKI_PAGE[slug] ?? name });
   }
   return rows;
