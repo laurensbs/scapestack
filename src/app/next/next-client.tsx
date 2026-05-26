@@ -19,6 +19,7 @@ import { ownedGear, type GearItem } from "@/lib/gear";
 import { organizeAction, nextUpAction, hiscoresAction, womAction, collectionLogAction, templeAction, syncedPlayerAction } from "@/app/actions";
 import { type HiscoreSkill } from "@/lib/hiscores";
 import { unlockedFromHiscores, GOAL_SETS, normaliseCompletion, type SetCompletion } from "@/lib/goals";
+import type { HoursToMaxSummary } from "@/lib/hours-to-max";
 import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
 import { track } from "@/lib/analytics";
 import type { Recommendation, RecKind, NextUpResult } from "@/lib/next-up";
@@ -654,6 +655,11 @@ function ResultView({ result, onEdit, onBossOpen }: {
         onBossOpen={onBossOpen}
       />
 
+      {/* Hours-to-max — alleen wanneer Hiscores zijn geladen. Geeft de
+          speler één getal voor "hoeveel uur tot max" plus de 3 zwaarste
+          skills die het langst duren. */}
+      <HoursToMaxSection estimate={result.maxEstimate} />
+
       {/* Bank-readiness chips — alleen wanneer er bank-data is.
           Surfaceert "je bent dicht bij completen van deze N goal sets". */}
       <ReadinessSection readiness={result.readiness} />
@@ -1160,3 +1166,67 @@ function ReadinessSection({ readiness }: { readiness: SetCompletion[] }) {
     </section>
   );
 }
+
+// ── Hours to max ───────────────────────────────────────────────────────────
+// Eén concreet getal: "tot maxed account heb je nog X uur." Onder de
+// motorkap gemiddeld-rate × xp-remaining per skill, gestapeld. Voor de
+// 3 zwaarste skills tonen we ook expliciet wat ze kosten — daar zit
+// vaak de pijn.
+
+function HoursToMaxSection({ estimate }: { estimate: HoursToMaxSummary }) {
+  if (estimate.perSkill.length === 0) return null;
+  const top3 = estimate.perSkill.slice(0, 3);
+  // Days/weken-conversie helpt het abstract getal te aarden.
+  const days = Math.round(estimate.totalHours / 4);     // 4u per dag — gemiddelde grinder
+  const weeks = Math.round(estimate.totalHours / 28);   // 4h/dag × 7
+
+  return (
+    <section className="mb-10">
+      <h3 className="eyebrow mb-3 text-[var(--color-accent)]">Tot maxed</h3>
+      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-5">
+        <div className="flex items-baseline gap-4 flex-wrap mb-4">
+          <div>
+            <div className="text-[28px] font-bold text-[var(--color-text)] tabular-nums leading-none">
+              {Math.round(estimate.totalHours).toLocaleString()}<span className="text-[15px] font-normal text-[var(--color-text-muted)] ml-1">uur</span>
+            </div>
+            <div className="text-[11px] text-[var(--color-text-muted)] mt-1 tabular-nums">
+              ≈ {days} dagen @ 4u/dag · ≈ {weeks} weken consistent
+            </div>
+          </div>
+          <div className="text-[11px] text-[var(--color-text-dim)] max-w-sm">
+            Op community-gemiddelde XP-rates. AFK-spelers verdubbelen dit makkelijk;
+            tick-perfecte methodes halen het naar beneden.
+          </div>
+        </div>
+        <div>
+          <div className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2">
+            Waar zit je grootste tijdsinvestering
+          </div>
+          <div className="space-y-1.5">
+            {top3.map((e) => {
+              // 100% = hoogste uren van top3, voor balk-breedte
+              const widthPct = Math.round((e.hours / top3[0].hours) * 100);
+              return (
+                <div key={e.skill}>
+                  <div className="flex items-baseline justify-between gap-3 text-[12px] tabular-nums mb-0.5">
+                    <span className="text-[var(--color-text)]">{e.skill}</span>
+                    <span className="text-[var(--color-text-dim)]">
+                      lvl {e.currentLevel} → 99 · {Math.round(e.hours)}u
+                    </span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-[var(--color-bg-2)] overflow-hidden">
+                    <div
+                      className="h-full bg-[var(--color-accent)]/60 rounded-full"
+                      style={{ width: `${widthPct}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+

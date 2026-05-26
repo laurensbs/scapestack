@@ -14,6 +14,7 @@ import {
   GOAL_SETS, checkCompletion, normaliseCompletion, overallStats, closestToComplete,
   type CompletionItem, type SetCompletion
 } from "./goals";
+import { hoursToMax } from "./hours-to-max";
 import { BOSSES } from "./bosses";
 import { computeCombatLevel, computeTotalLevel, type HiscoreSkill } from "./hiscores";
 import { getQuests, type QuestRecord } from "./quest-db";
@@ -126,6 +127,9 @@ export interface NextUpResult {
   /** Top-N goal-sets gesorteerd op "dichtsbij voltooien". Lege array
    *  wanneer geen bank gepasted is. Drijft de Bank-Readiness chip-rij. */
   readiness: import("./goals").SetCompletion[];
+  /** Hours-to-max samenvatting: totaal + per-skill. Bron: hours-to-max.ts
+   *  met community-XP-rate tabel. Lege summary zonder Hiscores. */
+  maxEstimate: import("./hours-to-max").HoursToMaxSummary;
 }
 
 // Skill milestones worth nudging a player toward — levels that unlock
@@ -958,11 +962,18 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     ? closestToComplete(completions, 6)
     : [];
 
+  // Hours-to-max — alleen wanneer Hiscores geladen zijn (vereist xp
+  // per skill). Lege summary als skills leeg.
+  const maxEstimate = hasHiscores
+    ? hoursToMax(skills.map((s) => ({ name: s.name, level: s.level, xp: s.xp })))
+    : { totalHours: 0, perSkill: [] };
+
   return {
     headline: recs[0] ?? null,
     rest: recs.slice(1),
     summary: { combatLevel, totalLevel, goalPercent, basis },
     pathProgress,
-    readiness
+    readiness,
+    maxEstimate
   };
 }
