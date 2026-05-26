@@ -56,11 +56,12 @@ CREATE TABLE IF NOT EXISTS player_claim (
 `;
 
 const sql = neon(url);
-// Neon's serverless driver doesn't support multi-statement strings via the
-// tagged-template directly; we split on the semicolon.
+// Neon's serverless driver requires either the tagged-template form
+// sql`...` or sql.query("..."). The latter is what we want for raw
+// DDL strings split out of SCHEMA_SQL.
 const statements = SCHEMA_SQL.split(/;\s*$/m).map((s) => s.trim()).filter(Boolean);
 for (const stmt of statements) {
   console.log("Running:", stmt.slice(0, 60).replace(/\s+/g, " ") + "...");
-  await sql(stmt);
+  await sql.query(stmt);
 }
 console.log("\n✓ Schema ready.");
