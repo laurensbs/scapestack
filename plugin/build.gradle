@@ -72,6 +72,9 @@ task runClient(type: JavaExec) {
     classpath = configurations.runClient + sourceSets.main.runtimeClasspath
     mainClass = 'app.scapestack.runelite.DevLauncher'
     args = ['--debug']
+    // ExternalPluginManager.loadBuiltin verifieert dat -ea aan staat:
+    // pakt API-misbruik tijdens dev vroeger.
+    jvmArgs '-ea'
     systemProperty 'runelite.pluginhub.version', project.version
 }
 
