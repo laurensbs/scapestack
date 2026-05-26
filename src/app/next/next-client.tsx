@@ -18,7 +18,7 @@ import { BOSSES, type Boss } from "@/lib/bosses";
 import { ownedGear, type GearItem } from "@/lib/gear";
 import { organizeAction, nextUpAction, hiscoresAction, womAction, collectionLogAction, templeAction, syncedPlayerAction } from "@/app/actions";
 import { type HiscoreSkill } from "@/lib/hiscores";
-import { unlockedFromHiscores } from "@/lib/goals";
+import { unlockedFromHiscores, GOAL_SETS, normaliseCompletion, type SetCompletion } from "@/lib/goals";
 import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
 import { track } from "@/lib/analytics";
 import type { Recommendation, RecKind, NextUpResult } from "@/lib/next-up";
@@ -654,6 +654,10 @@ function ResultView({ result, onEdit, onBossOpen }: {
         onBossOpen={onBossOpen}
       />
 
+      {/* Bank-readiness chips — alleen wanneer er bank-data is.
+          Surfaceert "je bent dicht bij completen van deze N goal sets". */}
+      <ReadinessSection readiness={result.readiness} />
+
       {/* Path-to-Max — the long-term shape of the account. Four cards
           (Skills / Quests / Diaries / Bosses) with progress + next-steps,
           drill-in modal per path. */}
@@ -1068,6 +1072,91 @@ function MoodSection({
           )}
         </div>
       )}
+    </section>
+  );
+}
+
+// ── Bank readiness ─────────────────────────────────────────────────────────
+// Toont "je bent dicht bij completen van deze sets" als chip-row.
+// Klik op een chip → expandeert + toont wat er nog mist. Geen visual
+// noise wanneer de bank leeg is.
+
+function ReadinessSection({ readiness }: { readiness: SetCompletion[] }) {
+  const [openId, setOpenId] = useState<string | null>(null);
+  if (readiness.length === 0) return null;
+
+  return (
+    <section className="mb-10">
+      <h3 className="eyebrow mb-1 text-[var(--color-accent)]">Bijna klaar</h3>
+      <p className="text-[11.5px] text-[var(--color-text-muted)] mb-3">
+        Sets waar je het dichtsbij voltooien bent — klik voor wat er nog mist.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {readiness.map((c) => {
+          const set = GOAL_SETS.find((s) => s.id === c.setId);
+          if (!set) return null;
+          const norm = normaliseCompletion(c, set);
+          const missing = norm.max - norm.progress;
+          const active = openId === c.setId;
+          return (
+            <button
+              key={c.setId}
+              type="button"
+              onClick={() => setOpenId(active ? null : c.setId)}
+              className={cn(
+                "px-3 py-1.5 rounded-md border text-[11.5px] transition-colors flex items-center gap-2 tabular-nums",
+                active
+                  ? "border-[var(--color-accent)]/60 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
+                  : "border-[var(--color-border)] bg-[var(--color-panel)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
+              )}
+            >
+              <span className="font-semibold">{set.name}</span>
+              <span className="text-[10px] opacity-70">
+                {norm.progress}/{norm.max}
+              </span>
+              {missing > 0 && (
+                <span className="text-[10px] opacity-60">· {missing} short</span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+      {/* Expanded panel — toont missende goals voor de open set. */}
+      {openId && (() => {
+        const c = readiness.find((r) => r.setId === openId);
+        const set = c && GOAL_SETS.find((s) => s.id === c.setId);
+        if (!c || !set) return null;
+        const missing = set.goals.filter((g) => !c.perGoal[g.id]?.satisfied);
+        return (
+          <div className="mt-3 p-3 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)]">
+            <div className="text-[11px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2">
+              {set.name} — nog te halen
+            </div>
+            {missing.length === 0 ? (
+              <p className="text-[12px] text-[var(--color-good)]">
+                Eigenlijk compleet — vermoedelijk een tiered set waar je al de top-tier hebt.
+              </p>
+            ) : (
+              <ul className="space-y-1">
+                {missing.slice(0, 12).map((g) => (
+                  <li key={g.id} className="text-[12px] text-[var(--color-text-dim)] flex items-baseline gap-2">
+                    <span className="size-1 rounded-full bg-[var(--color-text-muted)] inline-block translate-y-[-2px]" />
+                    <span className="text-[var(--color-text)]">{g.name}</span>
+                    {g.tier !== undefined && (
+                      <span className="text-[10.5px] opacity-60">tier {g.tier}</span>
+                    )}
+                  </li>
+                ))}
+                {missing.length > 12 && (
+                  <li className="text-[11px] text-[var(--color-text-muted)] mt-1">
+                    + {missing.length - 12} more
+                  </li>
+                )}
+              </ul>
+            )}
+          </div>
+        );
+      })()}
     </section>
   );
 }

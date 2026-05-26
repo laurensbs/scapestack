@@ -11,7 +11,7 @@
 // rest as a checklist.
 
 import {
-  GOAL_SETS, checkCompletion, normaliseCompletion, overallStats,
+  GOAL_SETS, checkCompletion, normaliseCompletion, overallStats, closestToComplete,
   type CompletionItem, type SetCompletion
 } from "./goals";
 import { BOSSES } from "./bosses";
@@ -123,6 +123,9 @@ export interface NextUpResult {
    *  Drives the new path-card layout in the UI. Always present even when
    *  data is sparse — paths fall back to 0% with empty next-steps. */
   pathProgress: PathOverview;
+  /** Top-N goal-sets gesorteerd op "dichtsbij voltooien". Lege array
+   *  wanneer geen bank gepasted is. Drijft de Bank-Readiness chip-rij. */
+  readiness: import("./goals").SetCompletion[];
 }
 
 // Skill milestones worth nudging a player toward — levels that unlock
@@ -948,10 +951,18 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     syncedSources: input.syncedSources
   });
 
+  // Readiness chips — top 6 sets die dichtsbij voltooien zijn (oftewel:
+  // "je hebt al de meeste pieces, deze paar items missen nog"). Lege
+  // array als geen bank gepasted is — chips renderen niet.
+  const readiness = completions.length > 0
+    ? closestToComplete(completions, 6)
+    : [];
+
   return {
     headline: recs[0] ?? null,
     rest: recs.slice(1),
     summary: { combatLevel, totalLevel, goalPercent, basis },
-    pathProgress
+    pathProgress,
+    readiness
   };
 }
