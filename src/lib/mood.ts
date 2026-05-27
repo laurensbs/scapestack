@@ -61,21 +61,38 @@ const MOOD_KIND_WEIGHTS: Record<Mood, Partial<Record<RecKind, number>>> = {
   }
 };
 
-/** Tijd-budget filters. Sommige recs hebben een "ideale sessie-lengte"
- *  die we inferereren uit hun kind. Quick = clue/bank/skill-bump.
- *  Long = boss/raid/diary-clusters. Wanneer mismatch → penalty. */
+/** Tijd-budget filter — continu in plaats van binaire buckets zodat
+ *  élke stap (15/30/60/120) een meetbaar ander gewicht oplevert.
+ *  Logica: elke kind heeft een "sweet spot" sessie-lengte, en hoe
+ *  verder de gekozen tijd daarvandaan is, hoe minder relevant.
+ *
+ *  Sweet spots:
+ *    bank      : 20 min   (klusje, AFK organize-sessie)
+ *    skill     : 90 min   (long AFK grinds)
+ *    boss      : 90 min   (trip + bank)
+ *    kc        : 90 min   (drop chasing = lange sessie)
+ *    quest     : 90 min   (te kort = onaf, te lang = burnout)
+ *    diary     : 45 min   (snel klaarmaken)
+ *    minigame  : 30 min   (round-based)
+ *    money     : 60 min   (typische trip)
+ *
+ *  Multiplier loopt van ~0.4 (slechte match) naar ~1.4 (perfecte
+ *  match). Continu via gaussian-achtige curve. */
 function timeBudgetFit(rec: Recommendation, minutes: TimeBudget): number {
-  switch (rec.kind) {
-    case "bank":      return minutes <= 30 ? 1.4 : 1.0;
-    case "skill":     return minutes >= 60 ? 1.3 : 0.9;
-    case "boss":      return minutes >= 60 ? 1.2 : 0.6;
-    case "kc":        return minutes >= 60 ? 1.2 : 0.7;
-    case "quest":     return minutes >= 60 ? 1.2 : 0.7;
-    case "diary":     return minutes >= 30 ? 1.1 : 0.8;
-    case "minigame":  return minutes >= 30 ? 1.2 : 0.8;
-    case "money":     return 1.0;
-    default:          return 1.0;
-  }
+  const sweetSpot: Record<RecKind | "default", number> = {
+    bank: 20, skill: 90, boss: 90, kc: 90, quest: 90,
+    diary: 45, minigame: 30, money: 60,
+    goal: 60, milestone: 60,
+    default: 60
+  };
+  const spot = sweetSpot[rec.kind] ?? sweetSpot.default;
+  // Distance in log-space zodat 15→30 (2x) hetzelfde effect heeft als
+  // 60→120 (2x). Voorkomt dat het verschil tussen 60 en 120 onzichtbaar
+  // klein voelt.
+  const ratio = minutes / spot;
+  const logDist = Math.abs(Math.log2(ratio));
+  // logDist=0 → 1.4 ; logDist=1 (factor 2 off) → 1.0 ; logDist=2 → 0.6 etc.
+  return Math.max(0.4, 1.4 - 0.4 * logDist);
 }
 
 export interface MoodPick {
@@ -139,8 +156,8 @@ export function pickForMood(
  *    quest   → Quest point cape — questing signature
  *  Item-IDs gecheckt op OSRS Wiki sprite-CDN. */
 export const MOOD_LABEL: Record<Mood, { itemId: number; name: string; tagline: string }> = {
-  chill:   { itemId: 590,   name: "Chill",   tagline: "AFK, low effort" },     // Tinderbox
-  focused: { itemId: 4151,  name: "Focused", tagline: "Optimise XP/hour" },    // Abyssal whip
-  cash:    { itemId: 995,   name: "Cash",    tagline: "Maximise GP/hour" },    // Coins
+  chill:   { itemId: 6739,  name: "Chill",   tagline: "AFK, low effort" },     // Dragon axe
+  focused: { itemId: 21295, name: "Focused", tagline: "Optimise XP/hour" },    // Infernal cape
+  cash:    { itemId: 22006, name: "Cash",    tagline: "Maximise GP/hour" },    // Vorkath's head
   quest:   { itemId: 9813,  name: "Quest",   tagline: "Story + unlocks" }      // Quest point cape
 };
