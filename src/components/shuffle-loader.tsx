@@ -21,31 +21,53 @@ import { ICON_URL } from "@/lib/utils";
 //   - één regel; iconisch & speels, niet preachy
 //   - anti-repeat zodat dezelfde nooit 2x achter elkaar komt
 
+// Iconische items + boss-trophy heads (Vorkath / Kraken / KBD / KQ /
+// Cerberus / DT2 ingots / etc) zodat de speler "his world" voorbij ziet
+// trekken. Mix van combat-gear, capes, drops, supplies en boss-trophies.
 const ITEM_POOL = [
+  // Combat capes + iconische gear
   4151,   // Abyssal whip
-  995,    // Coins
-  9813,   // Quest point cape
   21295,  // Infernal cape
-  22006,  // Vorkath's head
-  6739,   // Dragon axe
-  11864,  // Slayer helmet (i)
-  11785,  // Bandos chestplate
-  21015,  // Demonic gorilla drop (zenyte)
+  6570,   // Fire cape
   20997,  // Twisted bow
-  11920,  // Dharok's helm
+  12006,  // Kraken tentacle
+  12904,  // Toxic staff (e)
+  12936,  // Toxic blowpipe
+  19553,  // Avernic defender
+  11785,  // Bandos chestplate
+  11804,  // Bandos tassets
+  11862,  // Bandos boots
   4587,   // Dragon scimitar
+  4153,   // Granite maul
+  11920,  // Dharok's helm
+  21015,  // Zenyte
+  6739,   // Dragon axe
+  19481,  // Heavy ballista
   11865,  // Black mask (i)
+  11864,  // Slayer helmet (i)
+  19722,  // Bow of faerdhinen
+  // Capes & quest rewards
+  9813,   // Quest point cape
+  9948,   // Achievement diary cape
+  13384,  // Max cape
+  // Drops & trophies (boss-heads etc.)
+  22006,  // Vorkath's head (mounted)
+  11942,  // King Black Dragon head
+  11944,  // Kalphite Queen head
+  23047,  // Phoenix
+  12655,  // KBD head loot
+  21043,  // Hydra leather
+  22325,  // Scythe of Vitur head
+  // Supplies + economie
+  995,    // Coins
   385,    // Shark
   3024,   // Super restore (4)
   12695,  // Super combat potion (4)
   12791,  // Rune pouch
-  12936,  // Toxic blowpipe
-  19553,  // Avernic defender
-  6570,   // Fire cape
   20720,  // Bond
-  11862,  // Bandos boots
   23979,  // Salve amulet (ei)
-  4153,   // Granite maul
+  21034,  // Brimstone key
+  4585,   // Dragon chainbody
 ];
 
 const LORE_QUOTES = [

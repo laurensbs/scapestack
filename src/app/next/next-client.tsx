@@ -183,6 +183,11 @@ export function NextClient() {
       hasBank: Boolean((opts.input ?? "").trim() || (opts.bankItems && opts.bankItems.length > 0))
     });
     startTransition(async () => {
+      // Minimum loader-tijd: zelfs als data binnen 50ms binnen is
+      // (cached request) houden we de ShuffleLoader minimaal 2s op
+      // het scherm. Voorkomt dat de wow-animatie nauwelijks zichtbaar
+      // is + geeft de speler een moment om de lore-quote te lezen.
+      const minLoaderUntil = Date.now() + 2000;
       const rsn = (opts.rsn ?? "").trim();
       const input = (opts.input ?? "").trim();
 
@@ -292,6 +297,14 @@ export function NextClient() {
           } : null
         }
       }));
+
+      // Wacht uit tot we de minimum loader-tijd hebben gehaald voordat
+      // we naar het result-view flippen. Bij gecachede requests (data
+      // in <100ms binnen) houden we de wow-animatie ~2s zichtbaar.
+      const remainingLoaderMs = minLoaderUntil - Date.now();
+      if (remainingLoaderMs > 0) {
+        await new Promise((r) => setTimeout(r, remainingLoaderMs));
+      }
       setView("result");
 
       // Remember the RSN for next time — independent of bank-save. If the
