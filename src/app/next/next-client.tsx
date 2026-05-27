@@ -316,7 +316,7 @@ export function NextClient() {
     if (pending && typeof window !== "undefined"
         && new URLSearchParams(window.location.search).get("rsn")) {
       return (
-        <div className="max-w-md mx-auto pt-8">
+        <div className="mx-auto pt-8">
           <ShuffleLoader />
         </div>
       );
