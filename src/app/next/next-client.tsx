@@ -11,6 +11,7 @@ import { SavedBankBanner } from "@/components/saved-bank-banner";
 import { BossSprite } from "@/components/boss-picker";
 import { KcProbabilityGraph } from "@/components/kc-probability-graph";
 import { XpDropLoader } from "@/components/xp-drop-loader";
+import { ShuffleLoader } from "@/components/shuffle-loader";
 import { BossDetailModal } from "@/components/boss-detail-modal";
 import { TypingTitle } from "@/components/typing-title";
 import { BOSSES, type Boss } from "@/lib/bosses";
@@ -128,7 +129,8 @@ export function NextClient() {
   const [savedRsn, setSavedRsn] = useState<string | null>(null);
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const hasFromParam = new URLSearchParams(window.location.search).has("from");
+    const params = new URLSearchParams(window.location.search);
+    const hasFromParam = params.has("from");
     if (hasFromParam) {
       try {
         const raw = sessionStorage.getItem("scapestack:next:bank");
@@ -145,6 +147,25 @@ export function NextClient() {
       setSavedBank(loadSavedBank());
     }
     setSavedRsn(loadSavedRsn());
+
+    // Hero-handoff: ?rsn=X (+optioneel sessionStorage bank-paste) →
+    // sla de intake-form over, run direct. Geeft de homepage hero
+    // input een one-shot lookup zonder dat /next er een tweede keer
+    // om vraagt.
+    const heroRsn = params.get("rsn");
+    if (heroRsn && heroRsn.trim()) {
+      let heroBank: string | undefined;
+      try {
+        heroBank = sessionStorage.getItem("scapestack:hero:bank") ?? undefined;
+        sessionStorage.removeItem("scapestack:hero:bank");
+      } catch { /* sessionStorage disabled */ }
+      // Trigger run zodra de component-state is gestabiliseerd.
+      // requestAnimationFrame zorgt dat react eerst klaar is met mount.
+      requestAnimationFrame(() => {
+        run({ rsn: heroRsn.trim(), input: heroBank });
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Three intake paths feed the same engine: RSN-only (no bank),
@@ -289,6 +310,17 @@ export function NextClient() {
   };
 
   if (view === "intake") {
+    // Hero-handoff: er staat ?rsn=X in de URL en we zijn al aan't laden.
+    // Toon de ShuffleLoader full-pane zodat de speler nooit een leeg
+    // intake-form ziet voor data die zo binnen is.
+    if (pending && typeof window !== "undefined"
+        && new URLSearchParams(window.location.search).get("rsn")) {
+      return (
+        <div className="max-w-md mx-auto pt-8">
+          <ShuffleLoader />
+        </div>
+      );
+    }
     return (
       <NextIntake
         onRun={run}
@@ -519,9 +551,14 @@ function NextIntake({
             </button>
           </div>
 
-          {/* Source-status pills tijdens loading. Een speler ziet "we
-              zijn bezig met X, Y en Z." Geen leeg loading-blok meer. */}
-          {loading && <SourceStatus />}
+          {/* Tijdens loading verschijnt de ShuffleLoader onder de input
+              (sprite-shuffle + lore-quote). Voelt levendiger dan een
+              SourceStatus pill-rij. */}
+          {loading && (
+            <div className="border-t border-[var(--color-border)]">
+              <ShuffleLoader />
+            </div>
+          )}
         </div>
 
         {/* Secondary: optional bank paste for sharper advice. Onder

@@ -139,6 +139,16 @@
     from { opacity: 0; transform: translateY(12px); }
     to   { opacity: 1; transform: translateY(0); }
   }
+  /* Loading pulse + per-cell flip voor de ShuffleLoader. */
+  @keyframes loader-pulse {
+    0%, 100% { transform: scale(1);     filter: brightness(1); }
+    50%      { transform: scale(1.015); filter: brightness(1.08); }
+  }
+  @keyframes loader-cell-fade {
+    0%   { opacity: 0; transform: scale(0.85) rotate(-4deg); }
+    60%  { opacity: 1; transform: scale(1.04) rotate(2deg); }
+    100% { opacity: 1; transform: scale(1)    rotate(0); }
+  }
   /* Tooltip-specific fade — only opacity, no transform.
      Tooltips own a translateX(-50%) for centering; an animation that
      also writes to `transform` would wipe that out for the duration of

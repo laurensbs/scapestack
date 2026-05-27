@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { BuyMeCoffee } from "@/components/buy-me-coffee";
 import { SampleBankLink } from "@/components/sample-bank-link";
 import { BossShowcase } from "@/components/boss-showcase";
 import { HeroSubhead } from "@/components/hero-subhead";
+import { HeroIntake } from "@/components/hero-intake";
 
 export default function HomePage() {
   return (
@@ -32,19 +32,16 @@ export default function HomePage() {
               <span className="text-gold-gradient">more Gielinor.</span>
             </h1>
             <HeroSubhead />
+            {/* Inline intake — geen tussenstap meer. User typt naam,
+                drukt Generate → /next runt direct met shuffle-loading. */}
             <div
-              // w-full on the CTA buttons + flex-col on mobile means they
-              // stack full-width as proper primary/secondary, not wrap with
-              // a half-line gap (audit finding #3). sm:flex-row restores
-              // the inline layout from 640px up.
-              className="mt-8 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3"
+              className="mt-8"
               style={{ animation: "hero-fade 0.7s cubic-bezier(0.22,1,0.36,1) 0.48s both" }}
             >
-              <Link href="/next" className="btn-primary group w-full sm:w-auto justify-center">
-                What should I do next?
-                <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform" />
-              </Link>
-              <SampleBankLink />
+              <HeroIntake />
+              <div className="mt-3 text-center sm:text-left">
+                <SampleBankLink />
+              </div>
             </div>
           </div>
 
