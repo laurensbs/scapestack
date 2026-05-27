@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { BuyMeCoffee } from "@/components/buy-me-coffee";
-import { SampleBankLink } from "@/components/sample-bank-link";
 import { BossShowcase } from "@/components/boss-showcase";
 import { HeroSubhead } from "@/components/hero-subhead";
 import { HeroIntake } from "@/components/hero-intake";
@@ -33,15 +32,14 @@ export default function HomePage() {
             </h1>
             <HeroSubhead />
             {/* Inline intake — geen tussenstap meer. User typt naam,
-                drukt Generate → /next runt direct met shuffle-loading. */}
+                drukt Generate → /next runt direct met shuffle-loading.
+                Secundaire acties ('Add bank' / 'Try a sample') zitten
+                in HeroIntake zelf zodat de hero één geheel is. */}
             <div
               className="mt-8"
               style={{ animation: "hero-fade 0.7s cubic-bezier(0.22,1,0.36,1) 0.48s both" }}
             >
               <HeroIntake />
-              <div className="mt-3 text-center sm:text-left">
-                <SampleBankLink />
-              </div>
             </div>
           </div>
 

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -68,41 +69,53 @@ export function HeroIntake() {
         </div>
       </div>
 
-      {/* Bank-paste toggle — collapsed by default zodat de hero schoon
-          start. Klik onthult een textarea; opnieuw klik = verbergt. */}
-      <div className="text-center">
-        {showBank ? (
-          <div className="text-left animate-[fade-in_0.3s_ease-out]">
-            <label className="block">
-              <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                Bank export <span className="normal-case tracking-normal">(optional — sharper advice)</span>
-              </span>
-              <textarea
-                value={bank}
-                onChange={(e) => setBank(e.target.value)}
-                placeholder="Paste your RuneLite Bank Memory export here…"
-                rows={4}
-                className="mt-2 w-full rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none px-3 py-2 text-[12px] font-mono text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] resize-y"
-              />
-              <button
-                type="button"
-                onClick={() => { setShowBank(false); setBank(""); }}
-                className="mt-1.5 text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-text-dim)] transition-colors"
-              >
-                Hide — just use my stats
-              </button>
-            </label>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setShowBank(true)}
-            className="text-[12.5px] text-[var(--color-text-dim)] hover:text-[var(--color-accent)] underline underline-offset-4 decoration-dotted transition-colors"
-          >
-            + Add your bank for sharper advice
-          </button>
+      {/* Secundaire acties — één rustige regel, link-stijl, gescheiden
+          door een dot. Geen tweede knop die met Generate concurreert. */}
+      <div className="flex items-center justify-center gap-3 text-[12.5px] text-[var(--color-text-dim)]">
+        {!showBank && (
+          <>
+            <button
+              type="button"
+              onClick={() => setShowBank(true)}
+              className="hover:text-[var(--color-accent)] underline underline-offset-4 decoration-dotted transition-colors"
+            >
+              Add bank for sharper advice
+            </button>
+            <span aria-hidden="true" className="text-[var(--color-border-strong)]">·</span>
+            <Link
+              href="/bank?sample=1"
+              className="hover:text-[var(--color-accent)] underline underline-offset-4 decoration-dotted transition-colors"
+            >
+              Try a sample
+            </Link>
+          </>
         )}
       </div>
+
+      {/* Bank-paste textarea — alleen zichtbaar als toggle aan staat. */}
+      {showBank && (
+        <div className="animate-[fade-in_0.3s_ease-out]">
+          <label className="block">
+            <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+              Bank export <span className="normal-case tracking-normal">(optional — sharper advice)</span>
+            </span>
+            <textarea
+              value={bank}
+              onChange={(e) => setBank(e.target.value)}
+              placeholder="Paste your RuneLite Bank Memory export here…"
+              rows={4}
+              className="mt-2 w-full rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none px-3 py-2 text-[12px] font-mono text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] resize-y"
+            />
+            <button
+              type="button"
+              onClick={() => { setShowBank(false); setBank(""); }}
+              className="mt-1.5 text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-text-dim)] transition-colors"
+            >
+              Hide — just use my stats
+            </button>
+          </label>
+        </div>
+      )}
     </form>
   );
 }
