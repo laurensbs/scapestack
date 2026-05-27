@@ -130,18 +130,17 @@ export function pickForMood(
   return { headline, alternatives: alts, mood, minutes };
 }
 
-/** Mood labels met OSRS item-icons. Iconen kiezen we zo dat ze de
- *  vibe in één blik communiceren — geen emoji-soep, in lijn met de
- *  rest van de site die overal item-sprites gebruikt.
- *    chill   → Wintertodt brazier? we kiezen Bird's nest (cosy AFK)
- *              of liever Sleeping cap (literally "chill" hat).
- *    focused → Slayer helmet — combat focus, intense.
- *    cash    → Coins-stack — universally GP.
- *    quest   → Quest point cape — questing signature.
- *  Item-IDs uit OSRS Wiki, gecheckt 2026-05-27. */
+/** Mood labels met OSRS item-icons. Items kiezen we zo dat ze de vibe
+ *  in één blik communiceren — iconisch genoeg dat een gemiddelde speler
+ *  ze direct herkent uit hun bank.
+ *    chill   → Tinderbox     — Wintertodt is dé chill-skill (firemaking)
+ *    focused → Abyssal whip  — de meest iconische combat-grind tool
+ *    cash    → Coins-stack   — universally GP, geen twijfel mogelijk
+ *    quest   → Quest point cape — questing signature
+ *  Item-IDs gecheckt op OSRS Wiki sprite-CDN. */
 export const MOOD_LABEL: Record<Mood, { itemId: number; name: string; tagline: string }> = {
-  chill:   { itemId: 10398, name: "Chill",   tagline: "AFK, low effort" },          // Sleeping cap
-  focused: { itemId: 11864, name: "Focused", tagline: "Optimise XP/hour" },         // Slayer helmet
-  cash:    { itemId: 995,   name: "Cash",    tagline: "Maximise GP/hour" },         // Coins
-  quest:   { itemId: 9813,  name: "Quest",   tagline: "Story + unlocks" }           // Quest point cape
+  chill:   { itemId: 590,   name: "Chill",   tagline: "AFK, low effort" },     // Tinderbox
+  focused: { itemId: 4151,  name: "Focused", tagline: "Optimise XP/hour" },    // Abyssal whip
+  cash:    { itemId: 995,   name: "Cash",    tagline: "Maximise GP/hour" },    // Coins
+  quest:   { itemId: 9813,  name: "Quest",   tagline: "Story + unlocks" }      // Quest point cape
 };
