@@ -13,7 +13,6 @@ import { KcProbabilityGraph } from "@/components/kc-probability-graph";
 import { XpDropLoader } from "@/components/xp-drop-loader";
 import { ShuffleLoader } from "@/components/shuffle-loader";
 import { BossDetailModal } from "@/components/boss-detail-modal";
-import { TypingTitle } from "@/components/typing-title";
 import { BOSSES, type Boss } from "@/lib/bosses";
 import { ownedGear, type GearItem } from "@/lib/gear";
 import { organizeAction, nextUpAction, hiscoresAction, womAction, collectionLogAction, templeAction, syncedPlayerAction } from "@/app/actions";
@@ -708,36 +707,79 @@ function HeroStrip({ summary, basisNote, onEdit }: {
   onEdit: () => void;
 }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-4">
-      <div>
-        <TypingTitle
-          as="h2"
-          text="Here's what to do now"
-          className="text-[20px] sm:text-[22px] font-semibold tracking-tight text-[var(--color-text)] leading-tight"
-          durationMs={700}
-        />
-        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[13px] font-mono tabular-nums text-[var(--color-text-dim)]">
-          {summary.combatLevel !== null && (
-            <span className="flex items-center gap-1.5">
-              <Sword className="size-3.5 opacity-50" /> Combat {summary.combatLevel}
-            </span>
-          )}
-          {summary.totalLevel !== null && (
-            <span className="flex items-center gap-1.5">
-              <TrendingUp className="size-3.5 opacity-50" /> Total {summary.totalLevel}
-            </span>
-          )}
-          {summary.goalPercent !== null && (
-            <span className="flex items-center gap-1.5 text-[var(--color-accent)]">
-              <Target className="size-3.5" /> {summary.goalPercent}% of goals
-            </span>
-          )}
+    // Premium hero-card: lichte gradient, accent top-stripe, gold sweep
+    // van links naar rechts elke 6s. Voelt mee met de loader-vibe.
+    <div
+      className="relative overflow-hidden rounded-xl border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] p-5 sm:p-6"
+    >
+      {/* Subtiele accent top-line — zelfde signature als de SyncedBadge
+          en headline-card. Bindt het visueel aan de rest van /next. */}
+      <div
+        className="absolute inset-x-0 top-0 h-px"
+        style={{ background: "linear-gradient(to right, transparent, rgba(230,165,47,0.55), transparent)" }}
+      />
+      {/* Sweep — zacht goudje dat elke 6s van links naar rechts wandelt.
+          Subtieler dan de loader-spotlight (we zijn klaar met laden),
+          maar geeft de card leven. */}
+      <div
+        className="pointer-events-none absolute inset-y-0 -inset-x-1/2 opacity-60"
+        style={{
+          background: "linear-gradient(90deg, transparent 0%, transparent 35%, rgba(230,165,47,0.06) 50%, transparent 65%, transparent 100%)",
+          animation: "hero-sweep 6s linear infinite"
+        }}
+      />
+
+      <div className="relative flex flex-wrap items-start justify-between gap-4">
+        <div className="space-y-3">
+          {/* Vier metrics als één rij — primary stat per metric.
+              Geen duplicate titel meer; ToolHeader hierboven is de titel.
+              Hier draait het om de échte read-out. */}
+          <div className="flex flex-wrap gap-x-7 gap-y-3">
+            {summary.combatLevel !== null && (
+              <HeroStat icon={<Sword className="size-4 opacity-60" />} label="Combat" value={summary.combatLevel} />
+            )}
+            {summary.totalLevel !== null && (
+              <HeroStat icon={<TrendingUp className="size-4 opacity-60" />} label="Total" value={summary.totalLevel} />
+            )}
+            {summary.goalPercent !== null && (
+              <HeroStat
+                icon={<Target className="size-4" />}
+                label="Goals"
+                value={`${summary.goalPercent}%`}
+                accent
+              />
+            )}
+          </div>
+          <p className="text-[11.5px] text-[var(--color-text-muted)]">{basisNote}</p>
         </div>
-        <p className="mt-1.5 text-[11.5px] text-[var(--color-text-muted)]">{basisNote}</p>
+        <button onClick={onEdit} className="btn-ghost relative z-10">
+          <Edit3 className="size-3.5" /> Change input
+        </button>
       </div>
-      <button onClick={onEdit} className="btn-ghost">
-        <Edit3 className="size-3.5" /> Change input
-      </button>
+    </div>
+  );
+}
+
+function HeroStat({ icon, label, value, accent }: {
+  icon: React.ReactNode;
+  label: string;
+  value: number | string;
+  accent?: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+        {icon}
+        {label}
+      </div>
+      <div
+        className={cn(
+          "text-[24px] sm:text-[28px] font-bold tabular-nums leading-none",
+          accent ? "text-[var(--color-accent)]" : "text-[var(--color-text)]"
+        )}
+      >
+        {value}
+      </div>
     </div>
   );
 }
@@ -1137,7 +1179,7 @@ function WhatToDo({
             <div className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2">
               I want to
             </div>
-            <div className="grid grid-cols-2 gap-1.5">
+            <div className="grid grid-cols-2 gap-2">
               {MOODS.map((m) => {
                 const label = MOOD_LABEL[m];
                 const active = mood === m;
@@ -1147,25 +1189,30 @@ function WhatToDo({
                     type="button"
                     onClick={() => setMood(m)}
                     className={cn(
-                      "px-2.5 py-2 rounded-md border text-left transition-colors flex items-center gap-2",
+                      "group/mood relative overflow-hidden px-2.5 py-2.5 rounded-lg border text-left transition-all duration-200",
+                      "flex items-center gap-2.5",
                       active
-                        ? "border-[var(--color-accent)]/60 bg-[var(--color-accent)]/10"
-                        : "border-[var(--color-border)] hover:border-[var(--color-border-strong)]"
+                        ? "border-[var(--color-accent)]/60 bg-gradient-to-br from-[var(--color-accent)]/15 to-[var(--color-accent)]/5 shadow-[0_0_18px_-6px_rgba(230,165,47,0.45)]"
+                        : "border-[var(--color-border)] bg-[var(--color-bg-2)]/40 hover:border-[var(--color-accent)]/30 hover:bg-[var(--color-accent)]/5 hover:-translate-y-0.5"
                     )}
                   >
+                    {/* Sprite — scale-up + soft pulse op active */}
                     <img
                       src={ICON_URL(label.itemId)}
                       alt=""
-                      className="pixelated shrink-0"
+                      className="pixelated shrink-0 transition-transform duration-200 group-hover/mood:scale-110"
                       style={{
-                        width: 20, height: 20,
+                        width: 22, height: 22,
                         imageRendering: "pixelated",
-                        filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))",
-                        objectFit: "contain"
+                        filter: active
+                          ? "drop-shadow(0 0 4px rgba(230,165,47,0.6)) drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))"
+                          : "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))",
+                        objectFit: "contain",
+                        transform: active ? "scale(1.08)" : undefined
                       }}
                     />
                     <span className={cn(
-                      "text-[12px] font-semibold",
+                      "text-[12.5px] font-semibold transition-colors",
                       active ? "text-[var(--color-accent)]" : "text-[var(--color-text)]"
                     )}>
                       {label.name}
@@ -1174,6 +1221,10 @@ function WhatToDo({
                 );
               })}
             </div>
+            {/* Tagline van de actieve mood — geeft context. */}
+            <p className="text-[10.5px] text-[var(--color-text-muted)] mt-2 italic">
+              {MOOD_LABEL[mood].tagline}
+            </p>
           </div>
           <div>
             <div className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2">
@@ -1290,34 +1341,67 @@ function WhereYouAre({
         </div>
 
         {/* Vier paths als één rij van horizontale balken — bar-fill
-            animation via transform:scaleX van 0 → 1. Transition pakt
-            de toepassing op als `filled` flipt na mount. */}
-        <div className="space-y-3">
-          {pathData.paths.map((p) => (
-            <div key={p.kind}>
-              <div className="flex items-baseline justify-between gap-3 text-[12px] tabular-nums mb-1">
-                <span className="text-[var(--color-text)] font-semibold capitalize">{p.kind}</span>
-                <span className="text-[var(--color-text-dim)]">
-                  {p.done}/{p.total} · {p.percent}%
-                </span>
-              </div>
-              <div className="h-1.5 rounded-full bg-[var(--color-bg-2)] overflow-hidden">
-                <div
-                  className="h-full bg-[var(--color-accent)]/70 rounded-full origin-left"
-                  style={{
-                    width: `${p.percent}%`,
-                    transform: filled ? "scaleX(1)" : "scaleX(0)",
-                    transition: "transform 900ms cubic-bezier(0.22, 1, 0.36, 1)"
-                  }}
-                />
-              </div>
-              {p.nextSteps.length > 0 && (
-                <p className="text-[10.5px] text-[var(--color-text-muted)] mt-1 truncate">
-                  next: {p.nextSteps.slice(0, 2).map((n) => n.title).join(" · ")}
-                </p>
-              )}
-            </div>
-          ))}
+            animation via transform:scaleX van 0 → 1. De pad met laagste
+            % krijgt een 'focus here' marker + zachte continue glow op
+            de balk: dat is waar de meeste tijd-investering zit. */}
+        <div className="space-y-3.5">
+          {(() => {
+            const focusKind = pathData.paths.reduce((min, p) =>
+              p.percent < min.percent ? p : min, pathData.paths[0]
+            ).kind;
+            return pathData.paths.map((p) => {
+              const isFocus = p.kind === focusKind;
+              return (
+                <div key={p.kind} className="group/path">
+                  <div className="flex items-baseline justify-between gap-3 text-[12px] tabular-nums mb-1">
+                    <span className="flex items-center gap-2">
+                      <span className={cn(
+                        "font-semibold capitalize",
+                        isFocus ? "text-[var(--color-accent)]" : "text-[var(--color-text)]"
+                      )}>
+                        {p.kind}
+                      </span>
+                      {isFocus && (
+                        <span className="text-[9.5px] uppercase tracking-[0.18em] text-[var(--color-accent)] bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/30 px-1.5 py-0.5 rounded">
+                          focus
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-[var(--color-text-dim)]">
+                      {p.done}/{p.total} · {p.percent}%
+                    </span>
+                  </div>
+                  <div
+                    className={cn(
+                      "h-2 rounded-full bg-[var(--color-bg-2)] overflow-hidden relative transition-all",
+                      "group-hover/path:bg-[var(--color-bg)]"
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "h-full rounded-full origin-left transition-all",
+                        isFocus
+                          ? "bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent)]/70"
+                          : "bg-[var(--color-accent)]/55"
+                      )}
+                      style={{
+                        width: `${p.percent}%`,
+                        transform: filled ? "scaleX(1)" : "scaleX(0)",
+                        transition: "transform 900ms cubic-bezier(0.22, 1, 0.36, 1)",
+                        boxShadow: isFocus ? "0 0 14px -2px rgba(230,165,47,0.55)" : undefined,
+                        animation: isFocus && filled ? "card-breath 3.2s ease-in-out infinite" : undefined,
+                      }}
+                    />
+                  </div>
+                  {p.nextSteps.length > 0 && (
+                    <p className="text-[10.5px] text-[var(--color-text-muted)] mt-1 truncate">
+                      next: {p.nextSteps.slice(0, 2).map((n) => n.title).join(" · ")}
+                    </p>
+                  )}
+                </div>
+              );
+            });
+          })()}
         </div>
       </div>
     </section>

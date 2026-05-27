@@ -149,6 +149,20 @@
     60%  { opacity: 1; transform: scale(1.04) rotate(2deg); }
     100% { opacity: 1; transform: scale(1)    rotate(0); }
   }
+  /* Premium hero card sweep: zachte goudkleurige strook die elke 6
+     seconden van links naar rechts loopt. Subtiel — gradient zit
+     dichtbij transparant — maar geeft de hero leven na de loader. */
+  @keyframes hero-sweep {
+    0%   { transform: translateX(-50%); }
+    100% { transform: translateX(50%); }
+  }
+  /* Track-card breathing: heel langzame brightness-puls op cards die
+     "actief" zijn (mood-pick, top-track). Verbindt de result-view
+     visueel met de loader-pulse. */
+  @keyframes card-breath {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(230,165,47,0); }
+    50%      { box-shadow: 0 0 0 4px rgba(230,165,47,0.05); }
+  }
   /* Tooltip-specific fade — only opacity, no transform.
      Tooltips own a translateX(-50%) for centering; an animation that
      also writes to `transform` would wipe that out for the duration of
