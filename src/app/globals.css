@@ -120,6 +120,25 @@
     from { opacity: 0; transform: translateY(4px); }
     to   { opacity: 1; transform: translateY(0); }
   }
+  /* Intake hero-input lift wanneer submit start. Subtiele schaal +
+     focus-shadow-glow zodat de pagina niet "verspringt" maar oprist. */
+  @keyframes intake-lift {
+    0%   { transform: translateY(0)    scale(1); }
+    100% { transform: translateY(-4px) scale(1.005); }
+  }
+  /* Bar fill — gaat van width:0 naar het inline-style width over een
+     beat. Gebruikt voor de Path-axes balken in WhereYouAre. */
+  @keyframes bar-fill {
+    from { transform: scaleX(0); transform-origin: left; }
+    to   { transform: scaleX(1); transform-origin: left; }
+  }
+  /* Track-stagger — fade + lift voor elk van de result-tracks zodat
+     ze niet allemaal tegelijk verschijnen. Delay per track via inline
+     animation-delay. */
+  @keyframes track-in {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
   /* Tooltip-specific fade — only opacity, no transform.
      Tooltips own a translateX(-50%) for centering; an animation that
      also writes to `transform` would wipe that out for the duration of

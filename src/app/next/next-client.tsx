@@ -440,15 +440,20 @@ function NextIntake({
   };
 
   return (
-    <section className="animate-[slide-up_0.4s_ease-out] max-w-2xl mx-auto">
-      <header className="mb-6">
-        <h2 className="text-[24px] sm:text-[28px] font-bold text-[var(--color-text)] tracking-tight leading-tight">
-          What should you do next in Old School?
+    <section className={cn(
+      "max-w-2xl mx-auto",
+      loading
+        ? "animate-[intake-lift_0.5s_cubic-bezier(0.22,1,0.36,1)_both]"
+        : "animate-[slide-up_0.4s_ease-out]"
+    )}>
+      {/* Hero-vraag: groot, gecentreerd, voelt als één doel-moment. */}
+      <header className="mb-8 text-center">
+        <h2 className="text-[28px] sm:text-[36px] font-bold text-[var(--color-text)] tracking-tight leading-[1.1]">
+          What should you do<br className="sm:hidden" /> next?
         </h2>
-        <p className="mt-2 text-[14px] text-[var(--color-text-dim)] leading-relaxed">
-          Type your OSRS name. We&apos;ll read your stats and rank what&apos;s worth doing —
-          goals you&apos;re close to, bosses your stats now support, drops you&apos;re
-          statistically due.
+        <p className="mt-3 text-[14px] sm:text-[15px] text-[var(--color-text-dim)] leading-relaxed max-w-md mx-auto">
+          Type your OSRS name. We&apos;ll read your stats, rank what&apos;s worth doing,
+          and shape it around the mood you&apos;re in.
         </p>
       </header>
 
@@ -478,73 +483,86 @@ function NextIntake({
         </div>
       )}
 
-      {/* Primary path: RSN-only lookup */}
-      <form onSubmit={submitRsn} className="surface p-5">
-        <label className="block">
-          <span className="text-[12px] font-semibold tracking-tight text-[var(--color-text)]">
-            OSRS name
-          </span>
-          {/* On mobile (≤640px) the RSN input and submit button stack
-              vertically so the focus-shadow can't push the button to a
-              new row mid-interaction (audit finding #7). sm: restores
-              the inline row at 640px+. */}
-          <div className="mt-2 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
+      {/* Hero input — premium-voelt: gecentreerd, oversized, accent-glow
+          op focus. Submit-button leeft binnen het input-frame zodat het
+          één geheel is, geen formuliertje. */}
+      <form onSubmit={submitRsn}>
+        <div className={cn(
+          "group relative rounded-2xl bg-[var(--color-panel)] border transition-all",
+          loading
+            ? "border-[var(--color-accent)]/60 shadow-[0_0_0_4px_rgba(230,165,47,0.10)]"
+            : "border-[var(--color-border)] focus-within:border-[var(--color-accent)]/60 focus-within:shadow-[0_0_0_4px_rgba(230,165,47,0.10)]"
+        )}>
+          <div className="flex flex-col sm:flex-row sm:items-center">
             <input
               type="text"
               value={rsn}
               onChange={(e) => setRsn(e.target.value)}
-              placeholder="e.g. Lynx Titan"
+              placeholder="Lynx Titan"
               autoFocus
-              className="sm:flex-1 sm:min-w-[180px] rounded-md bg-[var(--color-bg)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none px-3 py-2 text-[14px] font-mono text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]"
+              disabled={loading}
+              className="flex-1 bg-transparent outline-none px-5 py-4 sm:py-5 text-[16px] sm:text-[18px] font-mono text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] disabled:opacity-60"
             />
             <button
               type="submit"
-              // Allow submit on an empty RSN when we already have a bank
-              // from the /bank handoff — the engine works with one alone.
               disabled={loading || (!rsn.trim() && !fromBank)}
-              className="btn-primary group w-full sm:w-auto justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+              className={cn(
+                "group/btn relative overflow-hidden rounded-xl m-1.5 px-5 py-3 inline-flex items-center justify-center gap-2",
+                "bg-[var(--color-accent)] text-[var(--color-bg)] font-semibold text-[14px]",
+                "hover:brightness-110 transition-all",
+                "disabled:opacity-50 disabled:cursor-not-allowed"
+              )}
             >
-              {loading ? <XpDropLoader /> : "Show me what to do"}
-              {!loading && <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform" />}
+              {loading ? <XpDropLoader /> : "Show me"}
+              {!loading && <ArrowRight className="size-4 group-hover/btn:translate-x-0.5 transition-transform" />}
             </button>
           </div>
-        </label>
 
-        {/* Secondary: optional bank paste for sharper advice */}
-        <div className="mt-4 pt-4 border-t border-[var(--color-border)]">
+          {/* Source-status pills tijdens loading. Een speler ziet "we
+              zijn bezig met X, Y en Z." Geen leeg loading-blok meer. */}
+          {loading && <SourceStatus />}
+        </div>
+
+        {/* Secondary: optional bank paste for sharper advice. Onder
+            het hero-frame zodat de eerste indruk niet vol-staat met
+            opties — alleen onthuld als de speler er om vraagt. */}
+        <div className="mt-4 text-center">
           {showBankField ? (
-            <label className="block">
-              <span className="text-[12px] font-semibold tracking-tight text-[var(--color-text)]">
-                Bank export <span className="text-[var(--color-text-muted)] font-normal">(optional — sharper advice)</span>
-              </span>
-              <textarea
-                value={bank}
-                onChange={(e) => setBank(e.target.value)}
-                placeholder="Paste your RuneLite Bank Memory export here…"
-                rows={4}
-                className="mt-2 w-full rounded-md bg-[var(--color-bg)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none px-3 py-2 text-[12px] font-mono text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] resize-y"
-              />
-              <button
-                type="button"
-                onClick={() => { setShowBankField(false); setBank(""); }}
-                className="mt-2 text-[11.5px] text-[var(--color-text-muted)] hover:text-[var(--color-text-dim)] transition-colors"
-              >
-                Skip the bank — just use my stats
-              </button>
-            </label>
+            <div className="text-left animate-[fade-in_0.3s_ease-out]">
+              <label className="block">
+                <span className="text-[11.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                  Bank export <span className="normal-case tracking-normal">(optional — sharper advice)</span>
+                </span>
+                <textarea
+                  value={bank}
+                  onChange={(e) => setBank(e.target.value)}
+                  placeholder="Paste your RuneLite Bank Memory export here…"
+                  rows={4}
+                  className="mt-2 w-full rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none px-3 py-2 text-[12px] font-mono text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] resize-y"
+                />
+                <button
+                  type="button"
+                  onClick={() => { setShowBankField(false); setBank(""); }}
+                  className="mt-2 text-[11.5px] text-[var(--color-text-muted)] hover:text-[var(--color-text-dim)] transition-colors"
+                >
+                  Hide — just use my stats
+                </button>
+              </label>
+            </div>
           ) : (
             <button
               type="button"
               onClick={() => setShowBankField(true)}
-              className="text-[12.5px] text-[var(--color-accent)] hover:underline"
+              disabled={loading}
+              className="text-[12.5px] text-[var(--color-text-dim)] hover:text-[var(--color-accent)] underline underline-offset-4 decoration-dotted transition-colors disabled:opacity-50"
             >
-              + Add my bank for sharper advice
+              + Add your bank for sharper advice
             </button>
           )}
         </div>
 
         {error && (
-          <p className="mt-3 text-[12px] text-[var(--color-warning)]">{error}</p>
+          <p className="mt-3 text-[12px] text-[var(--color-warning)] text-center">{error}</p>
         )}
       </form>
 
@@ -588,40 +606,41 @@ function ResultView({ result, onEdit, onBossOpen }: {
   // beschikbaar via de drill-in cards in Where-you-are.
   const allRecs = headline ? [headline, ...rest] : rest;
 
+  // Track-stagger: elke sectie fade'd binnen met 150ms verschil zodat
+  // de pagina vouwt-open ipv pop-in. Gebruikt CSS animation-delay
+  // (geen JS-timers) zodat motion-prefers-reduced-motion users niets
+  // zien dat ze niet willen.
+  const trackAnim = (delayMs: number): React.CSSProperties => ({
+    animation: "track-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both",
+    animationDelay: `${delayMs}ms`,
+  });
+
   return (
     <div className="space-y-8">
-      {/* ── TRACK 0: HERO ─────────────────────────────────────────────
-          Account-identity strip. Eén regel met naam + 3 metrics + edit
-          knop. Bewust laag-key: dit is de "wie ben jij"-anchor, niet
-          de hoofdactie. */}
-      <HeroStrip
-        summary={summary}
-        basisNote={basisNote}
-        onEdit={onEdit}
-      />
+      {/* ── TRACK 0: HERO ──────────────────────────────────────────── */}
+      <div style={trackAnim(0)}>
+        <HeroStrip summary={summary} basisNote={basisNote} onEdit={onEdit} />
+      </div>
 
-      {/* ── TRACK 1: WHAT TO DO ───────────────────────────────────────
-          Mood-chips links + actieve suggestie + alternatieven rechts.
-          Vervangt Tonight's pick + Also worth knowing. Eén plek voor
-          "wat ga ik doen?". Default-mood = focused 60min zodat de
-          pagina niet leeg start. */}
-      <WhatToDo allRecs={allRecs} onBossOpen={onBossOpen} />
+      {/* ── TRACK 1: WHAT TO DO ─────────────────────────────────────── */}
+      <div style={trackAnim(150)}>
+        <WhatToDo allRecs={allRecs} onBossOpen={onBossOpen} />
+      </div>
 
-      {/* ── TRACK 2: WHERE YOU ARE ────────────────────────────────────
-          Top-rij metrics (Time-to-max + quest-cape + bank %) gevolgd
-          door de 4 Path-axes als horizontale balken. Vervangt
-          HoursToMaxSection + PathOverview. */}
-      <WhereYouAre
-        pathData={result.pathProgress}
-        maxEstimate={result.maxEstimate}
-      />
+      {/* ── TRACK 2: WHERE YOU ARE ──────────────────────────────────── */}
+      <div style={trackAnim(300)}>
+        <WhereYouAre
+          pathData={result.pathProgress}
+          maxEstimate={result.maxEstimate}
+        />
+      </div>
 
-      {/* ── TRACK 3: ALMOST THERE ─────────────────────────────────────
-          Goal-sets bijna voltooid — chips met expand. Onveranderd uit
-          de vorige iteratie; sluit aan als laatste "actionable" sectie. */}
-      <ReadinessSection readiness={result.readiness} />
+      {/* ── TRACK 3: ALMOST THERE ───────────────────────────────────── */}
+      <div style={trackAnim(450)}>
+        <ReadinessSection readiness={result.readiness} />
+      </div>
 
-      <div className="pt-4">
+      <div className="pt-4" style={trackAnim(600)}>
         <SupportCard />
       </div>
     </div>
@@ -1149,6 +1168,20 @@ function WhereYouAre({
   const days = hasMaxData ? Math.round(maxEstimate.totalHours / 4) : null;
   const overallPercent = pathData.overallPercent;
 
+  // Bar-fill choreography: balken starten op 0% en groeien naar target
+  // ná mount + na de stagger-delay van deze track (300ms). useEffect na
+  // requestAnimationFrame zodat browser de "vanaf 0%" frame echt rendert.
+  const [filled, setFilled] = useState(false);
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => {
+      // Extra 50ms na de track-stagger zodat de balken de laatste zijn
+      // die "klikken" — sluit de animatie-sequentie netjes af.
+      const t = setTimeout(() => setFilled(true), 50);
+      return () => clearTimeout(t);
+    });
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
   return (
     <section>
       <h3 className="eyebrow text-[var(--color-accent)] mb-3">Where you are</h3>
@@ -1157,14 +1190,18 @@ function WhereYouAre({
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pb-4 border-b border-[var(--color-border)]/60">
           <Metric
             label="Overall"
-            value={`${overallPercent}%`}
+            value={overallPercent}
+            suffix="%"
             sub="to max account"
+            animate
           />
           {hasMaxData ? (
             <Metric
               label="Time to max"
-              value={`${Math.round(maxEstimate.totalHours).toLocaleString()}h`}
+              value={Math.round(maxEstimate.totalHours)}
+              suffix="h"
               sub={`≈ ${days} days @ 4h/day`}
+              animate
             />
           ) : (
             <Metric label="Time to max" value="—" sub="add your RSN" />
@@ -1178,7 +1215,9 @@ function WhereYouAre({
           />
         </div>
 
-        {/* Vier paths als één rij van horizontale balken. */}
+        {/* Vier paths als één rij van horizontale balken — bar-fill
+            animation via transform:scaleX van 0 → 1. Transition pakt
+            de toepassing op als `filled` flipt na mount. */}
         <div className="space-y-3">
           {pathData.paths.map((p) => (
             <div key={p.kind}>
@@ -1190,8 +1229,12 @@ function WhereYouAre({
               </div>
               <div className="h-1.5 rounded-full bg-[var(--color-bg-2)] overflow-hidden">
                 <div
-                  className="h-full bg-[var(--color-accent)]/70 rounded-full transition-all"
-                  style={{ width: `${p.percent}%` }}
+                  className="h-full bg-[var(--color-accent)]/70 rounded-full origin-left"
+                  style={{
+                    width: `${p.percent}%`,
+                    transform: filled ? "scaleX(1)" : "scaleX(0)",
+                    transition: "transform 900ms cubic-bezier(0.22, 1, 0.36, 1)"
+                  }}
                 />
               </div>
               {p.nextSteps.length > 0 && (
@@ -1207,18 +1250,121 @@ function WhereYouAre({
   );
 }
 
-function Metric({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function Metric({ label, value, suffix, sub, animate }: {
+  label: string;
+  value: string | number;
+  suffix?: string;
+  sub?: string;
+  /** Wanneer true en value een number is, telt het cijfer omhoog van
+   *  0 → target over 900ms. Gebruikt requestAnimationFrame met
+   *  ease-out cubic zodat het natuurlijk vertraagt aan het einde. */
+  animate?: boolean;
+}) {
+  const isNumeric = typeof value === "number";
+  const [display, setDisplay] = useState<number | string>(
+    isNumeric && animate ? 0 : value
+  );
+
+  useEffect(() => {
+    if (!isNumeric || !animate) return;
+    // Respect OS-level motion preference — skip de animatie maar laat
+    // de eindwaarde meteen zien zodat de UI niet "leeg" voelt.
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) {
+      setDisplay(value as number);
+      return;
+    }
+    const target = value as number;
+    const startedAt = performance.now();
+    const duration = 900;
+    let frame = 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - startedAt) / duration);
+      // ease-out cubic: snel beginnen, traag uitkomen
+      const eased = 1 - Math.pow(1 - t, 3);
+      setDisplay(Math.round(target * eased));
+      if (t < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [value, animate, isNumeric]);
+
+  const text = isNumeric && typeof display === "number"
+    ? display.toLocaleString() + (suffix ?? "")
+    : String(value);
+
   return (
     <div>
       <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">{label}</div>
       <div className="text-[18px] sm:text-[20px] font-bold text-[var(--color-text)] tabular-nums leading-tight mt-0.5">
-        {value}
+        {text}
       </div>
       {sub && (
         <div className="text-[10.5px] text-[var(--color-text-dim)] tabular-nums">
           {sub}
         </div>
       )}
+    </div>
+  );
+}
+
+// ── SourceStatus ───────────────────────────────────────────────────────────
+// Tijdens intake-loading: toont welke databronnen we aan het bevragen
+// zijn. We weten niet *precies* wanneer elke parallel-call resolve't —
+// time-based reveal die de werkelijke gemiddelde latency benadert.
+// Pill naar ✓ = "we hebben deze al gehad of zijn er bijna." Niet exact
+// maar dichter bij de waarheid dan een lege loading-balk.
+
+const SOURCE_TIMINGS: Array<{ key: string; label: string; delay: number }> = [
+  { key: "plugin",   label: "Plugin",         delay:  200 },
+  { key: "hiscores", label: "Hiscores",       delay:  500 },
+  { key: "cl",       label: "Collection log", delay:  900 },
+  { key: "wom",      label: "Wise Old Man",   delay: 1100 },
+  { key: "temple",   label: "Temple",         delay: 1400 },
+];
+
+function SourceStatus() {
+  const [done, setDone] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const timers = SOURCE_TIMINGS.map((s) =>
+      setTimeout(() => {
+        setDone((prev) => new Set(prev).add(s.key));
+      }, s.delay)
+    );
+    return () => timers.forEach((t) => clearTimeout(t));
+  }, []);
+
+  return (
+    <div className="border-t border-[var(--color-border)] px-4 py-3 animate-[fade-in_0.2s_ease-out]">
+      <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2">
+        Reading
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {SOURCE_TIMINGS.map((s) => {
+          const isDone = done.has(s.key);
+          return (
+            <span
+              key={s.key}
+              className={cn(
+                "inline-flex items-center gap-1.5 px-2 py-1 rounded text-[11px] transition-all duration-300",
+                isDone
+                  ? "bg-[var(--color-good)]/10 text-[var(--color-good)] border border-[var(--color-good)]/30"
+                  : "bg-[var(--color-bg-2)] text-[var(--color-text-muted)] border border-[var(--color-border)]"
+              )}
+            >
+              {isDone ? (
+                <span className="inline-block size-1.5 rounded-full bg-[var(--color-good)]" />
+              ) : (
+                <span className="inline-block size-1.5 rounded-full bg-[var(--color-text-muted)] animate-pulse" />
+              )}
+              {s.label}
+            </span>
+          );
+        })}
+      </div>
     </div>
   );
 }
