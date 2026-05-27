@@ -12,7 +12,6 @@ import { BossSprite } from "@/components/boss-picker";
 import { KcProbabilityGraph } from "@/components/kc-probability-graph";
 import { XpDropLoader } from "@/components/xp-drop-loader";
 import { BossDetailModal } from "@/components/boss-detail-modal";
-import { PathOverview } from "@/components/path-overview";
 import { TypingTitle } from "@/components/typing-title";
 import { BOSSES, type Boss } from "@/lib/bosses";
 import { ownedGear, type GearItem } from "@/lib/gear";
@@ -578,133 +577,97 @@ function ResultView({ result, onEdit, onBossOpen }: {
 }) {
   const { headline, rest, summary } = result;
 
-  // Group the checklist by kind so the eye reads "all the boss ideas", etc.
-  const grouped = useMemo(() => {
-    const by = new Map<RecKind, Recommendation[]>();
-    for (const r of rest) {
-      if (!by.has(r.kind)) by.set(r.kind, []);
-      by.get(r.kind)!.push(r);
-    }
-    return by;
-  }, [rest]);
-
   const basisNote =
     summary.basis === "full" ? "Based on your Hiscores and your bank."
     : summary.basis === "hiscores-only" ? "Based on your Hiscores. Paste a bank for gear-aware advice."
     : summary.basis === "bank-only" ? "Based on your bank. Add your OSRS name for stat-aware advice."
     : "Add your OSRS name or a bank for tailored advice.";
 
+  // Alle recommendations voor de What-to-do track. Mood-laag herrangschikt
+  // ze; "Also worth knowing" is verdwenen — niet-getoonde recs blijven
+  // beschikbaar via de drill-in cards in Where-you-are.
+  const allRecs = headline ? [headline, ...rest] : rest;
+
   return (
-    <div>
-      {/* Header — account read-out + re-run. No outer slide-up anymore;
-          the choreographed typing title + Path-to-Max reveal carry the
-          intro motion themselves. */}
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
-        <div>
-          <TypingTitle
-            as="h2"
-            text="Here's what to do now"
-            className="text-[20px] sm:text-[22px] font-semibold tracking-tight text-[var(--color-text)] leading-tight"
-            durationMs={700}
-          />
-          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[13px] font-mono tabular-nums text-[var(--color-text-dim)]">
-            {summary.combatLevel !== null && (
-              <span className="flex items-center gap-1.5">
-                <Sword className="size-3.5 opacity-50" /> Combat {summary.combatLevel}
-              </span>
-            )}
-            {summary.totalLevel !== null && (
-              <span className="flex items-center gap-1.5">
-                <TrendingUp className="size-3.5 opacity-50" /> Total {summary.totalLevel}
-              </span>
-            )}
-            {summary.goalPercent !== null && (
-              <span className="flex items-center gap-1.5 text-[var(--color-accent)]">
-                <Target className="size-3.5" /> {summary.goalPercent}% of goals
-              </span>
-            )}
-          </div>
-          <p className="mt-1.5 text-[11.5px] text-[var(--color-text-muted)]">{basisNote}</p>
-        </div>
-        <button onClick={onEdit} className="btn-ghost">
-          <Edit3 className="size-3.5" /> Change input
-        </button>
-      </div>
-
-      {/* Tonight's pick — one concrete action for tonight. The headline
-          from the recommendation engine, framed as a single-task focus
-          card so the player has something to do *now* before they zoom
-          out to the long-term paths. */}
-      {headline ? (
-        <section className="mb-10">
-          <h3 className="eyebrow mb-3 text-[var(--color-accent)]">Tonight&apos;s pick</h3>
-          <HeadlineCard rec={headline} onBossOpen={onBossOpen} />
-        </section>
-      ) : (
-        <div className="mb-10 surface p-8 text-center text-[var(--color-text-muted)] text-[13px]">
-          Nothing urgent to flag right now — your account looks well on top of things.
-          Scroll down for the long-term path overview.
-        </div>
-      )}
-
-      {/* Mood-driven suggestie. Optioneel — kies een mood + tijd en
-          zie 1 hoofdsuggestie + 2 alternatieven gefilterd op vibe.
-          Tonight's pick blijft hierboven als "objectief beste" anchor. */}
-      <MoodSection
-        allRecs={headline ? [headline, ...rest] : rest}
-        onBossOpen={onBossOpen}
+    <div className="space-y-8">
+      {/* ── TRACK 0: HERO ─────────────────────────────────────────────
+          Account-identity strip. Eén regel met naam + 3 metrics + edit
+          knop. Bewust laag-key: dit is de "wie ben jij"-anchor, niet
+          de hoofdactie. */}
+      <HeroStrip
+        summary={summary}
+        basisNote={basisNote}
+        onEdit={onEdit}
       />
 
-      {/* Hours-to-max — alleen wanneer Hiscores zijn geladen. Geeft de
-          speler één getal voor "hoeveel uur tot max" plus de 3 zwaarste
-          skills die het langst duren. */}
-      <HoursToMaxSection estimate={result.maxEstimate} />
+      {/* ── TRACK 1: WHAT TO DO ───────────────────────────────────────
+          Mood-chips links + actieve suggestie + alternatieven rechts.
+          Vervangt Tonight's pick + Also worth knowing. Eén plek voor
+          "wat ga ik doen?". Default-mood = focused 60min zodat de
+          pagina niet leeg start. */}
+      <WhatToDo allRecs={allRecs} onBossOpen={onBossOpen} />
 
-      {/* Bank-readiness chips — alleen wanneer er bank-data is.
-          Surfaceert "je bent dicht bij completen van deze N goal sets". */}
+      {/* ── TRACK 2: WHERE YOU ARE ────────────────────────────────────
+          Top-rij metrics (Time-to-max + quest-cape + bank %) gevolgd
+          door de 4 Path-axes als horizontale balken. Vervangt
+          HoursToMaxSection + PathOverview. */}
+      <WhereYouAre
+        pathData={result.pathProgress}
+        maxEstimate={result.maxEstimate}
+      />
+
+      {/* ── TRACK 3: ALMOST THERE ─────────────────────────────────────
+          Goal-sets bijna voltooid — chips met expand. Onveranderd uit
+          de vorige iteratie; sluit aan als laatste "actionable" sectie. */}
       <ReadinessSection readiness={result.readiness} />
 
-      {/* Path-to-Max — the long-term shape of the account. Four cards
-          (Skills / Quests / Diaries / Bosses) with progress + next-steps,
-          drill-in modal per path. */}
-      <PathOverview data={result.pathProgress} />
-
-      {/* "Also worth knowing" — the leftover recommendations the engine
-          generated that didn't fit into a path. Collapsed inside a
-          <details> so they're available but don't compete with the
-          path overview for the player's attention. */}
-      {rest.length > 0 && (
-        <details className="mt-10 group/also">
-          <summary className="cursor-pointer list-none flex items-center justify-between rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]/40 hover:border-[var(--color-border-strong)] px-4 py-3 transition-colors">
-            <div>
-              <h3 className="text-[12px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">Also worth knowing</h3>
-              <p className="text-[11.5px] text-[var(--color-text-muted)] mt-0.5">
-                {rest.length} more idea{rest.length === 1 ? "" : "s"} — quick wins, money ideas, drop chances
-              </p>
-            </div>
-            <ArrowRight className="size-4 text-[var(--color-text-muted)] group-open/also:rotate-90 transition-transform" />
-          </summary>
-          <div className="mt-4 space-y-5">
-            {[...grouped.entries()].map(([kind, recs]) => (
-              <div key={kind}>
-                <div className="flex items-center gap-2 mb-2">
-                  <KindGlyph kind={kind} size={16} />
-                  <span className="text-[11px] uppercase tracking-[0.14em] text-[var(--color-text-muted)] font-semibold">
-                    {KIND_META[kind].label}
-                  </span>
-                </div>
-                <div className="grid sm:grid-cols-2 gap-2.5">
-                  {recs.map((r) => <RecRow key={r.id} rec={r} onBossOpen={onBossOpen} />)}
-                </div>
-              </div>
-            ))}
-          </div>
-        </details>
-      )}
-
-      <div className="mt-10">
+      <div className="pt-4">
         <SupportCard />
       </div>
+    </div>
+  );
+}
+
+// ── HeroStrip ──────────────────────────────────────────────────────────
+// Eén compact account-identity strip. Bewust géén big hero — dat
+// gevecht om aandacht voert "What to do" hieronder.
+
+function HeroStrip({ summary, basisNote, onEdit }: {
+  summary: NextUpResult["summary"];
+  basisNote: string;
+  onEdit: () => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <TypingTitle
+          as="h2"
+          text="Here's what to do now"
+          className="text-[20px] sm:text-[22px] font-semibold tracking-tight text-[var(--color-text)] leading-tight"
+          durationMs={700}
+        />
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[13px] font-mono tabular-nums text-[var(--color-text-dim)]">
+          {summary.combatLevel !== null && (
+            <span className="flex items-center gap-1.5">
+              <Sword className="size-3.5 opacity-50" /> Combat {summary.combatLevel}
+            </span>
+          )}
+          {summary.totalLevel !== null && (
+            <span className="flex items-center gap-1.5">
+              <TrendingUp className="size-3.5 opacity-50" /> Total {summary.totalLevel}
+            </span>
+          )}
+          {summary.goalPercent !== null && (
+            <span className="flex items-center gap-1.5 text-[var(--color-accent)]">
+              <Target className="size-3.5" /> {summary.goalPercent}% of goals
+            </span>
+          )}
+        </div>
+        <p className="mt-1.5 text-[11.5px] text-[var(--color-text-muted)]">{basisNote}</p>
+      </div>
+      <button onClick={onEdit} className="btn-ghost">
+        <Edit3 className="size-3.5" /> Change input
+      </button>
     </div>
   );
 }
@@ -928,171 +891,6 @@ const TIME_OPTIONS: { value: TimeBudget; label: string }[] = [
   { value: 120, label: "2 hours" },
 ];
 
-function MoodSection({
-  allRecs,
-  onBossOpen
-}: {
-  allRecs: Recommendation[];
-  onBossOpen: (slug: string) => void;
-}) {
-  const [mood, setMood] = useState<Mood | null>(null);
-  const [minutes, setMinutes] = useState<TimeBudget>(60);
-  /** Vorige sessie — pas na mount gezet (SSR-veilig). Drijft welkom-
-   *  terug banner én pre-selecteert mood/minutes. */
-  const [prev, setPrev] = useState<MoodSession | null>(null);
-  const [dismissedBanner, setDismissedBanner] = useState(false);
-
-  // Eénmalige hydration uit localStorage. Niet via useState-initializer
-  // omdat dat tijdens SSR crasht.
-  useEffect(() => {
-    const last = loadMood();
-    if (last) {
-      setPrev(last);
-      setMood(last.mood);
-      setMinutes(last.minutes);
-    }
-  }, []);
-
-  const pick = useMemo(
-    () => (mood ? pickForMood(allRecs, mood, minutes) : null),
-    [allRecs, mood, minutes]
-  );
-
-  // Sla op zodra mood + pick stabiel zijn. Debounced naar effects om
-  // dubbele writes te voorkomen bij tijd-toggles.
-  useEffect(() => {
-    if (!mood || !pick) return;
-    saveMood({
-      mood,
-      minutes,
-      lastHeadlineId: pick.headline.id,
-      lastHeadlineTitle: pick.headline.title
-    });
-  }, [mood, minutes, pick]);
-
-  if (allRecs.length === 0) return null;
-  const showBanner = prev && !dismissedBanner && prev.lastHeadlineTitle;
-
-  return (
-    <section className="mb-10">
-      <h3 className="eyebrow mb-3 text-[var(--color-accent)]">What do you feel like?</h3>
-
-      {/* Welcome-back banner — only on the second+ visit when there's a
-          previous mood-session in localStorage. Pre-selects mood/time
-          automatically above. Dismissable. */}
-      {showBanner && prev && (
-        <div className="mb-3 flex items-baseline justify-between gap-3 px-3 py-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)]/60 text-[12px]">
-          <div>
-            <span className="text-[var(--color-text-muted)]">Welcome back — </span>
-            <span className="text-[var(--color-text-dim)]">
-              {relativeSince(prev.savedAt)} you were looking at{" "}
-              <span className="text-[var(--color-text)]">{prev.lastHeadlineTitle}</span>
-              {" "}({MOOD_LABEL[prev.mood].name.toLowerCase()}, {prev.minutes} min).
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setDismissedBanner(true)}
-            className="text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-text)] shrink-0"
-            aria-label="Dismiss"
-          >
-            ×
-          </button>
-        </div>
-      )}
-
-      {/* Mood-chips row — OSRS item-icons in plaats van emojis zodat
-          de stijl past bij de rest van de site. */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
-        {MOODS.map((m) => {
-          const label = MOOD_LABEL[m];
-          const active = mood === m;
-          return (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMood(active ? null : m)}
-              className={cn(
-                "px-3 py-3 rounded-lg border text-left transition-all",
-                active
-                  ? "border-[var(--color-accent)]/60 bg-[var(--color-accent)]/10"
-                  : "border-[var(--color-border)] bg-[var(--color-panel)] hover:border-[var(--color-border-strong)]"
-              )}
-            >
-              <div className="flex items-center gap-2.5">
-                <img
-                  src={ICON_URL(label.itemId)}
-                  alt=""
-                  className="pixelated shrink-0"
-                  style={{
-                    width: 24,
-                    height: 24,
-                    imageRendering: "pixelated",
-                    filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))",
-                    objectFit: "contain"
-                  }}
-                />
-                <span className={cn(
-                  "text-[13.5px] font-semibold",
-                  active ? "text-[var(--color-accent)]" : "text-[var(--color-text)]"
-                )}>
-                  {label.name}
-                </span>
-              </div>
-              <p className="text-[11px] text-[var(--color-text-muted)] mt-1">{label.tagline}</p>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Time-budget row — only relevant once a mood is chosen */}
-      {mood && (
-        <div className="flex items-center gap-2 flex-wrap mb-4">
-          <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-            Time
-          </span>
-          {TIME_OPTIONS.map((t) => (
-            <button
-              key={t.value}
-              type="button"
-              onClick={() => setMinutes(t.value)}
-              className={cn(
-                "px-2.5 py-1 rounded-md text-[11px] border transition-colors",
-                minutes === t.value
-                  ? "border-[var(--color-accent)]/50 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
-                  : "border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
-              )}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Result — headline big, alternatives small */}
-      {pick && (
-        <div className="space-y-3">
-          <div>
-            <div className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2">
-              For {MOOD_LABEL[pick.mood].name.toLowerCase()} · {TIME_OPTIONS.find((t) => t.value === pick.minutes)?.label}
-            </div>
-            <HeadlineCard rec={pick.headline} onBossOpen={onBossOpen} />
-          </div>
-          {pick.alternatives.length > 0 && (
-            <div>
-              <div className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2 mt-4">
-                Or pick something else
-              </div>
-              <div className="grid sm:grid-cols-2 gap-2.5">
-                {pick.alternatives.map((r) => <RecRow key={r.id} rec={r} onBossOpen={onBossOpen} />)}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </section>
-  );
-}
 
 // ── Bank readiness ─────────────────────────────────────────────────────────
 // Toont "je bent dicht bij completen van deze sets" als chip-row.
@@ -1179,65 +977,249 @@ function ReadinessSection({ readiness }: { readiness: SetCompletion[] }) {
   );
 }
 
-// ── Hours to max ───────────────────────────────────────────────────────────
-// One concrete number: "you've got X hours left to max." Under the hood:
-// average-rate × xp-remaining per skill, summed. Top-3 heaviest skills
-// get their own bar so you see where the real grind sits.
+// ── WhatToDo (track 1) ─────────────────────────────────────────────────────
+// Side-by-side layout: mood-chips + time-budget links, gekozen suggestie
+// + alternatieven rechts. Default-mood "focused 60min" zodat de pagina
+// nooit leeg start. Save naar localStorage zoals de oude MoodSection.
 
-function HoursToMaxSection({ estimate }: { estimate: HoursToMaxSummary }) {
-  if (estimate.perSkill.length === 0) return null;
-  const top3 = estimate.perSkill.slice(0, 3);
-  // Days/weken-conversie helpt het abstract getal te aarden.
-  const days = Math.round(estimate.totalHours / 4);     // 4u per dag — gemiddelde grinder
-  const weeks = Math.round(estimate.totalHours / 28);   // 4h/dag × 7
+function WhatToDo({
+  allRecs,
+  onBossOpen
+}: {
+  allRecs: Recommendation[];
+  onBossOpen: (slug: string) => void;
+}) {
+  const [mood, setMood] = useState<Mood>("focused");
+  const [minutes, setMinutes] = useState<TimeBudget>(60);
+  const [prev, setPrev] = useState<MoodSession | null>(null);
+  const [dismissedBanner, setDismissedBanner] = useState(false);
+
+  useEffect(() => {
+    const last = loadMood();
+    if (last) {
+      setPrev(last);
+      setMood(last.mood);
+      setMinutes(last.minutes);
+    }
+  }, []);
+
+  const pick = useMemo(
+    () => pickForMood(allRecs, mood, minutes),
+    [allRecs, mood, minutes]
+  );
+
+  useEffect(() => {
+    if (!pick) return;
+    saveMood({
+      mood,
+      minutes,
+      lastHeadlineId: pick.headline.id,
+      lastHeadlineTitle: pick.headline.title
+    });
+  }, [mood, minutes, pick]);
+
+  if (allRecs.length === 0) return null;
+  const showBanner = prev && !dismissedBanner && prev.lastHeadlineTitle;
 
   return (
-    <section className="mb-10">
-      <h3 className="eyebrow mb-3 text-[var(--color-accent)]">Time to max</h3>
-      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-5">
-        <div className="flex items-baseline gap-4 flex-wrap mb-4">
+    <section>
+      <div className="flex items-baseline justify-between gap-3 mb-3">
+        <h3 className="eyebrow text-[var(--color-accent)]">What to do</h3>
+        {showBanner && prev && (
+          <p className="text-[11px] text-[var(--color-text-muted)] hidden sm:block">
+            Welcome back — {relativeSince(prev.savedAt)} you were on {prev.lastHeadlineTitle}.
+            <button
+              type="button"
+              onClick={() => setDismissedBanner(true)}
+              className="ml-2 hover:text-[var(--color-text)]"
+              aria-label="Dismiss"
+            >
+              ×
+            </button>
+          </p>
+        )}
+      </div>
+
+      <div className="grid lg:grid-cols-[260px_1fr] gap-4">
+        {/* Left rail: mood-chips + time-budget toggle in één card. */}
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-4 space-y-4">
           <div>
-            <div className="text-[28px] font-bold text-[var(--color-text)] tabular-nums leading-none">
-              {Math.round(estimate.totalHours).toLocaleString()}<span className="text-[15px] font-normal text-[var(--color-text-muted)] ml-1">hours</span>
+            <div className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2">
+              I want to
             </div>
-            <div className="text-[11px] text-[var(--color-text-muted)] mt-1 tabular-nums">
-              ≈ {days} days @ 4h/day · ≈ {weeks} weeks consistent
+            <div className="grid grid-cols-2 gap-1.5">
+              {MOODS.map((m) => {
+                const label = MOOD_LABEL[m];
+                const active = mood === m;
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setMood(m)}
+                    className={cn(
+                      "px-2.5 py-2 rounded-md border text-left transition-colors flex items-center gap-2",
+                      active
+                        ? "border-[var(--color-accent)]/60 bg-[var(--color-accent)]/10"
+                        : "border-[var(--color-border)] hover:border-[var(--color-border-strong)]"
+                    )}
+                  >
+                    <img
+                      src={ICON_URL(label.itemId)}
+                      alt=""
+                      className="pixelated shrink-0"
+                      style={{
+                        width: 20, height: 20,
+                        imageRendering: "pixelated",
+                        filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))",
+                        objectFit: "contain"
+                      }}
+                    />
+                    <span className={cn(
+                      "text-[12px] font-semibold",
+                      active ? "text-[var(--color-accent)]" : "text-[var(--color-text)]"
+                    )}>
+                      {label.name}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
-          <div className="text-[11px] text-[var(--color-text-dim)] max-w-sm">
-            Based on community-average XP rates. AFK players double this easily;
-            tick-perfect methods bring it down.
+          <div>
+            <div className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2">
+              Time
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {TIME_OPTIONS.map((t) => (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => setMinutes(t.value)}
+                  className={cn(
+                    "px-2.5 py-1 rounded-md text-[11px] border transition-colors",
+                    minutes === t.value
+                      ? "border-[var(--color-accent)]/50 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
+                      : "border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
+                  )}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-        <div>
-          <div className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2">
-            Where most of your time goes
-          </div>
-          <div className="space-y-1.5">
-            {top3.map((e) => {
-              // 100% = hoogste uren van top3, voor balk-breedte
-              const widthPct = Math.round((e.hours / top3[0].hours) * 100);
-              return (
-                <div key={e.skill}>
-                  <div className="flex items-baseline justify-between gap-3 text-[12px] tabular-nums mb-0.5">
-                    <span className="text-[var(--color-text)]">{e.skill}</span>
-                    <span className="text-[var(--color-text-dim)]">
-                      lvl {e.currentLevel} → 99 · {Math.round(e.hours)}h
-                    </span>
-                  </div>
-                  <div className="h-1.5 rounded-full bg-[var(--color-bg-2)] overflow-hidden">
-                    <div
-                      className="h-full bg-[var(--color-accent)]/60 rounded-full"
-                      style={{ width: `${widthPct}%` }}
-                    />
-                  </div>
+
+        {/* Right column: gekozen suggestie + alternatieven. */}
+        <div className="space-y-3">
+          {pick ? (
+            <>
+              <HeadlineCard rec={pick.headline} onBossOpen={onBossOpen} />
+              {pick.alternatives.length > 0 && (
+                <div className="grid sm:grid-cols-2 gap-2.5">
+                  {pick.alternatives.map((r) => (
+                    <RecRow key={r.id} rec={r} onBossOpen={onBossOpen} />
+                  ))}
                 </div>
-              );
-            })}
-          </div>
+              )}
+            </>
+          ) : (
+            <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-8 text-center text-[var(--color-text-muted)] text-[13px]">
+              Nothing urgent to flag — your account looks well on top of things.
+            </div>
+          )}
         </div>
       </div>
     </section>
+  );
+}
+
+// ── WhereYouAre (track 2) ──────────────────────────────────────────────────
+// Top-strip met de 3 belangrijkste account-metrics + de 4 Path-axes
+// gerenderd als één rij horizontale balken (geen losse ring-cards).
+// Vervangt het oude HoursToMaxSection + PathOverview.
+
+function WhereYouAre({
+  pathData,
+  maxEstimate
+}: {
+  pathData: NextUpResult["pathProgress"];
+  maxEstimate: NextUpResult["maxEstimate"];
+}) {
+  const hasMaxData = maxEstimate.perSkill.length > 0;
+  const days = hasMaxData ? Math.round(maxEstimate.totalHours / 4) : null;
+  const overallPercent = pathData.overallPercent;
+
+  return (
+    <section>
+      <h3 className="eyebrow text-[var(--color-accent)] mb-3">Where you are</h3>
+      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-5 space-y-5">
+        {/* Top strip — drie cijfers naast elkaar */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pb-4 border-b border-[var(--color-border)]/60">
+          <Metric
+            label="Overall"
+            value={`${overallPercent}%`}
+            sub="to max account"
+          />
+          {hasMaxData ? (
+            <Metric
+              label="Time to max"
+              value={`${Math.round(maxEstimate.totalHours).toLocaleString()}h`}
+              sub={`≈ ${days} days @ 4h/day`}
+            />
+          ) : (
+            <Metric label="Time to max" value="—" sub="add your RSN" />
+          )}
+          <Metric
+            label="Top grind"
+            value={maxEstimate.perSkill[0]?.skill ?? "—"}
+            sub={maxEstimate.perSkill[0]
+              ? `${Math.round(maxEstimate.perSkill[0].hours)}h to 99`
+              : ""}
+          />
+        </div>
+
+        {/* Vier paths als één rij van horizontale balken. */}
+        <div className="space-y-3">
+          {pathData.paths.map((p) => (
+            <div key={p.kind}>
+              <div className="flex items-baseline justify-between gap-3 text-[12px] tabular-nums mb-1">
+                <span className="text-[var(--color-text)] font-semibold capitalize">{p.kind}</span>
+                <span className="text-[var(--color-text-dim)]">
+                  {p.done}/{p.total} · {p.percent}%
+                </span>
+              </div>
+              <div className="h-1.5 rounded-full bg-[var(--color-bg-2)] overflow-hidden">
+                <div
+                  className="h-full bg-[var(--color-accent)]/70 rounded-full transition-all"
+                  style={{ width: `${p.percent}%` }}
+                />
+              </div>
+              {p.nextSteps.length > 0 && (
+                <p className="text-[10.5px] text-[var(--color-text-muted)] mt-1 truncate">
+                  next: {p.nextSteps.slice(0, 2).map((n) => n.title).join(" · ")}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Metric({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">{label}</div>
+      <div className="text-[18px] sm:text-[20px] font-bold text-[var(--color-text)] tabular-nums leading-tight mt-0.5">
+        {value}
+      </div>
+      {sub && (
+        <div className="text-[10.5px] text-[var(--color-text-dim)] tabular-nums">
+          {sub}
+        </div>
+      )}
+    </div>
   );
 }
 
