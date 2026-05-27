@@ -924,8 +924,8 @@ const MOODS: Mood[] = ["chill", "focused", "cash", "quest"];
 const TIME_OPTIONS: { value: TimeBudget; label: string }[] = [
   { value: 15,  label: "15 min" },
   { value: 30,  label: "30 min" },
-  { value: 60,  label: "1 uur"  },
-  { value: 120, label: "2 uur"  },
+  { value: 60,  label: "1 hour" },
+  { value: 120, label: "2 hours" },
 ];
 
 function MoodSection({
@@ -975,17 +975,17 @@ function MoodSection({
 
   return (
     <section className="mb-10">
-      <h3 className="eyebrow mb-3 text-[var(--color-accent)]">Waar heb je zin in?</h3>
+      <h3 className="eyebrow mb-3 text-[var(--color-accent)]">What do you feel like?</h3>
 
-      {/* Welkom-terug banner — toont alleen op de tweede+ bezoek wanneer
-          er een vorige mood-sessie in localStorage staat. Pre-selecteert
-          de mood/tijd automatisch hierboven. Dismissable. */}
+      {/* Welcome-back banner — only on the second+ visit when there's a
+          previous mood-session in localStorage. Pre-selects mood/time
+          automatically above. Dismissable. */}
       {showBanner && prev && (
         <div className="mb-3 flex items-baseline justify-between gap-3 px-3 py-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)]/60 text-[12px]">
           <div>
-            <span className="text-[var(--color-text-muted)]">Welkom terug — </span>
+            <span className="text-[var(--color-text-muted)]">Welcome back — </span>
             <span className="text-[var(--color-text-dim)]">
-              {relativeSince(prev.savedAt)} keek je naar{" "}
+              {relativeSince(prev.savedAt)} you were looking at{" "}
               <span className="text-[var(--color-text)]">{prev.lastHeadlineTitle}</span>
               {" "}({MOOD_LABEL[prev.mood].name.toLowerCase()}, {prev.minutes} min).
             </span>
@@ -1001,7 +1001,8 @@ function MoodSection({
         </div>
       )}
 
-      {/* Mood-chips row */}
+      {/* Mood-chips row — OSRS item-icons in plaats van emojis zodat
+          de stijl past bij de rest van de site. */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
         {MOODS.map((m) => {
           const label = MOOD_LABEL[m];
@@ -1018,8 +1019,19 @@ function MoodSection({
                   : "border-[var(--color-border)] bg-[var(--color-panel)] hover:border-[var(--color-border-strong)]"
               )}
             >
-              <div className="flex items-baseline gap-2">
-                <span className="text-[16px]">{label.emoji}</span>
+              <div className="flex items-center gap-2.5">
+                <img
+                  src={ICON_URL(label.itemId)}
+                  alt=""
+                  className="pixelated shrink-0"
+                  style={{
+                    width: 24,
+                    height: 24,
+                    imageRendering: "pixelated",
+                    filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))",
+                    objectFit: "contain"
+                  }}
+                />
                 <span className={cn(
                   "text-[13.5px] font-semibold",
                   active ? "text-[var(--color-accent)]" : "text-[var(--color-text)]"
@@ -1033,11 +1045,11 @@ function MoodSection({
         })}
       </div>
 
-      {/* Time-budget row — alleen relevant zodra mood gekozen */}
+      {/* Time-budget row — only relevant once a mood is chosen */}
       {mood && (
         <div className="flex items-center gap-2 flex-wrap mb-4">
           <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-            Tijd
+            Time
           </span>
           {TIME_OPTIONS.map((t) => (
             <button
@@ -1057,19 +1069,19 @@ function MoodSection({
         </div>
       )}
 
-      {/* Resultaat — hoofdsuggestie groot, alternatieven klein */}
+      {/* Result — headline big, alternatives small */}
       {pick && (
         <div className="space-y-3">
           <div>
             <div className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2">
-              Voor {MOOD_LABEL[pick.mood].name.toLowerCase()} · {TIME_OPTIONS.find((t) => t.value === pick.minutes)?.label}
+              For {MOOD_LABEL[pick.mood].name.toLowerCase()} · {TIME_OPTIONS.find((t) => t.value === pick.minutes)?.label}
             </div>
             <HeadlineCard rec={pick.headline} onBossOpen={onBossOpen} />
           </div>
           {pick.alternatives.length > 0 && (
             <div>
               <div className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2 mt-4">
-                Of liever iets anders?
+                Or pick something else
               </div>
               <div className="grid sm:grid-cols-2 gap-2.5">
                 {pick.alternatives.map((r) => <RecRow key={r.id} rec={r} onBossOpen={onBossOpen} />)}
@@ -1093,9 +1105,9 @@ function ReadinessSection({ readiness }: { readiness: SetCompletion[] }) {
 
   return (
     <section className="mb-10">
-      <h3 className="eyebrow mb-1 text-[var(--color-accent)]">Bijna klaar</h3>
+      <h3 className="eyebrow mb-1 text-[var(--color-accent)]">Almost there</h3>
       <p className="text-[11.5px] text-[var(--color-text-muted)] mb-3">
-        Sets waar je het dichtsbij voltooien bent — klik voor wat er nog mist.
+        Sets you're closest to completing — click for what's still missing.
       </p>
       <div className="flex flex-wrap gap-2">
         {readiness.map((c) => {
@@ -1136,11 +1148,11 @@ function ReadinessSection({ readiness }: { readiness: SetCompletion[] }) {
         return (
           <div className="mt-3 p-3 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)]">
             <div className="text-[11px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2">
-              {set.name} — nog te halen
+              {set.name} — still missing
             </div>
             {missing.length === 0 ? (
               <p className="text-[12px] text-[var(--color-good)]">
-                Eigenlijk compleet — vermoedelijk een tiered set waar je al de top-tier hebt.
+                Actually complete — probably a tiered set where you already own the top tier.
               </p>
             ) : (
               <ul className="space-y-1">
@@ -1168,10 +1180,9 @@ function ReadinessSection({ readiness }: { readiness: SetCompletion[] }) {
 }
 
 // ── Hours to max ───────────────────────────────────────────────────────────
-// Eén concreet getal: "tot maxed account heb je nog X uur." Onder de
-// motorkap gemiddeld-rate × xp-remaining per skill, gestapeld. Voor de
-// 3 zwaarste skills tonen we ook expliciet wat ze kosten — daar zit
-// vaak de pijn.
+// One concrete number: "you've got X hours left to max." Under the hood:
+// average-rate × xp-remaining per skill, summed. Top-3 heaviest skills
+// get their own bar so you see where the real grind sits.
 
 function HoursToMaxSection({ estimate }: { estimate: HoursToMaxSummary }) {
   if (estimate.perSkill.length === 0) return null;
@@ -1182,25 +1193,25 @@ function HoursToMaxSection({ estimate }: { estimate: HoursToMaxSummary }) {
 
   return (
     <section className="mb-10">
-      <h3 className="eyebrow mb-3 text-[var(--color-accent)]">Tot maxed</h3>
+      <h3 className="eyebrow mb-3 text-[var(--color-accent)]">Time to max</h3>
       <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-5">
         <div className="flex items-baseline gap-4 flex-wrap mb-4">
           <div>
             <div className="text-[28px] font-bold text-[var(--color-text)] tabular-nums leading-none">
-              {Math.round(estimate.totalHours).toLocaleString()}<span className="text-[15px] font-normal text-[var(--color-text-muted)] ml-1">uur</span>
+              {Math.round(estimate.totalHours).toLocaleString()}<span className="text-[15px] font-normal text-[var(--color-text-muted)] ml-1">hours</span>
             </div>
             <div className="text-[11px] text-[var(--color-text-muted)] mt-1 tabular-nums">
-              ≈ {days} dagen @ 4u/dag · ≈ {weeks} weken consistent
+              ≈ {days} days @ 4h/day · ≈ {weeks} weeks consistent
             </div>
           </div>
           <div className="text-[11px] text-[var(--color-text-dim)] max-w-sm">
-            Op community-gemiddelde XP-rates. AFK-spelers verdubbelen dit makkelijk;
-            tick-perfecte methodes halen het naar beneden.
+            Based on community-average XP rates. AFK players double this easily;
+            tick-perfect methods bring it down.
           </div>
         </div>
         <div>
           <div className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2">
-            Waar zit je grootste tijdsinvestering
+            Where most of your time goes
           </div>
           <div className="space-y-1.5">
             {top3.map((e) => {
@@ -1211,7 +1222,7 @@ function HoursToMaxSection({ estimate }: { estimate: HoursToMaxSummary }) {
                   <div className="flex items-baseline justify-between gap-3 text-[12px] tabular-nums mb-0.5">
                     <span className="text-[var(--color-text)]">{e.skill}</span>
                     <span className="text-[var(--color-text-dim)]">
-                      lvl {e.currentLevel} → 99 · {Math.round(e.hours)}u
+                      lvl {e.currentLevel} → 99 · {Math.round(e.hours)}h
                     </span>
                   </div>
                   <div className="h-1.5 rounded-full bg-[var(--color-bg-2)] overflow-hidden">

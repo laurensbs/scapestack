@@ -130,10 +130,18 @@ export function pickForMood(
   return { headline, alternatives: alts, mood, minutes };
 }
 
-/** Beleefde mood-labels voor de UI. */
-export const MOOD_LABEL: Record<Mood, { emoji: string; name: string; tagline: string }> = {
-  chill:   { emoji: "🌙", name: "Chill",    tagline: "AFK, weinig denkwerk" },
-  focused: { emoji: "🎯", name: "Focused",  tagline: "XP/u optimaliseren" },
-  cash:    { emoji: "💰", name: "Cash",     tagline: "GP/u maximaliseren" },
-  quest:   { emoji: "📜", name: "Quest",    tagline: "Story + unlocks" }
+/** Mood labels met OSRS item-icons. Iconen kiezen we zo dat ze de
+ *  vibe in één blik communiceren — geen emoji-soep, in lijn met de
+ *  rest van de site die overal item-sprites gebruikt.
+ *    chill   → Wintertodt brazier? we kiezen Bird's nest (cosy AFK)
+ *              of liever Sleeping cap (literally "chill" hat).
+ *    focused → Slayer helmet — combat focus, intense.
+ *    cash    → Coins-stack — universally GP.
+ *    quest   → Quest point cape — questing signature.
+ *  Item-IDs uit OSRS Wiki, gecheckt 2026-05-27. */
+export const MOOD_LABEL: Record<Mood, { itemId: number; name: string; tagline: string }> = {
+  chill:   { itemId: 10398, name: "Chill",   tagline: "AFK, low effort" },          // Sleeping cap
+  focused: { itemId: 11864, name: "Focused", tagline: "Optimise XP/hour" },         // Slayer helmet
+  cash:    { itemId: 995,   name: "Cash",    tagline: "Maximise GP/hour" },         // Coins
+  quest:   { itemId: 9813,  name: "Quest",   tagline: "Story + unlocks" }           // Quest point cape
 };

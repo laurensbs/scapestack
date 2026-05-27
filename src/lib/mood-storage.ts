@@ -51,16 +51,16 @@ export function loadMood(): MoodSession | null {
   }
 }
 
-/** "5 uur geleden" / "2 dagen geleden" / "net geleden" — voor de
- *  welkom-terug copy. Houden we kort; dezelfde helper als de
- *  SyncedBadge gebruikt, maar UI-niveau verschilt. */
+/** "5 hours ago" / "2 days ago" / "just now" — for the welcome-back
+ *  copy. Kept short; same helper-shape as SyncedBadge but the UI level
+ *  differs slightly. */
 export function relativeSince(epochMs: number): string {
   const sec = Math.max(0, Math.round((Date.now() - epochMs) / 1000));
-  if (sec < 90) return "net geleden";
+  if (sec < 90) return "just now";
   const min = Math.round(sec / 60);
-  if (min < 60) return `${min} min geleden`;
+  if (min < 60) return `${min} min ago`;
   const hr = Math.round(min / 60);
-  if (hr < 24) return `${hr} uur geleden`;
+  if (hr < 24) return `${hr} hour${hr === 1 ? "" : "s"} ago`;
   const day = Math.round(hr / 24);
-  return `${day} dag${day === 1 ? "" : "en"} geleden`;
+  return `${day} day${day === 1 ? "" : "s"} ago`;
 }

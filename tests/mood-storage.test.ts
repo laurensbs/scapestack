@@ -68,23 +68,23 @@ describe("mood-storage", () => {
 });
 
 describe("relativeSince", () => {
-  it("'net geleden' onder 90 sec", async () => {
+  it("'just now' under 90 sec", async () => {
     const { relativeSince } = await import("@/lib/mood-storage");
-    expect(relativeSince(Date.now() - 30_000)).toBe("net geleden");
+    expect(relativeSince(Date.now() - 30_000)).toBe("just now");
   });
 
-  it("'X min geleden' tussen 90s en 1u", async () => {
+  it("'X min ago' between 90s and 1h", async () => {
     const { relativeSince } = await import("@/lib/mood-storage");
-    expect(relativeSince(Date.now() - 5 * 60 * 1000)).toMatch(/min geleden/);
+    expect(relativeSince(Date.now() - 5 * 60 * 1000)).toMatch(/min ago/);
   });
 
-  it("'X uur geleden' tussen 1u en 24u", async () => {
+  it("'X hours ago' between 1h and 24h", async () => {
     const { relativeSince } = await import("@/lib/mood-storage");
-    expect(relativeSince(Date.now() - 3 * 3600 * 1000)).toMatch(/uur geleden/);
+    expect(relativeSince(Date.now() - 3 * 3600 * 1000)).toMatch(/hour.* ago/);
   });
 
-  it("'X dagen geleden' boven 24u", async () => {
+  it("'X days ago' over 24h", async () => {
     const { relativeSince } = await import("@/lib/mood-storage");
-    expect(relativeSince(Date.now() - 3 * 86400 * 1000)).toMatch(/dagen geleden/);
+    expect(relativeSince(Date.now() - 3 * 86400 * 1000)).toMatch(/day.* ago/);
   });
 });
