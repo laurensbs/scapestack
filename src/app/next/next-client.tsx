@@ -3,8 +3,8 @@
 import { useState, useTransition, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
-  ArrowRight, Edit3, Target, Sword, TrendingUp, Layers, Sparkles, Trophy,
-  Gamepad2, Coins, Scroll, Map as MapIcon, Dices
+  ArrowRight, ChevronRight, Edit3, Target, Sword, TrendingUp, Layers,
+  Sparkles, Trophy, Gamepad2, Coins, Scroll, Map as MapIcon, Dices
 } from "lucide-react";
 import { SupportCard } from "@/components/support-card";
 import { SavedBankBanner } from "@/components/saved-bank-banner";
@@ -22,6 +22,7 @@ import type { HoursToMaxSummary } from "@/lib/hours-to-max";
 import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
 import { track } from "@/lib/analytics";
 import type { Recommendation, RecKind, NextUpResult } from "@/lib/next-up";
+import { defaultActionHints } from "@/lib/rec-hints";
 import { pickForMood, MOOD_LABEL, type Mood, type TimeBudget } from "@/lib/mood";
 import { saveMood, loadMood, relativeSince, type MoodSession } from "@/lib/mood-storage";
 import { cn, ICON_URL } from "@/lib/utils";
@@ -1010,6 +1011,7 @@ function WhatToDo({
 }) {
   const [mood, setMood] = useState<Mood>("focused");
   const [minutes, setMinutes] = useState<TimeBudget>(60);
+  const [shuffleIdx, setShuffleIdx] = useState(0);
   const [prev, setPrev] = useState<MoodSession | null>(null);
   const [dismissedBanner, setDismissedBanner] = useState(false);
 
@@ -1022,9 +1024,15 @@ function WhatToDo({
     }
   }, []);
 
+  // Reset shuffle wanneer mood/time veranderen — een nieuwe vibe begint
+  // op de top-pick, anders blijven we stiekem op een oude alternative.
+  useEffect(() => {
+    setShuffleIdx(0);
+  }, [mood, minutes]);
+
   const pick = useMemo(
-    () => pickForMood(allRecs, mood, minutes),
-    [allRecs, mood, minutes]
+    () => pickForMood(allRecs, mood, minutes, shuffleIdx),
+    [allRecs, mood, minutes, shuffleIdx]
   );
 
   useEffect(() => {
@@ -1042,8 +1050,21 @@ function WhatToDo({
 
   return (
     <section>
-      <div className="flex items-baseline justify-between gap-3 mb-3">
-        <h3 className="eyebrow text-[var(--color-accent)]">What to do</h3>
+      <div className="flex items-baseline justify-between gap-3 mb-3 flex-wrap">
+        <div className="flex items-baseline gap-3">
+          <h3 className="eyebrow text-[var(--color-accent)]">What to do</h3>
+          {pick && allRecs.length > 1 && (
+            <button
+              type="button"
+              onClick={() => setShuffleIdx((i) => i + 1)}
+              className="text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors inline-flex items-center gap-1"
+              title="Show me something else"
+            >
+              <Dices className="size-3" />
+              Try something else
+            </button>
+          )}
+        </div>
         {showBanner && prev && (
           <p className="text-[11px] text-[var(--color-text-muted)] hidden sm:block">
             Welcome back — {relativeSince(prev.savedAt)} you were on {prev.lastHeadlineTitle}.
@@ -1132,11 +1153,14 @@ function WhatToDo({
         <div className="space-y-3">
           {pick ? (
             <>
-              <HeadlineCard rec={pick.headline} onBossOpen={onBossOpen} />
+              <RecHeadlineExpandable
+                rec={pick.headline}
+                onBossOpen={onBossOpen}
+              />
               {pick.alternatives.length > 0 && (
                 <div className="grid sm:grid-cols-2 gap-2.5">
                   {pick.alternatives.map((r) => (
-                    <RecRow key={r.id} rec={r} onBossOpen={onBossOpen} />
+                    <RecRowExpandable key={r.id} rec={r} onBossOpen={onBossOpen} />
                   ))}
                 </div>
               )}
@@ -1369,3 +1393,91 @@ function SourceStatus() {
   );
 }
 
+
+// ── RecHeadlineExpandable + RecRowExpandable ───────────────────────────────
+// Wrappers rond HeadlineCard / RecRow die een details-paneel toevoegen.
+// Klik op de "Show details" toggle → expand inline (geen navigatie weg).
+// Details bevat: payoff, needs[], details-tekst, en de link-naar-tool.
+// Werkt voor zowel hero als alt-rows (zelfde details, andere
+// presentation density).
+
+function RecDetailPanel({ rec }: { rec: Recommendation }) {
+  // Fallback naar default hints wanneer rec ze niet expliciet meegaf.
+  const hints = defaultActionHints(rec.kind);
+  const needs = rec.needs ?? hints.needs;
+  const details = rec.details ?? hints.details;
+  return (
+    <div className="mt-2 px-4 py-3 rounded-lg bg-[var(--color-bg-2)]/40 border border-[var(--color-border)] animate-[fade-in_0.2s_ease-out] space-y-2.5">
+      {details && (
+        <p className="text-[12.5px] text-[var(--color-text-dim)] leading-relaxed">
+          {details}
+        </p>
+      )}
+      {needs.length > 0 && (
+        <div>
+          <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-1.5">
+            You'll need
+          </div>
+          <ul className="space-y-1">
+            {needs.map((n, i) => (
+              <li key={i} className="text-[12px] text-[var(--color-text)] flex items-baseline gap-2">
+                <span className="size-1 rounded-full bg-[var(--color-accent)] inline-block translate-y-[-2px] shrink-0" />
+                {n}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {rec.link && (
+        <Link
+          href={rec.link}
+          className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[var(--color-accent)] hover:underline pt-1"
+        >
+          Open the tool <ArrowRight className="size-3.5" />
+        </Link>
+      )}
+    </div>
+  );
+}
+
+function RecHeadlineExpandable({ rec, onBossOpen }: { rec: Recommendation; onBossOpen: (slug: string) => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      <HeadlineCard rec={rec} onBossOpen={onBossOpen} />
+      <div className="flex justify-end mt-1.5">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors inline-flex items-center gap-1"
+        >
+          {open ? "Hide details" : "Show details"}
+          <ChevronRight
+            className={cn("size-3 transition-transform", open && "rotate-90")}
+          />
+        </button>
+      </div>
+      {open && <RecDetailPanel rec={rec} />}
+    </div>
+  );
+}
+
+function RecRowExpandable({ rec, onBossOpen }: { rec: Recommendation; onBossOpen: (slug: string) => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      <RecRow rec={rec} onBossOpen={onBossOpen} />
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="mt-1 text-[10.5px] text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors inline-flex items-center gap-1"
+      >
+        {open ? "Hide" : "Details"}
+        <ChevronRight
+          className={cn("size-2.5 transition-transform", open && "rotate-90")}
+        />
+      </button>
+      {open && <RecDetailPanel rec={rec} />}
+    </div>
+  );
+}

@@ -61,38 +61,47 @@ const MOOD_KIND_WEIGHTS: Record<Mood, Partial<Record<RecKind, number>>> = {
   }
 };
 
-/** Tijd-budget filter — continu in plaats van binaire buckets zodat
- *  élke stap (15/30/60/120) een meetbaar ander gewicht oplevert.
- *  Logica: elke kind heeft een "sweet spot" sessie-lengte, en hoe
- *  verder de gekozen tijd daarvandaan is, hoe minder relevant.
+/** Tijd-budget filter — schaarser dan voorheen. Elke kind heeft een
+ *  realistische min/max sessie-tijd; als de gekozen budget buiten die
+ *  range valt, krijgt de rec een serieuze penalty (down to 0.15).
  *
- *  Sweet spots:
- *    bank      : 20 min   (klusje, AFK organize-sessie)
- *    skill     : 90 min   (long AFK grinds)
- *    boss      : 90 min   (trip + bank)
- *    kc        : 90 min   (drop chasing = lange sessie)
- *    quest     : 90 min   (te kort = onaf, te lang = burnout)
- *    diary     : 45 min   (snel klaarmaken)
- *    minigame  : 30 min   (round-based)
- *    money     : 60 min   (typische trip)
+ *  Filosofie: liever 5 goede recs voor 15 min dan 5 abstracte. Een
+ *  Inferno-rec bij 15min budget is gewoon niet relevant.
  *
- *  Multiplier loopt van ~0.4 (slechte match) naar ~1.4 (perfecte
- *  match). Continu via gaussian-achtige curve. */
+ *  Daily-style money recs hebben de smalste range (5-15 min) zodat ze
+ *  niet je 2u sessie volpompen.
+ */
 function timeBudgetFit(rec: Recommendation, minutes: TimeBudget): number {
-  const sweetSpot: Record<RecKind | "default", number> = {
-    bank: 20, skill: 90, boss: 90, kc: 90, quest: 90,
-    diary: 45, minigame: 30, money: 60,
-    goal: 60, milestone: 60,
-    default: 60
+  // [minViable, sweetSpot, maxComfortable] per kind. Buiten min/max =
+  // harde penalty (0.15-0.4). In de range = soft curve naar 1.4 piek.
+  const ranges: Record<RecKind | "default", [number, number, number]> = {
+    bank:      [5,  20, 30],   // klusje, niet voor lange sessie
+    minigame:  [10, 30, 60],   // round-based
+    diary:     [15, 45, 90],   // tier voltooien
+    money:     [10, 30, 60],   // herb runs, daily, GP-pulses
+    skill:     [30, 90, 180],  // grinding works at any length above 30
+    boss:      [45, 90, 180],  // trip incl. travel + bank
+    kc:        [45, 90, 180],  // drop chase = lange sessie
+    quest:     [30, 90, 180],  // te kort = onaf, te lang = burnout
+    goal:      [15, 60, 180],  // breed: zowel een quest cape als skill cape
+    milestone: [15, 60, 180],
+    default:   [15, 60, 120],
   };
-  const spot = sweetSpot[rec.kind] ?? sweetSpot.default;
-  // Distance in log-space zodat 15→30 (2x) hetzelfde effect heeft als
-  // 60→120 (2x). Voorkomt dat het verschil tussen 60 en 120 onzichtbaar
-  // klein voelt.
-  const ratio = minutes / spot;
-  const logDist = Math.abs(Math.log2(ratio));
-  // logDist=0 → 1.4 ; logDist=1 (factor 2 off) → 1.0 ; logDist=2 → 0.6 etc.
-  return Math.max(0.4, 1.4 - 0.4 * logDist);
+  const [low, spot, high] = ranges[rec.kind] ?? ranges.default;
+  // Out-of-range: harde penalty (15min sessie + 2u boss = 0.15).
+  if (minutes < low) {
+    const ratio = minutes / low;
+    return Math.max(0.15, 0.5 * ratio);
+  }
+  if (minutes > high) {
+    const ratio = high / minutes;
+    return Math.max(0.25, 0.7 * ratio);
+  }
+  // In range — driehoek-curve met piek op sweet spot, floor 0.85.
+  const distToSpot = Math.abs(minutes - spot);
+  const halfRange = Math.max(spot - low, high - spot);
+  const proximity = 1 - distToSpot / halfRange;
+  return 0.85 + 0.55 * proximity; // 0.85 .. 1.4
 }
 
 export interface MoodPick {
@@ -109,11 +118,17 @@ export interface MoodPick {
 
 /** Hoofdfunctie: ranked recs in, mood + tijd erbij, één hoofdpick +
  *  twee alternatieven uit. Wanneer er minder dan 3 recs zijn, vult
- *  alternatives met wat er overblijft. */
+ *  alternatives met wat er overblijft.
+ *
+ *  shuffleIndex: 0 = absolute top; 1 = "geef me wat anders" (skip
+ *  het #1 picked, pak #2). Diversity-rule: shuffle moet ook een
+ *  ander kind opleveren tov de huidige headline — niet "boss
+ *  vorkath" → "boss kbd". */
 export function pickForMood(
   recs: Recommendation[],
   mood: Mood,
-  minutes: TimeBudget
+  minutes: TimeBudget,
+  shuffleIndex: number = 0
 ): MoodPick | null {
   if (recs.length === 0) return null;
   const weights = MOOD_KIND_WEIGHTS[mood];
@@ -125,23 +140,44 @@ export function pickForMood(
   });
   scored.sort((a, b) => b.adjScore - a.adjScore);
 
-  const headline = scored[0].rec;
-  // Alternatives: pak de volgende twee die een andere `kind` hebben
-  // dan headline. Geeft de speler diversity. Fallback naar volgende
-  // beste twee als niet genoeg diversiteit.
-  const seenKinds = new Set<RecKind>([headline.kind]);
-  const alts: Recommendation[] = [];
-  for (const s of scored.slice(1)) {
-    if (alts.length === 2) break;
-    if (!seenKinds.has(s.rec.kind)) {
-      alts.push(s.rec);
-      seenKinds.add(s.rec.kind);
+  // Shuffle: bouw een lijst van "hero-kandidaten" waar elke
+  // opeenvolgende een ander kind heeft dan z'n voorganger. Dat
+  // voorkomt "boss → boss → boss" als de speler op de shuffle-knop
+  // ramt.
+  const heroCandidates: Recommendation[] = [];
+  const usedKinds = new Set<RecKind>();
+  for (const s of scored) {
+    if (!usedKinds.has(s.rec.kind)) {
+      heroCandidates.push(s.rec);
+      usedKinds.add(s.rec.kind);
     }
   }
-  // Als we minder dan 2 hebben, vul aan met wat-dan-ook (mag dezelfde kind zijn)
-  for (const s of scored.slice(1)) {
+  // Als de speler verder shuffled dan we kinds hebben → cycle terug
+  // door alle scored recs (zelfde kind mag dan terugkomen).
+  const fallbackList = scored.map((s) => s.rec);
+  const headline =
+    heroCandidates[shuffleIndex % Math.max(1, heroCandidates.length)]
+    ?? fallbackList[shuffleIndex % fallbackList.length]
+    ?? scored[0].rec;
+
+  // Alternatieven: pak de volgende twee uit heroCandidates die niet
+  // headline zijn. Wanneer minder dan 2 over, val terug op fallback.
+  const alts: Recommendation[] = [];
+  const seenIds = new Set([headline.id]);
+  for (const r of heroCandidates) {
     if (alts.length === 2) break;
-    if (!alts.includes(s.rec)) alts.push(s.rec);
+    if (!seenIds.has(r.id)) {
+      alts.push(r);
+      seenIds.add(r.id);
+    }
+  }
+  // Vul aan met wat-dan-ook (zelfde kind mag) als we minder dan 2 hebben.
+  for (const r of fallbackList) {
+    if (alts.length === 2) break;
+    if (!seenIds.has(r.id)) {
+      alts.push(r);
+      seenIds.add(r.id);
+    }
   }
 
   return { headline, alternatives: alts, mood, minutes };

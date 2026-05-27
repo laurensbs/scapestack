@@ -42,6 +42,13 @@ export interface Recommendation {
   title: string;          // the action — imperative, short
   why: string;            // one line: why it's worth doing now
   payoff?: string;        // optional: what completing it unlocks/gives
+  /** Concrete vereisten die de speler nu moet hebben/doen. Tonen in
+   *  de detail-expand als bullet list. Korte regels, max ~5 stuks. */
+  needs?: string[];
+  /** Langere uitleg / walkthrough — meerdere regels mogelijk. Wordt
+   *  alleen in de detail-expand getoond. Houdt het beknopt; lange
+   *  guides horen op de wiki. */
+  details?: string;
   /** 0-100, higher surfaces first. The top scorer becomes the headline. */
   score: number;
   /** Tool route to act on this, e.g. "/goals" or "/dps". */

@@ -38,11 +38,11 @@ describe("pickForMood", () => {
     expect(result!.headline.kind).toBe("boss");
   });
 
-  it("cash: money-rec wint van gelijk-scorende boss", () => {
+  it("cash: money wint van gelijk-scorende boss in money's sweet spot", () => {
+    // Money sweet spot = 30min. Bij 30min: money×2.0×1.4 = 140;
+    // boss(out of range, < 45) ×1.4 × ~0.33 = ~23. Money domineert.
     const recs = [rec("boss", "vorkath", 50), rec("money", "blast", 50)];
-    const result = pickForMood(recs, "cash", 60);
-    // money × cash(2.0) × time(1.0) = 100
-    // boss × cash(1.4) × time(1.2 60min) = 84
+    const result = pickForMood(recs, "cash", 30);
     expect(result!.headline.kind).toBe("money");
   });
 
@@ -58,6 +58,32 @@ describe("pickForMood", () => {
     const result = pickForMood(recs, "chill", 15);
     // bank × chill(1.3) × time(1.4) = 54.6 ; boss × chill(0.4) × time(0.6) = 12
     expect(result!.headline.kind).toBe("bank");
+  });
+
+  it("shuffleIndex=1 toont een ander kind dan #0 (echte refresh)", () => {
+    const recs = [
+      rec("boss",  "vorkath", 80),
+      rec("boss",  "kbd",     75),  // zelfde kind, moet geskipt voor shuffle
+      rec("skill", "slayer",  70),
+      rec("quest", "dt2",     65),
+    ];
+    const first = pickForMood(recs, "focused", 60, 0);
+    const second = pickForMood(recs, "focused", 60, 1);
+    expect(first!.headline.kind).toBe("boss");
+    expect(second!.headline.kind).not.toBe("boss");
+  });
+
+  it("shuffleIndex >> aantal kinds cycelt door fallback", () => {
+    const recs = [
+      rec("boss", "vorkath", 70),
+      rec("boss", "kbd",     65),
+    ];
+    const r0 = pickForMood(recs, "focused", 60, 0);
+    const r1 = pickForMood(recs, "focused", 60, 1);
+    // Niet undefined — fallback cycle pakt de volgende rec.
+    expect(r0!.headline).toBeDefined();
+    expect(r1!.headline).toBeDefined();
+    // En r1 mag een andere rec zijn (of dezelfde — fallback cycelt).
   });
 
   it("alternatives hebben andere kinds dan headline (diversity)", () => {
@@ -79,6 +105,30 @@ describe("pickForMood", () => {
     const result = pickForMood(recs, "focused", 60);
     expect(result!.headline).toBeDefined();
     expect(result!.alternatives.length).toBe(1);
+  });
+
+  it("15-min budget: boss-rec krijgt hard penalty, korte rec wint", () => {
+    // Boss out-of-range (min 45) bij 15 min → penalty ≤ 0.4. Bank-rec
+    // is in z'n sweet spot (5..30) → score ~1.3+.
+    const recs = [
+      rec("boss", "inferno", 90),  // hoge base
+      rec("bank", "tidy",    50),  // lagere base
+    ];
+    const result = pickForMood(recs, "focused", 15);
+    // Ondanks dat boss een veel hogere base heeft, mag het niet bovenaan
+    // staan voor een 15-min sessie — penalty moet daar voor zorgen.
+    expect(result!.headline.kind).toBe("bank");
+  });
+
+  it("2-uur budget: lange-vorm boss wint van daily-stijl money", () => {
+    const recs = [
+      rec("money", "herb-run", 50),
+      rec("boss",  "raid",     50),
+    ];
+    const result = pickForMood(recs, "focused", 120);
+    // Money (high=60) krijgt out-of-range penalty bij 120; boss (high=180)
+    // zit nog in range.
+    expect(result!.headline.kind).toBe("boss");
   });
 
   it("time-budget heeft continu effect — 60 ≠ 120 voor boss", () => {
