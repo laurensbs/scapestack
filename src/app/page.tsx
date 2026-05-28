@@ -1,58 +1,68 @@
-import Link from "next/link";
 import { BuyMeCoffee } from "@/components/buy-me-coffee";
 import { BossShowcase } from "@/components/boss-showcase";
-import { HeroSubhead } from "@/components/hero-subhead";
 import { HeroIntake } from "@/components/hero-intake";
 
 export default function HomePage() {
   return (
-    <main className="relative z-10 mx-auto max-w-6xl px-5 sm:px-8 py-14 pb-24">
-      {/* Hero */}
-      <section className="mb-20">
-        <div className="grid lg:grid-cols-[1.1fr_1fr] gap-12 items-center">
-          <div>
-            <div
-              className="eyebrow flex items-center gap-2 mb-5"
-              style={{ animation: "hero-fade 0.65s cubic-bezier(0.22,1,0.36,1) 0.05s both" }}
-            >
-              <span className="size-1.5 rounded-full bg-[var(--color-accent)] animate-[mint-pulse-dot_2.6s_ease-in-out_infinite]" />
-              <span>v0.4 · OSRS toolkit</span>
-            </div>
-            <h1
-              // Mobile gets text-[36px] so "Gielinor" doesn't wrap onto a
-              // third line on 375px viewports (audit finding #1). Larger
-              // breakpoints keep the original premium size.
-              className="text-[36px] sm:text-[48px] md:text-[64px] lg:text-[72px] font-bold leading-[0.95] tracking-[-0.02em] text-[var(--color-text)]"
-              // Longer duration + later start gives the headline its own moment;
-              // the eyebrow above settles first, then the title lifts in.
-              style={{ animation: "hero-fade 0.85s cubic-bezier(0.22,1,0.36,1) 0.15s both" }}
-            >
-              Less bank standing,<br />
-              <span className="text-gold-gradient">more Gielinor.</span>
+    <main className="relative z-10 mx-auto max-w-6xl px-5 sm:px-8 pt-16 sm:pt-24 pb-24">
+      {/* ── HERO ─────────────────────────────────────────────────────────
+          Apple-style asymmetric split. Tekst + input links met heel veel
+          ademruimte; boss showcase rechts als productfoto. Geen
+          background-gradient — strakke zwarte canvas zodat de content
+          domineert. */}
+      <section className="relative mb-24 sm:mb-32">
+        <div className="grid lg:grid-cols-[1fr_1fr] gap-12 lg:gap-32 xl:gap-40 items-center min-h-[80vh]">
+          {/* Linkerkolom — leading content. Apple-style reveals:
+              - Titel: word-by-word lift+blur, 60ms stagger per woord
+              - Subhead: mask-reveal (clip-path animatie)
+              - Intake: scale-in + fade
+              Alle ease cubic-bezier(0.22,1,0.36,1) — Apple's "ease-out
+              expressive" curve. */}
+          <div className="space-y-10">
+            <h1 className="font-bold leading-[0.95] tracking-[-0.025em] text-[clamp(44px,8vw,88px)]">
+              <RevealLine
+                text="Less bank standing,"
+                delay={100}
+                wordStaggerMs={70}
+                className="block text-[var(--color-text)]"
+              />
+              <RevealLine
+                text="more Gielinor."
+                delay={350}
+                wordStaggerMs={80}
+                className="block text-gold-gradient"
+                style={{
+                  animation: "gold-shimmer 6s linear 1.8s infinite",
+                  backgroundSize: "200% 100%"
+                }}
+              />
             </h1>
-            <HeroSubhead />
-            {/* Inline intake — geen tussenstap meer. User typt naam,
-                drukt Generate → /next runt direct met shuffle-loading.
-                Secundaire acties ('Add bank' / 'Try a sample') zitten
-                in HeroIntake zelf zodat de hero één geheel is. */}
+
+            <p
+              className="text-[17px] sm:text-[19px] text-[var(--color-text)] leading-[1.5] max-w-[520px]"
+              style={{
+                animation: "hero-mask-reveal 1s cubic-bezier(0.22,1,0.36,1) 0.85s both",
+                clipPath: "inset(0 0 100% 0)"
+              }}
+            >
+              Type your OSRS name. We read your stats, your bank, and your collection log —
+              and tell you what&apos;s worth doing tonight.
+            </p>
+
             <div
-              className="mt-8"
-              style={{ animation: "hero-fade 0.7s cubic-bezier(0.22,1,0.36,1) 0.48s both" }}
+              style={{ animation: "hero-scale-in 0.9s cubic-bezier(0.22,1,0.36,1) 1.05s both" }}
             >
               <HeroIntake />
             </div>
           </div>
 
-          {/* Boss showcase — gallery-style. One full-bleed boss portrait
-              at a time, cross-fading every 5s. Replaces the orbit-of-8
-              arena which read as 'budget carousel.' One boss owning
-              the column is more premium than eight tiny circles
-              competing. Click navigates to /dps for solo bosses, /next
-              for raids; dots below are manual selectors + pause-on-
-              hover handles 'wait, let me read that one.' */}
+          {/* Rechterkolom — boss showcase als productfoto. Geen halo
+              achtergrond; alleen het portret zelf en z'n bestaande
+              floating animatie. Komt iets later in dan de tekst,
+              voelt alsof hij "naar binnen wandelt." */}
           <div
-            className="relative mt-6 lg:mt-0"
-            style={{ animation: "hero-fade 0.7s cubic-bezier(0.22,1,0.36,1) 0.32s both" }}
+            className="relative mt-8 lg:mt-0"
+            style={{ animation: "hero-boss-in 1.1s cubic-bezier(0.22,1,0.36,1) 0.65s both" }}
           >
             <BossShowcase />
           </div>
@@ -119,6 +129,53 @@ export default function HomePage() {
             tagline strip here made the global footer disappear from sight. */}
       </footer>
     </main>
+  );
+}
+
+// Word-by-word reveal helper voor de hero-titel. Splitst op spaties en
+// geeft elk woord een eigen `inline-block` met staggered animation-delay.
+// Werkt server-side; geen useEffect of state nodig. Inline-block per
+// woord zorgt dat de translate-Y per-woord werkt zonder de baseline te
+// breken; whitespace-pre op de container behoudt de spaties tussen woorden.
+function RevealLine({
+  text,
+  delay = 0,
+  wordStaggerMs = 60,
+  className,
+  style,
+}: {
+  text: string;
+  delay?: number;
+  wordStaggerMs?: number;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  const words = text.split(" ");
+  return (
+    <span className={className} style={style}>
+      {words.map((w, i) => (
+        <span
+          key={i}
+          // overflow-hidden + inline-block zorgt dat de child niet
+          // buiten de regel-baseline reikt. translate-Y(110%) zit in
+          // de keyframe; transform-origin onderaan zodat het woord
+          // "uit z'n shell" omhoog komt.
+          className="inline-block overflow-hidden align-bottom"
+        >
+          <span
+            className="inline-block"
+            style={{
+              animation: `hero-word-up 0.85s cubic-bezier(0.22, 1, 0.36, 1) ${delay + i * wordStaggerMs}ms both`,
+            }}
+          >
+            {w}
+          </span>
+          {/* Behoud spatie tussen woorden zonder dat hij meedoet aan
+              de overflow-hidden (anders verdwijnt de spatie). */}
+          {i < words.length - 1 && <span>{" "}</span>}
+        </span>
+      ))}
+    </span>
   );
 }
 

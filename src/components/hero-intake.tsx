@@ -38,12 +38,19 @@ export function HeroIntake() {
 
   return (
     <form onSubmit={submit} className="space-y-3">
-      <div className={cn(
-        "group relative rounded-2xl bg-[var(--color-panel)] border border-[var(--color-border)]",
-        "focus-within:border-[var(--color-accent)]/60 focus-within:shadow-[0_0_0_4px_rgba(230,165,47,0.10)]",
-        "transition-all"
-      )}>
-        <div className="flex flex-col sm:flex-row sm:items-center">
+      {/* Apple-style pill-input: rounded-full, frosted bg, subtle inner
+          shadow voor depth; focus geeft een vol accent-ring. */}
+      <div
+        className={cn(
+          "group relative rounded-full bg-white/[0.03] backdrop-blur-sm",
+          "border border-white/10",
+          "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04),inset_0_-1px_0_0_rgba(0,0,0,0.4)]",
+          "focus-within:border-[var(--color-accent)]/50 focus-within:bg-white/[0.05]",
+          "focus-within:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06),inset_0_-1px_0_0_rgba(0,0,0,0.4),0_0_0_4px_rgba(230,165,47,0.10)]",
+          "transition-all duration-300 ease-out"
+        )}
+      >
+        <div className="flex items-center pl-6 pr-1.5 py-1.5">
           <input
             type="text"
             value={rsn}
@@ -51,20 +58,39 @@ export function HeroIntake() {
             placeholder="Type your OSRS name"
             maxLength={12}
             autoFocus
-            className="flex-1 bg-transparent outline-none px-5 py-4 sm:py-5 text-[16px] sm:text-[18px] font-mono text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]"
+            className={cn(
+              "flex-1 bg-transparent outline-none",
+              "text-[17px] sm:text-[18px] font-medium tracking-[-0.01em]",
+              "text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]/70",
+              "py-2.5"
+            )}
           />
           <button
             type="submit"
             disabled={!rsn.trim()}
             className={cn(
-              "group/btn rounded-xl m-1.5 px-5 py-3 inline-flex items-center justify-center gap-2",
-              "bg-[var(--color-accent)] text-[var(--color-bg)] font-semibold text-[14px]",
-              "hover:brightness-110 transition-all",
-              "disabled:opacity-50 disabled:cursor-not-allowed"
+              "group/btn relative overflow-hidden",
+              "rounded-full px-5 sm:px-6 py-3 inline-flex items-center justify-center gap-2 shrink-0",
+              "bg-gradient-to-b from-[#F0B43F] to-[#D4972A] text-[#0F0E0B] font-semibold text-[14px]",
+              "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.35),0_4px_14px_-4px_rgba(230,165,47,0.55)]",
+              "hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.45),0_6px_22px_-4px_rgba(230,165,47,0.75)]",
+              "hover:scale-[1.02] active:scale-[0.98]",
+              "transition-all duration-200 ease-out",
+              "disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.35),0_4px_14px_-4px_rgba(230,165,47,0.55)]"
             )}
           >
-            Generate
-            <ArrowRight className="size-4 group-hover/btn:translate-x-0.5 transition-transform" />
+            <span className="relative z-10">Generate</span>
+            <ArrowRight className="relative z-10 size-4 group-hover/btn:translate-x-0.5 transition-transform" />
+            {/* Sheen-overlay die over de knop zwiept bij hover */}
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500"
+              style={{
+                background: "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%)",
+                transform: "translateX(-100%)",
+                animation: "btn-sheen 0.9s ease-out"
+              }}
+            />
           </button>
         </div>
       </div>

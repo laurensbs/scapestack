@@ -203,6 +203,54 @@
     from { opacity: 0; transform: translateY(14px); filter: blur(4px); }
     to   { opacity: 1; transform: translateY(0); filter: blur(0); }
   }
+  /* Apple-style hero line-up — iets diepere translate dan hero-fade,
+     subtielere blur, langere ease zodat elke regel "naar boven loopt"
+     in plaats van pop-in. Gebruikt voor de gestaggerde titel/sub/CTA
+     op de homepage. */
+  @keyframes hero-line-up {
+    from { opacity: 0; transform: translateY(28px); filter: blur(6px); }
+    to   { opacity: 1; transform: translateY(0);    filter: blur(0); }
+  }
+  /* Apple word-by-word reveal — elk woord schuift uit een 'shell'
+     (overflow-hidden parent) van onder naar boven met een lichte
+     blur. Gebruikt door RevealLine in de hero. */
+  @keyframes hero-word-up {
+    from { opacity: 0; transform: translateY(110%); filter: blur(4px); }
+    to   { opacity: 1; transform: translateY(0);    filter: blur(0); }
+  }
+  /* Mask-reveal — gebruikt clip-path om de inhoud van onder naar boven
+     te onthullen, alsof een doek wegtrekt. Voor de hero subhead. */
+  @keyframes hero-mask-reveal {
+    from { clip-path: inset(0 0 100% 0); opacity: 0; }
+    to   { clip-path: inset(0 0 0   0); opacity: 1; }
+  }
+  /* Soft scale-in — combineert opacity + lichte scale-up. Premium
+     entrance voor interactive elements (input, knoppen). */
+  @keyframes hero-scale-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  /* Boss showcase entrance — fade + zachte horizontale slide vanuit
+     rechts. Voelt alsof de boss naar binnen schuift, niet pop-in. */
+  @keyframes hero-boss-in {
+    from { opacity: 0; transform: translateX(40px) scale(0.96); }
+    to   { opacity: 1; transform: translateX(0)    scale(1); }
+  }
+  /* Gold shimmer — laat de gradient van text-gold-gradient van links
+     naar rechts schuiven. Geen kleurverschuiving, alleen positie van
+     de bestaande gradient zodat de 'highlight' band over de letters
+     loopt. */
+  @keyframes gold-shimmer {
+    0%   { background-position:   0% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+  /* Apple-style button sheen — een witte highlight-band die één keer
+     diagonaal over de knop zwiept bij hover. Pure cosmetic, sluit het
+     premium gevoel af. */
+  @keyframes btn-sheen {
+    from { transform: translateX(-100%); }
+    to   { transform: translateX(100%); }
+  }
   @keyframes float-y {
     0%, 100% { transform: translateY(0); }
     50%      { transform: translateY(-6px); }
@@ -566,12 +614,20 @@ body {
   background-clip: padding-box;
 }
 
-/* Gold gradient text — the class name is honest again after Fase 6.2.
-   Light-warm → OSRS skill-cape gold, used on hero accents like the
-   'Gielinor' in 'more Gielinor.' The old mint implementation
-   (#00E29A) was a leftover and clashed with the rest of the rebrand. */
+/* Gold gradient text — premium OSRS-skill-cape goud met een witte
+   highlight-band in het midden zodat de gold-shimmer keyframe iets
+   te schuiven heeft. background-size = 200% van de container; de
+   keyframe schuift de gradient van 0% naar 200% zodat de highlight
+   band 1x volledig over de tekst loopt. */
 .text-gold-gradient {
-  background: linear-gradient(135deg, #FFE6A8 0%, #E6A52F 100%);
+  background: linear-gradient(
+    100deg,
+    #E6A52F 0%,
+    #FFE6A8 35%,
+    #FFFFFF 50%,
+    #FFE6A8 65%,
+    #E6A52F 100%
+  );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

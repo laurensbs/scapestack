@@ -18,7 +18,7 @@ const SHOWCASE_BOSSES: Array<{ slug: string; label: string; dpsTarget: boolean }
   { slug: "vardorvis", label: "Vardorvis",          dpsTarget: true }
 ];
 
-const CYCLE_MS = 5000;
+const CYCLE_MS = 3500;
 
 export function BossShowcase() {
   const [idx, setIdx] = useState(0);
@@ -51,21 +51,15 @@ export function BossShowcase() {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       style={{
-        width: "min(440px, 92vw)",
+        // Apple-product feel: het portret domineert. Op desktop ~620px,
+        // schaalt mee op mobiel (92vw cap).
+        width: "min(620px, 92vw)",
         aspectRatio: "1 / 1"
       }}
     >
-      {/* Ambient glow behind the portrait — same gold gradient the arena
-          had. With the frame gone, this is what tells the eye 'something
-          important lives here.' */}
-      <div
-        className="absolute inset-[-10%] pointer-events-none"
-        style={{
-          background: "radial-gradient(closest-side, rgba(230, 165, 47, 0.22) 0%, transparent 70%)",
-          opacity: 0.6,
-          animation: "glow-fade 1.6s ease-out 0.4s both"
-        }}
-      />
+      {/* Geen ambient goud-glow meer achter de boss — user-feedback:
+          'die gradient gold shimmer achter die boss moet weg.' Het
+          portret floats nu op de pagina-bg zonder iets eromheen. */}
 
       {/* No frame, no border, no vignette. Just the portrait floating
           on the page background — same treatment a magazine spread
