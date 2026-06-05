@@ -29,8 +29,22 @@ export interface BankTip {
   detail: string;
   /** Item IDs the tip refers to — used for highlighting and to find icon. */
   itemIds: number[];
+  /** Item IDs plus display names, used for exact wiki links and copy plans. */
+  itemRefs?: Array<{ id: number; name: string }>;
   /** Optional: number of bank slots reclaimed if the user follows the tip. */
   slotsFreed?: number;
+}
+
+function itemRefs(items: Array<{ id: number; name: string }>, limit = 8): Array<{ id: number; name: string }> {
+  const seen = new Set<number>();
+  const out: Array<{ id: number; name: string }> = [];
+  for (const item of items) {
+    if (seen.has(item.id)) continue;
+    seen.add(item.id);
+    out.push({ id: item.id, name: item.name });
+    if (out.length >= limit) break;
+  }
+  return out;
 }
 
 // ─── Decant detector ────────────────────────────────────────────────────────
@@ -76,6 +90,7 @@ function detectDecant(items: OrganizedItem[]): BankTip[] {
     const charges = [...new Set(entries.map((e) => e.charge))].sort((a, b) => b - a);
     if (charges.length < 2) continue;
     const ids = entries.map((e) => e.item.id);
+    const refs = itemRefs(entries.map((e) => e.item));
     const totalSlots = entries.length;
     const isJew = CHARGED_JEWELLERY_BASES.some((b) => base === b);
     tips.push({
@@ -90,6 +105,7 @@ function detectDecant(items: OrganizedItem[]): BankTip[] {
         ? `Recharge at a Fountain of Rune or your POH altar to collapse to 1 slot.`
         : `Decant at Bob in Edgeville or via the Potion Decanter plugin to free ${totalSlots - 1} slots.`,
       itemIds: ids,
+      itemRefs: refs,
       slotsFreed: Math.max(0, totalSlots - 1)
     });
   }
@@ -131,6 +147,7 @@ function detectStackMerge(items: OrganizedItem[]): BankTip[] {
       title: `${group.length} variants of ${base} in your bank`,
       detail: `Variants: ${group.map((g) => g.name).join(", ")}. Keep the imbued / charged form and free the others.`,
       itemIds: group.map((g) => g.id),
+      itemRefs: itemRefs(group),
       slotsFreed: Math.max(0, group.length - 1)
     });
   }
@@ -182,7 +199,8 @@ function detectOutfits(items: OrganizedItem[]): BankTip[] {
       detail: missing === 1
         ? `One piece left. The full bonus only kicks in with every slot worn.`
         : `Owned: ${owned.map((it) => it.name).join(", ")}.`,
-      itemIds: owned.map((it) => it.id)
+      itemIds: owned.map((it) => it.id),
+      itemRefs: itemRefs(owned)
     });
   }
   return tips;
@@ -273,7 +291,8 @@ function detectPickups(items: OrganizedItem[]): BankTip[] {
       severity: "earn",
       title: `Pick up your ${hint.rewardName}`,
       detail: hint.message,
-      itemIds: [hint.itemHint]
+      itemIds: [hint.itemHint],
+      itemRefs: [{ id: hint.itemHint, name: hint.rewardName }]
     });
   }
   return tips;

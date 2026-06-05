@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronRight, Check } from "lucide-react";
+import { ChevronRight, Check, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Step {
@@ -10,6 +10,10 @@ interface Step {
   short: string;
   body: string;
   illustration: React.ReactNode;
+  actionLabel: string;
+  actionTargetId: string;
+  helperLabel?: string;
+  helperHref?: string;
 }
 
 interface IntroProps {
@@ -32,6 +36,14 @@ export function Intro({ flowStep = 0 }: IntroProps) {
     setReached((r) => Math.max(r, i));
   };
 
+  const jumpTo = (id: string) => {
+    const el = document.getElementById(id);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (el instanceof HTMLElement) {
+      window.setTimeout(() => el.focus(), 220);
+    }
+  };
+
   // Auto-advance: when the live intake reports progress (e.g. a bank got
   // pasted → flowStep 2), pull the rail forward to that step and select it,
   // so the user sees the flow move without clicking.
@@ -46,30 +58,46 @@ export function Intro({ flowStep = 0 }: IntroProps) {
     {
       n: 1,
       title: "Open Bank Memory in RuneLite",
-      short: "Install plugin",
-      body: "Plugin Hub → install \"Bank Memory\". Open your bank in-game once so the plugin can capture it.",
-      illustration: <RuneLiteSideBar />
+      short: "Bank Memory",
+      body: "Plugin Hub → install \"Bank Memory\" for bank items. This is separate from Scapestack Sync, which only adds verified account coverage.",
+      illustration: <RuneLiteSideBar />,
+      actionLabel: "I have a bank export",
+      actionTargetId: "bank-paste-input",
+      helperLabel: "Open Bank Memory page",
+      helperHref: "https://runelite.net/plugin-hub/show/bank-memory"
     },
     {
       n: 2,
       title: "Right-click → Copy to clipboard",
       short: "Copy bank",
       body: "In the side panel, right-click your saved bank → Copy item data to clipboard.",
-      illustration: <ContextMenu />
+      illustration: <ContextMenu />,
+      actionLabel: "Paste it here",
+      actionTargetId: "bank-paste-input",
+      helperLabel: "Need the exact menu?",
+      helperHref: "https://github.com/runelite/runelite/wiki/Bank-Tags"
     },
     {
       n: 3,
       title: "Paste it below",
       short: "Paste here",
       body: "⌘V (or Ctrl+V) into the box below — the format is auto-detected.",
-      illustration: <PasteBox />
+      illustration: <PasteBox />,
+      actionLabel: "Jump to paste box",
+      actionTargetId: "bank-paste-input",
+      helperLabel: "Accepted formats",
+      helperHref: "#bank-paste-input"
     },
     {
       n: 4,
       title: "Copy organized tabs back",
       short: "Copy back",
       body: "Per tab: copy the Bank Tags string → in RuneLite, Bank Tags → Import tag tab.",
-      illustration: <CopyTabs />
+      illustration: <CopyTabs />,
+      actionLabel: "Organize now",
+      actionTargetId: "bank-organize-button",
+      helperLabel: "Bank Tags import help",
+      helperHref: "https://github.com/runelite/runelite/wiki/Bank-Tags"
     }
   ];
 
@@ -87,7 +115,7 @@ export function Intro({ flowStep = 0 }: IntroProps) {
       {/* Step rail — numbered nodes joined by a progress line. Each step
           owns the connector that runs to its RIGHT, drawn from the node's
           edge to the column edge so the line starts/ends at the rings and
-          never passes through them. The connector fills mint once the
+          never passes through them. The connector fills gold once the
           step before it is done, so the rail visibly "flows" forward. */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-0 gap-y-4 mb-4">
         {steps.map((step, i) => {
@@ -98,10 +126,12 @@ export function Intro({ flowStep = 0 }: IntroProps) {
           const linkLit = i < reached;
           return (
             <button
+              type="button"
               key={step.n}
               onClick={() => goTo(i)}
               className="group relative flex flex-col items-center gap-2 px-1 text-center"
               aria-current={current ? "step" : undefined}
+              aria-label={`Show bank setup step ${step.n}: ${step.title}`}
             >
               {/* Connector — only between nodes, never after the last one.
                   top-[15px] aligns with the 30px ring's vertical centre.
@@ -168,9 +198,31 @@ export function Intro({ flowStep = 0 }: IntroProps) {
               {steps[active].body}
             </p>
             <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => jumpTo(steps[active].actionTargetId)}
+                aria-label={`${steps[active].actionLabel}: jump to ${steps[active].actionTargetId}`}
+                className="flex items-center gap-1.5 rounded-full border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-1.5 text-[12px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/16 transition-colors"
+              >
+                {steps[active].actionLabel}
+              </button>
+              {steps[active].helperHref && steps[active].helperLabel && (
+                <a
+                  href={steps[active].helperHref}
+                  target={steps[active].helperHref.startsWith("http") ? "_blank" : undefined}
+                  rel={steps[active].helperHref.startsWith("http") ? "noopener noreferrer" : undefined}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-2)]/50 px-3 py-1.5 text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)]"
+                  aria-label={`${steps[active].helperLabel} for step ${steps[active].n}`}
+                >
+                  {steps[active].helperLabel}
+                  {steps[active].helperHref.startsWith("http") && <ExternalLink className="size-3" />}
+                </a>
+              )}
               {active > 0 && (
                 <button
+                  type="button"
                   onClick={() => goTo(active - 1)}
+                  aria-label={`Back to bank setup step ${steps[active - 1].n}: ${steps[active - 1].title}`}
                   className="text-[12px] font-medium text-[var(--color-text-dim)] hover:text-[var(--color-text)] transition-colors"
                 >
                   Back
@@ -178,7 +230,9 @@ export function Intro({ flowStep = 0 }: IntroProps) {
               )}
               {active < last ? (
                 <button
+                  type="button"
                   onClick={() => goTo(active + 1)}
+                  aria-label={`Next bank setup step ${steps[active + 1].n}: ${steps[active + 1].title}`}
                   className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--color-accent)] hover:gap-2 transition-all"
                 >
                   Next step <ChevronRight className="size-3.5" />
@@ -198,8 +252,8 @@ export function Intro({ flowStep = 0 }: IntroProps) {
 
 // ── Illustrations ──────────────────────────────────────────────────────────
 
-// Common wrapper: small bezel + soft mint glow so the screenshot blends with
-// the surrounding dark Linear/Vercel-style surfaces. The image is shown at its
+// Common wrapper: small bezel + soft gold glow so the screenshot blends with
+// the surrounding dark Scapestack surfaces. The image is shown at its
 // natural pixel size — small upscaling on a low-res screenshot looks grainy,
 // so we let it sit centred inside the frame instead.
 function ScreenshotFrame({ src, alt, w, h }: { src: string; alt: string; w: number; h: number }) {
@@ -233,7 +287,7 @@ function ContextMenu() {
   return <ScreenshotFrame src="/intro/step2.png" alt="Right-click menu on a saved bank — Copy item data to clipboard" w={273} h={204} />;
 }
 
-// Step 3: paste-box illustration in the Linear/Vercel mint+dark palette
+// Step 3: paste-box illustration in the Scapestack gold+dark palette
 function PasteBox() {
   return (
     <svg viewBox="0 0 240 160" className="w-full max-w-[260px] h-auto">
@@ -259,9 +313,9 @@ function PasteBox() {
       <text x="22" y="84" fontSize="7" fontFamily="ui-monospace, monospace" fill="#E8EAED">560      Death rune     5000</text>
       <text x="22" y="96" fontSize="7" fontFamily="ui-monospace, monospace" fill="#E8EAED">385      Shark           250</text>
       <text x="22" y="108" fontSize="7" fontFamily="ui-monospace, monospace" fill="#5B6170">…</text>
-      {/* ⌘V key-cap — mint pill */}
+      {/* ⌘V key-cap — gold pill */}
       <g transform="translate(96, 124)">
-        <rect x="0" y="0" width="48" height="22" rx="6" fill="#00E29A" />
+        <rect x="0" y="0" width="48" height="22" rx="6" fill="var(--color-accent)" />
         <text x="24" y="15" textAnchor="middle" fontSize="11" fontFamily="ui-monospace, monospace" fill="#07090C" fontWeight="700">⌘V</text>
       </g>
       <text x="120" y="153" textAnchor="middle" fontSize="8" fontFamily="ui-monospace, monospace" fill="#9AA0AB">Paste anywhere on the page</text>
@@ -274,9 +328,9 @@ function CopyTabs() {
   return (
     <svg viewBox="0 0 240 160" className="w-full max-w-[260px] h-auto">
       <defs>
-        <linearGradient id="copy-glow" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#4DEEB7" />
-          <stop offset="1" stopColor="#00E29A" />
+        <linearGradient id="copy-gold" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#FFCC55" />
+          <stop offset="1" stopColor="#E6A52F" />
         </linearGradient>
       </defs>
       {/* Tab list — matches the export rows in .surface bg */}
@@ -284,14 +338,14 @@ function CopyTabs() {
         {/* Tab 1 — copy button highlighted */}
         <rect x="0" y="0" width="124" height="22" rx="6" fill="#0F1217" stroke="#1C1F26" />
         <text x="8" y="14" fontSize="8" fontFamily="ui-sans-serif" fill="#E8EAED" fontWeight="600">1/9 · Combat</text>
-        <rect x="86" y="3" width="34" height="16" rx="4" fill="url(#copy-glow)" />
+        <rect x="86" y="3" width="34" height="16" rx="4" fill="url(#copy-gold)" />
         <text x="103" y="14" textAnchor="middle" fontSize="7" fontFamily="ui-sans-serif" fill="#07090C" fontWeight="700">Copy</text>
 
         {/* Tab 2 — done check */}
         <rect x="0" y="26" width="124" height="22" rx="6" fill="#0F1217" stroke="#1C1F26" />
         <text x="8" y="40" fontSize="8" fontFamily="ui-sans-serif" fill="#E8EAED" fontWeight="600">2/9 · Range</text>
-        <rect x="86" y="29" width="34" height="16" rx="4" fill="rgba(230, 165, 47,0.15)" stroke="#00E29A" />
-        <text x="103" y="40" textAnchor="middle" fontSize="9" fontFamily="ui-sans-serif" fill="#00E29A" fontWeight="700">✓</text>
+        <rect x="86" y="29" width="34" height="16" rx="4" fill="rgba(230, 165, 47,0.15)" stroke="var(--color-good)" />
+        <text x="103" y="40" textAnchor="middle" fontSize="9" fontFamily="ui-sans-serif" fill="var(--color-good)" fontWeight="700">✓</text>
 
         {/* Tab 3 — neutral */}
         <rect x="0" y="52" width="124" height="22" rx="6" fill="#0A0D12" stroke="#1C1F26" />
@@ -302,15 +356,15 @@ function CopyTabs() {
         <text x="8" y="92" fontSize="8" fontFamily="ui-sans-serif" fill="#5B6170">…</text>
       </g>
 
-      {/* Arrow — mint accent */}
+      {/* Arrow — gold accent */}
       <g transform="translate(138, 60)">
-        <path d="M0 10 L40 10 M30 0 L40 10 L30 20" fill="none" stroke="#00E29A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M0 10 L40 10 M30 0 L40 10 L30 20" fill="none" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       </g>
 
       {/* RuneLite import target */}
       <g transform="translate(184, 30)">
         <rect x="0" y="0" width="46" height="80" rx="6" fill="#0F1217" stroke="#262A33" />
-        <text x="23" y="12" textAnchor="middle" fontSize="7" fontFamily="ui-sans-serif" fill="#00E29A" fontWeight="600">RuneLite</text>
+        <text x="23" y="12" textAnchor="middle" fontSize="7" fontFamily="ui-sans-serif" fill="var(--color-accent)" fontWeight="600">RuneLite</text>
         <line x1="4" y1="16" x2="42" y2="16" stroke="#1C1F26" />
         <rect x="6" y="22" width="34" height="16" rx="4" fill="#141821" />
         <text x="23" y="33" textAnchor="middle" fontSize="6.5" fontFamily="ui-sans-serif" fill="#E8EAED">Import</text>

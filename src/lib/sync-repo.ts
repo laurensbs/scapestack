@@ -41,8 +41,16 @@ CREATE TABLE IF NOT EXISTS player_sync (
   plugin_version TEXT NOT NULL DEFAULT 'unknown',
   synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
--- Bestaande tables krijgen de slayer kolom ge-add'd (idempotent).
+-- Existing player_sync tables get every post-v1 column added idempotently.
+-- This keeps production safe when the RuneLite plugin starts sending new
+-- fields before a fresh CREATE TABLE has run.
+ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS display_name TEXT NOT NULL DEFAULT '';
+ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS quests_completed JSONB NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS diaries_completed JSONB NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS collection_log_item_ids INTEGER[] NOT NULL DEFAULT ARRAY[]::INTEGER[];
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS slayer JSONB;
+ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS plugin_version TEXT NOT NULL DEFAULT 'unknown';
+ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 CREATE INDEX IF NOT EXISTS player_sync_synced_at_idx ON player_sync(synced_at DESC);
 
 -- First-claim-wins auth: each RSN binds to the first plugin token that
@@ -53,6 +61,9 @@ CREATE TABLE IF NOT EXISTS player_claim (
   claimed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   last_used_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+ALTER TABLE player_claim ADD COLUMN IF NOT EXISTS token_hash TEXT NOT NULL DEFAULT '';
+ALTER TABLE player_claim ADD COLUMN IF NOT EXISTS claimed_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+ALTER TABLE player_claim ADD COLUMN IF NOT EXISTS last_used_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 `;
 
 function normalize(rsn: string): string {
@@ -115,14 +126,14 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
   }
 }
 
-export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt">): Promise<void> {
+export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt">): Promise<string> {
   if (!hasDatabase()) {
     throw new Error("Database not configured");
   }
   const norm = normalize(p.rsn);
   if (!norm) throw new Error("Invalid RSN");
   const slayerJson = p.slayer ? JSON.stringify(p.slayer) : null;
-  await sql()`
+  const rows = await sql()`
     INSERT INTO player_sync (rsn, display_name, quests_completed, diaries_completed,
                               collection_log_item_ids, slayer, plugin_version, synced_at)
     VALUES (${norm}, ${p.displayName},
@@ -140,5 +151,10 @@ export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt">): Pro
       slayer = EXCLUDED.slayer,
       plugin_version = EXCLUDED.plugin_version,
       synced_at = NOW()
-  `;
+    RETURNING synced_at
+  ` as Array<{ synced_at: string | Date }>;
+  const syncedAt = rows[0]?.synced_at;
+  if (syncedAt instanceof Date) return syncedAt.toISOString();
+  if (typeof syncedAt === "string") return new Date(syncedAt).toISOString();
+  return new Date().toISOString();
 }

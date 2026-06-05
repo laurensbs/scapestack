@@ -82,6 +82,7 @@ export function SupportCard({ context = "Saved you a minute?" }: Props) {
             Buy me a coffee
           </a>
           <button
+            type="button"
             onClick={dismiss}
             className="size-8 rounded-md flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-panel-2)] transition-colors"
             title="Hide for 30 days"

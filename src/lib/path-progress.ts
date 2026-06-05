@@ -39,7 +39,7 @@ export interface PathProgress {
   /** Display name + tagline. */
   label: string;
   tagline: string;
-  /** Completion percentage 0-100, integer. Computed from done/total. */
+  /** Completion percentage 0-100, integer. Uses path-specific progress heuristics. */
   percent: number;
   /** Items the player has earned / likely-completed. */
   done: number;
@@ -57,7 +57,13 @@ const SKILL_NAMES = [
   "Attack", "Defence", "Strength", "Hitpoints", "Ranged", "Prayer",
   "Magic", "Cooking", "Woodcutting", "Fletching", "Fishing", "Firemaking",
   "Crafting", "Smithing", "Mining", "Herblore", "Agility", "Thieving",
-  "Slayer", "Farming", "Runecraft", "Hunter", "Construction"
+  "Slayer", "Farming", "Runecraft", "Hunter", "Construction", "Sailing"
+];
+
+const SKILLER_PROGRESS_SKILLS = [
+  "Cooking", "Woodcutting", "Fletching", "Fishing", "Firemaking",
+  "Crafting", "Smithing", "Mining", "Herblore", "Agility", "Thieving",
+  "Farming", "Runecraft", "Hunter", "Construction", "Sailing"
 ];
 
 // OSRS XP table — XP needed to reach each level. Standard formula.
@@ -79,27 +85,49 @@ function xpForLevel(level: number): number {
   return XP_AT_LEVEL[level - 1] ?? 0;
 }
 
-function skillsPath(skills: HiscoreSkill[]): PathProgress {
+function inferSkillerProgressMode(
+  skills: HiscoreSkill[],
+  accountType?: "regular" | "ironman" | "hardcore" | "ultimate" | "skiller" | "pure"
+): boolean {
+  if (accountType === "skiller") return true;
+  if (skills.length === 0) return false;
+  const level = (name: string) => skills.find((s) => s.name === name)?.level ?? 1;
+  const combatLevel = computeCombatLevel(skills);
+  const nonCombatTotal = SKILLER_PROGRESS_SKILLS.reduce((sum, name) => sum + level(name), 0);
+  return combatLevel < 50 && nonCombatTotal >= 800;
+}
+
+function skillsPath(
+  skills: HiscoreSkill[],
+  accountType?: "regular" | "ironman" | "hardcore" | "ultimate" | "skiller" | "pure"
+): PathProgress {
   if (skills.length === 0) {
     return {
       kind: "skills",
       label: "Skills",
       tagline: "Add your OSRS name to see skill progress.",
-      percent: 0, done: 0, total: 23, nextSteps: [], allSteps: []
+      percent: 0, done: 0, total: SKILL_NAMES.length, nextSteps: [], allSteps: []
     };
   }
   const lvl = (name: string) => skills.find((s) => s.name === name)?.level ?? 1;
   const xp = (name: string) => skills.find((s) => s.name === name)?.xp ?? 0;
   const done = SKILL_NAMES.filter((n) => lvl(n) >= 99).length;
   const total = SKILL_NAMES.length;
-  // Percent is XP-based, not level-based. Avg-level/99 said 71% to an
-  // all-70 account but that's only ~12% of the XP needed for max.
-  // Cap each skill at the 99-XP threshold so 200M skills don't blow
-  // the average past max-cape parity.
+  // Percent is a hybrid progress score, not done/total. Pure level-based
+  // progress badly overstates all-70 accounts; pure XP-based progress
+  // badly understates accounts with broad, useful investment. We keep XP as
+  // the dominant signal and add a level floor. Level-3 skillers are scored
+  // against non-combat skills so the path reflects the account they are
+  // intentionally building, not a main they are avoiding.
+  const progressSkills = inferSkillerProgressMode(skills, accountType)
+    ? SKILLER_PROGRESS_SKILLS
+    : SKILL_NAMES;
   const xpAt99 = xpForLevel(99); // 13_034_431
-  const targetTotal = xpAt99 * total;
-  const actualTotal = SKILL_NAMES.reduce((sum, n) => sum + Math.min(xpAt99, xp(n)), 0);
-  const percent = Math.round((actualTotal / targetTotal) * 100);
+  const xpPercent = progressSkills.reduce((sum, n) => sum + Math.min(xpAt99, xp(n)), 0)
+    / (xpAt99 * progressSkills.length) * 100;
+  const levelPercent = progressSkills.reduce((sum, n) => sum + Math.min(99, lvl(n)), 0)
+    / (99 * progressSkills.length) * 100;
+  const percent = Math.min(100, Math.round(xpPercent * 0.65 + levelPercent * 0.35));
   const avgLevel = SKILL_NAMES.reduce((sum, n) => sum + Math.min(99, lvl(n)), 0) / total;
 
   // Next steps: the three skills closest to a milestone (70 / 80 / 90 / 99).
@@ -137,7 +165,9 @@ function skillsPath(skills: HiscoreSkill[]): PathProgress {
     label: "Skills",
     tagline: done === total
       ? "Max cape earned."
-      : `${done}/${total} at 99, avg level ${Math.round(avgLevel)}.`,
+      : progressSkills === SKILLER_PROGRESS_SKILLS
+        ? `${done}/${total} at 99, skiller-weighted progress.`
+        : `${done}/${total} at 99, avg level ${Math.round(avgLevel)}.`,
     percent,
     done, total, nextSteps, allSteps
   };
@@ -450,7 +480,7 @@ function diariesPathFromSync(
   );
   const nextSteps: PathStep[] = candidates.slice(0, 3).map((c) => ({
     title: `${c.region} Diary — ${c.tier}`,
-    why: `Your skills now clear every task in this tier.`,
+    why: `Your visible stats clear this tier's skill gates.`,
     iconItemId: 11140
   }));
 
@@ -577,7 +607,7 @@ function diariesPath(
   );
   const nextSteps: PathStep[] = candidates.slice(0, 3).map((c) => ({
     title: `${c.region} Diary — ${c.tier}`,
-    why: `Your skills now clear every task in this tier.`,
+    why: `Your visible stats clear this tier's skill gates.`,
     iconItemId: 11140
   }));
 
@@ -746,7 +776,15 @@ export interface PathOverview {
     wom: boolean;
     temple: boolean;
     collectionLog: boolean;
-    scapestack: { syncedAt: string; quests: number; diaries: number; clItems: number } | null;
+    scapestack: {
+      syncedAt: string;
+      quests: number;
+      diaries: number;
+      clItems: number;
+      pluginVersion?: string;
+      slayerTaskRemaining?: number | null;
+      slayerBlocks?: number;
+    } | null;
   };
 }
 
@@ -782,7 +820,15 @@ export interface ComputePathProgressInput {
     wom: boolean;
     temple: boolean;
     collectionLog: boolean;
-    scapestack: { syncedAt: string; quests: number; diaries: number; clItems: number } | null;
+    scapestack: {
+      syncedAt: string;
+      quests: number;
+      diaries: number;
+      clItems: number;
+      pluginVersion?: string;
+      slayerTaskRemaining?: number | null;
+      slayerBlocks?: number;
+    } | null;
   };
 }
 
@@ -802,7 +848,7 @@ export function computePathProgress(input: ComputePathProgressInput): PathOvervi
       ])
     : input.collectionLogOwnedItemIds;
   const paths: [PathProgress, PathProgress, PathProgress, PathProgress] = [
-    skillsPath(input.skills),
+    skillsPath(input.skills, input.accountMeta?.accountType),
     questsPath(input.quests, input.skills, input.questPoints, effectiveQuests),
     diariesPath(input.diaries, input.skills, input.scapestackSync?.diariesCompleted),
     bossesPath(input.bossKc, input.skills, input.womBossKills, effectiveClItems)

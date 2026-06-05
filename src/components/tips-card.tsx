@@ -1,12 +1,18 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Lightbulb, X, ChevronDown, ChevronUp, ChevronRight, ChevronLeft, Coins, Sparkles, Wrench, Trophy } from "lucide-react";
+import { useState, useMemo, type MouseEvent } from "react";
+import { Lightbulb, X, ChevronDown, ChevronUp, ChevronRight, ChevronLeft, Coins, Sparkles, Wrench, Trophy, ExternalLink, Copy, CheckCheck, ListChecks } from "lucide-react";
 import type { BankTip } from "@/lib/tips";
-import { ICON_URL, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { buildTipAction, formatTipActionPlan, type BankTipAction } from "@/lib/tip-actions";
+import { copyText } from "@/lib/clipboard";
+import { ItemSprite } from "@/components/item-sprite";
+import { wikiSearchUrl } from "@/lib/wiki";
+import { bankSearchQueryForItems } from "@/lib/bank-search";
 
 interface TipsCardProps {
   tips: BankTip[];
+  onSearchItems?: (query: string, sourceLabel?: string) => void;
 }
 
 // Per-kind metadata: icon, label, colour accent. Used by both individual tips
@@ -34,6 +40,25 @@ interface TipGroup {
   isStandalone: boolean;
   /** Combined slot-saving across all tips in the group. */
   slotsFreed: number;
+}
+
+function groupAction(group: TipGroup): BankTipAction {
+  return buildTipAction(group.tips[0]);
+}
+
+function itemRefsForTips(tips: BankTip[], limit = 8): Array<{ id: number; name: string }> {
+  const seen = new Set<number>();
+  const out: Array<{ id: number; name: string }> = [];
+  for (const tip of tips) {
+    const refs = tip.itemRefs ?? tip.itemIds.map((id) => ({ id, name: `Item ID ${id}` }));
+    for (const ref of refs) {
+      if (seen.has(ref.id)) continue;
+      seen.add(ref.id);
+      out.push(ref);
+      if (out.length >= limit) return out;
+    }
+  }
+  return out;
 }
 
 function groupTips(tips: BankTip[]): TipGroup[] {
@@ -110,13 +135,16 @@ function groupTips(tips: BankTip[]): TipGroup[] {
   return out;
 }
 
-export function TipsCard({ tips }: TipsCardProps) {
+export function TipsCard({ tips, onSearchItems }: TipsCardProps) {
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [collapsed, setCollapsed] = useState(false);
+  const [lastDismissedTip, setLastDismissedTip] = useState<{ ids: string[]; label: string } | null>(null);
   // Drill-in state. When set, the grid hides every other card and shows
   // only this group's items in a focused panel. Click "back" to return
-  // to the overview. Standalone tips never drill in — they just dismiss.
+  // to the overview. Every card drills in so tips always have an action,
+  // not just a dismiss X.
   const [focusedGroupKey, setFocusedGroupKey] = useState<string | null>(null);
+  const tipsBodyId = "bank-tips-body";
 
   const visibleTips = useMemo(
     () => tips.filter((t) => !dismissed.has(t.id)),
@@ -129,23 +157,19 @@ export function TipsCard({ tips }: TipsCardProps) {
   const focusedGroup = focusedGroupKey
     ? groups.find((g) => g.key === focusedGroupKey) ?? null
     : null;
-  if (focusedGroupKey && !focusedGroup) {
-    // Side-effect during render is fine here — we want immediate fallback.
-    // No-op; the conditional below renders the overview because focusedGroup
-    // is null.
-  }
-
-  if (groups.length === 0) return null;
-
-  const dismissTip = (id: string) =>
+  const dismissTip = (id: string) => {
+    const tip = tips.find((entry) => entry.id === id);
+    setLastDismissedTip({ ids: [id], label: tip?.title ?? "Bank tip" });
     setDismissed((s) => {
       const next = new Set(s);
       next.add(id);
       return next;
     });
+  };
 
   // Dismiss every tip inside a group (used by the group-level X button).
   const dismissGroup = (g: TipGroup) => {
+    setLastDismissedTip({ ids: g.tips.map((tip) => tip.id), label: g.label });
     setDismissed((s) => {
       const next = new Set(s);
       for (const t of g.tips) next.add(t.id);
@@ -155,7 +179,87 @@ export function TipsCard({ tips }: TipsCardProps) {
     if (focusedGroupKey === g.key) setFocusedGroupKey(null);
   };
 
+  const restoreTips = () => {
+    setDismissed(new Set());
+    setLastDismissedTip(null);
+    setFocusedGroupKey(null);
+    setCollapsed(false);
+  };
+
+  const restoreLastDismissedTip = () => {
+    if (!lastDismissedTip) return;
+    setDismissed((s) => {
+      const next = new Set(s);
+      for (const id of lastDismissedTip.ids) next.delete(id);
+      return next;
+    });
+    setLastDismissedTip(null);
+    setFocusedGroupKey(null);
+    setCollapsed(false);
+  };
+
   const totalSlots = visibleTips.reduce((s, t) => s + (t.slotsFreed ?? 0), 0);
+  const undoDismissBanner = lastDismissedTip ? (
+    <div
+      role="status"
+      aria-live="polite"
+      className="mx-3.5 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3 py-2 text-[11.5px] text-[var(--color-text-dim)]"
+    >
+      <span>
+        Hidden for now:{" "}
+        <span className="font-semibold text-[var(--color-text)]">{lastDismissedTip.label}</span>.
+      </span>
+      <button
+        type="button"
+        onClick={restoreLastDismissedTip}
+        aria-label={`Restore hidden tip group ${lastDismissedTip.label}`}
+        className="rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-colors"
+      >
+        Undo hide
+      </button>
+    </div>
+  ) : null;
+
+  if (tips.length === 0) return null;
+
+  if (groups.length === 0) {
+    return (
+      <section
+        className={cn(
+          "mb-5 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]",
+          "animate-[fade-in_0.25s_ease-out]"
+        )}
+        aria-label="Bank tips"
+      >
+        <div className="flex items-center gap-2.5 border-b border-[var(--color-border)] px-3.5 py-2.5">
+          <Lightbulb className="size-3.5 text-[var(--color-accent)]" />
+          <span className="text-[12.5px] font-semibold tracking-tight">
+            All bank tips are hidden
+          </span>
+          <span className="text-[11px] text-[var(--color-text-muted)]">
+            · {dismissed.size} dismissed
+          </span>
+        </div>
+        {undoDismissBanner}
+        <div className="px-3.5 py-3">
+          <div className="rounded-md border border-dashed border-[var(--color-border)] bg-[var(--color-bg-2)]/35 px-3 py-2.5 text-[12px] text-[var(--color-text-dim)]">
+            <div className="font-semibold text-[var(--color-text)]">No visible tips right now.</div>
+            <p className="mt-1">
+              Restore them if you want Scapestack to show the decant, merge and pickup actions for this bank again.
+            </p>
+            <button
+              type="button"
+              onClick={restoreTips}
+              aria-label="Restore every hidden bank tip"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-colors"
+            >
+              Restore tips
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
@@ -165,14 +269,17 @@ export function TipsCard({ tips }: TipsCardProps) {
       )}
       aria-label="Bank tips"
     >
-      <header
+      <button
+        type="button"
         className={cn(
-          "flex items-center gap-2.5 px-3.5 py-2.5 cursor-pointer select-none",
+          "flex w-full items-center gap-2.5 px-3.5 py-2.5 cursor-pointer select-none text-left",
+          "focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(230,165,47,0.2)]",
           collapsed ? "" : "border-b border-[var(--color-border)]"
         )}
         onClick={() => setCollapsed((c) => !c)}
-        role="button"
         aria-expanded={!collapsed}
+        aria-controls={tipsBodyId}
+        aria-label={`${collapsed ? "Expand" : "Collapse"} bank tips. ${groups.length} tip${groups.length === 1 ? "" : "s"} available.`}
       >
         <Lightbulb className="size-3.5 text-[var(--color-accent)]" />
         <span className="text-[12.5px] font-semibold tracking-tight">
@@ -187,12 +294,15 @@ export function TipsCard({ tips }: TipsCardProps) {
           {collapsed
             ? <ChevronDown className="size-3.5" />
             : <ChevronUp className="size-3.5" />}
-        </span>
-      </header>
+          </span>
+      </button>
+
+      {undoDismissBanner}
 
       {!collapsed && !focusedGroup && (
         // Overview — grid of cards. Clicking a group card drills in.
         <ul
+          id={tipsBodyId}
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
@@ -209,6 +319,7 @@ export function TipsCard({ tips }: TipsCardProps) {
               onOpen={() => setFocusedGroupKey(g.key)}
               onDismissGroup={() => dismissGroup(g)}
               onDismissTip={dismissTip}
+              onSearchItems={onSearchItems}
             />
           ))}
         </ul>
@@ -217,27 +328,30 @@ export function TipsCard({ tips }: TipsCardProps) {
       {!collapsed && focusedGroup && (
         // Drill-in view — only the focused group's tips, with a back button.
         <TipFocusedView
+          panelId={tipsBodyId}
           group={focusedGroup}
           onBack={() => setFocusedGroupKey(null)}
           onDismissTip={dismissTip}
           onDismissGroup={() => dismissGroup(focusedGroup)}
+          onSearchItems={onSearchItems}
         />
       )}
     </section>
   );
 }
 
-function TipGroupRow({ group, onOpen, onDismissGroup, onDismissTip }: {
+function TipGroupRow({ group, onOpen, onDismissGroup, onDismissTip, onSearchItems }: {
   group: TipGroup;
   /** For grouped cards: drill in to a focused view. Ignored for standalones. */
   onOpen: () => void;
   onDismissGroup: () => void;
   onDismissTip: (id: string) => void;
+  onSearchItems?: (query: string, sourceLabel?: string) => void;
 }) {
   const meta = KIND_META[group.kind];
   const Icon = meta.icon;
-  const headerPreviewIds = useMemo(
-    () => Array.from(new Set(group.tips.flatMap((t) => t.itemIds))).slice(0, 6),
+  const headerPreviewItems = useMemo(
+    () => itemRefsForTips(group.tips, 6),
     [group]
   );
 
@@ -249,36 +363,70 @@ function TipGroupRow({ group, onOpen, onDismissGroup, onDismissTip }: {
     listStyle: "none"
   };
 
-  // STANDALONE — single-tip card, no drill-in.
+  // STANDALONE — single-tip card, still drills in to show the exact action.
   if (group.isStandalone) {
+    const action = groupAction(group);
     return (
       <li style={cardBase}>
-        <div className={cn(
-          "rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/40",
-          "px-3 py-2.5 transition-colors hover:border-[var(--color-border-strong)] hover:bg-[var(--color-bg)]/70",
-          "h-full flex flex-col"
-        )}>
+        <div
+          className={cn(
+            "rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/40",
+            "px-3 py-2.5 transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-bg)]/70",
+            "h-full flex flex-col"
+          )}>
           <CardHeader
             meta={meta} Icon={Icon}
             label={meta.label}
             countText={null}
             slotsFreed={group.slotsFreed}
             onDismiss={() => onDismissTip(group.tips[0].id)}
+            dismissLabel={`Dismiss ${group.label} tip`}
           />
-          <div className="text-[12.5px] font-medium leading-snug mt-1.5 text-[var(--color-text)]">{group.label}</div>
-          <div className="text-[11px] text-[var(--color-text-muted)] leading-snug mt-1 flex-1">{group.subline}</div>
-          {headerPreviewIds.length > 0 && (
+          <button
+            type="button"
+            onClick={onOpen}
+            aria-label={`Open action steps for ${group.label}`}
+            className={cn(
+              "mt-1.5 block w-full flex-1 cursor-pointer rounded-sm text-left",
+              "focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(230,165,47,0.2)]"
+            )}
+          >
+            <div className="text-[12.5px] font-medium leading-snug text-[var(--color-text)]">{group.label}</div>
+            <div className="text-[11px] text-[var(--color-text-muted)] leading-snug mt-1">{group.subline}</div>
+            <div className="mt-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 px-2 py-1.5 text-[10.5px] leading-snug text-[var(--color-text-dim)]">
+              <span className="text-[var(--color-accent)] font-semibold">Action:</span> {action.instruction}
+            </div>
+          </button>
+          {headerPreviewItems.length > 0 && (
             <div className="flex items-center gap-1 mt-2 flex-wrap">
-              {headerPreviewIds.slice(0, 6).map((id) => (
-                <img
-                  key={id}
-                  src={ICON_URL(id)}
-                  alt=""
-                  className="size-5 rounded-sm bg-[var(--color-bg)] border border-[var(--color-border)] p-0.5"
-                />
+              {headerPreviewItems.map((item) => (
+                <a
+                  key={item.id}
+                  href={wikiSearchUrl(item.name)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(event) => event.stopPropagation()}
+                  className="rounded-sm bg-[var(--color-bg)] border border-[var(--color-border)] p-0.5 hover:border-[var(--color-accent)] transition-colors"
+                  title={`${item.name} · ID ${item.id}`}
+                  aria-label={`Open ${item.name} on OSRS Wiki`}
+                >
+                  <ItemSprite
+                    id={item.id}
+                    alt=""
+                    size={20}
+                  />
+                </a>
               ))}
             </div>
           )}
+          <TipCardActions
+            action={action}
+            tips={group.tips}
+            actionLabel={group.label}
+            onOpen={onOpen}
+            onSearchItems={onSearchItems}
+            onMarkDone={() => onDismissTip(group.tips[0].id)}
+          />
         </div>
       </li>
     );
@@ -287,18 +435,15 @@ function TipGroupRow({ group, onOpen, onDismissGroup, onDismissTip }: {
   // GROUPED — clicking the card drills into a focused view. We deliberately
   // do NOT expand inline anymore: long lists were collapsing the grid
   // visually because one card became much taller than its neighbours.
+  const action = groupAction(group);
   return (
     <li style={cardBase}>
-      <button
-        type="button"
-        onClick={onOpen}
+      <div
         className={cn(
           "text-left rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/40",
           "px-3 py-2.5 transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-bg)]/70",
-          "focus:outline-none focus-visible:border-[var(--color-accent)] focus-visible:shadow-[0_0_0_3px_rgba(230, 165, 47,0.2)]",
-          "h-full flex flex-col w-full cursor-pointer"
+          "h-full flex flex-col w-full"
         )}
-        aria-haspopup="dialog"
       >
         <CardHeader
           meta={meta} Icon={Icon}
@@ -307,42 +452,159 @@ function TipGroupRow({ group, onOpen, onDismissGroup, onDismissTip }: {
           slotsFreed={group.slotsFreed}
           expandIndicator="closed"
           onDismiss={onDismissGroup}
+          dismissLabel={`Dismiss ${group.label} tips`}
         />
-        <div className="text-[12.5px] font-medium leading-snug mt-1.5 text-[var(--color-text)]">{group.label}</div>
-        <div className="text-[11px] text-[var(--color-text-muted)] leading-snug mt-1 flex-1">{group.subline}</div>
-        {headerPreviewIds.length > 0 && (
+        <button
+          type="button"
+          onClick={onOpen}
+          aria-haspopup="dialog"
+          aria-label={`Open action steps for ${group.label}`}
+          className={cn(
+            "mt-1.5 block w-full flex-1 cursor-pointer rounded-sm text-left",
+            "focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(230,165,47,0.2)]"
+          )}
+        >
+          <div className="text-[12.5px] font-medium leading-snug text-[var(--color-text)]">{group.label}</div>
+          <div className="text-[11px] text-[var(--color-text-muted)] leading-snug mt-1">{group.subline}</div>
+          <div className="mt-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 px-2 py-1.5 text-[10.5px] leading-snug text-[var(--color-text-dim)]">
+            <span className="text-[var(--color-accent)] font-semibold">Action:</span> {action.instruction}
+          </div>
+        </button>
+        {headerPreviewItems.length > 0 && (
           <div className="flex items-center gap-1 mt-2 flex-wrap">
-            {headerPreviewIds.slice(0, 6).map((id) => (
-              <img
-                key={id}
-                src={ICON_URL(id)}
-                alt=""
-                className="size-5 rounded-sm bg-[var(--color-bg)] border border-[var(--color-border)] p-0.5"
-              />
+            {headerPreviewItems.map((item) => (
+              <a
+                key={item.id}
+                href={wikiSearchUrl(item.name)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(event) => event.stopPropagation()}
+                className="rounded-sm bg-[var(--color-bg)] border border-[var(--color-border)] p-0.5 hover:border-[var(--color-accent)] transition-colors"
+                title={`${item.name} · ID ${item.id}`}
+                aria-label={`Open ${item.name} on OSRS Wiki`}
+              >
+                <ItemSprite
+                  id={item.id}
+                  alt=""
+                  size={20}
+                />
+              </a>
             ))}
           </div>
         )}
-        <div className="mt-2 text-[10.5px] text-[var(--color-accent)] font-medium opacity-80 group-hover:opacity-100">
-          Open ›
-        </div>
-      </button>
+        <TipCardActions
+          action={action}
+          tips={group.tips}
+          actionLabel={group.label}
+          onOpen={onOpen}
+          onSearchItems={onSearchItems}
+          onMarkDone={onDismissGroup}
+        />
+      </div>
     </li>
+  );
+}
+
+function TipCardActions({
+  action,
+  tips,
+  actionLabel,
+  onOpen,
+  onSearchItems,
+  onMarkDone
+}: {
+  action: BankTipAction;
+  tips: BankTip[];
+  actionLabel: string;
+  onOpen: () => void;
+  onSearchItems?: (query: string, sourceLabel?: string) => void;
+  onMarkDone?: () => void;
+}) {
+  const searchQuery = bankSearchQueryForItems(itemRefsForTips(tips));
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+      {onSearchItems && searchQuery && (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onSearchItems(searchQuery, tips.length === 1 ? tips[0].title : `${tips.length} bank tips`);
+          }}
+          className="inline-flex items-center gap-1 rounded border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2 py-1 text-[10.5px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-colors"
+          title={`Search bank for ${searchQuery}`}
+          aria-label={`Find affected bank items for ${actionLabel}`}
+        >
+          Find items
+          <ListChecks className="size-3" />
+        </button>
+      )}
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          onOpen();
+        }}
+        className="inline-flex items-center gap-1 rounded border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2 py-1 text-[10.5px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-colors"
+        aria-label={`Open step-by-step action plan for ${actionLabel}`}
+      >
+        Open steps
+        <ChevronRight className="size-3" />
+      </button>
+      {action.href && (
+        <a
+          href={action.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(event) => event.stopPropagation()}
+          className="inline-flex items-center gap-1 rounded border border-[var(--color-border)] px-2 py-1 text-[10.5px] font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)] transition-colors"
+          title={action.label}
+          aria-label={action.label}
+        >
+          Wiki guide
+          <ExternalLink className="size-3" />
+        </a>
+      )}
+      {onMarkDone && (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onMarkDone();
+          }}
+          className="inline-flex items-center gap-1 rounded border border-[var(--color-good)]/35 bg-[var(--color-good)]/10 px-2 py-1 text-[10.5px] font-semibold text-[var(--color-good)] hover:bg-[var(--color-good)]/15 transition-colors"
+          aria-label={`Mark ${actionLabel} tip as done`}
+        >
+          Mark done
+          <CheckCheck className="size-3" />
+        </button>
+      )}
+      <TipCopyButton tips={tips} label="Copy plan" />
+    </div>
   );
 }
 
 // Drill-in panel — renders only the focused group's items, with a back
 // button up top. Replaces the inline-expansion that was making the grid
 // look broken when a single card grew to many rows.
-function TipFocusedView({ group, onBack, onDismissTip, onDismissGroup }: {
+function TipFocusedView({ panelId, group, onBack, onDismissTip, onDismissGroup, onSearchItems }: {
+  panelId: string;
   group: TipGroup;
   onBack: () => void;
   onDismissTip: (id: string) => void;
   onDismissGroup: () => void;
+  onSearchItems?: (query: string, sourceLabel?: string) => void;
 }) {
   const meta = KIND_META[group.kind];
   const Icon = meta.icon;
+  const action = groupAction(group);
+  const searchQuery = bankSearchQueryForItems(itemRefsForTips(group.tips));
   return (
-    <div className="px-3.5 py-3 animate-[fade-in_0.18s_ease-out]">
+    <div
+      id={panelId}
+      role="region"
+      aria-label={`Action steps for ${group.label}`}
+      className="px-3.5 py-3 animate-[fade-in_0.18s_ease-out]"
+    >
       <div className="flex items-center gap-2 mb-3">
         <button
           type="button"
@@ -378,6 +640,7 @@ function TipFocusedView({ group, onBack, onDismissTip, onDismissGroup }: {
         <button
           type="button"
           onClick={() => { onDismissGroup(); onBack(); }}
+          aria-label={`Dismiss all tips for ${group.label}`}
           className={cn(
             "ml-auto inline-flex items-center gap-1 text-[10.5px] font-medium",
             "text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors",
@@ -387,6 +650,55 @@ function TipFocusedView({ group, onBack, onDismissTip, onDismissGroup }: {
           Dismiss all
           <X className="size-3" />
         </button>
+      </div>
+
+      <div className="mb-3 rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 p-3">
+        <div className="text-[10px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
+          Do this
+        </div>
+        <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">
+          {action.instruction}
+        </p>
+        {action.href ? (
+          <a
+            href={action.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 transition-colors"
+            aria-label={`Open ${action.label} for ${group.label}`}
+          >
+            {action.label}
+            <ExternalLink className="size-3" />
+          </a>
+        ) : (
+          <div className="mt-2 text-[11.5px] text-[var(--color-text-muted)]">
+            No external guide needed — the affected item variants are listed below.
+          </div>
+        )}
+        <div className="mt-2">
+          {onSearchItems && searchQuery && (
+            <button
+              type="button"
+              onClick={() => onSearchItems(searchQuery, group.label)}
+              className="mr-2 inline-flex items-center gap-1.5 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 transition-colors"
+              title={`Search bank for ${searchQuery}`}
+              aria-label={`Find affected bank items for ${group.label}`}
+            >
+              Find affected items
+              <ListChecks className="size-3" />
+            </button>
+          )}
+          <TipCopyButton tips={group.tips} label="Copy action plan" />
+          <button
+            type="button"
+            onClick={() => { onDismissGroup(); onBack(); }}
+            className="ml-2 inline-flex items-center gap-1.5 rounded-md border border-[var(--color-good)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-good)] hover:bg-[var(--color-good)]/10 transition-colors"
+            aria-label={`Mark ${group.label} tip as done`}
+          >
+            Mark done
+            <CheckCheck className="size-3" />
+          </button>
+        </div>
       </div>
 
       <ul className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/40 divide-y divide-[var(--color-border)]/50 overflow-hidden">
@@ -408,7 +720,7 @@ function TipFocusedView({ group, onBack, onDismissTip, onDismissGroup }: {
 }
 
 // Shared header row: kind icon + label chip + slot badge + dismiss X.
-function CardHeader({ meta, Icon, label, countText, slotsFreed, expandIndicator, onDismiss }: {
+function CardHeader({ meta, Icon, label, countText, slotsFreed, expandIndicator, onDismiss, dismissLabel }: {
   meta: { accent: string };
   Icon: typeof Lightbulb;
   label: string;
@@ -416,6 +728,7 @@ function CardHeader({ meta, Icon, label, countText, slotsFreed, expandIndicator,
   slotsFreed: number;
   expandIndicator?: "open" | "closed";
   onDismiss: () => void;
+  dismissLabel: string;
 }) {
   return (
     <div className="flex items-center gap-2">
@@ -444,22 +757,14 @@ function CardHeader({ meta, Icon, label, countText, slotsFreed, expandIndicator,
             expandIndicator === "open" && "rotate-90"
           )} />
         )}
-        <span
-          role="button"
-          tabIndex={0}
+        <button
+          type="button"
           onClick={(e) => { e.stopPropagation(); onDismiss(); }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              e.stopPropagation();
-              onDismiss();
-            }
-          }}
-          aria-label="Dismiss"
+          aria-label={dismissLabel}
           className="size-5 rounded flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg)] cursor-pointer"
         >
           <X className="size-3" />
-        </span>
+        </button>
       </span>
     </div>
   );
@@ -476,11 +781,12 @@ function TipChildRow({ tip, iconSlots = 4, onDismiss }: {
   iconSlots?: number;
   onDismiss: () => void;
 }) {
-  const previewIds = tip.itemIds.slice(0, iconSlots);
+  const action = buildTipAction(tip);
+  const previewItems = itemRefsForTips([tip], iconSlots);
   // Build an array of length `iconSlots` so the column always reserves the
   // same horizontal space — empty cells become invisible spacers.
-  const cells: Array<number | null> = Array.from({ length: iconSlots }, (_, i) =>
-    previewIds[i] ?? null
+  const cells: Array<{ id: number; name: string } | null> = Array.from({ length: iconSlots }, (_, i) =>
+    previewItems[i] ?? null
   );
   return (
     <li className="px-3 py-2 flex items-center gap-3 border-b border-[var(--color-border)]/40 last:border-b-0">
@@ -488,29 +794,33 @@ function TipChildRow({ tip, iconSlots = 4, onDismiss }: {
           fill the remaining cells. All rows in the drill-in share the same
           iconSlots count so titles land on a single vertical line. */}
       <div className="flex items-center gap-1 shrink-0">
-        {cells.map((id, i) => (
+        {cells.map((item, i) => (
           <span
             key={i}
             className={cn(
               "size-9 rounded-md flex items-center justify-center",
-              id !== null
+              item !== null
                 ? "bg-[var(--color-bg)] border border-[var(--color-border)]"
                 : "border border-transparent"
             )}
-            aria-hidden={id === null}
+            aria-hidden={item === null}
           >
-            {id !== null && (
-              <img
-                src={ICON_URL(id)}
-                alt=""
-                className="pixelated"
-                style={{
-                  maxWidth: "80%",
-                  maxHeight: "80%",
-                  imageRendering: "pixelated",
-                  filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))"
-                }}
-              />
+            {item !== null && (
+              <a
+                href={wikiSearchUrl(item.name)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex size-full items-center justify-center rounded-md hover:outline hover:outline-1 hover:outline-[var(--color-accent)]"
+                title={`${item.name} · ID ${item.id}`}
+                aria-label={`Open ${item.name} on OSRS Wiki`}
+              >
+                <ItemSprite
+                  id={item.id}
+                  alt=""
+                  className="pixelated"
+                  size={28}
+                />
+              </a>
             )}
           </span>
         ))}
@@ -529,13 +839,89 @@ function TipChildRow({ tip, iconSlots = 4, onDismiss }: {
         <div className="text-[11px] text-[var(--color-text-muted)] leading-snug mt-0.5">{tip.detail}</div>
       </div>
 
-      <button
-        onClick={onDismiss}
-        aria-label="Dismiss this tip"
-        className="size-6 rounded flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg)] shrink-0"
-      >
-        <X className="size-3" />
-      </button>
+      <div className="flex items-center gap-1.5 shrink-0">
+        {action.href && (
+          <a
+            href={action.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 rounded border border-[var(--color-border)] px-2 py-1 text-[10.5px] font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-accent)] hover:border-[var(--color-accent)]/35"
+            aria-label={`Open ${action.label} for ${tip.title}`}
+          >
+            Guide
+            <ExternalLink className="size-3" />
+          </a>
+        )}
+        <TipCopyButton tips={[tip]} label="Copy" compact />
+        <button
+          type="button"
+          onClick={onDismiss}
+          aria-label={`Dismiss ${tip.title} tip`}
+          className="size-6 rounded flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg)]"
+        >
+          <X className="size-3" />
+        </button>
+      </div>
     </li>
+  );
+}
+
+function TipCopyButton({ tips, label, compact = false }: {
+  tips: BankTip[];
+  label: string;
+  compact?: boolean;
+}) {
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
+  const [manualCopyText, setManualCopyText] = useState("");
+
+  const copyPlan = async (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    const actionPlanText = formatTipActionPlan(
+      tips,
+      tips.length === 1 ? tips[0].title : `${tips.length} Scapestack bank tips`
+    );
+    const result = await copyText(actionPlanText);
+    if (result !== "failed") {
+      setCopyState("copied");
+      window.setTimeout(() => setCopyState("idle"), 1500);
+    } else {
+      setManualCopyText(actionPlanText);
+      setCopyState("error");
+    }
+  };
+
+  return (
+    <span className="inline-flex max-w-full flex-col gap-1.5" aria-live="polite">
+      <button
+        type="button"
+        onClick={copyPlan}
+        aria-label={`Copy action plan for ${tips.length === 1 ? tips[0].title : `${tips.length} Scapestack bank tips`}`}
+        className={cn(
+          "inline-flex items-center gap-1 rounded border border-[var(--color-border)] font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-accent)] hover:border-[var(--color-accent)]/35 transition-colors",
+          copyState === "error" && "border-[var(--color-danger)]/35 text-[var(--color-danger)]",
+          compact ? "px-2 py-1 text-[10.5px]" : "px-2.5 py-1.5 text-[11.5px]"
+        )}
+      >
+        {copyState === "copied" ? <CheckCheck className="size-3" /> : <Copy className="size-3" />}
+        {copyState === "copied" ? "Copied" : copyState === "error" ? "Copy failed" : label}
+      </button>
+      {copyState === "error" && (
+        <span className="block rounded-md border border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8 p-2">
+          <label className="mb-1 block text-[9.5px] font-bold uppercase tracking-[0.14em] text-[var(--color-danger)]">
+            Clipboard failed — copy manually
+          </label>
+          <textarea
+            readOnly
+            value={manualCopyText}
+            onFocus={(event) => event.currentTarget.select()}
+            className={cn(
+              "w-full resize-y rounded border border-[var(--color-border)] bg-[var(--color-bg)] p-2 font-mono leading-relaxed text-[var(--color-text)]",
+              compact ? "min-h-[72px] text-[10px]" : "min-h-[92px] text-[10.5px]"
+            )}
+            aria-label={`Manual copy fallback for ${tips.length === 1 ? tips[0].title : `${tips.length} Scapestack bank tips`}`}
+          />
+        </span>
+      )}
+    </span>
   );
 }

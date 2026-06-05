@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, Check, Circle, Search } from "lucide-react";
-import { ICON_URL, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { PathProgress } from "@/lib/path-progress";
+import { ItemSprite } from "./item-sprite";
 
 interface Props {
   path: PathProgress;
@@ -15,6 +16,10 @@ interface Props {
 // dark overlay, click-outside closes, Esc closes, body scroll locked.
 // Layout: big ring + tagline left/top, search + done/open lists right/below.
 export function PathDetailModal({ path, onClose }: Props) {
+  const titleId = "path-modal-title";
+  const descriptionId = "path-modal-description";
+  const searchId = "path-modal-search";
+  const searchStatusId = "path-modal-search-status";
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
@@ -46,12 +51,14 @@ export function PathDetailModal({ path, onClose }: Props) {
       className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="path-modal-title"
+      aria-labelledby={titleId}
+      aria-describedby={descriptionId}
       style={{ animation: "fade-in 0.2s ease-out" }}
     >
       <button
         type="button"
-        aria-label="Close"
+        aria-label={`Close ${path.label} path details`}
+        aria-hidden="true"
         tabIndex={-1}
         onClick={onClose}
         className="absolute inset-0 bg-[rgba(7,9,12,0.82)] backdrop-blur-sm cursor-default"
@@ -67,7 +74,7 @@ export function PathDetailModal({ path, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={`Close ${path.label} path details`}
             className="absolute top-3 right-3 size-9 rounded-full flex items-center justify-center bg-[var(--color-bg)]/70 backdrop-blur border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] transition-colors"
           >
             <X className="size-4" />
@@ -78,10 +85,10 @@ export function PathDetailModal({ path, onClose }: Props) {
               <div className="text-[10.5px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)] mb-1">
                 Path
               </div>
-              <h2 id="path-modal-title" className="text-[22px] sm:text-[26px] font-bold tracking-tight text-[var(--color-text)] leading-tight">
+              <h2 id={titleId} className="text-[22px] sm:text-[26px] font-bold tracking-tight text-[var(--color-text)] leading-tight">
                 {path.label}
               </h2>
-              <p className="mt-1 text-[13px] text-[var(--color-text-dim)] leading-snug">
+              <p id={descriptionId} className="mt-1 text-[13px] text-[var(--color-text-dim)] leading-snug">
                 {path.tagline} · <span className="font-mono tabular-nums">{path.done}/{path.total}</span>
               </p>
             </div>
@@ -92,13 +99,24 @@ export function PathDetailModal({ path, onClose }: Props) {
         <div className="px-5 sm:px-6 py-3 border-b border-[var(--color-border)] flex flex-col sm:flex-row gap-2.5">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[var(--color-text-muted)]" />
+            <label htmlFor={searchId} className="sr-only">
+              Search steps in {path.label}
+            </label>
             <input
+              id={searchId}
+              name="path-step-search"
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search…"
+              autoComplete="off"
+              spellCheck={false}
+              aria-describedby={searchStatusId}
               className="w-full pl-10 pr-3 py-2 rounded-md bg-[var(--color-bg-2)] border border-[var(--color-border)] focus:border-[var(--color-accent)]/50 text-[13px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none"
             />
+            <p id={searchStatusId} role="status" aria-live="polite" className="sr-only">
+              {filtered.length} path step{filtered.length === 1 ? "" : "s"} shown for {path.label}.
+            </p>
           </div>
           <div className="inline-flex rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)] p-0.5">
             {(["all", "open", "done"] as const).map((f) => (
@@ -106,6 +124,8 @@ export function PathDetailModal({ path, onClose }: Props) {
                 key={f}
                 type="button"
                 onClick={() => setFilter(f)}
+                aria-pressed={filter === f}
+                aria-label={`Show ${f} steps for ${path.label}`}
                 className={cn(
                   "px-3 py-1.5 rounded text-[11.5px] font-semibold uppercase tracking-wider transition-colors",
                   filter === f
@@ -145,14 +165,12 @@ export function PathDetailModal({ path, onClose }: Props) {
                     )}
                   </div>
                   {step.iconItemId ? (
-                    <img
-                      src={ICON_URL(step.iconItemId)}
+                    <ItemSprite
+                      id={step.iconItemId}
                       alt=""
-                      width={18}
-                      height={18}
+                      size={18}
                       className="pixelated shrink-0 mt-0.5"
                       style={{
-                        imageRendering: "pixelated",
                         opacity: step.status === "done" ? 0.55 : 1
                       }}
                     />

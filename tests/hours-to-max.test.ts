@@ -65,12 +65,12 @@ describe("hoursToMax", () => {
   });
 
   it("totaal voor lege account = veel uren (>1000)", () => {
-    // 23 skills × ~300u gemiddeld = thousands
+    // 24 skills × ~300u gemiddeld = thousands
     const allSkills = [
       "Attack","Strength","Defence","Hitpoints","Ranged","Magic","Prayer",
       "Slayer","Mining","Smithing","Fishing","Cooking","Firemaking",
       "Woodcutting","Crafting","Fletching","Herblore","Agility","Thieving",
-      "Farming","Hunter","Construction","Runecraft"
+      "Farming","Hunter","Construction","Runecraft","Sailing"
     ].map((name) => ({ name, level: 1, xp: 0 }));
     const summary = hoursToMax(allSkills, 99);
     expect(summary.totalHours).toBeGreaterThan(1000);

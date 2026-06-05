@@ -1,0 +1,85 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
+
+const source = readFileSync(join(process.cwd(), "src/app/dps/dps-client.tsx"), "utf8");
+
+describe("DPS boss row affordance", () => {
+  it("labels the boss search and sort controls as real interactive controls", () => {
+    expect(source).toContain('htmlFor="dps-boss-search"');
+    expect(source).toContain("Search bosses for DPS setup");
+    expect(source).toContain('id="dps-boss-search"');
+    expect(source).toContain('name="boss"');
+    expect(source).toContain('aria-describedby="dps-boss-search-help dps-boss-search-status"');
+    expect(source).toContain("Type a boss name, press Enter to open the first match");
+    expect(source).toContain('aria-label="Clear boss DPS search"');
+    expect(source).toContain('id="dps-boss-search-status"');
+    expect(source).toContain('role="status"');
+    expect(source).toContain("aria-pressed={sortBy === opt.key}");
+    expect(source).toContain("aria-label={`Sort boss DPS rows by ${opt.label}`}");
+  });
+
+  it("renders boss rows as explicit setup-detail buttons", () => {
+    expect(source).toContain("function BossRow");
+    expect(source).toContain("<button\n      type=\"button\"\n      id={`boss-${boss.slug}`}");
+    expect(source).toContain("aria-label={`Open ${boss.name} DPS setup details`}");
+    expect(source).toContain("title={`Open ${boss.name} DPS setup details`}");
+    expect(source).toContain("Details");
+    expect(source).toContain("View requirements");
+    expect(source).toContain('import { CheckCheck, Copy, Edit3, Sword, Zap, Target, TrendingUp, Coins, Search, X, Sparkles, ExternalLink } from "lucide-react";');
+    expect(source).not.toContain("role=\"button\"");
+    expect(source).not.toContain("tabIndex={0}");
+  });
+
+  it("switches upgrade suggestions from global to focused boss context", () => {
+    expect(source).toContain("const focusedBossUpgrades = useMemo(");
+    expect(source).toContain("focusedBoss ? suggestUpgradesForBoss(owned, focusedBoss).slice(0, 3) : []");
+    expect(source).toContain("const visibleUpgrades = focusedBoss ? focusedBossUpgrades : upgrades;");
+    expect(source).toContain("{focusedBoss ? `${focusedBoss.name} upgrades` : \"Biggest upgrades\"}");
+    expect(source).toContain("Only showing items that improve ${focusedBoss.name} with this exact bank.");
+    expect(source).toContain("Global upgrades ranked by how many bosses they improve with this bank.");
+    expect(source).toContain('{focusedBoss ? "vs current setup" : "avg"}');
+    expect(source).toContain("Helps <span className=\"text-[var(--color-gold-soft)]\">{focusedBoss.name}</span> directly.");
+    expect(source).toContain("function suggestUpgradesForBoss(owned: GearItem[], boss: Boss): UpgradeSuggestion[]");
+  });
+
+  it("makes upgrade items actionable with Wiki and GE price links", () => {
+    expect(source).toContain('import { copyText } from "@/lib/clipboard";');
+    expect(source).toContain('import { wikiPriceUrl } from "@/lib/item-action";');
+    expect(source).toContain('import { wikiSearchUrl } from "@/lib/wiki";');
+    expect(source).toContain('import { buildDpsUpgradeBuyLine } from "@/lib/dps-upgrade-actions";');
+    expect(source).toContain('const [copiedUpgradeList, setCopiedUpgradeList] = useState<"copied" | "failed" | null>(null);');
+    expect(source).toContain('const [copiedUpgradeItem, setCopiedUpgradeItem] = useState<{ id: number; status: "copied" | "failed" } | null>(null);');
+    expect(source).toContain("const [showUpgradeShoppingList, setShowUpgradeShoppingList] = useState(false);");
+    expect(source).toContain("const upgradeShoppingList = useMemo(() => {");
+    expect(source).toContain("`${focusedBoss.name} DPS upgrades`");
+    expect(source).toContain("buildDpsUpgradeBuyLine({");
+    expect(source).toContain("scope: focusedBoss ? \"vs current setup\" : \"avg\"");
+    expect(source).toContain("const copyUpgradeShoppingList = async () => {");
+    expect(source).toContain("const result = await copyText(upgradeShoppingList);");
+    expect(source).toContain('if (result === "failed") {');
+    expect(source).toContain('setCopiedUpgradeList("failed");');
+    expect(source).toContain("return;");
+    expect(source).toContain("Copy shopping list");
+    expect(source).toContain("View list");
+    expect(source).toContain("Hide list");
+    expect(source).toContain("aria-expanded={showUpgradeShoppingList}");
+    expect(source).toContain("Show upgrade shopping list text");
+    expect(source).toContain("Upgrade list copied");
+    expect(source).toContain("Clipboard failed — copy shopping list manually");
+    expect(source).toContain("Upgrade shopping list text");
+    expect(source).toContain('(copiedUpgradeList === "failed" || showUpgradeShoppingList)');
+    expect(source).toContain("value={upgradeShoppingList}");
+    expect(source).toContain("event.currentTarget.select()");
+    expect(source).toContain("Manual ${focusedBoss.name} upgrade shopping list");
+    expect(source).toContain("href={wikiSearchUrl(upgrade.gear.name)}");
+    expect(source).toContain("href={wikiPriceUrl(upgrade.gear.id)}");
+    expect(source).toContain("Open ${upgrade.gear.name} item ID ${upgrade.gear.id} on the OSRS Wiki");
+    expect(source).toContain("Open ${upgrade.gear.name} item ID ${upgrade.gear.id} GE price on the OSRS Wiki");
+    expect(source).toContain("#{upgrade.gear.id} · {upgrade.gear.slot}");
+    expect(source).toContain("const copyUpgradeBuyLine = async (upgrade: UpgradeSuggestion) => {");
+    expect(source).toContain("Copy ${upgrade.gear.name} item ID ${upgrade.gear.id} DPS upgrade buy line");
+    expect(source).toContain("Copy buy line");
+    expect(source).toContain("GE price");
+  });
+});

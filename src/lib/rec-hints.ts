@@ -52,6 +52,11 @@ export function defaultActionHints(kind: RecKind): ActionHints {
         needs: ["Check GE prices before you start", "Stock up on supplies"],
         details: "GP methods scale with level + investment. Short trips slot into any session; long grinds want commitment."
       };
+    case "slayer":
+      return {
+        needs: ["RuneLite plugin sync", "Current Slayer task"],
+        details: "Slayer advice becomes strongest when Scapestack sees your live task, streak, points and block-list from the RuneLite plugin."
+      };
     case "skill":
       return {
         needs: ["Pick a method", "Stock supplies"],

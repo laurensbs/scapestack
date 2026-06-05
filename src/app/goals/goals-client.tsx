@@ -5,17 +5,28 @@ import {
   Edit3, Check, Search, Target, Trophy, Filter, ChevronDown
 } from "lucide-react";
 import { Intake } from "@/components/intake";
+import { ItemSprite } from "@/components/item-sprite";
+import { BankContextActions } from "@/components/bank-context-actions";
+import { ScapestackReadinessRail } from "@/components/scapestack-readiness-rail";
 import { SupportCard } from "@/components/support-card";
 import { organizeAction } from "@/app/actions";
 import {
   GOAL_SETS, GOAL_CATEGORIES, checkCompletion, goalCategoryOrder,
   closestToComplete, overallStats, normaliseCompletion, iconForGoal,
-  unlockedFromHiscores,
   type SetCompletion, type GoalCategory
 } from "@/lib/goals";
 import { loadArchetype, type Archetype } from "@/lib/archetype";
 import { hiscoresAction } from "@/app/actions";
-import { cn, ICON_URL } from "@/lib/utils";
+import { cn, formatGp } from "@/lib/utils";
+import { goalItemsWithHiscoreUnlocks } from "@/lib/goal-handoff";
+import {
+  bankHandoffItemsFromTabs,
+  nextUpBankFromHandoff,
+  persistBankHandoffPayload,
+  readBankHandoffPayload,
+  summarizeBankHandoff,
+  type BankHandoffSummary
+} from "@/lib/next-bank-handoff";
 
 type CompletionFilter = "all" | "complete" | "incomplete";
 
@@ -24,6 +35,11 @@ export function GoalsClient() {
   const [items, setItems] = useState<Array<{ id: number; name: string }>>([]);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [bankSummary, setBankSummary] = useState<BankHandoffSummary | null>(null);
+  const [loadedFromHandoff, setLoadedFromHandoff] = useState(false);
+  const [loadedFromHiscoresOnly, setLoadedFromHiscoresOnly] = useState(false);
+  const [activeRsn, setActiveRsn] = useState("");
+  const [skipHandoff, setSkipHandoff] = useState(false);
 
   const [filter, setFilter] = useState<CompletionFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,8 +50,54 @@ export function GoalsClient() {
   const [archetype, setArchetype] = useState<Archetype | null>(null);
   useEffect(() => { setArchetype(loadArchetype()); }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (view !== "intake") return;
+    if (skipHandoff) return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const paramRsn = params.get("rsn")?.trim() ?? "";
+      const handoffItems = params.get("bank") === "none" ? [] : readBankHandoffPayload(window);
+      if (paramRsn) setActiveRsn(paramRsn);
+      if (handoffItems.length === 0) {
+        if (!paramRsn) return;
+        startTransition(async () => {
+          const hiscores = await hiscoresAction(paramRsn);
+          if (!hiscores) {
+            setError(`Could not load Hiscores for "${paramRsn}". Paste a bank export or check the RSN.`);
+            return;
+          }
+          setItems(goalItemsWithHiscoreUnlocks([], hiscores.skills));
+          setBankSummary(null);
+          setLoadedFromHandoff(false);
+          setLoadedFromHiscoresOnly(true);
+          setView("result");
+        });
+        return;
+      }
+
+      setBankSummary(summarizeBankHandoff(handoffItems));
+      setLoadedFromHandoff(true);
+      setLoadedFromHiscoresOnly(false);
+      if (paramRsn) {
+        startTransition(async () => {
+          const hiscores = await hiscoresAction(paramRsn);
+          setItems(goalItemsWithHiscoreUnlocks(nextUpBankFromHandoff(handoffItems), hiscores?.skills));
+          setView("result");
+        });
+      } else {
+        setItems(nextUpBankFromHandoff(handoffItems));
+        setView("result");
+      }
+    } catch {
+      // Storage is best-effort; manual paste remains the fallback.
+    }
+  }, [skipHandoff, view]);
+
   const run = (input: string, _junkFilter: boolean, rsn: string) => {
     setError(null);
+    setSkipHandoff(true);
+    setActiveRsn(rsn.trim());
     startTransition(async () => {
       // Fetch bank + hiscores in parallel. The bank gives us tradeable
       // untradeables (capes, gear) we actually own; the hiscores give us
@@ -53,15 +115,18 @@ export function GoalsClient() {
       const flat = bankRes.result.tabs.flatMap((t) =>
         t.items.map((it) => ({ id: it.id, name: it.name }))
       );
+      try {
+        persistBankHandoffPayload(bankRes.result.tabs, window);
+      } catch {
+        // Cross-tool handoff is best-effort; goals still has local state.
+      }
+      setBankSummary(summarizeBankHandoff(bankHandoffItemsFromTabs(bankRes.result.tabs)));
+      setLoadedFromHandoff(false);
+      setLoadedFromHiscoresOnly(false);
       // Merge in any skills at level 99 from hiscores as virtual cape items.
       // Dedupe by id so a player who has BOTH the cape and the 99 doesn't
       // double-count.
-      const synthesised = hiscores ? unlockedFromHiscores(hiscores.skills) : [];
-      const seen = new Set(flat.map((it) => it.id));
-      for (const s of synthesised) {
-        if (!seen.has(s.id)) { flat.push(s); seen.add(s.id); }
-      }
-      setItems(flat);
+      setItems(goalItemsWithHiscoreUnlocks(flat, hiscores?.skills));
       setView("result");
     });
   };
@@ -158,7 +223,13 @@ export function GoalsClient() {
           </div>
         </div>
         <button
-          onClick={() => { setView("intake"); setError(null); }}
+          type="button"
+          onClick={() => {
+            setView("intake");
+            setError(null);
+            setSkipHandoff(true);
+            setLoadedFromHiscoresOnly(false);
+          }}
           className={cn(
             "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px]",
             "bg-transparent border border-[var(--color-border)] text-[var(--color-text-dim)]",
@@ -168,6 +239,25 @@ export function GoalsClient() {
           <Edit3 className="size-3.5" /> Edit input
         </button>
       </section>
+
+      <ScapestackReadinessRail
+        surface="goals"
+        hasBankContext={items.length > 0 && !loadedFromHiscoresOnly}
+        hasRsn={Boolean(activeRsn)}
+        rsn={activeRsn}
+      />
+
+      {bankSummary && (
+        <GoalsBankContextBanner
+          rsn={activeRsn}
+          summary={bankSummary}
+          loadedFromHandoff={loadedFromHandoff}
+        />
+      )}
+
+      {loadedFromHiscoresOnly && activeRsn && (
+        <GoalsHiscoreContextBanner rsn={activeRsn} />
+      )}
 
       {/* Closest to complete */}
       {closest.length > 0 && (
@@ -200,13 +290,11 @@ export function GoalsClient() {
                 >
                   <div className="flex items-center gap-2 mb-2">
                     {headerIconId ? (
-                      <div
-                        className="size-5 shrink-0 bg-no-repeat bg-center bg-contain"
-                        style={{
-                          backgroundImage: `url("${ICON_URL(headerIconId)}")`,
-                          imageRendering: "pixelated",
-                          filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))"
-                        }}
+                      <ItemSprite
+                        id={headerIconId}
+                        alt=""
+                        size={20}
+                        className="pixelated shrink-0"
                       />
                     ) : (
                       <span aria-hidden="true" className="size-3 rounded-full bg-[var(--color-text-muted)] inline-block" />
@@ -230,12 +318,11 @@ export function GoalsClient() {
                             title={g.name}
                           >
                             {iconId && (
-                              <div
-                                className="size-4 shrink-0 bg-no-repeat bg-center bg-contain opacity-70"
-                                style={{
-                                  backgroundImage: `url("${ICON_URL(iconId)}")`,
-                                  imageRendering: "pixelated"
-                                }}
+                              <ItemSprite
+                                id={iconId}
+                                alt=""
+                                size={16}
+                                className="pixelated shrink-0 opacity-70"
                               />
                             )}
                             <span className="truncate">{g.name}</span>
@@ -259,20 +346,46 @@ export function GoalsClient() {
       {/* Filters */}
       <section className="mb-5 flex flex-wrap items-center gap-2">
         <div className="relative flex-1 max-w-[280px] min-w-[180px]">
+          <label htmlFor="goals-search" className="sr-only">
+            Search goals by item, set or category
+          </label>
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-[var(--color-text-dim)]" />
           <input
+            id="goals-search"
+            name="goal"
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search goals…"
+            autoComplete="off"
+            spellCheck={false}
+            aria-describedby="goals-search-help goals-search-status"
             className={cn(
-              "w-full pl-8 pr-3 py-1.5 rounded-md text-[12px]",
+              "w-full pl-8 pr-8 py-1.5 rounded-md text-[12px]",
               "bg-[var(--color-slot)] border border-[var(--color-border)]",
               "text-[var(--color-text)] placeholder:text-[var(--color-text-dim)]/60",
               "focus:outline-none focus:border-[var(--color-gold-soft)]"
             )}
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              aria-label="Clear goals search"
+              className="absolute right-2 top-1/2 flex size-5 -translate-y-1/2 items-center justify-center rounded text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-panel)] hover:text-[var(--color-text)]"
+            >
+              ×
+            </button>
+          )}
         </div>
+        <p id="goals-search-help" className="sr-only">
+          Type a set, item or activity name to filter goal cards.
+        </p>
+        <p id="goals-search-status" role="status" aria-live="polite" className="sr-only">
+          {searchQuery
+            ? `${filteredSets.length} goal set${filteredSets.length === 1 ? "" : "s"} match ${searchQuery}.`
+            : `${GOAL_SETS.length} goal sets available.`}
+        </p>
         <CompletionFilterChips active={filter} onChange={setFilter} stats={stats} />
         <CategoryFilter active={categoryFilter} onChange={setCategoryFilter} counts={categoryCounts} />
       </section>
@@ -333,6 +446,9 @@ function CompletionFilterChips({ active, onChange, stats }: {
       {options.map((opt) => (
         <button
           key={opt.id}
+          type="button"
+          aria-pressed={active === opt.id}
+          aria-label={`Show ${opt.label.toLowerCase()} goal sets (${opt.count})`}
           onClick={() => onChange(opt.id)}
           className={cn(
             "px-2.5 py-1.5 rounded-md text-[11.5px] font-medium transition-all border",
@@ -360,6 +476,10 @@ function CategoryFilter({ active, onChange, counts }: {
   return (
     <div className="relative">
       <button
+        type="button"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        aria-label="Filter goals by category"
         onClick={() => setOpen((v) => !v)}
         className={cn(
           "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11.5px] font-medium",
@@ -372,8 +492,11 @@ function CategoryFilter({ active, onChange, counts }: {
         <ChevronDown className={cn("size-3 transition-transform", open && "rotate-180")} />
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-1 w-56 max-h-[60vh] overflow-y-auto rounded-lg bg-[var(--color-bg-2)] border border-[var(--color-border)] shadow-xl z-30 py-1 animate-[pop-in_0.15s_ease-out]">
+        <div role="menu" className="absolute right-0 top-full mt-1 w-56 max-h-[60vh] overflow-y-auto rounded-lg bg-[var(--color-bg-2)] border border-[var(--color-border)] shadow-xl z-30 py-1 animate-[pop-in_0.15s_ease-out]">
           <button
+            type="button"
+            role="menuitemradio"
+            aria-checked={active === "all"}
             onClick={() => { onChange("all"); setOpen(false); }}
             className={cn(
               "w-full text-left px-3 py-1.5 text-[12px] hover:bg-[var(--color-panel)]",
@@ -387,6 +510,9 @@ function CategoryFilter({ active, onChange, counts }: {
             return (
               <button
                 key={cat}
+                type="button"
+                role="menuitemradio"
+                aria-checked={active === cat}
                 onClick={() => { onChange(cat); setOpen(false); }}
                 className={cn(
                   "w-full flex items-center justify-between px-3 py-1.5 text-[12px] hover:bg-[var(--color-panel)]",
@@ -428,6 +554,7 @@ function GoalSetCard({ set, completion }: { set: typeof GOAL_SETS[0]; completion
     : matchedGoal
       ? completion.perGoal[matchedGoal.id].matchedItemId
       : set.iconItemId ?? iconForGoal(set.goals[set.goals.length - 1].id);
+  const panelId = `goal-set-panel-${set.id}`;
 
   return (
     <div className={cn(
@@ -437,23 +564,25 @@ function GoalSetCard({ set, completion }: { set: typeof GOAL_SETS[0]; completion
         : "bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] border-[var(--color-border)] hover:border-[var(--color-border-strong)]"
     )}>
       <button
+        type="button"
+        aria-expanded={expanded}
+        aria-controls={panelId}
+        aria-label={`${expanded ? "Hide" : "Show"} ${set.name} goal details`}
         onClick={() => setExpanded((v) => !v)}
         className="w-full text-left p-3.5 flex items-start gap-3"
       >
         <div className="size-8 shrink-0 flex items-center justify-center bg-[var(--color-bg-2)] border border-[var(--color-border)] rounded-md">
           {headerIconId ? (
-            <img
-              src={ICON_URL(headerIconId)}
+            <ItemSprite
+              id={headerIconId}
               alt=""
               loading="lazy"
-              decoding="async"
-              className="pixelated pointer-events-none drop-shadow-[1px_1px_0_rgb(0_0_0/0.9)]"
+              className="pixelated pointer-events-none"
               style={{
                 maxWidth: "24px",
                 maxHeight: "24px",
                 width: "auto",
-                height: "auto",
-                imageRendering: "pixelated"
+                height: "auto"
               }}
             />
           ) : (
@@ -500,7 +629,7 @@ function GoalSetCard({ set, completion }: { set: typeof GOAL_SETS[0]; completion
         )} />
       </button>
       {expanded && (
-        <div className="px-3.5 pb-3 grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-1.5 border-t border-[var(--color-border)]/40 pt-3">
+        <div id={panelId} className="px-3.5 pb-3 grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-1.5 border-t border-[var(--color-border)]/40 pt-3">
           {set.goals.map((g) => {
             const state = completion.perGoal[g.id];
             const iconId = iconForGoal(g.id, state);
@@ -525,21 +654,19 @@ function GoalSetCard({ set, completion }: { set: typeof GOAL_SETS[0]; completion
                 )}
               >
                 {(iconId ?? set.iconItemId) ? (
-                  <img
-                    src={ICON_URL((iconId ?? set.iconItemId)!)}
+                  <ItemSprite
+                    id={(iconId ?? set.iconItemId)!}
                     alt={g.name}
                     loading="lazy"
-                    decoding="async"
                     className={cn(
-                      "pixelated pointer-events-none drop-shadow-[1px_1px_0_rgb(0_0_0/0.9)]",
+                      "pixelated pointer-events-none",
                       !got && "opacity-30 grayscale"
                     )}
                     style={{
                       maxWidth: "32px",
                       maxHeight: "32px",
                       width: "auto",
-                      height: "auto",
-                      imageRendering: "pixelated"
+                      height: "auto"
                     }}
                   />
                 ) : (
@@ -565,6 +692,82 @@ function GoalSetCard({ set, completion }: { set: typeof GOAL_SETS[0]; completion
         </div>
       )}
     </div>
+  );
+}
+
+function GoalsBankContextBanner({
+  rsn,
+  summary,
+  loadedFromHandoff
+}: {
+  rsn?: string | null;
+  summary: BankHandoffSummary;
+  loadedFromHandoff: boolean;
+}) {
+  return (
+    <section className="mb-6 rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/8 px-4 py-3">
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div className="flex min-w-0 gap-3">
+          <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/40">
+            <ItemSprite id={9813} alt="" size={25} />
+          </span>
+          <div className="min-w-0">
+            <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
+              {loadedFromHandoff ? "Bank handoff loaded" : "Bank parsed for goals"}
+            </div>
+            <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
+              <span className="font-semibold text-[var(--color-text)]">{summary.label}</span>
+              {" · "}
+              Bank-owned untradeables are checked from item IDs; earned skill capes can come from Hiscores when an RSN is attached.
+            </p>
+            <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
+              RuneLite sync is still needed before diary rewards, quest rewards and collection-log-only goals should be treated as verified account coverage.
+            </p>
+            {summary.topItems.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {summary.topItems.map((item) => (
+                  <span
+                    key={item.id}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1 text-[11px] text-[var(--color-text-dim)]"
+                    title={`${item.name}: ${item.stackValue.toLocaleString()} gp`}
+                  >
+                    <ItemSprite id={item.id} alt="" size={15} />
+                    <span className="max-w-[130px] truncate">{item.name}</span>
+                    <span className="font-mono text-[var(--color-text-muted)]">{formatGp(item.stackValue)}</span>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        <BankContextActions source="goals" rsn={rsn} />
+      </div>
+    </section>
+  );
+}
+
+function GoalsHiscoreContextBanner({ rsn }: { rsn: string }) {
+  return (
+    <section className="mb-6 rounded-xl border border-[var(--color-good)]/30 bg-[var(--color-good)]/8 px-4 py-3">
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div className="flex min-w-0 gap-3">
+          <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-[var(--color-good)]/25 bg-[var(--color-bg)]/40">
+            <ItemSprite id={9811} alt="" size={25} />
+          </span>
+          <div className="min-w-0">
+            <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-good)]">
+              Hiscores handoff loaded
+            </div>
+            <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
+              <span className="font-semibold text-[var(--color-text)]">{rsn}</span>
+              {" · "}
+              Skill-cape goals are inferred from public Hiscores. Paste a bank or sync RuneLite to add gear, diaries and untradeable item ownership.
+            </p>
+          </div>
+        </div>
+        <BankContextActions source="goals" rsn={rsn} hasBankContext={false} />
+      </div>
+    </section>
   );
 }
 

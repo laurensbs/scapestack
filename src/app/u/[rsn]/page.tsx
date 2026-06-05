@@ -1,13 +1,16 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Shield, Sparkles, Trophy } from "lucide-react";
+import { ArrowLeft, ArrowRight, DatabaseZap, PlugZap, Shield, Sparkles, Target, Trophy } from "lucide-react";
 import {
   fetchHiscores, computeCombatLevel, computeTotalLevel, totalXp,
   topSkills, formatXp, normalizeRsn
 } from "@/lib/hiscores";
 import { LocalBankSummary } from "./local-bank-summary";
+import { ProfileReadinessRail } from "./profile-readiness-rail";
 import { cn } from "@/lib/utils";
 import { skillSpriteUrl } from "@/lib/sprites";
+import { pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
+import { bankOrganizerHref } from "@/lib/bank-handoff-url";
 
 interface Props {
   params: Promise<{ rsn: string }>;
@@ -49,6 +52,9 @@ export default async function PlayerProfile({ params }: Props) {
   const xp = totalXp(hi.skills);
   const top = topSkills(hi.skills, 3);
   const overallRank = hi.skills.find((s) => s.name === "Overall")?.rank ?? -1;
+  const profileNextHref = nextUrlForProfile(hi.name);
+  const pluginHref = pluginVerifyUrlForSyncedRsn(hi.name, "profile");
+  const bankHref = bankOrganizerHref(hi.name, "profile");
 
   return (
     <main className="relative z-10 mx-auto max-w-5xl px-5 py-8 pb-20">
@@ -88,20 +94,36 @@ export default async function PlayerProfile({ params }: Props) {
               )}
             </div>
           </div>
-          <Link
-            href="/bank"
-            className={cn(
-              "shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[13px] font-bold",
-              "bg-gradient-to-b from-[oklch(0.92_0.14_85)] to-[oklch(0.62_0.16_65)]",
-              "text-[oklch(0.15_0.02_50)] border border-[oklch(0.46_0.13_60)]",
-              "shadow-[0_3px_0_oklch(0_0_0/0.5),inset_0_1px_0_oklch(1_0_0/0.3)]",
-              "hover:brightness-110 hover:-translate-y-px transition-all"
-            )}
-          >
-            Upload bank →
-          </Link>
+          <div className="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
+            <Link
+              href={profileNextHref}
+              className={cn(
+                "inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[13px] font-bold",
+                "bg-gradient-to-b from-[oklch(0.92_0.14_85)] to-[oklch(0.62_0.16_65)]",
+                "text-[oklch(0.15_0.02_50)] border border-[oklch(0.46_0.13_60)]",
+                "shadow-[0_3px_0_oklch(0_0_0/0.5),inset_0_1px_0_oklch(1_0_0/0.3)]",
+                "hover:brightness-110 hover:-translate-y-px transition-all"
+              )}
+            >
+              Plan from profile <ArrowRight className="size-3.5" />
+            </Link>
+            <Link
+              href={pluginHref}
+              className={cn(
+                "inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[13px] font-bold",
+                "border border-[var(--color-border)] bg-[var(--color-panel)]/80 text-[var(--color-text)]",
+                "hover:border-[var(--color-gold)]/60 hover:text-[var(--color-gold)] transition-colors"
+              )}
+            >
+              <PlugZap className="size-3.5" /> Sync RuneLite
+            </Link>
+          </div>
         </div>
       </section>
+
+      <ProfileActionRail rsn={hi.name} profileNextHref={profileNextHref} pluginHref={pluginHref} bankHref={bankHref} />
+
+      <ProfileReadinessRail rsn={hi.name} />
 
       {/* Bank summary if locally available */}
       <LocalBankSummary rsn={hi.name} />
@@ -137,6 +159,102 @@ export default async function PlayerProfile({ params }: Props) {
         </Link>
       </div>
     </main>
+  );
+}
+
+function ProfileActionRail({
+  rsn,
+  profileNextHref,
+  pluginHref,
+  bankHref
+}: {
+  rsn: string;
+  profileNextHref: string;
+  pluginHref: string;
+  bankHref: string;
+}) {
+  return (
+    <section className="mb-6 grid gap-3 md:grid-cols-3">
+      <ProfileActionCard
+        icon={Target}
+        href={profileNextHref}
+        eyebrow="Best next move"
+        title="Plan from profile"
+        body={`Uses ${rsn}'s Hiscores as the starting point. RuneLite sync and bank context sharpen it and label which account coverage is verified.`}
+        cta="Open plan"
+        strong
+      />
+      <ProfileActionCard
+        icon={PlugZap}
+        href={pluginHref}
+        eyebrow="Live state"
+        title="Sync RuneLite"
+        body="Verify the plugin setup so tasks, account context and later bank data stay connected instead of becoming separate flows."
+        cta="Verify sync"
+      />
+      <ProfileActionCard
+        icon={DatabaseZap}
+        href={bankHref}
+        eyebrow="Gear-aware"
+        title="Upload bank"
+        body="Paste Bank Memory or Bank Tags so recommendations account for gear, supplies and unlocks."
+        cta="Add bank"
+      />
+    </section>
+  );
+}
+
+function nextUrlForProfile(rsn: string): string {
+  const params = new URLSearchParams();
+  const cleanRsn = rsn.trim();
+  if (cleanRsn) params.set("rsn", cleanRsn);
+  params.set("from", "profile");
+  return `/next?${params.toString()}`;
+}
+
+function ProfileActionCard({
+  icon: Icon,
+  href,
+  eyebrow,
+  title,
+  body,
+  cta,
+  strong = false
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  href: string;
+  eyebrow: string;
+  title: string;
+  body: string;
+  cta: string;
+  strong?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "group rounded-2xl border p-4 transition-all",
+        "bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)]",
+        strong
+          ? "border-[var(--color-gold)]/55 shadow-[0_16px_40px_-24px_oklch(0.74_0.13_75/0.75)] hover:border-[var(--color-gold)]"
+          : "border-[var(--color-border)] hover:border-[var(--color-gold)]/55",
+        "hover:-translate-y-0.5 hover:shadow-[0_18px_42px_-28px_rgb(0_0_0/0.85)]"
+      )}
+    >
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <span className="inline-flex size-9 items-center justify-center rounded-xl border border-[var(--color-border)] bg-black/20 text-[var(--color-gold)]">
+          <Icon className="size-4" />
+        </span>
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-gold-soft)]">
+          {eyebrow}
+        </span>
+      </div>
+      <h2 className="text-lg font-black text-[var(--color-text)]">{title}</h2>
+      <p className="mt-1 min-h-12 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">{body}</p>
+      <span className="mt-4 inline-flex items-center gap-1.5 text-[12px] font-bold text-[var(--color-gold)]">
+        {cta} <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+      </span>
+    </Link>
   );
 }
 

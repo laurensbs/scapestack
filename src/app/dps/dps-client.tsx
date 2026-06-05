@@ -2,15 +2,33 @@
 
 import { useState, useTransition, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { Edit3, Sword, Zap, Target, TrendingUp, Coins, Search, X } from "lucide-react";
+import Link from "next/link";
+import { CheckCheck, Copy, Edit3, Sword, Zap, Target, TrendingUp, Coins, Search, X, Sparkles, ExternalLink } from "lucide-react";
 import { Intake } from "@/components/intake";
 import { SupportCard } from "@/components/support-card";
+import { ItemSprite } from "@/components/item-sprite";
+import { ScapestackReadinessRail } from "@/components/scapestack-readiness-rail";
 import { organizeAction } from "@/app/actions";
 import { BOSSES, type Boss } from "@/lib/bosses";
 import { ownedGear, lookupGear, GEAR, type GearItem, type CombatStyle } from "@/lib/gear";
 import { bestStyleAndSetup, calcDps, autoSetup, type DpsBreakdown } from "@/lib/dps";
-import { cn, formatGp, ICON_URL } from "@/lib/utils";
+import { cn, formatGp } from "@/lib/utils";
 import { BossDetailModal } from "@/components/boss-detail-modal";
+import { BossSprite } from "@/components/boss-picker";
+import { BankContextActions } from "@/components/bank-context-actions";
+import { bossFromDpsParam } from "@/lib/dps-route";
+import { copyText } from "@/lib/clipboard";
+import { wikiPriceUrl } from "@/lib/item-action";
+import { wikiSearchUrl } from "@/lib/wiki";
+import { bankOrganizerHref } from "@/lib/bank-handoff-url";
+import { buildDpsUpgradeBuyLine } from "@/lib/dps-upgrade-actions";
+import {
+  bankHandoffItemsFromTabs,
+  persistBankHandoffPayload,
+  readBankHandoffPayload,
+  type BankHandoffSummary
+} from "@/lib/next-bank-handoff";
+import { buildDpsBankContext } from "@/lib/dps-bank-context";
 
 export function DpsClient() {
   const [view, setView] = useState<"intake" | "result">("intake");
@@ -33,6 +51,12 @@ export function DpsClient() {
   // (?boss=<slug>) can open it on result-view mount, and so the Enter-
   // key search shortcut can open it too.
   const [modalBoss, setModalBoss] = useState<Boss | null>(null);
+  const [bankSummary, setBankSummary] = useState<BankHandoffSummary | null>(null);
+  const [loadedFromHandoff, setLoadedFromHandoff] = useState(false);
+  const [skipHandoff, setSkipHandoff] = useState(false);
+  const [copiedUpgradeList, setCopiedUpgradeList] = useState<"copied" | "failed" | null>(null);
+  const [copiedUpgradeItem, setCopiedUpgradeItem] = useState<{ id: number; status: "copied" | "failed" } | null>(null);
+  const [showUpgradeShoppingList, setShowUpgradeShoppingList] = useState(false);
 
   // Deep-link: /dps?boss=<slug> pre-selects a boss from the home page's
   // boss-showcase. The actual focus + scroll happens once we have a result
@@ -46,8 +70,37 @@ export function DpsClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const openPendingBoss = (slug: string | null) => {
+    const target = bossFromDpsParam(slug);
+    if (target) {
+      setFocusedBoss(target);
+      setModalBoss(target);
+      setSearch(target.name);
+    }
+    setPendingBossSlug(null);
+  };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (view !== "intake") return;
+    if (skipHandoff) return;
+    try {
+      if (searchParams.get("bank") === "none") return;
+      const context = buildDpsBankContext(readBankHandoffPayload(window));
+      if (!context) return;
+      setOwned(context.owned);
+      setBankSummary(context.summary);
+      setLoadedFromHandoff(true);
+      setView("result");
+    } catch {
+      // Storage is best-effort. If unavailable, keep the normal paste flow.
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, skipHandoff, view]);
+
   const run = (input: string, _junk: boolean, _rsn: string) => {
     setError(null);
+    setSkipHandoff(true);
     startTransition(async () => {
       const res = await organizeAction(input, { junkFilter: false, includePrices: false });
       if (res.error || !res.result) {
@@ -57,25 +110,27 @@ export function DpsClient() {
       const flat = res.result.tabs.flatMap((t) => t.items);
       const gear = ownedGear(flat);
       setOwned(gear);
+      const context = buildDpsBankContext(bankHandoffItemsFromTabs(res.result.tabs));
+      try {
+        persistBankHandoffPayload(res.result.tabs, window);
+      } catch {
+        // Cross-tool handoff is best-effort; DPS still has local state.
+      }
+      setBankSummary(context?.summary ?? null);
+      setLoadedFromHandoff(false);
       setView("result");
       // Resolve the deep-linked boss now that we have a bank. If the
       // slug doesn't match any known boss (raid slug like 'cox' / 'tob'
       // / 'toa' falls through here — they're rooms-of-bosses in the
       // dps engine, no single target) we silently ignore.
-      if (pendingBossSlug) {
-        const target = BOSSES.find((b) => b.slug === pendingBossSlug);
-        if (target) {
-          setFocusedBoss(target);
-          // Deep-link from /next or boss-showcase: open the full detail
-          // modal immediately so the visitor lands directly on the
-          // gear+stats+inventory view instead of having to find the row
-          // and click again.
-          setModalBoss(target);
-        }
-        setPendingBossSlug(null);
-      }
     });
   };
+
+  useEffect(() => {
+    if (view !== "result") return;
+    openPendingBoss(pendingBossSlug ?? searchParams.get("boss"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, pendingBossSlug, searchParams]);
 
   // For each boss, compute the best style/setup. We keep input order so the
   // table groups visually by category; the live search field above handles
@@ -94,6 +149,56 @@ export function DpsClient() {
   // Find global upgrade suggestions — items the player doesn't have that would
   // improve DPS by the largest factor across most bosses.
   const upgrades = useMemo(() => suggestUpgrades(owned), [owned]);
+  const focusedBossUpgrades = useMemo(
+    () => focusedBoss ? suggestUpgradesForBoss(owned, focusedBoss).slice(0, 3) : [],
+    [focusedBoss, owned]
+  );
+  const visibleUpgrades = focusedBoss ? focusedBossUpgrades : upgrades;
+  const upgradeShoppingList = useMemo(() => {
+    const title = focusedBoss ? `${focusedBoss.name} DPS upgrades` : "Global DPS upgrades";
+    return [
+      title,
+      ...visibleUpgrades.map((upgrade, index) => `${index + 1}. ${buildDpsUpgradeBuyLine({
+        id: upgrade.gear.id,
+        name: upgrade.gear.name,
+        slot: upgrade.gear.slot,
+        dpsGain: upgrade.avgGain,
+        scope: focusedBoss ? "vs current setup" : "avg",
+        wikiUrl: wikiSearchUrl(upgrade.gear.name),
+        geUrl: wikiPriceUrl(upgrade.gear.id)
+      })}`)
+    ].join("\n");
+  }, [focusedBoss, visibleUpgrades]);
+
+  const copyUpgradeShoppingList = async () => {
+    const result = await copyText(upgradeShoppingList);
+    if (result === "failed") {
+      setCopiedUpgradeList("failed");
+      return;
+    }
+    setCopiedUpgradeList("copied");
+    window.setTimeout(() => setCopiedUpgradeList(null), 1800);
+  };
+  const copyUpgradeBuyLine = async (upgrade: UpgradeSuggestion) => {
+    const result = await copyText(buildDpsUpgradeBuyLine({
+      id: upgrade.gear.id,
+      name: upgrade.gear.name,
+      slot: upgrade.gear.slot,
+      dpsGain: upgrade.avgGain,
+      scope: focusedBoss ? "vs current setup" : "avg",
+      wikiUrl: wikiSearchUrl(upgrade.gear.name),
+      geUrl: wikiPriceUrl(upgrade.gear.id)
+    }));
+    setCopiedUpgradeItem({
+      id: upgrade.gear.id,
+      status: result === "failed" ? "failed" : "copied"
+    });
+    if (result !== "failed") {
+      window.setTimeout(() => {
+        setCopiedUpgradeItem((current) => current?.id === upgrade.gear.id ? null : current);
+      }, 1800);
+    }
+  };
 
   // Live-filtered + sorted boss list. Matches against boss.name
   // (lowercased substring) so 'gra' finds 'General Graardor'. Empty
@@ -128,14 +233,27 @@ export function DpsClient() {
     }
     return sorted;
   }, [bossResults, search, sortBy]);
+  const weaponCount = useMemo(() => owned.filter((gear) => gear.slot === "weapon").length, [owned]);
+  const clearBossFilter = () => {
+    setSearch("");
+    setFocusedBoss(null);
+  };
+  const editInput = () => {
+    setView("intake");
+    setError(null);
+    setLoadedFromHandoff(false);
+    setSkipHandoff(true);
+  };
 
   // Pretty name for the deep-linked boss banner (raid slugs fall through
   // — the banner just doesn't show in that case).
   const pendingBossName = useMemo(() => {
     if (!pendingBossSlug) return null;
-    const b = BOSSES.find((x) => x.slug === pendingBossSlug);
+    const b = bossFromDpsParam(pendingBossSlug);
     return b?.name ?? null;
   }, [pendingBossSlug]);
+  const deepLinkedBoss = useMemo(() => bossFromDpsParam(pendingBossSlug ?? searchParams.get("boss")), [pendingBossSlug, searchParams]);
+  const isSlayerTaskSource = searchParams.get("from") === "slayer-task";
 
   if (view === "intake") {
     return (
@@ -144,11 +262,25 @@ export function DpsClient() {
           <div className="mb-4 rounded-lg border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/8 px-4 py-3 flex items-center gap-3 animate-[fade-in_0.3s_ease-out]">
             <Sword className="size-4 text-[var(--color-accent)] shrink-0" />
             <p className="text-[13px] text-[var(--color-text)] leading-relaxed">
-              <span className="font-semibold">Paste your bank</span> and we&apos;ll jump straight to{" "}
-              <span className="text-[var(--color-accent)]">{pendingBossName}</span>&apos;s best setup.
+              {isSlayerTaskSource ? (
+                <>
+                  <span className="font-semibold">Slayer task selected:</span>{" "}
+                  <span className="text-[var(--color-accent)]">{pendingBossName}</span>. Paste your bank to build the actual setup.
+                </>
+              ) : (
+                <>
+                  <span className="font-semibold">Paste your bank</span> and we&apos;ll jump straight to{" "}
+                  <span className="text-[var(--color-accent)]">{pendingBossName}</span>&apos;s best setup.
+                </>
+              )}
             </p>
           </div>
         )}
+        <DpsHandoffIntakeHint
+          bankless={searchParams.get("bank") === "none"}
+          pluginSync={searchParams.get("source") === "plugin-sync"}
+          slayerTask={isSlayerTaskSource}
+        />
         <div className="mb-6 grid sm:grid-cols-3 gap-3">
           <FeatureCard
             icon={Sword}
@@ -182,11 +314,12 @@ export function DpsClient() {
           <div className="text-[11.5px] text-[var(--color-text-dim)] mt-1">
             {owned.length === 0
               ? "We didn't recognise any combat gear in this bank."
-              : `${owned.filter((g) => g.slot === "weapon").length} weapons in bank.`}
+              : `${weaponCount} weapons in bank.`}
           </div>
         </div>
         <button
-          onClick={() => { setView("intake"); setError(null); }}
+          type="button"
+          onClick={editInput}
           className={cn(
             "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px]",
             "bg-transparent border border-[var(--color-border)] text-[var(--color-text-dim)]",
@@ -197,51 +330,170 @@ export function DpsClient() {
         </button>
       </section>
 
+      <ScapestackReadinessRail
+        surface="dps"
+        hasBankContext={owned.length > 0 || Boolean(bankSummary)}
+        hasRsn={Boolean(searchParams.get("rsn"))}
+        rsn={searchParams.get("rsn")}
+      />
+
+      {bankSummary && (
+        <DpsBankContextBanner
+          rsn={searchParams.get("rsn")}
+          summary={bankSummary}
+          weaponCount={weaponCount}
+          loadedFromHandoff={loadedFromHandoff}
+          focusedBoss={deepLinkedBoss}
+          focusedBossSource={isSlayerTaskSource ? "slayer-task" : "bank"}
+        />
+      )}
+
+      {bankSummary && weaponCount === 0 && (
+        <DpsNoWeaponGate onEditInput={editInput} rsn={searchParams.get("rsn")} />
+      )}
+
       {/* Upgrade suggestions */}
-      {upgrades.length > 0 && (
+      {visibleUpgrades.length > 0 && (
         <section className="mb-7">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="size-4 text-[var(--color-good)]" />
-            <h2 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-gold-soft)]">
-              Biggest upgrades
-            </h2>
+          <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+            <div>
+              <div className="flex items-center gap-2">
+                <TrendingUp className="size-4 text-[var(--color-good)]" />
+                <h2 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-gold-soft)]">
+                  {focusedBoss ? `${focusedBoss.name} upgrades` : "Biggest upgrades"}
+                </h2>
+              </div>
+              <p className="mt-1 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
+                {focusedBoss
+                  ? `Only showing items that improve ${focusedBoss.name} with this exact bank. Clear the boss filter to compare global upgrades.`
+                  : "Global upgrades ranked by how many bosses they improve with this bank."}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={copyUpgradeShoppingList}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-good)]/30 bg-[var(--color-good)]/8 px-3 py-1.5 text-[11.5px] font-semibold text-[var(--color-good)] transition-colors hover:border-[var(--color-good)]/45 hover:bg-[var(--color-good)]/12"
+              aria-label={focusedBoss ? `Copy ${focusedBoss.name} upgrade shopping list` : "Copy global upgrade shopping list"}
+            >
+              {copiedUpgradeList === "copied" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
+              {copiedUpgradeList === "copied"
+                ? "Upgrade list copied"
+                : copiedUpgradeList === "failed"
+                  ? "Copy failed"
+                  : "Copy shopping list"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowUpgradeShoppingList((open) => !open)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-1.5 text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+              aria-expanded={showUpgradeShoppingList}
+              aria-label={showUpgradeShoppingList ? "Hide upgrade shopping list text" : "Show upgrade shopping list text"}
+            >
+              {showUpgradeShoppingList ? "Hide list" : "View list"}
+            </button>
           </div>
           <div className="grid sm:grid-cols-3 gap-2.5">
-            {upgrades.map((u) => (
+            {visibleUpgrades.map((upgrade) => (
               <div
-                key={u.gear.id}
+                key={upgrade.gear.id}
                 className={cn(
                   "rounded-xl p-3 border border-[var(--color-good)]/30",
                   "bg-gradient-to-br from-[oklch(0.22_0.06_145/0.10)] to-[var(--color-bg-2)]"
                 )}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <img
-                    src={ICON_URL(u.gear.id)}
+                  <ItemSprite
+                    id={upgrade.gear.id}
                     alt=""
                     loading="lazy"
-                    decoding="async"
                     className="pixelated shrink-0 pointer-events-none"
                     style={{
                       maxWidth: "28px",
                       maxHeight: "28px",
                       width: "auto",
-                      height: "auto",
-                      imageRendering: "pixelated"
+                      height: "auto"
                     }}
                   />
-                  <span className="text-[13px] font-semibold text-[var(--color-text)]">{u.gear.name}</span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-[13px] font-semibold text-[var(--color-text)]">{upgrade.gear.name}</span>
+                    <span className="mt-0.5 block font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
+                      #{upgrade.gear.id} · {upgrade.gear.slot}
+                    </span>
+                  </span>
                 </div>
                 <div className="text-[11px] text-[var(--color-text-dim)] mb-1.5">
-                  Adds <span className="text-[var(--color-good)] font-bold">+{u.avgGain.toFixed(1)} DPS</span> avg
+                  Adds <span className="text-[var(--color-good)] font-bold">+{upgrade.avgGain.toFixed(1)} DPS</span>{" "}
+                  {focusedBoss ? "vs current setup" : "avg"}
                 </div>
                 <div className="text-[10.5px] text-[var(--color-text-dim)]">
-                  Helps in: <span className="text-[var(--color-gold-soft)]">{u.bossLabels.slice(0, 3).join(", ")}</span>
-                  {u.bossLabels.length > 3 && ` +${u.bossLabels.length - 3}`}
+                  {focusedBoss ? (
+                    <>
+                      Helps <span className="text-[var(--color-gold-soft)]">{focusedBoss.name}</span> directly.
+                    </>
+                  ) : (
+                    <>
+                      Helps in: <span className="text-[var(--color-gold-soft)]">{upgrade.bossLabels.slice(0, 3).join(", ")}</span>
+                      {upgrade.bossLabels.length > 3 && ` +${upgrade.bossLabels.length - 3}`}
+                    </>
+                  )}
+                </div>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  <a
+                    href={wikiSearchUrl(upgrade.gear.name)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1 text-[10.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+                    aria-label={`Open ${upgrade.gear.name} item ID ${upgrade.gear.id} on the OSRS Wiki`}
+                  >
+                    Wiki
+                    <ExternalLink className="size-3" />
+                  </a>
+                  <a
+                    href={wikiPriceUrl(upgrade.gear.id)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 rounded-md border border-[var(--color-good)]/25 bg-[var(--color-good)]/8 px-2 py-1 text-[10.5px] font-semibold text-[var(--color-good)] transition-colors hover:border-[var(--color-good)]/45 hover:bg-[var(--color-good)]/12"
+                    aria-label={`Open ${upgrade.gear.name} item ID ${upgrade.gear.id} GE price on the OSRS Wiki`}
+                  >
+                    GE price
+                    <ExternalLink className="size-3" />
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => copyUpgradeBuyLine(upgrade)}
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[10.5px] font-semibold transition-colors",
+                      copiedUpgradeItem?.id === upgrade.gear.id && copiedUpgradeItem.status === "copied"
+                        ? "border-[var(--color-good)]/35 bg-[var(--color-good)]/10 text-[var(--color-good)]"
+                        : copiedUpgradeItem?.id === upgrade.gear.id && copiedUpgradeItem.status === "failed"
+                          ? "border-[var(--color-danger)]/35 bg-[var(--color-danger)]/10 text-[var(--color-danger)]"
+                          : "border-[var(--color-border)] bg-[var(--color-bg)]/45 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+                    )}
+                    aria-label={`Copy ${upgrade.gear.name} item ID ${upgrade.gear.id} DPS upgrade buy line`}
+                  >
+                    <Copy className="size-3" />
+                    {copiedUpgradeItem?.id === upgrade.gear.id
+                      ? copiedUpgradeItem.status === "copied" ? "Copied" : "Copy failed"
+                      : "Copy buy line"}
+                  </button>
                 </div>
               </div>
             ))}
           </div>
+          {(copiedUpgradeList === "failed" || showUpgradeShoppingList) && (
+            <div className="mt-3 rounded-lg border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/8 p-3" aria-live="polite">
+              <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-warning)]">
+                {copiedUpgradeList === "failed" ? "Clipboard failed — copy shopping list manually" : "Upgrade shopping list text"}
+              </label>
+              <textarea
+                readOnly
+                value={upgradeShoppingList}
+                onFocus={(event) => event.currentTarget.select()}
+                className="min-h-[116px] w-full resize-y rounded border border-[var(--color-border)] bg-[var(--color-bg)] p-2 font-mono text-[10.5px] leading-relaxed text-[var(--color-text)]"
+                aria-label={focusedBoss ? `Manual ${focusedBoss.name} upgrade shopping list` : "Manual global upgrade shopping list"}
+              />
+            </div>
+          )}
         </section>
       )}
 
@@ -256,13 +508,23 @@ export function DpsClient() {
               with 50+ rows, a real input field reads more directly than
               'click to open a hidden menu.' */}
           <div className="relative">
+            <label htmlFor="dps-boss-search" className="sr-only">
+              Search bosses for DPS setup
+            </label>
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[var(--color-text-muted)]" />
             <input
+              id="dps-boss-search"
+              name="boss"
               type="text"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                if (focusedBoss && e.target.value.trim().toLowerCase() !== focusedBoss.name.toLowerCase()) {
+                  setFocusedBoss(null);
+                }
+              }}
               onKeyDown={(e) => {
-                if (e.key === "Escape") setSearch("");
+                if (e.key === "Escape") clearBossFilter();
                 if (e.key === "Enter" && filteredResults.length > 0) {
                   // Open the first match directly in the detail modal —
                   // saves the user a follow-up click after typing.
@@ -270,21 +532,46 @@ export function DpsClient() {
                 }
               }}
               placeholder="Search bosses — type to filter, Enter to jump"
+              autoComplete="off"
+              spellCheck={false}
+              aria-describedby="dps-boss-search-help dps-boss-search-status"
               className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] focus:border-[var(--color-accent)]/50 focus:shadow-[0_0_0_3px_rgba(230,165,47,0.10)] text-[13.5px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none transition-all"
             />
             {search && (
               <button
                 type="button"
-                onClick={() => setSearch("")}
-                aria-label="Clear search"
+                onClick={clearBossFilter}
+                aria-label="Clear boss DPS search"
                 className="absolute right-3 top-1/2 -translate-y-1/2 size-5 rounded flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-2)] transition-colors"
               >
                 <X className="size-4" />
               </button>
             )}
           </div>
+          <p id="dps-boss-search-help" className="mt-1.5 text-[11px] text-[var(--color-text-muted)]">
+            Type a boss name, press Enter to open the first match, or Esc to clear the filter.
+          </p>
+          {focusedBoss && search.trim().toLowerCase() === focusedBoss.name.toLowerCase() && (
+            <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3 py-2">
+              <span className="inline-flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/60">
+                <BossSprite boss={focusedBoss} size={22} />
+              </span>
+              <p className="min-w-0 flex-1 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
+                Filtered from bank boss: <span className="font-semibold text-[var(--color-accent)]">{focusedBoss.name}</span>.
+                Clear it to compare all bosses with the same bank.
+              </p>
+              <button
+                type="button"
+                onClick={clearBossFilter}
+                className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+              >
+                Show all bosses
+                <X className="size-3.5" />
+              </button>
+            </div>
+          )}
           {search && (
-            <p className="mt-1.5 text-[11px] text-[var(--color-text-muted)]">
+            <p id="dps-boss-search-status" role="status" aria-live="polite" className="mt-1.5 text-[11px] text-[var(--color-text-muted)]">
               {filteredResults.length === 0
                 ? `No bosses match "${search}".`
                 : `Showing ${filteredResults.length} of ${bossResults.length} bosses.`}
@@ -307,6 +594,8 @@ export function DpsClient() {
               <button
                 key={opt.key}
                 type="button"
+                aria-pressed={sortBy === opt.key}
+                aria-label={`Sort boss DPS rows by ${opt.label}`}
                 onClick={() => setSortBy(opt.key)}
                 className={cn(
                   "px-2.5 py-1 rounded-md text-[11px] border transition-colors",
@@ -377,8 +666,11 @@ function BossRow({ boss, dps, isFocused, onOpen }: {
 
   return (
     <button
+      type="button"
       id={`boss-${boss.slug}`}
       onClick={onOpen}
+      aria-label={`Open ${boss.name} DPS setup details`}
+      title={`Open ${boss.name} DPS setup details`}
       className={cn(
         "w-full text-left rounded-xl border scroll-mt-24 p-3.5 flex items-center gap-4 flex-wrap",
         "bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] border-[var(--color-border)]",
@@ -404,10 +696,20 @@ function BossRow({ boss, dps, isFocused, onOpen }: {
           {gpPerHour && (
             <Stat label="GP/hr" value={formatGp(gpPerHour)} icon={<Coins className="size-3.5 text-[var(--color-gold)]" />} />
           )}
+          <span className="ml-auto inline-flex items-center gap-1 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-accent)]">
+            Details
+            <ExternalLink className="size-3" />
+          </span>
         </>
       ) : (
-        <div className="text-[12px] text-[var(--color-text-dim)] italic flex-1">
-          No usable weapon in your bank for this boss.
+        <div className="flex flex-1 flex-wrap items-center justify-between gap-2">
+          <span className="text-[12px] text-[var(--color-text-dim)] italic">
+            Locked until Scapestack recognises a usable weapon.
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-text-dim)]">
+            View requirements
+            <ExternalLink className="size-3" />
+          </span>
         </div>
       )}
     </button>
@@ -446,6 +748,193 @@ function FeatureCard({ icon: Icon, title, body }: { icon: React.ComponentType<{ 
       <div className="text-[12.5px] font-semibold text-[var(--color-text)] mb-1">{title}</div>
       <p className="text-[11.5px] text-[var(--color-text-dim)] leading-relaxed">{body}</p>
     </div>
+  );
+}
+
+function DpsHandoffIntakeHint({
+  bankless,
+  pluginSync,
+  slayerTask
+}: {
+  bankless: boolean;
+  pluginSync: boolean;
+  slayerTask: boolean;
+}) {
+  if (bankless) {
+    return (
+      <div className="mb-4 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 px-4 py-3 flex items-start gap-3">
+        <Sparkles className="mt-0.5 size-4 shrink-0 text-[var(--color-warning)]" />
+        <p className="text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
+          {pluginSync
+            ? "RuneLite sync is account proof, not gear proof. DPS needs a browser-only Bank Memory or Bank Tags paste before it can calculate real setups."
+            : slayerTask
+            ? "This boss came from Slayer Planner, but the route is marked bankless. Paste Bank Memory or Bank Tags before trusting DPS rows, upgrades or setup links."
+            : "This route is marked bankless. Paste Bank Memory or Bank Tags before trusting DPS rows, upgrades or boss setup links."}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mb-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/70 px-4 py-3 flex items-start gap-3">
+      <Sparkles className="mt-0.5 size-4 shrink-0 text-[var(--color-accent)]" />
+      <p className="text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
+        Coming from Bank Organizer or /next? DPS now reuses that Scapestack bank handoff automatically, so boss setup links no longer need a second paste.
+      </p>
+    </div>
+  );
+}
+
+function DpsBankContextBanner({
+  rsn,
+  summary,
+  weaponCount,
+  loadedFromHandoff,
+  focusedBoss,
+  focusedBossSource
+}: {
+  rsn?: string | null;
+  summary: BankHandoffSummary;
+  weaponCount: number;
+  loadedFromHandoff: boolean;
+  focusedBoss: Boss | null;
+  focusedBossSource: "bank" | "slayer-task";
+}) {
+  const hasWeapons = weaponCount > 0;
+  const focusedBossLabel = focusedBossSource === "slayer-task"
+    ? "Boss selected from Slayer:"
+    : "Boss selected from bank:";
+  return (
+    <section className="mb-6 rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/8 px-4 py-3">
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div className="flex min-w-0 gap-3">
+          <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/40">
+            <ItemSprite id={20594} alt="" size={25} />
+          </span>
+          <div className="min-w-0">
+            <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
+              {loadedFromHandoff ? "Bank handoff loaded" : "Bank parsed for DPS"}
+            </div>
+            {focusedBoss && (
+              <div
+                data-testid="dps-focused-boss-receipt"
+                className="mt-2 inline-flex max-w-full items-center gap-2 rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/45 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text)]"
+              >
+                <span className="inline-flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/60">
+                  <BossSprite boss={focusedBoss} size={22} />
+                </span>
+                <span className="truncate">
+                  {focusedBossLabel} <span className="text-[var(--color-accent)]">{focusedBoss.name}</span>
+                </span>
+              </div>
+            )}
+            <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
+              <span className="font-semibold text-[var(--color-text)]">{summary.label}</span>
+              {" · "}
+              {weaponCount} weapon{weaponCount === 1 ? "" : "s"} recognised.{" "}
+              {hasWeapons && focusedBoss
+                ? `${focusedBoss.name} and every boss row are using this exact bank context.`
+                : hasWeapons
+                ? "Every boss row is using this exact bank context."
+                : "DPS rows are blocked until Scapestack sees at least one usable combat weapon."}
+            </p>
+            {!hasWeapons && (
+              <div className="mt-3 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 px-3 py-2.5">
+                <p className="text-[12px] font-semibold leading-relaxed text-[var(--color-warning)]">
+                  Exact bank handoff is active, but this looks like supplies/jewellery only.
+                </p>
+                <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
+                  Paste a full Bank Memory export or a combat tab with weapons like whip, fang, blowpipe, trident, bowfa, godswords or scythe to unlock real boss DPS.
+                </p>
+              </div>
+            )}
+            {summary.topItems.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {summary.topItems.map((item) => (
+                  <span
+                    key={item.id}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1 text-[11px] text-[var(--color-text-dim)]"
+                    title={`${item.name}: ${item.stackValue.toLocaleString()} gp`}
+                  >
+                    <ItemSprite id={item.id} alt="" size={15} />
+                    <span className="max-w-[130px] truncate">{item.name}</span>
+                    <span className="font-mono text-[var(--color-text-muted)]">{formatGp(item.stackValue)}</span>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        <BankContextActions source="dps" rsn={rsn} />
+      </div>
+    </section>
+  );
+}
+
+function DpsNoWeaponGate({
+  onEditInput,
+  rsn
+}: {
+  onEditInput: () => void;
+  rsn?: string | null;
+}) {
+  const bankHref = bankOrganizerHref(rsn, "dps");
+  const weaponExamples = [
+    { id: 4151, name: "Whip" },
+    { id: 26219, name: "Fang" },
+    { id: 12926, name: "Blowpipe" },
+    { id: 11907, name: "Trident" },
+    { id: 25865, name: "Bowfa" },
+    { id: 20997, name: "Twisted bow" }
+  ];
+
+  return (
+    <section
+      data-testid="dps-no-weapon-gate"
+      className="mb-7 rounded-xl border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/8 px-4 py-4"
+    >
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="min-w-0">
+          <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-warning)]">
+            Boss setup locked
+          </div>
+          <h2 className="mt-1 text-[17px] font-bold tracking-tight text-[var(--color-text)]">
+            Paste a combat bank before trusting DPS rows
+          </h2>
+          <p className="mt-1 max-w-2xl text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
+            This bank has supplies, jewellery or loot, but no usable weapon. Add a full Bank Memory export or a combat tab with one of these weapon types, then DPS can choose real boss setups from owned gear.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {weaponExamples.map((item) => (
+              <span
+                key={item.id}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1 text-[11px] font-semibold text-[var(--color-text-dim)]"
+              >
+                <ItemSprite id={item.id} alt="" size={18} />
+                {item.name}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={onEditInput}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-warning)] px-3.5 py-2 text-[12.5px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110"
+          >
+            Paste combat bank
+            <Edit3 className="size-3.5" />
+          </button>
+          <Link
+            href={bankHref}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+          >
+            Open Bank Organizer
+            <Sparkles className="size-3.5" />
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -508,44 +997,50 @@ function suggestUpgrades(owned: GearItem[]): UpgradeSuggestion[] {
     .slice(0, 3);
 }
 
-// Boss thumbnail. Tries the local wiki portrait first
-// (public/sprites/bosses/<slug>.png — populated by build:sprites), falls
-// back to the drop-sprite that was shipping before, then to a neutral
-// dot. The visual upgrade: the cell now shows what the boss actually
-// looks like, not an item it drops.
-function BossThumb({ boss }: { boss: Boss }) {
-  const [stage, setStage] = useState<"portrait" | "drop" | "dot">("portrait");
+function suggestUpgradesForBoss(owned: GearItem[], boss: Boss): UpgradeSuggestion[] {
+  const ownedIds = new Set(owned.map((g) => g.id));
+  const candidates: UpgradeSuggestion[] = [];
 
-  if (stage === "portrait") {
-    return (
-      <div className="size-9 shrink-0 rounded-md bg-[var(--color-bg-2)] border border-[var(--color-border)] flex items-center justify-center overflow-hidden">
-        <img
-          src={`/sprites/bosses/${boss.slug}.png`}
-          alt=""
-          loading="lazy"
-          className="w-full h-full object-cover"
-          onError={() => setStage(boss.iconItemId ? "drop" : "dot")}
-        />
-      </div>
-    );
+  for (const gear of GEAR) {
+    if (ownedIds.has(gear.id)) continue;
+
+    const styles: CombatStyle[] = gear.weaponStyle
+      ? [gear.weaponStyle]
+      : gear.slot === "weapon"
+        ? []
+        : ["stab", "slash", "crush", "ranged", "magic"];
+
+    let bestGain = 0;
+    for (const style of styles) {
+      const baseSetup = autoSetup(owned, style);
+      if (!baseSetup.weapon) continue;
+      const baseDps = calcDps(baseSetup, boss, style).dps;
+      const withGear = autoSetup([...owned, gear], style);
+      if (!withGear.weapon) continue;
+      const newDps = calcDps(withGear, boss, style).dps;
+      bestGain = Math.max(bestGain, newDps - baseDps);
+    }
+
+    if (bestGain > 0.05) {
+      candidates.push({
+        gear,
+        avgGain: bestGain,
+        bossLabels: [boss.name]
+      });
+    }
   }
-  if (stage === "drop" && boss.iconItemId) {
-    return (
-      <div className="size-9 shrink-0 rounded-md bg-[var(--color-bg-2)] border border-[var(--color-border)] flex items-center justify-center">
-        <img
-          src={ICON_URL(boss.iconItemId)}
-          alt=""
-          className="pixelated"
-          style={{
-            maxWidth: "78%",
-            maxHeight: "78%",
-            imageRendering: "pixelated",
-            filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))"
-          }}
-          onError={() => setStage("dot")}
-        />
-      </div>
-    );
-  }
-  return <span aria-hidden="true" className="size-9 shrink-0 rounded-full bg-[var(--color-text-muted)]/40 inline-block" />;
+
+  return candidates.sort((a, b) => b.avgGain - a.avgGain);
+}
+
+// Boss thumbnail. Tries the local wiki portrait first
+// Uses the shared BossSprite fallback contract so DPS rows never fall back to
+// emoji or an anonymous dot: local boss art → signature item sprite → labelled
+// missing-sprite tile.
+function BossThumb({ boss }: { boss: Boss }) {
+  return (
+    <div className="size-9 shrink-0 rounded-md bg-[var(--color-bg-2)] border border-[var(--color-border)] flex items-center justify-center overflow-hidden">
+      <BossSprite boss={boss} size={36} />
+    </div>
+  );
 }

@@ -14,8 +14,7 @@ export interface Boss {
   // Canonical sprite — the boss's signature drop or trophy item. Matches what
   // OSRS hiscores uses next to the boss name.
   iconItemId?: number;
-  // Wiki page name for the NPC sprite (chathead/portrait). Falls back to
-  // `name` if omitted. Used by NPC_SPRITE_URL.
+  // Optional canonical NPC page name for future metadata sync.
   npcName?: string;
   hp: number;
   defenceLevel: number;
@@ -121,6 +120,10 @@ export const BOSSES: Boss[] = [
     weaknesses: ["ranged"], avgLootGp: 30_000, killsPerHourCap: 30 },
 
   // ── Slayer bosses ────────────────────────────────────────────────────────
+  { slug: "kalphite-queen", name: "Kalphite Queen", emoji: "🐜", iconItemId: 11944, category: "slayer",
+    hp: 510, defenceLevel: 300, defenceBonuses: { stab: 40, slash: 40, crush: 40, magic: 120, ranged: 120 },
+    weaknesses: ["stab", "crush"], avgLootGp: 45_000, killsPerHourCap: 25,
+    notes: "Two 255 HP phases. Keris partisan and Slayer helm matter more than generic ranged gear." },
   { slug: "vorkath", name: "Vorkath", emoji: "🐲", iconItemId: 21907, category: "slayer",
     hp: 750, defenceLevel: 214, defenceBonuses: { stab: 26, slash: 108, crush: 108, magic: 240, ranged: 26 },
     magicLevel: 150, weaknesses: ["ranged", "stab"], avgLootGp: 150_000, killsPerHourCap: 35,

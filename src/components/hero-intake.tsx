@@ -16,12 +16,16 @@ import { cn } from "@/lib/utils";
 // duidelijk submit-doel.
 
 const HERO_BANK_KEY = "scapestack:hero:bank";
+const HERO_BANK_PANEL_ID = "hero-bank-paste-panel";
+const HERO_BANK_TEXTAREA_ID = "hero-bank-paste";
+const HERO_BANK_HELP_ID = "hero-bank-paste-help";
 
 export function HeroIntake() {
   const router = useRouter();
   const [rsn, setRsn] = useState("");
   const [showBank, setShowBank] = useState(false);
   const [bank, setBank] = useState("");
+  const hasBankPaste = showBank && Boolean(bank.trim());
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,11 +33,11 @@ export function HeroIntake() {
     if (!trimmed) return;
     // Bank-paste mag persistent — voor de hero is sessionStorage genoeg
     // omdat /next 'm meteen consumeert. Geen langdurige opslag.
-    if (showBank && bank.trim()) {
+    if (hasBankPaste) {
       try { sessionStorage.setItem(HERO_BANK_KEY, bank); }
       catch { /* private mode → silently skip; /next valt terug op stat-only */ }
     }
-    router.push(`/next?rsn=${encodeURIComponent(trimmed)}`);
+    router.push(`/next?rsn=${encodeURIComponent(trimmed)}${hasBankPaste ? "" : "&bank=none"}`);
   };
 
   return (
@@ -51,13 +55,21 @@ export function HeroIntake() {
         )}
       >
         <div className="flex items-center pl-6 pr-1.5 py-1.5">
+          <label htmlFor="hero-rsn-input" className="sr-only">
+            OSRS name for /next planning
+          </label>
           <input
+            id="hero-rsn-input"
+            name="rsn"
             type="text"
             value={rsn}
             onChange={(e) => setRsn(e.target.value)}
             placeholder="Type your OSRS name"
             maxLength={12}
+            autoComplete="off"
             autoFocus
+            spellCheck={false}
+            aria-describedby="hero-plan-disabled-help"
             className={cn(
               "flex-1 bg-transparent outline-none",
               "text-[17px] sm:text-[18px] font-medium tracking-[-0.01em]",
@@ -67,6 +79,8 @@ export function HeroIntake() {
           />
           <button
             type="submit"
+            aria-label={hasBankPaste ? "Open /next planner with RSN and browser-only bank paste" : "Open /next planner with RSN and Hiscores only"}
+            aria-describedby="hero-plan-disabled-help"
             disabled={!rsn.trim()}
             className={cn(
               "group/btn relative overflow-hidden",
@@ -79,7 +93,7 @@ export function HeroIntake() {
               "disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.35),0_4px_14px_-4px_rgba(230,165,47,0.55)]"
             )}
           >
-            <span className="relative z-10">Generate</span>
+            <span className="relative z-10">{hasBankPaste ? "Plan with bank" : "Plan from stats"}</span>
             <ArrowRight className="relative z-10 size-4 group-hover/btn:translate-x-0.5 transition-transform" />
             {/* Sheen-overlay die over de knop zwiept bij hover */}
             <span
@@ -94,6 +108,17 @@ export function HeroIntake() {
           </button>
         </div>
       </div>
+      <p
+        id="hero-plan-disabled-help"
+        aria-live="polite"
+        className="text-center text-[11.5px] leading-relaxed text-[var(--color-text-muted)]"
+      >
+        {rsn.trim()
+          ? hasBankPaste
+            ? "Ready: /next will use this RSN plus your browser-only bank paste."
+            : "Ready: /next will use Hiscores and ignore stale bank handoff data."
+          : "Type an OSRS name to unlock the planner. Add bank paste only if you want gear-aware advice."}
+      </p>
 
       {/* Secundaire acties — één rustige regel, link-stijl, gescheiden
           door een dot. Geen tweede knop die met Generate concurreert. */}
@@ -103,9 +128,12 @@ export function HeroIntake() {
             <button
               type="button"
               onClick={() => setShowBank(true)}
+              aria-controls={HERO_BANK_PANEL_ID}
+              aria-expanded={showBank}
+              aria-label="Show optional browser-only bank paste field"
               className="hover:text-[var(--color-accent)] underline underline-offset-4 decoration-dotted transition-colors"
             >
-              Add bank for sharper advice
+              Add browser-only bank paste
             </button>
             <span aria-hidden="true" className="text-[var(--color-border-strong)]">·</span>
             <Link
@@ -120,21 +148,46 @@ export function HeroIntake() {
 
       {/* Bank-paste textarea — alleen zichtbaar als toggle aan staat. */}
       {showBank && (
-        <div className="animate-[fade-in_0.3s_ease-out]">
+        <div
+          id={HERO_BANK_PANEL_ID}
+          role="region"
+          aria-label="Optional browser-only bank paste"
+          className="animate-[fade-in_0.3s_ease-out]"
+        >
           <label className="block">
-            <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-              Bank export <span className="normal-case tracking-normal">(optional — sharper advice)</span>
+            <span
+              id={`${HERO_BANK_TEXTAREA_ID}-label`}
+              className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]"
+            >
+              Bank export <span className="normal-case tracking-normal">(optional — browser-only, sharper gear advice)</span>
             </span>
             <textarea
+              id={HERO_BANK_TEXTAREA_ID}
+              name="bank"
               value={bank}
               onChange={(e) => setBank(e.target.value)}
               placeholder="Paste your RuneLite Bank Memory export here…"
               rows={4}
+              spellCheck={false}
+              aria-labelledby={`${HERO_BANK_TEXTAREA_ID}-label`}
+              aria-describedby={HERO_BANK_HELP_ID}
               className="mt-2 w-full rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none px-3 py-2 text-[12px] font-mono text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] resize-y"
             />
+            <span
+              id={HERO_BANK_HELP_ID}
+              role="status"
+              aria-live="polite"
+              className="mt-1 block text-[11px] leading-relaxed text-[var(--color-text-muted)]"
+            >
+              {bank.trim()
+                ? "Bank paste detected. It stays in this browser session and is consumed by /next."
+                : "Optional: paste Bank Memory for gear-aware advice. RuneLite sync never receives this bank."}
+            </span>
             <button
               type="button"
               onClick={() => { setShowBank(false); setBank(""); }}
+              aria-controls={HERO_BANK_PANEL_ID}
+              aria-label="Hide bank paste and plan from Hiscores only"
               className="mt-1.5 text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-text-dim)] transition-colors"
             >
               Hide — just use my stats

@@ -73,7 +73,7 @@ const SLUG_TO_WIKI_PAGE = {
 };
 
 // ASCII-only UA — em-dashes break Node's HTTP header check.
-const UA = "scapestack-boss-sprite-builder/1.0 (+https://scapestack.app - laurensbs@hotmail.com)";
+const UA = "scapestack-boss-sprite-builder/1.0 (+https://www.scapestack.org - laurensbs@hotmail.com)";
 
 // Parse the top-level `{ slug: "x", name: "Y" }` entries out of bosses.ts.
 // Crude regex, but bosses.ts is hand-written and stable — no need for a

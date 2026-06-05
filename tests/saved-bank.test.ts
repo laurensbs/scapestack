@@ -136,6 +136,26 @@ describe("saved-bank: RSN round-trip", () => {
 });
 
 describe("saved-bank: diffIconicItems", () => {
+  it("detects new iconics from canonical Bank Memory TSV item-name column", async () => {
+    const { diffIconicItems } = await loadModule();
+    const prev = [
+      "Item id\tItem name\tItem quantity",
+      "4151\tAbyssal whip\t1",
+      "4587\tDragon scimitar\t1"
+    ].join("\n");
+    const next = [
+      "Item id\tItem name\tItem quantity",
+      "4151\tAbyssal whip\t1",
+      "4587\tDragon scimitar\t1",
+      "20997\tTwisted bow\t1"
+    ].join("\n");
+
+    const fresh = diffIconicItems(prev, next);
+
+    expect(fresh).toHaveLength(1);
+    expect(fresh[0].displayName).toBe("Twisted bow");
+  });
+
   it("flags items present in next but not in prev", async () => {
     const { diffIconicItems } = await loadModule();
     const prev = "Abyssal whip\t1\nDragon scimitar\t1\n";

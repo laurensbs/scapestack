@@ -5,6 +5,7 @@
 //  - homepage:sample   — "See it with a sample bank" clicked on homepage
 //  - saved-bank:reuse  — "Use saved bank" tapped in the welcome-back banner
 //  - bank:copy         — "Copy to RuneLite" clicked in BankResult
+//  - bank:snapshot_compare_copy — compare summary copied from snapshot history
 //
 // Everything else (page views) is auto-tracked by the script tag. We add
 // only the events that mark *intent* — pageviews tell you "they landed",
@@ -17,7 +18,8 @@ export type AnalyticsEvent =
   | "next:submit"
   | "homepage:sample"
   | "saved-bank:reuse"
-  | "bank:copy";
+  | "bank:copy"
+  | "bank:snapshot_compare_copy";
 
 interface PlausibleFn {
   (event: string, opts?: { props?: Record<string, string | number | boolean> }): void;

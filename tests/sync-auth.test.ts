@@ -164,6 +164,13 @@ describe("recordClaim", () => {
     expect(dbState.insertedHashes).toEqual([__test.hashToken(token)]);
   });
 
+  it("reports whether an RSN already has a claim", async () => {
+    const { recordClaim, hasExistingClaim } = await loadAuth();
+    expect(await hasExistingClaim("Claimed One")).toBe(false);
+    await recordClaim("Claimed One", "token-abcdefghijklmnop");
+    expect(await hasExistingClaim("claimed one")).toBe(true);
+  });
+
   it("treats a re-claim with the SAME token as ok (idempotent)", async () => {
     const { recordClaim, __test } = await loadAuth();
     const token = "11111111-2222-3333-4444-555555555555";

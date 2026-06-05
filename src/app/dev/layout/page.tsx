@@ -3,11 +3,25 @@
 // pasting an export. Server component — fetches no prices, only reads
 // data/items.json and runs organize().
 
+import type { Metadata } from "next";
 import { organize } from "@/lib/organizer";
 import { buildUseCaseTabs, explainBucket, type BucketExplanation } from "@/lib/use-case-tabs";
 import { SMALL_MAIN_BANK, MAX_MAIN_BANK, SKILLER_BANK, IRONMAN_BANK } from "@/lib/fixtures";
-import { ICON_URL, formatGp, formatQty } from "@/lib/utils";
+import { ItemSprite } from "@/components/item-sprite";
+import { formatGp, formatQty } from "@/lib/utils";
 import type { Archetype } from "@/lib/archetype";
+
+export const metadata: Metadata = {
+  title: "Layout fixture preview",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false
+    }
+  }
+};
 
 interface FixtureSpec {
   name: string;
@@ -152,7 +166,7 @@ async function ArchetypeDiff({ fixture, a, b }: { fixture: FixtureSpec; a: Arche
           return (
             <>
               <div key={`n${r.itemId}`} className="flex items-center gap-1.5 truncate" title={r.name}>
-                <img src={ICON_URL(r.itemId)} alt="" className="size-3.5" />
+                <ItemSprite id={r.itemId} alt="" size={14} className="pixelated" />
                 <span className="truncate">{r.name}</span>
               </div>
               <div
@@ -245,7 +259,7 @@ export default async function DevLayoutPage() {
                 {tabs.map((t, idx) => (
                   <li key={String(t.name)} className="flex items-center gap-2">
                     <span className="text-[var(--color-text-muted)] w-4">{idx + 1}.</span>
-                    <img src={ICON_URL(t.iconItemId)} alt="" className="size-4" />
+                    <ItemSprite id={t.iconItemId} alt="" size={16} className="pixelated" />
                     <span className="flex-1 truncate">{String(t.name)}</span>
                     <span className="text-[var(--color-text-muted)]">{t.items.length}</span>
                   </li>
@@ -277,7 +291,7 @@ export default async function DevLayoutPage() {
               {tabs.map((tab) => (
                 <div key={String(tab.name)}>
                   <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-                    <img src={ICON_URL(tab.iconItemId)} alt="" className="size-5" />
+                    <ItemSprite id={tab.iconItemId} alt="" size={20} className="pixelated" />
                     <span>{String(tab.name)}</span>
                     <span className="text-xs text-[var(--color-text-muted)]">
                       {tab.items.length} items
@@ -307,8 +321,8 @@ export default async function DevLayoutPage() {
                           className="aspect-square border border-[var(--color-border)] bg-[var(--color-surface)] relative flex items-center justify-center"
                           title={title}
                         >
-                          <img
-                            src={ICON_URL(item.id)}
+                          <ItemSprite
+                            id={item.id}
                             alt={item.name}
                             className="max-w-[80%] max-h-[80%]"
                           />

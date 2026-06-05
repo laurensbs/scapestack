@@ -7,7 +7,8 @@ import type { Boss } from "@/lib/bosses";
 import { bestStyleAndSetup, calcDps, autoSetup, type DpsBreakdown, type Setup } from "@/lib/dps";
 import { GEAR, type GearItem, type CombatStyle } from "@/lib/gear";
 import { PRESETS } from "@/lib/presets";
-import { ICON_URL, formatGp, cn } from "@/lib/utils";
+import { formatGp, cn } from "@/lib/utils";
+import { ItemSprite } from "@/components/item-sprite";
 
 interface Props {
   boss: Boss;
@@ -20,6 +21,9 @@ interface Props {
 // big portrait left 60%, gear+stats+upgrades+inventory right — and
 // stacks on mobile.
 export function BossDetailModal({ boss, owned, onClose }: Props) {
+  const titleId = "boss-modal-title";
+  const descriptionId = "boss-modal-description";
+  const statsId = "boss-modal-stats";
   // a11y: Esc closes, body scroll locked while open.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -49,12 +53,14 @@ export function BossDetailModal({ boss, owned, onClose }: Props) {
       className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="boss-modal-title"
+      aria-labelledby={titleId}
+      aria-describedby={`${descriptionId} ${statsId}`}
       style={{ animation: "fade-in 0.2s ease-out" }}
     >
       <button
         type="button"
-        aria-label="Close"
+        aria-label={`Close ${boss.name} boss setup details`}
+        aria-hidden="true"
         tabIndex={-1}
         onClick={onClose}
         className="absolute inset-0 bg-[rgba(7,9,12,0.82)] backdrop-blur-sm cursor-default"
@@ -69,7 +75,7 @@ export function BossDetailModal({ boss, owned, onClose }: Props) {
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close"
+          aria-label={`Close ${boss.name} boss setup details`}
           className="absolute top-3 right-3 z-10 size-9 rounded-full flex items-center justify-center bg-[var(--color-bg)]/70 backdrop-blur border border-[var(--color-border-strong)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg)] transition-colors"
         >
           <X className="size-4" />
@@ -96,13 +102,13 @@ export function BossDetailModal({ boss, owned, onClose }: Props) {
               page hero, low-contrast bg-tint so it doesn't fight the boss. */}
           <div className="absolute bottom-4 left-4 right-4 z-10">
             <h2
-              id="boss-modal-title"
+              id={titleId}
               className="text-[24px] sm:text-[28px] font-bold tracking-tight text-[var(--color-text)] leading-tight"
               style={{ textShadow: "0 2px 12px rgb(0 0 0 / 0.6)" }}
             >
               {boss.name}
             </h2>
-            <p className="mt-0.5 text-[12px] text-[var(--color-text-dim)]" style={{ textShadow: "0 1px 6px rgb(0 0 0 / 0.7)" }}>
+            <p id={descriptionId} className="mt-0.5 text-[12px] text-[var(--color-text-dim)]" style={{ textShadow: "0 1px 6px rgb(0 0 0 / 0.7)" }}>
               {boss.hp} HP{boss.notes ? ` · ${boss.notes}` : ""}
             </p>
           </div>
@@ -112,7 +118,7 @@ export function BossDetailModal({ boss, owned, onClose }: Props) {
             internally so the modal as a whole stays in viewport. */}
         <div className="relative overflow-y-auto p-5 sm:p-6 space-y-5">
           {/* Stats row — DPS, Max hit, Accuracy, plus GP/hr if available. */}
-          <section>
+          <section id={statsId}>
             <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">Best style with your gear</h3>
             {dps.dps > 0 ? (
               <>
@@ -182,11 +188,11 @@ export function BossDetailModal({ boss, owned, onClose }: Props) {
                       className="flex items-center gap-2.5 px-2.5 py-2 rounded-md bg-[var(--color-bg-2)] border border-[var(--color-border)]"
                     >
                       <div className="size-8 shrink-0 rounded bg-[var(--color-bg)] border border-[var(--color-border)] flex items-center justify-center">
-                        <img
-                          src={ICON_URL(u.item.id)}
+                        <ItemSprite
+                          id={u.item.id}
                           alt=""
                           className="pixelated"
-                          style={{ maxWidth: "78%", maxHeight: "78%", imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
+                          style={{ maxWidth: "78%", maxHeight: "78%" }}
                         />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -239,13 +245,11 @@ export function BossDetailModal({ boss, owned, onClose }: Props) {
                             title={owned_match ? owned_match.name : "Not in your bank"}
                           >
                             {owned_match && (
-                              <img
-                                src={ICON_URL(owned_match.id)}
+                              <ItemSprite
+                                id={owned_match.id}
                                 alt=""
-                                width={14}
-                                height={14}
+                                size={14}
                                 className="pixelated"
-                                style={{ imageRendering: "pixelated" }}
                               />
                             )}
                             <span className="truncate max-w-[140px]">{owned_match?.name ?? label}</span>
@@ -315,11 +319,11 @@ function GearSlotGrid({ setup }: { setup: Setup }) {
             )}
           >
             {item ? (
-              <img
-                src={ICON_URL(item.id)}
+              <ItemSprite
+                id={item.id}
                 alt=""
                 className="pixelated"
-                style={{ maxWidth: "75%", maxHeight: "75%", imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
+                style={{ maxWidth: "75%", maxHeight: "75%" }}
               />
             ) : (
               <span className="text-[9px] uppercase tracking-wider text-[var(--color-text-muted)]/50">{label}</span>

@@ -2,7 +2,7 @@
 //
 // Each Scapestack plugin install generates a UUID token on first run
 // (held in RuneLite config-storage). The plugin's first sync POSTs to
-// /api/sync/claim with { rsn, token, hiscoresName? }. We:
+// /api/sync/claim with { rsn } plus Authorization: Bearer <token>. We:
 //   1. Verify the RSN exists on the OSRS Hiscores (best-effort).
 //   2. Hash the token and store rsn → token_hash. First write wins.
 //   3. On every subsequent /api/sync, require Authorization: Bearer
@@ -48,6 +48,21 @@ export interface ClaimResult {
    *  caller can decide whether the incoming claim matches it (re-run of
    *  the same plugin install) or conflicts (different install). */
   existingTokenHash?: string;
+}
+
+export async function hasExistingClaim(rsn: string): Promise<boolean> {
+  if (!hasDatabase()) return false;
+  const norm = normalize(rsn);
+  if (!norm) return false;
+  try {
+    const rows = await sql()`
+      SELECT token_hash FROM player_claim WHERE rsn = ${norm} LIMIT 1
+    ` as Array<{ token_hash: string }>;
+    return Boolean(rows[0]?.token_hash);
+  } catch (err) {
+    console.error("hasExistingClaim failed:", err);
+    return false;
+  }
 }
 
 /** Records a claim. First call for a given RSN wins; subsequent calls

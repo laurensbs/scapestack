@@ -43,7 +43,7 @@ const SKILL_NAMES = new Set([
   "Attack","Strength","Defence","Hitpoints","Ranged","Prayer","Magic",
   "Cooking","Woodcutting","Fletching","Fishing","Firemaking","Crafting",
   "Smithing","Mining","Herblore","Agility","Thieving","Slayer","Farming",
-  "Runecraft","Hunter","Construction"
+  "Runecraft","Hunter","Construction","Sailing"
 ]);
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

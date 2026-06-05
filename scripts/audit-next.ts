@@ -1,6 +1,6 @@
 // Eerlijkheidstest voor /next.
 //
-// Doel: drie archetypes uit docs/USER-TEST.md door de echte engine
+// Doel: vijf archetypes uit docs/USER-TEST.md door de echte engine
 // halen en de top-aanbevelingen printen, zodat we kunnen zien of het
 // advies *zinnig* is voor uiteenlopende accounts — niet alleen of de
 // tests groen blijven. Run met:
@@ -13,17 +13,18 @@
 import { computeNextUp, type Recommendation } from "../src/lib/next-up";
 import type { HiscoreSkill } from "../src/lib/hiscores";
 import type { CompletionItem } from "../src/lib/goals";
+import type { AccountMeta } from "../src/lib/path-progress";
 
 // ── Helpers ────────────────────────────────────────────────────────
 
-// Hiscores volgorde: Overall + 23 skills. xp grof afgeleid van level
+// Hiscores volgorde: Overall + 24 skills. xp grof afgeleid van level
 // via een lookup-tabel zou pedant zijn — voor de engine matters
 // vooral `level`, dus we vullen `xp` met een plausibele waarde.
 const SKILL_NAMES = [
   "Overall", "Attack", "Defence", "Strength", "Hitpoints", "Ranged",
   "Prayer", "Magic", "Cooking", "Woodcutting", "Fletching", "Fishing",
   "Firemaking", "Crafting", "Smithing", "Mining", "Herblore", "Agility",
-  "Thieving", "Slayer", "Farming", "Runecraft", "Hunter", "Construction"
+  "Thieving", "Slayer", "Farming", "Runecraft", "Hunter", "Construction", "Sailing"
 ];
 
 // Approximate XP-at-level (RuneScape formula, truncated). Good enough
@@ -67,6 +68,7 @@ const SCENARIOS: Array<{
   bank: CompletionItem[];
   questPoints: number;
   bossKc: Record<string, number>;
+  accountMeta?: AccountMeta;
   expected: string[];
   badSigns: string[];
 }> = [
@@ -101,7 +103,7 @@ const SCENARIOS: Array<{
     bossKc: {},
     expected: [
       "A quest worth doing now (RFD subs, While Guthix Sleeps, Monkey Madness II, …)",
-      "A diary tier they passively meet (Karamja Medium / Falador Medium / Varrock Medium)",
+      "A diary tier they visibly meet by skill gates (Medium/Hard is fine; don't overclaim every task)",
       "A skill push within reach (Slayer 70 / Prayer 70 / Agility 70)"
     ],
     badSigns: [
@@ -142,6 +144,13 @@ const SCENARIOS: Array<{
       "Duke Sucellus": 320,
       "The Leviathan": 280,
       "The Whisperer": 240
+    },
+    accountMeta: {
+      displayName: "Maxed Iron",
+      accountType: "ironman",
+      ehp: 3500,
+      ehb: 900,
+      lastChangedAt: null
     },
     expected: [
       "A pet/unique they're dry on (Vorki at 1500 KC, Tanzanite mutagen, Xeric/Sanguine/Tumeken's heir)",
@@ -294,7 +303,8 @@ async function main() {
       skills: s.skills,
       bank: s.bank,
       questPoints: s.questPoints,
-      bossKc: s.bossKc
+      bossKc: s.bossKc,
+      accountMeta: s.accountMeta ?? null
     });
 
     console.log("");

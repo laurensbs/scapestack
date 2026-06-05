@@ -39,8 +39,12 @@ export default function HiscorePage() {
           )}
         >
           <div className="relative flex-1">
+            <label htmlFor="hiscore-rsn-input" className="sr-only">
+              OSRS name for Hiscore lookup
+            </label>
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[var(--color-text-muted)]" />
             <input
+              id="hiscore-rsn-input"
               type="text"
               name="rsn"
               placeholder="Enter a username, e.g. Lynx Titan"
@@ -49,6 +53,7 @@ export default function HiscorePage() {
               autoFocus
               spellCheck={false}
               autoComplete="off"
+              aria-describedby="hiscore-rsn-help"
               className={cn(
                 "w-full pl-11 pr-3 py-3.5 rounded-xl text-[15px] sm:text-[16px]",
                 "bg-transparent border-0",
@@ -59,6 +64,7 @@ export default function HiscorePage() {
           </div>
           <button
             type="submit"
+            aria-label="Look up OSRS player Hiscores"
             className={cn(
               "flex items-center gap-1.5 px-5 py-3 rounded-xl text-[14px] font-semibold",
               "bg-[var(--color-accent)] text-[#07090C]",
@@ -69,6 +75,12 @@ export default function HiscorePage() {
             <ArrowRight className="size-4" />
           </button>
         </form>
+        <p
+          id="hiscore-rsn-help"
+          className="mx-auto mt-2 max-w-xl text-center text-[11.5px] leading-relaxed text-[var(--color-text-muted)]"
+        >
+          Uses the official OSRS Hiscores. Player names are capped at 12 characters; add bank or RuneLite sync later for sharper planning.
+        </p>
 
         {/* Try-these suggestions as featured chips */}
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2">

@@ -8,6 +8,7 @@ import { fetchWom, type WomPlayer } from "@/lib/wom";
 import { fetchCollectionLog, type CollectionLog } from "@/lib/collection-log";
 import { fetchTemple, type TempleData } from "@/lib/temple";
 import { getSyncedPlayer, type SyncedPlayer } from "@/lib/sync-repo";
+import { hasDatabase } from "@/lib/db";
 
 export async function hiscoresAction(rsn: string): Promise<PlayerHiscores | null> {
   // Server-side proxy for the OSRS Hiscores fetch. The Jagex endpoint
@@ -81,6 +82,18 @@ export async function templeAction(rsn: string): Promise<TemplePayload | null> {
  *  when DATABASE_URL is unset in dev). */
 export async function syncedPlayerAction(rsn: string): Promise<SyncedPlayer | null> {
   return getSyncedPlayer(rsn);
+}
+
+export type PluginSyncStatus =
+  | { kind: "unconfigured" }
+  | { kind: "missing"; rsn: string }
+  | { kind: "found"; player: SyncedPlayer };
+
+export async function pluginSyncStatusAction(rsn: string): Promise<PluginSyncStatus> {
+  if (!hasDatabase()) return { kind: "unconfigured" };
+  const trimmed = rsn.trim();
+  const player = await getSyncedPlayer(trimmed);
+  return player ? { kind: "found", player } : { kind: "missing", rsn: trimmed };
 }
 
 export async function nextUpAction(input: NextUpInput): Promise<NextUpResult> {

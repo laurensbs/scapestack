@@ -2,8 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Sword, Target, Map as MapIcon, TrendingUp, ChevronRight, Check } from "lucide-react";
-import { ICON_URL, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { PathOverview as PathOverviewData, PathProgress } from "@/lib/path-progress";
+import { CURRENT_PLUGIN_VERSION, isPluginVersionAtLeast } from "@/lib/plugin-sync";
+import { pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
+import { ItemSprite } from "./item-sprite";
 import { PathDetailModal } from "./path-detail-modal";
 
 // Choreography constants — the title types in over ~700ms, this strip
@@ -55,6 +58,7 @@ function SyncedBadge({ data }: { data: PathOverviewData }) {
   const meta = data.accountMeta;
   const synced = data.syncedSources;
   const plugin = synced?.scapestack ?? null;
+  const pluginOutdated = Boolean(plugin) && !isPluginVersionAtLeast(plugin?.pluginVersion);
   // Scapestack plugin wins primary slot when present — our own data is
   // the most authoritative.
   if (plugin) {
@@ -93,12 +97,10 @@ function SyncedBadge({ data }: { data: PathOverviewData }) {
           Estimated · uses skill/QP heuristics
         </span>
         <a
-          href="https://github.com/runelite/plugin-hub/pull/12227"
-          target="_blank"
-          rel="noopener noreferrer"
+          href={pluginVerifyUrlForSyncedRsn(meta?.displayName ?? "", "next")}
           className="text-[var(--color-text-dim)] hover:text-[var(--color-accent)] transition-colors"
         >
-          Want exact data? Install the Scapestack RuneLite plugin (in review) →
+          Want verified coverage? Check RuneLite sync status before setup →
         </a>
       </div>
     );
@@ -135,7 +137,9 @@ function SyncedBadge({ data }: { data: PathOverviewData }) {
       </div>
       {plugin && (
         <div className="text-[11px] text-[var(--color-text-dim)] tabular-nums">
-          {relativeTime(plugin.syncedAt)} · {plugin.quests} quests · {plugin.diaries} diaries · {plugin.clItems} CL items
+          {pluginOutdated
+            ? `Plugin v${plugin.pluginVersion ?? "unknown"} · update to v${CURRENT_PLUGIN_VERSION} for full Slayer sync`
+            : `${relativeTime(plugin.syncedAt)} · ${plugin.quests} quests · ${plugin.diaries} diaries · ${plugin.clItems} CL items`}
         </div>
       )}
     </div>
@@ -345,16 +349,14 @@ function PathIcon({ kind, size = 28 }: { kind: PathProgress["kind"]; size?: numb
     : kind === "diaries" ? 11140         // karamja gloves 4
     : 4151;                              // abyssal whip → bosses
   return (
-    <img
-      src={ICON_URL(itemId)}
+    <ItemSprite
+      id={itemId}
       alt=""
       className="pixelated"
       style={{
         width: size,
         height: size,
-        imageRendering: "pixelated",
-        objectFit: "contain",
-        filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))"
+        objectFit: "contain"
       }}
     />
   );
@@ -394,13 +396,11 @@ function PathCard({ path, onOpen }: { path: PathProgress; onOpen: () => void }) 
               className="flex items-start gap-2.5 px-3 py-2 rounded-md bg-[var(--color-bg-2)] border border-[var(--color-border)]"
             >
               {step.iconItemId ? (
-                <img
-                  src={ICON_URL(step.iconItemId)}
+                <ItemSprite
+                  id={step.iconItemId}
                   alt=""
-                  width={16}
-                  height={16}
+                  size={16}
                   className="pixelated mt-0.5 shrink-0"
-                  style={{ imageRendering: "pixelated" }}
                 />
               ) : step.bossSlug ? (
                 <img

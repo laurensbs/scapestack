@@ -40,6 +40,7 @@ const AVG_XP_PER_HOUR: Record<string, number> = {
   Hunter:        80_000,  // chinchompas
   Construction:  600_000, // mahogany homes / butler trick
   Runecraft:     30_000,  // bloods / ZMI
+  Sailing:       60_000,  // early post-launch average methods
   Mining_alt:    55_000   // placeholder, ongebruikt
 };
 

@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { computeTips } from "@/lib/tips";
 import type { OrganizedItem, OrganizedTab } from "@/lib/organizer";
+import { organize } from "@/lib/organizer";
+import { SAMPLE_BANKTAGS } from "@/lib/utils";
 
 // Build a minimal tab with the given items — saves us writing all the
 // scaffold fields by hand in every test.
@@ -34,6 +36,8 @@ describe("tips — decant detector", () => {
     expect(t).toBeDefined();
     expect(t!.slotsFreed).toBe(2);
     expect(t!.itemIds).toContain(11978);
+    expect(t!.itemRefs).toContainEqual({ id: 1706, name: "Amulet of glory(1)" });
+    expect(t!.itemRefs).toContainEqual({ id: 11978, name: "Amulet of glory(6)" });
     // subKind drives UI grouping ("Decant jewellery" vs "Decant potions").
     expect(t!.subKind).toBe("jewellery");
   });
@@ -77,6 +81,10 @@ describe("tips — stack-merge detector", () => {
     expect(t).toBeDefined();
     expect(t!.itemIds).toContain(11864);
     expect(t!.itemIds).toContain(11865);
+    expect(t!.itemRefs).toEqual([
+      { id: 11864, name: "Slayer helmet" },
+      { id: 11865, name: "Slayer helmet (i)" }
+    ]);
   });
 
   it("does NOT flag dose variants — decant handles them", () => {
@@ -123,6 +131,7 @@ describe("tips — untradeable-pickup detector", () => {
     const t = tips.find((x) => x.id === "pickup:infernal-cape");
     expect(t).toBeDefined();
     expect(t!.itemIds).toContain(21295);
+    expect(t!.itemRefs).toEqual([{ id: 21295, name: "Infernal cape" }]);
   });
 
   it("does not suggest Infernal cape when player already has it", () => {
@@ -165,5 +174,11 @@ describe("tips — overall shape", () => {
     ])]);
     const ids = tips.map((t) => t.id);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("sample bank visibly demonstrates at least one actionable tip", async () => {
+    const result = await organize({ input: SAMPLE_BANKTAGS, includePrices: false });
+    const tips = computeTips(result.tabs);
+    expect(tips.some((tip) => tip.kind === "decant" && tip.subKind === "potions")).toBe(true);
   });
 });

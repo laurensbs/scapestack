@@ -4,7 +4,8 @@ import { useState } from "react";
 import { TrendingUp, TrendingDown, Plus, Minus, ChevronDown, X } from "lucide-react";
 import type { BankDiff } from "@/lib/diff";
 import type { ScorePoint } from "@/lib/score-history";
-import { ICON_URL, cn, formatGp, formatQty } from "@/lib/utils";
+import { cn, formatGp, formatQty } from "@/lib/utils";
+import { ItemSprite } from "@/components/item-sprite";
 
 interface Props {
   diff: BankDiff;
@@ -160,18 +161,16 @@ function DiffColumn({ title, tone, empty, items }: { title: string; tone: "up" |
       <ul className="space-y-1.5">
         {items.slice(0, 8).map((it) => (
           <li key={`${it.id}-${it.delta}`} className="flex items-center gap-2 text-[12px]">
-            <img
-              src={ICON_URL(it.id)}
+            <ItemSprite
+              id={it.id}
               alt=""
               loading="lazy"
-              decoding="async"
               className="pixelated shrink-0 pointer-events-none"
               style={{
                 maxWidth: "20px",
                 maxHeight: "20px",
                 width: "auto",
-                height: "auto",
-                imageRendering: "pixelated"
+                height: "auto"
               }}
             />
             <span className="flex-1 min-w-0 truncate text-[var(--color-text)]">{it.name}</span>

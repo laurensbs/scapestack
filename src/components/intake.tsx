@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { ClipboardPaste, Trash2, ArrowRight, Loader2, User, Sparkles, Filter, Check } from "lucide-react";
-import { cn, SAMPLE_BANKTAGS, ICON_URL } from "@/lib/utils";
+import { ClipboardPaste, Trash2, ArrowRight, Loader2, User, Sparkles, Filter, Check, Upload } from "lucide-react";
+import { cn, SAMPLE_BANKTAGS } from "@/lib/utils";
 import { loadStoredRsn, saveStoredRsn } from "@/lib/archetype";
+import { ItemSprite } from "@/components/item-sprite";
 
 const STORAGE_KEY = "osrs-bank-organizer:last-input";
 
@@ -20,6 +21,43 @@ function detectKind(s: string): InputKind {
   return "unknown";
 }
 
+function summarizeInput(value: string, kind: InputKind): { label: string; detail: string } | null {
+  const text = value.trim();
+  if (!text || !kind || kind === "unknown") return null;
+
+  if (kind === "banktags") {
+    const parts = text.split(",").map((part) => part.trim()).filter(Boolean);
+    const itemCount = Math.max(0, parts.length - 3);
+    return {
+      label: "Bank Tags detected",
+      detail: `${itemCount.toLocaleString()} item IDs · layout exact · quantities unavailable`
+    };
+  }
+
+  if (kind === "bankMemory") {
+    const rows = text.split(/\r?\n/).filter((line) => line.trim()).slice(1);
+    return {
+      label: "Bank Memory detected",
+      detail: `${rows.length.toLocaleString()} item rows · quantities active · value sorting enabled`
+    };
+  }
+
+  const itemCount = text.split(/[,\s]+/).filter(Boolean).length;
+  return {
+    label: "Raw item IDs detected",
+    detail: `${itemCount.toLocaleString()} item IDs · layout works · names and quantities inferred where possible`
+  };
+}
+
+function cleanRsn(input: string | null | undefined): string {
+  return (input ?? "").trim().slice(0, 12);
+}
+
+function rsnFromCurrentUrl(): string {
+  if (typeof window === "undefined") return "";
+  return cleanRsn(new URLSearchParams(window.location.search).get("rsn"));
+}
+
 const HINTS: Record<NonNullable<InputKind>, { msg: string; tone: "good" | "neutral" | "bad" }> = {
   banktags: { msg: "Bank Tags string — no quantities, but layout still works", tone: "neutral" },
   bankMemory: { msg: "Bank Memory TSV — includes quantities, smart sort enabled", tone: "good" },
@@ -32,18 +70,24 @@ interface IntakeProps {
   loading: boolean;
   error: string | null;
   askRsn?: boolean;
+  initialRsn?: string;
   // Fired as the user fills the flow in: false → empty box, true → a valid
   // bank is pasted. The parent uses this to advance the Intro's step rail.
   onPasteStateChange?: (pasted: boolean) => void;
 }
 
-export function Intake({ onSubmit, loading, error, askRsn = false, onPasteStateChange }: IntakeProps) {
+export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = "", onPasteStateChange }: IntakeProps) {
   const [value, setValue] = useState("");
   const [restored, setRestored] = useState(false);
   const [junkFilter, setJunkFilter] = useState(false);
   const [dragOver, setDragOver] = useState(false);
-  const [rsn, setRsn] = useState("");
+  const [clipboardState, setClipboardState] = useState<"idle" | "pasted" | "empty" | "blocked">("idle");
+  const [fileImportState, setFileImportState] = useState<"idle" | "loaded" | "unsupported">("idle");
+  const cleanInitialRsn = cleanRsn(initialRsn);
+  const [rsn, setRsn] = useState(cleanInitialRsn);
+  const [handoffRsn, setHandoffRsn] = useState(cleanInitialRsn);
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Restore last input + RSN on mount
   useEffect(() => {
@@ -54,12 +98,20 @@ export function Intake({ onSubmit, loading, error, askRsn = false, onPasteStateC
         setRestored(true);
       }
     } catch { /* localStorage blocked — fine */ }
+    const urlRsn = cleanInitialRsn || rsnFromCurrentUrl();
+    if (urlRsn) {
+      setRsn(urlRsn);
+      setHandoffRsn(urlRsn);
+      saveStoredRsn(urlRsn);
+      return;
+    }
     const storedRsn = loadStoredRsn();
     if (storedRsn) setRsn(storedRsn);
-  }, []);
+  }, [cleanInitialRsn]);
 
   const kind = detectKind(value);
   const hint = kind ? HINTS[kind] : null;
+  const inputSummary = summarizeInput(value, kind);
   // Step 3 counts as "done" once a recognisable bank format is in the box.
   // This flips the badge to a checkmark and lets step 4 light up as current,
   // so the flow visibly advances as the user fills it in.
@@ -93,19 +145,40 @@ export function Intake({ onSubmit, loading, error, askRsn = false, onPasteStateC
     return () => window.removeEventListener("keydown", handler);
   }, [submit]);
 
-  const onDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer.files?.[0];
-    if (!file) return;
-    if (!/\.(tsv|txt|csv)$/i.test(file.name) && !/^text\//.test(file.type || "")) return;
+  const readBankFile = (file: File) => {
+    if (!/\.(tsv|txt|csv)$/i.test(file.name) && !/^text\//.test(file.type || "")) {
+      setFileImportState("unsupported");
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       const text = String(reader.result || "").trim();
       setValue(text);
       setRestored(false);
+      setClipboardState("idle");
+      setFileImportState("loaded");
+      taRef.current?.focus();
     };
+    reader.onerror = () => setFileImportState("unsupported");
     reader.readAsText(file);
+  };
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    readBankFile(file);
+  };
+
+  const onChooseFile = () => {
+    fileInputRef.current?.click();
+  };
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.currentTarget.files?.[0];
+    if (file) readBankFile(file);
+    e.currentTarget.value = "";
   };
 
   const onPaste = async () => {
@@ -114,16 +187,26 @@ export function Intake({ onSubmit, loading, error, askRsn = false, onPasteStateC
       if (text) {
         setValue(text.trim());
         setRestored(false);
+        setClipboardState("pasted");
+        setFileImportState("idle");
+        taRef.current?.focus();
+      } else {
+        setClipboardState("empty");
+        setFileImportState("idle");
         taRef.current?.focus();
       }
     } catch {
-      // Clipboard read denied — user has to ⌘V manually.
+      setClipboardState("blocked");
+      setFileImportState("idle");
+      taRef.current?.focus();
     }
   };
 
   const onClear = () => {
     setValue("");
     setRestored(false);
+    setClipboardState("idle");
+    setFileImportState("idle");
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
     taRef.current?.focus();
   };
@@ -131,6 +214,8 @@ export function Intake({ onSubmit, loading, error, askRsn = false, onPasteStateC
   const loadSample = () => {
     setValue(SAMPLE_BANKTAGS);
     setRestored(false);
+    setClipboardState("idle");
+    setFileImportState("idle");
     taRef.current?.focus();
   };
 
@@ -139,7 +224,7 @@ export function Intake({ onSubmit, loading, error, askRsn = false, onPasteStateC
   const PREVIEW_IDS = [4151, 11802, 11806, 4712, 5616, 12791];
 
   return (
-    <section className="surface p-6 animate-[slide-up_0.4s_ease-out_0.15s_both]">
+    <section id="bank-paste-panel" data-testid="bank-paste-panel" className="surface p-6 animate-[slide-up_0.4s_ease-out_0.15s_both]">
       <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
         <div className="flex items-center gap-3">
           <div
@@ -165,6 +250,7 @@ export function Intake({ onSubmit, loading, error, askRsn = false, onPasteStateC
           <button
             type="button"
             onClick={loadSample}
+            aria-label="Load sample bank into the paste box"
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium",
               "bg-[var(--color-accent)]/12 text-[var(--color-accent)] border border-[var(--color-accent)]/30",
@@ -188,13 +274,12 @@ export function Intake({ onSubmit, loading, error, askRsn = false, onPasteStateC
                 className="size-9 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] flex items-center justify-center shadow-[0_2px_8px_-2px_rgb(0_0_0/0.6)]"
                 style={{ zIndex: PREVIEW_IDS.length - i, animation: `pop-in 0.25s ease-out ${i * 0.04}s both` }}
               >
-                <img
-                  src={ICON_URL(id)}
+                <ItemSprite
+                  id={id}
                   alt=""
                   className="pixelated"
                   loading="lazy"
-                  decoding="async"
-                  style={{ maxWidth: "78%", maxHeight: "78%", width: "auto", height: "auto", imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
+                  style={{ maxWidth: "78%", maxHeight: "78%", width: "auto", height: "auto" }}
                 />
               </div>
             ))}
@@ -219,11 +304,19 @@ export function Intake({ onSubmit, loading, error, askRsn = false, onPasteStateC
         onDragLeave={() => setDragOver(false)}
         onDrop={onDrop}
       >
+        <label htmlFor="bank-paste-input" className="sr-only">
+          Paste RuneLite Bank Memory, Bank Tags or item IDs
+        </label>
         <textarea
+          id="bank-paste-input"
+          data-testid="bank-paste-input"
+          name="bank-export"
           ref={taRef}
           value={value}
-          onChange={(e) => { setValue(e.target.value); setRestored(false); }}
+          onChange={(e) => { setValue(e.target.value); setRestored(false); setClipboardState("idle"); setFileImportState("idle"); }}
           rows={6}
+          spellCheck={false}
+          aria-describedby="bank-paste-help bank-paste-status"
           className={cn(
             "w-full rounded-lg px-4 py-3.5 font-mono text-[12.5px] leading-relaxed",
             "bg-[var(--color-bg-2)] border border-[var(--color-border)]",
@@ -233,6 +326,16 @@ export function Intake({ onSubmit, loading, error, askRsn = false, onPasteStateC
           )}
           placeholder={`Paste either:\n\nbanktags,1,mybank,4151,1213,995,...\n\nor a Bank Memory TSV:\nItem id\tItem name\tItem quantity\n4151\tAbyssal whip\t1\n995\tCoins\t12345`}
         />
+        <p id="bank-paste-help" className="mt-2 text-[11.5px] text-[var(--color-text-muted)]">
+          Browser-only paste. Bank Memory gives quantities and GP value; Bank Tags gives exact item IDs and layout.
+        </p>
+        <p id="bank-paste-status" role="status" aria-live="polite" className="sr-only">
+          {inputSummary
+            ? `${inputSummary.label}. ${inputSummary.detail}.`
+            : hint
+              ? hint.msg
+              : "No bank export detected yet."}
+        </p>
         {dragOver && (
           <div className="absolute inset-0 rounded-lg bg-[var(--color-accent)]/10 border-2 border-dashed border-[var(--color-accent)] flex items-center justify-center pointer-events-none animate-[pop-in_0.18s_ease-out]">
             <div className="bg-[var(--color-panel)] border border-[var(--color-accent)] px-4 py-2 rounded-md text-[var(--color-accent)] font-medium text-[13px]">
@@ -243,12 +346,30 @@ export function Intake({ onSubmit, loading, error, askRsn = false, onPasteStateC
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <button type="button" onClick={onPaste} className="btn-ghost">
+        <input
+          id="bank-file-input"
+          ref={fileInputRef}
+          type="file"
+          accept=".tsv,.txt,.csv,text/plain,text/tab-separated-values,text/csv"
+          className="sr-only"
+          aria-describedby="bank-paste-help"
+          onChange={onFileChange}
+        />
+        <button
+          type="button"
+          onClick={onChooseFile}
+          aria-label="Choose a Bank Memory, Bank Tags or item ID file"
+          className="btn-ghost"
+        >
+          <Upload className="size-3.5" /> Choose file
+        </button>
+        <button type="button" onClick={onPaste} aria-label="Paste bank export from clipboard" className="btn-ghost">
           <ClipboardPaste className="size-3.5" /> Paste
         </button>
         <button
           type="button"
           onClick={onClear}
+          aria-label="Clear pasted bank export"
           className="btn-ghost hover:text-[var(--color-danger)] hover:border-[var(--color-danger)]/40"
         >
           <Trash2 className="size-3.5" /> Clear
@@ -257,6 +378,7 @@ export function Intake({ onSubmit, loading, error, askRsn = false, onPasteStateC
           type="button"
           onClick={() => setJunkFilter(!junkFilter)}
           aria-pressed={junkFilter}
+          aria-label={junkFilter ? "Disable junk filter" : "Enable junk filter"}
           title="Hide low-value single-stack items (under 25 gp, no equip slot, no high-alch)"
           className={cn(
             "ml-auto inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[12px] font-medium transition-all border",
@@ -280,6 +402,35 @@ export function Intake({ onSubmit, loading, error, askRsn = false, onPasteStateC
         </button>
       </div>
 
+      {clipboardState !== "idle" && (
+        <p
+          aria-live="polite"
+          className={cn(
+            "mt-2 text-[12px] animate-[pop-in_0.18s_ease-out]",
+            clipboardState === "pasted" && "text-[var(--color-accent)]",
+            clipboardState !== "pasted" && "text-[var(--color-text-dim)]"
+          )}
+        >
+          {clipboardState === "pasted" && "Pasted from clipboard."}
+          {clipboardState === "empty" && "Clipboard was empty — copy Bank Memory or Bank Tags first."}
+          {clipboardState === "blocked" && "Clipboard blocked — click the box and press ⌘V or Ctrl+V manually."}
+        </p>
+      )}
+
+      {fileImportState !== "idle" && (
+        <p
+          aria-live="polite"
+          className={cn(
+            "mt-2 text-[12px] animate-[pop-in_0.18s_ease-out]",
+            fileImportState === "loaded" && "text-[var(--color-accent)]",
+            fileImportState === "unsupported" && "text-[var(--color-danger)]"
+          )}
+        >
+          {fileImportState === "loaded" && "File loaded — review the detected format before organizing."}
+          {fileImportState === "unsupported" && "Unsupported file — choose a .tsv, .txt or .csv bank export."}
+        </p>
+      )}
+
       {hint && (
         <p className={cn(
           "mt-3 text-[12px] flex items-center gap-2 animate-[pop-in_0.18s_ease-out]",
@@ -289,6 +440,16 @@ export function Intake({ onSubmit, loading, error, askRsn = false, onPasteStateC
         )}>
           <span className="size-1.5 rounded-full bg-current" /> {hint.msg}
         </p>
+      )}
+
+      {inputSummary && (
+        <div
+          data-testid="bank-input-summary"
+          className="mt-3 rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3.5 py-3 animate-[pop-in_0.18s_ease-out]"
+        >
+          <p className="text-[12.5px] font-semibold text-[var(--color-text)]">{inputSummary.label}</p>
+          <p className="mt-1 text-[11.5px] text-[var(--color-text-dim)]">{inputSummary.detail}</p>
+        </div>
       )}
 
       {restored && (
@@ -324,11 +485,19 @@ export function Intake({ onSubmit, loading, error, askRsn = false, onPasteStateC
           </div>
           <div className="relative">
             <User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[var(--color-accent)] pointer-events-none" />
+            <label htmlFor="bank-rsn-input" className="sr-only">
+              OSRS name for bank layout personalization
+            </label>
             <input
+              id="bank-rsn-input"
+              name="rsn"
               type="text"
               value={rsn}
               onChange={(e) => setRsn(e.target.value)}
               maxLength={12}
+              autoComplete="off"
+              spellCheck={false}
+              aria-describedby="bank-rsn-help"
               placeholder="e.g. Lynx Titan"
               className={cn(
                 "w-full rounded-md pl-9 pr-3 py-2.5 text-[13px] font-mono",
@@ -338,17 +507,32 @@ export function Intake({ onSubmit, loading, error, askRsn = false, onPasteStateC
               )}
             />
           </div>
-          <p className="mt-2.5 text-[11.5px] text-[var(--color-text-dim)] leading-relaxed">
+          <p id="bank-rsn-help" className="mt-2.5 text-[11.5px] text-[var(--color-text-dim)] leading-relaxed">
             We check your hiscores once to spot a maxed main, PvMer, skiller or ironman —
             so the layout fits how you actually play. Leave it blank for a balanced default.
           </p>
+          {handoffRsn && (
+            <p className="mt-2 text-[11.5px] font-medium text-[var(--color-accent)]">
+              RSN overgenomen uit je vorige Scapestack stap.
+            </p>
+          )}
         </div>
       )}
 
       <div className="mt-5 flex items-center gap-4 flex-wrap">
         <button
+          id="bank-organize-button"
+          data-testid="bank-organize-button"
           type="button"
           onClick={submit}
+          aria-describedby="bank-organize-disabled-help"
+          aria-label={
+            loading
+              ? "Organizing pasted bank"
+              : value.trim()
+                ? "Organize pasted bank into RuneLite-ready tabs"
+                : "Paste a bank export before organizing"
+          }
           disabled={!value.trim() || loading}
           className={cn(
             "btn-primary group",
@@ -368,6 +552,17 @@ export function Intake({ onSubmit, loading, error, askRsn = false, onPasteStateC
             </>
           )}
         </button>
+        <span
+          id="bank-organize-disabled-help"
+          aria-live="polite"
+          className="text-[12px] leading-relaxed text-[var(--color-text-muted)]"
+        >
+          {!value.trim()
+            ? "Paste a Bank Memory export, Bank Tags string or item IDs to unlock Organize."
+            : loading
+            ? "Organizing your bank into OSRS-ready tabs…"
+            : "Ready to organize."}
+        </span>
 
         {error && (
           <span className="text-[var(--color-danger)] text-[13px] animate-[pop-in_0.18s_ease-out]">

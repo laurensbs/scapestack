@@ -30,7 +30,8 @@ export const SKILL_CAPE_IDS: Record<string, number> = {
   Woodcutting: 9807,
   Farming: 9810,
   Construction: 9789,
-  Hunter: 9948
+  Hunter: 9948,
+  Sailing: 31288
 };
 
 /** Returns the OSRS item id for a skill's regular (untrimmed) skillcape.

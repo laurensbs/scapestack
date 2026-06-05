@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ICON_URL } from "@/lib/utils";
+import { ItemSprite } from "@/components/item-sprite";
 import type { IconicItem } from "@/lib/saved-bank";
 
 interface Props {
@@ -56,14 +56,13 @@ export function DropCelebration({ items }: Props) {
       />
 
       <div className="size-14 shrink-0 rounded-lg bg-[var(--color-bg)] border border-[var(--color-accent)]/50 flex items-center justify-center relative">
-        <img
-          src={ICON_URL(headline.iconItemId)}
+        <ItemSprite
+          id={headline.iconItemId}
           alt=""
           className="pixelated"
           style={{
             maxWidth: "75%",
             maxHeight: "75%",
-            imageRendering: "pixelated",
             filter: "drop-shadow(2px 2px 0 rgb(0 0 0 / 0.9))"
           }}
         />
@@ -80,7 +79,7 @@ export function DropCelebration({ items }: Props) {
           )}
         </h3>
         <p className="mt-0.5 text-[12px] text-[var(--color-text-dim)]">
-          Nice. We noticed.
+          Detected from your Bank Memory item names against the browser-only saved bank.
         </p>
       </div>
 

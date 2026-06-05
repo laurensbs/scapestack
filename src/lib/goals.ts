@@ -124,7 +124,8 @@ const SKILL_CAPE_ITEM_IDS: Record<string, number> = {
   Farming:      9810,
   Runecraft:    9765,
   Hunter:       9948,
-  Construction: 9789  // OSRS in-game name: "Construct. cape"
+  Construction: 9789, // OSRS in-game name: "Construct. cape"
+  Sailing:      31288
 };
 
 interface HiscoreSkillLike { name: string; level: number }
@@ -179,7 +180,8 @@ export const GOAL_SETS: GoalSet[] = [
       { id: "cape-farming", name: "Farming cape", namePattern: /^farming cape/i },
       { id: "cape-rc", name: "Runecraft cape", namePattern: /^runecraft cape/i },
       { id: "cape-hunter", name: "Hunter cape", namePattern: /^hunter cape/i },
-      { id: "cape-construction", name: "Construction cape", namePattern: /^construction cape/i }
+      { id: "cape-construction", name: "Construction cape", namePattern: /^construction cape/i },
+      { id: "cape-sailing", name: "Sailing cape", namePattern: /^sailing cape/i }
     ]
   },
   {

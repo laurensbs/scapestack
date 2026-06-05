@@ -18,12 +18,14 @@
   --color-bg-2: #100D08;
   --color-panel: #0F1217;
   --color-panel-2: #141821;
+  --color-surface: #0F1217;
   /* Borders — slight warm tint instead of the old metallic blue */
   --color-border: #231F1A;
   --color-border-strong: #332D24;
 
   /* Text */
   --color-text: #E8EAED;
+  --color-text-secondary: #C8CDD6;
   --color-text-dim: #9AA0AB;
   --color-text-muted: #5B6170;
 
@@ -40,6 +42,7 @@
   --color-good: #00E29A;
   --color-warning: #FFB454;
   --color-danger: #FF6566;
+  --color-bad: #FF6566;
 
   /* Slot palette — single dark tone for the bank, no wood */
   --color-slot: #0E1116;
@@ -66,11 +69,12 @@
   --color-osrs-qty-green: #00E29A;   /* in-game green stays mint */
   --color-osrs-btn-red: #FF6566;
 
-  /* Fonts — Inter is injected by next/font in layout.tsx as
-     --font-inter. Geist Mono stays for numerals — its tabular-nums
-     in stat read-outs reads cleaner than Inter's mono. */
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Fonts — Geist is bundled through the local `geist` package. Avoid
+     next/font/google here so production builds do not depend on fetching
+     fonts.googleapis.com during CI or sandboxed verification. */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Consolas, monospace;
+  --font-rs-small: "RuneScape Small", "Trebuchet MS", ui-sans-serif, system-ui, sans-serif;
 
   /* Shadows */
   --shadow-glow: 0 0 40px -12px rgba(230, 165, 47, 0.35);
@@ -190,7 +194,7 @@
     to   { transform: scaleX(1); transform-origin: left; }
   }
   @keyframes glow-fade {
-    /* Background mint-glow on hero — slow fade so the page feels like it
+    /* Background gold-glow on hero — slow fade so the page feels like it
        gradually 'lights up' rather than appearing flat from the first frame. */
     from { opacity: 0; }
     to   { opacity: 1; }
@@ -588,7 +592,7 @@ code, pre, .font-mono {
 }
 
 body {
-  /* Soft radial — subtle mint glow from top-right, nothing aggressive. */
+  /* Soft radial — subtle gold glow from top-right, nothing aggressive. */
   background:
     radial-gradient(900px 600px at 100% -10%, rgba(230, 165, 47, 0.06) 0%, transparent 55%),
     radial-gradient(700px 500px at 0% 100%, rgba(230, 165, 47, 0.03) 0%, transparent 55%),
@@ -633,15 +637,15 @@ body {
   color: transparent;
 }
 
-/* Coin marker — kept but recoloured to mint */
+/* Coin marker — OSRS gold, not generic success green */
 .coin-3d {
   width: 28px;
   height: 28px;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 30% 30%, #4DEEB7 0%, #00E29A 50%, #00A972 100%);
+    radial-gradient(circle at 30% 30%, #FFE6A8 0%, #E6A52F 50%, #B07B1F 100%);
   box-shadow:
-    inset 0 0 0 1px #00A972,
+    inset 0 0 0 1px #B07B1F,
     0 2px 0 rgba(0, 0, 0, 0.5),
     0 0 20px -8px rgba(230, 165, 47, 0.6);
   position: relative;
@@ -728,12 +732,55 @@ body {
   background: linear-gradient(90deg, transparent, var(--color-border-strong), transparent);
 }
 
-/* ── Global interactive transitions ───────────────────────────────────── */
-button, a, input, textarea {
-  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
+/* ── Global interactive affordance ──────────────────────────────────────
+   OSRS players scan dense panels fast; every action needs an immediate
+   "you can click this" signal even when a component forgets custom hover
+   classes. Keep this layer light so bespoke buttons/cards still own their
+   visual language. */
+:where(button, a, input, textarea, select, summary) {
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 120ms ease,
+    opacity 160ms ease;
 }
-button:focus-visible, a:focus-visible {
+
+:where(button:not(:disabled), a[href], summary, label[for], select:not(:disabled)) {
+  cursor: pointer;
+}
+:where(button:disabled, select:disabled, [aria-disabled="true"]) {
+  cursor: not-allowed;
+}
+
+:where(button:not(:disabled), a[href], summary):active {
+  transform: translateY(1px);
+}
+
+:where(button:not(:disabled), a[href]):focus-visible,
+:where(input, textarea, select, summary):focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
   border-radius: 6px;
+}
+
+:where(input, textarea, select):focus-visible {
+  border-color: rgba(230, 165, 47, 0.65);
+  box-shadow: 0 0 0 3px rgba(230, 165, 47, 0.14);
+}
+
+:where(a[href]:not([class])) {
+  color: var(--color-accent);
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+:where(a[href]:not([class])):hover {
+  color: var(--color-accent-soft);
+}
+
+:where(button:disabled, [aria-disabled="true"]) {
+  opacity: 0.55;
 }

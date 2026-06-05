@@ -37,23 +37,38 @@ export function rsnSlug(rsn: string): string {
   return rsn.toLowerCase().replace(/\s+/g, "_");
 }
 
-export async function fetchHiscores(rsn: string): Promise<PlayerHiscores | null> {
+export interface FetchHiscoresOptions {
+  signal?: AbortSignal;
+  /** Throw for transport/non-404 failures instead of folding everything
+   *  into null. Used by /api/sync/claim so Jagex outages remain best-effort
+   *  while true 404s still reject fake RSNs. */
+  strict?: boolean;
+}
+
+export async function fetchHiscores(rsn: string, options: FetchHiscoresOptions = {}): Promise<PlayerHiscores | null> {
   const cleaned = normalizeRsn(rsn);
   if (!cleaned) return null;
   const url = `${ENDPOINT}?player=${encodeURIComponent(cleaned)}`;
   try {
     const res = await fetch(url, {
       headers: { "user-agent": "scapestack/0.3 - personal project" },
+      signal: options.signal,
       next: { revalidate: 300 } // 5 min cache
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      if (options.strict && res.status !== 404) {
+        throw new Error(`Hiscores HTTP ${res.status}`);
+      }
+      return null;
+    }
     const data = await res.json();
     return {
       name: data.name || cleaned,
       skills: Array.isArray(data.skills) ? data.skills : [],
       activities: Array.isArray(data.activities) ? data.activities : []
     };
-  } catch {
+  } catch (err) {
+    if (options.strict) throw err;
     return null;
   }
 }

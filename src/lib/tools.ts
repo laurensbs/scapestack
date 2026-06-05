@@ -2,14 +2,16 @@
 // landing page. Add a tool here and it shows up everywhere.
 
 import type { LucideIcon } from "lucide-react";
-import { Layers, Trophy, Sword, Target, Sparkles, Skull } from "lucide-react";
+import { Layers, Trophy, Sword, Target, Sparkles, Skull, PlugZap } from "lucide-react";
 
 export type ToolStatus = "live" | "soon" | "planned";
+export const PRIMARY_NAV_SLUGS = ["next", "bank", "dps", "goals", "slayer", "plugin"] as const;
 
 export interface Tool {
   slug: string;
   href: string;
   name: string;
+  navLabel?: string;    // compact label for the global desktop nav
   short: string;        // 1-line for sidebar tooltip
   tagline: string;      // 1-sentence card subtitle
   description: string;  // longer for landing card
@@ -28,6 +30,7 @@ export const TOOLS: Tool[] = [
     slug: "next",
     href: "/next",
     name: "What to do now",
+    navLabel: "Next",
     short: "Stuck? Get a ranked list of what's worth doing next",
     tagline: "Paste your bank, look up your stats → a clear plan",
     description:
@@ -41,6 +44,7 @@ export const TOOLS: Tool[] = [
     slug: "bank",
     href: "/bank",
     name: "Bank Organizer",
+    navLabel: "Bank",
     short: "Auto-organize your bank into tidy tabs",
     tagline: "Paste your bank → get clean tabs back",
     description:
@@ -62,6 +66,7 @@ export const TOOLS: Tool[] = [
     slug: "hiscore",
     href: "/hiscore",
     name: "Hiscore Lookup",
+    navLabel: "Hiscores",
     short: "Look up a player's stats",
     tagline: "Stats, ranks, all skills at a glance",
     description:
@@ -75,6 +80,7 @@ export const TOOLS: Tool[] = [
     slug: "goals",
     href: "/goals",
     name: "Goal Tracker",
+    navLabel: "Goals",
     short: "Tick off your untradeable goals",
     tagline: "Paste your bank → see what you've earned",
     description:
@@ -92,10 +98,11 @@ export const TOOLS: Tool[] = [
     slug: "dps",
     href: "/dps",
     name: "DPS Calculator",
+    navLabel: "DPS",
     short: "Best setup per boss from your bank",
     tagline: "Paste your bank → optimal DPS for every boss",
     description:
-      "We auto-pick the best weapon and armour from your bank for each of 10 bosses, then show max hit, accuracy, DPS, time-to-kill, GP/hr and the top upgrades that would speed you up.",
+      "We auto-pick the best weapon and armour from your bank for 60+ bosses, then show max hit, accuracy, DPS, time-to-kill, GP/hr and the top upgrades that would speed you up.",
     icon: Sword,
     iconItemId: 4151,  // Abyssal whip — combat / damage signature
     status: "live",
@@ -105,6 +112,7 @@ export const TOOLS: Tool[] = [
     slug: "slayer",
     href: "/slayer",
     name: "Slayer Planner",
+    navLabel: "Slayer",
     short: "Pick the right master, see expected XP/hour",
     tagline: "Your stats → best master, task probabilities, block list",
     description:
@@ -113,9 +121,29 @@ export const TOOLS: Tool[] = [
     iconItemId: 11864,  // Slayer helmet — signature item
     status: "live",
     accent: "rose"
+  },
+  {
+    slug: "plugin",
+    href: "/plugin",
+    name: "RuneLite Sync",
+    navLabel: "Sync",
+    short: "Set up or verify Scapestack RuneLite sync",
+    tagline: "RuneLite → verified quests, diaries, CL and Slayer",
+    description:
+      "Install Scapestack Sync when available, or use the tester setup, then verify a payload before /next trusts quest, diary, collection-log and Slayer coverage labels.",
+    icon: PlugZap,
+    iconItemId: 11865,
+    status: "live",
+    accent: "emerald"
   }
 ];
 
 export function getTool(slug: string): Tool | undefined {
   return TOOLS.find((t) => t.slug === slug);
+}
+
+export function getPrimaryNavTools(): Tool[] {
+  return PRIMARY_NAV_SLUGS
+    .map((slug) => getTool(slug))
+    .filter((tool): tool is Tool => Boolean(tool));
 }

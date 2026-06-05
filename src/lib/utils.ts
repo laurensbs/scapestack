@@ -31,14 +31,13 @@ export function formatGp(n: number): string {
   return n.toLocaleString();
 }
 
-export const ICON_URL = (id: number) =>
-  `https://chisel.weirdgloop.org/static/img/osrs-sprite/${Math.abs(id)}.png`;
+export function normalizeSpriteId(id: number, fallback = 995): number {
+  const clean = Math.abs(Math.trunc(Number(id)));
+  return Number.isFinite(clean) && clean > 0 ? clean : fallback;
+}
 
-// OSRS NPC sprite (chathead / monster portrait). Uses the wiki's Special:FilePath
-// shortcut which 302-redirects to the actual upload URL — stable across
-// wiki re-uploads. Pass the boss's display name; we URL-encode + normalise.
-export const NPC_SPRITE_URL = (name: string) =>
-  `https://oldschool.runescape.wiki/w/Special:FilePath/${encodeURIComponent(name.replace(/ /g, "_"))}.png`;
+export const ICON_URL = (id: number) =>
+  `/api/sprite/item/${normalizeSpriteId(id)}.png`;
 
 // OSRS Coins (id 995) has 7 stack-size variant sprites baked into the
 // item db. The bank UI swaps between them based on quantity.
@@ -65,4 +64,7 @@ export function spriteIdForItem(id: number, quantity: number): number {
 //   - 4151 was listed twice (typo)
 //   - 3439 (noted Pyre logs) → 3438 (unnoted), matches what RuneLite exports
 //   - 1738 (noted Wool)      → 1737 (unnoted), same reason
-export const SAMPLE_BANKTAGS = "banktags,1,mybank,4151,1213,1215,1305,11802,11804,11806,11808,1333,1163,1079,1127,1201,11840,995,385,7946,3144,379,3024,2434,2440,2436,2442,12625,12695,560,565,555,556,557,558,561,562,563,564,9075,8013,8007,8008,1515,1517,1519,1521,3438,453,1761,1759,1739,1734,1737,1942,5318,15263,952,1265,1351,946,12791,11941";
+//   - 12695/12697/12699 mixed super-combat doses keep the demo actionable:
+//     the sample now visibly produces a decanting action plan instead of a
+//     quiet "no tips" bank.
+export const SAMPLE_BANKTAGS = "banktags,1,mybank,4151,1213,1215,1305,11802,11804,11806,11808,1333,1163,1079,1127,1201,11840,995,385,7946,3144,379,3024,2434,2440,2436,2442,145,149,12625,12695,12697,12699,560,565,555,556,557,558,561,562,563,564,9075,8013,8007,8008,1515,1517,1519,1521,3438,453,1761,1759,1739,1734,1737,1942,5318,15263,952,1265,1351,946,12791,11941";

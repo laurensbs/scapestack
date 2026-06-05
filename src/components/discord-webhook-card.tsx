@@ -42,6 +42,7 @@ export function DiscordWebhookCard({ onConfigured }: Props) {
   if (phase.kind === "no-config" && collapsed) {
     return (
       <button
+        type="button"
         onClick={() => setCollapsed(false)}
         className="text-[11.5px] text-[var(--color-text-dim)] hover:text-[var(--color-text)] underline-offset-2 hover:underline mb-3"
       >
@@ -70,6 +71,7 @@ export function DiscordWebhookCard({ onConfigured }: Props) {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <button
+            type="button"
             onClick={() => setPhase({ kind: "editing", url: "", label: "", rsn: "" })}
             className={cn(
               "px-3 py-1.5 rounded-lg text-[12px] font-semibold",
@@ -82,6 +84,7 @@ export function DiscordWebhookCard({ onConfigured }: Props) {
             Set up
           </button>
           <button
+            type="button"
             onClick={() => setCollapsed(true)}
             className="size-7 rounded flex items-center justify-center text-[var(--color-text-dim)]/60 hover:text-[var(--color-text)]"
             title="Hide for now"
@@ -192,6 +195,7 @@ export function DiscordWebhookCard({ onConfigured }: Props) {
 
           <div className="flex items-center gap-2 pt-1">
             <button
+              type="button"
               onClick={onSave}
               disabled={!phase.url || phase.pinging}
               className={cn(
@@ -208,6 +212,7 @@ export function DiscordWebhookCard({ onConfigured }: Props) {
               }
             </button>
             <button
+              type="button"
               onClick={() => setPhase({ kind: "no-config" })}
               className="px-3 py-1.5 rounded-lg text-[12px] bg-transparent border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
             >
@@ -244,6 +249,7 @@ export function DiscordWebhookCard({ onConfigured }: Props) {
         </div>
       </div>
       <button
+        type="button"
         onClick={() => setPhase({ kind: "editing", url: config.url, label: config.label || "", rsn: config.rsn || "" })}
         className="size-7 rounded flex items-center justify-center text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-border)]"
         title="Edit"
@@ -251,6 +257,7 @@ export function DiscordWebhookCard({ onConfigured }: Props) {
         <Edit3 className="size-3.5" />
       </button>
       <button
+        type="button"
         onClick={() => { clearWebhookConfig(); setPhase({ kind: "no-config" }); }}
         className="size-7 rounded flex items-center justify-center text-[var(--color-text-dim)] hover:text-[var(--color-danger)] hover:bg-[var(--color-border)]"
         title="Disconnect"

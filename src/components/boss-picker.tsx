@@ -3,50 +3,54 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { Search, ChevronDown, X } from "lucide-react";
+import { ItemSprite } from "@/components/item-sprite";
 import { BOSSES, BOSS_CATEGORIES, type Boss, type BossCategory } from "@/lib/bosses";
-import { ICON_URL, NPC_SPRITE_URL, cn } from "@/lib/utils";
+import { bossSpriteUrl } from "@/lib/sprites";
+import { cn } from "@/lib/utils";
 
-// Reusable boss sprite. Tries the OSRS Wiki NPC portrait first (the actual
-// boss image), falls back to the boss's signature drop sprite if the wiki
-// lookup fails, then to a neutral dot as a last resort. onError swap keeps
-// the UI graceful when the wiki URL 404s for new content. Exported so the
-// bank-result page can reuse it for its boss grid.
+// Reusable boss sprite. Local boss artwork is the primary path so the UI stays
+// fast and deterministic; signature drops use the item-sprite proxy fallback.
 export function BossSprite({ boss, size = 28 }: { boss: Boss; size?: number }) {
-  const [stage, setStage] = useState<"npc" | "drop" | "dot">("npc");
-  const npcName = boss.npcName ?? boss.name;
-  if (stage === "dot" || (!boss.iconItemId && stage !== "npc")) {
-    // Final fallback: a neutral mint dot. No emoji — the toolkit is fully
-    // OSRS-sprite-driven, and a system emoji would clash with the in-game
-    // sprites used everywhere else.
+  const localSprite = bossSpriteUrl(boss.slug);
+  const [stage, setStage] = useState<"local" | "drop" | "dot">(localSprite ? "local" : "drop");
+  useEffect(() => {
+    setStage(localSprite ? "local" : "drop");
+  }, [localSprite, boss.iconItemId]);
+
+  if (stage === "dot" || (!boss.iconItemId && stage !== "local")) {
+    const fallbackLabel = `${boss.name} sprite unavailable · boss ${boss.slug}`;
     return (
       <span
-        aria-hidden="true"
-        className="rounded-full bg-[var(--color-text-muted)] inline-block"
-        style={{ width: size * 0.4, height: size * 0.4 }}
-      />
+        role="img"
+        aria-label={fallbackLabel}
+        title={fallbackLabel}
+        data-boss-sprite-fallback="missing"
+        data-boss-sprite-missing-slug={boss.slug}
+        className="inline-flex items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-accent)]/14 text-[9px] font-black leading-none text-[var(--color-accent)] shadow-[0_0_10px_rgba(230,165,47,0.25)]"
+        style={{ width: Math.max(16, size * 0.65), height: Math.max(16, size * 0.65) }}
+      >
+        <span aria-hidden="true">?</span>
+      </span>
     );
   }
   if (stage === "drop" && boss.iconItemId) {
     return (
-      <img
-        src={ICON_URL(boss.iconItemId)}
+      <ItemSprite
+        id={boss.iconItemId}
         alt=""
-        className="pixelated"
         style={{
           maxWidth: "80%",
           maxHeight: "80%",
-          imageRendering: "pixelated",
-          filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))"
+          width: undefined,
+          height: undefined
         }}
-        onError={() => setStage("dot")}
       />
     );
   }
   return (
     <img
-      src={NPC_SPRITE_URL(npcName)}
+      src={localSprite ?? ""}
       alt={boss.name}
-      // Wiki sprites are large + colourful — fit them inside the tile.
       style={{
         maxWidth: "92%",
         maxHeight: "92%",
@@ -68,6 +72,9 @@ interface Props {
 export function BossPicker({ selected, onSelect, className, sortKey }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const pickerId = "boss-picker-dialog";
+  const searchId = "boss-picker-search";
+  const statusId = "boss-picker-status";
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);
@@ -154,6 +161,9 @@ export function BossPicker({ selected, onSelect, className, sortKey }: Props) {
         ref={buttonRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
+        aria-label={`Choose boss for DPS setup. Current boss: ${selected.name}`}
+        aria-haspopup="dialog"
+        aria-controls={open ? pickerId : undefined}
         aria-expanded={open}
         className={cn(
           "inline-flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[12.5px] font-medium transition-colors border",
@@ -176,7 +186,10 @@ export function BossPicker({ selected, onSelect, className, sortKey }: Props) {
 
       {open && anchor && createPortal(
         <div
+          id={pickerId}
           ref={popoverRef}
+          role="dialog"
+          aria-label="Choose boss for DPS setup"
           className="fixed z-[120] rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-[0_24px_60px_-20px_rgb(0_0_0/0.75)] animate-[pop-in_0.18s_ease-out] origin-top-left flex flex-col"
           style={{
             left: anchor.left,
@@ -188,16 +201,30 @@ export function BossPicker({ selected, onSelect, className, sortKey }: Props) {
         >
           <div className="relative px-3 pt-3 pb-2 border-b border-[var(--color-border)]">
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 size-3.5 text-[var(--color-text-muted)] mt-[3px]" />
+            <label htmlFor={searchId} className="sr-only">Search bosses in picker</label>
             <input
+              id={searchId}
+              name="boss-picker-search"
               ref={inputRef}
+              type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search bosses…"
+              autoComplete="off"
+              spellCheck={false}
+              aria-describedby={statusId}
               className="w-full pl-7 pr-7 py-1.5 rounded-md text-[12.5px] bg-[var(--color-bg-2)] border border-[var(--color-border)] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(230, 165, 47,0.12)]"
             />
+            <p id={statusId} role="status" aria-live="polite" className="sr-only">
+              {query
+                ? `${totalCount} boss${totalCount === 1 ? "" : "es"} match ${query}.`
+                : `${BOSSES.length} bosses available.`}
+            </p>
             {query && (
               <button
+                type="button"
                 onClick={() => setQuery("")}
+                aria-label="Clear boss picker search"
                 className="absolute right-5 top-1/2 -translate-y-1/2 text-[var(--color-text-dim)] hover:text-[var(--color-text)] mt-[3px]"
                 title="Clear"
               >
@@ -249,6 +276,8 @@ function BossRow({ boss, isSelected, onPick }: { boss: Boss; isSelected: boolean
     <button
       type="button"
       onClick={onPick}
+      aria-pressed={isSelected}
+      aria-label={`${isSelected ? "Selected" : "Select"} ${boss.name}${boss.hp > 0 ? `, ${boss.hp} HP` : ""}`}
       className={cn(
         "w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors",
         isSelected

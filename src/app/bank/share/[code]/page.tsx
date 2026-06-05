@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Layers } from "lucide-react";
 import { decodeSnapshot, snapshotToInput } from "@/lib/share";
@@ -9,13 +10,23 @@ interface Props {
   params: Promise<{ code: string }>;
 }
 
-export async function generateMetadata({ params }: Props) {
+const privateSharedBankRobots: Metadata["robots"] = {
+  index: false,
+  follow: false,
+  googleBot: {
+    index: false,
+    follow: false
+  }
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { code } = await params;
   const snap = decodeSnapshot(code);
-  if (!snap) return { title: "Shared bank" };
+  if (!snap) return { title: "Shared bank", robots: privateSharedBankRobots };
   return {
     title: `${snap.n || "Shared bank"} · Scapestack`,
-    description: `A shared OSRS bank layout with ${snap.i.length} items, organized by Scapestack.`
+    description: `A private shared OSRS bank layout with ${snap.i.length} items, organized by Scapestack.`,
+    robots: privateSharedBankRobots
   };
 }
 

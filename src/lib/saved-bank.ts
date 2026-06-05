@@ -173,23 +173,26 @@ export const ICONIC_ITEMS: IconicItem[] = [
   { needle: "blowpipe",           displayName: "Toxic blowpipe",     iconItemId: 12924 }
 ];
 
-/** Lowercased item names from a raw banktags paste. Strips the
- *  `qty;id,id,id` structure and keeps only readable item-name lines for
- *  iconic-item matching. Returns empty array on parse failures. */
+/** Lowercased item names from a raw Bank Memory paste. Bank Tags strings are
+ *  id-only, so they intentionally do not trigger drop celebrations. */
 function namesFromBanktags(banktags: string): string[] {
   const out: string[] = [];
   for (const rawLine of banktags.split(/\r?\n/)) {
     const line = rawLine.trim();
     if (!line) continue;
-    // RuneLite Bank Memory format uses tab-separated values where col 1 is
-    // the item name. RuneLite Bank Tags format uses `bankTagName,id,...`
-    // pattern with no item names. We can only detect new items in the Memory
-    // format — Bank Tags is just IDs. That's fine; players who use this
-    // feature paste Memory exports for that exact reason.
+    // RuneLite Bank Memory canonical format:
+    //   Item id <tab> Item name <tab> Item quantity
+    // Older tests and some copied tables use:
+    //   Item name <tab> quantity
+    // Support both, but never infer names from Bank Tags id-only strings.
     if (!line.includes("\t")) continue;
     const cells = line.split("\t");
-    if (cells.length >= 1 && cells[0]) {
-      out.push(cells[0].toLowerCase());
+    const first = cells[0]?.trim() ?? "";
+    const second = cells[1]?.trim() ?? "";
+    if (/^item id$/i.test(first) || /^item name$/i.test(first)) continue;
+    const name = /^\d+$/.test(first) ? second : first;
+    if (name) {
+      out.push(name.toLowerCase());
     }
   }
   return out;

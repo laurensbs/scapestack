@@ -3,6 +3,7 @@ import {
   fetchHiscores, computeCombatLevel, computeTotalLevel,
   totalXp, topSkills, formatXp, normalizeRsn
 } from "@/lib/hiscores";
+import { BRAND_IMAGE_FONT_FAMILY, BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
 
 export const runtime = "edge";
 export const alt = "OSRS player profile · Scapestack";
@@ -61,7 +62,7 @@ export default async function OpenGraphImage({ params }: Props) {
           padding: "60px 70px",
           background: "linear-gradient(135deg, #5B4632 0%, #28201A 60%, #1a1208 100%)",
           color: "#F4E4C1",
-          fontFamily: "sans-serif"
+          fontFamily: BRAND_IMAGE_FONT_FAMILY
         }}
       >
         {/* Brand */}
@@ -83,16 +84,16 @@ export default async function OpenGraphImage({ params }: Props) {
             }}
           >
             <span>S</span>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", fontSize: 26, fontWeight: 900, color: "#FFDB6C", lineHeight: 1 }}>
-              <span>Scapestack</span>
             </div>
-            <div style={{ display: "flex", fontSize: 14, color: "#b8a382", marginTop: 4, letterSpacing: 4 }}>
-              <span>OSRS TOOLKIT</span>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ display: "flex", fontSize: 26, fontWeight: 900, color: "#FFDB6C", lineHeight: 1 }}>
+                <span>{BRAND_NAME}</span>
+              </div>
+              <div style={{ display: "flex", fontSize: 14, color: "#b8a382", marginTop: 4, letterSpacing: 4 }}>
+                <span>{BRAND_TAGLINE.toUpperCase()}</span>
+              </div>
             </div>
           </div>
-        </div>
 
         {/* Player name */}
         <div

@@ -1,9 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { loadBankForRsn } from "@/lib/rsn-storage";
+import Link from "next/link";
+import { ArrowRight, DatabaseZap, Sparkles } from "lucide-react";
+import { ItemSprite } from "@/components/item-sprite";
+import { latestSnapshot } from "@/lib/snapshot-history";
+import { bankOrganizerHref } from "@/lib/bank-handoff-url";
+import { toolHandoffUrl } from "@/lib/bank-tool-routes";
+import { persistBankHandoffPayloadFromItems } from "@/lib/next-bank-handoff";
+import { bankHandoffItemsFromSnapshot } from "@/lib/profile-bank-handoff";
 import type { BankSnapshot } from "@/lib/diff";
-import { ICON_URL, cn, formatGp, formatQty, qtyColor } from "@/lib/utils";
+import { cn, formatGp, formatQty, qtyColor } from "@/lib/utils";
 
 interface Props {
   rsn: string;
@@ -13,7 +20,7 @@ export function LocalBankSummary({ rsn }: Props) {
   const [snap, setSnap] = useState<BankSnapshot | null>(null);
 
   useEffect(() => {
-    setSnap(loadBankForRsn(rsn));
+    setSnap(latestSnapshot(rsn));
   }, [rsn]);
 
   if (!snap || snap.items.length === 0) return null;
@@ -23,16 +30,40 @@ export function LocalBankSummary({ rsn }: Props) {
     .sort((a, b) => b.stackValue - a.stackValue)
     .slice(0, 8);
   const daysOld = Math.floor((Date.now() - snap.ts) / (1000 * 60 * 60 * 24));
+  const bankHref = bankOrganizerHref(rsn, "profile");
+  const nextHref = toolHandoffUrl("/next", "profile", rsn);
+  const openNextWithBank = () => {
+    persistBankHandoffPayloadFromItems(bankHandoffItemsFromSnapshot(snap), window);
+    window.location.href = nextHref;
+  };
 
   return (
     <section className="mb-6 animate-[slide-up_0.35s_ease-out_0.1s_both]">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
         <h2 className="text-[11px] uppercase tracking-[0.2em] font-bold text-[var(--color-gold-soft)]">
           Last uploaded bank
         </h2>
-        <span className="text-[11px] text-[var(--color-text-dim)]">
-          {daysOld === 0 ? "today" : daysOld === 1 ? "1 day ago" : `${daysOld} days ago`}
-        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[11px] text-[var(--color-text-dim)]">
+            {daysOld === 0 ? "today" : daysOld === 1 ? "1 day ago" : `${daysOld} days ago`}
+          </span>
+          <Link
+            href={bankHref}
+            className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-[var(--color-panel)]/65 px-2 py-1 text-[11px] font-semibold text-[var(--color-text-dim)] hover:border-[var(--color-gold)]/55 hover:text-[var(--color-gold)]"
+          >
+            <DatabaseZap className="size-3" />
+            Refresh bank
+          </Link>
+          <button
+            type="button"
+            onClick={openNextWithBank}
+            className="inline-flex items-center gap-1 rounded-md border border-[var(--color-gold)]/40 bg-[var(--color-gold)]/10 px-2 py-1 text-[11px] font-semibold text-[var(--color-gold)] hover:bg-[var(--color-gold)]/15"
+          >
+            <Sparkles className="size-3" />
+            Plan with this bank
+            <ArrowRight className="size-3" />
+          </button>
+        </div>
       </div>
 
       <div className={cn(
@@ -69,18 +100,16 @@ export function LocalBankSummary({ rsn }: Props) {
               className="group relative aspect-square flex items-center justify-center bg-[var(--color-osrs-slot)] border border-[var(--color-osrs-slot-edge)]"
               title={`${it.name} — ${formatGp(it.stackValue)} gp`}
             >
-              <img
-                src={ICON_URL(it.id)}
+              <ItemSprite
+                id={it.id}
                 alt={it.name}
                 loading="lazy"
-                decoding="async"
-                className="pixelated pointer-events-none drop-shadow-[1px_1px_0_rgb(0_0_0/0.9)]"
+                className="pixelated pointer-events-none"
                 style={{
                   maxWidth: "32px",
                   maxHeight: "32px",
                   width: "auto",
-                  height: "auto",
-                  imageRendering: "pixelated"
+                  height: "auto"
                 }}
               />
               {it.quantity > 0 && (

@@ -4,6 +4,8 @@
 
 import type { BankDiff } from "./diff";
 import type { OrganizedTab } from "./organizer";
+import { BRAND_NAME, BRAND_URL, brandUrl } from "./brand";
+import { ICON_URL } from "./utils";
 
 const STORAGE_KEY = "scapestack-bank:discord-webhook";
 const LAST_SENT_KEY = "scapestack-bank:discord-last-sent";
@@ -106,6 +108,20 @@ function formatGpCompact(n: number): string {
   return n.toLocaleString();
 }
 
+function absoluteSpriteUrl(itemId: number, shareUrl?: string): string {
+  const origin = (() => {
+    if (shareUrl) {
+      try {
+        return new URL(shareUrl).origin;
+      } catch {}
+    }
+    if (typeof window !== "undefined" && window.location?.origin) return window.location.origin;
+    return BRAND_URL;
+  })();
+
+  return new URL(ICON_URL(itemId), origin).toString();
+}
+
 function buildEmbed(opts: BuildOptions): DiscordEmbed {
   const { rsn, label, tabs, diff, shareUrl } = opts;
   const totalValue = tabs.reduce((s, t) => s + t.value, 0);
@@ -180,7 +196,7 @@ function buildEmbed(opts: BuildOptions): DiscordEmbed {
   const sorted = tabs.flatMap((t) => t.items).sort((a, b) => b.stackValue - a.stackValue);
   const topItem = sorted[0];
   const thumbnail = topItem && topItem.stackValue >= 100_000
-    ? { url: `https://chisel.weirdgloop.org/static/img/osrs-sprite/${Math.abs(topItem.id)}.png` }
+    ? { url: absoluteSpriteUrl(topItem.id, shareUrl) }
     : undefined;
 
   const footer = label
@@ -226,8 +242,8 @@ export async function sendBankUpdate(
 
   const embed = buildEmbed(opts);
   const payload = {
-    username: "Scapestack",
-    avatar_url: "https://scapestack.com/coin.png", // graceful 404 fallback
+    username: BRAND_NAME,
+    avatar_url: brandUrl("/coin.png"), // graceful 404 fallback
     embeds: [embed]
   };
 
@@ -258,7 +274,7 @@ export async function pingWebhook(url: string): Promise<SendResult> {
     return { ok: false, error: "URL doesn't look like a Discord webhook" };
   }
   const payload = {
-    username: "Scapestack",
+    username: BRAND_NAME,
     embeds: [{
       title: "Webhook test ping",
       description: "Scapestack will post your bank updates here. You can disable this anytime in the Bank Organizer.",

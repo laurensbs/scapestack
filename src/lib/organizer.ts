@@ -64,11 +64,24 @@ export interface OrganizeStats {
   junkFilterActive: boolean;
 }
 
+export interface OrganizeImportWarnings {
+  parsedItemCount: number;
+  recognizedItemCount: number;
+  duplicateItemCount: number;
+  fallbackItemCount: number;
+  fallbackItemIds: number[];
+  /** @deprecated Unknown IDs are retained as fallback tiles; use fallbackItemCount. */
+  ignoredItemCount: number;
+  /** @deprecated Unknown IDs are retained as fallback tiles; use fallbackItemIds. */
+  ignoredItemIds: number[];
+}
+
 export interface OrganizeResult {
   source: { name: string; iconItemId: number; itemCount: number; kind: "banktags" | "bankMemory" | "ids" };
   tabs: OrganizedTab[];
   unclassified: number[];
   stats: OrganizeStats;
+  importWarnings: OrganizeImportWarnings;
 }
 
 export interface OrganizeInput {
@@ -94,6 +107,7 @@ export async function organize(opts: OrganizeInput): Promise<OrganizeResult> {
 
   let ids: number[] = [];
   const quantities = new Map<number, number>();
+  const inputNames = new Map<number, string>();
   let sourceName = "Bank";
   let sourceKind: OrganizeResult["source"]["kind"] = "banktags";
 
@@ -105,7 +119,10 @@ export async function organize(opts: OrganizeInput): Promise<OrganizeResult> {
     if (looksLikeBankMemoryTsv(trimmed)) {
       const rows = parseBankMemoryTsv(trimmed);
       ids = rows.map((r) => r.id);
-      for (const r of rows) quantities.set(r.id, r.quantity);
+      for (const r of rows) {
+        quantities.set(r.id, r.quantity);
+        if (r.name.trim()) inputNames.set(r.id, r.name.trim());
+      }
       sourceName = "Bank (Bank Memory)";
       sourceKind = "bankMemory";
     } else if (trimmed.startsWith("banktags,")) {
@@ -120,14 +137,20 @@ export async function organize(opts: OrganizeInput): Promise<OrganizeResult> {
 
   if (!ids.length) throw new Error("No items to organize");
 
+  const parsedItemCount = ids.length;
   const seen = new Set<number>();
   ids = ids.filter((id) => (seen.has(id) ? false : seen.add(id)));
+  const duplicateItemCount = parsedItemCount - ids.length;
 
-  // Drop IDs we don't recognize — almost always too-new items missing from the
-  // wiki mapping, or corrupt entries. Showing a bare "Item 30519" tile is worse
-  // than silently skipping it.
-  ids = ids.filter((id) => items.has(Math.abs(id)));
-  if (!ids.length) throw new Error("No recognizable items in your paste");
+  // Keep IDs we don't recognize. These are usually brand-new OSRS items not
+  // present in the local wiki dump yet. Dropping them makes a real player think
+  // Scapestack lost their bank; keeping them with a fallback label preserves the
+  // item ID, sprite proxy, wiki link, export token and handoff payload.
+  const fallbackItemIds = Array.from(new Set(
+    ids
+      .filter((id) => !items.has(Math.abs(id)))
+      .map((id) => Math.abs(id))
+  ));
 
   // Note: an earlier attempt to dedupe noted-variant pairs (id N + id N+1
   // sharing a name) was removed. Real RuneLite Bank Memory exports already
@@ -143,7 +166,8 @@ export async function organize(opts: OrganizeInput): Promise<OrganizeResult> {
   const junk = junkThresholds(archetype);
 
   const classified = ids.map((id) => {
-    const name = items.get(Math.abs(id))!;
+    const absId = Math.abs(id);
+    const name = items.get(absId) ?? inputNames.get(id) ?? inputNames.get(absId) ?? `Unknown item #${absId}`;
     const cls = classify(name, itemMeta?.get(Math.abs(id)) ?? null);
     const quantity = quantities.get(id) ?? 0;
     const alchEntry = alchFor(alch, id);
@@ -250,6 +274,15 @@ export async function organize(opts: OrganizeInput): Promise<OrganizeResult> {
     source: { name: sourceName, iconItemId: sourceIcon, itemCount: ids.length, kind: sourceKind },
     tabs,
     unclassified: classified.filter((c) => c.tab === "Misc").map((c) => c.id),
+    importWarnings: {
+      parsedItemCount,
+      recognizedItemCount: ids.length - fallbackItemIds.length,
+      duplicateItemCount,
+      fallbackItemCount: fallbackItemIds.length,
+      fallbackItemIds,
+      ignoredItemCount: fallbackItemIds.length,
+      ignoredItemIds: fallbackItemIds
+    },
     stats: {
       tabs: tabs.length,
       items: ids.length,
@@ -321,4 +354,3 @@ function buildLayout(items: Array<{ id: number; subtab: string }>): Record<numbe
 export function exportTabs(tabs: OrganizedTab[]): string[] {
   return exportTagsRaw(tabs);
 }
-

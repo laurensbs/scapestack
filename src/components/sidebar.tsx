@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
-import { TOOLS } from "@/lib/tools";
+import { BRAND_TAGLINE } from "@/lib/brand";
+import { contextualNavHref } from "@/lib/nav-context";
+import { getPrimaryNavTools } from "@/lib/tools";
 import { cn } from "@/lib/utils";
 import { LayersAnim, TargetAnim, SwordAnim } from "./sidebar-icons";
 import type { SVGProps } from "react";
@@ -17,13 +19,17 @@ const ANIMATED_ICONS: Record<string, (props: SVGProps<SVGSVGElement>) => React.J
   dps:   SwordAnim
 };
 
-// Sidebar lists only the three production-ready tools. The full TOOLS list
-// (including in-progress / planned items) still drives the landing page.
-const SIDEBAR_SLUGS = new Set(["bank", "dps", "goals"]);
-
 export function Sidebar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [contextQuery, setContextQuery] = useState("");
+
+  useEffect(() => {
+    const syncQuery = () => setContextQuery(window.location.search);
+    syncQuery();
+    window.addEventListener("popstate", syncQuery);
+    return () => window.removeEventListener("popstate", syncQuery);
+  }, [pathname]);
 
   useEffect(() => { setMobileOpen(false); }, [pathname]);
 
@@ -44,6 +50,7 @@ export function Sidebar() {
           <span className="text-[14px] font-semibold tracking-tight text-[var(--color-text)]">Scapestack</span>
         </Link>
         <button
+          type="button"
           onClick={() => setMobileOpen((v) => !v)}
           className="size-9 rounded-md flex items-center justify-center border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
@@ -56,6 +63,7 @@ export function Sidebar() {
       {/* Mobile drawer */}
       {mobileOpen && (
         <button
+          type="button"
           onClick={() => setMobileOpen(false)}
           className="sm:hidden fixed inset-0 z-40 bg-black/70 backdrop-blur-sm animate-[pop-in_0.15s_ease-out]"
           aria-label="Close menu"
@@ -67,7 +75,7 @@ export function Sidebar() {
         "transition-transform duration-200 ease-out",
         mobileOpen ? "translate-x-0" : "-translate-x-full"
       )}>
-        <SidebarNav pathname={pathname} expanded />
+        <SidebarNav contextQuery={contextQuery} pathname={pathname} expanded />
       </aside>
 
       {/* Desktop sidebar — auto-collapse. Default state shows only icons
@@ -102,10 +110,10 @@ export function Sidebar() {
             "transition-opacity duration-150 delay-75"
           )}>
             <div className="text-[14px] font-semibold leading-tight text-[var(--color-text)] tracking-tight">Scapestack</div>
-            <div className="text-[10.5px] text-[var(--color-text-muted)] mt-0.5 tracking-wide">OSRS toolkit</div>
+            <div className="text-[10.5px] text-[var(--color-text-muted)] mt-0.5 tracking-wide">{BRAND_TAGLINE}</div>
           </div>
         </Link>
-        <SidebarNav pathname={pathname} expanded />
+        <SidebarNav contextQuery={contextQuery} pathname={pathname} expanded />
       </aside>
 
       {/* Spacer — reserves the collapsed-width column in the page-flow so
@@ -121,7 +129,7 @@ function BrandMark() {
     <div
       className="size-8 shrink-0 rounded-md flex items-center justify-center font-bold text-[14px]"
       style={{
-        background: "linear-gradient(135deg, #00E29A 0%, #00A972 100%)",
+        background: "linear-gradient(135deg, var(--color-accent-soft) 0%, var(--color-accent) 54%, var(--color-gold-deep) 100%)",
         color: "#07090C",
         boxShadow: "0 0 16px -4px rgba(230, 165, 47, 0.4)"
       }}
@@ -131,16 +139,25 @@ function BrandMark() {
   );
 }
 
-function SidebarNav({ pathname, expanded }: { pathname: string; expanded: boolean }) {
+function SidebarNav({
+  contextQuery,
+  pathname,
+  expanded
+}: {
+  contextQuery: string;
+  pathname: string;
+  expanded: boolean;
+}) {
   return (
     <>
-      <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto overscroll-contain">
-        {TOOLS.filter((t) => SIDEBAR_SLUGS.has(t.slug)).map((tool) => {
+      <nav aria-label="Scapestack sidebar tools" className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto overscroll-contain">
+        {getPrimaryNavTools().map((tool) => {
           const Icon = ANIMATED_ICONS[tool.slug] ?? tool.icon;
           const active =
             tool.href === "/" ? pathname === "/" :
             pathname === tool.href || pathname.startsWith(tool.href + "/");
           const disabled = tool.status !== "live";
+          const href = contextualNavHref(tool.href, pathname, contextQuery);
 
           const inner = (
             <div className={cn(
@@ -188,11 +205,22 @@ function SidebarNav({ pathname, expanded }: { pathname: string; expanded: boolea
           );
 
           return disabled ? (
-            <div key={tool.slug} title={`${tool.name} — ${tool.status === "soon" ? "Coming soon" : "Planned"}`} className="cursor-default">
+            <div
+              key={tool.slug}
+              title={`${tool.name} — ${tool.status === "soon" ? "Coming soon" : "Planned"}`}
+              aria-disabled="true"
+              className="cursor-default"
+            >
               {inner}
             </div>
           ) : (
-            <Link key={tool.slug} href={tool.href} title={tool.short}>
+            <Link
+              key={tool.slug}
+              href={href}
+              title={tool.short}
+              aria-label={`${tool.navLabel ?? tool.name}: ${tool.short}`}
+              aria-current={active ? "page" : undefined}
+            >
               {inner}
             </Link>
           );

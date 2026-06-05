@@ -29,6 +29,7 @@ const MOOD_KIND_WEIGHTS: Record<Mood, Partial<Record<RecKind, number>>> = {
     skill:    1.6,  // AFK-able skills (Wintertodt, fishing, RC)
     bank:     1.3,  // bank-hygiene is lekker mindless
     minigame: 1.2,  // Tempoross etc.
+    slayer:   1.1,  // huidige task afmaken kan prima semi-AFK
     boss:     0.4,  // PvM is anti-chill
     kc:       0.5,
     quest:    0.6,
@@ -36,6 +37,7 @@ const MOOD_KIND_WEIGHTS: Record<Mood, Partial<Record<RecKind, number>>> = {
   focused: {
     boss:     1.5,
     kc:       1.4,  // KC-drop chasing = focused activity
+    slayer:   1.4,  // live task afmaken = duidelijke focused sessie
     skill:    1.2,  // PvM-skills lift
     minigame: 1.0,
     quest:    0.8,
@@ -45,6 +47,7 @@ const MOOD_KIND_WEIGHTS: Record<Mood, Partial<Record<RecKind, number>>> = {
     money:    2.0,  // direct: money-recommendations winnen altijd
     boss:     1.4,  // PvM = vaak grote drops
     kc:       1.3,
+    slayer:   0.9,  // kan geld opleveren, maar niet primair GP/u
     skill:    0.7,  // skill-grinding niet primary cash route
     quest:    0.5,
     bank:     0.6,
@@ -54,6 +57,7 @@ const MOOD_KIND_WEIGHTS: Record<Mood, Partial<Record<RecKind, number>>> = {
     diary:    1.5,  // diaries vaak quest-locked
     goal:     1.3,  // bv. quest cape goal
     milestone:1.3,
+    slayer:   0.7,
     skill:    0.8,
     boss:     0.6,
     kc:       0.5,
@@ -80,6 +84,7 @@ function timeBudgetFit(rec: Recommendation, minutes: TimeBudget): number {
     diary:     [15, 45, 90],   // tier voltooien
     money:     [10, 30, 60],   // herb runs, daily, GP-pulses
     skill:     [30, 90, 180],  // grinding works at any length above 30
+    slayer:    [10, 45, 120],  // current-task remainder via plugin
     boss:      [45, 90, 180],  // trip incl. travel + bank
     kc:        [45, 90, 180],  // drop chase = lange sessie
     quest:     [30, 90, 180],  // te kort = onaf, te lang = burnout

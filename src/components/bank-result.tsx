@@ -21,16 +21,16 @@ import {
 } from "@dnd-kit/core";
 import {
   Copy, CheckCheck, Coins, Layers, AlertCircle, Edit3,
-  TrendingDown, Hash, ArrowUpDown,
+  TrendingDown, Hash, ArrowUpDown, ArrowRight,
   LayoutGrid, Rows3, EyeOff, SlidersHorizontal, Share2,
-  Wand2, ChevronDown, Sparkles, Trash2, Hourglass, Target, Grid2x2, Search, X,
-  Pin, GripVertical
+  Wand2, ChevronDown, Sparkles, Trash2, Hourglass, Target, Sword, Grid2x2, Search, X,
+  Pin, GripVertical, RotateCcw, Save, ExternalLink, CheckCircle2, Shield, PlugZap
 } from "lucide-react";
 import { encodeSnapshot } from "@/lib/share";
 import { BANK_FILLER_ID } from "@/lib/bank-filler";
 import type { ShareSnapshot } from "@/lib/share";
 import { presetsForTab, layoutWithPreset, type Preset } from "@/lib/presets";
-import { ICON_URL, cn, formatQty, formatGp, qtyColor, spriteIdForItem } from "@/lib/utils";
+import { cn, formatQty, formatGp, qtyColor, spriteIdForItem } from "@/lib/utils";
 import type { OrganizedTab, OrganizedItem, OrganizeResult } from "@/lib/organizer";
 import { reorganizeTabs, type ReorganizeStrategy } from "@/lib/reorganize";
 import { ARCHETYPES, type Archetype } from "@/lib/archetype";
@@ -39,7 +39,8 @@ import { exportAction } from "@/app/actions";
 import { SuggestionsPanel } from "./suggestions-panel";
 import { DiffBanner } from "./diff-banner";
 import { TipsCard } from "./tips-card";
-import { computeTips } from "@/lib/tips";
+import { ItemSprite } from "./item-sprite";
+import { computeTips, type BankTip } from "@/lib/tips";
 import { track } from "@/lib/analytics";
 import { StackScoreBadge } from "./stack-score-badge";
 import { computeStackScore } from "@/lib/stack-score";
@@ -56,6 +57,13 @@ import { bestStyleAndSetup } from "@/lib/dps";
 import { exportTag } from "@/lib/bank-tags";
 import { DiscordWebhookCard } from "./discord-webhook-card";
 import { SupportCard } from "./support-card";
+import { buildItemVerdict, type ItemVerdictTone } from "@/lib/item-action";
+import { copyText } from "@/lib/clipboard";
+import { buildBankActionLoop, type BankActionLoopInput, type BankActionLoopStep } from "@/lib/bank-action-loop";
+import { buildItemIdentity } from "@/lib/item-identity";
+import type { PluginHubStatus } from "@/lib/plugin-hub-status";
+import { persistBankHandoffPayload } from "@/lib/next-bank-handoff";
+import { rsnSlug } from "@/lib/hiscores";
 import { loadWebhookConfig, sendBankUpdate } from "@/lib/discord";
 import {
   diffSnapshots,
@@ -65,7 +73,21 @@ import {
   type BankDiff,
   type BankSnapshot
 } from "@/lib/diff";
-import { appendRsnSnapshot } from "@/lib/snapshot-history";
+import {
+  appendSnapshot,
+  deleteSnapshot,
+  restoreDeletedSnapshot,
+  summarizeTabsForSnapshot,
+  type SnapshotSummary
+} from "@/lib/snapshot-history";
+import {
+  buildSnapshotCompareShareText,
+  recommendSnapshotCompareActions,
+  summarizeSnapshotCompare
+} from "@/lib/snapshot-compare-summary";
+import { bankToolUrl } from "@/lib/bank-tool-routes";
+import { bankSearchQueryForItems, countBankSearchMatches, firstMatchingBankTabIndex, matchesBankSearch } from "@/lib/bank-search";
+import { wikiSearchUrl } from "@/lib/wiki";
 
 interface BankResultProps {
   initial: OrganizeResult;
@@ -80,6 +102,7 @@ type SortMode = "default" | "value" | "quantity" | "name";
 type Density = "ultra" | "compact" | "comfortable";
 type TabMode = "type" | "useCase";
 const PREFS_KEY = "scapestack-bank:prefs";
+type BankPluginHubActionState = NonNullable<BankActionLoopInput["pluginHubState"]>;
 
 interface Prefs {
   sort: SortMode;
@@ -102,6 +125,92 @@ interface Prefs {
   // Set by dragging one item onto another. Items not listed keep their
   // natural order after the manually-placed ones.
   itemOrder: Record<string, number[]>;
+}
+
+function bankSourceReceipt(initial: OrganizeResult): {
+  sourceLabel: string;
+  confidenceLabel: string;
+  confidenceTone: "good" | "warn";
+  exactLine: string;
+  limitationLine: string;
+  nextLine: string;
+} {
+  if (initial.source.kind === "bankMemory") {
+    return {
+      sourceLabel: "Bank Memory TSV",
+      confidenceLabel: "Exact item stacks",
+      confidenceTone: "good",
+      exactLine: "Item IDs, names, quantities and stack values are active for sorting, snapshots, DPS and /next handoff.",
+      limitationLine: "Quest, diary, collection-log and live Slayer state still require Scapestack RuneLite sync.",
+      nextLine: "Best source for serious PvM planning: keep using Bank Memory when you want quantities and GP value."
+    };
+  }
+
+  if (initial.source.kind === "banktags") {
+    return {
+      sourceLabel: "RuneLite Bank Tags",
+      confidenceLabel: "Exact layout, partial stacks",
+      confidenceTone: "warn",
+      exactLine: "Item IDs and tab layout are exact, so copy-back and tool handoff are safe.",
+      limitationLine: "Bank Tags do not include quantities; GP value, stack size and supply counts are inferred or unavailable.",
+      nextLine: "For full value-aware advice, copy Bank Memory item data instead of Bank Tags next time."
+    };
+  }
+
+  return {
+    sourceLabel: "Raw item IDs",
+    confidenceLabel: "Usable fallback",
+    confidenceTone: "warn",
+    exactLine: "Recognized item IDs plus unknown-ID fallback tiles can still be organized and handed to other Scapestack tools.",
+    limitationLine: "Names, quantities, tab names and GP values may be incomplete because the paste was not a full bank export.",
+    nextLine: "Use Bank Memory or RuneLite Bank Tags for a cleaner import."
+  };
+}
+
+function bankIdSpriteHealth(initial: OrganizeResult): {
+  label: string;
+  tone: "good" | "warn";
+  detail: string;
+} {
+  const warnings = initial.importWarnings;
+  const tileCount = initial.stats.items;
+  const tabCount = initial.stats.tabs;
+  const tabLabel = `${tabCount} organized tab${tabCount === 1 ? "" : "s"}`;
+  const tileLabel = `${tileCount} visible bank tile${tileCount === 1 ? "" : "s"}`;
+
+  if (warnings.fallbackItemCount > 0) {
+    const previewIds = warnings.fallbackItemIds.slice(0, 6).join(", ");
+    return {
+      label: "ID check needs review",
+      tone: "warn",
+      detail: `${warnings.recognizedItemCount}/${warnings.parsedItemCount} pasted IDs mapped into ${tileLabel} across ${tabLabel}. ${warnings.fallbackItemCount} ID${warnings.fallbackItemCount === 1 ? "" : "s"} did not match the local item map${previewIds ? ` (${previewIds}${warnings.fallbackItemIds.length > 6 ? ", …" : ""})` : ""}. Scapestack keeps those IDs as fallback tiles, loads art through /api/sprite/item/:id.png, and links the first one to the OSRS Wiki.`
+    };
+  }
+
+  if (warnings.duplicateItemCount > 0) {
+    return {
+      label: "IDs normalized",
+      tone: "warn",
+      detail: `${warnings.recognizedItemCount}/${warnings.parsedItemCount} pasted IDs mapped into ${tileLabel} across ${tabLabel}. ${warnings.duplicateItemCount} duplicate ID${warnings.duplicateItemCount === 1 ? "" : "s"} collapsed. Sprites are loaded through the local Scapestack sprite proxy and keep item-ID fallback labels.`
+    };
+  }
+
+  return {
+    label: "IDs and sprites ready",
+    tone: "good",
+    detail: `${warnings.recognizedItemCount}/${warnings.parsedItemCount} pasted IDs mapped into ${tileLabel} across ${tabLabel}. Item art loads through /api/sprite/item/:id.png and missing sprites degrade to a labelled fallback tile.`
+  };
+}
+
+function bankPluginHubActionState(status: PluginHubStatus | null): BankPluginHubActionState {
+  if (!status) return "unknown";
+  if (status.state === "merged") return "merged";
+  if (status.state === "closed") return "closed";
+  if (status.state === "unknown") return "unknown";
+  const hasReviewBlocker = status.reviewCopyIssues.length > 0
+    || status.pinSummary?.includes("behind standalone repo head") === true
+    || status.reviewSummary?.includes("requested changes") === true;
+  return hasReviewBlocker ? "review-blocked" : "pending";
 }
 
 const DEFAULT_PREFS: Prefs = {
@@ -170,6 +279,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
   const flashDrop = (id: number) =>
     setDropFlash((p) => ({ flashedId: id, token: p.token + 1 }));
   const [copied, setCopied] = useState<string | null>(null);
+  const [manualExportFallback, setManualExportFallback] = useState("");
   const [layoutOpen, setLayoutOpen] = useState(false);
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const [activeSubtab, setActiveSubtab] = useState<string | null>(null);
@@ -177,6 +287,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
   const [diff, setDiff] = useState<BankDiff | null>(null);
   const [diffDismissed, setDiffDismissed] = useState(false);
   const [activePreset, setActivePreset] = useState<Preset | null>(null);
+  const [actionSearch, setActionSearch] = useState<{ query: string; sourceLabel: string } | null>(null);
   const [previousScore, setPreviousScore] = useState<number | undefined>(undefined);
   const [reorgFlash, setReorgFlash] = useState<string | null>(null);
   // Last reorganize strategy that was applied — used to re-sort items inside
@@ -186,7 +297,10 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
   const [itemHistory, setItemHistory] = useState<ItemHistory>({});
   const [rsnSnapshots, setRsnSnapshots] = useState<BankSnapshot[]>([]);
   const [compareSnapshot, setCompareSnapshot] = useState<BankSnapshot | null>(null);
+  const [deletedSnapshot, setDeletedSnapshot] = useState<BankSnapshot | null>(null);
   const [isNarrow, setIsNarrow] = useState(false);
+  const [pluginHubState, setPluginHubState] = useState<BankPluginHubActionState>("pending");
+  const [handoffBlockedHref, setHandoffBlockedHref] = useState<string | null>(null);
 
   // Auto-density: switch to compact when viewport is narrow.
   useEffect(() => {
@@ -197,6 +311,28 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
   }, []);
   const searchRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    let active = true;
+
+    fetch("/api/plugin-hub/status")
+      .then(async (response) => response.ok ? await response.json() as PluginHubStatus : null)
+      .then((status) => {
+        if (!active) return;
+        if (!status) {
+          setPluginHubState("unknown");
+          return;
+        }
+        setPluginHubState(bankPluginHubActionState(status));
+      })
+      .catch(() => {
+        if (active) setPluginHubState("unknown");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   // ⌘K / Ctrl+K to focus the bank search.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -206,6 +342,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
         searchRef.current?.select();
       } else if (e.key === "Escape" && document.activeElement === searchRef.current) {
         setSearch("");
+        setActionSearch(null);
         searchRef.current?.blur();
       }
     };
@@ -241,13 +378,8 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
     const updatedHistory = recordSnapshot(next);
     setItemHistory(updatedHistory);
 
-    // RSN-scoped snapshot history (only if we have an RSN).
-    if (inferredRsn) {
-      const list = appendRsnSnapshot(inferredRsn, next);
-      setRsnSnapshots(list);
-    } else {
-      setRsnSnapshots([]);
-    }
+    // Snapshot history. RSN if known, otherwise local/manual history.
+    setRsnSnapshots(appendSnapshot(inferredRsn, next));
 
     // Stack Score delta
     try {
@@ -423,19 +555,11 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
   // and would have to manually click — auto-switch makes it feel like a
   // bank-wide search.
   useEffect(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return;
+    if (!search.trim()) return;
     // Count matches per visible tab. If the active tab already has matches,
     // leave the user where they are — no point yanking them around mid-type.
-    let bestIdx = -1;
-    let bestCount = 0;
-    visibleTabs.forEach((t, idx) => {
-      const count = t.items.reduce((n, it) =>
-        n + (it.name.toLowerCase().includes(q) || it.subtab.toLowerCase().includes(q) ? 1 : 0), 0);
-      if (count > bestCount) { bestCount = count; bestIdx = idx; }
-    });
-    const activeCount = visibleTabs[activeIdx]?.items.reduce((n, it) =>
-      n + (it.name.toLowerCase().includes(q) || it.subtab.toLowerCase().includes(q) ? 1 : 0), 0) ?? 0;
+    const bestIdx = firstMatchingBankTabIndex(visibleTabs, search);
+    const activeCount = visibleTabs[activeIdx] ? countBankSearchMatches(visibleTabs[activeIdx], search) : 0;
     if (activeCount === 0 && bestIdx >= 0) {
       setActiveIdx(bestIdx);
     }
@@ -460,6 +584,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
   // Tips engine — decant / merge / outfit / pickup. Recomputed when the
   // bank changes; dismissals are session-local inside TipsCard itself.
   const bankTips = useMemo(() => computeTips(visibleTabs), [visibleTabs]);
+  const bankTipSearchQuery = useMemo(() => bankSearchQueryForTips(bankTips), [bankTips]);
   const junkEntries = useMemo(
     () => prefs.showJunk ? listJunkItems(visibleTabs) : [],
     [prefs.showJunk, visibleTabs]
@@ -487,13 +612,17 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
   }, [activeTab, prefs.showStale, itemHistory, STALE_PROTECTED]);
 
   const allItems = useMemo(() => visibleTabs.flatMap((t) => t.items), [visibleTabs]);
+  const totalSearchMatches = useMemo(() => {
+    if (!search.trim()) return 0;
+    return visibleTabs.reduce((sum, tab) => sum + countBankSearchMatches(tab, search), 0);
+  }, [search, visibleTabs]);
+  const currentSnapshot = useMemo(() => snapshotBank(tabs), [tabs]);
 
   // Gear upgrade suggestions — only when we have hiscores for this RSN.
   const compareDiff = useMemo<BankDiff | null>(() => {
     if (!compareSnapshot) return null;
-    const current = snapshotBank(tabs);
-    return diffSnapshots(compareSnapshot, current);
-  }, [compareSnapshot, tabs]);
+    return diffSnapshots(compareSnapshot, currentSnapshot);
+  }, [compareSnapshot, currentSnapshot]);
 
   const upgradeSuggestions = useMemo<UpgradeSuggestion[]>(() => {
     if (!hiscoreSkills) return [];
@@ -544,10 +673,36 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
 
   // Apply search globally (lowercase substring on name or subtab)
   const matchesSearch = useCallback((it: OrganizedItem) => {
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    return it.name.toLowerCase().includes(q) || it.subtab.toLowerCase().includes(q);
+    return matchesBankSearch(it, search);
   }, [search]);
+
+  const searchSuggestionItems = useCallback((query: string, sourceLabel = "bank action") => {
+    if (!query.trim()) return;
+    setSearch(query);
+    setActionSearch({ query, sourceLabel });
+    setActiveSubtab(null);
+    const bestIdx = firstMatchingBankTabIndex(visibleTabs, query);
+    if (bestIdx >= 0) setActiveIdx(bestIdx);
+    document.getElementById("bank-view-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => {
+      searchRef.current?.focus();
+      searchRef.current?.select();
+    }, 150);
+  }, [visibleTabs]);
+
+  const updateSearch = useCallback((value: string) => {
+    setSearch(value);
+    setActionSearch((current) => current && current.query !== value ? null : current);
+  }, []);
+
+  const clearActionSearch = useCallback(() => {
+    setSearch("");
+    setActionSearch(null);
+    setActiveSubtab(null);
+    window.setTimeout(() => {
+      searchRef.current?.focus();
+    }, 50);
+  }, []);
 
   // Multi-modal drag sensors:
   //  - PointerSensor with 8px activation: ignores micro-jitter and lets a
@@ -762,40 +917,184 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
     };
     const code = encodeSnapshot(snap);
     const url = `${window.location.origin}/bank/share/${code}`;
-    try {
-      await navigator.clipboard.writeText(url);
+    const copyResult = await copyText(url);
+    if (copyResult !== "failed") {
       flash("share-link");
-    } catch {
+    } else {
       // Fallback: navigate to it so they can copy from address bar
       window.location.href = url;
     }
   };
 
-  const copyAll = async () => {
-    await navigator.clipboard.writeText(strings.join("\n"));
-    flash("all");
-    track("bank:copy", { mode: "all", tabs: strings.length });
+  const saveCurrentSnapshot = () => {
+    const snap = snapshotBank(tabs);
+    setRsnSnapshots(appendSnapshot(inferredRsn, snap, { forceNew: true }));
+    setCompareSnapshot(null);
+    setDeletedSnapshot(null);
+    flash("snapshot");
   };
+
+  const deleteStoredSnapshot = (snap: BankSnapshot) => {
+    const next = deleteSnapshot(inferredRsn, snap.ts);
+    setRsnSnapshots(next);
+    if (compareSnapshot?.ts === snap.ts) setCompareSnapshot(null);
+    setDeletedSnapshot(snap);
+  };
+
+  const undoDeleteSnapshot = () => {
+    if (!deletedSnapshot) return;
+    const restored = restoreDeletedSnapshot(inferredRsn, deletedSnapshot);
+    setRsnSnapshots(restored);
+    setDeletedSnapshot(null);
+  };
+
+  const restoreSnapshot = (snap: BankSnapshot) => {
+    const items: OrganizedItem[] = snap.items.map((item, index) => ({
+      id: item.id,
+      name: item.name,
+      quantity: item.quantity,
+      unitPrice: item.quantity > 0 ? Math.round(item.stackValue / item.quantity) : 0,
+      stackValue: item.stackValue,
+      subtab: "Restored snapshot",
+      slot: null,
+      weight: index
+    }));
+    const layout: Record<number, number> = {};
+    for (let i = 0; i < items.length; i++) layout[i] = items[i].id;
+    const topItem = items.reduce<OrganizedItem | null>(
+      (best, item) => !best || item.stackValue > best.stackValue ? item : best,
+      null
+    );
+    const restored: OrganizedTab = {
+      name: "Misc",
+      iconItemId: topItem?.id ?? 995,
+      items,
+      layout,
+      quantity: items.reduce((sum, item) => sum + item.quantity, 0),
+      value: items.reduce((sum, item) => sum + item.stackValue, 0)
+    };
+    const nextTabs = [restored];
+    setTabs(nextTabs);
+    setCompareSnapshot(null);
+    setActiveIdx(0);
+    setActiveSubtab(null);
+    refreshStrings(nextTabs);
+    flash("snapshot-restore");
+  };
+
+  const copyToClipboard = async (text: string, key: string) => {
+    const result = await copyText(text);
+    if (result !== "failed") {
+      flash(key);
+      return true;
+    }
+    setManualExportFallback(text);
+    flash("copy-error");
+    window.setTimeout(() => {
+      const exportPanel = document.getElementById("bank-export-panel");
+      exportPanel?.scrollIntoView({ behavior: "smooth", block: "start" });
+      exportPanel?.focus({ preventScroll: true });
+    }, 0);
+    return false;
+  };
+  const copyCompareSummary = async (compare: BankDiff) => {
+    const ok = await copyToClipboard(buildSnapshotCompareShareText(compare), "snapshot-compare-summary");
+    if (ok) track("bank:snapshot_compare_copy", {
+      added: compare.added.length,
+      removed: compare.removed.length,
+      changedQuantity: compare.changedQuantity.length
+    });
+  };
+  const copyAll = async () => {
+    const ok = await copyToClipboard(strings.join("\n"), "all");
+    if (ok) track("bank:copy", { mode: "all", tabs: strings.length });
+  };
+  const openBankHandoffRoute = useCallback((href: string) => {
+    let stored = false;
+    try {
+      stored = persistBankHandoffPayload(tabs, window);
+    } catch {
+    }
+    if (!stored) {
+      setHandoffBlockedHref(href);
+      document.getElementById("bank-handoff-warning")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    setHandoffBlockedHref(null);
+    window.location.href = href;
+  }, [tabs]);
+
+  const openBlockedHandoffWithoutBank = useCallback(() => {
+    if (!handoffBlockedHref) return;
+    const [pathname, query = ""] = handoffBlockedHref.split("?");
+    const params = new URLSearchParams(query);
+    params.set("bank", "none");
+    window.location.href = `${pathname}?${params.toString()}`;
+  }, [handoffBlockedHref]);
   const copyNumbered = async () => {
     const total = strings.length;
     const blocks = strings.map((s, i) => `--- Tab ${i + 1}/${total}: ${tabs[i]?.name || "?"} ---\n${s}`);
-    await navigator.clipboard.writeText(blocks.join("\n\n"));
-    flash("numbered");
-    track("bank:copy", { mode: "numbered", tabs: total });
+    const ok = await copyToClipboard(blocks.join("\n\n"), "numbered");
+    if (ok) track("bank:copy", { mode: "numbered", tabs: total });
   };
   const copyOne = async (i: number) => {
-    await navigator.clipboard.writeText(strings[i]);
-    flash(`one-${i}`);
-    track("bank:copy", { mode: "single", tab: tabs[i]?.name || "?" });
+    const ok = await copyToClipboard(strings[i], `one-${i}`);
+    if (ok) track("bank:copy", { mode: "single", tab: tabs[i]?.name || "?" });
   };
   const flash = (key: string) => {
     setCopied(key);
-    setTimeout(() => setCopied((x) => (x === key ? null : x)), 1300);
+    if (key.endsWith("-error")) return;
+    setTimeout(() => setCopied((x) => (x === key ? null : x)), 1600);
   };
+
+  const importAdjustmentSuffix = (() => {
+    const parts: string[] = [];
+    if (initial.importWarnings.duplicateItemCount > 0) {
+      parts.push(`${initial.importWarnings.duplicateItemCount} duplicate ID${initial.importWarnings.duplicateItemCount === 1 ? "" : "s"} collapsed`);
+    }
+    if (initial.importWarnings.fallbackItemCount > 0) {
+      parts.push(`${initial.importWarnings.fallbackItemCount} unknown ID${initial.importWarnings.fallbackItemCount === 1 ? "" : "s"} kept as fallback`);
+    }
+    return parts.length ? ` Import adjusted: ${parts.join("; ")}.` : "";
+  })();
+
+  const exportCopyMessage = (() => {
+    if (copied === "all") return `Copied ${strings.length} RuneLite tab strings. Paste each line via Bank Tags → Import tag tab.${importAdjustmentSuffix}`;
+    if (copied === "numbered") return `Copied ${strings.length} labelled tab blocks. Useful for review before importing.${importAdjustmentSuffix}`;
+    if (copied?.startsWith("one-")) {
+      const tabIndex = Number(copied.slice(4));
+      const tabName = Number.isFinite(tabIndex) ? tabs[tabIndex]?.name : null;
+      return `Copied ${tabName ? `${tabName} ` : ""}tab ${Number.isFinite(tabIndex) ? tabIndex + 1 : ""}. Paste it into RuneLite now.${importAdjustmentSuffix}`;
+    }
+    if (copied === "copy-error") return "Clipboard permission failed. Use the visible Bank Tags string and copy it manually.";
+    return null;
+  })();
 
   const totalValue = useMemo(() => tabs.reduce((s, t) => s + t.value, 0), [tabs]);
   const totalQty = useMemo(() => tabs.reduce((s, t) => s + t.quantity, 0), [tabs]);
   const totalItems = useMemo(() => tabs.reduce((s, t) => s + t.items.length, 0), [tabs]);
+  const sourceReceipt = useMemo(() => bankSourceReceipt(initial), [initial]);
+  const idSpriteHealth = useMemo(() => bankIdSpriteHealth(initial), [initial]);
+  const fallbackItemSearchQuery = useMemo(
+    () => initial.importWarnings.fallbackItemIds.slice(0, 12).join(" "),
+    [initial.importWarnings.fallbackItemIds]
+  );
+  const tipSlotsFreed = useMemo(() => bankTips.reduce((sum, tip) => sum + (tip.slotsFreed ?? 0), 0), [bankTips]);
+  const bankActionLoop = useMemo(() => buildBankActionLoop({
+    tabCount: strings.length || tabs.length,
+    itemCount: totalItems,
+    totalValue,
+    tipCount: bankTips.length,
+    tipSlotsFreed,
+    hasPluginSyncHint: Boolean(inferredRsn),
+    pluginHubState
+  }), [bankTips.length, inferredRsn, pluginHubState, strings.length, tabs.length, tipSlotsFreed, totalItems, totalValue]);
+  const pluginReviewHref = useMemo(() => {
+    const params = new URLSearchParams();
+    if (inferredRsn?.trim()) params.set("rsn", inferredRsn.trim());
+    params.set("from", "bank");
+    return `/plugin?${params.toString()}#review-readiness`;
+  }, [inferredRsn]);
 
   return (
     <div className="animate-[slide-up_0.35s_ease-out]">
@@ -811,16 +1110,22 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
             return (
               <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 pl-1.5 pr-2.5 py-0.5 text-[11.5px] font-medium text-[var(--color-accent)]">
                 <span className="size-4 shrink-0 inline-flex items-center justify-center">
-                  <img
-                    src={ICON_URL(meta.iconItemId)}
+                  <ItemSprite
+                    id={meta.iconItemId}
                     alt=""
                     className="pixelated"
-                    style={{ maxWidth: "100%", maxHeight: "100%", imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
+                    style={{ maxWidth: "100%", maxHeight: "100%" }}
                   />
                 </span>
                 <span>Layout tuned for <span className="font-semibold">{meta.label}</span></span>
                 {inferredRsn && (
-                  <span className="text-[var(--color-text-muted)] font-mono normal-case">· {inferredRsn}</span>
+                  <a
+                    href={`/u/${encodeURIComponent(rsnSlug(inferredRsn))}`}
+                    className="font-mono normal-case text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:underline"
+                    title={`Open ${inferredRsn}'s Scapestack profile`}
+                  >
+                    · {inferredRsn}
+                  </a>
                 )}
               </div>
             );
@@ -852,12 +1157,29 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <StackScoreBadge tabs={tabs} previousScore={previousScore} />
+          <button
+            type="button"
+            onClick={saveCurrentSnapshot}
+            aria-label="Save a local snapshot of this organized bank"
+            className={cn(
+              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12.5px] font-medium border transition-colors",
+              copied === "snapshot"
+                ? "border-[var(--color-good)]/40 text-[var(--color-good)] bg-[var(--color-good)]/10"
+                : "border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
+            )}
+            title="Save a local snapshot of this bank state"
+          >
+            {copied === "snapshot" ? <CheckCheck className="size-3.5" /> : <Save className="size-3.5" />}
+            {copied === "snapshot" ? "Saved" : "Save snapshot"}
+          </button>
           {/* PRIMARY ACTION — the moment-of-truth: paste back into RuneLite.
               Previously this lived 1000+ pixels below the bank in an Export
               section, which is the wrong place for the page's main outcome.
               Now it's right where the eye lands after "your bank is sorted". */}
           <button
+            type="button"
             onClick={copyAll}
+            aria-label="Copy every organized Bank Tags tab to RuneLite"
             className={cn(
               "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12.5px] font-semibold transition-all",
               "bg-[var(--color-accent)] text-[#07090C] hover:brightness-110 shadow-[0_0_0_3px_rgba(230, 165, 47,0.15)]",
@@ -873,13 +1195,9 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
               we offer a one-click jump that carries the bank along via
               sessionStorage. /next reads it back and skips the intake form. */}
           <button
-            onClick={() => {
-              try {
-                const items = tabs.flatMap((t) => t.items.map((it) => ({ id: it.id, name: it.name })));
-                sessionStorage.setItem("scapestack:next:bank", JSON.stringify(items));
-              } catch { /* private mode / quota — fall through, /next still works without */ }
-              window.location.href = "/next?from=bank";
-            }}
+            type="button"
+            onClick={() => openBankHandoffRoute(bankToolUrl("/next", inferredRsn))}
+            aria-label="Open next-session recommendations using this bank"
             className={cn(
               "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12.5px] font-medium border transition-colors",
               "border-[var(--color-accent)]/40 text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10"
@@ -893,7 +1211,9 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
               if the user wants a different layout (each press uses a fresh
               shuffle seed, so equal-rank items shuffle a touch). */}
           <button
+            type="button"
             onClick={() => applyReorganize("smart", "Tidied")}
+            aria-label="Smart tidy this organized bank again"
             className={cn(
               "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12.5px] font-medium border transition-colors",
               "bg-transparent text-[var(--color-text-dim)] border-[var(--color-border)]",
@@ -907,7 +1227,9 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
           {/* Layout popup — tab order + pinned items. Kept off the toolbar so
               that bar stays focused on view prefs; a dot marks customisation. */}
           <button
+            type="button"
             onClick={() => setLayoutOpen(true)}
+            aria-label="Customize bank tab order and pinned items"
             className={cn(
               "relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12.5px] font-medium border transition-colors",
               "bg-transparent text-[var(--color-text-dim)] border-[var(--color-border)]",
@@ -921,11 +1243,146 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
               <span className="size-1.5 rounded-full bg-[var(--color-accent)]" aria-hidden="true" />
             )}
           </button>
-          <button onClick={onEditInput} className="btn-ghost">
+          <button type="button" onClick={onEditInput} aria-label="Edit pasted bank input" className="btn-ghost">
             <Edit3 className="size-3.5" /> Edit input
           </button>
         </div>
       </div>
+
+      <div
+        data-testid="bank-source-receipt"
+        className="mb-5 grid gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-2)]/70 p-3.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]"
+      >
+        <div className="flex items-start gap-3">
+          <div
+            className={cn(
+              "mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-lg border",
+              sourceReceipt.confidenceTone === "good"
+                ? "border-[var(--color-good)]/35 bg-[var(--color-good)]/10 text-[var(--color-good)]"
+                : "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
+            )}
+          >
+            {sourceReceipt.confidenceTone === "good" ? <Shield className="size-4" /> : <AlertCircle className="size-4" />}
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">Data receipt</p>
+            <p className="mt-1 text-[14px] font-semibold text-[var(--color-text)]">{sourceReceipt.sourceLabel}</p>
+            <p
+              className={cn(
+                "mt-1 inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                sourceReceipt.confidenceTone === "good"
+                  ? "border-[var(--color-good)]/30 bg-[var(--color-good)]/10 text-[var(--color-good)]"
+                  : "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
+              )}
+            >
+              {sourceReceipt.confidenceLabel}
+            </p>
+          </div>
+        </div>
+        <div className="grid gap-2 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
+          <p className="flex gap-2">
+            <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-[var(--color-good)]" />
+            <span>{sourceReceipt.exactLine}</span>
+          </p>
+          <p className="flex gap-2">
+            <AlertCircle className="mt-0.5 size-3.5 shrink-0 text-[var(--color-warning)]" />
+            <span>{sourceReceipt.limitationLine}</span>
+          </p>
+          <p className="flex gap-2">
+            <ArrowRight className="mt-0.5 size-3.5 shrink-0 text-[var(--color-accent)]" />
+            <span>{sourceReceipt.nextLine}</span>
+          </p>
+          <div
+            data-testid="bank-id-sprite-health"
+            className={cn(
+              "mt-1 rounded-lg border px-3 py-2",
+              idSpriteHealth.tone === "good"
+                ? "border-[var(--color-good)]/25 bg-[var(--color-good)]/8"
+                : "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/8"
+            )}
+          >
+            <p className={cn(
+              "flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.16em]",
+              idSpriteHealth.tone === "good" ? "text-[var(--color-good)]" : "text-[var(--color-warning)]"
+            )}>
+              {idSpriteHealth.tone === "good" ? <CheckCircle2 className="size-3.5" /> : <AlertCircle className="size-3.5" />}
+              {idSpriteHealth.label}
+            </p>
+            <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
+              {idSpriteHealth.detail}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {(initial.importWarnings.fallbackItemCount > 0 || initial.importWarnings.duplicateItemCount > 0) && (
+        <div
+          role="status"
+          className="mb-5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 px-3.5 py-3 text-[12.5px] text-[var(--color-text)]"
+        >
+          <div className="flex flex-wrap items-start gap-2">
+            <AlertCircle className="mt-0.5 size-4 shrink-0 text-[var(--color-warning)]" />
+            <div className="min-w-0 flex-1">
+              <div className="font-semibold text-[var(--color-warning)]">
+                Import adjusted your pasted item IDs
+              </div>
+              <p className="mt-1 leading-relaxed text-[var(--color-text-dim)]">
+                Imported <span className="font-mono text-[var(--color-text)]">{initial.source.itemCount}</span> of{" "}
+                <span className="font-mono text-[var(--color-text)]">{initial.importWarnings.parsedItemCount}</span> pasted entries.
+                {initial.importWarnings.duplicateItemCount > 0 && (
+                  <>
+                    {" "}Collapsed <span className="font-mono text-[var(--color-text)]">{initial.importWarnings.duplicateItemCount}</span> duplicate ID{initial.importWarnings.duplicateItemCount === 1 ? "" : "s"}.
+                  </>
+                )}
+                {initial.importWarnings.fallbackItemCount > 0 && (
+                  <>
+                    {" "}Fallback ID{initial.importWarnings.fallbackItemCount === 1 ? "" : "s"}:{" "}
+                    <span className="font-mono text-[var(--color-text)]">
+                      {initial.importWarnings.fallbackItemIds.slice(0, 8).join(", ")}
+                      {initial.importWarnings.fallbackItemIds.length > 8 ? ", …" : ""}
+                    </span>
+                    . Kept in the bank as unknown item tiles; this usually means a brand-new OSRS item, stale item mapping, or a corrupt export row.
+                  </>
+                )}
+              </p>
+              {initial.importWarnings.fallbackItemCount > 0 && (
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => searchSuggestionItems(fallbackItemSearchQuery, "fallback item IDs")}
+                    className="inline-flex items-center gap-1 rounded-md border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-warning)] hover:bg-[var(--color-warning)]/15 transition-colors"
+                    aria-label="Show fallback item IDs in the bank grid"
+                  >
+                    Show fallback IDs in bank
+                    <Search className="size-3" />
+                  </button>
+                  <a
+                    href={wikiSearchUrl(`OSRS item ID ${initial.importWarnings.fallbackItemIds[0]}`)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-warning)] hover:border-[var(--color-warning)]/45 transition-colors"
+                  >
+                    Check the first fallback ID on the Wiki
+                    <ExternalLink className="size-3" />
+                  </a>
+                  {initial.importWarnings.fallbackItemIds.slice(0, 6).map((id) => (
+                    <a
+                      key={id}
+                      href={wikiSearchUrl(`OSRS item ID ${id}`)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1 font-mono text-[10.5px] font-semibold text-[var(--color-text-dim)] hover:border-[var(--color-warning)]/45 hover:text-[var(--color-warning)] transition-colors"
+                      aria-label={`Check fallback OSRS item ID ${id} on the Wiki`}
+                    >
+                      #{id}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {layoutOpen && (
         <LayoutPopup
@@ -942,6 +1399,26 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
         />
       )}
 
+      <SnapshotHistoryPanel
+        snapshots={rsnSnapshots}
+        scopeLabel={inferredRsn ?? "local device"}
+        currentSummary={summarizeTabsForSnapshot(tabs)}
+        currentSnapshot={currentSnapshot}
+        compareSnapshot={compareSnapshot}
+        compareDiff={compareDiff}
+        deletedSnapshot={deletedSnapshot}
+        onSaveSnapshot={saveCurrentSnapshot}
+        onCompare={(snap) => setCompareSnapshot(compareSnapshot?.ts === snap.ts ? null : snap)}
+        onDelete={deleteStoredSnapshot}
+        onUndoDelete={undoDeleteSnapshot}
+        onRestore={restoreSnapshot}
+        onOpenNext={() => openBankHandoffRoute(bankToolUrl("/next", inferredRsn))}
+        onOpenDps={() => openBankHandoffRoute(bankToolUrl("/dps", inferredRsn))}
+        onSearchItems={searchSuggestionItems}
+        onCopyCompareSummary={copyCompareSummary}
+        compareSummaryCopied={copied === "snapshot-compare-summary"}
+      />
+
       {/* Preferences row — sits directly above the bank so the controls and
           the thing they control are visually paired. */}
       <PreferencesBar
@@ -952,12 +1429,72 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
         inferredArchetype={inferredArchetype}
       />
 
+      <BankActionLoopRail
+        steps={bankActionLoop}
+        onCopy={copyAll}
+        onTips={() => {
+          const details = document.getElementById("bank-insights-panel") as HTMLDetailsElement | null;
+          if (details) details.open = true;
+          if (bankTipSearchQuery) {
+            searchSuggestionItems(bankTipSearchQuery, "Bank tips");
+            return;
+          }
+          document.getElementById("bank-insights-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }}
+        onNext={() => openBankHandoffRoute(bankToolUrl("/next", inferredRsn))}
+        onDps={() => openBankHandoffRoute(bankToolUrl("/dps", inferredRsn))}
+        onGoals={() => openBankHandoffRoute(bankToolUrl("/goals", inferredRsn))}
+        onSlayer={() => openBankHandoffRoute(bankToolUrl("/slayer", inferredRsn))}
+        onPlugin={() => openBankHandoffRoute(bankToolUrl("/plugin", inferredRsn))}
+        onPluginReview={() => openBankHandoffRoute(pluginReviewHref)}
+        copied={copied}
+      />
+
+      {handoffBlockedHref && (
+        <div
+          id="bank-handoff-warning"
+          role="alert"
+          className="mb-3 rounded-xl border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-4 py-3"
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-warning)]">
+                Bank handoff blocked
+              </div>
+              <p className="mt-1 max-w-2xl text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
+                Scapestack could not save this bank into browser storage, so opening another tool would lose the exact item context.
+                Enable storage for this site or copy the RuneLite export before continuing.
+              </p>
+            </div>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={copyAll}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[12px] font-bold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-colors"
+              >
+                Copy export instead
+                <Copy className="size-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={openBlockedHandoffWithoutBank}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[12px] font-bold text-[var(--color-text)] hover:border-[var(--color-warning)]/45 hover:text-[var(--color-warning)] transition-colors"
+              >
+                Open without bank
+                <ArrowRight className="size-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <PinContext.Provider value={pinContextValue}>
       <DropFlashContext.Provider value={dropFlash}>
       <DndContext sensors={sensors} collisionDetection={collisionDetection} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver} onDragCancel={onDragCancel}>
         {/* Bank frame — dark slate panel, mint title accent. The "OSRS" feel
             comes from the tab strip + pixelated items inside, not the chrome. */}
         <div
+          id="bank-view-panel"
           key={reorgFlash ?? "stable"}
           className={cn(
             "group/frame relative mt-3 rounded-lg overflow-hidden",
@@ -1013,7 +1550,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
                   searching={!!search.trim()}
                 />
               );
-            })}
+	          })}
           </div>
 
           {/* Inner panel — sunken dark area where items live. Density picks the
@@ -1035,10 +1572,63 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
               active={activeSubtab}
               onChange={setActiveSubtab}
               search={search}
-              onSearchChange={setSearch}
+              onSearchChange={updateSearch}
               itemCount={activeTab?.items.length || 0}
               searchRef={searchRef}
             />
+
+            {actionSearch && search.trim() && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-3 py-2 text-[11.5px] text-[var(--color-text-dim)]"
+              >
+                <span>
+                  Showing{" "}
+                  <span className="font-semibold text-[var(--color-text)]">
+                    {totalSearchMatches}
+                  </span>{" "}
+                  bank item{totalSearchMatches === 1 ? "" : "s"} for{" "}
+                  <span className="font-semibold text-[var(--color-text)]">{actionSearch.sourceLabel}</span>
+                  <span className="text-[var(--color-text-muted)]">{" · "}</span>
+                  <span className="font-mono text-[10.5px] text-[var(--color-accent)]">{search}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={clearActionSearch}
+                  className="inline-flex items-center gap-1 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 transition-colors"
+                >
+                  Clear action search
+                  <X className="size-3" />
+                </button>
+              </div>
+            )}
+            {!actionSearch && search.trim() && (
+              <div
+                role="status"
+                aria-live="polite"
+                data-testid="bank-search-visible-status"
+                className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)]/35 px-3 py-2 text-[11.5px] text-[var(--color-text-dim)]"
+              >
+                <span>
+                  Search shows{" "}
+                  <span className="font-semibold text-[var(--color-text)]">
+                    {totalSearchMatches}
+                  </span>{" "}
+                  bank item{totalSearchMatches === 1 ? "" : "s"} across all tabs for{" "}
+                  <span className="font-mono text-[10.5px] text-[var(--color-accent)]">{search}</span>.
+                </span>
+                <button
+                  type="button"
+                  onClick={clearActionSearch}
+                  className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-text-dim)] hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)] transition-colors"
+                  aria-label="Clear visible bank search results"
+                >
+                  Clear search
+                  <X className="size-3" />
+                </button>
+              </div>
+            )}
 
             {/* Bank body (also droppable so users can drop on the canvas) */}
             <BankBody
@@ -1072,18 +1662,16 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
               // squarely under the cursor (slots are fluid, not 56px fixed).
               style={{ width: dragSize, height: dragSize }}
             >
-              <img
-                src={ICON_URL(spriteIdForItem(dragging.id, dragging.quantity))}
+              <ItemSprite
+                id={spriteIdForItem(dragging.id, dragging.quantity)}
                 alt=""
                 loading="eager"
-                decoding="sync"
-                className="pixelated drop-shadow-[1px_1px_0_rgb(0_0_0/0.9)] pointer-events-none"
+                className="pixelated pointer-events-none"
                 style={{
                   maxWidth: "72%",
                   maxHeight: "72%",
                   width: "auto",
-                  height: "auto",
-                  imageRendering: "pixelated"
+                  height: "auto"
                 }}
               />
               <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 text-[10px] font-mono whitespace-nowrap text-[var(--color-text)] bg-[var(--color-panel)] border border-[var(--color-border-strong)] rounded px-1.5 py-0.5 shadow-md">
@@ -1105,7 +1693,11 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
           summary; analytical users find everything one click away.
           Native <details> over a React state toggle on purpose — no extra
           render, keyboard-accessible, survives soft navigation. */}
-      <details className="group mt-8 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/40 overflow-hidden">
+      <details
+        id="bank-insights-panel"
+        open={bankTips.length > 0 || undefined}
+        className="group mt-8 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/40 overflow-hidden"
+      >
         <summary className="cursor-pointer list-none flex items-center justify-between gap-3 px-4 py-3 hover:bg-[var(--color-panel)]/60 transition-colors">
           <div className="flex items-center gap-3 min-w-0">
             <Sparkles className="size-4 text-[var(--color-accent)] shrink-0" />
@@ -1127,75 +1719,12 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
 
       {/* Actionable tips — decant, merge, complete outfit, pick up untradeables. */}
       <div>
-        <TipsCard tips={bankTips} />
+        <TipsCard tips={bankTips} onSearchItems={searchSuggestionItems} />
       </div>
 
       {/* Diff vs previous bank snapshot, if any */}
       {diff && !diffDismissed && (
         <DiffBanner diff={diff} history={scoreHistory} onDismiss={() => setDiffDismissed(true)} />
-      )}
-
-      {/* Per-RSN snapshot history selector — appears when there are 2+ snapshots */}
-      {rsnSnapshots.length >= 2 && (
-        <div className="mb-5 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] px-3.5 py-2.5">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Hourglass className="size-3.5 text-[var(--color-text-muted)]" />
-            <span className="text-[11.5px] uppercase tracking-wider text-[var(--color-text-muted)] font-semibold">Compare to</span>
-            <div className="flex items-center gap-1 flex-wrap">
-              {rsnSnapshots.slice(0, -1).map((snap) => {
-                const isActive = compareSnapshot?.ts === snap.ts;
-                const days = Math.max(0, Math.round((Date.now() - snap.ts) / (1000 * 60 * 60 * 24)));
-                return (
-                  <button
-                    key={snap.ts}
-                    onClick={() => setCompareSnapshot(isActive ? null : snap)}
-                    className={cn(
-                      "px-2.5 py-1 rounded-md text-[11.5px] font-medium border transition-colors tabular-nums",
-                      isActive
-                        ? "bg-[var(--color-accent)]/12 text-[var(--color-accent)] border-[var(--color-accent)]/40"
-                        : "bg-transparent text-[var(--color-text-dim)] border-[var(--color-border)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
-                    )}
-                  >
-                    {days === 0 ? "today" : days === 1 ? "yesterday" : `${days}d ago`}
-                  </button>
-                );
-              })}
-              {compareSnapshot && (
-                <button
-                  onClick={() => setCompareSnapshot(null)}
-                  className="ml-1 size-6 rounded flex items-center justify-center text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-panel-2)]"
-                  title="Clear comparison"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-            <span className="ml-auto text-[10.5px] text-[var(--color-text-muted)]">
-              {inferredRsn} · {rsnSnapshots.length} snapshot{rsnSnapshots.length === 1 ? "" : "s"} saved
-            </span>
-          </div>
-          {compareDiff && (
-            <div className="mt-2.5 pt-2.5 border-t border-[var(--color-border)] text-[11.5px] grid grid-cols-3 gap-3">
-              <div>
-                <span className="text-[var(--color-text-muted)] uppercase tracking-wider text-[9.5px] font-semibold">Added</span>
-                <div className="font-mono tabular-nums text-[var(--color-good)] font-semibold">{compareDiff.added.length}</div>
-              </div>
-              <div>
-                <span className="text-[var(--color-text-muted)] uppercase tracking-wider text-[9.5px] font-semibold">Removed</span>
-                <div className="font-mono tabular-nums text-[var(--color-danger)] font-semibold">{compareDiff.removed.length}</div>
-              </div>
-              <div>
-                <span className="text-[var(--color-text-muted)] uppercase tracking-wider text-[9.5px] font-semibold">Net value</span>
-                <div className={cn(
-                  "font-mono tabular-nums font-semibold",
-                  compareDiff.totalValueAfter >= compareDiff.totalValueBefore ? "text-[var(--color-good)]" : "text-[var(--color-danger)]"
-                )}>
-                  {compareDiff.totalValueAfter >= compareDiff.totalValueBefore ? "+" : "-"}{formatGp(Math.abs(compareDiff.totalValueAfter - compareDiff.totalValueBefore))} gp
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
       )}
 
       {/* Junk banner */}
@@ -1287,11 +1816,11 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
                 >
                   <div className="flex items-start gap-2.5">
                     <div className="size-10 rounded bg-[var(--color-bg)] border border-[var(--color-border)] flex items-center justify-center shrink-0 group-hover:border-[var(--color-accent)]/30 transition-colors">
-                      <img
-                        src={ICON_URL(s.upgrade.id)}
+                      <ItemSprite
+                        id={s.upgrade.id}
                         alt=""
                         className="pixelated"
-                        style={{ maxWidth: "78%", maxHeight: "78%", imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
+                        style={{ maxWidth: "78%", maxHeight: "78%" }}
                       />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -1333,15 +1862,13 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
                 <div key={p.set.id} className="flex items-center gap-2">
                   {p.set.iconItemId ? (
                     <span className="size-5 shrink-0 rounded bg-[var(--color-bg-2)] border border-[var(--color-border)] flex items-center justify-center">
-                      <img
-                        src={ICON_URL(p.set.iconItemId)}
+                      <ItemSprite
+                        id={p.set.iconItemId}
                         alt=""
                         className="pixelated"
                         style={{
                           maxWidth: "78%",
-                          maxHeight: "78%",
-                          imageRendering: "pixelated",
-                          filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))"
+                          maxHeight: "78%"
                         }}
                       />
                     </span>
@@ -1386,10 +1913,10 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
       </details>
 
       {/* Smart suggestions based on what's in the bank */}
-      <SuggestionsPanel tabs={tabs} />
+      <SuggestionsPanel tabs={tabs} onSearchItems={searchSuggestionItems} />
 
       {/* Export */}
-      <section className="mt-8 surface p-5">
+      <section id="bank-export-panel" tabIndex={-1} className="mt-8 surface p-5">
         <div className="flex items-baseline justify-between flex-wrap gap-3 mb-1">
           <h3 className="text-[15px] font-semibold text-[var(--color-text)] tracking-tight">
             Export back to RuneLite
@@ -1404,6 +1931,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
 
         <div className="flex flex-wrap items-center gap-2 mb-4">
           <button
+            type="button"
             onClick={copyAll}
             className={cn(
               "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium",
@@ -1411,13 +1939,49 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
             )}
           >
             {copied === "all" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
-            Copy all tabs
+            {copied === "all" ? "Copied all tabs" : "Copy all tabs"}
           </button>
-          <button onClick={copyNumbered} className="btn-ghost">
+          <button type="button" onClick={copyNumbered} className="btn-ghost">
             {copied === "numbered" ? <CheckCheck className="size-3.5 text-[var(--color-accent)]" /> : <Copy className="size-3.5" />}
-            Copy with headers
+            {copied === "numbered" ? "Copied headers" : "Copy with headers"}
           </button>
         </div>
+
+        <div
+          role="status"
+          aria-live="polite"
+          className={cn(
+            "mb-4 min-h-[34px] rounded-md border px-3 py-2 text-[11.5px] transition-colors",
+            exportCopyMessage
+              ? copied === "copy-error"
+                ? "border-[var(--color-danger)]/35 bg-[var(--color-danger)]/10 text-[var(--color-danger)]"
+                : "border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 text-[var(--color-text)]"
+              : "border-[var(--color-border)] bg-[var(--color-bg-2)]/35 text-[var(--color-text-muted)]"
+          )}
+        >
+          {exportCopyMessage ?? "Copy an export string, then paste it into RuneLite Bank Tags."}
+        </div>
+        {copied === "copy-error" && (
+          <div className="mb-4 rounded-md border border-[var(--color-danger)]/25 bg-[var(--color-bg-2)]/50 p-3">
+            <label
+              htmlFor="manual-banktags-export"
+              className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-danger)]"
+            >
+              Manual fallback export
+            </label>
+            <textarea
+              id="manual-banktags-export"
+              readOnly
+              value={manualExportFallback || strings.join("\n")}
+              onFocus={(event) => event.currentTarget.select()}
+              className="min-h-[120px] w-full resize-y rounded border border-[var(--color-border)] bg-[var(--color-bg)] p-2 font-mono text-[11px] leading-relaxed text-[var(--color-text)]"
+              aria-label="Manual Bank Tags export fallback"
+            />
+            <p className="mt-1.5 text-[11px] text-[var(--color-text-muted)]">
+              Select all, copy manually, then paste the shown export into RuneLite Bank Tags.
+            </p>
+          </div>
+        )}
 
         <ol className="space-y-1.5">
           {tabs.map((tab, i) => (
@@ -1428,18 +1992,16 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
               <span className="text-center text-[11px] font-mono font-medium text-[var(--color-text-muted)] tabular-nums">
                 {i + 1}
               </span>
-              <img
-                src={ICON_URL(tab.iconItemId)}
+              <ItemSprite
+                id={tab.iconItemId}
                 alt=""
                 loading="lazy"
-                decoding="async"
                 className="pixelated mx-auto"
                 style={{
                   maxWidth: "22px",
                   maxHeight: "22px",
                   width: "auto",
-                  height: "auto",
-                  imageRendering: "pixelated"
+                  height: "auto"
                 }}
               />
               <div className="min-w-0">
@@ -1454,6 +2016,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
                 </code>
               </div>
               <button
+                type="button"
                 onClick={() => copyOne(i)}
                 className={cn(
                   "btn-ghost shrink-0",
@@ -1467,6 +2030,13 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
           ))}
         </ol>
       </section>
+
+      <BossTagSection
+        items={allItems}
+        flash={flash}
+        copied={copied}
+        onOpenDps={(bossSlug) => openBankHandoffRoute(bankToolUrl("/dps", inferredRsn, { boss: bossSlug }))}
+      />
 
       {/* Support ask — appears once a user has just gotten value (organized
           a bank). Dismissable for 30 days. */}
@@ -1482,6 +2052,822 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
 }
 
 // ── Subcomponents ─────────────────────────────────────────────────────────
+
+function SnapshotHistoryPanel({
+  snapshots,
+  scopeLabel,
+  currentSummary,
+  currentSnapshot,
+  compareSnapshot,
+  compareDiff,
+  deletedSnapshot,
+  onCompare,
+  onDelete,
+  onUndoDelete,
+  onSaveSnapshot,
+  onRestore,
+  onOpenNext,
+  onOpenDps,
+  onSearchItems,
+  onCopyCompareSummary,
+  compareSummaryCopied
+}: {
+  snapshots: BankSnapshot[];
+  scopeLabel: string;
+  currentSummary: SnapshotSummary;
+  currentSnapshot: BankSnapshot;
+  compareSnapshot: BankSnapshot | null;
+  compareDiff: BankDiff | null;
+  deletedSnapshot: BankSnapshot | null;
+  onCompare: (snap: BankSnapshot) => void;
+  onDelete: (snap: BankSnapshot) => void;
+  onUndoDelete: () => void;
+  onSaveSnapshot: () => void;
+  onRestore: (snap: BankSnapshot) => void;
+  onOpenNext: () => void;
+  onOpenDps: () => void;
+  onSearchItems: (query: string, sourceLabel?: string) => void;
+  onCopyCompareSummary: (diff: BankDiff) => void;
+  compareSummaryCopied: boolean;
+}) {
+  const recent = snapshots.slice(-5).reverse();
+  const latest = snapshots[snapshots.length - 1] ?? null;
+  const recommendedBaseline = !compareSnapshot
+    ? recent.find((snap) => hasSnapshotDelta(diffSnapshots(snap, currentSnapshot))) ?? null
+    : null;
+  const recommendedBaselineDiff = recommendedBaseline
+    ? diffSnapshots(recommendedBaseline, currentSnapshot)
+    : null;
+
+  return (
+    <section className="mb-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/55 px-4 py-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <Hourglass className="size-3.5 text-[var(--color-accent)]" />
+            <span className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-text-muted)]">
+              Saved banks
+            </span>
+            <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg-2)] px-2 py-0.5 text-[10.5px] text-[var(--color-text-dim)]">
+              {scopeLabel}
+            </span>
+          </div>
+          <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-dim)]">
+            Current bank: <strong className="text-[var(--color-text)]">{currentSummary.itemCount}</strong> items ·{" "}
+            <strong className="text-[var(--color-accent)]">{formatGp(currentSummary.totalValue)}</strong> · Stack Score{" "}
+            <strong className="text-[var(--color-text)]">{currentSummary.stackScore}</strong>
+            {currentSummary.tipCount > 0 && <> · <strong className="text-[var(--color-warning)]">{currentSummary.tipCount}</strong> tip{currentSummary.tipCount === 1 ? "" : "s"}</>}
+          </p>
+          {currentSummary.topItems.length > 0 && (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className="text-[10.5px] uppercase tracking-[0.14em] font-bold text-[var(--color-text-muted)]">
+                Top now
+              </span>
+              {currentSummary.topItems.slice(0, 3).map((item) => (
+                <span
+                  key={item.id}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 px-1.5 py-1 text-[10.5px] text-[var(--color-text-dim)]"
+                  title={`${item.name} · ${formatGp(item.stackValue)} gp`}
+                >
+                  <span className="size-5 rounded bg-[var(--color-bg)] border border-[var(--color-border)] flex items-center justify-center">
+                    <ItemSprite
+                      id={spriteIdForItem(item.id, item.quantity)}
+                      alt=""
+                      className="pixelated"
+                      style={{ maxWidth: "82%", maxHeight: "82%" }}
+                    />
+                  </span>
+                  <span className="max-w-[110px] truncate">{item.name}</span>
+                  {item.stackValue > 0 && (
+                    <span className="font-mono tabular-nums text-[var(--color-accent)]">{formatGp(item.stackValue)}</span>
+                  )}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="text-right text-[11px] text-[var(--color-text-muted)]">
+          {latest ? (
+            <>
+              <div>Latest autosave: {snapshotAge(latest.ts)}</div>
+              <div>{snapshots.length} local snapshot{snapshots.length === 1 ? "" : "s"}</div>
+            </>
+          ) : (
+            <div>No snapshots yet</div>
+          )}
+        </div>
+      </div>
+
+      {deletedSnapshot && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="mt-3 flex flex-wrap items-center gap-2 rounded-md border border-[var(--color-danger)]/30 bg-[var(--color-danger)]/10 px-3 py-2 text-[11.5px] text-[var(--color-text)]"
+        >
+          <Trash2 className="size-3.5 text-[var(--color-danger)]" />
+          <span className="flex-1 min-w-[180px]">
+            Deleted {snapshotAge(deletedSnapshot.ts)} snapshot · {deletedSnapshot.items.length} items.
+          </span>
+          <button
+            type="button"
+            onClick={onUndoDelete}
+            className="inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-[var(--color-bg)]/40 px-2 py-1 text-[10.5px] font-semibold text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
+          >
+            <RotateCcw className="size-3" />
+            Undo
+          </button>
+        </div>
+      )}
+
+      {recent.length > 0 ? (
+        <>
+          {snapshots.length === 1 && !compareSnapshot && (
+            <div
+              data-testid="snapshot-single-compare-hint"
+              className="mt-3 flex flex-wrap items-center gap-2 rounded-md border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-3 py-2 text-[11.5px] text-[var(--color-text)]"
+            >
+              <ArrowUpDown className="size-3.5 text-[var(--color-accent)]" />
+              <span className="flex-1 min-w-[210px]">
+                Compare needs two save points. Save another snapshot after edits, loot, or a new import to unlock a before/after diff.
+              </span>
+              <button
+                type="button"
+                onClick={onSaveSnapshot}
+                className="inline-flex items-center gap-1 rounded border border-[var(--color-accent)]/35 bg-[var(--color-bg)]/40 px-2 py-1 text-[10.5px] font-semibold text-[var(--color-accent)] hover:border-[var(--color-accent)]/60"
+                aria-label="Save second bank snapshot"
+              >
+                <Save className="size-3" />
+                Save second snapshot
+              </button>
+            </div>
+          )}
+
+          {recommendedBaseline && recommendedBaselineDiff && (
+            <div
+              data-testid="snapshot-baseline-recommendation"
+              className="mt-3 flex flex-wrap items-center gap-2 rounded-md border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-3 py-2 text-[11.5px] text-[var(--color-text)]"
+            >
+              <Target className="size-3.5 text-[var(--color-good)]" />
+              <span className="flex-1 min-w-[220px]">
+                Recommended baseline: compare against the {snapshotAge(recommendedBaseline.ts)} save point.{" "}
+                <span className="font-semibold text-[var(--color-text)]">
+                  {snapshotDeltaPreview(recommendedBaselineDiff)}
+                </span>
+                {" "}changed since then.
+              </span>
+              <button
+                type="button"
+                onClick={() => onCompare(recommendedBaseline)}
+                className="inline-flex items-center gap-1 rounded border border-[var(--color-good)]/35 bg-[var(--color-bg)]/40 px-2 py-1 text-[10.5px] font-semibold text-[var(--color-good)] hover:border-[var(--color-good)]/60"
+                aria-label="Compare the recommended bank baseline"
+              >
+                <ArrowUpDown className="size-3" />
+                Compare recommended
+              </button>
+            </div>
+          )}
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            {recent.map((snap) => {
+              const active = compareSnapshot?.ts === snap.ts;
+              const isLatest = latest?.ts === snap.ts;
+              const previewDiff = diffSnapshots(snap, currentSnapshot);
+              const previewSummary = summarizeSnapshotCompare(previewDiff);
+              const isCurrentSnapshot = !hasSnapshotDelta(previewDiff);
+              const totalValue = snap.items.reduce((sum, item) => sum + item.stackValue, 0);
+              const topItems = snap.items
+                .slice()
+                .sort((a, b) => b.stackValue - a.stackValue)
+                .slice(0, 3);
+              return (
+                <div
+                  key={snap.ts}
+                  className={cn(
+                    "rounded-md border px-2.5 py-2 text-[11.5px] min-w-[220px]",
+                    active
+                      ? "border-[var(--color-accent)]/45 bg-[var(--color-accent)]/10"
+                      : "border-[var(--color-border)] bg-[var(--color-bg-2)]/45"
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className={cn("font-semibold", active ? "text-[var(--color-accent)]" : "text-[var(--color-text)]")}>
+                        {isLatest ? "Latest · " : ""}{snapshotAge(snap.ts)}
+                      </div>
+                      <div className="mt-1 text-[var(--color-text-muted)] tabular-nums">
+                        {snap.items.length} items · {formatGp(totalValue)}
+                      </div>
+                    </div>
+                    {isLatest && (
+                      <span className="rounded-full border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-1.5 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
+                        autosave
+                      </span>
+                    )}
+                  </div>
+
+                  {topItems.length > 0 && (
+                    <div className="mt-2 flex items-center gap-1.5">
+                      {topItems.map((item) => (
+                        <span
+                          key={item.id}
+                          className="size-7 rounded border border-[var(--color-border)] bg-[var(--color-bg)] flex items-center justify-center"
+                          title={`${item.name} · ${formatGp(item.stackValue)} gp`}
+                        >
+                          <ItemSprite
+                            id={spriteIdForItem(item.id, item.quantity)}
+                            alt=""
+                            className="pixelated"
+                            style={{ maxWidth: "82%", maxHeight: "82%" }}
+                          />
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {!isCurrentSnapshot && (
+                    <div
+                      className="mt-2 rounded border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1.5 text-[10.5px] leading-relaxed text-[var(--color-text-dim)]"
+                      title={previewSummary.headline}
+                    >
+                      Compare preview: <span className="font-semibold text-[var(--color-text)]">{snapshotDeltaPreview(previewDiff)}</span>
+                    </div>
+                  )}
+
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {isCurrentSnapshot ? (
+                      <span className="inline-flex items-center gap-1 rounded border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-2 py-1 text-[10.5px] font-semibold text-[var(--color-accent)]">
+                        <CheckCheck className="size-3" />
+                        Current
+                      </span>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => onCompare(snap)}
+                          className={cn(
+                            "inline-flex items-center gap-1 rounded border px-2 py-1 text-[10.5px] font-semibold transition-colors",
+                            active
+                              ? "border-[var(--color-accent)]/45 bg-[var(--color-accent)]/12 text-[var(--color-accent)]"
+                              : "border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-accent)] hover:border-[var(--color-accent)]/35"
+                          )}
+                          aria-label={active ? "Stop comparing this bank snapshot" : "Compare this bank snapshot"}
+                        >
+                          <ArrowUpDown className="size-3" />
+                          {active ? "Viewing impact" : "Compare impact"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onRestore(snap)}
+                          className="inline-flex items-center gap-1 rounded border border-[var(--color-border)] px-2 py-1 text-[10.5px] font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
+                          aria-label="Restore this snapshot as a flat bank view"
+                        >
+                          <RotateCcw className="size-3" />
+                          Restore
+                        </button>
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => onDelete(snap)}
+                      className="inline-flex items-center gap-1 rounded border border-[var(--color-border)] px-2 py-1 text-[10.5px] font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-danger)] hover:border-[var(--color-danger)]/35"
+                      aria-label="Delete this snapshot"
+                    >
+                      <Trash2 className="size-3" />
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      ) : (
+        <p className="mt-3 rounded-md border border-dashed border-[var(--color-border)] bg-[var(--color-bg-2)]/30 px-3 py-2 text-[11.5px] text-[var(--color-text-muted)]">
+          Organize again later and Scapestack will show what changed. Use “Save snapshot” after manual drag/drop changes.
+        </p>
+      )}
+
+      {compareDiff && compareSnapshot && (
+        <div className="mt-3 border-t border-[var(--color-border)] pt-3">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.16em] font-bold text-[var(--color-text-muted)]">
+                Compare to
+              </div>
+              <div className="text-[12px] font-semibold text-[var(--color-text)]">
+                {snapshotAge(compareSnapshot.ts)} snapshot
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => onCompare(compareSnapshot)}
+              className="inline-flex items-center gap-1 rounded border border-[var(--color-border)] px-2 py-1 text-[10.5px] font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
+              aria-label="Stop comparing this bank snapshot"
+            >
+              <X className="size-3" />
+              Stop compare
+            </button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <SnapshotDelta label="Added" value={compareDiff.added.length} tone="good" />
+            <SnapshotDelta label="Removed" value={compareDiff.removed.length} tone="danger" />
+            <SnapshotDelta label="Qty changed" value={compareDiff.changedQuantity.length} />
+            <SnapshotDelta
+              label="Value delta"
+              value={formatGp(Math.abs(compareDiff.totalValueAfter - compareDiff.totalValueBefore))}
+              tone={compareDiff.totalValueAfter >= compareDiff.totalValueBefore ? "good" : "danger"}
+            />
+          </div>
+          <SnapshotCompareActionRail
+            diff={compareDiff}
+            onSaveSnapshot={onSaveSnapshot}
+            onOpenNext={onOpenNext}
+            onOpenDps={onOpenDps}
+            onSearchItems={onSearchItems}
+            onCopySummary={() => onCopyCompareSummary(compareDiff)}
+            summaryCopied={compareSummaryCopied}
+          />
+          <SnapshotDiffDetails diff={compareDiff} onSearchItems={onSearchItems} />
+        </div>
+      )}
+    </section>
+  );
+}
+
+function SnapshotCompareActionRail({
+  diff,
+  onSaveSnapshot,
+  onOpenNext,
+  onOpenDps,
+  onSearchItems,
+  onCopySummary,
+  summaryCopied
+}: {
+  diff: BankDiff;
+  onSaveSnapshot: () => void;
+  onOpenNext: () => void;
+  onOpenDps: () => void;
+  onSearchItems: (query: string, sourceLabel?: string) => void;
+  onCopySummary: () => void;
+  summaryCopied: boolean;
+}) {
+  const summary = summarizeSnapshotCompare(diff);
+  const actions = recommendSnapshotCompareActions(diff);
+  const valueDelta = diff.totalValueAfter - diff.totalValueBefore;
+  const nextCopy = valueDelta > 0 ? "Re-plan upgrades with new GP" : "Find next affordable upgrade";
+
+  return (
+    <div
+      data-testid="snapshot-compare-action-rail"
+      className="mt-3 rounded-md border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 px-3 py-2"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-[220px] flex-1">
+          <div className="text-[10px] uppercase tracking-[0.16em] font-bold text-[var(--color-accent)]">
+            Do something with this diff
+          </div>
+          <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
+            {summary.headline}. Use the same bank state for upgrade planning or DPS, then save the current bank as the new baseline.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            onClick={onOpenNext}
+            className="inline-flex items-center gap-1 rounded border border-[var(--color-accent)]/35 bg-[var(--color-bg)]/45 px-2 py-1 text-[10.5px] font-semibold text-[var(--color-accent)] hover:border-[var(--color-accent)]/60"
+            aria-label="Open next upgrades using this bank"
+          >
+            <Target className="size-3" />
+            {nextCopy}
+          </button>
+          <button
+            type="button"
+            onClick={onOpenDps}
+            className="inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1 text-[10.5px] font-semibold text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
+            aria-label="Open DPS using this bank"
+          >
+            <Sword className="size-3" />
+            Check DPS impact
+          </button>
+          <button
+            type="button"
+            onClick={onCopySummary}
+            className={cn(
+              "inline-flex items-center gap-1 rounded border bg-[var(--color-bg)]/35 px-2 py-1 text-[10.5px] font-semibold hover:border-[var(--color-border-strong)]",
+              summaryCopied
+                ? "border-[var(--color-accent)]/45 text-[var(--color-accent)]"
+                : "border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)]"
+            )}
+            aria-label="Copy bank compare summary"
+          >
+            {summaryCopied ? <CheckCheck className="size-3" /> : <Copy className="size-3" />}
+            {summaryCopied ? "Summary copied" : "Copy summary"}
+          </button>
+          <button
+            type="button"
+            onClick={onSaveSnapshot}
+            className="inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1 text-[10.5px] font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
+            aria-label="Save current bank as new compare baseline"
+          >
+            <Save className="size-3" />
+            Save as baseline
+          </button>
+        </div>
+      </div>
+      <div className="mt-3 grid gap-1.5 md:grid-cols-2">
+        {actions.map((action) => (
+          <div
+            key={`${action.label}:${action.searchQuery ?? action.body}`}
+            className="rounded border border-[var(--color-border)] bg-[var(--color-bg)]/30 px-2 py-1.5"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="text-[10.5px] font-bold text-[var(--color-text)]">{action.label}</div>
+                <p className="mt-0.5 text-[10.5px] leading-relaxed text-[var(--color-text-muted)]">{action.body}</p>
+              </div>
+              {action.searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => onSearchItems(action.searchQuery!, "snapshot action brief")}
+                  className="inline-flex shrink-0 items-center gap-1 rounded border border-[var(--color-border)] px-1.5 py-0.5 text-[9.5px] font-semibold text-[var(--color-text-muted)] hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)]"
+                  aria-label={`Search current bank for ${action.label.toLowerCase()}`}
+                >
+                  <Search className="size-2.5" />
+                  Search
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SnapshotDiffDetails({
+  diff,
+  onSearchItems
+}: {
+  diff: BankDiff;
+  onSearchItems: (query: string, sourceLabel?: string) => void;
+}) {
+  const summary = summarizeSnapshotCompare(diff);
+  const changed = diff.changedQuantity
+    .slice()
+    .sort((left, right) => Math.abs(right.deltaValue) - Math.abs(left.deltaValue))
+    .slice(0, 4);
+  const added = diff.added.slice().sort((left, right) => right.stackValue - left.stackValue).slice(0, 4);
+  const removed = diff.removed.slice().sort((left, right) => right.stackValue - left.stackValue).slice(0, 4);
+
+  if (added.length === 0 && removed.length === 0 && changed.length === 0) {
+    return (
+      <SnapshotCompareInsight summary={summary} />
+    );
+  }
+
+  return (
+    <>
+      <SnapshotCompareInsight summary={summary} />
+      <div className="mt-3 grid gap-2 lg:grid-cols-3">
+        <SnapshotItemList title="Added" tone="good" items={added.map((item) => ({
+          id: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          value: item.stackValue,
+          meta: item.quantity > 0 ? `+${item.quantity.toLocaleString()}` : "new item"
+        }))} action="search" onSearchItems={onSearchItems} />
+        <SnapshotItemList title="Removed" tone="danger" items={removed.map((item) => ({
+          id: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          value: -item.stackValue,
+          meta: item.quantity > 0 ? `-${item.quantity.toLocaleString()}` : "removed"
+        }))} action="wiki" />
+        <SnapshotItemList title="Quantity changed" items={changed.map((item) => ({
+          id: item.id,
+          name: item.name,
+          quantity: item.after,
+          value: item.deltaValue,
+          meta: `${item.delta > 0 ? "+" : ""}${item.delta.toLocaleString()} · ${item.before.toLocaleString()} → ${item.after.toLocaleString()}`
+        }))} action="search" onSearchItems={onSearchItems} />
+      </div>
+    </>
+  );
+}
+
+function SnapshotCompareInsight({ summary }: { summary: ReturnType<typeof summarizeSnapshotCompare> }) {
+  return (
+    <div
+      className={cn(
+        "mt-3 rounded-md border px-3 py-2",
+        summary.tone === "good" && "border-[var(--color-good)]/25 bg-[var(--color-good)]/8",
+        summary.tone === "danger" && "border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8",
+        summary.tone === "neutral" && "border-[var(--color-border)] bg-[var(--color-bg-2)]/30"
+      )}
+    >
+      <div
+        className={cn(
+          "text-[11.5px] font-semibold",
+          summary.tone === "good" && "text-[var(--color-good)]",
+          summary.tone === "danger" && "text-[var(--color-danger)]",
+          summary.tone === "neutral" && "text-[var(--color-text)]"
+        )}
+      >
+        {summary.headline}
+      </div>
+      <p className="mt-1 text-[11px] leading-relaxed text-[var(--color-text-muted)]">{summary.detail}</p>
+    </div>
+  );
+}
+
+function SnapshotItemList({
+  title,
+  items,
+  tone,
+  action,
+  onSearchItems
+}: {
+  title: string;
+  items: Array<{ id: number; name: string; quantity: number; value: number; meta: string }>;
+  tone?: "good" | "danger";
+  action?: "search" | "wiki";
+  onSearchItems?: (query: string, sourceLabel?: string) => void;
+}) {
+  return (
+    <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)]/30 px-3 py-2">
+      <div
+        className={cn(
+          "text-[9.5px] uppercase tracking-[0.16em] font-bold",
+          tone === "good" && "text-[var(--color-good)]",
+          tone === "danger" && "text-[var(--color-danger)]",
+          !tone && "text-[var(--color-text-muted)]"
+        )}
+      >
+        {title}
+      </div>
+      {items.length > 0 ? (
+        <ul className="mt-2 space-y-1.5">
+          {items.map((item) => (
+            <li key={`${title}:${item.id}`} className="flex items-center gap-2 text-[11.5px]">
+              <span className="size-6 rounded border border-[var(--color-border)] bg-[var(--color-bg)] flex items-center justify-center shrink-0">
+                <ItemSprite
+                  id={spriteIdForItem(item.id, item.quantity)}
+                  alt=""
+                  className="pixelated"
+                  style={{ maxWidth: "82%", maxHeight: "82%" }}
+                />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[var(--color-text)]">{item.name}</span>
+                <span className="block text-[10px] text-[var(--color-text-muted)]">
+                  <span className="font-mono text-[var(--color-text-dim)]">#{item.id}</span>
+                  {" · "}
+                  {item.meta}
+                </span>
+              </span>
+              {item.value !== 0 && (
+                <span
+                  className={cn(
+                    "font-mono tabular-nums text-[10.5px] shrink-0",
+                    item.value > 0 ? "text-[var(--color-good)]" : "text-[var(--color-danger)]"
+                  )}
+                >
+                  {item.value > 0 ? "+" : "-"}{formatGp(Math.abs(item.value))}
+                </span>
+              )}
+              {action === "search" && onSearchItems && (
+                <button
+                  type="button"
+                  onClick={() => onSearchItems(`#${item.id}`, `snapshot ${title.toLowerCase()} item`)}
+                  className="inline-flex shrink-0 items-center gap-1 rounded border border-[var(--color-border)] px-1.5 py-0.5 text-[9.5px] font-semibold text-[var(--color-text-muted)] hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)]"
+                  aria-label={`Show ${item.name} item ID ${item.id} in the current bank`}
+                >
+                  <Search className="size-2.5" />
+                  Show
+                </button>
+              )}
+              {action === "wiki" && (
+                <a
+                  href={wikiSearchUrl(item.name)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex shrink-0 items-center gap-1 rounded border border-[var(--color-border)] px-1.5 py-0.5 text-[9.5px] font-semibold text-[var(--color-text-muted)] hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)]"
+                  aria-label={`Open ${item.name} on the OSRS Wiki`}
+                >
+                  Wiki
+                  <ExternalLink className="size-2.5" />
+                </a>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-2 text-[11px] text-[var(--color-text-muted)]">Nothing here.</p>
+      )}
+    </div>
+  );
+}
+
+function SnapshotDelta({ label, value, tone }: { label: string; value: number | string; tone?: "good" | "danger" }) {
+  return (
+    <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)]/35 px-2.5 py-2">
+      <div className="text-[9.5px] uppercase tracking-[0.16em] text-[var(--color-text-muted)]">{label}</div>
+      <div
+        className={cn(
+          "mt-0.5 text-[14px] font-bold tabular-nums",
+          tone === "good" && "text-[var(--color-good)]",
+          tone === "danger" && "text-[var(--color-danger)]",
+          !tone && "text-[var(--color-text)]"
+        )}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function hasSnapshotDelta(diff: BankDiff): boolean {
+  return diff.added.length > 0
+    || diff.removed.length > 0
+    || diff.changedQuantity.length > 0
+    || diff.totalValueBefore !== diff.totalValueAfter;
+}
+
+function snapshotDeltaPreview(diff: BankDiff): string {
+  const valueDelta = diff.totalValueAfter - diff.totalValueBefore;
+  const value = valueDelta === 0
+    ? "flat value"
+    : `${valueDelta > 0 ? "+" : "-"}${formatGp(Math.abs(valueDelta))}`;
+  return `+${diff.added.length} added / -${diff.removed.length} removed / ${diff.changedQuantity.length} qty · ${value}`;
+}
+
+function snapshotAge(ts: number): string {
+  const diff = Math.max(0, Date.now() - ts);
+  const minutes = Math.floor(diff / 60_000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days === 1) return "yesterday";
+  return `${days}d ago`;
+}
+
+function BankActionLoopRail({
+  steps,
+  onCopy,
+  onTips,
+  onNext,
+  onDps,
+  onGoals,
+  onSlayer,
+  onPlugin,
+  onPluginReview,
+  copied
+}: {
+  steps: BankActionLoopStep[];
+  onCopy: () => void;
+  onTips: () => void;
+  onNext: () => void;
+  onDps: () => void;
+  onGoals: () => void;
+  onSlayer: () => void;
+  onPlugin: () => void;
+  onPluginReview: () => void;
+  copied: string | null;
+}) {
+  const actionFor = (step: BankActionLoopStep) => {
+    if (step.id === "export") return onCopy;
+    if (step.id === "tips") return onTips;
+    if (step.id === "dps") return onDps;
+    if (step.id === "sync") return step.destination === "/plugin#review-readiness" ? onPluginReview : onPlugin;
+    return onNext;
+  };
+
+  return (
+    <section className="mt-4 mb-3 rounded-xl border border-[var(--color-accent)]/25 bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] p-3 shadow-[0_20px_55px_-36px_rgb(0_0_0/0.85)] sm:p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
+            One Scapestack loop
+          </div>
+          <h3 className="mt-1 text-[15px] font-bold text-[var(--color-text)]">
+            Clean bank → fix the obvious → plan the next session
+          </h3>
+        </div>
+        {copied === "all" && (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-good)]/30 bg-[var(--color-good)]/10 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-good)]">
+            <CheckCircle2 className="size-3.5" />
+            Export copied
+          </span>
+        )}
+      </div>
+      <div className="mt-3 grid gap-2 md:grid-cols-5">
+        {steps.map((step) => {
+          const isCopiedExport = step.id === "export" && copied === "all";
+          return (
+            <button
+              type="button"
+              key={step.id}
+              onClick={actionFor(step)}
+              title={`${step.cta} · ${step.destination}`}
+              aria-label={`${step.cta}: ${step.destination}`}
+              data-testid="bank-action-loop-card"
+              className={cn(
+                "group/bank-action rounded-lg border p-3 text-left transition-all hover:-translate-y-0.5 focus:outline-none focus-visible:border-[var(--color-accent)]/60 focus-visible:shadow-[0_0_0_3px_rgba(230,165,47,0.13)]",
+                step.state === "attention"
+                  ? "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/8 hover:border-[var(--color-warning)]/55"
+                  : step.state === "ready"
+                    ? "border-[var(--color-accent)]/25 bg-[var(--color-bg)]/35 hover:border-[var(--color-accent)]/50"
+                    : "border-[var(--color-border)] bg-[var(--color-bg)]/25 hover:border-[var(--color-accent)]/35"
+              )}
+            >
+              <div className="flex items-start gap-2.5">
+                <span
+                  className={cn(
+                    "inline-flex size-7 shrink-0 items-center justify-center rounded-full border text-[10px] font-black",
+                    step.state === "attention"
+                      ? "border-[var(--color-warning)]/45 text-[var(--color-warning)]"
+                      : step.state === "ready"
+                        ? "border-[var(--color-accent)]/40 text-[var(--color-accent)]"
+                        : "border-[var(--color-border-strong)] text-[var(--color-text-muted)]"
+                  )}
+                >
+                  {step.label}
+                </span>
+                <div className="min-w-0">
+                  <h4 className="text-[13px] font-bold text-[var(--color-text)]">{step.title}</h4>
+                  <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
+                    {step.body}
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10.5px]">
+                    <span className="rounded border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-1.5 py-0.5 font-semibold text-[var(--color-text-muted)]">
+                      {step.destination}
+                    </span>
+                    <span className="rounded border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 px-1.5 py-0.5 font-semibold text-[var(--color-accent)]">
+                      {step.proof}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <span
+                className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-bg-2)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors group-hover/bank-action:border-[var(--color-accent)]/50 group-hover/bank-action:text-[var(--color-accent)]"
+              >
+                {isCopiedExport ? "Copied" : step.cta}
+                {isCopiedExport ? <CheckCheck className="size-3.5" /> : <ArrowRight className="size-3.5" />}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[var(--color-border)]/50 pt-3">
+        <span className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+          Use this bank in
+        </span>
+        <button
+          type="button"
+          onClick={onNext}
+          className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
+        >
+          /next
+          <Sparkles className="size-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={onDps}
+          className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+        >
+          /dps
+          <Sword className="size-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={onGoals}
+          className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+        >
+          /goals
+          <Target className="size-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={onSlayer}
+          className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+        >
+          /slayer
+          <Shield className="size-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={onPlugin}
+          className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+        >
+          /plugin
+          <PlugZap className="size-3.5" />
+        </button>
+      </div>
+    </section>
+  );
+}
 
 // Compact dropdown that lets the user override which archetype drives the
 // use-case tab order + intra-tab sort. Inferred archetype (from Hiscores) is
@@ -1520,6 +2906,7 @@ function ArchetypeSelect({
       </select>
       {isOverridden && (
         <button
+          type="button"
           onClick={() => onChange(null)}
           className="text-[10px] text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] underline decoration-dotted"
           title={`Reset to inferred (${inferred})`}
@@ -1683,6 +3070,7 @@ function LayoutPopup({
             <h2 className="text-[14px] font-semibold tracking-tight">Bank layout</h2>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="size-7 rounded-md flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-panel-2)]"
             aria-label="Close"
@@ -1761,11 +3149,11 @@ function LayoutPopup({
                       className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-[var(--color-bg-2)] border border-[var(--color-border)]"
                     >
                       <span className="size-6 shrink-0 rounded bg-[var(--color-bg)] border border-[var(--color-border)] flex items-center justify-center">
-                        <img
-                          src={ICON_URL(p.id)}
+                        <ItemSprite
+                          id={p.id}
                           alt=""
                           className="pixelated"
-                          style={{ maxWidth: "78%", maxHeight: "78%", imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
+                          style={{ maxWidth: "78%", maxHeight: "78%" }}
                         />
                       </span>
                       <span className="flex-1 text-[12.5px] font-medium text-[var(--color-text)] truncate">
@@ -1822,6 +3210,7 @@ function SegmentedControl({ value, onChange, options }: {
     <div className="inline-flex bg-[var(--color-bg-2)] border border-[var(--color-border)] rounded-md p-0.5">
       {options.map((opt) => (
         <button
+          type="button"
           key={opt.value}
           onClick={() => onChange(opt.value)}
           className={cn(
@@ -1847,6 +3236,7 @@ function Toggle({ on, onChange, label, icon: Icon }: {
 }) {
   return (
     <button
+      type="button"
       onClick={() => onChange(!on)}
       className={cn(
         "flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-colors border",
@@ -1859,6 +3249,21 @@ function Toggle({ on, onChange, label, icon: Icon }: {
       {label}
     </button>
   );
+}
+
+function bankSearchQueryForTips(tips: BankTip[]): string {
+  const seen = new Set<number>();
+  const items: Array<{ id: number; name: string }> = [];
+  for (const tip of tips) {
+    const refs = tip.itemRefs ?? tip.itemIds.map((id) => ({ id, name: `Item ID ${id}` }));
+    for (const item of refs) {
+      if (seen.has(item.id)) continue;
+      seen.add(item.id);
+      items.push(item);
+      if (items.length >= 6) return bankSearchQueryForItems(items, 6);
+    }
+  }
+  return bankSearchQueryForItems(items, 6);
 }
 
 function TabButton({ tab, num, total, active, hovered, draggingTo, onClick, searchMatches = 0, searching = false }: {
@@ -1907,6 +3312,7 @@ function TabButton({ tab, num, total, active, hovered, draggingTo, onClick, sear
       onMouseLeave={hideTip}
     >
       <button
+        type="button"
         ref={composedBtnRef}
         onClick={onClick}
         aria-label={`Tab ${num}/${total} — ${tab.name} (${tab.items.length} items)`}
@@ -1937,13 +3343,12 @@ function TabButton({ tab, num, total, active, hovered, draggingTo, onClick, sear
           zIndex: active ? 10 : 1
         }}
       >
-        <img
-          src={ICON_URL(tab.iconItemId)}
+        <ItemSprite
+          id={tab.iconItemId}
           alt=""
           loading="lazy"
-          decoding="async"
           className={cn(
-            "pixelated drop-shadow-[1px_1px_0_rgb(0_0_0/0.9)] pointer-events-none transition-opacity",
+            "pixelated pointer-events-none transition-opacity",
             active ? "opacity-100" : "opacity-65"
           )}
           style={{
@@ -1951,7 +3356,7 @@ function TabButton({ tab, num, total, active, hovered, draggingTo, onClick, sear
             maxHeight: "26px",
             width: "auto",
             height: "auto",
-            imageRendering: "pixelated"
+            objectFit: "contain"
           }}
         />
         {active && (
@@ -1986,11 +3391,11 @@ function TabButton({ tab, num, total, active, hovered, draggingTo, onClick, sear
                 {topItems.map((it) => (
                   <li key={it.id} className="flex items-center gap-2 text-[11px]">
                     <span className="size-5 rounded bg-[var(--color-bg-2)] border border-[var(--color-border)] flex items-center justify-center shrink-0">
-                      <img
-                        src={ICON_URL(spriteIdForItem(it.id, it.quantity))}
+                      <ItemSprite
+                        id={spriteIdForItem(it.id, it.quantity)}
                         alt=""
                         className="pixelated"
-                        style={{ maxWidth: "85%", maxHeight: "85%", imageRendering: "pixelated" }}
+                        style={{ maxWidth: "85%", maxHeight: "85%" }}
                       />
                     </span>
                     <span className="text-[var(--color-text-dim)] truncate flex-1">{it.name}</span>
@@ -2030,6 +3435,7 @@ function PresetChipRow({ tabName, active, onChange }: {
         Loadout
       </span>
       <button
+        type="button"
         onClick={() => onChange(null)}
         className={cn(
           "px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors border whitespace-nowrap",
@@ -2042,6 +3448,7 @@ function PresetChipRow({ tabName, active, onChange }: {
       </button>
       {presets.map((p) => (
         <button
+          type="button"
           key={p.slug}
           onClick={() => onChange(active?.slug === p.slug ? null : p)}
           className={cn(
@@ -2053,16 +3460,14 @@ function PresetChipRow({ tabName, active, onChange }: {
           title={`Inventory loadout for ${p.name}`}
         >
           {p.iconItemId ? (
-            <img
-              src={ICON_URL(p.iconItemId)}
+            <ItemSprite
+              id={p.iconItemId}
               alt=""
               className="pixelated"
               style={{
                 width: "16px",
                 height: "16px",
-                objectFit: "contain",
-                imageRendering: "pixelated",
-                filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))"
+                objectFit: "contain"
               }}
             />
           ) : (
@@ -2087,12 +3492,20 @@ function SubtabFilterRow({ subtabs, active, onChange, search, onSearchChange, it
   return (
     <div className="flex items-center gap-2 mb-3 flex-wrap">
       <div className="relative flex-1 min-w-[200px] max-w-[320px]">
+        <label htmlFor="bank-grid-search" className="sr-only">
+          Search bank items across all tabs
+        </label>
         <input
+          id="bank-grid-search"
+          name="bank-search"
           ref={searchRef}
           type="text"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search across all tabs…"
+          placeholder="Search name, tab or #4151…"
+          autoComplete="off"
+          spellCheck={false}
+          aria-describedby="bank-grid-search-help bank-grid-search-status"
           className={cn(
             "w-full pl-7 pr-16 py-1.5 rounded-md text-[12px]",
             "bg-[var(--color-bg-2)] border border-[var(--color-border)]",
@@ -2103,7 +3516,9 @@ function SubtabFilterRow({ subtabs, active, onChange, search, onSearchChange, it
         <svg className="absolute left-2 top-1/2 -translate-y-1/2 size-3.5 text-[var(--color-text-muted)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
         {search ? (
           <button
+            type="button"
             onClick={() => onSearchChange("")}
+            aria-label="Clear bank item search"
             className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--color-text-dim)] hover:text-[var(--color-text)]"
             title="Clear search (Esc)"
           >
@@ -2114,15 +3529,21 @@ function SubtabFilterRow({ subtabs, active, onChange, search, onSearchChange, it
             ⌘K
           </span>
         )}
+        <p id="bank-grid-search-help" className="sr-only">
+          Search by item name, subtab or exact OSRS item ID like #4151. Paste multiple IDs separated by spaces to find fallback tiles.
+        </p>
+        <p id="bank-grid-search-status" role="status" aria-live="polite" className="sr-only">
+          {search ? `Filtering bank items for ${search}.` : `${itemCount} visible bank items available.`}
+        </p>
       </div>
       {subtabs.length > 1 && (
         <div className="flex items-center gap-1 flex-wrap">
           <FilterChip active={active === null} onClick={() => onChange(null)} count={itemCount}>
             All
           </FilterChip>
-          {subtabs.map((s) => (
-            <FilterChip key={s} active={active === s} onClick={() => onChange(active === s ? null : s)}>
-              {s}
+          {subtabs.map((subtab) => (
+            <FilterChip key={subtab} active={active === subtab} onClick={() => onChange(active === subtab ? null : subtab)}>
+              {subtab}
             </FilterChip>
           ))}
         </div>
@@ -2137,8 +3558,12 @@ function FilterChip({ active, onClick, count, children }: {
   count?: number;
   children: React.ReactNode;
 }) {
+  const label = typeof children === "string" ? children : "bank subtab";
   return (
     <button
+      type="button"
+      aria-pressed={active}
+      aria-label={`Show ${label} bank items${count !== undefined ? ` (${count})` : ""}`}
       onClick={onClick}
       className={cn(
         "px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors border whitespace-nowrap",
@@ -2229,7 +3654,7 @@ function BankBody({ tab, hasPrices, hasQty, sort, density, activeSubtab, matches
       )}
 
       <p className="mt-4 text-[10.5px] text-center text-[var(--color-text-muted)] tracking-wide">
-        Drag onto a tab to move it · drag onto another item to reorder · right-click to pin
+        Click item for Wiki, GE price and ID · drag to move · right-click to pin
       </p>
     </div>
   );
@@ -2288,7 +3713,7 @@ function BankGrid({ tab, items, hasPrices, hasQty, density, junkIds, staleIds, g
         }
         const item = itemById.get(id);
         if (!item) return <EmptySlot key={i} />;
-        return <ItemSlot key={i} item={item} hasPrices={hasPrices} hasQty={hasQty} isJunk={!!junkIds?.has(item.id)} isStale={!!staleIds?.has(item.id)} goals={goalMatches?.get(item.id)} density={density} />;
+        return <ItemSlot key={`${i}:${item.id}`} item={item} hasPrices={hasPrices} hasQty={hasQty} isJunk={!!junkIds?.has(item.id)} isStale={!!staleIds?.has(item.id)} goals={goalMatches?.get(item.id)} density={density} />;
       })}
     </div>
   );
@@ -2377,16 +3802,14 @@ function PresetGrid({ items, preset, hasPrices, hasQty, junkIds, staleIds, goalM
     <div className="space-y-3">
       <div className="flex items-center gap-2 text-[11px] text-[var(--color-text-dim)] italic px-1">
         {preset.iconItemId ? (
-          <img
-            src={ICON_URL(preset.iconItemId)}
+          <ItemSprite
+            id={preset.iconItemId}
             alt=""
             className="pixelated"
             style={{
               width: "16px",
               height: "16px",
-              objectFit: "contain",
-              imageRendering: "pixelated",
-              filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))"
+              objectFit: "contain"
             }}
           />
         ) : (
@@ -2406,7 +3829,7 @@ function PresetGrid({ items, preset, hasPrices, hasQty, junkIds, staleIds, goalM
           if (id === undefined) return <EmptySlot key={i} />;
           const item = itemById.get(id);
           if (!item) return <EmptySlot key={i} />;
-          return <ItemSlot key={i} item={item} hasPrices={hasPrices} hasQty={hasQty} isJunk={!!junkIds?.has(item.id)} isStale={!!staleIds?.has(item.id)} goals={goalMatches?.get(item.id)} />;
+          return <ItemSlot key={`${i}:${item.id}`} item={item} hasPrices={hasPrices} hasQty={hasQty} isJunk={!!junkIds?.has(item.id)} isStale={!!staleIds?.has(item.id)} goals={goalMatches?.get(item.id)} />;
         })}
       </div>
     </div>
@@ -2445,15 +3868,13 @@ function BankFillerSlot({ density, label }: { density: Density; label?: string }
       style={{ aspectRatio: "1 / 1" }}
       title={label ? `Missing: ${label}` : "Bank filler — slot reserved for a missing set piece"}
     >
-      <img
-        src={ICON_URL(BANK_FILLER_ID)}
+      <ItemSprite
+        id={BANK_FILLER_ID}
         alt={label ? `Missing: ${label}` : "Bank filler"}
         className="pixelated"
         style={{
           maxWidth: density === "ultra" ? "70%" : "80%",
           maxHeight: density === "ultra" ? "70%" : "80%",
-          imageRendering: "pixelated",
-          filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))",
           opacity: 0.55
         }}
       />
@@ -2479,6 +3900,8 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
   const { active } = useDndContext();
   const dragInProgress = active !== null;
   const slotRef = useRef<HTMLDivElement | null>(null);
+  const clickStartRef = useRef<{ x: number; y: number } | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
   // For "above" we anchor by bottom-of-viewport so the tooltip doesn't need
   // its own height to position correctly — that avoids the brief flash where
   // it paints at the wrong place before the height is known.
@@ -2488,10 +3911,10 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
     | null
   >(null);
   const hasGoal = !!goals && goals.length > 0;
-  // Defensive guard: stale snapshots could carry unknown IDs (e.g. items added
-  // after our wiki mapping was generated). Render as an empty slot rather than
-  // an unidentifiable sprite so the user isn't confused.
-  if (!item.name || /^item \d+$/i.test(item.name)) {
+  const isUnknownFallbackTile = /^unknown item #?\d+$/i.test(item.name) || /^item id #?\d+$/i.test(item.name);
+  // Defensive guard: stale snapshots can carry corrupt empty names. Real
+  // unknown OSRS IDs stay visible as labelled fallback tiles instead.
+  if (!item.name || (/^item \d+$/i.test(item.name) && !isUnknownFallbackTile)) {
     return <EmptySlot />;
   }
 
@@ -2546,36 +3969,44 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
   // a bare "(unf)" or other suffix yields no number.
   const doseMatch = item.name.match(/\((\d)\)\s*$/);
   const dose = doseMatch ? doseMatch[1] : null;
+  const stopWikiDrag = (event: React.MouseEvent | React.PointerEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+  };
+  const openWiki = (event: React.MouseEvent) => {
+    stopWikiDrag(event);
+    window.open(wikiSearchUrl(item.name), "_blank", "noopener,noreferrer");
+  };
+  const openDetailButton = (event: React.MouseEvent) => {
+    stopWikiDrag(event);
+    hideTooltip();
+    setDetailOpen(true);
+  };
+  const openDetail = (event: React.MouseEvent) => {
+    const target = event.target as HTMLElement;
+    if (target !== event.currentTarget && target.closest("button,a")) return;
+    if (dragInProgress) return;
+    const start = clickStartRef.current;
+    if (start && Math.hypot(event.clientX - start.x, event.clientY - start.y) > 6) return;
+    hideTooltip();
+    setDetailOpen(true);
+  };
+  const tileDragAttributes = {
+    ...attributes,
+    role: undefined,
+    tabIndex: undefined
+  };
 
   return (
     <div
       ref={composedRef}
       key={isFlashing ? `flash-${flashCtx.token}` : undefined}
+      onPointerDownCapture={(event) => {
+        clickStartRef.current = { x: event.clientX, y: event.clientY };
+      }}
       onMouseEnter={showTooltip}
       onMouseLeave={hideTooltip}
-      onContextMenu={(e) => {
-        if (!pinCtx) return;
-        e.preventDefault();
-        pinCtx.togglePin(item.id);
-      }}
-      {...attributes}
-      {...listeners}
-      className={cn(
-        "group relative cursor-grab active:cursor-grabbing touch-none",
-        "bg-[var(--color-osrs-slot)] border-r border-b border-[var(--color-border)]/40",
-        "flex items-center justify-center select-none",
-        "hover:bg-[var(--color-panel-2)] hover:outline hover:outline-2 hover:outline-[var(--color-accent)] hover:outline-offset-[-2px] hover:z-10 hover:shadow-[0_0_18px_-4px_rgba(230, 165, 47,0.4)]",
-        "transition-[background-color,outline-color,box-shadow,transform] duration-150",
-        "[&:hover>img]:scale-[1.07]",
-        isDragging && "opacity-25",
-        // Drop-target hint: another item is hovering over this slot — show a
-        // bright inset ring so the player sees where it'll land.
-        isDropTarget && !isDragging && "outline outline-2 outline-dashed outline-[var(--color-accent)] outline-offset-[-2px] bg-[var(--color-accent)]/15 z-20",
-        hasGoal && !isJunk && !isStale && !isDropTarget && "outline outline-2 outline-[var(--color-accent)]/60 outline-offset-[-2px] bg-[var(--color-accent)]/8",
-        isJunk && !isDropTarget && "outline outline-2 outline-[var(--color-danger)]/70 outline-offset-[-2px] bg-[var(--color-danger)]/8 [&>img]:opacity-60",
-        isStale && !isJunk && !isDropTarget && "outline outline-2 outline-[var(--color-warning)]/60 outline-offset-[-2px] bg-[var(--color-warning)]/8 [&>img]:opacity-65",
-        pinned && !isJunk && !isStale && !isDropTarget && "outline outline-2 outline-[var(--color-accent)] outline-offset-[-2px]"
-      )}
+      className="group relative touch-none"
       style={{
         aspectRatio: "1 / 1",
         // Drop-success: short gold pulse that fades. Played by the slot
@@ -2583,6 +4014,35 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
         ...(isFlashing ? { animation: "drop-flash 0.48s ease-out" } : {})
       }}
     >
+      <button
+        type="button"
+        onClick={openDetail}
+        onContextMenu={(e) => {
+          if (!pinCtx) return;
+          e.preventDefault();
+          pinCtx.togglePin(item.id);
+        }}
+        {...tileDragAttributes}
+        {...listeners}
+        aria-label={`Open ${item.name} details. OSRS item #${item.id}`}
+        title={`${item.name} · OSRS item #${item.id}`}
+        className={cn(
+          "relative h-full w-full cursor-grab active:cursor-grabbing",
+          "bg-[var(--color-osrs-slot)] border-r border-b border-[var(--color-border)]/40",
+          "flex items-center justify-center select-none",
+          "hover:bg-[var(--color-panel-2)] hover:outline hover:outline-2 hover:outline-[var(--color-accent)] hover:outline-offset-[-2px] hover:z-10 hover:shadow-[0_0_18px_-4px_rgba(230, 165, 47,0.4)]",
+          "transition-[background-color,outline-color,box-shadow,transform] duration-150",
+          "[&:hover>img]:scale-[1.07]",
+          isDragging && "opacity-25",
+          // Drop-target hint: another item is hovering over this slot — show a
+          // bright inset ring so the player sees where it'll land.
+          isDropTarget && !isDragging && "outline outline-2 outline-dashed outline-[var(--color-accent)] outline-offset-[-2px] bg-[var(--color-accent)]/15 z-20",
+          hasGoal && !isJunk && !isStale && !isDropTarget && "outline outline-2 outline-[var(--color-accent)]/60 outline-offset-[-2px] bg-[var(--color-accent)]/8",
+          isJunk && !isDropTarget && "outline outline-2 outline-[var(--color-danger)]/70 outline-offset-[-2px] bg-[var(--color-danger)]/8 [&>img]:opacity-60",
+          isStale && !isJunk && !isDropTarget && "outline outline-2 outline-[var(--color-warning)]/60 outline-offset-[-2px] bg-[var(--color-warning)]/8 [&>img]:opacity-65",
+          pinned && !isJunk && !isStale && !isDropTarget && "outline outline-2 outline-[var(--color-accent)] outline-offset-[-2px]"
+        )}
+      >
       {/* Pin indicator — top-left, shown when the item is pinned to front.
           Right-click toggles it (see onContextMenu above). */}
       {pinned && (
@@ -2595,19 +4055,16 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
       )}
       {/* Item sprite at its native size — never upscaled. OSRS sprites are
           designed for the in-game bank slot and look wrong when stretched. */}
-      <img
-        src={ICON_URL(spriteIdForItem(item.id, item.quantity))}
+      <ItemSprite
+        id={spriteIdForItem(item.id, item.quantity)}
         alt={item.name}
         loading="lazy"
-        decoding="async"
         className="pixelated pointer-events-none transition-transform duration-150"
         style={{
           maxWidth: "85%",
           maxHeight: "85%",
           width: "auto",
-          height: "auto",
-          imageRendering: "pixelated",
-          filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))"
+          height: "auto"
         }}
       />
       {hasQty && item.quantity > 0 && (
@@ -2682,6 +4139,53 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
           <Target className="size-2.5" />
         </span>
       )}
+      {isUnknownFallbackTile && !isJunk && !isStale && !hasGoal && (
+        <span
+          className="absolute -top-1 -right-1 min-w-[18px] h-4 px-1 rounded-full bg-[var(--color-warning)] text-[var(--color-bg)] flex items-center justify-center gap-0.5 text-[8px] font-black uppercase tracking-[-0.02em] pointer-events-none shadow-[0_0_0_2px_var(--color-bg)]"
+          title={`Unknown OSRS item ID #${item.id} kept as a fallback tile`}
+          data-testid="unknown-item-id-badge"
+        >
+          <Hash className="size-2" />
+          ID
+        </span>
+      )}
+      </button>
+      <button
+        type="button"
+        onPointerDown={stopWikiDrag}
+        onMouseDown={stopWikiDrag}
+        onClick={openDetailButton}
+        className={cn(
+          "absolute right-0 top-0 z-20 flex size-3 opacity-75 group-hover:opacity-100 group-focus-within:opacity-100",
+          "items-center justify-center overflow-hidden rounded-sm border border-[var(--color-border)]",
+          "bg-[rgba(7,9,12,0.86)] p-0 text-[0px] font-semibold",
+          "text-[var(--color-text-dim)] shadow-[0_8px_18px_-10px_rgb(0_0_0/0.9)]",
+          "hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+        )}
+        title={`Open item ID details for ${item.name}`}
+        aria-label={`Open item ID details for ${item.name}`}
+      >
+        <Hash className="size-2" />
+        <span className="sr-only">ID</span>
+      </button>
+      <button
+        type="button"
+        onPointerDown={stopWikiDrag}
+        onMouseDown={stopWikiDrag}
+        onClick={openWiki}
+        className={cn(
+          "absolute right-0 bottom-0 z-20 flex size-3 sm:hidden sm:group-hover:flex sm:group-focus-within:flex",
+          "items-center justify-center overflow-hidden rounded-sm border border-[var(--color-accent)]/35",
+          "bg-[rgba(7,9,12,0.86)] p-0 text-[0px] font-semibold",
+          "text-[var(--color-accent)] shadow-[0_8px_18px_-10px_rgb(0_0_0/0.9)]",
+          "hover:bg-[var(--color-accent)]/15"
+        )}
+        title={`Open ${item.name} on the OSRS Wiki`}
+        aria-label={`Open ${item.name} on the OSRS Wiki`}
+      >
+        <span className="sr-only">Wiki</span>
+        <ExternalLink className="size-2" />
+      </button>
       {tooltipPos && createPortal(
         <div
           className="fixed z-[100] pointer-events-none animate-[tooltip-in_0.16s_cubic-bezier(0.22,1,0.36,1)]"
@@ -2715,6 +4219,12 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
               )}
               <span className="opacity-50">·</span>
               <span className="font-mono">#{item.id}</span>
+              {isUnknownFallbackTile && (
+                <>
+                  <span className="opacity-50">·</span>
+                  <span className="text-[var(--color-warning)]">unknown ID fallback</span>
+                </>
+              )}
             </div>
             {(hasPrices && (item.stackValue > 0 || item.unitPrice > 0)) || (item.highalch ?? 0) > 0 || (item.geLimit ?? 0) > 0 ? (
               <div className="mt-2 pt-2 border-t border-[var(--color-border)] grid grid-cols-2 gap-x-3 gap-y-0.5 font-mono text-[10.5px] tabular-nums">
@@ -2761,12 +4271,324 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
               </div>
             )}
             <div className="mt-2 pt-2 border-t border-[var(--color-border)] text-[9.5px] text-[var(--color-text-muted)] italic">
-              Drag to move · click to focus
+              Drag to move · right-click to pin · hover Wiki for guide
             </div>
           </div>
         </div>,
         document.body
       )}
+      {detailOpen && (
+        <ItemDetailDialog
+          item={item}
+          hasPrices={hasPrices}
+          hasQty={hasQty}
+          isJunk={isJunk}
+          isStale={isStale}
+          goals={goals}
+          pinned={pinned}
+          onTogglePin={pinCtx ? () => pinCtx.togglePin(item.id) : undefined}
+          onClose={() => setDetailOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function ItemDetailDialog({
+  item,
+  hasPrices,
+  hasQty,
+  isJunk,
+  isStale,
+  goals,
+  pinned,
+  onTogglePin,
+  onClose
+}: {
+  item: OrganizedItem;
+  hasPrices: boolean;
+  hasQty: boolean;
+  isJunk: boolean;
+  isStale: boolean;
+  goals?: GoalMatch[];
+  pinned: boolean;
+  onTogglePin?: () => void;
+  onClose: () => void;
+}) {
+  const [copied, setCopied] = useState<"id" | "name" | "debug" | "error" | null>(null);
+  const [manualItemCopy, setManualItemCopy] = useState<{ label: string; value: string } | null>(null);
+  const identity = buildItemIdentity({
+    id: item.id,
+    name: item.name,
+    quantity: item.quantity
+  });
+  const wikiHref = identity.wikiUrl;
+  const priceHref = identity.priceUrl;
+  const verdict = buildItemVerdict({
+    name: item.name,
+    quantity: item.quantity,
+    unitPrice: item.unitPrice,
+    stackValue: item.stackValue,
+    highalch: item.highalch,
+    geLimit: item.geLimit,
+    isJunk,
+    isStale,
+    goalCount: goals?.length ?? 0
+  });
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  const debugPacket = [
+    `Scapestack item debug`,
+    `Name: ${item.name}`,
+    `Item ID: ${item.id}`,
+    `Search: #${item.id}`,
+    `Quantity: ${item.quantity.toLocaleString()}`,
+    `Subtab: ${item.subtab}`,
+    item.slot ? `Slot: ${item.slot}` : null,
+    item.unitPrice > 0 ? `GE unit: ${formatGp(item.unitPrice)} gp` : null,
+    item.stackValue > 0 ? `Stack value: ${formatGp(item.stackValue)} gp` : null,
+    `Wiki: ${wikiHref}`,
+    `GE: ${priceHref}`
+  ].filter(Boolean).join("\n");
+  const copyValue = async (kind: "id" | "name" | "debug", value: string) => {
+    const result = await copyText(value);
+    if (result !== "failed") {
+      setManualItemCopy(null);
+      setCopied(kind);
+      setTimeout(() => setCopied((current) => current === kind ? null : current), 1200);
+    } else {
+      setManualItemCopy({
+        label: kind === "id" ? "item ID" : kind === "name" ? "item name" : "item debug packet",
+        value
+      });
+      setCopied("error");
+    }
+  };
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[210] flex items-end sm:items-center justify-center p-3 sm:p-5"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${item.name} details`}
+    >
+      <button
+        type="button"
+        aria-label="Close item details"
+        className="absolute inset-0 bg-[rgba(7,9,12,0.72)] backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <section
+        className="relative w-full max-w-lg rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-[0_28px_90px_-24px_rgb(0_0_0/0.85)] overflow-hidden animate-[pop-in_0.2s_cubic-bezier(0.22,1,0.36,1)]"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <header className="flex items-start gap-3 p-4 border-b border-[var(--color-border)] bg-[var(--color-bg-2)]/35">
+          <div className="size-14 rounded-lg border border-[var(--color-border)] bg-[var(--color-osrs-slot)] flex items-center justify-center shrink-0">
+            <ItemSprite
+              id={identity.spriteId}
+              alt=""
+              size={42}
+              fallbackId={995}
+              loading="eager"
+            />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-[16px] font-bold text-[var(--color-text)] leading-tight truncate">{item.name}</h3>
+            <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-[var(--color-text-muted)]">
+              <span className="font-mono">{identity.badge}</span>
+              <span>·</span>
+              <span>{item.subtab}</span>
+              {item.slot && (
+                <>
+                  <span>·</span>
+                  <span className="capitalize">{item.slot}</span>
+                </>
+              )}
+              {pinned && <span className="rounded-full bg-[var(--color-accent)]/12 text-[var(--color-accent)] px-1.5 py-0.5">Pinned</span>}
+              {isJunk && <span className="rounded-full bg-[var(--color-danger)]/12 text-[var(--color-danger)] px-1.5 py-0.5">Junk</span>}
+              {!isJunk && isStale && <span className="rounded-full bg-[var(--color-warning)]/12 text-[var(--color-warning)] px-1.5 py-0.5">Stale</span>}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="size-8 rounded-md flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg)]"
+            aria-label="Close item details"
+          >
+            <X className="size-4" />
+          </button>
+        </header>
+
+        <div className="p-4 space-y-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {hasQty && (
+              <ItemStat label="Quantity" value={item.quantity.toLocaleString()} />
+            )}
+            {hasPrices && item.unitPrice > 0 && (
+              <ItemStat label="GE unit" value={`${formatGp(item.unitPrice)} gp`} accent />
+            )}
+            {hasPrices && item.stackValue > 0 && (
+              <ItemStat label="Stack" value={`${formatGp(item.stackValue)} gp`} accent />
+            )}
+            {(item.highalch ?? 0) > 0 && (
+              <ItemStat label="High alch" value={`${formatGp(item.highalch!)} gp`} />
+            )}
+            {(item.geLimit ?? 0) > 0 && (
+              <ItemStat label="4h limit" value={item.geLimit!.toLocaleString()} />
+            )}
+          </div>
+
+          <ItemVerdictPanel verdict={verdict} />
+
+          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]/35 px-3 py-2.5">
+            <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] font-bold text-[var(--color-accent)]">
+              <Hash className="size-3" />
+              Item identity
+            </div>
+            <div className="mt-2 grid gap-1.5 sm:grid-cols-3">
+              {identity.facts.map((fact) => (
+                <div key={fact} className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1.5 font-mono text-[10.5px] leading-relaxed text-[var(--color-text-dim)]">
+                  {fact}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {goals && goals.length > 0 && (
+            <div className="rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3 py-2.5">
+              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] font-bold text-[var(--color-accent)]">
+                <Target className="size-3" />
+                Goal item
+              </div>
+              <ul className="mt-1.5 space-y-1">
+                {goals.slice(0, 4).map((goal) => (
+                  <li key={goal.goalId} className="text-[12px] text-[var(--color-text-dim)]">
+                    · {goal.setName}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-2">
+            <a
+              href={wikiHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary"
+            >
+              Open OSRS Wiki
+              <ExternalLink className="size-3.5" />
+            </a>
+            <a
+              href={priceHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-ghost"
+            >
+              GE price page
+              <ExternalLink className="size-3.5" />
+            </a>
+            <button
+              type="button"
+              onClick={() => copyValue("id", String(item.id))}
+              className="btn-ghost"
+            >
+              <Copy className="size-3.5" />
+              {copied === "id" ? "Copied ID" : "Copy item ID"}
+            </button>
+            <button
+              type="button"
+              onClick={() => copyValue("debug", debugPacket)}
+              className="btn-ghost"
+              aria-label={`Copy ${item.name} item debug packet with ID, Wiki, GE and bank search`}
+            >
+              <Copy className="size-3.5" />
+              {copied === "debug" ? "Copied packet" : "Copy debug packet"}
+            </button>
+            {onTogglePin && (
+              <button
+                type="button"
+                onClick={onTogglePin}
+                className="btn-ghost"
+              >
+                <Pin className="size-3.5" />
+                {pinned ? "Unpin item" : "Pin item"}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => copyValue("name", item.name)}
+              className="btn-ghost"
+            >
+              <Copy className="size-3.5" />
+              {copied === "name" ? "Copied name" : "Copy name"}
+            </button>
+          </div>
+          {copied === "error" && manualItemCopy && (
+            <div className="rounded-lg border border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8 p-2" aria-live="polite">
+              <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-danger)]">
+                Clipboard failed — copy {manualItemCopy.label} manually
+              </label>
+              <textarea
+                readOnly
+                value={manualItemCopy.value}
+                onFocus={(event) => event.currentTarget.select()}
+                className="min-h-[54px] w-full resize-y rounded border border-[var(--color-border)] bg-[var(--color-bg)] p-2 font-mono text-[11px] leading-relaxed text-[var(--color-text)]"
+                aria-label={`Manual copy fallback for ${item.name} ${manualItemCopy.label}`}
+              />
+            </div>
+          )}
+        </div>
+      </section>
+    </div>,
+    document.body
+  );
+}
+
+function ItemVerdictPanel({ verdict }: { verdict: ReturnType<typeof buildItemVerdict> }) {
+  const toneClass: Record<ItemVerdictTone, string> = {
+    keep: "border-[var(--color-good)]/25 bg-[var(--color-good)]/8 text-[var(--color-good)]",
+    review: "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/8 text-[var(--color-warning)]",
+    sell: "border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8 text-[var(--color-danger)]",
+    info: "border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 text-[var(--color-accent)]"
+  };
+
+  return (
+    <div className={cn("rounded-lg border px-3 py-2.5", toneClass[verdict.tone])}>
+      <div className="text-[10px] uppercase tracking-[0.16em] font-bold">
+        Scapestack verdict
+      </div>
+      <div className="mt-1 text-[13px] font-semibold text-[var(--color-text)]">
+        {verdict.title}
+      </div>
+      <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-dim)]">
+        {verdict.body}
+      </p>
+      <ul className="mt-2 space-y-1">
+        {verdict.bullets.map((bullet) => (
+          <li key={bullet} className="flex gap-2 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
+            <span className="mt-[0.45em] size-1 shrink-0 rounded-full bg-current" />
+            <span>{bullet}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ItemStat({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]/35 px-2.5 py-2">
+      <div className="text-[9.5px] uppercase tracking-[0.14em] text-[var(--color-text-muted)]">{label}</div>
+      <div className={cn("mt-0.5 text-[12px] font-semibold tabular-nums", accent ? "text-[var(--color-accent)]" : "text-[var(--color-text)]")}>
+        {value}
+      </div>
     </div>
   );
 }
@@ -2835,15 +4657,13 @@ function JunkTile({ item, tab }: { item: OrganizedItem; tab: string }) {
           "shadow-[inset_0_0_0_1px_rgba(255,90,90,0.04)]"
         )}
       >
-        <img
-          src={ICON_URL(spriteIdForItem(item.id, item.quantity))}
+        <ItemSprite
+          id={spriteIdForItem(item.id, item.quantity)}
           alt={item.name}
           className="pixelated"
           style={{
             maxWidth: "80%",
-            maxHeight: "80%",
-            imageRendering: "pixelated",
-            filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))"
+            maxHeight: "80%"
           }}
         />
         {item.quantity > 1 && (
@@ -2923,15 +4743,17 @@ function QtyColorLegend() {
 
 // Pick a boss → pull the user's best gear from their bank → emit a Bank Tag
 // string they can import. Saves the player from manually building the tab.
-function BossTagSection({ items, flash, copied }: {
+function BossTagSection({ items, flash, copied, onOpenDps }: {
   items: OrganizedItem[];
   flash: (key: string) => void;
   copied: string | null;
+  onOpenDps: (bossSlug: string) => void;
 }) {
   // Selected boss is null until the player clicks an icon — keeps the section
   // compact on first sight (no giant loadout under the bank by default).
   const [bossSlug, setBossSlug] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [manualBossTag, setManualBossTag] = useState("");
   const boss = useMemo(() => (bossSlug ? BOSSES.find((b) => b.slug === bossSlug) ?? null : null), [bossSlug]);
 
   // Group bosses by category for the icon grid. Filter by search query.
@@ -2987,10 +4809,14 @@ function BossTagSection({ items, flash, copied }: {
 
   const onCopyBossTag = async () => {
     if (!tagString) return;
-    try {
-      await navigator.clipboard.writeText(tagString);
+    const result = await copyText(tagString);
+    if (result !== "failed") {
+      setManualBossTag("");
       flash("boss-tag");
-    } catch {}
+    } else {
+      setManualBossTag(tagString);
+      flash("boss-tag-error");
+    }
   };
 
   const setupSlots = best
@@ -3035,6 +4861,7 @@ function BossTagSection({ items, flash, copied }: {
         />
         {query && (
           <button
+            type="button"
             onClick={() => setQuery("")}
             className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--color-text-dim)] hover:text-[var(--color-text)]"
             title="Clear"
@@ -3096,6 +4923,7 @@ function BossTagSection({ items, flash, copied }: {
               </div>
             </div>
             <button
+              type="button"
               onClick={onCopyBossTag}
               disabled={!tagString}
               className={cn(
@@ -3106,7 +4934,17 @@ function BossTagSection({ items, flash, copied }: {
               )}
             >
               {copied === "boss-tag" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
-              {copied === "boss-tag" ? "Tag copied" : "Copy boss tag"}
+              {copied === "boss-tag" ? "Tag copied" : copied === "boss-tag-error" ? "Copy failed" : "Copy boss tag"}
+            </button>
+            <button
+              type="button"
+              onClick={() => onOpenDps(boss.slug)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-bg-2)] px-3 py-1.5 text-[12px] font-semibold text-[var(--color-accent)] transition-all hover:border-[var(--color-accent)]/60 hover:bg-[var(--color-accent)]/10"
+              aria-label={`Open DPS calculator for ${boss.name} with this bank`}
+              title={`/dps?boss=${boss.slug}`}
+            >
+              Open DPS
+              <Sword className="size-3.5" />
             </button>
             <button
               type="button"
@@ -3131,11 +4969,11 @@ function BossTagSection({ items, flash, copied }: {
                 title={item ? item.name : `${key} — missing`}
               >
                 {item ? (
-                  <img
-                    src={ICON_URL(item.id)}
+                  <ItemSprite
+                    id={item.id}
                     alt={item.name}
                     className="pixelated"
-                    style={{ maxWidth: "78%", maxHeight: "78%", imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
+                    style={{ maxWidth: "78%", maxHeight: "78%" }}
                   />
                 ) : (
                   <span className="text-[8.5px] uppercase tracking-wider text-[var(--color-text-muted)]">{key}</span>
@@ -3145,11 +4983,24 @@ function BossTagSection({ items, flash, copied }: {
           </div>
 
           <p className="mt-3 text-[10.5px] text-[var(--color-text-muted)]">
-            {haveGearCount}/{setupSlots.length} slots filled from your bank · imports as a fresh tab in RuneLite Bank Tags.
+            {haveGearCount}/{setupSlots.length} slots filled from your bank · imports as a fresh tab in RuneLite Bank Tags · opens DPS with this boss selected.
           </p>
+          {copied === "boss-tag-error" && manualBossTag && (
+            <div className="mt-3 rounded-lg border border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8 p-2" aria-live="polite">
+              <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-danger)]">
+                Clipboard failed — copy boss tag manually
+              </label>
+              <textarea
+                readOnly
+                value={manualBossTag}
+                onFocus={(event) => event.currentTarget.select()}
+                className="min-h-[86px] w-full resize-y rounded border border-[var(--color-border)] bg-[var(--color-bg)] p-2 font-mono text-[10.5px] leading-relaxed text-[var(--color-text)]"
+                aria-label={`Manual boss Bank Tags fallback for ${boss.name}`}
+              />
+            </div>
+          )}
         </div>
       )}
     </section>
   );
 }
-

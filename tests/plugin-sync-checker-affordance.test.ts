@@ -1,0 +1,69 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
+
+const source = readFileSync(join(process.cwd(), "src/components/plugin-sync-checker.tsx"), "utf8");
+
+describe("plugin sync checker affordance", () => {
+  it("labels the RSN verifier as a real RuneLite sync form", () => {
+    expect(source).toContain('const rsnHelpId = "plugin-sync-rsn-help";');
+    expect(source).toContain('const rsnStatusId = "plugin-sync-rsn-status";');
+    expect(source).toContain('htmlFor="plugin-sync-rsn"');
+    expect(source).toContain('id="plugin-sync-rsn"');
+    expect(source).toContain('name="rsn"');
+    expect(source).toContain('type="text"');
+    expect(source).toContain("maxLength={12}");
+    expect(source).toContain('autoComplete="off"');
+    expect(source).toContain("spellCheck={false}");
+    expect(source).toContain("aria-describedby={`${rsnHelpId} ${rsnStatusId}`}");
+    expect(source).toContain("Use the exact RuneLite display name");
+    expect(source).toContain("Names are capped at 12 characters");
+  });
+
+  it("announces checker state and names every verifier action by RSN", () => {
+    expect(source).toContain('role="status"');
+    expect(source).toContain("Checking RuneLite sync for");
+    expect(source).toContain("Ready to check RuneLite sync for");
+    expect(source).toContain("Enter an OSRS name to check RuneLite sync.");
+    expect(source).toContain("aria-label={normalized ? `Check RuneLite sync payload for ${normalized}` : \"Enter an OSRS name before checking RuneLite sync\"}");
+    expect(source).toContain("aria-label={`Re-check RuneLite sync for ${state.rsn} after logging in`}");
+    expect(source).toContain('aria-label="Re-check RuneLite sync payload before opening /next"');
+  });
+
+  it("keeps proof and /next handoff actions explicit about verified sync", () => {
+    expect(source).toContain('formatPluginSyncSessionChecklist(state.player, { origin: syncOrigin })');
+    expect(source).toContain("aria-label={`Copy RuneLite to Scapestack session checklist for ${player.displayName || player.rsn}`}");
+    expect(source).toContain("Copy checklist");
+    expect(source).toContain("Checklist copied");
+    expect(source).toContain("Clipboard failed — copy session checklist manually");
+    expect(source).toContain("Manual session checklist fallback for ${player.displayName || player.rsn}");
+    expect(source).toContain("aria-label={`Copy safe sync proof for ${player.displayName || player.rsn}`}");
+    expect(source).toContain("aria-label={`${readiness.actionLabel} for verified RuneLite sync`}");
+    expect(source).toContain("never includes tokens, bank, inventory, chat, screenshots or account login");
+  });
+
+  it("shows a payload receipt and keeps bank context browser-only", () => {
+    expect(source).toContain('data-testid="plugin-payload-receipt"');
+    expect(source).toContain("RuneLite payload receipt");
+    expect(source).toContain("Scapestack received account-state only");
+    expect(source).toContain("quest completions, diary tiers, collection-log item IDs and optional Slayer state");
+    expect(source).toContain("Bank, inventory, equipment, chat, screenshots and login credentials are not part of the plugin payload.");
+    expect(source).toContain('const bankHref = `/bank?rsn=${encodeURIComponent(displayName)}&from=plugin`;');
+    expect(source).toContain("Add bank context");
+    expect(source).toContain("Add browser-only bank context for ${displayName}");
+  });
+
+  it("makes missing-sync recovery aware of Plugin Hub review state", () => {
+    expect(source).toContain('fetch("/api/plugin-hub/status"');
+    expect(source).toContain("scapestackPluginHubStateFromStatus(body)");
+    expect(source).toContain('pluginHubState === "merged"');
+    expect(source).toContain('pluginHubState === "pending"');
+    expect(source).toContain('pluginHubState === "review-blocked"');
+    expect(source).toContain("Plugin Hub review handoff is blocked");
+    expect(source).toContain("Normal players should keep using bank paste and /next");
+    expect(source).toContain("Open plugin review status");
+    expect(source).toContain("canShowMissingSetup");
+    expect(source).toContain('state.kind !== "missing" || canShowMissingSetup');
+    expect(source).not.toContain("Install Scapestack Sync, enable “Auto-sync on login”, confirm the Sync URL");
+  });
+});

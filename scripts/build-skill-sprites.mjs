@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Pull the 23 OSRS skill icons from the wiki to public/sprites/skills/.
+// Pull the 24 OSRS skill icons from the wiki to public/sprites/skills/.
 //
 // Why bother: the Lucide skill-stand-in icons (TrendingUp, Hammer, …) read as
 // generic SaaS. Real wiki sprites read as OSRS instantly. We download them
@@ -24,11 +24,11 @@ const SKILLS = [
   "Prayer", "Magic", "Cooking", "Woodcutting", "Fletching",
   "Fishing", "Firemaking", "Crafting", "Smithing", "Mining",
   "Herblore", "Agility", "Thieving", "Slayer", "Farming",
-  "Runecraft", "Hunter", "Construction"
+  "Runecraft", "Hunter", "Construction", "Sailing"
 ];
 
 // ASCII-only — em-dashes break the HTTP header byte-string check.
-const UA = "scapestack-skill-sprite-builder/1.0 (+https://scapestack.app - laurensbs@hotmail.com)";
+const UA = "scapestack-skill-sprite-builder/1.0 (+https://www.scapestack.org - laurensbs@hotmail.com)";
 
 async function fileExistsAndMatches(path, contentLength) {
   try {

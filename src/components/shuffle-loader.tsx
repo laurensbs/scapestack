@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ICON_URL } from "@/lib/utils";
+import { ItemSprite } from "@/components/item-sprite";
 
 // Shuffle loader — tijdens het laden van /next data hebben we tot ~2s
 // vrijwel niets te tonen. Voor de wow-factor: een brede sweep waar
@@ -202,19 +202,16 @@ export function ShuffleLoader({ label = "Reading your account…" }: ShuffleLoad
                     : undefined
                 }}
               >
-                <img
+                <ItemSprite
                   // key forceert React om de img te remount'en wanneer
                   // itemId verandert → fresh fade-in van loader-cell-fade.
                   key={itemId}
-                  src={ICON_URL(itemId)}
+                  id={itemId}
                   alt=""
                   className="pixelated"
                   style={{
                     maxWidth: "78%",
                     maxHeight: "78%",
-                    imageRendering: "pixelated",
-                    filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))",
-                    objectFit: "contain",
                     animation: "loader-cell-fade 0.45s ease-out both"
                   }}
                 />

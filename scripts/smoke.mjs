@@ -1,14 +1,18 @@
 // Direct smoke test of organize() with realistic Bank Memory TSV input.
-// Run: node scripts/smoke.mjs
+// Run:
+//   npm run smoke       # offline: IDs, names, tabs and export roundtrip
+//   npm run smoke:live  # also fetches current Wiki prices
 //
 // Tests:
 // 1. TSV parsing → items loaded
 // 2. Item names resolved from data/items.json (no "Item NNN" placeholders)
 // 3. Classification distributes into expected tabs
-// 4. Prices fetched and applied to values
+// 4. Prices fetched and applied to values (live mode only)
 // 5. Export roundtrip produces valid Bank Tags strings
 
 import { organize, exportTabs } from "../src/lib/organizer.ts";
+
+const livePrices = process.argv.includes("--live");
 
 const SAMPLE_TSV = `Item id\tItem name\tItem quantity
 4151\tAbyssal whip\t1
@@ -70,9 +74,10 @@ function expect(cond, msg) {
 }
 
 log("\n# Smoke test — organize() with realistic TSV\n");
+log(livePrices ? "Mode: live prices\n" : "Mode: offline IDs/names/export\n");
 
 const t0 = Date.now();
-const res = await organize({ input: SAMPLE_TSV, includePrices: true, junkFilter: false });
+const res = await organize({ input: SAMPLE_TSV, includePrices: livePrices, junkFilter: false });
 log(`organize() returned in ${Date.now() - t0}ms\n`);
 
 log("## 1. Source detection");
@@ -100,17 +105,21 @@ expect(tabNames.includes("Skilling"), "has Skilling tab");
 expect(res.stats.unclassified < res.stats.items / 2, `<50% items in Misc (got ${res.stats.unclassified}/${res.stats.items})`);
 
 log("\n## 4. Prices");
-log(`  hasPrices: ${res.stats.hasPrices}, totalValue: ${res.stats.totalValue.toLocaleString()} gp`);
-expect(res.stats.hasPrices, "stats.hasPrices = true (fetched from wiki)");
-expect(res.stats.totalValue > 1_000_000, `totalValue > 1m gp (got ${res.stats.totalValue.toLocaleString()})`);
-
-// Twisted bow should have a serious price
-const tbow = res.tabs.flatMap((t) => t.items).find((i) => i.id === 20997);
-log(`  Twisted bow unitPrice: ${tbow?.unitPrice?.toLocaleString()} gp`);
-expect(tbow && tbow.unitPrice > 500_000_000, `Twisted bow priced > 500m (got ${tbow?.unitPrice?.toLocaleString()})`);
-
-// Coins should be priced 1
 const coins = res.tabs.flatMap((t) => t.items).find((i) => i.id === 995);
+if (livePrices) {
+  log(`  hasPrices: ${res.stats.hasPrices}, totalValue: ${res.stats.totalValue.toLocaleString()} gp`);
+  expect(res.stats.hasPrices, "stats.hasPrices = true (fetched from wiki)");
+  expect(res.stats.totalValue > 1_000_000, `totalValue > 1m gp (got ${res.stats.totalValue.toLocaleString()})`);
+
+  // Twisted bow should have a serious price
+  const tbow = res.tabs.flatMap((t) => t.items).find((i) => i.id === 20997);
+  log(`  Twisted bow unitPrice: ${tbow?.unitPrice?.toLocaleString()} gp`);
+  expect(tbow && tbow.unitPrice > 500_000_000, `Twisted bow priced > 500m (got ${tbow?.unitPrice?.toLocaleString()})`);
+} else {
+  log("  skipped live Wiki price fetch; run `npm run smoke:live` for price validation");
+  expect(!res.stats.hasPrices, "stats.hasPrices = false in offline smoke mode");
+}
+
 log(`  Coins (995) classified to: ${coins?.subtab} in ${res.tabs.find((t) => t.items.some((i) => i.id === 995))?.name}`);
 
 log("\n## 5. Export roundtrip");
@@ -133,7 +142,7 @@ if (combat) {
 }
 
 log("\n## 7. Junk filter behavior");
-const resJunk = await organize({ input: SAMPLE_TSV, includePrices: true, junkFilter: true });
+const resJunk = await organize({ input: SAMPLE_TSV, includePrices: livePrices, junkFilter: true });
 log(`  Without junk filter: ${res.stats.unclassified} in Misc`);
 log(`  With junk filter:    ${resJunk.stats.unclassified} in Misc`);
 

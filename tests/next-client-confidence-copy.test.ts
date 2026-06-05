@@ -1,0 +1,239 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
+
+const source = readFileSync(join(process.cwd(), "src/app/next/next-client.tsx"), "utf8");
+
+describe("/next confidence UI copy", () => {
+  it("shows confidence labels inside compact recommendation rows", () => {
+    expect(source).toContain("function ActionPlanBlock");
+    expect(source).toContain("compact = false");
+    expect(source).toContain("normal-case tracking-normal");
+    expect(source).toContain("{plan.confidenceLabel}");
+    expect(source).toContain("title={plan.caveat || \"Recommendation confidence\"}");
+  });
+
+  it("explains exact, likely and guided recommendation confidence", () => {
+    expect(source).toContain("function RecommendationConfidenceLegend");
+    expect(source).toContain("Why this pick?");
+    expect(source).toContain('label: "Verified"');
+    expect(source).toContain("Verified RuneLite payload covers this quest, diary, collection log or Slayer state.");
+    expect(source).not.toContain("Plugin-synced quest, diary, collection log or Slayer state.");
+    expect(source).toContain("Uses your RSN, hiscores and saved bank where available.");
+    expect(source).toContain("Good default pick, but missing live account signals.");
+  });
+
+  it("makes compact recommendation rows visibly and accessibly clickable", () => {
+    expect(source).toContain("const primaryAction = primaryActionForRecommendation(rec, actionContext);");
+    expect(source).toContain("const actionLabel = isBossWithDetail ? \"Open boss detail\" : primaryAction.label;");
+    expect(source).toContain("const actionHref = isBossWithDetail ? undefined : primaryAction.href;");
+    expect(source).toContain("aria-label={`${actionLabel}: ${rec.title}`}");
+    expect(source).toContain("title={`${actionLabel}: ${rec.title}`}");
+    expect(source).toContain('type="button"');
+    expect(source).toContain("onClick={() => onBossOpen(rec.bossSlug!)}");
+    expect(source).toContain("{actionLabel} <ArrowRight");
+    expect(source).toContain('target="_blank" rel="noopener noreferrer"');
+    expect(source).not.toContain('role="button"');
+    expect(source).not.toContain("tabIndex={0}");
+    expect(source).not.toContain("div-as-button pattern");
+    expect(source).not.toContain('"Open the tool"');
+  });
+
+  it("makes missing plugin sync copy aware of Plugin Hub review state", () => {
+    expect(source).toContain("nextPluginHubCta(pluginHubState, hasAnyTracker)");
+    expect(source).toContain('fetch("/api/plugin-hub/status")');
+    expect(source).toContain("reviewCopyBlocked || pinBlocked || reviewBlocked");
+    expect(source).toContain('? "review-blocked"');
+    expect(source).toContain('pluginHubState === "review-blocked"');
+    expect(source).toContain("#review-readiness");
+    expect(source).toContain("{pluginHubCta.cta}");
+  });
+
+  it("shows a concrete action for missing data behind a recommendation", () => {
+    expect(source).toContain("missingDataActionForRecommendation(rec, actionContext)");
+    expect(source).toContain("function RecommendationDataActionCallout");
+    expect(source).toContain("Sharpen this pick:");
+    expect(source).toContain('action.kind === "rsn"');
+    expect(source).toContain("{action.label}");
+  });
+
+  it("surfaces compact proof chips on headline and row recommendations", () => {
+    expect(source).toContain("function RecommendationProofStrip");
+    expect(source).toContain('data-testid={compact ? "next-row-proof-strip" : "next-headline-proof-strip"}');
+    expect(source).toContain('label: "Confidence"');
+    expect(source).toContain('label: "Session"');
+    expect(source).toContain('label: "Payoff"');
+    expect(source).toContain('label: "Missing data"');
+    expect(source).toContain("<RecommendationProofStrip rec={rec} />");
+    expect(source).toContain("<RecommendationProofStrip rec={rec} compact />");
+  });
+
+  it("shows an evidence ledger for the whole /next run", () => {
+    expect(source).toContain("function EvidenceLedger");
+    expect(source).toContain('data-testid="next-evidence-ledger"');
+    expect(source).toContain("Evidence used");
+    expect(source).toContain("missing signals stay visible");
+    expect(source).toContain('label: "Hiscores"');
+    expect(source).toContain('label: "Bank"');
+    expect(source).toContain('label: "RuneLite"');
+    expect(source).toContain('label: "Trackers"');
+    expect(source).toContain("<EvidenceLedger summary={summary} pathData={result.pathProgress} bankItems={bankItems} />");
+    expect(source).toContain("verify a payload when you want coverage labels instead of inference");
+  });
+
+  it("shows a compact session brief before the detailed recommendation stack", () => {
+    expect(source).toContain("function SessionBrief");
+    expect(source).toContain('data-testid="next-session-brief"');
+    expect(source).toContain("Tonight&apos;s session brief");
+    expect(source).toContain("First click:");
+    expect(source).toContain("Trust level");
+    expect(source).toContain("Before you commit");
+    expect(source).toContain("<SessionBrief");
+    expect(source).toContain("Refresh RuneLite sync before spending GP or locking a long grind.");
+    expect(source).toContain("Paste a bank when gear, supplies or affordability could change the route.");
+    expect(source).toContain("Good to run now; mark it done or hide it if it does not fit tonight.");
+  });
+
+  it("respects legacy route intent instead of dropping players into default mood", () => {
+    expect(source).toContain("nextIntentFromSearch(initialQueryString)");
+    expect(source).toContain("routeIntent?.mood");
+    expect(source).toContain("{routeIntent.label}");
+    expect(source).toContain("title={routeIntent.helper}");
+    expect(source).toContain("routeIntent={routeIntent}");
+  });
+
+  it("keeps plugin-origin /next intake honest before verified sync loads", () => {
+    expect(source).toContain("const cameFromPlugin = useMemo");
+    expect(source).toContain('params.get("from") === "plugin"');
+    expect(source).toContain("cameFromPlugin={cameFromPlugin}");
+    expect(source).toContain("RuneLite sync is optional and only counted after /next loads a verified payload.");
+    expect(source).toContain("Bank handoff stays browser-only.");
+    expect(source).toContain("Free, no account, no plugin.");
+  });
+
+  it("gives plugin-origin players a concrete sync verification path", () => {
+    expect(source).toContain('pluginVerifyUrlForSyncedRsn(rsn, "next"');
+    expect(source).toContain("hasBankContext: Boolean(fromBank)");
+    expect(source).toContain("Back from RuneLite setup");
+    expect(source).toContain("Enter the same OSRS name to use verified sync if it exists.");
+    expect(source).toContain("If /next still looks inferred, verify the Sync URL and payload from the plugin page.");
+    expect(source).toContain("Verify sync");
+    expect(source).toContain("href={pluginVerifyHref}");
+  });
+
+  it("does not call unverified /next plugin handoff exact sync", () => {
+    expect(source).toContain("Verify RuneLite sync");
+    expect(source).not.toContain("Add exact sync");
+  });
+
+  it("separates RuneLite account proof from browser-only bank proof", () => {
+    expect(source).toContain("Account proof");
+    expect(source).toContain("RuneLite verified quests, diaries, collection-log and Slayer labels for this RSN.");
+    expect(source).toContain("Bank proof");
+    expect(source).toContain("Still browser-only. Paste Bank Memory or Bank Tags when gear, supplies or affordability matter.");
+  });
+
+  it("lets players clear temporary bank handoff storage", () => {
+    expect(source).toContain("clearBankHandoffPayload(window)");
+    expect(source).toContain("Clear handoff");
+    expect(source).toContain("Browser-only handoff");
+    expect(source).toContain("Stored handoff cleared");
+    expect(source).toContain('import { bankOrganizerHref } from "@/lib/bank-handoff-url";');
+    expect(source).toContain('window.location.href = bankOrganizerHref(activeRsn, "next");');
+  });
+
+  it("gives hidden recommendations an immediate undo path", () => {
+    expect(source).toContain("restoreRecommendation");
+    expect(source).toContain("lastSuppressed");
+    expect(source).toContain("Hidden for now:");
+    expect(source).toContain("Undo hide");
+    expect(source).toContain("aria-label={`Not today: hide ${rec.title}`}");
+  });
+
+  it("lets players mark recommendations done without calling them irrelevant", () => {
+    expect(source).toContain("lastCompleted");
+    expect(source).toContain('reason: "already_done"');
+    expect(source).toContain("const completeRecommendation = (rec: Recommendation) =>");
+    expect(source).toContain("Marked done:");
+    expect(source).toContain("Undo done");
+    expect(source).toContain("aria-label={`Done: mark ${rec.title} complete`}");
+    expect(source).toContain("onComplete={completeRecommendation}");
+    expect(source).toContain("onComplete: (rec: Recommendation) => void");
+  });
+
+  it("renders recommendation feedback controls as visible pill buttons", () => {
+    expect(source).toContain("function recommendationFeedbackButtonClass");
+    expect(source).toContain('tone: "done" | "skip" | "details"');
+    expect(source).toContain("rounded-full border border-[var(--color-border)] bg-[var(--color-panel)]/65");
+    expect(source).toContain('recommendationFeedbackButtonClass("done")');
+    expect(source).toContain('recommendationFeedbackButtonClass("skip")');
+    expect(source).toContain('recommendationFeedbackButtonClass("details")');
+    expect(source).toContain('recommendationFeedbackButtonClass("done", true)');
+    expect(source).toContain('recommendationFeedbackButtonClass("skip", true)');
+    expect(source).toContain('recommendationFeedbackButtonClass("details", true)');
+  });
+
+  it("copies recommendation plans with route context", () => {
+    expect(source).toContain("formatRecommendationActionPlan(rec, actionContext)");
+    expect(source).toContain("formatRecommendationSessionPlan(visibleRecs, actionContext)");
+    expect(source).toContain('aria-label="Copy top Scapestack session plan"');
+    expect(source).toContain("Copy session plan");
+    expect(source).toContain("Session copied");
+    expect(source).toContain("aria-label={`Copy plan for ${rec.title}`}");
+    expect(source).toContain('useState<"idle" | "copied" | "error">("idle")');
+    expect(source).toContain("Try copy again");
+    expect(source).toContain('aria-live="polite"');
+    expect(source).toContain("Clipboard failed — copy manually");
+    expect(source).toContain("readOnly");
+    expect(source).toContain("event.currentTarget.select()");
+    expect(source).not.toContain('window.setTimeout(() => setCopyState("idle"), 2400)');
+  });
+
+  it("makes expanded recommendation details triangulate to OSRS Wiki", () => {
+    expect(source).toContain("function recommendationWikiQuery(rec: Recommendation): string");
+    expect(source).toContain("const wikiQuery = recommendationWikiQuery(rec);");
+    expect(source).toContain("href={wikiSearchUrl(wikiQuery)}");
+    expect(source).toContain("Open OSRS Wiki for ${wikiQuery}");
+    expect(source).toContain("OSRS Wiki");
+    expect(source).toContain("BOSSES.find((candidate) => candidate.slug === rec.bossSlug)");
+    expect(source).toContain(".replace(/^Try\\s+/i, \"\")");
+    expect(source).toContain(".replace(/^Push\\s+/i, \"\")");
+    expect(source).toContain(".replace(/^Finish\\s+/i, \"\")");
+  });
+
+  it("passes browser handoff items into direct RSN runs", () => {
+    expect(source).toContain("let heroBankItems = [] as BankHandoffItem[];");
+    expect(source).toContain("heroBankItems = readBankHandoffPayload(window);");
+    expect(source).toContain("run({ rsn: heroRsn.trim(), input: heroBank, bankItems: heroBankItems });");
+  });
+
+  it("lets bank-handoff players run /next without typing an RSN", () => {
+    expect(source).toContain("Using the bank you just organised");
+    expect(source).toContain("Plan with this bank");
+    expect(source).toContain("onClick={() => onRun({ bankItems: fromBank.items })}");
+    expect(source).toContain("disabled={loading}");
+    expect(source).toContain("Add your OSRS name for stat-aware");
+  });
+
+  it("explains why the /next submit CTA is disabled", () => {
+    expect(source).toContain('aria-describedby="next-show-me-disabled-help"');
+    expect(source).toContain('id="next-show-me-disabled-help"');
+    expect(source).toContain("Type an OSRS name, paste a bank, or start from the Bank Organizer to unlock Show me.");
+    expect(source).toContain("bank-only planning is available");
+  });
+
+  it("shows when bank context and RuneLite sync are fused", () => {
+    expect(source).toContain("const pluginSyncState = result.pathProgress.syncedSources?.scapestack");
+    expect(source).toContain("pluginSyncState={pluginSyncState}");
+    expect(source).toContain('pluginSyncState: "live" | "stale" | "outdated" | null;');
+    expect(source).toContain("const hasLivePluginSync = pluginSyncState === \"live\";");
+    expect(source).toContain("hasLivePluginSync && bankItems.length > 0");
+    expect(source).toContain("This is the full Scapestack loop: verified RuneLite account payload plus browser-only bank gear and supplies.");
+    expect(source).not.toContain("This is the full Scapestack loop: exact RuneLite account state plus browser-only bank gear and supplies.");
+    expect(source).toContain("RuneLite sync is connected, but update the plugin before trusting newer Slayer and coverage fields.");
+    expect(source).toContain("{hasPluginSync ? \"Bank + RuneLite sync connected\" : \"Bank context active\"}");
+    expect(source).toContain("Verified fusion");
+    expect(source).not.toContain("Exact fusion");
+    expect(source).toContain("Plugin update needed");
+  });
+});

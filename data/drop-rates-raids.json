@@ -1,46 +1,46 @@
 {
-  "_comment": "Hand-curated raid drop rates. scripts/build-drop-rates.mjs scrapes Wiki boss pages but doesn't cover CoX/ToB/ToA (they list raid-team-dependent drop rates which are awkward to scrape). Numbers below are 1-player effective rates derived from the Wiki's 'unique rate' tables — what a solo / small-team player would actually feel. Update by hand if Jagex tweaks rates.",
+  "_comment": "Hand-curated raid drop rates. scripts/build-drop-rates.mjs scrapes Wiki boss pages but doesn't cover CoX/ToB/ToA cleanly. Denominators here are KC-equivalent estimates, not raw unique-table weights: CoX assumes ~30k personal points, ToB assumes an equal-share 4-person normal raid, ToA assumes solo 150 normal / solo 300 expert. Sources: OSRS Wiki Ancient chest, Monumental chest and Chest (Tombs of Amascut) loot mechanics. Update by hand if Jagex tweaks rates.",
   "Chambers of Xeric": {
     "hiscoresName": "Chambers of Xeric",
     "drops": [
-      { "name": "Twisted bow",           "num": 1, "denom": 34500, "rarity": "1/34,500" },
-      { "name": "Kodai insignia",        "num": 1, "denom": 23000, "rarity": "1/23,000" },
-      { "name": "Elder maul",            "num": 1, "denom": 23000, "rarity": "1/23,000" },
-      { "name": "Dragon claws",          "num": 1, "denom": 11500, "rarity": "1/11,500" },
-      { "name": "Dinh's bulwark",        "num": 1, "denom": 11500, "rarity": "1/11,500" },
-      { "name": "Ancestral hat",         "num": 1, "denom": 11500, "rarity": "1/11,500" },
-      { "name": "Olmlet",                "num": 1, "denom": 53,    "rarity": "1/53 raids" }
+      { "name": "Twisted bow",           "num": 1, "denom": 998,  "rarity": "~1/998 raids at 30k pts" },
+      { "name": "Kodai insignia",        "num": 1, "denom": 998,  "rarity": "~1/998 raids at 30k pts" },
+      { "name": "Elder maul",            "num": 1, "denom": 998,  "rarity": "~1/998 raids at 30k pts" },
+      { "name": "Dragon claws",          "num": 1, "denom": 665,  "rarity": "~1/665 raids at 30k pts" },
+      { "name": "Dinh's bulwark",        "num": 1, "denom": 665,  "rarity": "~1/665 raids at 30k pts" },
+      { "name": "Ancestral hat",         "num": 1, "denom": 665,  "rarity": "~1/665 raids at 30k pts" },
+      { "name": "Olmlet",                "num": 1, "denom": 1534, "rarity": "~1/1,534 raids at 30k pts" }
     ]
   },
   "Theatre of Blood": {
     "hiscoresName": "Theatre of Blood",
     "drops": [
-      { "name": "Scythe of vitur",       "num": 1, "denom": 2160,  "rarity": "1/2,160" },
-      { "name": "Ghrazi rapier",         "num": 1, "denom": 1080,  "rarity": "1/1,080" },
-      { "name": "Sanguinesti staff",     "num": 1, "denom": 1080,  "rarity": "1/1,080" },
-      { "name": "Justiciar faceguard",   "num": 1, "denom": 1080,  "rarity": "1/1,080" },
-      { "name": "Sanguine dust",         "num": 1, "denom": 540,   "rarity": "1/540" },
-      { "name": "Lil' Zik",              "num": 1, "denom": 650,   "rarity": "1/650" }
+      { "name": "Scythe of vitur",       "num": 1, "denom": 692,  "rarity": "~1/692 personal 4-man KC" },
+      { "name": "Ghrazi rapier",         "num": 1, "denom": 346,  "rarity": "~1/346 personal 4-man KC" },
+      { "name": "Sanguinesti staff",     "num": 1, "denom": 346,  "rarity": "~1/346 personal 4-man KC" },
+      { "name": "Justiciar faceguard",   "num": 1, "denom": 346,  "rarity": "~1/346 personal 4-man KC" },
+      { "name": "Sanguine dust",         "num": 1, "denom": 540,  "rarity": "1/540 hard-mode KC" },
+      { "name": "Lil' Zik",              "num": 1, "denom": 650,  "rarity": "1/650 KC" }
     ]
   },
   "Tombs of Amascut": {
     "hiscoresName": "Tombs of Amascut",
     "drops": [
-      { "name": "Tumeken's shadow",      "num": 1, "denom": 2856,  "rarity": "1/2,856" },
-      { "name": "Osmumten's fang",       "num": 1, "denom": 952,   "rarity": "1/952" },
-      { "name": "Elidinis' ward",        "num": 1, "denom": 952,   "rarity": "1/952" },
-      { "name": "Masori mask",           "num": 1, "denom": 952,   "rarity": "1/952" },
-      { "name": "Lightbearer",           "num": 1, "denom": 476,   "rarity": "1/476" },
-      { "name": "Tumeken's guardian",    "num": 1, "denom": 350,   "rarity": "1/350" }
+      { "name": "Tumeken's shadow",      "num": 1, "denom": 1272, "rarity": "~1/1,272 solo 150s" },
+      { "name": "Osmumten's fang",       "num": 1, "denom": 182,  "rarity": "~1/182 solo 150s" },
+      { "name": "Elidinis' ward",        "num": 1, "denom": 424,  "rarity": "~1/424 solo 150s" },
+      { "name": "Masori mask",           "num": 1, "denom": 636,  "rarity": "~1/636 solo 150s" },
+      { "name": "Lightbearer",           "num": 1, "denom": 182,  "rarity": "~1/182 solo 150s" },
+      { "name": "Tumeken's guardian",    "num": 1, "denom": 350,  "rarity": "1/350 KC" }
     ]
   },
   "Tombs of Amascut: Expert Mode": {
     "hiscoresName": "Tombs of Amascut: Expert Mode",
     "drops": [
-      { "name": "Tumeken's shadow",      "num": 1, "denom": 1996,  "rarity": "1/1,996" },
-      { "name": "Osmumten's fang",       "num": 1, "denom": 665,   "rarity": "1/665" },
-      { "name": "Elidinis' ward",        "num": 1, "denom": 665,   "rarity": "1/665" },
-      { "name": "Tumeken's guardian",    "num": 1, "denom": 245,   "rarity": "1/245" }
+      { "name": "Tumeken's shadow",      "num": 1, "denom": 576,  "rarity": "~1/576 solo 300s" },
+      { "name": "Osmumten's fang",       "num": 1, "denom": 192,  "rarity": "~1/192 solo 300s" },
+      { "name": "Elidinis' ward",        "num": 1, "denom": 192,  "rarity": "~1/192 solo 300s" },
+      { "name": "Tumeken's guardian",    "num": 1, "denom": 245,  "rarity": "1/245 expert KC" }
     ]
   }
 }

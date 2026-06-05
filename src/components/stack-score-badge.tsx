@@ -32,6 +32,7 @@ export function StackScoreBadge({ tabs, previousScore }: Props) {
   return (
     <div ref={wrapRef} className="relative">
       <button
+        type="button"
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
         title="Stack Score · click for breakdown"

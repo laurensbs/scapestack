@@ -15,13 +15,17 @@ import {
   type CompletionItem, type SetCompletion
 } from "./goals";
 import { hoursToMax } from "./hours-to-max";
-import { BOSSES } from "./bosses";
+import { BOSSES, type Boss } from "./bosses";
 import { computeCombatLevel, computeTotalLevel, type HiscoreSkill } from "./hiscores";
 import { getQuests, type QuestRecord } from "./quest-db";
 import { getDiaries, type DiaryRecord, type DiaryTier } from "./diary-db";
 import { getDropRates, type BossDropTable } from "./drop-rates-db";
-import { computePathProgress, type PathOverview } from "./path-progress";
+import { computePathProgress, type AccountMeta, type PathOverview } from "./path-progress";
 import { skillCapeId } from "./skill-capes";
+import { TASK_ID_TO_MONSTER } from "./slayer/task-ids";
+import { MONSTERS_BY_ID } from "./slayer/monsters";
+import { slayerUrlForSyncedRsn } from "./plugin-sync-actions";
+import { pluginSyncHealth } from "./plugin-sync";
 
 // Kind drives the icon + accent the hub renders, and groups the checklist.
 export type RecKind =
@@ -32,9 +36,32 @@ export type RecKind =
   | "kc"         // boss KC-aware insight (drop rate vs your kill count)
   | "minigame"   // a minigame the player's skill levels now unlock
   | "money"      // a money-making method matched to the player's skills
+  | "slayer"     // live RuneLite-plugin Slayer task / points advice
   | "skill"      // a skill sitting just short of a milestone level
   | "bank"       // a bank-hygiene action (clear junk, complete a set)
   | "milestone"; // an account-wide milestone (quest cape range, maxing, etc.)
+
+export interface RecommendationPlanSeed {
+  timebox?: string;
+  prep?: string;
+  steps?: string[];
+  caveat?: string;
+}
+
+export interface RecommendationActionPlan {
+  /** Short session framing shown on the card, e.g. "45-90 min". */
+  timebox: string;
+  /** How certain Scapestack is that this action fits the account data. */
+  confidence: "exact" | "likely" | "guided";
+  /** Human label for the confidence chip. */
+  confidenceLabel: string;
+  /** Tiny prep hint before the checklist. */
+  prep: string;
+  /** 2-4 concrete steps that make the recommendation executable. */
+  steps: string[];
+  /** Optional warning/fallback line for missing data or risky assumptions. */
+  caveat?: string;
+}
 
 export interface Recommendation {
   id: string;             // stable key
@@ -55,6 +82,13 @@ export interface Recommendation {
   link?: string;
   /** Optional OSRS item id for a sprite on the card. */
   iconItemId?: number;
+  /** Executable next-session plan. This is deliberately generic enough to
+   *  render on every rec kind, but concrete enough that /next feels like an
+   *  OSRS copilot instead of a list of vague tips. */
+  actionPlan?: RecommendationActionPlan;
+  /** Internal engine seed for data-specific plans. Stripped after enrichment
+   *  so the UI only sees the normalized actionPlan shape. */
+  planSeed?: RecommendationPlanSeed;
   /** Optional boss slug — when set, the hub renders a wiki NPC portrait
    *  instead of an item sprite. Used by the kc-kind recs so the player
    *  sees an actual picture of Vorkath, Olm, etc. */
@@ -74,6 +108,9 @@ export interface NextUpInput {
   skills?: HiscoreSkill[];
   /** The player's bank as id+name pairs. Empty when no bank was pasted. */
   bank?: CompletionItem[];
+  /** Virtual earned items inferred from account data, e.g. 99 skill capes.
+   *  Count for goal completion but not as a real bank context. */
+  earnedItems?: CompletionItem[];
   /** Total quest points (from Hiscores activities). Used to gate quest recs. */
   questPoints?: number;
   /** Boss kill-counts from Hiscores activities — keyed by activity name.
@@ -98,9 +135,17 @@ export interface NextUpInput {
    *  priority signal: exact quest + diary + CL state straight from the
    *  player's game client. */
   scapestackSync?: {
+    displayName?: string;
     questsCompleted: string[];
     diariesCompleted: Array<{ region: string; tier: string }>;
     collectionLogItemIds: number[];
+    slayer?: {
+      points: number;
+      streak: number;
+      taskRemaining: number;
+      currentTaskId: number;
+      blocks: string[];
+    } | null;
   };
   /** Tracks which external trackers contributed. Surfaced as the
    *  'Synced via X · Y · Z' badge on the hero block.
@@ -110,7 +155,15 @@ export interface NextUpInput {
     wom: boolean;
     temple: boolean;
     collectionLog: boolean;
-    scapestack: { syncedAt: string; quests: number; diaries: number; clItems: number } | null;
+    scapestack: {
+      syncedAt: string;
+      quests: number;
+      diaries: number;
+      clItems: number;
+      pluginVersion?: string;
+      slayerTaskRemaining?: number | null;
+      slayerBlocks?: number;
+    } | null;
   };
 }
 
@@ -142,14 +195,15 @@ export interface NextUpResult {
 // Skill milestones worth nudging a player toward — levels that unlock
 // meaningful content or are satisfying round numbers. Within a few levels of
 // one of these, the engine suggests pushing for it.
-const SKILL_MILESTONES: Record<string, { level: number; unlock: string }[]> = {
-  Slayer:  [{ level: 85, unlock: "Abyssal demons → whip" }, { level: 93, unlock: "Cryptic clue tasks" }, { level: 99, unlock: "Slayer cape" }],
+const SKILL_MILESTONES: Record<string, { level: number; unlock: string; maxGap?: number }[]> = {
+  Slayer:  [{ level: 70, unlock: "Kurasks + real mid-game Slayer rhythm", maxGap: 25 }, { level: 85, unlock: "Abyssal demons → whip" }, { level: 93, unlock: "Cryptic clue tasks" }, { level: 99, unlock: "Slayer cape" }],
   Agility: [{ level: 70, unlock: "Ardougne rooftop course" }, { level: 99, unlock: "Agility cape" }],
   Herblore:[{ level: 78, unlock: "Magic potions" }, { level: 90, unlock: "Extended antifire" }, { level: 99, unlock: "Herblore cape" }],
   Farming: [{ level: 83, unlock: "Magic trees + Hespori" }, { level: 99, unlock: "Farming cape" }],
   Mining:  [{ level: 85, unlock: "Amethyst" }, { level: 99, unlock: "Mining cape" }],
-  Prayer:  [{ level: 70, unlock: "Piety" }, { level: 77, unlock: "Rigour/Augury (with quests)" }, { level: 99, unlock: "Prayer cape" }],
-  Construction: [{ level: 83, unlock: "Nexus / max POH" }, { level: 99, unlock: "Construction cape" }]
+  Prayer:  [{ level: 70, unlock: "Piety", maxGap: 20 }, { level: 77, unlock: "Rigour/Augury (with quests)" }, { level: 99, unlock: "Prayer cape" }],
+  Construction: [{ level: 83, unlock: "Nexus / max POH" }, { level: 99, unlock: "Construction cape" }],
+  Sailing: [{ level: 50, unlock: "mid-level voyages" }, { level: 75, unlock: "late-route progression" }, { level: 99, unlock: "Sailing cape" }]
 };
 
 // Boss combat-level gates — a rough "you can realistically start here" bar.
@@ -186,6 +240,10 @@ function goalRecs(completions: SetCompletion[]): Recommendation[] {
     if (!norm.earnedAny || norm.complete) continue;
     const missing = norm.max - norm.progress;
     if (missing > 3) continue; // only "almost there" sets
+    const missingGoals = set.goals
+      .filter((g) => !c.perGoal[g.id]?.satisfied)
+      .map((g) => g.name)
+      .slice(0, 3);
     // 1 item left scores highest; each extra item missing drops it sharply.
     const score = 92 - (missing - 1) * 16;
     recs.push({
@@ -198,7 +256,18 @@ function goalRecs(completions: SetCompletion[]): Recommendation[] {
       payoff: set.description,
       score,
       link: "/goals",
-      iconItemId: set.iconItemId
+      iconItemId: set.iconItemId,
+      planSeed: {
+        timebox: missing === 1 ? "30-60 min" : "1-2 sessions",
+        prep: missingGoals.length > 0
+          ? `Missing: ${missingGoals.join(", ")}.`
+          : `Close to completion: ${norm.progress}/${norm.max}.`,
+        steps: [
+          `Open the ${set.name} goal set and confirm the missing ${missing === 1 ? "piece" : "pieces"}.`,
+          missingGoals[0] ? `Target ${missingGoals[0]} first — it is the shortest visible path to progress.` : "Pick the missing piece with the lowest travel/setup cost.",
+          "Re-sync or paste your bank again after the drop/unlock so the set disappears from /next."
+        ]
+      }
     });
   }
   return recs;
@@ -277,7 +346,16 @@ function minigameRecs(skills: HiscoreSkill[]): Recommendation[] {
       // Minigames sit between freshly-unlocked bosses and skill-pushes.
       score: 55 + freshness * 2,
       link: undefined, // no dedicated tool page yet
-      iconItemId: mg.iconItemId
+      iconItemId: mg.iconItemId,
+      planSeed: {
+        timebox: "30-90 min",
+        prep: `You meet the ${mg.gateSkill} ${mg.gateLevel} entry point; make this a reward-target session, not an endless queue.`,
+        steps: [
+          `Set one ${mg.name} target before starting: one reward roll, outfit piece, or level bracket.`,
+          "Bank stamina/teleports/supplies for just that target so the session stays bounded.",
+          "Stop at the target and re-run /next; minigame unlocks often change the best follow-up."
+        ]
+      }
     });
   }
   return recs;
@@ -356,6 +434,24 @@ const BOSS_GEAR_GATES: Record<string, {
   "nex": { needs: ["twisted bow", "bow of faerdhinen", "scythe of vitur", "shadow of tumeken", "armadyl crossbow", "zaryte crossbow"] }
 };
 
+const BOSS_SIGNATURE_ITEM_IDS: Record<string, number[]> = {
+  "vorkath": [21907, 22006, 21748],
+  "zulrah": [12921, 12932, 12937, 12934],
+  "cox": [20997, 21043, 21003, 22324, 13652, 21000],
+  "tob": [22325, 22324, 22323, 22326, 22327, 22328],
+  "toa": [27275, 26219, 25985, 25975, 27226, 27229, 27232],
+  "hydra": [22746, 22731, 22944, 23139],
+  "nex": [26382, 26384, 26386, 26235, 26370, 26372, 26374],
+  "vardorvis": [28997, 28307, 28316],
+  "leviathan": [28997, 28324, 28316],
+  "whisperer": [28997, 28321, 28316],
+  "duke-sucellus": [28997, 28316],
+  "graardor": [11812, 11832, 11834],
+  "kree": [11810, 11828, 11830],
+  "zilyana": [11814, 11785],
+  "kril": [11816, 11824, 11826]
+};
+
 /** Returns the matched item name (lowercased) for the boss's gear gate, or
  *  null when the player has nothing on the list. `null` gate means no
  *  gating — returns an empty string so the caller can distinguish "match
@@ -372,7 +468,18 @@ function matchedGearForBoss(slug: string, bank: CompletionItem[], slayerLevel: n
   return null;
 }
 
-function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSkill[]): Recommendation[] {
+function hasBossExperience(boss: Boss, bank: CompletionItem[], bossKc: Record<string, number>): boolean {
+  if ((bossKc[boss.name] ?? 0) >= 50) return true;
+  const signatureIds = BOSS_SIGNATURE_ITEM_IDS[boss.slug] ?? [];
+  if (signatureIds.length === 0) return false;
+  const ownedIds = new Set(bank.map((item) => item.id));
+  return signatureIds.some((id) => ownedIds.has(id));
+}
+
+function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSkill[], bossKc: Record<string, number>): Recommendation[] {
+  const totalKnownBossKc = Object.values(bossKc).reduce((sum, kc) => sum + Math.max(0, kc), 0);
+  if (totalKnownBossKc >= 1_000) return [];
+
   const slayerLevel = lvl(skills, "Slayer");
   const seenGroups = new Set<string>();
   const recs: Recommendation[] = [];
@@ -383,6 +490,7 @@ function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSk
     // band above the gate, so it stays relevant rather than listing every
     // low-level boss to a maxed main.
     if (combatLevel < gate || combatLevel > gate + 25) continue;
+    if (hasBossExperience(boss, bank, bossKc)) continue;
 
     // Gear / slayer gate. If the player has no gear from the list AND no
     // bank was provided, we still let the rec through (we'd rather show
@@ -408,7 +516,16 @@ function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSk
         payoff: "Three bosses, shared room — solid mid-combat training and rare drops.",
         score: Math.max(40, score),
         link: "/dps",
-        iconItemId: group.iconItemId
+        iconItemId: group.iconItemId,
+        planSeed: {
+          timebox: "30-60 min",
+          prep: match.item ? `Use your ${match.item} as the anchor for the first DKs setup.` : "Treat this as a scouting trip before camping the room.",
+          steps: [
+            "Open DPS to compare your melee/range/mage options before entering Waterbirth.",
+            "Bring supplies for a short rotation and prove you can sustain the room safely.",
+            "After the trip, decide whether DKs becomes a ring grind or just a diary/KC clear."
+          ]
+        }
       });
       continue;
     }
@@ -422,7 +539,17 @@ function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSk
       payoff: boss.avgLootGp ? `~${Math.round(boss.avgLootGp / 1000)}k average loot per kill` : boss.notes,
       score: Math.max(40, score),
       link: "/dps",
-      iconItemId: boss.iconItemId
+      iconItemId: boss.iconItemId,
+      bossSlug: boss.slug,
+      planSeed: {
+        timebox: "30-60 min",
+        prep: match.item ? `Scapestack found ${match.item} in your bank; build the first setup around it.` : `Your combat level is the main signal for ${boss.name}; paste a bank for gear checks.`,
+        steps: [
+          `Open ${boss.name} in DPS and use the best owned setup before buying anything.`,
+          "Bring supplies for 3-5 kills so mistakes stay cheap.",
+          boss.avgLootGp ? `Compare your real supply cost against ~${Math.round(boss.avgLootGp / 1000)}k average loot/kill after the test trip.` : "After the test trip, compare kill time and supply burn before committing to a grind."
+        ]
+      }
     });
   }
   // Cap at top-4 — beyond that the checklist becomes "every boss in CL range"
@@ -444,23 +571,47 @@ function gearWhy(combatLevel: number, matchedItem: string): string | null {
 // Skills sitting just short of a milestone level — a clear, finite push.
 function skillRecs(skills: HiscoreSkill[]): Recommendation[] {
   const recs: Recommendation[] = [];
+  const combatLevel = computeCombatLevel(skills);
   for (const [skill, milestones] of Object.entries(SKILL_MILESTONES)) {
     const level = lvl(skills, skill);
     for (const m of milestones) {
       const gap = m.level - level;
-      if (gap <= 0 || gap > 5) continue; // within 5 levels of the milestone
+      const maxGap = m.maxGap ?? 5;
+      if (gap <= 0 || gap > maxGap) continue;
+      const nearMilestone = gap <= 5;
+      const returningSlayerFoundation = skill === "Slayer"
+        && m.level === 70
+        && level >= 45
+        && level < 70
+        && combatLevel !== null
+        && combatLevel >= 75;
       recs.push({
         id: `skill:${skill}:${m.level}`,
         kind: "skill",
         title: `Push ${skill} to ${m.level}`,
         why: `You're ${gap} level${gap === 1 ? "" : "s"} away.`,
         payoff: `Unlocks: ${m.unlock}`,
-        // Closer to the milestone = higher score, capped below top goals.
-        score: 78 - gap * 6,
+        // Close milestones can compete with diaries. Longer foundation
+        // pushes (Slayer 50→70, Prayer 52→70) stay visible but do not
+        // outrank immediately actionable unlocks.
+        score: returningSlayerFoundation
+          ? 68
+          : nearMilestone
+            ? 78 - gap * 6
+            : 66 - Math.min(8, Math.floor((gap - 6) / 3)),
         link: "/goals",
         // Per-skill cape sprite — Slayer cape for 'Push Slayer', not the
         // generic Attack cape stand-in that was shipping before.
-        iconItemId: skillCapeId(skill)
+        iconItemId: skillCapeId(skill),
+        planSeed: {
+          timebox: gap <= 2 ? "30-60 min" : "1-2 sessions",
+          prep: `${skill} ${level} → ${m.level}: only ${gap} level${gap === 1 ? "" : "s"} for ${m.unlock}.`,
+          steps: [
+            `Train ${skill} until level ${m.level}, then stop — the unlock is the point.`,
+            "Buy or bank supplies for only the gap so you do not overcommit GP/time.",
+            "Re-run /next immediately; this level may unlock quests, diaries or bosses."
+          ]
+        }
       });
       break; // only the nearest milestone per skill
     }
@@ -750,8 +901,15 @@ function fmtGp(n: number): string {
   return `${n}`;
 }
 
-function moneyRecs(skills: HiscoreSkill[]): Recommendation[] {
+function moneyRecs(skills: HiscoreSkill[], accountMeta?: AccountMeta | null): Recommendation[] {
   if (skills.length === 0) return [];
+  if (
+    accountMeta?.accountType === "ironman" ||
+    accountMeta?.accountType === "hardcore" ||
+    accountMeta?.accountType === "ultimate"
+  ) {
+    return [];
+  }
 
   // Dedupe ladders — methods waar lagere tiers obsoleet worden zodra
   // de hogere unlockt. Houden we alleen de top-tier waar de speler aan
@@ -800,10 +958,65 @@ function moneyRecs(skills: HiscoreSkill[]): Recommendation[] {
       // Higher gp/hr scores higher, capped so it doesn't dominate the list.
       score: 50 + Math.min(20, Math.log10(Math.max(1, m.gpHr)) * 2),
       link: undefined,
-      iconItemId: m.iconItemId
+      iconItemId: m.iconItemId,
+      planSeed: {
+        timebox: m.intensity === "afk" ? "45-90 min" : "30-60 min",
+        prep: `${m.name} is a ${m.intensity} money option matched to your current levels.`,
+        steps: [
+          m.gpHr > 0 ? `Run a measured half-hour and compare real profit against ~${fmtGp(m.gpHr)} gp/hr.` : "Use this as an unlock/reward session rather than a profit session.",
+          "Check supply and GE prices before committing to a long grind.",
+          "Spend the profit on the next unlock shown above instead of letting cash sit idle."
+        ]
+      }
     });
   }
   return recs;
+}
+
+function slayerTaskRecs(
+  slayer: NonNullable<NextUpInput["scapestackSync"]>["slayer"] | undefined,
+  displayName?: string
+): Recommendation[] {
+  if (!slayer || slayer.taskRemaining <= 0 || slayer.currentTaskId <= 0) return [];
+  const slug = TASK_ID_TO_MONSTER[slayer.currentTaskId];
+  const monster = slug ? MONSTERS_BY_ID.get(slug) : undefined;
+  if (!monster) return [];
+
+  const taskXp = Math.max(0, monster.hp * 4 * slayer.taskRemaining);
+  const taskLeftLabel = `${slayer.taskRemaining.toLocaleString()} ${monster.name}${slayer.taskRemaining === 1 ? "" : "s"}`;
+  const pointsHint = slayer.points >= 100
+    ? `${slayer.points.toLocaleString()} Slayer points available for skips, blocks or unlocks.`
+    : `${slayer.points.toLocaleString()} Slayer points banked; keep streak discipline.`;
+
+  return [{
+    id: `slayer:current-task:${slug}`,
+    kind: "slayer",
+    title: `Finish your ${monster.name} task`,
+    why: `RuneLite sync says you have ${taskLeftLabel} left right now.`,
+    payoff: `~${Math.round(taskXp / 100) / 10}k Slayer XP remaining · streak ${slayer.streak.toLocaleString()}.`,
+    score: slayer.taskRemaining >= 10 ? 94 : 68,
+    link: displayName ? slayerUrlForSyncedRsn(displayName) : "/slayer",
+    iconItemId: 11864,
+    needs: [
+      "Current task from Scapestack RuneLite plugin",
+      monster.slayerLevel > 1 ? `${monster.slayerLevel} Slayer requirement` : "No special Slayer level gate",
+      pointsHint
+    ],
+    details: monster.hint ?? `${monster.locations.slice(0, 2).join(" / ")} · ${monster.cannonable ? "cannonable" : "no cannon baseline"}.`,
+    planSeed: {
+      timebox: slayer.taskRemaining >= 80 ? "45-90 min" : slayer.taskRemaining >= 25 ? "25-45 min" : "10-20 min",
+      prep: `${taskLeftLabel} left. ${pointsHint}`,
+      steps: [
+        displayName
+          ? `Open verified /slayer for ${displayName} and confirm whether ${monster.name} is worth finishing, skipping or blocking.`
+          : `Open /slayer and confirm whether ${monster.name} is worth finishing, skipping or blocking.`,
+        monster.cannonable
+          ? "Bring cannon + balls if the location supports it; otherwise use the fastest safe setup."
+          : "Bring the fastest safe setup; do not over-bank supplies for a short remainder.",
+        "Finish or intentionally skip the task, then re-sync so /next follows the new assignment."
+      ]
+    }
+  }];
 }
 
 // ── Quests ──────────────────────────────────────────────────────────────────
@@ -817,13 +1030,28 @@ function moneyRecs(skills: HiscoreSkill[]): Recommendation[] {
 // QP total. So we suggest a quest when the player meets every skill req
 // AND has enough QP for the quest's QP-gate, and then list the *direct*
 // quest prereqs as context — the player knows whether they've done them.
-function questRecs(quests: Map<string, QuestRecord>, skills: HiscoreSkill[], qp: number): Recommendation[] {
+const QUEST_CAPE_QP_THRESHOLD = 290;
+
+function questRecs(
+  quests: Map<string, QuestRecord>,
+  skills: HiscoreSkill[],
+  qp: number,
+  completedQuestNames?: Set<string>
+): Recommendation[] {
   if (skills.length === 0) return [];
+  if (qp >= QUEST_CAPE_QP_THRESHOLD) return [];
+  const combatLevel = computeCombatLevel(skills);
   const recs: Recommendation[] = [];
   for (const q of quests.values()) {
+    if (completedQuestNames?.has(q.name.toLowerCase())) continue;
     // Filter to recommendation-worthy difficulty. "Special" covers RFD and
     // a handful of other big multi-part quests.
     if (q.difficulty !== "Master" && q.difficulty !== "Grandmaster" && q.difficulty !== "Special") continue;
+    // The Wiki-derived quest data covers skill/QP gates but not practical
+    // boss-fight requirements. Low-combat skillers should not be pushed into
+    // SOTE/Blood Moon/MM2 just because their non-combat skills qualify.
+    if (combatLevel < 50 && (q.difficulty === "Master" || q.difficulty === "Grandmaster")) continue;
+    if (combatLevel < 70 && q.difficulty === "Grandmaster") continue;
     // Skill gates — every required skill must be met.
     const meets = q.skillReqs.every((r) => lvl(skills, r.skill) >= r.level);
     if (!meets) continue;
@@ -851,7 +1079,18 @@ function questRecs(quests: Map<string, QuestRecord>, skills: HiscoreSkill[], qp:
       why: `${q.difficulty} · ${q.length ?? "varies"}${q.qpReq > 0 ? ` · ${q.qpReq} QP` : ""}`,
       payoff: prereqHint,
       score,
-      link: undefined
+      link: undefined,
+      planSeed: {
+        timebox: q.length === "Very Long" || q.length === "Long" ? "2-3 hr" : "1-2 hr",
+        prep: q.questReqs.length > 0
+          ? `Prereq check: ${q.questReqs.slice(0, 3).join(", ")}${q.questReqs.length > 3 ? ` (+${q.questReqs.length - 3} more)` : ""}.`
+          : "No direct quest prerequisites found in the dataset.",
+        steps: [
+          `Confirm the prereq chain for ${q.name} before gearing; Hiscores cannot prove every quest state.`,
+          q.skillReqs.length > 0 ? `Your skills meet the listed gates; bank teleports, stamina and combat supplies for a ${q.length ?? "variable"} quest.` : "Bank teleports, stamina and any quest items before starting the guide.",
+          `Clear ${q.name} or one blocking prereq, then re-run /next for newly unlocked bosses/diaries.`
+        ]
+      }
     });
   }
   return recs;
@@ -945,6 +1184,56 @@ function ownsIconic(entry: IconicEntry, bank: CompletionItem[], clOwned: Set<num
   return bankHas(bank, entry.needle);
 }
 
+function bossForKcName(name: string): Boss | undefined {
+  const normalized = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return BOSSES.find((boss) =>
+    boss.name.toLowerCase() === name.toLowerCase()
+    || boss.slug === normalized
+    || boss.slug === normalized.replace(/^the-/, "")
+  );
+}
+
+function activeBossKcRecs(bossKc: Record<string, number>, bank: CompletionItem[], skills: HiscoreSkill[]): Recommendation[] {
+  const slayerLevel = lvl(skills, "Slayer");
+  const recs: Recommendation[] = [];
+  for (const [name, kc] of Object.entries(bossKc)) {
+    if (kc <= 0 || kc >= 50) continue;
+
+    const boss = bossForKcName(name);
+    if (!boss || hasBossExperience(boss, bank, { [boss.name]: kc })) continue;
+    const gearGate = BOSS_GEAR_GATES[boss.slug];
+    if (gearGate?.slayerLevel && slayerLevel < gearGate.slayerLevel) continue;
+    const match = bank.length > 0
+      ? matchedGearForBoss(boss.slug, bank, slayerLevel)
+      : { item: "" };
+    if (match === null) continue;
+
+    const remaining = 50 - kc;
+    recs.push({
+      id: `kc:${name}:first-50`,
+      kind: "kc",
+      title: `Push ${boss.name} to 50 KC`,
+      why: `${kc.toLocaleString()} KC means this is already started; 50 KC is enough to judge whether the grind fits.`,
+      payoff: boss.avgLootGp ? `~${Math.round(boss.avgLootGp / 1000)}k average loot per kill while you build proof.` : boss.notes,
+      score: 90 - kc * 0.1,
+      link: "/dps",
+      iconItemId: boss.iconItemId,
+      bossSlug: boss.slug,
+      kcMeta: { kc, denom: 50, dropName: "first 50 KC" },
+      planSeed: {
+        timebox: "45-90 min",
+        prep: `You only need ${remaining} more ${boss.name} kill${remaining === 1 ? "" : "s"} to turn this from a test into a real read.`,
+        steps: [
+          `Open ${boss.name} in DPS and lock the setup before the first trip.`,
+          `Run ${Math.min(remaining, 10)}-${Math.min(remaining, 25)} KC without changing the goal mid-session.`,
+          "Re-sync after the block; if kill time and supply burn are stable, continue to 50 KC."
+        ]
+      }
+    });
+  }
+  return recs.sort((a, b) => b.score - a.score).slice(0, 3);
+}
+
 // Combines a player's boss kill-count (from Hiscores) with the rarest unique
 // drop rate for that boss (from data/drop-rates.json) into "you've killed
 // this boss X times — statistically you'd expect Y uniques by now". Only
@@ -1014,6 +1303,8 @@ function kcRecs(
     // Look up boss meta in BOSSES so we can show a sprite.
     const boss = BOSSES.find((b) => b.name === wikiName || b.slug === wikiName.toLowerCase().replace(/[^a-z]/g, "-"));
 
+    const kcBlock = headline.denom <= 512 ? "25-50" : headline.denom <= 5000 ? "10-25" : "5-10";
+
     recs.push({
       id: `kc:${wikiName}`,
       kind: "kc",
@@ -1026,7 +1317,16 @@ function kcRecs(
       link: undefined,
       iconItemId: boss?.iconItemId,
       bossSlug: boss?.slug,
-      kcMeta: { kc, denom: headline.denom, dropName: headline.name }
+      kcMeta: { kc, denom: headline.denom, dropName: headline.name },
+      planSeed: {
+        timebox: headline.denom > 5000 ? "1-2 hr" : "45-90 min",
+        prep: `${headline.name} is the chase here; your current ${wikiName} KC is ${expected.toFixed(2)} expected rolls.`,
+        steps: [
+          boss ? `Open ${boss.name} detail and sanity-check the owned setup before the next block.` : `Sanity-check your ${wikiName} setup before the next block.`,
+          `Run a fixed ${kcBlock} KC block so the dry-rate has a clear before/after.`,
+          "Re-sync collection log/KC after the block; do not let dryness decide the session length mid-trip."
+        ]
+      }
     });
   }
   return recs;
@@ -1080,13 +1380,22 @@ function diaryRecs(diaries: Map<string, DiaryRecord>, skills: HiscoreSkill[]): R
       id: `diary:${region}:${metTier}`,
       kind: "diary",
       title: `${region} Diary — ${metTier}`,
-      why: `Your skills now clear every ${metTier} task in this region.`,
+      why: `Your visible stats clear the ${metTier} skill gates in this region.`,
       payoff: metTier === "Elite"
         ? `Unlocks the tier-4 reward (${region} headgear / cape / cloak).`
         : `Step toward the tier-4 reward; ${metTier} unlocks its tier perks.`,
       score,
       link: undefined,
-      iconItemId: DIARY_REWARD_ICONS[region]
+      iconItemId: DIARY_REWARD_ICONS[region],
+      planSeed: {
+        timebox: metTier === "Elite" ? "1-2 hr" : "45-90 min",
+        prep: `You meet every known ${region} ${metTier} skill gate; nearest headroom is ${nearestGap} level${nearestGap === 1 ? "" : "s"}.`,
+        steps: [
+          `Open the ${region} ${metTier} checklist and gather every task item before traveling.`,
+          "Do travel/skill tasks in one sweep, then finish any combat or minigame task last.",
+          "Claim the diary reward and re-sync so lower-value diary nudges disappear."
+        ]
+      }
     });
   }
   return recs;
@@ -1102,7 +1411,16 @@ function bankRecs(bank: CompletionItem[]): Recommendation[] {
     why: `${bank.length} items — a clean, tabbed bank makes every trip faster.`,
     payoff: "Auto-sorted into use-case tabs you can paste back into RuneLite.",
     score: 30,
-    link: "/bank"
+    link: "/bank",
+    planSeed: {
+      timebox: "10-20 min",
+      prep: `You have ${bank.length} recognized bank items; clean tabs reduce friction on every later trip.`,
+      steps: [
+        "Open Bank Organizer and export the cleaned RuneLite tabs.",
+        "Decant potions, recharge jewellery and move obvious junk before the next PvM/skilling run.",
+        "Save the cleaned bank so future /next runs compare against the new baseline."
+      ]
+    }
   }];
 }
 
@@ -1118,8 +1436,312 @@ function noHiscoresNudge(): Recommendation {
     why: "We can only see your bank. Your Hiscores unlocks quest, diary, skill and drop-chance recs.",
     payoff: "Free, no plugin, no account. Just your RSN.",
     score: 95,
-    link: undefined
+    link: undefined,
+    planSeed: {
+      timebox: "2 min",
+      prep: "This is the highest-ROI next step: the bank is loaded, but stats unlock the real plan.",
+      steps: [
+        "Enter your OSRS name on /next and keep the current bank loaded.",
+        "Let Scapestack combine Hiscores with this bank for quest, diary, boss and drop-chance recs.",
+        "If you want verified quest, diary, collection-log or Slayer coverage labels, install or sync the RuneLite plugin after that."
+      ]
+    }
   };
+}
+
+function starterQuestRecs(hasHiscores: boolean, bank: CompletionItem[]): Recommendation[] {
+  if (hasHiscores || bank.length === 0 || bank.length > 20) return [];
+  return [
+    {
+      id: "quest:Cook's Assistant",
+      kind: "quest",
+      title: "Cook's Assistant",
+      why: "Fast starter quest · no combat",
+      payoff: "Quick quest point and unlocks the habit of quest-first progression.",
+      score: 42,
+      link: undefined,
+      planSeed: {
+        timebox: "5-10 min",
+        prep: "Grab an egg, bucket of milk and pot of flour before entering Lumbridge Castle.",
+        steps: [
+          "Talk to the cook in Lumbridge Castle kitchen.",
+          "Hand in the three ingredients in one trip.",
+          "Re-run /next after a few starter quests so Hiscores-based advice has real account signal."
+        ]
+      }
+    },
+    {
+      id: "quest:Sheep Shearer",
+      kind: "quest",
+      title: "Sheep Shearer",
+      why: "Fast starter quest · no combat",
+      payoff: "Easy quest point and basic skilling loop near Lumbridge.",
+      score: 41,
+      link: undefined,
+      planSeed: {
+        timebox: "5-10 min",
+        prep: "Bring shears or buy them from a general store before going to Fred's farm.",
+        steps: [
+          "Talk to Fred the Farmer north-west of Lumbridge.",
+          "Shear sheep, spin the wool, then turn in the balls of wool.",
+          "Use this as a quick quest-count bump before longer routes."
+        ]
+      }
+    },
+    {
+      id: "quest:Romeo & Juliet",
+      kind: "quest",
+      title: "Romeo & Juliet",
+      why: "Fast starter quest · no combat",
+      payoff: "Five quest points very early, useful for unlocking broader quest chains.",
+      score: 40,
+      link: undefined,
+      planSeed: {
+        timebox: "10-15 min",
+        prep: "Start in Varrock and bank a cadava berry to avoid extra walking.",
+        steps: [
+          "Talk to Romeo in Varrock square and route through Juliet/Father Lawrence.",
+          "Pick or bring the cadava berry before visiting the Apothecary.",
+          "Finish the quest, then add your RSN so Scapestack can use Hiscores instead of a starter-account default."
+        ]
+      }
+    }
+  ];
+}
+
+// ── Action-plan enrichment ──────────────────────────────────────────────────
+
+interface ActionPlanContext {
+  hasHiscores: boolean;
+  hasBank: boolean;
+  hasPluginSync: boolean;
+  hasExactPluginSync: boolean;
+}
+
+function confidenceFor(rec: Recommendation, ctx: ActionPlanContext): RecommendationActionPlan["confidence"] {
+  if (ctx.hasExactPluginSync && (rec.kind === "quest" || rec.kind === "diary" || rec.kind === "kc" || rec.kind === "slayer")) return "exact";
+  if (ctx.hasHiscores && ctx.hasBank) return "likely";
+  if (ctx.hasHiscores && (rec.kind === "quest" || rec.kind === "diary" || rec.kind === "skill" || rec.kind === "boss" || rec.kind === "money" || rec.kind === "minigame")) return "likely";
+  if (ctx.hasBank && (rec.kind === "goal" || rec.kind === "bank")) return "likely";
+  return "guided";
+}
+
+function confidenceLabel(confidence: RecommendationActionPlan["confidence"]): string {
+  if (confidence === "exact") return "Verified sync";
+  if (confidence === "likely") return "Likely fit";
+  return "Guided";
+}
+
+function baseCaveat(rec: Recommendation, ctx: ActionPlanContext): string | undefined {
+  if (!ctx.hasHiscores && ctx.hasBank) return "Add your RSN to turn this into stat-aware advice.";
+  if (ctx.hasHiscores && !ctx.hasBank && (rec.kind === "boss" || rec.kind === "kc" || rec.kind === "goal")) return "Paste a bank or install the plugin for gear and item checks.";
+  if (ctx.hasPluginSync && !ctx.hasExactPluginSync && (rec.kind === "quest" || rec.kind === "diary" || rec.kind === "kc" || rec.kind === "slayer")) {
+    return "RuneLite sync is connected, but refresh or update it before trusting verified coverage labels.";
+  }
+  if (!ctx.hasPluginSync && (rec.kind === "quest" || rec.kind === "diary")) return "Quest and diary completion is inferred unless the RuneLite plugin has synced.";
+  return undefined;
+}
+
+function mergePlanSeed(
+  rec: Recommendation,
+  ctx: ActionPlanContext,
+  fallback: Omit<RecommendationActionPlan, "confidence" | "confidenceLabel">
+): RecommendationActionPlan {
+  const confidence = confidenceFor(rec, ctx);
+  const seeded = rec.planSeed ?? {};
+  return {
+    ...fallback,
+    ...seeded,
+    caveat: seeded.caveat ?? fallback.caveat ?? baseCaveat(rec, ctx),
+    confidence,
+    confidenceLabel: confidenceLabel(confidence)
+  };
+}
+
+function actionPlanFor(rec: Recommendation, ctx: ActionPlanContext): RecommendationActionPlan {
+  const bankStep = ctx.hasBank
+    ? "Use your pasted bank to pull the gear, teleports and supplies for the trip."
+    : "Paste your bank if you want Scapestack to verify the exact gear and supplies.";
+
+  switch (rec.kind) {
+    case "goal":
+      return mergePlanSeed(rec, ctx, {
+        timebox: "30-90 min",
+        prep: "Treat this as the next unlock chase, not a vague collection note.",
+        steps: [
+          "Open the goal set and check the missing pieces.",
+          bankStep,
+          "Do one focused run/session for the nearest missing item, then re-sync or paste again."
+        ]
+      });
+    case "quest":
+      return mergePlanSeed(rec, ctx, {
+        timebox: "1-3 hr",
+        prep: "Quest first when it unlocks more bosses, diaries or travel than another bankstanding upgrade.",
+        steps: [
+          "Check the first unmet prerequisite before you start the guide.",
+          "Bank required teleports, stamina/energy, food and combat gear before leaving the GE.",
+          "Finish the quest or clear one prerequisite, then re-run /next for the unlocked follow-up."
+        ]
+      });
+    case "diary":
+      return mergePlanSeed(rec, ctx, {
+        timebox: "45-120 min",
+        prep: "Diary tiers are best done in batches: collect all items first, then sweep tasks region-by-region.",
+        steps: [
+          "Open the region checklist and mark any task you already know is done.",
+          "Bank teleports, skill boosts and task items for the whole tier.",
+          "Complete the shortest travel cluster first, then clean up the combat/minigame task last."
+        ]
+      });
+    case "boss":
+      return mergePlanSeed(rec, ctx, {
+        timebox: "30-60 min",
+        prep: "Make this a scouting trip: prove the setup, then decide if it becomes a grind.",
+        steps: [
+          "Open the DPS view and use the best setup Scapestack can find from your bank.",
+          "Bring supplies for 3-5 kills, not a marathon, so mistakes are cheap.",
+          "After the test trip, compare kill time and supply cost before buying upgrades."
+        ]
+      });
+    case "kc":
+      return mergePlanSeed(rec, ctx, {
+        timebox: "45-120 min",
+        prep: "This is a drop-chance session: decide the KC block before you start so dryness doesn't tilt the plan.",
+        steps: [
+          "Open the boss detail and sanity-check the owned setup.",
+          "Run a fixed KC block (10, 25 or 50 kills depending on boss length).",
+          "Re-sync after the block so the dry-rate and collection-log state update."
+        ]
+      });
+    case "minigame":
+      return mergePlanSeed(rec, ctx, {
+        timebox: "30-90 min",
+        prep: "Minigames are unlock engines: do a small token/reward target, not an endless queue.",
+        steps: [
+          "Check the world/activity requirements before gearing.",
+          "Set a one-session target: one reward roll, one outfit piece, or one level bracket.",
+          "Stop after the target and let /next re-rank the account."
+        ]
+      });
+    case "money":
+      return mergePlanSeed(rec, ctx, {
+        timebox: "30-60 min",
+        prep: "Use this to fund the next unlock, not as permanent autopilot.",
+        steps: [
+          "Check current GE margins/supply prices before committing.",
+          "Do one measured hour or half-hour and note real profit after supplies.",
+          "Spend the cash on the highest-impact upgrade or quest supply stack next."
+        ]
+      });
+    case "slayer":
+      return mergePlanSeed(rec, ctx, {
+        timebox: "20-60 min",
+        prep: "This is live client state: finish the assignment already in front of you before starting a new grind.",
+        steps: [
+          "Open /slayer and verify the current task, blocks and best master.",
+          "Bank the correct protection item, teleports and cannon/burst supplies if relevant.",
+          "Finish or deliberately skip the task, then let the plugin sync the next assignment."
+        ]
+      });
+    case "skill":
+      return mergePlanSeed(rec, ctx, {
+        timebox: "30-120 min",
+        prep: "Push the unlock level, not random XP — stop when the account state changes.",
+        steps: [
+          "Choose the fastest method you can tolerate for this session length.",
+          "Bank or buy the supplies for exactly the levels needed to unlock the milestone.",
+          "Re-run /next once the level lands so quests/diaries/bosses unlock immediately."
+        ]
+      });
+    case "bank":
+      return mergePlanSeed(rec, ctx, {
+        timebox: "10-20 min",
+        prep: "Bank work pays off when it removes friction from every later trip.",
+        steps: [
+          "Open the Bank Organizer and export the clean RuneLite tabs.",
+          "Decant potions, recharge jewellery and move obvious junk before the next PvM/skilling run.",
+          "Save the cleaned bank so future /next runs compare against the new baseline."
+        ]
+      });
+    case "milestone":
+      return mergePlanSeed(rec, ctx, {
+        timebox: "Long-term",
+        prep: "Treat this as the account arc; tonight's job is only the next blocker.",
+        steps: [
+          "Open the path overview and identify the closest incomplete lane.",
+          "Clear one blocker that unlocks multiple downstream tasks.",
+          "Pin the milestone mentally, but re-run /next after every major unlock."
+        ]
+      });
+  }
+}
+
+function withActionPlans(recs: Recommendation[], ctx: ActionPlanContext): Recommendation[] {
+  return recs.map((rec) => {
+    const { planSeed: _planSeed, ...clean } = rec;
+    return { ...clean, actionPlan: actionPlanFor(rec, ctx) };
+  });
+}
+
+const VISIBLE_RECOMMENDATION_COUNT = 8;
+const VISIBLE_KIND_LIMITS: Partial<Record<RecKind, number>> = {
+  diary: 1,
+  money: 2,
+  skill: 2,
+  boss: 2,
+  kc: 2,
+  goal: 2,
+  quest: 2,
+  slayer: 1,
+  bank: 1,
+  minigame: 1
+};
+
+function prioritizeVisibleRecommendations(sortedRecs: Recommendation[]): Recommendation[] {
+  if (sortedRecs.length <= VISIBLE_RECOMMENDATION_COUNT) return sortedRecs;
+
+  const selected: Recommendation[] = [];
+  const selectedIds = new Set<string>();
+  const kindCounts = new Map<RecKind, number>();
+  const add = (rec: Recommendation): void => {
+    selected.push(rec);
+    selectedIds.add(rec.id);
+    kindCounts.set(rec.kind, (kindCounts.get(rec.kind) ?? 0) + 1);
+  };
+
+  add(sortedRecs[0]);
+  for (const rec of sortedRecs.slice(1)) {
+    if (selected.length >= VISIBLE_RECOMMENDATION_COUNT) break;
+    const limit = VISIBLE_KIND_LIMITS[rec.kind] ?? 2;
+    if ((kindCounts.get(rec.kind) ?? 0) >= limit) continue;
+    add(rec);
+  }
+
+  for (const rec of sortedRecs) {
+    if (selected.length >= VISIBLE_RECOMMENDATION_COUNT) break;
+    if (!selectedIds.has(rec.id)) add(rec);
+  }
+
+  return [
+    ...selected,
+    ...sortedRecs.filter((rec) => !selectedIds.has(rec.id))
+  ];
+}
+
+function mergeCompletionItems(
+  bank: CompletionItem[],
+  earnedItems: CompletionItem[]
+): CompletionItem[] {
+  const merged = [...bank];
+  const seen = new Set(merged.map((item) => item.id));
+  for (const item of earnedItems) {
+    if (!seen.has(item.id)) {
+      merged.push(item);
+      seen.add(item.id);
+    }
+  }
+  return merged;
 }
 
 // ── Engine ──────────────────────────────────────────────────────────────────
@@ -1127,6 +1749,7 @@ function noHiscoresNudge(): Recommendation {
 export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
   const skills = input.skills ?? [];
   const bank = input.bank ?? [];
+  const goalItems = mergeCompletionItems(bank, input.earnedItems ?? []);
   const qp = input.questPoints ?? 0;
   const hasHiscores = skills.length > 0;
   const hasBank = bank.length > 0;
@@ -1137,8 +1760,8 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
   // Goal completion needs *something* to check against. Hiscores alone can
   // satisfy skill-cape goals (via the virtual-cape synthesis in goals.ts);
   // a bank satisfies item goals. We feed whichever we have.
-  const completions = (hasBank || hasHiscores)
-    ? checkCompletion(bank)
+  const completions = (goalItems.length > 0 || hasHiscores)
+    ? checkCompletion(goalItems)
     : [];
   const goalPercent = completions.length > 0
     ? overallStats(completions).percent
@@ -1162,6 +1785,12 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     ? new Set(input.collectionLogOwnedItemIds)
     : undefined;
 
+  const completedQuestNames = input.scapestackSync
+    ? new Set(input.scapestackSync.questsCompleted.map((q) => q.toLowerCase()))
+    : input.templeQuestsCompleted
+      ? new Set(input.templeQuestsCompleted.map((q) => q.toLowerCase()))
+      : undefined;
+
   // Boss KCs: merge Hiscores + WOM via max — WOM is often fresher
   // because the RuneLite plugin pushes more often than Jagex updates.
   const mergedBossKc: Record<string, number> = { ...(input.bossKc ?? {}) };
@@ -1175,20 +1804,38 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     // to the path-progress layer that has both.
   }
 
-  const recs: Recommendation[] = [
+  const sortedRecs = [
     ...goalRecs(completions),
-    ...(combatLevel !== null ? bossRecs(combatLevel, bank, skills) : []),
-    ...questRecs(quests, skills, qp),
+    ...(combatLevel !== null ? bossRecs(combatLevel, bank, skills, mergedBossKc) : []),
+    ...slayerTaskRecs(input.scapestackSync?.slayer, input.scapestackSync?.displayName ?? input.accountMeta?.displayName),
+    ...questRecs(quests, skills, qp, completedQuestNames),
+    ...activeBossKcRecs(mergedBossKc, bank, skills),
     ...diaryRecs(diaries, skills),
     ...kcRecs(dropTables, mergedBossKc, bank, clOwned),
     ...minigameRecs(skills),
-    ...moneyRecs(skills),
+    ...moneyRecs(skills, input.accountMeta),
     ...skillRecs(skills),
+    ...starterQuestRecs(hasHiscores, bank),
     ...bankRecs(bank),
     // No-Hiscores nudge: when the player only gave a bank, lead with "add
     // your RSN" rather than letting "Tidy your bank" become the headline.
     ...(!hasHiscores && hasBank ? [noHiscoresNudge()] : [])
   ].sort((a, b) => b.score - a.score);
+
+  const pluginSyncState = input.syncedSources?.scapestack
+    ? pluginSyncHealth({
+        pluginVersion: input.syncedSources.scapestack.pluginVersion,
+        syncedAt: input.syncedSources.scapestack.syncedAt
+      })
+    : input.scapestackSync
+      ? "live"
+    : null;
+  const recs: Recommendation[] = withActionPlans(prioritizeVisibleRecommendations(sortedRecs), {
+    hasHiscores,
+    hasBank,
+    hasPluginSync: Boolean(input.scapestackSync),
+    hasExactPluginSync: pluginSyncState === "live"
+  });
 
   const basis: NextUpResult["summary"]["basis"] =
     hasHiscores && hasBank ? "full"

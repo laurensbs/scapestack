@@ -3,7 +3,25 @@
 
 import { organize, exportTabs } from "@/lib/organizer";
 
+function isSmokeEndpointEnabled(): boolean {
+  return process.env.NODE_ENV !== "production" || process.env.SCAPESTACK_ENABLE_TEST_ORGANIZE === "1";
+}
+
+function disabledResponse(): Response {
+  return Response.json(
+    { ok: false, error: "Not found" },
+    {
+      status: 404,
+      headers: {
+        "cache-control": "no-store"
+      }
+    }
+  );
+}
+
 export async function POST(req: Request) {
+  if (!isSmokeEndpointEnabled()) return disabledResponse();
+
   const input = await req.text();
   try {
     const result = await organize({ input, includePrices: true });
@@ -16,6 +34,7 @@ export async function POST(req: Request) {
       ok: true,
       stats: result.stats,
       source: result.source,
+      importWarnings: result.importWarnings,
       tabs: result.tabs.map((t) => ({
         name: t.name,
         iconItemId: t.iconItemId,
@@ -28,8 +47,20 @@ export async function POST(req: Request) {
       })),
       strings,
       placeholderNames
+    }, {
+      headers: {
+        "cache-control": "no-store"
+      }
     });
   } catch (err) {
-    return Response.json({ ok: false, error: err instanceof Error ? err.message : String(err) }, { status: 500 });
+    return Response.json(
+      { ok: false, error: err instanceof Error ? err.message : String(err) },
+      {
+        status: 500,
+        headers: {
+          "cache-control": "no-store"
+        }
+      }
+    );
   }
 }
