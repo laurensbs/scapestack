@@ -2,7 +2,7 @@ export const BRAND_NAME = "Scapestack";
 export const BRAND_SHORT_NAME = "Scapestack";
 export const BRAND_TAGLINE = "Know what to do next in OSRS";
 export const BRAND_SECONDARY_TAGLINE =
-  "Your bank, stats and RuneLite sync turned into clear next actions.";
+  "Type your RSN and get a route for tonight.";
 export const BRAND_URL = "https://www.scapestack.org";
 export const BRAND_THEME_COLOR = "#07090C";
 export const BRAND_ACCENT_COLOR = "#E6A52F";
@@ -10,7 +10,7 @@ export const BRAND_BACKGROUND_COLOR = "#07090C";
 export const BRAND_IMAGE_FONT_FAMILY = "Geist, Arial, sans-serif";
 
 export const BRAND_DESCRIPTION =
-  "A tactical OSRS decision engine that connects your bank, stats, DPS upgrades, goals, Slayer and RuneLite sync into one ranked action plan.";
+  "Plan tonight's OSRS route from your stats, bank, goals, Slayer and RuneLite sync.";
 
 export const BRAND_KEYWORDS = [
   "OSRS",
@@ -68,10 +68,10 @@ export const BRAND_LEGACY_REDIRECT_ROUTES = [
 ] as const;
 
 export const BRAND_POSITIONING = {
-  category: "Premium OSRS companion app",
-  promise: "From messy bank to next best action.",
-  feeling: "RuneLite plugin precision with a web command center.",
-  antiPattern: "Not a generic SaaS dashboard; it should feel like a PvM prep room."
+  category: "OSRS route planner",
+  promise: "From account state to one useful next move.",
+  feeling: "A clean OSRS route board with real account actions.",
+  antiPattern: "Keep player-facing screens about choices, not internal status or generic product wording."
 } as const;
 
 export const BRAND_VOICE_RULES = [
@@ -84,40 +84,63 @@ export const BRAND_VOICE_RULES = [
 
 export const BRAND_UI_SURFACES = [
   {
-    page: "Homepage",
-    role: "Explain the loop in five seconds.",
-    primaryAction: "Plan my next action",
-    requiredFeeling: "A premium OSRS command center, not a marketing splash."
+    page: "Tonight",
+    role: "What should I do tonight?",
+    primaryAction: "Plan next action",
+    requiredFeeling: "Boss, Slayer, quest, diary, GP or chill progress from the account in front of you."
   },
   {
-    page: "/bank",
-    role: "Turn pasted or synced bank context into organized tabs and tool handoffs.",
-    primaryAction: "Send bank to /next, /dps, /slayer or /goals",
-    requiredFeeling: "Dense OSRS bank grid with visible item IDs, search, snapshots and undo."
+    page: "Bank",
+    role: "What can I do with this bank?",
+    primaryAction: "Use my bank",
+    requiredFeeling: "Owned gear, supplies, item IDs and cheap upgrades without another bank-standing loop."
   },
   {
-    page: "/next",
-    role: "Rank the next session from bank, RSN, goals and verified sync signals.",
-    primaryAction: "Open route, copy plan, mark done or skip",
-    requiredFeeling: "Decisive PvM prep room with confidence and missing-data labels."
+    page: "Boss",
+    role: "What boss makes sense now?",
+    primaryAction: "Find a boss route",
+    requiredFeeling: "Realistic KC targets, gear checks, wiki links and the missing item that matters."
   },
   {
-    page: "/dps",
-    role: "Convert bank gear into boss setups and upgrade buy lines.",
-    primaryAction: "Open boss setup, copy buy line, check Wiki or GE",
-    requiredFeeling: "Gear table with slot labels, item sprites and exact IDs."
+    page: "Slayer",
+    role: "Should I kill, skip or extend?",
+    primaryAction: "Route task",
+    requiredFeeling: "Task notes, unlocks, cannon/barrage hints and what to do after the task."
   },
   {
-    page: "/plugin",
-    role: "Earn trust for the RuneLite bridge and prove privacy boundaries.",
-    primaryAction: "Verify sync payload for an OSRS name",
-    requiredFeeling: "RuneLite-native install/status panel, not black-box sync magic."
+    page: "Unlocks",
+    role: "Which unlock is close?",
+    primaryAction: "Check goals",
+    requiredFeeling: "Diaries, quests, capes, Barrows gloves, raids prep and other account milestones."
   },
   {
-    page: "Profile",
-    role: "Show public Hiscores plus local bank/sync readiness without pretending private data exists.",
-    primaryAction: "Use this profile in /next",
-    requiredFeeling: "Account readiness card with explicit verified/partial/missing signals."
+    page: "Sync",
+    role: "Stop suggesting things already done.",
+    primaryAction: "Sync account",
+    requiredFeeling: "Quest, diary, collection log and Slayer context when the player wants sharper plans."
+  }
+] as const;
+
+export const BRAND_PLAYER_PROMPTS = [
+  {
+    label: "I have 45 minutes",
+    copy: "Give me one thing I can finish tonight.",
+    href: "/next"
+  },
+  {
+    label: "I need GP",
+    copy: "Find money routes my account can actually do.",
+    href: "/next"
+  },
+  {
+    label: "I want boss KC",
+    copy: "Pick a boss where my stats and gear make sense.",
+    href: "/dps"
+  },
+  {
+    label: "Low effort",
+    copy: "Useful progress without a long setup.",
+    href: "/next"
   }
 ] as const;
 

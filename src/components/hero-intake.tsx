@@ -86,8 +86,8 @@ export function HeroIntake() {
           aria-label={
             hasBankPaste
               ? rsn.trim()
-                ? "Open /next planner with RSN and browser-only bank paste"
-                : "Open /next planner with browser-only bank paste"
+                ? "Open /next planner with RSN and bank paste"
+                : "Open /next planner with bank paste"
               : "Open /next planner with RSN and Hiscores only"
           }
           aria-describedby="hero-plan-disabled-help"
@@ -113,11 +113,11 @@ export function HeroIntake() {
       >
         {rsn.trim()
           ? hasBankPaste
-            ? "Ready: /next will use this RSN plus your browser-only bank paste."
-            : "Ready: /next will use Hiscores and ignore stale bank handoff data."
+            ? "Ready: we’ll rank a route from your stats, gear and supplies."
+            : "Ready: we’ll rank a route from your public stats."
           : hasBankPaste
-            ? "Ready: /next will use this browser-only bank paste. Add RSN for KC and stat checks."
-            : "Type an OSRS name or paste a bank to unlock the planner."}
+            ? "Ready: we’ll build around this bank. Add RSN for stats and KC."
+            : "Type an OSRS name to get a route. Paste bank only when gear matters."}
       </p>
 
       {/* Secundaire acties — één rustige regel, link-stijl, gescheiden
@@ -130,7 +130,7 @@ export function HeroIntake() {
               onClick={() => setShowBank(true)}
               aria-controls={HERO_BANK_PANEL_ID}
               aria-expanded={showBank}
-              aria-label="Show optional browser-only bank paste field"
+              aria-label="Show optional bank paste field"
               className="hover:text-[var(--color-accent)] underline underline-offset-4 decoration-dotted transition-colors"
             >
               Paste bank
@@ -151,7 +151,7 @@ export function HeroIntake() {
         <div
           id={HERO_BANK_PANEL_ID}
           role="region"
-          aria-label="Optional browser-only bank paste"
+          aria-label="Optional bank paste"
           className="animate-[fade-in_0.3s_ease-out]"
         >
           <label className="block">
@@ -159,7 +159,7 @@ export function HeroIntake() {
               id={`${HERO_BANK_TEXTAREA_ID}-label`}
               className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]"
             >
-              Bank export <span className="normal-case tracking-normal">(optional — browser-only, sharper gear advice)</span>
+              Bank export <span className="normal-case tracking-normal">(optional — better gear and supply calls)</span>
             </span>
             <textarea
               id={HERO_BANK_TEXTAREA_ID}
@@ -180,8 +180,8 @@ export function HeroIntake() {
               className="mt-1 block text-[11px] leading-relaxed text-[var(--color-text-muted)]"
             >
               {bank.trim()
-                ? "Bank paste detected. It stays in this browser session and is consumed by /next."
-                : "Optional: paste Bank Memory for gear-aware advice. RuneLite sync never receives this bank."}
+                ? "Bank detected. /next will use it for gear and supply calls."
+                : "Optional: paste Bank Memory when you want gear-aware advice."}
             </span>
             <button
               type="button"

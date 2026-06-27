@@ -1,6 +1,4 @@
-import { PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
 import type { PluginHubReviewReadiness, PluginHubReviewReadinessState } from "@/lib/plugin-hub-status";
-import type { SyncServiceStatus } from "@/lib/sync-service-readiness";
 
 export interface HomeFlowStep {
   label: string;
@@ -23,10 +21,10 @@ export interface HomePluginReadinessPill {
 
 const BANK_FLOW_STEP: HomeFlowStep = {
   label: "01",
-  title: "Paste Bank Memory or Bank Tags",
-  body: "Bank Memory gives quantities and GP value; Bank Tags still gives exact item IDs and layout. Both work before any plugin install.",
+  title: "Use the gear you own",
+  body: "Paste Bank Memory or Bank Tags when you want setups, supplies and upgrades based on your actual bank.",
   href: "/bank",
-  cta: "Organize bank",
+  cta: "Add bank",
   accent: "bank"
 };
 
@@ -34,8 +32,8 @@ function syncFlowStep(state: PluginHubReviewReadinessState): HomeFlowStep {
   if (state === "installable") {
     return {
       label: "02",
-      title: "Sync your account",
-      body: "Enable Scapestack Sync in RuneLite, then verify a payload before /next trusts quest, diary, collection-log and Slayer coverage labels.",
+      title: "Add account progress",
+      body: "Enable Scapestack Sync when you want quests, diaries, collection log and Slayer included in the plan.",
       href: "/plugin#verify-sync",
       cta: "Check sync",
       accent: "sync"
@@ -44,8 +42,8 @@ function syncFlowStep(state: PluginHubReviewReadinessState): HomeFlowStep {
 
   return {
     label: "02",
-    title: "Check Scapestack Sync",
-    body: "Open the sync checker, enter your OSRS name, and confirm RuneLite posted to scapestack.org before the planner trusts private account coverage.",
+    title: "Add account progress",
+    body: "Enter your OSRS name on the sync page when you want Scapestack to pick around quests, diaries, CL and Slayer.",
     href: "/plugin#verify-sync",
     cta: "Check sync",
     accent: "sync"
@@ -56,8 +54,8 @@ function nextFlowStep(state: PluginHubReviewReadinessState): HomeFlowStep {
   if (state === "installable") {
     return {
       label: "03",
-      title: "Run /next with sync ready",
-      body: "Hiscores and bank data work immediately. After RuneLite posts a verified payload, /next labels quest, diary, collection-log and Slayer coverage as verified, partial or missing.",
+      title: "Pick tonight's route",
+      body: "Open /next for one ranked plan: boss KC, Slayer, quest, diary, GP or low-effort progress.",
       href: "/next?from=plugin&bank=none",
       cta: "Open planner",
       accent: "next"
@@ -66,10 +64,10 @@ function nextFlowStep(state: PluginHubReviewReadinessState): HomeFlowStep {
 
   return {
     label: "03",
-    title: "Run /next now",
-    body: "Hiscores and bank context still produce a useful session plan. The planner labels guesswork clearly until RuneLite sync is verified.",
+    title: "Pick tonight's route",
+    body: "Open /next for one ranked plan: boss KC, Slayer, quest, diary, GP or low-effort progress.",
     href: "/next",
-    cta: "Plan with current data",
+    cta: "Open planner",
     accent: "next"
   };
 }
@@ -102,52 +100,12 @@ export const HOME_PRODUCT_FLOW: HomeFlowStep[] = homeProductFlowForPluginState("
 export function homePluginReadinessPill(readiness: PluginHubReviewReadiness): HomePluginReadinessPill {
   const playerInstallReady = readiness.playerInstallReady;
   return {
-    label: playerInstallReady ? "Scapestack Sync ready" : "Check Scapestack Sync",
+    label: playerInstallReady ? "Sync ready" : "Check sync",
     detail: playerInstallReady
-      ? "RuneLite sync is ready to verify for the same RSN before /next trusts private account coverage."
-      : "Enter your OSRS name on /plugin and verify a RuneLite payload before relying on account-specific coverage.",
+      ? "Use the same RSN so /next can avoid old quest, diary, CL and Slayer suggestions."
+      : "Enter your OSRS name on /plugin when you want sharper account-progress checks.",
     tone: readiness.tone,
     href: "/plugin#verify-sync",
     playerInstallReady
-  };
-}
-
-export const HOME_SYNC_COPY = {
-  label: "Copy sync URL",
-  value: PUBLIC_SYNC_URL,
-  helper: "Paste this into Scapestack Sync if RuneLite still has an old endpoint. It sends only opt-in account-progress signals, not bank data."
-};
-
-export interface HomeSyncServicePill {
-  label: string;
-  detail: string;
-  tone: "good" | "warning" | "danger";
-  href: string;
-}
-
-export function homeSyncServicePill(status: SyncServiceStatus): HomeSyncServicePill {
-  if (status.ready) {
-    return {
-      label: "Local sync API ready",
-      detail: `Backend endpoint ready for verified payloads · plugin v${status.plugin.currentVersion}`,
-      tone: "good",
-      href: "/plugin#verify-sync"
-    };
-  }
-
-  if (!status.database.configured) {
-    return {
-      label: "Local sync API needs DATABASE_URL",
-      detail: "Plugin setup can continue, but verified payloads cannot be stored yet.",
-      tone: "danger",
-      href: "/plugin#verify-sync"
-    };
-  }
-
-  return {
-    label: "Local sync API schema check needed",
-    detail: "Run the schema initializer before accepting verified plugin payloads.",
-    tone: "warning",
-    href: "/plugin#verify-sync"
   };
 }

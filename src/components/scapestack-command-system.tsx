@@ -1,22 +1,14 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, ShieldCheck, Sparkles } from "lucide-react";
-import { BRAND_STATE_SYSTEM, BRAND_UI_SURFACES, BRAND_VOICE_RULES } from "@/lib/brand";
-import { cn } from "@/lib/utils";
+import { ArrowRight, Clock3, Coins, Crosshair, Sparkles } from "lucide-react";
+import { BRAND_PLAYER_PROMPTS, BRAND_UI_SURFACES } from "@/lib/brand";
 
 const SURFACE_LINKS: Record<string, string> = {
-  Homepage: "/",
-  "/bank": "/bank",
-  "/next": "/next",
-  "/dps": "/dps",
-  "/plugin": "/plugin",
-  Profile: "/hiscore"
-};
-
-const STATE_ACCENTS: Record<(typeof BRAND_STATE_SYSTEM)[number]["state"], string> = {
-  Empty: "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/8 text-[var(--color-warning)]",
-  Loading: "border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 text-[var(--color-accent)]",
-  Error: "border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8 text-[var(--color-danger)]",
-  Mobile: "border-[var(--color-good)]/25 bg-[var(--color-good)]/8 text-[var(--color-good)]"
+  Tonight: "/next",
+  Bank: "/bank",
+  Boss: "/dps",
+  Slayer: "/slayer",
+  Unlocks: "/goals",
+  Sync: "/plugin"
 };
 
 export function ScapestackCommandSystem() {
@@ -30,35 +22,38 @@ export function ScapestackCommandSystem() {
         <div className="space-y-5">
           <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
             <Sparkles className="size-3.5" />
-            UI system
+            Next moves
           </div>
           <div>
             <h2
               id="command-system-title"
               className="max-w-xl text-[30px] font-black leading-[1.02] tracking-[-0.04em] text-[var(--color-text)] sm:text-[44px]"
             >
-              A PvM prep room, not a SaaS dashboard.
+              Tell Scapestack what kind of night this is.
             </h2>
             <p className="mt-4 max-w-xl text-[14.5px] leading-relaxed text-[var(--color-text-dim)]">
-              Scapestack should feel like RuneLite, OSRS Wiki and a gear tab collapsed into one
-              decision surface. Every card answers what to do, why it matters, what data was used,
-              and which button moves the account forward.
+              Bossing, Slayer, unlocks, GP, bank cleanup or low-effort progress. Start with an
+              OSRS name; paste a bank when gear and supplies matter.
             </p>
           </div>
 
-          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 p-4">
-            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-              <ShieldCheck className="size-4 text-[var(--color-good)]" />
-              Voice contract
-            </div>
-            <ul className="mt-3 space-y-2">
-              {BRAND_VOICE_RULES.slice(0, 4).map((rule) => (
-                <li key={rule} className="flex gap-2 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                  <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-[var(--color-good)]" />
-                  {rule}
-                </li>
-              ))}
-            </ul>
+          <div className="grid gap-2 sm:grid-cols-2" aria-label="OSRS player prompts">
+            {BRAND_PLAYER_PROMPTS.map((prompt, index) => {
+              const Icon = index === 0 ? Clock3 : index === 1 ? Coins : index === 2 ? Crosshair : Sparkles;
+              return (
+                <Link
+                  key={prompt.label}
+                  href={prompt.href}
+                  className="group/prompt rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 p-3 transition-colors hover:border-[var(--color-accent)]/45 hover:bg-[var(--color-bg)]/65 focus:outline-none focus-visible:border-[var(--color-accent)]/65 focus-visible:shadow-[0_0_0_3px_rgba(230,165,47,0.14)]"
+                >
+                  <div className="flex items-center gap-2 text-[12px] font-black text-[var(--color-text)]">
+                    <Icon className="size-4 text-[var(--color-accent)]" aria-hidden="true" />
+                    {prompt.label}
+                  </div>
+                  <p className="mt-2 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">{prompt.copy}</p>
+                </Link>
+              );
+            })}
           </div>
         </div>
 
@@ -83,22 +78,6 @@ export function ScapestackCommandSystem() {
                   {surface.primaryAction}
                 </div>
               </Link>
-            ))}
-          </div>
-
-          <div className="grid gap-2 sm:grid-cols-4" aria-label="Scapestack state system">
-            {BRAND_STATE_SYSTEM.map((state) => (
-              <div
-                key={state.state}
-                className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 p-3"
-              >
-                <div className={cn("inline-flex rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.16em]", STATE_ACCENTS[state.state])}>
-                  {state.state}
-                </div>
-                <div className="mt-2 text-[12px] font-bold text-[var(--color-text)]">{state.label}</div>
-                <p className="mt-1 text-[10.8px] leading-relaxed text-[var(--color-text-muted)]">{state.copy}</p>
-                <div className="mt-2 text-[10.5px] font-bold text-[var(--color-accent)]">{state.action}</div>
-              </div>
             ))}
           </div>
         </div>

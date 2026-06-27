@@ -1,43 +1,14 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, EyeOff, Layers, PlugZap, ShieldCheck, Sparkles, Target } from "lucide-react";
+import { ArrowRight, CheckCircle2, Layers, PlugZap, Sparkles, Target } from "lucide-react";
 import { BuyMeCoffee } from "@/components/buy-me-coffee";
-import { CopyCommand } from "@/components/copy-command";
 import { HeroIntake } from "@/components/hero-intake";
 import { ItemSprite } from "@/components/item-sprite";
 import { ScapestackCommandSystem } from "@/components/scapestack-command-system";
-import { BRAND_SECONDARY_TAGLINE, BRAND_TAGLINE } from "@/lib/brand";
-import { HOME_SYNC_COPY, homePluginReadinessPill, homeProductFlowForPluginReadiness, homeSyncServicePill, type HomeFlowStep, type HomePluginReadinessPill } from "@/lib/home-flow";
-import { getPluginHubStatus, pluginHubReviewReadiness, type PluginHubStatusTone } from "@/lib/plugin-hub-status";
-import { getSyncServiceStatus } from "@/lib/sync-service-readiness";
+import { BRAND_SECONDARY_TAGLINE } from "@/lib/brand";
+import { HOME_PRODUCT_FLOW, type HomeFlowStep } from "@/lib/home-flow";
 import { cn } from "@/lib/utils";
 
 export const revalidate = 300;
-
-function pluginStatusClasses(tone: PluginHubStatusTone): string {
-  switch (tone) {
-    case "good":
-      return "text-[var(--color-good)] hover:text-[var(--color-good)]";
-    case "warning":
-      return "text-[var(--color-warning)] hover:text-[var(--color-warning)]";
-    case "danger":
-      return "text-[var(--color-danger)] hover:text-[var(--color-danger)]";
-    default:
-      return "text-[var(--color-text-dim)] hover:text-[var(--color-accent)]";
-  }
-}
-
-function pluginDotClass(tone: PluginHubStatusTone): string {
-  switch (tone) {
-    case "good":
-      return "bg-[var(--color-good)]";
-    case "warning":
-      return "bg-[var(--color-warning)]";
-    case "danger":
-      return "bg-[var(--color-danger)]";
-    default:
-      return "bg-[var(--color-accent)]";
-  }
-}
 
 function flowAccent(step: HomeFlowStep): string {
   switch (step.accent) {
@@ -65,24 +36,15 @@ const HERO_PREVIEW_ITEMS = [
   { id: 11832, name: "Bandos chestplate" }
 ] as const;
 
-const HERO_READINESS_SIGNALS = [
-  { label: "Bank", body: "Items, quantities, gear and GP value." },
-  { label: "RSN", body: "Public Hiscores, combat level and boss KC." },
-  { label: "RuneLite sync", body: "Opt-in quests, diaries, collection log and Slayer." }
+const HERO_ACTION_CHOICES = [
+  { label: "Boss KC", body: "Find a target where your stats and gear line up.", href: "/dps" },
+  { label: "Slayer", body: "Route the task: kill, skip, extend, barrage or cannon.", href: "/slayer" },
+  { label: "Unlock", body: "Push the closest diary, quest, cape or raids prep step.", href: "/goals" }
 ] as const;
 
-const HERO_NEVER_READS = ["chat", "passwords", "clicks", "screenshots", "login data"] as const;
+const HERO_ACCOUNT_LEVERS = ["Gear", "Supplies", "KC", "Quests", "Diaries", "Slayer", "GP"] as const;
 
-export default async function HomePage() {
-  const [pluginHubStatus, syncServiceStatus] = await Promise.all([
-    getPluginHubStatus(),
-    getSyncServiceStatus()
-  ]);
-  const reviewReadiness = pluginHubReviewReadiness(pluginHubStatus);
-  const pluginReadinessPill = homePluginReadinessPill(reviewReadiness);
-  const syncServicePill = homeSyncServicePill(syncServiceStatus);
-  const productFlow = homeProductFlowForPluginReadiness(reviewReadiness);
-
+export default function HomePage() {
   return (
     <main className="relative z-10 mx-auto max-w-6xl px-5 sm:px-8 pt-16 sm:pt-24 pb-24">
       {/* ── HERO ─────────────────────────────────────────────────────────
@@ -90,24 +52,24 @@ export default async function HomePage() {
           ademruimte; boss showcase rechts als productfoto. Geen
           background-gradient — strakke zwarte canvas zodat de content
           domineert. */}
-      <section className="relative mb-24 sm:mb-32">
-        <div className="grid lg:grid-cols-[1fr_1fr] gap-12 lg:gap-32 xl:gap-40 items-center min-h-[80vh]">
+      <section className="relative mb-16 sm:mb-24">
+        <div className="grid min-h-[calc(100vh-7rem)] items-center gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:gap-24 xl:gap-32">
           {/* Linkerkolom — leading content. Apple-style reveals:
               - Titel: word-by-word lift+blur, 60ms stagger per woord
               - Subhead: mask-reveal (clip-path animatie)
               - Intake: scale-in + fade
               Alle ease cubic-bezier(0.22,1,0.36,1) — Apple's "ease-out
               expressive" curve. */}
-          <div className="space-y-8">
-            <h1 className="font-bold leading-[0.95] tracking-[-0.025em] text-[clamp(44px,8vw,88px)]">
+          <div className="space-y-6">
+            <h1 className="font-bold leading-[0.97] tracking-[-0.025em] text-[clamp(42px,6.2vw,72px)]">
               <RevealLine
-                text={BRAND_TAGLINE}
+                text="What should I do next?"
                 delay={100}
                 wordStaggerMs={70}
                 className="block text-[var(--color-text)]"
               />
               <RevealLine
-                text="Bank → next action → RuneLite sync."
+                text="Boss, Slayer, GP or unlocks."
                 delay={350}
                 wordStaggerMs={80}
                 className="block text-gold-gradient"
@@ -125,8 +87,8 @@ export default async function HomePage() {
                 clipPath: "inset(0 0 100% 0)"
               }}
             >
-              {BRAND_SECONDARY_TAGLINE} Paste bank context, type an RSN, or connect RuneLite
-              sync. Scapestack turns that into one concrete route before you start bank standing.
+              {BRAND_SECONDARY_TAGLINE} Boss KC, Slayer, quest, diary, GP, gear upgrade or
+              low-effort progress. Pick one route before you log in.
             </p>
 
             <div
@@ -159,53 +121,20 @@ export default async function HomePage() {
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div>
             <div className="eyebrow mb-2" style={{ color: "var(--color-accent)" }}>
-              One Scapestack loop
+              Choose your next move
             </div>
             <h2 className="max-w-2xl text-[26px] font-bold leading-tight tracking-tight text-[var(--color-text)] sm:text-[34px]">
-              Start with your bank. Add RuneLite sync. End with a plan that says what data it used.
+              Start with an RSN. Add bank or sync only when you want sharper routes.
             </h2>
             <p className="mt-3 max-w-2xl text-[14px] leading-relaxed text-[var(--color-text-dim)]">
-              Bank Memory is best when you want quantities and GP value; Bank Tags still gives exact layout.
-              Verified RuneLite sync labels quest, diary, collection-log and Slayer coverage as verified, partial or missing.
-              The plugin does not send bank data.
+              Scapestack should answer the same question every OSRS player hits at login:
+              what is worth doing now, with this account, this bank and this amount of energy?
             </p>
-          </div>
-          <div className="flex flex-col items-start gap-2">
-            <Link
-              href={pluginReadinessPill.href}
-              className={cn("inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-colors", pluginStatusClasses(pluginReadinessPill.tone))}
-              title={pluginReadinessPill.detail}
-            >
-              <span className={cn("size-1.5 rounded-full animate-pulse", pluginDotClass(pluginReadinessPill.tone))} aria-hidden="true" />
-              {pluginReadinessPill.label}
-            </Link>
-            <Link
-              href={syncServicePill.href}
-              className={cn(
-                "inline-flex max-w-full items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-colors",
-                syncServicePill.tone === "good" && "border-[var(--color-good)]/30 bg-[var(--color-good)]/10 text-[var(--color-good)]",
-                syncServicePill.tone === "warning" && "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 text-[var(--color-warning)]",
-                syncServicePill.tone === "danger" && "border-[var(--color-danger)]/30 bg-[var(--color-danger)]/10 text-[var(--color-danger)]"
-              )}
-              title={syncServicePill.detail}
-            >
-              <span
-                className={cn(
-                  "size-1.5 rounded-full",
-                  syncServicePill.tone === "good" && "bg-[var(--color-good)]",
-                  syncServicePill.tone === "warning" && "bg-[var(--color-warning)]",
-                  syncServicePill.tone === "danger" && "bg-[var(--color-danger)]"
-                )}
-                aria-hidden="true"
-              />
-              <span className="truncate">{syncServicePill.label}</span>
-            </Link>
-            <ScapestackSyncReadinessCard readiness={pluginReadinessPill} />
           </div>
         </div>
 
         <div className="mt-6 grid gap-3 lg:grid-cols-3">
-          {productFlow.map((step) => (
+          {HOME_PRODUCT_FLOW.map((step) => (
             <Link
               key={step.href}
               href={step.href}
@@ -228,18 +157,6 @@ export default async function HomePage() {
               </span>
             </Link>
           ))}
-        </div>
-
-        <div className="mt-4 rounded-xl border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 px-4 py-3">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <div className="text-[12.5px] font-bold text-[var(--color-text)]">Developing the RuneLite loop locally?</div>
-              <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-dim)]">{HOME_SYNC_COPY.helper}</p>
-            </div>
-            <div className="min-w-0 lg:w-[420px]">
-              <CopyCommand value={HOME_SYNC_COPY.value} label={HOME_SYNC_COPY.label} />
-            </div>
-          </div>
         </div>
       </section>
 
@@ -367,65 +284,47 @@ function HeroProductPreview() {
 
         <div className="mt-4 grid gap-3 md:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-3">
-            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-dim)]">
-              <ShieldCheck className="size-4 text-[var(--color-good)]" aria-hidden="true" />
-              What Scapestack uses
+            <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-dim)]">
+              Other good routes
             </div>
-            <div className="mt-3 space-y-2">
-              {HERO_READINESS_SIGNALS.map((signal) => (
-                <div key={signal.label} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/40 px-3 py-2">
-                  <div className="text-[12px] font-bold text-[var(--color-text)]">{signal.label}</div>
-                  <div className="mt-0.5 text-[11px] leading-relaxed text-[var(--color-text-muted)]">{signal.body}</div>
-                </div>
+            <div className="mt-3 grid gap-2">
+              {HERO_ACTION_CHOICES.map((choice) => (
+                <Link
+                  key={choice.label}
+                  href={choice.href}
+                  className="group/choice rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/40 px-3 py-2 transition-colors hover:border-[var(--color-accent)]/45"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[12px] font-bold text-[var(--color-text)]">{choice.label}</span>
+                    <ArrowRight className="size-3.5 text-[var(--color-text-muted)] transition-transform group-hover/choice:translate-x-0.5 group-hover/choice:text-[var(--color-accent)]" />
+                  </div>
+                  <div className="mt-0.5 text-[11px] leading-relaxed text-[var(--color-text-muted)]">{choice.body}</div>
+                </Link>
               ))}
             </div>
           </div>
 
           <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-3">
-            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-dim)]">
-              <EyeOff className="size-4 text-[var(--color-warning)]" aria-hidden="true" />
-              What it never reads
+            <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-dim)]">
+              Plan around
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
-              {HERO_NEVER_READS.map((item) => (
+              {HERO_ACCOUNT_LEVERS.map((item) => (
                 <span
                   key={item}
-                  className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1 text-[11px] font-bold text-[var(--color-text-dim)]"
+                  className="rounded-full border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 px-2.5 py-1 text-[11px] font-bold text-[var(--color-text-secondary)]"
                 >
                   {item}
                 </span>
               ))}
             </div>
             <p className="mt-3 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
-              RuneLite sync is opt-in account-state only. Bank paste stays browser-session scoped.
+              Add only the context you care about. RSN is enough to start; bank and sync make the route sharper.
             </p>
           </div>
         </div>
       </div>
     </aside>
-  );
-}
-
-function ScapestackSyncReadinessCard({ readiness }: { readiness: HomePluginReadinessPill }) {
-  return (
-    <div
-      id="sync-readiness"
-      aria-label="Scapestack Sync readiness"
-      className="max-w-[360px] rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2.5 text-left"
-    >
-      <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-dim)]">
-        <span className={cn("size-1.5 rounded-full", pluginDotClass(readiness.tone))} aria-hidden="true" />
-        Scapestack Sync readiness
-      </div>
-      <div className="mt-1 text-[12.5px] font-bold text-[var(--color-text)]">{readiness.label}</div>
-      <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">{readiness.detail}</p>
-      <Link
-        href={readiness.href}
-        className="mt-2 inline-flex items-center gap-1.5 text-[11.5px] font-bold text-[var(--color-accent)] hover:underline"
-      >
-        Check sync <ArrowRight className="size-3.5" />
-      </Link>
-    </div>
   );
 }
 

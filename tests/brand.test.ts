@@ -9,6 +9,7 @@ import {
   BRAND_IMAGE_FONT_FAMILY,
   BRAND_LEGACY_REDIRECT_ROUTES,
   BRAND_NAME,
+  BRAND_PLAYER_PROMPTS,
   BRAND_POSITIONING,
   BRAND_PUBLIC_ROUTES,
   BRAND_SECONDARY_TAGLINE,
@@ -37,26 +38,33 @@ describe("Scapestack branding", () => {
 
   it("positions Scapestack as a tactical OSRS decision engine", () => {
     expect(BRAND_TAGLINE).toBe("Know what to do next in OSRS");
-    expect(BRAND_SECONDARY_TAGLINE).toBe("Your bank, stats and RuneLite sync turned into clear next actions.");
-    expect(BRAND_DESCRIPTION).toContain("tactical OSRS decision engine");
-    expect(BRAND_POSITIONING.promise).toBe("From messy bank to next best action.");
-    expect(BRAND_POSITIONING.feeling).toContain("RuneLite plugin precision");
-    expect(BRAND_POSITIONING.antiPattern).toContain("PvM prep room");
+    expect(BRAND_SECONDARY_TAGLINE).toBe("Type your RSN and get a route for tonight.");
+    expect(BRAND_DESCRIPTION).toContain("Plan tonight's OSRS route");
+    expect(BRAND_POSITIONING.promise).toBe("From account state to one useful next move.");
+    expect(BRAND_POSITIONING.feeling).toContain("OSRS route board");
+    expect(BRAND_POSITIONING.antiPattern).toContain("player-facing screens about choices");
     expect(BRAND_VOICE_RULES.join(" ")).toContain("practical OSRS player language");
     expect(BRAND_VOICE_RULES.join(" ")).not.toContain("AI-powered");
   });
 
-  it("defines a complete page and state UI system", () => {
+  it("defines player-facing routes and prompt chips", () => {
     expect(BRAND_UI_SURFACES.map((surface) => surface.page)).toEqual([
-      "Homepage",
-      "/bank",
-      "/next",
-      "/dps",
-      "/plugin",
-      "Profile"
+      "Tonight",
+      "Bank",
+      "Boss",
+      "Slayer",
+      "Unlocks",
+      "Sync"
     ]);
-    expect(BRAND_UI_SURFACES.map((surface) => surface.primaryAction).join(" ")).toContain("copy plan");
-    expect(BRAND_UI_SURFACES.map((surface) => surface.requiredFeeling).join(" ")).toContain("item IDs");
+    expect(BRAND_UI_SURFACES.map((surface) => surface.primaryAction).join(" ")).toContain("Route task");
+    expect(BRAND_UI_SURFACES.map((surface) => surface.requiredFeeling).join(" ")).toContain("Boss");
+    expect(BRAND_PLAYER_PROMPTS.map((prompt) => prompt.label)).toEqual([
+      "I have 45 minutes",
+      "I need GP",
+      "I want boss KC",
+      "Low effort"
+    ]);
+    expect(BRAND_PLAYER_PROMPTS.map((prompt) => prompt.copy).join(" ")).toContain("actually do");
     expect(BRAND_STATE_SYSTEM.map((state) => state.state)).toEqual(["Empty", "Loading", "Error", "Mobile"]);
     expect(BRAND_STATE_SYSTEM.map((state) => state.copy).join(" ")).toContain("no hover-only affordances");
   });

@@ -14,11 +14,11 @@ describe("global header navigation", () => {
 
   it("surfaces the core Bank → Next → Sync loop as clickable navigation", () => {
     expect(source).toContain("LOOP_STEPS");
-    expect(source).toContain('const LOOP_LABEL = "Recommended OSRS loop: Bank → Next → Sync"');
-    expect(source).toContain('aria-label="Start Scapestack loop: paste bank, plan next, verify RuneLite sync"');
+    expect(source).toContain('const LOOP_LABEL = "Plan tonight: Bank → Next → Sync"');
+    expect(source).toContain('aria-label="Plan tonight from bank, stats and RuneLite sync"');
     expect(source).toContain('href={contextualNavHref("/next", pathname, contextQuery)}');
-    expect(source).toContain("Recommended OSRS loop");
-    expect(source).toContain("Paste bank context, plan tonight, verify RuneLite sync when the payload is ready.");
+    expect(source).toContain("Plan tonight");
+    expect(source).toContain("Boss, Slayer, quest, diary, GP or bank cleanup. Pick one thing before you log in.");
     expect(source).toContain('aria-label={`${step.label} in Scapestack loop`}');
   });
 

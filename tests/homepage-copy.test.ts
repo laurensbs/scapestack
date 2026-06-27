@@ -6,14 +6,15 @@ const source = readFileSync(join(process.cwd(), "src/app/page.tsx"), "utf8");
 
 describe("homepage first-impression copy", () => {
   it("opens with the OSRS decision-engine loop instead of generic SaaS copy", () => {
-    expect(source).toContain("BRAND_TAGLINE");
     expect(source).toContain("BRAND_SECONDARY_TAGLINE");
-    expect(source).toContain("Bank → next action → RuneLite sync.");
+    expect(source).toContain("What should I do next?");
+    expect(source).toContain("Boss, Slayer, GP or unlocks.");
     expect(source).toContain('const HERO_LOOP_STEPS = ["Bank", "Next action", "RuneLite sync"] as const;');
-    expect(source).toContain("Paste bank context, type an RSN, or connect RuneLite");
-    expect(source).toContain("one concrete route before you start bank standing");
+    expect(source).toContain("Boss KC, Slayer, quest, diary, GP, gear upgrade");
+    expect(source).toContain("Pick one route before you log in.");
     expect(source).not.toContain("AI-powered");
     expect(source).not.toContain("generic SaaS");
+    expect(source).not.toContain("bank standing");
   });
 
   it("shows a live product preview with item IDs, Wiki and action affordances", () => {
@@ -29,30 +30,30 @@ describe("homepage first-impression copy", () => {
     expect(source).toContain("ItemSprite");
   });
 
-  it("separates Hiscores, pasted bank data and RuneLite sync data", () => {
-    expect(source).toContain("HERO_READINESS_SIGNALS");
-    expect(source).toContain("Public Hiscores, combat level and boss KC.");
-    expect(source).toContain("Items, quantities, gear and GP value.");
-    expect(source).toContain("Opt-in quests, diaries, collection log and Slayer.");
+  it("turns the preview into OSRS action choices instead of data-source copy", () => {
+    expect(source).toContain("HERO_ACTION_CHOICES");
+    expect(source).toContain("HERO_ACCOUNT_LEVERS");
+    expect(source).toContain("Other good routes");
+    expect(source).toContain("Boss KC");
+    expect(source).toContain("Route the task: kill, skip, extend, barrage or cannon.");
+    expect(source).toContain("Plan around");
+    expect(source).toContain("Gear");
+    expect(source).toContain("Supplies");
     expect(source).not.toContain('aria-label="Scapestack readiness rail"');
-    expect(source).toContain("Start with your bank");
-    expect(source).toContain("Bank Memory is best when you want quantities and GP value");
-    expect(source).toContain("Bank Tags still gives exact layout");
-    expect(source).toContain("Verified RuneLite sync labels quest, diary, collection-log and Slayer coverage as verified, partial or missing");
-    expect(source).not.toContain("Verified RuneLite sync removes quest, diary, collection-log and Slayer guesswork");
-    expect(source).not.toContain("Bank Tags still gives exact layout.\n              RuneLite sync removes");
-    expect(source).toContain("The plugin");
-    expect(source).toContain("does not send bank data");
-    expect(source).toContain("what data it used");
+    expect(source).not.toContain("HERO_READINESS_SIGNALS");
+    expect(source).not.toContain("What Scapestack uses");
+    expect(source).not.toContain("What it never reads");
+    expect(source).not.toContain("does not send bank data");
   });
 
-  it("states the homepage privacy boundary before asking for sync", () => {
-    expect(source).toContain("What Scapestack uses");
-    expect(source).toContain("What it never reads");
-    expect(source).toContain("HERO_NEVER_READS");
-    expect(source).toContain('const HERO_NEVER_READS = ["chat", "passwords", "clicks", "screenshots", "login data"] as const;');
-    expect(source).toContain("RuneLite sync is opt-in account-state only");
-    expect(source).toContain("Bank paste stays browser-session scoped");
+  it("keeps player-facing sections free of privacy and backend status panels", () => {
+    expect(source).toContain("Choose your next move");
+    expect(source).toContain("what is worth doing now");
+    expect(source).not.toContain("HERO_NEVER_READS");
+    expect(source).not.toContain("RuneLite sync is opt-in account-state only");
+    expect(source).not.toContain("Bank paste stays browser-session scoped");
+    expect(source).not.toContain("Local sync API");
+    expect(source).not.toContain("Developing the RuneLite loop locally?");
   });
 
   it("surfaces the premium OSRS command system on the homepage", () => {
@@ -60,11 +61,10 @@ describe("homepage first-impression copy", () => {
   });
 
   it("does not imply Plugin Hub install equals verified exact payload", () => {
-    expect(source).toContain("pluginHubReviewReadiness");
-    expect(source).toContain("homePluginReadinessPill");
-    expect(source).toContain("ScapestackSyncReadinessCard");
-    expect(source).toContain("Scapestack Sync readiness");
-    expect(source).toContain("Check sync");
+    expect(source).not.toContain("pluginHubReviewReadiness");
+    expect(source).not.toContain("homePluginReadinessPill");
+    expect(source).not.toContain("ScapestackSyncReadinessCard");
+    expect(source).not.toContain("Scapestack Sync readiness");
     expect(source).not.toContain("Plugin Hub install readiness");
     expect(source).not.toContain("visibleBlockers");
     expect(source).not.toContain("RuneLite Plugin Hub ready · verify payload coverage");
