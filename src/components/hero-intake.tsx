@@ -45,23 +45,22 @@ export function HeroIntake() {
   };
 
   return (
-    <form onSubmit={submit} className="space-y-3">
-      {/* Apple-style pill-input: rounded-full, frosted bg, subtle inner
-          shadow voor depth; focus geeft een vol accent-ring. */}
+    <form onSubmit={submit} className="space-y-4">
+      {/* Compact account form. Keep the CTA visually important without
+          turning the whole intake into one heavy glowing capsule. */}
       <div
         className={cn(
-          "group relative rounded-2xl bg-white/[0.03] backdrop-blur-sm sm:rounded-full",
-          "border border-white/10",
-          "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04),inset_0_-1px_0_0_rgba(0,0,0,0.4)]",
-          "focus-within:border-[var(--color-accent)]/50 focus-within:bg-white/[0.05]",
-          "focus-within:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06),inset_0_-1px_0_0_rgba(0,0,0,0.4),0_0_0_4px_rgba(230,165,47,0.10)]",
-          "transition-all duration-300 ease-out"
+          "grid gap-2 rounded-2xl border border-[var(--color-border-strong)]/85 bg-[var(--color-panel)]/88 p-2",
+          "shadow-[0_18px_42px_-30px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.04)]",
+          "transition-colors duration-200 ease-out focus-within:border-[var(--color-accent)]/28",
+          "focus-within:bg-[var(--color-panel-2)]/62 focus-within:shadow-[0_20px_46px_-32px_rgba(0,0,0,0.92),0_0_0_2px_rgba(230,165,47,0.07),inset_0_1px_0_rgba(255,255,255,0.05)]",
+          "sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-1.5"
         )}
       >
-        <div className="flex flex-col gap-2 p-2 sm:flex-row sm:items-center sm:pl-5 sm:pr-1.5 sm:py-1.5">
-          <label htmlFor="hero-rsn-input" className="sr-only">
-            OSRS name for /next planning
-          </label>
+        <label htmlFor="hero-rsn-input" className="sr-only">
+          OSRS name for /next planning
+        </label>
+        <div className="relative min-w-0">
           <input
             id="hero-rsn-input"
             name="rsn"
@@ -75,48 +74,37 @@ export function HeroIntake() {
             spellCheck={false}
             aria-describedby="hero-plan-disabled-help"
             className={cn(
-              "min-w-0 flex-1 bg-transparent outline-none",
-              "text-[17px] sm:text-[18px] font-medium tracking-[-0.01em]",
-              "text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]/70",
-              "px-2 py-2.5 sm:px-0"
+              "h-13 w-full min-w-0 rounded-xl border border-transparent bg-[#0B0D11]/72 px-3.5 outline-none",
+              "text-[16px] font-semibold text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]/72",
+              "transition-all duration-200 focus:bg-[#0B0D11] focus:shadow-[inset_0_0_0_1px_rgba(230,165,47,0.18)]",
+              "sm:h-12 sm:text-[15px]"
             )}
           />
-          <button
-            type="submit"
-            aria-label={
-              hasBankPaste
-                ? rsn.trim()
-                  ? "Open /next planner with RSN and browser-only bank paste"
-                  : "Open /next planner with browser-only bank paste"
-                : "Open /next planner with RSN and Hiscores only"
-            }
-            aria-describedby="hero-plan-disabled-help"
-            disabled={!canSubmit}
-            className={cn(
-              "group/btn relative overflow-hidden",
-              "w-full rounded-xl px-5 py-3 inline-flex items-center justify-center gap-2 shrink-0 sm:w-auto sm:rounded-full sm:px-5",
-              "bg-gradient-to-b from-[#F0B43F] to-[#D4972A] text-[#0F0E0B] font-semibold text-[14px]",
-              "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.35),0_4px_14px_-4px_rgba(230,165,47,0.55)]",
-              "hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.45),0_6px_22px_-4px_rgba(230,165,47,0.75)]",
-              "hover:scale-[1.02] active:scale-[0.98]",
-              "transition-all duration-200 ease-out",
-              "disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.35),0_4px_14px_-4px_rgba(230,165,47,0.55)]"
-            )}
-          >
-            <span className="relative z-10">Plan next action</span>
-            <ArrowRight className="relative z-10 size-4 group-hover/btn:translate-x-0.5 transition-transform" />
-            {/* Sheen-overlay die over de knop zwiept bij hover */}
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500"
-              style={{
-                background: "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%)",
-                transform: "translateX(-100%)",
-                animation: "btn-sheen 0.9s ease-out"
-              }}
-            />
-          </button>
         </div>
+        <button
+          type="submit"
+          aria-label={
+            hasBankPaste
+              ? rsn.trim()
+                ? "Open /next planner with RSN and browser-only bank paste"
+                : "Open /next planner with browser-only bank paste"
+              : "Open /next planner with RSN and Hiscores only"
+          }
+          aria-describedby="hero-plan-disabled-help"
+          disabled={!canSubmit}
+          className={cn(
+            "inline-flex h-13 w-full shrink-0 items-center justify-center gap-2 rounded-xl px-4",
+            "bg-[var(--color-accent)] text-[#0F0E0B] text-[14px] font-bold",
+            "shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_12px_24px_-18px_rgba(230,165,47,0.95)]",
+            "transition-all duration-200 hover:bg-[var(--color-accent-soft)] active:translate-y-px",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]",
+            "disabled:cursor-not-allowed disabled:bg-[var(--color-border-strong)] disabled:text-[var(--color-text-muted)] disabled:shadow-none",
+            "sm:h-12 sm:w-auto sm:min-w-[174px]"
+          )}
+        >
+          <span>Plan next action</span>
+          <ArrowRight className="size-4" />
+        </button>
       </div>
       <p
         id="hero-plan-disabled-help"
