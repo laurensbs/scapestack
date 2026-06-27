@@ -25,6 +25,10 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(homepage).toContain("One clear OSRS plan.");
     expect(next).toContain("Do this first");
     expect(next).toContain("One best move for this account. Two backups");
+    expect(next).toContain("Screenshot mode");
+    expect(next).toContain("Another trip");
+    expect(next).toContain("Chill now");
+    expect(next).toContain("Returning/midgame");
     expect(plugin).toContain("Skip finished stuff.");
     expect(direction).toContain("anti-bankstanding");
     expect(direction).toContain("one thing to do first");
@@ -64,6 +68,7 @@ describe("Scapestack anti-bankstanding product contract", () => {
   it("keeps RuneLite as quiet intelligence instead of the main task", () => {
     expect(playerFacingSources).toContain("RuneLite helps Scapestack skip stuff you already finished.");
     expect(playerFacingSources).toContain("Skips finished quests, diaries, clog slots and Slayer mistakes.");
+    expect(playerFacingSources).toContain("RuneLite helped avoid finished quests, diary steps, clog slots and Slayer mistakes.");
     expect(playerFacingSources).toContain("Check RuneLite");
     expect(playerFacingSources).not.toContain("Open synced /next");
     expect(playerFacingSources).not.toContain("Verified RuneLite payload");

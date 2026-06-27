@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   ArrowRight, ChevronRight, Edit3, Target, Sword, TrendingUp, Layers,
   Sparkles, Trophy, Gamepad2, Coins, Scroll, Map as MapIcon, Dices, ExternalLink,
-  Copy, CheckCheck, CheckCircle2, Shield, Trash2
+  Copy, CheckCheck, CheckCircle2, Shield, Trash2, Camera
 } from "lucide-react";
 import { SupportCard } from "@/components/support-card";
 import { SavedBankBanner } from "@/components/saved-bank-banner";
@@ -94,7 +94,7 @@ function hasDropChanceGraph(rec: Recommendation): rec is Recommendation & { kcMe
   return Boolean(rec.kcMeta && rec.kcMeta.dropName !== "first 50 KC");
 }
 
-const SAMPLE_LABEL = "mid-game PvM sample";
+const SAMPLE_LABEL = "simple returning-player plan";
 const COMPACT_NUMBER = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 
 const SAMPLE_SKILL_NAMES = [
@@ -915,7 +915,7 @@ function NextIntake({
           disabled={loading}
           className="text-[12.5px] text-[var(--color-text-dim)] hover:text-[var(--color-text)] underline underline-offset-4 decoration-dotted transition-colors disabled:opacity-50"
         >
-          Or see it with a {SAMPLE_LABEL}
+          New or returning? See a {SAMPLE_LABEL}
         </button>
       </div>
 
@@ -941,6 +941,7 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
   routeIntent: NextIntentPreset | null;
 }) {
   const { headline, rest, summary } = result;
+  const [shareMode, setShareMode] = useState(false);
 
   const basisNote =
     summary.basis === "full" ? "Stats and gear are helping this pick."
@@ -976,44 +977,51 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
           onBossOpen={onBossOpen}
           onEdit={onEdit}
           routeIntent={routeIntent}
-        />
-      </div>
-
-      <div style={trackAnim(150)}>
-        <MakePlanSmarter
-          summary={summary}
-          basisNote={basisNote}
-          bankItems={bankItems}
-          activeRsn={activeRsn}
           pluginSyncState={pluginSyncState}
-          expectedPluginSync={expectedPluginSync}
-          onEdit={onEdit}
-          onClearStoredBankHandoff={onClearStoredBankHandoff}
+          shareMode={shareMode}
+          onShareModeChange={setShareMode}
         />
       </div>
 
-      <div style={trackAnim(300)}>
-        <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-4 sm:p-5">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)] marker:hidden">
-            <span>Account details</span>
-            <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
-              Open later
-            </span>
-          </summary>
-          <div className="mt-4 space-y-6">
-            <HeroStrip summary={summary} basisNote={basisNote} onEdit={onEdit} />
-            <WhereYouAre
-              pathData={result.pathProgress}
-              maxEstimate={result.maxEstimate}
+      {!shareMode && (
+        <>
+          <div style={trackAnim(150)}>
+            <MakePlanSmarter
+              summary={summary}
+              basisNote={basisNote}
+              bankItems={bankItems}
+              activeRsn={activeRsn}
+              pluginSyncState={pluginSyncState}
+              expectedPluginSync={expectedPluginSync}
+              onEdit={onEdit}
+              onClearStoredBankHandoff={onClearStoredBankHandoff}
             />
-            <BankProgressSection progress={result.readiness} />
           </div>
-        </details>
-      </div>
 
-      <div className="pt-2" style={trackAnim(450)}>
-        <SupportCard />
-      </div>
+          <div style={trackAnim(300)}>
+            <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-4 sm:p-5">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)] marker:hidden">
+                <span>Account details</span>
+                <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
+                  Open later
+                </span>
+              </summary>
+              <div className="mt-4 space-y-6">
+                <HeroStrip summary={summary} basisNote={basisNote} onEdit={onEdit} />
+                <WhereYouAre
+                  pathData={result.pathProgress}
+                  maxEstimate={result.maxEstimate}
+                />
+                <BankProgressSection progress={result.readiness} />
+              </div>
+            </details>
+          </div>
+
+          <div className="pt-2" style={trackAnim(450)}>
+            <SupportCard />
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -1441,12 +1449,66 @@ function KcPortrait({ rec, size, prominent = false }: {
 }
 
 function playerChoiceTag(rec: Recommendation): { label: string; helper: string } {
-  if (rec.kind === "money") return { label: "GP", helper: "Pick this when you want money first." };
+  if (rec.kind === "money") return { label: "GP", helper: "Pick this when you want cash or the next upgrade." };
   if (rec.kind === "boss" || rec.kind === "kc") return { label: "Bossing", helper: "Pick this when you want a PvM trip." };
   if (rec.kind === "skill") return { label: "AFK", helper: "Pick this when you want a low-pressure grind." };
   if (rec.kind === "bank" || rec.kind === "minigame") return { label: "Chill", helper: "Pick this when you want a lighter session." };
-  if (rec.kind === "slayer") return { label: "Task", helper: "Pick this when Slayer should drive the session." };
+  if (rec.kind === "slayer") return { label: "Slayer", helper: "Pick this when the task should drive the session." };
   return { label: "Unlock", helper: "Pick this when you want quests, diary progress or account unlocks." };
+}
+
+function accountArchetypeCopy({
+  recs,
+  activeRsn,
+  hasBankContext,
+  pluginSyncState
+}: {
+  recs: Recommendation[];
+  activeRsn: string;
+  hasBankContext: boolean;
+  pluginSyncState: "live" | "stale" | "outdated" | null;
+}): { label: string; helper: string } {
+  const kinds = new Set(recs.map((rec) => rec.kind));
+  if (pluginSyncState === "live") {
+    return {
+      label: "RuneLite-aware",
+      helper: "Scapestack knows more of what this account already finished."
+    };
+  }
+  if (!activeRsn.trim()) {
+    return hasBankContext
+      ? { label: "Gear-first", helper: "Good for a rough trip or GP check before adding stats." }
+      : { label: "First run", helper: "Start with an OSRS name. Gear and RuneLite can come later." };
+  }
+  if (kinds.has("boss") || kinds.has("kc")) {
+    return { label: "PvM-ready", helper: "Built around a short trip, KC push or boss unlock." };
+  }
+  if (kinds.has("slayer")) {
+    return { label: "Task-led", helper: "Slayer can be the session anchor." };
+  }
+  if (kinds.has("money")) {
+    return { label: "Upgrade funding", helper: "Use this when GP is blocking the next move." };
+  }
+  if (kinds.has("quest") || kinds.has("diary") || kinds.has("goal")) {
+    return { label: "Returning/midgame", helper: "Best for clearing quests, diaries and account unlocks." };
+  }
+  if (kinds.has("skill")) {
+    return { label: "Skiller-friendly", helper: "Low-friction progress when you want to chill." };
+  }
+  return { label: "One-session", helper: "One useful route for this login." };
+}
+
+function runeLitePlanNote(pluginSyncState: "live" | "stale" | "outdated" | null): string | null {
+  if (pluginSyncState === "live") {
+    return "RuneLite helped avoid finished quests, diary steps, clog slots and Slayer mistakes.";
+  }
+  if (pluginSyncState === "stale") {
+    return "RuneLite is old. Refresh before a long grind or GP spend.";
+  }
+  if (pluginSyncState === "outdated") {
+    return "Update RuneLite before trusting newer Slayer or clog details.";
+  }
+  return null;
 }
 
 function recommendationNeeds(rec: Recommendation): string[] {
@@ -1884,7 +1946,10 @@ function WhatToDo({
   hasBankContext,
   onBossOpen,
   onEdit,
-  routeIntent
+  routeIntent,
+  pluginSyncState,
+  shareMode,
+  onShareModeChange
 }: {
   allRecs: Recommendation[];
   activeRsn: string;
@@ -1892,6 +1957,9 @@ function WhatToDo({
   onBossOpen: (slug: string) => void;
   onEdit: () => void;
   routeIntent: NextIntentPreset | null;
+  pluginSyncState: "live" | "stale" | "outdated" | null;
+  shareMode: boolean;
+  onShareModeChange: (enabled: boolean) => void;
 }) {
   const [mood, setMood] = useState<Mood>(routeIntent?.mood ?? "focused");
   const [minutes, setMinutes] = useState<TimeBudget>(routeIntent?.minutes ?? 60);
@@ -1921,6 +1989,11 @@ function WhatToDo({
     () => ({ from: "next", hasBankContext, rsn: activeRsn }),
     [activeRsn, hasBankContext]
   );
+  const archetype = useMemo(
+    () => accountArchetypeCopy({ recs: allRecs, activeRsn, hasBankContext, pluginSyncState }),
+    [activeRsn, allRecs, hasBankContext, pluginSyncState]
+  );
+  const runeLiteNote = runeLitePlanNote(pluginSyncState);
 
   // Reset shuffle wanneer mood/time veranderen — een nieuwe vibe begint
   // op de top-pick, anders blijven we stiekem op een oude alternative.
@@ -1973,6 +2046,16 @@ function WhatToDo({
     setLastCompleted(null);
     setShuffleIdx(0);
   };
+  const moveToAnotherPlan = () => {
+    setLastCompleted(null);
+    setShuffleIdx((i) => i + 1);
+  };
+  const moveToChillPlan = () => {
+    setLastCompleted(null);
+    setMood("chill");
+    setMinutes(30);
+    setShuffleIdx((i) => i + 1);
+  };
   const restoreHidden = () => {
     setFeedback(clearRecommendationFeedback());
     setLastSuppressed(null);
@@ -1995,11 +2078,17 @@ function WhatToDo({
       : "Copy plan";
 
   return (
-    <section>
+    <section
+      data-screenshot-mode={shareMode ? "true" : undefined}
+      className={cn(
+        shareMode &&
+          "mx-auto max-w-3xl rounded-2xl border border-[var(--color-accent)]/25 bg-[var(--color-panel)]/78 p-4 shadow-[0_26px_80px_-54px_rgba(230,165,47,0.65)] sm:p-5"
+      )}
+    >
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-            What to do now
+            {shareMode ? "Scapestack /next" : "What to do now"}
           </div>
           <h2 className="mt-1 text-[26px] font-bold tracking-tight text-[var(--color-text)]">
             Do this first
@@ -2007,6 +2096,26 @@ function WhatToDo({
           <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-dim)]">
             One best move for this account. Two backups if you want a different kind of session.
           </p>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
+            <span
+              className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1 font-semibold text-[var(--color-text-dim)]"
+              title={archetype.helper}
+            >
+              {archetype.label}
+            </span>
+            {runeLiteNote && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 font-semibold",
+                  pluginSyncState === "live"
+                    ? "border-[var(--color-good)]/25 bg-[var(--color-good)]/10 text-[var(--color-good)]"
+                    : "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
+                )}
+              >
+                {runeLiteNote}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -2018,7 +2127,7 @@ function WhatToDo({
               {routeIntent.label}
             </span>
           )}
-          {pick && allRecs.length > 1 && (
+          {pick && allRecs.length > 1 && !shareMode && (
             <button
               type="button"
               onClick={() => setShuffleIdx((i) => i + 1)}
@@ -2029,7 +2138,7 @@ function WhatToDo({
               Try another
             </button>
           )}
-          {visibleRecs.length > 0 && (
+          {visibleRecs.length > 0 && !shareMode && (
             <button
               type="button"
               onClick={copySessionPlan}
@@ -2045,6 +2154,20 @@ function WhatToDo({
               {sessionCopyLabel}
             </button>
           )}
+          <button
+            type="button"
+            onClick={() => onShareModeChange(!shareMode)}
+            aria-pressed={shareMode}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-lg border bg-[var(--color-panel)]/65 px-3 py-2 text-[11.5px] font-semibold transition-colors",
+              shareMode
+                ? "border-[var(--color-accent)]/45 text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10"
+                : "border-[var(--color-border)] text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)]"
+            )}
+          >
+            <Camera className="size-3.5" />
+            {shareMode ? "Exit clean shot" : "Screenshot mode"}
+          </button>
         </div>
       </div>
 
@@ -2074,15 +2197,31 @@ function WhatToDo({
           className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--color-good)]/30 bg-[var(--color-good)]/10 px-3.5 py-2.5 text-[12px]"
         >
           <span className="text-[var(--color-text-dim)]">
-            Marked done: <span className="font-semibold text-[var(--color-text)]">{lastCompleted.title}</span>.
+            Nice. <span className="font-semibold text-[var(--color-text)]">{lastCompleted.title}</span> is done. Pick the next move.
           </span>
-          <button
-            type="button"
-            onClick={restoreLastCompleted}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-good)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-good)] transition-colors hover:bg-[var(--color-good)]/10"
-          >
-            Undo done
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={moveToAnotherPlan}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-good)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-good)] transition-colors hover:bg-[var(--color-good)]/10"
+            >
+              Another trip
+            </button>
+            <button
+              type="button"
+              onClick={moveToChillPlan}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-good)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-good)] transition-colors hover:bg-[var(--color-good)]/10"
+            >
+              Chill now
+            </button>
+            <button
+              type="button"
+              onClick={restoreLastCompleted}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-good)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-good)] transition-colors hover:bg-[var(--color-good)]/10"
+            >
+              Undo done
+            </button>
+          </div>
         </div>
       )}
 
@@ -2096,11 +2235,17 @@ function WhatToDo({
               onSuppress={hideRecommendation}
               onComplete={completeRecommendation}
               onEdit={onEdit}
+              cleanMode={shareMode}
             />
             {pick.alternatives.length > 0 && (
               <div>
-                <div className="mb-2 text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                  Backups
+                <div className="mb-2 flex flex-wrap items-baseline gap-2">
+                  <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                    Backups
+                  </span>
+                  <span className="text-[11px] text-[var(--color-text-muted)]">
+                    Chill / GP / Bossing / Unlock / AFK
+                  </span>
                 </div>
                 <div className="grid gap-2.5 sm:grid-cols-2">
                   {pick.alternatives.map((r) => (
@@ -2124,6 +2269,7 @@ function WhatToDo({
         )}
       </div>
 
+      {!shareMode && (
       <details className="mt-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-4">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden">
           <span>
@@ -2222,6 +2368,7 @@ function WhatToDo({
           </div>
         </div>
       </details>
+      )}
     </section>
   );
 }
@@ -2532,7 +2679,8 @@ function RecHeadlineExpandable({
   onBossOpen,
   onSuppress,
   onComplete,
-  onEdit
+  onEdit,
+  cleanMode = false
 }: {
   rec: Recommendation;
   actionContext: RecommendationActionContext;
@@ -2540,40 +2688,43 @@ function RecHeadlineExpandable({
   onSuppress: (rec: Recommendation) => void;
   onComplete: (rec: Recommendation) => void;
   onEdit: () => void;
+  cleanMode?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   return (
     <div>
       <HeadlineCard rec={rec} actionContext={actionContext} onBossOpen={onBossOpen} />
-      <div className="flex justify-end mt-1.5 gap-3">
-        <button
-          type="button"
-          onClick={() => onComplete(rec)}
-          aria-label={`Done: mark ${rec.title} complete`}
-          className={recommendationFeedbackButtonClass("done")}
-        >
-          Done
-          <CheckCheck className="size-3" />
-        </button>
-        <button
-          type="button"
-          onClick={() => onSuppress(rec)}
-          aria-label={`Not today: hide ${rec.title}`}
-          className={recommendationFeedbackButtonClass("skip")}
-        >
-          Not today
-        </button>
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className={recommendationFeedbackButtonClass("details")}
-        >
-          {open ? "Hide steps" : "Show steps"}
-          <ChevronRight
-            className={cn("size-3 transition-transform", open && "rotate-90")}
-          />
-        </button>
-      </div>
+      {!cleanMode && (
+        <div className="flex justify-end mt-1.5 gap-3">
+          <button
+            type="button"
+            onClick={() => onComplete(rec)}
+            aria-label={`Done: mark ${rec.title} complete`}
+            className={recommendationFeedbackButtonClass("done")}
+          >
+            Done
+            <CheckCheck className="size-3" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onSuppress(rec)}
+            aria-label={`Not today: hide ${rec.title}`}
+            className={recommendationFeedbackButtonClass("skip")}
+          >
+            Not today
+          </button>
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className={recommendationFeedbackButtonClass("details")}
+          >
+            {open ? "Hide steps" : "Show steps"}
+            <ChevronRight
+              className={cn("size-3 transition-transform", open && "rotate-90")}
+            />
+          </button>
+        </div>
+      )}
       {open && <RecDetailPanel rec={rec} actionContext={actionContext} />}
     </div>
   );

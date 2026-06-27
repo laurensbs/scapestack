@@ -68,6 +68,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('label: "Bossing"');
     expect(source).toContain('label: "AFK"');
     expect(source).toContain('label: "Chill"');
+    expect(source).toContain('label: "Slayer"');
     expect(source).toContain('label: "Unlock"');
     expect(source).toContain("function RecommendationQuickFacts");
     expect(source).toContain("function RecommendationFirstStep");
@@ -116,6 +117,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Do this first");
     expect(source).toContain("One best move for this account. Two backups");
     expect(source).toContain("Backups");
+    expect(source).toContain("Chill / GP / Bossing / Unlock / AFK");
     expect(source).toContain("Change vibe or time");
     expect(source).toContain("Account details");
     expect(source).toContain("Open later");
@@ -141,6 +143,12 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("RuneLite is optional. If it finds this RSN, /next can avoid progress you already finished.");
     expect(source).toContain("Gear stays in this browser.");
     expect(source).toContain("Free, no account needed.");
+  });
+
+  it("offers a simple first-run sample for new or returning players", () => {
+    expect(source).toContain('const SAMPLE_LABEL = "simple returning-player plan";');
+    expect(source).toContain("New or returning? See a {SAMPLE_LABEL}");
+    expect(source).not.toContain("mid-game PvM sample");
   });
 
   it("gives plugin-origin players a concrete sync verification path", () => {
@@ -190,11 +198,38 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("lastCompleted");
     expect(source).toContain('reason: "already_done"');
     expect(source).toContain("const completeRecommendation = (rec: Recommendation) =>");
-    expect(source).toContain("Marked done:");
+    expect(source).toContain("Nice.");
+    expect(source).toContain("Pick the next move.");
+    expect(source).toContain("Another trip");
+    expect(source).toContain("Chill now");
     expect(source).toContain("Undo done");
+    expect(source).toContain("const moveToAnotherPlan = () =>");
+    expect(source).toContain("const moveToChillPlan = () =>");
     expect(source).toContain("aria-label={`Done: mark ${rec.title} complete`}");
     expect(source).toContain("onComplete={completeRecommendation}");
     expect(source).toContain("onComplete: (rec: Recommendation) => void");
+  });
+
+  it("has a clean screenshot/share mode without turning the planner into a dashboard", () => {
+    expect(source).toContain("shareMode");
+    expect(source).toContain("onShareModeChange");
+    expect(source).toContain("Screenshot mode");
+    expect(source).toContain("Exit clean shot");
+    expect(source).toContain("data-screenshot-mode={shareMode ? \"true\" : undefined}");
+    expect(source).toContain("{!shareMode && (");
+    expect(source).toContain("cleanMode={shareMode}");
+    expect(source).not.toContain("Share dashboard");
+  });
+
+  it("adds subtle OSRS account-archetype and RuneLite avoided-bad-advice copy", () => {
+    expect(source).toContain("function accountArchetypeCopy");
+    expect(source).toContain("RuneLite-aware");
+    expect(source).toContain("Returning/midgame");
+    expect(source).toContain("PvM-ready");
+    expect(source).toContain("Skiller-friendly");
+    expect(source).toContain("RuneLite helped avoid finished quests, diary steps, clog slots and Slayer mistakes.");
+    expect(source).toContain("function runeLitePlanNote");
+    expect(source).not.toContain("RuneLite evidence dashboard");
   });
 
   it("keeps recommendation feedback controls on the main pick", () => {

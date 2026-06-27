@@ -10,6 +10,15 @@ function shareableHref(href: string): string {
   return href.startsWith("/") ? brandUrl(href) : href;
 }
 
+function sessionChoiceLabel(rec: Recommendation): string {
+  if (rec.kind === "money") return "GP";
+  if (rec.kind === "boss" || rec.kind === "kc") return "Bossing";
+  if (rec.kind === "slayer") return "Slayer";
+  if (rec.kind === "skill") return "AFK";
+  if (rec.kind === "bank" || rec.kind === "minigame") return "Chill";
+  return "Unlock";
+}
+
 export function formatRecommendationActionPlan(
   rec: Recommendation,
   context: RecommendationActionContext = {}
@@ -66,10 +75,11 @@ export function formatRecommendationSessionPlan(
         ? `${primaryAction.label}: ${shareableHref(primaryAction.href)}`
         : null;
       const label = index === 0 ? "Do this first" : `Backup ${index}`;
+      const title = index === 0 ? rec.title : `${sessionChoiceLabel(rec)} - ${rec.title}`;
       const stopPoint = plan?.steps.at(-1);
 
       return [
-        `${label}: ${rec.title}`,
+        `${label}: ${title}`,
         `   Why: ${rec.why}`,
         plan ? `   Time: ${plan.timebox}` : null,
         plan ? `   Gear/supplies: ${plan.prep}` : null,

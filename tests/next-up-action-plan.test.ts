@@ -78,6 +78,7 @@ describe("next-up action plans", () => {
     expect(text).toContain("Do this first:");
     expect(text).toContain("Backup 1:");
     expect(text).toContain("Backup 2:");
+    expect(text).toMatch(/Backup 1: (GP|Bossing|Slayer|AFK|Chill|Unlock) - /);
     expect(text).toContain("Why:");
     expect(text).toContain("Time:");
     expect(text).toContain("Gear/supplies:");
