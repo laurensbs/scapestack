@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
-import { ArrowRight, CheckCircle2, PlugZap, ShieldCheck } from "lucide-react";
+import { CheckCircle2, PlugZap, ShieldCheck } from "lucide-react";
 import { CopyCommand } from "@/components/copy-command";
-import { PluginBankHandoffBanner } from "@/components/plugin-bank-handoff-banner";
-import { PluginNextLink } from "@/components/plugin-next-link";
 import { PluginSyncChecker } from "@/components/plugin-sync-checker";
 import { PLUGIN_VERIFY_SYNC_HASH } from "@/lib/plugin-bank-bridge";
 import { PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
-import { cn } from "@/lib/utils";
 
 export const revalidate = 300;
 
@@ -110,17 +107,9 @@ export function pluginHeroActions(): PluginHeroAction[] {
   ];
 }
 
-export default async function PluginPage({
-  searchParams
-}: {
-  searchParams?: Promise<SearchParams>;
-}) {
-  const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
-  const pluginContext = pluginContextFromSearchParams(resolvedSearchParams);
-  const heroActions = pluginHeroActions();
-
+export default function PluginPage() {
   return (
-    <main className="relative z-10 mx-auto max-w-5xl px-5 pb-24 pt-12 sm:px-8 sm:pt-18">
+    <main className="relative z-10 mx-auto max-w-5xl px-5 pb-[28rem] pt-12 sm:px-8 sm:pt-18">
       <section className="space-y-6">
         <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">
           <PlugZap className="size-3.5" />
@@ -137,15 +126,7 @@ export default async function PluginPage({
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-3" aria-label="Scapestack Sync actions">
-          {heroActions.map((action) => (
-            <HeroActionLink key={action.id} action={action} />
-          ))}
-        </div>
-
       </section>
-
-      {pluginContext && <PluginContextBanner context={pluginContext} />}
 
       <PluginSyncChecker />
 
@@ -188,8 +169,6 @@ export default async function PluginPage({
         </div>
       </details>
 
-      <PluginBankHandoffBanner />
-
       <details className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/75 p-5 sm:p-6">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[14px] font-bold text-[var(--color-text)] marker:hidden">
           <span>Privacy and fixes</span>
@@ -215,63 +194,6 @@ export default async function PluginPage({
         </div>
       </details>
     </main>
-  );
-}
-
-function HeroActionLink({ action }: { action: PluginHeroAction }) {
-  const className = cn(
-    "inline-flex items-center gap-2 rounded-xl px-4 py-3 text-[13px] font-bold transition-all",
-    action.kind === "primary"
-      ? "bg-[var(--color-accent)] text-[var(--color-bg)] hover:brightness-110"
-      : "border border-[var(--color-border)] bg-[var(--color-bg)]/45 text-[var(--color-text)] hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
-  );
-
-  const content = (
-    <>
-      {action.label}
-      <ArrowRight className="size-4" />
-    </>
-  );
-
-  if (action.usesNextHandoff) {
-    return (
-      <PluginNextLink className={className}>
-        {content}
-      </PluginNextLink>
-    );
-  }
-
-  return (
-    <a href={action.href} className={className}>
-      {content}
-    </a>
-  );
-}
-
-function PluginContextBanner({
-  context
-}: {
-  context: NonNullable<ReturnType<typeof pluginContextFromSearchParams>>;
-}) {
-  return (
-    <section className="mt-8 rounded-2xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 p-4 sm:p-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-            Keep context
-          </div>
-          <h2 className="mt-1 text-[18px] font-bold text-[var(--color-text)]">{context.title}</h2>
-          <p className="mt-1 max-w-2xl text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">{context.body}</p>
-        </div>
-        <a
-          href={context.href}
-          className="inline-flex w-fit items-center gap-2 rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-bg)]/45 px-4 py-2.5 text-[13px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/10"
-        >
-          {context.cta}
-          <ArrowRight className="size-4" />
-        </a>
-      </div>
-    </section>
   );
 }
 

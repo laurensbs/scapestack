@@ -38,7 +38,6 @@ import { wikiSearchUrl } from "@/lib/wiki";
 import { pluginSyncHealth } from "@/lib/plugin-sync";
 import { isPluginSyncSource, pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
 import { summarizeNextPluginSync } from "@/lib/next-plugin-sync-summary";
-import { nextPluginHubCta, type NextPluginHubState } from "@/lib/next-plugin-hub-copy";
 import { toolHandoffUrl } from "@/lib/bank-tool-routes";
 import { bankOrganizerHref } from "@/lib/bank-handoff-url";
 import { shouldReadNextBankHandoff, shouldReadNextHeroBank } from "@/lib/next-route-context";
@@ -824,7 +823,7 @@ function NextIntake({
               type="text"
               value={rsn}
               onChange={(e) => setRsn(e.target.value)}
-              placeholder="e.g. Lynx Titan"
+              placeholder="Type your OSRS name"
               autoFocus
               disabled={loading}
               className="flex-1 bg-transparent outline-none px-5 py-4 sm:py-5 text-[16px] sm:text-[18px] font-mono text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] disabled:opacity-60"
@@ -840,7 +839,7 @@ function NextIntake({
                 "disabled:opacity-50 disabled:cursor-not-allowed"
               )}
             >
-              {loading ? <XpDropLoader /> : "Show me"}
+              {loading ? <XpDropLoader /> : "Plan my next move"}
               {!loading && <ArrowRight className="size-4 group-hover/btn:translate-x-0.5 transition-transform" />}
             </button>
           </div>
@@ -852,15 +851,14 @@ function NextIntake({
             {loading
               ? "Building one clear plan…"
               : rsn.trim()
-              ? "Ready: public stats are enough. Saved bank or RuneLite can help if available."
+              ? "Ready: public stats are enough. Add bank or RuneLite later."
               : fromBank
               ? "Ready: bank-only plan. Add a name for stats and KC."
               : "Enter an OSRS name to get one clear next move."}
           </p>
 
           {/* Tijdens loading verschijnt de ShuffleLoader onder de input
-              (sprite-shuffle + lore-quote). Voelt levendiger dan een
-              SourceStatus pill-rij. */}
+              zodat de speler een rustige "building one plan" state ziet. */}
           {loading && (
             <div className="border-t border-[var(--color-border)]">
               <ShuffleLoader />
@@ -947,10 +945,10 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
   const { headline, rest, summary } = result;
 
   const basisNote =
-    summary.basis === "full" ? "Based on your Hiscores and your bank."
-    : summary.basis === "hiscores-only" ? "Based on your Hiscores. Paste a bank for gear-aware advice."
-    : summary.basis === "bank-only" ? "Based on your bank. Add your OSRS name for stat-aware advice."
-    : "Add your OSRS name or a bank for tailored advice.";
+    summary.basis === "full" ? "Stats and bank are shaping this plan."
+    : summary.basis === "hiscores-only" ? "Public stats are enough. Add bank only when gear or GP changes the answer."
+    : summary.basis === "bank-only" ? "Bank is enough for a rough plan. Add your OSRS name for stats and KC."
+    : "Add your OSRS name or bank when you want a sharper plan.";
 
   // Alle recommendations voor de What-to-do track. Mood-laag herrangschikt
   // ze; "Also worth knowing" is verdwenen — niet-getoonde recs blijven
@@ -987,7 +985,6 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
         <MakePlanSmarter
           summary={summary}
           basisNote={basisNote}
-          pathData={result.pathProgress}
           bankItems={bankItems}
           activeRsn={activeRsn}
           pluginSyncState={pluginSyncState}
@@ -1023,123 +1020,9 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
   );
 }
 
-function syncAgeLabel(iso: string): string {
-  const then = new Date(iso).getTime();
-  if (!Number.isFinite(then)) return "recently";
-  const seconds = Math.max(0, Math.floor((Date.now() - then) / 1000));
-  if (seconds < 60) return "just now";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
-}
-
-function EvidenceLedger({
-  summary,
-  pathData,
-  bankItems
-}: {
-  summary: NextUpResult["summary"];
-  pathData: NextUpResult["pathProgress"];
-  bankItems: BankHandoffItem[];
-}) {
-  const plugin = pathData.syncedSources?.scapestack ?? null;
-  const pluginState = plugin ? summarizeNextPluginSync(plugin).state : null;
-  const trackerCount = [
-    pathData.syncedSources?.wom,
-    pathData.syncedSources?.temple,
-    pathData.syncedSources?.collectionLog
-  ].filter(Boolean).length;
-  const hasHiscores = summary.basis === "full" || summary.basis === "hiscores-only";
-  const hasBank = bankItems.length > 0 || summary.basis === "full" || summary.basis === "bank-only";
-  const evidence = [
-    {
-      label: "Stats",
-      value: hasHiscores ? "Used" : "Missing",
-      detail: hasHiscores ? "Combat, skills and KC shaped the pick." : "Add an OSRS name for better gates.",
-      tone: hasHiscores ? "good" : "muted"
-    },
-    {
-      label: "Bank",
-      value: hasBank ? `${bankItems.length || "Bank"} item${bankItems.length === 1 ? "" : "s"}` : "Optional",
-      detail: hasBank ? "Gear and supplies can move the route." : "Use it when gear matters.",
-      tone: hasBank ? "good" : "muted"
-    },
-    {
-      label: "RuneLite",
-      value: pluginState === "live" ? "Fresh" : pluginState === "stale" ? "Refresh" : pluginState === "outdated" ? "Update" : "Not used",
-      detail: pluginState === "live"
-        ? "Finished progress came from your latest sync."
-        : pluginState === "stale"
-        ? "Refresh before a long grind or GP spend."
-        : pluginState === "outdated"
-        ? "Update the plugin before relying on newer details."
-        : "Optional when finished progress matters.",
-      tone: pluginState === "live" ? "good" : pluginState ? "warn" : "muted"
-    },
-    {
-      label: "Public checks",
-      value: trackerCount > 0 ? `${trackerCount} linked` : "Best effort",
-      detail: trackerCount > 0 ? "Extra public checks helped." : "Still fine for a first pick.",
-      tone: trackerCount > 0 ? "good" : "muted"
-    }
-  ] as const;
-
-  return (
-    <section
-      data-testid="next-evidence-ledger"
-      className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/70 px-4 py-3"
-    >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-            What shaped this
-          </div>
-          <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-muted)]">
-            Public stats are enough. Add bank or sync only when the pick looks off.
-          </p>
-        </div>
-        <div className="grid flex-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          {evidence.map((item) => (
-            <div
-              key={item.label}
-              title={item.detail}
-              className={cn(
-                "rounded-lg border px-2.5 py-2",
-                item.tone === "good"
-                  ? "border-[var(--color-good)]/25 bg-[var(--color-good)]/10"
-                  : item.tone === "warn"
-                    ? "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10"
-                    : "border-[var(--color-border)] bg-[var(--color-bg)]/35"
-              )}
-            >
-              <div className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-                {item.label}
-              </div>
-              <div className={cn(
-                "mt-0.5 text-[11.5px] font-semibold leading-snug",
-                item.tone === "good"
-                  ? "text-[var(--color-good)]"
-                  : item.tone === "warn"
-                    ? "text-[var(--color-warning)]"
-                    : "text-[var(--color-text-dim)]"
-              )}>
-                {item.value}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function MakePlanSmarter({
   summary,
   basisNote,
-  pathData,
   bankItems,
   activeRsn,
   pluginSyncState,
@@ -1149,7 +1032,6 @@ function MakePlanSmarter({
 }: {
   summary: NextUpResult["summary"];
   basisNote: string;
-  pathData: NextUpResult["pathProgress"];
   bankItems: BankHandoffItem[];
   activeRsn: string;
   pluginSyncState: "live" | "stale" | "outdated" | null;
@@ -1194,7 +1076,7 @@ function MakePlanSmarter({
             value={pluginSyncState === "live" ? "Synced" : pluginSyncState ? "Refresh" : "Optional"}
             helper={pluginSyncState === "live"
               ? "Finished progress is included."
-              : "Skips progress you already finished."}
+              : "Use it when old quests or Slayer would change the pick."}
             tone={pluginSyncState === "live" ? "good" : pluginSyncState ? "warn" : "muted"}
           />
         </div>
@@ -1229,8 +1111,22 @@ function MakePlanSmarter({
         </div>
 
         <p className="text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">{basisNote}</p>
-
-        <EvidenceLedger summary={summary} pathData={pathData} bankItems={bankItems} />
+        {expectedPluginSync && pluginSyncState !== "live" && (
+          <div className="rounded-xl border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-4 py-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
+                Came from RuneLite but no fresh sync showed up yet. Sync again, then re-check this RSN.
+              </p>
+              <Link
+                href={syncHref}
+                className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/35 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-warning)] transition-colors hover:bg-[var(--color-warning)]/10"
+              >
+                Check sync
+                <ArrowRight className="size-3.5" />
+              </Link>
+            </div>
+          </div>
+        )}
         <NextBankContextStrip
           bankItems={bankItems}
           basis={summary.basis}
@@ -1238,7 +1134,6 @@ function MakePlanSmarter({
           pluginSyncState={pluginSyncState}
           onClearStoredBankHandoff={onClearStoredBankHandoff}
         />
-        <PluginSyncStrip pathData={pathData} expectedPluginSync={expectedPluginSync} activeRsn={activeRsn} />
       </div>
     </details>
   );
@@ -1428,190 +1323,6 @@ function NextBankContextStrip({
   );
 }
 
-function PluginSyncStrip({
-  pathData,
-  expectedPluginSync,
-  activeRsn
-}: {
-  pathData: NextUpResult["pathProgress"];
-  expectedPluginSync: boolean;
-  activeRsn: string;
-}) {
-  const plugin = pathData.syncedSources?.scapestack ?? null;
-  const [pluginHubState, setPluginHubState] = useState<NextPluginHubState>("open");
-  const hasAnyTracker =
-    Boolean(pathData.syncedSources?.wom) ||
-    Boolean(pathData.syncedSources?.temple) ||
-    Boolean(pathData.syncedSources?.collectionLog);
-  const pluginSyncHref = (() => {
-    const params = new URLSearchParams();
-    if (activeRsn.trim()) params.set("rsn", activeRsn.trim());
-    params.set("from", "next");
-    return `/plugin?${params.toString()}#verify-sync`;
-  })();
-
-  useEffect(() => {
-    if (plugin) return;
-    let active = true;
-
-    fetch("/api/plugin-hub/status")
-      .then(async (response) => response.ok ? await response.json() as {
-        state?: unknown;
-        reviewCopyIssues?: unknown;
-        pinSummary?: unknown;
-        reviewSummary?: unknown;
-      } : null)
-      .then((status) => {
-        if (!active) return;
-        const state = status?.state;
-        const reviewCopyBlocked = Array.isArray(status?.reviewCopyIssues) && status.reviewCopyIssues.length > 0;
-        const pinBlocked = typeof status?.pinSummary === "string" && status.pinSummary.includes("behind standalone repo head");
-        const reviewBlocked = typeof status?.reviewSummary === "string" && status.reviewSummary.includes("requested changes");
-        setPluginHubState(
-          reviewCopyBlocked || pinBlocked || reviewBlocked
-            ? "review-blocked"
-            : state === "merged" || state === "closed" || state === "unknown"
-            ? state
-            : "open"
-        );
-      })
-      .catch(() => {
-        if (active) setPluginHubState("unknown");
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [plugin]);
-
-  if (plugin) {
-    const pluginSummary = summarizeNextPluginSync(plugin);
-    const stale = pluginSummary.state === "stale";
-    const outdated = pluginSummary.state === "outdated";
-    return (
-      <section className={cn(
-        "rounded-xl border px-4 py-3 flex items-start justify-between gap-4",
-        outdated
-          ? "border-[var(--color-danger)]/35 bg-[var(--color-danger)]/10"
-          : stale
-          ? "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10"
-          : "border-[var(--color-good)]/30 bg-[var(--color-good)]/10"
-      )}>
-        <div className="flex items-start gap-3">
-          <span
-            className={cn(
-              "mt-0.5 size-2 rounded-full",
-              outdated
-                ? "bg-[var(--color-danger)] shadow-[0_0_14px_rgba(248,113,113,0.55)]"
-                : stale
-                ? "bg-[var(--color-warning)] shadow-[0_0_14px_rgba(245,158,11,0.55)]"
-                : "bg-[var(--color-good)] shadow-[0_0_14px_rgba(74,222,128,0.55)]"
-            )}
-            aria-hidden="true"
-          />
-          <div>
-            <div className={cn(
-              "text-[11px] uppercase tracking-[0.18em] font-bold",
-              outdated ? "text-[var(--color-danger)]" : stale ? "text-[var(--color-warning)]" : "text-[var(--color-good)]"
-            )}>
-              {pluginSummary.title}
-            </div>
-            <p className="mt-1 text-[12.5px] text-[var(--color-text-dim)] leading-relaxed">
-              {pluginSummary.body} Synced {syncAgeLabel(plugin.syncedAt)}.
-            </p>
-            <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-[var(--color-text-muted)]">
-              <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
-                {plugin.quests.toLocaleString()} quests
-              </span>
-              <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
-                {plugin.diaries.toLocaleString()} diary tiers
-              </span>
-              <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
-                {plugin.clItems.toLocaleString()} log items
-              </span>
-              <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
-                {plugin.slayerTaskRemaining !== null && plugin.slayerTaskRemaining !== undefined
-                  ? `${plugin.slayerTaskRemaining.toLocaleString()} Slayer left`
-                  : "Slayer not synced"}
-              </span>
-            </div>
-            {(stale || outdated) && (
-              <a
-                href={pluginVerifyUrlForSyncedRsn(activeRsn, "next")}
-                className={cn(
-                  "mt-2 inline-flex rounded-md border bg-[var(--color-bg)]/35 px-2 py-1 text-[11px] font-semibold transition-colors",
-                  outdated
-                    ? "border-[var(--color-danger)]/35 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10"
-                    : "border-[var(--color-warning)]/35 text-[var(--color-warning)] hover:bg-[var(--color-warning)]/10"
-                )}
-              >
-                {outdated ? "Open update steps →" : "Open refresh steps →"}
-              </a>
-            )}
-          </div>
-        </div>
-        {plugin.pluginVersion && (
-          <div className="shrink-0 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[10.5px] font-semibold text-[var(--color-text-muted)]">
-            v{plugin.pluginVersion}
-          </div>
-        )}
-      </section>
-    );
-  }
-
-  if (expectedPluginSync) {
-    return (
-      <section className="rounded-xl border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 px-4 py-3 flex items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <span
-            className="mt-0.5 size-2 rounded-full bg-[var(--color-warning)] shadow-[0_0_14px_rgba(245,158,11,0.55)]"
-            aria-hidden="true"
-          />
-          <div>
-            <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-warning)]">
-              RuneLite sync not found for this run
-            </div>
-            <p className="mt-1 text-[12.5px] text-[var(--color-text-dim)] leading-relaxed">
-              You came from the plugin checker, but /next did not find this RSN yet. Re-check the spelling or sync again from RuneLite.
-            </p>
-          </div>
-        </div>
-        <a
-          href={pluginVerifyUrlForSyncedRsn(activeRsn, "next")}
-          className="shrink-0 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/35 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-warning)] hover:bg-[var(--color-warning)]/10 transition-colors"
-        >
-          Re-check sync →
-        </a>
-      </section>
-    );
-  }
-
-  const pluginHubCta = nextPluginHubCta(pluginHubState, hasAnyTracker);
-  const pluginHubHref = pluginSyncHref || pluginVerifyUrlForSyncedRsn(activeRsn, "next");
-
-  return (
-    <section className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/70 px-4 py-3 flex items-start justify-between gap-4">
-      <div className="flex items-start gap-3">
-        <Sparkles className="mt-0.5 size-4 text-[var(--color-accent)] shrink-0" />
-        <div>
-          <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
-            {pluginHubCta.title}
-          </div>
-          <p className="mt-1 text-[12.5px] text-[var(--color-text-dim)] leading-relaxed">
-            {pluginHubCta.body}
-          </p>
-        </div>
-      </div>
-      <a
-        href={pluginHubHref}
-        className="shrink-0 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-colors"
-      >
-        {pluginHubCta.cta}
-      </a>
-    </section>
-  );
-}
-
 // ── HeroStrip ──────────────────────────────────────────────────────────
 // Eén compact account-identity strip. Bewust géén big hero — dat
 // gevecht om aandacht voert "What to do" hieronder.
@@ -1731,12 +1442,6 @@ function KcPortrait({ rec, size, prominent = false }: {
   );
 }
 
-function confidenceTone(confidence: NonNullable<Recommendation["actionPlan"]>["confidence"]): string {
-  if (confidence === "exact") return "border-[var(--color-good)]/40 bg-[var(--color-good)]/10 text-[var(--color-good)]";
-  if (confidence === "likely") return "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[var(--color-accent)]";
-  return "border-[var(--color-border)] bg-[var(--color-bg-2)] text-[var(--color-text-dim)]";
-}
-
 function playerChoiceTag(rec: Recommendation): { label: string; helper: string } {
   if (rec.kind === "money") return { label: "GP", helper: "Pick this when you want money first." };
   if (rec.kind === "boss" || rec.kind === "kc") return { label: "Bossing", helper: "Pick this when you want a PvM trip." };
@@ -1754,9 +1459,10 @@ function recommendationNeeds(rec: Recommendation): string[] {
 function RecommendationQuickFacts({ rec, compact = false }: { rec: Recommendation; compact?: boolean }) {
   const plan = rec.actionPlan;
   const needs = recommendationNeeds(rec);
+  const stopPoint = plan?.steps.at(-1) ?? "Stop when the trip starts dragging.";
   const facts = [
     { label: "Time", value: plan?.timebox ?? "Short test run" },
-    { label: "Type", value: KIND_META[rec.kind]?.label ?? "OSRS task" },
+    { label: "Stop", value: stopPoint },
     { label: "Bring", value: needs[0] ?? "Nothing special flagged" }
   ];
 
@@ -1807,15 +1513,6 @@ function ActionPlanBlock({ rec, compact = false }: { rec: Recommendation; compac
           <span className="text-[var(--color-accent)]">Plan</span>
           <span className="text-[var(--color-text-muted)]">·</span>
           <span>{plan.timebox}</span>
-          <span
-            className={cn(
-              "rounded-full border px-1.5 py-0.5 text-[9.5px] font-semibold normal-case tracking-normal",
-              confidenceTone(plan.confidence)
-            )}
-            title={plan.caveat || "Recommendation confidence"}
-          >
-            {plan.confidenceLabel}
-          </span>
         </div>
         <ul className="space-y-1 text-[11px] leading-snug text-[var(--color-text-dim)]">
           {plan.steps.slice(0, 2).map((step, idx) => (
@@ -1839,9 +1536,6 @@ function ActionPlanBlock({ rec, compact = false }: { rec: Recommendation; compac
           <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-panel)] px-2 py-0.5 text-[10.5px] font-semibold text-[var(--color-text-dim)]">
             {plan.timebox}
           </span>
-          <span className={cn("rounded-full border px-2 py-0.5 text-[10.5px] font-semibold", confidenceTone(plan.confidence))}>
-            {plan.confidenceLabel}
-          </span>
         </div>
       </div>
       <p className="text-[12px] leading-relaxed text-[var(--color-text-secondary)]">{plan.prep}</p>
@@ -1860,50 +1554,6 @@ function ActionPlanBlock({ rec, compact = false }: { rec: Recommendation; compac
           {plan.caveat}
         </p>
       )}
-    </div>
-  );
-}
-
-function RecommendationConfidenceLegend() {
-  const items: Array<{
-    confidence: NonNullable<Recommendation["actionPlan"]>["confidence"];
-    label: string;
-    helper: string;
-  }> = [
-    {
-      confidence: "exact",
-      label: "Synced",
-      helper: "RuneLite confirms this progress."
-    },
-    {
-      confidence: "likely",
-      label: "Likely",
-      helper: "Uses public stats and any saved bank."
-    },
-    {
-      confidence: "guided",
-      label: "Best guess",
-      helper: "Some finished progress may be unknown."
-    }
-  ];
-
-  return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]/35 p-3">
-      <div className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2">
-        How sure is it?
-      </div>
-      <div className="space-y-2">
-        {items.map((item) => (
-          <div key={item.confidence} className="flex items-start gap-2">
-            <span className={cn("mt-0.5 shrink-0 rounded-full border px-1.5 py-0.5 text-[9.5px] font-semibold", confidenceTone(item.confidence))}>
-              {item.label}
-            </span>
-            <span className="text-[10.5px] leading-snug text-[var(--color-text-muted)]">
-              {item.helper}
-            </span>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
@@ -1964,7 +1614,7 @@ function HeadlineCard({
         </div>
         <div className="flex-1 min-w-0">
           <div className="mb-1 flex flex-wrap items-center gap-2">
-            <span className="eyebrow text-[var(--color-accent)]">Best move now</span>
+            <span className="eyebrow text-[var(--color-accent)]">Do this first</span>
             <span
               className="rounded-full border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-2 py-0.5 text-[10.5px] font-bold text-[var(--color-accent)]"
               title={choice.helper}
@@ -2351,13 +2001,13 @@ function WhatToDo({
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-            Tonight&apos;s plan
+            What to do now
           </div>
           <h2 className="mt-1 text-[26px] font-bold tracking-tight text-[var(--color-text)]">
-            Do this first.
+            Do this first
           </h2>
           <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-dim)]">
-            One best move for this account, plus two backups if you want a different kind of session.
+            One best move for this account. Two backups if you want a different kind of session.
           </p>
         </div>
 
@@ -2375,7 +2025,7 @@ function WhatToDo({
               type="button"
               onClick={() => setShuffleIdx((i) => i + 1)}
               className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/65 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)]"
-              title="Show me something else"
+              title="Try another plan"
             >
               <Dices className="size-3.5" />
               Try another
@@ -2488,7 +2138,7 @@ function WhatToDo({
             Tune
           </span>
         </summary>
-        <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_260px]">
+        <div className="mt-4 space-y-4">
           <div className="space-y-4">
             <div>
               <div className="mb-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
@@ -2572,7 +2222,6 @@ function WhatToDo({
               </button>
             )}
           </div>
-          <RecommendationConfidenceLegend />
         </div>
       </details>
     </section>
@@ -2769,66 +2418,6 @@ function Metric({ label, value, suffix, sub, animate }: {
     </div>
   );
 }
-
-// ── SourceStatus ───────────────────────────────────────────────────────────
-// Tijdens intake-loading: toont welke databronnen we aan het bevragen
-// zijn. We weten niet *precies* wanneer elke parallel-call resolve't —
-// time-based reveal die de werkelijke gemiddelde latency benadert.
-// Pill naar ✓ = "we hebben deze al gehad of zijn er bijna." Niet exact
-// maar dichter bij de waarheid dan een lege loading-balk.
-
-const SOURCE_TIMINGS: Array<{ key: string; label: string; delay: number }> = [
-  { key: "plugin",   label: "Plugin",         delay:  200 },
-  { key: "hiscores", label: "Hiscores",       delay:  500 },
-  { key: "cl",       label: "Collection log", delay:  900 },
-  { key: "wom",      label: "Wise Old Man",   delay: 1100 },
-  { key: "temple",   label: "Temple",         delay: 1400 },
-];
-
-function SourceStatus() {
-  const [done, setDone] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    const timers = SOURCE_TIMINGS.map((s) =>
-      setTimeout(() => {
-        setDone((prev) => new Set(prev).add(s.key));
-      }, s.delay)
-    );
-    return () => timers.forEach((t) => clearTimeout(t));
-  }, []);
-
-  return (
-    <div className="border-t border-[var(--color-border)] px-4 py-3 animate-[fade-in_0.2s_ease-out]">
-      <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2">
-        Reading
-      </div>
-      <div className="flex flex-wrap gap-1.5">
-        {SOURCE_TIMINGS.map((s) => {
-          const isDone = done.has(s.key);
-          return (
-            <span
-              key={s.key}
-              className={cn(
-                "inline-flex items-center gap-1.5 px-2 py-1 rounded text-[11px] transition-all duration-300",
-                isDone
-                  ? "bg-[var(--color-good)]/10 text-[var(--color-good)] border border-[var(--color-good)]/30"
-                  : "bg-[var(--color-bg-2)] text-[var(--color-text-muted)] border border-[var(--color-border)]"
-              )}
-            >
-              {isDone ? (
-                <span className="inline-block size-1.5 rounded-full bg-[var(--color-good)]" />
-              ) : (
-                <span className="inline-block size-1.5 rounded-full bg-[var(--color-text-muted)] animate-pulse" />
-              )}
-              {s.label}
-            </span>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 
 // ── RecHeadlineExpandable + RecRowExpandable ───────────────────────────────
 // Wrappers rond HeadlineCard / RecRow die een details-paneel toevoegen.

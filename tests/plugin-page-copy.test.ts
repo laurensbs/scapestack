@@ -112,11 +112,10 @@ describe("plugin page copy constants", () => {
     expect(checkerSource).not.toContain("if this finds your RSN, /next can use exact account state");
     expect(diagnosticsSource).not.toContain("Scapestack Sync enabled.");
     expect(diagnosticsSource).toContain("Enable “Auto-sync on login”");
-    expect(checkerSource).toContain("Sync helps /next avoid finished quests");
-    expect(checkerSource).toContain("wrong Slayer calls");
+    expect(checkerSource).toContain("Sync helps /next skip stuff you already finished.");
     expect(checkerSource).toContain("Sync found for {foundDisplayName}");
     expect(checkerSource).toContain("Open /next for one plan that skips finished quests");
-    expect(checkerSource).toContain("Slayer task included");
+    expect(checkerSource).toContain("Slayer task ready");
     expect(checkerSource).not.toContain("Sync details");
     expect(checkerSource).not.toContain("/next sync signals");
     expect(checkerSource).not.toContain("Session action queue");
@@ -141,9 +140,11 @@ describe("plugin page copy constants", () => {
     expect(checkerSource).not.toContain("Manual sync proof fallback for");
   });
 
-  it("keeps bank handoff privacy explicit on the plugin bridge", () => {
+  it("keeps the plugin page from rendering bank handoff UI", () => {
+    const pageSource = readFileSync(join(process.cwd(), "src/app/plugin/page.tsx"), "utf8");
     const bannerSource = readFileSync(join(process.cwd(), "src/components/plugin-bank-handoff-banner.tsx"), "utf8");
 
+    expect(pageSource).not.toContain("PluginBankHandoffBanner");
     expect(bannerSource).toContain("clearBankHandoffPayload(window)");
     expect(bannerSource).toContain("Clear bank");
     expect(bannerSource).toContain("Bank loaded");

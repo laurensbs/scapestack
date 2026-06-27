@@ -5,22 +5,14 @@ import { describe, expect, it } from "vitest";
 const source = readFileSync(join(process.cwd(), "src/app/next/next-client.tsx"), "utf8");
 
 describe("/next confidence UI copy", () => {
-  it("shows confidence labels inside compact recommendation rows", () => {
+  it("keeps internal confidence labels out of recommendation cards", () => {
     expect(source).toContain("function ActionPlanBlock");
     expect(source).toContain("compact = false");
-    expect(source).toContain("normal-case tracking-normal");
-    expect(source).toContain("{plan.confidenceLabel}");
-    expect(source).toContain("title={plan.caveat || \"Recommendation confidence\"}");
-  });
-
-  it("explains exact, likely and guided recommendation confidence", () => {
-    expect(source).toContain("function RecommendationConfidenceLegend");
-    expect(source).toContain("How sure is it?");
-    expect(source).toContain('label: "Synced"');
-    expect(source).toContain("RuneLite confirms this progress.");
+    expect(source).not.toContain("{plan.confidenceLabel}");
+    expect(source).not.toContain("Recommendation confidence");
+    expect(source).not.toContain("function RecommendationConfidenceLegend");
+    expect(source).not.toContain("How sure is it?");
     expect(source).not.toContain("Verified RuneLite payload");
-    expect(source).toContain("Uses public stats and any saved bank.");
-    expect(source).toContain("Some finished progress may be unknown.");
   });
 
   it("makes compact recommendation rows visibly and accessibly clickable", () => {
@@ -41,14 +33,13 @@ describe("/next confidence UI copy", () => {
   });
 
   it("keeps missing plugin sync copy on the sync-checker path", () => {
-    expect(source).toContain("nextPluginHubCta(pluginHubState, hasAnyTracker)");
-    expect(source).toContain('fetch("/api/plugin-hub/status")');
-    expect(source).toContain("reviewCopyBlocked || pinBlocked || reviewBlocked");
-    expect(source).toContain('? "review-blocked"');
-    expect(source).toContain("pluginSyncHref");
-    expect(source).toContain("#verify-sync");
+    expect(source).not.toContain("nextPluginHubCta(pluginHubState, hasAnyTracker)");
+    expect(source).not.toContain('fetch("/api/plugin-hub/status")');
+    expect(source).not.toContain("reviewCopyBlocked || pinBlocked || reviewBlocked");
+    expect(source).not.toContain('? "review-blocked"');
+    expect(source).toContain("pluginVerifyUrlForSyncedRsn");
     expect(source).not.toContain("#review-readiness");
-    expect(source).toContain("{pluginHubCta.cta}");
+    expect(source).toContain("Came from RuneLite but no fresh sync showed up yet.");
   });
 
   it("keeps missing context out of the recommendation card chrome", () => {
@@ -80,8 +71,9 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('label: "Unlock"');
     expect(source).toContain("function RecommendationQuickFacts");
     expect(source).toContain("function RecommendationFirstStep");
-    expect(source).toContain("Best move now");
+    expect(source).toContain("Do this first");
     expect(source).toContain("Start:");
+    expect(source).toContain('label: "Stop"');
     expect(source).toContain("Bring");
     expect(source).toContain("recommendationNeeds(rec)");
     expect(source).not.toContain("function RecommendationDecisionSpec");
@@ -103,26 +95,26 @@ describe("/next confidence UI copy", () => {
 
   it("keeps plan inputs inside the optional make-smarter section", () => {
     expect(source).toContain("function MakePlanSmarter");
-    expect(source).toContain("function EvidenceLedger");
-    expect(source).toContain('data-testid="next-evidence-ledger"');
+    expect(source).not.toContain("function EvidenceLedger");
+    expect(source).not.toContain('data-testid="next-evidence-ledger"');
     expect(source).toContain("Add context");
     expect(source).toContain("Optional: add gear or finished-progress checks when the pick looks off.");
-    expect(source).toContain("What shaped this");
+    expect(source).not.toContain("What shaped this");
     expect(source).toContain("Add bank");
     expect(source).toContain("RuneLite later");
     expect(source).not.toContain("Used for this route");
-    expect(source).toContain('label: "Stats"');
-    expect(source).toContain('label: "Bank"');
-    expect(source).toContain('label: "RuneLite"');
-    expect(source).toContain('label: "Public checks"');
-    expect(source).toContain("<EvidenceLedger summary={summary} pathData={pathData} bankItems={bankItems} />");
-    expect(source).toContain("Optional when finished progress matters.");
+    expect(source).toContain('label="OSRS name"');
+    expect(source).toContain('label="Bank"');
+    expect(source).toContain('label="RuneLite"');
+    expect(source).not.toContain('label: "Public checks"');
+    expect(source).not.toContain("<EvidenceLedger summary={summary} pathData={pathData} bankItems={bankItems} />");
+    expect(source).toContain("Use it when old quests or Slayer would change the pick.");
   });
 
   it("starts the result page with one plan instead of setup panels", () => {
-    expect(source).toContain("Tonight&apos;s plan");
-    expect(source).toContain("Do this first.");
-    expect(source).toContain("One best move for this account");
+    expect(source).toContain("What to do now");
+    expect(source).toContain("Do this first");
+    expect(source).toContain("One best move for this account. Two backups");
     expect(source).toContain("Backups");
     expect(source).toContain("Change vibe or time");
     expect(source).toContain("Progress details");
@@ -167,11 +159,11 @@ describe("/next confidence UI copy", () => {
   });
 
   it("keeps RuneLite and bank context inside optional context", () => {
-    expect(source).toContain("function PluginSyncStrip");
-    expect(source).toContain("{plugin.quests.toLocaleString()} quests");
-    expect(source).toContain("{plugin.diaries.toLocaleString()} diary tiers");
-    expect(source).toContain("{plugin.clItems.toLocaleString()} log items");
-    expect(source).toContain("Slayer not synced");
+    expect(source).not.toContain("function PluginSyncStrip");
+    expect(source).not.toContain("{plugin.quests.toLocaleString()} quests");
+    expect(source).not.toContain("{plugin.diaries.toLocaleString()} diary tiers");
+    expect(source).not.toContain("{plugin.clItems.toLocaleString()} log items");
+    expect(source).not.toContain("Slayer not synced");
     expect(source).not.toContain("Account progress");
     expect(source).not.toContain("RuneLite sync included quests, diaries, collection log and Slayer for this RSN.");
     expect(source).not.toContain("Bank context");
@@ -247,6 +239,8 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("let heroBankItems = [] as BankHandoffItem[];");
     expect(source).toContain("heroBankItems = readBankHandoffPayload(window);");
     expect(source).toContain("run({ rsn: heroRsn.trim(), input: heroBank, bankItems: heroBankItems });");
+    expect(source).toContain('placeholder="Type your OSRS name"');
+    expect(source).toContain("Plan my next move");
   });
 
   it("lets bank-handoff players run /next without typing an RSN", () => {
@@ -254,7 +248,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Plan with this bank");
     expect(source).toContain("onClick={() => onRun({ bankItems: fromBank.items })}");
     expect(source).toContain("disabled={loading}");
-    expect(source).toContain("Add your OSRS name for stat-aware");
+    expect(source).toContain("Add your OSRS name for stats and KC.");
   });
 
   it("explains why the /next submit CTA is disabled", () => {

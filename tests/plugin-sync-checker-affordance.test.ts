@@ -43,10 +43,10 @@ describe("plugin sync checker affordance", () => {
 
   it("shows only the sync status chips players need", () => {
     expect(source).toContain("Synced {syncAgeLabel(state.player.syncedAt)}");
-    expect(source).toContain("{state.player.questsCompleted.length} quests");
-    expect(source).toContain("{state.player.diariesCompleted.length} diary tiers");
-    expect(source).toContain("{state.player.collectionLogItemIds.length.toLocaleString()} log items");
-    expect(source).toContain("Slayer task included");
+    expect(source).not.toContain("{state.player.questsCompleted.length} quests");
+    expect(source).not.toContain("{state.player.diariesCompleted.length} diary tiers");
+    expect(source).not.toContain("{state.player.collectionLogItemIds.length.toLocaleString()} log items");
+    expect(source).toContain("Slayer task ready");
     expect(source).not.toContain('data-testid="plugin-sync-receipt"');
     expect(source).not.toContain("RuneLite sync receipt");
     expect(source).not.toContain("Add bank context");

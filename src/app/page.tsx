@@ -144,6 +144,11 @@ function HeroProductPreview() {
             label="Backup"
             value="Push Farming to 99 if you want chill progress."
           />
+          <PreviewRow
+            icon={<CheckCircle2 className="size-4" />}
+            label="Stop point"
+            value="Stop after one trip or 10 KC."
+          />
           <div className="mt-2 rounded-xl border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-3 py-2">
             <div className="flex items-center gap-2 text-[12.5px] font-bold text-[var(--color-good)]">
               <CheckCircle2 className="size-4" />

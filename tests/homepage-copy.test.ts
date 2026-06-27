@@ -27,6 +27,8 @@ describe("homepage first-impression copy", () => {
     expect(source).toContain('label="First step"');
     expect(source).toContain('value="Check gear, then do one short trip."');
     expect(source).toContain('label="Backup"');
+    expect(source).toContain('label="Stop point"');
+    expect(source).toContain('value="Stop after one trip or 10 KC."');
     expect(source).toContain("Backup");
     expect(source).toContain("Done");
     expect(source).not.toContain("Item ID 28307");

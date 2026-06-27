@@ -166,7 +166,7 @@ export function PluginSyncChecker() {
   };
 
   return (
-    <section id={PLUGIN_VERIFY_SYNC_HASH} className="mt-6 scroll-mt-24 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/75 p-5 sm:p-6">
+    <section id={PLUGIN_VERIFY_SYNC_HASH} className="mt-6 scroll-mt-16 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/75 p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
@@ -205,7 +205,7 @@ export function PluginSyncChecker() {
             setRsn(event.target.value);
             setPrefillSource(null);
           }}
-          placeholder="e.g. Lynx Titan"
+          placeholder="Type your OSRS name"
           maxLength={12}
           autoComplete="off"
           spellCheck={false}
@@ -245,7 +245,7 @@ export function PluginSyncChecker() {
       <div className="mt-4">
         {state.kind === "idle" && (
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-4 py-3 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-            Sync helps /next avoid finished quests, done diaries, logged items and wrong Slayer calls.
+            Sync helps /next skip stuff you already finished.
           </div>
         )}
 
@@ -326,24 +326,15 @@ export function PluginSyncChecker() {
                   Sync found for {foundDisplayName}
                 </div>
                 <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                  Open /next for one plan that skips finished quests, diary tiers, log slots and bad Slayer calls.
+                  Open /next for one plan that skips finished quests, diary steps, log slots and wrong Slayer calls.
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-[var(--color-text-muted)]">
                   <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
                     Synced {syncAgeLabel(state.player.syncedAt)}
                   </span>
-                  <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
-                    {state.player.questsCompleted.length} quests
-                  </span>
-                  <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
-                    {state.player.diariesCompleted.length} diary tiers
-                  </span>
-                  <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
-                    {state.player.collectionLogItemIds.length.toLocaleString()} log items
-                  </span>
                   {state.player.slayer && (
                     <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
-                      Slayer task included
+                      Slayer task ready
                     </span>
                   )}
                 </div>

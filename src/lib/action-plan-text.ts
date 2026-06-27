@@ -39,7 +39,7 @@ export function formatRecommendationActionPlan(
     actionHref,
     plan.caveat ? "" : null,
     plan.caveat ? `Watch out: ${plan.caveat}` : null,
-    dataAction ? `Add context later: ${dataAction.label} — ${dataAction.helper}` : null,
+    dataAction ? `Optional: ${dataAction.label} — ${dataAction.helper}` : null,
     dataActionHref
   ].filter((line): line is string => line !== null);
 
