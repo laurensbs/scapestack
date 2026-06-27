@@ -2,42 +2,45 @@ import { describe, expect, it } from "vitest";
 import { nextPluginHubCta } from "@/lib/next-plugin-hub-copy";
 
 describe("next plugin hub CTA copy", () => {
-  it("does not advertise Plugin Hub install while review is pending", () => {
+  it("routes open state to the Scapestack Sync checker instead of review tracking", () => {
     const cta = nextPluginHubCta("open", false);
 
-    expect(cta.title).toBe("RuneLite sync pending review");
-    expect(cta.body).toContain("Plugin Hub review is still pending");
-    expect(cta.body).toContain("normal players can keep planning");
-    expect(cta.cta).toBe("Track plugin review →");
+    expect(cta.title).toBe("Check Scapestack Sync");
+    expect(cta.body).toContain("Verify Scapestack Sync");
+    expect(cta.body).toContain("account-aware next actions");
+    expect(cta.cta).toBe("Check sync →");
+    expect(cta.body).not.toContain("Plugin Hub review");
+    expect(cta.cta).not.toContain("review");
   });
 
   it("acknowledges external tracker help without claiming exact plugin sync", () => {
     const cta = nextPluginHubCta("open", true);
 
     expect(cta.body).toContain("External trackers helped");
-    expect(cta.body).toContain("verified RuneLite coverage labels");
-    expect(cta.body).toContain("local setup only");
+    expect(cta.body).toContain("verified Scapestack Sync payload");
     expect(cta.body).not.toContain("exact in-client");
     expect(cta.body).not.toContain("exact plugin sync");
   });
 
-  it("turns review blockers into a maintainer checklist instead of player install", () => {
-    const cta = nextPluginHubCta("review-blocked", false);
-
-    expect(cta.title).toBe("RuneLite sync review handoff blocked");
-    expect(cta.body).toContain("Plugin Hub review is blocked");
-    expect(cta.body).toContain("normal players should keep using web recommendations");
-    expect(cta.body).toContain("reviewer checklist");
-    expect(cta.cta).toBe("Open review checklist →");
+  it("turns blocked, closed and unknown states into the same sync-check path", () => {
+    for (const state of ["review-blocked", "closed", "unknown"] as const) {
+      const cta = nextPluginHubCta(state, false);
+      expect(cta.title).toBe("Check Scapestack Sync");
+      expect(cta.body).toContain("Open the sync checker");
+      expect(cta.body).toContain("quests, diaries, collection-log items and Slayer state");
+      expect(cta.cta).toBe("Check sync →");
+      expect(cta.body).not.toContain("reviewer checklist");
+      expect(cta.body).not.toContain("Plugin Hub PR");
+    }
   });
 
-  it("keeps tracker-assisted runs useful while review handoff is blocked", () => {
+  it("keeps tracker-assisted blocked runs useful without review handoff copy", () => {
     const cta = nextPluginHubCta("review-blocked", true);
 
     expect(cta.body).toContain("External trackers helped");
-    expect(cta.body).toContain("needs reviewer-facing fixes");
-    expect(cta.body).toContain("Keep planning with public data and bank context");
-    expect(cta.body).not.toContain("installable");
+    expect(cta.body).toContain("confirm RuneLite posts to scapestack.org");
+    expect(cta.body).toContain("verify this same RSN");
+    expect(cta.body).not.toContain("reviewer-facing fixes");
   });
 
   it("switches to install-and-verify copy after Plugin Hub merge", () => {
@@ -56,23 +59,5 @@ describe("next plugin hub CTA copy", () => {
     expect(cta.body).toContain("After RuneLite posts a verified payload");
     expect(cta.body).toContain("/next can label quest, diary, collection-log and Slayer coverage as verified, partial or missing");
     expect(cta.body).not.toContain("/next can mark quest, diary, collection-log and Slayer state exact");
-  });
-
-  it("handles a closed submission without sending players to a fake install", () => {
-    const cta = nextPluginHubCta("closed", true);
-
-    expect(cta.title).toBe("RuneLite sync submission paused");
-    expect(cta.body).toContain("closed right now");
-    expect(cta.cta).toBe("Open plugin status →");
-  });
-
-  it("does not invent a pending review state when GitHub status is unavailable", () => {
-    const cta = nextPluginHubCta("unknown", true);
-
-    expect(cta.title).toBe("RuneLite sync status unavailable");
-    expect(cta.body).toContain("cannot prove the Plugin Hub state");
-    expect(cta.body).toContain("verify RuneLite sync status from the plugin page");
-    expect(cta.body).not.toContain("review is still pending");
-    expect(cta.cta).toBe("Open plugin status →");
   });
 });

@@ -84,7 +84,7 @@ export interface Recommendation {
   iconItemId?: number;
   /** Executable next-session plan. This is deliberately generic enough to
    *  render on every rec kind, but concrete enough that /next feels like an
-   *  OSRS copilot instead of a list of vague tips. */
+   *  OSRS decision engine instead of a list of vague tips. */
   actionPlan?: RecommendationActionPlan;
   /** Internal engine seed for data-specific plans. Stripped after enrichment
    *  so the UI only sees the normalized actionPlan shape. */

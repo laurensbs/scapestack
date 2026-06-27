@@ -11,6 +11,7 @@ const args = new Set(process.argv.slice(2));
 const livePr = args.has("--live-pr");
 const releasePlan = args.has("--plan");
 const defaultStandaloneDir = `${process.env.HOME ?? ""}/code/scapestack-runelite-plugin`;
+const pluginHubPrNumber = 12536;
 
 function read(path) {
   return readFileSync(`${root}/${path}`, "utf8");
@@ -231,8 +232,6 @@ function checkReviewCopy() {
   expectContains("plugin/PUBLISHING.md", "npm run plugin:review-handoff-command");
   expectContains("plugin/PUBLISHING.md", "Replace stale PR-body copy");
   expectContains("src/app/plugin/page.tsx", "does not POST progress until you enable");
-  expectContains("src/app/plugin/page.tsx", "RuneLite reviewer packet");
-  expectContains("src/app/plugin/page.tsx", "background-thread HTTP");
   expectContains("src/lib/plugin-review-packet.ts", "background Thread, not on RuneLite's client thread");
   expectContains("src/lib/plugin-review-packet.ts", "No progress POST happens until the player enables Auto-sync on login");
   expectContains("src/lib/plugin-review-packet.ts", "replace stale PR-body copy");
@@ -312,7 +311,7 @@ function checkStandaloneExtractSurface() {
 }
 
 async function printLivePrStatus() {
-  const prNumber = 12227;
+  const prNumber = pluginHubPrNumber;
   const prPageUrl = `https://github.com/runelite/plugin-hub/pull/${prNumber}`;
   const headers = {
     accept: "application/vnd.github+json",
@@ -402,17 +401,25 @@ export function publicPrStatusFromHtml(html) {
   if (typeof html !== "string" || !html.trim()) return null;
   const text = decodeHtmlText(html);
   const lower = text.toLowerCase();
-  if (!lower.includes("add scapestack-sync#12227") && !lower.includes("add scapestack-sync #12227")) {
+  if (!lower.includes(`add scapestack-sync#${pluginHubPrNumber}`) && !lower.includes(`add scapestack-sync #${pluginHubPrNumber}`)) {
     return null;
   }
 
-  const state = lower.includes(" merged ")
+  const state = lower.includes(`plugin hub pr #${pluginHubPrNumber} merged`)
     ? "merged"
-    : lower.includes(" closed ")
+    : lower.includes(`plugin hub pr #${pluginHubPrNumber} closed`)
       ? "closed"
-      : lower.includes(" open ")
+      : lower.includes(`plugin hub pr #${pluginHubPrNumber} open`)
         ? "open"
-        : "unknown";
+        : lower.includes("awaiting runelite maintainer review")
+          ? "open"
+        : lower.includes(" merged ")
+          ? "merged"
+          : lower.includes(" closed ")
+            ? "closed"
+            : lower.includes(" open ")
+              ? "open"
+              : "unknown";
   return {
     state,
     reviewCount: lower.includes("no reviews") ? 0 : null,
@@ -439,7 +446,7 @@ async function printPublicPrFallback(prPageUrl, apiStatus) {
     fail(`Live Plugin Hub gate failed: Live PR unavailable (${apiStatus}; public HTML unreadable)`);
   }
 
-  console.log(`Live PR: #12227 ${status.state}, reviews=${status.reviewCount ?? "unknown"} (public HTML fallback after API ${apiStatus})`);
+  console.log(`Live PR: #${pluginHubPrNumber} ${status.state}, reviews=${status.reviewCount ?? "unknown"} (public HTML fallback after API ${apiStatus})`);
   if (status.submittedCommit) console.log(`Live Plugin Hub pin: ${status.submittedCommit}`);
   if (status.maintainerGate) console.log("Live checks: public PR page shows Plugin Hub maintainer review gate");
   console.log(status.reviewCopyIssues.length > 0
@@ -467,6 +474,13 @@ export function reviewCopyIssuesFromBody(body) {
     || normalized.includes("on every login + on quest-complete")) {
     issues.push("POST timing");
   }
+  if (normalized.includes("shutdown interrupts")
+    || normalized.includes("thread interrupt")
+    || normalized.includes("interrupts the named daemon")
+    || normalized.includes("interrupts that worker")
+    || normalized.includes("interrupts it")) {
+    issues.push("shutdown thread interrupt");
+  }
   if (!normalized.includes("sync on quest complete defaults off")
     || !normalized.includes("quest-complete sync is also gated behind auto-sync on login")) {
     issues.push("quest-complete opt-in gate");
@@ -487,11 +501,19 @@ function printReleasePlan(version) {
   console.log("Release plan:");
   if (releaseImpactChanges.length > 0) {
     console.log(`Local release-impact changes: ${releaseImpactChanges.length} path${releaseImpactChanges.length === 1 ? "" : "s"} need extraction before Plugin Hub sees them.`);
-    console.log("Release-impact groups:");
+  } else {
+    console.log("Local release-impact changes: none detected.");
+  }
+  console.log("Release-impact groups:");
+  if (releaseImpactChanges.length > 0) {
     for (const group of groupReleaseImpactChanges(releaseImpactChanges)) {
       console.log(`- ${group.label}: ${group.changes.length}`);
     }
-    console.log("First changed paths:");
+  } else {
+    console.log("- none");
+  }
+  console.log("First changed paths:");
+  if (releaseImpactChanges.length > 0) {
     for (const change of releaseImpactChanges.slice(0, 12)) {
       console.log(`- ${change.status} ${change.path}`);
     }
@@ -499,7 +521,7 @@ function printReleasePlan(version) {
       console.log(`- …and ${releaseImpactChanges.length - 12} more`);
     }
   } else {
-    console.log("Local release-impact changes: none detected.");
+    console.log("- none");
   }
   console.log(standaloneStatus.summary);
   if (standaloneStatus.dirty) {

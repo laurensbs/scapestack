@@ -1,4 +1,4 @@
-import { LOCAL_SYNC_URL } from "@/lib/plugin-sync-actions";
+import { PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
 import type { ScapestackPluginHubState } from "@/lib/scapestack-readiness";
 
 export interface PluginOnboardingAction {
@@ -58,27 +58,27 @@ export const BANK_PLUGIN_ONBOARDING = {
       state: "verify"
     },
     {
-      label: "Pending review",
-      title: "Public RuneLite install",
-      body: "Only call Scapestack Sync publicly installable after the Plugin Hub PR is merged and the stale PR body copy is replaced.",
+      label: "Sync check",
+      title: "Scapestack Sync check",
+      body: "Open /plugin when you want to verify the same RSN from RuneLite before trusting quest, diary, CL and Slayer coverage.",
       state: "pending"
     }
   ] satisfies PluginOnboardingReadinessStep[],
   actions: [
     {
-      label: "Use web recommendations",
-      href: "/next?from=bank&bank=none",
+      label: "Check Scapestack Sync",
+      href: "/plugin?from=bank#verify-sync",
       tone: "primary"
     },
     {
-      label: "Tester RuneLite setup",
-      href: "/plugin?from=bank#developer-install",
+      label: "Use web recommendations",
+      href: "/next?from=bank&bank=none",
       tone: "secondary"
     }
   ] satisfies PluginOnboardingAction[],
   copy: {
     label: "Copy sync URL",
-    value: LOCAL_SYNC_URL
+    value: PUBLIC_SYNC_URL
   } satisfies PluginOnboardingCopy,
   signals: [
     "Verified quest completion",
@@ -107,18 +107,7 @@ export function bankPluginOnboardingActions(
   }
 
   if (state === "review-blocked") {
-    return [
-      {
-        label: "Use web recommendations",
-        href: "/next?from=bank&bank=none",
-        tone: "primary"
-      },
-      {
-        label: "Open review checklist",
-        href: "/plugin?from=bank#review-readiness",
-        tone: "secondary"
-      }
-    ];
+    return BANK_PLUGIN_ONBOARDING.actions;
   }
 
   if (state === "pending") {
@@ -132,8 +121,8 @@ export function bankPluginOnboardingActions(
       tone: "primary"
     },
     {
-      label: "Check plugin status",
-      href: "/plugin?from=bank#review-readiness",
+      label: "Check Scapestack Sync",
+      href: "/plugin?from=bank#verify-sync",
       tone: "secondary"
     }
   ];

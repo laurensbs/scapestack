@@ -6,7 +6,6 @@ import { ArrowRight, CheckCircle2, Clock3, DatabaseZap, PlugZap } from "lucide-r
 import { CopyCommand } from "@/components/copy-command";
 import { BANK_PLUGIN_ONBOARDING, bankPluginOnboardingActions } from "@/lib/plugin-onboarding";
 import { scapestackPluginHubStateFromStatus } from "@/lib/scapestack-readiness";
-import { pluginHubMaintainerReviewGate } from "@/lib/plugin-hub-status";
 import type { PluginHubStatus } from "@/lib/plugin-hub-status";
 import { cn } from "@/lib/utils";
 
@@ -30,15 +29,11 @@ export function BankPluginOnboarding() {
 
   const pluginHubReadinessState = scapestackPluginHubStateFromStatus(status);
   const statusCopy = statusCopyForPluginHub(status, pluginHubReadinessState);
-  const maintainerReviewGate = pluginHubMaintainerReviewGate(status);
   const isPluginHubLive = pluginHubReadinessState === "merged";
-  const isReviewBlocked = pluginHubReadinessState === "review-blocked";
   const actions = bankPluginOnboardingActions(pluginHubReadinessState);
   const SignalIcon = isPluginHubLive ? CheckCircle2 : Clock3;
   const signalTitle = isPluginHubLive
     ? "Verified coverage unlocked"
-    : isReviewBlocked
-    ? "Verified coverage blocked by review handoff"
     : "Verified coverage Scapestack Sync can unlock";
 
   return (
@@ -125,51 +120,7 @@ export function BankPluginOnboarding() {
             <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
               {statusCopy.body}
             </p>
-            {!isPluginHubLive && (
-              <p className="mt-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] leading-relaxed text-[var(--color-text)]">
-                {maintainerReviewGate.title}: {maintainerReviewGate.nextAction}
-              </p>
-            )}
           </div>
-
-          {isReviewBlocked && (
-            <div className="mb-4 rounded-xl border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-3 py-2.5">
-              <div className="flex items-center gap-2 text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-warning)]">
-                <Clock3 className="size-3.5" />
-                Review handoff blocker
-              </div>
-              <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
-                Code and pin can be ready while RuneLite reviewers still see stale PR body text, a stale pin, or requested changes. Fix this before pushing players toward public install.
-              </p>
-              {Array.isArray(status?.reviewCopyIssues) && status.reviewCopyIssues.length > 0 && (
-                <ul className="mt-2 grid gap-1 text-[11.5px] leading-relaxed text-[var(--color-warning)]">
-                  {status.reviewCopyIssues.slice(0, 4).map((issue) => (
-                    <li key={issue} className="flex gap-2">
-                      <span aria-hidden="true">•</span>
-                      <span>{issue}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {status?.pinSummary && (
-                <p className="mt-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
-                  {status.pinSummary}
-                </p>
-              )}
-              {status?.reviewSummary?.includes("requested changes") && (
-                <p className="mt-2 rounded-lg border border-[var(--color-warning)]/25 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] leading-relaxed text-[var(--color-warning)]">
-                  {status.reviewSummary}
-                </p>
-              )}
-              <Link
-                href="/plugin?from=bank#review-readiness"
-                className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-bold text-[var(--color-warning)] transition-colors hover:bg-[var(--color-warning)]/10"
-              >
-                Open review checklist
-                <ArrowRight className="size-3" />
-              </Link>
-            </div>
-          )}
 
           <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
             {signalTitle}
@@ -194,16 +145,10 @@ export function BankPluginOnboarding() {
             ))}
           </div>
           <div className="mt-4">
-            {isReviewBlocked ? (
-              <div className="rounded-xl border border-[var(--color-warning)]/25 bg-[var(--color-warning)]/8 px-3 py-2 text-[11.5px] leading-relaxed text-[var(--color-warning)]">
-                Local sync URL is hidden from this onboarding card until the review handoff is clean. Testers can still copy it from the /plugin developer setup.
-              </div>
-            ) : (
-              <CopyCommand
-                value={BANK_PLUGIN_ONBOARDING.copy.value}
-                label={BANK_PLUGIN_ONBOARDING.copy.label}
-              />
-            )}
+            <CopyCommand
+              value={BANK_PLUGIN_ONBOARDING.copy.value}
+              label={BANK_PLUGIN_ONBOARDING.copy.label}
+            />
           </div>
         </aside>
       </div>
@@ -217,42 +162,39 @@ function statusCopyForPluginHub(
 ): { title: string; body: string; className: string } {
   if (readinessState === "merged") {
     return {
-      title: "Plugin Hub live",
-      body: "Normal players can install Scapestack Sync from RuneLite Plugin Hub, then opt in from the plugin settings.",
+      title: "RuneLite sync ready",
+      body: "Enable Scapestack Sync, opt in from RuneLite settings, then verify this same RSN from /plugin.",
       className: "border-[var(--color-good)]/25 bg-[var(--color-good)]/10 text-[var(--color-good)]"
     };
   }
 
   if (readinessState === "review-blocked") {
     return {
-      title: "Plugin review handoff blocked",
-      body: "The PR is open, but player install should wait until reviewer-facing copy, pin state and maintainer feedback are clean.",
+      title: "Sync checker available",
+      body: "Use bank paste and /next now. When you want private account coverage, open /plugin and verify Scapestack Sync for the same RSN.",
       className: "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
     };
   }
 
   if (readinessState === "pending") {
-    const reviewText = typeof status?.reviewCount === "number"
-      ? `${status.reviewCount} review${status.reviewCount === 1 ? "" : "s"} recorded`
-      : "review count unavailable";
     return {
-      title: "Plugin Hub review pending",
-      body: `PR is open upstream; ${reviewText}. Normal players should use bank paste and /next today, testers can use the /plugin developer setup.`,
+      title: "Sync checker available",
+      body: "Use bank paste and /next now. Open /plugin when you want Scapestack to verify quests, diaries, collection log and Slayer for the same RSN.",
       className: "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
     };
   }
 
   if (readinessState === "closed") {
     return {
-      title: "Plugin Hub PR closed",
-      body: "Public RuneLite install is unavailable. Use Scapestack web flows or the developer setup until the upstream submission is restored.",
+      title: "Sync check optional",
+      body: "Bank paste, Hiscores and public trackers still work. Verify Scapestack Sync from /plugin when RuneLite has posted account state for this RSN.",
       className: "border-[var(--color-danger)]/25 bg-[var(--color-danger)]/10 text-[var(--color-danger)]"
     };
   }
 
   return {
-    title: "Plugin Hub status unavailable",
-    body: "Live review state could not be proven. Until it says live, treat /plugin as setup and review status, not a public install promise.",
+    title: "Sync status unavailable",
+    body: "Use the /plugin checker to confirm whether Scapestack has a RuneLite payload for this RSN.",
     className: "border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
   };
 }

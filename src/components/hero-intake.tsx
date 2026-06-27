@@ -7,9 +7,9 @@ import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Homepage hero intake — kleine zus van /next's NextIntake. Eén RSN
-// input + optionele bank-paste. Submit → navigate naar /next?rsn=X met
-// optioneel bank-paste via sessionStorage. /next pakt het op via z'n
-// useEffect en runt direct (skip de intake-step).
+// input + optionele bank-paste. Submit → navigate naar /next met RSN en/of
+// bank-paste via sessionStorage. /next pakt het op via z'n useEffect en runt
+// direct (skip de intake-step).
 //
 // Bewust geen mood/time-keuze hier — dat zit in /next's WhatToDo en
 // die heeft een localStorage-default. We willen op de homepage één
@@ -26,18 +26,22 @@ export function HeroIntake() {
   const [showBank, setShowBank] = useState(false);
   const [bank, setBank] = useState("");
   const hasBankPaste = showBank && Boolean(bank.trim());
+  const canSubmit = Boolean(rsn.trim() || hasBankPaste);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = rsn.trim();
-    if (!trimmed) return;
+    if (!canSubmit) return;
     // Bank-paste mag persistent — voor de hero is sessionStorage genoeg
     // omdat /next 'm meteen consumeert. Geen langdurige opslag.
     if (hasBankPaste) {
       try { sessionStorage.setItem(HERO_BANK_KEY, bank); }
       catch { /* private mode → silently skip; /next valt terug op stat-only */ }
     }
-    router.push(`/next?rsn=${encodeURIComponent(trimmed)}${hasBankPaste ? "" : "&bank=none"}`);
+    const params = new URLSearchParams();
+    if (trimmed) params.set("rsn", trimmed);
+    if (!hasBankPaste) params.set("bank", "none");
+    router.push(`/next?${params.toString()}`);
   };
 
   return (
@@ -46,7 +50,7 @@ export function HeroIntake() {
           shadow voor depth; focus geeft een vol accent-ring. */}
       <div
         className={cn(
-          "group relative rounded-full bg-white/[0.03] backdrop-blur-sm",
+          "group relative rounded-2xl bg-white/[0.03] backdrop-blur-sm sm:rounded-full",
           "border border-white/10",
           "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04),inset_0_-1px_0_0_rgba(0,0,0,0.4)]",
           "focus-within:border-[var(--color-accent)]/50 focus-within:bg-white/[0.05]",
@@ -54,7 +58,7 @@ export function HeroIntake() {
           "transition-all duration-300 ease-out"
         )}
       >
-        <div className="flex items-center pl-6 pr-1.5 py-1.5">
+        <div className="flex flex-col gap-2 p-2 sm:flex-row sm:items-center sm:pl-5 sm:pr-1.5 sm:py-1.5">
           <label htmlFor="hero-rsn-input" className="sr-only">
             OSRS name for /next planning
           </label>
@@ -71,20 +75,26 @@ export function HeroIntake() {
             spellCheck={false}
             aria-describedby="hero-plan-disabled-help"
             className={cn(
-              "flex-1 bg-transparent outline-none",
+              "min-w-0 flex-1 bg-transparent outline-none",
               "text-[17px] sm:text-[18px] font-medium tracking-[-0.01em]",
               "text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]/70",
-              "py-2.5"
+              "px-2 py-2.5 sm:px-0"
             )}
           />
           <button
             type="submit"
-            aria-label={hasBankPaste ? "Open /next planner with RSN and browser-only bank paste" : "Open /next planner with RSN and Hiscores only"}
+            aria-label={
+              hasBankPaste
+                ? rsn.trim()
+                  ? "Open /next planner with RSN and browser-only bank paste"
+                  : "Open /next planner with browser-only bank paste"
+                : "Open /next planner with RSN and Hiscores only"
+            }
             aria-describedby="hero-plan-disabled-help"
-            disabled={!rsn.trim()}
+            disabled={!canSubmit}
             className={cn(
               "group/btn relative overflow-hidden",
-              "rounded-full px-5 sm:px-6 py-3 inline-flex items-center justify-center gap-2 shrink-0",
+              "w-full rounded-xl px-5 py-3 inline-flex items-center justify-center gap-2 shrink-0 sm:w-auto sm:rounded-full sm:px-5",
               "bg-gradient-to-b from-[#F0B43F] to-[#D4972A] text-[#0F0E0B] font-semibold text-[14px]",
               "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.35),0_4px_14px_-4px_rgba(230,165,47,0.55)]",
               "hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.45),0_6px_22px_-4px_rgba(230,165,47,0.75)]",
@@ -93,7 +103,7 @@ export function HeroIntake() {
               "disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.35),0_4px_14px_-4px_rgba(230,165,47,0.55)]"
             )}
           >
-            <span className="relative z-10">{hasBankPaste ? "Plan with bank" : "Plan from stats"}</span>
+            <span className="relative z-10">Plan next action</span>
             <ArrowRight className="relative z-10 size-4 group-hover/btn:translate-x-0.5 transition-transform" />
             {/* Sheen-overlay die over de knop zwiept bij hover */}
             <span
@@ -117,7 +127,9 @@ export function HeroIntake() {
           ? hasBankPaste
             ? "Ready: /next will use this RSN plus your browser-only bank paste."
             : "Ready: /next will use Hiscores and ignore stale bank handoff data."
-          : "Type an OSRS name to unlock the planner. Add bank paste only if you want gear-aware advice."}
+          : hasBankPaste
+            ? "Ready: /next will use this browser-only bank paste. Add RSN for KC and stat checks."
+            : "Type an OSRS name or paste a bank to unlock the planner."}
       </p>
 
       {/* Secundaire acties — één rustige regel, link-stijl, gescheiden
@@ -133,14 +145,14 @@ export function HeroIntake() {
               aria-label="Show optional browser-only bank paste field"
               className="hover:text-[var(--color-accent)] underline underline-offset-4 decoration-dotted transition-colors"
             >
-              Add browser-only bank paste
+              Paste bank
             </button>
             <span aria-hidden="true" className="text-[var(--color-border-strong)]">·</span>
             <Link
-              href="/bank?sample=1"
+              href="/plugin#verify-sync"
               className="hover:text-[var(--color-accent)] underline underline-offset-4 decoration-dotted transition-colors"
             >
-              Try a sample
+              Set up RuneLite sync
             </Link>
           </>
         )}

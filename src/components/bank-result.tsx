@@ -1089,11 +1089,11 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
     hasPluginSyncHint: Boolean(inferredRsn),
     pluginHubState
   }), [bankTips.length, inferredRsn, pluginHubState, strings.length, tabs.length, tipSlotsFreed, totalItems, totalValue]);
-  const pluginReviewHref = useMemo(() => {
+  const pluginSyncHref = useMemo(() => {
     const params = new URLSearchParams();
     if (inferredRsn?.trim()) params.set("rsn", inferredRsn.trim());
     params.set("from", "bank");
-    return `/plugin?${params.toString()}#review-readiness`;
+    return `/plugin?${params.toString()}#verify-sync`;
   }, [inferredRsn]);
 
   return (
@@ -1445,8 +1445,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
         onDps={() => openBankHandoffRoute(bankToolUrl("/dps", inferredRsn))}
         onGoals={() => openBankHandoffRoute(bankToolUrl("/goals", inferredRsn))}
         onSlayer={() => openBankHandoffRoute(bankToolUrl("/slayer", inferredRsn))}
-        onPlugin={() => openBankHandoffRoute(bankToolUrl("/plugin", inferredRsn))}
-        onPluginReview={() => openBankHandoffRoute(pluginReviewHref)}
+        onPlugin={() => openBankHandoffRoute(pluginSyncHref)}
         copied={copied}
       />
 
@@ -2722,7 +2721,6 @@ function BankActionLoopRail({
   onGoals,
   onSlayer,
   onPlugin,
-  onPluginReview,
   copied
 }: {
   steps: BankActionLoopStep[];
@@ -2733,14 +2731,13 @@ function BankActionLoopRail({
   onGoals: () => void;
   onSlayer: () => void;
   onPlugin: () => void;
-  onPluginReview: () => void;
   copied: string | null;
 }) {
   const actionFor = (step: BankActionLoopStep) => {
     if (step.id === "export") return onCopy;
     if (step.id === "tips") return onTips;
     if (step.id === "dps") return onDps;
-    if (step.id === "sync") return step.destination === "/plugin#review-readiness" ? onPluginReview : onPlugin;
+    if (step.id === "sync") return onPlugin;
     return onNext;
   };
 

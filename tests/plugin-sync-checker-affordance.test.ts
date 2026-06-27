@@ -53,17 +53,16 @@ describe("plugin sync checker affordance", () => {
     expect(source).toContain("Add browser-only bank context for ${displayName}");
   });
 
-  it("makes missing-sync recovery aware of Plugin Hub review state", () => {
-    expect(source).toContain('fetch("/api/plugin-hub/status"');
-    expect(source).toContain("scapestackPluginHubStateFromStatus(body)");
-    expect(source).toContain('pluginHubState === "merged"');
-    expect(source).toContain('pluginHubState === "pending"');
-    expect(source).toContain('pluginHubState === "review-blocked"');
-    expect(source).toContain("Plugin Hub review handoff is blocked");
-    expect(source).toContain("Normal players should keep using bank paste and /next");
-    expect(source).toContain("Open plugin review status");
-    expect(source).toContain("canShowMissingSetup");
-    expect(source).toContain('state.kind !== "missing" || canShowMissingSetup');
-    expect(source).not.toContain("Install Scapestack Sync, enable “Auto-sync on login”, confirm the Sync URL");
+  it("makes missing-sync recovery a direct RuneLite setup path", () => {
+    expect(source).not.toContain('fetch("/api/plugin-hub/status"');
+    expect(source).not.toContain("scapestackPluginHubStateFromStatus(body)");
+    expect(source).not.toContain("Plugin Hub review handoff is blocked");
+    expect(source).not.toContain("Open plugin review status");
+    expect(source).not.toContain("canShowMissingSetup");
+    expect(source).not.toContain("review-readiness");
+    expect(source).toContain("Open RuneLite, enable Scapestack Sync");
+    expect(source).toContain("confirm the Sync URL points to this site&apos;s /api/sync endpoint");
+    expect(source).toContain('<CopyCommand value={syncUrls.sync} label="Copy sync URL" />');
+    expect(source).toContain('<CopyCommand value={syncUrls.claim} label="Copy claim URL" />');
   });
 });

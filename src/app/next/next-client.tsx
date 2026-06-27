@@ -1448,11 +1448,11 @@ function PluginSyncStrip({
     Boolean(pathData.syncedSources?.wom) ||
     Boolean(pathData.syncedSources?.temple) ||
     Boolean(pathData.syncedSources?.collectionLog);
-  const pluginReviewHref = (() => {
+  const pluginSyncHref = (() => {
     const params = new URLSearchParams();
     if (activeRsn.trim()) params.set("rsn", activeRsn.trim());
     params.set("from", "next");
-    return `/plugin?${params.toString()}#review-readiness`;
+    return `/plugin?${params.toString()}#verify-sync`;
   })();
 
   useEffect(() => {
@@ -1604,9 +1604,7 @@ function PluginSyncStrip({
   }
 
   const pluginHubCta = nextPluginHubCta(pluginHubState, hasAnyTracker);
-  const pluginHubHref = pluginHubState === "review-blocked"
-    ? pluginReviewHref
-    : pluginVerifyUrlForSyncedRsn(activeRsn, "next");
+  const pluginHubHref = pluginSyncHref || pluginVerifyUrlForSyncedRsn(activeRsn, "next");
 
   return (
     <section className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/70 px-4 py-3 flex items-start justify-between gap-4">
@@ -1780,6 +1778,113 @@ function RecommendationIdentityChip({ rec, compact = false }: { rec: Recommendat
   );
 }
 
+function recommendationVisualItem(rec: Recommendation): { id: number; label: string } {
+  const iconItemId = rec.iconItemId ?? KIND_META[rec.kind]?.iconItemId ?? 995;
+  return {
+    id: iconItemId,
+    label: rec.iconItemId ? rec.title : `${KIND_META[rec.kind]?.label ?? "Recommendation"} marker`
+  };
+}
+
+function recommendationNeeds(rec: Recommendation): string[] {
+  const hints = defaultActionHints(rec.kind);
+  return (rec.needs?.length ? rec.needs : hints.needs).slice(0, 3);
+}
+
+function recommendationMissingDataWarning(rec: Recommendation): string {
+  const caveat = rec.actionPlan?.caveat?.trim();
+  if (caveat) return caveat;
+  return "No missing-data warning for this pick. Re-run after major bank, KC, quest or RuneLite sync changes.";
+}
+
+function RecommendationDecisionSpec({ rec, compact = false }: { rec: Recommendation; compact?: boolean }) {
+  const plan = rec.actionPlan;
+  const visual = recommendationVisualItem(rec);
+  const needs = recommendationNeeds(rec);
+  const wikiQuery = recommendationWikiQuery(rec);
+  const specs = [
+    {
+      label: "Expected session length",
+      value: plan?.timebox ?? "Pick a short test run",
+      tone: "muted" as const
+    },
+    {
+      label: "Confidence level",
+      value: plan?.confidenceLabel ?? "Guided",
+      tone: plan?.confidence === "exact" ? "good" as const : plan?.confidence === "likely" ? "accent" as const : "muted" as const,
+      title: plan?.caveat || "Recommendation confidence"
+    },
+    {
+      label: "Required items/stats/quests",
+      value: needs.length ? needs.join(" · ") : "No hard item/stat/quest gate detected.",
+      tone: "muted" as const
+    },
+    {
+      label: "Missing data warning",
+      value: recommendationMissingDataWarning(rec),
+      tone: plan?.caveat ? "warn" as const : "muted" as const
+    }
+  ];
+
+  return (
+    <div
+      data-testid={compact ? "next-row-decision-spec" : "next-headline-decision-spec"}
+      className={cn(
+        "mt-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35",
+        compact ? "p-2.5" : "p-3"
+      )}
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="inline-flex items-center gap-2 rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-2 py-1 font-mono text-[10.5px] font-bold text-[var(--color-accent)]">
+          <ItemSprite id={visual.id} alt={visual.label} size={18} />
+          OSRS item ID {visual.id}
+        </span>
+        {wikiQuery && (
+          <a
+            href={wikiSearchUrl(wikiQuery)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/55 px-2 py-1 text-[10.5px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+            aria-label={`Open OSRS Wiki for ${wikiQuery}`}
+          >
+            OSRS Wiki
+            <ExternalLink className="size-3" />
+          </a>
+        )}
+      </div>
+      <div className={cn("mt-2 grid gap-1.5", compact ? "sm:grid-cols-2" : "sm:grid-cols-4")}>
+        {specs.map((spec) => (
+          <div
+            key={spec.label}
+            title={spec.title ?? spec.value}
+            className={cn(
+              "rounded-lg border px-2.5 py-2",
+              spec.tone === "good" && "border-[var(--color-good)]/25 bg-[var(--color-good)]/10",
+              spec.tone === "accent" && "border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10",
+              spec.tone === "warn" && "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/8",
+              spec.tone === "muted" && "border-[var(--color-border)] bg-[var(--color-panel)]/35"
+            )}
+          >
+            <div className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+              {spec.label}
+            </div>
+            <div className={cn(
+              "mt-0.5 line-clamp-2 font-semibold leading-snug",
+              compact ? "text-[10.5px]" : "text-[11px]",
+              spec.tone === "good" && "text-[var(--color-good)]",
+              spec.tone === "accent" && "text-[var(--color-accent)]",
+              spec.tone === "warn" && "text-[var(--color-warning)]",
+              spec.tone === "muted" && "text-[var(--color-text-dim)]"
+            )}>
+              {spec.value}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ActionPlanBlock({ rec, compact = false }: { rec: Recommendation; compact?: boolean }) {
   const plan = rec.actionPlan;
   if (!plan) return null;
@@ -1944,9 +2049,9 @@ function HeadlineCard({
   actionContext: RecommendationActionContext;
   onBossOpen: (slug: string) => void;
 }) {
-  // Boss/KC recs that resolve to a known boss become clickable — the click
-  // opens the BossDetailModal with the player's bank-derived gear set.
-  // For other rec kinds, the card stays linked to `rec.link` as before.
+  // Boss/KC recs expose an explicit modal button. Other kinds expose an
+  // explicit route button. The article itself is not a fake button because
+  // the card also contains Wiki/copy/detail controls.
   const isBossWithDetail = (rec.kind === "kc" || rec.kind === "boss") && !!rec.bossSlug;
   const primaryAction = primaryActionForRecommendation(rec, actionContext);
   const actionLabel = isBossWithDetail ? "Open boss detail" : primaryAction.label;
@@ -1958,7 +2063,7 @@ function HeadlineCard({
         // defined in globals.css — fires once on hover, doesn't loop.
         "group/headline group relative overflow-hidden rounded-xl p-6 headline-shimmer-target",
         "border border-[var(--color-accent)]/30 bg-gradient-to-br from-[var(--color-accent)]/12 to-transparent",
-        (actionHref || isBossWithDetail) && "surface-interactive cursor-pointer transition-transform duration-200 hover:-translate-y-0.5"
+        (actionHref || isBossWithDetail) && "surface-interactive transition-transform duration-200 hover:-translate-y-0.5"
       )}
     >
       <div
@@ -1994,6 +2099,9 @@ function HeadlineCard({
           <h3 className="text-[19px] font-bold text-[var(--color-text)] tracking-tight leading-tight">
             {rec.title}
           </h3>
+          <div className="mt-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+            Why recommended
+          </div>
           <p className="mt-1.5 text-[13.5px] text-[var(--color-text-dim)] leading-relaxed">
             {rec.why}
           </p>
@@ -2002,6 +2110,7 @@ function HeadlineCard({
               {rec.payoff}
             </p>
           )}
+          <RecommendationDecisionSpec rec={rec} />
           <RecommendationProofStrip rec={rec} />
           <ActionPlanBlock rec={rec} />
           {/* Probability chart — collapsed by default. Was default-open
@@ -2026,27 +2135,36 @@ function HeadlineCard({
               {actionLabel} <ArrowRight className="size-4" />
             </button>
           ) : actionHref && (
-            <div className="mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-[var(--color-accent)] group-hover:gap-2 transition-all">
+            primaryAction.external ? (
+              <a
+                href={actionHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${actionLabel}: ${rec.title}`}
+                title={`${actionLabel}: ${rec.title}`}
+                className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-accent)] transition-all hover:bg-[var(--color-accent)]/15 hover:gap-2"
+              >
+                {actionLabel} <ExternalLink className="size-3.5" />
+              </a>
+            ) : (
+              <Link
+                href={actionHref}
+                aria-label={`${actionLabel}: ${rec.title}`}
+                title={`${actionLabel}: ${rec.title}`}
+                className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-accent)] transition-all hover:bg-[var(--color-accent)]/15 hover:gap-2"
+              >
               {actionLabel} <ArrowRight className="size-4" />
-            </div>
+              </Link>
+            )
           )}
         </div>
       </div>
     </article>
   );
-  // Boss/KC cards contain their own KC graph toggle, so they expose an
-  // explicit modal CTA button instead of pretending the whole card is a
-  // button and risking nested interactive controls.
-  if (isBossWithDetail) return card;
-  // Non-boss card with a link wraps in <Link>. Boss/KC without a resolved
-  // boss slug (rare — raid slug that fell through) renders as a static card.
-  if (actionHref && primaryAction.external) {
-    return <a href={actionHref} target="_blank" rel="noopener noreferrer">{card}</a>;
-  }
-  return actionHref ? <Link href={actionHref}>{card}</Link> : card;
+  return card;
 }
 
-// One checklist row — compact, linkable.
+// One checklist row — compact, with explicit links/buttons.
 function RecRow({
   rec,
   actionContext,
@@ -2064,7 +2182,7 @@ function RecRow({
     <article
       className={cn(
         "group h-full rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] p-3.5",
-        (actionHref || isBossWithDetail) && "cursor-pointer transition-colors hover:border-[var(--color-accent)]/40"
+        (actionHref || isBossWithDetail) && "transition-colors hover:border-[var(--color-accent)]/40"
       )}
     >
       <div className="flex items-start gap-3">
@@ -2089,10 +2207,14 @@ function RecRow({
             </h4>
             <RecommendationIdentityChip rec={rec} compact />
           </div>
+          <div className="mt-1.5 text-[9.5px] font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
+            Why recommended
+          </div>
           <p className="mt-0.5 text-[12px] text-[var(--color-text-dim)] leading-snug">{rec.why}</p>
           {rec.payoff && (
             <p className="mt-1 text-[11px] text-[var(--color-text-muted)] leading-snug">{rec.payoff}</p>
           )}
+          <RecommendationDecisionSpec rec={rec} compact />
           <RecommendationProofStrip rec={rec} compact />
           <ActionPlanBlock rec={rec} compact />
           {hasDropChanceGraph(rec) && (
@@ -2113,12 +2235,30 @@ function RecRow({
               {actionLabel} <ArrowRight className="size-3.5" />
             </button>
           ) : actionHref && (
-            <div className="mt-2 inline-flex items-center gap-1 text-[11.5px] font-semibold text-[var(--color-accent)] transition-all group-hover:gap-1.5">
-              {actionLabel} <ArrowRight className="size-3.5" />
-            </div>
+            primaryAction.external ? (
+              <a
+                href={actionHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${actionLabel}: ${rec.title}`}
+                title={`${actionLabel}: ${rec.title}`}
+                className="mt-2 inline-flex items-center gap-1 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] transition-all hover:bg-[var(--color-accent)]/15 hover:gap-1.5"
+              >
+                {actionLabel} <ExternalLink className="size-3" />
+              </a>
+            ) : (
+              <Link
+                href={actionHref}
+                aria-label={`${actionLabel}: ${rec.title}`}
+                title={`${actionLabel}: ${rec.title}`}
+                className="mt-2 inline-flex items-center gap-1 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] transition-all hover:bg-[var(--color-accent)]/15 hover:gap-1.5"
+              >
+                {actionLabel} <ArrowRight className="size-3.5" />
+              </Link>
+            )
           )}
         </div>
-        {actionHref && (
+        {actionHref && !primaryAction.external && (
           <ArrowRight
             aria-hidden="true"
             className="size-3.5 text-[var(--color-text-muted)] group-hover:text-[var(--color-accent)] transition-colors shrink-0 mt-0.5"
@@ -2127,14 +2267,7 @@ function RecRow({
       </div>
     </article>
   );
-  // Boss/KC rows keep the KC graph toggle and modal CTA as sibling buttons.
-  if (isBossWithDetail) return inner;
-  if (actionHref && primaryAction.external) {
-    return <a href={actionHref} target="_blank" rel="noopener noreferrer" aria-label={`${actionLabel}: ${rec.title}`} title={`${actionLabel}: ${rec.title}`}>{inner}</a>;
-  }
-  return actionHref
-    ? <Link href={actionHref} aria-label={`${actionLabel}: ${rec.title}`} title={`${actionLabel}: ${rec.title}`}>{inner}</Link>
-    : inner;
+  return inner;
 }
 
 // ── Mood section ───────────────────────────────────────────────────────────

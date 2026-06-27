@@ -16,18 +16,18 @@ const CLI_TIMEOUT_MS = 20_000;
 const status: PluginHubStatus = {
   state: "open",
   tone: "accent",
-  label: "Plugin Hub PR #12227 open",
+  label: "Plugin Hub PR #12536 open",
   detail: "Awaiting RuneLite maintainer review.",
   checkSummary: "Build is passing; RuneLite Plugin Hub Checks is the maintainer review gate.",
-  submittedCommit: "97b47fe5fe887e127492d8853fd1431b38a058f9",
-  standaloneCommit: "97b47fe5fe887e127492d8853fd1431b38a058f9",
-  pinSummary: "Plugin Hub pin matches standalone repo head 97b47fe.",
+  submittedCommit: "39931dc965e4e9f01bf549bdc192b85c4cd6c1fc",
+  standaloneCommit: "39931dc965e4e9f01bf549bdc192b85c4cd6c1fc",
+  pinSummary: "Plugin Hub pin matches standalone repo head 39931dc.",
   reviewCopySummary: "Live PR body still needs review-copy fixes: auto-sync defaults, token transport.",
   reviewCopyIssues: ["auto-sync defaults", "token transport"],
   updatedAt: "2026-05-26T13:57:13Z",
   reviewCount: 0,
   reviewSummary: null,
-  url: "https://github.com/runelite/plugin-hub/pull/12227"
+  url: "https://github.com/runelite/plugin-hub/pull/12536"
 };
 
 const changesRequestedStatus: PluginHubStatus = {
@@ -42,7 +42,7 @@ describe("plugin reviewer packet", () => {
     const packet = buildPluginReviewerPacket(status);
 
     expect(packet).toContain("Scapestack Sync v0.2.0");
-    expect(packet).toContain("RuneLite Plugin Hub PR #12227");
+    expect(packet).toContain("RuneLite Plugin Hub PR #12536");
     expect(packet).toContain("Auto-sync on login defaults off");
     expect(packet).toContain("Sync on quest complete defaults off");
     expect(packet).toContain("quest-complete POST also defaults off and requires Auto-sync on login");
@@ -72,7 +72,8 @@ describe("plugin reviewer packet", () => {
     expect(packet).toContain("recommendations live in the external web app");
     expect(packet).toContain("background Thread, not on RuneLite's client thread");
     expect(packet).toContain("named daemon thread");
-    expect(packet).toContain("cancels the in-flight OkHttp sync call");
+    expect(packet).toContain("cancels the active OkHttp call");
+    expect(packet).not.toContain("interrupt");
     expect(packet).toContain("sha256(token)");
     expect(packet).toContain("raw token is sent only as Authorization on claim/sync requests");
     expect(packet).not.toContain("first-claim security");
@@ -114,7 +115,8 @@ describe("plugin reviewer packet", () => {
     expect(output).toContain("Replace “Auto-sync defaults to on”");
     expect(output).toContain("Replace the old capture list with the current opt-in payload");
     expect(output).toContain("background Thread, not on RuneLite's client thread");
-    expect(output).toContain("cancels the in-flight OkHttp sync call");
+    expect(output).toContain("cancels the active OkHttp call");
+    expect(output).not.toContain("interrupt");
     expect(output).toContain("source=plugin-sync&bank=none");
   }, CLI_TIMEOUT_MS);
 
@@ -123,7 +125,7 @@ describe("plugin reviewer packet", () => {
 
     expect(body).toContain("Adds Scapestack Sync v0.2.0");
     expect(body).toContain("## Current review state");
-    expect(body).toContain("Status: Plugin Hub PR #12227 open");
+    expect(body).toContain("Status: Plugin Hub PR #12536 open");
     expect(body).toContain("PR body copy: Live PR body still needs review-copy fixes");
     expect(body).toContain("## What it captures after player opt-in");
     expect(body).toContain("Slayer task, points, streak and block-list state");
@@ -141,8 +143,8 @@ describe("plugin reviewer packet", () => {
     expect(body).toContain("for the RSN claim");
     expect(body).not.toContain("first-claim security");
     expect(body).toContain("background Thread, not RuneLite's client thread");
-    expect(body).toContain("Shutdown interrupts the named daemon sync worker");
-    expect(body).toContain("cancels the in-flight OkHttp sync call");
+    expect(body).toContain("Shutdown cancels the active OkHttp call");
+    expect(body).not.toContain("interrupt");
     expect(body).toContain("/next?rsn=...&source=plugin-sync&bank=none");
     expect(body).toContain("Successful sync chat includes the verified `/next");
     expect(body).not.toContain("Successful sync chat includes the exact `/next");
@@ -174,7 +176,7 @@ describe("plugin reviewer packet", () => {
 
     expect(command).toContain(`npm run --silent plugin:pr-body > ${DEFAULT_PR_BODY_FILE}`);
     expect(command).not.toContain("--offline");
-    expect(command).toContain("gh pr edit 12227 --repo runelite/plugin-hub --body-file");
+    expect(command).toContain("gh pr edit 12536 --repo runelite/plugin-hub --body-file");
     expect(command).toContain(DEFAULT_PR_BODY_FILE);
   });
 
@@ -182,7 +184,7 @@ describe("plugin reviewer packet", () => {
     const command = buildPluginPrBodyUpdateCommand({ offline: true });
 
     expect(command).toContain(`npm run --silent plugin:pr-body -- --offline > ${DEFAULT_PR_BODY_FILE}`);
-    expect(command).toContain("gh pr edit 12227 --repo runelite/plugin-hub --body-file");
+    expect(command).toContain("gh pr edit 12536 --repo runelite/plugin-hub --body-file");
   });
 
   it("builds a safe GitHub CLI command for adding the reviewer packet as a maintainer reply", () => {
@@ -190,7 +192,7 @@ describe("plugin reviewer packet", () => {
 
     expect(command).toContain(`npm run --silent plugin:review-packet > ${DEFAULT_REVIEWER_PACKET_FILE}`);
     expect(command).not.toContain("--offline");
-    expect(command).toContain("gh pr comment 12227 --repo runelite/plugin-hub --body-file");
+    expect(command).toContain("gh pr comment 12536 --repo runelite/plugin-hub --body-file");
     expect(command).toContain(DEFAULT_REVIEWER_PACKET_FILE);
   });
 
@@ -198,7 +200,7 @@ describe("plugin reviewer packet", () => {
     const command = buildPluginReviewerReplyCommand({ offline: true });
 
     expect(command).toContain(`npm run --silent plugin:review-packet -- --offline > ${DEFAULT_REVIEWER_PACKET_FILE}`);
-    expect(command).toContain("gh pr comment 12227 --repo runelite/plugin-hub --body-file");
+    expect(command).toContain("gh pr comment 12536 --repo runelite/plugin-hub --body-file");
   });
 
   it("builds one authenticated GitHub CLI handoff command for body plus reviewer comment", () => {
@@ -206,8 +208,8 @@ describe("plugin reviewer packet", () => {
 
     expect(command).toContain(`npm run --silent plugin:pr-body > ${DEFAULT_PR_BODY_FILE}`);
     expect(command).toContain(`npm run --silent plugin:review-packet > ${DEFAULT_REVIEWER_PACKET_FILE}`);
-    expect(command).toContain(`gh pr edit 12227 --repo runelite/plugin-hub --body-file ${DEFAULT_PR_BODY_FILE}`);
-    expect(command).toContain(`gh pr comment 12227 --repo runelite/plugin-hub --body-file ${DEFAULT_REVIEWER_PACKET_FILE}`);
+    expect(command).toContain(`gh pr edit 12536 --repo runelite/plugin-hub --body-file ${DEFAULT_PR_BODY_FILE}`);
+    expect(command).toContain(`gh pr comment 12536 --repo runelite/plugin-hub --body-file ${DEFAULT_REVIEWER_PACKET_FILE}`);
     expect(command).not.toContain("--offline");
   });
 
@@ -216,8 +218,8 @@ describe("plugin reviewer packet", () => {
 
     expect(command).toContain(`npm run --silent plugin:pr-body -- --offline > ${DEFAULT_PR_BODY_FILE}`);
     expect(command).toContain(`npm run --silent plugin:review-packet -- --offline > ${DEFAULT_REVIEWER_PACKET_FILE}`);
-    expect(command).toContain("gh pr edit 12227 --repo runelite/plugin-hub --body-file");
-    expect(command).toContain("gh pr comment 12227 --repo runelite/plugin-hub --body-file");
+    expect(command).toContain("gh pr edit 12536 --repo runelite/plugin-hub --body-file");
+    expect(command).toContain("gh pr comment 12536 --repo runelite/plugin-hub --body-file");
   });
 
   it("prints the PR update command from the CLI", () => {
@@ -226,7 +228,7 @@ describe("plugin reviewer packet", () => {
     });
 
     expect(output).toContain("npm run --silent plugin:pr-body >");
-    expect(output).toContain("gh pr edit 12227 --repo runelite/plugin-hub --body-file");
+    expect(output).toContain("gh pr edit 12536 --repo runelite/plugin-hub --body-file");
     expect(output).not.toContain("--offline");
     expect(output).not.toContain("Adds Scapestack Sync v0.2.0");
   }, CLI_TIMEOUT_MS);
@@ -237,7 +239,7 @@ describe("plugin reviewer packet", () => {
     });
 
     expect(output).toContain("npm run --silent plugin:pr-body -- --offline >");
-    expect(output).toContain("gh pr edit 12227 --repo runelite/plugin-hub --body-file");
+    expect(output).toContain("gh pr edit 12536 --repo runelite/plugin-hub --body-file");
     expect(output).not.toContain("Adds Scapestack Sync v0.2.0");
   }, CLI_TIMEOUT_MS);
 
@@ -247,7 +249,7 @@ describe("plugin reviewer packet", () => {
     });
 
     expect(output).toContain("npm run --silent plugin:review-packet >");
-    expect(output).toContain("gh pr comment 12227 --repo runelite/plugin-hub --body-file");
+    expect(output).toContain("gh pr comment 12536 --repo runelite/plugin-hub --body-file");
     expect(output).not.toContain("--offline");
     expect(output).not.toContain("Scapestack Sync v0.2.0");
   }, CLI_TIMEOUT_MS);
@@ -258,7 +260,7 @@ describe("plugin reviewer packet", () => {
     });
 
     expect(output).toContain("npm run --silent plugin:review-packet -- --offline >");
-    expect(output).toContain("gh pr comment 12227 --repo runelite/plugin-hub --body-file");
+    expect(output).toContain("gh pr comment 12536 --repo runelite/plugin-hub --body-file");
     expect(output).not.toContain("Scapestack Sync v0.2.0");
   }, CLI_TIMEOUT_MS);
 
@@ -269,8 +271,8 @@ describe("plugin reviewer packet", () => {
 
     expect(output).toContain("npm run --silent plugin:pr-body >");
     expect(output).toContain("npm run --silent plugin:review-packet >");
-    expect(output).toContain("gh pr edit 12227 --repo runelite/plugin-hub --body-file");
-    expect(output).toContain("gh pr comment 12227 --repo runelite/plugin-hub --body-file");
+    expect(output).toContain("gh pr edit 12536 --repo runelite/plugin-hub --body-file");
+    expect(output).toContain("gh pr comment 12536 --repo runelite/plugin-hub --body-file");
     expect(output).not.toContain("--offline");
     expect(output).not.toContain("Scapestack Sync v0.2.0");
   }, CLI_TIMEOUT_MS);
@@ -282,8 +284,8 @@ describe("plugin reviewer packet", () => {
 
     expect(output).toContain("npm run --silent plugin:pr-body -- --offline >");
     expect(output).toContain("npm run --silent plugin:review-packet -- --offline >");
-    expect(output).toContain("gh pr edit 12227 --repo runelite/plugin-hub --body-file");
-    expect(output).toContain("gh pr comment 12227 --repo runelite/plugin-hub --body-file");
+    expect(output).toContain("gh pr edit 12536 --repo runelite/plugin-hub --body-file");
+    expect(output).toContain("gh pr comment 12536 --repo runelite/plugin-hub --body-file");
     expect(output).not.toContain("Scapestack Sync v0.2.0");
   }, CLI_TIMEOUT_MS);
 });

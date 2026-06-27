@@ -1,4 +1,4 @@
-import { LOCAL_SYNC_URL, PUBLIC_SYNC_URL, pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
+import { PUBLIC_SYNC_URL, pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
 import { toolHandoffUrl, type ToolHandoffSource } from "@/lib/bank-tool-routes";
 import type { PluginHubStatus } from "@/lib/plugin-hub-status";
 
@@ -67,13 +67,6 @@ function sourceForSurface(surface: ScapestackSurface): ToolHandoffSource {
   return surface;
 }
 
-function pluginReviewHref(rsn: string, surface: ScapestackSurface): string {
-  const params = new URLSearchParams();
-  if (rsn) params.set("rsn", rsn);
-  params.set("from", surface);
-  return `/plugin?${params.toString()}#review-readiness`;
-}
-
 export function scapestackPluginHubStateFromStatus(status: PluginHubStatus | null): ScapestackPluginHubState {
   if (!status) return "unknown";
   if (status.state === "merged") return "merged";
@@ -91,27 +84,18 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
   const pluginSyncState = input.pluginSyncState ?? (hasPluginSync ? "live" : null);
   const hasExactPluginSync = pluginSyncState === "live";
   const pluginHubState = input.pluginHubState ?? "pending";
-  const syncUrl = pluginHubState === "merged" ? PUBLIC_SYNC_URL : LOCAL_SYNC_URL;
+  const syncUrl = PUBLIC_SYNC_URL;
   const source = sourceForSurface(input.surface);
   const addRsnHref = toolHandoffUrl("/next", source, cleanRsn, {
     hasBankContext: input.hasBankContext
   });
   const syncHref = pluginVerifyUrlForSyncedRsn(cleanRsn, input.surface);
-  const reviewHref = pluginReviewHref(cleanRsn, input.surface);
-  const syncSetupAction = (() => {
-    if (pluginHubState === "review-blocked") return { label: "Open review checklist", href: reviewHref };
-    if (pluginHubState === "closed") return { label: "Open plugin status", href: reviewHref };
-    if (pluginHubState === "unknown") return { label: "Check plugin status", href: reviewHref };
-    return { label: "Open sync setup", href: syncHref };
-  })();
+  const syncSetupAction = { label: "Open sync checker", href: syncHref };
   const syncSourceLabel = (() => {
     if (hasExactPluginSync) return "Verified RuneLite payload";
     if (hasPluginSync) return "RuneLite payload needs refresh";
-    if (pluginHubState === "merged") return "Plugin Hub install + verify";
-    if (pluginHubState === "review-blocked") return "Review handoff blocked";
-    if (pluginHubState === "closed") return "Plugin Hub submission closed";
-    if (pluginHubState === "unknown") return "Plugin Hub status unavailable";
-    return "Plugin Hub PR pending";
+    if (pluginHubState === "merged") return "Ready to verify";
+    return "Optional account sync";
   })();
   const syncDetail = (() => {
     if (hasExactPluginSync) {
@@ -124,46 +108,32 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
       return "Sync payload found, but refresh RuneLite before trusting account coverage labels.";
     }
     if (pluginHubState === "merged") {
-      return "Install from Plugin Hub, paste the sync URL, then verify a payload before /next trusts account coverage labels.";
+      return "Check the same RSN on /plugin after RuneLite syncs, then /next can use verified account coverage.";
     }
-    if (pluginHubState === "review-blocked") {
-      return "Plugin Hub review handoff needs fixes before normal players should install. Use bank-aware web planning now; testers should inspect the review checklist first.";
-    }
-    if (pluginHubState === "closed") {
-      return "The Plugin Hub submission is closed. Do not send normal players to RuneLite install until the upstream path is restored.";
-    }
-    if (pluginHubState === "unknown") {
-      return "Scapestack cannot prove Plugin Hub install readiness right now. Keep planning with bank and Hiscores until the plugin page can verify status.";
-    }
-    return "Plugin Hub review is still pending. Normal players should wait; testers can use the local dev plugin now.";
+    return "Use /next now, or check Scapestack Sync when you want verified quests, diaries, collection log and Slayer.";
   })();
   const syncNotice = (() => {
     if (hasPluginSync) return undefined;
-    if (pluginHubState === "merged") return "Plugin Hub install is live.";
-    if (pluginHubState === "review-blocked") return "Review is blocked by PR handoff copy or pin state. This is not a public install promise.";
-    if (pluginHubState === "closed") return "Plugin Hub submission is closed; use web recommendations and public trackers.";
-    if (pluginHubState === "unknown") return "Live Plugin Hub status is unavailable; check the plugin page before setup.";
-    return "Plugin Hub PR is open, not merged yet. Use the local dev path only if you are testing.";
+    if (pluginHubState === "merged") return "RuneLite sync can be verified from the plugin page.";
+    return undefined;
   })();
-  const syncSteps = hasPluginSync || ["review-blocked", "closed", "unknown"].includes(pluginHubState)
+  const syncSteps = hasPluginSync
     ? undefined
     : [
       {
-        label: "Install plugin",
-        body: pluginHubState === "merged"
-          ? "Install Scapestack Sync from RuneLite Plugin Hub."
-          : "Plugin Hub install is not live yet. Wait for approval, or use the local dev plugin if you are testing."
+        label: "Open RuneLite",
+        body: "Enable Scapestack Sync for the account you want to plan."
       },
       {
-        label: "Paste sync URL",
-        body: "Paste the URL above into the plugin Sync URL setting."
+        label: "Confirm sync URL",
+        body: "The Sync URL should point to https://www.scapestack.org/api/sync."
       },
       {
         label: "Verify RSN",
-        body: "Run a sync in RuneLite, then open the verify page for this OSRS name."
+        body: "Run a sync in RuneLite, then check this same OSRS name in Scapestack."
       }
     ];
-  const syncCopy = hasPluginSync || ["review-blocked", "closed", "unknown"].includes(pluginHubState)
+  const syncCopy = hasPluginSync
     ? undefined
     : { label: "Copy sync URL", value: syncUrl };
   const signals: ScapestackReadinessSignal[] = [
@@ -223,24 +193,6 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
       };
     }
     if (!hasExactPluginSync) {
-      if (!hasPluginSync && pluginHubState === "review-blocked") {
-        return {
-          label: "Open review checklist",
-          href: reviewHref
-        };
-      }
-      if (!hasPluginSync && pluginHubState === "closed") {
-        return {
-          label: "Open plugin status",
-          href: reviewHref
-        };
-      }
-      if (!hasPluginSync && pluginHubState === "unknown") {
-        return {
-          label: "Check plugin status",
-          href: reviewHref
-        };
-      }
       return {
         label: hasPluginSync ? "Refresh sync payload" : "Verify RuneLite sync",
         href: syncHref
@@ -256,7 +208,7 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
   const readyCount = signals.filter((signal) => signal.status !== "missing").length;
   const body = hasPluginSync && !hasExactPluginSync
     ? `${readyCount}/3 signals are connected, ${exactCount}/3 are verified. Bank paste is verified; RuneLite sync is connected but must be refreshed or updated before account coverage labels are trusted.`
-    : `${readyCount}/3 signals are connected, ${exactCount}/3 are verified. Bank paste handles layout and gear now; verified RuneLite sync labels quest, diary, collection-log and Slayer coverage across the whole app.`;
+    : `${readyCount}/3 signals are connected. Bank paste and Hiscores are enough to plan now; RuneLite sync adds verified quest, diary, collection-log and Slayer coverage when available.`;
 
   return {
     eyebrow: "Scapestack readiness",

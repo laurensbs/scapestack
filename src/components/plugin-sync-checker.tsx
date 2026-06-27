@@ -24,7 +24,6 @@ import {
 } from "@/lib/plugin-sync-diagnostics";
 import { PLUGIN_VERIFY_SYNC_HASH } from "@/lib/plugin-bank-bridge";
 import { DB_INIT_COMMAND, syncUrlsForOrigin } from "@/lib/plugin-sync-actions";
-import { scapestackPluginHubStateFromStatus, type ScapestackPluginHubState } from "@/lib/scapestack-readiness";
 import { TASK_ID_TO_MONSTER } from "@/lib/slayer/task-ids";
 import { MONSTERS_BY_ID } from "@/lib/slayer/monsters";
 import { cn } from "@/lib/utils";
@@ -72,7 +71,6 @@ export function PluginSyncChecker() {
   const [state, setState] = useState<CheckState>({ kind: "idle" });
   const [serviceStatus, setServiceStatus] = useState<PluginSyncServiceStatus | null>(null);
   const [serviceError, setServiceError] = useState<string | null>(null);
-  const [pluginHubState, setPluginHubState] = useState<ScapestackPluginHubState>("unknown");
   const [syncOrigin, setSyncOrigin] = useState<string | null>(null);
   const [proofCopyState, setProofCopyState] = useState<"idle" | "copied" | "error">("idle");
   const [checklistCopyState, setChecklistCopyState] = useState<"idle" | "copied" | "error">("idle");
@@ -126,27 +124,9 @@ export function PluginSyncChecker() {
     if (state.kind !== "found") return [];
     return actionQueueForSyncedPlayer(state.player, { origin: syncOrigin });
   }, [state, syncOrigin]);
-  const canShowMissingSetup = pluginHubState === "merged" || pluginHubState === "pending";
 
   useEffect(() => {
     setSyncOrigin(window.location.origin);
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function loadPluginHubState() {
-      try {
-        const response = await fetch("/api/plugin-hub/status", { cache: "no-store" });
-        const body = response.ok ? await response.json() : null;
-        if (!cancelled) setPluginHubState(scapestackPluginHubStateFromStatus(body));
-      } catch {
-        if (!cancelled) setPluginHubState("unknown");
-      }
-    }
-    void loadPluginHubState();
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   useEffect(() => {
@@ -327,30 +307,12 @@ export function PluginSyncChecker() {
               <div>
                 <div className="text-[13px] font-bold text-[var(--color-warning)]">No Scapestack sync found for {state.rsn}</div>
                 <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                  {pluginHubState === "merged"
-                    ? "Install Scapestack Sync from RuneLite Plugin Hub, enable “Auto-sync on login”, confirm the Sync URL, then re-run this check."
-                    : pluginHubState === "pending"
-                      ? "Plugin Hub review is still pending. If you are testing locally, side-load the plugin, enable “Auto-sync on login”, confirm the Sync URL, then re-run this check."
-                      : pluginHubState === "review-blocked"
-                        ? "Plugin Hub review handoff is blocked. Normal players should keep using bank paste and /next while maintainers fix the reviewer checklist."
-                        : pluginHubState === "closed"
-                          ? "The Plugin Hub submission is closed. Do not send normal players to RuneLite install; keep using bank paste and public trackers."
-                          : "Plugin Hub install readiness is unavailable. Treat sync setup as unproven and check the plugin status before setup."}
+                  Open RuneLite, enable Scapestack Sync, confirm the Sync URL points to this site&apos;s /api/sync endpoint, then sync the same RSN and re-run this check.
                 </p>
-                {canShowMissingSetup ? (
-                  <div className="mt-3 grid gap-2">
-                    <CopyCommand value={syncUrls.sync} label="Copy sync URL" />
-                    <CopyCommand value={syncUrls.claim} label="Copy claim URL" />
-                  </div>
-                ) : (
-                  <Link
-                    href="/plugin#review-readiness"
-                    className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-semibold text-[var(--color-warning)] hover:bg-[var(--color-warning)]/10 transition-colors"
-                  >
-                    Open plugin review status
-                    <ArrowRight className="size-3.5" />
-                  </Link>
-                )}
+                <div className="mt-3 grid gap-2">
+                  <CopyCommand value={syncUrls.sync} label="Copy sync URL" />
+                  <CopyCommand value={syncUrls.claim} label="Copy claim URL" />
+                </div>
                 <button
                   type="button"
                   onClick={checkCurrentRsn}
@@ -436,7 +398,7 @@ export function PluginSyncChecker() {
           </div>
         )}
 
-        {(state.kind === "missing" || state.kind === "unconfigured") && diagnostic && (state.kind !== "missing" || canShowMissingSetup) && (
+        {(state.kind === "missing" || state.kind === "unconfigured") && diagnostic && (
           <div className="mt-3">
             <DiagnosticPanel diagnostic={diagnostic} />
           </div>

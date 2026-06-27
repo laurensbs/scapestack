@@ -9,23 +9,23 @@ describe("plugin hub status", () => {
       merged_at: null,
       updated_at: "2026-06-03T08:00:00Z",
       body: "Auto‑sync defaults to on. The raw token never leaves the install. POST `https://www.scapestack.org/api/sync` on every login + on quest-complete chat messages.",
-      html_url: "https://github.com/runelite/plugin-hub/pull/12227"
+      html_url: "https://github.com/runelite/plugin-hub/pull/12536"
     }, [], [
       { name: "build", conclusion: "success", status: "completed" },
       { name: "RuneLite Plugin Hub Checks", conclusion: "failure", status: "completed" }
     ], [
       {
         filename: "plugins/scapestack-sync",
-        patch: "@@ -0,0 +1,2 @@\n+repository=https://github.com/laurensbs/scapestack-runelite-plugin.git\n+commit=97b47fe5fe887e127492d8853fd1431b38a058f9"
+        patch: "@@ -0,0 +1,2 @@\n+repository=https://github.com/laurensbs/scapestack-runelite-plugin.git\n+commit=39931dc965e4e9f01bf549bdc192b85c4cd6c1fc"
       }
-    ], "97b47fe5fe887e127492d8853fd1431b38a058f9");
+    ], "39931dc965e4e9f01bf549bdc192b85c4cd6c1fc");
 
     expect(status.state).toBe("open");
     expect(status.label).toContain("open");
     expect(status.detail).toContain("Awaiting RuneLite maintainer review");
     expect(status.checkSummary).toContain("maintainer review gate");
-    expect(status.submittedCommit).toBe("97b47fe5fe887e127492d8853fd1431b38a058f9");
-    expect(status.standaloneCommit).toBe("97b47fe5fe887e127492d8853fd1431b38a058f9");
+    expect(status.submittedCommit).toBe("39931dc965e4e9f01bf549bdc192b85c4cd6c1fc");
+    expect(status.standaloneCommit).toBe("39931dc965e4e9f01bf549bdc192b85c4cd6c1fc");
     expect(status.pinSummary).toContain("matches standalone repo head");
     expect(status.reviewCopySummary).toContain("Live PR body still needs review-copy fixes");
     expect(status.reviewCopySummary).toContain("auto-sync defaults");
@@ -67,8 +67,8 @@ describe("plugin hub status", () => {
       draft: false,
       merged_at: null,
       updated_at: "2026-06-03T08:00:00Z",
-      body: "Auto-sync on login defaults off. Sync on quest complete defaults off. Quest-complete sync is also gated behind Auto-sync on login. The raw local install token is sent only as an Authorization bearer and Scapestack stores sha256(token). Slayer task state is included after opt-in. No bank, inventory or equipment data is sent.",
-      html_url: "https://github.com/runelite/plugin-hub/pull/12227"
+      body: "Auto-sync on login defaults off. Sync on quest complete defaults off. Quest-complete sync is also gated behind Auto-sync on login. The raw local install token is sent only as an Authorization bearer and Scapestack stores sha256(token). Slayer task state is included after opt-in. Shutdown cancels the active OkHttp call while the background worker returns normally. No bank, inventory or equipment data is sent.",
+      html_url: "https://github.com/runelite/plugin-hub/pull/12536"
     }, [], []);
 
     expect(status.reviewCopySummary).toBe("Live PR body appears aligned with current consent, token, data and web-handoff wording.");
@@ -83,13 +83,27 @@ describe("plugin hub status", () => {
     });
   });
 
+  it("does not let old aligned-copy hide shutdown thread interruption wording", () => {
+    const status = summarizePluginHubStatus({
+      state: "open",
+      draft: false,
+      merged_at: null,
+      updated_at: "2026-06-03T08:00:00Z",
+      body: "Live PR body appears aligned with current consent, token, data and web-handoff wording. Auto-sync on login defaults off. Sync on quest complete defaults off. Quest-complete sync is also gated behind Auto-sync on login. Slayer task state is included after opt-in. No bank, inventory or equipment data is sent. Shutdown interrupts the named daemon sync worker.",
+      html_url: "https://github.com/runelite/plugin-hub/pull/12536"
+    }, [], []);
+
+    expect(status.reviewCopyIssues).toContain("shutdown thread interrupt");
+    expect(status.reviewCopySummary).toContain("Live PR body still needs review-copy fixes");
+  });
+
   it("warns when the Plugin Hub pin is behind the standalone repo head", () => {
     const status = summarizePluginHubStatus({
       state: "open",
       draft: false,
       merged_at: null,
       updated_at: "2026-06-03T08:00:00Z",
-      html_url: "https://github.com/runelite/plugin-hub/pull/12227"
+      html_url: "https://github.com/runelite/plugin-hub/pull/12536"
     }, [], [], [
       {
         filename: "plugins/scapestack-sync",
@@ -107,7 +121,7 @@ describe("plugin hub status", () => {
       draft: false,
       merged_at: null,
       updated_at: "2026-06-03T08:00:00Z",
-      html_url: "https://github.com/runelite/plugin-hub/pull/12227"
+      html_url: "https://github.com/runelite/plugin-hub/pull/12536"
     }, [{ id: 1, state: "CHANGES_REQUESTED" }]);
 
     expect(status.reviewCount).toBe(1);
@@ -126,7 +140,7 @@ describe("plugin hub status", () => {
       draft: false,
       merged_at: null,
       updated_at: "2026-06-03T08:00:00Z",
-      html_url: "https://github.com/runelite/plugin-hub/pull/12227"
+      html_url: "https://github.com/runelite/plugin-hub/pull/12536"
     }, [{ id: 1, state: "APPROVED" }]);
 
     expect(status.reviewSummary).toContain("approval recorded");
@@ -143,7 +157,7 @@ describe("plugin hub status", () => {
       draft: false,
       merged_at: "2026-06-03T09:00:00Z",
       updated_at: "2026-06-03T09:00:00Z",
-      html_url: "https://github.com/runelite/plugin-hub/pull/12227"
+      html_url: "https://github.com/runelite/plugin-hub/pull/12536"
     }, [{ id: 1, state: "APPROVED" }], [
       { name: "build", conclusion: "success", status: "completed" }
     ]);
@@ -165,7 +179,7 @@ describe("plugin hub status", () => {
       draft: false,
       merged_at: null,
       updated_at: "2026-06-03T08:00:00Z",
-      html_url: "https://github.com/runelite/plugin-hub/pull/12227"
+      html_url: "https://github.com/runelite/plugin-hub/pull/12536"
     }, [], [
       { name: "build", conclusion: "failure", status: "completed" },
       { name: "RuneLite Plugin Hub Checks", conclusion: "failure", status: "completed" }
@@ -196,14 +210,16 @@ describe("plugin hub status", () => {
     const status = summarizePluginHubPublicHtml(`
       <html>
         <body>
-          <h1>Add scapestack-sync#12227</h1>
+          <h1>Add scapestack-sync#12536</h1>
           <span>Open</span>
           <p>Adds Scapestack Sync, a small plugin that POSTs your quest list, diary completion state, and collection-log item IDs.</p>
           <p>POST https://www.scapestack.org/api/sync on every login + on quest-complete chat messages.</p>
           <p>Auto-sync defaults to on but is visible in plugin settings.</p>
           <p>Each install generates a UUID locally that we hash server-side before storing — the raw token never leaves the install.</p>
+          <p>Live PR body appears aligned with current consent, token, data and web-handoff wording.</p>
+          <p>Shutdown interrupts the named daemon sync worker.</p>
           <p>No IP, no machine fingerprint, no chat-log content.</p>
-          <a href="https://github.com/laurensbs/scapestack-runelite-plugin/tree/97b47fe5fe887e127492d8853fd1431b38a058f9">plugin pin</a>
+          <a href="https://github.com/laurensbs/scapestack-runelite-plugin/tree/39931dc965e4e9f01bf549bdc192b85c4cd6c1fc">plugin pin</a>
           <p>This plugin requires a review from a Plugin Hub maintainer.</p>
           <h3>Reviewers</h3>
           <p>No reviews</p>
@@ -216,7 +232,7 @@ describe("plugin hub status", () => {
     expect(status?.tone).toBe("warning");
     expect(status?.detail).toContain("public PR page");
     expect(status?.checkSummary).toContain("maintainer-review gate");
-    expect(status?.submittedCommit).toBe("97b47fe5fe887e127492d8853fd1431b38a058f9");
+    expect(status?.submittedCommit).toBe("39931dc965e4e9f01bf549bdc192b85c4cd6c1fc");
     expect(status?.reviewCount).toBe(0);
     expect(status?.reviewSummary).toContain("No RuneLite reviews recorded yet");
     expect(status?.reviewCopySummary).toContain("Live PR body still needs review-copy fixes");
@@ -224,6 +240,7 @@ describe("plugin hub status", () => {
       "auto-sync defaults",
       "token transport",
       "POST timing",
+      "shutdown thread interrupt",
       "quest-complete opt-in gate",
       "Slayer payload",
       "bank/inventory/equipment exclusion"

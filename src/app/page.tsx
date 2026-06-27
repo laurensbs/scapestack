@@ -1,11 +1,13 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Layers, PlugZap, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2, EyeOff, Layers, PlugZap, ShieldCheck, Sparkles, Target } from "lucide-react";
 import { BuyMeCoffee } from "@/components/buy-me-coffee";
-import { BossShowcase } from "@/components/boss-showcase";
 import { CopyCommand } from "@/components/copy-command";
 import { HeroIntake } from "@/components/hero-intake";
-import { HOME_SYNC_COPY, homePluginReadinessPill, homeProductFlowForPluginReadiness, homeSyncServicePill, type HomeFlowStep } from "@/lib/home-flow";
-import { getPluginHubStatus, pluginHubReviewReadiness, type PluginHubReviewReadiness, type PluginHubStatusTone } from "@/lib/plugin-hub-status";
+import { ItemSprite } from "@/components/item-sprite";
+import { ScapestackCommandSystem } from "@/components/scapestack-command-system";
+import { BRAND_SECONDARY_TAGLINE, BRAND_TAGLINE } from "@/lib/brand";
+import { HOME_SYNC_COPY, homePluginReadinessPill, homeProductFlowForPluginReadiness, homeSyncServicePill, type HomeFlowStep, type HomePluginReadinessPill } from "@/lib/home-flow";
+import { getPluginHubStatus, pluginHubReviewReadiness, type PluginHubStatusTone } from "@/lib/plugin-hub-status";
 import { getSyncServiceStatus } from "@/lib/sync-service-readiness";
 import { cn } from "@/lib/utils";
 
@@ -54,11 +56,22 @@ function FlowIcon({ accent }: { accent: HomeFlowStep["accent"] }) {
   return <Sparkles className="size-4" />;
 }
 
-const HERO_TRUST_POINTS = [
-  "Hiscores first: works with only an OSRS name.",
-  "Bank paste is browser-only and never sent to RuneLite.",
-  "RuneLite sync verifies quests, diaries, collection log and Slayer after opt-in."
-];
+const HERO_LOOP_STEPS = ["Bank", "Next action", "RuneLite sync"] as const;
+
+const HERO_PREVIEW_ITEMS = [
+  { id: 28307, name: "Vardorvis chase" },
+  { id: 4151, name: "Abyssal whip" },
+  { id: 2434, name: "Prayer potion" },
+  { id: 11832, name: "Bandos chestplate" }
+] as const;
+
+const HERO_READINESS_SIGNALS = [
+  { label: "Bank", body: "Items, quantities, gear and GP value." },
+  { label: "RSN", body: "Public Hiscores, combat level and boss KC." },
+  { label: "RuneLite sync", body: "Opt-in quests, diaries, collection log and Slayer." }
+] as const;
+
+const HERO_NEVER_READS = ["chat", "passwords", "clicks", "screenshots", "login data"] as const;
 
 export default async function HomePage() {
   const [pluginHubStatus, syncServiceStatus] = await Promise.all([
@@ -85,16 +98,16 @@ export default async function HomePage() {
               - Intake: scale-in + fade
               Alle ease cubic-bezier(0.22,1,0.36,1) — Apple's "ease-out
               expressive" curve. */}
-          <div className="space-y-10">
+          <div className="space-y-8">
             <h1 className="font-bold leading-[0.95] tracking-[-0.025em] text-[clamp(44px,8vw,88px)]">
               <RevealLine
-                text="Less bank standing,"
+                text={BRAND_TAGLINE}
                 delay={100}
                 wordStaggerMs={70}
                 className="block text-[var(--color-text)]"
               />
               <RevealLine
-                text="more Gielinor."
+                text="Bank → next action → RuneLite sync."
                 delay={350}
                 wordStaggerMs={80}
                 className="block text-gold-gradient"
@@ -112,45 +125,30 @@ export default async function HomePage() {
                 clipPath: "inset(0 0 100% 0)"
               }}
             >
-              Type your OSRS name for Hiscores. Paste your bank when you want gear-aware planning.
-              Add RuneLite sync for quests, diaries, collection log and Slayer state — the plugin
-              does not send bank data.
+              {BRAND_SECONDARY_TAGLINE} Paste bank context, type an RSN, or connect RuneLite
+              sync. Scapestack turns that into one concrete route before you start bank standing.
             </p>
 
             <div
-              className="grid gap-2 sm:grid-cols-3"
-              aria-label="Scapestack data trust contract"
-              style={{ animation: "hero-fade 0.7s cubic-bezier(0.22,1,0.36,1) 0.95s both" }}
-            >
-              {HERO_TRUST_POINTS.map((point) => (
-                <div
-                  key={point}
-                  className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-3 py-2 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]"
-                >
-                  {point}
-                </div>
-              ))}
-            </div>
-
-            <div
-              style={{ animation: "hero-scale-in 0.9s cubic-bezier(0.22,1,0.36,1) 1.05s both" }}
+              style={{ animation: "hero-scale-in 0.9s cubic-bezier(0.22,1,0.36,1) 0.95s both" }}
             >
               <HeroIntake />
             </div>
           </div>
 
-          {/* Rechterkolom — boss showcase als productfoto. Geen halo
-              achtergrond; alleen het portret zelf en z'n bestaande
-              floating animatie. Komt iets later in dan de tekst,
-              voelt alsof hij "naar binnen wandelt." */}
+          {/* Rechterkolom — geen abstracte SaaS mockup maar een live
+              Scapestack beslis-preview: data in, item IDs zichtbaar, actie
+              uit. */}
           <div
             className="relative mt-8 lg:mt-0"
             style={{ animation: "hero-boss-in 1.1s cubic-bezier(0.22,1,0.36,1) 0.65s both" }}
           >
-            <BossShowcase />
+            <HeroProductPreview />
           </div>
         </div>
       </section>
+
+      <ScapestackCommandSystem />
 
       {/* 'More tools' card grid removed — the homepage is /next, and the
           tool-card sprites + 3-2 grid asymmetry weren't reading as
@@ -169,6 +167,7 @@ export default async function HomePage() {
             <p className="mt-3 max-w-2xl text-[14px] leading-relaxed text-[var(--color-text-dim)]">
               Bank Memory is best when you want quantities and GP value; Bank Tags still gives exact layout.
               Verified RuneLite sync labels quest, diary, collection-log and Slayer coverage as verified, partial or missing.
+              The plugin does not send bank data.
             </p>
           </div>
           <div className="flex flex-col items-start gap-2">
@@ -201,7 +200,7 @@ export default async function HomePage() {
               />
               <span className="truncate">{syncServicePill.label}</span>
             </Link>
-            <PluginHubReadinessCard readiness={reviewReadiness} />
+            <ScapestackSyncReadinessCard readiness={pluginReadinessPill} />
           </div>
         </div>
 
@@ -286,28 +285,146 @@ export default async function HomePage() {
   );
 }
 
-function PluginHubReadinessCard({ readiness }: { readiness: PluginHubReviewReadiness }) {
-  const visibleBlockers = readiness.blockers.slice(0, 2);
+function HeroProductPreview() {
+  return (
+    <aside
+      aria-label="Live Scapestack product preview"
+      className="relative overflow-hidden rounded-[28px] border border-[var(--color-border)] bg-[radial-gradient(circle_at_20%_0%,rgba(230,165,47,0.18),transparent_34%),linear-gradient(145deg,var(--color-panel),var(--color-bg-2))] p-4 shadow-[0_34px_110px_rgba(0,0,0,0.38)] sm:p-5"
+    >
+      <div
+        className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-accent)]/70 to-transparent"
+        aria-hidden="true"
+      />
 
+      <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)]/58 p-4">
+        <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-dim)]">
+          {HERO_LOOP_STEPS.map((step, index) => (
+            <span key={step} className="inline-flex items-center gap-2">
+              <span className="rounded-full border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-2 py-1 text-[var(--color-accent)]">
+                {step}
+              </span>
+              {index < HERO_LOOP_STEPS.length - 1 ? (
+                <ArrowRight className="size-3 text-[var(--color-text-muted)]" aria-hidden="true" />
+              ) : null}
+            </span>
+          ))}
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-2.5 py-1 text-[11px] font-bold text-[var(--color-good)]">
+                <Target className="size-3.5" aria-hidden="true" />
+                Next action
+              </div>
+              <h2 className="mt-3 text-[22px] font-black leading-tight tracking-tight text-[var(--color-text)]">
+                Push Vardorvis to 50 KC
+              </h2>
+              <p className="mt-2 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
+                Bank has supplies, RSN has combat ready, RuneLite sync shows Desert Treasure II done.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-1.5 rounded-2xl border border-[var(--color-border)] bg-black/25 p-2">
+              {HERO_PREVIEW_ITEMS.map((item) => (
+                <div
+                  key={item.id}
+                  className="grid size-11 place-items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/80"
+                  title={`${item.name} · item ID ${item.id}`}
+                >
+                  <ItemSprite id={item.id} alt={item.name} className="scale-125" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <Link
+              href="/dps?boss=vardorvis"
+              className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/55 px-2.5 py-2 text-center text-[11.5px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+            >
+              DPS route
+            </Link>
+            <Link
+              href="https://oldschool.runescape.wiki/w/Special:Lookup?type=item&id=28307"
+              className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/55 px-2.5 py-2 text-center text-[11.5px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+            >
+              Item ID 28307
+            </Link>
+            <Link
+              href="https://oldschool.runescape.wiki/w/Vardorvis"
+              className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/55 px-2.5 py-2 text-center text-[11.5px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+            >
+              Wiki
+            </Link>
+            <button
+              type="button"
+              className="rounded-lg border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-2.5 py-2 text-[11.5px] font-bold text-[var(--color-good)]"
+            >
+              Mark done
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-[1.1fr_0.9fr]">
+          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-3">
+            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-dim)]">
+              <ShieldCheck className="size-4 text-[var(--color-good)]" aria-hidden="true" />
+              What Scapestack uses
+            </div>
+            <div className="mt-3 space-y-2">
+              {HERO_READINESS_SIGNALS.map((signal) => (
+                <div key={signal.label} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/40 px-3 py-2">
+                  <div className="text-[12px] font-bold text-[var(--color-text)]">{signal.label}</div>
+                  <div className="mt-0.5 text-[11px] leading-relaxed text-[var(--color-text-muted)]">{signal.body}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-3">
+            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-dim)]">
+              <EyeOff className="size-4 text-[var(--color-warning)]" aria-hidden="true" />
+              What it never reads
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {HERO_NEVER_READS.map((item) => (
+                <span
+                  key={item}
+                  className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1 text-[11px] font-bold text-[var(--color-text-dim)]"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+            <p className="mt-3 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
+              RuneLite sync is opt-in account-state only. Bank paste stays browser-session scoped.
+            </p>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function ScapestackSyncReadinessCard({ readiness }: { readiness: HomePluginReadinessPill }) {
   return (
     <div
-      id="review-readiness"
-      aria-label="Plugin Hub install readiness"
+      id="sync-readiness"
+      aria-label="Scapestack Sync readiness"
       className="max-w-[360px] rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2.5 text-left"
     >
       <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-dim)]">
         <span className={cn("size-1.5 rounded-full", pluginDotClass(readiness.tone))} aria-hidden="true" />
-        Plugin Hub install readiness
+        Scapestack Sync readiness
       </div>
       <div className="mt-1 text-[12.5px] font-bold text-[var(--color-text)]">{readiness.label}</div>
       <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">{readiness.detail}</p>
-      {!readiness.playerInstallReady && visibleBlockers.length > 0 ? (
-        <ul className="mt-2 space-y-1 text-[11px] leading-relaxed text-[var(--color-warning)]">
-          {visibleBlockers.map((blocker) => (
-            <li key={blocker}>• {blocker}</li>
-          ))}
-        </ul>
-      ) : null}
+      <Link
+        href={readiness.href}
+        className="mt-2 inline-flex items-center gap-1.5 text-[11.5px] font-bold text-[var(--color-accent)] hover:underline"
+      >
+        Check sync <ArrowRight className="size-3.5" />
+      </Link>
     </div>
   );
 }

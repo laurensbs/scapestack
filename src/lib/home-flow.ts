@@ -1,4 +1,4 @@
-import { LOCAL_SYNC_URL } from "@/lib/plugin-sync-actions";
+import { PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
 import type { PluginHubReviewReadiness, PluginHubReviewReadinessState } from "@/lib/plugin-hub-status";
 import type { SyncServiceStatus } from "@/lib/sync-service-readiness";
 
@@ -34,44 +34,20 @@ function syncFlowStep(state: PluginHubReviewReadinessState): HomeFlowStep {
   if (state === "installable") {
     return {
       label: "02",
-      title: "Install RuneLite sync",
-      body: "Plugin Hub install is live. Install Scapestack Sync, then verify a payload before /next trusts quest, diary, collection-log and Slayer coverage labels.",
+      title: "Sync your account",
+      body: "Enable Scapestack Sync in RuneLite, then verify a payload before /next trusts quest, diary, collection-log and Slayer coverage labels.",
       href: "/plugin#verify-sync",
-      cta: "Install sync",
-      accent: "sync"
-    };
-  }
-
-  if (state === "review-blocked") {
-    return {
-      label: "02",
-      title: "Fix RuneLite review handoff",
-      body: "The plugin can be tested locally, but normal players should stay on web recommendations until reviewer copy and the pinned commit are clean.",
-      href: "/plugin#review-readiness",
-      cta: "Open review checklist",
-      accent: "sync"
-    };
-  }
-
-  if (state === "unknown") {
-    return {
-      label: "02",
-      title: "Check RuneLite sync status",
-      body: "GitHub status is unavailable. Treat Plugin Hub install as unproven and use bank paste plus Hiscores until the live PR is checked.",
-      href: "/plugin",
-      cta: "Open plugin status",
+      cta: "Check sync",
       accent: "sync"
     };
   }
 
   return {
     label: "02",
-    title: "Track RuneLite sync",
-    body: state === "closed"
-      ? "The Plugin Hub submission is paused. Use bank paste and public trackers now; developer install remains available for testers."
-      : "Plugin Hub review is pending. Use bank paste and Hiscores now; testers can side-load the local plugin loop.",
-    href: "/plugin",
-    cta: state === "closed" ? "Open plugin status" : "Track plugin review",
+    title: "Check Scapestack Sync",
+    body: "Open the sync checker, enter your OSRS name, and confirm RuneLite posted to scapestack.org before the planner trusts private account coverage.",
+    href: "/plugin#verify-sync",
+    cta: "Check sync",
     accent: "sync"
   };
 }
@@ -124,27 +100,22 @@ export function homeProductFlowForPluginReadinessState(state: PluginHubReviewRea
 export const HOME_PRODUCT_FLOW: HomeFlowStep[] = homeProductFlowForPluginState("open");
 
 export function homePluginReadinessPill(readiness: PluginHubReviewReadiness): HomePluginReadinessPill {
+  const playerInstallReady = readiness.playerInstallReady;
   return {
-    label: readiness.playerInstallReady
-      ? "Plugin Hub install ready"
-      : readiness.state === "review-blocked"
-        ? "Plugin review handoff needs fixes"
-        : readiness.state === "pending-review"
-          ? "Plugin review pending"
-          : readiness.state === "closed"
-            ? "Plugin submission closed"
-            : "Plugin install readiness unknown",
-    detail: readiness.detail,
+    label: playerInstallReady ? "Scapestack Sync ready" : "Check Scapestack Sync",
+    detail: playerInstallReady
+      ? "RuneLite sync is ready to verify for the same RSN before /next trusts private account coverage."
+      : "Enter your OSRS name on /plugin and verify a RuneLite payload before relying on account-specific coverage.",
     tone: readiness.tone,
-    href: readiness.playerInstallReady ? "/plugin#verify-sync" : "/plugin#review-readiness",
-    playerInstallReady: readiness.playerInstallReady
+    href: "/plugin#verify-sync",
+    playerInstallReady
   };
 }
 
 export const HOME_SYNC_COPY = {
   label: "Copy sync URL",
-  value: LOCAL_SYNC_URL,
-  helper: "Paste this into the Scapestack Sync plugin while running the local app. It still sends only opt-in account-progress signals, not bank data."
+  value: PUBLIC_SYNC_URL,
+  helper: "Paste this into Scapestack Sync if RuneLite still has an old endpoint. It sends only opt-in account-progress signals, not bank data."
 };
 
 export interface HomeSyncServicePill {

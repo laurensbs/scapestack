@@ -181,7 +181,7 @@ describe("plugin sync diagnostics", () => {
       pluginVersion: "0.1.0",
       slayer: null
     })).map((action) => action.title)).toEqual([
-      "Update the local plugin",
+      "Update Scapestack Sync",
       "Re-sync after RuneLite restarts",
       "Open /next only as fallback"
     ]);
@@ -219,8 +219,8 @@ describe("plugin sync diagnostics", () => {
     expect(missing.primaryAction?.copy).toBe(PUBLIC_SYNC_URL);
     expect(diagnosticForMissingSync("Lynx Titan", { origin: "http://127.0.0.1:4173" }).primaryAction?.copy)
       .toBe(LOCAL_SYNC_URL);
-    expect(missing.steps.join(" ")).toContain("After Plugin Hub is live");
-    expect(missing.steps.join(" ")).toContain("side-load the local plugin");
+    expect(missing.steps.join(" ")).toContain("Open RuneLite");
+    expect(missing.steps.join(" ")).toContain("https://www.scapestack.org/api/sync");
     expect(missing.steps.join(" ")).toContain("Auto-sync on login");
     expect(missing.steps.join(" ")).not.toContain("Install Scapestack Sync, then enable");
 

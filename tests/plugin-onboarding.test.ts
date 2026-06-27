@@ -2,39 +2,28 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { BANK_PLUGIN_ONBOARDING, bankPluginOnboardingActions } from "@/lib/plugin-onboarding";
-import { LOCAL_SYNC_URL } from "@/lib/plugin-sync-actions";
+import { PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
 
 describe("bank plugin onboarding", () => {
-  it("keeps normal bank users on web recommendations while Plugin Hub review is pending", () => {
+  it("sends normal bank users to the sync checker before account coverage is trusted", () => {
     expect(BANK_PLUGIN_ONBOARDING.actions).toEqual([
       {
-        label: "Use web recommendations",
-        href: "/next?from=bank&bank=none",
+        label: "Check Scapestack Sync",
+        href: "/plugin?from=bank#verify-sync",
         tone: "primary"
       },
       {
-        label: "Tester RuneLite setup",
-        href: "/plugin?from=bank#developer-install",
+        label: "Use web recommendations",
+        href: "/next?from=bank&bank=none",
         tone: "secondary"
       }
     ]);
-    expect(BANK_PLUGIN_ONBOARDING.actions[0].href).not.toContain("source=plugin-sync");
-    expect(BANK_PLUGIN_ONBOARDING.actions[1].label).toContain("Tester");
+    expect(BANK_PLUGIN_ONBOARDING.actions[1].href).not.toContain("source=plugin-sync");
+    expect(BANK_PLUGIN_ONBOARDING.actions[0].href).toContain("#verify-sync");
   });
 
   it("switches bank onboarding actions by live Plugin Hub readiness", () => {
-    expect(bankPluginOnboardingActions("review-blocked")).toEqual([
-      {
-        label: "Use web recommendations",
-        href: "/next?from=bank&bank=none",
-        tone: "primary"
-      },
-      {
-        label: "Open review checklist",
-        href: "/plugin?from=bank#review-readiness",
-        tone: "secondary"
-      }
-    ]);
+    expect(bankPluginOnboardingActions("review-blocked")).toEqual(BANK_PLUGIN_ONBOARDING.actions);
     expect(bankPluginOnboardingActions("merged")).toEqual([
       {
         label: "Verify RuneLite sync",
@@ -48,8 +37,8 @@ describe("bank plugin onboarding", () => {
       }
     ]);
     expect(bankPluginOnboardingActions("unknown")[1]).toEqual({
-      label: "Check plugin status",
-      href: "/plugin?from=bank#review-readiness",
+      label: "Check Scapestack Sync",
+      href: "/plugin?from=bank#verify-sync",
       tone: "secondary"
     });
   });
@@ -57,7 +46,7 @@ describe("bank plugin onboarding", () => {
   it("exposes the same local sync URL users must paste in RuneLite", () => {
     expect(BANK_PLUGIN_ONBOARDING.copy).toEqual({
       label: "Copy sync URL",
-      value: LOCAL_SYNC_URL
+      value: PUBLIC_SYNC_URL
     });
   });
 
@@ -104,45 +93,34 @@ describe("bank plugin onboarding", () => {
         state: "verify"
       },
       {
-        label: "Pending review",
-        title: "Public RuneLite install",
-        body: "Only call Scapestack Sync publicly installable after the Plugin Hub PR is merged and the stale PR body copy is replaced.",
+        label: "Sync check",
+        title: "Scapestack Sync check",
+        body: "Open /plugin when you want to verify the same RSN from RuneLite before trusting quest, diary, CL and Slayer coverage.",
         state: "pending"
       }
     ]);
   });
 
-  it("shows live Plugin Hub review state on the bank onboarding surface", () => {
+  it("shows sync checker state on the bank onboarding surface", () => {
     const source = readFileSync(join(process.cwd(), "src/components/bank-plugin-onboarding.tsx"), "utf8");
 
     expect(source).toContain('fetch("/api/plugin-hub/status")');
     expect(source).toContain("scapestackPluginHubStateFromStatus(status)");
-    expect(source).toContain("pluginHubMaintainerReviewGate(status)");
     expect(source).toContain("bankPluginOnboardingActions(pluginHubReadinessState)");
-    expect(source).toContain("maintainerReviewGate.title");
-    expect(source).toContain("maintainerReviewGate.nextAction");
     expect(source).toContain('pluginHubReadinessState === "merged"');
-    expect(source).toContain('pluginHubReadinessState === "review-blocked"');
     expect(source).toContain("const SignalIcon = isPluginHubLive ? CheckCircle2 : Clock3");
     expect(source).toContain('isPluginHubLive ? "text-[var(--color-good)]" : "text-[var(--color-warning)]"');
     expect(source).toContain("Verified coverage Scapestack Sync can unlock");
-    expect(source).toContain("Verified coverage blocked by review handoff");
     expect(source).toContain("Verified coverage unlocked");
     expect(source).not.toContain("Exact signals Scapestack Sync can unlock");
     expect(source).not.toContain("Exact signals unlocked");
-    expect(source).toContain("Plugin Hub review pending");
-    expect(source).toContain("Plugin review handoff blocked");
-    expect(source).toContain("Normal players should use bank paste and /next today");
-    expect(source).toContain("testers can use the /plugin developer setup");
-    expect(source).toContain("not a public install promise");
-    expect(source).toContain("Review handoff blocker");
-    expect(source).toContain("Code and pin can be ready while RuneLite reviewers still see stale PR body text, a stale pin, or requested changes");
-    expect(source).toContain('href="/plugin?from=bank#review-readiness"');
-    expect(source).toContain("Open review checklist");
-    expect(source).toContain("status.pinSummary");
-    expect(source).toContain('status?.reviewSummary?.includes("requested changes")');
-    expect(source).toContain("Local sync URL is hidden from this onboarding card until the review handoff is clean");
-    expect(source).toContain("Testers can still copy it from the /plugin developer setup");
+    expect(source).toContain("Sync checker available");
+    expect(source).toContain("open /plugin and verify Scapestack Sync");
+    expect(source).toContain("Use the /plugin checker");
+    expect(source).toContain("CopyCommand");
+    expect(source).not.toContain("Open review checklist");
+    expect(source).not.toContain("review-readiness");
+    expect(source).not.toContain("Review handoff blocker");
     expect(source).toContain("Safe path today");
     expect(source).toContain("BANK_PLUGIN_ONBOARDING.readiness.map");
     expect(source).toContain('step.state === "ready" ? CheckCircle2 : Clock3');
@@ -159,10 +137,11 @@ describe("bank plugin onboarding", () => {
     expect(actionIndex).toBeLessThan(readinessIndex);
   });
 
-  it("anchors tester setup to a real section on the plugin page", () => {
+  it("anchors sync setup to the checker on the plugin page", () => {
     const pageSource = readFileSync(join(process.cwd(), "src/app/plugin/page.tsx"), "utf8");
 
-    expect(pageSource).toContain('id="developer-install"');
-    expect(pageSource).toContain("Developer / tester install");
+    expect(pageSource).toContain("PLUGIN_VERIFY_SYNC_HASH");
+    expect(pageSource).toContain("PluginSyncChecker");
+    expect(pageSource).not.toContain('id="developer-install"');
   });
 });
