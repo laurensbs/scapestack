@@ -85,8 +85,13 @@ public class ScapestackSyncPlugin extends Plugin {
     private static final String CONFIG_GROUP = "scapestackSync";
     private static final String KEY_SYNC_URL = "syncUrl";
     private static final String KEY_AUTO_SYNC = "autoSync";
+    private static final String KEY_SYNC_NOW = "syncNow";
     private static final String KEY_FORCE_CLAIM = "forceClaimOnNextSync";
     private static final String DEFAULT_SYNC_URL = "https://www.scapestack.org/api/sync";
+    private static final long LOGIN_SYNC_DELAY_MS = 3_000L;
+    private static final long MANUAL_SYNC_DELAY_MS = 250L;
+    private static final long SYNC_RETRY_DELAY_MS = 1_000L;
+    private static final int MAX_SYNC_READ_ATTEMPTS = 6;
 
     private ClaimClient claimClient;
     private SyncServiceReadiness syncServiceReadiness;
@@ -132,16 +137,28 @@ public class ScapestackSyncPlugin extends Plugin {
         }
         if (!config.autoSync()) return;
         // LOGGING_IN fires once when the world handshake settles. We wait
-        // for LOGGED_IN since widgets aren't readable before that.
+        // for LOGGED_IN since widgets aren't readable before that, then wait
+        // a few seconds more because localPlayer can still be null on the
+        // first client tick after the state flip.
         if (e.getGameState() == GameState.LOGGED_IN) {
-            // Delay the read so the quest-list widget has time to populate.
-            // 3s is RuneLite-community standard for this kind of poll.
-            clientThread.invokeLater(this::triggerSync);
+            scheduleSyncAfterDelay("login", LOGIN_SYNC_DELAY_MS);
         }
     }
 
     @Subscribe
     public void onConfigChanged(ConfigChanged event) {
+        if (shouldSyncNowAfterConfigChange(event)) {
+            configManager.setConfiguration(CONFIG_GROUP, KEY_SYNC_NOW, false);
+            if (client.getGameState() != GameState.LOGGED_IN) {
+                notifyChat("Scapestack sync queued. Log in first, then use Sync now again.");
+                return;
+            }
+
+            log.debug("Manual Scapestack sync requested");
+            scheduleSyncAfterDelay("manual", MANUAL_SYNC_DELAY_MS);
+            return;
+        }
+
         if (!shouldSyncAfterConfigChange(event)) return;
         if (client.getGameState() != GameState.LOGGED_IN) {
             notifyChat("Scapestack sync enabled. Log in to send your first snapshot.");
@@ -149,7 +166,7 @@ public class ScapestackSyncPlugin extends Plugin {
         }
 
         log.debug("Auto-sync enabled while logged in, scheduling first sync");
-        clientThread.invokeLater(this::triggerSync);
+        scheduleSyncAfterDelay("settings", MANUAL_SYNC_DELAY_MS);
     }
 
     @Subscribe
@@ -160,7 +177,7 @@ public class ScapestackSyncPlugin extends Plugin {
             config.syncOnQuestComplete()
         )) {
             log.debug("Quest completion detected, scheduling re-sync");
-            clientThread.invokeLater(this::triggerSync);
+            scheduleSyncAfterDelay("quest", MANUAL_SYNC_DELAY_MS);
         }
     }
 
@@ -182,10 +199,43 @@ public class ScapestackSyncPlugin extends Plugin {
     }
 
 
-    private void triggerSync() {
+    private void scheduleSyncAfterDelay(String reason, long delayMs) {
+        Thread thread = newSyncThread(() -> {
+            sleepBeforeSync(delayMs);
+            if (!running) return;
+            clientThread.invokeLater(() -> triggerSync(reason, 1));
+        });
+        thread.start();
+    }
+
+    private void scheduleSyncRetry(String reason, int attempt) {
+        Thread thread = newSyncThread(() -> {
+            sleepBeforeSync(SYNC_RETRY_DELAY_MS);
+            if (!running) return;
+            clientThread.invokeLater(() -> triggerSync(reason, attempt));
+        });
+        thread.start();
+    }
+
+    private static void sleepBeforeSync(long delayMs) {
+        if (delayMs <= 0) return;
+        try {
+            Thread.sleep(delayMs);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private void triggerSync(String reason, int attempt) {
         String rsn = client.getLocalPlayer() != null ? client.getLocalPlayer().getName() : null;
         if (rsn == null || rsn.isBlank()) {
-            log.debug("triggerSync called but RSN unknown — skipping");
+            if (shouldRetryMissingPlayer(attempt)) {
+                log.debug("Scapestack sync {} waiting for local player, attempt {}", reason, attempt);
+                scheduleSyncRetry(reason, attempt + 1);
+                return;
+            }
+            log.warn("Scapestack sync {} could not read local player after {} attempts", reason, attempt);
+            notifyChat("Scapestack sync waiting for your character. Move once, then use Sync now.");
             return;
         }
 
@@ -198,6 +248,7 @@ public class ScapestackSyncPlugin extends Plugin {
             snap = reader.readSnapshot(client, collectionLogReader.snapshot());
         } catch (Exception ex) {
             log.warn("Failed to read game state", ex);
+            notifyChat("Scapestack sync failed: could not read RuneLite state yet. Try Sync now in a moment.");
             return;
         }
 
@@ -475,6 +526,17 @@ public class ScapestackSyncPlugin extends Plugin {
             && CONFIG_GROUP.equals(event.getGroup())
             && KEY_AUTO_SYNC.equals(event.getKey())
             && Boolean.parseBoolean(event.getNewValue());
+    }
+
+    static boolean shouldSyncNowAfterConfigChange(ConfigChanged event) {
+        return event != null
+            && CONFIG_GROUP.equals(event.getGroup())
+            && KEY_SYNC_NOW.equals(event.getKey())
+            && Boolean.parseBoolean(event.getNewValue());
+    }
+
+    static boolean shouldRetryMissingPlayer(int attempt) {
+        return attempt > 0 && attempt < MAX_SYNC_READ_ATTEMPTS;
     }
 
     static boolean shouldShowOptInHint(GameState gameState, boolean autoSync, boolean alreadyShown) {

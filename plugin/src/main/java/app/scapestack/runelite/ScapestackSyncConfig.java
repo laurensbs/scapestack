@@ -35,6 +35,15 @@ public interface ScapestackSyncConfig extends Config {
     }
 
     @ConfigItem(
+        keyName = "syncNow",
+        name = "Sync now",
+        description = "Send one Scapestack snapshot now. This toggle turns itself off after the sync is queued."
+    )
+    default boolean syncNow() {
+        return false;
+    }
+
+    @ConfigItem(
         keyName = "forceClaimOnNextSync",
         name = "Force claim retry",
         description = "Forget the local claimed-RSN cache and re-run the claim step on the next sync. Use after changing RSN or fixing a rejected claim."

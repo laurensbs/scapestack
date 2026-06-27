@@ -185,14 +185,38 @@ public class ScapestackSyncPluginTest {
     public void autoSyncConfigChangeTriggersImmediateFirstSyncOnlyWhenEnabled() {
         ConfigChanged enabled = configChange("scapestackSync", "autoSync", "true");
         ConfigChanged disabled = configChange("scapestackSync", "autoSync", "false");
+        ConfigChanged syncNow = configChange("scapestackSync", "syncNow", "true");
         ConfigChanged otherKey = configChange("scapestackSync", "chatFeedback", "true");
         ConfigChanged otherGroup = configChange("banktags", "autoSync", "true");
 
         assertTrue(ScapestackSyncPlugin.shouldSyncAfterConfigChange(enabled));
         assertFalse(ScapestackSyncPlugin.shouldSyncAfterConfigChange(disabled));
+        assertFalse(ScapestackSyncPlugin.shouldSyncAfterConfigChange(syncNow));
         assertFalse(ScapestackSyncPlugin.shouldSyncAfterConfigChange(otherKey));
         assertFalse(ScapestackSyncPlugin.shouldSyncAfterConfigChange(otherGroup));
         assertFalse(ScapestackSyncPlugin.shouldSyncAfterConfigChange(null));
+    }
+
+    @Test
+    public void syncNowConfigChangeTriggersManualSyncOnlyWhenToggledOn() {
+        ConfigChanged enabled = configChange("scapestackSync", "syncNow", "true");
+        ConfigChanged disabled = configChange("scapestackSync", "syncNow", "false");
+        ConfigChanged otherKey = configChange("scapestackSync", "autoSync", "true");
+        ConfigChanged otherGroup = configChange("banktags", "syncNow", "true");
+
+        assertTrue(ScapestackSyncPlugin.shouldSyncNowAfterConfigChange(enabled));
+        assertFalse(ScapestackSyncPlugin.shouldSyncNowAfterConfigChange(disabled));
+        assertFalse(ScapestackSyncPlugin.shouldSyncNowAfterConfigChange(otherKey));
+        assertFalse(ScapestackSyncPlugin.shouldSyncNowAfterConfigChange(otherGroup));
+        assertFalse(ScapestackSyncPlugin.shouldSyncNowAfterConfigChange(null));
+    }
+
+    @Test
+    public void missingLocalPlayerRetriesBeforeGivingUp() {
+        assertTrue(ScapestackSyncPlugin.shouldRetryMissingPlayer(1));
+        assertTrue(ScapestackSyncPlugin.shouldRetryMissingPlayer(5));
+        assertFalse(ScapestackSyncPlugin.shouldRetryMissingPlayer(0));
+        assertFalse(ScapestackSyncPlugin.shouldRetryMissingPlayer(6));
     }
 
     @Test

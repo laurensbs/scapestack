@@ -13,6 +13,7 @@ public class ScapestackSyncConfigTest {
         assertEquals("https://www.scapestack.org/api/sync", config.syncUrl());
         assertFalse(config.autoSync());
         assertFalse(config.syncOnQuestComplete());
+        assertFalse(config.syncNow());
         assertFalse(config.forceClaimOnNextSync());
         assertTrue(config.chatFeedback());
     }
@@ -27,9 +28,14 @@ public class ScapestackSyncConfigTest {
             .getMethod("syncOnQuestComplete")
             .getAnnotation(ConfigItem.class)
             .description();
+        String syncNowDescription = ScapestackSyncConfig.class
+            .getMethod("syncNow")
+            .getAnnotation(ConfigItem.class)
+            .description();
 
         assertTrue(autoSyncDescription.contains("quests, diaries, collection-log IDs and Slayer state"));
         assertTrue(autoSyncDescription.contains("Never sends bank, inventory, equipment, chat, screenshots or account login"));
         assertTrue(questSyncDescription.contains("Requires Auto-sync on login"));
+        assertTrue(syncNowDescription.contains("Send one Scapestack snapshot now"));
     }
 }
