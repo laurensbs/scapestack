@@ -17,14 +17,15 @@ describe("plugin page copy constants", () => {
     expect(pageSource).toContain(PUBLIC_SYNC_URL);
     expect(pageSource).not.toContain("scapestack.app");
     expect(pageSource).toContain("PluginSyncChecker");
-    expect(pageSource).toContain("After a successful sync");
-    expect(pageSource).toContain("Turn sync into the next thing to do.");
-    expect(pageSource).toContain("quests, diary steps, Slayer calls");
-    expect(pageSource).toContain("What sync uses");
-    expect(pageSource).toContain("Used after sync");
-    expect(pageSource).toContain("Never sent");
+    expect(pageSource).toContain("Sync found? Pick a route.");
+    expect(pageSource).toContain("Plan next action");
+    expect(pageSource).toContain("Privacy and fixes");
+    expect(pageSource).toContain("Sync uses");
+    expect(pageSource).toContain("Never uses");
     expect(pageSource).toContain("No credentials");
-    expect(pageSource).toContain("If your name shows nothing, fix the link first.");
+    expect(pageSource).toContain("Nothing showing?");
+    expect(pageSource).not.toContain("After a successful sync");
+    expect(pageSource).not.toContain("Turn sync into the next thing to do.");
   });
 
   it("does not render Plugin Hub PR or reviewer workflow copy on the player plugin page", () => {
@@ -68,8 +69,8 @@ describe("plugin page copy constants", () => {
     });
 
     expect(context).toEqual({
-      title: "You came from /next to check sync",
-      body: "Run the sync checker on this page first. Return to /next after it finds the same RSN.",
+      title: "From /next",
+      body: "Check sync, then return to your plan.",
       cta: "Return to /next",
       href: "/next?rsn=Lynx+Titan&bank=none&from=plugin"
     });
@@ -94,8 +95,8 @@ describe("plugin page copy constants", () => {
     });
 
     expect(context).toEqual({
-      title: "You came from this profile",
-      body: "Check RuneLite sync for this RSN, then return to the player profile without losing account context.",
+      title: "From profile",
+      body: "Check sync, then return.",
       cta: "Return to profile",
       href: "/u/Lynx%20Titan?from=plugin&bank=none"
     });
@@ -109,8 +110,8 @@ describe("plugin page copy constants", () => {
     expect(checkerSource).not.toContain("if this finds your RSN, /next can use exact account state");
     expect(diagnosticsSource).not.toContain("Scapestack Sync enabled.");
     expect(diagnosticsSource).toContain("Enable “Auto-sync on login”");
-    expect(checkerSource).toContain("If this finds your RSN, /next can stop recommending finished quests");
-    expect(checkerSource).toContain("logged items or the wrong Slayer move");
+    expect(checkerSource).toContain("Sync helps /next avoid finished quests");
+    expect(checkerSource).toContain("wrong Slayer calls");
     expect(checkerSource).toContain('if (status === "exact") return "Synced";');
     expect(checkerSource).not.toContain('if (status === "exact") return "Exact";');
     expect(checkerSource).toContain("/next sync signals");
@@ -120,7 +121,7 @@ describe("plugin page copy constants", () => {
     expect(checkerSource).toContain("syncUrlsForOrigin(syncOrigin)");
     expect(checkerSource).not.toContain("LOCAL_SYNC_URL");
     expect(checkerSource).not.toContain("LOCAL_SYNC_CLAIM_URL");
-    expect(diagnosticsSource).toContain("Set the plugin Sync URL to https://www.scapestack.org/api/sync.");
+    expect(diagnosticsSource).toContain("Use https://www.scapestack.org/api/sync");
     expect(diagnosticsSource).toContain("Enable “Auto-sync on login”");
   });
 

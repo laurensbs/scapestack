@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { summarizePluginSyncService } from "@/lib/plugin-sync-service";
-import { DB_INIT_COMMAND, LOCAL_SYNC_CLAIM_URL, LOCAL_SYNC_URL, PUBLIC_SYNC_CLAIM_URL, PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
+import { DB_INIT_COMMAND, LOCAL_SYNC_URL, PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
 
 describe("plugin sync service summary", () => {
   it("summarizes the loading state", () => {
     expect(summarizePluginSyncService(null)).toMatchObject({
       tone: "neutral",
-      label: "Checking sync service",
+      label: "Checking sync",
       actions: []
     });
   });
@@ -23,7 +23,7 @@ describe("plugin sync service summary", () => {
       }
     })).toMatchObject({
       tone: "danger",
-      label: "Sync database missing",
+      label: "Sync storage missing",
       actions: [
         { label: "Copy schema init", copy: DB_INIT_COMMAND },
         { label: "Copy sync URL", copy: PUBLIC_SYNC_URL }
@@ -63,7 +63,7 @@ describe("plugin sync service summary", () => {
     });
 
     expect(summary.tone).toBe("danger");
-    expect(summary.label).toBe("Sync schema incomplete");
+    expect(summary.label).toBe("Sync storage needs setup");
     expect(summary.detail).toContain("player_sync.slayer");
     expect(summary.actions).toContainEqual({ label: "Copy schema init", copy: DB_INIT_COMMAND });
   });
@@ -81,16 +81,15 @@ describe("plugin sync service summary", () => {
       }
     })).toMatchObject({
       tone: "good",
-      label: "Sync service ready",
-      detail: "Plugin v0.2.0 · /api/sync and /api/sync/claim are available.",
+      label: "Sync ready",
+      detail: "Plugin v0.2.0 is ready.",
       actions: [
-        { label: "Copy sync URL", copy: PUBLIC_SYNC_URL },
-        { label: "Copy claim URL", copy: PUBLIC_SYNC_CLAIM_URL }
+        { label: "Copy sync URL", copy: PUBLIC_SYNC_URL }
       ]
     });
   });
 
-  it("copies local claim URLs for ready local services", () => {
+  it("copies local sync URLs for ready local services", () => {
     expect(summarizePluginSyncService({
       ready: true,
       plugin: { currentVersion: "0.2.0" },
@@ -103,8 +102,7 @@ describe("plugin sync service summary", () => {
       }
     }, "http://127.0.0.1:4173")).toMatchObject({
       actions: [
-        { label: "Copy sync URL", copy: LOCAL_SYNC_URL },
-        { label: "Copy claim URL", copy: LOCAL_SYNC_CLAIM_URL }
+        { label: "Copy sync URL", copy: LOCAL_SYNC_URL }
       ]
     });
   });

@@ -129,7 +129,7 @@ describe("plugin sync diagnostics", () => {
     vi.useRealTimers();
   });
 
-  it("warns when a payload is stale", () => {
+  it("warns when a sync is stale", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-05T12:00:00.000Z"));
 
@@ -189,7 +189,7 @@ describe("plugin sync diagnostics", () => {
     vi.useRealTimers();
   });
 
-  it("warns when live payload lacks Slayer state", () => {
+  it("warns when live sync lacks Slayer state", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-03T12:00:00.000Z"));
 
@@ -219,13 +219,17 @@ describe("plugin sync diagnostics", () => {
     expect(missing.primaryAction?.copy).toBe(PUBLIC_SYNC_URL);
     expect(diagnosticForMissingSync("Lynx Titan", { origin: "http://127.0.0.1:4173" }).primaryAction?.copy)
       .toBe(LOCAL_SYNC_URL);
+    expect(missing.title).toBe("No sync for Lynx Titan");
+    expect(missing.body).toContain("/next still works from public stats");
     expect(missing.steps.join(" ")).toContain("Open RuneLite");
     expect(missing.steps.join(" ")).toContain("https://www.scapestack.org/api/sync");
     expect(missing.steps.join(" ")).toContain("Auto-sync on login");
     expect(missing.steps.join(" ")).not.toContain("Install Scapestack Sync, then enable");
+    expect(missing.steps.length).toBe(3);
 
     const unconfigured = diagnosticForUnconfiguredSync();
     expect(unconfigured.tone).toBe("danger");
+    expect(unconfigured.title).toBe("Sync storage is not ready");
     expect(unconfigured.primaryAction?.copy).toBe(DB_INIT_COMMAND);
     expect(unconfigured.steps.join(" ")).toContain("DATABASE_URL");
     expect(unconfigured.steps.join(" ")).toContain("Auto-sync on login");

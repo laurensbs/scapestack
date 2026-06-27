@@ -36,8 +36,8 @@ export function summarizePluginSyncService(status: PluginSyncServiceStatus | nul
   if (!status) {
     return {
       tone: "neutral",
-      label: "Checking sync service",
-      detail: "Scapestack is checking whether the API and database are ready for RuneLite payloads.",
+      label: "Checking sync",
+      detail: "Scapestack is checking whether RuneLite sync can be stored.",
       actions: []
     };
   }
@@ -45,8 +45,8 @@ export function summarizePluginSyncService(status: PluginSyncServiceStatus | nul
   if (!status.database?.configured) {
     return {
       tone: "danger",
-      label: "Sync database missing",
-      detail: "DATABASE_URL is not configured, so the plugin cannot store claims or account-state payloads yet.",
+      label: "Sync storage missing",
+      detail: "Scapestack cannot store RuneLite syncs until DATABASE_URL is configured.",
       actions: [
         { label: "Copy schema init", copy: DB_INIT_COMMAND },
         { label: "Copy sync URL", copy: syncUrls.sync }
@@ -67,7 +67,7 @@ export function summarizePluginSyncService(status: PluginSyncServiceStatus | nul
 
     return {
       tone: "danger",
-      label: "Sync schema incomplete",
+      label: "Sync storage needs setup",
       detail: details || status.database.reason || "The database is configured, but the sync schema could not be verified.",
       actions: [
         { label: "Copy schema init", copy: DB_INIT_COMMAND },
@@ -78,11 +78,10 @@ export function summarizePluginSyncService(status: PluginSyncServiceStatus | nul
 
   return {
     tone: "good",
-    label: "Sync service ready",
-    detail: `Plugin v${status.plugin?.currentVersion || "unknown"} · ${status.endpoints?.sync || "/api/sync"} and ${status.endpoints?.claim || "/api/sync/claim"} are available.`,
+    label: "Sync ready",
+    detail: `Plugin v${status.plugin?.currentVersion || "unknown"} is ready.`,
     actions: [
-      { label: "Copy sync URL", copy: syncUrls.sync },
-      { label: "Copy claim URL", copy: syncUrls.claim }
+      { label: "Copy sync URL", copy: syncUrls.sync }
     ]
   };
 }

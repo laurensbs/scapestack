@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { ArrowRight, CheckCircle2, DatabaseZap, PlugZap, RefreshCw, Search, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2, PlugZap, RefreshCw, Search, ShieldCheck, Sparkles } from "lucide-react";
 import { CopyCommand } from "@/components/copy-command";
 import { PluginBankHandoffBanner } from "@/components/plugin-bank-handoff-banner";
 import { PluginNextLink } from "@/components/plugin-next-link";
@@ -29,20 +29,16 @@ export interface PluginHeroAction {
 
 const SYNC_STEPS = [
   {
-    title: "Install Scapestack Sync",
-    body: "Open RuneLite, add Scapestack Sync, and keep the plugin enabled for the account you want to plan."
+    title: "Install Scapestack Sync"
   },
   {
-    title: "Use the Scapestack link",
-    body: `RuneLite should send Scapestack Sync to ${PUBLIC_SYNC_URL}. Copy the URL below if the plugin needs it.`
+    title: "Use the Scapestack link"
   },
   {
-    title: "Sync from RuneLite",
-    body: "Enable Auto-sync on login or press Sync now after logging in. RuneLite shows chat feedback when the sync is sent."
+    title: "Sync from RuneLite"
   },
   {
-    title: "Check the same RSN",
-    body: "Enter the same OSRS display name below. When sync exists, Scapestack can use it across /next, Slayer, goals and profiles."
+    title: "Check the same RSN"
   }
 ];
 
@@ -53,57 +49,28 @@ const ACCOUNT_SIGNALS = [
   "Slayer task, points, streak and blocks"
 ];
 
-const NEXT_IDEAS = [
+const POST_SYNC_ACTIONS = [
   {
-    title: "Next best session",
-    body: "Ranks quests, diaries, unlocks, bosses and cleanup tasks from the account signals Scapestack can prove.",
-    cta: "Open /next",
+    label: "Plan next action",
     href: "/next?from=plugin&bank=none",
     handoff: true
   },
   {
-    title: "Slayer path",
-    body: "Turns the current task, blocks and points into a concrete task plan instead of generic Slayer advice.",
-    cta: "Open Slayer",
-    href: "/slayer?from=plugin"
+    label: "Open Slayer",
+    href: "/slayer?from=plugin",
+    handoff: false
   },
   {
-    title: "Collection-log gaps",
-    body: "Suppresses items already logged and highlights useful grinds for your current account state.",
-    cta: "Use /next",
-    href: "/next?from=plugin&bank=none",
-    handoff: true
-  },
-  {
-    title: "Bank-aware upgrades",
-    body: "Add Bank Memory when you want gear and supplies included. The plugin never reads bank, inventory or equipment.",
-    cta: "Add bank",
-    href: "/bank?from=plugin"
+    label: "Add bank",
+    href: "/bank?from=plugin",
+    handoff: false
   }
-];
-
-const DATA_SENT = [
-  "RSN used for the sync check",
-  "Plugin version and sync timestamp",
-  "Quest and diary completion",
-  "Collection-log items loaded by RuneLite",
-  "Slayer task, points, streak and block-list state"
-];
-
-const DATA_NEVER_SENT = [
-  "RuneScape password or login session",
-  "Bank, inventory, equipment or GE offers",
-  "Chat messages, friends list or private messages",
-  "Mouse clicks, key presses or gameplay inputs",
-  "Screenshots, client files or RuneLite config folders"
-];
+] as const;
 
 const TROUBLESHOOTING = [
-  "No result after typing your name? Set the RuneLite plugin sync URL to https://www.scapestack.org/api/sync.",
-  "Still missing? Toggle Auto-sync on login off and on, relog, then press Check sync again.",
-  "403 sync? Use Force claim retry once in the plugin config, then sync the same RuneLite account again.",
-  "Collection log sparse? Open the Collection Log categories in-game once; RuneLite only exposes loaded widget data.",
-  "Slayer task missing? Log in with the task visible to RuneLite, sync again, then refresh the checker."
+  "Sync URL: https://www.scapestack.org/api/sync",
+  "Use the same display name as RuneLite.",
+  "Use Auto-sync on login or press Sync now."
 ];
 
 function firstSearchParam(searchParams: SearchParams, key: string): string {
@@ -124,8 +91,8 @@ export function pluginContextFromSearchParams(searchParams: SearchParams) {
   if (from === "next") {
     params.set("from", "plugin");
     return {
-      title: "You came from /next to check sync",
-      body: "Run the sync checker on this page first. Return to /next after it finds the same RSN.",
+      title: "From /next",
+      body: "Check sync, then return to your plan.",
       cta: "Return to /next",
       href: `/next?${params.toString()}`
     };
@@ -136,8 +103,8 @@ export function pluginContextFromSearchParams(searchParams: SearchParams) {
     profileParams.set("from", "plugin");
     if (bank === "none") profileParams.set("bank", "none");
     return {
-      title: "You came from this profile",
-      body: "Check RuneLite sync for this RSN, then return to the player profile without losing account context.",
+      title: "From profile",
+      body: "Check sync, then return.",
       cta: "Return to profile",
       href: rsn ? `/u/${encodeURIComponent(rsn)}?${profileParams.toString()}` : `/?${profileParams.toString()}`
     };
@@ -145,8 +112,8 @@ export function pluginContextFromSearchParams(searchParams: SearchParams) {
 
   params.set("from", "plugin");
   return {
-    title: `You came from /${from}`,
-    body: "Keep the same RSN context while you check RuneLite sync, then return to the tool you were using.",
+    title: `From /${from}`,
+    body: "Check sync, then return.",
     cta: `Return to /${from}`,
     href: `/${from}?${params.toString()}`
   };
@@ -262,92 +229,71 @@ export default async function PluginPage({
 
       {pluginContext && <PluginContextBanner context={pluginContext} />}
 
-      <section className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="mt-10 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/75 p-4">
+        <div className="flex flex-wrap gap-2">
         {SYNC_STEPS.map((step, index) => (
-          <article
+          <div
             key={step.title}
-            className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/75 p-5"
+            className="inline-flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2 text-[12.5px] font-bold text-[var(--color-text)]"
           >
-            <div className="flex size-8 items-center justify-center rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 text-[12px] font-bold text-[var(--color-accent)]">
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-md border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 text-[11px] text-[var(--color-accent)]">
               {index + 1}
-            </div>
-            <h3 className="mt-4 text-[16px] font-bold text-[var(--color-text)]">{step.title}</h3>
-            <p className="mt-2 text-[13px] leading-relaxed text-[var(--color-text-dim)]">{step.body}</p>
-          </article>
+            </span>
+            <span>{step.title}</span>
+          </div>
         ))}
+        </div>
       </section>
 
       <PluginSyncChecker />
 
       <section className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/75 p-5 sm:p-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-good)]">
-              After a successful sync
+              Next
             </div>
             <h2 className="mt-1 text-[22px] font-bold tracking-tight text-[var(--color-text)]">
-              Turn sync into the next thing to do.
+              Sync found? Pick a route.
             </h2>
-            <p className="mt-2 max-w-2xl text-[13.5px] leading-relaxed text-[var(--color-text-dim)]">
-              A fresh sync helps Scapestack avoid generic OSRS advice. The app can recommend account-specific
-              quests, diary steps, Slayer calls, collection-log cleanup and bank-aware upgrades.
+            <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-dim)]">
+              Start with /next. Add bank only when gear or GP matters.
             </p>
           </div>
-          <PluginNextLink className="inline-flex w-fit items-center gap-2 rounded-xl bg-[var(--color-accent)] px-4 py-2.5 text-[13px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110">
-            Get next actions <ArrowRight className="size-4" />
-          </PluginNextLink>
-        </div>
-
-        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {NEXT_IDEAS.map((idea) => (
-            <IdeaCard key={idea.title} idea={idea} />
-          ))}
+          <div className="flex flex-wrap gap-2">
+            {POST_SYNC_ACTIONS.map((action, index) => (
+              <PostSyncActionLink key={action.label} action={action} primary={index === 0} />
+            ))}
+          </div>
         </div>
       </section>
 
       <PluginBankHandoffBanner />
 
-      <section className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/75 p-5 sm:p-6">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-good)]">
-              What sync uses
-            </div>
-            <h2 className="mt-1 text-[22px] font-bold tracking-tight text-[var(--color-text)]">
-              Opt-in account progress, not account access.
-            </h2>
-            <p className="mt-2 max-w-2xl text-[13.5px] leading-relaxed text-[var(--color-text-dim)]">
-              The plugin sends only the progress signals needed for recommendations after you opt in inside RuneLite.
-            </p>
-          </div>
+      <details className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/75 p-5 sm:p-6">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[14px] font-bold text-[var(--color-text)] marker:hidden">
+          <span>Privacy and fixes</span>
           <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-3 py-1.5 text-[11px] font-bold text-[var(--color-good)]">
             <ShieldCheck className="size-3.5" />
             No credentials
           </span>
+        </summary>
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <InfoTile title="Sync uses" body="Quests, diaries, collection log and Slayer." />
+          <InfoTile title="Never uses" body="Password, bank, inventory, chat or screenshots." />
+          <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-4">
+            <h3 className="text-[13px] font-bold text-[var(--color-text)]">Nothing showing?</h3>
+            <ul className="mt-2 grid gap-1.5 text-[12px] leading-relaxed text-[var(--color-text-dim)]">
+              {TROUBLESHOOTING.map((item) => (
+                <li key={item} className="flex gap-2">
+                  <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-[var(--color-warning)]" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <DataListCard tone="good" title="Used after sync" items={DATA_SENT} />
-          <DataListCard tone="warning" title="Never sent" items={DATA_NEVER_SENT} />
-        </div>
-      </section>
-
-      <section className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/75 p-5 sm:p-6">
-        <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-warning)]">
-          Troubleshooting
-        </div>
-        <h2 className="mt-1 text-[22px] font-bold tracking-tight text-[var(--color-text)]">
-          If your name shows nothing, fix the link first.
-        </h2>
-        <div className="mt-4 grid gap-2">
-          {TROUBLESHOOTING.map((item) => (
-            <div key={item} className="flex gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2.5 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-              <DatabaseZap className="mt-0.5 size-4 shrink-0 text-[var(--color-warning)]" />
-              <span>{item}</span>
-            </div>
-          ))}
-        </div>
-      </section>
+      </details>
     </main>
   );
 }
@@ -430,53 +376,35 @@ function TrustNote({ title, body }: { title: string; body: string }) {
   );
 }
 
-function IdeaCard({
-  idea
+function PostSyncActionLink({
+  action,
+  primary
 }: {
-  idea: (typeof NEXT_IDEAS)[number];
+  action: (typeof POST_SYNC_ACTIONS)[number];
+  primary: boolean;
 }) {
-  const className = "mt-4 inline-flex items-center gap-1.5 text-[12px] font-bold text-[var(--color-accent)] hover:underline";
+  const className = cn(
+    "inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-[13px] font-bold transition-all",
+    primary
+      ? "bg-[var(--color-accent)] text-[var(--color-bg)] hover:brightness-110"
+      : "border border-[var(--color-border)] bg-[var(--color-bg)]/45 text-[var(--color-text)] hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+  );
   const content = (
     <>
-      {idea.cta}
+      {action.label}
       <ArrowRight className="size-3.5" />
     </>
   );
 
-  return (
-    <article className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-4">
-      <h3 className="text-[15px] font-bold text-[var(--color-text)]">{idea.title}</h3>
-      <p className="mt-2 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">{idea.body}</p>
-      {idea.handoff ? (
-        <PluginNextLink className={className}>{content}</PluginNextLink>
-      ) : (
-        <a href={idea.href} className={className}>{content}</a>
-      )}
-    </article>
-  );
+  if (action.handoff) return <PluginNextLink className={className}>{content}</PluginNextLink>;
+  return <a href={action.href} className={className}>{content}</a>;
 }
 
-function DataListCard({
-  tone,
-  title,
-  items
-}: {
-  tone: "good" | "warning";
-  title: string;
-  items: string[];
-}) {
-  const iconClass = tone === "good" ? "text-[var(--color-good)]" : "text-[var(--color-warning)]";
+function InfoTile({ title, body }: { title: string; body: string }) {
   return (
     <article className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-4">
-      <h3 className="text-[14px] font-bold text-[var(--color-text)]">{title}</h3>
-      <ul className="mt-3 grid gap-2 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-        {items.map((item) => (
-          <li key={item} className="flex gap-2">
-            <CheckCircle2 className={cn("mt-0.5 size-4 shrink-0", iconClass)} />
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
+      <h3 className="text-[13px] font-bold text-[var(--color-text)]">{title}</h3>
+      <p className="mt-2 text-[12px] leading-relaxed text-[var(--color-text-dim)]">{body}</p>
     </article>
   );
 }

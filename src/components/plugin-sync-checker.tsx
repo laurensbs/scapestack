@@ -221,13 +221,13 @@ export function PluginSyncChecker() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
-            Check your sync
+            RuneLite sync
           </div>
           <h2 className="mt-1 text-[22px] font-bold tracking-tight text-[var(--color-text)]">
-            Check whether Scapestack sees your RuneLite data
+            Check your RSN.
           </h2>
           <p className="mt-2 max-w-2xl text-[13.5px] leading-relaxed text-[var(--color-text-dim)]">
-            Enter the same RSN you use in RuneLite. This checks whether Scapestack sees fresh quests, diaries, collection log and Slayer progress.
+            Use the same OSRS name you synced from RuneLite. If it is found, /next can use quests, diaries, collection log and Slayer.
           </p>
         </div>
         {summary && (
@@ -275,7 +275,7 @@ export function PluginSyncChecker() {
         </button>
       </form>
       <p id={rsnHelpId} className="mt-2 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
-        Use the exact RuneLite display name for the account that enabled Scapestack Sync. Names are capped at 12 characters.
+        Same display name as RuneLite. Max 12 characters.
       </p>
       <p id={rsnStatusId} role="status" aria-live="polite" className="sr-only">
         {pending
@@ -288,40 +288,43 @@ export function PluginSyncChecker() {
       {prefillSource && normalized && (
         <div className="mt-2 rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 px-3 py-2 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
           {prefillSource === "url"
-            ? `Loaded ${normalized} from the handoff URL and started the sync check automatically.`
-            : `Loaded saved RSN ${normalized}. Press Check sync to check the latest RuneLite sync.`}
+            ? `Checking ${normalized} from /next.`
+            : `Loaded ${normalized}. Press Check sync.`}
         </div>
       )}
 
       <div className="mt-4">
         {state.kind === "idle" && (
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-4 py-3 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-            If this finds your RSN, /next can stop recommending finished quests, done diaries, logged items or the wrong Slayer move.
+            Sync helps /next avoid finished quests, done diaries, logged items and wrong Slayer calls.
           </div>
         )}
 
         {state.kind === "missing" && (
           <div className="rounded-xl border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-4 py-3">
-            <div className="flex items-start gap-2">
-              <XCircle className="mt-0.5 size-4 text-[var(--color-warning)] shrink-0" />
-              <div>
-                <div className="text-[13px] font-bold text-[var(--color-warning)]">No Scapestack sync found for {state.rsn}</div>
-                <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                  Open RuneLite, enable Scapestack Sync, copy the scapestack.org sync URL below into plugin settings if needed, then sync this same RSN again.
-                </p>
-                <div className="mt-3 grid gap-2">
-                  <CopyCommand value={syncUrls.sync} label="Copy sync URL" />
-                  <CopyCommand value={syncUrls.claim} label="Copy claim URL" />
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="flex min-w-0 items-start gap-2">
+                <XCircle className="mt-0.5 size-4 shrink-0 text-[var(--color-warning)]" />
+                <div className="min-w-0">
+                  <div className="text-[13px] font-bold text-[var(--color-warning)]">No sync for {state.rsn}</div>
+                  <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
+                    In RuneLite: enable Scapestack Sync, press Sync now, then check again.
+                  </p>
+                  <div className="mt-2">
+                    <CopyCommand value={syncUrls.sync} label="Copy sync URL" />
+                  </div>
                 </div>
+              </div>
+              <div className="shrink-0">
                 <button
                   type="button"
                   onClick={checkCurrentRsn}
                   disabled={pending}
                   aria-label={`Re-check RuneLite sync for ${state.rsn} after logging in`}
-                  className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-semibold text-[var(--color-warning)] hover:bg-[var(--color-warning)]/10 transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-semibold text-[var(--color-warning)] hover:bg-[var(--color-warning)]/10 transition-colors disabled:opacity-50"
                 >
                   <RefreshCw className={cn("size-3.5", pending && "animate-spin")} />
-                  Re-check after login
+                  Check again
                 </button>
               </div>
             </div>
@@ -398,7 +401,7 @@ export function PluginSyncChecker() {
           </div>
         )}
 
-        {(state.kind === "missing" || state.kind === "unconfigured") && diagnostic && (
+        {state.kind === "unconfigured" && diagnostic && (
           <div className="mt-3">
             <DiagnosticPanel diagnostic={diagnostic} />
           </div>
@@ -594,11 +597,9 @@ function serviceToneTextClass(tone: PluginSyncServiceSummary["tone"]): string {
 }
 
 function ServiceReadinessPill({ summary }: { summary: PluginSyncServiceSummary }) {
-  const Icon = summary.tone === "good"
-    ? CheckCircle2
-    : summary.tone === "danger"
-      ? DatabaseZap
-      : AlertTriangle;
+  if (summary.tone === "good") return null;
+
+  const Icon = summary.tone === "danger" ? DatabaseZap : AlertTriangle;
 
   return (
     <div className={cn("mt-4 flex items-start gap-2 rounded-xl border px-3 py-2.5", serviceTonePanelClass(summary.tone))}>
@@ -769,7 +770,7 @@ function DiagnosticPanel({ diagnostic }: { diagnostic: PluginSyncDiagnostic }) {
   return (
     <div className={cn("rounded-xl border px-4 py-3", tonePanelClass(diagnostic.tone))}>
       <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-text-muted)]">
-        Diagnosis
+        Fix
       </div>
       <h3 className="mt-1 text-[15px] font-bold text-[var(--color-text)]">{diagnostic.title}</h3>
       <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">{diagnostic.body}</p>

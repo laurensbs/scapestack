@@ -16,8 +16,8 @@ describe("plugin sync checker affordance", () => {
     expect(source).toContain('autoComplete="off"');
     expect(source).toContain("spellCheck={false}");
     expect(source).toContain("aria-describedby={`${rsnHelpId} ${rsnStatusId}`}");
-    expect(source).toContain("Use the exact RuneLite display name");
-    expect(source).toContain("Names are capped at 12 characters");
+    expect(source).toContain("Same display name as RuneLite");
+    expect(source).toContain("Max 12 characters");
   });
 
   it("announces checker state and names every verifier action by RSN", () => {
@@ -60,9 +60,9 @@ describe("plugin sync checker affordance", () => {
     expect(source).not.toContain("Open plugin review status");
     expect(source).not.toContain("canShowMissingSetup");
     expect(source).not.toContain("review-readiness");
-    expect(source).toContain("Open RuneLite, enable Scapestack Sync");
-    expect(source).toContain("copy the scapestack.org sync URL below into plugin settings if needed");
+    expect(source).toContain("In RuneLite: enable Scapestack Sync, press Sync now, then check again.");
     expect(source).toContain('<CopyCommand value={syncUrls.sync} label="Copy sync URL" />');
-    expect(source).toContain('<CopyCommand value={syncUrls.claim} label="Copy claim URL" />');
+    expect(source).not.toContain("Copy claim URL");
+    expect(source).toContain('state.kind === "unconfigured" && diagnostic');
   });
 });

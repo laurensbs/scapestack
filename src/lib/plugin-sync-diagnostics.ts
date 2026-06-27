@@ -233,14 +233,12 @@ export function diagnosticForMissingSync(rsn: string, context: PluginSyncDiagnos
   const syncUrls = syncUrlsForOrigin(context.origin);
   return {
     tone: "warning",
-    title: `No plugin sync found for ${displayRsn}`,
-    body: "Scapestack can still use public data, but /next is guessing quests, diaries, collection log and live Slayer state until RuneLite sync finds this RSN.",
+    title: `No sync for ${displayRsn}`,
+    body: "/next still works from public stats. Sync first when you want quests, diaries, collection log and Slayer included.",
     steps: [
-      "Open RuneLite and make sure Scapestack Sync is enabled for this account.",
-      "Enable “Auto-sync on login” in RuneLite settings.",
-      "Set the plugin Sync URL to https://www.scapestack.org/api/sync.",
-      "Wait for the in-game “Scapestack sync started” and “synced” chat lines.",
-      "Re-run this checker with the exact same RSN spelling."
+      "Open RuneLite on this account.",
+      "Enable Scapestack Sync and Auto-sync on login.",
+      "Use https://www.scapestack.org/api/sync, then check this RSN again."
     ],
     primaryAction: { label: "Copy sync URL", copy: syncUrls.sync }
   };
@@ -249,8 +247,8 @@ export function diagnosticForMissingSync(rsn: string, context: PluginSyncDiagnos
 export function diagnosticForUnconfiguredSync(): PluginSyncDiagnostic {
   return {
     tone: "danger",
-    title: "Sync database is not configured",
-    body: "The plugin can send requests, but Scapestack cannot remember RuneLite progress without the schema behind DATABASE_URL.",
+    title: "Sync storage is not ready",
+    body: "Scapestack cannot remember RuneLite progress until DATABASE_URL is configured.",
     steps: [
       "Set DATABASE_URL for this app environment.",
       "Run the schema initializer once.",
