@@ -124,6 +124,10 @@ export function PluginSyncChecker() {
     if (state.kind !== "found") return [];
     return actionQueueForSyncedPlayer(state.player, { origin: syncOrigin });
   }, [state, syncOrigin]);
+  const foundDisplayName = state.kind === "found" ? state.player.displayName || state.player.rsn : "";
+  const foundNextHref = foundDisplayName
+    ? `/next?rsn=${encodeURIComponent(foundDisplayName)}&from=plugin&bank=none`
+    : "/next?from=plugin&bank=none";
 
   useEffect(() => {
     setSyncOrigin(window.location.origin);
@@ -227,7 +231,7 @@ export function PluginSyncChecker() {
             Check your RSN.
           </h2>
           <p className="mt-2 max-w-2xl text-[13.5px] leading-relaxed text-[var(--color-text-dim)]">
-            Use the same OSRS name you synced from RuneLite. If it is found, /next can use quests, diaries, collection log and Slayer.
+            Use the same OSRS name you synced in RuneLite. Found it? Open /next.
           </p>
         </div>
         {summary && (
@@ -354,50 +358,102 @@ export function PluginSyncChecker() {
 
         {state.kind === "found" && (
           <div className="space-y-3">
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
-              <Metric label="Synced" value={syncAgeLabel(state.player.syncedAt)} icon={<Clock3 className="size-4" />} />
-              <Metric label="Plugin" value={`v${state.player.pluginVersion || "unknown"}`} detail={`current v${CURRENT_PLUGIN_VERSION}`} icon={<ShieldCheck className="size-4" />} />
-              <Metric
-                label="Quest/diary"
-                value={`${state.player.questsCompleted.length}/${state.player.diariesCompleted.length}`}
-                detail={`${countLabel(state.player.questsCompleted.length, "quest", "quests")} / ${countLabel(state.player.diariesCompleted.length, "diary tier", "diary tiers")}`}
-              />
-              <Metric
-                label="Collection log"
-                value={state.player.collectionLogItemIds.length.toLocaleString()}
-                detail={countLabel(state.player.collectionLogItemIds.length, "item synced", "items synced")}
-              />
-              <div className="md:col-span-2 lg:col-span-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-4 py-3">
-                <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">Slayer sync</div>
-                <div className="mt-2 grid sm:grid-cols-5 gap-2 text-[12.5px] text-[var(--color-text-dim)]">
-                  <div><span className="font-semibold text-[var(--color-text)]">{slayerTaskName(state.player)}</span><br />current task</div>
-                  <div><span className="font-semibold text-[var(--color-text)]">{state.player.slayer?.taskRemaining ?? "—"}</span><br />remaining</div>
-                  <div><span className="font-semibold text-[var(--color-text)]">{state.player.slayer?.points ?? "—"}</span><br />points</div>
-                  <div><span className="font-semibold text-[var(--color-text)]">{state.player.slayer?.streak ?? "—"}</span><br />streak</div>
-                  <div><span className="font-semibold text-[var(--color-text)]">{state.player.slayer?.blocks.length ?? 0}</span><br />blocks</div>
+            <div className="rounded-xl border border-[var(--color-good)]/30 bg-[var(--color-good)]/10 px-4 py-3">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 text-[14px] font-bold text-[var(--color-good)]">
+                    <CheckCircle2 className="size-4 shrink-0" />
+                    Sync found for {foundDisplayName}
+                  </div>
+                  <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
+                    Open /next and Scapestack will avoid finished quests, diaries, collection log slots and Slayer mistakes.
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-[var(--color-text-muted)]">
+                    <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
+                      Synced {syncAgeLabel(state.player.syncedAt)}
+                    </span>
+                    <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
+                      {state.player.questsCompleted.length} quests
+                    </span>
+                    <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
+                      {state.player.collectionLogItemIds.length.toLocaleString()} log items
+                    </span>
+                  </div>
+                </div>
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  <Link
+                    href={foundNextHref}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3 py-2 text-[12px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110"
+                  >
+                    Open /next
+                    <ArrowRight className="size-3.5" />
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={checkCurrentRsn}
+                    disabled={pending}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)] disabled:opacity-50"
+                  >
+                    <RefreshCw className={cn("size-3.5", pending && "animate-spin")} />
+                    Check again
+                  </button>
                 </div>
               </div>
             </div>
-            <PluginPayloadReceipt player={state.player} />
-            <SyncProofCard
-              player={state.player}
-              copyState={proofCopyState}
-              checklistCopyState={checklistCopyState}
-              manualProofText={manualProofText}
-              manualChecklistText={manualChecklistText}
-              onCopy={copySyncProof}
-              onCopyChecklist={copySessionChecklist}
-            />
-            <SignalCoveragePanel signals={signalCoverage} />
-            <ActionQueuePanel actions={actionQueue} />
-            {diagnostic && <DiagnosticPanel diagnostic={diagnostic} />}
-            {nextReadiness && (
-              <NextReadinessPanel
-                readiness={nextReadiness}
-                pending={pending}
-                onRefresh={checkCurrentRsn}
-              />
-            )}
+            <details className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/30 px-4 py-3">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)] marker:hidden">
+                <span>Sync details</span>
+                <span className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
+                  Show
+                </span>
+              </summary>
+              <div className="mt-4 space-y-3">
+                <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+                  <Metric label="Synced" value={syncAgeLabel(state.player.syncedAt)} icon={<Clock3 className="size-4" />} />
+                  <Metric label="Plugin" value={`v${state.player.pluginVersion || "unknown"}`} detail={`current v${CURRENT_PLUGIN_VERSION}`} icon={<ShieldCheck className="size-4" />} />
+                  <Metric
+                    label="Quest/diary"
+                    value={`${state.player.questsCompleted.length}/${state.player.diariesCompleted.length}`}
+                    detail={`${countLabel(state.player.questsCompleted.length, "quest", "quests")} / ${countLabel(state.player.diariesCompleted.length, "diary tier", "diary tiers")}`}
+                  />
+                  <Metric
+                    label="Collection log"
+                    value={state.player.collectionLogItemIds.length.toLocaleString()}
+                    detail={countLabel(state.player.collectionLogItemIds.length, "item synced", "items synced")}
+                  />
+                  <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-4 py-3 md:col-span-2 lg:col-span-4">
+                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">Slayer sync</div>
+                    <div className="mt-2 grid gap-2 text-[12.5px] text-[var(--color-text-dim)] sm:grid-cols-5">
+                      <div><span className="font-semibold text-[var(--color-text)]">{slayerTaskName(state.player)}</span><br />current task</div>
+                      <div><span className="font-semibold text-[var(--color-text)]">{state.player.slayer?.taskRemaining ?? "—"}</span><br />remaining</div>
+                      <div><span className="font-semibold text-[var(--color-text)]">{state.player.slayer?.points ?? "—"}</span><br />points</div>
+                      <div><span className="font-semibold text-[var(--color-text)]">{state.player.slayer?.streak ?? "—"}</span><br />streak</div>
+                      <div><span className="font-semibold text-[var(--color-text)]">{state.player.slayer?.blocks.length ?? 0}</span><br />blocks</div>
+                    </div>
+                  </div>
+                </div>
+                <PluginPayloadReceipt player={state.player} />
+                <SyncProofCard
+                  player={state.player}
+                  copyState={proofCopyState}
+                  checklistCopyState={checklistCopyState}
+                  manualProofText={manualProofText}
+                  manualChecklistText={manualChecklistText}
+                  onCopy={copySyncProof}
+                  onCopyChecklist={copySessionChecklist}
+                />
+                <SignalCoveragePanel signals={signalCoverage} />
+                <ActionQueuePanel actions={actionQueue} />
+                {diagnostic && <DiagnosticPanel diagnostic={diagnostic} />}
+                {nextReadiness && (
+                  <NextReadinessPanel
+                    readiness={nextReadiness}
+                    pending={pending}
+                    onRefresh={checkCurrentRsn}
+                  />
+                )}
+              </div>
+            </details>
           </div>
         )}
 

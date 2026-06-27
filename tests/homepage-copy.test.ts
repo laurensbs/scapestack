@@ -11,7 +11,7 @@ describe("homepage first-impression copy", () => {
     expect(source).toContain("One clear OSRS plan.");
     expect(source).toContain('const HERO_LOOP_STEPS = ["RSN", "Best move", "Backups"] as const;');
     expect(source).toContain("Get one best move, why it matters, how long it takes");
-    expect(source).toContain("Add bank or RuneLite later.");
+    expect(source).toContain("Add bank or sync later.");
     expect(source).not.toContain("AI-powered");
     expect(source).not.toContain("generic SaaS");
     expect(source).not.toContain("bank standing");

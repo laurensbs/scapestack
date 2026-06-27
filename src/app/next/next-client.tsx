@@ -768,7 +768,7 @@ function NextIntake({
               advice, or just click the button — we&apos;ll do what we can with the bank alone.
             </p>
             <p className="mt-1 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
-              Browser-only handoff; it expires automatically and only avoids pasting the same bank twice.
+              This bank stays in this browser and expires automatically.
             </p>
             {handoffSummary && handoffSummary.topItems.length > 0 && (
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -803,7 +803,7 @@ function NextIntake({
               onClick={onClearBankHandoff}
               className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-danger)]/45 hover:text-[var(--color-danger)]"
             >
-              Clear handoff
+              Clear bank
               <Trash2 className="size-3" />
             </button>
           </div>
@@ -1057,33 +1057,33 @@ function EvidenceLedger({
   const hasBank = bankItems.length > 0 || summary.basis === "full" || summary.basis === "bank-only";
   const evidence = [
     {
-      label: "Hiscores",
+      label: "Stats",
       value: hasHiscores ? "Used" : "Missing",
-      detail: hasHiscores ? "Stats and account gates shape the ranking." : "Add an OSRS name for combat, skill and quest gates.",
+      detail: hasHiscores ? "Combat, skills and KC shaped the pick." : "Add an OSRS name for better gates.",
       tone: hasHiscores ? "good" : "muted"
     },
     {
       label: "Bank",
       value: hasBank ? `${bankItems.length || "Bank"} item${bankItems.length === 1 ? "" : "s"}` : "Optional",
-      detail: hasBank ? "Gear and supplies can move boss, DPS and prep picks up." : "Paste or hand off a bank for gear-aware advice.",
+      detail: hasBank ? "Gear and supplies can move the route." : "Use it when gear matters.",
       tone: hasBank ? "good" : "muted"
     },
     {
       label: "RuneLite",
       value: pluginState === "live" ? "Fresh" : pluginState === "stale" ? "Refresh" : pluginState === "outdated" ? "Update" : "Not used",
       detail: pluginState === "live"
-        ? "Quests, diaries, collection log and Slayer came from your latest sync."
+        ? "Finished progress came from your latest sync."
         : pluginState === "stale"
-        ? "Sync is old. Refresh before a long grind or GP spend."
+        ? "Refresh before a long grind or GP spend."
         : pluginState === "outdated"
-        ? "Update Scapestack Sync before relying on newer Slayer or collection-log details."
-        : "Optional: sync when you want completed quests, diaries, collection log and Slayer included.",
+        ? "Update the plugin before relying on newer details."
+        : "Optional when finished progress matters.",
       tone: pluginState === "live" ? "good" : pluginState ? "warn" : "muted"
     },
     {
-      label: "Trackers",
+      label: "Public checks",
       value: trackerCount > 0 ? `${trackerCount} linked` : "Best effort",
-      detail: trackerCount > 0 ? "External trackers added account context where available." : "No WOM, Temple or collection-log tracker signal contributed.",
+      detail: trackerCount > 0 ? "Extra public checks helped." : "Still fine for a first pick.",
       tone: trackerCount > 0 ? "good" : "muted"
     }
   ] as const;
@@ -1096,10 +1096,10 @@ function EvidenceLedger({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-            Plan inputs
+            What shaped this
           </div>
           <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-muted)]">
-            Scapestack can plan with public stats first. Add bank or RuneLite only when it changes the answer.
+            Public stats are enough. Add bank or sync only when the pick looks off.
           </p>
         </div>
         <div className="grid flex-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
@@ -1168,7 +1168,7 @@ function MakePlanSmarter({
         <span>
           <span className="block text-[13px] font-bold text-[var(--color-text)]">Add context</span>
           <span className="mt-0.5 block text-[11.5px] font-medium text-[var(--color-text-muted)]">
-            Optional: bank or RuneLite can help when gear, quests or Slayer matter.
+            Optional: add gear or finished-progress checks when the pick looks off.
           </span>
         </span>
         <span className="shrink-0 rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
@@ -1181,7 +1181,7 @@ function MakePlanSmarter({
           <PlanInputTile
             label="OSRS name"
             value={hasRsn ? activeRsn : "Add name"}
-            helper={hasRsn ? "Stats are in the plan." : "Adds skills, combat and gates."}
+            helper={hasRsn ? "Stats are in the plan." : "Adds skills and combat."}
             tone={hasRsn ? "good" : "muted"}
           />
           <PlanInputTile
@@ -1194,8 +1194,8 @@ function MakePlanSmarter({
             label="RuneLite"
             value={pluginSyncState === "live" ? "Synced" : pluginSyncState ? "Refresh" : "Optional"}
             helper={pluginSyncState === "live"
-              ? "Quests, diaries, collection log and Slayer are included."
-              : "Adds finished quests, diaries, collection log and Slayer."}
+              ? "Finished progress is included."
+              : "Skips progress you already finished."}
             tone={pluginSyncState === "live" ? "good" : pluginSyncState ? "warn" : "muted"}
           />
         </div>
@@ -1223,7 +1223,7 @@ function MakePlanSmarter({
               href={syncHref}
               className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
             >
-              RuneLite later
+              Sync later
               <Sparkles className="size-3.5" />
             </Link>
           )}
@@ -1300,16 +1300,16 @@ function NextBankContextStrip({
   const hasPluginSync = pluginSyncState !== null;
   const basisCopy =
     hasLivePluginSync && bankItems.length > 0
-      ? "Bank and fresh RuneLite sync are both in the plan: gear, supplies, completed quests, diaries and Slayer can all shape the route."
+      ? "Gear and finished progress are both shaping this pick."
       : pluginSyncState === "stale"
-        ? "RuneLite sync is connected, but refresh it before a long grind or GP spend."
+        ? "Sync is connected, but refresh before a long grind or GP spend."
         : pluginSyncState === "outdated"
-          ? "RuneLite sync is connected, but update the plugin before relying on newer Slayer and collection-log details."
+          ? "Sync is connected, but update the plugin before trusting newer details."
       : basis === "full"
-      ? "Your plan is using both the bank and Hiscores, so gear, goals and account gates are being ranked together."
+      ? "Gear, goals and account gates are ranked together."
       : basis === "bank-only"
-        ? "Your bank is loaded. Add an OSRS name next time for quests, diaries, combat level and skill gates."
-        : "Your bank context is loaded for item and gear checks where this run can use it.";
+        ? "Bank is loaded. Add an OSRS name next time for account gates."
+        : "Bank is loaded for item and gear checks.";
 
   const backToBank = () => {
     if (typeof window === "undefined") return;
@@ -1329,7 +1329,7 @@ function NextBankContextStrip({
           </span>
           <div className="min-w-0">
             <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              {hasPluginSync ? "Bank + RuneLite sync connected" : "Bank context active"}
+              {hasPluginSync ? "Bank + sync ready" : "Bank loaded"}
             </div>
             {hasPluginSync && (
               <div className={cn(
@@ -1348,7 +1348,7 @@ function NextBankContextStrip({
               {basisCopy}
             </p>
             <p className="mt-1 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
-              This bank stays with this browser. Clear it when you want a clean run in `/next`, `/dps`, `/goals`, `/slayer` or `/plugin`.
+              This bank stays in this browser. Clear it when you want Scapestack to ignore this bank.
               {handoffCleared ? " Stored bank cleared; this current result keeps its already-computed bank-aware plan until you rerun." : ""}
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -1392,7 +1392,7 @@ function NextBankContextStrip({
             }}
             className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-danger)]/45 hover:text-[var(--color-danger)]"
           >
-            Clear handoff
+            Clear bank
             <Trash2 className="size-3.5" />
           </button>
           <Link

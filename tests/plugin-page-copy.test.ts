@@ -10,15 +10,17 @@ describe("plugin page copy constants", () => {
 
     expect(PUBLIC_SYNC_URL).toBe("https://www.scapestack.org/api/sync");
     expect(pageSource).toContain("Type your OSRS name.");
-    expect(pageSource).toContain("Get account-aware ideas.");
+    expect(pageSource).toContain("Skip finished progress.");
     expect(pageSource).toContain("Check sync");
     expect(pageSource).toContain("Plan next move");
+    expect(pageSource).toContain("Setup help");
     expect(pageSource).toContain("RuneLite sync link");
     expect(pageSource).toContain(PUBLIC_SYNC_URL);
     expect(pageSource).not.toContain("scapestack.app");
     expect(pageSource).toContain("PluginSyncChecker");
-    expect(pageSource).toContain("Sync found? Pick a route.");
     expect(pageSource).toContain("Plan next move");
+    expect(pageSource).not.toContain("Sync found? Pick a route.");
+    expect(pageSource).not.toContain("POST_SYNC_ACTIONS");
     expect(pageSource).toContain("Privacy and fixes");
     expect(pageSource).toContain("Sync uses");
     expect(pageSource).toContain("Never uses");
@@ -112,6 +114,9 @@ describe("plugin page copy constants", () => {
     expect(diagnosticsSource).toContain("Enable “Auto-sync on login”");
     expect(checkerSource).toContain("Sync helps /next avoid finished quests");
     expect(checkerSource).toContain("wrong Slayer calls");
+    expect(checkerSource).toContain("Sync found for {foundDisplayName}");
+    expect(checkerSource).toContain("Open /next and Scapestack will avoid finished quests");
+    expect(checkerSource).toContain("Sync details");
     expect(checkerSource).toContain('if (status === "exact") return "Synced";');
     expect(checkerSource).not.toContain('if (status === "exact") return "Exact";');
     expect(checkerSource).toContain("/next sync signals");
@@ -143,8 +148,9 @@ describe("plugin page copy constants", () => {
     const bannerSource = readFileSync(join(process.cwd(), "src/components/plugin-bank-handoff-banner.tsx"), "utf8");
 
     expect(bannerSource).toContain("clearBankHandoffPayload(window)");
-    expect(bannerSource).toContain("Clear handoff");
-    expect(bannerSource).toContain("Browser-only handoff");
-    expect(bannerSource).toContain("the plugin never receives your bank, inventory, equipment, screenshots, clicks or account login");
+    expect(bannerSource).toContain("Clear bank");
+    expect(bannerSource).toContain("Bank loaded");
+    expect(bannerSource).toContain("What sync can add");
+    expect(bannerSource).toContain("The plugin never receives your bank, inventory, equipment, screenshots, clicks or account login.");
   });
 });

@@ -87,7 +87,7 @@ export default function HomePage() {
               }}
             >
               Enter your OSRS name. Get one best move, why it matters, how long it takes
-              and what to do first. Add bank or RuneLite later.
+              and what to do first. Add bank or sync later.
             </p>
 
             <div

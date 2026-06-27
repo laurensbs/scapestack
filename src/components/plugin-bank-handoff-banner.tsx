@@ -52,16 +52,16 @@ export function PluginBankHandoffBanner() {
           </span>
           <div className="min-w-0">
             <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              Bank context carried over
+              Bank loaded
             </div>
             <h2 className="mt-1 text-[17px] font-bold tracking-tight text-[var(--color-text)]">
-              Sync can help this plan
+              Use sync if /next repeats finished progress.
             </h2>
             <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-dim)]">
-              {summary.label} is still available in this session. Check sync if /next repeats quests, diaries, log items or Slayer you already finished.
+              {summary.label} is still available in this browser.
             </p>
             <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-[var(--color-text-muted)]">
-              Browser-only handoff; the plugin never receives your bank, inventory, equipment, screenshots, clicks or account login.
+              The plugin never receives your bank, inventory, equipment, screenshots, clicks or account login.
             </p>
             {summary.topItems.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-1.5">
@@ -78,30 +78,35 @@ export function PluginBankHandoffBanner() {
                 ))}
               </div>
             )}
-            <div
-              data-testid="plugin-bank-sync-signals"
-              className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4"
-            >
-              {PLUGIN_BANK_SYNC_SIGNALS.map((signal) => (
-                <div
-                  key={signal.id}
-                  className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2"
-                >
-                  <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
-                    {signal.label}
+            <details className="mt-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/30 px-3 py-2">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[12px] font-bold text-[var(--color-text)] marker:hidden">
+                <span>What sync can add</span>
+                <span className="rounded-full border border-[var(--color-border)] px-2 py-0.5 text-[10px] font-bold text-[var(--color-text-muted)]">
+                  Show
+                </span>
+              </summary>
+              <div
+                data-testid="plugin-bank-sync-signals"
+                className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4"
+              >
+                {PLUGIN_BANK_SYNC_SIGNALS.map((signal) => (
+                  <div
+                    key={signal.id}
+                    className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2"
+                  >
+                    <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
+                      {signal.label}
+                    </div>
+                    <div className="mt-1 text-[12px] font-bold text-[var(--color-text)]">
+                      {signal.summary}
+                    </div>
+                    <p className="mt-1 text-[11px] leading-relaxed text-[var(--color-text-dim)]">
+                      {signal.detail}
+                    </p>
                   </div>
-                  <div className="mt-1 text-[12px] font-bold text-[var(--color-text)]">
-                    {signal.summary}
-                  </div>
-                  <p className="mt-1 text-[11px] leading-relaxed text-[var(--color-text-dim)]">
-                    {signal.detail}
-                  </p>
-                  <p className="mt-2 inline-flex rounded-full border border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-[0.12em] text-[var(--color-warning)]">
-                    Added after sync check.
-                  </p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </details>
           </div>
         </div>
 
@@ -111,7 +116,7 @@ export function PluginBankHandoffBanner() {
             onClick={onClear}
             className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-danger)]/45 hover:text-[var(--color-danger)]"
           >
-            Clear handoff
+            Clear bank
             <Trash2 className="size-3.5" />
           </button>
           {actions.map((action) => {

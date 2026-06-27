@@ -55,7 +55,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function MakePlanSmarter");
     expect(source).toContain("Change name or bank");
     expect(source).toContain("Add bank");
-    expect(source).toContain("RuneLite later");
+    expect(source).toContain("Sync later");
     expect(source).not.toContain("missingDataActionForRecommendation(rec, actionContext)");
     expect(source).not.toContain("function RecommendationDataActionCallout");
     expect(source).not.toContain("Sharpen this pick:");
@@ -110,17 +110,17 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function EvidenceLedger");
     expect(source).toContain('data-testid="next-evidence-ledger"');
     expect(source).toContain("Add context");
-    expect(source).toContain("Optional: bank or RuneLite can help when gear, quests or Slayer matter.");
-    expect(source).toContain("Plan inputs");
+    expect(source).toContain("Optional: add gear or finished-progress checks when the pick looks off.");
+    expect(source).toContain("What shaped this");
     expect(source).toContain("Add bank");
-    expect(source).toContain("RuneLite later");
+    expect(source).toContain("Sync later");
     expect(source).not.toContain("Used for this route");
-    expect(source).toContain('label: "Hiscores"');
+    expect(source).toContain('label: "Stats"');
     expect(source).toContain('label: "Bank"');
     expect(source).toContain('label: "RuneLite"');
-    expect(source).toContain('label: "Trackers"');
+    expect(source).toContain('label: "Public checks"');
     expect(source).toContain("<EvidenceLedger summary={summary} pathData={pathData} bankItems={bankItems} />");
-    expect(source).toContain("Optional: sync when you want completed quests, diaries, collection log and Slayer included.");
+    expect(source).toContain("Optional when finished progress matters.");
   });
 
   it("starts the result page with one plan instead of setup panels", () => {
@@ -179,8 +179,8 @@ describe("/next confidence UI copy", () => {
 
   it("lets players clear temporary bank handoff storage", () => {
     expect(source).toContain("clearBankHandoffPayload(window)");
-    expect(source).toContain("Clear handoff");
-    expect(source).toContain("Browser-only handoff");
+    expect(source).toContain("Clear bank");
+    expect(source).toContain("This bank stays in this browser and expires automatically.");
     expect(source).toContain("Stored bank cleared");
     expect(source).toContain('import { bankOrganizerHref } from "@/lib/bank-handoff-url";');
     expect(source).toContain('window.location.href = bankOrganizerHref(activeRsn, "next");');
@@ -269,10 +269,10 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('pluginSyncState: "live" | "stale" | "outdated" | null;');
     expect(source).toContain("const hasLivePluginSync = pluginSyncState === \"live\";");
     expect(source).toContain("hasLivePluginSync && bankItems.length > 0");
-    expect(source).toContain("Bank and fresh RuneLite sync are both in the plan");
+    expect(source).toContain("Gear and finished progress are both shaping this pick.");
     expect(source).not.toContain("verified RuneLite account payload");
-    expect(source).toContain("RuneLite sync is connected, but update the plugin before relying on newer Slayer and collection-log details.");
-    expect(source).toContain("{hasPluginSync ? \"Bank + RuneLite sync connected\" : \"Bank context active\"}");
+    expect(source).toContain("Sync is connected, but update the plugin before trusting newer details.");
+    expect(source).toContain("{hasPluginSync ? \"Bank + sync ready\" : \"Bank loaded\"}");
     expect(source).toContain("Bank + sync ready");
     expect(source).not.toContain("Exact fusion");
     expect(source).toContain("Plugin update needed");

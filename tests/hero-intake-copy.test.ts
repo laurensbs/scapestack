@@ -15,7 +15,7 @@ describe("hero intake copy and routing", () => {
   it("uses the three homepage CTAs requested by the product prompt", () => {
     expect(source).toContain("Plan my next move");
     expect(source).toContain("Add bank");
-    expect(source).toContain("RuneLite later");
+    expect(source).toContain("Sync later");
     expect(source).toContain('href="/plugin#verify-sync"');
     expect(source).toContain("Plan my next move with this bank");
     expect(source).toContain("Bank paste");
