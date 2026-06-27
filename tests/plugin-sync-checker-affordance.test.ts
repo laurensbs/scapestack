@@ -31,9 +31,9 @@ describe("plugin sync checker affordance", () => {
   });
 
   it("keeps found-sync actions to open next or check again", () => {
-    expect(source).toContain("Sync found for {foundDisplayName}");
-    expect(source).toContain("Open /next for one plan that skips finished quests");
-    expect(source).toContain("Open /next");
+    expect(source).toContain("RuneLite is helping {foundDisplayName}");
+    expect(source).toContain("Open one plan that skips finished quests");
+    expect(source).toContain("Open one plan");
     expect(source).toContain("Check again");
     expect(source).not.toContain("formatPluginSyncSessionChecklist");
     expect(source).not.toContain("Copy checklist");
@@ -59,7 +59,7 @@ describe("plugin sync checker affordance", () => {
     expect(source).not.toContain("Open plugin review status");
     expect(source).not.toContain("canShowMissingSetup");
     expect(source).not.toContain("review-readiness");
-    expect(source).toContain("In RuneLite: enable Scapestack Sync, press Sync now, then check again.");
+    expect(source).toContain("In RuneLite: turn on Scapestack Sync, press Sync now, then check again.");
     expect(source).toContain("Copy scapestack.org sync URL");
     expect(source).toContain("Sync URL copied");
     expect(source).not.toContain("Copy claim URL");

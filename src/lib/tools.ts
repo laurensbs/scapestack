@@ -34,7 +34,7 @@ export const TOOLS: Tool[] = [
     short: "Enter your OSRS name and get one clear next move",
     tagline: "RSN in → one plan, two backups",
     description:
-      "No idea what to do next? Enter your OSRS name and get one useful move for this account, plus two backups. Add bank or RuneLite later when gear, quests, diaries, collection log or Slayer should sharpen the plan.",
+      "Stop bankstanding: enter your OSRS name and get one useful move for this account, plus two backups. Add gear or RuneLite only when it changes the pick.",
     icon: Sparkles,
     iconItemId: 11865, // Slayer helmet (i) — "what to do next" / next-task icon
     status: "live",
@@ -127,10 +127,10 @@ export const TOOLS: Tool[] = [
     href: "/plugin",
     name: "RuneLite Sync",
     navLabel: "Sync",
-    short: "Set up Scapestack RuneLite sync",
-    tagline: "RuneLite → quests, diaries, CL and Slayer",
+    short: "Check RuneLite for finished progress",
+    tagline: "Skip finished quests, diaries, clog and Slayer",
     description:
-      "Use Scapestack Sync when you want /next to include completed quests, diary tiers, collection-log items and Slayer state for the same RSN.",
+      "Use Scapestack Sync when you want /next to stop suggesting quests, diary steps, clog slots and Slayer calls you already handled.",
     icon: PlugZap,
     iconItemId: 11865,
     status: "live",

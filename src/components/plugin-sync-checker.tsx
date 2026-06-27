@@ -173,10 +173,10 @@ export function PluginSyncChecker() {
             RuneLite sync
           </div>
           <h2 className="mt-1 text-[22px] font-bold tracking-tight text-[var(--color-text)]">
-            Check your RSN.
+            Check your RSN
           </h2>
           <p className="mt-2 max-w-2xl text-[13.5px] leading-relaxed text-[var(--color-text-dim)]">
-            Use the same OSRS name you synced in RuneLite. Found it? Open /next.
+            Same RSN as RuneLite. Found it? Open one plan.
           </p>
         </div>
         {summary && (
@@ -220,7 +220,7 @@ export function PluginSyncChecker() {
           className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-accent)] px-4 py-3 text-[13px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-55"
         >
           <Search className="size-4" />
-          {pending ? "Checking…" : "Check sync"}
+          {pending ? "Checking…" : "Check RuneLite"}
         </button>
       </form>
       <p id={rsnHelpId} className="mt-2 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
@@ -238,14 +238,14 @@ export function PluginSyncChecker() {
         <div className="mt-2 rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 px-3 py-2 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
           {prefillSource === "url"
             ? `Checking ${normalized} from /next.`
-            : `Loaded ${normalized}. Press Check sync.`}
+            : `Loaded ${normalized}. Press Check RuneLite.`}
         </div>
       )}
 
       <div className="mt-4">
         {state.kind === "idle" && (
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-4 py-3 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-            Sync helps /next skip stuff you already finished.
+            RuneLite helps Scapestack skip stuff you already finished.
           </div>
         )}
 
@@ -257,7 +257,7 @@ export function PluginSyncChecker() {
                 <div className="min-w-0">
                   <div className="text-[13px] font-bold text-[var(--color-warning)]">No sync for {state.rsn}</div>
                   <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                    In RuneLite: enable Scapestack Sync, press Sync now, then check again.
+                    In RuneLite: turn on Scapestack Sync, press Sync now, then check again.
                   </p>
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     <button
@@ -323,10 +323,10 @@ export function PluginSyncChecker() {
               <div className="min-w-0">
                 <div className="flex items-center gap-2 text-[14px] font-bold text-[var(--color-good)]">
                   <CheckCircle2 className="size-4 shrink-0" />
-                  Sync found for {foundDisplayName}
+                  RuneLite is helping {foundDisplayName}
                 </div>
                 <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                  Open /next for one plan that skips finished quests, diary steps, log slots and wrong Slayer calls.
+                  Open one plan that skips finished quests, diary steps, clog slots and wrong Slayer calls.
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-[var(--color-text-muted)]">
                   <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
@@ -344,7 +344,7 @@ export function PluginSyncChecker() {
                   href={foundNextHref}
                   className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3 py-2 text-[12px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110"
                 >
-                  Open /next
+                  Open one plan
                   <ArrowRight className="size-3.5" />
                 </Link>
                 <button

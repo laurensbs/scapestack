@@ -9,7 +9,7 @@ export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Scapestack Sync",
-  description: "Enter an OSRS name, check sync, and get a cleaner next move."
+  description: "Check RuneLite for one cleaner OSRS plan."
 };
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -62,8 +62,8 @@ export function pluginContextFromSearchParams(searchParams: SearchParams) {
     params.set("from", "plugin");
     return {
       title: "From /next",
-      body: "Check sync, then return to your plan.",
-      cta: "Return to /next",
+      body: "Check RuneLite, then return to your plan.",
+      cta: "Back to plan",
       href: `/next?${params.toString()}`
     };
   }
@@ -74,7 +74,7 @@ export function pluginContextFromSearchParams(searchParams: SearchParams) {
     if (bank === "none") profileParams.set("bank", "none");
     return {
       title: "From profile",
-      body: "Check sync, then return.",
+      body: "Check RuneLite, then return.",
       cta: "Return to profile",
       href: rsn ? `/u/${encodeURIComponent(rsn)}?${profileParams.toString()}` : `/?${profileParams.toString()}`
     };
@@ -83,7 +83,7 @@ export function pluginContextFromSearchParams(searchParams: SearchParams) {
   params.set("from", "plugin");
   return {
     title: `From /${from}`,
-    body: "Check sync, then return.",
+    body: "Check RuneLite, then return.",
     cta: `Return to /${from}`,
     href: `/${from}?${params.toString()}`
   };
@@ -93,13 +93,13 @@ export function pluginHeroActions(): PluginHeroAction[] {
   return [
     {
       id: "verify",
-      label: "Check sync",
+      label: "Check RuneLite",
       href: `#${PLUGIN_VERIFY_SYNC_HASH}`,
       kind: "primary"
     },
     {
       id: "next",
-      label: "Plan next move",
+      label: "Open one plan",
       href: "/next?from=plugin&bank=none",
       kind: "secondary",
       usesNextHandoff: true
@@ -118,11 +118,11 @@ export default function PluginPage() {
 
         <div>
           <h1 className="max-w-4xl text-[clamp(42px,7vw,74px)] font-bold leading-[0.96] tracking-tight text-[var(--color-text)]">
-            Check RuneLite sync.
-            <span className="block text-gold-gradient">Then open one plan.</span>
+            Check RuneLite.
+            <span className="block text-gold-gradient">Skip finished stuff.</span>
           </h1>
           <p className="mt-5 max-w-2xl text-[16px] leading-[1.55] text-[var(--color-text-dim)] sm:text-[18px]">
-            Type the same OSRS name you synced in RuneLite. If Scapestack finds it, /next can skip quests, diary tiers, log slots and Slayer calls you already handled.
+            Type your RSN. If RuneLite is found, Scapestack stops sending you to quests, diary steps, clog slots and Slayer calls you already handled.
           </p>
         </div>
 

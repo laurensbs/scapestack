@@ -11,6 +11,7 @@ describe("tool registry", () => {
       navLabel: "Next",
       status: "live"
     });
+    expect(next?.description).toContain("Stop bankstanding");
     expect(next?.description).toContain("one useful move");
     expect(next?.tagline).toBe("RSN in → one plan, two backups");
   });
@@ -24,9 +25,9 @@ describe("tool registry", () => {
       navLabel: "Sync",
       status: "live"
     });
-    expect(plugin?.short).toBe("Set up Scapestack RuneLite sync");
-    expect(plugin?.tagline).toContain("quests, diaries, CL and Slayer");
-    expect(plugin?.description).toContain("completed quests, diary tiers, collection-log items and Slayer state");
+    expect(plugin?.short).toBe("Check RuneLite for finished progress");
+    expect(plugin?.tagline).toContain("Skip finished quests, diaries, clog and Slayer");
+    expect(plugin?.description).toContain("stop suggesting quests, diary steps, clog slots and Slayer calls");
     expect(plugin?.description).not.toContain("payload");
     expect(plugin?.description).not.toContain("coverage labels");
     expect(plugin?.description).not.toContain("turn /next from inferred advice into exact account-state recommendations");

@@ -13,7 +13,7 @@ export default function HomePage() {
           <div className="space-y-6">
             <h1 className="font-bold leading-[0.97] tracking-[-0.025em] text-[clamp(42px,6.2vw,72px)]">
               <RevealLine
-                text="What should I do next?"
+                text="Stop bankstanding."
                 delay={100}
                 wordStaggerMs={70}
                 className="block text-[var(--color-text)]"
@@ -37,7 +37,7 @@ export default function HomePage() {
                 clipPath: "inset(0 0 100% 0)"
               }}
             >
-              Type your OSRS name. Get one useful plan. Add bank or RuneLite later.
+              Type your OSRS name. Get one thing to do now, two backups and a clean stop point.
             </p>
 
             <div
@@ -99,7 +99,7 @@ export default function HomePage() {
 function HeroProductPreview() {
   return (
     <aside
-      aria-label="Live Scapestack product preview"
+      aria-label="Live anti-bankstanding plan preview"
       className="relative overflow-hidden rounded-[28px] border border-[var(--color-border)] bg-[radial-gradient(circle_at_20%_0%,rgba(230,165,47,0.16),transparent_34%),linear-gradient(145deg,var(--color-panel),var(--color-bg-2))] p-4 shadow-[0_30px_90px_rgba(0,0,0,0.36)] sm:p-5"
     >
       <div
@@ -115,7 +115,7 @@ function HeroProductPreview() {
           <div className="min-w-0">
             <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-2.5 py-1 text-[11px] font-bold text-[var(--color-good)]">
               <Target className="size-3.5" aria-hidden="true" />
-              Example plan
+              Anti-bankstanding plan
             </div>
             <h2 className="mt-3 text-[24px] font-black leading-tight tracking-tight text-[var(--color-text)]">
               Push Vardorvis to 50 KC

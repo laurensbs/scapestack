@@ -49,6 +49,7 @@ describe("next-up action plans", () => {
     });
 
     expect(text).toContain(result.headline!.title);
+    expect(text).toContain("Goal:");
     expect(text).toContain("Why:");
     expect(text).toContain("Time:");
     expect(text).toContain("Gear/supplies:");
@@ -73,6 +74,7 @@ describe("next-up action plans", () => {
     });
 
     expect(text).toContain("Scapestack session");
+    expect(text).toContain("Stop bankstanding:");
     expect(text).toContain("Do this first:");
     expect(text).toContain("Backup 1:");
     expect(text).toContain("Backup 2:");

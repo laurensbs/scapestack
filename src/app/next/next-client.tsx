@@ -706,8 +706,7 @@ function NextIntake({
           What should you do<br className="sm:hidden" /> next?
         </h2>
         <p className="mt-3 text-[14px] sm:text-[15px] text-[var(--color-text-dim)] leading-relaxed max-w-md mx-auto">
-          Type your OSRS name. We&apos;ll read your stats, rank what&apos;s worth doing,
-          and shape it around the mood you&apos;re in.
+          Type your OSRS name. Get one thing to do now, two backups and a clear stop point.
         </p>
       </header>
 
@@ -851,7 +850,7 @@ function NextIntake({
             {loading
               ? "Building one clear plan…"
               : rsn.trim()
-              ? "Ready: public stats are enough. Add bank or RuneLite later."
+              ? "Ready: public stats are enough. Gear or RuneLite can come later."
               : fromBank
               ? "Ready: bank-only plan. Add a name for stats and KC."
               : "Enter an OSRS name to get one clear next move."}
@@ -924,7 +923,7 @@ function NextIntake({
       <p className="mt-8 text-[11.5px] text-[var(--color-text-muted)] text-center leading-relaxed">
         {cameFromPlugin
           ? "RuneLite sync is optional. If it finds this RSN, /next can avoid progress you already finished. Bank stays in this browser."
-          : "Free, no account, no plugin. We never store your bank — everything runs in your browser and on Scapestack's own server."}
+          : "Free, no account needed. Bank paste stays in this browser."}
       </p>
     </section>
   );
@@ -945,10 +944,10 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
   const { headline, rest, summary } = result;
 
   const basisNote =
-    summary.basis === "full" ? "Stats and bank are shaping this plan."
-    : summary.basis === "hiscores-only" ? "Public stats are enough. Add bank only when gear or GP changes the answer."
-    : summary.basis === "bank-only" ? "Bank is enough for a rough plan. Add your OSRS name for stats and KC."
-    : "Add your OSRS name or bank when you want a sharper plan.";
+    summary.basis === "full" ? "Stats and gear are helping this pick."
+    : summary.basis === "hiscores-only" ? "Public stats are enough. Add gear only when GP or supplies change the answer."
+    : summary.basis === "bank-only" ? "Gear is enough for a rough plan. Add your OSRS name for stats and KC."
+    : "Add your OSRS name or gear when you want a sharper plan.";
 
   // Alle recommendations voor de What-to-do track. Mood-laag herrangschikt
   // ze; "Also worth knowing" is verdwenen — niet-getoonde recs blijven
@@ -997,9 +996,9 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
       <div style={trackAnim(300)}>
         <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-4 sm:p-5">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)] marker:hidden">
-            <span>Progress details</span>
+            <span>Account details</span>
             <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
-              Open if you want the numbers
+              Open later
             </span>
           </summary>
           <div className="mt-4 space-y-6">
@@ -1047,9 +1046,9 @@ function MakePlanSmarter({
     <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-4 sm:p-5">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden">
         <span>
-          <span className="block text-[13px] font-bold text-[var(--color-text)]">Add context</span>
+          <span className="block text-[13px] font-bold text-[var(--color-text)]">Make this smarter</span>
           <span className="mt-0.5 block text-[11.5px] font-medium text-[var(--color-text-muted)]">
-            Optional: add gear or finished-progress checks when the pick looks off.
+            Optional: add gear or RuneLite when the pick looks off.
           </span>
         </span>
         <span className="shrink-0 rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
@@ -1062,21 +1061,21 @@ function MakePlanSmarter({
           <PlanInputTile
             label="OSRS name"
             value={hasRsn ? activeRsn : "Add name"}
-            helper={hasRsn ? "Stats are in the plan." : "Adds skills and combat."}
+            helper={hasRsn ? "Stats, combat and KC are in the plan." : "Adds skills, combat and KC."}
             tone={hasRsn ? "good" : "muted"}
           />
           <PlanInputTile
-            label="Bank"
+            label="Gear"
             value={hasBank ? "Loaded" : "Optional"}
-            helper={hasBank ? "Gear can shape PvM and GP picks." : "Use it when gear matters."}
+            helper={hasBank ? "Gear, supplies and GP can shape the pick." : "Use it when gear matters."}
             tone={hasBank ? "good" : "muted"}
           />
           <PlanInputTile
             label="RuneLite"
-            value={pluginSyncState === "live" ? "Synced" : pluginSyncState ? "Refresh" : "Optional"}
+            value={pluginSyncState === "live" ? "Helping" : pluginSyncState ? "Refresh" : "Optional"}
             helper={pluginSyncState === "live"
-              ? "Finished progress is included."
-              : "Use it when old quests or Slayer would change the pick."}
+              ? "Skips finished quests, diaries, clog slots and Slayer mistakes."
+              : "Use it when finished progress would change the pick."}
             tone={pluginSyncState === "live" ? "good" : pluginSyncState ? "warn" : "muted"}
           />
         </div>
@@ -1087,7 +1086,7 @@ function MakePlanSmarter({
             onClick={onEdit}
             className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
           >
-            Change name or bank
+            Change input
             <Edit3 className="size-3.5" />
           </button>
           {!hasBank && (
@@ -1095,7 +1094,7 @@ function MakePlanSmarter({
               href={bankOrganizerHref(activeRsn, "next")}
               className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
             >
-              Add bank
+              Add gear
               <ArrowRight className="size-3.5" />
             </Link>
           )}
@@ -1104,7 +1103,7 @@ function MakePlanSmarter({
               href={syncHref}
               className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
             >
-              RuneLite later
+              Check RuneLite
               <Sparkles className="size-3.5" />
             </Link>
           )}
@@ -1115,7 +1114,7 @@ function MakePlanSmarter({
           <div className="rounded-xl border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-4 py-3">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                Came from RuneLite but no fresh sync showed up yet. Sync again, then re-check this RSN.
+                RuneLite did not show up yet. Sync again, then check this RSN.
               </p>
               <Link
                 href={syncHref}

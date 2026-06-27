@@ -39,14 +39,14 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain('? "review-blocked"');
     expect(source).toContain("pluginVerifyUrlForSyncedRsn");
     expect(source).not.toContain("#review-readiness");
-    expect(source).toContain("Came from RuneLite but no fresh sync showed up yet.");
+    expect(source).toContain("RuneLite did not show up yet.");
   });
 
   it("keeps missing context out of the recommendation card chrome", () => {
     expect(source).toContain("function MakePlanSmarter");
-    expect(source).toContain("Change name or bank");
-    expect(source).toContain("Add bank");
-    expect(source).toContain("RuneLite later");
+    expect(source).toContain("Change input");
+    expect(source).toContain("Add gear");
+    expect(source).toContain("Check RuneLite");
     expect(source).not.toContain("missingDataActionForRecommendation(rec, actionContext)");
     expect(source).not.toContain("function RecommendationDataActionCallout");
     expect(source).not.toContain("Sharpen this pick:");
@@ -97,18 +97,18 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function MakePlanSmarter");
     expect(source).not.toContain("function EvidenceLedger");
     expect(source).not.toContain('data-testid="next-evidence-ledger"');
-    expect(source).toContain("Add context");
-    expect(source).toContain("Optional: add gear or finished-progress checks when the pick looks off.");
+    expect(source).toContain("Make this smarter");
+    expect(source).toContain("Optional: add gear or RuneLite when the pick looks off.");
     expect(source).not.toContain("What shaped this");
-    expect(source).toContain("Add bank");
-    expect(source).toContain("RuneLite later");
+    expect(source).toContain("Add gear");
+    expect(source).toContain("Check RuneLite");
     expect(source).not.toContain("Used for this route");
     expect(source).toContain('label="OSRS name"');
-    expect(source).toContain('label="Bank"');
+    expect(source).toContain('label="Gear"');
     expect(source).toContain('label="RuneLite"');
     expect(source).not.toContain('label: "Public checks"');
     expect(source).not.toContain("<EvidenceLedger summary={summary} pathData={pathData} bankItems={bankItems} />");
-    expect(source).toContain("Use it when old quests or Slayer would change the pick.");
+    expect(source).toContain("Use it when finished progress would change the pick.");
   });
 
   it("starts the result page with one plan instead of setup panels", () => {
@@ -117,8 +117,8 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("One best move for this account. Two backups");
     expect(source).toContain("Backups");
     expect(source).toContain("Change vibe or time");
-    expect(source).toContain("Progress details");
-    expect(source).toContain("Open if you want the numbers");
+    expect(source).toContain("Account details");
+    expect(source).toContain("Open later");
     expect(source).not.toContain("function SessionBrief");
     expect(source).not.toContain("<SessionBrief");
     expect(source).not.toContain("ScapestackReadinessRail");
@@ -140,7 +140,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("cameFromPlugin={cameFromPlugin}");
     expect(source).toContain("RuneLite sync is optional. If it finds this RSN, /next can avoid progress you already finished.");
     expect(source).toContain("Bank stays in this browser.");
-    expect(source).toContain("Free, no account, no plugin.");
+    expect(source).toContain("Free, no account needed.");
   });
 
   it("gives plugin-origin players a concrete sync verification path", () => {

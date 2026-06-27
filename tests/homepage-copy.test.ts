@@ -7,9 +7,9 @@ const source = readFileSync(join(process.cwd(), "src/app/page.tsx"), "utf8");
 describe("homepage first-impression copy", () => {
   it("opens with the five-second OSRS planner promise", () => {
     expect(source).not.toContain("BRAND_SECONDARY_TAGLINE");
-    expect(source).toContain("What should I do next?");
+    expect(source).toContain("Stop bankstanding.");
     expect(source).toContain("One clear OSRS plan.");
-    expect(source).toContain("Type your OSRS name. Get one useful plan. Add bank or RuneLite later.");
+    expect(source).toContain("Type your OSRS name. Get one thing to do now, two backups and a clean stop point.");
     expect(source).not.toContain("Get one best move, why it matters, how long it takes");
     expect(source).not.toContain("HERO_LOOP_STEPS");
     expect(source).not.toContain("AI-powered");
@@ -19,8 +19,8 @@ describe("homepage first-impression copy", () => {
 
   it("shows one example plan instead of a dense product mock", () => {
     expect(source).toContain("HeroProductPreview");
-    expect(source).toContain('aria-label="Live Scapestack product preview"');
-    expect(source).toContain("Example plan");
+    expect(source).toContain('aria-label="Live anti-bankstanding plan preview"');
+    expect(source).toContain("Anti-bankstanding plan");
     expect(source).toContain("Push Vardorvis to 50 KC");
     expect(source).toContain('label="Goal"');
     expect(source).toContain('label="Time"');

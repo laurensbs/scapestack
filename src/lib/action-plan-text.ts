@@ -28,6 +28,7 @@ export function formatRecommendationActionPlan(
   const lines = [
     rec.title,
     "",
+    `Goal: ${rec.title}`,
     `Why: ${rec.why}`,
     rec.payoff ? `Unlock/payoff: ${rec.payoff}` : null,
     `Time: ${plan.timebox}`,
@@ -56,6 +57,7 @@ export function formatRecommendationSessionPlan(
 
   const lines = [
     "Scapestack session",
+    "Stop bankstanding: pick one route, do the first step, stop at the stop point.",
     "",
     ...planned.flatMap((rec, index) => {
       const plan = rec.actionPlan;

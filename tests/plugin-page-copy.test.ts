@@ -9,16 +9,16 @@ describe("plugin page copy constants", () => {
     const pageSource = readFileSync(join(process.cwd(), "src/app/plugin/page.tsx"), "utf8");
 
     expect(PUBLIC_SYNC_URL).toBe("https://www.scapestack.org/api/sync");
-    expect(pageSource).toContain("Check RuneLite sync.");
-    expect(pageSource).toContain("Then open one plan.");
-    expect(pageSource).toContain("Check sync");
-    expect(pageSource).toContain("Plan next move");
+    expect(pageSource).toContain("Check RuneLite.");
+    expect(pageSource).toContain("Skip finished stuff.");
+    expect(pageSource).toContain("Check RuneLite");
+    expect(pageSource).toContain("Open one plan");
     expect(pageSource).toContain("Setup help");
     expect(pageSource).toContain("RuneLite sync link");
     expect(pageSource).toContain(PUBLIC_SYNC_URL);
     expect(pageSource).not.toContain("scapestack.app");
     expect(pageSource).toContain("PluginSyncChecker");
-    expect(pageSource).toContain("Plan next move");
+    expect(pageSource).toContain("Open one plan");
     expect(pageSource).not.toContain("Sync found? Pick a route.");
     expect(pageSource).not.toContain("POST_SYNC_ACTIONS");
     expect(pageSource).toContain("Privacy and fixes");
@@ -49,13 +49,13 @@ describe("plugin page copy constants", () => {
     expect(pluginHeroActions()).toEqual([
       {
         id: "verify",
-        label: "Check sync",
+        label: "Check RuneLite",
         href: "#verify-sync",
         kind: "primary"
       },
       {
         id: "next",
-        label: "Plan next move",
+        label: "Open one plan",
         href: "/next?from=plugin&bank=none",
         kind: "secondary",
         usesNextHandoff: true
@@ -72,8 +72,8 @@ describe("plugin page copy constants", () => {
 
     expect(context).toEqual({
       title: "From /next",
-      body: "Check sync, then return to your plan.",
-      cta: "Return to /next",
+      body: "Check RuneLite, then return to your plan.",
+      cta: "Back to plan",
       href: "/next?rsn=Lynx+Titan&bank=none&from=plugin"
     });
     expect(context?.href).not.toContain("source=plugin-sync");
@@ -98,7 +98,7 @@ describe("plugin page copy constants", () => {
 
     expect(context).toEqual({
       title: "From profile",
-      body: "Check sync, then return.",
+      body: "Check RuneLite, then return.",
       cta: "Return to profile",
       href: "/u/Lynx%20Titan?from=plugin&bank=none"
     });
@@ -112,9 +112,9 @@ describe("plugin page copy constants", () => {
     expect(checkerSource).not.toContain("if this finds your RSN, /next can use exact account state");
     expect(diagnosticsSource).not.toContain("Scapestack Sync enabled.");
     expect(diagnosticsSource).toContain("Enable “Auto-sync on login”");
-    expect(checkerSource).toContain("Sync helps /next skip stuff you already finished.");
-    expect(checkerSource).toContain("Sync found for {foundDisplayName}");
-    expect(checkerSource).toContain("Open /next for one plan that skips finished quests");
+    expect(checkerSource).toContain("RuneLite helps Scapestack skip stuff you already finished.");
+    expect(checkerSource).toContain("RuneLite is helping {foundDisplayName}");
+    expect(checkerSource).toContain("Open one plan that skips finished quests");
     expect(checkerSource).toContain("Slayer task ready");
     expect(checkerSource).not.toContain("Sync details");
     expect(checkerSource).not.toContain("/next sync signals");
@@ -130,7 +130,7 @@ describe("plugin page copy constants", () => {
   it("keeps synced player success as status and next action only", () => {
     const checkerSource = readFileSync(join(process.cwd(), "src/components/plugin-sync-checker.tsx"), "utf8");
 
-    expect(checkerSource).toContain("Open /next");
+    expect(checkerSource).toContain("Open one plan");
     expect(checkerSource).toContain("Check again");
     expect(checkerSource).toContain("Synced {syncAgeLabel(state.player.syncedAt)}");
     expect(checkerSource).not.toContain("formatPluginSyncProof");
