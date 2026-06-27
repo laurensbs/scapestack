@@ -36,8 +36,8 @@ export function summarizePluginSyncService(status: PluginSyncServiceStatus | nul
   if (!status) {
     return {
       tone: "neutral",
-      label: "Checking sync",
-      detail: "Scapestack is checking whether RuneLite sync can be stored.",
+      label: "Checking RuneLite",
+      detail: "Scapestack is checking whether RuneLite can help this plan.",
       actions: []
     };
   }
@@ -45,32 +45,22 @@ export function summarizePluginSyncService(status: PluginSyncServiceStatus | nul
   if (!status.database?.configured) {
     return {
       tone: "danger",
-      label: "Sync storage missing",
-      detail: "Scapestack cannot store RuneLite syncs until DATABASE_URL is configured.",
+      label: "RuneLite check is not ready",
+      detail: "Finish server setup before RuneLite can help plans.",
       actions: [
-        { label: "Copy schema init", copy: DB_INIT_COMMAND },
+        { label: "Copy setup command", copy: DB_INIT_COMMAND },
         { label: "Copy sync URL", copy: syncUrls.sync }
       ]
     };
   }
 
   if (!status.database.ready) {
-    const missingTables = status.database.missingTables?.length
-      ? `missing tables: ${status.database.missingTables.join(", ")}`
-      : null;
-    const missingColumns = Object.entries(status.database.missingColumns ?? {})
-      .filter(([, columns]) => columns.length > 0)
-      .map(([table, columns]) => `${table}.${columns.join(`, ${table}.`)}`);
-    const details = [missingTables, missingColumns.length ? `missing columns: ${missingColumns.join(", ")}` : null]
-      .filter(Boolean)
-      .join("; ");
-
     return {
       tone: "danger",
-      label: "Sync storage needs setup",
-      detail: details || status.database.reason || "The database is configured, but the sync schema could not be verified.",
+      label: "RuneLite check needs setup",
+      detail: "Finish server setup before RuneLite can help plans.",
       actions: [
-        { label: "Copy schema init", copy: DB_INIT_COMMAND },
+        { label: "Copy setup command", copy: DB_INIT_COMMAND },
         { label: "Copy sync URL", copy: syncUrls.sync }
       ]
     };
@@ -78,8 +68,8 @@ export function summarizePluginSyncService(status: PluginSyncServiceStatus | nul
 
   return {
     tone: "good",
-    label: "Sync ready",
-    detail: `Plugin v${status.plugin?.currentVersion || "unknown"} is ready.`,
+    label: "RuneLite ready",
+    detail: `Scapestack Sync v${status.plugin?.currentVersion || "unknown"} is ready.`,
     actions: [
       { label: "Copy sync URL", copy: syncUrls.sync }
     ]

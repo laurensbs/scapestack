@@ -22,10 +22,10 @@ describe("plugin sync checker affordance", () => {
 
   it("announces checker state and names every verifier action by RSN", () => {
     expect(source).toContain('role="status"');
-    expect(source).toContain("Checking RuneLite sync for");
-    expect(source).toContain("Ready to check RuneLite sync for");
-    expect(source).toContain("Enter an OSRS name to check RuneLite sync.");
-    expect(source).toContain("aria-label={normalized ? `Check sync for ${normalized}` : \"Enter an OSRS name before checking sync\"}");
+    expect(source).toContain("Checking RuneLite for");
+    expect(source).toContain("Ready to check RuneLite for");
+    expect(source).toContain("Enter an OSRS name to check RuneLite.");
+    expect(source).toContain("aria-label={normalized ? `Check RuneLite for ${normalized}` : \"Enter an OSRS name before checking RuneLite\"}");
     expect(source).toContain("aria-label={`Re-check RuneLite sync for ${state.rsn} after logging in`}");
     expect(source).toContain("aria-label={`Re-check RuneLite sync for ${foundDisplayName}`}");
   });
@@ -59,7 +59,7 @@ describe("plugin sync checker affordance", () => {
     expect(source).not.toContain("Open plugin review status");
     expect(source).not.toContain("canShowMissingSetup");
     expect(source).not.toContain("review-readiness");
-    expect(source).toContain("In RuneLite: turn on Scapestack Sync, press Sync now, then check again.");
+    expect(source).toContain("Open RuneLite, press Sync now, then check again.");
     expect(source).toContain("Copy scapestack.org sync URL");
     expect(source).toContain("Sync URL copied");
     expect(source).not.toContain("Copy claim URL");

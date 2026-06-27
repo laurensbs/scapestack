@@ -14,11 +14,11 @@ describe("hero intake copy and routing", () => {
 
   it("uses the three homepage CTAs requested by the product prompt", () => {
     expect(source).toContain("Plan my next move");
-    expect(source).toContain("Add bank");
+    expect(source).toContain("Add gear");
     expect(source).toContain("RuneLite later");
     expect(source).toContain('href="/plugin#verify-sync"');
-    expect(source).toContain("Plan my next move with this bank");
-    expect(source).toContain("Bank paste");
+    expect(source).toContain("Plan my next move with this gear");
+    expect(source).toContain("Gear paste");
   });
 
   it("explains why the hero planner CTA is disabled", () => {
@@ -44,14 +44,14 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain('const HERO_BANK_HELP_ID = "hero-bank-paste-help";');
     expect(source).toContain("aria-controls={HERO_BANK_PANEL_ID}");
     expect(source).toContain("aria-expanded={showBank}");
-    expect(source).toContain('aria-label="Show optional bank paste field"');
+    expect(source).toContain('aria-label="Show optional gear paste field"');
     expect(source).toContain('role="region"');
     expect(source).toContain('aria-label="Optional bank paste"');
     expect(source).toContain('name="bank"');
     expect(source).toContain("aria-labelledby={`${HERO_BANK_TEXTAREA_ID}-label`}");
     expect(source).toContain("aria-describedby={HERO_BANK_HELP_ID}");
-    expect(source).toContain("Bank added. Gear and supplies can shape the plan.");
-    expect(source).toContain("Optional: add bank when gear or GP matters.");
-    expect(source).toContain('aria-label="Hide bank paste and plan from public stats only"');
+    expect(source).toContain("Gear added. Supplies and GP can shape the plan.");
+    expect(source).toContain("Optional: add gear when supplies or GP matters.");
+    expect(source).toContain('aria-label="Hide gear paste and plan from public stats only"');
   });
 });

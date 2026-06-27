@@ -14,7 +14,7 @@ describe("plugin page copy constants", () => {
     expect(pageSource).toContain("Check RuneLite");
     expect(pageSource).toContain("Open one plan");
     expect(pageSource).toContain("Setup help");
-    expect(pageSource).toContain("RuneLite sync link");
+    expect(pageSource).toContain("Scapestack link");
     expect(pageSource).toContain(PUBLIC_SYNC_URL);
     expect(pageSource).not.toContain("scapestack.app");
     expect(pageSource).toContain("PluginSyncChecker");
@@ -22,8 +22,8 @@ describe("plugin page copy constants", () => {
     expect(pageSource).not.toContain("Sync found? Pick a route.");
     expect(pageSource).not.toContain("POST_SYNC_ACTIONS");
     expect(pageSource).toContain("Privacy and fixes");
-    expect(pageSource).toContain("Sync uses");
-    expect(pageSource).toContain("Never uses");
+    expect(pageSource).toContain("RuneLite adds");
+    expect(pageSource).toContain("Never reads");
     expect(pageSource).toContain("No credentials");
     expect(pageSource).toContain("Nothing showing?");
     expect(pageSource).not.toContain("After a successful sync");

@@ -28,6 +28,11 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(plugin).toContain("Skip finished stuff.");
     expect(direction).toContain("anti-bankstanding");
     expect(direction).toContain("one thing to do first");
+    expect(direction).toContain("Critical Audit");
+    expect(direction).toContain("First screenshot:");
+    expect(direction).toContain("I built a RuneLite-powered tool");
+    expect(direction).toContain("## Remove");
+    expect(direction).toContain("## Missing");
   });
 
   it("keeps technical product language out of the player-facing planner flow", () => {
@@ -42,7 +47,13 @@ describe("Scapestack anti-bankstanding product contract", () => {
       "How sure is it?",
       "Session action queue",
       "Sync details",
-      "Scapestack readiness"
+      "Scapestack readiness",
+      "Add bank",
+      "Check sync",
+      "Bank + sync ready",
+      "Bank loaded",
+      "Sync database",
+      "DATABASE_URL"
     ];
 
     for (const phrase of bannedPhrases) {

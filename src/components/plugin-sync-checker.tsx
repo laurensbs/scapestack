@@ -62,8 +62,8 @@ export function PluginSyncChecker() {
     if (serviceError) {
       return {
         tone: "warning",
-        label: "Sync service check failed",
-        detail: serviceError,
+        label: "RuneLite check paused",
+        detail: "Try again in a moment. /next still works from public stats.",
         actions: []
       };
     }
@@ -215,7 +215,7 @@ export function PluginSyncChecker() {
         <button
           type="submit"
           disabled={pending || !normalized}
-          aria-label={normalized ? `Check sync for ${normalized}` : "Enter an OSRS name before checking sync"}
+          aria-label={normalized ? `Check RuneLite for ${normalized}` : "Enter an OSRS name before checking RuneLite"}
           aria-describedby={`${rsnHelpId} ${rsnStatusId}`}
           className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-accent)] px-4 py-3 text-[13px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-55"
         >
@@ -228,10 +228,10 @@ export function PluginSyncChecker() {
       </p>
       <p id={rsnStatusId} role="status" aria-live="polite" className="sr-only">
         {pending
-          ? `Checking RuneLite sync for ${normalized || "this RSN"}.`
+          ? `Checking RuneLite for ${normalized || "this RSN"}.`
           : normalized
-            ? `Ready to check RuneLite sync for ${normalized}.`
-            : "Enter an OSRS name to check RuneLite sync."}
+            ? `Ready to check RuneLite for ${normalized}.`
+            : "Enter an OSRS name to check RuneLite."}
       </p>
 
       {prefillSource && normalized && (
@@ -257,7 +257,7 @@ export function PluginSyncChecker() {
                 <div className="min-w-0">
                   <div className="text-[13px] font-bold text-[var(--color-warning)]">No sync for {state.rsn}</div>
                   <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                    In RuneLite: turn on Scapestack Sync, press Sync now, then check again.
+                    Open RuneLite, press Sync now, then check again.
                   </p>
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     <button
@@ -301,9 +301,9 @@ export function PluginSyncChecker() {
             <div className="flex items-start gap-2">
               <DatabaseZap className="mt-0.5 size-4 text-[var(--color-danger)] shrink-0" />
               <div>
-                <div className="text-[13px] font-bold text-[var(--color-danger)]">Sync database is not configured</div>
+                <div className="text-[13px] font-bold text-[var(--color-danger)]">RuneLite check is not ready</div>
                 <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                  Add <code className="rounded border border-[var(--color-border)] bg-[var(--color-bg)] px-1 py-0.5 text-[11.5px] text-[var(--color-text)]">DATABASE_URL</code>, then initialize the schema. Without that, Scapestack cannot store RuneLite syncs.
+                  Finish server setup, then check this RSN again. /next still works from public stats.
                 </p>
                 <CopyCommand value={DB_INIT_COMMAND} label="Copy command" />
               </div>

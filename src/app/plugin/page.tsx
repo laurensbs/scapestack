@@ -140,7 +140,7 @@ export default function PluginPage() {
         <div className="mt-4 space-y-4">
           <div className="rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-4 py-3">
             <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              RuneLite sync link
+              Scapestack link
             </div>
             <p className="mt-1 break-all text-[13px] font-semibold text-[var(--color-text)]">
               {PUBLIC_SYNC_URL}
@@ -178,8 +178,8 @@ export default function PluginPage() {
           </span>
         </summary>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <InfoTile title="Sync uses" body="Quests, diaries, collection log and Slayer. Scapestack only receives progress after you turn on sync in RuneLite." />
-          <InfoTile title="Never uses" body="RuneScape password, bank, inventory, chat or screenshots." />
+          <InfoTile title="RuneLite adds" body="Quests, diaries, clog and Slayer, only after you turn on Scapestack Sync." />
+          <InfoTile title="Never reads" body="RuneScape password, bank, inventory, chat or screenshots." />
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-4">
             <h3 className="text-[13px] font-bold text-[var(--color-text)]">Nothing showing?</h3>
             <ul className="mt-2 grid gap-1.5 text-[12px] leading-relaxed text-[var(--color-text-dim)]">

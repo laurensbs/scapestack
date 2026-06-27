@@ -138,23 +138,23 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("const cameFromPlugin = useMemo");
     expect(source).toContain('params.get("from") === "plugin"');
     expect(source).toContain("cameFromPlugin={cameFromPlugin}");
-    expect(source).toContain("RuneLite sync is optional. If it finds this RSN, /next can avoid progress you already finished.");
-    expect(source).toContain("Bank stays in this browser.");
+    expect(source).toContain("RuneLite is optional. If it finds this RSN, /next can avoid progress you already finished.");
+    expect(source).toContain("Gear stays in this browser.");
     expect(source).toContain("Free, no account needed.");
   });
 
   it("gives plugin-origin players a concrete sync verification path", () => {
     expect(source).toContain('pluginVerifyUrlForSyncedRsn(rsn, "next"');
     expect(source).toContain("hasBankContext: Boolean(fromBank)");
-    expect(source).toContain("Back from Scapestack Sync");
-    expect(source).toContain("Enter the same OSRS name.");
-    expect(source).toContain("If /next still looks guessed, run sync again from RuneLite and re-check this RSN.");
-    expect(source).toContain("Check sync");
+    expect(source).toContain("Back from RuneLite");
+    expect(source).toContain("Enter the same RSN.");
+    expect(source).toContain("If the plan still looks guessed, press Sync now in RuneLite and check again.");
+    expect(source).toContain("Check RuneLite");
     expect(source).toContain("href={pluginVerifyHref}");
   });
 
   it("does not call unverified /next plugin handoff exact sync", () => {
-    expect(source).toContain("Check sync");
+    expect(source).toContain("Check RuneLite");
     expect(source).not.toContain("Add exact sync");
   });
 
@@ -171,9 +171,9 @@ describe("/next confidence UI copy", () => {
 
   it("lets players clear temporary bank handoff storage", () => {
     expect(source).toContain("clearBankHandoffPayload(window)");
-    expect(source).toContain("Clear bank");
-    expect(source).toContain("This bank stays in this browser and expires automatically.");
-    expect(source).toContain("Stored bank cleared");
+    expect(source).toContain("Clear gear");
+    expect(source).toContain("This gear stays in this browser and expires automatically.");
+    expect(source).toContain("Stored gear cleared");
     expect(source).toContain('import { bankOrganizerHref } from "@/lib/bank-handoff-url";');
     expect(source).toContain('window.location.href = bankOrganizerHref(activeRsn, "next");');
   });
@@ -244,18 +244,18 @@ describe("/next confidence UI copy", () => {
   });
 
   it("lets bank-handoff players run /next without typing an RSN", () => {
-    expect(source).toContain("Using the bank you just organised");
-    expect(source).toContain("Plan with this bank");
+    expect(source).toContain("Using the gear you just organised");
+    expect(source).toContain("Plan with this gear");
     expect(source).toContain("onClick={() => onRun({ bankItems: fromBank.items })}");
     expect(source).toContain("disabled={loading}");
-    expect(source).toContain("Add your OSRS name for stats and KC.");
+    expect(source).toContain("Add your OSRS name for stats and KC, or start with gear alone.");
   });
 
   it("explains why the /next submit CTA is disabled", () => {
     expect(source).toContain('aria-describedby="next-show-me-disabled-help"');
     expect(source).toContain('id="next-show-me-disabled-help"');
     expect(source).toContain("Enter an OSRS name to get one clear next move.");
-    expect(source).toContain("bank-only plan");
+    expect(source).toContain("gear-only plan");
   });
 
   it("shows when bank context and RuneLite sync are fused", () => {
@@ -266,10 +266,10 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("hasLivePluginSync && bankItems.length > 0");
     expect(source).toContain("Gear and finished progress are both shaping this pick.");
     expect(source).not.toContain("verified RuneLite account payload");
-    expect(source).toContain("Sync is connected, but update the plugin before trusting newer details.");
-    expect(source).toContain("{hasPluginSync ? \"Bank + sync ready\" : \"Bank loaded\"}");
-    expect(source).toContain("Bank + sync ready");
+    expect(source).toContain("RuneLite is connected, but update it before trusting newer details.");
+    expect(source).toContain("{hasPluginSync ? \"Gear + RuneLite\" : \"Gear loaded\"}");
+    expect(source).toContain("Gear + RuneLite");
     expect(source).not.toContain("Exact fusion");
-    expect(source).toContain("Plugin update needed");
+    expect(source).toContain("Update RuneLite");
   });
 });

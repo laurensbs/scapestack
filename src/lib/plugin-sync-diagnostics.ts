@@ -247,15 +247,15 @@ export function diagnosticForMissingSync(rsn: string, context: PluginSyncDiagnos
 export function diagnosticForUnconfiguredSync(): PluginSyncDiagnostic {
   return {
     tone: "danger",
-    title: "Sync storage is not ready",
-    body: "Scapestack cannot remember RuneLite progress until DATABASE_URL is configured.",
+    title: "RuneLite check is not ready",
+    body: "Scapestack cannot remember RuneLite progress yet. Finish server setup, then check this RSN again.",
     steps: [
-      "Set DATABASE_URL for this app environment.",
-      "Run the schema initializer once.",
-      "Restart the local Next server so server actions read the updated env.",
-      "Enable “Auto-sync on login” in RuneLite, then re-run the sync checker."
+      "Finish the sync storage setup for this app.",
+      "Run the setup command once.",
+      "Restart the app so RuneLite checks can save progress.",
+      "Enable “Auto-sync on login” in RuneLite, then check the RSN again."
     ],
-    primaryAction: { label: "Copy init command", copy: DB_INIT_COMMAND }
+    primaryAction: { label: "Copy setup command", copy: DB_INIT_COMMAND }
   };
 }
 
@@ -395,7 +395,7 @@ function missingSlayerDiagnostic(player: SyncedPlayer): PluginSyncDiagnostic {
 }
 
 export function healthLabel(health: PluginSyncHealth): string {
-  if (health === "live") return "Live sync found";
-  if (health === "stale") return "Sync is stale";
-  return "Plugin update needed";
+  if (health === "live") return "RuneLite is helping";
+  if (health === "stale") return "Refresh RuneLite";
+  return "Update RuneLite";
 }

@@ -500,7 +500,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialQueryString]);
 
-  // "Use saved bank" from the welcome-back banner. Reuses the same engine
+  // "Use saved gear" from the welcome-back banner. Reuses the same engine
   // pipeline as a fresh paste — by calling run() with the stored input
   // string, we always re-derive recommendations from the latest engine,
   // not from any cached output.
@@ -688,7 +688,7 @@ function NextIntake({
       rsn,
       input: showBankField ? bank : undefined,
       // If the user came from /bank, ride that bank along so /next can
-      // give bank-aware recs even before they type their RSN.
+      // give gear-aware recs even before they type their RSN.
       bankItems: fromBank?.items
     });
   };
@@ -718,10 +718,10 @@ function NextIntake({
           saved={savedBank}
           loading={loading}
           presentation="inline"
-          title="Use your saved bank?"
-          message={`We found your saved bank from ${savedBank ? relativeSince(savedBank.savedAt) : "earlier"}. Use it for bank-aware recommendations, or skip it and enter only an OSRS name.`}
-          primaryLabel="Use saved bank"
-          secondaryLabel="Skip bank"
+          title="Use your saved gear?"
+          message={`We found gear from ${savedBank ? relativeSince(savedBank.savedAt) : "earlier"}. Use it when supplies or GP would change the plan, or skip and start with only an OSRS name.`}
+          primaryLabel="Use saved gear"
+          secondaryLabel="Skip gear"
           secondaryMode="dismiss"
           onUse={() => onUseSaved(savedBank)}
           onDismiss={onDismissSaved}
@@ -734,17 +734,17 @@ function NextIntake({
             <Shield className="mt-0.5 size-4 shrink-0 text-[var(--color-warning)]" />
             <div className="min-w-0 flex-1">
               <p className="text-[13px] font-semibold text-[var(--color-text)]">
-                Back from Scapestack Sync
+                Back from RuneLite
               </p>
               <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
-                Enter the same OSRS name. If /next still looks guessed, run sync again from RuneLite and re-check this RSN.
+                Enter the same RSN. If the plan still looks guessed, press Sync now in RuneLite and check again.
               </p>
             </div>
             <Link
               href={pluginVerifyHref}
               className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/45 px-2.5 py-1.5 text-[11px] font-bold text-[var(--color-warning)] transition-colors hover:bg-[var(--color-warning)]/10"
             >
-              Check sync
+              Check RuneLite
               <ArrowRight className="size-3" />
             </Link>
           </div>
@@ -759,13 +759,12 @@ function NextIntake({
           <Sparkles className="size-4 text-[var(--color-accent)] shrink-0 mt-0.5" />
           <div className="min-w-0 flex-1">
             <p className="text-[13px] text-[var(--color-text)] leading-relaxed">
-              <span className="font-semibold">Using the bank you just organised</span>
+              <span className="font-semibold">Using the gear you just organised</span>
               {handoffSummary ? ` (${handoffSummary.label}).` : "."}{" "}
-              Add your OSRS name for stat-aware
-              advice, or just click the button — we&apos;ll do what we can with the bank alone.
+              Add your OSRS name for stats and KC, or start with gear alone.
             </p>
             <p className="mt-1 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
-              This bank stays in this browser and expires automatically.
+              This gear stays in this browser and expires automatically.
             </p>
             {handoffSummary && handoffSummary.topItems.length > 0 && (
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -792,7 +791,7 @@ function NextIntake({
               disabled={loading}
               className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Plan with this bank
+              Plan with this gear
               <ArrowRight className="size-3" />
             </button>
             <button
@@ -800,7 +799,7 @@ function NextIntake({
               onClick={onClearBankHandoff}
               className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-danger)]/45 hover:text-[var(--color-danger)]"
             >
-              Clear bank
+              Clear gear
               <Trash2 className="size-3" />
             </button>
           </div>
@@ -852,7 +851,7 @@ function NextIntake({
               : rsn.trim()
               ? "Ready: public stats are enough. Gear or RuneLite can come later."
               : fromBank
-              ? "Ready: bank-only plan. Add a name for stats and KC."
+              ? "Ready: gear-only plan. Add a name for stats and KC."
               : "Enter an OSRS name to get one clear next move."}
           </p>
 
@@ -873,7 +872,7 @@ function NextIntake({
             <div className="text-left animate-[fade-in_0.3s_ease-out]">
               <label className="block">
                 <span className="text-[11.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                  Bank paste <span className="normal-case tracking-normal">(optional)</span>
+                  Gear paste <span className="normal-case tracking-normal">(optional)</span>
                 </span>
                 <textarea
                   value={bank}
@@ -887,7 +886,7 @@ function NextIntake({
                   onClick={() => { setShowBankField(false); setBank(""); }}
                   className="mt-2 text-[11.5px] text-[var(--color-text-muted)] hover:text-[var(--color-text-dim)] transition-colors"
                 >
-                  Hide bank
+                  Hide gear
                 </button>
               </label>
             </div>
@@ -898,7 +897,7 @@ function NextIntake({
               disabled={loading}
               className="text-[12.5px] text-[var(--color-text-dim)] hover:text-[var(--color-accent)] underline underline-offset-4 decoration-dotted transition-colors disabled:opacity-50"
             >
-              + Add bank (optional)
+              + Add gear (optional)
             </button>
           )}
         </div>
@@ -922,8 +921,8 @@ function NextIntake({
 
       <p className="mt-8 text-[11.5px] text-[var(--color-text-muted)] text-center leading-relaxed">
         {cameFromPlugin
-          ? "RuneLite sync is optional. If it finds this RSN, /next can avoid progress you already finished. Bank stays in this browser."
-          : "Free, no account needed. Bank paste stays in this browser."}
+          ? "RuneLite is optional. If it finds this RSN, /next can avoid progress you already finished. Gear stays in this browser."
+          : "Free, no account needed. Gear paste stays in this browser."}
       </p>
     </section>
   );
@@ -1120,7 +1119,7 @@ function MakePlanSmarter({
                 href={syncHref}
                 className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/35 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-warning)] transition-colors hover:bg-[var(--color-warning)]/10"
               >
-                Check sync
+                Check RuneLite
                 <ArrowRight className="size-3.5" />
               </Link>
             </div>
@@ -1195,14 +1194,14 @@ function NextBankContextStrip({
     hasLivePluginSync && bankItems.length > 0
       ? "Gear and finished progress are both shaping this pick."
       : pluginSyncState === "stale"
-        ? "Sync is connected, but refresh before a long grind or GP spend."
+        ? "RuneLite is connected, but refresh before a long grind or GP spend."
         : pluginSyncState === "outdated"
-          ? "Sync is connected, but update the plugin before trusting newer details."
-      : basis === "full"
-      ? "Gear, goals and account gates are ranked together."
-      : basis === "bank-only"
-        ? "Bank is loaded. Add an OSRS name next time for account gates."
-        : "Bank is loaded for item and gear checks.";
+          ? "RuneLite is connected, but update it before trusting newer details."
+          : basis === "full"
+            ? "Gear, goals and account gates are ranked together."
+            : basis === "bank-only"
+              ? "Gear is loaded. Add an OSRS name next time for account gates."
+              : "Gear is loaded for item checks.";
 
   const backToBank = () => {
     if (typeof window === "undefined") return;
@@ -1222,7 +1221,7 @@ function NextBankContextStrip({
           </span>
           <div className="min-w-0">
             <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              {hasPluginSync ? "Bank + sync ready" : "Bank loaded"}
+              {hasPluginSync ? "Gear + RuneLite" : "Gear loaded"}
             </div>
             {hasPluginSync && (
               <div className={cn(
@@ -1232,7 +1231,7 @@ function NextBankContextStrip({
                   : "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
               )}>
                 <CheckCircle2 className="size-3" />
-                {hasLivePluginSync ? "Bank + sync ready" : pluginSyncState === "outdated" ? "Plugin update needed" : "Refresh sync"}
+                {hasLivePluginSync ? "Gear + RuneLite" : pluginSyncState === "outdated" ? "Update RuneLite" : "Refresh RuneLite"}
               </div>
             )}
             <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
@@ -1241,8 +1240,8 @@ function NextBankContextStrip({
               {basisCopy}
             </p>
             <p className="mt-1 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
-              This bank stays in this browser. Clear it when you want Scapestack to ignore this bank.
-              {handoffCleared ? " Stored bank cleared; this current result keeps its already-computed bank-aware plan until you rerun." : ""}
+              This gear stays in this browser. Clear it when you want Scapestack to ignore this gear.
+              {handoffCleared ? " Stored gear cleared; this current result keeps the plan it already made until you rerun." : ""}
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               {context.summary.topItems.map((item) => (
@@ -1274,7 +1273,7 @@ function NextBankContextStrip({
             onClick={backToBank}
             className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
           >
-            Review bank
+            Review gear
             <ArrowRight className="size-3.5" />
           </button>
           <button
@@ -1285,7 +1284,7 @@ function NextBankContextStrip({
             }}
             className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-danger)]/45 hover:text-[var(--color-danger)]"
           >
-            Clear bank
+            Clear gear
             <Trash2 className="size-3.5" />
           </button>
           <Link
@@ -1313,7 +1312,7 @@ function NextBankContextStrip({
             href={toolHandoffUrl("/plugin", "next", activeRsn)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
           >
-            Check sync
+            Check RuneLite
             <Sparkles className="size-3.5" />
           </Link>
         </div>

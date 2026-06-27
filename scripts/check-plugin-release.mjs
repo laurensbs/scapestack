@@ -231,7 +231,7 @@ function checkReviewCopy() {
   expectContains("plugin/PUBLISHING.md", "npm run plugin:review-reply-command");
   expectContains("plugin/PUBLISHING.md", "npm run plugin:review-handoff-command");
   expectContains("plugin/PUBLISHING.md", "Replace stale PR-body copy");
-  expectContains("src/app/plugin/page.tsx", "only receives progress after you turn on sync");
+  expectContains("src/app/plugin/page.tsx", "only after you turn on Scapestack Sync");
   expectContains("src/lib/plugin-review-packet.ts", "background Thread, not on RuneLite's client thread");
   expectContains("src/lib/plugin-review-packet.ts", "No progress POST happens until the player enables Auto-sync on login");
   expectContains("src/lib/plugin-review-packet.ts", "replace stale PR-body copy");

@@ -34,9 +34,9 @@ function player(overrides: Partial<SyncedPlayer> = {}): SyncedPlayer {
 
 describe("plugin sync diagnostics", () => {
   it("labels plugin health states for checker badges", () => {
-    expect(healthLabel("live")).toBe("Live sync found");
-    expect(healthLabel("stale")).toBe("Sync is stale");
-    expect(healthLabel("outdated")).toBe("Plugin update needed");
+    expect(healthLabel("live")).toBe("RuneLite is helping");
+    expect(healthLabel("stale")).toBe("Refresh RuneLite");
+    expect(healthLabel("outdated")).toBe("Update RuneLite");
   });
 
   it("marks current full sync as ready for /next", () => {
@@ -229,9 +229,10 @@ describe("plugin sync diagnostics", () => {
 
     const unconfigured = diagnosticForUnconfiguredSync();
     expect(unconfigured.tone).toBe("danger");
-    expect(unconfigured.title).toBe("Sync storage is not ready");
+    expect(unconfigured.title).toBe("RuneLite check is not ready");
     expect(unconfigured.primaryAction?.copy).toBe(DB_INIT_COMMAND);
-    expect(unconfigured.steps.join(" ")).toContain("DATABASE_URL");
+    expect(unconfigured.steps.join(" ")).toContain("setup command");
+    expect(unconfigured.steps.join(" ")).not.toContain("DATABASE_URL");
     expect(unconfigured.steps.join(" ")).toContain("Auto-sync on login");
   });
 });

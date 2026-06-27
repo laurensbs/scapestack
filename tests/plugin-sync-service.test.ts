@@ -6,7 +6,7 @@ describe("plugin sync service summary", () => {
   it("summarizes the loading state", () => {
     expect(summarizePluginSyncService(null)).toMatchObject({
       tone: "neutral",
-      label: "Checking sync",
+      label: "Checking RuneLite",
       actions: []
     });
   });
@@ -23,9 +23,9 @@ describe("plugin sync service summary", () => {
       }
     })).toMatchObject({
       tone: "danger",
-      label: "Sync storage missing",
+      label: "RuneLite check is not ready",
       actions: [
-        { label: "Copy schema init", copy: DB_INIT_COMMAND },
+        { label: "Copy setup command", copy: DB_INIT_COMMAND },
         { label: "Copy sync URL", copy: PUBLIC_SYNC_URL }
       ]
     });
@@ -42,13 +42,13 @@ describe("plugin sync service summary", () => {
       }
     }, "http://127.0.0.1:4173/plugin")).toMatchObject({
       actions: [
-        { label: "Copy schema init", copy: DB_INIT_COMMAND },
+        { label: "Copy setup command", copy: DB_INIT_COMMAND },
         { label: "Copy sync URL", copy: PUBLIC_SYNC_URL }
       ]
     });
   });
 
-  it("reports missing schema details", () => {
+  it("keeps setup blockers player-facing", () => {
     const summary = summarizePluginSyncService({
       ready: false,
       database: {
@@ -63,9 +63,10 @@ describe("plugin sync service summary", () => {
     });
 
     expect(summary.tone).toBe("danger");
-    expect(summary.label).toBe("Sync storage needs setup");
-    expect(summary.detail).toContain("player_sync.slayer");
-    expect(summary.actions).toContainEqual({ label: "Copy schema init", copy: DB_INIT_COMMAND });
+    expect(summary.label).toBe("RuneLite check needs setup");
+    expect(summary.detail).toBe("Finish server setup before RuneLite can help plans.");
+    expect(summary.detail).not.toContain("player_sync.slayer");
+    expect(summary.actions).toContainEqual({ label: "Copy setup command", copy: DB_INIT_COMMAND });
   });
 
   it("summarizes a ready sync service", () => {
@@ -81,8 +82,8 @@ describe("plugin sync service summary", () => {
       }
     })).toMatchObject({
       tone: "good",
-      label: "Sync ready",
-      detail: "Plugin v0.2.0 is ready.",
+      label: "RuneLite ready",
+      detail: "Scapestack Sync v0.2.0 is ready.",
       actions: [
         { label: "Copy sync URL", copy: PUBLIC_SYNC_URL }
       ]
