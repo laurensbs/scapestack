@@ -28,7 +28,7 @@ describe("bank plugin intake bridge", () => {
         primary: true
       },
       {
-        label: "Check RuneLite sync",
+        label: "Check sync",
         href: "/plugin?rsn=Lynx+Titan&from=bank#verify-sync",
         primary: false
       },

@@ -18,11 +18,11 @@ describe("homepage product flow", () => {
       "Use sync"
     ]);
     expect(HOME_PRODUCT_FLOW[0].title).toBe("Start with your RSN");
-    expect(HOME_PRODUCT_FLOW[0].body).toContain("Hiscores gives combat");
+    expect(HOME_PRODUCT_FLOW[0].body).toContain("Public stats are enough");
     expect(HOME_PRODUCT_FLOW[1].title).toBe("Add bank when gear matters");
-    expect(HOME_PRODUCT_FLOW[1].body).toContain("gear you already own");
+    expect(HOME_PRODUCT_FLOW[1].body).toContain("setups, supplies or GP");
     expect(HOME_PRODUCT_FLOW[2].title).toBe("Sync finished progress");
-    expect(HOME_PRODUCT_FLOW[2].body).toContain("avoid quests, diaries, CL and Slayer");
+    expect(HOME_PRODUCT_FLOW[2].body).toContain("repeats things you already finished");
   });
 
   it("keeps install-ready sync framed as finished-progress filtering", () => {
@@ -38,7 +38,7 @@ describe("homepage product flow", () => {
       "Add bank",
       "Use sync"
     ]);
-    expect(flow[2].body).toContain("completed quests, diaries, collection log and Slayer");
+    expect(flow[2].body).toContain("completed quests, diaries, log items or Slayer");
     expect(flow[2].body).not.toContain("payload");
     expect(flow[2].body).not.toContain("Plugin Hub");
   });
@@ -59,7 +59,7 @@ describe("homepage product flow", () => {
       href: "/plugin#verify-sync",
       cta: "Use sync"
     });
-    expect(flow[2].body).toContain("avoid quests, diaries, CL and Slayer");
+    expect(flow[2].body).toContain("repeats things you already finished");
     expect(homePluginReadinessPill(readiness)).toMatchObject({
       label: "Check sync",
       href: "/plugin#verify-sync",

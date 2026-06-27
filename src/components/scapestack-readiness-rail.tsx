@@ -104,7 +104,7 @@ export function ScapestackReadinessRail({
                       value={rsnDraft}
                       onChange={(event) => setRsnDraft(event.target.value)}
                       placeholder="Type RSN"
-                      aria-label="OSRS name for Scapestack readiness"
+                      aria-label="OSRS name for plan context"
                       className="h-8 min-w-[128px] rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-2.5 text-[11.5px] font-semibold text-[var(--color-text)] outline-none transition-colors placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)]/60"
                     />
                   )}

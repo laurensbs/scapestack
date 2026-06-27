@@ -110,7 +110,7 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
     if (pluginHubState === "merged") {
       return "Check the same RSN on /plugin after RuneLite syncs, then /next can avoid finished account progress.";
     }
-    return "Use /next now, or check Scapestack Sync when you want quests, diaries, collection log and Slayer included.";
+    return "Use /next now, or check sync when quests, diaries, log items or Slayer matter.";
   })();
   const syncNotice = (() => {
     if (hasPluginSync) return undefined;
@@ -122,7 +122,7 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
     : [
       {
         label: "Open RuneLite",
-        body: "Enable Scapestack Sync for the account you want to plan."
+        body: "Turn on Scapestack Sync for the account you want to plan."
       },
       {
         label: "Confirm sync URL",
@@ -194,7 +194,7 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
     }
     if (!hasExactPluginSync) {
       return {
-        label: hasPluginSync ? "Refresh sync" : "Check RuneLite sync",
+        label: hasPluginSync ? "Refresh sync" : "Check sync",
         href: syncHref
       };
     }
@@ -206,12 +206,12 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
 
   const readyCount = signals.filter((signal) => signal.status !== "missing").length;
   const body = hasPluginSync && !hasExactPluginSync
-    ? `${readyCount}/3 signals are connected. Bank and Hiscores can plan now; refresh RuneLite sync before relying on quests, diaries, collection log or Slayer.`
-    : `${readyCount}/3 signals are connected. Bank paste and Hiscores are enough to plan now; RuneLite sync adds quests, diaries, collection log and Slayer when available.`;
+    ? "Bank and public stats can plan now. Refresh sync before long quests, diaries, log or Slayer decisions."
+    : "Bank and public stats are enough to plan now. Sync is optional for finished quests, diaries, log and Slayer.";
 
   return {
-    eyebrow: "Scapestack readiness",
-    title: `${surfaceNames[input.surface]} has ${readyCount}/3 signals connected`,
+    eyebrow: "Plan context",
+    title: `${surfaceNames[input.surface]} is ready to plan`,
     body,
     signals,
     primaryAction

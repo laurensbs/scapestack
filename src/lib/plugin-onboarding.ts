@@ -66,12 +66,12 @@ export const BANK_PLUGIN_ONBOARDING = {
   ] satisfies PluginOnboardingReadinessStep[],
   actions: [
     {
-      label: "Check Scapestack Sync",
+      label: "Check sync",
       href: "/plugin?from=bank#verify-sync",
       tone: "primary"
     },
     {
-      label: "Use web recommendations",
+      label: "Use /next",
       href: "/next?from=bank&bank=none",
       tone: "secondary"
     }
@@ -94,12 +94,12 @@ export function bankPluginOnboardingActions(
   if (state === "merged") {
     return [
       {
-        label: "Check RuneLite sync",
+        label: "Check sync",
         href: "/plugin?from=bank#verify-sync",
         tone: "primary"
       },
       {
-        label: "Preview /next readiness",
+        label: "Open /next",
         href: "/next?from=bank&bank=none",
         tone: "secondary"
       }
@@ -116,12 +116,12 @@ export function bankPluginOnboardingActions(
 
   return [
     {
-      label: "Use web recommendations",
+      label: "Use /next",
       href: "/next?from=bank&bank=none",
       tone: "primary"
     },
     {
-      label: "Check Scapestack Sync",
+      label: "Check sync",
       href: "/plugin?from=bank#verify-sync",
       tone: "secondary"
     }

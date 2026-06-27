@@ -61,12 +61,12 @@ describe("bank action loop", () => {
       proof: "0 blocking cleanup tips"
     });
     expect(steps[4]).toMatchObject({
-      title: "Check Scapestack Sync",
+      title: "Check sync",
       state: "optional",
       cta: "Check sync",
       proof: "Sync checker ready · same RSN required"
     });
-    expect(steps[4].body).toContain("confirm RuneLite posts to scapestack.org");
+    expect(steps[4].body).toContain("quests, diaries, log items or Slayer matter");
   });
 
   it("turns review-blocked Plugin Hub state into a sync-check action", () => {
@@ -79,13 +79,13 @@ describe("bank action loop", () => {
     });
 
     expect(steps[4]).toMatchObject({
-      title: "Check Scapestack Sync",
+      title: "Check sync",
       cta: "Check sync",
       destination: "/plugin#verify-sync",
       proof: "Sync checker ready · web planner ready",
       state: "optional"
     });
-    expect(steps[4].body).toContain("confirm RuneLite posts to scapestack.org");
+    expect(steps[4].body).toContain("quests, diaries, log items or Slayer matter");
     expect(steps[4].body).not.toContain("Plugin Hub review is still pending");
   });
 
@@ -106,13 +106,13 @@ describe("bank action loop", () => {
     });
 
     expect(unknown[4]).toMatchObject({
-      title: "Check Scapestack Sync",
+      title: "Check sync",
       destination: "/plugin#verify-sync",
       proof: "Sync status unknown · checker available",
       state: "optional"
     });
     expect(closed[4]).toMatchObject({
-      title: "Check Scapestack Sync",
+      title: "Check sync",
       destination: "/plugin#verify-sync",
       proof: "Sync check optional · web planner ready",
       state: "optional"
@@ -131,7 +131,7 @@ describe("bank action loop", () => {
     });
 
     expect(steps[4]).toMatchObject({
-      title: "Check RuneLite sync",
+      title: "Check sync",
       cta: "Check sync",
       destination: "/plugin#verify-sync",
       proof: "RuneLite sync · same RSN required",

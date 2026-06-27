@@ -28,18 +28,18 @@ export function formatRecommendationActionPlan(
   const lines = [
     rec.title,
     "",
-    `Why: ${rec.why}`,
-    rec.payoff ? `Payoff: ${rec.payoff}` : null,
-    `Session: ${plan.timebox} · ${plan.confidenceLabel}`,
+    `Why it matters: ${rec.why}`,
+    rec.payoff ? `Unlocks: ${rec.payoff}` : null,
+    `Time: ${plan.timebox} · ${plan.confidenceLabel}`,
     "",
-    `Prep: ${plan.prep}`,
+    `Before you start: ${plan.prep}`,
     "",
     ...plan.steps.map((step, index) => `${index + 1}. ${step}`),
     actionHref ? "" : null,
     actionHref,
     plan.caveat ? "" : null,
-    plan.caveat ? `Note: ${plan.caveat}` : null,
-    dataAction ? `Improve accuracy: ${dataAction.label} — ${dataAction.helper}` : null,
+    plan.caveat ? `Check first: ${plan.caveat}` : null,
+    dataAction ? `Make it sharper later: ${dataAction.label} — ${dataAction.helper}` : null,
     dataActionHref
   ].filter((line): line is string => line !== null);
 
@@ -52,10 +52,10 @@ export function formatRecommendationSessionPlan(
   limit = 3
 ): string {
   const planned = recs.slice(0, limit);
-  if (planned.length === 0) return "Scapestack session plan\n\nNo recommendations available.";
+  if (planned.length === 0) return "OSRS plan\n\nNo recommendations available.";
 
   const lines = [
-    "Scapestack session plan",
+    "OSRS plan",
     "",
     ...planned.flatMap((rec, index) => {
       const plan = rec.actionPlan;
@@ -67,9 +67,9 @@ export function formatRecommendationSessionPlan(
       return [
         `${index + 1}. ${rec.title}`,
         `   Why: ${rec.why}`,
-        plan ? `   Session: ${plan.timebox} · ${plan.confidenceLabel}` : null,
-        plan ? `   Prep: ${plan.prep}` : null,
-        plan?.steps[0] ? `   First step: ${plan.steps[0]}` : null,
+        plan ? `   Time: ${plan.timebox} · ${plan.confidenceLabel}` : null,
+        plan ? `   Check first: ${plan.prep}` : null,
+        plan?.steps[0] ? `   Start: ${plan.steps[0]}` : null,
         actionHref ? `   ${actionHref}` : null,
         ""
       ].filter((line): line is string => line !== null);

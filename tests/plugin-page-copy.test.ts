@@ -11,14 +11,14 @@ describe("plugin page copy constants", () => {
     expect(PUBLIC_SYNC_URL).toBe("https://www.scapestack.org/api/sync");
     expect(pageSource).toContain("Type your OSRS name.");
     expect(pageSource).toContain("Get account-aware ideas.");
-    expect(pageSource).toContain("Check Scapestack Sync");
-    expect(pageSource).toContain("Get next actions");
+    expect(pageSource).toContain("Check sync");
+    expect(pageSource).toContain("Plan next move");
     expect(pageSource).toContain("RuneLite sync link");
     expect(pageSource).toContain(PUBLIC_SYNC_URL);
     expect(pageSource).not.toContain("scapestack.app");
     expect(pageSource).toContain("PluginSyncChecker");
     expect(pageSource).toContain("Sync found? Pick a route.");
-    expect(pageSource).toContain("Plan next action");
+    expect(pageSource).toContain("Plan next move");
     expect(pageSource).toContain("Privacy and fixes");
     expect(pageSource).toContain("Sync uses");
     expect(pageSource).toContain("Never uses");
@@ -47,13 +47,13 @@ describe("plugin page copy constants", () => {
     expect(pluginHeroActions()).toEqual([
       {
         id: "verify",
-        label: "Check Scapestack Sync",
+        label: "Check sync",
         href: "#verify-sync",
         kind: "primary"
       },
       {
         id: "next",
-        label: "Get next actions",
+        label: "Plan next move",
         href: "/next?from=plugin&bank=none",
         kind: "secondary",
         usesNextHandoff: true

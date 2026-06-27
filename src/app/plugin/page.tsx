@@ -14,7 +14,7 @@ export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Scapestack Sync",
-  description: "Enter an OSRS name, check Scapestack Sync, and get account-aware next actions."
+  description: "Enter an OSRS name, check sync, and get a cleaner next move."
 };
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -42,16 +42,9 @@ const SYNC_STEPS = [
   }
 ];
 
-const ACCOUNT_SIGNALS = [
-  "Quest completion",
-  "Achievement Diary tiers",
-  "Collection-log items",
-  "Slayer task, points, streak and blocks"
-];
-
 const POST_SYNC_ACTIONS = [
   {
-    label: "Plan next action",
+    label: "Plan next move",
     href: "/next?from=plugin&bank=none",
     handoff: true
   },
@@ -123,13 +116,13 @@ export function pluginHeroActions(): PluginHeroAction[] {
   return [
     {
       id: "verify",
-      label: "Check Scapestack Sync",
+      label: "Check sync",
       href: `#${PLUGIN_VERIFY_SYNC_HASH}`,
       kind: "primary"
     },
     {
       id: "next",
-      label: "Get next actions",
+      label: "Plan next move",
       href: "/next?from=plugin&bank=none",
       kind: "secondary",
       usesNextHandoff: true
@@ -161,8 +154,8 @@ export default async function PluginPage({
               <span className="block text-gold-gradient">Get account-aware ideas.</span>
             </h1>
             <p className="mt-6 max-w-2xl text-[17px] leading-[1.55] text-[var(--color-text-dim)] sm:text-[19px]">
-              Scapestack works with Hiscores and bank paste, but Scapestack Sync lets the app include
-              quests, diaries, collection-log items and Slayer before recommending what to do next.
+              Sync helps /next skip quests, diaries, log items and Slayer progress you already finished.
+              You can still start with just an OSRS name.
             </p>
           </div>
 
@@ -173,8 +166,8 @@ export default async function PluginPage({
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <SignalPill icon={<Search className="size-4" />} title="Name first" body="Use the same display name you synced from RuneLite." />
-            <SignalPill icon={<RefreshCw className="size-4" />} title="Fresh sync" body={`Use plugin v${CURRENT_PLUGIN_VERSION} and the scapestack.org sync link.`} />
+            <SignalPill icon={<Search className="size-4" />} title="Same name" body="Use the RuneLite display name you want to plan with." />
+            <SignalPill icon={<RefreshCw className="size-4" />} title="Use .org" body={`Plugin v${CURRENT_PLUGIN_VERSION} should point to scapestack.org.`} />
           </div>
         </div>
 
@@ -211,18 +204,10 @@ export default async function PluginPage({
             </div>
           </div>
 
-          <div className="mt-5 grid gap-2">
-            {ACCOUNT_SIGNALS.map((signal) => (
-              <div key={signal} className="flex items-center gap-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2.5 text-[13px] text-[var(--color-text)]">
-                <CheckCircle2 className="size-4 shrink-0 text-[var(--color-good)]" />
-                {signal}
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <TrustNote title="Explicit opt-in" body="Scapestack only receives progress after you turn on sync in RuneLite or press a sync action." />
-            <TrustNote title="No account login" body="Scapestack never asks for your RuneScape password, session, clicks, screenshots or client files." />
+          <div className="mt-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2.5">
+            <p className="text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
+              Sync is optional. Use it when /next keeps suggesting progress you already completed.
+            </p>
           </div>
         </aside>
       </section>
@@ -279,8 +264,8 @@ export default async function PluginPage({
           </span>
         </summary>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <InfoTile title="Sync uses" body="Quests, diaries, collection log and Slayer." />
-          <InfoTile title="Never uses" body="Password, bank, inventory, chat or screenshots." />
+          <InfoTile title="Sync uses" body="Quests, diaries, collection log and Slayer. Scapestack only receives progress after you turn on sync in RuneLite." />
+          <InfoTile title="Never uses" body="RuneScape password, bank, inventory, chat or screenshots." />
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-4">
             <h3 className="text-[13px] font-bold text-[var(--color-text)]">Nothing showing?</h3>
             <ul className="mt-2 grid gap-1.5 text-[12px] leading-relaxed text-[var(--color-text-dim)]">
@@ -363,15 +348,6 @@ function SignalPill({ icon, title, body }: { icon: ReactNode; title: string; bod
         {title}
       </div>
       <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">{body}</p>
-    </div>
-  );
-}
-
-function TrustNote({ title, body }: { title: string; body: string }) {
-  return (
-    <div className="rounded-xl border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-3 py-2.5">
-      <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-good)]">{title}</div>
-      <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-dim)]">{body}</p>
     </div>
   );
 }

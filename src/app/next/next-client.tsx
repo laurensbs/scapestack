@@ -657,7 +657,7 @@ function NotFoundPreview({ rsn, onRetry }: { rsn: string; onRetry: () => void })
 // state redesign. RSN-only is the lightest entry (most returning players
 // can't export a bank from a session they haven't started). Sample data
 // gives a "show me what this looks like" preview. Adding a bank is opt-in
-// for sharper advice.
+// for optional bank context.
 function NextIntake({
   onRun, loading, error, fromBank, savedBank, savedRsn, cameFromPlugin, onUseSaved, onDismissSaved, onClearBankHandoff
 }: {
@@ -756,7 +756,7 @@ function NextIntake({
 
       {/* Handoff banner — appears when the user arrived here via the
           Bank Organizer's "What should I do next?" button. The bank is
-          already loaded; an RSN is optional but gets sharper advice. */}
+          already loaded; an RSN is optional and adds stats. */}
       {fromBank && (
         <div className="mb-4 rounded-lg border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/8 px-4 py-3 flex items-start gap-3 animate-[fade-in_0.3s_ease-out] text-left">
           <Sparkles className="size-4 text-[var(--color-accent)] shrink-0 mt-0.5" />
@@ -851,12 +851,12 @@ function NextIntake({
             className="border-t border-[var(--color-border)] px-5 py-2 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]"
           >
             {loading
-              ? "Building your plan from available account signals…"
+              ? "Building one clear plan…"
               : rsn.trim()
-              ? "Ready: /next will use your RSN, Hiscores, saved bank and sync if available."
+              ? "Ready: public stats are enough. Saved bank or RuneLite can help if available."
               : fromBank
-              ? "Ready: bank-only planning is available; add an RSN for stat-aware picks."
-              : "Type an OSRS name, paste a bank, or start from the Bank Organizer to unlock Show me."}
+              ? "Ready: bank-only plan. Add a name for stats and KC."
+              : "Enter an OSRS name to get one clear next move."}
           </p>
 
           {/* Tijdens loading verschijnt de ShuffleLoader onder de input
@@ -869,7 +869,7 @@ function NextIntake({
           )}
         </div>
 
-        {/* Secondary: optional bank paste for sharper advice. Onder
+        {/* Secondary: optional bank paste. Onder
             het hero-frame zodat de eerste indruk niet vol-staat met
             opties — alleen onthuld als de speler er om vraagt. */}
         <div className="mt-4 text-center">
@@ -877,12 +877,12 @@ function NextIntake({
             <div className="text-left animate-[fade-in_0.3s_ease-out]">
               <label className="block">
                 <span className="text-[11.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                  Bank export <span className="normal-case tracking-normal">(optional — sharper advice)</span>
+                  Bank paste <span className="normal-case tracking-normal">(optional)</span>
                 </span>
                 <textarea
                   value={bank}
                   onChange={(e) => setBank(e.target.value)}
-                  placeholder="Paste your RuneLite Bank Memory export here…"
+                  placeholder="Paste Bank Memory or Bank Tags here…"
                   rows={4}
                   className="mt-2 w-full rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none px-3 py-2 text-[12px] font-mono text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] resize-y"
                 />
@@ -891,7 +891,7 @@ function NextIntake({
                   onClick={() => { setShowBankField(false); setBank(""); }}
                   className="mt-2 text-[11.5px] text-[var(--color-text-muted)] hover:text-[var(--color-text-dim)] transition-colors"
                 >
-                  Hide — just use my stats
+                  Hide bank
                 </button>
               </label>
             </div>
@@ -902,7 +902,7 @@ function NextIntake({
               disabled={loading}
               className="text-[12.5px] text-[var(--color-text-dim)] hover:text-[var(--color-accent)] underline underline-offset-4 decoration-dotted transition-colors disabled:opacity-50"
             >
-              + Add your bank for sharper advice
+              + Add bank (optional)
             </button>
           )}
         </div>
@@ -1166,9 +1166,9 @@ function MakePlanSmarter({
     <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-4 sm:p-5">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden">
         <span>
-          <span className="block text-[13px] font-bold text-[var(--color-text)]">Make this smarter</span>
+          <span className="block text-[13px] font-bold text-[var(--color-text)]">Add context</span>
           <span className="mt-0.5 block text-[11.5px] font-medium text-[var(--color-text-muted)]">
-            Optional: add bank or RuneLite when gear, quests or Slayer matter.
+            Optional: bank or RuneLite can help when gear, quests or Slayer matter.
           </span>
         </span>
         <span className="shrink-0 rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
@@ -1194,7 +1194,7 @@ function MakePlanSmarter({
             label="RuneLite"
             value={pluginSyncState === "live" ? "Synced" : pluginSyncState ? "Refresh" : "Optional"}
             helper={pluginSyncState === "live"
-              ? "Quests, diaries, collection log and Slayer are sharper."
+              ? "Quests, diaries, collection log and Slayer are included."
               : "Adds finished quests, diaries, collection log and Slayer."}
             tone={pluginSyncState === "live" ? "good" : pluginSyncState ? "warn" : "muted"}
           />
@@ -1223,7 +1223,7 @@ function MakePlanSmarter({
               href={syncHref}
               className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
             >
-              Set up RuneLite
+              RuneLite later
               <Sparkles className="size-3.5" />
             </Link>
           )}
@@ -1420,7 +1420,7 @@ function NextBankContextStrip({
             href={toolHandoffUrl("/plugin", "next", activeRsn)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
           >
-            Check RuneLite sync
+            Check sync
             <Sparkles className="size-3.5" />
           </Link>
         </div>
@@ -1585,7 +1585,7 @@ function PluginSyncStrip({
               RuneLite sync not found for this run
             </div>
             <p className="mt-1 text-[12.5px] text-[var(--color-text-dim)] leading-relaxed">
-              You came from the plugin checker, but /next could not load Scapestack sync data for this RSN. Re-check the RSN spelling or sync again from RuneLite.
+              You came from the plugin checker, but /next did not find this RSN yet. Re-check the spelling or sync again from RuneLite.
             </p>
           </div>
         </div>
@@ -2044,24 +2044,24 @@ function RecommendationConfidenceLegend() {
     {
       confidence: "exact",
       label: "Synced",
-      helper: "RuneLite sync covers this quest, diary, collection log or Slayer state."
+      helper: "RuneLite confirms this progress."
     },
     {
       confidence: "likely",
       label: "Likely",
-      helper: "Uses your RSN, hiscores and saved bank where available."
+      helper: "Uses public stats and any saved bank."
     },
     {
       confidence: "guided",
-      label: "Guided",
-      helper: "Good default pick, but missing live account signals."
+      label: "Best guess",
+      helper: "Some finished progress may be unknown."
     }
   ];
 
   return (
     <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]/35 p-3">
       <div className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2">
-        Why this pick?
+        How sure is it?
       </div>
       <div className="space-y-2">
         {items.map((item) => (
@@ -2495,10 +2495,10 @@ function WhatToDo({
     }
   };
   const sessionCopyLabel = sessionCopyState === "copied"
-    ? "Session copied"
+    ? "Plan copied"
     : sessionCopyState === "error"
       ? "Try copy again"
-      : "Copy session plan";
+      : "Copy plan";
 
   return (
     <section>
@@ -2539,7 +2539,7 @@ function WhatToDo({
             <button
               type="button"
               onClick={copySessionPlan}
-              aria-label="Copy top Scapestack session plan"
+              aria-label="Copy top OSRS plan"
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-lg border bg-[var(--color-panel)]/65 px-3 py-2 text-[11.5px] font-semibold transition-colors",
                 sessionCopyState === "error"

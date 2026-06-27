@@ -39,7 +39,7 @@ describe("Scapestack branding", () => {
   it("positions Scapestack as a tactical OSRS decision engine", () => {
     expect(BRAND_TAGLINE).toBe("Know what to do next in OSRS");
     expect(BRAND_SECONDARY_TAGLINE).toBe("Type your RSN. Pick one route before you log in.");
-    expect(BRAND_DESCRIPTION).toContain("Plan tonight's OSRS route");
+    expect(BRAND_DESCRIPTION).toContain("Enter your OSRS name");
     expect(BRAND_POSITIONING.promise).toBe("From login indecision to one useful route.");
     expect(BRAND_POSITIONING.feeling).toContain("OSRS route board");
     expect(BRAND_POSITIONING.antiPattern).toContain("player-facing screens about choices");
@@ -56,8 +56,8 @@ describe("Scapestack branding", () => {
       "Unlocks",
       "Sync"
     ]);
-    expect(BRAND_UI_SURFACES.map((surface) => surface.primaryAction).join(" ")).toContain("Route task");
-    expect(BRAND_UI_SURFACES.map((surface) => surface.requiredFeeling).join(" ")).toContain("Boss");
+    expect(BRAND_UI_SURFACES.map((surface) => surface.primaryAction).join(" ")).toContain("Plan my next move");
+    expect(BRAND_UI_SURFACES.map((surface) => surface.requiredFeeling).join(" ")).toContain("Backups below");
     expect(BRAND_PLAYER_PROMPTS.map((prompt) => prompt.label)).toEqual([
       "I have 45 minutes",
       "I need GP",

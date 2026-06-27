@@ -8,12 +8,12 @@ describe("bank plugin onboarding", () => {
   it("sends normal bank users to the sync checker before account coverage is trusted", () => {
     expect(BANK_PLUGIN_ONBOARDING.actions).toEqual([
       {
-        label: "Check Scapestack Sync",
+        label: "Check sync",
         href: "/plugin?from=bank#verify-sync",
         tone: "primary"
       },
       {
-        label: "Use web recommendations",
+        label: "Use /next",
         href: "/next?from=bank&bank=none",
         tone: "secondary"
       }
@@ -26,18 +26,18 @@ describe("bank plugin onboarding", () => {
     expect(bankPluginOnboardingActions("review-blocked")).toEqual(BANK_PLUGIN_ONBOARDING.actions);
     expect(bankPluginOnboardingActions("merged")).toEqual([
       {
-        label: "Check RuneLite sync",
+        label: "Check sync",
         href: "/plugin?from=bank#verify-sync",
         tone: "primary"
       },
       {
-        label: "Preview /next readiness",
+        label: "Open /next",
         href: "/next?from=bank&bank=none",
         tone: "secondary"
       }
     ]);
     expect(bankPluginOnboardingActions("unknown")[1]).toEqual({
-      label: "Check Scapestack Sync",
+      label: "Check sync",
       href: "/plugin?from=bank#verify-sync",
       tone: "secondary"
     });
@@ -115,7 +115,7 @@ describe("bank plugin onboarding", () => {
     expect(source).not.toContain("Exact signals Scapestack Sync can unlock");
     expect(source).not.toContain("Exact signals unlocked");
     expect(source).toContain("Sync checker available");
-    expect(source).toContain("open /plugin and check Scapestack Sync");
+    expect(source).toContain("Check sync later");
     expect(source).toContain("Use the /plugin checker");
     expect(source).toContain("CopyCommand");
     expect(source).not.toContain("Open review checklist");

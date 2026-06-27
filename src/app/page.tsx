@@ -4,7 +4,6 @@ import { BuyMeCoffee } from "@/components/buy-me-coffee";
 import { HeroIntake } from "@/components/hero-intake";
 import { ItemSprite } from "@/components/item-sprite";
 import { ScapestackCommandSystem } from "@/components/scapestack-command-system";
-import { BRAND_SECONDARY_TAGLINE } from "@/lib/brand";
 import { HOME_PRODUCT_FLOW, type HomeFlowStep } from "@/lib/home-flow";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +26,7 @@ function FlowIcon({ accent }: { accent: HomeFlowStep["accent"] }) {
   return <Sparkles className="size-4" />;
 }
 
-const HERO_LOOP_STEPS = ["RSN", "Next route", "Sharper with bank or sync"] as const;
+const HERO_LOOP_STEPS = ["RSN", "Best move", "Backups"] as const;
 
 const HERO_PREVIEW_ITEMS = [
   { id: 28307, name: "Vardorvis chase" },
@@ -69,7 +68,7 @@ export default function HomePage() {
                 className="block text-[var(--color-text)]"
               />
               <RevealLine
-                text="Boss, Slayer, GP or unlocks."
+                text="One clear OSRS plan."
                 delay={350}
                 wordStaggerMs={80}
                 className="block text-gold-gradient"
@@ -87,8 +86,8 @@ export default function HomePage() {
                 clipPath: "inset(0 0 100% 0)"
               }}
             >
-              {BRAND_SECONDARY_TAGLINE} Boss KC, Slayer, quest, diary, GP, gear upgrade or
-              low-effort progress. Add bank or sync only when it changes the route.
+              Enter your OSRS name. Get one best move, why it matters, how long it takes
+              and what to do first. Add bank or RuneLite later.
             </p>
 
             <div
@@ -121,14 +120,13 @@ export default function HomePage() {
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div>
             <div className="eyebrow mb-2" style={{ color: "var(--color-accent)" }}>
-              Choose your next move
+              How it works
             </div>
             <h2 className="max-w-2xl text-[26px] font-bold leading-tight tracking-tight text-[var(--color-text)] sm:text-[34px]">
-              Start with an RSN. Add bank or sync only when it changes the route.
+              One plan first. More context later.
             </h2>
             <p className="mt-3 max-w-2xl text-[14px] leading-relaxed text-[var(--color-text-dim)]">
-              Scapestack should answer the same question every OSRS player hits at login:
-              what is worth doing now, with this account, this bank, this mood and this amount of time?
+              Start with public stats. Add bank or RuneLite only when gear, quests or Slayer would change the answer.
             </p>
           </div>
         </div>
@@ -238,7 +236,7 @@ function HeroProductPreview() {
                 Push Vardorvis to 50 KC
               </h2>
               <p className="mt-2 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                Stats and supplies line up; sync knows Desert Treasure II is already done.
+                A clean 50 KC test: learn the setup, bank loot, then decide whether to keep going.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-1.5 rounded-2xl border border-[var(--color-border)] bg-black/25 p-2">
@@ -246,7 +244,7 @@ function HeroProductPreview() {
                 <div
                   key={item.id}
                   className="grid size-11 place-items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/80"
-                  title={`${item.name} · item ID ${item.id}`}
+                  title={item.name}
                 >
                   <ItemSprite id={item.id} alt={item.name} className="scale-125" />
                 </div>
@@ -259,25 +257,25 @@ function HeroProductPreview() {
               href="/dps?boss=vardorvis"
               className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/55 px-2.5 py-2 text-center text-[11.5px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
             >
-              DPS route
+              Start
             </Link>
             <Link
-              href="https://oldschool.runescape.wiki/w/Special:Lookup?type=item&id=28307"
+              href="/dps?boss=vardorvis"
               className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/55 px-2.5 py-2 text-center text-[11.5px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
             >
-              Item ID 28307
+              Setup
             </Link>
             <Link
-              href="https://oldschool.runescape.wiki/w/Vardorvis"
+              href="/next?bank=none"
               className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/55 px-2.5 py-2 text-center text-[11.5px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
             >
-              Wiki
+              Backup
             </Link>
             <button
               type="button"
               className="rounded-lg border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-2.5 py-2 text-[11.5px] font-bold text-[var(--color-good)]"
             >
-              Mark done
+              Done
             </button>
           </div>
         </div>
@@ -319,7 +317,7 @@ function HeroProductPreview() {
               ))}
             </div>
             <p className="mt-3 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
-              Add only the context you care about. RSN is enough to start; bank and sync make the route sharper.
+              RSN is enough to start. Bank and RuneLite help only when they change the pick.
             </p>
           </div>
         </div>

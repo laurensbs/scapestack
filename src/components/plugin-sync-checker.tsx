@@ -266,7 +266,7 @@ export function PluginSyncChecker() {
         <button
           type="submit"
           disabled={pending || !normalized}
-          aria-label={normalized ? `Check RuneLite sync for ${normalized}` : "Enter an OSRS name before checking RuneLite sync"}
+          aria-label={normalized ? `Check sync for ${normalized}` : "Enter an OSRS name before checking sync"}
           aria-describedby={`${rsnHelpId} ${rsnStatusId}`}
           className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-accent)] px-4 py-3 text-[13px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-55"
         >

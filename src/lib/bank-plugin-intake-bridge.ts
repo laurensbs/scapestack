@@ -56,7 +56,7 @@ export function buildBankPluginIntakeBridge(rsn?: string | null): BankPluginInta
         primary: true
       },
       {
-        label: "Check RuneLite sync",
+        label: "Check sync",
         href: pluginHref,
         primary: false
       },

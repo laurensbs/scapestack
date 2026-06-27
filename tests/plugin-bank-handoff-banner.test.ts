@@ -18,8 +18,8 @@ describe("plugin bank handoff banner", () => {
   });
 
   it("does not claim exact /next before sync verification", () => {
-    expect(source).toContain("Sync can sharpen this bank plan");
-    expect(source).toContain("include quests, diaries, collection log and Slayer");
+    expect(source).toContain("Sync can help this plan");
+    expect(source).toContain("repeats quests, diaries, log items or Slayer");
     expect(source).toContain('data-testid="plugin-bank-sync-signals"');
     expect(source).toContain("{signal.detail}");
     expect(source).toContain("Added after sync check.");

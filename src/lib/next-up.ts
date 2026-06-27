@@ -1432,18 +1432,18 @@ function noHiscoresNudge(): Recommendation {
   return {
     id: "meta:add-rsn",
     kind: "goal",
-    title: "Add your OSRS name for sharper advice",
-    why: "We can only see your bank. Your Hiscores unlocks quest, diary, skill and drop-chance recs.",
+    title: "Add your OSRS name for a real plan",
+    why: "We can only see your bank. Your Hiscores add skills, combat, KC and quest gates.",
     payoff: "Free, no plugin, no account. Just your RSN.",
     score: 95,
     link: undefined,
     planSeed: {
       timebox: "2 min",
-      prep: "This is the highest-ROI next step: the bank is loaded, but stats unlock the real plan.",
+      prep: "The bank is loaded, but stats make the next move useful.",
       steps: [
         "Enter your OSRS name on /next and keep the current bank loaded.",
-        "Let Scapestack combine Hiscores with this bank for quest, diary, boss and drop-chance recs.",
-        "If you want finished quests, diary tiers, collection-log slots or Slayer tasks kept out of suggestions, run Scapestack Sync after that."
+        "Use the first plan it gives you, then add bank or RuneLite only if the pick looks off.",
+        "Run Scapestack Sync later if /next suggests quests, diary tiers, collection-log slots or Slayer tasks you already finished."
       ]
     }
   };

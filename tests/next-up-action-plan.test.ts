@@ -49,15 +49,15 @@ describe("next-up action plans", () => {
     });
 
     expect(text).toContain(result.headline!.title);
-    expect(text).toContain("Why:");
-    expect(text).toContain("Session:");
-    expect(text).toContain("Prep:");
+    expect(text).toContain("Why it matters:");
+    expect(text).toContain("Time:");
+    expect(text).toContain("Before you start:");
     expect(text).toMatch(/\n1\. /);
     expect(text).toContain("Open");
     expect(text).toContain("https://www.scapestack.org/");
     expect(text).toContain("rsn=Lynx+Titan");
     expect(text).toContain("from=next");
-    expect(text).toContain("Improve accuracy:");
+    expect(text).toContain("Make it sharper later:");
   });
 
   it("formats the top recommendations as one copyable session plan", async () => {
@@ -72,12 +72,12 @@ describe("next-up action plans", () => {
       hasBankContext: true
     });
 
-    expect(text).toContain("Scapestack session plan");
+    expect(text).toContain("OSRS plan");
     expect(text).toContain("1. ");
     expect(text).toContain("2. ");
     expect(text).toContain("Why:");
-    expect(text).toContain("Session:");
-    expect(text).toContain("First step:");
+    expect(text).toContain("Time:");
+    expect(text).toContain("Start:");
     expect(text).toContain("https://www.scapestack.org/");
     expect(text).toContain("rsn=Lynx+Titan");
   });
@@ -95,7 +95,7 @@ describe("next-up action plans", () => {
     expect(result.headline?.actionPlan?.caveat).toContain("Add your RSN");
     expect(result.headline?.actionPlan?.timebox).toBe("2 min");
     expect(result.headline?.actionPlan?.steps[0]).toContain("Enter your OSRS name");
-    expect(addRsnSteps).toContain("finished quests, diary tiers, collection-log slots or Slayer tasks");
+    expect(addRsnSteps).toContain("suggests quests, diary tiers, collection-log slots or Slayer tasks");
     expect(addRsnSteps).not.toContain("exact quest/diary");
     expect(recs.some((rec) => rec?.id === "quest:Cook's Assistant")).toBe(true);
     expect(romeo).toBeTruthy();
@@ -331,7 +331,7 @@ describe("next-up action plans", () => {
       rsn: "Lynx Titan",
       hasBankContext: false
     });
-    expect(text).toContain("Improve accuracy: Refresh sync");
+    expect(text).toContain("Make it sharper later: Refresh sync");
     expect(text).toContain("https://www.scapestack.org/plugin?rsn=Lynx+Titan&from=next&bank=none#verify-sync");
   });
 

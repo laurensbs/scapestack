@@ -6,26 +6,27 @@ const source = readFileSync(join(process.cwd(), "src/app/page.tsx"), "utf8");
 
 describe("homepage first-impression copy", () => {
   it("opens with the OSRS decision-engine loop instead of generic SaaS copy", () => {
-    expect(source).toContain("BRAND_SECONDARY_TAGLINE");
+    expect(source).not.toContain("BRAND_SECONDARY_TAGLINE");
     expect(source).toContain("What should I do next?");
-    expect(source).toContain("Boss, Slayer, GP or unlocks.");
-    expect(source).toContain('const HERO_LOOP_STEPS = ["RSN", "Next route", "Sharper with bank or sync"] as const;');
-    expect(source).toContain("Boss KC, Slayer, quest, diary, GP, gear upgrade");
-    expect(source).toContain("Add bank or sync only when it changes the route.");
+    expect(source).toContain("One clear OSRS plan.");
+    expect(source).toContain('const HERO_LOOP_STEPS = ["RSN", "Best move", "Backups"] as const;');
+    expect(source).toContain("Get one best move, why it matters, how long it takes");
+    expect(source).toContain("Add bank or RuneLite later.");
     expect(source).not.toContain("AI-powered");
     expect(source).not.toContain("generic SaaS");
     expect(source).not.toContain("bank standing");
   });
 
-  it("shows a live product preview with item IDs, Wiki and action affordances", () => {
+  it("shows a live product preview with simple action affordances", () => {
     expect(source).toContain("HeroProductPreview");
     expect(source).toContain('aria-label="Live Scapestack product preview"');
     expect(source).toContain("Push Vardorvis to 50 KC");
-    expect(source).toContain("DPS route");
-    expect(source).toContain("Item ID 28307");
-    expect(source).toContain("https://oldschool.runescape.wiki/w/Special:Lookup?type=item&id=28307");
-    expect(source).toContain("https://oldschool.runescape.wiki/w/Vardorvis");
-    expect(source).toContain("Mark done");
+    expect(source).toContain("Start");
+    expect(source).toContain("Setup");
+    expect(source).toContain("Backup");
+    expect(source).toContain("Done");
+    expect(source).not.toContain("Item ID 28307");
+    expect(source).not.toContain("https://oldschool.runescape.wiki/w/Special:Lookup?type=item&id=28307");
     expect(source).toContain("HERO_PREVIEW_ITEMS");
     expect(source).toContain("ItemSprite");
   });
@@ -48,9 +49,8 @@ describe("homepage first-impression copy", () => {
   });
 
   it("keeps player-facing sections free of privacy and backend status panels", () => {
-    expect(source).toContain("Choose your next move");
-    expect(source).toContain("what is worth doing now");
-    expect(source).toContain("this mood and this amount of time");
+    expect(source).toContain("How it works");
+    expect(source).toContain("One plan first. More context later.");
     expect(source).not.toContain("HERO_NEVER_READS");
     expect(source).not.toContain("RuneLite sync is opt-in account-state only");
     expect(source).not.toContain("Bank paste stays browser-session scoped");

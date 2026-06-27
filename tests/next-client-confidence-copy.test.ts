@@ -15,12 +15,12 @@ describe("/next confidence UI copy", () => {
 
   it("explains exact, likely and guided recommendation confidence", () => {
     expect(source).toContain("function RecommendationConfidenceLegend");
-    expect(source).toContain("Why this pick?");
+    expect(source).toContain("How sure is it?");
     expect(source).toContain('label: "Synced"');
-    expect(source).toContain("RuneLite sync covers this quest, diary, collection log or Slayer state.");
+    expect(source).toContain("RuneLite confirms this progress.");
     expect(source).not.toContain("Verified RuneLite payload");
-    expect(source).toContain("Uses your RSN, hiscores and saved bank where available.");
-    expect(source).toContain("Good default pick, but missing live account signals.");
+    expect(source).toContain("Uses public stats and any saved bank.");
+    expect(source).toContain("Some finished progress may be unknown.");
   });
 
   it("makes compact recommendation rows visibly and accessibly clickable", () => {
@@ -55,7 +55,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function MakePlanSmarter");
     expect(source).toContain("Change name or bank");
     expect(source).toContain("Add bank");
-    expect(source).toContain("Set up RuneLite");
+    expect(source).toContain("RuneLite later");
     expect(source).not.toContain("missingDataActionForRecommendation(rec, actionContext)");
     expect(source).not.toContain("function RecommendationDataActionCallout");
     expect(source).not.toContain("Sharpen this pick:");
@@ -109,11 +109,11 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function MakePlanSmarter");
     expect(source).toContain("function EvidenceLedger");
     expect(source).toContain('data-testid="next-evidence-ledger"');
-    expect(source).toContain("Make this smarter");
-    expect(source).toContain("Optional: add bank or RuneLite when gear, quests or Slayer matter.");
+    expect(source).toContain("Add context");
+    expect(source).toContain("Optional: bank or RuneLite can help when gear, quests or Slayer matter.");
     expect(source).toContain("Plan inputs");
     expect(source).toContain("Add bank");
-    expect(source).toContain("Set up RuneLite");
+    expect(source).toContain("RuneLite later");
     expect(source).not.toContain("Used for this route");
     expect(source).toContain('label: "Hiscores"');
     expect(source).toContain('label: "Bank"');
@@ -166,7 +166,7 @@ describe("/next confidence UI copy", () => {
   });
 
   it("does not call unverified /next plugin handoff exact sync", () => {
-    expect(source).toContain("Check RuneLite sync");
+    expect(source).toContain("Check sync");
     expect(source).not.toContain("Add exact sync");
   });
 
@@ -219,9 +219,9 @@ describe("/next confidence UI copy", () => {
 
   it("copies recommendation plans with route context", () => {
     expect(source).toContain("formatRecommendationSessionPlan(visibleRecs, actionContext)");
-    expect(source).toContain('aria-label="Copy top Scapestack session plan"');
-    expect(source).toContain("Copy session plan");
-    expect(source).toContain("Session copied");
+    expect(source).toContain('aria-label="Copy top OSRS plan"');
+    expect(source).toContain("Copy plan");
+    expect(source).toContain("Plan copied");
     expect(source).toContain('useState<"idle" | "copied" | "error">("idle")');
     expect(source).toContain("Try copy again");
     expect(source).not.toContain("formatRecommendationActionPlan(rec, actionContext)");
@@ -259,8 +259,8 @@ describe("/next confidence UI copy", () => {
   it("explains why the /next submit CTA is disabled", () => {
     expect(source).toContain('aria-describedby="next-show-me-disabled-help"');
     expect(source).toContain('id="next-show-me-disabled-help"');
-    expect(source).toContain("Type an OSRS name, paste a bank, or start from the Bank Organizer to unlock Show me.");
-    expect(source).toContain("bank-only planning is available");
+    expect(source).toContain("Enter an OSRS name to get one clear next move.");
+    expect(source).toContain("bank-only plan");
   });
 
   it("shows when bank context and RuneLite sync are fused", () => {

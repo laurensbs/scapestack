@@ -7,7 +7,7 @@ const source = readFileSync(join(process.cwd(), "src/components/path-overview.ts
 describe("path overview sync copy", () => {
   it("uses status-first plugin copy when coverage is estimated", () => {
     expect(source).toContain("Estimated · uses skill/QP heuristics");
-    expect(source).toContain("Want synced progress? Check RuneLite sync before setup");
+    expect(source).toContain("Want synced progress? Check sync before setup");
     expect(source).toContain('pluginVerifyUrlForSyncedRsn(meta?.displayName ?? "", "next")');
   });
 

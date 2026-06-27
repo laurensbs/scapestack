@@ -171,7 +171,7 @@ function statusCopyForPluginHub(
   if (readinessState === "review-blocked") {
     return {
       title: "Sync checker available",
-      body: "Use bank paste and /next now. When you want private account progress, open /plugin and check Scapestack Sync for the same RSN.",
+      body: "Use bank paste and /next now. Check sync later when finished progress matters.",
       className: "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
     };
   }
@@ -187,7 +187,7 @@ function statusCopyForPluginHub(
   if (readinessState === "closed") {
     return {
       title: "Sync check optional",
-      body: "Bank paste, Hiscores and public trackers still work. Check Scapestack Sync from /plugin when RuneLite has sent account progress for this RSN.",
+      body: "Bank paste, Hiscores and public trackers still work. Check sync later when RuneLite has sent progress for this RSN.",
       className: "border-[var(--color-danger)]/25 bg-[var(--color-danger)]/10 text-[var(--color-danger)]"
     };
   }

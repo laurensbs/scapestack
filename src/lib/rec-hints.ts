@@ -19,58 +19,58 @@ export function defaultActionHints(kind: RecKind): ActionHints {
   switch (kind) {
     case "goal":
       return {
-        needs: ["Open Goal Tracker", "Compare with your bank"],
-        details: "Goal sets surface what you're closest to. Tap through to /goals for the full checklist + sprite grid."
+        needs: ["Open Goals", "Check the missing piece"],
+        details: "Good when you want a visible unlock. Start with the closest missing item, tier or requirement."
       };
     case "quest":
       return {
-        needs: ["Check quest requirements on the Wiki", "Bring teleports + grim food"],
-        details: "Quests gate a lot of late-game unlocks (DT2, Sote, etc.). The Quest Helper plugin walks the steps."
+        needs: ["Check requirements", "Bring teleports and food"],
+        details: "Quests unlock travel, bosses, items and better training. If a step is confusing, use Quest Helper."
       };
     case "diary":
       return {
-        needs: ["Finish the tasks in your tier", "Diary cape for max"],
-        details: "Diaries cascade: Easy → Medium → Hard → Elite. Pick the tier you're closest to first — instant XP lamp + region unlocks."
+        needs: ["Check the tier", "Bring teleports"],
+        details: "Diaries give permanent perks. Do the lowest unfinished tier first, then move up."
       };
     case "boss":
       return {
-        needs: ["Check your gear in /dps", "Bring restore + brews"],
-        details: "Combat bosses reward the right style + gear. /dps picks the optimal setup from your bank per boss."
+        needs: ["Check your setup", "Bring food and prayer"],
+        details: "Good when you want PvM practice or KC. Try one short trip before committing."
       };
     case "kc":
       return {
-        needs: ["Keep grinding"],
-        details: "Drop chance ratchets up with every kill — no reset on a dry streak. The curve in the /dps modal shows expected KC remaining."
+        needs: ["Do a short trip", "Bank loot after the target"],
+        details: "A 25-50 KC goal is a clean test. Stop if the setup feels bad."
       };
     case "minigame":
       return {
-        needs: ["Check entry requirements", "Pull up the rewards list on the Wiki"],
-        details: "Minigames pay off for specific rewards (void, fighter torso). Wiki has a rewards-page per minigame."
+        needs: ["Check entry", "Know the reward"],
+        details: "Best when you want one specific reward, like Void or Fighter torso."
       };
     case "money":
       return {
         needs: ["Check GE prices before you start", "Stock up on supplies"],
-        details: "GP methods scale with level + investment. Short trips slot into any session; long grinds want commitment."
+        details: "Good when you need cash now. Do a short run first and stop if prices or supplies look bad."
       };
     case "slayer":
       return {
-        needs: ["RuneLite plugin sync", "Current Slayer task"],
-        details: "Slayer advice becomes strongest when Scapestack sees your live task, streak, points and block-list from the RuneLite plugin."
+        needs: ["Check current task", "Bring the right style"],
+        details: "Slayer is best when the task is clear: kill, skip, extend, burst or cannon."
       };
     case "skill":
       return {
-        needs: ["Pick a method", "Stock supplies"],
-        details: "For 99: choose between AFK (Wintertodt-style) vs intensive (3-tick / tick-manipulation). The Time-to-max card shows where your grind sits."
+        needs: ["Pick AFK or focused", "Stock supplies"],
+        details: "Choose the method that matches your attention. AFK is fine when you just want progress."
       };
     case "bank":
       return {
-        needs: ["Open Bank Organizer", "Paste your bank tags"],
-        details: "Bank hygiene: drop junk, regroup tabs. /bank does it for you and hands back a clean copy-paste."
+        needs: ["Open Bank", "Paste bank"],
+        details: "Good when your setup feels messy. Clean tabs make the next trip faster."
       };
     case "milestone":
       return {
-        needs: ["Push for it"],
-        details: "Account-wide milestones (quest cape, max cape) are long-term. Path-to-Max on this page shows what's blocking you most."
+        needs: ["Break it into one step"],
+        details: "Big goals feel better as one next task. Do the nearest blocker first."
       };
   }
 }

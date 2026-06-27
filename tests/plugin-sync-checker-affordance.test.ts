@@ -25,7 +25,7 @@ describe("plugin sync checker affordance", () => {
     expect(source).toContain("Checking RuneLite sync for");
     expect(source).toContain("Ready to check RuneLite sync for");
     expect(source).toContain("Enter an OSRS name to check RuneLite sync.");
-    expect(source).toContain("aria-label={normalized ? `Check RuneLite sync for ${normalized}` : \"Enter an OSRS name before checking RuneLite sync\"}");
+    expect(source).toContain("aria-label={normalized ? `Check sync for ${normalized}` : \"Enter an OSRS name before checking sync\"}");
     expect(source).toContain("aria-label={`Re-check RuneLite sync for ${state.rsn} after logging in`}");
     expect(source).toContain('aria-label="Re-check RuneLite sync before opening /next"');
   });

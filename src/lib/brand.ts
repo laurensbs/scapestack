@@ -10,7 +10,7 @@ export const BRAND_BACKGROUND_COLOR = "#07090C";
 export const BRAND_IMAGE_FONT_FAMILY = "Geist, Arial, sans-serif";
 
 export const BRAND_DESCRIPTION =
-  "Plan tonight's OSRS route from your RSN, bank, goals, Slayer and optional RuneLite sync.";
+  "Enter your OSRS name and get one useful next move, two backups and optional bank or RuneLite context.";
 
 export const BRAND_KEYWORDS = [
   "OSRS",
@@ -35,7 +35,7 @@ export const BRAND_SHORTCUTS = [
   {
     name: "Next Up",
     short_name: "Next",
-    description: "Plan the next account action from bank, hiscores and sync data.",
+    description: "Enter an OSRS name and get one clear next move.",
     url: "/next",
     icon: "/icon?tool=next"
   },
@@ -77,7 +77,7 @@ export const BRAND_POSITIONING = {
 export const BRAND_VOICE_RULES = [
   "Use practical OSRS player language.",
   "Prefer bank, gear, KC, trip, unlock, Slayer, diary, quest and setup over vague product words.",
-  "Every recommendation explains what data it used and what the player can do next.",
+  "Every recommendation explains what to do, why it matters, what to check and when to skip.",
   "Clickable things must look clickable; informational chips must not look like buttons.",
   "Never imply RuneLite sync reads bank, chat, clicks, screenshots, passwords or login data."
 ] as const;
@@ -86,8 +86,8 @@ export const BRAND_UI_SURFACES = [
   {
     page: "Tonight",
     role: "What is worth doing tonight?",
-    primaryAction: "Plan next action",
-    requiredFeeling: "One ranked route: Boss KC, Slayer, quest, diary, GP, upgrade or chill progress."
+    primaryAction: "Plan my next move",
+    requiredFeeling: "One useful move first. Backups below. Context optional."
   },
   {
     page: "Bank",
@@ -99,7 +99,7 @@ export const BRAND_UI_SURFACES = [
     page: "Boss",
     role: "What boss makes sense now?",
     primaryAction: "Find a boss route",
-    requiredFeeling: "Realistic KC targets, gear checks, Wiki links and the missing item that matters."
+    requiredFeeling: "Realistic KC targets, setup checks and the first trip to try."
   },
   {
     page: "Slayer",
@@ -167,14 +167,14 @@ export const BRAND_PLAYER_PROMPTS = [
 export const BRAND_STATE_SYSTEM = [
   {
     state: "Empty",
-    label: "No bank yet",
-    copy: "Paste Bank Memory, Bank Tags or enter an RSN. We can still plan from public Hiscores, but gear advice improves with bank context.",
-    action: "Paste bank"
+    label: "Add a name",
+    copy: "Enter an OSRS name first. Add bank only when gear, supplies or GP matter.",
+    action: "Plan my next move"
   },
   {
     state: "Loading",
-    label: "Checking account signals",
-    copy: "Reading Hiscores, parsing bank items, checking saved handoffs and preparing the next-action list.",
+    label: "Building your plan",
+    copy: "Checking public stats and preparing one clear next move.",
     action: "Show progress"
   },
   {

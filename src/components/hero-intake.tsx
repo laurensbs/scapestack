@@ -85,9 +85,9 @@ export function HeroIntake() {
           aria-label={
             hasBankPaste
               ? rsn.trim()
-                ? "Open /next planner with RSN and bank paste"
-                : "Open /next planner with bank paste"
-              : "Open /next planner with RSN and Hiscores only"
+                ? "Plan my next move with OSRS name and bank"
+                : "Plan my next move with this bank"
+              : "Plan my next move with OSRS name"
           }
           aria-describedby="hero-plan-disabled-help"
           disabled={!canSubmit}
@@ -101,7 +101,7 @@ export function HeroIntake() {
             "sm:h-12 sm:w-auto sm:min-w-[174px]"
           )}
         >
-          <span>Plan next action</span>
+          <span>Plan my next move</span>
           <ArrowRight className="size-4" />
         </button>
       </div>
@@ -112,11 +112,11 @@ export function HeroIntake() {
       >
         {rsn.trim()
           ? hasBankPaste
-            ? "Ready: we’ll rank a route from your stats, gear and supplies."
-            : "Ready: we’ll rank a route from your public stats."
+            ? "Ready: stats and bank can shape the plan."
+            : "Ready: public stats are enough to start."
           : hasBankPaste
-            ? "Ready: we’ll build around this bank. Add RSN for stats and KC."
-            : "Type an OSRS name to get a route. Paste bank only when gear matters."}
+            ? "Ready: bank-only plan. Add a name for stats and KC."
+            : "Enter an OSRS name to get one clear next move."}
       </p>
 
       {/* Secundaire acties — één rustige regel, link-stijl, gescheiden
@@ -132,14 +132,14 @@ export function HeroIntake() {
               aria-label="Show optional bank paste field"
               className="hover:text-[var(--color-accent)] underline underline-offset-4 decoration-dotted transition-colors"
             >
-              Paste bank
+              Add bank
             </button>
             <span aria-hidden="true" className="text-[var(--color-border-strong)]">·</span>
             <Link
               href="/plugin#verify-sync"
               className="hover:text-[var(--color-accent)] underline underline-offset-4 decoration-dotted transition-colors"
             >
-              Set up RuneLite sync
+              RuneLite later
             </Link>
           </>
         )}
@@ -158,14 +158,14 @@ export function HeroIntake() {
               id={`${HERO_BANK_TEXTAREA_ID}-label`}
               className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]"
             >
-              Bank export <span className="normal-case tracking-normal">(optional — better gear and supply calls)</span>
+              Bank paste <span className="normal-case tracking-normal">(optional)</span>
             </span>
             <textarea
               id={HERO_BANK_TEXTAREA_ID}
               name="bank"
               value={bank}
               onChange={(e) => setBank(e.target.value)}
-              placeholder="Paste your RuneLite Bank Memory export here…"
+              placeholder="Paste Bank Memory or Bank Tags here…"
               rows={4}
               spellCheck={false}
               aria-labelledby={`${HERO_BANK_TEXTAREA_ID}-label`}
@@ -179,17 +179,17 @@ export function HeroIntake() {
               className="mt-1 block text-[11px] leading-relaxed text-[var(--color-text-muted)]"
             >
               {bank.trim()
-                ? "Bank detected. /next will use it for gear and supply calls."
-                : "Optional: paste Bank Memory when you want gear-aware advice."}
+                ? "Bank added. Gear and supplies can shape the plan."
+                : "Optional: add bank when gear or GP matters."}
             </span>
             <button
               type="button"
               onClick={() => { setShowBank(false); setBank(""); }}
               aria-controls={HERO_BANK_PANEL_ID}
-              aria-label="Hide bank paste and plan from Hiscores only"
+              aria-label="Hide bank paste and plan from public stats only"
               className="mt-1.5 text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-text-dim)] transition-colors"
             >
-              Hide — just use my stats
+              Hide bank
             </button>
           </label>
         </div>

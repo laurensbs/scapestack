@@ -22,7 +22,7 @@ export interface HomePluginReadinessPill {
 const RSN_FLOW_STEP: HomeFlowStep = {
   label: "01",
   title: "Start with your RSN",
-  body: "Hiscores gives combat, skills, KC and broad gates. Enough to pick the first useful route for tonight.",
+  body: "Public stats are enough for a first plan.",
   href: "/next",
   cta: "Start with RSN",
   accent: "next"
@@ -31,7 +31,7 @@ const RSN_FLOW_STEP: HomeFlowStep = {
 const BANK_FLOW_STEP: HomeFlowStep = {
   label: "02",
   title: "Add bank when gear matters",
-  body: "Paste Bank Memory or Bank Tags when you want setups, supplies and upgrades based on gear you already own.",
+  body: "Use it when setups, supplies or GP change the answer.",
   href: "/bank",
   cta: "Add bank",
   accent: "bank"
@@ -42,7 +42,7 @@ function syncFlowStep(state: PluginHubReviewReadinessState): HomeFlowStep {
     return {
       label: "03",
       title: "Sync finished progress",
-      body: "Use Scapestack Sync when you want completed quests, diaries, collection log and Slayer kept out of bad suggestions.",
+      body: "Use it when completed quests, diaries, log items or Slayer matter.",
       href: "/plugin#verify-sync",
       cta: "Use sync",
       accent: "sync"
@@ -52,7 +52,7 @@ function syncFlowStep(state: PluginHubReviewReadinessState): HomeFlowStep {
   return {
     label: "03",
     title: "Sync finished progress",
-    body: "Enter the same OSRS name on the sync page when you want Scapestack to avoid quests, diaries, CL and Slayer you already handled.",
+    body: "Use it when /next repeats things you already finished.",
     href: "/plugin#verify-sync",
     cta: "Use sync",
     accent: "sync"
@@ -89,8 +89,8 @@ export function homePluginReadinessPill(readiness: PluginHubReviewReadiness): Ho
   return {
     label: playerInstallReady ? "Sync ready" : "Check sync",
     detail: playerInstallReady
-      ? "Use the same RSN so /next can avoid quests, diaries, CL and Slayer you already finished."
-      : "Enter your OSRS name on /plugin when you want Scapestack to stop repeating finished progress.",
+      ? "Use the same RSN so /next skips finished progress."
+      : "Check your OSRS name when /next repeats finished progress.",
     tone: readiness.tone,
     href: "/plugin#verify-sync",
     playerInstallReady

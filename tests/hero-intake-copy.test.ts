@@ -13,20 +13,20 @@ describe("hero intake copy and routing", () => {
   });
 
   it("uses the three homepage CTAs requested by the product prompt", () => {
-    expect(source).toContain("Plan next action");
-    expect(source).toContain("Paste bank");
-    expect(source).toContain("Set up RuneLite sync");
+    expect(source).toContain("Plan my next move");
+    expect(source).toContain("Add bank");
+    expect(source).toContain("RuneLite later");
     expect(source).toContain('href="/plugin#verify-sync"');
-    expect(source).toContain("Open /next planner with bank paste");
-    expect(source).toContain("better gear and supply calls");
+    expect(source).toContain("Plan my next move with this bank");
+    expect(source).toContain("Bank paste");
   });
 
   it("explains why the hero planner CTA is disabled", () => {
     expect(source).toContain('aria-describedby="hero-plan-disabled-help"');
     expect(source).toContain('id="hero-plan-disabled-help"');
-    expect(source).toContain("Type an OSRS name to get a route. Paste bank only when gear matters.");
-    expect(source).toContain("Add RSN for stats and KC.");
-    expect(source).toContain("rank a route from your public stats");
+    expect(source).toContain("Enter an OSRS name to get one clear next move.");
+    expect(source).toContain("Add a name for stats and KC.");
+    expect(source).toContain("public stats are enough to start");
   });
 
   it("labels the homepage RSN input as a real OSRS-name field", () => {
@@ -50,8 +50,8 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain('name="bank"');
     expect(source).toContain("aria-labelledby={`${HERO_BANK_TEXTAREA_ID}-label`}");
     expect(source).toContain("aria-describedby={HERO_BANK_HELP_ID}");
-    expect(source).toContain("Bank detected. /next will use it for gear and supply calls.");
-    expect(source).toContain("Optional: paste Bank Memory when you want gear-aware advice.");
-    expect(source).toContain('aria-label="Hide bank paste and plan from Hiscores only"');
+    expect(source).toContain("Bank added. Gear and supplies can shape the plan.");
+    expect(source).toContain("Optional: add bank when gear or GP matters.");
+    expect(source).toContain('aria-label="Hide bank paste and plan from public stats only"');
   });
 });

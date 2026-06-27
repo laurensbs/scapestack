@@ -55,10 +55,10 @@ export function PluginBankHandoffBanner() {
               Bank context carried over
             </div>
             <h2 className="mt-1 text-[17px] font-bold tracking-tight text-[var(--color-text)]">
-              Sync can sharpen this bank plan
+              Sync can help this plan
             </h2>
             <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-dim)]">
-              {summary.label} is still available in this session. Check RuneLite sync first; /next can then include quests, diaries, collection log and Slayer with this bank.
+              {summary.label} is still available in this session. Check sync if /next repeats quests, diaries, log items or Slayer you already finished.
             </p>
             <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-[var(--color-text-muted)]">
               Browser-only handoff; the plugin never receives your bank, inventory, equipment, screenshots, clicks or account login.

@@ -3,7 +3,7 @@ import { NextClient } from "./next-client";
 
 export const metadata = {
   title: "What should I do next in OSRS?",
-  description: "Enter your OSRS name and get one clear next move, two backups, and optional bank or RuneLite context when you want sharper advice."
+  description: "Enter your OSRS name and get one clear next move, two backups, and optional bank or RuneLite context."
 };
 
 type SearchParams = Record<string, string | string[] | undefined>;
