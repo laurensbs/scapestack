@@ -98,7 +98,7 @@ export default async function HomePage() {
               - Intake: scale-in + fade
               Alle ease cubic-bezier(0.22,1,0.36,1) — Apple's "ease-out
               expressive" curve. */}
-          <div className="space-y-10">
+          <div className="space-y-8">
             <h1 className="font-bold leading-[0.95] tracking-[-0.025em] text-[clamp(44px,8vw,88px)]">
               <RevealLine
                 text={BRAND_TAGLINE}
@@ -130,25 +130,7 @@ export default async function HomePage() {
             </p>
 
             <div
-              className="grid gap-2 sm:grid-cols-3"
-              aria-label="Scapestack readiness rail"
-              style={{ animation: "hero-fade 0.7s cubic-bezier(0.22,1,0.36,1) 0.95s both" }}
-            >
-              {HERO_READINESS_SIGNALS.map((signal) => (
-                <div
-                  key={signal.label}
-                  className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-3 py-2 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]"
-                >
-                  <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">
-                    {signal.label}
-                  </span>
-                  {signal.body}
-                </div>
-              ))}
-            </div>
-
-            <div
-              style={{ animation: "hero-scale-in 0.9s cubic-bezier(0.22,1,0.36,1) 1.05s both" }}
+              style={{ animation: "hero-scale-in 0.9s cubic-bezier(0.22,1,0.36,1) 0.95s both" }}
             >
               <HeroIntake />
             </div>

@@ -501,11 +501,19 @@ function printReleasePlan(version) {
   console.log("Release plan:");
   if (releaseImpactChanges.length > 0) {
     console.log(`Local release-impact changes: ${releaseImpactChanges.length} path${releaseImpactChanges.length === 1 ? "" : "s"} need extraction before Plugin Hub sees them.`);
-    console.log("Release-impact groups:");
+  } else {
+    console.log("Local release-impact changes: none detected.");
+  }
+  console.log("Release-impact groups:");
+  if (releaseImpactChanges.length > 0) {
     for (const group of groupReleaseImpactChanges(releaseImpactChanges)) {
       console.log(`- ${group.label}: ${group.changes.length}`);
     }
-    console.log("First changed paths:");
+  } else {
+    console.log("- none");
+  }
+  console.log("First changed paths:");
+  if (releaseImpactChanges.length > 0) {
     for (const change of releaseImpactChanges.slice(0, 12)) {
       console.log(`- ${change.status} ${change.path}`);
     }
@@ -513,7 +521,7 @@ function printReleasePlan(version) {
       console.log(`- …and ${releaseImpactChanges.length - 12} more`);
     }
   } else {
-    console.log("Local release-impact changes: none detected.");
+    console.log("- none");
   }
   console.log(standaloneStatus.summary);
   if (standaloneStatus.dirty) {

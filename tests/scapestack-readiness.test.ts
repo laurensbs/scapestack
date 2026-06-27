@@ -22,7 +22,7 @@ describe("Scapestack readiness rail", () => {
     expect(readiness.signals.map((signal) => [signal.id, signal.sourceLabel])).toEqual([
       ["bank", "No bank source attached"],
       ["rsn", "Official OSRS Hiscores"],
-      ["sync", "Scapestack Sync setup"]
+      ["sync", "Optional account sync"]
     ]);
     expect(readiness.signals.find((signal) => signal.id === "bank")?.action).toEqual({
       label: "Paste bank",
@@ -49,9 +49,9 @@ describe("Scapestack readiness rail", () => {
       value: PUBLIC_SYNC_URL
     });
     const syncSignal = readiness.signals.find((signal) => signal.id === "sync");
-    expect(syncSignal?.detail).toContain("Open the sync checker");
-    expect(syncSignal?.detail).toContain(".org endpoint");
-    expect(syncSignal?.notice).toContain("sync becomes trusted only after the checker finds this RSN");
+    expect(syncSignal?.detail).toContain("Use /next now");
+    expect(syncSignal?.detail).toContain("check Scapestack Sync");
+    expect(syncSignal?.notice).toBeUndefined();
     expect(syncSignal?.steps).toEqual([
       expect.objectContaining({
         label: "Open RuneLite",
@@ -66,11 +66,11 @@ describe("Scapestack readiness rail", () => {
         body: expect.stringContaining("same OSRS name")
       })
     ]);
-    expect(readiness.body).toContain("verified RuneLite sync labels quest, diary, collection-log and Slayer coverage");
+    expect(readiness.body).toContain("RuneLite sync adds verified quest, diary, collection-log and Slayer coverage");
     expect(readiness.body).not.toContain("gear now; RuneLite sync makes");
   });
 
-  it("switches the sync setup copy once Plugin Hub is merged", () => {
+  it("switches the sync setup copy once sync can be verified", () => {
     const readiness = buildScapestackReadiness({
       surface: "bank",
       hasBankContext: true,
@@ -80,10 +80,10 @@ describe("Scapestack readiness rail", () => {
     });
     const syncSignal = readiness.signals.find((signal) => signal.id === "sync");
 
-    expect(syncSignal?.detail).toContain("Enable Scapestack Sync in RuneLite");
-    expect(syncSignal?.detail).toContain("verify a payload before /next trusts account coverage labels");
+    expect(syncSignal?.detail).toContain("Check the same RSN on /plugin");
+    expect(syncSignal?.detail).toContain("/next can use verified account coverage");
     expect(syncSignal?.detail).not.toContain("/next stops guessing");
-    expect(syncSignal?.sourceLabel).toBe("Scapestack Sync ready");
+    expect(syncSignal?.sourceLabel).toBe("Ready to verify");
     expect(syncSignal?.notice).toBe("RuneLite sync can be verified from the plugin page.");
     expect(syncSignal?.steps?.[0]).toEqual({
       label: "Open RuneLite",
@@ -128,9 +128,9 @@ describe("Scapestack readiness rail", () => {
       href: "/plugin?rsn=Lynx+Titan&from=next#verify-sync"
     });
     expect(syncSignal).toMatchObject({
-      sourceLabel: "Scapestack Sync setup",
-      detail: expect.stringContaining("Open the sync checker"),
-      notice: "Scapestack can still plan with bank and Hiscores; sync becomes trusted only after the checker finds this RSN.",
+      sourceLabel: "Optional account sync",
+      detail: expect.stringContaining("Use /next now"),
+      notice: undefined,
       action: {
         label: "Open sync checker",
         href: "/plugin?rsn=Lynx+Titan&from=next#verify-sync"
@@ -167,8 +167,8 @@ describe("Scapestack readiness rail", () => {
       label: "Verify RuneLite sync",
       href: "/plugin?rsn=Lynx+Titan&from=goals#verify-sync"
     });
-    expect(closed.signals.find((signal) => signal.id === "sync")?.sourceLabel).toBe("Scapestack Sync setup");
-    expect(unknown.signals.find((signal) => signal.id === "sync")?.sourceLabel).toBe("Scapestack Sync setup");
+    expect(closed.signals.find((signal) => signal.id === "sync")?.sourceLabel).toBe("Optional account sync");
+    expect(unknown.signals.find((signal) => signal.id === "sync")?.sourceLabel).toBe("Optional account sync");
     expect(closed.signals.find((signal) => signal.id === "sync")?.copy).toEqual({
       label: "Copy sync URL",
       value: PUBLIC_SYNC_URL
@@ -224,7 +224,7 @@ describe("Scapestack readiness rail", () => {
 
     expect(readiness.primaryAction.label).toBe("Verify RuneLite sync");
     expect(readiness.primaryAction.href).toBe("/plugin?rsn=Mole+Slapper&from=bank#verify-sync");
-    expect(readiness.signals.find((signal) => signal.id === "sync")?.detail).toContain("Open the sync checker");
+    expect(readiness.signals.find((signal) => signal.id === "sync")?.detail).toContain("Use /next now");
   });
 
   it("routes verified-sync players back into /next", () => {
@@ -303,7 +303,7 @@ describe("Scapestack readiness rail", () => {
     });
 
     expect(readiness.title).toBe("Bank Organizer has 2/3 signals connected");
-    expect(readiness.body).toContain("2/3 signals are connected, 1/3 are verified");
+    expect(readiness.body).toContain("2/3 signals are connected. Bank paste and Hiscores are enough to plan now");
     expect(readiness.title).not.toContain("using");
   });
 
@@ -330,22 +330,21 @@ describe("Scapestack readiness rail", () => {
     );
 
     expect(source).toContain("signal.action");
-    expect(source).toContain("signal.copy");
-    expect(source).toContain("signal.steps");
-    expect(source).toContain("signal.notice");
-    expect(source).toContain("copySyncValue");
-    expect(source).toContain("Copied sync URL.");
-    expect(source).toContain("Clipboard failed — select the sync URL and copy it manually.");
-    expect(source).not.toContain('setCopyState((current) => current === "error" ? "idle" : current), 2600');
-    expect(source).toContain('fetch("/api/plugin-hub/status")');
-    expect(source).toContain("scapestackPluginHubStateFromStatus(status)");
+    expect(source).not.toContain("signal.copy");
+    expect(source).not.toContain("signal.steps");
+    expect(source).not.toContain("signal.notice");
+    expect(source).not.toContain("copySyncValue");
+    expect(source).not.toContain("Copied sync URL.");
+    expect(source).not.toContain("Clipboard failed — select the sync URL and copy it manually.");
+    expect(source).not.toContain('fetch("/api/plugin-hub/status")');
+    expect(source).not.toContain("scapestackPluginHubStateFromStatus(status)");
     expect(source).toContain("setRsnDraft");
     expect(source).toContain("OSRS name for Scapestack readiness");
     expect(source).toContain("signal.sourceLabel");
-    expect(source).toContain("signal.adds.map");
-    expect(source).toContain("Adds {item}");
-    expect(source).toContain("signal.boundary");
-    expect(source).toContain("Source:");
+    expect(source).not.toContain("signal.adds.map");
+    expect(source).not.toContain("Adds {item}");
+    expect(source).not.toContain("signal.boundary");
+    expect(source).not.toContain("Source:");
     expect(source).toContain("{signal.action.label}");
     expect(source).not.toContain('signal.status === "missing" ? "Fix" : "Open"');
     expect(source).not.toContain("Fix:");

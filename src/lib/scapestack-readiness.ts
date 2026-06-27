@@ -94,8 +94,8 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
   const syncSourceLabel = (() => {
     if (hasExactPluginSync) return "Verified RuneLite payload";
     if (hasPluginSync) return "RuneLite payload needs refresh";
-    if (pluginHubState === "merged") return "Scapestack Sync ready";
-    return "Scapestack Sync setup";
+    if (pluginHubState === "merged") return "Ready to verify";
+    return "Optional account sync";
   })();
   const syncDetail = (() => {
     if (hasExactPluginSync) {
@@ -108,14 +108,14 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
       return "Sync payload found, but refresh RuneLite before trusting account coverage labels.";
     }
     if (pluginHubState === "merged") {
-      return "Enable Scapestack Sync in RuneLite, confirm the .org sync URL, then verify a payload before /next trusts account coverage labels.";
+      return "Check the same RSN on /plugin after RuneLite syncs, then /next can use verified account coverage.";
     }
-    return "Open the sync checker, confirm RuneLite is posting to the .org endpoint, then verify the same RSN before trusting account coverage labels.";
+    return "Use /next now, or check Scapestack Sync when you want verified quests, diaries, collection log and Slayer.";
   })();
   const syncNotice = (() => {
     if (hasPluginSync) return undefined;
     if (pluginHubState === "merged") return "RuneLite sync can be verified from the plugin page.";
-    return "Scapestack can still plan with bank and Hiscores; sync becomes trusted only after the checker finds this RSN.";
+    return undefined;
   })();
   const syncSteps = hasPluginSync
     ? undefined
@@ -208,7 +208,7 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
   const readyCount = signals.filter((signal) => signal.status !== "missing").length;
   const body = hasPluginSync && !hasExactPluginSync
     ? `${readyCount}/3 signals are connected, ${exactCount}/3 are verified. Bank paste is verified; RuneLite sync is connected but must be refreshed or updated before account coverage labels are trusted.`
-    : `${readyCount}/3 signals are connected, ${exactCount}/3 are verified. Bank paste handles layout and gear now; verified RuneLite sync labels quest, diary, collection-log and Slayer coverage across the whole app.`;
+    : `${readyCount}/3 signals are connected. Bank paste and Hiscores are enough to plan now; RuneLite sync adds verified quest, diary, collection-log and Slayer coverage when available.`;
 
   return {
     eyebrow: "Scapestack readiness",

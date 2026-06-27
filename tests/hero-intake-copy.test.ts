@@ -13,7 +13,7 @@ describe("hero intake copy and routing", () => {
   });
 
   it("uses the three homepage CTAs requested by the product prompt", () => {
-    expect(source).toContain("Plan my next action");
+    expect(source).toContain("Plan next action");
     expect(source).toContain("Paste bank");
     expect(source).toContain("Set up RuneLite sync");
     expect(source).toContain('href="/plugin#verify-sync"');

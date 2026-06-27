@@ -30,11 +30,11 @@ describe("homepage first-impression copy", () => {
   });
 
   it("separates Hiscores, pasted bank data and RuneLite sync data", () => {
-    expect(source).toContain("Scapestack readiness rail");
     expect(source).toContain("HERO_READINESS_SIGNALS");
     expect(source).toContain("Public Hiscores, combat level and boss KC.");
     expect(source).toContain("Items, quantities, gear and GP value.");
     expect(source).toContain("Opt-in quests, diaries, collection log and Slayer.");
+    expect(source).not.toContain('aria-label="Scapestack readiness rail"');
     expect(source).toContain("Start with your bank");
     expect(source).toContain("Bank Memory is best when you want quantities and GP value");
     expect(source).toContain("Bank Tags still gives exact layout");
