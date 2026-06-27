@@ -310,7 +310,6 @@ describe("Scapestack readiness rail", () => {
   it("is mounted on the core product result routes", () => {
     const files = [
       "src/app/bank/page.tsx",
-      "src/app/next/next-client.tsx",
       "src/app/dps/dps-client.tsx",
       "src/app/goals/goals-client.tsx",
       "src/app/slayer/slayer-client.tsx"
@@ -321,6 +320,10 @@ describe("Scapestack readiness rail", () => {
       expect(source, file).toContain("ScapestackReadinessRail");
       expect(source, file).toContain('surface="');
     }
+
+    const nextSource = readFileSync(join(process.cwd(), "src/app/next/next-client.tsx"), "utf8");
+    expect(nextSource).not.toContain("ScapestackReadinessRail");
+    expect(nextSource).toContain("Make this smarter");
   });
 
   it("renders per-signal inline actions in the rail component", () => {

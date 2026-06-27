@@ -29,12 +29,12 @@ export const TOOLS: Tool[] = [
   {
     slug: "next",
     href: "/next",
-    name: "What to do now",
+    name: "What should I do next?",
     navLabel: "Next",
-    short: "Stuck? Get a ranked list of what's worth doing next",
-    tagline: "Paste your bank, look up your stats → a clear plan",
+    short: "Enter your OSRS name and get one clear next move",
+    tagline: "RSN in → one plan, two backups",
     description:
-      "No idea what to do next? Paste your bank and look up your account — the hub combines your Hiscores, your bank and 30+ goal sets into one ranked list: the goal you're closest to, bosses your combat level now supports, skills a few levels off a milestone, and more. Every suggestion links straight into the tool you'd use to act on it.",
+      "No idea what to do next? Enter your OSRS name and get one useful move for this account, plus two backups. Add bank or RuneLite later when gear, quests, diaries, collection log or Slayer should sharpen the plan.",
     icon: Sparkles,
     iconItemId: 11865, // Slayer helmet (i) — "what to do next" / next-task icon
     status: "live",

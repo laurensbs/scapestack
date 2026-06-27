@@ -2,8 +2,8 @@ import { ToolHeader } from "@/components/tool-header";
 import { NextClient } from "./next-client";
 
 export const metadata = {
-  title: "What to do now",
-  description: "Stuck in OSRS? Paste your bank and look up your stats — get a clear, ranked list of what's worth doing next, tuned to your account."
+  title: "What should I do next in OSRS?",
+  description: "Enter your OSRS name and get one clear next move, two backups, and optional bank or RuneLite context when you want sharper advice."
 };
 
 type SearchParams = Record<string, string | string[] | undefined>;

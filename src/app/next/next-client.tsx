@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useMemo, useEffect, type MouseEvent } from "react";
+import { useState, useTransition, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
   ArrowRight, ChevronRight, Edit3, Target, Sword, TrendingUp, Layers,
@@ -15,7 +15,6 @@ import { KcProbabilityGraph } from "@/components/kc-probability-graph";
 import { XpDropLoader } from "@/components/xp-drop-loader";
 import { ShuffleLoader } from "@/components/shuffle-loader";
 import { BossDetailModal } from "@/components/boss-detail-modal";
-import { ScapestackReadinessRail } from "@/components/scapestack-readiness-rail";
 import { BOSSES, type Boss } from "@/lib/bosses";
 import { ownedGear, type GearItem } from "@/lib/gear";
 import { organizeAction, nextUpAction, hiscoresAction, womAction, collectionLogAction, templeAction, syncedPlayerAction } from "@/app/actions";
@@ -27,7 +26,7 @@ import { track } from "@/lib/analytics";
 import type { Recommendation, RecKind, NextUpResult } from "@/lib/next-up";
 import { defaultActionHints } from "@/lib/rec-hints";
 import { pickForMood, MOOD_LABEL, type Mood, type TimeBudget } from "@/lib/mood";
-import { saveMood, loadMood, relativeSince, type MoodSession } from "@/lib/mood-storage";
+import { saveMood, loadMood, relativeSince } from "@/lib/mood-storage";
 import {
   clearRecommendationFeedback,
   loadRecommendationFeedback,
@@ -36,7 +35,7 @@ import {
   type RecommendationFeedback
 } from "@/lib/recommendation-feedback";
 import { wikiSearchUrl } from "@/lib/wiki";
-import { CURRENT_PLUGIN_VERSION, pluginSyncHealth } from "@/lib/plugin-sync";
+import { pluginSyncHealth } from "@/lib/plugin-sync";
 import { isPluginSyncSource, pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
 import { summarizeNextPluginSync, type NextPluginSignalStatus } from "@/lib/next-plugin-sync-summary";
 import { nextPluginHubCta, type NextPluginHubState } from "@/lib/next-plugin-hub-copy";
@@ -44,14 +43,13 @@ import { toolHandoffUrl } from "@/lib/bank-tool-routes";
 import { bankOrganizerHref } from "@/lib/bank-handoff-url";
 import { shouldReadNextBankHandoff, shouldReadNextHeroBank } from "@/lib/next-route-context";
 import { nextIntentFromSearch, type NextIntentPreset } from "@/lib/next-intent";
-import { formatRecommendationActionPlan, formatRecommendationSessionPlan } from "@/lib/action-plan-text";
+import { formatRecommendationSessionPlan } from "@/lib/action-plan-text";
 import {
   primaryActionForRecommendation,
   recommendationHrefWithContext,
   routeActionForHref,
   type RecommendationActionContext
 } from "@/lib/recommendation-action";
-import { missingDataActionForRecommendation, type RecommendationDataAction } from "@/lib/recommendation-data-action";
 import { buildRecommendationIdentity } from "@/lib/recommendation-identity";
 import { copyText } from "@/lib/clipboard";
 import { cn, formatGp } from "@/lib/utils";
@@ -971,58 +969,11 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
   const pluginSyncState = result.pathProgress.syncedSources?.scapestack
     ? summarizeNextPluginSync(result.pathProgress.syncedSources.scapestack).state
     : null;
-  const primaryRec = headline ?? rest[0] ?? null;
 
   return (
-    <div className="space-y-8">
-      {/* ── TRACK 0: HERO ──────────────────────────────────────────── */}
+    <div className="space-y-6">
+      {/* The first screen is the product: one recommendation, two backups. */}
       <div style={trackAnim(0)}>
-        <HeroStrip summary={summary} basisNote={basisNote} onEdit={onEdit} />
-      </div>
-
-      <div style={trackAnim(75)}>
-        <SessionBrief
-          rec={primaryRec}
-          summary={summary}
-          bankItems={bankItems}
-          activeRsn={activeRsn}
-          pluginSyncState={pluginSyncState}
-          onEdit={onEdit}
-        />
-      </div>
-
-      <div style={trackAnim(150)}>
-        <EvidenceLedger summary={summary} pathData={result.pathProgress} bankItems={bankItems} />
-      </div>
-
-      <div style={trackAnim(225)}>
-        <ScapestackReadinessRail
-          surface="next"
-          hasBankContext={bankItems.length > 0}
-          hasRsn={Boolean(activeRsn)}
-          hasPluginSync={Boolean(result.pathProgress.syncedSources?.scapestack)}
-          pluginSyncState={pluginSyncState}
-          rsn={activeRsn}
-          className="mb-0"
-        />
-      </div>
-
-      <div style={trackAnim(300)}>
-        <NextBankContextStrip
-          bankItems={bankItems}
-          basis={summary.basis}
-          activeRsn={activeRsn}
-          pluginSyncState={pluginSyncState}
-          onClearStoredBankHandoff={onClearStoredBankHandoff}
-        />
-      </div>
-
-      <div style={trackAnim(375)}>
-        <PluginSyncStrip pathData={result.pathProgress} expectedPluginSync={expectedPluginSync} activeRsn={activeRsn} />
-      </div>
-
-      {/* ── TRACK 1: WHAT TO DO ─────────────────────────────────────── */}
-      <div style={trackAnim(450)}>
         <WhatToDo
           allRecs={allRecs}
           activeRsn={activeRsn}
@@ -1033,20 +984,40 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
         />
       </div>
 
-      {/* ── TRACK 2: WHERE YOU ARE ──────────────────────────────────── */}
-      <div style={trackAnim(600)}>
-        <WhereYouAre
+      <div style={trackAnim(150)}>
+        <MakePlanSmarter
+          summary={summary}
+          basisNote={basisNote}
           pathData={result.pathProgress}
-          maxEstimate={result.maxEstimate}
+          bankItems={bankItems}
+          activeRsn={activeRsn}
+          pluginSyncState={pluginSyncState}
+          expectedPluginSync={expectedPluginSync}
+          onEdit={onEdit}
+          onClearStoredBankHandoff={onClearStoredBankHandoff}
         />
       </div>
 
-      {/* ── TRACK 3: ALMOST THERE ───────────────────────────────────── */}
-      <div style={trackAnim(750)}>
-        <ReadinessSection readiness={result.readiness} />
+      <div style={trackAnim(300)}>
+        <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-4 sm:p-5">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)] marker:hidden">
+            <span>Account progress</span>
+            <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
+              Open when you want the numbers
+            </span>
+          </summary>
+          <div className="mt-4 space-y-6">
+            <HeroStrip summary={summary} basisNote={basisNote} onEdit={onEdit} />
+            <WhereYouAre
+              pathData={result.pathProgress}
+              maxEstimate={result.maxEstimate}
+            />
+            <ReadinessSection readiness={result.readiness} />
+          </div>
+        </details>
       </div>
 
-      <div className="pt-4" style={trackAnim(900)}>
+      <div className="pt-2" style={trackAnim(450)}>
         <SupportCard />
       </div>
     </div>
@@ -1064,123 +1035,6 @@ function syncAgeLabel(iso: string): string {
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
-}
-
-function SessionBrief({
-  rec,
-  summary,
-  bankItems,
-  activeRsn,
-  pluginSyncState,
-  onEdit
-}: {
-  rec: Recommendation | null;
-  summary: NextUpResult["summary"];
-  bankItems: BankHandoffItem[];
-  activeRsn: string;
-  pluginSyncState: "live" | "stale" | "outdated" | null;
-  onEdit: () => void;
-}) {
-  if (!rec) return null;
-
-  const plan = rec.actionPlan;
-  const trustLabel = pluginSyncState === "live" && bankItems.length > 0
-    ? "Fresh sync + bank"
-    : pluginSyncState === "live"
-      ? "Fresh sync"
-      : pluginSyncState === "stale"
-        ? "Refresh sync first"
-        : pluginSyncState === "outdated"
-          ? "Update plugin first"
-          : summary.basis === "full"
-            ? "Hiscores + bank"
-            : summary.basis === "hiscores-only"
-              ? "Hiscores only"
-              : summary.basis === "bank-only"
-                ? "Bank only"
-                : "Guided estimate";
-  const beforeCommit = pluginSyncState === "stale"
-    ? "Refresh RuneLite sync before spending GP or locking a long grind."
-    : pluginSyncState === "outdated"
-      ? `Update Scapestack Sync to v${CURRENT_PLUGIN_VERSION}, then re-run /next.`
-      : !activeRsn
-        ? "Add your OSRS name before relying on quest, diary or skill gates."
-        : bankItems.length === 0
-          ? "Paste a bank when gear, supplies or affordability could change the route."
-          : plan?.caveat ?? "Good to run now; mark it done or hide it if it does not fit tonight.";
-  const firstStep = plan?.steps[0] ?? rec.why;
-
-  return (
-    <section
-      data-testid="next-session-brief"
-      className="rounded-xl border border-[var(--color-accent)]/25 bg-gradient-to-br from-[var(--color-accent)]/10 to-[var(--color-panel)]/70 px-4 py-3"
-    >
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-        <div className="min-w-0">
-          <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-            Tonight&apos;s session brief
-          </div>
-          <h2 className="mt-1 text-[17px] font-bold tracking-tight text-[var(--color-text)]">
-            {rec.title}
-          </h2>
-          <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-            First click: <span className="font-semibold text-[var(--color-text)]">{firstStep}</span>
-          </p>
-        </div>
-        <div className="grid gap-2 sm:grid-cols-3 lg:min-w-[520px]">
-          <BriefChip
-            label="Trust level"
-            value={trustLabel}
-            tone={pluginSyncState === "live" || summary.basis === "full" ? "good" : pluginSyncState ? "warn" : "muted"}
-          />
-          <BriefChip
-            label="Timebox"
-            value={plan?.timebox ?? "Pick a short test run"}
-            tone="muted"
-          />
-          <button
-            type="button"
-            onClick={onEdit}
-            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2 text-left transition-colors hover:border-[var(--color-accent)]/45"
-          >
-            <div className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-              Before you commit
-            </div>
-            <div className="mt-0.5 text-[11.5px] font-semibold leading-snug text-[var(--color-text-dim)]">
-              {beforeCommit}
-            </div>
-          </button>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function BriefChip({ label, value, tone }: { label: string; value: string; tone: "good" | "warn" | "muted" }) {
-  return (
-    <div className={cn(
-      "rounded-lg border px-3 py-2",
-      tone === "good"
-        ? "border-[var(--color-good)]/25 bg-[var(--color-good)]/10"
-        : tone === "warn"
-          ? "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10"
-          : "border-[var(--color-border)] bg-[var(--color-bg)]/35"
-    )}>
-      <div className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-        {label}
-      </div>
-      <div className={cn(
-        "mt-0.5 text-[11.5px] font-semibold leading-snug",
-        tone === "good"
-          ? "text-[var(--color-good)]"
-          : tone === "warn"
-            ? "text-[var(--color-warning)]"
-            : "text-[var(--color-text-dim)]"
-      )}>
-        {value}
-      </div>
-    </div>
-  );
 }
 
 function EvidenceLedger({
@@ -1242,10 +1096,10 @@ function EvidenceLedger({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-            Used for this route
+            Plan inputs
           </div>
           <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-muted)]">
-            Scapestack ranks the pick from these account signals. Add only the context that changes the route.
+            Scapestack can plan with public stats first. Add bank or RuneLite only when it changes the answer.
           </p>
         </div>
         <div className="grid flex-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
@@ -1280,6 +1134,148 @@ function EvidenceLedger({
         </div>
       </div>
     </section>
+  );
+}
+
+function MakePlanSmarter({
+  summary,
+  basisNote,
+  pathData,
+  bankItems,
+  activeRsn,
+  pluginSyncState,
+  expectedPluginSync,
+  onEdit,
+  onClearStoredBankHandoff
+}: {
+  summary: NextUpResult["summary"];
+  basisNote: string;
+  pathData: NextUpResult["pathProgress"];
+  bankItems: BankHandoffItem[];
+  activeRsn: string;
+  pluginSyncState: "live" | "stale" | "outdated" | null;
+  expectedPluginSync: boolean;
+  onEdit: () => void;
+  onClearStoredBankHandoff: () => void;
+}) {
+  const hasBank = bankItems.length > 0 || summary.basis === "full" || summary.basis === "bank-only";
+  const hasRsn = Boolean(activeRsn.trim());
+  const syncHref = pluginVerifyUrlForSyncedRsn(activeRsn, "next", { hasBankContext: hasBank });
+
+  return (
+    <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-4 sm:p-5">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden">
+        <span>
+          <span className="block text-[13px] font-bold text-[var(--color-text)]">Make this smarter</span>
+          <span className="mt-0.5 block text-[11.5px] font-medium text-[var(--color-text-muted)]">
+            Optional: add bank or RuneLite when gear, quests or Slayer matter.
+          </span>
+        </span>
+        <span className="shrink-0 rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
+          Details
+        </span>
+      </summary>
+
+      <div className="mt-4 space-y-4">
+        <div className="grid gap-2 sm:grid-cols-3">
+          <PlanInputTile
+            label="OSRS name"
+            value={hasRsn ? activeRsn : "Add name"}
+            helper={hasRsn ? "Stats are in the plan." : "Adds skills, combat and gates."}
+            tone={hasRsn ? "good" : "muted"}
+          />
+          <PlanInputTile
+            label="Bank"
+            value={hasBank ? "Loaded" : "Optional"}
+            helper={hasBank ? "Gear can shape PvM and GP picks." : "Use it when gear matters."}
+            tone={hasBank ? "good" : "muted"}
+          />
+          <PlanInputTile
+            label="RuneLite"
+            value={pluginSyncState === "live" ? "Synced" : pluginSyncState ? "Refresh" : "Optional"}
+            helper={pluginSyncState === "live"
+              ? "Quests, diaries, collection log and Slayer are sharper."
+              : "Adds finished quests, diaries, collection log and Slayer."}
+            tone={pluginSyncState === "live" ? "good" : pluginSyncState ? "warn" : "muted"}
+          />
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={onEdit}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+          >
+            Change name or bank
+            <Edit3 className="size-3.5" />
+          </button>
+          {!hasBank && (
+            <Link
+              href={bankOrganizerHref(activeRsn, "next")}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+            >
+              Add bank
+              <ArrowRight className="size-3.5" />
+            </Link>
+          )}
+          {pluginSyncState !== "live" && (
+            <Link
+              href={syncHref}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
+            >
+              Set up RuneLite
+              <Sparkles className="size-3.5" />
+            </Link>
+          )}
+        </div>
+
+        <p className="text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">{basisNote}</p>
+
+        <EvidenceLedger summary={summary} pathData={pathData} bankItems={bankItems} />
+        <NextBankContextStrip
+          bankItems={bankItems}
+          basis={summary.basis}
+          activeRsn={activeRsn}
+          pluginSyncState={pluginSyncState}
+          onClearStoredBankHandoff={onClearStoredBankHandoff}
+        />
+        <PluginSyncStrip pathData={pathData} expectedPluginSync={expectedPluginSync} activeRsn={activeRsn} />
+      </div>
+    </details>
+  );
+}
+
+function PlanInputTile({
+  label,
+  value,
+  helper,
+  tone
+}: {
+  label: string;
+  value: string;
+  helper: string;
+  tone: "good" | "warn" | "muted";
+}) {
+  return (
+    <div className={cn(
+      "rounded-xl border px-3 py-2.5",
+      tone === "good"
+        ? "border-[var(--color-good)]/25 bg-[var(--color-good)]/10"
+        : tone === "warn"
+          ? "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10"
+          : "border-[var(--color-border)] bg-[var(--color-bg)]/35"
+    )}>
+      <div className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+        {label}
+      </div>
+      <div className={cn(
+        "mt-0.5 text-[12px] font-bold",
+        tone === "good" ? "text-[var(--color-good)]" : tone === "warn" ? "text-[var(--color-warning)]" : "text-[var(--color-text-dim)]"
+      )}>
+        {value}
+      </div>
+      <p className="mt-1 text-[11px] leading-snug text-[var(--color-text-muted)]">{helper}</p>
+    </div>
   );
 }
 
@@ -1791,6 +1787,51 @@ function recommendationNeeds(rec: Recommendation): string[] {
   return (rec.needs?.length ? rec.needs : hints.needs).slice(0, 3);
 }
 
+function RecommendationQuickFacts({ rec, compact = false }: { rec: Recommendation; compact?: boolean }) {
+  const plan = rec.actionPlan;
+  const needs = recommendationNeeds(rec);
+  const facts = [
+    { label: "Time", value: plan?.timebox ?? "Short test run" },
+    { label: "Type", value: KIND_META[rec.kind]?.label ?? "OSRS task" },
+    { label: "Bring", value: needs[0] ?? "Nothing special flagged" }
+  ];
+
+  return (
+    <div className={cn("mt-3 grid gap-1.5", compact ? "sm:grid-cols-3" : "sm:grid-cols-3")}>
+      {facts.map((fact) => (
+        <div
+          key={`${rec.id}:${fact.label}`}
+          className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-2"
+        >
+          <div className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+            {fact.label}
+          </div>
+          <div className={cn(
+            "mt-0.5 line-clamp-2 font-semibold leading-snug text-[var(--color-text-dim)]",
+            compact ? "text-[10.5px]" : "text-[11.5px]"
+          )}>
+            {fact.value}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RecommendationFirstStep({ rec, compact = false }: { rec: Recommendation; compact?: boolean }) {
+  const firstStep = rec.actionPlan?.steps[0] ?? rec.why;
+  if (!firstStep) return null;
+  return (
+    <p className={cn(
+      "mt-3 rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3 py-2 leading-relaxed text-[var(--color-text-dim)]",
+      compact ? "text-[11px]" : "text-[12.5px]"
+    )}>
+      <span className="font-semibold text-[var(--color-accent)]">Start:</span>{" "}
+      {firstStep}
+    </p>
+  );
+}
+
 function recommendationMissingDataWarning(rec: Recommendation): string {
   const caveat = rec.actionPlan?.caveat?.trim();
   if (caveat) return caveat;
@@ -2093,16 +2134,12 @@ function HeadlineCard({
         </div>
         <div className="flex-1 min-w-0">
           <div className="mb-1 flex flex-wrap items-center gap-2">
-            <span className="eyebrow text-[var(--color-accent)]">Start here</span>
-            <RecommendationIdentityChip rec={rec} />
+            <span className="eyebrow text-[var(--color-accent)]">Best move now</span>
           </div>
           <h3 className="text-[19px] font-bold text-[var(--color-text)] tracking-tight leading-tight">
             {rec.title}
           </h3>
-          <div className="mt-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-            Why recommended
-          </div>
-          <p className="mt-1.5 text-[13.5px] text-[var(--color-text-dim)] leading-relaxed">
+          <p className="mt-2 text-[13.5px] text-[var(--color-text-dim)] leading-relaxed">
             {rec.why}
           </p>
           {rec.payoff && (
@@ -2110,20 +2147,8 @@ function HeadlineCard({
               {rec.payoff}
             </p>
           )}
-          <RecommendationDecisionSpec rec={rec} />
-          <RecommendationProofStrip rec={rec} />
-          <ActionPlanBlock rec={rec} />
-          {/* Probability chart — collapsed by default. Was default-open
-              on the headline KC-rec but read as 'big chart shouting at
-              you' the moment the page loaded. Toggle still works for
-              players who want the depth. */}
-          {hasDropChanceGraph(rec) && (
-            <KcProbabilityGraph
-              kc={rec.kcMeta.kc}
-              denom={rec.kcMeta.denom}
-              dropName={rec.kcMeta.dropName}
-            />
-          )}
+          <RecommendationQuickFacts rec={rec} />
+          <RecommendationFirstStep rec={rec} />
           {isBossWithDetail && rec.bossSlug ? (
             <button
               type="button"
@@ -2205,25 +2230,12 @@ function RecRow({
             <h4 className="text-[13px] font-semibold text-[var(--color-text)] tracking-tight leading-tight">
               {rec.title}
             </h4>
-            <RecommendationIdentityChip rec={rec} compact />
           </div>
-          <div className="mt-1.5 text-[9.5px] font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
-            Why recommended
-          </div>
-          <p className="mt-0.5 text-[12px] text-[var(--color-text-dim)] leading-snug">{rec.why}</p>
+          <p className="mt-1.5 text-[12px] text-[var(--color-text-dim)] leading-snug">{rec.why}</p>
           {rec.payoff && (
             <p className="mt-1 text-[11px] text-[var(--color-text-muted)] leading-snug">{rec.payoff}</p>
           )}
-          <RecommendationDecisionSpec rec={rec} compact />
-          <RecommendationProofStrip rec={rec} compact />
-          <ActionPlanBlock rec={rec} compact />
-          {hasDropChanceGraph(rec) && (
-            <KcProbabilityGraph
-              kc={rec.kcMeta.kc}
-              denom={rec.kcMeta.denom}
-              dropName={rec.kcMeta.dropName}
-            />
-          )}
+          <RecommendationQuickFacts rec={rec} compact />
           {isBossWithDetail && rec.bossSlug ? (
             <button
               type="button"
@@ -2393,8 +2405,6 @@ function WhatToDo({
   const [mood, setMood] = useState<Mood>(routeIntent?.mood ?? "focused");
   const [minutes, setMinutes] = useState<TimeBudget>(routeIntent?.minutes ?? 60);
   const [shuffleIdx, setShuffleIdx] = useState(0);
-  const [prev, setPrev] = useState<MoodSession | null>(null);
-  const [dismissedBanner, setDismissedBanner] = useState(false);
   const [lastSuppressed, setLastSuppressed] = useState<{ id: string; title: string } | null>(null);
   const [lastCompleted, setLastCompleted] = useState<{ id: string; title: string } | null>(null);
   const [feedback, setFeedback] = useState<RecommendationFeedback>(() => ({
@@ -2406,7 +2416,6 @@ function WhatToDo({
   useEffect(() => {
     const last = loadMood();
     if (last) {
-      setPrev(last);
       if (!routeIntent) {
         setMood(last.mood);
         setMinutes(last.minutes);
@@ -2448,7 +2457,6 @@ function WhatToDo({
   }, [mood, minutes, pick]);
 
   if (allRecs.length === 0) return null;
-  const showBanner = prev && !dismissedBanner && prev.lastHeadlineTitle;
   const hideRecommendation = (rec: Recommendation) => {
     setFeedback(suppressRecommendation({ id: rec.id, kind: rec.kind, reason: "not_today" }));
     setLastSuppressed({ id: rec.id, title: rec.title });
@@ -2494,36 +2502,38 @@ function WhatToDo({
 
   return (
     <section>
-      <div className="flex items-baseline justify-between gap-3 mb-3 flex-wrap">
-        <div className="flex items-baseline gap-3">
-          <h3 className="eyebrow text-[var(--color-accent)]">What to do</h3>
-          {pick && allRecs.length > 1 && (
-            <button
-              type="button"
-              onClick={() => setShuffleIdx((i) => i + 1)}
-              className="text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors inline-flex items-center gap-1"
-              title="Show me something else"
-            >
-              <Dices className="size-3" />
-              Try something else
-            </button>
-          )}
-          {hiddenCount > 0 && (
-            <button
-              type="button"
-              onClick={restoreHidden}
-              className="text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors"
-            >
-              Show hidden ({hiddenCount})
-            </button>
-          )}
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
+            Tonight&apos;s plan
+          </div>
+          <h2 className="mt-1 text-[26px] font-bold tracking-tight text-[var(--color-text)]">
+            Do this first.
+          </h2>
+          <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-dim)]">
+            One best move for this account, plus two backups if you want a different kind of session.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
           {routeIntent && (
             <span
-              className="inline-flex items-center gap-1 rounded-full border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-2 py-0.5 text-[10.5px] font-semibold text-[var(--color-accent)]"
+              className="inline-flex items-center gap-1 rounded-full border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-2.5 py-1 text-[10.5px] font-semibold text-[var(--color-accent)]"
               title={routeIntent.helper}
             >
               {routeIntent.label}
             </span>
+          )}
+          {pick && allRecs.length > 1 && (
+            <button
+              type="button"
+              onClick={() => setShuffleIdx((i) => i + 1)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/65 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)]"
+              title="Show me something else"
+            >
+              <Dices className="size-3.5" />
+              Try another
+            </button>
           )}
           {visibleRecs.length > 0 && (
             <button
@@ -2531,30 +2541,17 @@ function WhatToDo({
               onClick={copySessionPlan}
               aria-label="Copy top Scapestack session plan"
               className={cn(
-                "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-semibold transition-colors",
+                "inline-flex items-center gap-1.5 rounded-lg border bg-[var(--color-panel)]/65 px-3 py-2 text-[11.5px] font-semibold transition-colors",
                 sessionCopyState === "error"
                   ? "border-[var(--color-danger)]/40 text-[var(--color-danger)] hover:border-[var(--color-danger)]/55"
-                  : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)]"
+                  : "border-[var(--color-border)] text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)]"
               )}
             >
-              {sessionCopyState === "copied" ? <CheckCheck className="size-3" /> : <Copy className="size-3" />}
+              {sessionCopyState === "copied" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
               {sessionCopyLabel}
             </button>
           )}
         </div>
-        {showBanner && prev && (
-          <p className="text-[11px] text-[var(--color-text-muted)] hidden sm:block">
-            Welcome back — {relativeSince(prev.savedAt)} you were on {prev.lastHeadlineTitle}.
-            <button
-              type="button"
-              onClick={() => setDismissedBanner(true)}
-              className="ml-2 hover:text-[var(--color-text)]"
-              aria-label="Dismiss"
-            >
-              ×
-            </button>
-          </p>
-        )}
       </div>
 
       {lastSuppressed && (
@@ -2595,99 +2592,23 @@ function WhatToDo({
         </div>
       )}
 
-      <div className="grid lg:grid-cols-[260px_1fr] gap-4">
-        {/* Left rail: mood-chips + time-budget toggle in één card. */}
-        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-4 space-y-4">
-          <div>
-            <div className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2">
-              I want to
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {MOODS.map((m) => {
-                const label = MOOD_LABEL[m];
-                const active = mood === m;
-                return (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => setMood(m)}
-                    className={cn(
-                      "group/mood relative overflow-hidden px-2.5 py-2.5 rounded-lg border text-left transition-all duration-200",
-                      "flex items-center gap-2.5",
-                      active
-                        ? "border-[var(--color-accent)]/60 bg-gradient-to-br from-[var(--color-accent)]/15 to-[var(--color-accent)]/5 shadow-[0_0_18px_-6px_rgba(230,165,47,0.45)]"
-                        : "border-[var(--color-border)] bg-[var(--color-bg-2)]/40 hover:border-[var(--color-accent)]/30 hover:bg-[var(--color-accent)]/5 hover:-translate-y-0.5"
-                    )}
-                  >
-                    {/* Sprite — scale-up + soft pulse op active */}
-                    <ItemSprite
-                      id={label.itemId}
-                      alt=""
-                      className="pixelated shrink-0 transition-transform duration-200 group-hover/mood:scale-110"
-                      style={{
-                        width: 22, height: 22,
-                        imageRendering: "pixelated",
-                        filter: active
-                          ? "drop-shadow(0 0 4px rgba(230,165,47,0.6)) drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))"
-                          : "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))",
-                        objectFit: "contain",
-                        transform: active ? "scale(1.08)" : undefined
-                      }}
-                    />
-                    <span className={cn(
-                      "text-[12.5px] font-semibold transition-colors",
-                      active ? "text-[var(--color-accent)]" : "text-[var(--color-text)]"
-                    )}>
-                      {label.name}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            {/* Tagline van de actieve mood — geeft context. */}
-            <p className="text-[10.5px] text-[var(--color-text-muted)] mt-2 italic">
-              {MOOD_LABEL[mood].tagline}
-            </p>
-          </div>
-          <div>
-            <div className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2">
-              Time
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {TIME_OPTIONS.map((t) => (
-                <button
-                  key={t.value}
-                  type="button"
-                  onClick={() => setMinutes(t.value)}
-                  className={cn(
-                    "px-2.5 py-1 rounded-md text-[11px] border transition-colors",
-                    minutes === t.value
-                      ? "border-[var(--color-accent)]/50 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
-                      : "border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
-                  )}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <RecommendationConfidenceLegend />
-        </div>
-
-        {/* Right column: gekozen suggestie + alternatieven. */}
-        <div className="space-y-3">
-          {pick ? (
-            <>
-              <RecHeadlineExpandable
-                rec={pick.headline}
-                actionContext={actionContext}
-                onBossOpen={onBossOpen}
-                onSuppress={hideRecommendation}
-                onComplete={completeRecommendation}
-                onEdit={onEdit}
-              />
-              {pick.alternatives.length > 0 && (
-                <div className="grid sm:grid-cols-2 gap-2.5">
+      <div className="space-y-3">
+        {pick ? (
+          <>
+            <RecHeadlineExpandable
+              rec={pick.headline}
+              actionContext={actionContext}
+              onBossOpen={onBossOpen}
+              onSuppress={hideRecommendation}
+              onComplete={completeRecommendation}
+              onEdit={onEdit}
+            />
+            {pick.alternatives.length > 0 && (
+              <div>
+                <div className="mb-2 text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                  Backups
+                </div>
+                <div className="grid gap-2.5 sm:grid-cols-2">
                   {pick.alternatives.map((r) => (
                     <RecRowExpandable
                       key={r.id}
@@ -2700,17 +2621,117 @@ function WhatToDo({
                     />
                   ))}
                 </div>
-              )}
-            </>
-          ) : (
-            <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-8 text-center text-[var(--color-text-muted)] text-[13px]">
-              {hiddenCount > 0
-                ? "Everything matching this mood is hidden. Restore hidden picks or change mood/time."
-                : "Nothing urgent to flag — your account looks well on top of things."}
-            </div>
-          )}
-        </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-8 text-center text-[var(--color-text-muted)] text-[13px]">
+            {hiddenCount > 0
+              ? "Everything matching this mood is hidden. Restore hidden picks or change mood/time."
+              : "Nothing urgent to flag — your account looks well on top of things."}
+          </div>
+        )}
       </div>
+
+      <details className="mt-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-4">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden">
+          <span>
+            <span className="block text-[12.5px] font-bold text-[var(--color-text)]">Change vibe or time</span>
+            <span className="mt-0.5 block text-[11px] text-[var(--color-text-muted)]">
+              Current: {MOOD_LABEL[mood].name}, {minutes === 60 ? "1 hour" : `${minutes} min`}.
+            </span>
+          </span>
+          <span className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
+            Tune
+          </span>
+        </summary>
+        <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_260px]">
+          <div className="space-y-4">
+            <div>
+              <div className="mb-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                I want to
+              </div>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {MOODS.map((m) => {
+                  const label = MOOD_LABEL[m];
+                  const active = mood === m;
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setMood(m)}
+                      className={cn(
+                        "group/mood relative overflow-hidden rounded-lg border px-2.5 py-2.5 text-left transition-all duration-200",
+                        "flex items-center gap-2.5",
+                        active
+                          ? "border-[var(--color-accent)]/60 bg-gradient-to-br from-[var(--color-accent)]/15 to-[var(--color-accent)]/5 shadow-[0_0_18px_-6px_rgba(230,165,47,0.45)]"
+                          : "border-[var(--color-border)] bg-[var(--color-bg-2)]/40 hover:border-[var(--color-accent)]/30 hover:bg-[var(--color-accent)]/5"
+                      )}
+                    >
+                      <ItemSprite
+                        id={label.itemId}
+                        alt=""
+                        className="pixelated shrink-0 transition-transform duration-200 group-hover/mood:scale-110"
+                        style={{
+                          width: 22,
+                          height: 22,
+                          imageRendering: "pixelated",
+                          filter: active
+                            ? "drop-shadow(0 0 4px rgba(230,165,47,0.6)) drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))"
+                            : "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))",
+                          objectFit: "contain",
+                          transform: active ? "scale(1.08)" : undefined
+                        }}
+                      />
+                      <span className={cn(
+                        "text-[12.5px] font-semibold transition-colors",
+                        active ? "text-[var(--color-accent)]" : "text-[var(--color-text)]"
+                      )}>
+                        {label.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-2 text-[10.5px] italic text-[var(--color-text-muted)]">
+                {MOOD_LABEL[mood].tagline}
+              </p>
+            </div>
+            <div>
+              <div className="mb-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                Time
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {TIME_OPTIONS.map((t) => (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => setMinutes(t.value)}
+                    className={cn(
+                      "rounded-md border px-2.5 py-1 text-[11px] transition-colors",
+                      minutes === t.value
+                        ? "border-[var(--color-accent)]/50 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
+                        : "border-[var(--color-border)] text-[var(--color-text-dim)] hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]"
+                    )}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {hiddenCount > 0 && (
+              <button
+                type="button"
+                onClick={restoreHidden}
+                className="text-[11px] font-semibold text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-accent)]"
+              >
+                Show hidden ({hiddenCount})
+              </button>
+            )}
+          </div>
+          <RecommendationConfidenceLegend />
+        </div>
+      </details>
     </section>
   );
 }
@@ -2989,6 +3010,16 @@ function RecDetailPanel({
   const wikiQuery = recommendationWikiQuery(rec);
   return (
     <div className="mt-2 px-4 py-3 rounded-lg bg-[var(--color-bg-2)]/40 border border-[var(--color-border)] animate-[fade-in_0.2s_ease-out] space-y-2.5">
+      <ActionPlanBlock rec={rec} />
+      <RecommendationDecisionSpec rec={rec} />
+      <RecommendationProofStrip rec={rec} />
+      {hasDropChanceGraph(rec) && (
+        <KcProbabilityGraph
+          kc={rec.kcMeta.kc}
+          denom={rec.kcMeta.denom}
+          dropName={rec.kcMeta.dropName}
+        />
+      )}
       {details && (
         <p className="text-[12.5px] text-[var(--color-text-dim)] leading-relaxed">
           {details}
@@ -3065,185 +3096,6 @@ function recommendationWikiQuery(rec: Recommendation): string {
     .trim();
 }
 
-function RecommendationActions({
-  rec,
-  actionContext,
-  onBossOpen,
-  onEdit,
-  compact = false
-}: {
-  rec: Recommendation;
-  actionContext: RecommendationActionContext;
-  onBossOpen: (slug: string) => void;
-  onEdit: () => void;
-  compact?: boolean;
-}) {
-  const action = primaryActionForRecommendation(rec, actionContext);
-  const dataAction = missingDataActionForRecommendation(rec, actionContext);
-  const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
-  const baseClass = cn(
-    "inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold transition-colors",
-    compact
-      ? "px-2.5 py-1.5 text-[11px]"
-      : "px-3.5 py-2 text-[12.5px]",
-    "border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/12 text-[var(--color-accent)] hover:bg-[var(--color-accent)]/18"
-  );
-  const icon = action.external
-    ? <ExternalLink className={compact ? "size-3" : "size-3.5"} />
-    : <ArrowRight className={compact ? "size-3" : "size-3.5"} />;
-  const formattedPlan = rec.actionPlan ? formatRecommendationActionPlan(rec, actionContext) : "";
-  const copyPlan = async (event: MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const result = await copyText(formattedPlan);
-    if (result !== "failed") {
-      setCopyState("copied");
-      window.setTimeout(() => setCopyState("idle"), 1600);
-    } else {
-      setCopyState("error");
-    }
-  };
-  const copyLabel = copyState === "copied"
-    ? "Copied"
-    : copyState === "error"
-      ? "Try copy again"
-      : "Copy plan";
-
-  return (
-    <div className={cn("mt-2 flex flex-wrap items-center gap-2", compact ? "" : "justify-between")}>
-      {dataAction && (
-        <RecommendationDataActionCallout
-          action={dataAction}
-          onEdit={onEdit}
-          compact={compact}
-        />
-      )}
-      <p className={cn(
-        "text-[var(--color-text-muted)] leading-snug",
-        compact ? "text-[10.5px] w-full" : "text-[11.5px]"
-      )}>
-        {action.helper}
-      </p>
-      {action.bossSlug ? (
-        <>
-          <button
-            type="button"
-            onClick={() => onBossOpen(action.bossSlug!)}
-            className={baseClass}
-          >
-            {action.label}
-            {icon}
-          </button>
-          {action.href && (
-            <Link
-              href={action.href}
-              className={cn(
-                "inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]",
-                compact ? "px-2.5 py-1.5 text-[11px]" : "px-3.5 py-2 text-[12.5px]"
-              )}
-            >
-              Open in DPS
-              <ExternalLink className={compact ? "size-3" : "size-3.5"} />
-            </Link>
-          )}
-        </>
-      ) : action.href && action.external ? (
-        <a
-          href={action.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={baseClass}
-        >
-          {action.label}
-          {icon}
-        </a>
-      ) : action.href ? (
-        <Link href={action.href} className={baseClass}>
-          {action.label}
-          {icon}
-        </Link>
-      ) : null}
-      {rec.actionPlan && (
-        <div className={cn("flex flex-col gap-1.5", copyState === "error" && "w-full")}>
-          <button
-            type="button"
-            onClick={copyPlan}
-            className={cn(
-              "inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)]",
-              copyState === "error" && "border-[var(--color-danger)]/40 text-[var(--color-danger)] hover:border-[var(--color-danger)]/55 hover:text-[var(--color-danger)]",
-              compact ? "px-2.5 py-1.5 text-[11px]" : "px-3.5 py-2 text-[12.5px]"
-            )}
-            aria-label={`Copy plan for ${rec.title}`}
-            aria-live="polite"
-          >
-            {copyState === "copied" ? <CheckCheck className={compact ? "size-3" : "size-3.5"} /> : <Copy className={compact ? "size-3" : "size-3.5"} />}
-            {copyLabel}
-          </button>
-          {copyState === "error" && (
-            <label className="block text-[10.5px] font-medium text-[var(--color-text-muted)]">
-              Clipboard failed — copy manually
-              <textarea
-                readOnly
-                value={formattedPlan}
-                onFocus={(event) => event.currentTarget.select()}
-                className="mt-1 h-24 w-full resize-y rounded-lg border border-[var(--color-danger)]/25 bg-[var(--color-bg)]/65 p-2 font-mono text-[10.5px] leading-relaxed text-[var(--color-text-dim)] outline-none focus:border-[var(--color-accent)]/45"
-              />
-            </label>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function RecommendationDataActionCallout({
-  action,
-  onEdit,
-  compact = false
-}: {
-  action: RecommendationDataAction;
-  onEdit: () => void;
-  compact?: boolean;
-}) {
-  const copy = (
-    <span className={cn(
-      "min-w-0 flex-1 leading-snug",
-      compact ? "text-[10.5px]" : "text-[11.5px]"
-    )}>
-      <span className="font-semibold text-[var(--color-text)]">Sharpen this pick:</span>{" "}
-      <span className="text-[var(--color-text-muted)]">{action.helper}</span>
-    </span>
-  );
-  const buttonClass = cn(
-    "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 font-semibold text-[var(--color-warning)] transition-colors hover:bg-[var(--color-warning)]/15",
-    compact ? "px-2.5 py-1.5 text-[11px]" : "px-3 py-2 text-[12px]"
-  );
-
-  return (
-    <div className={cn(
-      "flex w-full flex-wrap items-center gap-2 rounded-lg border border-[var(--color-warning)]/25 bg-[var(--color-warning)]/7",
-      compact ? "px-2.5 py-2" : "px-3 py-2.5"
-    )}>
-      {copy}
-      {action.kind === "rsn" ? (
-        <button
-          type="button"
-          onClick={onEdit}
-          className={buttonClass}
-        >
-          {action.label}
-          <Edit3 className={compact ? "size-3" : "size-3.5"} />
-        </button>
-      ) : action.href ? (
-        <Link href={action.href} className={buttonClass}>
-          {action.label}
-          <ArrowRight className={compact ? "size-3" : "size-3.5"} />
-        </Link>
-      ) : null}
-    </div>
-  );
-}
-
 function recommendationFeedbackButtonClass(
   tone: "done" | "skip" | "details",
   compact = false
@@ -3280,7 +3132,6 @@ function RecHeadlineExpandable({
   return (
     <div>
       <HeadlineCard rec={rec} actionContext={actionContext} onBossOpen={onBossOpen} />
-      <RecommendationActions rec={rec} actionContext={actionContext} onBossOpen={onBossOpen} onEdit={onEdit} />
       <div className="flex justify-end mt-1.5 gap-3">
         <button
           type="button"
@@ -3304,7 +3155,7 @@ function RecHeadlineExpandable({
           onClick={() => setOpen((v) => !v)}
           className={recommendationFeedbackButtonClass("details")}
         >
-          {open ? "Hide details" : "Show details"}
+          {open ? "Hide steps" : "Show steps"}
           <ChevronRight
             className={cn("size-3 transition-transform", open && "rotate-90")}
           />
@@ -3334,7 +3185,6 @@ function RecRowExpandable({
   return (
     <div>
       <RecRow rec={rec} actionContext={actionContext} onBossOpen={onBossOpen} />
-      <RecommendationActions rec={rec} actionContext={actionContext} onBossOpen={onBossOpen} onEdit={onEdit} compact />
       <div className="mt-1 flex items-center gap-3">
         <button
           type="button"
@@ -3357,7 +3207,7 @@ function RecRowExpandable({
           onClick={() => setOpen((v) => !v)}
           className={recommendationFeedbackButtonClass("details", true)}
         >
-          {open ? "Hide" : "Details"}
+          {open ? "Hide" : "Steps"}
           <ChevronRight
             className={cn("size-2.5 transition-transform", open && "rotate-90")}
           />

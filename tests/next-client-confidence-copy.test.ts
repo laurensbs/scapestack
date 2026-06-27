@@ -51,15 +51,17 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("{pluginHubCta.cta}");
   });
 
-  it("shows a concrete action for missing data behind a recommendation", () => {
-    expect(source).toContain("missingDataActionForRecommendation(rec, actionContext)");
-    expect(source).toContain("function RecommendationDataActionCallout");
-    expect(source).toContain("Sharpen this pick:");
-    expect(source).toContain('action.kind === "rsn"');
-    expect(source).toContain("{action.label}");
+  it("keeps missing context out of the recommendation card chrome", () => {
+    expect(source).toContain("function MakePlanSmarter");
+    expect(source).toContain("Change name or bank");
+    expect(source).toContain("Add bank");
+    expect(source).toContain("Set up RuneLite");
+    expect(source).not.toContain("missingDataActionForRecommendation(rec, actionContext)");
+    expect(source).not.toContain("function RecommendationDataActionCallout");
+    expect(source).not.toContain("Sharpen this pick:");
   });
 
-  it("surfaces compact proof chips on headline and row recommendations", () => {
+  it("keeps proof chips behind expanded recommendation steps", () => {
     expect(source).toContain("function RecommendationProofStrip");
     expect(source).toContain('data-testid={compact ? "next-row-proof-strip" : "next-headline-proof-strip"}');
     expect(source).toContain('label: "Confidence"');
@@ -67,23 +69,28 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('label: "Payoff"');
     expect(source).toContain('label: "Check first"');
     expect(source).toContain("<RecommendationProofStrip rec={rec} />");
-    expect(source).toContain("<RecommendationProofStrip rec={rec} compact />");
+    expect(source).not.toContain("<RecommendationProofStrip rec={rec} compact />");
+    expect(source).toContain("{open && <RecDetailPanel rec={rec} actionContext={actionContext} />}");
   });
 
   it("renders every recommendation as an actionable OSRS decision card", () => {
     expect(source).toContain("function RecommendationDecisionSpec");
+    expect(source).toContain("function RecommendationQuickFacts");
+    expect(source).toContain("function RecommendationFirstStep");
     expect(source).toContain('data-testid={compact ? "next-row-decision-spec" : "next-headline-decision-spec"}');
     expect(source).toContain("Session length");
     expect(source).toContain("Why it fits");
     expect(source).toContain("Needs");
     expect(source).toContain("Check first");
-    expect(source).toContain("Why recommended");
+    expect(source).toContain("Best move now");
+    expect(source).toContain("Start:");
+    expect(source).toContain("Bring");
     expect(source).toContain("OSRS item ID {visual.id}");
     expect(source).toContain("recommendationVisualItem(rec)");
     expect(source).toContain("recommendationNeeds(rec)");
     expect(source).toContain("recommendationMissingDataWarning(rec)");
     expect(source).toContain("<RecommendationDecisionSpec rec={rec} />");
-    expect(source).toContain("<RecommendationDecisionSpec rec={rec} compact />");
+    expect(source).not.toContain("<RecommendationDecisionSpec rec={rec} compact />");
   });
 
   it("keeps recommendation cards valid by using explicit links instead of nested card anchors", () => {
@@ -91,37 +98,44 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('aria-label={`${actionLabel}: ${rec.title}`}');
     expect(source).toContain("primaryAction.external ? (");
     expect(source).toContain("rel=\"noopener noreferrer\"");
-    expect(source).toContain("Open in DPS");
+    expect(source).toContain("Open boss detail");
     expect(source).not.toContain("<Link href={actionHref}>{card}</Link>");
     expect(source).not.toContain("<a href={actionHref} target=\"_blank\" rel=\"noopener noreferrer\">{card}</a>");
     expect(source).not.toContain("cursor-pointer transition-transform");
     expect(source).not.toContain("cursor-pointer transition-colors");
   });
 
-  it("shows an evidence ledger for the whole /next run", () => {
+  it("keeps plan inputs inside the optional make-smarter section", () => {
+    expect(source).toContain("function MakePlanSmarter");
     expect(source).toContain("function EvidenceLedger");
     expect(source).toContain('data-testid="next-evidence-ledger"');
-    expect(source).toContain("Used for this route");
-    expect(source).toContain("Add only the context that changes the route.");
+    expect(source).toContain("Make this smarter");
+    expect(source).toContain("Optional: add bank or RuneLite when gear, quests or Slayer matter.");
+    expect(source).toContain("Plan inputs");
+    expect(source).toContain("Add bank");
+    expect(source).toContain("Set up RuneLite");
+    expect(source).not.toContain("Used for this route");
     expect(source).toContain('label: "Hiscores"');
     expect(source).toContain('label: "Bank"');
     expect(source).toContain('label: "RuneLite"');
     expect(source).toContain('label: "Trackers"');
-    expect(source).toContain("<EvidenceLedger summary={summary} pathData={result.pathProgress} bankItems={bankItems} />");
+    expect(source).toContain("<EvidenceLedger summary={summary} pathData={pathData} bankItems={bankItems} />");
     expect(source).toContain("Optional: sync when you want completed quests, diaries, collection log and Slayer included.");
   });
 
-  it("shows a compact session brief before the detailed recommendation stack", () => {
-    expect(source).toContain("function SessionBrief");
-    expect(source).toContain('data-testid="next-session-brief"');
-    expect(source).toContain("Tonight&apos;s session brief");
-    expect(source).toContain("First click:");
-    expect(source).toContain("Trust level");
-    expect(source).toContain("Before you commit");
-    expect(source).toContain("<SessionBrief");
-    expect(source).toContain("Refresh RuneLite sync before spending GP or locking a long grind.");
-    expect(source).toContain("Paste a bank when gear, supplies or affordability could change the route.");
-    expect(source).toContain("Good to run now; mark it done or hide it if it does not fit tonight.");
+  it("starts the result page with one plan instead of setup panels", () => {
+    expect(source).toContain("Tonight&apos;s plan");
+    expect(source).toContain("Do this first.");
+    expect(source).toContain("One best move for this account");
+    expect(source).toContain("Backups");
+    expect(source).toContain("Change vibe or time");
+    expect(source).toContain("Account progress");
+    expect(source).toContain("Open when you want the numbers");
+    expect(source).not.toContain("function SessionBrief");
+    expect(source).not.toContain("<SessionBrief");
+    expect(source).not.toContain("ScapestackReadinessRail");
+    expect(source).not.toContain("Tonight&apos;s session brief");
+    expect(source).not.toContain("Trust level");
   });
 
   it("respects legacy route intent instead of dropping players into default mood", () => {
@@ -204,18 +218,15 @@ describe("/next confidence UI copy", () => {
   });
 
   it("copies recommendation plans with route context", () => {
-    expect(source).toContain("formatRecommendationActionPlan(rec, actionContext)");
     expect(source).toContain("formatRecommendationSessionPlan(visibleRecs, actionContext)");
     expect(source).toContain('aria-label="Copy top Scapestack session plan"');
     expect(source).toContain("Copy session plan");
     expect(source).toContain("Session copied");
-    expect(source).toContain("aria-label={`Copy plan for ${rec.title}`}");
     expect(source).toContain('useState<"idle" | "copied" | "error">("idle")');
     expect(source).toContain("Try copy again");
-    expect(source).toContain('aria-live="polite"');
-    expect(source).toContain("Clipboard failed — copy manually");
-    expect(source).toContain("readOnly");
-    expect(source).toContain("event.currentTarget.select()");
+    expect(source).not.toContain("formatRecommendationActionPlan(rec, actionContext)");
+    expect(source).not.toContain("aria-label={`Copy plan for ${rec.title}`}");
+    expect(source).not.toContain("Clipboard failed — copy manually");
     expect(source).not.toContain('window.setTimeout(() => setCopyState("idle"), 2400)');
   });
 
