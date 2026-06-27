@@ -1,4 +1,4 @@
-export const PLUGIN_HUB_PR_NUMBER = 12227;
+export const PLUGIN_HUB_PR_NUMBER = 12536;
 export const PLUGIN_HUB_PR_URL = `https://github.com/runelite/plugin-hub/pull/${PLUGIN_HUB_PR_NUMBER}`;
 
 const PR_API_URL = `https://api.github.com/repos/runelite/plugin-hub/pulls/${PLUGIN_HUB_PR_NUMBER}`;
@@ -261,17 +261,25 @@ export function summarizePluginHubPublicHtml(html: string): PluginHubStatus | nu
   if (!html.trim()) return null;
   const text = decodeHtmlText(html);
   const lower = text.toLowerCase();
-  if (!lower.includes("add scapestack-sync#12227") && !lower.includes("add scapestack-sync #12227")) {
+  if (!lower.includes(`add scapestack-sync#${PLUGIN_HUB_PR_NUMBER}`) && !lower.includes(`add scapestack-sync #${PLUGIN_HUB_PR_NUMBER}`)) {
     return null;
   }
 
-  const state: PluginHubStatus["state"] = lower.includes(" merged ")
+  const state: PluginHubStatus["state"] = lower.includes(`plugin hub pr #${PLUGIN_HUB_PR_NUMBER} merged`)
     ? "merged"
-    : lower.includes(" closed ")
+    : lower.includes(`plugin hub pr #${PLUGIN_HUB_PR_NUMBER} closed`)
       ? "closed"
-      : lower.includes(" open ")
+      : lower.includes(`plugin hub pr #${PLUGIN_HUB_PR_NUMBER} open`)
         ? "open"
-        : "unknown";
+        : lower.includes("awaiting runelite maintainer review")
+          ? "open"
+        : lower.includes(" merged ")
+          ? "merged"
+          : lower.includes(" closed ")
+            ? "closed"
+            : lower.includes(" open ")
+              ? "open"
+              : "unknown";
   const reviewCopyIssues = reviewCopyIssuesFromBody(text);
   const reviewCopySummary = summarizeReviewCopy(text, reviewCopyIssues);
   const reviewCount = lower.includes("no reviews") ? 0 : null;
@@ -377,6 +385,13 @@ function reviewCopyIssuesFromBody(body: unknown): string[] {
     || normalized.includes("post https://www.scapestack.org/api/sync on every login")
     || normalized.includes("on every login + on quest-complete")) {
     issues.push("POST timing");
+  }
+  if (normalized.includes("shutdown interrupts")
+    || normalized.includes("thread interrupt")
+    || normalized.includes("interrupts the named daemon")
+    || normalized.includes("interrupts that worker")
+    || normalized.includes("interrupts it")) {
+    issues.push("shutdown thread interrupt");
   }
   if (!normalized.includes("sync on quest complete defaults off")
     || !normalized.includes("quest-complete sync is also gated behind auto-sync on login")) {

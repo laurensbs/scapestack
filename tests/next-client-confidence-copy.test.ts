@@ -32,20 +32,22 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('type="button"');
     expect(source).toContain("onClick={() => onBossOpen(rec.bossSlug!)}");
     expect(source).toContain("{actionLabel} <ArrowRight");
-    expect(source).toContain('target="_blank" rel="noopener noreferrer"');
+    expect(source).toContain('target="_blank"');
+    expect(source).toContain('rel="noopener noreferrer"');
     expect(source).not.toContain('role="button"');
     expect(source).not.toContain("tabIndex={0}");
     expect(source).not.toContain("div-as-button pattern");
     expect(source).not.toContain('"Open the tool"');
   });
 
-  it("makes missing plugin sync copy aware of Plugin Hub review state", () => {
+  it("keeps missing plugin sync copy on the sync-checker path", () => {
     expect(source).toContain("nextPluginHubCta(pluginHubState, hasAnyTracker)");
     expect(source).toContain('fetch("/api/plugin-hub/status")');
     expect(source).toContain("reviewCopyBlocked || pinBlocked || reviewBlocked");
     expect(source).toContain('? "review-blocked"');
-    expect(source).toContain('pluginHubState === "review-blocked"');
-    expect(source).toContain("#review-readiness");
+    expect(source).toContain("pluginSyncHref");
+    expect(source).toContain("#verify-sync");
+    expect(source).not.toContain("#review-readiness");
     expect(source).toContain("{pluginHubCta.cta}");
   });
 
@@ -66,6 +68,34 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('label: "Missing data"');
     expect(source).toContain("<RecommendationProofStrip rec={rec} />");
     expect(source).toContain("<RecommendationProofStrip rec={rec} compact />");
+  });
+
+  it("renders every recommendation as an actionable OSRS decision card", () => {
+    expect(source).toContain("function RecommendationDecisionSpec");
+    expect(source).toContain('data-testid={compact ? "next-row-decision-spec" : "next-headline-decision-spec"}');
+    expect(source).toContain("Expected session length");
+    expect(source).toContain("Confidence level");
+    expect(source).toContain("Required items/stats/quests");
+    expect(source).toContain("Missing data warning");
+    expect(source).toContain("Why recommended");
+    expect(source).toContain("OSRS item ID {visual.id}");
+    expect(source).toContain("recommendationVisualItem(rec)");
+    expect(source).toContain("recommendationNeeds(rec)");
+    expect(source).toContain("recommendationMissingDataWarning(rec)");
+    expect(source).toContain("<RecommendationDecisionSpec rec={rec} />");
+    expect(source).toContain("<RecommendationDecisionSpec rec={rec} compact />");
+  });
+
+  it("keeps recommendation cards valid by using explicit links instead of nested card anchors", () => {
+    expect(source).toContain("The article itself is not a fake button");
+    expect(source).toContain('aria-label={`${actionLabel}: ${rec.title}`}');
+    expect(source).toContain("primaryAction.external ? (");
+    expect(source).toContain("rel=\"noopener noreferrer\"");
+    expect(source).toContain("Open in DPS");
+    expect(source).not.toContain("<Link href={actionHref}>{card}</Link>");
+    expect(source).not.toContain("<a href={actionHref} target=\"_blank\" rel=\"noopener noreferrer\">{card}</a>");
+    expect(source).not.toContain("cursor-pointer transition-transform");
+    expect(source).not.toContain("cursor-pointer transition-colors");
   });
 
   it("shows an evidence ledger for the whole /next run", () => {

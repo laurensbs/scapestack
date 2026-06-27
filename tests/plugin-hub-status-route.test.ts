@@ -17,30 +17,30 @@ describe("plugin hub status API route", () => {
     vi.spyOn(global, "fetch").mockImplementation(async (url) => {
       const target = String(url);
 
-      if (target.endsWith("/pulls/12227")) {
+      if (target.endsWith("/pulls/12536")) {
         return jsonResponse({
           state: "open",
           draft: false,
           merged_at: null,
           updated_at: "2026-06-03T08:00:00Z",
           body: "Auto-sync defaults to on. The raw token never leaves the install. POST `https://www.scapestack.org/api/sync` on every login + on quest-complete chat messages.",
-          html_url: "https://github.com/runelite/plugin-hub/pull/12227",
+          html_url: "https://github.com/runelite/plugin-hub/pull/12536",
           head: { sha: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" }
         });
       }
-      if (target.endsWith("/pulls/12227/reviews")) {
+      if (target.endsWith("/pulls/12536/reviews")) {
         return jsonResponse([{ id: 1, state: "CHANGES_REQUESTED" }]);
       }
-      if (target.endsWith("/pulls/12227/files")) {
+      if (target.endsWith("/pulls/12536/files")) {
         return jsonResponse([
           {
             filename: "plugins/scapestack-sync",
-            patch: "@@ -0,0 +1,2 @@\n+repository=https://github.com/laurensbs/scapestack-runelite-plugin.git\n+commit=97b47fe5fe887e127492d8853fd1431b38a058f9"
+            patch: "@@ -0,0 +1,2 @@\n+repository=https://github.com/laurensbs/scapestack-runelite-plugin.git\n+commit=39931dc965e4e9f01bf549bdc192b85c4cd6c1fc"
           }
         ]);
       }
       if (target.endsWith("/commits/main")) {
-        return jsonResponse({ sha: "97b47fe5fe887e127492d8853fd1431b38a058f9" });
+        return jsonResponse({ sha: "39931dc965e4e9f01bf549bdc192b85c4cd6c1fc" });
       }
       if (target.endsWith("/commits/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/check-runs")) {
         return jsonResponse({
@@ -73,24 +73,24 @@ describe("plugin hub status API route", () => {
     vi.spyOn(global, "fetch").mockImplementation(async (url) => {
       const target = String(url);
 
-      if (target.endsWith("/pulls/12227")) {
+      if (target.endsWith("/pulls/12536")) {
         return jsonResponse({
           state: "closed",
           draft: false,
           merged_at: "2026-06-03T09:00:00Z",
           updated_at: "2026-06-03T09:00:00Z",
-          html_url: "https://github.com/runelite/plugin-hub/pull/12227",
+          html_url: "https://github.com/runelite/plugin-hub/pull/12536",
           head: { sha: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" }
         });
       }
-      if (target.endsWith("/pulls/12227/reviews")) {
+      if (target.endsWith("/pulls/12536/reviews")) {
         return jsonResponse([{ id: 1, state: "APPROVED" }]);
       }
-      if (target.endsWith("/pulls/12227/files")) {
+      if (target.endsWith("/pulls/12536/files")) {
         return jsonResponse([]);
       }
       if (target.endsWith("/commits/main")) {
-        return jsonResponse({ sha: "97b47fe5fe887e127492d8853fd1431b38a058f9" });
+        return jsonResponse({ sha: "39931dc965e4e9f01bf549bdc192b85c4cd6c1fc" });
       }
       if (target.endsWith("/commits/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/check-runs")) {
         return jsonResponse({

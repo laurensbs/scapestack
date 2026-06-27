@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { HOME_PRODUCT_FLOW, HOME_SYNC_COPY, homePluginReadinessPill, homeProductFlowForPluginReadiness, homeProductFlowForPluginState, homeSyncServicePill } from "@/lib/home-flow";
-import { LOCAL_SYNC_URL } from "@/lib/plugin-sync-actions";
+import { PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
 import type { PluginHubReviewReadiness } from "@/lib/plugin-hub-status";
 import type { SyncServiceStatus } from "@/lib/sync-service-readiness";
 
@@ -8,7 +8,7 @@ describe("homepage product flow", () => {
   it("keeps Scapestack positioned as bank plus RuneLite plus next planner", () => {
     expect(HOME_PRODUCT_FLOW.map((step) => step.href)).toEqual([
       "/bank",
-      "/plugin",
+      "/plugin#verify-sync",
       "/next"
     ]);
   });
@@ -16,13 +16,14 @@ describe("homepage product flow", () => {
   it("uses concrete pending-state CTAs instead of generic marketing or false exactness", () => {
     expect(HOME_PRODUCT_FLOW.map((step) => step.cta)).toEqual([
       "Organize bank",
-      "Track plugin review",
+      "Check sync",
       "Plan with current data"
     ]);
     expect(HOME_PRODUCT_FLOW[0].title).toBe("Paste Bank Memory or Bank Tags");
     expect(HOME_PRODUCT_FLOW[0].body).toContain("Bank Memory gives quantities and GP value");
     expect(HOME_PRODUCT_FLOW[0].body).toContain("Bank Tags still gives exact item IDs and layout");
-    expect(HOME_PRODUCT_FLOW[1].body).toContain("Plugin Hub review is pending");
+    expect(HOME_PRODUCT_FLOW[1].body).toContain("enter your OSRS name");
+    expect(HOME_PRODUCT_FLOW[1].body).toContain("scapestack.org");
     expect(HOME_PRODUCT_FLOW[2].body).toContain("labels guesswork clearly");
   });
 
@@ -36,10 +37,10 @@ describe("homepage product flow", () => {
     ]);
     expect(flow.map((step) => step.cta)).toEqual([
       "Organize bank",
-      "Install sync",
+      "Check sync",
       "Open planner"
     ]);
-    expect(flow[1].body).toContain("Plugin Hub install is live");
+    expect(flow[1].body).toContain("Enable Scapestack Sync in RuneLite");
     expect(flow[1].body).toContain("verify a payload before /next trusts quest, diary, collection-log and Slayer coverage labels");
     expect(flow[1].body).not.toContain("Add exact quests");
     expect(flow[2].title).toBe("Run /next with sync ready");
@@ -49,7 +50,7 @@ describe("homepage product flow", () => {
     expect(flow[2].href).not.toContain("source=plugin-sync");
   });
 
-  it("routes review-blocked Plugin Hub state to a reviewer checklist instead of player install", () => {
+  it("routes non-installable readiness to the sync checker instead of review copy", () => {
     const readiness: PluginHubReviewReadiness = {
       state: "review-blocked",
       tone: "warning",
@@ -61,15 +62,15 @@ describe("homepage product flow", () => {
     const flow = homeProductFlowForPluginReadiness(readiness);
 
     expect(flow[1]).toMatchObject({
-      title: "Fix RuneLite review handoff",
-      href: "/plugin#review-readiness",
-      cta: "Open review checklist"
+      title: "Check Scapestack Sync",
+      href: "/plugin#verify-sync",
+      cta: "Check sync"
     });
-    expect(flow[1].body).toContain("normal players should stay on web recommendations");
+    expect(flow[1].body).toContain("confirm RuneLite posted to scapestack.org");
     expect(flow[2].href).toBe("/next");
     expect(homePluginReadinessPill(readiness)).toMatchObject({
-      label: "Plugin review handoff needs fixes",
-      href: "/plugin#review-readiness",
+      label: "Check Scapestack Sync",
+      href: "/plugin#verify-sync",
       playerInstallReady: false
     });
   });
@@ -85,10 +86,10 @@ describe("homepage product flow", () => {
     };
     const flow = homeProductFlowForPluginReadiness(readiness);
 
-    expect(flow[1].cta).toBe("Install sync");
+    expect(flow[1].cta).toBe("Check sync");
     expect(flow[1].href).toBe("/plugin#verify-sync");
     expect(homePluginReadinessPill(readiness)).toMatchObject({
-      label: "Plugin Hub install ready",
+      label: "Scapestack Sync ready",
       href: "/plugin#verify-sync",
       playerInstallReady: true
     });
@@ -97,8 +98,8 @@ describe("homepage product flow", () => {
   it("exposes the local RuneLite sync URL on the homepage flow", () => {
     expect(HOME_SYNC_COPY).toEqual({
       label: "Copy sync URL",
-      value: LOCAL_SYNC_URL,
-      helper: "Paste this into the Scapestack Sync plugin while running the local app. It still sends only opt-in account-progress signals, not bank data."
+      value: PUBLIC_SYNC_URL,
+      helper: "Paste this into Scapestack Sync if RuneLite still has an old endpoint. It sends only opt-in account-progress signals, not bank data."
     });
   });
 

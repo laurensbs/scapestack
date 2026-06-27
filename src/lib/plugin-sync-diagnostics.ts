@@ -111,12 +111,12 @@ export function actionQueueForSyncedPlayer(player: SyncedPlayer, context: Plugin
   if (health === "outdated") {
     return [
       {
-        title: "Update the local plugin",
-        body: `Payload came from v${player.pluginVersion || "unknown"}; rebuild or update before trusting new /next fields.`,
+        title: "Update Scapestack Sync",
+        body: `Payload came from v${player.pluginVersion || "unknown"}; update the RuneLite plugin before trusting new /next fields.`,
         proof: `Scapestack expects v${CURRENT_PLUGIN_VERSION}.`,
         tone: "danger",
-        copy: "cd plugin && ./gradlew runClient",
-        actionLabel: "Copy dev run command"
+        copy: syncUrls.sync,
+        actionLabel: "Copy sync URL"
       },
       {
         title: "Re-sync after RuneLite restarts",
@@ -236,9 +236,9 @@ export function diagnosticForMissingSync(rsn: string, context: PluginSyncDiagnos
     title: `No plugin sync found for ${displayRsn}`,
     body: "Scapestack can still use public data, but /next is guessing quests, diaries, collection log and live Slayer state until the RuneLite plugin lands a payload.",
     steps: [
-      "After Plugin Hub is live, install Scapestack Sync; if you are testing before merge, side-load the local plugin.",
+      "Open RuneLite and make sure Scapestack Sync is enabled for this account.",
       "Enable “Auto-sync on login” in RuneLite settings.",
-      "Confirm the plugin Sync URL points at the same Scapestack environment.",
+      "Confirm the plugin Sync URL points at https://www.scapestack.org/api/sync.",
       "Wait for the in-game “Scapestack sync started” and “synced” chat lines.",
       "Re-run this checker with the exact same RSN spelling."
     ],
@@ -369,12 +369,12 @@ function outdatedDiagnostic(player: SyncedPlayer): PluginSyncDiagnostic {
     title: "Plugin update needed",
     body: `This payload came from v${player.pluginVersion || "unknown"}, while Scapestack expects v${CURRENT_PLUGIN_VERSION}. Newer fields may be missing or interpreted incorrectly.`,
     steps: [
-      "Update the Scapestack Sync plugin or rebuild the local developer plugin.",
+      "Update Scapestack Sync in RuneLite.",
       "Restart RuneLite so the new jar is loaded.",
       "Toggle “Force claim retry” once if the next sync is rejected.",
       "Re-run this checker before trusting /next recommendations."
     ],
-    primaryAction: { label: "Copy dev run command", copy: "cd plugin && ./gradlew runClient" }
+    primaryAction: { label: "Copy sync URL", copy: "https://www.scapestack.org/api/sync" }
   };
 }
 

@@ -9,9 +9,15 @@ import {
   BRAND_IMAGE_FONT_FAMILY,
   BRAND_LEGACY_REDIRECT_ROUTES,
   BRAND_NAME,
+  BRAND_POSITIONING,
   BRAND_PUBLIC_ROUTES,
+  BRAND_SECONDARY_TAGLINE,
+  BRAND_STATE_SYSTEM,
   BRAND_SHORTCUTS,
+  BRAND_TAGLINE,
   BRAND_THEME_COLOR,
+  BRAND_UI_SURFACES,
+  BRAND_VOICE_RULES,
   brandUrl
 } from "@/lib/brand";
 
@@ -27,6 +33,32 @@ describe("Scapestack branding", () => {
       "/next",
       "/plugin"
     ]);
+  });
+
+  it("positions Scapestack as a tactical OSRS decision engine", () => {
+    expect(BRAND_TAGLINE).toBe("Know what to do next in OSRS");
+    expect(BRAND_SECONDARY_TAGLINE).toBe("Your bank, stats and RuneLite sync turned into clear next actions.");
+    expect(BRAND_DESCRIPTION).toContain("tactical OSRS decision engine");
+    expect(BRAND_POSITIONING.promise).toBe("From messy bank to next best action.");
+    expect(BRAND_POSITIONING.feeling).toContain("RuneLite plugin precision");
+    expect(BRAND_POSITIONING.antiPattern).toContain("PvM prep room");
+    expect(BRAND_VOICE_RULES.join(" ")).toContain("practical OSRS player language");
+    expect(BRAND_VOICE_RULES.join(" ")).not.toContain("AI-powered");
+  });
+
+  it("defines a complete page and state UI system", () => {
+    expect(BRAND_UI_SURFACES.map((surface) => surface.page)).toEqual([
+      "Homepage",
+      "/bank",
+      "/next",
+      "/dps",
+      "/plugin",
+      "Profile"
+    ]);
+    expect(BRAND_UI_SURFACES.map((surface) => surface.primaryAction).join(" ")).toContain("copy plan");
+    expect(BRAND_UI_SURFACES.map((surface) => surface.requiredFeeling).join(" ")).toContain("item IDs");
+    expect(BRAND_STATE_SYSTEM.map((state) => state.state)).toEqual(["Empty", "Loading", "Error", "Mobile"]);
+    expect(BRAND_STATE_SYSTEM.map((state) => state.copy).join(" ")).toContain("no hover-only affordances");
   });
 
   it("publishes crawlable canonical routes without indexing private surfaces", () => {

@@ -46,7 +46,7 @@ describe("bank action loop", () => {
     expect(steps[4].body).not.toContain("exact plugin data is not assumed");
   });
 
-  it("does not pretend there are tip blockers or live Plugin Hub install while review is pending", () => {
+  it("does not pretend there are tip blockers or verified sync before a payload exists", () => {
     const steps = buildBankActionLoop({
       tabCount: 1,
       itemCount: 3,
@@ -61,15 +61,15 @@ describe("bank action loop", () => {
       proof: "0 blocking cleanup tips"
     });
     expect(steps[4]).toMatchObject({
-      title: "Add local-dev sync",
+      title: "Check Scapestack Sync",
       state: "optional",
-      cta: "Open local setup",
-      proof: "PR open · local dev path for testers"
+      cta: "Check sync",
+      proof: "Sync checker ready · payload verification required"
     });
-    expect(steps[4].body).toContain("Plugin Hub review is still pending");
+    expect(steps[4].body).toContain("confirm RuneLite posts to scapestack.org");
   });
 
-  it("turns review-blocked Plugin Hub state into an explicit checklist action", () => {
+  it("turns review-blocked Plugin Hub state into a sync-check action", () => {
     const steps = buildBankActionLoop({
       tabCount: 8,
       itemCount: 61,
@@ -79,18 +79,17 @@ describe("bank action loop", () => {
     });
 
     expect(steps[4]).toMatchObject({
-      title: "Wait for review fixes",
-      cta: "Open review checklist",
-      destination: "/plugin#review-readiness",
-      proof: "Plugin Hub review blocked · web planner ready",
-      state: "attention"
+      title: "Check Scapestack Sync",
+      cta: "Check sync",
+      destination: "/plugin#verify-sync",
+      proof: "Sync checker ready · web planner ready",
+      state: "optional"
     });
-    expect(steps[4].body).toContain("submission handoff is not clean yet");
-    expect(steps[4].body).toContain("bank-aware web planning");
+    expect(steps[4].body).toContain("confirm RuneLite posts to scapestack.org");
     expect(steps[4].body).not.toContain("Plugin Hub review is still pending");
   });
 
-  it("does not advertise install when Plugin Hub status is unavailable or closed", () => {
+  it("keeps closed or unavailable status on the sync checker path", () => {
     const unknown = buildBankActionLoop({
       tabCount: 1,
       itemCount: 3,
@@ -107,16 +106,16 @@ describe("bank action loop", () => {
     });
 
     expect(unknown[4]).toMatchObject({
-      title: "Check sync status first",
-      destination: "/plugin#review-readiness",
-      proof: "Plugin Hub status unavailable",
+      title: "Check Scapestack Sync",
+      destination: "/plugin#verify-sync",
+      proof: "Sync status unknown · checker available",
       state: "optional"
     });
     expect(closed[4]).toMatchObject({
-      title: "Plugin submission paused",
-      destination: "/plugin#review-readiness",
-      proof: "Plugin Hub submission closed",
-      state: "attention"
+      title: "Check Scapestack Sync",
+      destination: "/plugin#verify-sync",
+      proof: "Sync check optional · web planner ready",
+      state: "optional"
     });
     expect(unknown[4].body).not.toContain("Install Scapestack Sync from RuneLite Plugin Hub");
     expect(closed[4].body).not.toContain("Install Scapestack Sync from RuneLite Plugin Hub");
@@ -132,10 +131,10 @@ describe("bank action loop", () => {
     });
 
     expect(steps[4]).toMatchObject({
-      title: "Install RuneLite sync",
-      cta: "Install from Plugin Hub",
-      destination: "RuneLite Plugin Hub",
-      proof: "Plugin Hub live · payload verification still required",
+      title: "Verify RuneLite sync",
+      cta: "Check sync",
+      destination: "/plugin#verify-sync",
+      proof: "RuneLite sync · payload verification required",
       state: "ready"
     });
     expect(steps[4].body).toContain("label account coverage as verified, partial or missing");
@@ -154,12 +153,13 @@ describe("bank action loop", () => {
     expect(source).toContain("pluginHubState");
   });
 
-  it("routes bank review-blocked sync actions to the review-readiness anchor", () => {
+  it("routes bank sync actions to the verify-sync anchor", () => {
     const source = readFileSync(join(process.cwd(), "src/components/bank-result.tsx"), "utf8");
 
-    expect(source).toContain('return `/plugin?${params.toString()}#review-readiness`;');
-    expect(source).toContain("onPluginReview={() => openBankHandoffRoute(pluginReviewHref)}");
-    expect(source).toContain('step.destination === "/plugin#review-readiness" ? onPluginReview : onPlugin');
+    expect(source).toContain('return `/plugin?${params.toString()}#verify-sync`;');
+    expect(source).toContain("onPlugin={() => openBankHandoffRoute(pluginSyncHref)}");
+    expect(source).toContain('if (step.id === "sync") return onPlugin;');
+    expect(source).not.toContain("onPluginReview");
   });
 
   it("does not silently navigate when browser storage blocks bank handoff", () => {

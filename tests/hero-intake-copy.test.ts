@@ -5,22 +5,27 @@ import { describe, expect, it } from "vitest";
 const source = readFileSync(join(process.cwd(), "src/components/hero-intake.tsx"), "utf8");
 
 describe("hero intake copy and routing", () => {
-  it("marks RSN-only homepage runs as bankless to avoid stale session bank context", () => {
+  it("marks RSN-only homepage runs as bankless while allowing bank-only starts", () => {
     expect(source).toContain("const hasBankPaste = showBank && Boolean(bank.trim())");
-    expect(source).toContain('router.push(`/next?rsn=${encodeURIComponent(trimmed)}${hasBankPaste ? "" : "&bank=none"}`)');
+    expect(source).toContain("const canSubmit = Boolean(rsn.trim() || hasBankPaste)");
+    expect(source).toContain('if (!hasBankPaste) params.set("bank", "none");');
+    expect(source).toContain("router.push(`/next?${params.toString()}`)");
   });
 
-  it("labels homepage actions by data source instead of generic generation", () => {
-    expect(source).toContain('hasBankPaste ? "Plan with bank" : "Plan from stats"');
-    expect(source).toContain('aria-label={hasBankPaste ? "Open /next planner with RSN and browser-only bank paste" : "Open /next planner with RSN and Hiscores only"}');
-    expect(source).toContain("Add browser-only bank paste");
+  it("uses the three homepage CTAs requested by the product prompt", () => {
+    expect(source).toContain("Plan my next action");
+    expect(source).toContain("Paste bank");
+    expect(source).toContain("Set up RuneLite sync");
+    expect(source).toContain('href="/plugin#verify-sync"');
+    expect(source).toContain("Open /next planner with browser-only bank paste");
     expect(source).toContain("browser-only, sharper gear advice");
   });
 
   it("explains why the hero planner CTA is disabled", () => {
     expect(source).toContain('aria-describedby="hero-plan-disabled-help"');
     expect(source).toContain('id="hero-plan-disabled-help"');
-    expect(source).toContain("Type an OSRS name to unlock the planner.");
+    expect(source).toContain("Type an OSRS name or paste a bank to unlock the planner.");
+    expect(source).toContain("Add RSN for KC and stat checks.");
     expect(source).toContain("ignore stale bank handoff data");
   });
 

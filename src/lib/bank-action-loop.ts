@@ -99,11 +99,11 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
     return {
       id: "sync",
       label: "05",
-      title: "Install RuneLite sync",
-      body: "Install Scapestack Sync from RuneLite Plugin Hub, then verify the payload so recommendations can label account coverage as verified, partial or missing.",
-      cta: "Install from Plugin Hub",
-      destination: "RuneLite Plugin Hub",
-      proof: "Plugin Hub live · payload verification still required",
+      title: "Verify RuneLite sync",
+      body: "Enable Scapestack Sync in RuneLite, then verify the payload so recommendations can label account coverage as verified, partial or missing.",
+      cta: "Check sync",
+      destination: "/plugin#verify-sync",
+      proof: "RuneLite sync · payload verification required",
       state: "ready"
     };
   }
@@ -112,12 +112,12 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
     return {
       id: "sync",
       label: "05",
-      title: "Wait for review fixes",
-      body: "The RuneLite submission handoff is not clean yet. Keep using bank-aware web planning; testers can inspect the review checklist before side-loading.",
-      cta: "Open review checklist",
-      destination: "/plugin#review-readiness",
-      proof: "Plugin Hub review blocked · web planner ready",
-      state: "attention"
+      title: "Check Scapestack Sync",
+      body: "Open the sync checker, confirm RuneLite posts to scapestack.org, and verify the same RSN before trusting quest, diary, CL and Slayer coverage.",
+      cta: "Check sync",
+      destination: "/plugin#verify-sync",
+      proof: "Sync checker ready · web planner ready",
+      state: "optional"
     };
   }
 
@@ -125,12 +125,12 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
     return {
       id: "sync",
       label: "05",
-      title: "Plugin submission paused",
-      body: "Do not send normal players to Plugin Hub while the submission is closed. Use bank paste and public data until the upstream path is restored.",
-      cta: "Open plugin status",
-      destination: "/plugin#review-readiness",
-      proof: "Plugin Hub submission closed",
-      state: "attention"
+      title: "Check Scapestack Sync",
+      body: "Use this bank in /next now. When RuneLite sync is available for the account, verify the same RSN before trusting private coverage.",
+      cta: "Check sync",
+      destination: "/plugin#verify-sync",
+      proof: "Sync check optional · web planner ready",
+      state: "optional"
     };
   }
 
@@ -138,11 +138,11 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
     return {
       id: "sync",
       label: "05",
-      title: "Check sync status first",
-      body: "GitHub status is unavailable, so Plugin Hub install is unproven. Use this bank in /next now and check the plugin page before setup.",
-      cta: "Open plugin status",
-      destination: "/plugin#review-readiness",
-      proof: "Plugin Hub status unavailable",
+      title: "Check Scapestack Sync",
+      body: "Use this bank in /next now, or open the sync checker and verify RuneLite data for the same RSN.",
+      cta: "Check sync",
+      destination: "/plugin#verify-sync",
+      proof: "Sync status unknown · checker available",
       state: "optional"
     };
   }
@@ -150,11 +150,11 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
   return {
     id: "sync",
     label: "05",
-    title: "Add local-dev sync",
-    body: "Plugin Hub review is still pending. Normal players can wait; testers can use the local dev plugin path and verify the payload manually.",
-    cta: "Open local setup",
+    title: "Check Scapestack Sync",
+    body: "Open the sync checker, confirm RuneLite posts to scapestack.org, and verify the same RSN before trusting quest, diary, CL and Slayer coverage.",
+    cta: "Check sync",
     destination: "/plugin#verify-sync",
-    proof: "PR open · local dev path for testers",
+    proof: "Sync checker ready · payload verification required",
     state: "optional"
   };
 }

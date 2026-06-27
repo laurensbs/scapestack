@@ -64,14 +64,14 @@ describe("plugin release check", () => {
     const dirty = helper.summarizeStandaloneStatus([
       " M README.md",
       "?? src/main/java/app/scapestack/runelite/SyncGate.java"
-    ].join("\n"), "97b47fe5fe887e127492d8853fd1431b38a058f9", "/tmp/scapestack-runelite-plugin");
-    const clean = helper.summarizeStandaloneStatus("", "97b47fe5fe887e127492d8853fd1431b38a058f9", "/tmp/scapestack-runelite-plugin");
+    ].join("\n"), "39931dc965e4e9f01bf549bdc192b85c4cd6c1fc", "/tmp/scapestack-runelite-plugin");
+    const clean = helper.summarizeStandaloneStatus("", "39931dc965e4e9f01bf549bdc192b85c4cd6c1fc", "/tmp/scapestack-runelite-plugin");
 
     expect(dirty).toMatchObject({ count: 2, dirty: true });
     expect(dirty.summary).toContain("2 uncommitted paths ready to commit");
-    expect(dirty.summary).toContain("97b47fe");
+    expect(dirty.summary).toContain("39931dc");
     expect(clean).toMatchObject({ count: 0, dirty: false });
-    expect(clean.summary).toContain("is clean at head 97b47fe");
+    expect(clean.summary).toContain("is clean at head 39931dc");
   });
 
   it("documents the reviewer packet handoff in publishing docs", () => {
@@ -156,11 +156,13 @@ describe("plugin release check", () => {
       "Auto-sync defaults to on.",
       "The raw token never leaves the install.",
       "POST `https://www.scapestack.org/api/sync` on every login + on quest-complete chat messages.",
+      "Shutdown interrupts the named daemon sync worker.",
       "No IP, no machine fingerprint, no chat-log content."
     ].join("\n"))).toEqual([
       "auto-sync defaults",
       "token transport",
       "POST timing",
+      "shutdown thread interrupt",
       "quest-complete opt-in gate",
       "Slayer payload",
       "bank/inventory/equipment exclusion"
@@ -172,8 +174,19 @@ describe("plugin release check", () => {
       "Quest-complete sync is also gated behind Auto-sync on login.",
       "The raw install token is sent only as an Authorization bearer; Scapestack stores sha256(token).",
       "Slayer task state is included after opt-in.",
+      "Shutdown cancels the active OkHttp call while the background worker returns normally.",
       "No bank, inventory or equipment data is sent."
     ].join("\n"))).toEqual([]);
+
+    expect(helper.reviewCopyIssuesFromBody([
+      "Live PR body appears aligned with current consent, token, data and web-handoff wording.",
+      "Shutdown interrupts the named daemon sync worker.",
+      "Auto-sync on login defaults off.",
+      "Sync on quest complete defaults off.",
+      "Quest-complete sync is also gated behind Auto-sync on login.",
+      "Slayer task state is included after opt-in.",
+      "No bank, inventory or equipment data is sent."
+    ].join("\n"))).toContain("shutdown thread interrupt");
   });
 
   it("documents live PR body as a hard release gate", () => {
@@ -204,13 +217,15 @@ describe("plugin release check", () => {
 
     const status = helper.publicPrStatusFromHtml(`
       <main>
-        <h1>Add scapestack-sync#12227</h1>
+        <h1>Add scapestack-sync#12536</h1>
         <span>Open</span>
         <p>Auto-sync defaults to on.</p>
         <p>The raw token never leaves the install.</p>
         <p>POST https://www.scapestack.org/api/sync on every login + on quest-complete chat messages.</p>
+        <p>Live PR body appears aligned with current consent, token, data and web-handoff wording.</p>
+        <p>Shutdown interrupts the named daemon sync worker.</p>
         <p>No IP, no machine fingerprint, no chat-log content.</p>
-        <a href="https://github.com/laurensbs/scapestack-runelite-plugin/tree/97b47fe5fe887e127492d8853fd1431b38a058f9">pin</a>
+        <a href="https://github.com/laurensbs/scapestack-runelite-plugin/tree/39931dc965e4e9f01bf549bdc192b85c4cd6c1fc">pin</a>
         <p>This plugin requires a review from a Plugin Hub maintainer.</p>
         <p>No reviews</p>
       </main>
@@ -220,11 +235,12 @@ describe("plugin release check", () => {
       state: "open",
       reviewCount: 0,
       maintainerGate: true,
-      submittedCommit: "97b47fe5fe887e127492d8853fd1431b38a058f9",
+      submittedCommit: "39931dc965e4e9f01bf549bdc192b85c4cd6c1fc",
       reviewCopyIssues: [
         "auto-sync defaults",
         "token transport",
         "POST timing",
+        "shutdown thread interrupt",
         "quest-complete opt-in gate",
         "Slayer payload",
         "bank/inventory/equipment exclusion"

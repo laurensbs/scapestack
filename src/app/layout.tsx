@@ -58,7 +58,7 @@ export const metadata: Metadata = {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: `${BRAND_NAME} OSRS account copilot`
+        alt: `${BRAND_NAME} OSRS decision engine`
       }
     ]
   },

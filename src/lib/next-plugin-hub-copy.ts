@@ -17,39 +17,21 @@ export function nextPluginHubCta(state: NextPluginHubState, hasExternalTracker: 
     };
   }
 
-  if (state === "closed") {
+  if (state === "closed" || state === "review-blocked" || state === "unknown") {
     return {
-      title: "RuneLite sync submission paused",
-      body: "The Plugin Hub submission is closed right now. Keep using bank, Hiscores and public trackers; developer install remains available for testers.",
-      cta: "Open plugin status →"
-    };
-  }
-
-  if (state === "review-blocked") {
-    return {
-      title: "RuneLite sync review handoff blocked",
+      title: "Check Scapestack Sync",
       body: hasExternalTracker
-        ? "External trackers helped this run, but the Plugin Hub PR still needs reviewer-facing fixes before normal players should install. Keep planning with public data and bank context; maintainers should open the review checklist."
-        : "This run is partly inferred. Plugin Hub review is blocked by PR handoff copy or pin state, so normal players should keep using web recommendations while the reviewer checklist is fixed.",
-      cta: "Open review checklist →"
-    };
-  }
-
-  if (state === "unknown") {
-    return {
-      title: "RuneLite sync status unavailable",
-      body: hasExternalTracker
-        ? "External trackers helped this run, but Scapestack cannot prove the Plugin Hub state right now. Keep planning with current data and verify RuneLite sync status from the plugin page before setup."
-        : "This run is partly inferred. Scapestack cannot prove the Plugin Hub state right now, so keep planning with current data and check the plugin page before setup.",
-      cta: "Open plugin status →"
+        ? "External trackers helped this run. To upgrade the advice, open the sync checker, confirm RuneLite posts to scapestack.org, and verify this same RSN."
+        : "This run is partly inferred. Open the sync checker when you want Scapestack to verify quests, diaries, collection-log items and Slayer state for this RSN.",
+      cta: "Check sync →"
     };
   }
 
   return {
-    title: "RuneLite sync pending review",
+    title: "Check Scapestack Sync",
     body: hasExternalTracker
-      ? "External trackers helped this run. Plugin Hub review is still pending, so verified RuneLite coverage labels are for testers via local setup only."
-      : "This run is partly inferred. Plugin Hub review is still pending; normal players can keep planning with current data while testers use local setup.",
-    cta: "Track plugin review →"
+      ? "External trackers helped this run. A verified Scapestack Sync payload can make the next-action list account-aware instead of inferred."
+      : "This run is partly inferred. Verify Scapestack Sync for the same RSN when you want account-aware next actions.",
+    cta: "Check sync →"
   };
 }

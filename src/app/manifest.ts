@@ -3,6 +3,7 @@ import {
   BRAND_BACKGROUND_COLOR,
   BRAND_DESCRIPTION,
   BRAND_NAME,
+  BRAND_TAGLINE,
   BRAND_SHORT_NAME,
   BRAND_SHORTCUTS,
   BRAND_THEME_COLOR
@@ -10,7 +11,7 @@ import {
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: `${BRAND_NAME} · Smart OSRS copilot`,
+    name: `${BRAND_NAME} · ${BRAND_TAGLINE}`,
     short_name: BRAND_SHORT_NAME,
     description: BRAND_DESCRIPTION,
     start_url: "/next",
