@@ -52,8 +52,8 @@ export function HeroIntake() {
         className={cn(
           "grid gap-2 rounded-2xl border border-[var(--color-border-strong)]/85 bg-[var(--color-panel)]/88 p-2",
           "shadow-[0_18px_42px_-30px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.04)]",
-          "transition-colors duration-200 ease-out focus-within:border-[var(--color-accent)]/28",
-          "focus-within:bg-[var(--color-panel-2)]/62 focus-within:shadow-[0_20px_46px_-32px_rgba(0,0,0,0.92),0_0_0_2px_rgba(230,165,47,0.07),inset_0_1px_0_rgba(255,255,255,0.05)]",
+          "transition-colors duration-200 ease-out focus-within:border-[var(--color-accent)]/18",
+          "focus-within:bg-[var(--color-panel-2)]/58 focus-within:shadow-[0_20px_46px_-32px_rgba(0,0,0,0.92),0_0_0_1px_rgba(230,165,47,0.055),inset_0_1px_0_rgba(255,255,255,0.05)]",
           "sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-1.5"
         )}
       >
@@ -70,13 +70,12 @@ export function HeroIntake() {
             placeholder="Type your OSRS name"
             maxLength={12}
             autoComplete="off"
-            autoFocus
             spellCheck={false}
             aria-describedby="hero-plan-disabled-help"
             className={cn(
               "h-13 w-full min-w-0 rounded-xl border border-transparent bg-[#0B0D11]/72 px-3.5 outline-none",
               "text-[16px] font-semibold text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]/72",
-              "transition-all duration-200 focus:bg-[#0B0D11] focus:shadow-[inset_0_0_0_1px_rgba(230,165,47,0.18)]",
+              "transition-all duration-200 focus:bg-[#0B0D11] focus:shadow-[inset_0_0_0_1px_rgba(230,165,47,0.10)]",
               "sm:h-12 sm:text-[15px]"
             )}
           />

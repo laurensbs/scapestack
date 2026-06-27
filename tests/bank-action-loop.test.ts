@@ -29,7 +29,7 @@ describe("bank action loop", () => {
     expect(steps[2].body).toContain("this exact bank");
     expect(steps[2].body).toContain("which bosses your current weapons can actually kill");
     expect(steps[3].body).toContain("RuneLite sync");
-    expect(steps[3].body).toContain("only after the account payload is verified");
+    expect(steps[3].body).toContain("once this same RSN is found");
     expect(steps[3].body).not.toContain("combine it with RuneLite sync for exact account-state recommendations");
     expect(steps[3].body).not.toContain("exact account-state recommendations");
     expect(steps[3]).toMatchObject({
@@ -37,16 +37,16 @@ describe("bank action loop", () => {
       proof: "Carries current bank item IDs through session handoff"
     });
     expect(steps[4]).toMatchObject({
-      title: "Verify RSN sync",
-      cta: "Verify RSN sync",
+      title: "Check RSN sync",
+      cta: "Check RSN sync",
       destination: "/plugin#verify-sync",
       state: "ready"
     });
-    expect(steps[4].body).toContain("verified plugin coverage is not assumed");
+    expect(steps[4].body).toContain("check the same name");
     expect(steps[4].body).not.toContain("exact plugin data is not assumed");
   });
 
-  it("does not pretend there are tip blockers or verified sync before a payload exists", () => {
+  it("does not pretend there are tip blockers or sync before the same RSN is checked", () => {
     const steps = buildBankActionLoop({
       tabCount: 1,
       itemCount: 3,
@@ -64,7 +64,7 @@ describe("bank action loop", () => {
       title: "Check Scapestack Sync",
       state: "optional",
       cta: "Check sync",
-      proof: "Sync checker ready · payload verification required"
+      proof: "Sync checker ready · same RSN required"
     });
     expect(steps[4].body).toContain("confirm RuneLite posts to scapestack.org");
   });
@@ -121,7 +121,7 @@ describe("bank action loop", () => {
     expect(closed[4].body).not.toContain("Install Scapestack Sync from RuneLite Plugin Hub");
   });
 
-  it("switches to Plugin Hub install once the upstream PR is merged", () => {
+  it("switches to same-RSN sync copy once the upstream path is ready", () => {
     const steps = buildBankActionLoop({
       tabCount: 8,
       itemCount: 61,
@@ -131,13 +131,13 @@ describe("bank action loop", () => {
     });
 
     expect(steps[4]).toMatchObject({
-      title: "Verify RuneLite sync",
+      title: "Check RuneLite sync",
       cta: "Check sync",
       destination: "/plugin#verify-sync",
-      proof: "RuneLite sync · payload verification required",
+      proof: "RuneLite sync · same RSN required",
       state: "ready"
     });
-    expect(steps[4].body).toContain("label account coverage as verified, partial or missing");
+    expect(steps[4].body).toContain("avoid finished progress");
     expect(steps[4].body).not.toContain("use exact account state");
   });
 

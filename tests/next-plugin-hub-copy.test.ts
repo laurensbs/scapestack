@@ -5,30 +5,32 @@ describe("next plugin hub CTA copy", () => {
   it("routes open state to the Scapestack Sync checker instead of review tracking", () => {
     const cta = nextPluginHubCta("open", false);
 
-    expect(cta.title).toBe("Check Scapestack Sync");
-    expect(cta.body).toContain("Verify Scapestack Sync");
-    expect(cta.body).toContain("account-aware next actions");
-    expect(cta.cta).toBe("Check sync →");
+    expect(cta.title).toBe("Add Scapestack Sync");
+    expect(cta.body).toContain("works from public stats");
+    expect(cta.body).toContain("completed quests, diaries, collection log and Slayer");
+    expect(cta.cta).toBe("Open sync →");
     expect(cta.body).not.toContain("Plugin Hub review");
+    expect(cta.body).not.toContain("payload");
     expect(cta.cta).not.toContain("review");
   });
 
-  it("acknowledges external tracker help without claiming exact plugin sync", () => {
+  it("acknowledges external tracker help without technical payload copy", () => {
     const cta = nextPluginHubCta("open", true);
 
     expect(cta.body).toContain("External trackers helped");
-    expect(cta.body).toContain("verified Scapestack Sync payload");
-    expect(cta.body).not.toContain("exact in-client");
+    expect(cta.body).toContain("avoid finished quests");
+    expect(cta.body).toContain("Slayer mistakes");
+    expect(cta.body).not.toContain("payload");
     expect(cta.body).not.toContain("exact plugin sync");
   });
 
   it("turns blocked, closed and unknown states into the same sync-check path", () => {
     for (const state of ["review-blocked", "closed", "unknown"] as const) {
       const cta = nextPluginHubCta(state, false);
-      expect(cta.title).toBe("Check Scapestack Sync");
-      expect(cta.body).toContain("Open the sync checker");
-      expect(cta.body).toContain("quests, diaries, collection-log items and Slayer state");
-      expect(cta.cta).toBe("Check sync →");
+      expect(cta.title).toBe("Add Scapestack Sync");
+      expect(cta.body).toContain("This route works from public stats");
+      expect(cta.body).toContain("completed quests");
+      expect(cta.cta).toBe("Open sync →");
       expect(cta.body).not.toContain("reviewer checklist");
       expect(cta.body).not.toContain("Plugin Hub PR");
     }
@@ -38,26 +40,27 @@ describe("next plugin hub CTA copy", () => {
     const cta = nextPluginHubCta("review-blocked", true);
 
     expect(cta.body).toContain("External trackers helped");
-    expect(cta.body).toContain("confirm RuneLite posts to scapestack.org");
-    expect(cta.body).toContain("verify this same RSN");
+    expect(cta.body).toContain("Sync the same RSN");
+    expect(cta.body).toContain("finished quests");
     expect(cta.body).not.toContain("reviewer-facing fixes");
   });
 
-  it("switches to install-and-verify copy after Plugin Hub merge", () => {
+  it("keeps merged state player-facing and free of Plugin Hub copy", () => {
     const cta = nextPluginHubCta("merged", false);
 
-    expect(cta.title).toBe("Connect RuneLite sync");
-    expect(cta.body).toContain("Install Scapestack Sync from RuneLite Plugin Hub");
-    expect(cta.body).toContain("verify a payload before trusting those account-state coverage labels");
-    expect(cta.body).not.toContain("treating those account-state checks as exact");
-    expect(cta.cta).toBe("Install and verify →");
+    expect(cta.title).toBe("Add Scapestack Sync");
+    expect(cta.body).toContain("completed quests, diaries, collection log and Slayer");
+    expect(cta.body).not.toContain("Plugin Hub");
+    expect(cta.body).not.toContain("payload");
+    expect(cta.cta).toBe("Open sync →");
   });
 
-  it("requires a verified payload even when external trackers helped", () => {
+  it("keeps tracker-assisted merged state about avoiding finished progress", () => {
     const cta = nextPluginHubCta("merged", true);
 
-    expect(cta.body).toContain("After RuneLite posts a verified payload");
-    expect(cta.body).toContain("/next can label quest, diary, collection-log and Slayer coverage as verified, partial or missing");
-    expect(cta.body).not.toContain("/next can mark quest, diary, collection-log and Slayer state exact");
+    expect(cta.body).toContain("External trackers helped");
+    expect(cta.body).toContain("avoid finished quests");
+    expect(cta.body).not.toContain("coverage");
+    expect(cta.body).not.toContain("payload");
   });
 });

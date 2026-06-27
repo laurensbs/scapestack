@@ -1,5 +1,15 @@
 import Link from "next/link";
-import { ArrowRight, Clock3, Coins, Crosshair, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  Clock3,
+  Coins,
+  Crosshair,
+  ListChecks,
+  Package,
+  ShieldCheck,
+  Sparkles,
+  Target
+} from "lucide-react";
 import { BRAND_PLAYER_PROMPTS, BRAND_UI_SURFACES } from "@/lib/brand";
 
 const SURFACE_LINKS: Record<string, string> = {
@@ -10,6 +20,8 @@ const SURFACE_LINKS: Record<string, string> = {
   Unlocks: "/goals",
   Sync: "/plugin"
 };
+
+const PROMPT_ICONS = [Clock3, Coins, Crosshair, ListChecks, Target, Sparkles, Package, ShieldCheck] as const;
 
 export function ScapestackCommandSystem() {
   return (
@@ -29,17 +41,17 @@ export function ScapestackCommandSystem() {
               id="command-system-title"
               className="max-w-xl text-[30px] font-black leading-[1.02] tracking-[-0.04em] text-[var(--color-text)] sm:text-[44px]"
             >
-              Tell Scapestack what kind of night this is.
+              Tell Scapestack what you feel like doing.
             </h2>
             <p className="mt-4 max-w-xl text-[14.5px] leading-relaxed text-[var(--color-text-dim)]">
-              Bossing, Slayer, unlocks, GP, bank cleanup or low-effort progress. Start with an
-              OSRS name; paste a bank when gear and supplies matter.
+              Short session, GP, boss KC, Slayer task, unlock, upgrade or chill progress. Start
+              with your RSN; add bank or sync only when it changes the route.
             </p>
           </div>
 
-          <div className="grid gap-2 sm:grid-cols-2" aria-label="OSRS player prompts">
+          <div className="grid gap-2 sm:grid-cols-2" aria-label="OSRS login prompts">
             {BRAND_PLAYER_PROMPTS.map((prompt, index) => {
-              const Icon = index === 0 ? Clock3 : index === 1 ? Coins : index === 2 ? Crosshair : Sparkles;
+              const Icon = PROMPT_ICONS[index] ?? Sparkles;
               return (
                 <Link
                   key={prompt.label}

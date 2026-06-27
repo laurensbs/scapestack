@@ -221,13 +221,13 @@ export function PluginSyncChecker() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
-            Verify your sync
+            Check your sync
           </div>
           <h2 className="mt-1 text-[22px] font-bold tracking-tight text-[var(--color-text)]">
             Check whether Scapestack sees your RuneLite data
           </h2>
           <p className="mt-2 max-w-2xl text-[13.5px] leading-relaxed text-[var(--color-text-dim)]">
-            Enter the same RSN you use in RuneLite. This checks the latest stored plugin payload: version, freshness, quests, diaries, CL items and Slayer state.
+            Enter the same RSN you use in RuneLite. This checks whether Scapestack sees fresh quests, diaries, collection log and Slayer progress.
           </p>
         </div>
         {summary && (
@@ -266,7 +266,7 @@ export function PluginSyncChecker() {
         <button
           type="submit"
           disabled={pending || !normalized}
-          aria-label={normalized ? `Check RuneLite sync payload for ${normalized}` : "Enter an OSRS name before checking RuneLite sync"}
+          aria-label={normalized ? `Check RuneLite sync for ${normalized}` : "Enter an OSRS name before checking RuneLite sync"}
           aria-describedby={`${rsnHelpId} ${rsnStatusId}`}
           className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-accent)] px-4 py-3 text-[13px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-55"
         >
@@ -289,14 +289,14 @@ export function PluginSyncChecker() {
         <div className="mt-2 rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 px-3 py-2 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
           {prefillSource === "url"
             ? `Loaded ${normalized} from the handoff URL and started the sync check automatically.`
-            : `Loaded saved RSN ${normalized}. Press Check sync to verify the latest plugin payload.`}
+            : `Loaded saved RSN ${normalized}. Press Check sync to check the latest RuneLite sync.`}
         </div>
       )}
 
       <div className="mt-4">
         {state.kind === "idle" && (
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-4 py-3 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-            This is the fastest sanity check after logging in with the plugin: if this finds your RSN, /next can use the verified payload and show which signals are verified, partial or missing.
+            If this finds your RSN, /next can stop recommending finished quests, done diaries, logged items or the wrong Slayer move.
           </div>
         )}
 
@@ -307,7 +307,7 @@ export function PluginSyncChecker() {
               <div>
                 <div className="text-[13px] font-bold text-[var(--color-warning)]">No Scapestack sync found for {state.rsn}</div>
                 <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                  Open RuneLite, enable Scapestack Sync, confirm the Sync URL points to this site&apos;s /api/sync endpoint, then sync the same RSN and re-run this check.
+                  Open RuneLite, enable Scapestack Sync, copy the scapestack.org sync URL below into plugin settings if needed, then sync this same RSN again.
                 </p>
                 <div className="mt-3 grid gap-2">
                   <CopyCommand value={syncUrls.sync} label="Copy sync URL" />
@@ -335,7 +335,7 @@ export function PluginSyncChecker() {
               <div>
                 <div className="text-[13px] font-bold text-[var(--color-danger)]">Sync database is not configured</div>
                 <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                  Add <code className="rounded border border-[var(--color-border)] bg-[var(--color-bg)] px-1 py-0.5 text-[11.5px] text-[var(--color-text)]">DATABASE_URL</code>, then initialize the schema. Without that, the plugin can POST but Scapestack cannot store or verify sync payloads.
+                  Add <code className="rounded border border-[var(--color-border)] bg-[var(--color-bg)] px-1 py-0.5 text-[11.5px] text-[var(--color-text)]">DATABASE_URL</code>, then initialize the schema. Without that, Scapestack cannot store RuneLite syncs.
                 </p>
                 <CopyCommand value={DB_INIT_COMMAND} label="Copy command" />
               </div>
@@ -362,10 +362,10 @@ export function PluginSyncChecker() {
               <Metric
                 label="Collection log"
                 value={state.player.collectionLogItemIds.length.toLocaleString()}
-                detail={countLabel(state.player.collectionLogItemIds.length, "item id synced", "item ids synced")}
+                detail={countLabel(state.player.collectionLogItemIds.length, "item synced", "items synced")}
               />
               <div className="md:col-span-2 lg:col-span-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-4 py-3">
-                <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">Slayer payload</div>
+                <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">Slayer sync</div>
                 <div className="mt-2 grid sm:grid-cols-5 gap-2 text-[12.5px] text-[var(--color-text-dim)]">
                   <div><span className="font-semibold text-[var(--color-text)]">{slayerTaskName(state.player)}</span><br />current task</div>
                   <div><span className="font-semibold text-[var(--color-text)]">{state.player.slayer?.taskRemaining ?? "—"}</span><br />remaining</div>
@@ -414,18 +414,18 @@ function PluginPayloadReceipt({ player }: { player: SyncedPlayer }) {
 
   return (
     <div
-      data-testid="plugin-payload-receipt"
+      data-testid="plugin-sync-receipt"
       className="rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-4 py-3"
     >
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
             <ShieldCheck className="size-3.5" />
-            RuneLite payload receipt
+            RuneLite sync receipt
           </div>
           <p className="mt-1 max-w-3xl text-[12px] leading-relaxed text-[var(--color-text-dim)]">
-            Scapestack received account-state only: quest completions, diary tiers, collection-log item IDs and optional Slayer state.
-            Bank, inventory, equipment, chat, screenshots and login credentials are not part of the plugin payload.
+            Scapestack received progress only: quest completions, diary tiers, collection-log items and optional Slayer state.
+            Bank, inventory, equipment, chat, screenshots and login credentials are not part of Scapestack Sync.
           </p>
         </div>
         <Link
@@ -440,7 +440,7 @@ function PluginPayloadReceipt({ player }: { player: SyncedPlayer }) {
       <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         <PluginPayloadFact label="Quests" value={countLabel(player.questsCompleted.length, "completed quest", "completed quests")} />
         <PluginPayloadFact label="Diaries" value={countLabel(player.diariesCompleted.length, "diary tier", "diary tiers")} />
-        <PluginPayloadFact label="Collection log" value={countLabel(player.collectionLogItemIds.length, "item ID", "item IDs")} />
+        <PluginPayloadFact label="Collection log" value={countLabel(player.collectionLogItemIds.length, "item", "items")} />
         <PluginPayloadFact
           label="Slayer"
           value={player.slayer ? `${player.slayer.taskRemaining.toLocaleString()} left · ${player.slayer.points.toLocaleString()} pts` : "Not present"}
@@ -485,7 +485,7 @@ function SyncProofCard({
             Sync proof
           </div>
           <p className="mt-1 max-w-2xl text-[12px] leading-relaxed text-[var(--color-text-dim)]">
-            Copy a safe payload receipt for support or self-checking: RSN, sync time, plugin version and signal counts. It never includes tokens, bank, inventory, chat, screenshots or account login.
+            Copy a safe sync receipt for support or self-checking: RSN, sync time, plugin version and signal counts. It never includes tokens, bank, inventory, chat, screenshots or account login.
           </p>
           <div className="mt-2 flex flex-wrap gap-1.5 text-[10.5px] text-[var(--color-text-muted)]">
             <span className="rounded border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-1.5 py-0.5 font-mono">
@@ -498,7 +498,7 @@ function SyncProofCard({
               {player.questsCompleted.length} quests
             </span>
             <span className="rounded border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-1.5 py-0.5">
-              {player.collectionLogItemIds.length} CL IDs
+              {player.collectionLogItemIds.length} CL items
             </span>
           </div>
         </div>
@@ -629,7 +629,7 @@ function signalToneClass(status: PluginSignalCoverage["status"]): string {
 }
 
 function signalStatusLabel(status: PluginSignalCoverage["status"]): string {
-  if (status === "exact") return "Verified";
+  if (status === "exact") return "Synced";
   if (status === "partial") return "Partial";
   if (status === "refresh") return "Refresh";
   if (status === "update") return "Update";
@@ -642,10 +642,10 @@ function SignalCoveragePanel({ signals }: { signals: PluginSignalCoverage[] }) {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
-            /next payload coverage
+            /next sync signals
           </div>
           <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-dim)]">
-            These are the plugin signals Scapestack can trust before falling back to public trackers or inference.
+            These are the RuneLite signals Scapestack can use before falling back to public trackers or guesses.
           </p>
         </div>
       </div>
@@ -678,7 +678,7 @@ function ActionQueuePanel({ actions }: { actions: PluginSyncActionQueueItem[] })
             Session action queue
           </div>
           <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-dim)]">
-            The next concrete moves from this payload, ordered like an OSRS session checklist.
+            The next concrete moves from this sync, ordered like an OSRS session checklist.
           </p>
         </div>
       </div>
@@ -738,7 +738,7 @@ function NextReadinessPanel({ readiness, pending, onRefresh }: {
         {readiness.href && (
           <Link
             href={readiness.href}
-            aria-label={`${readiness.actionLabel} for verified RuneLite sync`}
+            aria-label={`${readiness.actionLabel} for RuneLite sync`}
             className={cn(
               "inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-[12px] font-bold transition-all hover:brightness-110",
               readiness.tone === "good"
@@ -754,7 +754,7 @@ function NextReadinessPanel({ readiness, pending, onRefresh }: {
           type="button"
           onClick={onRefresh}
           disabled={pending}
-          aria-label="Re-check RuneLite sync payload before opening /next"
+          aria-label="Re-check RuneLite sync before opening /next"
           className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)] transition-colors disabled:opacity-50"
         >
           <RefreshCw className={cn("size-3.5", pending && "animate-spin")} />

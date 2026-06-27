@@ -33,8 +33,8 @@ export function BankPluginOnboarding() {
   const actions = bankPluginOnboardingActions(pluginHubReadinessState);
   const SignalIcon = isPluginHubLive ? CheckCircle2 : Clock3;
   const signalTitle = isPluginHubLive
-    ? "Verified coverage unlocked"
-    : "Verified coverage Scapestack Sync can unlock";
+    ? "Synced progress ready"
+    : "Progress Scapestack Sync can add";
 
   return (
     <section className="mb-8 overflow-hidden rounded-2xl border border-[var(--color-accent)]/25 bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] shadow-[0_24px_80px_rgba(0,0,0,0.2)]">
@@ -163,7 +163,7 @@ function statusCopyForPluginHub(
   if (readinessState === "merged") {
     return {
       title: "RuneLite sync ready",
-      body: "Enable Scapestack Sync, opt in from RuneLite settings, then verify this same RSN from /plugin.",
+      body: "Enable Scapestack Sync, opt in from RuneLite settings, then check this same RSN from /plugin.",
       className: "border-[var(--color-good)]/25 bg-[var(--color-good)]/10 text-[var(--color-good)]"
     };
   }
@@ -171,7 +171,7 @@ function statusCopyForPluginHub(
   if (readinessState === "review-blocked") {
     return {
       title: "Sync checker available",
-      body: "Use bank paste and /next now. When you want private account coverage, open /plugin and verify Scapestack Sync for the same RSN.",
+      body: "Use bank paste and /next now. When you want private account progress, open /plugin and check Scapestack Sync for the same RSN.",
       className: "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
     };
   }
@@ -179,7 +179,7 @@ function statusCopyForPluginHub(
   if (readinessState === "pending") {
     return {
       title: "Sync checker available",
-      body: "Use bank paste and /next now. Open /plugin when you want Scapestack to verify quests, diaries, collection log and Slayer for the same RSN.",
+      body: "Use bank paste and /next now. Open /plugin when you want Scapestack to include quests, diaries, collection log and Slayer for the same RSN.",
       className: "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
     };
   }
@@ -187,14 +187,14 @@ function statusCopyForPluginHub(
   if (readinessState === "closed") {
     return {
       title: "Sync check optional",
-      body: "Bank paste, Hiscores and public trackers still work. Verify Scapestack Sync from /plugin when RuneLite has posted account state for this RSN.",
+      body: "Bank paste, Hiscores and public trackers still work. Check Scapestack Sync from /plugin when RuneLite has sent account progress for this RSN.",
       className: "border-[var(--color-danger)]/25 bg-[var(--color-danger)]/10 text-[var(--color-danger)]"
     };
   }
 
   return {
     title: "Sync status unavailable",
-    body: "Use the /plugin checker to confirm whether Scapestack has a RuneLite payload for this RSN.",
+    body: "Use the /plugin checker to confirm whether Scapestack has RuneLite sync for this RSN.",
     className: "border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
   };
 }

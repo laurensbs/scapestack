@@ -127,10 +127,10 @@ export const TOOLS: Tool[] = [
     href: "/plugin",
     name: "RuneLite Sync",
     navLabel: "Sync",
-    short: "Set up or verify Scapestack RuneLite sync",
-    tagline: "RuneLite → verified quests, diaries, CL and Slayer",
+    short: "Set up Scapestack RuneLite sync",
+    tagline: "RuneLite → quests, diaries, CL and Slayer",
     description:
-      "Install Scapestack Sync when available, or use the tester setup, then verify a payload before /next trusts quest, diary, collection-log and Slayer coverage labels.",
+      "Use Scapestack Sync when you want /next to include completed quests, diary tiers, collection-log items and Slayer state for the same RSN.",
     icon: PlugZap,
     iconItemId: 11865,
     status: "live",

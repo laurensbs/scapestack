@@ -27,7 +27,7 @@ function FlowIcon({ accent }: { accent: HomeFlowStep["accent"] }) {
   return <Sparkles className="size-4" />;
 }
 
-const HERO_LOOP_STEPS = ["Bank", "Next action", "RuneLite sync"] as const;
+const HERO_LOOP_STEPS = ["RSN", "Next route", "Sharper with bank or sync"] as const;
 
 const HERO_PREVIEW_ITEMS = [
   { id: 28307, name: "Vardorvis chase" },
@@ -38,11 +38,11 @@ const HERO_PREVIEW_ITEMS = [
 
 const HERO_ACTION_CHOICES = [
   { label: "Boss KC", body: "Find a target where your stats and gear line up.", href: "/dps" },
-  { label: "Slayer", body: "Route the task: kill, skip, extend, barrage or cannon.", href: "/slayer" },
-  { label: "Unlock", body: "Push the closest diary, quest, cape or raids prep step.", href: "/goals" }
+  { label: "Slayer task", body: "Route it: kill, skip, extend, barrage or cannon.", href: "/slayer" },
+  { label: "Closest unlock", body: "Push the diary, quest, cape or raids prep step that is actually near.", href: "/goals" }
 ] as const;
 
-const HERO_ACCOUNT_LEVERS = ["Gear", "Supplies", "KC", "Quests", "Diaries", "Slayer", "GP"] as const;
+const HERO_ACCOUNT_LEVERS = ["Time", "Mood", "Gear", "Supplies", "KC", "Quests", "Diaries", "Slayer", "GP"] as const;
 
 export default function HomePage() {
   return (
@@ -88,7 +88,7 @@ export default function HomePage() {
               }}
             >
               {BRAND_SECONDARY_TAGLINE} Boss KC, Slayer, quest, diary, GP, gear upgrade or
-              low-effort progress. Pick one route before you log in.
+              low-effort progress. Add bank or sync only when it changes the route.
             </p>
 
             <div
@@ -124,11 +124,11 @@ export default function HomePage() {
               Choose your next move
             </div>
             <h2 className="max-w-2xl text-[26px] font-bold leading-tight tracking-tight text-[var(--color-text)] sm:text-[34px]">
-              Start with an RSN. Add bank or sync only when you want sharper routes.
+              Start with an RSN. Add bank or sync only when it changes the route.
             </h2>
             <p className="mt-3 max-w-2xl text-[14px] leading-relaxed text-[var(--color-text-dim)]">
               Scapestack should answer the same question every OSRS player hits at login:
-              what is worth doing now, with this account, this bank and this amount of energy?
+              what is worth doing now, with this account, this bank, this mood and this amount of time?
             </p>
           </div>
         </div>
@@ -238,7 +238,7 @@ function HeroProductPreview() {
                 Push Vardorvis to 50 KC
               </h2>
               <p className="mt-2 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                Bank has supplies, RSN has combat ready, RuneLite sync shows Desert Treasure II done.
+                Stats and supplies line up; sync knows Desert Treasure II is already done.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-1.5 rounded-2xl border border-[var(--color-border)] bg-black/25 p-2">

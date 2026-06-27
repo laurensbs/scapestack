@@ -92,29 +92,29 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
   const syncHref = pluginVerifyUrlForSyncedRsn(cleanRsn, input.surface);
   const syncSetupAction = { label: "Open sync checker", href: syncHref };
   const syncSourceLabel = (() => {
-    if (hasExactPluginSync) return "Verified RuneLite payload";
-    if (hasPluginSync) return "RuneLite payload needs refresh";
-    if (pluginHubState === "merged") return "Ready to verify";
+    if (hasExactPluginSync) return "RuneLite sync fresh";
+    if (hasPluginSync) return "RuneLite sync needs refresh";
+    if (pluginHubState === "merged") return "Ready to check";
     return "Optional account sync";
   })();
   const syncDetail = (() => {
     if (hasExactPluginSync) {
-      return "Verified quest, diary, collection-log and Slayer coverage is active.";
+      return "Quests, diaries, collection log and Slayer are included for this RSN.";
     }
     if (pluginSyncState === "outdated") {
-      return "Sync payload found, but update the RuneLite plugin before trusting newer Slayer and coverage fields.";
+      return "Sync exists, but update the RuneLite plugin before relying on newer Slayer and collection-log details.";
     }
     if (pluginSyncState === "stale") {
-      return "Sync payload found, but refresh RuneLite before trusting account coverage labels.";
+      return "Sync exists, but refresh RuneLite before a long grind or GP spend.";
     }
     if (pluginHubState === "merged") {
-      return "Check the same RSN on /plugin after RuneLite syncs, then /next can use verified account coverage.";
+      return "Check the same RSN on /plugin after RuneLite syncs, then /next can avoid finished account progress.";
     }
-    return "Use /next now, or check Scapestack Sync when you want verified quests, diaries, collection log and Slayer.";
+    return "Use /next now, or check Scapestack Sync when you want quests, diaries, collection log and Slayer included.";
   })();
   const syncNotice = (() => {
     if (hasPluginSync) return undefined;
-    if (pluginHubState === "merged") return "RuneLite sync can be verified from the plugin page.";
+    if (pluginHubState === "merged") return "RuneLite sync can be checked from the plugin page.";
     return undefined;
   })();
   const syncSteps = hasPluginSync
@@ -129,7 +129,7 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
         body: "The Sync URL should point to https://www.scapestack.org/api/sync."
       },
       {
-        label: "Verify RSN",
+        label: "Check RSN",
         body: "Run a sync in RuneLite, then check this same OSRS name in Scapestack."
       }
     ];
@@ -194,21 +194,20 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
     }
     if (!hasExactPluginSync) {
       return {
-        label: hasPluginSync ? "Refresh sync payload" : "Verify RuneLite sync",
+        label: hasPluginSync ? "Refresh sync" : "Check RuneLite sync",
         href: syncHref
       };
     }
     return {
-      label: "Open verified /next",
+      label: "Open synced /next",
       href: toolHandoffUrl("/next", source, cleanRsn, { hasBankContext: true })
     };
   })();
 
-  const exactCount = signals.filter((signal) => signal.status === "exact").length;
   const readyCount = signals.filter((signal) => signal.status !== "missing").length;
   const body = hasPluginSync && !hasExactPluginSync
-    ? `${readyCount}/3 signals are connected, ${exactCount}/3 are verified. Bank paste is verified; RuneLite sync is connected but must be refreshed or updated before account coverage labels are trusted.`
-    : `${readyCount}/3 signals are connected. Bank paste and Hiscores are enough to plan now; RuneLite sync adds verified quest, diary, collection-log and Slayer coverage when available.`;
+    ? `${readyCount}/3 signals are connected. Bank and Hiscores can plan now; refresh RuneLite sync before relying on quests, diaries, collection log or Slayer.`
+    : `${readyCount}/3 signals are connected. Bank paste and Hiscores are enough to plan now; RuneLite sync adds quests, diaries, collection log and Slayer when available.`;
 
   return {
     eyebrow: "Scapestack readiness",

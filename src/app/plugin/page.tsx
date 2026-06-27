@@ -14,7 +14,7 @@ export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Scapestack Sync",
-  description: "Enter an OSRS name, verify Scapestack Sync, and get account-aware next actions."
+  description: "Enter an OSRS name, check Scapestack Sync, and get account-aware next actions."
 };
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -33,23 +33,23 @@ const SYNC_STEPS = [
     body: "Open RuneLite, add Scapestack Sync, and keep the plugin enabled for the account you want to plan."
   },
   {
-    title: "Use the .org sync URL",
-    body: `The default endpoint must be ${PUBLIC_SYNC_URL}. Old scapestack.app URLs will not show data here.`
+    title: "Use the Scapestack link",
+    body: `RuneLite should send Scapestack Sync to ${PUBLIC_SYNC_URL}. Copy the URL below if the plugin needs it.`
   },
   {
     title: "Sync from RuneLite",
-    body: "Enable Auto-sync on login or press Sync now after logging in. RuneLite shows chat feedback when the payload is posted."
+    body: "Enable Auto-sync on login or press Sync now after logging in. RuneLite shows chat feedback when the sync is sent."
   },
   {
     title: "Check the same RSN",
-    body: "Enter the same OSRS display name below. When a payload exists, Scapestack can use it across /next, Slayer, goals and profiles."
+    body: "Enter the same OSRS display name below. When sync exists, Scapestack can use it across /next, Slayer, goals and profiles."
   }
 ];
 
 const ACCOUNT_SIGNALS = [
   "Quest completion",
   "Achievement Diary tiers",
-  "Collection-log item IDs",
+  "Collection-log items",
   "Slayer task, points, streak and blocks"
 ];
 
@@ -86,7 +86,7 @@ const DATA_SENT = [
   "RSN used for the sync check",
   "Plugin version and sync timestamp",
   "Quest and diary completion",
-  "Collection-log item IDs loaded by RuneLite",
+  "Collection-log items loaded by RuneLite",
   "Slayer task, points, streak and block-list state"
 ];
 
@@ -99,7 +99,7 @@ const DATA_NEVER_SENT = [
 ];
 
 const TROUBLESHOOTING = [
-  "No result after typing your name? Confirm the RuneLite plugin sync URL is https://www.scapestack.org/api/sync.",
+  "No result after typing your name? Set the RuneLite plugin sync URL to https://www.scapestack.org/api/sync.",
   "Still missing? Toggle Auto-sync on login off and on, relog, then press Check sync again.",
   "403 sync? Use Force claim retry once in the plugin config, then sync the same RuneLite account again.",
   "Collection log sparse? Open the Collection Log categories in-game once; RuneLite only exposes loaded widget data.",
@@ -124,8 +124,8 @@ export function pluginContextFromSearchParams(searchParams: SearchParams) {
   if (from === "next") {
     params.set("from", "plugin");
     return {
-      title: "You came from /next to verify sync",
-      body: "Run the sync checker on this page first. Return to /next after it finds a verified payload for the same RSN.",
+      title: "You came from /next to check sync",
+      body: "Run the sync checker on this page first. Return to /next after it finds the same RSN.",
       cta: "Return to /next",
       href: `/next?${params.toString()}`
     };
@@ -137,7 +137,7 @@ export function pluginContextFromSearchParams(searchParams: SearchParams) {
     if (bank === "none") profileParams.set("bank", "none");
     return {
       title: "You came from this profile",
-      body: "Verify RuneLite sync for this RSN, then return to the player profile without losing account context.",
+      body: "Check RuneLite sync for this RSN, then return to the player profile without losing account context.",
       cta: "Return to profile",
       href: rsn ? `/u/${encodeURIComponent(rsn)}?${profileParams.toString()}` : `/?${profileParams.toString()}`
     };
@@ -146,7 +146,7 @@ export function pluginContextFromSearchParams(searchParams: SearchParams) {
   params.set("from", "plugin");
   return {
     title: `You came from /${from}`,
-    body: "Keep the same RSN context while you verify RuneLite sync, then return to the tool you were using.",
+    body: "Keep the same RSN context while you check RuneLite sync, then return to the tool you were using.",
     cta: `Return to /${from}`,
     href: `/${from}?${params.toString()}`
   };
@@ -194,8 +194,8 @@ export default async function PluginPage({
               <span className="block text-gold-gradient">Get account-aware ideas.</span>
             </h1>
             <p className="mt-6 max-w-2xl text-[17px] leading-[1.55] text-[var(--color-text-dim)] sm:text-[19px]">
-              Scapestack works with Hiscores and bank paste, but Scapestack Sync lets the app verify
-              quests, diaries, collection-log items and Slayer state before recommending what to do next.
+              Scapestack works with Hiscores and bank paste, but Scapestack Sync lets the app include
+              quests, diaries, collection-log items and Slayer before recommending what to do next.
             </p>
           </div>
 
@@ -206,8 +206,8 @@ export default async function PluginPage({
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <SignalPill icon={<Search className="size-4" />} title="Name first" body="The RSN is the join key. Use the same display name RuneLite synced." />
-            <SignalPill icon={<RefreshCw className="size-4" />} title="Fresh payload" body={`Current web contract expects plugin v${CURRENT_PLUGIN_VERSION} and the .org endpoint.`} />
+            <SignalPill icon={<Search className="size-4" />} title="Name first" body="Use the same display name you synced from RuneLite." />
+            <SignalPill icon={<RefreshCw className="size-4" />} title="Fresh sync" body={`Use plugin v${CURRENT_PLUGIN_VERSION} and the scapestack.org sync link.`} />
           </div>
         </div>
 
@@ -221,7 +221,7 @@ export default async function PluginPage({
                 Scapestack Sync
               </h2>
               <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">
-                Plugin v{CURRENT_PLUGIN_VERSION} posts account-state snapshots to Scapestack after opt-in.
+                Use it when you want /next to know finished quests, diaries, collection log and Slayer.
               </p>
             </div>
             <div className="flex size-12 items-center justify-center rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 text-[var(--color-accent)]">
@@ -231,13 +231,13 @@ export default async function PluginPage({
 
           <div className="mt-5 rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-4 py-3">
             <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              Required sync URL
+              RuneLite sync link
             </div>
             <p className="mt-1 break-all text-[13px] font-semibold text-[var(--color-text)]">
               {PUBLIC_SYNC_URL}
             </p>
             <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-dim)]">
-              If RuneLite still has scapestack.app saved, replace it with this .org URL and sync again.
+              This must be the scapestack.org link before your RuneLite sync will show up here.
             </p>
             <div className="mt-3">
               <CopyCommand value={PUBLIC_SYNC_URL} label="Copy sync URL" />
@@ -254,7 +254,7 @@ export default async function PluginPage({
           </div>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <TrustNote title="Explicit opt-in" body="Scapestack does not POST progress until you enable sync from RuneLite settings or press a sync action." />
+            <TrustNote title="Explicit opt-in" body="Scapestack only receives progress after you turn on sync in RuneLite or press a sync action." />
             <TrustNote title="No account login" body="Scapestack never asks for your RuneScape password, session, clicks, screenshots or client files." />
           </div>
         </aside>
@@ -286,10 +286,10 @@ export default async function PluginPage({
               After a successful sync
             </div>
             <h2 className="mt-1 text-[22px] font-bold tracking-tight text-[var(--color-text)]">
-              Turn the payload into the next thing to do.
+              Turn sync into the next thing to do.
             </h2>
             <p className="mt-2 max-w-2xl text-[13.5px] leading-relaxed text-[var(--color-text-dim)]">
-              A verified payload helps Scapestack avoid generic OSRS advice. The app can recommend account-specific
+              A fresh sync helps Scapestack avoid generic OSRS advice. The app can recommend account-specific
               quests, diary steps, Slayer calls, collection-log cleanup and bank-aware upgrades.
             </p>
           </div>
@@ -311,7 +311,7 @@ export default async function PluginPage({
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-good)]">
-              Data contract
+              What sync uses
             </div>
             <h2 className="mt-1 text-[22px] font-bold tracking-tight text-[var(--color-text)]">
               Opt-in account progress, not account access.
@@ -327,7 +327,7 @@ export default async function PluginPage({
         </div>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <DataListCard tone="good" title="Sent after opt-in" items={DATA_SENT} />
+          <DataListCard tone="good" title="Used after sync" items={DATA_SENT} />
           <DataListCard tone="warning" title="Never sent" items={DATA_NEVER_SENT} />
         </div>
       </section>

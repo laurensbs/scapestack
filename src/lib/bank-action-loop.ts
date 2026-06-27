@@ -70,8 +70,8 @@ export function buildBankActionLoop(input: BankActionLoopInput): BankActionLoopS
       label: "04",
       title: "Plan the next session",
       body: input.hasPluginSyncHint
-        ? "Send this bank into /next and combine it with RuneLite sync only after the account payload is verified."
-        : "Send this bank into /next now. Add RuneLite sync later when you want verified quest, diary, CL and Slayer coverage labels.",
+        ? "Send this bank into /next and combine it with RuneLite sync once this same RSN is found."
+        : "Send this bank into /next now. Add RuneLite sync later when you want quests, diaries, CL and Slayer included.",
       cta: "Open /next",
       destination: "/next planner",
       proof: "Carries current bank item IDs through session handoff",
@@ -86,11 +86,11 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
     return {
       id: "sync",
       label: "05",
-      title: "Verify RSN sync",
-      body: "RSN is known, but verified plugin coverage is not assumed. Open the sync hub and verify the payload before relying on quests, diaries, CL and Slayer state.",
-      cta: "Verify RSN sync",
+      title: "Check RSN sync",
+      body: "RSN is known. Open the sync hub and check the same name before relying on quests, diaries, CL and Slayer.",
+      cta: "Check RSN sync",
       destination: "/plugin#verify-sync",
-      proof: "RSN detected · payload still needs verification",
+      proof: "RSN detected · sync check available",
       state: "ready"
     };
   }
@@ -99,11 +99,11 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
     return {
       id: "sync",
       label: "05",
-      title: "Verify RuneLite sync",
-      body: "Enable Scapestack Sync in RuneLite, then verify the payload so recommendations can label account coverage as verified, partial or missing.",
+      title: "Check RuneLite sync",
+      body: "Enable Scapestack Sync in RuneLite, then check this same RSN so recommendations can avoid finished progress.",
       cta: "Check sync",
       destination: "/plugin#verify-sync",
-      proof: "RuneLite sync · payload verification required",
+      proof: "RuneLite sync · same RSN required",
       state: "ready"
     };
   }
@@ -113,7 +113,7 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
       id: "sync",
       label: "05",
       title: "Check Scapestack Sync",
-      body: "Open the sync checker, confirm RuneLite posts to scapestack.org, and verify the same RSN before trusting quest, diary, CL and Slayer coverage.",
+      body: "Open the sync checker, confirm RuneLite posts to scapestack.org, and check the same RSN before relying on quest, diary, CL and Slayer.",
       cta: "Check sync",
       destination: "/plugin#verify-sync",
       proof: "Sync checker ready · web planner ready",
@@ -126,7 +126,7 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
       id: "sync",
       label: "05",
       title: "Check Scapestack Sync",
-      body: "Use this bank in /next now. When RuneLite sync is available for the account, verify the same RSN before trusting private coverage.",
+      body: "Use this bank in /next now. When RuneLite sync is available for the account, check the same RSN before relying on private progress.",
       cta: "Check sync",
       destination: "/plugin#verify-sync",
       proof: "Sync check optional · web planner ready",
@@ -151,10 +151,10 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
     id: "sync",
     label: "05",
     title: "Check Scapestack Sync",
-    body: "Open the sync checker, confirm RuneLite posts to scapestack.org, and verify the same RSN before trusting quest, diary, CL and Slayer coverage.",
+    body: "Open the sync checker, confirm RuneLite posts to scapestack.org, and check the same RSN before relying on quest, diary, CL and Slayer.",
     cta: "Check sync",
     destination: "/plugin#verify-sync",
-    proof: "Sync checker ready · payload verification required",
+    proof: "Sync checker ready · same RSN required",
     state: "optional"
   };
 }

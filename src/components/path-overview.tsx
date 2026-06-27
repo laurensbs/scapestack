@@ -100,7 +100,7 @@ function SyncedBadge({ data }: { data: PathOverviewData }) {
           href={pluginVerifyUrlForSyncedRsn(meta?.displayName ?? "", "next")}
           className="text-[var(--color-text-dim)] hover:text-[var(--color-accent)] transition-colors"
         >
-          Want verified coverage? Check RuneLite sync status before setup →
+          Want synced progress? Check RuneLite sync before setup →
         </a>
       </div>
     );

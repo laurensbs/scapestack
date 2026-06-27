@@ -28,8 +28,8 @@ export interface PluginOnboardingReadinessStep {
 
 export const BANK_PLUGIN_ONBOARDING = {
   eyebrow: "RuneLite sync",
-  title: "One OSRS plan: bank items now, verified account coverage after sync.",
-  body: "Bank Memory gives Scapestack your item stack so the bank organizer can fix layout immediately. Scapestack Sync is a separate opt-in RuneLite plugin that adds quests, diaries, collection log and Slayer state after /next verifies a payload from your live account.",
+  title: "One OSRS plan: bank items now, account progress after sync.",
+  body: "Bank Memory gives Scapestack your item stack so the bank organizer can fix layout immediately. Scapestack Sync is a separate opt-in RuneLite plugin that adds quests, diaries, collection log and Slayer for the same RSN.",
   lanes: [
     {
       label: "Paste bank",
@@ -39,8 +39,8 @@ export const BANK_PLUGIN_ONBOARDING = {
     },
     {
       label: "Opt-in sync",
-      title: "Scapestack Sync → coverage labels",
-      body: "Use /plugin when you want /next and Slayer advice to verify quests, diaries, CL IDs and task state before labeling them verified, partial or missing.",
+      title: "Scapestack Sync → finished progress",
+      body: "Use /plugin when you want /next and Slayer advice to avoid quests, diaries, CL items and task state you already handled.",
       proof: "Never sends RuneScape password, chat, screenshots, inventory or equipment."
     }
   ] satisfies PluginOnboardingLane[],
@@ -48,19 +48,19 @@ export const BANK_PLUGIN_ONBOARDING = {
     {
       label: "Ready now",
       title: "Paste Bank Memory or Bank Tags",
-      body: "Bank organization, snapshots, tips and copy-back tags work without Scapestack Sync or Plugin Hub approval.",
+      body: "Bank organization, snapshots, tips and copy-back tags work without Scapestack Sync.",
       state: "ready"
     },
     {
-      label: "Verify first",
+      label: "Use now",
       title: "Use /next with bank-aware context",
-      body: "Treat account coverage as hiscores-plus-bank until the /plugin checker finds a verified sync payload for the same RSN.",
+      body: "Use Hiscores plus bank now. Add sync when you want Scapestack to avoid finished account progress for the same RSN.",
       state: "verify"
     },
     {
       label: "Sync check",
       title: "Scapestack Sync check",
-      body: "Open /plugin when you want to verify the same RSN from RuneLite before trusting quest, diary, CL and Slayer coverage.",
+      body: "Open /plugin when you want to check the same RSN from RuneLite before relying on quest, diary, CL and Slayer.",
       state: "pending"
     }
   ] satisfies PluginOnboardingReadinessStep[],
@@ -81,9 +81,9 @@ export const BANK_PLUGIN_ONBOARDING = {
     value: PUBLIC_SYNC_URL
   } satisfies PluginOnboardingCopy,
   signals: [
-    "Verified quest completion",
+    "Quest completion",
     "Diary tiers",
-    "Collection-log IDs",
+    "Collection-log items",
     "Live Slayer task"
   ]
 };
@@ -94,7 +94,7 @@ export function bankPluginOnboardingActions(
   if (state === "merged") {
     return [
       {
-        label: "Verify RuneLite sync",
+        label: "Check RuneLite sync",
         href: "/plugin?from=bank#verify-sync",
         tone: "primary"
       },

@@ -9,8 +9,9 @@ describe("Scapestack command system UI", () => {
     expect(source).toContain("BRAND_UI_SURFACES");
     expect(source).toContain("BRAND_PLAYER_PROMPTS");
     expect(source).toContain("Next moves");
-    expect(source).toContain("Tell Scapestack what kind of night this is.");
-    expect(source).toContain('aria-label="OSRS player prompts"');
+    expect(source).toContain("Tell Scapestack what you feel like doing.");
+    expect(source).toContain('aria-label="OSRS login prompts"');
+    expect(source).toContain("PROMPT_ICONS");
     expect(source).toContain("aria-label={`${surface.page}: ${surface.primaryAction}`}");
     expect(source).toContain("focus-visible:border-[var(--color-accent)]/65");
     expect(source).toContain("group-hover/surface:translate-x-0.5");

@@ -33,7 +33,7 @@ describe("recommendation missing-data actions", () => {
 
   it("turns bank caveats into bank handoff links", () => {
     const action = missingDataActionForRecommendation(
-      recWithCaveat("Paste a bank or install the plugin for gear and item checks."),
+      recWithCaveat("Paste a bank when gear and item checks matter."),
       { rsn: "Lynx Titan" }
     );
 
@@ -47,17 +47,17 @@ describe("recommendation missing-data actions", () => {
 
   it("turns inferred quest/diary caveats into plugin sync links", () => {
     const action = missingDataActionForRecommendation(
-      recWithCaveat("Quest and diary completion is inferred unless the RuneLite plugin has synced."),
+      recWithCaveat("Quest and diary completion is inferred unless Scapestack Sync has this RSN."),
       { rsn: "Lynx Titan", hasBankContext: true }
     );
 
   expect(action).toMatchObject({
     kind: "plugin-sync",
-    label: "Verify RuneLite sync"
+    label: "Use Scapestack Sync"
   });
-    expect(action?.helper).toContain("Verify a RuneLite payload");
-    expect(action?.helper).toContain("coverage as verified, partial or missing");
-    expect(action?.helper).not.toContain("treating quest, diary, collection-log and Slayer state as exact");
+    expect(action?.helper).toContain("finished quests, diaries, collection log and Slayer");
+    expect(action?.helper).not.toContain("payload");
+    expect(action?.helper).not.toContain("coverage");
     expect(action?.href).toContain("/plugin");
     expect(action?.href).toContain("rsn=Lynx+Titan");
     expect(action?.href).not.toContain("bank=none");
@@ -65,29 +65,29 @@ describe("recommendation missing-data actions", () => {
 
   it("turns outdated connected-sync caveats into plugin sync links", () => {
     const action = missingDataActionForRecommendation(
-      recWithCaveat("RuneLite sync is connected, but refresh or update it before trusting verified coverage labels."),
+      recWithCaveat("RuneLite sync is connected, but refresh or update it before relying on quests, diaries, collection log or Slayer for this pick."),
       { rsn: "Lynx Titan" }
     );
 
   expect(action).toMatchObject({
     kind: "plugin-sync",
-    label: "Refresh sync payload"
+    label: "Refresh sync"
   });
     expect(action?.helper).toContain("Refresh or update");
-    expect(action?.helper).toContain("coverage labels");
-    expect(action?.helper).not.toContain("trusting exact quest, diary, collection-log and Slayer advice");
+    expect(action?.helper).toContain("quests, diaries, collection log or Slayer");
+    expect(action?.helper).not.toContain("payload");
     expect(action?.href).toBe("/plugin?rsn=Lynx+Titan&from=next#verify-sync");
   });
 
   it("marks plugin sync follow-up links as bankless when /next had no bank handoff", () => {
     const action = missingDataActionForRecommendation(
-      recWithCaveat("Quest and diary completion is inferred unless the RuneLite plugin has synced."),
+      recWithCaveat("Quest and diary completion is inferred unless Scapestack Sync has this RSN."),
       { rsn: "Lynx Titan", hasBankContext: false }
     );
 
     expect(action).toMatchObject({
       kind: "plugin-sync",
-      label: "Verify RuneLite sync"
+      label: "Use Scapestack Sync"
     });
     expect(action?.href).toBe("/plugin?rsn=Lynx+Titan&from=next&bank=none#verify-sync");
   });

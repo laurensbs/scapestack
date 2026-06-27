@@ -26,7 +26,7 @@ describe("bank plugin onboarding", () => {
     expect(bankPluginOnboardingActions("review-blocked")).toEqual(BANK_PLUGIN_ONBOARDING.actions);
     expect(bankPluginOnboardingActions("merged")).toEqual([
       {
-        label: "Verify RuneLite sync",
+        label: "Check RuneLite sync",
         href: "/plugin?from=bank#verify-sync",
         tone: "primary"
       },
@@ -50,16 +50,16 @@ describe("bank plugin onboarding", () => {
     });
   });
 
-  it("communicates verified coverage benefits rather than generic plugin marketing", () => {
-    expect(BANK_PLUGIN_ONBOARDING.signals).toContain("Verified quest completion");
+  it("communicates finished-progress benefits rather than generic plugin marketing", () => {
+    expect(BANK_PLUGIN_ONBOARDING.signals).toContain("Quest completion");
     expect(BANK_PLUGIN_ONBOARDING.signals).not.toContain("Exact quest completion");
     expect(BANK_PLUGIN_ONBOARDING.signals).toContain("Live Slayer task");
     expect(BANK_PLUGIN_ONBOARDING.body).toContain("Scapestack Sync is a separate opt-in RuneLite plugin");
-    expect(BANK_PLUGIN_ONBOARDING.title).toContain("verified account coverage after sync");
-    expect(BANK_PLUGIN_ONBOARDING.body).toContain("after /next verifies a payload from your live account");
+    expect(BANK_PLUGIN_ONBOARDING.title).toContain("account progress after sync");
+    expect(BANK_PLUGIN_ONBOARDING.body).toContain("adds quests, diaries, collection log and Slayer for the same RSN");
     expect(BANK_PLUGIN_ONBOARDING.title).not.toContain("exact account state");
     expect(BANK_PLUGIN_ONBOARDING.title).not.toContain("when you opt in");
-    expect(BANK_PLUGIN_ONBOARDING.body).not.toContain("stops guessing");
+    expect(BANK_PLUGIN_ONBOARDING.body).not.toContain("payload");
   });
 
   it("separates pasted bank data from opt-in account-state sync", () => {
@@ -71,8 +71,8 @@ describe("bank plugin onboarding", () => {
       }),
       expect.objectContaining({
         label: "Opt-in sync",
-        title: "Scapestack Sync → coverage labels",
-        body: "Use /plugin when you want /next and Slayer advice to verify quests, diaries, CL IDs and task state before labeling them verified, partial or missing.",
+        title: "Scapestack Sync → finished progress",
+        body: "Use /plugin when you want /next and Slayer advice to avoid quests, diaries, CL items and task state you already handled.",
         proof: "Never sends RuneScape password, chat, screenshots, inventory or equipment."
       })
     ]);
@@ -83,19 +83,19 @@ describe("bank plugin onboarding", () => {
       {
         label: "Ready now",
         title: "Paste Bank Memory or Bank Tags",
-        body: "Bank organization, snapshots, tips and copy-back tags work without Scapestack Sync or Plugin Hub approval.",
+        body: "Bank organization, snapshots, tips and copy-back tags work without Scapestack Sync.",
         state: "ready"
       },
       {
-        label: "Verify first",
+        label: "Use now",
         title: "Use /next with bank-aware context",
-        body: "Treat account coverage as hiscores-plus-bank until the /plugin checker finds a verified sync payload for the same RSN.",
+        body: "Use Hiscores plus bank now. Add sync when you want Scapestack to avoid finished account progress for the same RSN.",
         state: "verify"
       },
       {
         label: "Sync check",
         title: "Scapestack Sync check",
-        body: "Open /plugin when you want to verify the same RSN from RuneLite before trusting quest, diary, CL and Slayer coverage.",
+        body: "Open /plugin when you want to check the same RSN from RuneLite before relying on quest, diary, CL and Slayer.",
         state: "pending"
       }
     ]);
@@ -110,12 +110,12 @@ describe("bank plugin onboarding", () => {
     expect(source).toContain('pluginHubReadinessState === "merged"');
     expect(source).toContain("const SignalIcon = isPluginHubLive ? CheckCircle2 : Clock3");
     expect(source).toContain('isPluginHubLive ? "text-[var(--color-good)]" : "text-[var(--color-warning)]"');
-    expect(source).toContain("Verified coverage Scapestack Sync can unlock");
-    expect(source).toContain("Verified coverage unlocked");
+    expect(source).toContain("Progress Scapestack Sync can add");
+    expect(source).toContain("Synced progress ready");
     expect(source).not.toContain("Exact signals Scapestack Sync can unlock");
     expect(source).not.toContain("Exact signals unlocked");
     expect(source).toContain("Sync checker available");
-    expect(source).toContain("open /plugin and verify Scapestack Sync");
+    expect(source).toContain("open /plugin and check Scapestack Sync");
     expect(source).toContain("Use the /plugin checker");
     expect(source).toContain("CopyCommand");
     expect(source).not.toContain("Open review checklist");

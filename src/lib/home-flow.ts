@@ -19,10 +19,19 @@ export interface HomePluginReadinessPill {
   playerInstallReady: boolean;
 }
 
-const BANK_FLOW_STEP: HomeFlowStep = {
+const RSN_FLOW_STEP: HomeFlowStep = {
   label: "01",
-  title: "Use the gear you own",
-  body: "Paste Bank Memory or Bank Tags when you want setups, supplies and upgrades based on your actual bank.",
+  title: "Start with your RSN",
+  body: "Hiscores gives combat, skills, KC and broad gates. Enough to pick the first useful route for tonight.",
+  href: "/next",
+  cta: "Start with RSN",
+  accent: "next"
+};
+
+const BANK_FLOW_STEP: HomeFlowStep = {
+  label: "02",
+  title: "Add bank when gear matters",
+  body: "Paste Bank Memory or Bank Tags when you want setups, supplies and upgrades based on gear you already own.",
   href: "/bank",
   cta: "Add bank",
   accent: "bank"
@@ -31,44 +40,22 @@ const BANK_FLOW_STEP: HomeFlowStep = {
 function syncFlowStep(state: PluginHubReviewReadinessState): HomeFlowStep {
   if (state === "installable") {
     return {
-      label: "02",
-      title: "Add account progress",
-      body: "Enable Scapestack Sync when you want quests, diaries, collection log and Slayer included in the plan.",
+      label: "03",
+      title: "Sync finished progress",
+      body: "Use Scapestack Sync when you want completed quests, diaries, collection log and Slayer kept out of bad suggestions.",
       href: "/plugin#verify-sync",
-      cta: "Check sync",
+      cta: "Use sync",
       accent: "sync"
     };
   }
 
   return {
-    label: "02",
-    title: "Add account progress",
-    body: "Enter your OSRS name on the sync page when you want Scapestack to pick around quests, diaries, CL and Slayer.",
-    href: "/plugin#verify-sync",
-    cta: "Check sync",
-    accent: "sync"
-  };
-}
-
-function nextFlowStep(state: PluginHubReviewReadinessState): HomeFlowStep {
-  if (state === "installable") {
-    return {
-      label: "03",
-      title: "Pick tonight's route",
-      body: "Open /next for one ranked plan: boss KC, Slayer, quest, diary, GP or low-effort progress.",
-      href: "/next?from=plugin&bank=none",
-      cta: "Open planner",
-      accent: "next"
-    };
-  }
-
-  return {
     label: "03",
-    title: "Pick tonight's route",
-    body: "Open /next for one ranked plan: boss KC, Slayer, quest, diary, GP or low-effort progress.",
-    href: "/next",
-    cta: "Open planner",
-    accent: "next"
+    title: "Sync finished progress",
+    body: "Enter the same OSRS name on the sync page when you want Scapestack to avoid quests, diaries, CL and Slayer you already handled.",
+    href: "/plugin#verify-sync",
+    cta: "Use sync",
+    accent: "sync"
   };
 }
 
@@ -89,9 +76,9 @@ export function homeProductFlowForPluginReadiness(readiness: Pick<PluginHubRevie
 
 export function homeProductFlowForPluginReadinessState(state: PluginHubReviewReadinessState): HomeFlowStep[] {
   return [
+    RSN_FLOW_STEP,
     BANK_FLOW_STEP,
-    syncFlowStep(state),
-    nextFlowStep(state)
+    syncFlowStep(state)
   ];
 }
 
@@ -102,8 +89,8 @@ export function homePluginReadinessPill(readiness: PluginHubReviewReadiness): Ho
   return {
     label: playerInstallReady ? "Sync ready" : "Check sync",
     detail: playerInstallReady
-      ? "Use the same RSN so /next can avoid old quest, diary, CL and Slayer suggestions."
-      : "Enter your OSRS name on /plugin when you want sharper account-progress checks.",
+      ? "Use the same RSN so /next can avoid quests, diaries, CL and Slayer you already finished."
+      : "Enter your OSRS name on /plugin when you want Scapestack to stop repeating finished progress.",
     tone: readiness.tone,
     href: "/plugin#verify-sync",
     playerInstallReady

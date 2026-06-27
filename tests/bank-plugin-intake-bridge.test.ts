@@ -7,7 +7,7 @@ describe("bank plugin intake bridge", () => {
   it("explains the plugin-to-bank boundary without claiming bank sync", () => {
     const bridge = buildBankPluginIntakeBridge(" Lynx Titan ");
 
-    expect(bridge.title).toContain("Plugin account-state is separate");
+    expect(bridge.title).toContain("RuneLite Sync is separate");
     expect(bridge.body).toContain("gear, supplies, quantities and GP");
     expect(bridge.safety).toContain("never sent back to the RuneLite plugin");
     expect(bridge.signals.map((signal) => signal.label)).toEqual([
@@ -17,6 +17,7 @@ describe("bank plugin intake bridge", () => {
     ]);
     expect(bridge.signals.map((signal) => signal.value).join(" ")).toContain("Bank Memory TSV");
     expect(bridge.signals.map((signal) => signal.value).join(" ")).not.toContain("bank sync");
+    expect(bridge.body).not.toContain("account-state");
   });
 
   it("builds clickable plugin-origin actions with RSN preserved", () => {
@@ -27,7 +28,7 @@ describe("bank plugin intake bridge", () => {
         primary: true
       },
       {
-        label: "Verify RuneLite sync",
+        label: "Check RuneLite sync",
         href: "/plugin?rsn=Lynx+Titan&from=bank#verify-sync",
         primary: false
       },

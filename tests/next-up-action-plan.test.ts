@@ -95,7 +95,7 @@ describe("next-up action plans", () => {
     expect(result.headline?.actionPlan?.caveat).toContain("Add your RSN");
     expect(result.headline?.actionPlan?.timebox).toBe("2 min");
     expect(result.headline?.actionPlan?.steps[0]).toContain("Enter your OSRS name");
-    expect(addRsnSteps).toContain("verified quest, diary, collection-log or Slayer coverage labels");
+    expect(addRsnSteps).toContain("finished quests, diary tiers, collection-log slots or Slayer tasks");
     expect(addRsnSteps).not.toContain("exact quest/diary");
     expect(recs.some((rec) => rec?.id === "quest:Cook's Assistant")).toBe(true);
     expect(romeo).toBeTruthy();
@@ -283,9 +283,9 @@ describe("next-up action plans", () => {
     expect(result.headline?.kind).toBe("slayer");
     expect(result.headline?.link).toBe("/slayer?rsn=Lynx+Titan&source=plugin-sync&bank=none");
     expect(result.headline?.actionPlan?.confidence).toBe("exact");
-    expect(result.headline?.actionPlan?.confidenceLabel).toBe("Verified sync");
+    expect(result.headline?.actionPlan?.confidenceLabel).toBe("Synced");
     expect(result.headline?.actionPlan?.confidenceLabel).not.toBe("Exact sync");
-    expect(result.headline?.actionPlan?.steps.join(" ")).toContain("verified /slayer");
+    expect(result.headline?.actionPlan?.steps.join(" ")).toContain("synced /slayer");
     expect(result.headline?.actionPlan?.steps.join(" ")).not.toContain("exact /slayer");
   });
 
@@ -331,7 +331,7 @@ describe("next-up action plans", () => {
       rsn: "Lynx Titan",
       hasBankContext: false
     });
-    expect(text).toContain("Improve accuracy: Refresh sync payload");
+    expect(text).toContain("Improve accuracy: Refresh sync");
     expect(text).toContain("https://www.scapestack.org/plugin?rsn=Lynx+Titan&from=next&bank=none#verify-sync");
   });
 

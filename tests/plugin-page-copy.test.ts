@@ -13,16 +13,15 @@ describe("plugin page copy constants", () => {
     expect(pageSource).toContain("Get account-aware ideas.");
     expect(pageSource).toContain("Check Scapestack Sync");
     expect(pageSource).toContain("Get next actions");
-    expect(pageSource).toContain("Required sync URL");
+    expect(pageSource).toContain("RuneLite sync link");
     expect(pageSource).toContain(PUBLIC_SYNC_URL);
-    expect(pageSource).toContain("Old scapestack.app URLs will not show data here.");
-    expect(pageSource).toContain("If RuneLite still has scapestack.app saved");
+    expect(pageSource).not.toContain("scapestack.app");
     expect(pageSource).toContain("PluginSyncChecker");
     expect(pageSource).toContain("After a successful sync");
-    expect(pageSource).toContain("Turn the payload into the next thing to do.");
-    expect(pageSource).toContain("quests, diaries, collection-log items and Slayer state");
-    expect(pageSource).toContain("Data contract");
-    expect(pageSource).toContain("Sent after opt-in");
+    expect(pageSource).toContain("Turn sync into the next thing to do.");
+    expect(pageSource).toContain("quests, diary steps, Slayer calls");
+    expect(pageSource).toContain("What sync uses");
+    expect(pageSource).toContain("Used after sync");
     expect(pageSource).toContain("Never sent");
     expect(pageSource).toContain("No credentials");
     expect(pageSource).toContain("If your name shows nothing, fix the link first.");
@@ -69,8 +68,8 @@ describe("plugin page copy constants", () => {
     });
 
     expect(context).toEqual({
-      title: "You came from /next to verify sync",
-      body: "Run the sync checker on this page first. Return to /next after it finds a verified payload for the same RSN.",
+      title: "You came from /next to check sync",
+      body: "Run the sync checker on this page first. Return to /next after it finds the same RSN.",
       cta: "Return to /next",
       href: "/next?rsn=Lynx+Titan&bank=none&from=plugin"
     });
@@ -96,7 +95,7 @@ describe("plugin page copy constants", () => {
 
     expect(context).toEqual({
       title: "You came from this profile",
-      body: "Verify RuneLite sync for this RSN, then return to the player profile without losing account context.",
+      body: "Check RuneLite sync for this RSN, then return to the player profile without losing account context.",
       cta: "Return to profile",
       href: "/u/Lynx%20Titan?from=plugin&bank=none"
     });
@@ -110,18 +109,18 @@ describe("plugin page copy constants", () => {
     expect(checkerSource).not.toContain("if this finds your RSN, /next can use exact account state");
     expect(diagnosticsSource).not.toContain("Scapestack Sync enabled.");
     expect(diagnosticsSource).toContain("Enable “Auto-sync on login”");
-    expect(checkerSource).toContain("if this finds your RSN, /next can use the verified payload");
-    expect(checkerSource).toContain("which signals are verified, partial or missing");
-    expect(checkerSource).toContain('if (status === "exact") return "Verified";');
+    expect(checkerSource).toContain("If this finds your RSN, /next can stop recommending finished quests");
+    expect(checkerSource).toContain("logged items or the wrong Slayer move");
+    expect(checkerSource).toContain('if (status === "exact") return "Synced";');
     expect(checkerSource).not.toContain('if (status === "exact") return "Exact";');
-    expect(checkerSource).toContain("/next payload coverage");
+    expect(checkerSource).toContain("/next sync signals");
     expect(checkerSource).toContain("Session action queue");
     expect(checkerSource).toContain("ordered like an OSRS session checklist");
     expect(checkerSource).toContain("actionQueueForSyncedPlayer");
     expect(checkerSource).toContain("syncUrlsForOrigin(syncOrigin)");
     expect(checkerSource).not.toContain("LOCAL_SYNC_URL");
     expect(checkerSource).not.toContain("LOCAL_SYNC_CLAIM_URL");
-    expect(diagnosticsSource).toContain("Confirm the plugin Sync URL points at https://www.scapestack.org/api/sync.");
+    expect(diagnosticsSource).toContain("Set the plugin Sync URL to https://www.scapestack.org/api/sync.");
     expect(diagnosticsSource).toContain("Enable “Auto-sync on login”");
   });
 

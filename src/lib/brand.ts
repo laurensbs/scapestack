@@ -2,7 +2,7 @@ export const BRAND_NAME = "Scapestack";
 export const BRAND_SHORT_NAME = "Scapestack";
 export const BRAND_TAGLINE = "Know what to do next in OSRS";
 export const BRAND_SECONDARY_TAGLINE =
-  "Type your RSN and get a route for tonight.";
+  "Type your RSN. Pick one route before you log in.";
 export const BRAND_URL = "https://www.scapestack.org";
 export const BRAND_THEME_COLOR = "#07090C";
 export const BRAND_ACCENT_COLOR = "#E6A52F";
@@ -10,7 +10,7 @@ export const BRAND_BACKGROUND_COLOR = "#07090C";
 export const BRAND_IMAGE_FONT_FAMILY = "Geist, Arial, sans-serif";
 
 export const BRAND_DESCRIPTION =
-  "Plan tonight's OSRS route from your stats, bank, goals, Slayer and RuneLite sync.";
+  "Plan tonight's OSRS route from your RSN, bank, goals, Slayer and optional RuneLite sync.";
 
 export const BRAND_KEYWORDS = [
   "OSRS",
@@ -69,8 +69,8 @@ export const BRAND_LEGACY_REDIRECT_ROUTES = [
 
 export const BRAND_POSITIONING = {
   category: "OSRS route planner",
-  promise: "From account state to one useful next move.",
-  feeling: "A clean OSRS route board with real account actions.",
+  promise: "From login indecision to one useful route.",
+  feeling: "A clean OSRS route board that knows the account in front of it.",
   antiPattern: "Keep player-facing screens about choices, not internal status or generic product wording."
 } as const;
 
@@ -85,21 +85,21 @@ export const BRAND_VOICE_RULES = [
 export const BRAND_UI_SURFACES = [
   {
     page: "Tonight",
-    role: "What should I do tonight?",
+    role: "What is worth doing tonight?",
     primaryAction: "Plan next action",
-    requiredFeeling: "Boss, Slayer, quest, diary, GP or chill progress from the account in front of you."
+    requiredFeeling: "One ranked route: Boss KC, Slayer, quest, diary, GP, upgrade or chill progress."
   },
   {
     page: "Bank",
     role: "What can I do with this bank?",
     primaryAction: "Use my bank",
-    requiredFeeling: "Owned gear, supplies, item IDs and cheap upgrades without another bank-standing loop."
+    requiredFeeling: "Owned gear, supplies and cheap upgrades without another bank-standing loop."
   },
   {
     page: "Boss",
     role: "What boss makes sense now?",
     primaryAction: "Find a boss route",
-    requiredFeeling: "Realistic KC targets, gear checks, wiki links and the missing item that matters."
+    requiredFeeling: "Realistic KC targets, gear checks, Wiki links and the missing item that matters."
   },
   {
     page: "Slayer",
@@ -115,16 +115,16 @@ export const BRAND_UI_SURFACES = [
   },
   {
     page: "Sync",
-    role: "Stop suggesting things already done.",
+    role: "What have I already finished?",
     primaryAction: "Sync account",
-    requiredFeeling: "Quest, diary, collection log and Slayer context when the player wants sharper plans."
+    requiredFeeling: "Keep completed quests, diary tiers, collection log and Slayer out of bad suggestions."
   }
 ] as const;
 
 export const BRAND_PLAYER_PROMPTS = [
   {
     label: "I have 45 minutes",
-    copy: "Give me one thing I can finish tonight.",
+    copy: "Give me one useful thing with a clean stop point.",
     href: "/next"
   },
   {
@@ -138,9 +138,29 @@ export const BRAND_PLAYER_PROMPTS = [
     href: "/dps"
   },
   {
+    label: "I have a Slayer task",
+    copy: "Tell me kill, skip, extend, burst or cannon.",
+    href: "/slayer"
+  },
+  {
+    label: "I want an unlock",
+    copy: "Find the closest quest, diary, cape or raids-prep step.",
+    href: "/goals"
+  },
+  {
     label: "Low effort",
-    copy: "Useful progress without a long setup.",
+    copy: "Useful progress while half-paying attention.",
     href: "/next"
+  },
+  {
+    label: "What should I buy?",
+    copy: "Spot the cheap upgrade before I waste GP.",
+    href: "/bank"
+  },
+  {
+    label: "Hide done stuff",
+    copy: "Use sync so finished quests, diaries and logs stay out.",
+    href: "/plugin#verify-sync"
   }
 ] as const;
 

@@ -9,9 +9,9 @@ describe("homepage first-impression copy", () => {
     expect(source).toContain("BRAND_SECONDARY_TAGLINE");
     expect(source).toContain("What should I do next?");
     expect(source).toContain("Boss, Slayer, GP or unlocks.");
-    expect(source).toContain('const HERO_LOOP_STEPS = ["Bank", "Next action", "RuneLite sync"] as const;');
+    expect(source).toContain('const HERO_LOOP_STEPS = ["RSN", "Next route", "Sharper with bank or sync"] as const;');
     expect(source).toContain("Boss KC, Slayer, quest, diary, GP, gear upgrade");
-    expect(source).toContain("Pick one route before you log in.");
+    expect(source).toContain("Add bank or sync only when it changes the route.");
     expect(source).not.toContain("AI-powered");
     expect(source).not.toContain("generic SaaS");
     expect(source).not.toContain("bank standing");
@@ -35,8 +35,9 @@ describe("homepage first-impression copy", () => {
     expect(source).toContain("HERO_ACCOUNT_LEVERS");
     expect(source).toContain("Other good routes");
     expect(source).toContain("Boss KC");
-    expect(source).toContain("Route the task: kill, skip, extend, barrage or cannon.");
+    expect(source).toContain("Route it: kill, skip, extend, barrage or cannon.");
     expect(source).toContain("Plan around");
+    expect(source).toContain("Mood");
     expect(source).toContain("Gear");
     expect(source).toContain("Supplies");
     expect(source).not.toContain('aria-label="Scapestack readiness rail"');
@@ -49,6 +50,7 @@ describe("homepage first-impression copy", () => {
   it("keeps player-facing sections free of privacy and backend status panels", () => {
     expect(source).toContain("Choose your next move");
     expect(source).toContain("what is worth doing now");
+    expect(source).toContain("this mood and this amount of time");
     expect(source).not.toContain("HERO_NEVER_READS");
     expect(source).not.toContain("RuneLite sync is opt-in account-state only");
     expect(source).not.toContain("Bank paste stays browser-session scoped");

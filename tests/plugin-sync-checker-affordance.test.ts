@@ -25,12 +25,12 @@ describe("plugin sync checker affordance", () => {
     expect(source).toContain("Checking RuneLite sync for");
     expect(source).toContain("Ready to check RuneLite sync for");
     expect(source).toContain("Enter an OSRS name to check RuneLite sync.");
-    expect(source).toContain("aria-label={normalized ? `Check RuneLite sync payload for ${normalized}` : \"Enter an OSRS name before checking RuneLite sync\"}");
+    expect(source).toContain("aria-label={normalized ? `Check RuneLite sync for ${normalized}` : \"Enter an OSRS name before checking RuneLite sync\"}");
     expect(source).toContain("aria-label={`Re-check RuneLite sync for ${state.rsn} after logging in`}");
-    expect(source).toContain('aria-label="Re-check RuneLite sync payload before opening /next"');
+    expect(source).toContain('aria-label="Re-check RuneLite sync before opening /next"');
   });
 
-  it("keeps proof and /next handoff actions explicit about verified sync", () => {
+  it("keeps proof and /next handoff actions explicit about RuneLite sync", () => {
     expect(source).toContain('formatPluginSyncSessionChecklist(state.player, { origin: syncOrigin })');
     expect(source).toContain("aria-label={`Copy RuneLite to Scapestack session checklist for ${player.displayName || player.rsn}`}");
     expect(source).toContain("Copy checklist");
@@ -38,16 +38,16 @@ describe("plugin sync checker affordance", () => {
     expect(source).toContain("Clipboard failed — copy session checklist manually");
     expect(source).toContain("Manual session checklist fallback for ${player.displayName || player.rsn}");
     expect(source).toContain("aria-label={`Copy safe sync proof for ${player.displayName || player.rsn}`}");
-    expect(source).toContain("aria-label={`${readiness.actionLabel} for verified RuneLite sync`}");
+    expect(source).toContain("aria-label={`${readiness.actionLabel} for RuneLite sync`}");
     expect(source).toContain("never includes tokens, bank, inventory, chat, screenshots or account login");
   });
 
-  it("shows a payload receipt and keeps bank context browser-only", () => {
-    expect(source).toContain('data-testid="plugin-payload-receipt"');
-    expect(source).toContain("RuneLite payload receipt");
-    expect(source).toContain("Scapestack received account-state only");
-    expect(source).toContain("quest completions, diary tiers, collection-log item IDs and optional Slayer state");
-    expect(source).toContain("Bank, inventory, equipment, chat, screenshots and login credentials are not part of the plugin payload.");
+  it("shows a sync receipt and keeps bank context browser-only", () => {
+    expect(source).toContain('data-testid="plugin-sync-receipt"');
+    expect(source).toContain("RuneLite sync receipt");
+    expect(source).toContain("Scapestack received progress only");
+    expect(source).toContain("quest completions, diary tiers, collection-log items and optional Slayer state");
+    expect(source).toContain("Bank, inventory, equipment, chat, screenshots and login credentials are not part of Scapestack Sync.");
     expect(source).toContain('const bankHref = `/bank?rsn=${encodeURIComponent(displayName)}&from=plugin`;');
     expect(source).toContain("Add bank context");
     expect(source).toContain("Add browser-only bank context for ${displayName}");
@@ -61,7 +61,7 @@ describe("plugin sync checker affordance", () => {
     expect(source).not.toContain("canShowMissingSetup");
     expect(source).not.toContain("review-readiness");
     expect(source).toContain("Open RuneLite, enable Scapestack Sync");
-    expect(source).toContain("confirm the Sync URL points to this site&apos;s /api/sync endpoint");
+    expect(source).toContain("copy the scapestack.org sync URL below into plugin settings if needed");
     expect(source).toContain('<CopyCommand value={syncUrls.sync} label="Copy sync URL" />');
     expect(source).toContain('<CopyCommand value={syncUrls.claim} label="Copy claim URL" />');
   });

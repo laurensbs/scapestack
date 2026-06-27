@@ -38,9 +38,9 @@ describe("Scapestack branding", () => {
 
   it("positions Scapestack as a tactical OSRS decision engine", () => {
     expect(BRAND_TAGLINE).toBe("Know what to do next in OSRS");
-    expect(BRAND_SECONDARY_TAGLINE).toBe("Type your RSN and get a route for tonight.");
+    expect(BRAND_SECONDARY_TAGLINE).toBe("Type your RSN. Pick one route before you log in.");
     expect(BRAND_DESCRIPTION).toContain("Plan tonight's OSRS route");
-    expect(BRAND_POSITIONING.promise).toBe("From account state to one useful next move.");
+    expect(BRAND_POSITIONING.promise).toBe("From login indecision to one useful route.");
     expect(BRAND_POSITIONING.feeling).toContain("OSRS route board");
     expect(BRAND_POSITIONING.antiPattern).toContain("player-facing screens about choices");
     expect(BRAND_VOICE_RULES.join(" ")).toContain("practical OSRS player language");
@@ -62,9 +62,13 @@ describe("Scapestack branding", () => {
       "I have 45 minutes",
       "I need GP",
       "I want boss KC",
-      "Low effort"
+      "I have a Slayer task",
+      "I want an unlock",
+      "Low effort",
+      "What should I buy?",
+      "Hide done stuff"
     ]);
-    expect(BRAND_PLAYER_PROMPTS.map((prompt) => prompt.copy).join(" ")).toContain("actually do");
+    expect(BRAND_PLAYER_PROMPTS.map((prompt) => prompt.copy).join(" ")).toContain("finished quests");
     expect(BRAND_STATE_SYSTEM.map((state) => state.state)).toEqual(["Empty", "Loading", "Error", "Mobile"]);
     expect(BRAND_STATE_SYSTEM.map((state) => state.copy).join(" ")).toContain("no hover-only affordances");
   });

@@ -39,24 +39,24 @@ describe("plugin sync diagnostics", () => {
     expect(healthLabel("outdated")).toBe("Plugin update needed");
   });
 
-  it("marks a current full payload as ready for verified /next", () => {
+  it("marks current full sync as ready for /next", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-03T12:00:00.000Z"));
 
     const diagnostic = diagnosticForSyncedPlayer(player());
     expect(diagnostic.tone).toBe("good");
-    expect(diagnostic.title).toContain("Verified account payload");
+    expect(diagnostic.title).toContain("RuneLite sync is live");
     expect(diagnostic.title).not.toContain("Exact account state");
-    expect(diagnostic.primaryAction?.label).toBe("Open verified /next plan");
-    expect(diagnostic.secondaryAction?.label).toBe("Open verified Slayer");
+    expect(diagnostic.primaryAction?.label).toBe("Open synced /next plan");
+    expect(diagnostic.secondaryAction?.label).toBe("Open synced Slayer");
     expect(diagnostic.primaryAction?.href).toBe("/next?rsn=Lynx+Titan&source=plugin-sync&bank=none");
     expect(diagnostic.secondaryAction?.href).toBe("/slayer?rsn=Lynx+Titan&source=plugin-sync&bank=none");
 
     const readiness = nextReadinessForSyncedPlayer(player());
     expect(readiness.tone).toBe("good");
-    expect(readiness.title).toBe("Verified full sync is ready for /next");
-    expect(readiness.actionLabel).toBe("Open verified /next plan");
-    expect(readiness.body).toContain("verified payload");
+    expect(readiness.title).toBe("RuneLite sync is ready for /next");
+    expect(readiness.actionLabel).toBe("Open synced /next plan");
+    expect(readiness.body).toContain("this sync");
 
     const coverage = signalCoverageForSyncedPlayer(player());
     expect(coverage.map((signal) => [signal.label, signal.status])).toEqual([
@@ -69,21 +69,21 @@ describe("plugin sync diagnostics", () => {
     vi.useRealTimers();
   });
 
-  it("turns a live full payload into an OSRS session action queue", () => {
+  it("turns a live full sync into an OSRS session action queue", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-03T12:00:00.000Z"));
 
     const queue = actionQueueForSyncedPlayer(player());
 
     expect(queue.map((action) => action.title)).toEqual([
-      "Open verified /next plan",
+      "Open synced /next plan",
       "Route the live Slayer task",
       "Paste bank for gear and GP context"
     ]);
     expect(queue[0]).toMatchObject({
       tone: "good",
       href: "/next?rsn=Lynx+Titan&source=plugin-sync&bank=none",
-      actionLabel: "Open verified /next"
+      actionLabel: "Open synced /next"
     });
     expect(queue[1]).toMatchObject({
       tone: "good",
@@ -110,7 +110,7 @@ describe("plugin sync diagnostics", () => {
     expect(queue.map((action) => action.title)).toEqual([
       "Open Collection Log tabs in-game",
       "Refresh Slayer state",
-      "Open /next with partial payload",
+      "Open /next without Slayer sync",
       "Paste bank for gear and GP context"
     ]);
     expect(queue[0]).toMatchObject({

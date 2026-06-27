@@ -58,7 +58,7 @@ export function PluginBankHandoffBanner() {
               Sync can sharpen this bank plan
             </h2>
             <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-dim)]">
-              {summary.label} is still available in this session. Verify RuneLite sync first; /next will then label which account coverage is connected, missing or verified.
+              {summary.label} is still available in this session. Check RuneLite sync first; /next can then include quests, diaries, collection log and Slayer with this bank.
             </p>
             <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-[var(--color-text-muted)]">
               Browser-only handoff; the plugin never receives your bank, inventory, equipment, screenshots, clicks or account login.
@@ -97,7 +97,7 @@ export function PluginBankHandoffBanner() {
                     {signal.detail}
                   </p>
                   <p className="mt-2 inline-flex rounded-full border border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-[0.12em] text-[var(--color-warning)]">
-                    Missing until sync is verified.
+                    Added after sync check.
                   </p>
                 </div>
               ))}

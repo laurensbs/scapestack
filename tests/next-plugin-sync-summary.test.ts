@@ -13,16 +13,17 @@ const basePlugin = {
 };
 
 describe("next plugin sync summary", () => {
-  it("marks all plugin signals exact when live coverage is complete", () => {
+  it("marks all plugin signals ready when live sync is complete", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-03T12:00:00.000Z"));
 
     const summary = summarizeNextPluginSync(basePlugin);
 
     expect(summary.state).toBe("live");
-    expect(summary.title).toBe("Verified RuneLite payload live");
-    expect(summary.body).toContain("Verified quest, diary, collection-log and Slayer state");
-    expect(summary.body).not.toContain("Exact quest, diary, collection-log and Slayer state");
+    expect(summary.title).toBe("RuneLite sync fresh");
+    expect(summary.body).toContain("Quests, diaries, collection log and Slayer");
+    expect(summary.body).not.toContain("payload");
+    expect(summary.body).not.toContain("coverage");
     expect(summary.signals.map((signal) => [signal.label, signal.status])).toEqual([
       ["Quests", "exact"],
       ["Diaries", "exact"],
@@ -33,7 +34,7 @@ describe("next plugin sync summary", () => {
     vi.useRealTimers();
   });
 
-  it("does not claim exact Slayer or collection log when those fields are missing", () => {
+  it("does not overstate Slayer or collection log when those fields are missing", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-03T12:00:00.000Z"));
 
@@ -44,17 +45,18 @@ describe("next plugin sync summary", () => {
       slayerBlocks: 0
     });
 
-    expect(summary.title).toBe("Verified RuneLite payload with partial coverage");
-    expect(summary.body).toContain("Quest and diary state are verified from RuneLite");
-    expect(summary.body).toContain("Slayer is still inferred");
-    expect(summary.body).not.toContain("Quest and diary state are exact from RuneLite");
+    expect(summary.title).toBe("RuneLite sync ready");
+    expect(summary.body).toContain("Quests and diaries are synced");
+    expect(summary.body).toContain("no live Slayer task yet");
+    expect(summary.body).not.toContain("payload");
+    expect(summary.body).not.toContain("exact from RuneLite");
     expect(summary.signals.find((signal) => signal.label === "CL")?.status).toBe("partial");
     expect(summary.signals.find((signal) => signal.label === "Slayer")?.status).toBe("missing");
 
     vi.useRealTimers();
   });
 
-  it("marks stale and outdated payloads as refresh or update before exactness", () => {
+  it("marks stale and outdated sync as refresh or update before using details", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-05T12:00:00.000Z"));
 

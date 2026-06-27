@@ -739,17 +739,17 @@ function NextIntake({
             <Shield className="mt-0.5 size-4 shrink-0 text-[var(--color-warning)]" />
             <div className="min-w-0 flex-1">
               <p className="text-[13px] font-semibold text-[var(--color-text)]">
-                Back from RuneLite setup
+                Back from Scapestack Sync
               </p>
               <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
-                Enter the same OSRS name to use verified sync if it exists. If /next still looks inferred, verify the Sync URL and payload from the plugin page.
+                Enter the same OSRS name. If /next still looks guessed, run sync again from RuneLite and re-check this RSN.
               </p>
             </div>
             <Link
               href={pluginVerifyHref}
               className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/45 px-2.5 py-1.5 text-[11px] font-bold text-[var(--color-warning)] transition-colors hover:bg-[var(--color-warning)]/10"
             >
-              Verify sync
+              Check sync
               <ArrowRight className="size-3" />
             </Link>
           </div>
@@ -855,7 +855,7 @@ function NextIntake({
             {loading
               ? "Building your plan from available account signals…"
               : rsn.trim()
-              ? "Ready: /next will use your RSN, Hiscores, saved bank and verified sync if available."
+              ? "Ready: /next will use your RSN, Hiscores, saved bank and sync if available."
               : fromBank
               ? "Ready: bank-only planning is available; add an RSN for stat-aware picks."
               : "Type an OSRS name, paste a bank, or start from the Bank Organizer to unlock Show me."}
@@ -928,7 +928,7 @@ function NextIntake({
 
       <p className="mt-8 text-[11.5px] text-[var(--color-text-muted)] text-center leading-relaxed">
         {cameFromPlugin
-          ? "RuneLite sync is optional and only counted after /next loads a verified payload. Bank handoff stays browser-only."
+          ? "RuneLite sync is optional. If it finds this RSN, /next can avoid progress you already finished. Bank stays in this browser."
           : "Free, no account, no plugin. We never store your bank — everything runs in your browser and on Scapestack's own server."}
       </p>
     </section>
@@ -1085,9 +1085,9 @@ function SessionBrief({
 
   const plan = rec.actionPlan;
   const trustLabel = pluginSyncState === "live" && bankItems.length > 0
-    ? "Verified RuneLite + bank"
+    ? "Fresh sync + bank"
     : pluginSyncState === "live"
-      ? "Verified RuneLite"
+      ? "Fresh sync"
       : pluginSyncState === "stale"
         ? "Refresh sync first"
         : pluginSyncState === "outdated"
@@ -1216,14 +1216,14 @@ function EvidenceLedger({
     },
     {
       label: "RuneLite",
-      value: pluginState === "live" ? "Verified" : pluginState === "stale" ? "Refresh" : pluginState === "outdated" ? "Update" : "Not used",
+      value: pluginState === "live" ? "Fresh" : pluginState === "stale" ? "Refresh" : pluginState === "outdated" ? "Update" : "Not used",
       detail: pluginState === "live"
-        ? "Quest, diary, collection-log and Slayer coverage came from a fresh Scapestack payload."
+        ? "Quests, diaries, collection log and Slayer came from your latest sync."
         : pluginState === "stale"
-        ? "Payload exists, but needs a refresh before trusting coverage labels."
+        ? "Sync is old. Refresh before a long grind or GP spend."
         : pluginState === "outdated"
-        ? "Plugin payload exists, but update before trusting newer fields."
-        : "Optional: verify a payload when you want coverage labels instead of inference.",
+        ? "Update Scapestack Sync before relying on newer Slayer or collection-log details."
+        : "Optional: sync when you want completed quests, diaries, collection log and Slayer included.",
       tone: pluginState === "live" ? "good" : pluginState ? "warn" : "muted"
     },
     {
@@ -1242,10 +1242,10 @@ function EvidenceLedger({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-            Evidence used
+            Used for this route
           </div>
           <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-muted)]">
-            Scapestack ranks picks from the signals below; missing signals stay visible instead of being hidden.
+            Scapestack ranks the pick from these account signals. Add only the context that changes the route.
           </p>
         </div>
         <div className="grid flex-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
@@ -1304,11 +1304,11 @@ function NextBankContextStrip({
   const hasPluginSync = pluginSyncState !== null;
   const basisCopy =
     hasLivePluginSync && bankItems.length > 0
-      ? "This is the full Scapestack loop: verified RuneLite account payload plus browser-only bank gear and supplies."
+      ? "Bank and fresh RuneLite sync are both in the plan: gear, supplies, completed quests, diaries and Slayer can all shape the route."
       : pluginSyncState === "stale"
-        ? "RuneLite sync is connected, but refresh it before trusting quest, diary, collection-log and Slayer coverage labels."
+        ? "RuneLite sync is connected, but refresh it before a long grind or GP spend."
         : pluginSyncState === "outdated"
-          ? "RuneLite sync is connected, but update the plugin before trusting newer Slayer and coverage fields."
+          ? "RuneLite sync is connected, but update the plugin before relying on newer Slayer and collection-log details."
       : basis === "full"
       ? "Your plan is using both the bank and Hiscores, so gear, goals and account gates are being ranked together."
       : basis === "bank-only"
@@ -1343,7 +1343,7 @@ function NextBankContextStrip({
                   : "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
               )}>
                 <CheckCircle2 className="size-3" />
-                {hasLivePluginSync ? "Verified fusion" : pluginSyncState === "outdated" ? "Plugin update needed" : "Refresh sync"}
+                {hasLivePluginSync ? "Bank + sync ready" : pluginSyncState === "outdated" ? "Plugin update needed" : "Refresh sync"}
               </div>
             )}
             <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
@@ -1352,8 +1352,8 @@ function NextBankContextStrip({
               {basisCopy}
             </p>
             <p className="mt-1 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
-              Browser-only handoff for cross-tool navigation. Clear it to stop carrying this bank into new `/next`, `/dps`, `/goals`, `/slayer` or `/plugin` sessions.
-              {handoffCleared ? " Stored handoff cleared; this current result keeps its already-computed bank-aware plan until you rerun." : ""}
+              This bank stays with this browser. Clear it when you want a clean run in `/next`, `/dps`, `/goals`, `/slayer` or `/plugin`.
+              {handoffCleared ? " Stored bank cleared; this current result keeps its already-computed bank-aware plan until you rerun." : ""}
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               {context.summary.topItems.map((item) => (
@@ -1424,7 +1424,7 @@ function NextBankContextStrip({
             href={toolHandoffUrl("/plugin", "next", activeRsn)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
           >
-            Verify RuneLite sync
+            Check RuneLite sync
             <Sparkles className="size-3.5" />
           </Link>
         </div>
@@ -1527,18 +1527,18 @@ function PluginSyncStrip({
             <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
               <div className="rounded-lg border border-[var(--color-good)]/20 bg-[var(--color-bg)]/35 px-2.5 py-2">
                 <div className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-good)]">
-                  Account proof
+                  Account progress
                 </div>
                 <p className="mt-0.5 text-[11px] leading-relaxed text-[var(--color-text-dim)]">
-                  RuneLite verified quests, diaries, collection-log and Slayer labels for this RSN.
+                  RuneLite sync included quests, diaries, collection log and Slayer for this RSN.
                 </p>
               </div>
               <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-2">
                 <div className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-                  Bank proof
+                  Bank context
                 </div>
                 <p className="mt-0.5 text-[11px] leading-relaxed text-[var(--color-text-dim)]">
-                  Still browser-only. Paste Bank Memory or Bank Tags when gear, supplies or affordability matter.
+                  Paste Bank Memory or Bank Tags when gear, supplies or affordability matter.
                 </p>
               </div>
             </div>
@@ -1552,7 +1552,7 @@ function PluginSyncStrip({
                     : "border-[var(--color-warning)]/35 text-[var(--color-warning)] hover:bg-[var(--color-warning)]/10"
                 )}
               >
-                {outdated ? "Open update steps →" : "Open plugin sync steps →"}
+                {outdated ? "Open update steps →" : "Open refresh steps →"}
               </a>
             )}
           </div>
@@ -1562,7 +1562,7 @@ function PluginSyncStrip({
             <div
               key={signal.label}
               className={cn("rounded-lg border px-2 py-1.5 text-right", pluginSignalClass(signal.status))}
-              title={`${signal.label}: ${signal.status}`}
+              title={`${signal.label}: ${signal.value}`}
             >
               <div className="font-bold uppercase tracking-[0.12em]">{signal.label}</div>
               <div className="mt-0.5 text-[var(--color-text)] font-semibold">{signal.value}</div>
@@ -1804,23 +1804,23 @@ function RecommendationDecisionSpec({ rec, compact = false }: { rec: Recommendat
   const wikiQuery = recommendationWikiQuery(rec);
   const specs = [
     {
-      label: "Expected session length",
+      label: "Session length",
       value: plan?.timebox ?? "Pick a short test run",
       tone: "muted" as const
     },
     {
-      label: "Confidence level",
+      label: "Why it fits",
       value: plan?.confidenceLabel ?? "Guided",
       tone: plan?.confidence === "exact" ? "good" as const : plan?.confidence === "likely" ? "accent" as const : "muted" as const,
       title: plan?.caveat || "Recommendation confidence"
     },
     {
-      label: "Required items/stats/quests",
+      label: "Needs",
       value: needs.length ? needs.join(" · ") : "No hard item/stat/quest gate detected.",
       tone: "muted" as const
     },
     {
-      label: "Missing data warning",
+      label: "Check first",
       value: recommendationMissingDataWarning(rec),
       tone: plan?.caveat ? "warn" as const : "muted" as const
     }
@@ -1959,7 +1959,7 @@ function RecommendationProofStrip({ rec, compact = false }: { rec: Recommendatio
     plan ? { label: "Confidence", value: plan.confidenceLabel, title: plan.caveat || "Recommendation confidence" } : null,
     plan ? { label: "Session", value: plan.timebox } : null,
     rec.payoff ? { label: "Payoff", value: rec.payoff } : null,
-    plan?.caveat ? { label: "Missing data", value: plan.caveat } : null
+    plan?.caveat ? { label: "Check first", value: plan.caveat } : null
   ].filter((chip): chip is { label: string; value: string; title?: string } => Boolean(chip));
 
   if (chips.length === 0) return null;
@@ -1975,7 +1975,7 @@ function RecommendationProofStrip({ rec, compact = false }: { rec: Recommendatio
           title={chip.title ?? chip.value}
           className={cn(
             "rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-2",
-            chip.label === "Missing data" && "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/7"
+            chip.label === "Check first" && "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/7"
           )}
         >
           <div className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
@@ -1984,7 +1984,7 @@ function RecommendationProofStrip({ rec, compact = false }: { rec: Recommendatio
           <div className={cn(
             "mt-0.5 line-clamp-2 font-semibold leading-snug",
             compact ? "text-[10.5px]" : "text-[11.5px]",
-            chip.label === "Missing data" ? "text-[var(--color-warning)]" : "text-[var(--color-text-dim)]"
+            chip.label === "Check first" ? "text-[var(--color-warning)]" : "text-[var(--color-text-dim)]"
           )}>
             {chip.value}
           </div>
@@ -2002,8 +2002,8 @@ function RecommendationConfidenceLegend() {
   }> = [
     {
       confidence: "exact",
-      label: "Verified",
-      helper: "Verified RuneLite payload covers this quest, diary, collection log or Slayer state."
+      label: "Synced",
+      helper: "RuneLite sync covers this quest, diary, collection log or Slayer state."
     },
     {
       confidence: "likely",

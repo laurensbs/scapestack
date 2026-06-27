@@ -27,8 +27,8 @@ export function summarizeNextPluginSync(plugin: PluginSource): NextPluginSyncSum
   if (health === "outdated") {
     return {
       state: "outdated",
-      title: "RuneLite plugin update needed",
-      body: `Synced with v${plugin.pluginVersion ?? "unknown"}. Update to v${CURRENT_PLUGIN_VERSION} before trusting newer Slayer and coverage fields.`,
+      title: "Update Scapestack Sync",
+      body: `Last sync used v${plugin.pluginVersion ?? "unknown"}. Update to v${CURRENT_PLUGIN_VERSION} so Slayer, diary and collection-log picks stay current.`,
       signals: baseSignals(plugin, "update")
     };
   }
@@ -36,8 +36,8 @@ export function summarizeNextPluginSync(plugin: PluginSource): NextPluginSyncSum
   if (health === "stale") {
     return {
       state: "stale",
-      title: "RuneLite plugin stale",
-      body: "Plugin data exists, but this payload is old. Refresh RuneLite sync before trusting verified coverage labels.",
+      title: "Refresh Scapestack Sync",
+      body: "Your last sync is old. Refresh RuneLite before spending GP or starting a long grind.",
       signals: baseSignals(plugin, "refresh")
     };
   }
@@ -45,21 +45,21 @@ export function summarizeNextPluginSync(plugin: PluginSource): NextPluginSyncSum
   const clStatus: NextPluginSignalStatus = plugin.clItems > 0 ? "exact" : "partial";
   const hasSlayer = plugin.slayerTaskRemaining !== null && plugin.slayerTaskRemaining !== undefined;
   const missing = [
-    plugin.clItems > 0 ? null : "collection log needs opened categories",
-    hasSlayer ? null : "Slayer is still inferred"
+    plugin.clItems > 0 ? null : "open collection-log categories once for item checks",
+    hasSlayer ? null : "no live Slayer task yet"
   ].filter(Boolean);
 
   return {
     state: "live",
-    title: missing.length > 0 ? "Verified RuneLite payload with partial coverage" : "Verified RuneLite payload live",
+    title: missing.length > 0 ? "RuneLite sync ready" : "RuneLite sync fresh",
     body: missing.length > 0
-      ? `Quest and diary state are verified from RuneLite; ${missing.join(", ")}.`
-      : "Verified quest, diary, collection-log and Slayer state are coming from your RuneLite client.",
+      ? `Quests and diaries are synced; ${missing.join(", ")}.`
+      : "Quests, diaries, collection log and Slayer are coming from your RuneLite client.",
     signals: [
       { label: "Quests", status: "exact", value: `${plugin.quests.toLocaleString()} done` },
       { label: "Diaries", status: "exact", value: `${plugin.diaries.toLocaleString()} tiers` },
-      { label: "CL", status: clStatus, value: plugin.clItems > 0 ? `${plugin.clItems.toLocaleString()} IDs` : "open CL" },
-      { label: "Slayer", status: hasSlayer ? "exact" : "missing", value: hasSlayer ? `${plugin.slayerTaskRemaining} left` : "inferred" }
+      { label: "CL", status: clStatus, value: plugin.clItems > 0 ? `${plugin.clItems.toLocaleString()} items` : "open CL" },
+      { label: "Slayer", status: hasSlayer ? "exact" : "missing", value: hasSlayer ? `${plugin.slayerTaskRemaining} left` : "not synced" }
     ]
   };
 }
@@ -68,13 +68,13 @@ function baseSignals(plugin: PluginSource, status: Extract<NextPluginSignalStatu
   return [
     { label: "Quests", status, value: `${plugin.quests.toLocaleString()} done` },
     { label: "Diaries", status, value: `${plugin.diaries.toLocaleString()} tiers` },
-    { label: "CL", status, value: `${plugin.clItems.toLocaleString()} IDs` },
+    { label: "CL", status, value: `${plugin.clItems.toLocaleString()} items` },
     {
       label: "Slayer",
       status,
       value: plugin.slayerTaskRemaining !== null && plugin.slayerTaskRemaining !== undefined
         ? `${plugin.slayerTaskRemaining} left`
-        : "inferred"
+        : "not synced"
     }
   ];
 }

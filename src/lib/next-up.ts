@@ -1008,7 +1008,7 @@ function slayerTaskRecs(
       prep: `${taskLeftLabel} left. ${pointsHint}`,
       steps: [
         displayName
-          ? `Open verified /slayer for ${displayName} and confirm whether ${monster.name} is worth finishing, skipping or blocking.`
+          ? `Open synced /slayer for ${displayName} and confirm whether ${monster.name} is worth finishing, skipping or blocking.`
           : `Open /slayer and confirm whether ${monster.name} is worth finishing, skipping or blocking.`,
         monster.cannonable
           ? "Bring cannon + balls if the location supports it; otherwise use the fastest safe setup."
@@ -1443,7 +1443,7 @@ function noHiscoresNudge(): Recommendation {
       steps: [
         "Enter your OSRS name on /next and keep the current bank loaded.",
         "Let Scapestack combine Hiscores with this bank for quest, diary, boss and drop-chance recs.",
-        "If you want verified quest, diary, collection-log or Slayer coverage labels, install or sync the RuneLite plugin after that."
+        "If you want finished quests, diary tiers, collection-log slots or Slayer tasks kept out of suggestions, run Scapestack Sync after that."
       ]
     }
   };
@@ -1527,18 +1527,18 @@ function confidenceFor(rec: Recommendation, ctx: ActionPlanContext): Recommendat
 }
 
 function confidenceLabel(confidence: RecommendationActionPlan["confidence"]): string {
-  if (confidence === "exact") return "Verified sync";
+  if (confidence === "exact") return "Synced";
   if (confidence === "likely") return "Likely fit";
   return "Guided";
 }
 
 function baseCaveat(rec: Recommendation, ctx: ActionPlanContext): string | undefined {
   if (!ctx.hasHiscores && ctx.hasBank) return "Add your RSN to turn this into stat-aware advice.";
-  if (ctx.hasHiscores && !ctx.hasBank && (rec.kind === "boss" || rec.kind === "kc" || rec.kind === "goal")) return "Paste a bank or install the plugin for gear and item checks.";
+  if (ctx.hasHiscores && !ctx.hasBank && (rec.kind === "boss" || rec.kind === "kc" || rec.kind === "goal")) return "Paste a bank when gear and item checks matter.";
   if (ctx.hasPluginSync && !ctx.hasExactPluginSync && (rec.kind === "quest" || rec.kind === "diary" || rec.kind === "kc" || rec.kind === "slayer")) {
-    return "RuneLite sync is connected, but refresh or update it before trusting verified coverage labels.";
+    return "RuneLite sync is connected, but refresh or update it before relying on quests, diaries, collection log or Slayer for this pick.";
   }
-  if (!ctx.hasPluginSync && (rec.kind === "quest" || rec.kind === "diary")) return "Quest and diary completion is inferred unless the RuneLite plugin has synced.";
+  if (!ctx.hasPluginSync && (rec.kind === "quest" || rec.kind === "diary")) return "Quest and diary completion is inferred unless Scapestack Sync has this RSN.";
   return undefined;
 }
 

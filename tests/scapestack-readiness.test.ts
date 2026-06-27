@@ -62,11 +62,11 @@ describe("Scapestack readiness rail", () => {
         body: expect.stringContaining("https://www.scapestack.org/api/sync")
       }),
       expect.objectContaining({
-        label: "Verify RSN",
+        label: "Check RSN",
         body: expect.stringContaining("same OSRS name")
       })
     ]);
-    expect(readiness.body).toContain("RuneLite sync adds verified quest, diary, collection-log and Slayer coverage");
+    expect(readiness.body).toContain("RuneLite sync adds quests, diaries, collection log and Slayer");
     expect(readiness.body).not.toContain("gear now; RuneLite sync makes");
   });
 
@@ -81,10 +81,10 @@ describe("Scapestack readiness rail", () => {
     const syncSignal = readiness.signals.find((signal) => signal.id === "sync");
 
     expect(syncSignal?.detail).toContain("Check the same RSN on /plugin");
-    expect(syncSignal?.detail).toContain("/next can use verified account coverage");
+    expect(syncSignal?.detail).toContain("/next can avoid finished account progress");
     expect(syncSignal?.detail).not.toContain("/next stops guessing");
-    expect(syncSignal?.sourceLabel).toBe("Ready to verify");
-    expect(syncSignal?.notice).toBe("RuneLite sync can be verified from the plugin page.");
+    expect(syncSignal?.sourceLabel).toBe("Ready to check");
+    expect(syncSignal?.notice).toBe("RuneLite sync can be checked from the plugin page.");
     expect(syncSignal?.steps?.[0]).toEqual({
       label: "Open RuneLite",
       body: "Enable Scapestack Sync for the account you want to plan."
@@ -124,7 +124,7 @@ describe("Scapestack readiness rail", () => {
     const syncSignal = readiness.signals.find((signal) => signal.id === "sync");
 
     expect(readiness.primaryAction).toEqual({
-      label: "Verify RuneLite sync",
+      label: "Check RuneLite sync",
       href: "/plugin?rsn=Lynx+Titan&from=next#verify-sync"
     });
     expect(syncSignal).toMatchObject({
@@ -160,11 +160,11 @@ describe("Scapestack readiness rail", () => {
     });
 
     expect(closed.primaryAction).toEqual({
-      label: "Verify RuneLite sync",
+      label: "Check RuneLite sync",
       href: "/plugin?rsn=Lynx+Titan&from=goals#verify-sync"
     });
     expect(unknown.primaryAction).toEqual({
-      label: "Verify RuneLite sync",
+      label: "Check RuneLite sync",
       href: "/plugin?rsn=Lynx+Titan&from=goals#verify-sync"
     });
     expect(closed.signals.find((signal) => signal.id === "sync")?.sourceLabel).toBe("Optional account sync");
@@ -214,7 +214,7 @@ describe("Scapestack readiness rail", () => {
     });
   });
 
-  it("sends bank-plus-rsn players to RuneLite payload verification before claiming completion", () => {
+  it("sends bank-plus-rsn players to RuneLite sync check before claiming completion", () => {
     const readiness = buildScapestackReadiness({
       surface: "bank",
       hasBankContext: true,
@@ -222,12 +222,12 @@ describe("Scapestack readiness rail", () => {
       rsn: "Mole Slapper"
     });
 
-    expect(readiness.primaryAction.label).toBe("Verify RuneLite sync");
+    expect(readiness.primaryAction.label).toBe("Check RuneLite sync");
     expect(readiness.primaryAction.href).toBe("/plugin?rsn=Mole+Slapper&from=bank#verify-sync");
     expect(readiness.signals.find((signal) => signal.id === "sync")?.detail).toContain("Use /next now");
   });
 
-  it("routes verified-sync players back into /next", () => {
+  it("routes synced players back into /next", () => {
     const readiness = buildScapestackReadiness({
       surface: "goals",
       hasBankContext: true,
@@ -237,7 +237,7 @@ describe("Scapestack readiness rail", () => {
     });
 
     expect(readiness.primaryAction).toEqual({
-      label: "Open verified /next",
+      label: "Open synced /next",
       href: "/next?rsn=Iron+Lynx&from=goals"
     });
     expect(readiness.primaryAction.label).not.toBe("Open exact /next");
@@ -249,7 +249,7 @@ describe("Scapestack readiness rail", () => {
     expect(readiness.signals.find((signal) => signal.id === "sync")?.copy).toBeUndefined();
     expect(readiness.signals.find((signal) => signal.id === "sync")?.steps).toBeUndefined();
     expect(readiness.signals.find((signal) => signal.id === "bank")?.sourceLabel).toBe("Browser-only bank paste");
-    expect(readiness.signals.find((signal) => signal.id === "sync")?.sourceLabel).toBe("Verified RuneLite payload");
+    expect(readiness.signals.find((signal) => signal.id === "sync")?.sourceLabel).toBe("RuneLite sync fresh");
   });
 
   it("does not label outdated plugin sync as exact", () => {
@@ -265,14 +265,14 @@ describe("Scapestack readiness rail", () => {
     const syncSignal = readiness.signals.find((signal) => signal.id === "sync");
     expect(syncSignal?.status).toBe("ready");
     expect(syncSignal?.detail).toContain("update the RuneLite plugin");
-    expect(syncSignal?.sourceLabel).toBe("RuneLite payload needs refresh");
+    expect(syncSignal?.sourceLabel).toBe("RuneLite sync needs refresh");
     expect(readiness.primaryAction).toEqual({
-      label: "Refresh sync payload",
+      label: "Refresh sync",
       href: "/plugin?rsn=Lynx+Titan&from=next#verify-sync"
     });
     expect(readiness.title).toBe("Next planner has 3/3 signals connected");
-    expect(readiness.body).toContain("3/3 signals are connected, 1/3 are verified");
-    expect(readiness.body).toContain("must be refreshed or updated");
+    expect(readiness.body).toContain("3/3 signals are connected");
+    expect(readiness.body).toContain("refresh RuneLite sync before relying on quests");
   });
 
   it("supports Slayer as a first-class Scapestack surface", () => {
@@ -287,7 +287,7 @@ describe("Scapestack readiness rail", () => {
 
     expect(readiness.title).toBe("Slayer planner has 3/3 signals connected");
     expect(readiness.primaryAction).toEqual({
-      label: "Refresh sync payload",
+      label: "Refresh sync",
       href: "/plugin?rsn=Duradel+Main&from=slayer#verify-sync"
     });
     expect(readiness.signals.find((signal) => signal.id === "sync")?.detail).toContain("refresh RuneLite");

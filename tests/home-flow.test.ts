@@ -3,48 +3,44 @@ import { HOME_PRODUCT_FLOW, homePluginReadinessPill, homeProductFlowForPluginRea
 import type { PluginHubReviewReadiness } from "@/lib/plugin-hub-status";
 
 describe("homepage product flow", () => {
-  it("keeps Scapestack positioned as bank plus RuneLite plus next planner", () => {
+  it("keeps Scapestack positioned as RSN first, then optional bank and sync", () => {
     expect(HOME_PRODUCT_FLOW.map((step) => step.href)).toEqual([
+      "/next",
       "/bank",
-      "/plugin#verify-sync",
-      "/next"
+      "/plugin#verify-sync"
     ]);
   });
 
   it("uses concrete pending-state CTAs instead of generic marketing or false exactness", () => {
     expect(HOME_PRODUCT_FLOW.map((step) => step.cta)).toEqual([
+      "Start with RSN",
       "Add bank",
-      "Check sync",
-      "Open planner"
+      "Use sync"
     ]);
-    expect(HOME_PRODUCT_FLOW[0].title).toBe("Use the gear you own");
-    expect(HOME_PRODUCT_FLOW[0].body).toContain("setups, supplies and upgrades");
-    expect(HOME_PRODUCT_FLOW[1].body).toContain("Enter your OSRS name");
-    expect(HOME_PRODUCT_FLOW[1].body).toContain("quests, diaries, CL and Slayer");
-    expect(HOME_PRODUCT_FLOW[2].title).toBe("Pick tonight's route");
-    expect(HOME_PRODUCT_FLOW[2].body).toContain("boss KC, Slayer, quest, diary, GP or low-effort progress");
+    expect(HOME_PRODUCT_FLOW[0].title).toBe("Start with your RSN");
+    expect(HOME_PRODUCT_FLOW[0].body).toContain("Hiscores gives combat");
+    expect(HOME_PRODUCT_FLOW[1].title).toBe("Add bank when gear matters");
+    expect(HOME_PRODUCT_FLOW[1].body).toContain("gear you already own");
+    expect(HOME_PRODUCT_FLOW[2].title).toBe("Sync finished progress");
+    expect(HOME_PRODUCT_FLOW[2].body).toContain("avoid quests, diaries, CL and Slayer");
   });
 
-  it("switches home CTAs to install-ready sync after Plugin Hub merge without faking payloads", () => {
+  it("keeps install-ready sync framed as finished-progress filtering", () => {
     const flow = homeProductFlowForPluginState("merged");
 
     expect(flow.map((step) => step.href)).toEqual([
+      "/next",
       "/bank",
-      "/plugin#verify-sync",
-      "/next?from=plugin&bank=none"
+      "/plugin#verify-sync"
     ]);
     expect(flow.map((step) => step.cta)).toEqual([
+      "Start with RSN",
       "Add bank",
-      "Check sync",
-      "Open planner"
+      "Use sync"
     ]);
-    expect(flow[1].body).toContain("Enable Scapestack Sync");
-    expect(flow[1].body).toContain("quests, diaries, collection log and Slayer");
-    expect(flow[1].body).not.toContain("Add exact quests");
-    expect(flow[2].title).toBe("Pick tonight's route");
-    expect(flow[2].body).toContain("one ranked plan");
-    expect(flow[2].body).not.toContain("labels exact quest, diary, collection-log and Slayer state");
-    expect(flow[2].href).not.toContain("source=plugin-sync");
+    expect(flow[2].body).toContain("completed quests, diaries, collection log and Slayer");
+    expect(flow[2].body).not.toContain("payload");
+    expect(flow[2].body).not.toContain("Plugin Hub");
   });
 
   it("routes non-installable readiness to the sync checker instead of review copy", () => {
@@ -58,13 +54,12 @@ describe("homepage product flow", () => {
     };
     const flow = homeProductFlowForPluginReadiness(readiness);
 
-    expect(flow[1]).toMatchObject({
-      title: "Add account progress",
+    expect(flow[2]).toMatchObject({
+      title: "Sync finished progress",
       href: "/plugin#verify-sync",
-      cta: "Check sync"
+      cta: "Use sync"
     });
-    expect(flow[1].body).toContain("pick around quests, diaries, CL and Slayer");
-    expect(flow[2].href).toBe("/next");
+    expect(flow[2].body).toContain("avoid quests, diaries, CL and Slayer");
     expect(homePluginReadinessPill(readiness)).toMatchObject({
       label: "Check sync",
       href: "/plugin#verify-sync",
@@ -83,8 +78,8 @@ describe("homepage product flow", () => {
     };
     const flow = homeProductFlowForPluginReadiness(readiness);
 
-    expect(flow[1].cta).toBe("Check sync");
-    expect(flow[1].href).toBe("/plugin#verify-sync");
+    expect(flow[2].cta).toBe("Use sync");
+    expect(flow[2].href).toBe("/plugin#verify-sync");
     expect(homePluginReadinessPill(readiness)).toMatchObject({
       label: "Sync ready",
       href: "/plugin#verify-sync",

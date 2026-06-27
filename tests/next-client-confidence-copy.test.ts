@@ -16,9 +16,9 @@ describe("/next confidence UI copy", () => {
   it("explains exact, likely and guided recommendation confidence", () => {
     expect(source).toContain("function RecommendationConfidenceLegend");
     expect(source).toContain("Why this pick?");
-    expect(source).toContain('label: "Verified"');
-    expect(source).toContain("Verified RuneLite payload covers this quest, diary, collection log or Slayer state.");
-    expect(source).not.toContain("Plugin-synced quest, diary, collection log or Slayer state.");
+    expect(source).toContain('label: "Synced"');
+    expect(source).toContain("RuneLite sync covers this quest, diary, collection log or Slayer state.");
+    expect(source).not.toContain("Verified RuneLite payload");
     expect(source).toContain("Uses your RSN, hiscores and saved bank where available.");
     expect(source).toContain("Good default pick, but missing live account signals.");
   });
@@ -65,7 +65,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('label: "Confidence"');
     expect(source).toContain('label: "Session"');
     expect(source).toContain('label: "Payoff"');
-    expect(source).toContain('label: "Missing data"');
+    expect(source).toContain('label: "Check first"');
     expect(source).toContain("<RecommendationProofStrip rec={rec} />");
     expect(source).toContain("<RecommendationProofStrip rec={rec} compact />");
   });
@@ -73,10 +73,10 @@ describe("/next confidence UI copy", () => {
   it("renders every recommendation as an actionable OSRS decision card", () => {
     expect(source).toContain("function RecommendationDecisionSpec");
     expect(source).toContain('data-testid={compact ? "next-row-decision-spec" : "next-headline-decision-spec"}');
-    expect(source).toContain("Expected session length");
-    expect(source).toContain("Confidence level");
-    expect(source).toContain("Required items/stats/quests");
-    expect(source).toContain("Missing data warning");
+    expect(source).toContain("Session length");
+    expect(source).toContain("Why it fits");
+    expect(source).toContain("Needs");
+    expect(source).toContain("Check first");
     expect(source).toContain("Why recommended");
     expect(source).toContain("OSRS item ID {visual.id}");
     expect(source).toContain("recommendationVisualItem(rec)");
@@ -101,14 +101,14 @@ describe("/next confidence UI copy", () => {
   it("shows an evidence ledger for the whole /next run", () => {
     expect(source).toContain("function EvidenceLedger");
     expect(source).toContain('data-testid="next-evidence-ledger"');
-    expect(source).toContain("Evidence used");
-    expect(source).toContain("missing signals stay visible");
+    expect(source).toContain("Used for this route");
+    expect(source).toContain("Add only the context that changes the route.");
     expect(source).toContain('label: "Hiscores"');
     expect(source).toContain('label: "Bank"');
     expect(source).toContain('label: "RuneLite"');
     expect(source).toContain('label: "Trackers"');
     expect(source).toContain("<EvidenceLedger summary={summary} pathData={result.pathProgress} bankItems={bankItems} />");
-    expect(source).toContain("verify a payload when you want coverage labels instead of inference");
+    expect(source).toContain("Optional: sync when you want completed quests, diaries, collection log and Slayer included.");
   });
 
   it("shows a compact session brief before the detailed recommendation stack", () => {
@@ -136,38 +136,38 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("const cameFromPlugin = useMemo");
     expect(source).toContain('params.get("from") === "plugin"');
     expect(source).toContain("cameFromPlugin={cameFromPlugin}");
-    expect(source).toContain("RuneLite sync is optional and only counted after /next loads a verified payload.");
-    expect(source).toContain("Bank handoff stays browser-only.");
+    expect(source).toContain("RuneLite sync is optional. If it finds this RSN, /next can avoid progress you already finished.");
+    expect(source).toContain("Bank stays in this browser.");
     expect(source).toContain("Free, no account, no plugin.");
   });
 
   it("gives plugin-origin players a concrete sync verification path", () => {
     expect(source).toContain('pluginVerifyUrlForSyncedRsn(rsn, "next"');
     expect(source).toContain("hasBankContext: Boolean(fromBank)");
-    expect(source).toContain("Back from RuneLite setup");
-    expect(source).toContain("Enter the same OSRS name to use verified sync if it exists.");
-    expect(source).toContain("If /next still looks inferred, verify the Sync URL and payload from the plugin page.");
-    expect(source).toContain("Verify sync");
+    expect(source).toContain("Back from Scapestack Sync");
+    expect(source).toContain("Enter the same OSRS name.");
+    expect(source).toContain("If /next still looks guessed, run sync again from RuneLite and re-check this RSN.");
+    expect(source).toContain("Check sync");
     expect(source).toContain("href={pluginVerifyHref}");
   });
 
   it("does not call unverified /next plugin handoff exact sync", () => {
-    expect(source).toContain("Verify RuneLite sync");
+    expect(source).toContain("Check RuneLite sync");
     expect(source).not.toContain("Add exact sync");
   });
 
   it("separates RuneLite account proof from browser-only bank proof", () => {
-    expect(source).toContain("Account proof");
-    expect(source).toContain("RuneLite verified quests, diaries, collection-log and Slayer labels for this RSN.");
-    expect(source).toContain("Bank proof");
-    expect(source).toContain("Still browser-only. Paste Bank Memory or Bank Tags when gear, supplies or affordability matter.");
+    expect(source).toContain("Account progress");
+    expect(source).toContain("RuneLite sync included quests, diaries, collection log and Slayer for this RSN.");
+    expect(source).toContain("Bank context");
+    expect(source).toContain("Paste Bank Memory or Bank Tags when gear, supplies or affordability matter.");
   });
 
   it("lets players clear temporary bank handoff storage", () => {
     expect(source).toContain("clearBankHandoffPayload(window)");
     expect(source).toContain("Clear handoff");
     expect(source).toContain("Browser-only handoff");
-    expect(source).toContain("Stored handoff cleared");
+    expect(source).toContain("Stored bank cleared");
     expect(source).toContain('import { bankOrganizerHref } from "@/lib/bank-handoff-url";');
     expect(source).toContain('window.location.href = bankOrganizerHref(activeRsn, "next");');
   });
@@ -258,11 +258,11 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('pluginSyncState: "live" | "stale" | "outdated" | null;');
     expect(source).toContain("const hasLivePluginSync = pluginSyncState === \"live\";");
     expect(source).toContain("hasLivePluginSync && bankItems.length > 0");
-    expect(source).toContain("This is the full Scapestack loop: verified RuneLite account payload plus browser-only bank gear and supplies.");
-    expect(source).not.toContain("This is the full Scapestack loop: exact RuneLite account state plus browser-only bank gear and supplies.");
-    expect(source).toContain("RuneLite sync is connected, but update the plugin before trusting newer Slayer and coverage fields.");
+    expect(source).toContain("Bank and fresh RuneLite sync are both in the plan");
+    expect(source).not.toContain("verified RuneLite account payload");
+    expect(source).toContain("RuneLite sync is connected, but update the plugin before relying on newer Slayer and collection-log details.");
     expect(source).toContain("{hasPluginSync ? \"Bank + RuneLite sync connected\" : \"Bank context active\"}");
-    expect(source).toContain("Verified fusion");
+    expect(source).toContain("Bank + sync ready");
     expect(source).not.toContain("Exact fusion");
     expect(source).toContain("Plugin update needed");
   });

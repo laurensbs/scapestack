@@ -23,9 +23,11 @@ describe("tool registry", () => {
       navLabel: "Sync",
       status: "live"
     });
-    expect(plugin?.short).toBe("Set up or verify Scapestack RuneLite sync");
-    expect(plugin?.tagline).toContain("verified quests, diaries, CL and Slayer");
-    expect(plugin?.description).toContain("verify a payload before /next trusts quest, diary, collection-log and Slayer coverage labels");
+    expect(plugin?.short).toBe("Set up Scapestack RuneLite sync");
+    expect(plugin?.tagline).toContain("quests, diaries, CL and Slayer");
+    expect(plugin?.description).toContain("completed quests, diary tiers, collection-log items and Slayer state");
+    expect(plugin?.description).not.toContain("payload");
+    expect(plugin?.description).not.toContain("coverage labels");
     expect(plugin?.description).not.toContain("turn /next from inferred advice into exact account-state recommendations");
   });
 
