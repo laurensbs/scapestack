@@ -27,30 +27,29 @@ describe("plugin sync checker affordance", () => {
     expect(source).toContain("Enter an OSRS name to check RuneLite sync.");
     expect(source).toContain("aria-label={normalized ? `Check sync for ${normalized}` : \"Enter an OSRS name before checking sync\"}");
     expect(source).toContain("aria-label={`Re-check RuneLite sync for ${state.rsn} after logging in`}");
-    expect(source).toContain('aria-label="Re-check RuneLite sync before opening /next"');
+    expect(source).toContain("aria-label={`Re-check RuneLite sync for ${foundDisplayName}`}");
   });
 
-  it("keeps proof and /next handoff actions explicit about RuneLite sync", () => {
-    expect(source).toContain('formatPluginSyncSessionChecklist(state.player, { origin: syncOrigin })');
-    expect(source).toContain("aria-label={`Copy RuneLite to Scapestack session checklist for ${player.displayName || player.rsn}`}");
-    expect(source).toContain("Copy checklist");
-    expect(source).toContain("Checklist copied");
-    expect(source).toContain("Clipboard failed — copy session checklist manually");
-    expect(source).toContain("Manual session checklist fallback for ${player.displayName || player.rsn}");
-    expect(source).toContain("aria-label={`Copy safe sync proof for ${player.displayName || player.rsn}`}");
-    expect(source).toContain("aria-label={`${readiness.actionLabel} for RuneLite sync`}");
-    expect(source).toContain("never includes tokens, bank, inventory, chat, screenshots or account login");
+  it("keeps found-sync actions to open next or check again", () => {
+    expect(source).toContain("Sync found for {foundDisplayName}");
+    expect(source).toContain("Open /next for one plan that skips finished quests");
+    expect(source).toContain("Open /next");
+    expect(source).toContain("Check again");
+    expect(source).not.toContain("formatPluginSyncSessionChecklist");
+    expect(source).not.toContain("Copy checklist");
+    expect(source).not.toContain("Copy proof");
+    expect(source).not.toContain("Manual sync proof fallback");
   });
 
-  it("shows a sync receipt and keeps bank context browser-only", () => {
-    expect(source).toContain('data-testid="plugin-sync-receipt"');
-    expect(source).toContain("RuneLite sync receipt");
-    expect(source).toContain("Scapestack received progress only");
-    expect(source).toContain("quest completions, diary tiers, collection-log items and optional Slayer state");
-    expect(source).toContain("Bank, inventory, equipment, chat, screenshots and login credentials are not part of Scapestack Sync.");
-    expect(source).toContain('const bankHref = `/bank?rsn=${encodeURIComponent(displayName)}&from=plugin`;');
-    expect(source).toContain("Add bank context");
-    expect(source).toContain("Add browser-only bank context for ${displayName}");
+  it("shows only the sync status chips players need", () => {
+    expect(source).toContain("Synced {syncAgeLabel(state.player.syncedAt)}");
+    expect(source).toContain("{state.player.questsCompleted.length} quests");
+    expect(source).toContain("{state.player.diariesCompleted.length} diary tiers");
+    expect(source).toContain("{state.player.collectionLogItemIds.length.toLocaleString()} log items");
+    expect(source).toContain("Slayer task included");
+    expect(source).not.toContain('data-testid="plugin-sync-receipt"');
+    expect(source).not.toContain("RuneLite sync receipt");
+    expect(source).not.toContain("Add bank context");
   });
 
   it("makes missing-sync recovery a direct RuneLite setup path", () => {
@@ -61,7 +60,8 @@ describe("plugin sync checker affordance", () => {
     expect(source).not.toContain("canShowMissingSetup");
     expect(source).not.toContain("review-readiness");
     expect(source).toContain("In RuneLite: enable Scapestack Sync, press Sync now, then check again.");
-    expect(source).toContain('<CopyCommand value={syncUrls.sync} label="Copy sync URL" />');
+    expect(source).toContain("Copy scapestack.org sync URL");
+    expect(source).toContain("Sync URL copied");
     expect(source).not.toContain("Copy claim URL");
     expect(source).toContain('state.kind === "unconfigured" && diagnostic');
   });

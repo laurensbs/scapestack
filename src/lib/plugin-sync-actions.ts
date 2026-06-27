@@ -11,30 +11,7 @@ export interface PluginSyncUrls {
   claim: string;
 }
 
-export function syncUrlsForOrigin(origin?: string | null): PluginSyncUrls {
-  const cleanOrigin = origin?.trim();
-  if (!cleanOrigin) {
-    return {
-      sync: PUBLIC_SYNC_URL,
-      claim: PUBLIC_SYNC_CLAIM_URL
-    };
-  }
-
-  try {
-    const parsed = new URL(cleanOrigin);
-    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
-      return {
-        sync: `${parsed.origin}/api/sync`,
-        claim: `${parsed.origin}/api/sync/claim`
-      };
-    }
-  } catch {
-    return {
-      sync: PUBLIC_SYNC_URL,
-      claim: PUBLIC_SYNC_CLAIM_URL
-    };
-  }
-
+export function syncUrlsForOrigin(_origin?: string | null): PluginSyncUrls {
   return {
     sync: PUBLIC_SYNC_URL,
     claim: PUBLIC_SYNC_CLAIM_URL

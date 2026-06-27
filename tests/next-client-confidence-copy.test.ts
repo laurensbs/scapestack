@@ -55,42 +55,38 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function MakePlanSmarter");
     expect(source).toContain("Change name or bank");
     expect(source).toContain("Add bank");
-    expect(source).toContain("Sync later");
+    expect(source).toContain("RuneLite later");
     expect(source).not.toContain("missingDataActionForRecommendation(rec, actionContext)");
     expect(source).not.toContain("function RecommendationDataActionCallout");
     expect(source).not.toContain("Sharpen this pick:");
   });
 
-  it("keeps proof chips behind expanded recommendation steps", () => {
-    expect(source).toContain("function RecommendationProofStrip");
-    expect(source).toContain('data-testid={compact ? "next-row-proof-strip" : "next-headline-proof-strip"}');
-    expect(source).toContain('label: "Confidence"');
-    expect(source).toContain('label: "Session"');
-    expect(source).toContain('label: "Payoff"');
-    expect(source).toContain('label: "Check first"');
-    expect(source).toContain("<RecommendationProofStrip rec={rec} />");
-    expect(source).not.toContain("<RecommendationProofStrip rec={rec} compact />");
+  it("keeps expanded recommendation details focused on session steps", () => {
+    expect(source).toContain("<ActionPlanBlock rec={rec} />");
+    expect(source).toContain("You'll need");
+    expect(source).toContain("OSRS Wiki");
     expect(source).toContain("{open && <RecDetailPanel rec={rec} actionContext={actionContext} />}");
+    expect(source).not.toContain("function RecommendationProofStrip");
+    expect(source).not.toContain('data-testid={compact ? "next-row-proof-strip" : "next-headline-proof-strip"}');
+    expect(source).not.toContain("<RecommendationProofStrip rec={rec} />");
   });
 
-  it("renders every recommendation as an actionable OSRS decision card", () => {
-    expect(source).toContain("function RecommendationDecisionSpec");
+  it("renders every recommendation as an actionable OSRS session card", () => {
+    expect(source).toContain("function playerChoiceTag");
+    expect(source).toContain('label: "GP"');
+    expect(source).toContain('label: "Bossing"');
+    expect(source).toContain('label: "AFK"');
+    expect(source).toContain('label: "Chill"');
+    expect(source).toContain('label: "Unlock"');
     expect(source).toContain("function RecommendationQuickFacts");
     expect(source).toContain("function RecommendationFirstStep");
-    expect(source).toContain('data-testid={compact ? "next-row-decision-spec" : "next-headline-decision-spec"}');
-    expect(source).toContain("Session length");
-    expect(source).toContain("Why it fits");
-    expect(source).toContain("Needs");
-    expect(source).toContain("Check first");
     expect(source).toContain("Best move now");
     expect(source).toContain("Start:");
     expect(source).toContain("Bring");
-    expect(source).toContain("OSRS item ID {visual.id}");
-    expect(source).toContain("recommendationVisualItem(rec)");
     expect(source).toContain("recommendationNeeds(rec)");
-    expect(source).toContain("recommendationMissingDataWarning(rec)");
-    expect(source).toContain("<RecommendationDecisionSpec rec={rec} />");
-    expect(source).not.toContain("<RecommendationDecisionSpec rec={rec} compact />");
+    expect(source).not.toContain("function RecommendationDecisionSpec");
+    expect(source).not.toContain("OSRS item ID {visual.id}");
+    expect(source).not.toContain("Visual identity");
   });
 
   it("keeps recommendation cards valid by using explicit links instead of nested card anchors", () => {
@@ -113,7 +109,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Optional: add gear or finished-progress checks when the pick looks off.");
     expect(source).toContain("What shaped this");
     expect(source).toContain("Add bank");
-    expect(source).toContain("Sync later");
+    expect(source).toContain("RuneLite later");
     expect(source).not.toContain("Used for this route");
     expect(source).toContain('label: "Stats"');
     expect(source).toContain('label: "Bank"');
@@ -129,8 +125,8 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("One best move for this account");
     expect(source).toContain("Backups");
     expect(source).toContain("Change vibe or time");
-    expect(source).toContain("Account progress");
-    expect(source).toContain("Open when you want the numbers");
+    expect(source).toContain("Progress details");
+    expect(source).toContain("Open if you want the numbers");
     expect(source).not.toContain("function SessionBrief");
     expect(source).not.toContain("<SessionBrief");
     expect(source).not.toContain("ScapestackReadinessRail");
@@ -170,11 +166,15 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("Add exact sync");
   });
 
-  it("separates RuneLite account proof from browser-only bank proof", () => {
-    expect(source).toContain("Account progress");
-    expect(source).toContain("RuneLite sync included quests, diaries, collection log and Slayer for this RSN.");
-    expect(source).toContain("Bank context");
-    expect(source).toContain("Paste Bank Memory or Bank Tags when gear, supplies or affordability matter.");
+  it("keeps RuneLite and bank context inside optional context", () => {
+    expect(source).toContain("function PluginSyncStrip");
+    expect(source).toContain("{plugin.quests.toLocaleString()} quests");
+    expect(source).toContain("{plugin.diaries.toLocaleString()} diary tiers");
+    expect(source).toContain("{plugin.clItems.toLocaleString()} log items");
+    expect(source).toContain("Slayer not synced");
+    expect(source).not.toContain("Account progress");
+    expect(source).not.toContain("RuneLite sync included quests, diaries, collection log and Slayer for this RSN.");
+    expect(source).not.toContain("Bank context");
   });
 
   it("lets players clear temporary bank handoff storage", () => {
@@ -205,20 +205,21 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("onComplete: (rec: Recommendation) => void");
   });
 
-  it("renders recommendation feedback controls as visible pill buttons", () => {
+  it("keeps recommendation feedback controls on the main pick", () => {
     expect(source).toContain("function recommendationFeedbackButtonClass");
     expect(source).toContain('tone: "done" | "skip" | "details"');
     expect(source).toContain("rounded-full border border-[var(--color-border)] bg-[var(--color-panel)]/65");
     expect(source).toContain('recommendationFeedbackButtonClass("done")');
     expect(source).toContain('recommendationFeedbackButtonClass("skip")');
     expect(source).toContain('recommendationFeedbackButtonClass("details")');
-    expect(source).toContain('recommendationFeedbackButtonClass("done", true)');
-    expect(source).toContain('recommendationFeedbackButtonClass("skip", true)');
-    expect(source).toContain('recommendationFeedbackButtonClass("details", true)');
+    expect(source).not.toContain('recommendationFeedbackButtonClass("done", true)');
+    expect(source).not.toContain('recommendationFeedbackButtonClass("skip", true)');
+    expect(source).not.toContain('recommendationFeedbackButtonClass("details", true)');
   });
 
   it("copies recommendation plans with route context", () => {
-    expect(source).toContain("formatRecommendationSessionPlan(visibleRecs, actionContext)");
+    expect(source).toContain("pick ? [pick.headline, ...pick.alternatives] : visibleRecs");
+    expect(source).toContain("formatRecommendationSessionPlan(");
     expect(source).toContain('aria-label="Copy top OSRS plan"');
     expect(source).toContain("Copy plan");
     expect(source).toContain("Plan copied");

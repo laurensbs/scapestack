@@ -37,7 +37,7 @@ import {
 import { wikiSearchUrl } from "@/lib/wiki";
 import { pluginSyncHealth } from "@/lib/plugin-sync";
 import { isPluginSyncSource, pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
-import { summarizeNextPluginSync, type NextPluginSignalStatus } from "@/lib/next-plugin-sync-summary";
+import { summarizeNextPluginSync } from "@/lib/next-plugin-sync-summary";
 import { nextPluginHubCta, type NextPluginHubState } from "@/lib/next-plugin-hub-copy";
 import { toolHandoffUrl } from "@/lib/bank-tool-routes";
 import { bankOrganizerHref } from "@/lib/bank-handoff-url";
@@ -50,7 +50,6 @@ import {
   routeActionForHref,
   type RecommendationActionContext
 } from "@/lib/recommendation-action";
-import { buildRecommendationIdentity } from "@/lib/recommendation-identity";
 import { copyText } from "@/lib/clipboard";
 import { cn, formatGp } from "@/lib/utils";
 import {
@@ -455,7 +454,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
         if (items.length > 0) setFromBank({ items });
         // We deliberately DON'T clear sessionStorage here — if the user
         // refreshes /next during the same tab session the banner stays.
-      } catch { /* malformed payload — silently ignore, fall back to intake */ }
+      } catch { /* malformed handoff — silently ignore, fall back to intake */ }
     } else {
       // Only look up the saved bank when we're not in a handoff/direct-run flow.
       // Otherwise deep links like /next?rsn=X get blocked by a modal instead of
@@ -490,7 +489,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
       if (shouldReadBankHandoff) {
         try {
           heroBankItems = readBankHandoffPayload(window);
-        } catch { /* malformed payload — run with RSN only */ }
+        } catch { /* malformed handoff — run with RSN only */ }
       }
       // Trigger run zodra de component-state is gestabiliseerd. setTimeout
       // blijft ook werken in background tabs; requestAnimationFrame kan daar
@@ -1001,9 +1000,9 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
       <div style={trackAnim(300)}>
         <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-4 sm:p-5">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)] marker:hidden">
-            <span>Account progress</span>
+            <span>Progress details</span>
             <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
-              Open when you want the numbers
+              Open if you want the numbers
             </span>
           </summary>
           <div className="mt-4 space-y-6">
@@ -1012,7 +1011,7 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
               pathData={result.pathProgress}
               maxEstimate={result.maxEstimate}
             />
-            <ReadinessSection readiness={result.readiness} />
+            <BankProgressSection progress={result.readiness} />
           </div>
         </details>
       </div>
@@ -1223,7 +1222,7 @@ function MakePlanSmarter({
               href={syncHref}
               className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
             >
-              Sync later
+              RuneLite later
               <Sparkles className="size-3.5" />
             </Link>
           )}
@@ -1520,23 +1519,21 @@ function PluginSyncStrip({
             <p className="mt-1 text-[12.5px] text-[var(--color-text-dim)] leading-relaxed">
               {pluginSummary.body} Synced {syncAgeLabel(plugin.syncedAt)}.
             </p>
-            <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
-              <div className="rounded-lg border border-[var(--color-good)]/20 bg-[var(--color-bg)]/35 px-2.5 py-2">
-                <div className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-good)]">
-                  Account progress
-                </div>
-                <p className="mt-0.5 text-[11px] leading-relaxed text-[var(--color-text-dim)]">
-                  RuneLite sync included quests, diaries, collection log and Slayer for this RSN.
-                </p>
-              </div>
-              <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-2">
-                <div className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-                  Bank context
-                </div>
-                <p className="mt-0.5 text-[11px] leading-relaxed text-[var(--color-text-dim)]">
-                  Paste Bank Memory or Bank Tags when gear, supplies or affordability matter.
-                </p>
-              </div>
+            <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-[var(--color-text-muted)]">
+              <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
+                {plugin.quests.toLocaleString()} quests
+              </span>
+              <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
+                {plugin.diaries.toLocaleString()} diary tiers
+              </span>
+              <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
+                {plugin.clItems.toLocaleString()} log items
+              </span>
+              <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
+                {plugin.slayerTaskRemaining !== null && plugin.slayerTaskRemaining !== undefined
+                  ? `${plugin.slayerTaskRemaining.toLocaleString()} Slayer left`
+                  : "Slayer not synced"}
+              </span>
             </div>
             {(stale || outdated) && (
               <a
@@ -1553,21 +1550,11 @@ function PluginSyncStrip({
             )}
           </div>
         </div>
-        <div className="shrink-0 grid grid-cols-2 gap-1.5 text-[11px] tabular-nums">
-          {pluginSummary.signals.map((signal) => (
-            <div
-              key={signal.label}
-              className={cn("rounded-lg border px-2 py-1.5 text-right", pluginSignalClass(signal.status))}
-              title={`${signal.label}: ${signal.value}`}
-            >
-              <div className="font-bold uppercase tracking-[0.12em]">{signal.label}</div>
-              <div className="mt-0.5 text-[var(--color-text)] font-semibold">{signal.value}</div>
-            </div>
-          ))}
-          {plugin.pluginVersion && (
-            <div className="col-span-2 text-right text-[10.5px] text-[var(--color-text-muted)]">v{plugin.pluginVersion}</div>
-          )}
-        </div>
+        {plugin.pluginVersion && (
+          <div className="shrink-0 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[10.5px] font-semibold text-[var(--color-text-muted)]">
+            v{plugin.pluginVersion}
+          </div>
+        )}
       </section>
     );
   }
@@ -1623,12 +1610,6 @@ function PluginSyncStrip({
       </a>
     </section>
   );
-}
-
-function pluginSignalClass(status: NextPluginSignalStatus): string {
-  if (status === "exact") return "border-[var(--color-good)]/25 bg-[var(--color-good)]/10 text-[var(--color-good)]";
-  if (status === "partial" || status === "refresh") return "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 text-[var(--color-warning)]";
-  return "border-[var(--color-danger)]/25 bg-[var(--color-danger)]/10 text-[var(--color-danger)]";
 }
 
 // ── HeroStrip ──────────────────────────────────────────────────────────
@@ -1756,30 +1737,13 @@ function confidenceTone(confidence: NonNullable<Recommendation["actionPlan"]>["c
   return "border-[var(--color-border)] bg-[var(--color-bg-2)] text-[var(--color-text-dim)]";
 }
 
-function RecommendationIdentityChip({ rec, compact = false }: { rec: Recommendation; compact?: boolean }) {
-  const identity = buildRecommendationIdentity(rec);
-  if (!identity) return null;
-
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/45 font-mono text-[var(--color-text-muted)]",
-        compact ? "px-1.5 py-0.5 text-[9.5px]" : "px-2 py-0.5 text-[10.5px]"
-      )}
-      title={identity.helper}
-      aria-label={identity.helper}
-    >
-      {identity.label}
-    </span>
-  );
-}
-
-function recommendationVisualItem(rec: Recommendation): { id: number; label: string } {
-  const iconItemId = rec.iconItemId ?? KIND_META[rec.kind]?.iconItemId ?? 995;
-  return {
-    id: iconItemId,
-    label: rec.iconItemId ? rec.title : `${KIND_META[rec.kind]?.label ?? "Recommendation"} marker`
-  };
+function playerChoiceTag(rec: Recommendation): { label: string; helper: string } {
+  if (rec.kind === "money") return { label: "GP", helper: "Pick this when you want money first." };
+  if (rec.kind === "boss" || rec.kind === "kc") return { label: "Bossing", helper: "Pick this when you want a PvM trip." };
+  if (rec.kind === "skill") return { label: "AFK", helper: "Pick this when you want a low-pressure grind." };
+  if (rec.kind === "bank" || rec.kind === "minigame") return { label: "Chill", helper: "Pick this when you want a lighter session." };
+  if (rec.kind === "slayer") return { label: "Task", helper: "Pick this when Slayer should drive the session." };
+  return { label: "Unlock", helper: "Pick this when you want quests, diary progress or account unlocks." };
 }
 
 function recommendationNeeds(rec: Recommendation): string[] {
@@ -1829,100 +1793,6 @@ function RecommendationFirstStep({ rec, compact = false }: { rec: Recommendation
       <span className="font-semibold text-[var(--color-accent)]">Start:</span>{" "}
       {firstStep}
     </p>
-  );
-}
-
-function recommendationMissingDataWarning(rec: Recommendation): string {
-  const caveat = rec.actionPlan?.caveat?.trim();
-  if (caveat) return caveat;
-  return "No missing-data warning for this pick. Re-run after major bank, KC, quest or RuneLite sync changes.";
-}
-
-function RecommendationDecisionSpec({ rec, compact = false }: { rec: Recommendation; compact?: boolean }) {
-  const plan = rec.actionPlan;
-  const visual = recommendationVisualItem(rec);
-  const needs = recommendationNeeds(rec);
-  const wikiQuery = recommendationWikiQuery(rec);
-  const specs = [
-    {
-      label: "Session length",
-      value: plan?.timebox ?? "Pick a short test run",
-      tone: "muted" as const
-    },
-    {
-      label: "Why it fits",
-      value: plan?.confidenceLabel ?? "Guided",
-      tone: plan?.confidence === "exact" ? "good" as const : plan?.confidence === "likely" ? "accent" as const : "muted" as const,
-      title: plan?.caveat || "Recommendation confidence"
-    },
-    {
-      label: "Needs",
-      value: needs.length ? needs.join(" · ") : "No hard item/stat/quest gate detected.",
-      tone: "muted" as const
-    },
-    {
-      label: "Check first",
-      value: recommendationMissingDataWarning(rec),
-      tone: plan?.caveat ? "warn" as const : "muted" as const
-    }
-  ];
-
-  return (
-    <div
-      data-testid={compact ? "next-row-decision-spec" : "next-headline-decision-spec"}
-      className={cn(
-        "mt-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35",
-        compact ? "p-2.5" : "p-3"
-      )}
-    >
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-center gap-2 rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-2 py-1 font-mono text-[10.5px] font-bold text-[var(--color-accent)]">
-          <ItemSprite id={visual.id} alt={visual.label} size={18} />
-          OSRS item ID {visual.id}
-        </span>
-        {wikiQuery && (
-          <a
-            href={wikiSearchUrl(wikiQuery)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/55 px-2 py-1 text-[10.5px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
-            aria-label={`Open OSRS Wiki for ${wikiQuery}`}
-          >
-            OSRS Wiki
-            <ExternalLink className="size-3" />
-          </a>
-        )}
-      </div>
-      <div className={cn("mt-2 grid gap-1.5", compact ? "sm:grid-cols-2" : "sm:grid-cols-4")}>
-        {specs.map((spec) => (
-          <div
-            key={spec.label}
-            title={spec.title ?? spec.value}
-            className={cn(
-              "rounded-lg border px-2.5 py-2",
-              spec.tone === "good" && "border-[var(--color-good)]/25 bg-[var(--color-good)]/10",
-              spec.tone === "accent" && "border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10",
-              spec.tone === "warn" && "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/8",
-              spec.tone === "muted" && "border-[var(--color-border)] bg-[var(--color-panel)]/35"
-            )}
-          >
-            <div className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-              {spec.label}
-            </div>
-            <div className={cn(
-              "mt-0.5 line-clamp-2 font-semibold leading-snug",
-              compact ? "text-[10.5px]" : "text-[11px]",
-              spec.tone === "good" && "text-[var(--color-good)]",
-              spec.tone === "accent" && "text-[var(--color-accent)]",
-              spec.tone === "warn" && "text-[var(--color-warning)]",
-              spec.tone === "muted" && "text-[var(--color-text-dim)]"
-            )}>
-              {spec.value}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -1994,47 +1864,6 @@ function ActionPlanBlock({ rec, compact = false }: { rec: Recommendation; compac
   );
 }
 
-function RecommendationProofStrip({ rec, compact = false }: { rec: Recommendation; compact?: boolean }) {
-  const plan = rec.actionPlan;
-  const chips = [
-    plan ? { label: "Confidence", value: plan.confidenceLabel, title: plan.caveat || "Recommendation confidence" } : null,
-    plan ? { label: "Session", value: plan.timebox } : null,
-    rec.payoff ? { label: "Payoff", value: rec.payoff } : null,
-    plan?.caveat ? { label: "Check first", value: plan.caveat } : null
-  ].filter((chip): chip is { label: string; value: string; title?: string } => Boolean(chip));
-
-  if (chips.length === 0) return null;
-
-  return (
-    <div
-      data-testid={compact ? "next-row-proof-strip" : "next-headline-proof-strip"}
-      className={cn("mt-3 grid gap-1.5", compact ? "grid-cols-1" : "sm:grid-cols-2")}
-    >
-      {chips.slice(0, compact ? 3 : 4).map((chip) => (
-        <div
-          key={`${rec.id}:${chip.label}`}
-          title={chip.title ?? chip.value}
-          className={cn(
-            "rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-2",
-            chip.label === "Check first" && "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/7"
-          )}
-        >
-          <div className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-            {chip.label}
-          </div>
-          <div className={cn(
-            "mt-0.5 line-clamp-2 font-semibold leading-snug",
-            compact ? "text-[10.5px]" : "text-[11.5px]",
-            chip.label === "Check first" ? "text-[var(--color-warning)]" : "text-[var(--color-text-dim)]"
-          )}>
-            {chip.value}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function RecommendationConfidenceLegend() {
   const items: Array<{
     confidence: NonNullable<Recommendation["actionPlan"]>["confidence"];
@@ -2097,6 +1926,7 @@ function HeadlineCard({
   const primaryAction = primaryActionForRecommendation(rec, actionContext);
   const actionLabel = isBossWithDetail ? "Open boss detail" : primaryAction.label;
   const actionHref = isBossWithDetail ? undefined : primaryAction.href;
+  const choice = playerChoiceTag(rec);
   const card = (
     <article
       className={cn(
@@ -2135,6 +1965,12 @@ function HeadlineCard({
         <div className="flex-1 min-w-0">
           <div className="mb-1 flex flex-wrap items-center gap-2">
             <span className="eyebrow text-[var(--color-accent)]">Best move now</span>
+            <span
+              className="rounded-full border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-2 py-0.5 text-[10.5px] font-bold text-[var(--color-accent)]"
+              title={choice.helper}
+            >
+              {choice.label}
+            </span>
           </div>
           <h3 className="text-[19px] font-bold text-[var(--color-text)] tracking-tight leading-tight">
             {rec.title}
@@ -2203,6 +2039,7 @@ function RecRow({
   const primaryAction = primaryActionForRecommendation(rec, actionContext);
   const actionLabel = isBossWithDetail ? "Open boss detail" : primaryAction.label;
   const actionHref = isBossWithDetail ? undefined : primaryAction.href;
+  const choice = playerChoiceTag(rec);
   const inner = (
     <article
       className={cn(
@@ -2227,6 +2064,12 @@ function RecRow({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
+            <span
+              className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-0.5 text-[10px] font-bold text-[var(--color-accent)]"
+              title={choice.helper}
+            >
+              {choice.label}
+            </span>
             <h4 className="text-[13px] font-semibold text-[var(--color-text)] tracking-tight leading-tight">
               {rec.title}
             </h4>
@@ -2297,14 +2140,14 @@ const TIME_OPTIONS: { value: TimeBudget; label: string }[] = [
 ];
 
 
-// ── Bank readiness ─────────────────────────────────────────────────────────
+// ── Bank progress ──────────────────────────────────────────────────────────
 // Toont "je bent dicht bij completen van deze sets" als chip-row.
 // Klik op een chip → expandeert + toont wat er nog mist. Geen visual
 // noise wanneer de bank leeg is.
 
-function ReadinessSection({ readiness }: { readiness: SetCompletion[] }) {
+function BankProgressSection({ progress }: { progress: SetCompletion[] }) {
   const [openId, setOpenId] = useState<string | null>(null);
-  if (readiness.length === 0) return null;
+  if (progress.length === 0) return null;
 
   return (
     <section className="mb-10">
@@ -2313,7 +2156,7 @@ function ReadinessSection({ readiness }: { readiness: SetCompletion[] }) {
         Sets you're closest to completing — click for what's still missing.
       </p>
       <div className="flex flex-wrap gap-2">
-        {readiness.map((c) => {
+        {progress.map((c) => {
           const set = GOAL_SETS.find((s) => s.id === c.setId);
           if (!set) return null;
           const norm = normaliseCompletion(c, set);
@@ -2344,7 +2187,7 @@ function ReadinessSection({ readiness }: { readiness: SetCompletion[] }) {
       </div>
       {/* Expanded panel — toont missende goals voor de open set. */}
       {openId && (() => {
-        const c = readiness.find((r) => r.setId === openId);
+        const c = progress.find((r) => r.setId === openId);
         const set = c && GOAL_SETS.find((s) => s.id === c.setId);
         if (!c || !set) return null;
         const missing = set.goals.filter((g) => !c.perGoal[g.id]?.satisfied);
@@ -2430,10 +2273,6 @@ function WhatToDo({
     () => ({ from: "next", hasBankContext, rsn: activeRsn }),
     [activeRsn, hasBankContext]
   );
-  const sessionPlanText = useMemo(
-    () => formatRecommendationSessionPlan(visibleRecs, actionContext),
-    [visibleRecs, actionContext]
-  );
 
   // Reset shuffle wanneer mood/time veranderen — een nieuwe vibe begint
   // op de top-pick, anders blijven we stiekem op een oude alternative.
@@ -2444,6 +2283,13 @@ function WhatToDo({
   const pick = useMemo(
     () => pickForMood(visibleRecs, mood, minutes, shuffleIdx),
     [visibleRecs, mood, minutes, shuffleIdx]
+  );
+  const sessionPlanText = useMemo(
+    () => formatRecommendationSessionPlan(
+      pick ? [pick.headline, ...pick.alternatives] : visibleRecs,
+      actionContext
+    ),
+    [pick, visibleRecs, actionContext]
   );
 
   useEffect(() => {
@@ -2615,9 +2461,6 @@ function WhatToDo({
                       rec={r}
                       actionContext={actionContext}
                       onBossOpen={onBossOpen}
-                      onSuppress={hideRecommendation}
-                      onComplete={completeRecommendation}
-                      onEdit={onEdit}
                     />
                   ))}
                 </div>
@@ -3006,13 +2849,10 @@ function RecDetailPanel({
   const needs = rec.needs ?? hints.needs;
   const details = rec.details ?? hints.details;
   const linkedAction = rec.link ? routeActionForHref(rec.link, actionContext) : null;
-  const identity = buildRecommendationIdentity(rec);
   const wikiQuery = recommendationWikiQuery(rec);
   return (
     <div className="mt-2 px-4 py-3 rounded-lg bg-[var(--color-bg-2)]/40 border border-[var(--color-border)] animate-[fade-in_0.2s_ease-out] space-y-2.5">
       <ActionPlanBlock rec={rec} />
-      <RecommendationDecisionSpec rec={rec} />
-      <RecommendationProofStrip rec={rec} />
       {hasDropChanceGraph(rec) && (
         <KcProbabilityGraph
           kc={rec.kcMeta.kc}
@@ -3038,20 +2878,6 @@ function RecDetailPanel({
               </li>
             ))}
           </ul>
-        </div>
-      )}
-      {identity && (
-        <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/40 px-2.5 py-2">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-1.5">
-            Visual identity
-          </div>
-          <div className="grid gap-1 sm:grid-cols-3">
-            {identity.item.facts.map((fact) => (
-              <div key={fact} className="rounded border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-2 py-1 font-mono text-[10px] leading-relaxed text-[var(--color-text-dim)]">
-                {fact}
-              </div>
-            ))}
-          </div>
         </div>
       )}
       {(rec.link || wikiQuery) && (
@@ -3169,51 +2995,11 @@ function RecHeadlineExpandable({
 function RecRowExpandable({
   rec,
   actionContext,
-  onBossOpen,
-  onSuppress,
-  onComplete,
-  onEdit
+  onBossOpen
 }: {
   rec: Recommendation;
   actionContext: RecommendationActionContext;
   onBossOpen: (slug: string) => void;
-  onSuppress: (rec: Recommendation) => void;
-  onComplete: (rec: Recommendation) => void;
-  onEdit: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div>
-      <RecRow rec={rec} actionContext={actionContext} onBossOpen={onBossOpen} />
-      <div className="mt-1 flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => onComplete(rec)}
-          aria-label={`Done: mark ${rec.title} complete`}
-          className={recommendationFeedbackButtonClass("done", true)}
-        >
-          Done
-        </button>
-        <button
-          type="button"
-          onClick={() => onSuppress(rec)}
-          aria-label={`Not today: hide ${rec.title}`}
-          className={recommendationFeedbackButtonClass("skip", true)}
-        >
-          Not today
-        </button>
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className={recommendationFeedbackButtonClass("details", true)}
-        >
-          {open ? "Hide" : "Steps"}
-          <ChevronRight
-            className={cn("size-2.5 transition-transform", open && "rotate-90")}
-          />
-        </button>
-      </div>
-      {open && <RecDetailPanel rec={rec} actionContext={actionContext} />}
-    </div>
-  );
+  return <RecRow rec={rec} actionContext={actionContext} onBossOpen={onBossOpen} />;
 }

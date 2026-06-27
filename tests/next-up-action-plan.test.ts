@@ -49,15 +49,15 @@ describe("next-up action plans", () => {
     });
 
     expect(text).toContain(result.headline!.title);
-    expect(text).toContain("Why it matters:");
+    expect(text).toContain("Why:");
     expect(text).toContain("Time:");
-    expect(text).toContain("Before you start:");
+    expect(text).toContain("Gear/supplies:");
     expect(text).toMatch(/\n1\. /);
     expect(text).toContain("Open");
     expect(text).toContain("https://www.scapestack.org/");
     expect(text).toContain("rsn=Lynx+Titan");
     expect(text).toContain("from=next");
-    expect(text).toContain("Make it sharper later:");
+    expect(text).toContain("Add context later:");
   });
 
   it("formats the top recommendations as one copyable session plan", async () => {
@@ -72,12 +72,15 @@ describe("next-up action plans", () => {
       hasBankContext: true
     });
 
-    expect(text).toContain("OSRS plan");
-    expect(text).toContain("1. ");
-    expect(text).toContain("2. ");
+    expect(text).toContain("Scapestack session");
+    expect(text).toContain("Do this first:");
+    expect(text).toContain("Backup 1:");
+    expect(text).toContain("Backup 2:");
     expect(text).toContain("Why:");
     expect(text).toContain("Time:");
-    expect(text).toContain("Start:");
+    expect(text).toContain("Gear/supplies:");
+    expect(text).toContain("First step:");
+    expect(text).toContain("Stop point:");
     expect(text).toContain("https://www.scapestack.org/");
     expect(text).toContain("rsn=Lynx+Titan");
   });
@@ -331,7 +334,7 @@ describe("next-up action plans", () => {
       rsn: "Lynx Titan",
       hasBankContext: false
     });
-    expect(text).toContain("Make it sharper later: Refresh sync");
+    expect(text).toContain("Add context later: Refresh sync");
     expect(text).toContain("https://www.scapestack.org/plugin?rsn=Lynx+Titan&from=next&bank=none#verify-sync");
   });
 

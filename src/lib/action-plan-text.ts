@@ -28,18 +28,18 @@ export function formatRecommendationActionPlan(
   const lines = [
     rec.title,
     "",
-    `Why it matters: ${rec.why}`,
-    rec.payoff ? `Unlocks: ${rec.payoff}` : null,
-    `Time: ${plan.timebox} · ${plan.confidenceLabel}`,
+    `Why: ${rec.why}`,
+    rec.payoff ? `Unlock/payoff: ${rec.payoff}` : null,
+    `Time: ${plan.timebox}`,
     "",
-    `Before you start: ${plan.prep}`,
+    `Gear/supplies: ${plan.prep}`,
     "",
     ...plan.steps.map((step, index) => `${index + 1}. ${step}`),
     actionHref ? "" : null,
     actionHref,
     plan.caveat ? "" : null,
-    plan.caveat ? `Check first: ${plan.caveat}` : null,
-    dataAction ? `Make it sharper later: ${dataAction.label} — ${dataAction.helper}` : null,
+    plan.caveat ? `Watch out: ${plan.caveat}` : null,
+    dataAction ? `Add context later: ${dataAction.label} — ${dataAction.helper}` : null,
     dataActionHref
   ].filter((line): line is string => line !== null);
 
@@ -52,10 +52,10 @@ export function formatRecommendationSessionPlan(
   limit = 3
 ): string {
   const planned = recs.slice(0, limit);
-  if (planned.length === 0) return "OSRS plan\n\nNo recommendations available.";
+  if (planned.length === 0) return "Scapestack session\n\nNo plan available yet.";
 
   const lines = [
-    "OSRS plan",
+    "Scapestack session",
     "",
     ...planned.flatMap((rec, index) => {
       const plan = rec.actionPlan;
@@ -63,13 +63,16 @@ export function formatRecommendationSessionPlan(
       const actionHref = primaryAction.href
         ? `${primaryAction.label}: ${shareableHref(primaryAction.href)}`
         : null;
+      const label = index === 0 ? "Do this first" : `Backup ${index}`;
+      const stopPoint = plan?.steps.at(-1);
 
       return [
-        `${index + 1}. ${rec.title}`,
+        `${label}: ${rec.title}`,
         `   Why: ${rec.why}`,
-        plan ? `   Time: ${plan.timebox} · ${plan.confidenceLabel}` : null,
-        plan ? `   Check first: ${plan.prep}` : null,
-        plan?.steps[0] ? `   Start: ${plan.steps[0]}` : null,
+        plan ? `   Time: ${plan.timebox}` : null,
+        plan ? `   Gear/supplies: ${plan.prep}` : null,
+        plan?.steps[0] ? `   First step: ${plan.steps[0]}` : null,
+        stopPoint ? `   Stop point: ${stopPoint}` : null,
         actionHref ? `   ${actionHref}` : null,
         ""
       ].filter((line): line is string => line !== null);

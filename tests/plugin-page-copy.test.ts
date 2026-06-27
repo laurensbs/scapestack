@@ -9,8 +9,8 @@ describe("plugin page copy constants", () => {
     const pageSource = readFileSync(join(process.cwd(), "src/app/plugin/page.tsx"), "utf8");
 
     expect(PUBLIC_SYNC_URL).toBe("https://www.scapestack.org/api/sync");
-    expect(pageSource).toContain("Type your OSRS name.");
-    expect(pageSource).toContain("Skip finished progress.");
+    expect(pageSource).toContain("Check RuneLite sync.");
+    expect(pageSource).toContain("Then open one plan.");
     expect(pageSource).toContain("Check sync");
     expect(pageSource).toContain("Plan next move");
     expect(pageSource).toContain("Setup help");
@@ -115,14 +115,12 @@ describe("plugin page copy constants", () => {
     expect(checkerSource).toContain("Sync helps /next avoid finished quests");
     expect(checkerSource).toContain("wrong Slayer calls");
     expect(checkerSource).toContain("Sync found for {foundDisplayName}");
-    expect(checkerSource).toContain("Open /next and Scapestack will avoid finished quests");
-    expect(checkerSource).toContain("Sync details");
-    expect(checkerSource).toContain('if (status === "exact") return "Synced";');
-    expect(checkerSource).not.toContain('if (status === "exact") return "Exact";');
-    expect(checkerSource).toContain("/next sync signals");
-    expect(checkerSource).toContain("Session action queue");
-    expect(checkerSource).toContain("ordered like an OSRS session checklist");
-    expect(checkerSource).toContain("actionQueueForSyncedPlayer");
+    expect(checkerSource).toContain("Open /next for one plan that skips finished quests");
+    expect(checkerSource).toContain("Slayer task included");
+    expect(checkerSource).not.toContain("Sync details");
+    expect(checkerSource).not.toContain("/next sync signals");
+    expect(checkerSource).not.toContain("Session action queue");
+    expect(checkerSource).not.toContain("actionQueueForSyncedPlayer");
     expect(checkerSource).toContain("syncUrlsForOrigin(syncOrigin)");
     expect(checkerSource).not.toContain("LOCAL_SYNC_URL");
     expect(checkerSource).not.toContain("LOCAL_SYNC_CLAIM_URL");
@@ -130,18 +128,17 @@ describe("plugin page copy constants", () => {
     expect(diagnosticsSource).toContain("Enable “Auto-sync on login”");
   });
 
-  it("lets synced players copy a safe proof receipt without tokens or account data", () => {
+  it("keeps synced player success as status and next action only", () => {
     const checkerSource = readFileSync(join(process.cwd(), "src/components/plugin-sync-checker.tsx"), "utf8");
 
-    expect(checkerSource).toContain("formatPluginSyncProof");
-    expect(checkerSource).toContain("Copy proof");
-    expect(checkerSource).toContain("Proof copied");
-    expect(checkerSource).toContain('useState<"idle" | "copied" | "error">("idle")');
-    expect(checkerSource).toContain("setManualProofText(proofText)");
-    expect(checkerSource).toContain("Clipboard failed — copy sync proof manually");
-    expect(checkerSource).toContain("Manual sync proof fallback for");
-    expect(checkerSource).toContain("event.currentTarget.select()");
-    expect(checkerSource).toContain("never includes tokens, bank, inventory, chat, screenshots or account login");
+    expect(checkerSource).toContain("Open /next");
+    expect(checkerSource).toContain("Check again");
+    expect(checkerSource).toContain("Synced {syncAgeLabel(state.player.syncedAt)}");
+    expect(checkerSource).not.toContain("formatPluginSyncProof");
+    expect(checkerSource).not.toContain("Copy proof");
+    expect(checkerSource).not.toContain("Proof copied");
+    expect(checkerSource).not.toContain("Clipboard failed — copy sync proof manually");
+    expect(checkerSource).not.toContain("Manual sync proof fallback for");
   });
 
   it("keeps bank handoff privacy explicit on the plugin bridge", () => {

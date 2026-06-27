@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { summarizePluginSyncService } from "@/lib/plugin-sync-service";
-import { DB_INIT_COMMAND, LOCAL_SYNC_URL, PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
+import { DB_INIT_COMMAND, PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
 
 describe("plugin sync service summary", () => {
   it("summarizes the loading state", () => {
@@ -31,7 +31,7 @@ describe("plugin sync service summary", () => {
     });
   });
 
-  it("copies local sync URLs when checking a local browser origin", () => {
+  it("keeps local browser origins on the public sync URL", () => {
     expect(summarizePluginSyncService({
       ready: false,
       database: {
@@ -43,7 +43,7 @@ describe("plugin sync service summary", () => {
     }, "http://127.0.0.1:4173/plugin")).toMatchObject({
       actions: [
         { label: "Copy schema init", copy: DB_INIT_COMMAND },
-        { label: "Copy sync URL", copy: LOCAL_SYNC_URL }
+        { label: "Copy sync URL", copy: PUBLIC_SYNC_URL }
       ]
     });
   });
@@ -89,7 +89,7 @@ describe("plugin sync service summary", () => {
     });
   });
 
-  it("copies local sync URLs for ready local services", () => {
+  it("keeps ready local services on the public sync URL", () => {
     expect(summarizePluginSyncService({
       ready: true,
       plugin: { currentVersion: "0.2.0" },
@@ -102,7 +102,7 @@ describe("plugin sync service summary", () => {
       }
     }, "http://127.0.0.1:4173")).toMatchObject({
       actions: [
-        { label: "Copy sync URL", copy: LOCAL_SYNC_URL }
+        { label: "Copy sync URL", copy: PUBLIC_SYNC_URL }
       ]
     });
   });

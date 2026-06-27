@@ -2,30 +2,19 @@
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { AlertTriangle, ArrowRight, CheckCheck, CheckCircle2, Clock3, Copy, DatabaseZap, RefreshCw, Search, ShieldCheck, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, DatabaseZap, RefreshCw, Search, XCircle } from "lucide-react";
 import { pluginSyncStatusAction } from "@/app/actions";
 import { CopyCommand } from "@/components/copy-command";
 import type { SyncedPlayer } from "@/lib/sync-repo";
 import { copyText } from "@/lib/clipboard";
-import { CURRENT_PLUGIN_VERSION, pluginSyncHealth } from "@/lib/plugin-sync";
-import { formatPluginSyncProof, formatPluginSyncSessionChecklist } from "@/lib/plugin-sync-proof";
+import { pluginSyncHealth } from "@/lib/plugin-sync";
 import {
-  diagnosticForMissingSync,
-  diagnosticForSyncedPlayer,
   diagnosticForUnconfiguredSync,
-  actionQueueForSyncedPlayer,
   healthLabel,
-  nextReadinessForSyncedPlayer,
-  signalCoverageForSyncedPlayer,
-  type PluginSignalCoverage,
-  type PluginSyncActionQueueItem,
-  type PluginNextReadiness,
   type PluginSyncDiagnostic
 } from "@/lib/plugin-sync-diagnostics";
 import { PLUGIN_VERIFY_SYNC_HASH } from "@/lib/plugin-bank-bridge";
 import { DB_INIT_COMMAND, syncUrlsForOrigin } from "@/lib/plugin-sync-actions";
-import { TASK_ID_TO_MONSTER } from "@/lib/slayer/task-ids";
-import { MONSTERS_BY_ID } from "@/lib/slayer/monsters";
 import { cn } from "@/lib/utils";
 import {
   summarizePluginSyncService,
@@ -54,17 +43,6 @@ function syncAgeLabel(iso: string): string {
   return `${days}d ago`;
 }
 
-function slayerTaskName(player: SyncedPlayer): string {
-  const taskId = player.slayer?.currentTaskId ?? 0;
-  const monsterSlug = TASK_ID_TO_MONSTER[taskId];
-  if (!monsterSlug) return "No mapped live task";
-  return MONSTERS_BY_ID.get(monsterSlug)?.name ?? monsterSlug.replaceAll("_", " ");
-}
-
-function countLabel(count: number, singular: string, plural: string): string {
-  return `${count.toLocaleString()} ${count === 1 ? singular : plural}`;
-}
-
 export function PluginSyncChecker() {
   const [rsn, setRsn] = useState("");
   const [prefillSource, setPrefillSource] = useState<"url" | "saved" | null>(null);
@@ -72,10 +50,7 @@ export function PluginSyncChecker() {
   const [serviceStatus, setServiceStatus] = useState<PluginSyncServiceStatus | null>(null);
   const [serviceError, setServiceError] = useState<string | null>(null);
   const [syncOrigin, setSyncOrigin] = useState<string | null>(null);
-  const [proofCopyState, setProofCopyState] = useState<"idle" | "copied" | "error">("idle");
-  const [checklistCopyState, setChecklistCopyState] = useState<"idle" | "copied" | "error">("idle");
-  const [manualProofText, setManualProofText] = useState("");
-  const [manualChecklistText, setManualChecklistText] = useState("");
+  const [syncUrlCopyState, setSyncUrlCopyState] = useState<"idle" | "copied" | "error">("idle");
   const [pending, startTransition] = useTransition();
   const autoCheckStarted = useRef(false);
 
@@ -107,23 +82,9 @@ export function PluginSyncChecker() {
     };
   }, [state]);
   const diagnostic = useMemo((): PluginSyncDiagnostic | null => {
-    if (state.kind === "found") return diagnosticForSyncedPlayer(state.player, { origin: syncOrigin });
-    if (state.kind === "missing") return diagnosticForMissingSync(state.rsn, { origin: syncOrigin });
     if (state.kind === "unconfigured") return diagnosticForUnconfiguredSync();
     return null;
-  }, [state, syncOrigin]);
-  const nextReadiness = useMemo((): PluginNextReadiness | null => {
-    if (state.kind !== "found") return null;
-    return nextReadinessForSyncedPlayer(state.player);
   }, [state]);
-  const signalCoverage = useMemo((): PluginSignalCoverage[] => {
-    if (state.kind !== "found") return [];
-    return signalCoverageForSyncedPlayer(state.player);
-  }, [state]);
-  const actionQueue = useMemo((): PluginSyncActionQueueItem[] => {
-    if (state.kind !== "found") return [];
-    return actionQueueForSyncedPlayer(state.player, { origin: syncOrigin });
-  }, [state, syncOrigin]);
   const foundDisplayName = state.kind === "found" ? state.player.displayName || state.player.rsn : "";
   const foundNextHref = foundDisplayName
     ? `/next?rsn=${encodeURIComponent(foundDisplayName)}&from=plugin&bank=none`
@@ -142,7 +103,7 @@ export function PluginSyncChecker() {
         if (!cancelled) setServiceStatus(body);
       } catch (error) {
         if (!cancelled) {
-          setServiceError(error instanceof Error ? error.message : "Unable to check /api/sync readiness");
+          setServiceError(error instanceof Error ? error.message : "Unable to check sync service");
         }
       }
     }
@@ -194,29 +155,13 @@ export function PluginSyncChecker() {
     checkRsnValue(normalized);
   };
 
-  const copySyncProof = async () => {
-    if (state.kind !== "found") return;
-    const proofText = formatPluginSyncProof(state.player);
-    const result = await copyText(proofText);
+  const copySyncUrl = async () => {
+    const result = await copyText(syncUrls.sync);
     if (result !== "failed") {
-      setProofCopyState("copied");
-      window.setTimeout(() => setProofCopyState((current) => current === "copied" ? "idle" : current), 1600);
+      setSyncUrlCopyState("copied");
+      window.setTimeout(() => setSyncUrlCopyState((current) => current === "copied" ? "idle" : current), 1600);
     } else {
-      setManualProofText(proofText);
-      setProofCopyState("error");
-    }
-  };
-
-  const copySessionChecklist = async () => {
-    if (state.kind !== "found") return;
-    const checklistText = formatPluginSyncSessionChecklist(state.player, { origin: syncOrigin });
-    const result = await copyText(checklistText);
-    if (result !== "failed") {
-      setChecklistCopyState("copied");
-      window.setTimeout(() => setChecklistCopyState((current) => current === "copied" ? "idle" : current), 1600);
-    } else {
-      setManualChecklistText(checklistText);
-      setChecklistCopyState("error");
+      setSyncUrlCopyState("error");
     }
   };
 
@@ -314,8 +259,24 @@ export function PluginSyncChecker() {
                   <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
                     In RuneLite: enable Scapestack Sync, press Sync now, then check again.
                   </p>
-                  <div className="mt-2">
-                    <CopyCommand value={syncUrls.sync} label="Copy sync URL" />
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={copySyncUrl}
+                      className={cn(
+                        "inline-flex items-center justify-center gap-1.5 rounded-lg border bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-bold transition-colors",
+                        syncUrlCopyState === "copied"
+                          ? "border-[var(--color-good)]/35 text-[var(--color-good)]"
+                          : syncUrlCopyState === "error"
+                            ? "border-[var(--color-danger)]/35 text-[var(--color-danger)]"
+                            : "border-[var(--color-warning)]/35 text-[var(--color-warning)] hover:bg-[var(--color-warning)]/10"
+                      )}
+                    >
+                      {syncUrlCopyState === "copied" ? "Sync URL copied" : syncUrlCopyState === "error" ? "Copy failed" : "Copy scapestack.org sync URL"}
+                    </button>
+                    <span role="status" aria-live="polite" className="text-[11px] text-[var(--color-text-muted)]">
+                      {syncUrlCopyState === "error" ? syncUrls.sync : ""}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -357,103 +318,56 @@ export function PluginSyncChecker() {
         )}
 
         {state.kind === "found" && (
-          <div className="space-y-3">
-            <div className="rounded-xl border border-[var(--color-good)]/30 bg-[var(--color-good)]/10 px-4 py-3">
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 text-[14px] font-bold text-[var(--color-good)]">
-                    <CheckCircle2 className="size-4 shrink-0" />
-                    Sync found for {foundDisplayName}
-                  </div>
-                  <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                    Open /next and Scapestack will avoid finished quests, diaries, collection log slots and Slayer mistakes.
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-[var(--color-text-muted)]">
-                    <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
-                      Synced {syncAgeLabel(state.player.syncedAt)}
-                    </span>
-                    <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
-                      {state.player.questsCompleted.length} quests
-                    </span>
-                    <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
-                      {state.player.collectionLogItemIds.length.toLocaleString()} log items
-                    </span>
-                  </div>
+          <div className="rounded-xl border border-[var(--color-good)]/30 bg-[var(--color-good)]/10 px-4 py-3">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 text-[14px] font-bold text-[var(--color-good)]">
+                  <CheckCircle2 className="size-4 shrink-0" />
+                  Sync found for {foundDisplayName}
                 </div>
-                <div className="flex shrink-0 flex-wrap gap-2">
-                  <Link
-                    href={foundNextHref}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3 py-2 text-[12px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110"
-                  >
-                    Open /next
-                    <ArrowRight className="size-3.5" />
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={checkCurrentRsn}
-                    disabled={pending}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)] disabled:opacity-50"
-                  >
-                    <RefreshCw className={cn("size-3.5", pending && "animate-spin")} />
-                    Check again
-                  </button>
+                <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
+                  Open /next for one plan that skips finished quests, diary tiers, log slots and bad Slayer calls.
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-[var(--color-text-muted)]">
+                  <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
+                    Synced {syncAgeLabel(state.player.syncedAt)}
+                  </span>
+                  <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
+                    {state.player.questsCompleted.length} quests
+                  </span>
+                  <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
+                    {state.player.diariesCompleted.length} diary tiers
+                  </span>
+                  <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
+                    {state.player.collectionLogItemIds.length.toLocaleString()} log items
+                  </span>
+                  {state.player.slayer && (
+                    <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
+                      Slayer task included
+                    </span>
+                  )}
                 </div>
+              </div>
+              <div className="flex shrink-0 flex-wrap gap-2">
+                <Link
+                  href={foundNextHref}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3 py-2 text-[12px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110"
+                >
+                  Open /next
+                  <ArrowRight className="size-3.5" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={checkCurrentRsn}
+                  disabled={pending}
+                  aria-label={`Re-check RuneLite sync for ${foundDisplayName}`}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)] disabled:opacity-50"
+                >
+                  <RefreshCw className={cn("size-3.5", pending && "animate-spin")} />
+                  Check again
+                </button>
               </div>
             </div>
-            <details className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/30 px-4 py-3">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)] marker:hidden">
-                <span>Sync details</span>
-                <span className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
-                  Show
-                </span>
-              </summary>
-              <div className="mt-4 space-y-3">
-                <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-                  <Metric label="Synced" value={syncAgeLabel(state.player.syncedAt)} icon={<Clock3 className="size-4" />} />
-                  <Metric label="Plugin" value={`v${state.player.pluginVersion || "unknown"}`} detail={`current v${CURRENT_PLUGIN_VERSION}`} icon={<ShieldCheck className="size-4" />} />
-                  <Metric
-                    label="Quest/diary"
-                    value={`${state.player.questsCompleted.length}/${state.player.diariesCompleted.length}`}
-                    detail={`${countLabel(state.player.questsCompleted.length, "quest", "quests")} / ${countLabel(state.player.diariesCompleted.length, "diary tier", "diary tiers")}`}
-                  />
-                  <Metric
-                    label="Collection log"
-                    value={state.player.collectionLogItemIds.length.toLocaleString()}
-                    detail={countLabel(state.player.collectionLogItemIds.length, "item synced", "items synced")}
-                  />
-                  <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-4 py-3 md:col-span-2 lg:col-span-4">
-                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">Slayer sync</div>
-                    <div className="mt-2 grid gap-2 text-[12.5px] text-[var(--color-text-dim)] sm:grid-cols-5">
-                      <div><span className="font-semibold text-[var(--color-text)]">{slayerTaskName(state.player)}</span><br />current task</div>
-                      <div><span className="font-semibold text-[var(--color-text)]">{state.player.slayer?.taskRemaining ?? "—"}</span><br />remaining</div>
-                      <div><span className="font-semibold text-[var(--color-text)]">{state.player.slayer?.points ?? "—"}</span><br />points</div>
-                      <div><span className="font-semibold text-[var(--color-text)]">{state.player.slayer?.streak ?? "—"}</span><br />streak</div>
-                      <div><span className="font-semibold text-[var(--color-text)]">{state.player.slayer?.blocks.length ?? 0}</span><br />blocks</div>
-                    </div>
-                  </div>
-                </div>
-                <PluginPayloadReceipt player={state.player} />
-                <SyncProofCard
-                  player={state.player}
-                  copyState={proofCopyState}
-                  checklistCopyState={checklistCopyState}
-                  manualProofText={manualProofText}
-                  manualChecklistText={manualChecklistText}
-                  onCopy={copySyncProof}
-                  onCopyChecklist={copySessionChecklist}
-                />
-                <SignalCoveragePanel signals={signalCoverage} />
-                <ActionQueuePanel actions={actionQueue} />
-                {diagnostic && <DiagnosticPanel diagnostic={diagnostic} />}
-                {nextReadiness && (
-                  <NextReadinessPanel
-                    readiness={nextReadiness}
-                    pending={pending}
-                    onRefresh={checkCurrentRsn}
-                  />
-                )}
-              </div>
-            </details>
           </div>
         )}
 
@@ -464,163 +378,6 @@ export function PluginSyncChecker() {
         )}
       </div>
     </section>
-  );
-}
-
-function PluginPayloadReceipt({ player }: { player: SyncedPlayer }) {
-  const displayName = player.displayName || player.rsn;
-  const bankHref = `/bank?rsn=${encodeURIComponent(displayName)}&from=plugin`;
-
-  return (
-    <div
-      data-testid="plugin-sync-receipt"
-      className="rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-4 py-3"
-    >
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
-            <ShieldCheck className="size-3.5" />
-            RuneLite sync receipt
-          </div>
-          <p className="mt-1 max-w-3xl text-[12px] leading-relaxed text-[var(--color-text-dim)]">
-            Scapestack received progress only: quest completions, diary tiers, collection-log items and optional Slayer state.
-            Bank, inventory, equipment, chat, screenshots and login credentials are not part of Scapestack Sync.
-          </p>
-        </div>
-        <Link
-          href={bankHref}
-          className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-bold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 transition-colors"
-          aria-label={`Add browser-only bank context for ${displayName}`}
-        >
-          Add bank context
-          <ArrowRight className="size-3.5" />
-        </Link>
-      </div>
-      <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        <PluginPayloadFact label="Quests" value={countLabel(player.questsCompleted.length, "completed quest", "completed quests")} />
-        <PluginPayloadFact label="Diaries" value={countLabel(player.diariesCompleted.length, "diary tier", "diary tiers")} />
-        <PluginPayloadFact label="Collection log" value={countLabel(player.collectionLogItemIds.length, "item", "items")} />
-        <PluginPayloadFact
-          label="Slayer"
-          value={player.slayer ? `${player.slayer.taskRemaining.toLocaleString()} left · ${player.slayer.points.toLocaleString()} pts` : "Not present"}
-        />
-      </div>
-    </div>
-  );
-}
-
-function PluginPayloadFact({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2">
-      <div className="text-[9.5px] uppercase tracking-[0.14em] font-bold text-[var(--color-text-muted)]">{label}</div>
-      <div className="mt-1 text-[12px] font-semibold text-[var(--color-text)]">{value}</div>
-    </div>
-  );
-}
-
-function SyncProofCard({
-  player,
-  copyState,
-  checklistCopyState,
-  manualProofText,
-  manualChecklistText,
-  onCopy,
-  onCopyChecklist
-}: {
-  player: SyncedPlayer;
-  copyState: "idle" | "copied" | "error";
-  checklistCopyState: "idle" | "copied" | "error";
-  manualProofText: string;
-  manualChecklistText: string;
-  onCopy: () => void;
-  onCopyChecklist: () => void;
-}) {
-  return (
-    <div className="rounded-xl border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-4 py-3">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-good)]">
-            <ShieldCheck className="size-3.5" />
-            Sync proof
-          </div>
-          <p className="mt-1 max-w-2xl text-[12px] leading-relaxed text-[var(--color-text-dim)]">
-            Copy a safe sync receipt for support or self-checking: RSN, sync time, plugin version and signal counts. It never includes tokens, bank, inventory, chat, screenshots or account login.
-          </p>
-          <div className="mt-2 flex flex-wrap gap-1.5 text-[10.5px] text-[var(--color-text-muted)]">
-            <span className="rounded border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-1.5 py-0.5 font-mono">
-              {player.displayName || player.rsn}
-            </span>
-            <span className="rounded border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-1.5 py-0.5 font-mono">
-              v{player.pluginVersion || "unknown"}
-            </span>
-            <span className="rounded border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-1.5 py-0.5">
-              {player.questsCompleted.length} quests
-            </span>
-            <span className="rounded border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-1.5 py-0.5">
-              {player.collectionLogItemIds.length} CL items
-            </span>
-          </div>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={onCopyChecklist}
-            aria-label={`Copy RuneLite to Scapestack session checklist for ${player.displayName || player.rsn}`}
-            className={cn(
-              "inline-flex items-center justify-center gap-1.5 rounded-lg border bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-bold transition-colors",
-              checklistCopyState === "error"
-                ? "border-[var(--color-danger)]/35 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10"
-                : "border-[var(--color-accent)]/35 text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10"
-            )}
-          >
-            {checklistCopyState === "copied" ? <CheckCheck className="size-3.5" /> : checklistCopyState === "error" ? <AlertTriangle className="size-3.5" /> : <Copy className="size-3.5" />}
-            {checklistCopyState === "copied" ? "Checklist copied" : checklistCopyState === "error" ? "Copy failed" : "Copy checklist"}
-          </button>
-          <button
-            type="button"
-            onClick={onCopy}
-            aria-label={`Copy safe sync proof for ${player.displayName || player.rsn}`}
-            className={cn(
-              "inline-flex items-center justify-center gap-1.5 rounded-lg border bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-bold transition-colors",
-              copyState === "error"
-                ? "border-[var(--color-danger)]/35 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10"
-                : "border-[var(--color-good)]/35 text-[var(--color-good)] hover:bg-[var(--color-good)]/10"
-            )}
-          >
-            {copyState === "copied" ? <CheckCheck className="size-3.5" /> : copyState === "error" ? <AlertTriangle className="size-3.5" /> : <Copy className="size-3.5" />}
-            {copyState === "copied" ? "Proof copied" : copyState === "error" ? "Copy failed" : "Copy proof"}
-          </button>
-        </div>
-      </div>
-      {checklistCopyState === "error" && (
-        <div className="mt-3 rounded-lg border border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8 p-2" aria-live="polite">
-          <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-danger)]">
-            Clipboard failed — copy session checklist manually
-          </label>
-          <textarea
-            readOnly
-            value={manualChecklistText}
-            onFocus={(event) => event.currentTarget.select()}
-            className="min-h-[130px] w-full resize-y rounded border border-[var(--color-border)] bg-[var(--color-bg)] p-2 font-mono text-[10.5px] leading-relaxed text-[var(--color-text)]"
-            aria-label={`Manual session checklist fallback for ${player.displayName || player.rsn}`}
-          />
-        </div>
-      )}
-      {copyState === "error" && (
-        <div className="mt-3 rounded-lg border border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8 p-2" aria-live="polite">
-          <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-danger)]">
-            Clipboard failed — copy sync proof manually
-          </label>
-          <textarea
-            readOnly
-            value={manualProofText}
-            onFocus={(event) => event.currentTarget.select()}
-            className="min-h-[110px] w-full resize-y rounded border border-[var(--color-border)] bg-[var(--color-bg)] p-2 font-mono text-[10.5px] leading-relaxed text-[var(--color-text)]"
-            aria-label={`Manual sync proof fallback for ${player.displayName || player.rsn}`}
-          />
-        </div>
-      )}
-    </div>
   );
 }
 
@@ -679,149 +436,6 @@ function ServiceReadinessPill({ summary }: { summary: PluginSyncServiceSummary }
   );
 }
 
-function signalToneClass(status: PluginSignalCoverage["status"]): string {
-  if (status === "exact") return "border-[var(--color-good)]/25 bg-[var(--color-good)]/10 text-[var(--color-good)]";
-  if (status === "partial" || status === "refresh") return "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 text-[var(--color-warning)]";
-  return "border-[var(--color-danger)]/25 bg-[var(--color-danger)]/10 text-[var(--color-danger)]";
-}
-
-function signalStatusLabel(status: PluginSignalCoverage["status"]): string {
-  if (status === "exact") return "Synced";
-  if (status === "partial") return "Partial";
-  if (status === "refresh") return "Refresh";
-  if (status === "update") return "Update";
-  return "Missing";
-}
-
-function SignalCoveragePanel({ signals }: { signals: PluginSignalCoverage[] }) {
-  return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-4 py-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
-            /next sync signals
-          </div>
-          <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-dim)]">
-            These are the RuneLite signals Scapestack can use before falling back to public trackers or guesses.
-          </p>
-        </div>
-      </div>
-      <div className="mt-3 grid sm:grid-cols-2 lg:grid-cols-4 gap-2">
-        {signals.map((signal) => (
-          <div key={signal.label} className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/50 px-3 py-2.5">
-            <div className="flex items-center justify-between gap-2">
-              <div className="text-[12px] font-bold text-[var(--color-text)]">{signal.label}</div>
-              <span className={cn("rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em]", signalToneClass(signal.status))}>
-                {signalStatusLabel(signal.status)}
-              </span>
-            </div>
-            <div className="mt-2 text-[14px] font-bold text-[var(--color-text)]">{signal.summary}</div>
-            <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">{signal.detail}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ActionQueuePanel({ actions }: { actions: PluginSyncActionQueueItem[] }) {
-  if (actions.length === 0) return null;
-
-  return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-4 py-3">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
-            Session action queue
-          </div>
-          <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-dim)]">
-            The next concrete moves from this sync, ordered like an OSRS session checklist.
-          </p>
-        </div>
-      </div>
-      <div className="mt-3 grid gap-2">
-        {actions.map((action, index) => (
-          <div key={`${action.title}-${index}`} className={cn("rounded-lg border px-3 py-2.5", tonePanelClass(action.tone))}>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="flex size-5 shrink-0 items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] text-[10px] font-bold text-[var(--color-text-muted)]">
-                    {index + 1}
-                  </span>
-                  <h3 className="text-[13px] font-bold text-[var(--color-text)]">{action.title}</h3>
-                </div>
-                <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-dim)]">{action.body}</p>
-                <p className="mt-1 text-[11px] leading-relaxed text-[var(--color-text-muted)]">{action.proof}</p>
-              </div>
-              {(action.href || action.copy) && (
-                <div className="shrink-0">
-                  {action.copy ? (
-                    <CopyCommand value={action.copy} label={action.actionLabel ?? "Copy"} />
-                  ) : action.href ? (
-                    <Link
-                      href={action.href}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3 py-2 text-[12px] font-bold text-[var(--color-bg)] hover:brightness-110 transition-all"
-                    >
-                      {action.actionLabel ?? "Open"}
-                      <ArrowRight className="size-3.5" />
-                    </Link>
-                  ) : null}
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function NextReadinessPanel({ readiness, pending, onRefresh }: {
-  readiness: PluginNextReadiness;
-  pending: boolean;
-  onRefresh: () => void;
-}) {
-  return (
-    <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border px-4 py-3", tonePanelClass(readiness.tone))}>
-      <div>
-        <div className={cn("text-[12.5px] font-bold", toneTextClass(readiness.tone))}>
-          {readiness.title}
-        </div>
-        <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-dim)]">
-          {readiness.body}
-        </p>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {readiness.href && (
-          <Link
-            href={readiness.href}
-            aria-label={`${readiness.actionLabel} for RuneLite sync`}
-            className={cn(
-              "inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-[12px] font-bold transition-all hover:brightness-110",
-              readiness.tone === "good"
-                ? "bg-[var(--color-good)] text-[var(--color-bg)]"
-                : "bg-[var(--color-accent)] text-[var(--color-bg)]"
-            )}
-          >
-            {readiness.actionLabel}
-            <ArrowRight className="size-3.5" />
-          </Link>
-        )}
-        <button
-          type="button"
-          onClick={onRefresh}
-          disabled={pending}
-          aria-label="Re-check RuneLite sync before opening /next"
-          className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)] transition-colors disabled:opacity-50"
-        >
-          <RefreshCw className={cn("size-3.5", pending && "animate-spin")} />
-          Re-check
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function DiagnosticPanel({ diagnostic }: { diagnostic: PluginSyncDiagnostic }) {
   return (
     <div className={cn("rounded-xl border px-4 py-3", tonePanelClass(diagnostic.tone))}>
@@ -861,19 +475,6 @@ function DiagnosticPanel({ diagnostic }: { diagnostic: PluginSyncDiagnostic }) {
           })}
         </div>
       )}
-    </div>
-  );
-}
-
-function Metric({ label, value, detail, icon }: { label: string; value: string | number; detail?: string; icon?: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-4 py-3">
-      <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-text-muted)]">
-        {icon}
-        {label}
-      </div>
-      <div className="mt-2 text-[20px] font-bold tracking-tight text-[var(--color-text)]">{value}</div>
-      {detail && <div className="mt-0.5 text-[11.5px] text-[var(--color-text-muted)]">{detail}</div>}
     </div>
   );
 }

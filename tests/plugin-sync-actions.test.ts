@@ -62,14 +62,14 @@ describe("plugin sync actions", () => {
     expect(DB_INIT_COMMAND).toBe("npm run db:init");
   });
 
-  it("derives copyable sync endpoints from the active browser origin", () => {
+  it("keeps copyable player sync endpoints on scapestack.org", () => {
     expect(syncUrlsForOrigin("http://127.0.0.1:4173/plugin")).toEqual({
-      sync: LOCAL_SYNC_URL,
-      claim: LOCAL_SYNC_CLAIM_URL
+      sync: PUBLIC_SYNC_URL,
+      claim: PUBLIC_SYNC_CLAIM_URL
     });
     expect(syncUrlsForOrigin("https://preview.scapestack.org/plugin?rsn=Lynx")).toEqual({
-      sync: "https://preview.scapestack.org/api/sync",
-      claim: "https://preview.scapestack.org/api/sync/claim"
+      sync: PUBLIC_SYNC_URL,
+      claim: PUBLIC_SYNC_CLAIM_URL
     });
     expect(syncUrlsForOrigin(null)).toEqual({
       sync: PUBLIC_SYNC_URL,

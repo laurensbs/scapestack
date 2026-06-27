@@ -10,7 +10,7 @@ import {
   signalCoverageForSyncedPlayer
 } from "@/lib/plugin-sync-diagnostics";
 import { CURRENT_PLUGIN_VERSION } from "@/lib/plugin-sync";
-import { DB_INIT_COMMAND, LOCAL_SYNC_URL, PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
+import { DB_INIT_COMMAND, PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
 
 function player(overrides: Partial<SyncedPlayer> = {}): SyncedPlayer {
   return {
@@ -114,7 +114,7 @@ describe("plugin sync diagnostics", () => {
       "Paste bank for gear and GP context"
     ]);
     expect(queue[0]).toMatchObject({
-      copy: LOCAL_SYNC_URL,
+      copy: PUBLIC_SYNC_URL,
       actionLabel: "Copy sync URL"
     });
     expect(queue[1]).toMatchObject({
@@ -138,7 +138,7 @@ describe("plugin sync diagnostics", () => {
     expect(diagnostic.title).toContain("stale");
     expect(diagnostic.primaryAction?.copy).toBe(PUBLIC_SYNC_URL);
     expect(diagnosticForSyncedPlayer(player(), { origin: "http://127.0.0.1:4173/plugin" }).primaryAction?.copy)
-      .toBe(LOCAL_SYNC_URL);
+      .toBe(PUBLIC_SYNC_URL);
 
     const readiness = nextReadinessForSyncedPlayer(player());
     expect(readiness.tone).toBe("warning");
@@ -218,7 +218,7 @@ describe("plugin sync diagnostics", () => {
     expect(missing.tone).toBe("warning");
     expect(missing.primaryAction?.copy).toBe(PUBLIC_SYNC_URL);
     expect(diagnosticForMissingSync("Lynx Titan", { origin: "http://127.0.0.1:4173" }).primaryAction?.copy)
-      .toBe(LOCAL_SYNC_URL);
+      .toBe(PUBLIC_SYNC_URL);
     expect(missing.title).toBe("No sync for Lynx Titan");
     expect(missing.body).toContain("/next still works from public stats");
     expect(missing.steps.join(" ")).toContain("Open RuneLite");

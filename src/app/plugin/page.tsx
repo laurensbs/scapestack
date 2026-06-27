@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
-import { ArrowRight, CheckCircle2, PlugZap, RefreshCw, Search, ShieldCheck } from "lucide-react";
+import { ArrowRight, CheckCircle2, PlugZap, ShieldCheck } from "lucide-react";
 import { CopyCommand } from "@/components/copy-command";
 import { PluginBankHandoffBanner } from "@/components/plugin-bank-handoff-banner";
 import { PluginNextLink } from "@/components/plugin-next-link";
 import { PluginSyncChecker } from "@/components/plugin-sync-checker";
-import { CURRENT_PLUGIN_VERSION } from "@/lib/plugin-sync";
 import { PLUGIN_VERIFY_SYNC_HASH } from "@/lib/plugin-bank-bridge";
 import { PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
 import { cn } from "@/lib/utils";
@@ -131,11 +129,11 @@ export default async function PluginPage({
 
         <div>
           <h1 className="max-w-4xl text-[clamp(42px,7vw,74px)] font-bold leading-[0.96] tracking-tight text-[var(--color-text)]">
-            Type your OSRS name.
-            <span className="block text-gold-gradient">Skip finished progress.</span>
+            Check RuneLite sync.
+            <span className="block text-gold-gradient">Then open one plan.</span>
           </h1>
           <p className="mt-5 max-w-2xl text-[16px] leading-[1.55] text-[var(--color-text-dim)] sm:text-[18px]">
-            Check whether Scapestack sees your RuneLite sync. If it does, /next stops suggesting things you already did.
+            Type the same OSRS name you synced in RuneLite. If Scapestack finds it, /next can skip quests, diary tiers, log slots and Slayer calls you already handled.
           </p>
         </div>
 
@@ -145,10 +143,6 @@ export default async function PluginPage({
           ))}
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <SignalPill icon={<Search className="size-4" />} title="Same RSN" body="Use the display name you synced in RuneLite." />
-          <SignalPill icon={<RefreshCw className="size-4" />} title="Use .org" body={`Plugin v${CURRENT_PLUGIN_VERSION} should point to scapestack.org.`} />
-        </div>
       </section>
 
       {pluginContext && <PluginContextBanner context={pluginContext} />}
@@ -278,18 +272,6 @@ function PluginContextBanner({
         </a>
       </div>
     </section>
-  );
-}
-
-function SignalPill({ icon, title, body }: { icon: ReactNode; title: string; body: string }) {
-  return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-3">
-      <div className="flex items-center gap-2 text-[12px] font-bold text-[var(--color-text)]">
-        <span className="text-[var(--color-accent)]">{icon}</span>
-        {title}
-      </div>
-      <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">{body}</p>
-    </div>
   );
 }
 
