@@ -139,7 +139,7 @@ export function HeroIntake() {
               href="/plugin#verify-sync"
               className="hover:text-[var(--color-accent)] underline underline-offset-4 decoration-dotted transition-colors"
             >
-              Sync later
+              RuneLite later
             </Link>
           </>
         )}
