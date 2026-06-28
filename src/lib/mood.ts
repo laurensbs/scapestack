@@ -366,6 +366,39 @@ export interface MoodPick {
   routeHelper: string;
 }
 
+export interface RoutePickOptions {
+  /** Session-only skips from "Try another". Values are skip counts; a card
+   *  clicked away twice gets demoted harder than a card skipped once. */
+  skippedIds?: Record<string, number> | string[];
+  /** The last headline kind the player moved away from. Used as a light
+   *  novelty guard so Try another does not feel like quest -> quest -> quest. */
+  previousKind?: RecKind | null;
+  /** The last headline id the player moved away from. Stronger than kind. */
+  previousId?: string | null;
+}
+
+function skippedCount(skippedIds: RoutePickOptions["skippedIds"], id: string): number {
+  if (!skippedIds) return 0;
+  if (Array.isArray(skippedIds)) return skippedIds.includes(id) ? 1 : 0;
+  return skippedIds[id] ?? 0;
+}
+
+function sessionNoveltyMultiplier(rec: Recommendation, options: RoutePickOptions | undefined): number {
+  if (!options) return 1;
+  let multiplier = 1;
+  const count = skippedCount(options.skippedIds, rec.id);
+  if (count > 0) {
+    multiplier *= Math.max(0.12, Math.pow(0.38, Math.min(count, 4)));
+  }
+  if (options.previousId && rec.id === options.previousId) {
+    multiplier *= 0.1;
+  }
+  if (options.previousKind && rec.kind === options.previousKind) {
+    multiplier *= 0.35;
+  }
+  return multiplier;
+}
+
 /** Hoofdfunctie: ranked recs in, mood + tijd erbij, één hoofdpick +
  *  twee alternatieven uit. Wanneer er minder dan 3 recs zijn, vult
  *  alternatives met wat er overblijft.
@@ -393,7 +426,8 @@ export function pickForRoute(
   mood: Mood,
   minutes: TimeBudget,
   routeLens: RouteLens = "smart",
-  shuffleIndex: number = 0
+  shuffleIndex: number = 0,
+  options?: RoutePickOptions
 ): MoodPick | null {
   if (recs.length === 0) return null;
   const weights = MOOD_KIND_WEIGHTS[mood];
@@ -406,7 +440,8 @@ export function pickForRoute(
       : Math.max(0.32, Math.sqrt(moodMult)) * routeLensMultiplier(rec, routeLens);
     const timeMult = timeBudgetFit(rec, minutes);
     const accountMult = accountFitMultiplier(rec, mood);
-    return { rec, adjScore: rec.score * kindMult * timeMult * accountMult };
+    const noveltyMult = sessionNoveltyMultiplier(rec, options);
+    return { rec, adjScore: rec.score * kindMult * timeMult * accountMult * noveltyMult };
   });
   scored.sort((a, b) => b.adjScore - a.adjScore);
 

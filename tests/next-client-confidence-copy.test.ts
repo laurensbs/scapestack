@@ -82,7 +82,8 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function recommendationStopPointValue");
     expect(source).toContain("function recommendationBringValue");
     expect(source).toContain("Do this first");
-    expect(source).toContain("Why this account");
+    expect(source).toContain("Smart read:");
+    expect(source).toContain("headlineSmartRead(rec)");
     expect(source).toContain("First step");
     expect(source).toContain("Stop point");
     expect(source).toContain("Avoid");
@@ -91,7 +92,6 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("function RecommendationQuickFacts");
     expect(source).not.toContain("function RecommendationFirstStep");
     expect(source).not.toContain("function RecommendationDecisionBrief");
-    expect(source).not.toContain("Why this pick");
     expect(source).not.toContain("function RecommendationDecisionSpec");
     expect(source).not.toContain("OSRS item ID {visual.id}");
     expect(source).not.toContain("Visual identity");
@@ -139,7 +139,10 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Pick ${label.name} session pace");
     expect(source).toContain("applySessionIntent(m)");
     expect(source).toContain("applyRouteLens(lens)");
-    expect(source).toContain("pickForRoute(visibleRecs, mood, minutes, routeLens, shuffleIdx)");
+    expect(source).toContain("sessionSkipped");
+    expect(source).toContain("recordSessionSkip(current, pick.headline)");
+    expect(source).toContain("routeSwitchCopy(nextRouteLens, pick.headline)");
+    expect(source).toContain("pickForRoute(visibleRecs, mood, minutes, routeLens, shuffleIdx, routePickOptions)");
     expect(source).toContain("Session length");
     expect(source).toContain("Backups");
     expect(source).toContain("Chill / GP / Bossing / Unlock / AFK");

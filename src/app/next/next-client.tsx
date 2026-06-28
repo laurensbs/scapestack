@@ -1505,6 +1505,19 @@ function headlinePayoff(rec: Recommendation): string | null {
   return payoff.length <= 120 ? payoff : null;
 }
 
+function firstSentence(text: string): string {
+  const trimmed = text.trim();
+  const match = trimmed.match(/^[^.!?]+[.!?]/);
+  return match?.[0] ?? trimmed;
+}
+
+function headlineSmartRead(rec: Recommendation): string | null {
+  const reason = rec.decisionReason?.trim();
+  if (!reason) return null;
+  const oneLine = firstSentence(reason);
+  return oneLine.length > 150 ? `${oneLine.slice(0, 147).trim()}...` : oneLine;
+}
+
 function recommendationAvoidance(rec: Recommendation): string {
   switch (rec.kind) {
     case "kc":
@@ -1724,10 +1737,6 @@ function RecommendationSessionSummary({
       value: sessionFitCopy(rec, mood, minutes, hasBankContext)
     },
     {
-      label: "Why this account",
-      value: rec.decisionReason ?? rec.why
-    },
-    {
       label: "First step",
       value: recommendationFirstStepValue(rec)
     },
@@ -1853,6 +1862,7 @@ function HeadlineCard({
   const actionHref = isBossWithDetail ? undefined : primaryAction.href;
   const choice = playerChoiceTag(rec);
   const payoff = headlinePayoff(rec);
+  const smartRead = headlineSmartRead(rec);
   const card = (
     <article
       className={cn(
@@ -1907,6 +1917,14 @@ function HeadlineCard({
           {payoff && (
             <p className="mt-2 text-[12.5px] text-[var(--color-text-secondary)] border-t border-[var(--color-border)] pt-2">
               {payoff}
+            </p>
+          )}
+          {smartRead && (
+            <p className="mt-3 flex gap-2 rounded-lg border border-[var(--color-accent)]/18 bg-[var(--color-bg)]/38 px-3 py-2 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+              <Sparkles className="mt-0.5 size-3.5 shrink-0 text-[var(--color-accent)]" />
+              <span>
+                <span className="text-[var(--color-accent)]">Smart read:</span> {smartRead}
+              </span>
             </p>
           )}
           <RecommendationSessionSummary
@@ -2125,6 +2143,59 @@ function defaultTimeForRouteLens(lens: RouteLens): TimeBudget | null {
   }
 }
 
+type SessionSkippedPick = {
+  id: string;
+  kind: RecKind;
+  title: string;
+  count: number;
+  skippedAt: number;
+};
+
+function recordSessionSkip(
+  current: Record<string, SessionSkippedPick>,
+  rec: Recommendation
+): Record<string, SessionSkippedPick> {
+  const existing = current[rec.id];
+  return {
+    ...current,
+    [rec.id]: {
+      id: rec.id,
+      kind: rec.kind,
+      title: rec.title,
+      count: (existing?.count ?? 0) + 1,
+      skippedAt: Date.now()
+    }
+  };
+}
+
+function sessionSkippedCounts(skipped: Record<string, SessionSkippedPick>): Record<string, number> {
+  return Object.fromEntries(Object.values(skipped).map((entry) => [entry.id, entry.count]));
+}
+
+function latestSessionSkip(skipped: Record<string, SessionSkippedPick>): SessionSkippedPick | null {
+  return Object.values(skipped).sort((a, b) => b.skippedAt - a.skippedAt)[0] ?? null;
+}
+
+function routeSwitchCopy(nextLens: RouteLens, skipped: Recommendation): string {
+  const label = ROUTE_LENS_LABEL[nextLens];
+  switch (nextLens) {
+    case "maxing":
+      return `Trying ${label.name}: cape, diary and total-level progress instead of ${skipped.title}.`;
+    case "fun":
+      return `Trying ${label.name}: rewards, KC or minigames instead of another chore.`;
+    case "unlock-chain":
+      return `Trying ${label.name}: a cleaner account unlock instead of ${skipped.title}.`;
+    case "gp-upgrade":
+      return `Trying ${label.name}: funding the next upgrade instead of ${skipped.title}.`;
+    case "boss-log":
+      return `Trying ${label.name}: a trip, KC block or clog angle instead of ${skipped.title}.`;
+    case "afk-progress":
+      return `Trying ${label.name}: lower-pressure progress instead of ${skipped.title}.`;
+    case "smart":
+      return `Fresh pick: ${skipped.title} is lowered for this session.`;
+  }
+}
+
 function defaultTimeForMood(mood: Mood): TimeBudget | null {
   if (mood === "short") return 15;
   if (mood === "chill") return 30;
@@ -2259,6 +2330,8 @@ function WhatToDo({
   const [minutes, setMinutes] = useState<TimeBudget>(routeIntent?.minutes ?? DEFAULT_TIME);
   const [routeLens, setRouteLens] = useState<RouteLens>("smart");
   const [shuffleIdx, setShuffleIdx] = useState(0);
+  const [sessionSkipped, setSessionSkipped] = useState<Record<string, SessionSkippedPick>>({});
+  const [routeSwitchNote, setRouteSwitchNote] = useState<string | null>(null);
   const [lastSuppressed, setLastSuppressed] = useState<{ id: string; title: string } | null>(null);
   const [lastCompleted, setLastCompleted] = useState<{ id: string; title: string } | null>(null);
   const [feedback, setFeedback] = useState<RecommendationFeedback>(() => ({
@@ -2287,6 +2360,15 @@ function WhatToDo({
 
   const hiddenCount = allRecs.filter((rec) => feedback.suppressed[rec.id]).length;
   const visibleRecs = allRecs.filter((rec) => !feedback.suppressed[rec.id]);
+  const latestSkipped = useMemo(() => latestSessionSkip(sessionSkipped), [sessionSkipped]);
+  const routePickOptions = useMemo(
+    () => ({
+      skippedIds: sessionSkippedCounts(sessionSkipped),
+      previousKind: latestSkipped?.kind ?? null,
+      previousId: latestSkipped?.id ?? null
+    }),
+    [latestSkipped?.id, latestSkipped?.kind, sessionSkipped]
+  );
   const actionContext = useMemo<RecommendationActionContext>(
     () => ({ from: "next", hasBankContext, rsn: activeRsn }),
     [activeRsn, hasBankContext]
@@ -2301,8 +2383,8 @@ function WhatToDo({
   }, [mood, minutes, routeLens]);
 
   const pick = useMemo(
-    () => pickForRoute(visibleRecs, mood, minutes, routeLens, shuffleIdx),
-    [visibleRecs, mood, minutes, routeLens, shuffleIdx]
+    () => pickForRoute(visibleRecs, mood, minutes, routeLens, shuffleIdx, routePickOptions),
+    [visibleRecs, mood, minutes, routeLens, shuffleIdx, routePickOptions]
   );
   const sessionPlanText = useMemo(
     () => formatRecommendationSessionPlan(
@@ -2348,15 +2430,17 @@ function WhatToDo({
     const defaultTime = nextMinutes ?? defaultTimeForMood(nextMood);
     if (defaultTime) setMinutes(defaultTime);
     setShuffleIdx(0);
+    setRouteSwitchNote(null);
     setLastSuppressed(null);
     setLastCompleted(null);
   };
-  const applyRouteLens = (nextLens: RouteLens) => {
+  const applyRouteLens = (nextLens: RouteLens, options: { keepRouteSwitchNote?: boolean } = {}) => {
     const routeDefaultTime = defaultTimeForRouteLens(nextLens);
     setRouteLens(nextLens);
     setMood((currentMood) => moodForRouteLens(nextLens, currentMood));
     if (routeDefaultTime) setMinutes(routeDefaultTime);
     setShuffleIdx(0);
+    if (!options.keepRouteSwitchNote) setRouteSwitchNote(null);
     setLastSuppressed(null);
     setLastCompleted(null);
   };
@@ -2385,12 +2469,16 @@ function WhatToDo({
   const moveToAnotherPlan = () => {
     setLastCompleted(null);
     setLastSuppressed(null);
+    if (pick?.headline) {
+      setSessionSkipped((current) => recordSessionSkip(current, pick.headline));
+      setRouteSwitchNote(routeSwitchCopy(nextRouteLens, pick.headline));
+    }
     if (nextRouteLens === "smart") {
       setRouteLens("smart");
       setShuffleIdx((i) => i + 1);
       return;
     }
-    applyRouteLens(nextRouteLens);
+    applyRouteLens(nextRouteLens, { keepRouteSwitchNote: true });
   };
   const moveToChillPlan = () => {
     applySessionIntent("chill", 30);
@@ -2636,7 +2724,7 @@ function WhatToDo({
         </div>
       )}
 
-      {memoryNote && !lastSuppressed && !lastCompleted && !shareMode && (
+      {memoryNote && !routeSwitchNote && !lastSuppressed && !lastCompleted && !shareMode && (
         <div
           role="status"
           aria-live="polite"
@@ -2646,7 +2734,17 @@ function WhatToDo({
         </div>
       )}
 
-      {noticedNote && !lastSuppressed && !lastCompleted && !shareMode && (
+      {routeSwitchNote && !lastSuppressed && !lastCompleted && !shareMode && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="mb-3 rounded-xl border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 px-3.5 py-2.5 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]"
+        >
+          {routeSwitchNote}
+        </div>
+      )}
+
+      {noticedNote && !routeSwitchNote && !lastSuppressed && !lastCompleted && !shareMode && (
         <div
           role="note"
           className="mb-3 rounded-xl border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 px-3.5 py-2.5 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]"

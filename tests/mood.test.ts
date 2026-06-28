@@ -224,6 +224,39 @@ describe("pickForMood", () => {
     expect(result!.headline.kind).toBe("money");
   });
 
+  it("try-another skip demotes the exact card for this session", () => {
+    const recs = [
+      rec("quest", "mm2", 88),
+      rec("skill", "farming-99", 72),
+      rec("money", "herb-run", 70)
+    ];
+    const first = pickForRoute(recs, "unlock", 60, "smart");
+    const afterSkip = pickForRoute(recs, "unlock", 60, "smart", 0, {
+      skippedIds: { [first!.headline.id]: 1 },
+      previousId: first!.headline.id,
+      previousKind: first!.headline.kind
+    });
+
+    expect(first!.headline.id).toBe("mm2");
+    expect(afterSkip!.headline.id).not.toBe("mm2");
+  });
+
+  it("try-another favours a different activity type when one is available", () => {
+    const recs = [
+      rec("quest", "mm2", 82),
+      rec("quest", "sote", 78),
+      rec("skill", "farming-99", 70),
+      rec("money", "herb-run", 68)
+    ];
+    const result = pickForRoute(recs, "unlock", 60, "smart", 0, {
+      skippedIds: { mm2: 1 },
+      previousId: "mm2",
+      previousKind: "quest"
+    });
+
+    expect(result!.headline.kind).not.toBe("quest");
+  });
+
   it("15-min budget: boss-rec krijgt hard penalty, korte rec wint", () => {
     // Boss out-of-range (min 45) bij 15 min → penalty ≤ 0.4. Bank-rec
     // is in z'n sweet spot (5..30) → score ~1.3+.
