@@ -16,7 +16,7 @@ describe("global interactive affordance CSS", () => {
     expect(globalsCss).toContain("transform: translateY(1px);");
     expect(globalsCss).toContain(":where(button:not(:disabled), a[href]):focus-visible");
     expect(globalsCss).toContain(":where(input, textarea, select, summary):focus-visible");
-    expect(globalsCss).toContain("box-shadow: 0 0 0 3px rgba(230, 165, 47, 0.14);");
+    expect(globalsCss).toContain("box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);");
   });
 
   it("keeps unstyled content links recognizable", () => {

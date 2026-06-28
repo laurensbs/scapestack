@@ -264,7 +264,7 @@ function PluginBankIntakeBridge({ rsn }: { rsn: string }) {
             <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
               {bridge.eyebrow}
             </div>
-            <h2 className="mt-1 text-[16px] font-bold tracking-tight text-[var(--color-text)]">
+            <h2 className="mt-1 text-[16px] font-bold tracking-normal text-[var(--color-text)]">
               {bridge.title}
             </h2>
             <p className="mt-1 max-w-3xl text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">

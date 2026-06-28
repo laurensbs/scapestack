@@ -137,12 +137,14 @@ describe("Scapestack branding", () => {
     expect(layoutSource).toContain("publisher: BRAND_NAME");
     expect(layoutSource).toContain("{BRAND_TAGLINE}");
     expect(layoutSource).toContain("Made for Gielinor");
-    expect(layoutSource).toContain("GeistSans.variable");
-    expect(globalsSource).toContain("--font-geist-sans");
+    expect(globalsSource).toContain('--font-sans: "Avenir Next"');
+    expect(globalsSource).toContain('--font-display: "Iowan Old Style"');
     expect(globalsSource).toContain("Scapestack product primitives");
     expect(globalsSource).toContain(".scapestack-plan-panel");
     expect(globalsSource).toContain(".scapestack-session-list");
     expect(layoutSource).not.toContain("next/font/google");
+    expect(layoutSource).not.toContain("GeistSans.variable");
+    expect(globalsSource).not.toContain("--font-geist-sans");
     expect(globalsSource).not.toContain("--font-inter");
     expect(layoutSource).not.toContain("Webstability");
     expect(layoutSource).not.toContain("webstability.eu");
@@ -160,16 +162,16 @@ describe("Scapestack branding", () => {
     expect(globalsSource).toContain("cursor: not-allowed");
   });
 
-  it("keeps decorative coin accents on OSRS gold instead of generic green", () => {
+  it("keeps decorative markers on the route palette instead of casino gold", () => {
     const globalsSource = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
 
-    expect(globalsSource).toContain("Coin marker — OSRS gold");
-    expect(globalsSource).toContain("radial-gradient(circle at 30% 30%, #FFE6A8 0%, #E6A52F 50%, #B07B1F 100%)");
-    expect(globalsSource).toContain("inset 0 0 0 1px #B07B1F");
-    expect(globalsSource).not.toContain("Coin marker — kept but recoloured to mint");
+    expect(globalsSource).toContain("Coin marker — now a route marker");
+    expect(globalsSource).toContain("radial-gradient(circle at 30% 30%, #CCFBF1 0%, #14B8A6 48%, #0F766E 100%)");
+    expect(globalsSource).toContain("inset 0 0 0 1px #0B4F4A");
+    expect(globalsSource).not.toContain("Coin marker — OSRS gold");
   });
 
-  it("keeps retained sidebar brandmark on the gold brand palette", () => {
+  it("keeps retained sidebar brandmark on the route palette", () => {
     const sidebarSource = readFileSync(join(process.cwd(), "src/components/sidebar.tsx"), "utf8");
 
     expect(sidebarSource).toContain("var(--color-accent-soft)");
@@ -188,10 +190,10 @@ describe("Scapestack branding", () => {
       "src/app/u/[rsn]/opengraph-image.tsx"
     ].map((path) => readFileSync(join(process.cwd(), path), "utf8"));
 
-    expect(BRAND_IMAGE_FONT_FAMILY).toBe("Geist, Arial, sans-serif");
+    expect(BRAND_IMAGE_FONT_FAMILY).toBe("Avenir Next, Segoe UI, Arial, sans-serif");
     for (const source of imageSources) {
       expect(source).toContain("BRAND_IMAGE_FONT_FAMILY");
-      expect(source).not.toContain("Inter, Arial");
+      expect(source).not.toContain("Geist, Arial");
       expect(source).not.toContain("fontFamily: \"sans-serif\"");
     }
   });

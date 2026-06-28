@@ -45,7 +45,7 @@ export function StackScoreBadge({ tabs, previousScore }: Props) {
           Score
         </span>
         <span
-          className="font-semibold text-[14px] leading-none tabular-nums tracking-tight"
+          className="font-semibold text-[14px] leading-none tabular-nums tracking-normal"
           style={{ color: tier.color }}
         >
           {score.total}
@@ -86,7 +86,7 @@ export function StackScoreBadge({ tabs, previousScore }: Props) {
               </div>
               <div className="flex items-baseline gap-2 mt-0.5">
                 <span
-                  className="font-semibold text-[26px] leading-none tabular-nums tracking-tight"
+                  className="font-semibold text-[26px] leading-none tabular-nums tracking-normal"
                   style={{ color: tier.color }}
                 >
                   {score.total}

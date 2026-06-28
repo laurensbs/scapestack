@@ -39,22 +39,19 @@ export function Header() {
     <header
       className={cn(
         "sticky top-0 z-30 h-14 shrink-0",
-        "border-b border-[var(--color-border)] bg-[var(--color-bg)]/85 backdrop-blur-md"
+        "border-b border-[var(--color-border)] bg-[var(--color-panel)]/82 backdrop-blur-md"
       )}
     >
       <div className="mx-auto max-w-7xl h-full px-4 sm:px-6 flex items-center justify-between gap-3">
-        {/* Wordmark + page title. No icon-tile anymore — the wordmark itself
-            is the brand. Lowercase 'scapestack' with the last four letters
-            in mint accent reads as a single shape, lighter than the old
-            icon+text combo, and matches the editorial "Linear / Vercel /
-            Resend" feel the rest of the UI leans into. */}
+        {/* Wordmark + page title. Lowercase text keeps the header quiet;
+            the route accent handles identity without a heavy logo tile. */}
         <div className="flex items-baseline gap-3 min-w-0">
           <Link
             href="/"
             aria-label="Scapestack home"
             className={cn(
               "group flex items-baseline shrink-0 leading-none",
-              "text-[18px] font-semibold tracking-[-0.025em] lowercase"
+              "text-[18px] font-semibold tracking-normal lowercase"
             )}
           >
             <span
@@ -78,7 +75,7 @@ export function Header() {
               style={{ animation: "hero-fade 0.5s cubic-bezier(0.22,1,0.36,1) 0.32s both" }}
             >
               <span className="text-[var(--color-border-strong)]">·</span>
-              <span className="font-medium text-[var(--color-text-secondary)] truncate tracking-tight">{title}</span>
+              <span className="font-medium text-[var(--color-text-secondary)] truncate tracking-normal">{title}</span>
             </div>
           )}
         </div>
@@ -152,7 +149,7 @@ export function Header() {
       {/* Mobile drawer — shown when hamburger is open. Slides down from
           beneath the header bar; click anywhere inside to navigate. */}
       {mobileOpen && (
-        <div className="sm:hidden border-t border-[var(--color-border)] bg-[var(--color-panel)] animate-[fade-in_0.18s_ease-out]">
+        <div className="sm:hidden border-t border-[var(--color-border)] bg-[var(--color-panel)] shadow-[0_22px_50px_-36px_rgba(65,49,25,0.55)] animate-[fade-in_0.18s_ease-out]">
           <nav id={mobileNavId} className="px-4 py-3 space-y-1" aria-label="Mobile Scapestack tools">
             <div className="mb-3 rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 p-3">
               <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">

@@ -23,17 +23,17 @@ export function ToolHeader({ slug, actions }: ToolHeaderProps) {
       <div
         aria-hidden="true"
         className="absolute inset-x-0 top-0 h-px"
-        style={{ background: "linear-gradient(to right, transparent, rgba(230,165,47,0.45), transparent)" }}
+        style={{ background: "linear-gradient(to right, transparent, rgba(15, 118, 110,0.45), transparent)" }}
       />
       <div className="flex items-center justify-between gap-4 pt-5">
         <div className="flex items-center gap-3.5">
           {/* Icon tile: gradient + accent border zodat hij actief voelt
               ipv "tile met icoon". */}
-          <div className="relative size-11 rounded-lg flex items-center justify-center shrink-0 bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] border border-[var(--color-accent)]/30 text-[var(--color-accent)] shadow-[0_0_18px_-8px_rgba(230,165,47,0.5)]">
+          <div className="relative size-11 rounded-lg flex items-center justify-center shrink-0 bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] border border-[var(--color-accent)]/30 text-[var(--color-accent)] shadow-[0_0_18px_-8px_rgba(15, 118, 110,0.5)]">
             <Icon className="size-[22px]" strokeWidth={1.75} />
           </div>
           <div>
-            <h1 className="text-[22px] sm:text-[24px] font-bold text-[var(--color-text)] leading-tight tracking-tight">
+            <h1 className="text-[22px] sm:text-[24px] font-bold text-[var(--color-text)] leading-tight tracking-normal">
               {tool.name}
             </h1>
             <p className="text-[12px] text-[var(--color-text-muted)] mt-0.5">{tool.tagline}</p>

@@ -88,7 +88,7 @@ export function BossDetailModal({ boss, owned, onClose }: Props) {
           <div
             className="absolute inset-[-10%] pointer-events-none"
             style={{
-              background: "radial-gradient(closest-side, rgba(230, 165, 47, 0.18) 0%, transparent 70%)",
+              background: "radial-gradient(closest-side, rgba(15, 118, 110, 0.18) 0%, transparent 70%)",
               opacity: 0.5
             }}
           />
@@ -103,7 +103,7 @@ export function BossDetailModal({ boss, owned, onClose }: Props) {
           <div className="absolute bottom-4 left-4 right-4 z-10">
             <h2
               id={titleId}
-              className="text-[24px] sm:text-[28px] font-bold tracking-tight text-[var(--color-text)] leading-tight"
+              className="text-[24px] sm:text-[28px] font-bold tracking-normal text-[var(--color-text)] leading-tight"
               style={{ textShadow: "0 2px 12px rgb(0 0 0 / 0.6)" }}
             >
               {boss.name}

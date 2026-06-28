@@ -535,7 +535,7 @@ export function DpsClient() {
               autoComplete="off"
               spellCheck={false}
               aria-describedby="dps-boss-search-help dps-boss-search-status"
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] focus:border-[var(--color-accent)]/50 focus:shadow-[0_0_0_3px_rgba(230,165,47,0.10)] text-[13.5px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none transition-all"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] focus:border-[var(--color-accent)]/50 focus:shadow-[0_0_0_3px_rgba(15, 118, 110,0.10)] text-[13.5px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none transition-all"
             />
             {search && (
               <button
@@ -674,8 +674,8 @@ function BossRow({ boss, dps, isFocused, onOpen }: {
       className={cn(
         "w-full text-left rounded-xl border scroll-mt-24 p-3.5 flex items-center gap-4 flex-wrap",
         "bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] border-[var(--color-border)]",
-        "hover:border-[var(--color-accent)]/40 hover:shadow-[0_0_0_1px_rgba(230,165,47,0.12)] transition-all cursor-pointer",
-        isFocused && "border-[var(--color-accent)]/40 shadow-[0_0_0_1px_rgba(230,165,47,0.18)]"
+        "hover:border-[var(--color-accent)]/40 hover:shadow-[0_0_0_1px_rgba(15, 118, 110,0.12)] transition-all cursor-pointer",
+        isFocused && "border-[var(--color-accent)]/40 shadow-[0_0_0_1px_rgba(15, 118, 110,0.18)]"
       )}>
       <div className="flex items-center gap-2.5 min-w-0 w-[160px]">
         <BossThumb boss={boss} />
@@ -898,7 +898,7 @@ function DpsNoWeaponGate({
           <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-warning)]">
             Boss setup locked
           </div>
-          <h2 className="mt-1 text-[17px] font-bold tracking-tight text-[var(--color-text)]">
+          <h2 className="mt-1 text-[17px] font-bold tracking-normal text-[var(--color-text)]">
             Paste a combat bank before trusting DPS rows
           </h2>
           <p className="mt-1 max-w-2xl text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">

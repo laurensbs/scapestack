@@ -85,7 +85,7 @@ export function PathDetailModal({ path, onClose }: Props) {
               <div className="text-[10.5px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)] mb-1">
                 Path
               </div>
-              <h2 id={titleId} className="text-[22px] sm:text-[26px] font-bold tracking-tight text-[var(--color-text)] leading-tight">
+              <h2 id={titleId} className="text-[22px] sm:text-[26px] font-bold tracking-normal text-[var(--color-text)] leading-tight">
                 {path.label}
               </h2>
               <p id={descriptionId} className="mt-1 text-[13px] text-[var(--color-text-dim)] leading-snug">
@@ -129,7 +129,7 @@ export function PathDetailModal({ path, onClose }: Props) {
                 className={cn(
                   "px-3 py-1.5 rounded text-[11.5px] font-semibold uppercase tracking-wider transition-colors",
                   filter === f
-                    ? "bg-[var(--color-accent)] text-[#07090C]"
+                    ? "bg-[var(--color-accent)] text-white"
                     : "text-[var(--color-text-dim)] hover:text-[var(--color-text)]"
                 )}
               >

@@ -241,7 +241,7 @@ interface PinContextValue {
 }
 const PinContext = createContext<PinContextValue | null>(null);
 
-// After a successful drop, we trigger a short gold flash on the dragged
+// After a successful drop, we trigger a short route flash on the dragged
 // item's new slot. Done via context so we don't have to thread a prop
 // through every tab/grid/slot. Token is bumped per drop so React
 // remounts the animation even when the same id is dropped twice.
@@ -1101,7 +1101,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
       {/* Header — minimal, mono stats, single mint accent on gp */}
       <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-[20px] font-semibold tracking-tight text-[var(--color-text)] leading-tight">
+          <h2 className="text-[20px] font-semibold tracking-normal text-[var(--color-text)] leading-tight">
             {initial.source.name}
           </h2>
           {inferredArchetype && inferredArchetype !== "unspecified" && (() => {
@@ -1182,8 +1182,8 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
             aria-label="Copy every organized Bank Tags tab to RuneLite"
             className={cn(
               "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12.5px] font-semibold transition-all",
-              "bg-[var(--color-accent)] text-[#07090C] hover:brightness-110 shadow-[0_0_0_3px_rgba(230, 165, 47,0.15)]",
-              "hover:shadow-[0_0_0_4px_rgba(230, 165, 47,0.25)]"
+              "bg-[var(--color-accent)] text-white hover:brightness-110 shadow-[0_0_0_3px_rgba(15, 118, 110,0.15)]",
+              "hover:shadow-[0_0_0_4px_rgba(15, 118, 110,0.25)]"
             )}
             title="Copy every tab's Bank Tags string to your clipboard — paste each into RuneLite"
           >
@@ -1498,7 +1498,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
           className={cn(
             "group/frame relative mt-3 rounded-lg overflow-hidden",
             "transition-[border-color,box-shadow] duration-300 ease-out",
-            "hover:border-[var(--color-accent)]/30 hover:shadow-[0_28px_70px_-28px_rgb(0_0_0/0.75),0_0_0_1px_rgba(230, 165, 47,0.18)]",
+            "hover:border-[var(--color-accent)]/30 hover:shadow-[0_28px_70px_-28px_rgb(0_0_0/0.75),0_0_0_1px_rgba(15, 118, 110,0.18)]",
             reorgFlash && "animate-[reshuffle_0.55s_cubic-bezier(0.22,1,0.36,1),mint-sweep_0.7s_ease-out]"
           )}
           style={{
@@ -1511,7 +1511,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
           <span
             aria-hidden="true"
             className="pointer-events-none absolute top-0 inset-x-0 h-px opacity-0 group-hover/frame:opacity-100 transition-opacity duration-500"
-            style={{ background: "linear-gradient(to right, transparent, rgba(230, 165, 47,0.6), transparent)" }}
+            style={{ background: "linear-gradient(to right, transparent, rgba(15, 118, 110,0.6), transparent)" }}
           />
           {/* Title bar — minimal monochrome */}
           <div className="relative flex items-center justify-between py-2.5 px-4 border-b border-[var(--color-border)] bg-[var(--color-bg-2)] gap-3">
@@ -1654,7 +1654,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
               className={cn(
                 "rounded-md flex items-center justify-center",
                 "bg-[var(--color-osrs-slot)] border-2 border-[var(--color-accent)]",
-                "shadow-[0_12px_28px_-8px_rgb(0_0_0/0.7),0_0_0_4px_rgba(230, 165, 47,0.15)]",
+                "shadow-[0_12px_28px_-8px_rgb(0_0_0/0.7),0_0_0_4px_rgba(15, 118, 110,0.15)]",
                 "animate-[pop-in_0.16s_cubic-bezier(0.22,1,0.36,1)] cursor-grabbing"
               )}
               // Match the lifted slot's real size so the overlay stays
@@ -1700,7 +1700,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
         <summary className="cursor-pointer list-none flex items-center justify-between gap-3 px-4 py-3 hover:bg-[var(--color-panel)]/60 transition-colors">
           <div className="flex items-center gap-3 min-w-0">
             <Sparkles className="size-4 text-[var(--color-accent)] shrink-0" />
-            <span className="text-[13px] font-semibold text-[var(--color-text)] tracking-tight">
+            <span className="text-[13px] font-semibold text-[var(--color-text)] tracking-normal">
               Insights about this bank
             </span>
             <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11.5px] text-[var(--color-text-dim)] font-mono">
@@ -1917,7 +1917,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
       {/* Export */}
       <section id="bank-export-panel" tabIndex={-1} className="mt-8 surface p-5">
         <div className="flex items-baseline justify-between flex-wrap gap-3 mb-1">
-          <h3 className="text-[15px] font-semibold text-[var(--color-text)] tracking-tight">
+          <h3 className="text-[15px] font-semibold text-[var(--color-text)] tracking-normal">
             Export back to RuneLite
           </h3>
           <span className="text-[11px] text-[var(--color-text-muted)]">
@@ -1934,7 +1934,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
             onClick={copyAll}
             className={cn(
               "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium",
-              "bg-[var(--color-accent)] text-[#07090C] hover:brightness-110 transition-all"
+              "bg-[var(--color-accent)] text-white hover:brightness-110 transition-all"
             )}
           >
             {copied === "all" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
@@ -2771,7 +2771,7 @@ function BankActionLoopRail({
               aria-label={`${step.cta}: ${step.destination}`}
               data-testid="bank-action-loop-card"
               className={cn(
-                "group/bank-action rounded-lg border p-3 text-left transition-all hover:-translate-y-0.5 focus:outline-none focus-visible:border-[var(--color-accent)]/60 focus-visible:shadow-[0_0_0_3px_rgba(230,165,47,0.13)]",
+                "group/bank-action rounded-lg border p-3 text-left transition-all hover:-translate-y-0.5 focus:outline-none focus-visible:border-[var(--color-accent)]/60 focus-visible:shadow-[0_0_0_3px_rgba(15, 118, 110,0.13)]",
                 step.state === "attention"
                   ? "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/8 hover:border-[var(--color-warning)]/55"
                   : step.state === "ready"
@@ -3064,7 +3064,7 @@ function LayoutPopup({
         <header className="flex items-center justify-between px-5 py-3 border-b border-[var(--color-border)]">
           <div className="flex items-center gap-2">
             <GripVertical className="size-4 text-[var(--color-accent)]" />
-            <h2 className="text-[14px] font-semibold tracking-tight">Bank layout</h2>
+            <h2 className="text-[14px] font-semibold tracking-normal">Bank layout</h2>
           </div>
           <button
             type="button"
@@ -3507,7 +3507,7 @@ function SubtabFilterRow({ subtabs, active, onChange, search, onSearchChange, it
             "w-full pl-7 pr-16 py-1.5 rounded-md text-[12px]",
             "bg-[var(--color-bg-2)] border border-[var(--color-border)]",
             "text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]",
-            "focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(230, 165, 47,0.12)]"
+            "focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(15, 118, 110,0.12)]"
           )}
         />
         <svg className="absolute left-2 top-1/2 -translate-y-1/2 size-3.5 text-[var(--color-text-muted)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
@@ -3622,7 +3622,7 @@ function BankBody({ tab, hasPrices, hasQty, sort, density, activeSubtab, matches
       )}
     >
       <div className="flex items-center justify-between px-1 pb-2.5">
-        <span className="text-[11.5px] font-semibold text-[var(--color-text)] tracking-tight">
+        <span className="text-[11.5px] font-semibold text-[var(--color-text)] tracking-normal">
           {tab.name}
           {activeSubtab && (
             <span className="text-[var(--color-text-dim)] font-normal ml-2">
@@ -3953,7 +3953,7 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
   const pinned = pinCtx?.isPinned(item.id) ?? false;
 
   // Drop-success flash. When the user just dropped this item, we play a
-  // ~480ms gold pulse so they see exactly where it landed. The token in
+  // ~480ms route pulse so they see exactly where it landed. The token in
   // the context forces a remount when the same id is dropped twice in
   // a row.
   const flashCtx = useContext(DropFlashContext);
@@ -4006,7 +4006,7 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
       className="group relative touch-none"
       style={{
         aspectRatio: "1 / 1",
-        // Drop-success: short gold pulse that fades. Played by the slot
+        // Drop-success: short route pulse that fades. Played by the slot
         // the item *landed in* so the player can see where they put it.
         ...(isFlashing ? { animation: "drop-flash 0.48s ease-out" } : {})
       }}
@@ -4027,7 +4027,7 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
           "relative h-full w-full cursor-grab active:cursor-grabbing",
           "bg-[var(--color-osrs-slot)] border-r border-b border-[var(--color-border)]/40",
           "flex items-center justify-center select-none",
-          "hover:bg-[var(--color-panel-2)] hover:outline hover:outline-2 hover:outline-[var(--color-accent)] hover:outline-offset-[-2px] hover:z-10 hover:shadow-[0_0_18px_-4px_rgba(230, 165, 47,0.4)]",
+          "hover:bg-[var(--color-panel-2)] hover:outline hover:outline-2 hover:outline-[var(--color-accent)] hover:outline-offset-[-2px] hover:z-10 hover:shadow-[0_0_18px_-4px_rgba(15, 118, 110,0.4)]",
           "transition-[background-color,outline-color,box-shadow,transform] duration-150",
           "[&:hover>img]:scale-[1.07]",
           isDragging && "opacity-25",
@@ -4072,7 +4072,7 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
             // 8px on the smallest viewport, snap back to 10px on sm+
             // (audit finding #9). Font-size lives in className now so
             // breakpoints apply; the rest of the inline style stays.
-            "absolute top-0.5 left-1 font-bold drop-shadow-[1px_1px_0_rgb(0_0_0/1)] pointer-events-none tracking-tight text-[8px] sm:text-[10px]",
+            "absolute top-0.5 left-1 font-bold drop-shadow-[1px_1px_0_rgb(0_0_0/1)] pointer-events-none tracking-normal text-[8px] sm:text-[10px]",
             density === "ultra" && "opacity-0 group-hover:opacity-100 transition-opacity"
           )}
           style={{
@@ -4138,7 +4138,7 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
       )}
       {isUnknownFallbackTile && !isJunk && !isStale && !hasGoal && (
         <span
-          className="absolute -top-1 -right-1 min-w-[18px] h-4 px-1 rounded-full bg-[var(--color-warning)] text-[var(--color-bg)] flex items-center justify-center gap-0.5 text-[8px] font-black uppercase tracking-[-0.02em] pointer-events-none shadow-[0_0_0_2px_var(--color-bg)]"
+          className="absolute -top-1 -right-1 min-w-[18px] h-4 px-1 rounded-full bg-[var(--color-warning)] text-[var(--color-bg)] flex items-center justify-center gap-0.5 text-[8px] font-black uppercase tracking-normal pointer-events-none shadow-[0_0_0_2px_var(--color-bg)]"
           title={`Unknown OSRS item ID #${item.id} kept as a fallback tile`}
           data-testid="unknown-item-id-badge"
         >
@@ -4836,7 +4836,7 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
   return (
     <section className="mt-8 surface p-5">
       <div className="flex items-baseline justify-between flex-wrap gap-3 mb-1">
-        <h3 className="text-[15px] font-semibold text-[var(--color-text)] tracking-tight">
+        <h3 className="text-[15px] font-semibold text-[var(--color-text)] tracking-normal">
           Generate a boss loadout tag
         </h3>
         <span className="text-[11px] text-[var(--color-text-muted)]">
@@ -4854,7 +4854,7 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search bosses…"
-          className="w-full pl-8 pr-7 py-1.5 rounded-md text-[12px] bg-[var(--color-bg-2)] border border-[var(--color-border)] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(230, 165, 47,0.12)]"
+          className="w-full pl-8 pr-7 py-1.5 rounded-md text-[12px] bg-[var(--color-bg-2)] border border-[var(--color-border)] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(15, 118, 110,0.12)]"
         />
         {query && (
           <button
@@ -4893,7 +4893,7 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
                       "aspect-square rounded-md flex items-center justify-center relative",
                       "border transition-all",
                       isSelected
-                        ? "border-[var(--color-accent)] bg-[var(--color-accent)]/12 shadow-[0_0_0_3px_rgba(230, 165, 47,0.18)] scale-[1.05] z-10"
+                        ? "border-[var(--color-accent)] bg-[var(--color-accent)]/12 shadow-[0_0_0_3px_rgba(15, 118, 110,0.18)] scale-[1.05] z-10"
                         : "border-[var(--color-border)] bg-[var(--color-bg-2)] hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-panel-2)] hover:scale-[1.04]"
                     )}
                   >
@@ -4926,7 +4926,7 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
               className={cn(
                 "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium transition-all",
                 tagString
-                  ? "bg-[var(--color-accent)] text-[#07090C] hover:brightness-110"
+                  ? "bg-[var(--color-accent)] text-white hover:brightness-110"
                   : "bg-[var(--color-panel-2)] text-[var(--color-text-muted)] cursor-not-allowed"
               )}
             >

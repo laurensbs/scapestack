@@ -36,7 +36,7 @@ export default function AppleIcon() {
             fontSize: 52,
             fontWeight: 900,
             letterSpacing: -4,
-            background: "rgba(230,165,47,0.11)"
+            background: "rgba(15, 118, 110,0.11)"
           }}
         >
           SS

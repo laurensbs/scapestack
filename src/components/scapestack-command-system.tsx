@@ -28,7 +28,7 @@ export function ScapestackCommandSystem() {
           </div>
           <h2
             id="command-system-title"
-            className="text-[24px] font-black leading-tight tracking-tight text-[var(--color-text)] sm:text-[30px]"
+            className="text-[24px] font-black leading-tight tracking-normal text-[var(--color-text)] sm:text-[30px]"
           >
             Pick the kind of session you want.
           </h2>
@@ -44,7 +44,7 @@ export function ScapestackCommandSystem() {
               <Link
                 key={prompt.label}
                 href={prompt.href}
-                className="group/prompt flex min-h-[72px] items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/42 px-3 py-2.5 transition-colors hover:border-[var(--color-accent)]/45 hover:bg-[var(--color-bg)]/65 focus:outline-none focus-visible:border-[var(--color-accent)]/65 focus-visible:shadow-[0_0_0_3px_rgba(230,165,47,0.14)]"
+                className="group/prompt flex min-h-[72px] items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/42 px-3 py-2.5 transition-colors hover:border-[var(--color-accent)]/45 hover:bg-[var(--color-bg)]/65 focus:outline-none focus-visible:border-[var(--color-accent)]/65 focus-visible:shadow-[0_0_0_3px_rgba(15, 118, 110,0.14)]"
               >
                 <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 text-[var(--color-accent)]">
                   <Icon className="size-4" aria-hidden="true" />

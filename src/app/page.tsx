@@ -7,13 +7,13 @@ export const revalidate = 300;
 
 export default function HomePage() {
   return (
-    <main className="relative z-10 mx-auto max-w-6xl px-5 pb-20 pt-14 sm:px-8 sm:pt-20">
+    <main className="relative z-10 mx-auto max-w-6xl px-5 pb-20 pt-12 sm:px-8 sm:pt-18">
       <section className="relative">
         <div className="grid min-h-[calc(100vh-6rem)] items-center gap-10 lg:grid-cols-[0.9fr_0.82fr] lg:gap-20 xl:gap-28">
           <div className="space-y-6">
             <h1
               aria-label="Stop bankstanding. One clear OSRS plan."
-              className="font-bold leading-[0.97] tracking-[-0.025em] text-[clamp(42px,6.2vw,72px)]"
+              className="text-[48px] font-semibold leading-[0.96] text-[var(--color-text)] sm:text-[64px] lg:text-[72px]"
             >
               <RevealLine
                 text="Stop bankstanding."
@@ -25,16 +25,16 @@ export default function HomePage() {
                 text="One clear OSRS plan."
                 delay={350}
                 wordStaggerMs={80}
-                className="block text-gold-gradient"
+                className="block text-route-gradient"
                 style={{
-                  animation: "gold-shimmer 6s linear 1.8s infinite",
+                  animation: "route-shimmer 7s linear 1.8s infinite",
                   backgroundSize: "200% 100%"
                 }}
               />
             </h1>
 
             <p
-              className="text-[17px] sm:text-[19px] text-[var(--color-text)] leading-[1.5] max-w-[520px]"
+              className="max-w-[520px] text-[17px] leading-[1.55] text-[var(--color-text-secondary)] sm:text-[19px]"
               style={{
                 animation: "hero-mask-reveal 1s cubic-bezier(0.22,1,0.36,1) 0.85s both",
                 clipPath: "inset(0 0 100% 0)"
@@ -60,14 +60,10 @@ export default function HomePage() {
       </section>
 
       <footer className="mt-14 border-t border-[var(--color-border)] pt-10">
-        <div className="relative overflow-hidden rounded-2xl max-w-3xl mx-auto bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] border border-[var(--color-accent)]/25 animate-[slide-up_0.5s_cubic-bezier(0.22,1,0.36,1)_0.2s_both]">
+        <div className="relative mx-auto max-w-3xl overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] shadow-[0_24px_70px_-48px_rgba(65,49,25,0.45)] animate-[slide-up_0.5s_cubic-bezier(0.22,1,0.36,1)_0.2s_both]">
           <div
             className="absolute inset-x-0 top-0 h-px"
-            style={{ background: "linear-gradient(to right, transparent, rgba(230, 165, 47,0.5), transparent)" }}
-          />
-          <div
-            className="absolute -bottom-32 -right-24 size-80 rounded-full blur-3xl opacity-25 pointer-events-none"
-            style={{ background: "rgba(230, 165, 47, 0.5)" }}
+            style={{ background: "linear-gradient(to right, transparent, rgba(15, 118, 110,0.4), transparent)" }}
           />
 
           <div className="relative p-8 sm:p-10 grid sm:grid-cols-[1fr_auto] items-center gap-6">
@@ -75,14 +71,14 @@ export default function HomePage() {
               <div className="eyebrow mb-2" style={{ color: "var(--color-accent)" }}>
                 Solo project · No ads · No accounts
               </div>
-              <h3 className="text-[22px] sm:text-[26px] font-bold text-[var(--color-text)] tracking-tight leading-tight">
+              <h3 className="text-[22px] sm:text-[26px] font-semibold text-[var(--color-text)] tracking-normal leading-tight">
                 Saved a trip?
               </h3>
               <p className="mt-2.5 text-[14px] text-[var(--color-text-dim)] leading-relaxed max-w-md">
                 Scapestack is free, no ads, no account. Coffee keeps the tools online.
               </p>
             </div>
-            <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
+            <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
               <BuyMeCoffee />
               <span className="text-[11px] text-[var(--color-text-muted)] tracking-wide">
                 One-time · from €1 · takes 20 seconds
@@ -105,12 +101,7 @@ function HeroProductPreview() {
       aria-label="Live anti-bankstanding plan preview"
       className="scapestack-plan-panel relative overflow-hidden p-4 sm:p-5"
     >
-      <div
-        className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-accent)]/70 to-transparent"
-        aria-hidden="true"
-      />
-
-      <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)]/62 p-4 sm:p-5">
+      <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] p-4 sm:p-5">
         <div className="flex items-center justify-between gap-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-2.5 py-1 text-[11px] font-bold text-[var(--color-good)]">
             <CheckCircle2 className="size-3.5" aria-hidden="true" />
@@ -122,7 +113,7 @@ function HeroProductPreview() {
         </div>
 
         <div className="mt-4 flex items-start gap-4">
-          <span className="grid size-14 shrink-0 place-items-center rounded-2xl border border-[var(--color-accent)]/28 bg-[var(--color-accent)]/10 shadow-[0_12px_30px_-24px_rgba(230,165,47,0.9)]">
+          <span className="grid size-14 shrink-0 place-items-center rounded-2xl border border-[var(--color-accent)]/28 bg-[var(--color-accent)]/10 shadow-[0_12px_30px_-24px_rgba(15,118,110,0.56)]">
             <ItemSprite id={28307} alt="Vardorvis" className="scale-125" />
           </span>
           <div className="min-w-0">
@@ -130,7 +121,7 @@ function HeroProductPreview() {
               <Target className="size-3.5" aria-hidden="true" />
               Do this first
             </div>
-            <h2 className="mt-3 text-[24px] font-black leading-tight tracking-tight text-[var(--color-text)]">
+            <h2 className="mt-3 text-[26px] font-semibold leading-tight text-[var(--color-text)]">
               Push Vardorvis to 50 KC
             </h2>
             <p className="mt-2 text-[13px] leading-relaxed text-[var(--color-text-dim)]">

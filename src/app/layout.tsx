@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
 import { Header } from "@/components/header";
 import {
   BRAND_DESCRIPTION,
@@ -76,10 +74,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="en"
-      className={`h-full ${GeistSans.variable} ${GeistMono.variable}`}
-    >
+    <html lang="en" className="h-full">
       <body className="h-full subpixel-antialiased font-sans">
         {process.env.NODE_ENV === "production" && (
           <Script

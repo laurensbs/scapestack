@@ -171,7 +171,7 @@ export function ShuffleLoader({ label = "Reading your account…" }: ShuffleLoad
         className="relative w-full max-w-3xl rounded-xl bg-[var(--color-panel)] border border-[var(--color-border)] p-3 overflow-hidden"
         style={{ animation: "loader-pulse 2.4s ease-in-out infinite" }}
       >
-        {/* Sweep-glow: een gouden tint die langzaam meeloopt met de
+        {/* Sweep-glow: een route-tint die langzaam meeloopt met de
             actieve kolom. Pure cosmetic, voelt als spotlight. */}
         <div
           className="pointer-events-none absolute inset-y-0 w-32 bg-gradient-to-r from-transparent via-[var(--color-accent)]/15 to-transparent transition-transform duration-[120ms] ease-linear"
@@ -198,7 +198,7 @@ export function ShuffleLoader({ label = "Reading your account…" }: ShuffleLoad
                   transform: isActive ? "scale(1.08)" : "scale(1)",
                   borderColor: isActive ? "var(--color-accent)" : undefined,
                   boxShadow: isActive
-                    ? "0 0 12px rgba(230,165,47,0.25)"
+                    ? "0 0 12px rgba(15, 118, 110,0.25)"
                     : undefined
                 }}
               >

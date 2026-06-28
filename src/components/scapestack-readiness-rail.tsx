@@ -54,7 +54,7 @@ export function ScapestackReadinessRail({
           <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
             {readiness.eyebrow}
           </div>
-          <h2 className="mt-1 text-[17px] font-bold tracking-tight text-[var(--color-text)]">
+          <h2 className="mt-1 text-[17px] font-bold tracking-normal text-[var(--color-text)]">
             {readiness.title}
           </h2>
           <p className="mt-1 max-w-3xl text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">

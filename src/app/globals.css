@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
-/*  Scapestack — OSRS-flavoured palette (fase 6.2 rebrand)
-    Old-school accent (skill-cape gold #E6A52F) on a neutral-warm dark
-    background. The mint of v0.4 was Linear/Vercel SaaS-flavour; gold
-    is what OSRS players recognise from level-ups, cape unlocks, and
-    quest XP popups. See docs/REBRAND-AUDIT.md for the reasoning.
+/*  Scapestack — route-planner palette
+    The old black + gold treatment looked too much like a heavy OSRS
+    overlay. This system moves the product toward a clean map/planner:
+    warm parchment surfaces, ink text, teal route accents and very little
+    glow. OSRS still comes through via sprites and player language.
 
     Critical implementation note: every accent-aware animation in the
     keyframes below uses literal rgba(...) calls, not CSS variables.
@@ -13,72 +13,67 @@
     the keyframe rgba values still match. */
 
 @theme {
-  /* Surfaces — neutral-warm dark (was cool blue-black) */
-  --color-bg: #0C0A07;
-  --color-bg-2: #100D08;
-  --color-panel: #0F1217;
-  --color-panel-2: #141821;
-  --color-surface: #0F1217;
-  /* Borders — slight warm tint instead of the old metallic blue */
-  --color-border: #231F1A;
-  --color-border-strong: #332D24;
+  /* Surfaces — warm parchment, not black chrome */
+  --color-bg: #F5F0E6;
+  --color-bg-2: #EAE0CF;
+  --color-panel: #FFFCF6;
+  --color-panel-2: #F7F1E7;
+  --color-surface: #FFFCF6;
+  --color-border: #DED2BE;
+  --color-border-strong: #BDAE93;
 
   /* Text */
-  --color-text: #E8EAED;
-  --color-text-secondary: #C8CDD6;
-  --color-text-dim: #9AA0AB;
-  --color-text-muted: #5B6170;
+  --color-text: #17211E;
+  --color-text-secondary: #3E4D48;
+  --color-text-dim: #65736D;
+  --color-text-muted: #91A09A;
 
-  /* Primary accent — OSRS skill-cape gold */
-  --color-gold: #E6A52F;             /* shipped name kept for compat */
-  --color-gold-soft: #FFCC55;
-  --color-gold-deep: #B07B1F;
-  --color-accent: #E6A52F;
-  --color-accent-soft: #FFCC55;
+  /* Route accent — teal reads as map/course/wayfinding, less casino UI */
+  --color-gold: #0F766E;             /* legacy token name kept for compat */
+  --color-gold-soft: #14B8A6;
+  --color-gold-deep: #0B4F4A;
+  --color-accent: #0F766E;
+  --color-accent-soft: #14B8A6;
 
-  /* Semantic — "good" stays mint to keep success/error/warning the
-     three traditional UI traffic-light hues. The brand accent (gold)
-     is for *attention*, not success specifically. */
-  --color-good: #00E29A;
-  --color-warning: #FFB454;
-  --color-danger: #FF6566;
-  --color-bad: #FF6566;
+  --color-good: #15803D;
+  --color-warning: #B45309;
+  --color-danger: #C2410C;
+  --color-bad: #C2410C;
 
-  /* Slot palette — single dark tone for the bank, no wood */
-  --color-slot: #0E1116;
-  --color-slot-edge: #1A1D24;
+  /* Slot palette — still readable, but no black-on-black chrome */
+  --color-slot: #F8F3EA;
+  --color-slot-edge: #D4C7B2;
 
   /* Bank skeumorphic vars — re-skinned for the new brand.
      Components keep using the --color-osrs-* names; we just change the
      values. Tinted slightly warmer to match the new brand background. */
-  --color-osrs-wood-dark: #100D08;
-  --color-osrs-wood: #15110B;
-  --color-osrs-wood-light: #211C13;
-  --color-osrs-wood-edge: #07060B;
-  --color-osrs-bank-bg: #100D08;
-  --color-osrs-bank-inner: #0C0A07;
-  --color-osrs-slot: #14110C;
-  --color-osrs-slot-edge: #1F1B14;
-  --color-osrs-slot-empty: #100D08;
-  --color-osrs-slot-hover: #E6A52F;
-  --color-osrs-tab-active: #1C1812;
-  --color-osrs-tab-inactive: #15110B;
-  --color-osrs-title: #E6A52F;       /* gold bank-title — was mint */
-  --color-osrs-qty-yellow: #FFD66B;
-  --color-osrs-qty-white: #E8EAED;
-  --color-osrs-qty-green: #00E29A;   /* in-game green stays mint */
-  --color-osrs-btn-red: #FF6566;
+  --color-osrs-wood-dark: #D5C6AA;
+  --color-osrs-wood: #E6D8BE;
+  --color-osrs-wood-light: #F1E5CF;
+  --color-osrs-wood-edge: #B8A585;
+  --color-osrs-bank-bg: #EAE0CF;
+  --color-osrs-bank-inner: #F5F0E6;
+  --color-osrs-slot: #F8F3EA;
+  --color-osrs-slot-edge: #D4C7B2;
+  --color-osrs-slot-empty: #EDE3D2;
+  --color-osrs-slot-hover: #0F766E;
+  --color-osrs-tab-active: #FFFCF6;
+  --color-osrs-tab-inactive: #EDE3D2;
+  --color-osrs-title: #0F766E;
+  --color-osrs-qty-yellow: #9A6A00;
+  --color-osrs-qty-white: #17211E;
+  --color-osrs-qty-green: #15803D;
+  --color-osrs-btn-red: #C2410C;
 
-  /* Fonts — Geist is bundled through the local `geist` package. Avoid
-     next/font/google here so production builds do not depend on fetching
-     fonts.googleapis.com during CI or sandboxed verification. */
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Consolas, monospace;
+  /* Fonts — system-first, intentionally away from the old geometric SaaS feel. */
+  --font-sans: "Avenir Next", "Inter", "Segoe UI", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Iowan Old Style", "Charter", "Georgia", serif;
+  --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, Consolas, monospace;
   --font-rs-small: "RuneScape Small", "Trebuchet MS", ui-sans-serif, system-ui, sans-serif;
 
   /* Shadows */
-  --shadow-glow: 0 0 40px -12px rgba(230, 165, 47, 0.35);
-  --shadow-deep: 0 24px 60px -24px rgba(0, 0, 0, 0.75);
+  --shadow-glow: 0 18px 48px -32px rgba(15, 118, 110, 0.32);
+  --shadow-deep: 0 24px 60px -34px rgba(65, 49, 25, 0.34);
 
   /* Animations */
   --animate-shimmer: shimmer 2.5s linear infinite;
@@ -99,8 +94,8 @@
     to { background-position: 200% 0; }
   }
   @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(230, 165, 47, 0.35); }
-    50% { box-shadow: 0 0 0 6px rgba(230, 165, 47, 0); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(15, 118, 110, 0.35); }
+    50% { box-shadow: 0 0 0 6px rgba(15, 118, 110, 0); }
   }
   @keyframes pop-in {
     from { opacity: 0; transform: scale(0.92); }
@@ -153,7 +148,7 @@
     60%  { opacity: 1; transform: scale(1.04) rotate(2deg); }
     100% { opacity: 1; transform: scale(1)    rotate(0); }
   }
-  /* Premium hero card sweep: zachte goudkleurige strook die elke 6
+  /* Premium hero card sweep: soft route-tint strip that moves every 6
      seconden van links naar rechts loopt. Subtiel — gradient zit
      dichtbij transparant — maar geeft de hero leven na de loader. */
   @keyframes hero-sweep {
@@ -164,8 +159,8 @@
      "actief" zijn (mood-pick, top-track). Verbindt de result-view
      visueel met de loader-pulse. */
   @keyframes card-breath {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(230,165,47,0); }
-    50%      { box-shadow: 0 0 0 4px rgba(230,165,47,0.05); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(15, 118, 110,0); }
+    50%      { box-shadow: 0 0 0 4px rgba(15, 118, 110,0.05); }
   }
   /* Tooltip-specific fade — only opacity, no transform.
      Tooltips own a translateX(-50%) for centering; an animation that
@@ -176,9 +171,9 @@
     to   { opacity: 1; }
   }
   @keyframes mint-sweep {
-    0%   { box-shadow: 0 0 0 0 rgba(230, 165, 47, 0.5); }
-    60%  { box-shadow: 0 0 0 14px rgba(230, 165, 47, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(230, 165, 47, 0); }
+    0%   { box-shadow: 0 0 0 0 rgba(15, 118, 110, 0.5); }
+    60%  { box-shadow: 0 0 0 14px rgba(15, 118, 110, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(15, 118, 110, 0); }
   }
   @keyframes tile-rise {
     /* Premium feel: less aggressive scale (was 0.92 — felt poppy), shorter
@@ -194,14 +189,14 @@
     to   { transform: scaleX(1); transform-origin: left; }
   }
   @keyframes glow-fade {
-    /* Background gold-glow on hero — slow fade so the page feels like it
+  /* Background route glow on hero — slow fade so the page feels like it
        gradually 'lights up' rather than appearing flat from the first frame. */
     from { opacity: 0; }
     to   { opacity: 1; }
   }
   @keyframes mint-pulse-dot {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(230, 165, 47, 0.7); }
-    60%      { box-shadow: 0 0 0 8px rgba(230, 165, 47, 0); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(15, 118, 110, 0.7); }
+    60%      { box-shadow: 0 0 0 8px rgba(15, 118, 110, 0); }
   }
   @keyframes hero-fade {
     from { opacity: 0; transform: translateY(14px); filter: blur(4px); }
@@ -240,15 +235,15 @@
     from { opacity: 0; transform: translateX(40px) scale(0.96); }
     to   { opacity: 1; transform: translateX(0)    scale(1); }
   }
-  /* Gold shimmer — laat de gradient van text-gold-gradient van links
+  /* Route shimmer — laat de gradient van text-route-gradient van links
      naar rechts schuiven. Geen kleurverschuiving, alleen positie van
      de bestaande gradient zodat de 'highlight' band over de letters
      loopt. */
-  @keyframes gold-shimmer {
+  @keyframes route-shimmer {
     0%   { background-position:   0% 50%; }
     100% { background-position: 200% 50%; }
   }
-  /* Apple-style button sheen — een witte highlight-band die één keer
+  /* Button sheen — een witte highlight-band die één keer
      diagonaal over de knop zwiept bij hover. Pure cosmetic, sluit het
      premium gevoel af. */
   @keyframes btn-sheen {
@@ -269,11 +264,11 @@
     60%      { transform: translate(-2px, 1.5px); }
     80%      { transform: translate(1.5px, -0.5px); }
   }
-  /* Pulsing gold ring around the KC headline portrait — Bank-Tags-tab
+  /* Pulsing route ring around the KC headline portrait — Bank-Tags-tab
      style attention-grab on the strongest recommendation. */
   @keyframes boss-halo {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(230, 165, 47, 0.55), inset 0 0 0 1px rgba(230, 165, 47, 0.4); }
-    50%      { box-shadow: 0 0 0 6px rgba(230, 165, 47, 0), inset 0 0 0 1px rgba(230, 165, 47, 0.7); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(15, 118, 110, 0.55), inset 0 0 0 1px rgba(15, 118, 110, 0.4); }
+    50%      { box-shadow: 0 0 0 6px rgba(15, 118, 110, 0), inset 0 0 0 1px rgba(15, 118, 110, 0.7); }
   }
   /* Drop-celebration banner — fires when a returning player's fresh
      paste contains a new iconic item. Entry combines a lift + scale
@@ -292,7 +287,7 @@
     50%  { background: linear-gradient(110deg, transparent 0%, rgba(124, 58, 237, 0.35) 50%, transparent 100%); }
     100% { background: linear-gradient(110deg, transparent 0%, rgba(124, 58, 237, 0.0) 65%, transparent 100%); }
   }
-  /* Signature hover effect on the /next headline card: a single gold
+  /* Signature hover effect on the /next headline card: a single route
      shimmer sweeps left → right, 1.2s ease-out, no looping. The card's
      pseudo-element carries the gradient; the parent owns the hover. */
   @keyframes headline-shimmer {
@@ -309,7 +304,7 @@
     70%  { transform: translateY(-30%); opacity: 1; }
     100% { transform: translateY(-90%); opacity: 0; }
   }
-  /* Hero subhead — gold underline sweeps in left-to-right under the
+  /* Hero subhead — route underline sweeps in left-to-right under the
      currently-active phrase. Single sweep per cycle; the React component
      remounts the underline span as the active index changes. */
   @keyframes hero-underline-sweep {
@@ -360,13 +355,13 @@
     from { opacity: 0; transform: translateY(14px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  /* Bank slot got a dropped item. Short gold pulse so the player can
+  /* Bank slot got a dropped item. Short route pulse so the player can
      see exactly where it landed — the dnd-kit drop animation is fine,
      but doesn't draw the eye after the cursor releases. */
   @keyframes drop-flash {
-    0%   { box-shadow: 0 0 0 0 rgba(230, 165, 47, 0.85), inset 0 0 0 2px rgba(230, 165, 47, 0.0); background-color: rgba(230, 165, 47, 0.0); }
-    25%  { box-shadow: 0 0 0 4px rgba(230, 165, 47, 0.55), inset 0 0 0 2px rgba(230, 165, 47, 0.65); background-color: rgba(230, 165, 47, 0.28); }
-    100% { box-shadow: 0 0 0 10px rgba(230, 165, 47, 0), inset 0 0 0 2px rgba(230, 165, 47, 0); background-color: rgba(230, 165, 47, 0); }
+    0%   { box-shadow: 0 0 0 0 rgba(15, 118, 110, 0.85), inset 0 0 0 2px rgba(15, 118, 110, 0.0); background-color: rgba(15, 118, 110, 0.0); }
+    25%  { box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.55), inset 0 0 0 2px rgba(15, 118, 110, 0.65); background-color: rgba(15, 118, 110, 0.28); }
+    100% { box-shadow: 0 0 0 10px rgba(15, 118, 110, 0), inset 0 0 0 2px rgba(15, 118, 110, 0); background-color: rgba(15, 118, 110, 0); }
   }
   /* Boss-showcase frame rises with a hint of scale + blur clear. Slow
      0.7s so it lands after the hero copy has settled. */
@@ -562,15 +557,14 @@ html, body {
      down anyway) and let the browser pick subpixel on standard-DPI screens.
      `geometricPrecision` keeps small UI glyphs (11-12px) from snapping to
      hinting that loses stroke contrast. `font-synthesis: none` blocks
-     faux-bold/italic when a weight isn't loaded — Geist has every weight
-     so synthesis would only ever produce a smeared duplicate. */
+     faux-bold/italic when a weight isn't loaded. */
   -webkit-font-smoothing: subpixel-antialiased;
   text-rendering: geometricPrecision;
   font-synthesis: none;
-  font-feature-settings: "cv11", "ss01", "ss03";
+  font-feature-settings: "ss01", "tnum";
   font-optical-sizing: auto;
   line-height: 1.45;
-  letter-spacing: -0.003em;
+  letter-spacing: 0;
 }
 
 /* Only switch to grayscale AA on hi-DPI where subpixel doesn't add detail.
@@ -582,20 +576,22 @@ html, body {
   }
 }
 
-/* Tighter tracking on display headings; numerics always tabular */
+/* Serif display headings give Scapestack a route-map character. */
 h1, h2, h3 {
-  letter-spacing: -0.02em;
-  font-feature-settings: "cv11", "ss01", "ss03", "tnum";
+  font-family: var(--font-display);
+  letter-spacing: 0;
+  font-feature-settings: "tnum";
 }
 code, pre, .font-mono {
   font-feature-settings: "tnum", "zero";
 }
 
 body {
-  /* Soft radial — subtle gold glow from top-right, nothing aggressive. */
+  /* Soft paper + map tint. No black chrome, no decorative blobs. */
   background:
-    radial-gradient(900px 600px at 100% -10%, rgba(230, 165, 47, 0.06) 0%, transparent 55%),
-    radial-gradient(700px 500px at 0% 100%, rgba(230, 165, 47, 0.03) 0%, transparent 55%),
+    linear-gradient(180deg, rgba(255,252,246,0.78) 0%, rgba(245,240,230,0.94) 45%, rgba(234,224,207,0.90) 100%),
+    radial-gradient(900px 600px at 100% -10%, rgba(15, 118, 110, 0.08) 0%, transparent 55%),
+    radial-gradient(800px 520px at 0% 100%, rgba(180, 83, 9, 0.05) 0%, transparent 58%),
     var(--color-bg);
   background-attachment: fixed;
   min-height: 100dvh;
@@ -618,36 +614,36 @@ body {
   background-clip: padding-box;
 }
 
-/* Gold gradient text — premium OSRS-skill-cape goud met een witte
-   highlight-band in het midden zodat de gold-shimmer keyframe iets
+/* Route gradient text — teal + ink met een highlight-band zodat de
+   route-shimmer keyframe iets
    te schuiven heeft. background-size = 200% van de container; de
    keyframe schuift de gradient van 0% naar 200% zodat de highlight
    band 1x volledig over de tekst loopt. */
-.text-gold-gradient {
+.text-route-gradient {
   background: linear-gradient(
     100deg,
-    #E6A52F 0%,
-    #FFE6A8 35%,
-    #FFFFFF 50%,
-    #FFE6A8 65%,
-    #E6A52F 100%
+    #0F766E 0%,
+    #14B8A6 34%,
+    #3B5F5A 50%,
+    #14B8A6 66%,
+    #0F766E 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-/* Coin marker — OSRS gold, not generic success green */
+/* Coin marker — now a route marker, not a casino-gold accent */
 .coin-3d {
   width: 28px;
   height: 28px;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 30% 30%, #FFE6A8 0%, #E6A52F 50%, #B07B1F 100%);
+    radial-gradient(circle at 30% 30%, #CCFBF1 0%, #14B8A6 48%, #0F766E 100%);
   box-shadow:
-    inset 0 0 0 1px #B07B1F,
-    0 2px 0 rgba(0, 0, 0, 0.5),
-    0 0 20px -8px rgba(230, 165, 47, 0.6);
+    inset 0 0 0 1px #0B4F4A,
+    0 2px 0 rgba(23, 33, 30, 0.18),
+    0 0 20px -10px rgba(15, 118, 110, 0.36);
   position: relative;
 }
 .coin-3d::after {
@@ -657,8 +653,6 @@ body {
   border-radius: 50%;
   background: linear-gradient(135deg, transparent 40%, rgba(255, 255, 255, 0.25) 50%, transparent 60%);
 }
-
-.focus-gold { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 
 /* ── Surfaces ─────────────────────────────────────────────────────────── */
 
@@ -679,20 +673,20 @@ body {
    session-planner feel. Keep these quiet: the plan itself should carry
    the page, not decorative chrome. */
 .scapestack-plan-panel {
-  border: 1px solid rgba(230, 165, 47, 0.20);
+  border: 1px solid rgba(15, 118, 110, 0.18);
   border-radius: 26px;
   background:
-    radial-gradient(circle at 20% 0%, rgba(230,165,47,0.14), transparent 34%),
-    linear-gradient(145deg, var(--color-panel), var(--color-bg-2));
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.36);
+    linear-gradient(145deg, rgba(255,252,246,0.96), rgba(247,241,231,0.96)),
+    linear-gradient(120deg, rgba(15,118,110,0.12), transparent 42%);
+  box-shadow: 0 28px 72px -48px rgba(65, 49, 25, 0.38);
 }
 
 .scapestack-session-list {
-  border-block: 1px solid rgba(35, 31, 26, 0.80);
+  border-block: 1px solid rgba(189, 174, 147, 0.58);
 }
 
 .scapestack-session-list > * + * {
-  border-top: 1px solid rgba(35, 31, 26, 0.70);
+  border-top: 1px solid rgba(189, 174, 147, 0.48);
 }
 
 /* ── Buttons ──────────────────────────────────────────────────────────── */
@@ -705,9 +699,9 @@ body {
   border-radius: 0.5rem;
   font-size: 13px;
   font-weight: 600;
-  letter-spacing: -0.005em;
+  letter-spacing: 0;
   background: var(--color-accent);
-  color: #07090C;
+  color: #F5F0E6;
   border: 1px solid transparent;
   transition: background 160ms ease, transform 120ms ease;
 }
@@ -786,8 +780,8 @@ body {
 }
 
 :where(input, textarea, select):focus-visible {
-  border-color: rgba(230, 165, 47, 0.65);
-  box-shadow: 0 0 0 3px rgba(230, 165, 47, 0.14);
+  border-color: rgba(15, 118, 110, 0.65);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
 }
 
 :where(a[href]:not([class])) {

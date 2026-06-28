@@ -18,7 +18,7 @@ export default function HiscorePage() {
 
       <section className="animate-[slide-up_0.35s_ease-out]">
         <div className="text-center max-w-2xl mx-auto mb-8">
-          <h2 className="text-[28px] sm:text-[36px] font-bold text-[var(--color-text)] tracking-tight leading-tight">
+          <h2 className="text-[28px] sm:text-[36px] font-bold text-[var(--color-text)] tracking-normal leading-tight">
             Look up any OSRS player.
           </h2>
           <p className="mt-3 text-[14px] sm:text-[15px] text-[var(--color-text-dim)] leading-relaxed">
@@ -34,7 +34,7 @@ export default function HiscorePage() {
             "flex items-stretch gap-2 max-w-xl mx-auto rounded-2xl p-2",
             "bg-[var(--color-panel)] border border-[var(--color-border)]",
             "focus-within:border-[var(--color-accent)]/50",
-            "focus-within:shadow-[0_0_0_3px_rgba(230, 165, 47,0.10)]",
+            "focus-within:shadow-[0_0_0_3px_rgba(15, 118, 110,0.10)]",
             "transition-all"
           )}
         >
@@ -67,7 +67,7 @@ export default function HiscorePage() {
             aria-label="Look up OSRS player Hiscores"
             className={cn(
               "flex items-center gap-1.5 px-5 py-3 rounded-xl text-[14px] font-semibold",
-              "bg-[var(--color-accent)] text-[#07090C]",
+              "bg-[var(--color-accent)] text-white",
               "hover:brightness-110 transition-all"
             )}
           >

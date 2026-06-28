@@ -44,7 +44,7 @@ export function BankPluginOnboarding() {
             <PlugZap className="size-3.5" />
             {BANK_PLUGIN_ONBOARDING.eyebrow}
           </div>
-          <h2 className="mt-4 max-w-2xl text-[24px] font-bold leading-tight tracking-tight text-[var(--color-text)] sm:text-[30px]">
+          <h2 className="mt-4 max-w-2xl text-[24px] font-bold leading-tight tracking-normal text-[var(--color-text)] sm:text-[30px]">
             {BANK_PLUGIN_ONBOARDING.title}
           </h2>
           <p className="mt-3 max-w-2xl text-[13.5px] leading-relaxed text-[var(--color-text-dim)]">

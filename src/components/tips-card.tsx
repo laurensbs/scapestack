@@ -233,7 +233,7 @@ export function TipsCard({ tips, onSearchItems }: TipsCardProps) {
       >
         <div className="flex items-center gap-2.5 border-b border-[var(--color-border)] px-3.5 py-2.5">
           <Lightbulb className="size-3.5 text-[var(--color-accent)]" />
-          <span className="text-[12.5px] font-semibold tracking-tight">
+          <span className="text-[12.5px] font-semibold tracking-normal">
             All bank tips are hidden
           </span>
           <span className="text-[11px] text-[var(--color-text-muted)]">
@@ -273,7 +273,7 @@ export function TipsCard({ tips, onSearchItems }: TipsCardProps) {
         type="button"
         className={cn(
           "flex w-full items-center gap-2.5 px-3.5 py-2.5 cursor-pointer select-none text-left",
-          "focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(230,165,47,0.2)]",
+          "focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(15, 118, 110,0.2)]",
           collapsed ? "" : "border-b border-[var(--color-border)]"
         )}
         onClick={() => setCollapsed((c) => !c)}
@@ -282,7 +282,7 @@ export function TipsCard({ tips, onSearchItems }: TipsCardProps) {
         aria-label={`${collapsed ? "Expand" : "Collapse"} bank tips. ${groups.length} tip${groups.length === 1 ? "" : "s"} available.`}
       >
         <Lightbulb className="size-3.5 text-[var(--color-accent)]" />
-        <span className="text-[12.5px] font-semibold tracking-tight">
+        <span className="text-[12.5px] font-semibold tracking-normal">
           {groups.length} tip{groups.length === 1 ? "" : "s"} for your bank
         </span>
         {totalSlots > 0 && (
@@ -388,7 +388,7 @@ function TipGroupRow({ group, onOpen, onDismissGroup, onDismissTip, onSearchItem
             aria-label={`Open action steps for ${group.label}`}
             className={cn(
               "mt-1.5 block w-full flex-1 cursor-pointer rounded-sm text-left",
-              "focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(230,165,47,0.2)]"
+              "focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(15, 118, 110,0.2)]"
             )}
           >
             <div className="text-[12.5px] font-medium leading-snug text-[var(--color-text)]">{group.label}</div>
@@ -461,7 +461,7 @@ function TipGroupRow({ group, onOpen, onDismissGroup, onDismissTip, onSearchItem
           aria-label={`Open action steps for ${group.label}`}
           className={cn(
             "mt-1.5 block w-full flex-1 cursor-pointer rounded-sm text-left",
-            "focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(230,165,47,0.2)]"
+            "focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(15, 118, 110,0.2)]"
           )}
         >
           <div className="text-[12.5px] font-medium leading-snug text-[var(--color-text)]">{group.label}</div>

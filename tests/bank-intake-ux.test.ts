@@ -32,10 +32,10 @@ describe("bank intake UX affordances", () => {
     expect(introSource).toContain("aria-label={`Next bank setup step ${steps[active + 1].n}: ${steps[active + 1].title}`}");
   });
 
-  it("keeps onboarding illustrations on the Scapestack gold brand", () => {
-    expect(introSource).toContain("Scapestack gold+dark palette");
+  it("keeps onboarding illustrations on the Scapestack route brand", () => {
+    expect(introSource).toContain("Scapestack route palette");
     expect(introSource).toContain('fill="var(--color-accent)"');
-    expect(introSource).toContain('id="copy-gold"');
+    expect(introSource).toContain('id="copy-route"');
     expect(introSource).toContain('stroke="var(--color-accent)"');
     expect(introSource).toContain('fill="var(--color-accent)" fontWeight="600">RuneLite</text>');
     expect(introSource).not.toContain("copy-glow");

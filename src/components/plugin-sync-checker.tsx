@@ -172,7 +172,7 @@ export function PluginSyncChecker() {
           <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
             RuneLite sync
           </div>
-          <h2 className="mt-1 text-[22px] font-bold tracking-tight text-[var(--color-text)]">
+          <h2 className="mt-1 text-[22px] font-bold tracking-normal text-[var(--color-text)]">
             Check your RSN
           </h2>
           <p className="mt-2 max-w-2xl text-[13.5px] leading-relaxed text-[var(--color-text-dim)]">
@@ -210,7 +210,7 @@ export function PluginSyncChecker() {
           autoComplete="off"
           spellCheck={false}
           aria-describedby={`${rsnHelpId} ${rsnStatusId}`}
-          className="min-w-0 flex-1 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 text-[14px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-accent)]/55 focus:shadow-[0_0_0_3px_rgba(230,165,47,0.12)]"
+          className="min-w-0 flex-1 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 text-[14px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-accent)]/55 focus:shadow-[0_0_0_3px_rgba(15, 118, 110,0.12)]"
         />
         <button
           type="submit"

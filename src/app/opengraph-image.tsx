@@ -46,7 +46,7 @@ export default function OpenGraphImage() {
                 fontSize: 30,
                 fontWeight: 900,
                 letterSpacing: -2,
-                background: "rgba(230,165,47,0.11)"
+                background: "rgba(15, 118, 110,0.11)"
               }}
             >
               SS
@@ -58,7 +58,7 @@ export default function OpenGraphImage() {
           </div>
           <div
             style={{
-              border: "1px solid rgba(230,165,47,0.38)",
+              border: "1px solid rgba(15, 118, 110,0.38)",
               borderRadius: 999,
               padding: "12px 18px",
               color: BRAND_ACCENT_COLOR,

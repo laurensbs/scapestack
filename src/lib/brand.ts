@@ -4,10 +4,10 @@ export const BRAND_TAGLINE = "Stop bankstanding. Get one OSRS plan.";
 export const BRAND_SECONDARY_TAGLINE =
   "Type your RSN. Pick one route before you log in.";
 export const BRAND_URL = "https://www.scapestack.org";
-export const BRAND_THEME_COLOR = "#07090C";
-export const BRAND_ACCENT_COLOR = "#E6A52F";
-export const BRAND_BACKGROUND_COLOR = "#07090C";
-export const BRAND_IMAGE_FONT_FAMILY = "Geist, Arial, sans-serif";
+export const BRAND_THEME_COLOR = "#F5F0E6";
+export const BRAND_ACCENT_COLOR = "#0F766E";
+export const BRAND_BACKGROUND_COLOR = "#F5F0E6";
+export const BRAND_IMAGE_FONT_FAMILY = "Avenir Next, Segoe UI, Arial, sans-serif";
 
 export const BRAND_DESCRIPTION =
   "Stop bankstanding: enter your OSRS name and get one useful next move, two backups and optional gear or RuneLite context.";

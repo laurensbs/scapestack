@@ -17,10 +17,10 @@ function fallbackSvg(itemId?: number): Response {
   const idLabel = itemId ? `#${itemId}` : "ID ?";
   return new Response(
     `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-      <rect width="32" height="32" rx="6" fill="#14110C"/>
-      <rect x="4" y="4" width="24" height="24" rx="4" fill="#1F1A12" stroke="#8B6F2A"/>
-      <text x="16" y="15" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-size="12" font-weight="900" fill="#E6A52F">?</text>
-      <text x="16" y="25" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-size="6.5" font-weight="800" fill="#D5C08A">${idLabel}</text>
+      <rect width="32" height="32" rx="6" fill="#F5F0E6"/>
+      <rect x="4" y="4" width="24" height="24" rx="4" fill="#FFFCF6" stroke="#BDAE93"/>
+      <text x="16" y="15" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-size="12" font-weight="900" fill="#0F766E">?</text>
+      <text x="16" y="25" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-size="6.5" font-weight="800" fill="#65736D">${idLabel}</text>
       <title>${label} sprite unavailable</title>
     </svg>`,
     {

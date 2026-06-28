@@ -47,7 +47,7 @@ export function Sidebar() {
       <div className="sm:hidden fixed top-0 inset-x-0 z-40 h-12 flex items-center justify-between px-4 bg-[var(--color-bg)]/90 backdrop-blur-md border-b border-[var(--color-border)]">
         <Link href="/" className="flex items-center gap-2">
           <BrandMark />
-          <span className="text-[14px] font-semibold tracking-tight text-[var(--color-text)]">Scapestack</span>
+          <span className="text-[14px] font-semibold tracking-normal text-[var(--color-text)]">Scapestack</span>
         </Link>
         <button
           type="button"
@@ -109,7 +109,7 @@ export function Sidebar() {
             "opacity-0 group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100",
             "transition-opacity duration-150 delay-75"
           )}>
-            <div className="text-[14px] font-semibold leading-tight text-[var(--color-text)] tracking-tight">Scapestack</div>
+            <div className="text-[14px] font-semibold leading-tight text-[var(--color-text)] tracking-normal">Scapestack</div>
             <div className="text-[10.5px] text-[var(--color-text-muted)] mt-0.5 tracking-wide">{BRAND_TAGLINE}</div>
           </div>
         </Link>
@@ -130,8 +130,8 @@ function BrandMark() {
       className="size-8 shrink-0 rounded-md flex items-center justify-center font-bold text-[14px]"
       style={{
         background: "linear-gradient(135deg, var(--color-accent-soft) 0%, var(--color-accent) 54%, var(--color-gold-deep) 100%)",
-        color: "#07090C",
-        boxShadow: "0 0 16px -4px rgba(230, 165, 47, 0.4)"
+        color: "#FFFCF6",
+        boxShadow: "0 0 16px -4px rgba(15, 118, 110, 0.4)"
       }}
     >
       S

@@ -238,7 +238,7 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
             {pasteDone ? <Check className="size-3.5" strokeWidth={3} /> : "3"}
           </div>
           <div>
-            <h2 className="text-[15px] font-semibold text-[var(--color-text)] tracking-tight leading-tight">
+            <h2 className="text-[15px] font-semibold text-[var(--color-text)] tracking-normal leading-tight">
               Paste or drop your bank
             </h2>
             <p className="text-[11.5px] text-[var(--color-text-muted)] mt-0.5">
@@ -320,7 +320,7 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
           className={cn(
             "w-full rounded-lg px-4 py-3.5 font-mono text-[12.5px] leading-relaxed",
             "bg-[var(--color-bg-2)] border border-[var(--color-border)]",
-            "focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(230, 165, 47,0.12)]",
+            "focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(15, 118, 110,0.12)]",
             "placeholder:text-[var(--color-text-muted)]",
             "resize-y min-h-[140px]"
           )}
@@ -472,7 +472,7 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
               4
             </div>
             <div className="min-w-0">
-              <h3 className="text-[14px] font-semibold text-[var(--color-text)] tracking-tight leading-tight flex items-center gap-2">
+              <h3 className="text-[14px] font-semibold text-[var(--color-text)] tracking-normal leading-tight flex items-center gap-2">
                 Your OSRS name
                 <span className="px-1.5 py-0.5 rounded text-[9.5px] font-semibold tracking-wider uppercase bg-[var(--color-panel-2)] border border-[var(--color-border)] text-[var(--color-text-muted)]">
                   Optional
@@ -502,7 +502,7 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
               className={cn(
                 "w-full rounded-md pl-9 pr-3 py-2.5 text-[13px] font-mono",
                 "bg-[var(--color-panel)] border border-[var(--color-border)]",
-                "focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(230, 165, 47,0.12)]",
+                "focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(15, 118, 110,0.12)]",
                 "placeholder:text-[var(--color-text-muted)]"
               )}
             />

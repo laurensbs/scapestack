@@ -78,7 +78,7 @@ export default async function PlayerProfile({ params }: Props) {
             <div className="text-[10px] uppercase tracking-[0.25em] font-bold text-[var(--color-gold-soft)] mb-1">
               Old School RuneScape
             </div>
-            <h1 className="text-3xl sm:text-5xl font-black leading-none tracking-tight mb-3"
+            <h1 className="text-3xl sm:text-5xl font-black leading-none tracking-normal mb-3"
               style={{
                 color: "var(--color-osrs-title)",
                 textShadow: "2px 2px 0 #000, 0 0 24px oklch(0.74 0.13 75 / 0.4)"

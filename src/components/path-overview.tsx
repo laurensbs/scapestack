@@ -369,13 +369,13 @@ function PathCard({ path, onOpen }: { path: PathProgress; onOpen: () => void }) 
     <button
       type="button"
       onClick={onOpen}
-      className="group text-left rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] hover:border-[var(--color-accent)]/40 hover:shadow-[0_0_0_1px_rgba(230,165,47,0.12)] transition-all p-5 sm:p-6"
+      className="group text-left rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] hover:border-[var(--color-accent)]/40 hover:shadow-[0_0_0_1px_rgba(15, 118, 110,0.12)] transition-all p-5 sm:p-6"
     >
       <div className="flex items-start gap-4">
         <PathIcon kind={path.kind} size={40} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-[18px] font-bold tracking-tight text-[var(--color-text)]">
+            <h3 className="text-[18px] font-bold tracking-normal text-[var(--color-text)]">
               {path.label}
             </h3>
             <ChevronRight className="size-4 text-[var(--color-text-muted)] group-hover:text-[var(--color-accent)] group-hover:translate-x-0.5 transition-all" />

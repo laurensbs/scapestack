@@ -590,7 +590,7 @@ function NotFoundPreview({ rsn, onRetry }: { rsn: string; onRetry: () => void })
   return (
     <section className="animate-[slide-up_0.35s_ease-out] max-w-2xl mx-auto">
       <header className="mb-6">
-        <h2 className="text-[22px] sm:text-[26px] font-bold text-[var(--color-text)] tracking-tight leading-tight">
+        <h2 className="text-[22px] sm:text-[26px] font-bold text-[var(--color-text)] tracking-normal leading-tight">
           We couldn&apos;t find <span className="text-[var(--color-accent)]">{rsn}</span> on Hiscores.
         </h2>
         <p className="mt-2 text-[14px] text-[var(--color-text-dim)] leading-relaxed">
@@ -606,7 +606,7 @@ function NotFoundPreview({ rsn, onRetry }: { rsn: string; onRetry: () => void })
       <div className="relative rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/40 p-6 overflow-hidden">
         <div className="opacity-40 pointer-events-none select-none" aria-hidden="true">
           <div className="eyebrow text-[var(--color-accent)] mb-1">Start here</div>
-          <h3 className="text-[17px] font-bold text-[var(--color-text)] tracking-tight leading-tight">
+          <h3 className="text-[17px] font-bold text-[var(--color-text)] tracking-normal leading-tight">
             Karamja Diary — Hard
           </h3>
           <p className="mt-1.5 text-[13px] text-[var(--color-text-dim)] leading-relaxed">
@@ -703,7 +703,7 @@ function NextIntake({
     )}>
       {/* Hero-vraag: groot, gecentreerd, voelt als één doel-moment. */}
       <header className="mb-8 text-center">
-        <h2 className="text-[28px] sm:text-[36px] font-bold text-[var(--color-text)] tracking-tight leading-[1.1]">
+        <h2 className="text-[28px] sm:text-[36px] font-bold text-[var(--color-text)] tracking-normal leading-[1.1]">
           What should you do<br className="sm:hidden" /> next?
         </h2>
         <p className="mt-3 text-[14px] sm:text-[15px] text-[var(--color-text-dim)] leading-relaxed max-w-md mx-auto">
@@ -814,8 +814,8 @@ function NextIntake({
         <div className={cn(
           "group relative rounded-2xl bg-[var(--color-panel)] border transition-all",
           loading
-            ? "border-[var(--color-accent)]/60 shadow-[0_0_0_4px_rgba(230,165,47,0.10)]"
-            : "border-[var(--color-border)] focus-within:border-[var(--color-accent)]/60 focus-within:shadow-[0_0_0_4px_rgba(230,165,47,0.10)]"
+            ? "border-[var(--color-accent)]/60 shadow-[0_0_0_4px_rgba(15, 118, 110,0.10)]"
+            : "border-[var(--color-border)] focus-within:border-[var(--color-accent)]/60 focus-within:shadow-[0_0_0_4px_rgba(15, 118, 110,0.10)]"
         )}>
           <div className="flex flex-col sm:flex-row sm:items-center">
             <input
@@ -1341,7 +1341,7 @@ function HeroStrip({ summary, basisNote, onEdit }: {
   onEdit: () => void;
 }) {
   return (
-    // Premium hero-card: lichte gradient, accent top-stripe, gold sweep
+    // Premium hero-card: lichte gradient, accent top-stripe, route sweep
     // van links naar rechts elke 6s. Voelt mee met de loader-vibe.
     <div
       className="relative overflow-hidden rounded-xl border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] p-5 sm:p-6"
@@ -1350,15 +1350,15 @@ function HeroStrip({ summary, basisNote, onEdit }: {
           en headline-card. Bindt het visueel aan de rest van /next. */}
       <div
         className="absolute inset-x-0 top-0 h-px"
-        style={{ background: "linear-gradient(to right, transparent, rgba(230,165,47,0.55), transparent)" }}
+        style={{ background: "linear-gradient(to right, transparent, rgba(15, 118, 110,0.55), transparent)" }}
       />
-      {/* Sweep — zacht goudje dat elke 6s van links naar rechts wandelt.
+      {/* Sweep — zachte route-tint die elke 6s van links naar rechts wandelt.
           Subtieler dan de loader-spotlight (we zijn klaar met laden),
           maar geeft de card leven. */}
       <div
         className="pointer-events-none absolute inset-y-0 -inset-x-1/2 opacity-60"
         style={{
-          background: "linear-gradient(90deg, transparent 0%, transparent 35%, rgba(230,165,47,0.06) 50%, transparent 65%, transparent 100%)",
+          background: "linear-gradient(90deg, transparent 0%, transparent 35%, rgba(15, 118, 110,0.06) 50%, transparent 65%, transparent 100%)",
           animation: "hero-sweep 6s linear infinite"
         }}
       />
@@ -1420,7 +1420,7 @@ function HeroStat({ icon, label, value, accent }: {
 
 // Renders a wiki NPC portrait for a kc-kind rec. Falls back to whatever
 // KindGlyph would have shown if we can't resolve the boss (sprite 404,
-// missing slug). `prominent` enables the pulsing-gold-ring halo for the
+// missing slug). `prominent` enables the pulsing route-ring halo for the
 // headline-card variant. Hover rumble is always on — it's the "the boss
 // notices you" cue that makes a KC-rec feel like more than a number.
 function KcPortrait({ rec, size, prominent = false }: {
@@ -1799,7 +1799,7 @@ function ActionPlanBlock({ rec, compact = false }: { rec: Recommendation; compac
 }
 
 // The headline — the one thing the hub most wants the player to do. Big,
-// mint-accented, with the payoff and a direct link into the relevant tool.
+// route-accented, with the payoff and a direct link into the relevant tool.
 function HeadlineCard({
   rec,
   actionContext,
@@ -1836,7 +1836,7 @@ function HeadlineCard({
     >
       <div
         className="absolute inset-x-0 top-0 h-px"
-        style={{ background: "linear-gradient(to right, transparent, rgba(230, 165, 47,0.55), transparent)" }}
+        style={{ background: "linear-gradient(to right, transparent, rgba(15, 118, 110,0.55), transparent)" }}
       />
       <div className="flex items-start gap-4">
         <div className="size-12 shrink-0 rounded-lg flex items-center justify-center bg-[var(--color-accent)]/15 border border-[var(--color-accent)]/30 text-[var(--color-accent)] overflow-hidden">
@@ -1869,7 +1869,7 @@ function HeadlineCard({
               {choice.label}
             </span>
           </div>
-          <h3 className="text-[19px] font-bold text-[var(--color-text)] tracking-tight leading-tight">
+          <h3 className="text-[19px] font-bold text-[var(--color-text)] tracking-normal leading-tight">
             {rec.title}
           </h3>
           <p className="mt-2 text-[13.5px] text-[var(--color-text-dim)] leading-relaxed">
@@ -1987,7 +1987,7 @@ function RecRow({
             >
               {choice.label}
             </span>
-            <h4 className="text-[13px] font-semibold text-[var(--color-text)] tracking-tight leading-tight">
+            <h4 className="text-[13px] font-semibold text-[var(--color-text)] tracking-normal leading-tight">
               {rec.title}
             </h4>
           </div>
@@ -2336,7 +2336,7 @@ function WhatToDo({
       data-screenshot-mode={shareMode ? "true" : undefined}
       className={cn(
         shareMode &&
-          "mx-auto max-w-3xl rounded-2xl border border-[var(--color-accent)]/25 bg-[var(--color-panel)]/78 p-4 shadow-[0_26px_80px_-54px_rgba(230,165,47,0.65)] sm:p-5"
+          "mx-auto max-w-3xl rounded-2xl border border-[var(--color-accent)]/25 bg-[var(--color-panel)]/78 p-4 shadow-[0_26px_80px_-54px_rgba(15, 118, 110,0.65)] sm:p-5"
       )}
     >
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -2344,7 +2344,7 @@ function WhatToDo({
           <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
             {shareMode ? "Scapestack /next" : "What to do now"}
           </div>
-          <h2 className="mt-1 text-[26px] font-bold tracking-tight text-[var(--color-text)]">
+          <h2 className="mt-1 text-[26px] font-bold tracking-normal text-[var(--color-text)]">
             Do this first
           </h2>
           <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-dim)]">
@@ -2782,7 +2782,7 @@ function WhereYouAre({
                         width: `${p.percent}%`,
                         transform: filled ? "scaleX(1)" : "scaleX(0)",
                         transition: "transform 900ms cubic-bezier(0.22, 1, 0.36, 1)",
-                        boxShadow: isFocus ? "0 0 14px -2px rgba(230,165,47,0.55)" : undefined,
+                        boxShadow: isFocus ? "0 0 14px -2px rgba(15, 118, 110,0.55)" : undefined,
                         animation: isFocus && filled ? "card-breath 3.2s ease-in-out infinite" : undefined,
                       }}
                     />

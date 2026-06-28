@@ -57,8 +57,8 @@ export function BossShowcase() {
         aspectRatio: "1 / 1"
       }}
     >
-      {/* Geen ambient goud-glow meer achter de boss — user-feedback:
-          'die gradient gold shimmer achter die boss moet weg.' Het
+      {/* Geen ambient glow meer achter de boss — user-feedback:
+          'die gradient shimmer achter die boss moet weg.' Het
           portret floats nu op de pagina-bg zonder iets eromheen. */}
 
       {/* No frame, no border, no vignette. Just the portrait floating

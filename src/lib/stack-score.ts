@@ -83,7 +83,7 @@ export function computeStackScore(tabs: OrganizedTab[]): StackScore {
 
 // Tier label for color/badge styling. Mirrors OSRS skill cape thresholds.
 export function scoreTier(score: number): { label: string; color: string } {
-  // Monochrome with mint accent for top tiers — matches the Linear/Vercel brand.
+  // Monochrome with route accent for top tiers.
   // Tier name carries the personality; colour is restrained so the number reads.
   if (score >= 90) return { label: "Mythical",  color: "var(--color-accent)" };
   if (score >= 75) return { label: "Legendary", color: "var(--color-accent)" };

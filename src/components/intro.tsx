@@ -115,7 +115,7 @@ export function Intro({ flowStep = 0 }: IntroProps) {
       {/* Step rail — numbered nodes joined by a progress line. Each step
           owns the connector that runs to its RIGHT, drawn from the node's
           edge to the column edge so the line starts/ends at the rings and
-          never passes through them. The connector fills gold once the
+          never passes through them. The connector fills teal once the
           step before it is done, so the rail visibly "flows" forward. */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-0 gap-y-4 mb-4">
         {steps.map((step, i) => {
@@ -155,8 +155,8 @@ export function Intro({ flowStep = 0 }: IntroProps) {
               <span
                 className={cn(
                   "relative z-10 shrink-0 size-[30px] rounded-full flex items-center justify-center text-[12.5px] font-semibold border-2 transition-all duration-200",
-                  done && "bg-[var(--color-accent)] text-[var(--color-bg)] border-[var(--color-accent)] shadow-[0_0_0_4px_rgba(230, 165, 47,0.12)]",
-                  current && !done && "bg-[var(--color-accent)]/15 text-[var(--color-accent)] border-[var(--color-accent)] shadow-[0_0_0_4px_rgba(230, 165, 47,0.1)]",
+                  done && "bg-[var(--color-accent)] text-[var(--color-bg)] border-[var(--color-accent)] shadow-[0_0_0_4px_rgba(15, 118, 110,0.12)]",
+                  current && !done && "bg-[var(--color-accent)]/15 text-[var(--color-accent)] border-[var(--color-accent)] shadow-[0_0_0_4px_rgba(15, 118, 110,0.1)]",
                   !current && !done && "bg-[var(--color-bg-2)] text-[var(--color-text-muted)] border-[var(--color-border)] group-hover:border-[var(--color-border-strong)] group-hover:text-[var(--color-text-dim)]"
                 )}
               >
@@ -191,7 +191,7 @@ export function Intro({ flowStep = 0 }: IntroProps) {
             <div className="eyebrow mb-1.5">
               Step {steps[active].n} of {steps.length}
             </div>
-            <h3 className="text-[15px] font-semibold text-[var(--color-text)] mb-2 tracking-tight">
+            <h3 className="text-[15px] font-semibold text-[var(--color-text)] mb-2 tracking-normal">
               {steps[active].title}
             </h3>
             <p className="text-[13px] leading-relaxed text-[var(--color-text-dim)] mb-4">
@@ -252,17 +252,17 @@ export function Intro({ flowStep = 0 }: IntroProps) {
 
 // ── Illustrations ──────────────────────────────────────────────────────────
 
-// Common wrapper: small bezel + soft gold glow so the screenshot blends with
+// Common wrapper: small bezel + soft route glow so the screenshot blends with
 // the surrounding dark Scapestack surfaces. The image is shown at its
 // natural pixel size — small upscaling on a low-res screenshot looks grainy,
 // so we let it sit centred inside the frame instead.
 function ScreenshotFrame({ src, alt, w, h }: { src: string; alt: string; w: number; h: number }) {
   return (
-    <div className="relative rounded-lg overflow-hidden border border-[var(--color-border-strong)] bg-[var(--color-bg-2)] shadow-[0_18px_40px_-20px_rgb(0_0_0/0.7),0_0_0_1px_rgba(230, 165, 47,0.08)] p-4 flex items-center justify-center">
+    <div className="relative rounded-lg overflow-hidden border border-[var(--color-border-strong)] bg-[var(--color-bg-2)] shadow-[0_18px_40px_-20px_rgb(0_0_0/0.7),0_0_0_1px_rgba(15, 118, 110,0.08)] p-4 flex items-center justify-center">
       <span
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-px"
-        style={{ background: "linear-gradient(to right, transparent, rgba(230, 165, 47,0.45), transparent)" }}
+        style={{ background: "linear-gradient(to right, transparent, rgba(15, 118, 110,0.45), transparent)" }}
       />
       <img
         src={src}
@@ -287,38 +287,38 @@ function ContextMenu() {
   return <ScreenshotFrame src="/intro/step2.png" alt="Right-click menu on a saved bank — Copy item data to clipboard" w={273} h={204} />;
 }
 
-// Step 3: paste-box illustration in the Scapestack gold+dark palette
+// Step 3: paste-box illustration in the Scapestack route palette
 function PasteBox() {
   return (
     <svg viewBox="0 0 240 160" className="w-full max-w-[260px] h-auto">
       <defs>
         <linearGradient id="paste-top" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="rgba(230, 165, 47,0)" />
-          <stop offset="0.5" stopColor="rgba(230, 165, 47,0.45)" />
-          <stop offset="1" stopColor="rgba(230, 165, 47,0)" />
+          <stop offset="0" stopColor="rgba(15, 118, 110,0)" />
+          <stop offset="0.5" stopColor="rgba(15, 118, 110,0.45)" />
+          <stop offset="1" stopColor="rgba(15, 118, 110,0)" />
         </linearGradient>
       </defs>
       {/* Outer card — matches .surface */}
-      <rect x="4" y="4" width="232" height="152" rx="8" fill="#0F1217" stroke="#262A33" strokeWidth="1" />
+      <rect x="4" y="4" width="232" height="152" rx="8" fill="#FFFCF6" stroke="#DED2BE" strokeWidth="1" />
       {/* Subtle accent line at top edge */}
       <rect x="4" y="4" width="232" height="1" fill="url(#paste-top)" />
       {/* Inner textarea — bg-2 */}
-      <rect x="14" y="18" width="212" height="98" rx="6" fill="#0A0D12" stroke="#1C1F26" />
-      {/* Mock TSV content — Geist Mono palette */}
-      <text x="22" y="32" fontSize="7" fontFamily="ui-monospace, monospace" fill="#5B6170">Item id  Item name        Qty</text>
-      <line x1="22" y1="36" x2="218" y2="36" stroke="#1C1F26" strokeWidth="0.5" />
-      <text x="22" y="48" fontSize="7" fontFamily="ui-monospace, monospace" fill="#E8EAED">4151     Abyssal whip      1</text>
-      <text x="22" y="60" fontSize="7" fontFamily="ui-monospace, monospace" fill="#E8EAED">11802    Armadyl godsword  1</text>
-      <text x="22" y="72" fontSize="7" fontFamily="ui-monospace, monospace" fill="#E8EAED">995      Coins        <tspan fill="#00E29A">12,345k</tspan></text>
-      <text x="22" y="84" fontSize="7" fontFamily="ui-monospace, monospace" fill="#E8EAED">560      Death rune     5000</text>
-      <text x="22" y="96" fontSize="7" fontFamily="ui-monospace, monospace" fill="#E8EAED">385      Shark           250</text>
-      <text x="22" y="108" fontSize="7" fontFamily="ui-monospace, monospace" fill="#5B6170">…</text>
-      {/* ⌘V key-cap — gold pill */}
+      <rect x="14" y="18" width="212" height="98" rx="6" fill="#F5F0E6" stroke="#DED2BE" />
+      {/* Mock TSV content — compact planner palette */}
+      <text x="22" y="32" fontSize="7" fontFamily="ui-monospace, monospace" fill="#91A09A">Item id  Item name        Qty</text>
+      <line x1="22" y1="36" x2="218" y2="36" stroke="#DED2BE" strokeWidth="0.5" />
+      <text x="22" y="48" fontSize="7" fontFamily="ui-monospace, monospace" fill="#17211E">4151     Abyssal whip      1</text>
+      <text x="22" y="60" fontSize="7" fontFamily="ui-monospace, monospace" fill="#17211E">11802    Armadyl godsword  1</text>
+      <text x="22" y="72" fontSize="7" fontFamily="ui-monospace, monospace" fill="#17211E">995      Coins        <tspan fill="#00E29A">12,345k</tspan></text>
+      <text x="22" y="84" fontSize="7" fontFamily="ui-monospace, monospace" fill="#17211E">560      Death rune     5000</text>
+      <text x="22" y="96" fontSize="7" fontFamily="ui-monospace, monospace" fill="#17211E">385      Shark           250</text>
+      <text x="22" y="108" fontSize="7" fontFamily="ui-monospace, monospace" fill="#91A09A">…</text>
+      {/* ⌘V key-cap — route pill */}
       <g transform="translate(96, 124)">
         <rect x="0" y="0" width="48" height="22" rx="6" fill="var(--color-accent)" />
-        <text x="24" y="15" textAnchor="middle" fontSize="11" fontFamily="ui-monospace, monospace" fill="#07090C" fontWeight="700">⌘V</text>
+        <text x="24" y="15" textAnchor="middle" fontSize="11" fontFamily="ui-monospace, monospace" fill="#F5F0E6" fontWeight="700">⌘V</text>
       </g>
-      <text x="120" y="153" textAnchor="middle" fontSize="8" fontFamily="ui-monospace, monospace" fill="#9AA0AB">Paste anywhere on the page</text>
+      <text x="120" y="153" textAnchor="middle" fontSize="8" fontFamily="ui-monospace, monospace" fill="#65736D">Paste anywhere on the page</text>
     </svg>
   );
 }
@@ -328,52 +328,52 @@ function CopyTabs() {
   return (
     <svg viewBox="0 0 240 160" className="w-full max-w-[260px] h-auto">
       <defs>
-        <linearGradient id="copy-gold" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#FFCC55" />
-          <stop offset="1" stopColor="#E6A52F" />
+        <linearGradient id="copy-route" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#14B8A6" />
+          <stop offset="1" stopColor="#0F766E" />
         </linearGradient>
       </defs>
       {/* Tab list — matches the export rows in .surface bg */}
       <g transform="translate(8, 12)">
         {/* Tab 1 — copy button highlighted */}
-        <rect x="0" y="0" width="124" height="22" rx="6" fill="#0F1217" stroke="#1C1F26" />
-        <text x="8" y="14" fontSize="8" fontFamily="ui-sans-serif" fill="#E8EAED" fontWeight="600">1/9 · Combat</text>
-        <rect x="86" y="3" width="34" height="16" rx="4" fill="url(#copy-gold)" />
-        <text x="103" y="14" textAnchor="middle" fontSize="7" fontFamily="ui-sans-serif" fill="#07090C" fontWeight="700">Copy</text>
+        <rect x="0" y="0" width="124" height="22" rx="6" fill="#FFFCF6" stroke="#DED2BE" />
+        <text x="8" y="14" fontSize="8" fontFamily="ui-sans-serif" fill="#17211E" fontWeight="600">1/9 · Combat</text>
+        <rect x="86" y="3" width="34" height="16" rx="4" fill="url(#copy-route)" />
+        <text x="103" y="14" textAnchor="middle" fontSize="7" fontFamily="ui-sans-serif" fill="#F5F0E6" fontWeight="700">Copy</text>
 
         {/* Tab 2 — done check */}
-        <rect x="0" y="26" width="124" height="22" rx="6" fill="#0F1217" stroke="#1C1F26" />
-        <text x="8" y="40" fontSize="8" fontFamily="ui-sans-serif" fill="#E8EAED" fontWeight="600">2/9 · Range</text>
-        <rect x="86" y="29" width="34" height="16" rx="4" fill="rgba(230, 165, 47,0.15)" stroke="var(--color-good)" />
+        <rect x="0" y="26" width="124" height="22" rx="6" fill="#FFFCF6" stroke="#DED2BE" />
+        <text x="8" y="40" fontSize="8" fontFamily="ui-sans-serif" fill="#17211E" fontWeight="600">2/9 · Range</text>
+        <rect x="86" y="29" width="34" height="16" rx="4" fill="rgba(15, 118, 110,0.15)" stroke="var(--color-good)" />
         <text x="103" y="40" textAnchor="middle" fontSize="9" fontFamily="ui-sans-serif" fill="var(--color-good)" fontWeight="700">✓</text>
 
         {/* Tab 3 — neutral */}
-        <rect x="0" y="52" width="124" height="22" rx="6" fill="#0A0D12" stroke="#1C1F26" />
-        <text x="8" y="66" fontSize="8" fontFamily="ui-sans-serif" fill="#9AA0AB">3/9 · Magic</text>
+        <rect x="0" y="52" width="124" height="22" rx="6" fill="#F5F0E6" stroke="#DED2BE" />
+        <text x="8" y="66" fontSize="8" fontFamily="ui-sans-serif" fill="#65736D">3/9 · Magic</text>
 
         {/* Tab 4 — placeholder */}
-        <rect x="0" y="78" width="124" height="22" rx="6" fill="#0A0D12" stroke="#1C1F26" opacity="0.6" />
-        <text x="8" y="92" fontSize="8" fontFamily="ui-sans-serif" fill="#5B6170">…</text>
+        <rect x="0" y="78" width="124" height="22" rx="6" fill="#F5F0E6" stroke="#DED2BE" opacity="0.6" />
+        <text x="8" y="92" fontSize="8" fontFamily="ui-sans-serif" fill="#91A09A">…</text>
       </g>
 
-      {/* Arrow — gold accent */}
+      {/* Arrow — route accent */}
       <g transform="translate(138, 60)">
         <path d="M0 10 L40 10 M30 0 L40 10 L30 20" fill="none" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       </g>
 
       {/* RuneLite import target */}
       <g transform="translate(184, 30)">
-        <rect x="0" y="0" width="46" height="80" rx="6" fill="#0F1217" stroke="#262A33" />
+        <rect x="0" y="0" width="46" height="80" rx="6" fill="#FFFCF6" stroke="#DED2BE" />
         <text x="23" y="12" textAnchor="middle" fontSize="7" fontFamily="ui-sans-serif" fill="var(--color-accent)" fontWeight="600">RuneLite</text>
-        <line x1="4" y1="16" x2="42" y2="16" stroke="#1C1F26" />
-        <rect x="6" y="22" width="34" height="16" rx="4" fill="#141821" />
-        <text x="23" y="33" textAnchor="middle" fontSize="6.5" fontFamily="ui-sans-serif" fill="#E8EAED">Import</text>
-        <rect x="6" y="42" width="34" height="16" rx="4" fill="#141821" />
-        <text x="23" y="53" textAnchor="middle" fontSize="6.5" fontFamily="ui-sans-serif" fill="#E8EAED">tag tab</text>
-        <rect x="6" y="62" width="34" height="12" rx="3" fill="#0A0D12" opacity="0.7" />
+        <line x1="4" y1="16" x2="42" y2="16" stroke="#DED2BE" />
+        <rect x="6" y="22" width="34" height="16" rx="4" fill="#F7F1E7" />
+        <text x="23" y="33" textAnchor="middle" fontSize="6.5" fontFamily="ui-sans-serif" fill="#17211E">Import</text>
+        <rect x="6" y="42" width="34" height="16" rx="4" fill="#F7F1E7" />
+        <text x="23" y="53" textAnchor="middle" fontSize="6.5" fontFamily="ui-sans-serif" fill="#17211E">tag tab</text>
+        <rect x="6" y="62" width="34" height="12" rx="3" fill="#F5F0E6" opacity="0.7" />
       </g>
 
-      <text x="120" y="148" textAnchor="middle" fontSize="9" fontFamily="ui-sans-serif" fill="#9AA0AB">Repeat per tab</text>
+      <text x="120" y="148" textAnchor="middle" fontSize="9" fontFamily="ui-sans-serif" fill="#65736D">Repeat per tab</text>
     </svg>
   );
 }

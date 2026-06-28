@@ -54,7 +54,7 @@ export function PluginBankHandoffBanner() {
             <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
               Bank loaded
             </div>
-            <h2 className="mt-1 text-[17px] font-bold tracking-tight text-[var(--color-text)]">
+            <h2 className="mt-1 text-[17px] font-bold tracking-normal text-[var(--color-text)]">
               Use sync if /next repeats finished progress.
             </h2>
             <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-dim)]">

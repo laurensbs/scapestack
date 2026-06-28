@@ -34,7 +34,7 @@ export default function Icon() {
             alignItems: "center",
             justifyContent: "center",
             boxShadow: `0 0 80px ${BRAND_ACCENT_COLOR}22, inset 0 0 38px ${BRAND_ACCENT_COLOR}1f`,
-            background: "linear-gradient(145deg, rgba(230,165,47,0.12), rgba(255,255,255,0.02))"
+            background: "linear-gradient(145deg, rgba(15, 118, 110,0.12), rgba(255,255,255,0.02))"
           }}
         >
           <div style={{ fontSize: 128, fontWeight: 900, letterSpacing: -8, lineHeight: 1 }}>

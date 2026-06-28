@@ -119,10 +119,10 @@ export default function PluginPage() {
         <div>
           <h1
             aria-label="Check RuneLite. Skip done stuff."
-            className="max-w-4xl text-[clamp(42px,7vw,74px)] font-bold leading-[0.96] tracking-tight text-[var(--color-text)]"
+            className="max-w-4xl text-[clamp(42px,7vw,74px)] font-bold leading-[0.96] tracking-normal text-[var(--color-text)]"
           >
             Check RuneLite.
-            <span className="block text-gold-gradient">Skip done stuff.</span>
+            <span className="block text-route-gradient">Skip done stuff.</span>
           </h1>
           <p className="mt-5 max-w-2xl text-[16px] leading-[1.55] text-[var(--color-text-dim)] sm:text-[18px]">
             Type your RSN. If RuneLite shows up, Scapestack stops sending you to quests, diary steps, clog slots and Slayer calls you already handled.
