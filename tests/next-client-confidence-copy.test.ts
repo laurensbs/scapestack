@@ -131,9 +131,15 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("What to do now");
     expect(source).toContain("Do this first");
     expect(source).toContain("One best move for this account. Two backups");
-    expect(source).toContain("I feel like");
-    expect(source).toContain("Pick ${label.name} session");
+    expect(source).toContain("Route");
+    expect(source).toContain("ROUTE_LENS_ORDER.map");
+    expect(source).toContain("Pick ${label.name} route");
+    expect(source).toContain("Try ${nextRouteLabel.name} route");
+    expect(source).toContain("Pace");
+    expect(source).toContain("Pick ${label.name} session pace");
     expect(source).toContain("applySessionIntent(m)");
+    expect(source).toContain("applyRouteLens(lens)");
+    expect(source).toContain("pickForRoute(visibleRecs, mood, minutes, routeLens, shuffleIdx)");
     expect(source).toContain("Session length");
     expect(source).toContain("Backups");
     expect(source).toContain("Chill / GP / Bossing / Unlock / AFK");

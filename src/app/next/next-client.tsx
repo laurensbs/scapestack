@@ -25,7 +25,15 @@ import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib
 import { track } from "@/lib/analytics";
 import type { Recommendation, RecKind, NextUpResult } from "@/lib/next-up";
 import { defaultActionHints } from "@/lib/rec-hints";
-import { pickForMood, MOOD_LABEL, type Mood, type TimeBudget } from "@/lib/mood";
+import {
+  pickForRoute,
+  MOOD_LABEL,
+  ROUTE_LENS_LABEL,
+  ROUTE_LENS_ORDER,
+  type Mood,
+  type RouteLens,
+  type TimeBudget
+} from "@/lib/mood";
 import { saveMood, loadMood, relativeSince, type MoodSession } from "@/lib/mood-storage";
 import {
   clearRecommendationFeedback,
@@ -1544,16 +1552,37 @@ function scapestackNotice({
   headline,
   allRecs,
   mood,
+  routeLens,
   hasBankContext,
   pluginSyncState
 }: {
   headline: Recommendation | null;
   allRecs: Recommendation[];
   mood: Mood;
+  routeLens: RouteLens;
   hasBankContext: boolean;
   pluginSyncState: "live" | "stale" | "outdated" | null;
 }): string | null {
   if (!headline) return null;
+
+  if (routeLens === "maxing") {
+    return "Scapestack route: maxing favours cape, diary, quest and total-level progress over random trips.";
+  }
+  if (routeLens === "fun") {
+    return "Scapestack route: fun progress keeps rewards, KC, minigames and lighter grinds in the mix.";
+  }
+  if (routeLens === "gp-upgrade") {
+    return "Scapestack route: GP favours cash and upgrade funding before long unlock chains.";
+  }
+  if (routeLens === "boss-log") {
+    return "Scapestack route: bossing favours KC, clog chances and trips your account can actually support.";
+  }
+  if (routeLens === "afk-progress") {
+    return "Scapestack route: AFK keeps progress low-pressure and avoids intense trips.";
+  }
+  if (routeLens === "unlock-chain") {
+    return "Scapestack route: unlock favours quests, diaries and account gates with clean stop points.";
+  }
 
   const scout = allRecs.find((rec) =>
     rec.id !== headline.id &&
@@ -2062,6 +2091,40 @@ const TIME_OPTIONS: { value: TimeBudget; label: string }[] = [
   { value: 120, label: "2 hours" },
 ];
 
+function moodForRouteLens(lens: RouteLens, currentMood: Mood): Mood {
+  switch (lens) {
+    case "maxing":
+    case "unlock-chain":
+      return "unlock";
+    case "fun":
+      return currentMood === "bossing" || currentMood === "afk" ? currentMood : "chill";
+    case "gp-upgrade":
+      return "cash";
+    case "boss-log":
+      return "bossing";
+    case "afk-progress":
+      return "afk";
+    case "smart":
+      return currentMood;
+  }
+}
+
+function defaultTimeForRouteLens(lens: RouteLens): TimeBudget | null {
+  switch (lens) {
+    case "maxing":
+    case "unlock-chain":
+    case "boss-log":
+      return 120;
+    case "gp-upgrade":
+    case "afk-progress":
+      return 60;
+    case "fun":
+      return 60;
+    case "smart":
+      return null;
+  }
+}
+
 function defaultTimeForMood(mood: Mood): TimeBudget | null {
   if (mood === "short") return 15;
   if (mood === "chill") return 30;
@@ -2194,6 +2257,7 @@ function WhatToDo({
 }) {
   const [mood, setMood] = useState<Mood>(routeIntent ? visibleMood(routeIntent.mood) : DEFAULT_MOOD);
   const [minutes, setMinutes] = useState<TimeBudget>(routeIntent?.minutes ?? DEFAULT_TIME);
+  const [routeLens, setRouteLens] = useState<RouteLens>("smart");
   const [shuffleIdx, setShuffleIdx] = useState(0);
   const [lastSuppressed, setLastSuppressed] = useState<{ id: string; title: string } | null>(null);
   const [lastCompleted, setLastCompleted] = useState<{ id: string; title: string } | null>(null);
@@ -2216,6 +2280,11 @@ function WhatToDo({
     setFeedback(loadRecommendationFeedback());
   }, [routeIntent]);
 
+  const routeLensIndex = ROUTE_LENS_ORDER.indexOf(routeLens);
+  const nextRouteLens = ROUTE_LENS_ORDER[(routeLensIndex + 1) % ROUTE_LENS_ORDER.length] ?? "smart";
+  const currentRouteLabel = ROUTE_LENS_LABEL[routeLens];
+  const nextRouteLabel = ROUTE_LENS_LABEL[nextRouteLens];
+
   const hiddenCount = allRecs.filter((rec) => feedback.suppressed[rec.id]).length;
   const visibleRecs = allRecs.filter((rec) => !feedback.suppressed[rec.id]);
   const actionContext = useMemo<RecommendationActionContext>(
@@ -2229,11 +2298,11 @@ function WhatToDo({
   // op de top-pick, anders blijven we stiekem op een oude alternative.
   useEffect(() => {
     setShuffleIdx(0);
-  }, [mood, minutes]);
+  }, [mood, minutes, routeLens]);
 
   const pick = useMemo(
-    () => pickForMood(visibleRecs, mood, minutes, shuffleIdx),
-    [visibleRecs, mood, minutes, shuffleIdx]
+    () => pickForRoute(visibleRecs, mood, minutes, routeLens, shuffleIdx),
+    [visibleRecs, mood, minutes, routeLens, shuffleIdx]
   );
   const sessionPlanText = useMemo(
     () => formatRecommendationSessionPlan(
@@ -2256,10 +2325,11 @@ function WhatToDo({
       headline: pick?.headline ?? null,
       allRecs,
       mood,
+      routeLens,
       hasBankContext,
       pluginSyncState
     }),
-    [allRecs, hasBankContext, mood, pick?.headline, pluginSyncState]
+    [allRecs, hasBankContext, mood, pick?.headline, pluginSyncState, routeLens]
   );
 
   useEffect(() => {
@@ -2277,6 +2347,15 @@ function WhatToDo({
     setMood(nextMood);
     const defaultTime = nextMinutes ?? defaultTimeForMood(nextMood);
     if (defaultTime) setMinutes(defaultTime);
+    setShuffleIdx(0);
+    setLastSuppressed(null);
+    setLastCompleted(null);
+  };
+  const applyRouteLens = (nextLens: RouteLens) => {
+    const routeDefaultTime = defaultTimeForRouteLens(nextLens);
+    setRouteLens(nextLens);
+    setMood((currentMood) => moodForRouteLens(nextLens, currentMood));
+    if (routeDefaultTime) setMinutes(routeDefaultTime);
     setShuffleIdx(0);
     setLastSuppressed(null);
     setLastCompleted(null);
@@ -2305,7 +2384,13 @@ function WhatToDo({
   };
   const moveToAnotherPlan = () => {
     setLastCompleted(null);
-    setShuffleIdx((i) => i + 1);
+    setLastSuppressed(null);
+    if (nextRouteLens === "smart") {
+      setRouteLens("smart");
+      setShuffleIdx((i) => i + 1);
+      return;
+    }
+    applyRouteLens(nextRouteLens);
   };
   const moveToChillPlan = () => {
     applySessionIntent("chill", 30);
@@ -2386,12 +2471,16 @@ function WhatToDo({
           {pick && allRecs.length > 1 && !shareMode && (
             <button
               type="button"
-              onClick={() => setShuffleIdx((i) => i + 1)}
+              onClick={moveToAnotherPlan}
               className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/65 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)]"
-              title="Try another plan"
+              title={`Try ${nextRouteLabel.name} route`}
             >
               <Dices className="size-3.5" />
-              Try another
+              <span className="sm:hidden">Try {nextRouteLabel.name}</span>
+              <span className="hidden sm:inline">Try another</span>
+              <span className="hidden text-[var(--color-accent)] sm:inline">
+                {nextRouteLabel.name}
+              </span>
             </button>
           )}
           {visibleRecs.length > 0 && !shareMode && (
@@ -2431,23 +2520,23 @@ function WhatToDo({
         <div className="mb-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-2.5">
           <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
             <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-              I feel like
+              Route
             </span>
-            <span className="text-[11px] font-semibold text-[var(--color-text-dim)]">
-              {minutes === 60 ? "1 hour" : `${minutes} min`}
+            <span className="text-right text-[11px] font-semibold text-[var(--color-text-dim)]">
+              {currentRouteLabel.tagline}
             </span>
           </div>
-          <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
-            {MOODS.map((m) => {
-              const label = MOOD_LABEL[m];
-              const active = mood === m;
+          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-7">
+            {ROUTE_LENS_ORDER.map((lens) => {
+              const label = ROUTE_LENS_LABEL[lens];
+              const active = routeLens === lens;
               return (
                 <button
-                  key={m}
+                  key={lens}
                   type="button"
                   aria-pressed={active}
-                  aria-label={`Pick ${label.name} session`}
-                  onClick={() => applySessionIntent(m)}
+                  aria-label={`Pick ${label.name} route`}
+                  onClick={() => applyRouteLens(lens)}
                   className={cn(
                     "flex min-h-10 items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-[11.5px] font-semibold transition-colors",
                     active
@@ -2623,7 +2712,7 @@ function WhatToDo({
           <span>
             <span className="block text-[12.5px] font-bold text-[var(--color-text)]">Session length</span>
             <span className="mt-0.5 block text-[11px] text-[var(--color-text-muted)]">
-              Current: {minutes === 60 ? "1 hour" : `${minutes} min`}. Vibe is picked above.
+              Current: {minutes === 60 ? "1 hour" : `${minutes} min`}. Route is {currentRouteLabel.name}.
             </span>
           </span>
           <span className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
@@ -2652,6 +2741,41 @@ function WhatToDo({
                     {t.label}
                   </button>
                 ))}
+              </div>
+            </div>
+            <div>
+              <div className="mb-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                Pace
+              </div>
+              <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
+                {MOODS.map((m) => {
+                  const label = MOOD_LABEL[m];
+                  const active = mood === m;
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      aria-pressed={active}
+                      aria-label={`Pick ${label.name} session pace`}
+                      onClick={() => applySessionIntent(m)}
+                      className={cn(
+                        "flex min-h-9 items-center justify-center gap-1.5 rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition-colors",
+                        active
+                          ? "border-[var(--color-accent)]/60 bg-[var(--color-accent)]/12 text-[var(--color-accent)]"
+                          : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)]"
+                      )}
+                      title={label.tagline}
+                    >
+                      <ItemSprite
+                        id={label.itemId}
+                        alt=""
+                        className="pixelated shrink-0"
+                        style={{ width: 16, height: 16, imageRendering: "pixelated", objectFit: "contain" }}
+                      />
+                      <span className="truncate">{label.name}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
             {hiddenCount > 0 && (

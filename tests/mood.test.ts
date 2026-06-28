@@ -8,7 +8,7 @@
 //   - time-budget filter: 15min sessie ziet geen 60min boss-grind
 
 import { describe, it, expect } from "vitest";
-import { pickForMood } from "@/lib/mood";
+import { pickForMood, pickForRoute } from "@/lib/mood";
 import type { Recommendation } from "@/lib/next-up";
 
 function rec(kind: Recommendation["kind"], id: string, score = 50): Recommendation {
@@ -186,6 +186,42 @@ describe("pickForMood", () => {
     const result = pickForMood(recs, "focused", 60);
     expect(result!.headline).toBeDefined();
     expect(result!.alternatives.length).toBe(1);
+  });
+
+  it("maxing route kiest cape/level progress boven willekeurige bossing", () => {
+    const recs = [
+      rec("boss", "vorkath", 82),
+      {
+        ...rec("skill", "farming-99", 64),
+        title: "Push Farming to 99",
+        why: "You're close to the Farming cape."
+      },
+      rec("money", "herb-run", 70)
+    ];
+    const result = pickForRoute(recs, "unlock", 120, "maxing");
+    expect(result!.headline.id).toBe("farming-99");
+    expect(result!.routeLabel).toBe("Maxing");
+  });
+
+  it("fun route kan minigame of PvM kiezen in plaats van dezelfde unlock-chain", () => {
+    const recs = [
+      rec("diary", "desert-hard", 84),
+      { ...rec("minigame", "wintertodt", 62), why: "One reward block with a clean stop point." },
+      { ...rec("kc", "vorkath-50", 60), why: "KC block with a drop chance.", kcMeta: { kc: 42, denom: 3000, dropName: "Vorki" } }
+    ];
+    const result = pickForRoute(recs, "unlock", 60, "fun");
+    expect(["minigame", "kc"]).toContain(result!.headline.kind);
+    expect(result!.routeHelper).toContain("less like chores");
+  });
+
+  it("gp route zet cash funding boven maxing of diary progress", () => {
+    const recs = [
+      { ...rec("skill", "farming-99", 76), title: "Push Farming to 99", why: "You're close to the Farming cape." },
+      rec("diary", "desert-hard", 82),
+      { ...rec("money", "vorkath-gp", 62), why: "~3.0M gp/hr to fund the next upgrade." }
+    ];
+    const result = pickForRoute(recs, "unlock", 60, "gp-upgrade");
+    expect(result!.headline.kind).toBe("money");
   });
 
   it("15-min budget: boss-rec krijgt hard penalty, korte rec wint", () => {

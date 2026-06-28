@@ -22,6 +22,39 @@ import type { Recommendation, RecKind } from "./next-up";
 
 export type Mood = "chill" | "focused" | "cash" | "quest" | "bossing" | "unlock" | "afk" | "short";
 
+/** A route lens is broader than a mood. Mood answers "what pace do I want?";
+ *  route answers "what kind of account story should this session move?".
+ *  `Try another` cycles these lenses so it can surface maxing, fun-progress,
+ *  GP and boss-log angles instead of showing the same six mood labels. */
+export type RouteLens =
+  | "smart"
+  | "maxing"
+  | "fun"
+  | "unlock-chain"
+  | "gp-upgrade"
+  | "boss-log"
+  | "afk-progress";
+
+export const ROUTE_LENS_ORDER: RouteLens[] = [
+  "smart",
+  "maxing",
+  "fun",
+  "unlock-chain",
+  "gp-upgrade",
+  "boss-log",
+  "afk-progress"
+];
+
+export const ROUTE_LENS_LABEL: Record<RouteLens, { itemId: number; name: string; tagline: string }> = {
+  smart:        { itemId: 995,   name: "Smart",   tagline: "Best account move right now" },
+  maxing:       { itemId: 13342, name: "Maxing",  tagline: "Cape, diary, quest and total-level progress" },
+  fun:          { itemId: 20720, name: "Fun",     tagline: "Progress that feels less like chores" },
+  "unlock-chain": { itemId: 9813,  name: "Unlock",  tagline: "Quest, diary and account unlock chain" },
+  "gp-upgrade":   { itemId: 995,   name: "GP",      tagline: "Fund the next upgrade or supply stack" },
+  "boss-log":     { itemId: 4151,  name: "Bossing", tagline: "KC, clog and PvM proof route" },
+  "afk-progress": { itemId: 12012, name: "AFK",     tagline: "Low-attention progress that still matters" }
+};
+
 /** Hoeveel minuten heeft de speler te besteden. Gebruikt om bv. een
  *  3u boss-grind af te wijzen voor een 15min sessie. */
 export type TimeBudget = 15 | 30 | 60 | 120;
@@ -120,6 +153,84 @@ const MOOD_KIND_WEIGHTS: Record<Mood, Partial<Record<RecKind, number>>> = {
   }
 };
 
+const ROUTE_LENS_KIND_WEIGHTS: Record<RouteLens, Partial<Record<RecKind, number>>> = {
+  smart: {},
+  maxing: {
+    milestone: 2.15,
+    skill: 2.0,
+    diary: 1.65,
+    quest: 1.45,
+    goal: 1.35,
+    slayer: 1.05,
+    minigame: 0.9,
+    bank: 0.65,
+    money: 0.45,
+    boss: 0.5,
+    kc: 0.5
+  },
+  fun: {
+    minigame: 2.5,
+    boss: 2.0,
+    kc: 2.0,
+    slayer: 1.25,
+    skill: 1.18,
+    quest: 0.7,
+    diary: 0.7,
+    goal: 0.9,
+    money: 0.85,
+    bank: 0.55
+  },
+  "unlock-chain": {
+    quest: 2.15,
+    diary: 1.95,
+    goal: 1.55,
+    milestone: 1.45,
+    slayer: 1.1,
+    skill: 1.0,
+    minigame: 0.8,
+    money: 0.6,
+    boss: 0.45,
+    kc: 0.45,
+    bank: 0.55
+  },
+  "gp-upgrade": {
+    money: 2.35,
+    boss: 1.4,
+    kc: 1.3,
+    slayer: 1.0,
+    bank: 0.8,
+    skill: 0.75,
+    minigame: 0.7,
+    goal: 0.65,
+    diary: 0.55,
+    quest: 0.5
+  },
+  "boss-log": {
+    kc: 2.25,
+    boss: 2.05,
+    slayer: 1.35,
+    money: 0.85,
+    goal: 0.8,
+    minigame: 0.7,
+    skill: 0.45,
+    diary: 0.45,
+    quest: 0.4,
+    bank: 0.35
+  },
+  "afk-progress": {
+    skill: 2.25,
+    minigame: 1.55,
+    bank: 1.35,
+    money: 0.85,
+    goal: 0.75,
+    slayer: 0.65,
+    diary: 0.55,
+    quest: 0.45,
+    boss: 0.08,
+    kc: 0.08
+  }
+};
+
 /** Tijd-budget filter — schaarser dan voorheen. Elke kind heeft een
  *  realistische min/max sessie-tijd; als de gekozen budget buiten die
  *  range valt, krijgt de rec een serieuze penalty (down to 0.15).
@@ -182,6 +293,42 @@ function accountFitMultiplier(rec: Recommendation, mood: Mood): number {
   return 0.2;
 }
 
+function routeLensMultiplier(rec: Recommendation, lens: RouteLens): number {
+  const base = ROUTE_LENS_KIND_WEIGHTS[lens][rec.kind] ?? 1;
+  if (lens === "smart") return base;
+
+  const text = `${rec.title} ${rec.why} ${rec.payoff ?? ""} ${rec.decisionReason ?? ""}`.toLowerCase();
+  let bonus = 1;
+
+  if (lens === "maxing") {
+    if (/\b99\b|cape|max|diary|quest cape|total level/.test(text)) bonus *= 1.28;
+    if (rec.kind === "milestone") bonus *= 1.18;
+  }
+
+  if (lens === "fun") {
+    if (rec.kind === "minigame" || rec.kind === "boss" || rec.kind === "kc") bonus *= 1.16;
+    if (/try|trip|kc|reward|drop|clog/.test(text)) bonus *= 1.08;
+  }
+
+  if (lens === "unlock-chain") {
+    if (/unlock|diary|quest|prereq|cape|reward/.test(text)) bonus *= 1.16;
+  }
+
+  if (lens === "gp-upgrade") {
+    if (/gp\/hr|gp|fund|upgrade|loot|profit|cash/.test(text)) bonus *= 1.16;
+  }
+
+  if (lens === "boss-log") {
+    if (/kc|clog|drop|boss|slayer|task|trip/.test(text)) bonus *= 1.16;
+  }
+
+  if (lens === "afk-progress") {
+    if (/afk|chill|run|cape|level|skill/.test(text)) bonus *= 1.12;
+  }
+
+  return base * bonus;
+}
+
 type BackupBucket = "low-effort" | "gp" | "active" | "unlock";
 
 function backupBucket(rec: Recommendation): BackupBucket {
@@ -214,6 +361,9 @@ export interface MoodPick {
   /** Voor transparantie: wat was de mood + tijd waarop dit getuned is. */
   mood: Mood;
   minutes: TimeBudget;
+  routeLens: RouteLens;
+  routeLabel: string;
+  routeHelper: string;
 }
 
 /** Hoofdfunctie: ranked recs in, mood + tijd erbij, één hoofdpick +
@@ -230,11 +380,30 @@ export function pickForMood(
   minutes: TimeBudget,
   shuffleIndex: number = 0
 ): MoodPick | null {
+  return pickForRoute(recs, mood, minutes, "smart", shuffleIndex);
+}
+
+/** Route-aware planner picker. A route lens is intentionally stronger than
+ *  mood because it answers a different user request: "show me a maxing
+ *  route" should actually beat the default unlock/chill bias. Mood still
+ *  matters as a pacing/timing guard, but it no longer traps Try another in
+ *  the same visible six labels. */
+export function pickForRoute(
+  recs: Recommendation[],
+  mood: Mood,
+  minutes: TimeBudget,
+  routeLens: RouteLens = "smart",
+  shuffleIndex: number = 0
+): MoodPick | null {
   if (recs.length === 0) return null;
   const weights = MOOD_KIND_WEIGHTS[mood];
+  const route = ROUTE_LENS_LABEL[routeLens];
 
   const scored = recs.map((rec) => {
-    const kindMult = weights[rec.kind] ?? 1.0;
+    const moodMult = weights[rec.kind] ?? 1.0;
+    const kindMult = routeLens === "smart"
+      ? moodMult
+      : Math.max(0.32, Math.sqrt(moodMult)) * routeLensMultiplier(rec, routeLens);
     const timeMult = timeBudgetFit(rec, minutes);
     const accountMult = accountFitMultiplier(rec, mood);
     return { rec, adjScore: rec.score * kindMult * timeMult * accountMult };
@@ -286,7 +455,15 @@ export function pickForMood(
     }
   }
 
-  return { headline, alternatives: alts, mood, minutes };
+  return {
+    headline,
+    alternatives: alts,
+    mood,
+    minutes,
+    routeLens,
+    routeLabel: route.name,
+    routeHelper: route.tagline
+  };
 }
 
 /** Mood labels met OSRS item-icons. De player-facing set is bewust klein:
