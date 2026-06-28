@@ -1516,50 +1516,24 @@ function recommendationNeeds(rec: Recommendation): string[] {
   return (rec.needs?.length ? rec.needs : hints.needs).slice(0, 3);
 }
 
-function RecommendationQuickFacts({ rec, compact = false }: { rec: Recommendation; compact?: boolean }) {
-  const plan = rec.actionPlan;
-  const needs = recommendationNeeds(rec);
-  const stopPoint = plan?.steps.at(-1) ?? "Stop when the trip starts dragging.";
-  const facts = [
-    { label: "Time", value: plan?.timebox ?? "Short test run" },
-    { label: "Stop", value: stopPoint },
-    { label: "Bring", value: needs[0] ?? "Nothing special flagged" }
-  ];
-
-  return (
-    <div className={cn("mt-3 grid gap-1.5", compact ? "sm:grid-cols-3" : "sm:grid-cols-3")}>
-      {facts.map((fact) => (
-        <div
-          key={`${rec.id}:${fact.label}`}
-          className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-2"
-        >
-          <div className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-            {fact.label}
-          </div>
-          <div className={cn(
-            "mt-0.5 line-clamp-2 font-semibold leading-snug text-[var(--color-text-dim)]",
-            compact ? "text-[10.5px]" : "text-[11.5px]"
-          )}>
-            {fact.value}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+function recommendationFirstStepValue(rec: Recommendation): string {
+  return rec.actionPlan?.steps[0] ?? rec.why;
 }
 
-function RecommendationFirstStep({ rec, compact = false }: { rec: Recommendation; compact?: boolean }) {
-  const firstStep = rec.actionPlan?.steps[0] ?? rec.why;
-  if (!firstStep) return null;
-  return (
-    <p className={cn(
-      "mt-3 rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3 py-2 leading-relaxed text-[var(--color-text-dim)]",
-      compact ? "text-[11px]" : "text-[12.5px]"
-    )}>
-      <span className="font-semibold text-[var(--color-accent)]">Start:</span>{" "}
-      {firstStep}
-    </p>
-  );
+function recommendationStopPointValue(rec: Recommendation): string {
+  const plan = rec.actionPlan;
+  return plan?.steps.at(-1) ?? "Stop when the trip starts dragging.";
+}
+
+function recommendationBringValue(rec: Recommendation): string {
+  const needs = recommendationNeeds(rec);
+  return needs[0] ?? rec.actionPlan?.prep ?? "Nothing special flagged.";
+}
+
+function headlinePayoff(rec: Recommendation): string | null {
+  const payoff = rec.payoff?.trim();
+  if (!payoff) return null;
+  return payoff.length <= 120 ? payoff : null;
 }
 
 function recommendationAvoidance(rec: Recommendation): string {
@@ -1590,18 +1564,44 @@ function recommendationAvoidance(rec: Recommendation): string {
   }
 }
 
-function RecommendationDecisionBrief({ rec }: { rec: Recommendation }) {
+function RecommendationSessionSummary({ rec, compact = false }: { rec: Recommendation; compact?: boolean }) {
   const plan = rec.actionPlan;
-  const notes = [
+  if (compact) {
+    return (
+      <dl className="mt-2 space-y-1.5 border-t border-[var(--color-border)]/60 pt-2">
+        {[
+          { label: "Why", value: rec.decisionReason ?? rec.why },
+          { label: "Stop", value: recommendationStopPointValue(rec) }
+        ].map((item) => (
+          <div key={`${rec.id}:compact-session:${item.label}`} className="grid grid-cols-[42px_minmax(0,1fr)] gap-2 text-[11px] leading-snug">
+            <dt className="font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
+              {item.label}
+            </dt>
+            <dd className="line-clamp-2 font-semibold text-[var(--color-text-dim)]">
+              {item.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    );
+  }
+
+  const summary = [
     {
-      label: "Why this pick",
+      label: "Why this account",
       value: rec.decisionReason ?? rec.why
     },
     {
-      label: plan?.confidence === "exact" ? "RuneLite check" : "Smarter with",
-      value: plan?.confidence === "exact"
-        ? "RuneLite skipped finished quests, diary steps, clog slots and Slayer mistakes."
-        : "RuneLite can make this smarter later."
+      label: "First step",
+      value: recommendationFirstStepValue(rec)
+    },
+    {
+      label: "Stop point",
+      value: recommendationStopPointValue(rec)
+    },
+    {
+      label: "Bring",
+      value: recommendationBringValue(rec)
     },
     {
       label: "Avoid",
@@ -1610,20 +1610,27 @@ function RecommendationDecisionBrief({ rec }: { rec: Recommendation }) {
   ];
 
   return (
-    <div className="mt-3 grid gap-1.5 sm:grid-cols-3">
-      {notes.map((note) => (
-        <div
-          key={`${rec.id}:decision:${note.label}`}
-          className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-2.5 py-2"
-        >
-          <div className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-            {note.label}
+    <div className="mt-4">
+      <dl className="divide-y divide-[var(--color-border)]/60 rounded-lg border-y border-[var(--color-border)]/70">
+        {summary.map((note) => (
+          <div
+            key={`${rec.id}:session:${note.label}`}
+            className="grid gap-1 py-2.5 sm:grid-cols-[132px_minmax(0,1fr)] sm:gap-4"
+          >
+            <dt className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+              {note.label}
+            </dt>
+            <dd className="text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+              {note.value}
+            </dd>
           </div>
-          <div className="mt-0.5 line-clamp-3 text-[11.5px] font-semibold leading-snug text-[var(--color-text-dim)]">
-            {note.value}
-          </div>
-        </div>
-      ))}
+        ))}
+      </dl>
+      {plan?.confidence === "exact" && (
+        <p className="mt-2 text-[11.5px] font-semibold leading-relaxed text-[var(--color-good)]">
+          RuneLite skipped finished quests, diary steps, clog slots and Slayer mistakes.
+        </p>
+      )}
     </div>
   );
 }
@@ -1703,6 +1710,7 @@ function HeadlineCard({
   const actionLabel = isBossWithDetail ? "Open boss detail" : primaryAction.label;
   const actionHref = isBossWithDetail ? undefined : primaryAction.href;
   const choice = playerChoiceTag(rec);
+  const payoff = headlinePayoff(rec);
   const card = (
     <article
       className={cn(
@@ -1754,14 +1762,12 @@ function HeadlineCard({
           <p className="mt-2 text-[13.5px] text-[var(--color-text-dim)] leading-relaxed">
             {rec.why}
           </p>
-          {rec.payoff && (
+          {payoff && (
             <p className="mt-2 text-[12.5px] text-[var(--color-text-secondary)] border-t border-[var(--color-border)] pt-2">
-              {rec.payoff}
+              {payoff}
             </p>
           )}
-          <RecommendationQuickFacts rec={rec} />
-          <RecommendationDecisionBrief rec={rec} />
-          <RecommendationFirstStep rec={rec} />
+          <RecommendationSessionSummary rec={rec} />
           {isBossWithDetail && rec.bossSlug ? (
             <button
               type="button"
@@ -1853,9 +1859,9 @@ function RecRow({
           </div>
           <p className="mt-1.5 text-[12px] text-[var(--color-text-dim)] leading-snug">{rec.why}</p>
           {rec.payoff && (
-            <p className="mt-1 text-[11px] text-[var(--color-text-muted)] leading-snug">{rec.payoff}</p>
+            <p className="mt-1 line-clamp-2 text-[11px] text-[var(--color-text-muted)] leading-snug">{rec.payoff}</p>
           )}
-          <RecommendationQuickFacts rec={rec} compact />
+          <RecommendationSessionSummary rec={rec} compact />
           {isBossWithDetail && rec.bossSlug ? (
             <button
               type="button"
