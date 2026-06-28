@@ -210,7 +210,7 @@ export function PluginSyncChecker() {
           autoComplete="off"
           spellCheck={false}
           aria-describedby={`${rsnHelpId} ${rsnStatusId}`}
-          className="min-w-0 flex-1 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 text-[14px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-accent)]/55 focus:shadow-[0_0_0_3px_rgba(31, 182, 166,0.12)]"
+          className="min-w-0 flex-1 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 text-[14px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-accent)]/55 focus:shadow-[0_0_0_3px_rgba(134, 166, 217,0.12)]"
         />
         <button
           type="submit"

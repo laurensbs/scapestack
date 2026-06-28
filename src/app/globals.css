@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 /*  Scapestack — anti-bankstanding palette
-    The product should feel like a clean RuneLite-adjacent session planner:
-    dark enough for OSRS players, gold enough to feel native, and teal only
-    where the player can take an action. No parchment dashboard, no SaaS
-    blue, no decorative background clutter.
+    The product should feel like a quiet RuneLite-adjacent session planner:
+    graphite surfaces, muted brass identity, and blue-gray only where the
+    player can act. No parchment dashboard, no neon gaming glow, no SaaS
+    chrome.
 
     Critical implementation note: every accent-aware animation in the
     keyframes below uses literal rgba(...) calls, not CSS variables.
@@ -14,64 +14,64 @@
 
 @theme {
   /* Surfaces — RuneLite night, not analytics dashboard */
-  --color-bg: #11130F;
-  --color-bg-2: #171A14;
-  --color-panel: #1B1F18;
-  --color-panel-2: #24281F;
-  --color-surface: #1B1F18;
-  --color-border: #3A3324;
-  --color-border-strong: #77643A;
+  --color-bg: #0E1112;
+  --color-bg-2: #121617;
+  --color-panel: #171C1E;
+  --color-panel-2: #202629;
+  --color-surface: #171C1E;
+  --color-border: #2B3235;
+  --color-border-strong: #465057;
 
   /* Text */
-  --color-text: #F5EAD2;
-  --color-text-secondary: #D7C49A;
-  --color-text-dim: #A99B7D;
-  --color-text-muted: #746B5C;
+  --color-text: #EEE7DA;
+  --color-text-secondary: #C8BDAA;
+  --color-text-dim: #9B9388;
+  --color-text-muted: #6F7774;
 
-  /* Brand gold + action teal. Gold is identity; teal means "click". */
-  --color-gold: #D6A83A;
-  --color-gold-soft: #F2D16B;
-  --color-gold-deep: #7A5417;
-  --color-accent: #1FB6A6;
-  --color-accent-soft: #3DD6C6;
+  /* Brand brass + action blue-gray. Brass is identity; blue-gray means click. */
+  --color-gold: #B8924A;
+  --color-gold-soft: #D0B06F;
+  --color-gold-deep: #6F5628;
+  --color-accent: #86A6D9;
+  --color-accent-soft: #AFC4E8;
 
-  --color-good: #22C55E;
-  --color-warning: #F59E0B;
-  --color-danger: #EF6A3A;
-  --color-bad: #EF6A3A;
+  --color-good: #7EAF72;
+  --color-warning: #B98A3A;
+  --color-danger: #C56F5F;
+  --color-bad: #C56F5F;
 
   /* Slot palette — readable OSRS inventory energy without heavy skeuomorphism */
-  --color-slot: #22261E;
-  --color-slot-edge: #4B402A;
+  --color-slot: #202629;
+  --color-slot-edge: #465057;
 
   /* Bank skeumorphic vars — tuned dark so bank/DPS stop feeling like
      separate products. */
-  --color-osrs-wood-dark: #231B12;
-  --color-osrs-wood: #2E2518;
-  --color-osrs-wood-light: #41321E;
-  --color-osrs-wood-edge: #7A6337;
-  --color-osrs-bank-bg: #171A14;
-  --color-osrs-bank-inner: #11130F;
-  --color-osrs-slot: #24281F;
-  --color-osrs-slot-edge: #4B402A;
-  --color-osrs-slot-empty: #191C15;
-  --color-osrs-slot-hover: #1FB6A6;
+  --color-osrs-wood-dark: #1B1712;
+  --color-osrs-wood: #262018;
+  --color-osrs-wood-light: #332A1D;
+  --color-osrs-wood-edge: #6E5B3A;
+  --color-osrs-bank-bg: #121617;
+  --color-osrs-bank-inner: #0E1112;
+  --color-osrs-slot: #202629;
+  --color-osrs-slot-edge: #465057;
+  --color-osrs-slot-empty: #15191B;
+  --color-osrs-slot-hover: #86A6D9;
   --color-osrs-tab-active: #24281F;
   --color-osrs-tab-inactive: #171A14;
-  --color-osrs-title: #D6A83A;
-  --color-osrs-qty-yellow: #F2D16B;
+  --color-osrs-title: #B8924A;
+  --color-osrs-qty-yellow: #D0B06F;
   --color-osrs-qty-white: #F5EAD2;
   --color-osrs-qty-green: #22C55E;
   --color-osrs-btn-red: #EF6A3A;
 
-  /* Fonts — readable first, with a small OSRS-adjacent display accent. */
-  --font-sans: "Atkinson Hyperlegible", "Inter", "Avenir Next", "Segoe UI", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: "Georgia", "Iowan Old Style", "Charter", serif;
+  /* Fonts — mature app typography with a restrained OSRS-adjacent serif accent. */
+  --font-sans: "Avenir Next", "Inter", "Atkinson Hyperlegible", "Segoe UI", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Iowan Old Style", "Georgia", "Charter", serif;
   --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, Consolas, monospace;
   --font-rs-small: "RuneScape Small", "Trebuchet MS", ui-sans-serif, system-ui, sans-serif;
 
   /* Shadows */
-  --shadow-glow: 0 18px 48px -32px rgba(31, 182, 166, 0.42);
+  --shadow-glow: 0 18px 48px -32px rgba(134, 166, 217, 0.42);
   --shadow-deep: 0 24px 70px -42px rgba(0, 0, 0, 0.78);
 
   /* Animations */
@@ -93,8 +93,8 @@
     to { background-position: 200% 0; }
   }
   @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(31, 182, 166, 0.35); }
-    50% { box-shadow: 0 0 0 6px rgba(31, 182, 166, 0); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(134, 166, 217, 0.35); }
+    50% { box-shadow: 0 0 0 6px rgba(134, 166, 217, 0); }
   }
   @keyframes pop-in {
     from { opacity: 0; transform: scale(0.92); }
@@ -158,8 +158,8 @@
      "actief" zijn (mood-pick, top-track). Verbindt de result-view
      visueel met de loader-pulse. */
   @keyframes card-breath {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(31, 182, 166,0); }
-    50%      { box-shadow: 0 0 0 4px rgba(31, 182, 166,0.05); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(134, 166, 217,0); }
+    50%      { box-shadow: 0 0 0 4px rgba(134, 166, 217,0.05); }
   }
   /* Tooltip-specific fade — only opacity, no transform.
      Tooltips own a translateX(-50%) for centering; an animation that
@@ -170,9 +170,9 @@
     to   { opacity: 1; }
   }
   @keyframes mint-sweep {
-    0%   { box-shadow: 0 0 0 0 rgba(31, 182, 166, 0.5); }
-    60%  { box-shadow: 0 0 0 14px rgba(31, 182, 166, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(31, 182, 166, 0); }
+    0%   { box-shadow: 0 0 0 0 rgba(134, 166, 217, 0.5); }
+    60%  { box-shadow: 0 0 0 14px rgba(134, 166, 217, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(134, 166, 217, 0); }
   }
   @keyframes tile-rise {
     /* Premium feel: less aggressive scale (was 0.92 — felt poppy), shorter
@@ -194,8 +194,8 @@
     to   { opacity: 1; }
   }
   @keyframes mint-pulse-dot {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(31, 182, 166, 0.7); }
-    60%      { box-shadow: 0 0 0 8px rgba(31, 182, 166, 0); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(134, 166, 217, 0.7); }
+    60%      { box-shadow: 0 0 0 8px rgba(134, 166, 217, 0); }
   }
   @keyframes hero-fade {
     from { opacity: 0; transform: translateY(14px); filter: blur(4px); }
@@ -266,8 +266,8 @@
   /* Pulsing route ring around the KC headline portrait — Bank-Tags-tab
      style attention-grab on the strongest recommendation. */
   @keyframes boss-halo {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(31, 182, 166, 0.55), inset 0 0 0 1px rgba(31, 182, 166, 0.4); }
-    50%      { box-shadow: 0 0 0 6px rgba(31, 182, 166, 0), inset 0 0 0 1px rgba(31, 182, 166, 0.7); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(134, 166, 217, 0.55), inset 0 0 0 1px rgba(134, 166, 217, 0.4); }
+    50%      { box-shadow: 0 0 0 6px rgba(134, 166, 217, 0), inset 0 0 0 1px rgba(134, 166, 217, 0.7); }
   }
   /* Drop-celebration banner — fires when a returning player's fresh
      paste contains a new iconic item. Entry combines a lift + scale
@@ -358,9 +358,9 @@
      see exactly where it landed — the dnd-kit drop animation is fine,
      but doesn't draw the eye after the cursor releases. */
   @keyframes drop-flash {
-    0%   { box-shadow: 0 0 0 0 rgba(31, 182, 166, 0.85), inset 0 0 0 2px rgba(31, 182, 166, 0.0); background-color: rgba(31, 182, 166, 0.0); }
-    25%  { box-shadow: 0 0 0 4px rgba(31, 182, 166, 0.55), inset 0 0 0 2px rgba(31, 182, 166, 0.65); background-color: rgba(31, 182, 166, 0.28); }
-    100% { box-shadow: 0 0 0 10px rgba(31, 182, 166, 0), inset 0 0 0 2px rgba(31, 182, 166, 0); background-color: rgba(31, 182, 166, 0); }
+    0%   { box-shadow: 0 0 0 0 rgba(134, 166, 217, 0.85), inset 0 0 0 2px rgba(134, 166, 217, 0.0); background-color: rgba(134, 166, 217, 0.0); }
+    25%  { box-shadow: 0 0 0 4px rgba(134, 166, 217, 0.55), inset 0 0 0 2px rgba(134, 166, 217, 0.65); background-color: rgba(134, 166, 217, 0.28); }
+    100% { box-shadow: 0 0 0 10px rgba(134, 166, 217, 0), inset 0 0 0 2px rgba(134, 166, 217, 0); background-color: rgba(134, 166, 217, 0); }
   }
   /* Boss-showcase frame rises with a hint of scale + blur clear. Slow
      0.7s so it lands after the hero copy has settled. */
@@ -586,11 +586,10 @@ code, pre, .font-mono {
 }
 
 body {
-  /* RuneLite-night base with very low brand tint. No decorative blobs. */
+  /* RuneLite-night base. Flat enough to feel professional; still warm
+     enough to avoid a generic SaaS dashboard. */
   background:
-    linear-gradient(180deg, rgba(17,19,15,0.98) 0%, rgba(13,15,12,0.98) 48%, rgba(20,18,13,0.98) 100%),
-    radial-gradient(900px 560px at 92% -12%, rgba(214,168,58,0.12) 0%, transparent 55%),
-    radial-gradient(820px 520px at 0% 105%, rgba(31,182,166,0.10) 0%, transparent 58%),
+    linear-gradient(180deg, #101415 0%, #0E1112 48%, #10100E 100%),
     var(--color-bg);
   background-attachment: fixed;
   min-height: 100dvh;
@@ -609,11 +608,11 @@ body {
   background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #77643A;
+  background: #465057;
   background-clip: padding-box;
 }
 
-/* Route gradient text — gold + teal met een highlight-band zodat de
+/* Route gradient text — warm brass met een highlight-band zodat de
    route-shimmer keyframe iets
    te schuiven heeft. background-size = 200% van de container; de
    keyframe schuift de gradient van 0% naar 200% zodat de highlight
@@ -621,11 +620,11 @@ body {
 .text-route-gradient {
   background: linear-gradient(
     100deg,
-    #D6A83A 0%,
-    #F2D16B 30%,
-    #1FB6A6 50%,
-    #F2D16B 70%,
-    #D6A83A 100%
+    #EEE7DA 0%,
+    #D0B06F 34%,
+    #B8924A 54%,
+    #D0B06F 72%,
+    #EEE7DA 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -638,11 +637,11 @@ body {
   height: 28px;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 30% 30%, #FFF1A8 0%, #D6A83A 48%, #7A5417 100%);
+    radial-gradient(circle at 30% 30%, #FFF1A8 0%, #B8924A 48%, #6F5628 100%);
   box-shadow:
-    inset 0 0 0 1px #7A5417,
+    inset 0 0 0 1px #6F5628,
     0 2px 0 rgba(0, 0, 0, 0.34),
-    0 0 20px -10px rgba(214, 168, 58, 0.42);
+    0 0 20px -12px rgba(184, 146, 74, 0.34);
   position: relative;
 }
 .coin-3d::after {
@@ -672,20 +671,19 @@ body {
    session-planner feel. Keep these quiet: the plan itself should carry
    the page, not decorative chrome. */
 .scapestack-plan-panel {
-  border: 1px solid rgba(214, 168, 58, 0.28);
-  border-radius: 26px;
+  border: 1px solid color-mix(in srgb, var(--color-border) 78%, var(--color-gold) 22%);
+  border-radius: 20px;
   background:
-    linear-gradient(145deg, rgba(27,31,24,0.98), rgba(22,25,19,0.98)),
-    linear-gradient(120deg, rgba(214,168,58,0.10), transparent 42%);
-  box-shadow: 0 28px 82px -50px rgba(0, 0, 0, 0.88);
+    linear-gradient(180deg, rgba(23,28,30,0.98), rgba(18,22,23,0.98));
+  box-shadow: 0 28px 82px -56px rgba(0, 0, 0, 0.9);
 }
 
 .scapestack-session-list {
-  border-block: 1px solid rgba(119, 100, 58, 0.55);
+  border-block: 1px solid color-mix(in srgb, var(--color-border) 84%, var(--color-gold) 16%);
 }
 
 .scapestack-session-list > * + * {
-  border-top: 1px solid rgba(119, 100, 58, 0.42);
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 88%, var(--color-gold) 12%);
 }
 
 /* ── Buttons ──────────────────────────────────────────────────────────── */
@@ -700,7 +698,7 @@ body {
   font-weight: 600;
   letter-spacing: 0;
   background: var(--color-accent);
-  color: #07110F;
+  color: #0B1116;
   border: 1px solid transparent;
   transition: background 160ms ease, transform 120ms ease;
 }
@@ -779,8 +777,8 @@ body {
 }
 
 :where(input, textarea, select):focus-visible {
-  border-color: rgba(31, 182, 166, 0.65);
-  box-shadow: 0 0 0 3px rgba(31, 182, 166, 0.14);
+  border-color: rgba(134, 166, 217, 0.58);
+  box-shadow: 0 0 0 3px rgba(134, 166, 217, 0.12);
 }
 
 :where(a[href]:not([class])) {

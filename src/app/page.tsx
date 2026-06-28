@@ -7,13 +7,19 @@ export const revalidate = 300;
 
 export default function HomePage() {
   return (
-    <main className="relative z-10 mx-auto max-w-6xl px-5 pb-20 pt-12 sm:px-8 sm:pt-18">
-      <section className="relative">
-        <div className="grid min-h-[calc(100vh-6rem)] items-center gap-10 lg:grid-cols-[0.9fr_0.82fr] lg:gap-20 xl:gap-28">
-          <div className="space-y-6">
+    <main className="relative z-10 mx-auto max-w-5xl px-5 pb-18 pt-10 sm:px-8 sm:pt-14">
+      <section className="relative flex min-h-[calc(100vh-6rem)] items-center">
+        <div className="mx-auto w-full max-w-4xl py-10 text-center">
+          <div className="space-y-5">
+            <div
+              className="eyebrow"
+              style={{ animation: "hero-fade 0.55s cubic-bezier(0.22,1,0.36,1) 0.02s both" }}
+            >
+              OSRS session planner
+            </div>
             <h1
               aria-label="Stop bankstanding. Do this first."
-              className="text-[48px] font-semibold leading-[0.96] text-[var(--color-text)] sm:text-[64px] lg:text-[72px]"
+              className="mx-auto max-w-[820px] text-[44px] font-semibold leading-[0.95] text-[var(--color-text)] sm:text-[62px] lg:text-[76px]"
             >
               <RevealLine
                 text="Stop bankstanding."
@@ -34,7 +40,7 @@ export default function HomePage() {
             </h1>
 
             <p
-              className="max-w-[520px] text-[17px] leading-[1.55] text-[var(--color-text-secondary)] sm:text-[19px]"
+              className="mx-auto max-w-[610px] text-[16px] leading-[1.6] text-[var(--color-text-secondary)] sm:text-[18px]"
               style={{
                 animation: "hero-mask-reveal 1s cubic-bezier(0.22,1,0.36,1) 0.85s both",
                 clipPath: "inset(0 0 100% 0)"
@@ -44,6 +50,7 @@ export default function HomePage() {
             </p>
 
             <div
+              className="mx-auto max-w-[720px]"
               style={{ animation: "hero-scale-in 0.9s cubic-bezier(0.22,1,0.36,1) 0.95s both" }}
             >
               <HeroIntake />
@@ -51,7 +58,7 @@ export default function HomePage() {
           </div>
 
           <div
-            className="relative mt-8 lg:mt-0"
+            className="relative mx-auto mt-8 max-w-3xl"
             style={{ animation: "hero-boss-in 1.1s cubic-bezier(0.22,1,0.36,1) 0.65s both" }}
           >
             <HeroProductPreview />
@@ -63,7 +70,7 @@ export default function HomePage() {
         <div className="relative mx-auto max-w-3xl overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] shadow-[0_24px_70px_-48px_rgba(0,0,0,0.78)] animate-[slide-up_0.5s_cubic-bezier(0.22,1,0.36,1)_0.2s_both]">
           <div
             className="absolute inset-x-0 top-0 h-px"
-            style={{ background: "linear-gradient(to right, transparent, rgba(31, 182, 166,0.4), transparent)" }}
+            style={{ background: "linear-gradient(to right, transparent, rgba(134, 166, 217,0.4), transparent)" }}
           />
 
           <div className="relative p-8 sm:p-10 grid sm:grid-cols-[1fr_auto] items-center gap-6">
@@ -99,58 +106,62 @@ function HeroProductPreview() {
   return (
     <aside
       aria-label="Live anti-bankstanding plan preview"
-      className="scapestack-plan-panel relative overflow-hidden p-4 sm:p-5"
+      className="scapestack-plan-panel relative overflow-hidden p-4 text-left sm:p-5"
     >
-      <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] p-4 sm:p-5">
-        <div className="flex items-center justify-between gap-3">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-2.5 py-1 text-[11px] font-bold text-[var(--color-good)]">
-            <CheckCircle2 className="size-3.5" aria-hidden="true" />
-            One clean session
-          </div>
-          <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-panel)]/55 px-2.5 py-1 text-[11px] font-bold text-[var(--color-text-dim)]">
-            45-90 min
-          </span>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-2.5 py-1 text-[11px] font-bold text-[var(--color-good)]">
+          <CheckCircle2 className="size-3.5" aria-hidden="true" />
+          One clean session
         </div>
+        <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/38 px-2.5 py-1 text-[11px] font-bold text-[var(--color-text-dim)]">
+          45-90 min
+        </span>
+      </div>
 
-        <div className="mt-4 flex items-start gap-4">
-          <span className="grid size-14 shrink-0 place-items-center rounded-2xl border border-[var(--color-accent)]/28 bg-[var(--color-accent)]/10 shadow-[0_12px_30px_-24px_rgba(31, 182, 166,0.56)]">
-            <ItemSprite id={28307} alt="Vardorvis" className="scale-125" />
-          </span>
-          <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-2.5 py-1 text-[11px] font-bold text-[var(--color-accent)]">
-              <Target className="size-3.5" aria-hidden="true" />
-              Do this first
+      <div className="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
+        <div>
+          <div className="flex items-start gap-4">
+            <span className="grid size-12 shrink-0 place-items-center rounded-xl border border-[var(--color-accent)]/24 bg-[var(--color-accent)]/8 shadow-[0_12px_30px_-24px_rgba(134,166,217,0.46)]">
+              <ItemSprite id={28307} alt="Vardorvis" className="scale-[1.15]" />
+            </span>
+            <div className="min-w-0">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-accent)]/22 bg-[var(--color-accent)]/8 px-2.5 py-1 text-[11px] font-bold text-[var(--color-accent)]">
+                <Target className="size-3.5" aria-hidden="true" />
+                Do this first
+              </div>
+              <h2 className="mt-2.5 text-[24px] font-semibold leading-tight text-[var(--color-text)]">
+                Push Vardorvis to 50 KC
+              </h2>
+              <p className="mt-2 text-[13px] leading-relaxed text-[var(--color-text-dim)]">
+                15 KC means the boss is already started. 50 KC is a clean stop point.
+              </p>
             </div>
-            <h2 className="mt-3 text-[26px] font-semibold leading-tight text-[var(--color-text)]">
-              Push Vardorvis to 50 KC
-            </h2>
-            <p className="mt-2 text-[13px] leading-relaxed text-[var(--color-text-dim)]">
-              15 KC means the boss is already started. 50 KC is a clean stop point.
-            </p>
           </div>
+
+          <dl className="scapestack-session-list mt-5">
+            <PreviewLine label="Why" value="Your account has a real PvM thread, not a random boss suggestion." />
+            <PreviewLine label="First step" value="Open DPS, lock setup, then do one short trip." />
+            <PreviewLine label="Stop point" value="Stop after one trip or 10 KC. Re-run /next after." />
+            <PreviewLine label="Bring" value="Best owned melee setup, teleports and supplies for a small block." />
+          </dl>
         </div>
 
-        <dl className="scapestack-session-list mt-5">
-          <PreviewLine label="Why" value="Your account has a real PvM thread, not a random boss suggestion." />
-          <PreviewLine label="First step" value="Open DPS, lock setup, then do one short trip." />
-          <PreviewLine label="Stop point" value="Stop after one trip or 10 KC. Re-run /next after." />
-          <PreviewLine label="Bring" value="Best owned melee setup, teleports and supplies for a small block." />
-        </dl>
-
-        <div className="mt-4">
-          <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-            Backups
+        <div className="space-y-3">
+          <div>
+            <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+              Backups
+            </div>
+            <div className="mt-2 grid gap-2">
+              <PreviewBackup label="AFK" title="Push Farming to 99" />
+              <PreviewBackup label="Unlock" title="Desert Diary - Hard" />
+            </div>
           </div>
-          <div className="mt-2 grid gap-2 sm:grid-cols-2">
-            <PreviewBackup label="AFK" title="Push Farming to 99" />
-            <PreviewBackup label="Unlock" title="Desert Diary - Hard" />
-          </div>
-        </div>
 
-        <div className="mt-4 rounded-xl border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-3 py-2">
-          <div className="flex items-center gap-2 text-[12.5px] font-bold text-[var(--color-good)]">
-            <CheckCircle2 className="size-4" />
-            RuneLite can skip quests, diaries, clog slots and Slayer mistakes later.
+          <div className="rounded-xl border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-3 py-2">
+            <div className="flex items-start gap-2 text-[12.5px] font-bold leading-snug text-[var(--color-good)]">
+              <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
+              <span>RuneLite can skip quests, diaries, clog slots and Slayer mistakes later.</span>
+            </div>
           </div>
         </div>
       </div>

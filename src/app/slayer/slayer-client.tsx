@@ -517,7 +517,7 @@ function MasterCard({ sim, isExpanded, onToggle, blocks, isTop, taskActionOption
     <div className={cn(
       "rounded-xl border bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] overflow-hidden",
       isTop
-        ? "border-[var(--color-accent)]/40 shadow-[0_0_0_1px_rgba(31, 182, 166,0.15)]"
+        ? "border-[var(--color-accent)]/40 shadow-[0_0_0_1px_rgba(134, 166, 217,0.15)]"
         : "border-[var(--color-border)]"
     )}>
       <button

@@ -84,10 +84,10 @@ export function Header() {
           href={contextualNavHref("/next", pathname, contextQuery)}
           aria-label="Stop bankstanding with one next move"
           title="Open /next first. Add gear or RuneLite only when it changes the route."
-          className="hidden lg:flex min-w-0 items-center gap-2 rounded-full border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:border-[var(--color-accent)]/45 hover:bg-[var(--color-accent)]/12"
+          className="hidden lg:flex min-w-0 items-center gap-2 rounded-md px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-panel-2)]/45 hover:text-[var(--color-accent)]"
           style={{ animation: "hero-fade 0.5s cubic-bezier(0.22,1,0.36,1) 0.36s both" }}
         >
-          <span className="size-1.5 shrink-0 rounded-full bg-[var(--color-accent)]" aria-hidden="true" />
+          <span className="size-1.5 shrink-0 rounded-full bg-[var(--color-gold)]" aria-hidden="true" />
           <span className="truncate">{LOOP_LABEL}</span>
         </Link>
 
@@ -151,8 +151,8 @@ export function Header() {
       {mobileOpen && (
         <div className="sm:hidden border-t border-[var(--color-border)] bg-[var(--color-panel)] shadow-[0_22px_50px_-36px_rgba(0,0,0,0.82)] animate-[fade-in_0.18s_ease-out]">
           <nav id={mobileNavId} className="px-4 py-3 space-y-1" aria-label="Mobile Scapestack tools">
-            <div className="mb-3 rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 p-3">
-              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
+            <div className="mb-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 p-3">
+              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-gold)]">
                 Stop bankstanding
               </div>
               <div className="mt-2 grid grid-cols-3 gap-1.5">

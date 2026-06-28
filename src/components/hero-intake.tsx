@@ -50,10 +50,10 @@ export function HeroIntake() {
           turning the whole intake into one heavy glowing capsule. */}
       <div
         className={cn(
-          "grid gap-2 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] p-2",
-          "shadow-[0_18px_48px_-36px_rgba(0,0,0,0.78),inset_0_1px_0_rgba(245,234,210,0.08)]",
+          "grid gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-2",
+          "shadow-[0_18px_48px_-40px_rgba(0,0,0,0.82),inset_0_1px_0_rgba(238,231,218,0.06)]",
           "transition-colors duration-200 ease-out focus-within:border-[var(--color-accent)]/45",
-          "focus-within:bg-[var(--color-panel-2)] focus-within:shadow-[0_20px_52px_-38px_rgba(31,182,166,0.34),0_0_0_3px_rgba(31,182,166,0.08)]",
+          "focus-within:bg-[var(--color-panel-2)] focus-within:shadow-[0_20px_52px_-42px_rgba(134,166,217,0.26),0_0_0_3px_rgba(134,166,217,0.07)]",
           "sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-1.5"
         )}
       >
@@ -73,9 +73,9 @@ export function HeroIntake() {
             spellCheck={false}
             aria-describedby="hero-plan-disabled-help"
             className={cn(
-              "h-13 w-full min-w-0 rounded-xl border border-transparent bg-[var(--color-bg)]/72 px-3.5 outline-none",
+              "h-13 w-full min-w-0 rounded-lg border border-transparent bg-[var(--color-bg)]/72 px-3.5 outline-none",
               "text-[16px] font-semibold text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]/72",
-              "transition-all duration-200 focus:bg-[var(--color-bg)] focus:shadow-[inset_0_0_0_1px_rgba(31,182,166,0.16)]",
+              "transition-all duration-200 focus:bg-[var(--color-bg)] focus:shadow-[inset_0_0_0_1px_rgba(134,166,217,0.16)]",
               "sm:h-12 sm:text-[15px]"
             )}
           />
@@ -92,10 +92,10 @@ export function HeroIntake() {
           aria-describedby="hero-plan-disabled-help"
           disabled={!canSubmit}
           className={cn(
-            "inline-flex h-13 w-full shrink-0 items-center justify-center gap-2 rounded-xl px-4",
-            "bg-[var(--color-accent)] text-[#07110F] text-[14px] font-bold",
-            "shadow-[inset_0_1px_0_rgba(245,234,210,0.24),0_12px_24px_-18px_rgba(31,182,166,0.82)]",
-            "transition-all duration-200 hover:bg-[var(--color-accent-soft)] active:translate-y-px",
+            "inline-flex h-13 w-full shrink-0 items-center justify-center gap-2 rounded-lg px-4",
+            "bg-[var(--color-accent)] text-[#0B1116] text-[14px] font-bold",
+            "shadow-[inset_0_1px_0_rgba(238,231,218,0.18),0_12px_24px_-18px_rgba(134,166,217,0.68)]",
+            "transition-all duration-200 hover:bg-[var(--color-accent-soft)] hover:shadow-[inset_0_1px_0_rgba(238,231,218,0.2),0_16px_28px_-20px_rgba(134,166,217,0.78)] active:translate-y-px",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]",
             "disabled:cursor-not-allowed disabled:bg-[var(--color-border-strong)] disabled:text-[var(--color-text-secondary)] disabled:shadow-none",
             "sm:h-12 sm:w-auto sm:min-w-[174px]"

@@ -273,7 +273,7 @@ export function TipsCard({ tips, onSearchItems }: TipsCardProps) {
         type="button"
         className={cn(
           "flex w-full items-center gap-2.5 px-3.5 py-2.5 cursor-pointer select-none text-left",
-          "focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(31, 182, 166,0.2)]",
+          "focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(134, 166, 217,0.2)]",
           collapsed ? "" : "border-b border-[var(--color-border)]"
         )}
         onClick={() => setCollapsed((c) => !c)}
@@ -388,7 +388,7 @@ function TipGroupRow({ group, onOpen, onDismissGroup, onDismissTip, onSearchItem
             aria-label={`Open action steps for ${group.label}`}
             className={cn(
               "mt-1.5 block w-full flex-1 cursor-pointer rounded-sm text-left",
-              "focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(31, 182, 166,0.2)]"
+              "focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(134, 166, 217,0.2)]"
             )}
           >
             <div className="text-[12.5px] font-medium leading-snug text-[var(--color-text)]">{group.label}</div>
@@ -461,7 +461,7 @@ function TipGroupRow({ group, onOpen, onDismissGroup, onDismissTip, onSearchItem
           aria-label={`Open action steps for ${group.label}`}
           className={cn(
             "mt-1.5 block w-full flex-1 cursor-pointer rounded-sm text-left",
-            "focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(31, 182, 166,0.2)]"
+            "focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(134, 166, 217,0.2)]"
           )}
         >
           <div className="text-[12.5px] font-medium leading-snug text-[var(--color-text)]">{group.label}</div>

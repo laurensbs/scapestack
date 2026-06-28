@@ -112,8 +112,8 @@ export function SavedBankBanner({
         background: "linear-gradient(180deg, var(--color-osrs-wood-light) 0%, var(--color-osrs-wood) 100%)",
         border: "2px solid var(--color-osrs-wood-edge)",
         boxShadow: presentation === "modal"
-          ? "0 24px 60px -8px rgba(0, 0, 0, 0.75), inset 0 0 0 1px rgba(31, 182, 166, 0.32)"
-          : "0 16px 38px -26px rgba(0, 0, 0, 0.75), inset 0 0 0 1px rgba(31, 182, 166, 0.32)",
+          ? "0 24px 60px -8px rgba(0, 0, 0, 0.75), inset 0 0 0 1px rgba(134, 166, 217, 0.32)"
+          : "0 16px 38px -26px rgba(0, 0, 0, 0.75), inset 0 0 0 1px rgba(134, 166, 217, 0.32)",
         animation: presentation === "modal" ? "pop-in 0.25s cubic-bezier(0.22, 1, 0.36, 1)" : undefined
       }}
     >

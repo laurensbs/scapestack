@@ -198,7 +198,7 @@ export function ShuffleLoader({ label = "Reading your account…" }: ShuffleLoad
                   transform: isActive ? "scale(1.08)" : "scale(1)",
                   borderColor: isActive ? "var(--color-accent)" : undefined,
                   boxShadow: isActive
-                    ? "0 0 12px rgba(31, 182, 166,0.25)"
+                    ? "0 0 12px rgba(134, 166, 217,0.25)"
                     : undefined
                 }}
               >

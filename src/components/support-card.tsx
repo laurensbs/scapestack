@@ -45,11 +45,11 @@ export function SupportCard({ context = "Saved you a minute?" }: Props) {
     )}>
       <div
         className="absolute inset-x-0 top-0 h-px"
-        style={{ background: "linear-gradient(to right, transparent, rgba(31, 182, 166,0.4), transparent)" }}
+        style={{ background: "linear-gradient(to right, transparent, rgba(134, 166, 217,0.4), transparent)" }}
       />
       <div
         className="absolute -top-16 -right-16 size-48 rounded-full pointer-events-none blur-3xl opacity-30"
-        style={{ background: "rgba(31, 182, 166, 0.4)" }}
+        style={{ background: "rgba(134, 166, 217, 0.4)" }}
       />
 
       <div className="relative p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -74,7 +74,7 @@ export function SupportCard({ context = "Saved you a minute?" }: Props) {
             rel="noopener noreferrer"
             className={cn(
               "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md text-[13px] font-semibold",
-              "bg-[var(--color-accent)] text-[#07110F]",
+              "bg-[var(--color-accent)] text-[#0B1116]",
               "hover:brightness-110 transition-all"
             )}
           >

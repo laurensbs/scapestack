@@ -26,7 +26,7 @@ export default function OpenGraphImage() {
           flexDirection: "column",
           justifyContent: "space-between",
           padding: 64,
-          background: `radial-gradient(circle at 22% 20%, ${BRAND_ACCENT_COLOR}33, transparent 36%), radial-gradient(circle at 82% 72%, #1FB6A633, transparent 34%), ${BRAND_BACKGROUND_COLOR}`,
+          background: `radial-gradient(circle at 22% 20%, ${BRAND_ACCENT_COLOR}33, transparent 36%), radial-gradient(circle at 82% 72%, #86A6D933, transparent 34%), ${BRAND_BACKGROUND_COLOR}`,
           color: "#F5EAD2",
           fontFamily: BRAND_IMAGE_FONT_FAMILY
         }}
@@ -46,7 +46,7 @@ export default function OpenGraphImage() {
                 fontSize: 30,
                 fontWeight: 900,
                 letterSpacing: -2,
-                background: "rgba(214, 168, 58,0.11)"
+                background: "rgba(184, 146, 74,0.11)"
               }}
             >
               SS
@@ -58,7 +58,7 @@ export default function OpenGraphImage() {
           </div>
           <div
             style={{
-              border: "1px solid rgba(214, 168, 58,0.38)",
+              border: "1px solid rgba(184, 146, 74,0.38)",
               borderRadius: 999,
               padding: "12px 18px",
               color: BRAND_ACCENT_COLOR,

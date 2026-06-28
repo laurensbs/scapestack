@@ -26,7 +26,7 @@ export function BossSprite({ boss, size = 28 }: { boss: Boss; size?: number }) {
         title={fallbackLabel}
         data-boss-sprite-fallback="missing"
         data-boss-sprite-missing-slug={boss.slug}
-        className="inline-flex items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-accent)]/14 text-[9px] font-black leading-none text-[var(--color-accent)] shadow-[0_0_10px_rgba(31, 182, 166,0.25)]"
+        className="inline-flex items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-accent)]/14 text-[9px] font-black leading-none text-[var(--color-accent)] shadow-[0_0_10px_rgba(134, 166, 217,0.25)]"
         style={{ width: Math.max(16, size * 0.65), height: Math.max(16, size * 0.65) }}
       >
         <span aria-hidden="true">?</span>
@@ -213,7 +213,7 @@ export function BossPicker({ selected, onSelect, className, sortKey }: Props) {
               autoComplete="off"
               spellCheck={false}
               aria-describedby={statusId}
-              className="w-full pl-7 pr-7 py-1.5 rounded-md text-[12.5px] bg-[var(--color-bg-2)] border border-[var(--color-border)] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(31, 182, 166,0.12)]"
+              className="w-full pl-7 pr-7 py-1.5 rounded-md text-[12.5px] bg-[var(--color-bg-2)] border border-[var(--color-border)] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(134, 166, 217,0.12)]"
             />
             <p id={statusId} role="status" aria-live="polite" className="sr-only">
               {query

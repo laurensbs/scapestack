@@ -137,8 +137,8 @@ describe("Scapestack branding", () => {
     expect(layoutSource).toContain("publisher: BRAND_NAME");
     expect(layoutSource).toContain("{BRAND_TAGLINE}");
     expect(layoutSource).toContain("Made for Gielinor");
-    expect(globalsSource).toContain('--font-sans: "Atkinson Hyperlegible"');
-    expect(globalsSource).toContain('--font-display: "Georgia"');
+    expect(globalsSource).toContain('--font-sans: "Avenir Next"');
+    expect(globalsSource).toContain('--font-display: "Iowan Old Style"');
     expect(globalsSource).toContain("Scapestack product primitives");
     expect(globalsSource).toContain(".scapestack-plan-panel");
     expect(globalsSource).toContain(".scapestack-session-list");
@@ -166,8 +166,8 @@ describe("Scapestack branding", () => {
     const globalsSource = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
 
     expect(globalsSource).toContain("Coin marker — OSRS route marker");
-    expect(globalsSource).toContain("radial-gradient(circle at 30% 30%, #FFF1A8 0%, #D6A83A 48%, #7A5417 100%)");
-    expect(globalsSource).toContain("inset 0 0 0 1px #7A5417");
+    expect(globalsSource).toContain("radial-gradient(circle at 30% 30%, #FFF1A8 0%, #B8924A 48%, #6F5628 100%)");
+    expect(globalsSource).toContain("inset 0 0 0 1px #6F5628");
     expect(globalsSource).not.toContain("Coin marker — now a route marker");
   });
 

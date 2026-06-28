@@ -4,9 +4,9 @@ export const BRAND_TAGLINE = "Stop bankstanding. Do this first.";
 export const BRAND_SECONDARY_TAGLINE =
   "Type your RSN. Get one plan, two backups and a stop point.";
 export const BRAND_URL = "https://www.scapestack.org";
-export const BRAND_THEME_COLOR = "#11130F";
-export const BRAND_ACCENT_COLOR = "#D6A83A";
-export const BRAND_BACKGROUND_COLOR = "#11130F";
+export const BRAND_THEME_COLOR = "#0E1112";
+export const BRAND_ACCENT_COLOR = "#B8924A";
+export const BRAND_BACKGROUND_COLOR = "#0E1112";
 export const BRAND_IMAGE_FONT_FAMILY = "Inter, Avenir Next, Segoe UI, Arial, sans-serif";
 
 export const BRAND_DESCRIPTION =

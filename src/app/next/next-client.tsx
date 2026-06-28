@@ -822,8 +822,8 @@ function NextIntake({
         <div className={cn(
           "group relative rounded-2xl bg-[var(--color-panel)] border transition-all",
           loading
-            ? "border-[var(--color-accent)]/60 shadow-[0_0_0_4px_rgba(31, 182, 166,0.10)]"
-            : "border-[var(--color-border)] focus-within:border-[var(--color-accent)]/60 focus-within:shadow-[0_0_0_4px_rgba(31, 182, 166,0.10)]"
+            ? "border-[var(--color-accent)]/60 shadow-[0_0_0_4px_rgba(134, 166, 217,0.10)]"
+            : "border-[var(--color-border)] focus-within:border-[var(--color-accent)]/60 focus-within:shadow-[0_0_0_4px_rgba(134, 166, 217,0.10)]"
         )}>
           <div className="flex flex-col sm:flex-row sm:items-center">
             <input
@@ -1359,7 +1359,7 @@ function HeroStrip({ summary, basisNote, onEdit }: {
           en headline-card. Bindt het visueel aan de rest van /next. */}
       <div
         className="absolute inset-x-0 top-0 h-px"
-        style={{ background: "linear-gradient(to right, transparent, rgba(31, 182, 166,0.55), transparent)" }}
+        style={{ background: "linear-gradient(to right, transparent, rgba(134, 166, 217,0.55), transparent)" }}
       />
       {/* Sweep — zachte route-tint die elke 6s van links naar rechts wandelt.
           Subtieler dan de loader-spotlight (we zijn klaar met laden),
@@ -1367,7 +1367,7 @@ function HeroStrip({ summary, basisNote, onEdit }: {
       <div
         className="pointer-events-none absolute inset-y-0 -inset-x-1/2 opacity-60"
         style={{
-          background: "linear-gradient(90deg, transparent 0%, transparent 35%, rgba(31, 182, 166,0.06) 50%, transparent 65%, transparent 100%)",
+          background: "linear-gradient(90deg, transparent 0%, transparent 35%, rgba(134, 166, 217,0.06) 50%, transparent 65%, transparent 100%)",
           animation: "hero-sweep 6s linear infinite"
         }}
       />
@@ -2065,7 +2065,7 @@ function HeadlineCard({
     >
       <div
         className="absolute inset-x-0 top-0 h-px"
-        style={{ background: "linear-gradient(to right, transparent, rgba(31, 182, 166,0.55), transparent)" }}
+        style={{ background: "linear-gradient(to right, transparent, rgba(134, 166, 217,0.55), transparent)" }}
       />
       <div className="flex items-start gap-4">
         <div className="size-12 shrink-0 rounded-lg flex items-center justify-center bg-[var(--color-accent)]/15 border border-[var(--color-accent)]/30 text-[var(--color-accent)] overflow-hidden">
@@ -2720,7 +2720,7 @@ function WhatToDo({
       <div
         className={cn(
           shareMode &&
-            "mx-auto max-w-4xl rounded-2xl border border-[var(--color-accent)]/25 bg-[var(--color-panel)]/86 p-4 shadow-[0_26px_80px_-54px_rgba(31, 182, 166,0.65)] sm:p-5"
+            "mx-auto max-w-4xl rounded-2xl border border-[var(--color-accent)]/25 bg-[var(--color-panel)]/86 p-4 shadow-[0_26px_80px_-54px_rgba(134, 166, 217,0.65)] sm:p-5"
         )}
       >
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -2814,49 +2814,6 @@ function WhatToDo({
           </button>
         </div>
       </div>
-
-      {!shareMode && (
-        <div className="mb-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-2.5">
-          <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
-            <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-              Route
-            </span>
-            <span className="text-right text-[11px] font-semibold text-[var(--color-text-dim)]">
-              {currentRouteLabel.tagline}
-            </span>
-          </div>
-          <div className="flex gap-1.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-7 sm:overflow-visible sm:pb-0">
-            {ROUTE_LENS_ORDER.map((lens) => {
-              const label = ROUTE_LENS_LABEL[lens];
-              const active = routeLens === lens;
-              return (
-                <button
-                  key={lens}
-                  type="button"
-                  aria-pressed={active}
-                  aria-label={`Pick ${label.name} route`}
-                  onClick={() => applyRouteLens(lens)}
-                  className={cn(
-                    "flex min-h-10 min-w-[132px] items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-[11.5px] font-semibold transition-colors sm:min-w-0",
-                    active
-                      ? "border-[var(--color-accent)]/60 bg-[var(--color-accent)]/12 text-[var(--color-accent)]"
-                      : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)]"
-                  )}
-                  title={label.tagline}
-                >
-                  <ItemSprite
-                    id={label.itemId}
-                    alt=""
-                    className="pixelated shrink-0"
-                    style={{ width: 18, height: 18, imageRendering: "pixelated", objectFit: "contain" }}
-                  />
-                  <span className="truncate">{label.name}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {lastSuppressed && (
         <div
@@ -2964,8 +2921,6 @@ function WhatToDo({
         </div>
       )}
 
-      <TonightRouteStrip recs={routePreviewRecs} shareMode={shareMode} />
-
       <div className="space-y-3">
         {pick ? (
           <>
@@ -3009,6 +2964,49 @@ function WhatToDo({
                 </div>
               </div>
             )}
+            {!shareMode && (
+              <details className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/42 p-2.5">
+                <summary className="flex list-none items-center justify-between gap-3 rounded-lg px-1 py-1 text-left [&::-webkit-details-marker]:hidden">
+                  <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+                    Route
+                  </span>
+                  <span className="text-right text-[11px] font-semibold text-[var(--color-text-dim)]">
+                    {currentRouteLabel.name}: {currentRouteLabel.tagline}
+                  </span>
+                </summary>
+                <div className="mt-2 flex gap-1.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-7 sm:overflow-visible sm:pb-0">
+                  {ROUTE_LENS_ORDER.map((lens) => {
+                    const label = ROUTE_LENS_LABEL[lens];
+                    const active = routeLens === lens;
+                    return (
+                      <button
+                        key={lens}
+                        type="button"
+                        aria-pressed={active}
+                        aria-label={`Pick ${label.name} route`}
+                        onClick={() => applyRouteLens(lens)}
+                        className={cn(
+                          "flex min-h-10 min-w-[132px] items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-[11.5px] font-semibold transition-colors sm:min-w-0",
+                          active
+                            ? "border-[var(--color-accent)]/60 bg-[var(--color-accent)]/12 text-[var(--color-accent)]"
+                            : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)]"
+                        )}
+                        title={label.tagline}
+                      >
+                        <ItemSprite
+                          id={label.itemId}
+                          alt=""
+                          className="pixelated shrink-0"
+                          style={{ width: 18, height: 18, imageRendering: "pixelated", objectFit: "contain" }}
+                        />
+                        <span className="truncate">{label.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </details>
+            )}
+            <TonightRouteStrip recs={routePreviewRecs} shareMode={shareMode} />
           </>
         ) : (
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-8 text-center text-[var(--color-text-muted)] text-[13px]">
@@ -3220,7 +3218,7 @@ function WhereYouAre({
                         width: `${p.percent}%`,
                         transform: filled ? "scaleX(1)" : "scaleX(0)",
                         transition: "transform 900ms cubic-bezier(0.22, 1, 0.36, 1)",
-                        boxShadow: isFocus ? "0 0 14px -2px rgba(31, 182, 166,0.55)" : undefined,
+                        boxShadow: isFocus ? "0 0 14px -2px rgba(134, 166, 217,0.55)" : undefined,
                         animation: isFocus && filled ? "card-breath 3.2s ease-in-out infinite" : undefined,
                       }}
                     />

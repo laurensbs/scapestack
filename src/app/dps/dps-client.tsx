@@ -725,7 +725,7 @@ export function DpsClient() {
               autoComplete="off"
               spellCheck={false}
               aria-describedby="dps-boss-search-help dps-boss-search-status"
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] focus:border-[var(--color-accent)]/50 focus:shadow-[0_0_0_3px_rgba(31, 182, 166,0.10)] text-[13.5px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none transition-all"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] focus:border-[var(--color-accent)]/50 focus:shadow-[0_0_0_3px_rgba(134, 166, 217,0.10)] text-[13.5px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none transition-all"
             />
             {search && (
               <button
@@ -864,8 +864,8 @@ function BossRow({ boss, dps, isFocused, onOpen }: {
       className={cn(
         "w-full text-left rounded-xl border scroll-mt-24 p-3.5 flex items-center gap-4 flex-wrap",
         "bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] border-[var(--color-border)]",
-        "hover:border-[var(--color-accent)]/40 hover:shadow-[0_0_0_1px_rgba(31, 182, 166,0.12)] transition-all cursor-pointer",
-        isFocused && "border-[var(--color-accent)]/40 shadow-[0_0_0_1px_rgba(31, 182, 166,0.18)]"
+        "hover:border-[var(--color-accent)]/40 hover:shadow-[0_0_0_1px_rgba(134, 166, 217,0.12)] transition-all cursor-pointer",
+        isFocused && "border-[var(--color-accent)]/40 shadow-[0_0_0_1px_rgba(134, 166, 217,0.18)]"
       )}>
       <div className="flex items-center gap-2.5 min-w-0 w-[160px]">
         <BossThumb boss={boss} />
