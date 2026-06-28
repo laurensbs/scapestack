@@ -28,6 +28,8 @@ describe("DPS empty gear copy", () => {
     expect(source).toContain("This boss came from Task Check, but the route is marked bankless.");
     expect(source).toContain("This route is marked bankless.");
     expect(source).toContain("Paste Bank Memory or Bank Tags before trusting DPS rows, upgrades or boss setup links.");
+    expect(source).toContain("Task picked. Paste gear to check the setup before the first trip.");
+    expect(source).not.toContain("Coming from Gear & Bank or /next?");
     expect(source).not.toContain("No usable weapon in your bank for this boss.");
   });
 

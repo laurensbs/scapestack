@@ -2776,10 +2776,7 @@ function WhatToDo({
             >
               <Dices className="size-3.5" />
               <span className="sm:hidden">Try {nextRouteLabel.name}</span>
-              <span className="hidden sm:inline">Try another</span>
-              <span className="hidden text-[var(--color-accent)] sm:inline">
-                {nextRouteLabel.name}
-              </span>
+              <span className="hidden sm:inline">Try {nextRouteLabel.name}</span>
             </button>
           )}
           {visibleRecs.length > 0 && !shareMode && (

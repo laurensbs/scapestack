@@ -688,133 +688,148 @@ export function DpsClient() {
       )}
 
       {/* Boss table */}
-      <section>
-        <div className="mb-3">
-          <h2 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)] mb-2">
-            Boss options with this bank
-          </h2>
-          {/* Live search. Filters the rows below on every keystroke;
-              ESC clears. The dropdown BossPicker is gone — for a table
-              with 50+ rows, a real input field reads more directly than
-              'click to open a hidden menu.' */}
-          <div className="relative">
-            <label htmlFor="dps-boss-search" className="sr-only">
-              Search bosses for DPS setup
-            </label>
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[var(--color-text-muted)]" />
-            <input
-              id="dps-boss-search"
-              name="boss"
-              type="text"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                if (focusedBoss && e.target.value.trim().toLowerCase() !== focusedBoss.name.toLowerCase()) {
-                  setFocusedBoss(null);
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Escape") clearBossFilter();
-                if (e.key === "Enter" && filteredResults.length > 0) {
-                  // Open the first match directly in the detail modal —
-                  // saves the user a follow-up click after typing.
-                  setModalBoss(filteredResults[0].boss);
-                }
-              }}
-              placeholder="Search bosses — type to filter, Enter to jump"
-              autoComplete="off"
-              spellCheck={false}
-              aria-describedby="dps-boss-search-help dps-boss-search-status"
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] focus:border-[var(--color-accent)]/50 focus:shadow-[0_0_0_3px_rgba(134, 166, 217,0.10)] text-[13.5px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none transition-all"
-            />
-            {search && (
-              <button
-                type="button"
-                onClick={clearBossFilter}
-                aria-label="Clear boss DPS search"
-                className="absolute right-3 top-1/2 -translate-y-1/2 size-5 rounded flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-2)] transition-colors"
-              >
-                <X className="size-4" />
-              </button>
-            )}
-          </div>
-          <p id="dps-boss-search-help" className="mt-1.5 text-[11px] text-[var(--color-text-muted)]">
-            Type a boss name, press Enter to open the first match, or Esc to clear the filter.
-          </p>
-          {focusedBoss && search.trim().toLowerCase() === focusedBoss.name.toLowerCase() && (
-            <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3 py-2">
-              <span className="inline-flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/60">
-                <BossSprite boss={focusedBoss} size={22} />
-              </span>
-              <p className="min-w-0 flex-1 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
-                Filtered from bank boss: <span className="font-semibold text-[var(--color-accent)]">{focusedBoss.name}</span>.
-                Clear it to compare all bosses with the same bank.
-              </p>
-              <button
-                type="button"
-                onClick={clearBossFilter}
-                className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
-              >
-                Show all bosses
-                <X className="size-3.5" />
-              </button>
-            </div>
-          )}
-          {search && (
-            <p id="dps-boss-search-status" role="status" aria-live="polite" className="mt-1.5 text-[11px] text-[var(--color-text-muted)]">
-              {filteredResults.length === 0
-                ? `No bosses match "${search}".`
-                : `Showing ${filteredResults.length} of ${bossResults.length} bosses.`}
-            </p>
-          )}
-          {/* Sort selector — pill-style toggle group. Default DPS is de
-              standaard waar mensen voor komen; de andere drie geven
-              dezelfde lijst maar door een andere bril ('wie raakt vaakst',
-              'wie levert het meest GP', 'wie gaat snelst dood'). */}
-          <div className="mt-3 flex items-center gap-2 flex-wrap">
-            <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-              Sort
+      <details className="mb-7 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-3">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden">
+          <span className="min-w-0">
+            <span className="block text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
+              Compare other bosses
             </span>
-            {([
-              { key: "dps",      label: "Best DPS" },
-              { key: "accuracy", label: "Most accurate" },
-              { key: "gpHour",   label: "Most GP/hour" },
-              { key: "ttk",      label: "Fastest kill" }
-            ] as const).map((opt) => (
-              <button
-                key={opt.key}
-                type="button"
-                aria-pressed={sortBy === opt.key}
-                aria-label={`Sort boss DPS rows by ${opt.label}`}
-                onClick={() => setSortBy(opt.key)}
-                className={cn(
-                  "px-2.5 py-1 rounded-md text-[11px] border transition-colors",
-                  sortBy === opt.key
-                    ? "border-[var(--color-accent)]/50 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
-                    : "border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
-                )}
-              >
-                {opt.label}
-              </button>
+            <span className="mt-1 block text-[12px] leading-relaxed text-[var(--color-text-muted)]">
+              Search and sort the full table only when the first trip is not the one.
+            </span>
+          </span>
+          <span className="shrink-0 rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-[11.5px] font-semibold text-[var(--color-text-dim)]">
+            Show
+          </span>
+        </summary>
+        <div className="mt-4">
+          <div className="mb-3">
+            <h2 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)] mb-2">
+              Boss options with this bank
+            </h2>
+            {/* Live search. Filters the rows below on every keystroke;
+                ESC clears. The dropdown BossPicker is gone — for a table
+                with 50+ rows, a real input field reads more directly than
+                'click to open a hidden menu.' */}
+            <div className="relative">
+              <label htmlFor="dps-boss-search" className="sr-only">
+                Search bosses for DPS setup
+              </label>
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[var(--color-text-muted)]" />
+              <input
+                id="dps-boss-search"
+                name="boss"
+                type="text"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  if (focusedBoss && e.target.value.trim().toLowerCase() !== focusedBoss.name.toLowerCase()) {
+                    setFocusedBoss(null);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") clearBossFilter();
+                  if (e.key === "Enter" && filteredResults.length > 0) {
+                    // Open the first match directly in the detail modal —
+                    // saves the user a follow-up click after typing.
+                    setModalBoss(filteredResults[0].boss);
+                  }
+                }}
+                placeholder="Search bosses — type to filter, Enter to jump"
+                autoComplete="off"
+                spellCheck={false}
+                aria-describedby="dps-boss-search-help dps-boss-search-status"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] focus:border-[var(--color-accent)]/50 focus:shadow-[0_0_0_3px_rgba(134, 166, 217,0.10)] text-[13.5px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none transition-all"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={clearBossFilter}
+                  aria-label="Clear boss DPS search"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 size-5 rounded flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-2)] transition-colors"
+                >
+                  <X className="size-4" />
+                </button>
+              )}
+            </div>
+            <p id="dps-boss-search-help" className="mt-1.5 text-[11px] text-[var(--color-text-muted)]">
+              Type a boss name, press Enter to open the first match, or Esc to clear the filter.
+            </p>
+            {focusedBoss && search.trim().toLowerCase() === focusedBoss.name.toLowerCase() && (
+              <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3 py-2">
+                <span className="inline-flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/60">
+                  <BossSprite boss={focusedBoss} size={22} />
+                </span>
+                <p className="min-w-0 flex-1 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
+                  Filtered from bank boss: <span className="font-semibold text-[var(--color-accent)]">{focusedBoss.name}</span>.
+                  Clear it to compare all bosses with the same bank.
+                </p>
+                <button
+                  type="button"
+                  onClick={clearBossFilter}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+                >
+                  Show all bosses
+                  <X className="size-3.5" />
+                </button>
+              </div>
+            )}
+            {search && (
+              <p id="dps-boss-search-status" role="status" aria-live="polite" className="mt-1.5 text-[11px] text-[var(--color-text-muted)]">
+                {filteredResults.length === 0
+                  ? `No bosses match "${search}".`
+                  : `Showing ${filteredResults.length} of ${bossResults.length} bosses.`}
+              </p>
+            )}
+            {/* Sort selector — pill-style toggle group. Default DPS is de
+                standaard waar mensen voor komen; de andere drie geven
+                dezelfde lijst maar door een andere bril ('wie raakt vaakst',
+                'wie levert het meest GP', 'wie gaat snelst dood'). */}
+            <div className="mt-3 flex items-center gap-2 flex-wrap">
+              <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                Sort
+              </span>
+              {([
+                { key: "dps",      label: "Best DPS" },
+                { key: "accuracy", label: "Most accurate" },
+                { key: "gpHour",   label: "Most GP/hour" },
+                { key: "ttk",      label: "Fastest kill" }
+              ] as const).map((opt) => (
+                <button
+                  key={opt.key}
+                  type="button"
+                  aria-pressed={sortBy === opt.key}
+                  aria-label={`Sort boss DPS rows by ${opt.label}`}
+                  onClick={() => setSortBy(opt.key)}
+                  className={cn(
+                    "px-2.5 py-1 rounded-md text-[11px] border transition-colors",
+                    sortBy === opt.key
+                      ? "border-[var(--color-accent)]/50 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
+                      : "border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2.5">
+            {filteredResults.map(({ boss, dps }) => (
+              <BossRow
+                key={boss.slug}
+                boss={boss}
+                dps={dps}
+                isFocused={focusedBoss?.slug === boss.slug}
+                onOpen={() => setModalBoss(boss)}
+              />
             ))}
           </div>
+          <p className="mt-6 text-[10.5px] text-center text-[var(--color-text-dim)] italic">
+            DPS calculated at level 99 stats with full offensive prayer (Piety / Rigour / Augury).
+            Boss-specific mechanics (heap mode, transitions, specs) not modelled.
+          </p>
         </div>
-        <div className="space-y-2.5">
-          {filteredResults.map(({ boss, dps }) => (
-            <BossRow
-              key={boss.slug}
-              boss={boss}
-              dps={dps}
-              isFocused={focusedBoss?.slug === boss.slug}
-              onOpen={() => setModalBoss(boss)}
-            />
-          ))}
-        </div>
-        <p className="mt-6 text-[10.5px] text-center text-[var(--color-text-dim)] italic">
-          DPS calculated at level 99 stats with full offensive prayer (Piety / Rigour / Augury).
-          Boss-specific mechanics (heap mode, transitions, specs) not modelled.
-        </p>
-      </section>
+      </details>
 
       <SupportCard context="Helped pick your gear for tonight's trip?" />
 
@@ -952,11 +967,13 @@ function DpsHandoffIntakeHint({
     );
   }
 
+  if (!slayerTask) return null;
+
   return (
-    <div className="mb-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/70 px-4 py-3 flex items-start gap-3">
+    <div className="mb-4 rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-panel)]/70 px-4 py-3 flex items-start gap-3">
       <Sparkles className="mt-0.5 size-4 shrink-0 text-[var(--color-accent)]" />
       <p className="text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-        Coming from Gear & Bank or /next? DPS now reuses that Scapestack bank handoff automatically, so boss setup links no longer need a second paste.
+        Task picked. Paste gear to check the setup before the first trip.
       </p>
     </div>
   );

@@ -48,6 +48,8 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("Can I kill this?");
     expect(source).toContain("Yes: do one short trip");
     expect(source).toContain("Setup details");
+    expect(source).toContain("Compare other bosses");
+    expect(source).toContain("Search and sort the full table only when the first trip is not the one.");
     expect(source).toContain("Boss options with this bank");
     expect(source).not.toContain("Gear recognized");
     expect(source).not.toContain("Per-boss DPS with your gear");

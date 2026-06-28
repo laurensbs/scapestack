@@ -73,15 +73,15 @@ describe("next-up action plans", () => {
       hasBankContext: true
     });
 
-    expect(text).toContain("Scapestack session");
+    expect(text).toContain("Scapestack anti-bankstanding plan");
     expect(text).toContain("Stop bankstanding:");
     expect(text).toContain("Do this first:");
-    expect(text).toContain("Next login:");
-    expect(text).toContain("Backup:");
-    expect(text).toMatch(/Next login: (GP|Bossing|Slayer|AFK|Chill|Unlock) - /);
+    expect(text).toContain("Backup 1:");
+    expect(text).toContain("Backup 2:");
+    expect(text).toMatch(/Backup 1: (GP|Bossing|Slayer|AFK|Chill|Unlock) - /);
     expect(text).toContain("Why:");
     expect(text).toContain("Time:");
-    expect(text).toContain("Gear/supplies:");
+    expect(text).toContain("Bring:");
     expect(text).toContain("First step:");
     expect(text).toContain("Stop point:");
     expect(text).toContain("https://www.scapestack.org/");

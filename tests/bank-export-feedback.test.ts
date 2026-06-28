@@ -7,12 +7,14 @@ const source = readFileSync(join(process.cwd(), "src/components/bank-result.tsx"
 describe("bank export feedback", () => {
   it("starts the bank result with one useful next move before technical details", () => {
     expect(source).toContain("function BankDecisionHero");
-    expect(source).toContain("What this bank enables");
+    expect(source).toContain("What can I do with this bank?");
+    expect(source).toContain("DPS can build one owned-gear trip.");
+    expect(source).toContain("Send this bank to /next.");
     expect(source).toContain("Check one boss trip before buying upgrades");
     expect(source).toContain("Use this bank for one clear session plan");
     expect(source).toContain("<span>Bank details</span>");
     expect(source).toContain("<span>Saved banks</span>");
-    expect(source.indexOf("What this bank enables")).toBeLessThan(source.indexOf("Data receipt"));
+    expect(source.indexOf("What can I do with this bank?")).toBeLessThan(source.indexOf("Data receipt"));
   });
 
   it("shows a data receipt for source precision before export", () => {

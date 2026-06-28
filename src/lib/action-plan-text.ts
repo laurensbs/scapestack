@@ -62,11 +62,12 @@ export function formatRecommendationSessionPlan(
   limit = 3
 ): string {
   const planned = recs.slice(0, limit);
-  if (planned.length === 0) return "Scapestack session\n\nNo plan available yet.";
+  if (planned.length === 0) return "Scapestack anti-bankstanding plan\n\nNo plan available yet.";
 
   const lines = [
-    "Scapestack session",
-    "Stop bankstanding: pick one route, do the first step, stop at the stop point.",
+    "Scapestack anti-bankstanding plan",
+    context.rsn ? `RSN: ${context.rsn}` : null,
+    "Stop bankstanding: do the first step, then stop at the stop point.",
     "",
     ...planned.flatMap((rec, index) => {
       const plan = rec.actionPlan;
@@ -74,7 +75,7 @@ export function formatRecommendationSessionPlan(
       const actionHref = primaryAction.href
         ? `${primaryAction.label}: ${shareableHref(primaryAction.href)}`
         : null;
-      const label = index === 0 ? "Do this first" : index === 1 ? "Next login" : "Backup";
+      const label = index === 0 ? "Do this first" : `Backup ${index}`;
       const title = index === 0 ? rec.title : `${sessionChoiceLabel(rec)} - ${rec.title}`;
       const stopPoint = plan?.steps.at(-1);
 
@@ -82,8 +83,8 @@ export function formatRecommendationSessionPlan(
         `${label}: ${title}`,
         `   Why: ${rec.decisionReason ?? rec.why}`,
         plan ? `   Time: ${plan.timebox}` : null,
-        plan ? `   Gear/supplies: ${plan.prep}` : null,
         plan?.steps[0] ? `   First step: ${plan.steps[0]}` : null,
+        plan ? `   Bring: ${plan.prep}` : null,
         stopPoint ? `   Stop point: ${stopPoint}` : null,
         actionHref ? `   ${actionHref}` : null,
         ""

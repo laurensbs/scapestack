@@ -229,6 +229,20 @@ function BankDecisionHero({
     hasPrices && totalValue > 0 ? formatGp(totalValue) : null,
     tipCount > 0 ? `${tipCount} cleanup move${tipCount === 1 ? "" : "s"}` : null
   ].filter((chip): chip is string => Boolean(chip));
+  const outcomes = [
+    {
+      label: "Trip",
+      value: weaponCount > 0 ? "DPS can build one owned-gear trip." : "Add combat gear for boss checks."
+    },
+    {
+      label: "Upgrade",
+      value: hasPrices && totalValue > 0 ? "Use GP context before buying." : "Add prices for upgrade calls."
+    },
+    {
+      label: "Next",
+      value: tipCount > 0 ? "Clean a few slots, then plan." : "Send this bank to /next."
+    }
+  ];
 
   return (
     <section className="mb-5 rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-panel)] px-4 py-4 shadow-[0_18px_55px_rgba(0,0,0,0.18)] sm:px-5 sm:py-5">
@@ -240,7 +254,7 @@ function BankDecisionHero({
             </span>
             <div className="min-w-0">
               <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-gold-soft)]">
-                What this bank enables
+                What can I do with this bank?
               </div>
               <h2 className="mt-1 text-[21px] font-bold tracking-normal text-[var(--color-text)] sm:text-[25px]">
                 {decision.title}
@@ -297,16 +311,25 @@ function BankDecisionHero({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-2 md:grid-cols-3">
-        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3">
+      <div className="mt-4 grid gap-3 border-t border-[var(--color-border)] pt-4 sm:grid-cols-3">
+        {outcomes.map((outcome) => (
+          <div key={outcome.label} className="min-w-0">
+            <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">{outcome.label}</div>
+            <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{outcome.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 grid gap-3 border-t border-[var(--color-border)] pt-4 md:grid-cols-3">
+        <div>
           <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">First step</div>
           <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{decision.firstStep}</p>
         </div>
-        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3">
+        <div>
           <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Stop point</div>
           <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{decision.stopPoint}</p>
         </div>
-        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3">
+        <div>
           <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Avoid</div>
           <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{decision.avoid}</p>
         </div>
