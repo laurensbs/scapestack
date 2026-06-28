@@ -97,12 +97,12 @@ export const TOOLS: Tool[] = [
   {
     slug: "dps",
     href: "/dps",
-    name: "DPS Calculator",
+    name: "Boss Trip Check",
     navLabel: "DPS",
-    short: "Best setup per boss from your bank",
-    tagline: "Paste your bank → optimal DPS for every boss",
+    short: "Can this bank handle the trip?",
+    tagline: "Paste your bank → one boss verdict",
     description:
-      "We auto-pick the best weapon and armour from your bank for 60+ bosses, then show max hit, accuracy, DPS, time-to-kill, GP/hr and the top upgrades that would speed you up.",
+      "Picks a boss, setup, first trip, stop point and upgrade check from gear you already own. Numbers are still there, but the first answer is whether the trip makes sense.",
     icon: Sword,
     iconItemId: 4151,  // Abyssal whip — combat / damage signature
     status: "live",

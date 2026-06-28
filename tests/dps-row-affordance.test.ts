@@ -35,12 +35,22 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("const focusedBossUpgrades = useMemo(");
     expect(source).toContain("focusedBoss ? suggestUpgradesForBoss(owned, focusedBoss).slice(0, 3) : []");
     expect(source).toContain("const visibleUpgrades = focusedBoss ? focusedBossUpgrades : upgrades;");
-    expect(source).toContain("{focusedBoss ? `${focusedBoss.name} upgrades` : \"Biggest upgrades\"}");
-    expect(source).toContain("Only showing items that improve ${focusedBoss.name} with this exact bank.");
-    expect(source).toContain("Global upgrades ranked by how many bosses they improve with this bank.");
+    expect(source).toContain("{focusedBoss ? `${focusedBoss.name} upgrade check` : \"Upgrade before camping\"}");
+    expect(source).toContain("Only items that help ${focusedBoss.name} from this bank.");
+    expect(source).toContain("Worth checking before you camp a boss for a longer session.");
     expect(source).toContain('{focusedBoss ? "vs current setup" : "avg"}');
     expect(source).toContain("Helps <span className=\"text-[var(--color-gold-soft)]\">{focusedBoss.name}</span> directly.");
     expect(source).toContain("function suggestUpgradesForBoss(owned: GearItem[], boss: Boss): UpgradeSuggestion[]");
+  });
+
+  it("starts DPS as a boss-trip verdict instead of a dashboard", () => {
+    expect(source).toContain("function DpsDecisionHero");
+    expect(source).toContain("Can I kill this?");
+    expect(source).toContain("Yes: do one short trip");
+    expect(source).toContain("Setup details");
+    expect(source).toContain("Boss options with this bank");
+    expect(source).not.toContain("Gear recognized");
+    expect(source).not.toContain("Per-boss DPS with your gear");
   });
 
   it("makes upgrade items actionable with Wiki and GE price links", () => {

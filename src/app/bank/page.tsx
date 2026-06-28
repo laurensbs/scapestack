@@ -227,12 +227,6 @@ function BankPageContent() {
               items={freshIconics}
             />
           )}
-          <ScapestackReadinessRail
-            surface="bank"
-            hasBankContext
-            hasRsn={Boolean(inferredRsn)}
-            rsn={inferredRsn}
-          />
           <BankResult
             initial={result}
             initialStrings={strings}
@@ -241,6 +235,20 @@ function BankPageContent() {
             inferredRsn={inferredRsn}
             hiscoreSkills={hiscoreSkills}
           />
+          <details className="mt-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-3">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-semibold text-[var(--color-text)] marker:hidden">
+              <span>Planning context</span>
+              <span className="text-[11px] font-medium text-[var(--color-text-muted)]">RSN and RuneLite can improve later</span>
+            </summary>
+            <div className="mt-4">
+              <ScapestackReadinessRail
+                surface="bank"
+                hasBankContext
+                hasRsn={Boolean(inferredRsn)}
+                rsn={inferredRsn}
+              />
+            </div>
+          </details>
         </>
       )}
     </main>

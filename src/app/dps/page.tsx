@@ -3,8 +3,8 @@ import { ToolHeader } from "@/components/tool-header";
 import { DpsClient } from "./dps-client";
 
 export const metadata = {
-  title: "DPS Calculator",
-  description: "Paste your bank — get the best gear setup and DPS for every boss, plus the top upgrades that would speed up your kills."
+  title: "Boss Trip Check",
+  description: "Paste your bank and get one boss verdict: setup, first trip, stop point and upgrade check from gear you already own."
 };
 
 // Suspense wrapper required by Next.js 16 for any child that calls

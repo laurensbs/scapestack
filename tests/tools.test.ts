@@ -48,7 +48,11 @@ describe("tool registry", () => {
   });
 
   it("keeps live tool copy aligned with current product scope", () => {
-    expect(getTool("dps")?.description).toContain("60+ bosses");
+    expect(getTool("dps")).toMatchObject({
+      name: "Boss Trip Check",
+      tagline: "Paste your bank → one boss verdict"
+    });
+    expect(getTool("dps")?.description).toContain("first trip, stop point and upgrade check");
     expect(getTool("slayer")).toMatchObject({
       href: "/slayer",
       navLabel: "Slayer",

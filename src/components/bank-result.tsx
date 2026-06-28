@@ -103,6 +103,217 @@ type Density = "ultra" | "compact" | "comfortable";
 type TabMode = "type" | "useCase";
 const PREFS_KEY = "scapestack-bank:prefs";
 type BankPluginHubActionState = NonNullable<BankActionLoopInput["pluginHubState"]>;
+type BankDecisionAction = "next" | "dps" | "copy";
+
+interface BankDecision {
+  iconItemId: number;
+  title: string;
+  why: string;
+  firstStep: string;
+  stopPoint: string;
+  avoid: string;
+  primaryAction: BankDecisionAction;
+  primaryLabel: string;
+  secondaryAction: BankDecisionAction;
+  secondaryLabel: string;
+}
+
+function buildBankDecision({
+  weaponCount,
+  tipCount,
+  tipSlotsFreed,
+  totalValue,
+  totalItems,
+  hasPrices
+}: {
+  weaponCount: number;
+  tipCount: number;
+  tipSlotsFreed: number;
+  totalValue: number;
+  totalItems: number;
+  hasPrices: boolean;
+}): BankDecision {
+  if (weaponCount > 0) {
+    return {
+      iconItemId: 4151,
+      title: "Check one boss trip before buying upgrades",
+      why: `This bank has ${weaponCount} combat weapon${weaponCount === 1 ? "" : "s"}, so DPS can pick from gear you actually own.`,
+      firstStep: "Open DPS, lock a setup, then do one short trip.",
+      stopPoint: "Stop after the first trip if kills feel slow or supplies burn too fast.",
+      avoid: "Avoid buying upgrades before checking what your bank can already do.",
+      primaryAction: "dps",
+      primaryLabel: "Check DPS",
+      secondaryAction: "next",
+      secondaryLabel: "Plan next move"
+    };
+  }
+
+  if (tipCount > 0) {
+    const slotCopy = tipSlotsFreed > 0
+      ? `${tipSlotsFreed} slot${tipSlotsFreed === 1 ? "" : "s"}`
+      : "a few slots";
+
+    return {
+      iconItemId: 8007,
+      title: `Clean ${slotCopy} before your next trip`,
+      why: `Scapestack found ${tipCount} quick bank cleanup move${tipCount === 1 ? "" : "s"} that can make gearing less annoying.`,
+      firstStep: "Run Smart tidy, then copy the tabs back to RuneLite.",
+      stopPoint: "Stop when gear, supplies and teleports are easy to find.",
+      avoid: "Avoid dragging every item by hand.",
+      primaryAction: "copy",
+      primaryLabel: "Copy to RuneLite",
+      secondaryAction: "next",
+      secondaryLabel: "Plan next move"
+    };
+  }
+
+  if (totalValue > 0 || totalItems > 0) {
+    return {
+      iconItemId: hasPrices ? 995 : 13307,
+      title: "Use this bank for one clear session plan",
+      why: hasPrices && totalValue > 0
+        ? `Gear, supplies and ${formatGp(totalValue)} GP are now part of the next recommendation.`
+        : "Gear and supplies are now part of the next recommendation.",
+      firstStep: "Open /next and pick the one session that fits tonight.",
+      stopPoint: "Stop when you have one trip, unlock or AFK goal picked.",
+      avoid: "Avoid comparing every tab before deciding what to do.",
+      primaryAction: "next",
+      primaryLabel: "Plan next move",
+      secondaryAction: "dps",
+      secondaryLabel: "Check DPS"
+    };
+  }
+
+  return {
+    iconItemId: 841,
+    title: "Paste a fuller bank before trusting gear advice",
+    why: "This paste does not give enough gear or supplies to make a good route.",
+    firstStep: "Paste Bank Memory or a full Bank Tags export.",
+    stopPoint: "Stop once Scapestack can see combat gear and supplies.",
+    avoid: "Avoid using a tiny loot tab as your whole bank.",
+    primaryAction: "copy",
+    primaryLabel: "Copy current tabs",
+    secondaryAction: "next",
+    secondaryLabel: "Plan anyway"
+  };
+}
+
+function BankDecisionHero({
+  decision,
+  totalItems,
+  totalValue,
+  weaponCount,
+  tipCount,
+  hasPrices,
+  copied,
+  onPrimary,
+  onSecondary,
+  onTidy,
+  onEditInput
+}: {
+  decision: BankDecision;
+  totalItems: number;
+  totalValue: number;
+  weaponCount: number;
+  tipCount: number;
+  hasPrices: boolean;
+  copied: string | null;
+  onPrimary: (action: BankDecisionAction) => void;
+  onSecondary: (action: BankDecisionAction) => void;
+  onTidy: () => void;
+  onEditInput: () => void;
+}) {
+  const chips = [
+    `${totalItems} items`,
+    weaponCount > 0 ? `${weaponCount} weapon${weaponCount === 1 ? "" : "s"}` : null,
+    hasPrices && totalValue > 0 ? formatGp(totalValue) : null,
+    tipCount > 0 ? `${tipCount} cleanup move${tipCount === 1 ? "" : "s"}` : null
+  ].filter((chip): chip is string => Boolean(chip));
+
+  return (
+    <section className="mb-5 rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-panel)] px-4 py-4 shadow-[0_18px_55px_rgba(0,0,0,0.18)] sm:px-5 sm:py-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/55">
+              <ItemSprite id={decision.iconItemId} alt="" size={30} />
+            </span>
+            <div className="min-w-0">
+              <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-gold-soft)]">
+                What this bank enables
+              </div>
+              <h2 className="mt-1 text-[21px] font-bold tracking-normal text-[var(--color-text)] sm:text-[25px]">
+                {decision.title}
+              </h2>
+            </div>
+          </div>
+          <p className="max-w-3xl text-[13.5px] leading-relaxed text-[var(--color-text-dim)]">
+            {decision.why}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {chips.map((chip) => (
+              <span
+                key={chip}
+                className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-text-dim)]"
+              >
+                {chip}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2 lg:justify-end">
+          <button
+            type="button"
+            onClick={() => onPrimary(decision.primaryAction)}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-bold text-white transition-all hover:brightness-110"
+          >
+            {copied === "all" && decision.primaryAction === "copy" ? <CheckCheck className="size-3.5" /> : <ArrowRight className="size-3.5" />}
+            {copied === "all" && decision.primaryAction === "copy" ? "Copied" : decision.primaryLabel}
+          </button>
+          <button
+            type="button"
+            onClick={() => onSecondary(decision.secondaryAction)}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+          >
+            {decision.secondaryLabel}
+            <ArrowRight className="size-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={onTidy}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-transparent px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]"
+          >
+            <Wand2 className="size-3.5" />
+            Tidy
+          </button>
+          <button
+            type="button"
+            onClick={onEditInput}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-transparent px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]"
+          >
+            <Edit3 className="size-3.5" />
+            Edit
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-2 md:grid-cols-3">
+        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3">
+          <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">First step</div>
+          <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{decision.firstStep}</p>
+        </div>
+        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3">
+          <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Stop point</div>
+          <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{decision.stopPoint}</p>
+        </div>
+        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3">
+          <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Avoid</div>
+          <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{decision.avoid}</p>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 interface Prefs {
   sort: SortMode;
@@ -1073,6 +1284,11 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
   const totalValue = useMemo(() => tabs.reduce((s, t) => s + t.value, 0), [tabs]);
   const totalQty = useMemo(() => tabs.reduce((s, t) => s + t.quantity, 0), [tabs]);
   const totalItems = useMemo(() => tabs.reduce((s, t) => s + t.items.length, 0), [tabs]);
+  const bankGearItems = useMemo(() => ownedGear(allItems), [allItems]);
+  const bankWeaponCount = useMemo(
+    () => bankGearItems.filter((gear) => gear.slot === "weapon").length,
+    [bankGearItems]
+  );
   const sourceReceipt = useMemo(() => bankSourceReceipt(initial), [initial]);
   const idSpriteHealth = useMemo(() => bankIdSpriteHealth(initial), [initial]);
   const fallbackItemSearchQuery = useMemo(
@@ -1089,17 +1305,54 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
     hasPluginSyncHint: Boolean(inferredRsn),
     pluginHubState
   }), [bankTips.length, inferredRsn, pluginHubState, strings.length, tabs.length, tipSlotsFreed, totalItems, totalValue]);
+  const bankDecision = useMemo(() => buildBankDecision({
+    weaponCount: bankWeaponCount,
+    tipCount: bankTips.length,
+    tipSlotsFreed,
+    totalValue,
+    totalItems,
+    hasPrices: initial.stats.hasPrices
+  }), [bankTips.length, bankWeaponCount, initial.stats.hasPrices, tipSlotsFreed, totalItems, totalValue]);
   const pluginSyncHref = useMemo(() => {
     const params = new URLSearchParams();
     if (inferredRsn?.trim()) params.set("rsn", inferredRsn.trim());
     params.set("from", "bank");
     return `/plugin?${params.toString()}#verify-sync`;
   }, [inferredRsn]);
+  const runBankDecision = useCallback((action: BankDecisionAction) => {
+    if (action === "dps") {
+      openBankHandoffRoute(bankToolUrl("/dps", inferredRsn));
+      return;
+    }
+    if (action === "next") {
+      openBankHandoffRoute(bankToolUrl("/next", inferredRsn));
+      return;
+    }
+    void copyAll();
+  }, [copyAll, inferredRsn, openBankHandoffRoute]);
 
   return (
     <div className="animate-[slide-up_0.35s_ease-out]">
+      <BankDecisionHero
+        decision={bankDecision}
+        totalItems={totalItems}
+        totalValue={totalValue}
+        weaponCount={bankWeaponCount}
+        tipCount={bankTips.length}
+        hasPrices={initial.stats.hasPrices}
+        copied={copied}
+        onPrimary={runBankDecision}
+        onSecondary={runBankDecision}
+        onTidy={() => applyReorganize("smart", "Tidied")}
+        onEditInput={onEditInput}
+      />
       {/* Header — minimal, mono stats, single mint accent on gp */}
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+      <details className="mb-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-3">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-semibold text-[var(--color-text)] marker:hidden">
+          <span>Bank details</span>
+          <span className="text-[11px] font-medium text-[var(--color-text-muted)]">gear, export, source</span>
+        </summary>
+      <div className="mt-4 flex flex-wrap items-start justify-between gap-4 mb-6">
         <div>
           <h2 className="text-[20px] font-semibold tracking-normal text-[var(--color-text)] leading-tight">
             {initial.source.name}
@@ -1314,6 +1567,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
           </div>
         </div>
       </div>
+      </details>
 
       {(initial.importWarnings.fallbackItemCount > 0 || initial.importWarnings.duplicateItemCount > 0) && (
         <div
@@ -1399,25 +1653,33 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
         />
       )}
 
-      <SnapshotHistoryPanel
-        snapshots={rsnSnapshots}
-        scopeLabel={inferredRsn ?? "local device"}
-        currentSummary={summarizeTabsForSnapshot(tabs)}
-        currentSnapshot={currentSnapshot}
-        compareSnapshot={compareSnapshot}
-        compareDiff={compareDiff}
-        deletedSnapshot={deletedSnapshot}
-        onSaveSnapshot={saveCurrentSnapshot}
-        onCompare={(snap) => setCompareSnapshot(compareSnapshot?.ts === snap.ts ? null : snap)}
-        onDelete={deleteStoredSnapshot}
-        onUndoDelete={undoDeleteSnapshot}
-        onRestore={restoreSnapshot}
-        onOpenNext={() => openBankHandoffRoute(bankToolUrl("/next", inferredRsn))}
-        onOpenDps={() => openBankHandoffRoute(bankToolUrl("/dps", inferredRsn))}
-        onSearchItems={searchSuggestionItems}
-        onCopyCompareSummary={copyCompareSummary}
-        compareSummaryCopied={copied === "snapshot-compare-summary"}
-      />
+      <details className="mb-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-3">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-semibold text-[var(--color-text)] marker:hidden">
+          <span>Saved banks</span>
+          <span className="text-[11px] font-medium text-[var(--color-text-muted)]">compare or restore later</span>
+        </summary>
+        <div className="mt-3">
+          <SnapshotHistoryPanel
+            snapshots={rsnSnapshots}
+            scopeLabel={inferredRsn ?? "local device"}
+            currentSummary={summarizeTabsForSnapshot(tabs)}
+            currentSnapshot={currentSnapshot}
+            compareSnapshot={compareSnapshot}
+            compareDiff={compareDiff}
+            deletedSnapshot={deletedSnapshot}
+            onSaveSnapshot={saveCurrentSnapshot}
+            onCompare={(snap) => setCompareSnapshot(compareSnapshot?.ts === snap.ts ? null : snap)}
+            onDelete={deleteStoredSnapshot}
+            onUndoDelete={undoDeleteSnapshot}
+            onRestore={restoreSnapshot}
+            onOpenNext={() => openBankHandoffRoute(bankToolUrl("/next", inferredRsn))}
+            onOpenDps={() => openBankHandoffRoute(bankToolUrl("/dps", inferredRsn))}
+            onSearchItems={searchSuggestionItems}
+            onCopyCompareSummary={copyCompareSummary}
+            compareSummaryCopied={copied === "snapshot-compare-summary"}
+          />
+        </div>
+      </details>
 
       {/* Preferences row — sits directly above the bank so the controls and
           the thing they control are visually paired. */}
