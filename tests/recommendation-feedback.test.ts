@@ -3,7 +3,10 @@ import {
   clearRecommendationFeedback,
   isRecommendationSuppressed,
   latestRecommendationFeedback,
+  latestRecommendationMemory,
   loadRecommendationFeedback,
+  recommendationMemoryCounts,
+  recordRecommendationMemory,
   restoreRecommendation,
   suppressRecommendation
 } from "@/lib/recommendation-feedback";
@@ -68,6 +71,45 @@ describe("recommendation feedback", () => {
     clearRecommendationFeedback();
 
     expect(loadRecommendationFeedback().suppressed).toEqual({});
+    expect(loadRecommendationFeedback().recent).toEqual([]);
+  });
+
+  it("records try-another memory without hiding the recommendation", () => {
+    recordRecommendationMemory({
+      id: "quest:mm2",
+      kind: "quest",
+      title: "Finish Monkey Madness II",
+      action: "try_another",
+      mood: "unlock",
+      routeLens: "smart",
+      rsn: "Lauky"
+    });
+
+    expect(isRecommendationSuppressed("quest:mm2")).toBe(false);
+    expect(recommendationMemoryCounts(loadRecommendationFeedback(), { rsn: "lauky" })).toEqual({
+      "quest:mm2": 1
+    });
+    expect(latestRecommendationMemory(loadRecommendationFeedback(), { rsn: "Lauky" })?.title)
+      .toBe("Finish Monkey Madness II");
+  });
+
+  it("weights harder feedback more strongly than a light route skip", () => {
+    recordRecommendationMemory({ id: "boss:callisto", kind: "boss", action: "try_another", rsn: "Lauky" });
+    suppressRecommendation({ id: "quest:dt2", kind: "quest", title: "Finish Desert Treasure II", reason: "too_hard" });
+
+    const counts = recommendationMemoryCounts(loadRecommendationFeedback(), { rsn: "Lauky" });
+
+    expect(counts["boss:callisto"]).toBe(1);
+    expect(counts["quest:dt2"]).toBe(3);
+  });
+
+  it("restore removes recent memory for that pick too", () => {
+    suppressRecommendation({ id: "quest:dragon-slayer", kind: "quest", reason: "not_today" });
+
+    restoreRecommendation("quest:dragon-slayer");
+
+    expect(isRecommendationSuppressed("quest:dragon-slayer")).toBe(false);
+    expect(recommendationMemoryCounts(loadRecommendationFeedback())["quest:dragon-slayer"]).toBeUndefined();
   });
 
   it("survives corrupt localStorage", () => {

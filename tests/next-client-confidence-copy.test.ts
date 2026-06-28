@@ -157,6 +157,11 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("applyRouteLens(lens)");
     expect(source).toContain("sessionSkipped");
     expect(source).toContain("recordSessionSkip(current, pick.headline)");
+    expect(source).toContain("recordRecommendationMemory");
+    expect(source).toContain('action: "try_another"');
+    expect(source).toContain("recommendationMemoryCounts(feedback, { rsn: activeRsn })");
+    expect(source).toContain("latestRecommendationMemory(feedback, { rsn: activeRsn })");
+    expect(source).toContain("mergedSkipCounts(sessionSkippedCounts(sessionSkipped), recentMemoryCounts)");
     expect(source).toContain("routeSwitchCopy(nextRouteLens, pick.headline)");
     expect(source).toContain("pickForRoute(visibleRecs, mood, minutes, routeLens, shuffleIdx, routePickOptions)");
     expect(source).toContain("Session length");
@@ -244,7 +249,8 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Too hard");
     expect(source).toContain('applySessionIntent("cash", 60)');
     expect(source).toContain('applySessionIntent("afk", 60)');
-    expect(source).toContain('applySessionIntent("chill", 30)');
+    expect(source).toContain("markLastSuppressedTooHard");
+    expect(source).toContain('reason: "too_hard"');
     expect(source).toContain("title: rec.title");
     expect(source).toContain("Undo hide");
     expect(source).toContain("aria-label={`Not today: hide ${rec.title}`}");
@@ -259,6 +265,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("is marked done, so this is the next move.");
     expect(source).toContain("Another trip");
     expect(source).toContain("Chill now");
+    expect(source).toContain('applySessionIntent("chill", 30)');
     expect(source).toContain("Undo done");
     expect(source).toContain("const moveToAnotherPlan = () =>");
     expect(source).toContain("const moveToChillPlan = () =>");

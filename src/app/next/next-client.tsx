@@ -38,9 +38,13 @@ import { saveMood, loadMood, relativeSince, type MoodSession } from "@/lib/mood-
 import {
   clearRecommendationFeedback,
   latestRecommendationFeedback,
+  latestRecommendationMemory,
   loadRecommendationFeedback,
+  recommendationMemoryCounts,
+  recordRecommendationMemory,
   restoreRecommendation,
   suppressRecommendation,
+  type RecommendationMemoryEntry,
   type RecommendationFeedback
 } from "@/lib/recommendation-feedback";
 import { wikiSearchUrl } from "@/lib/wiki";
@@ -1850,12 +1854,14 @@ function sessionMemoryNote({
   feedback,
   lastSession,
   allRecs,
-  headline
+  headline,
+  activeRsn
 }: {
   feedback: RecommendationFeedback;
   lastSession: MoodSession | null;
   allRecs: Recommendation[];
   headline: Recommendation | null;
+  activeRsn: string;
 }): string | null {
   const twoWeeks = 14 * 24 * 60 * 60 * 1000;
   const latest = latestRecommendationFeedback(feedback);
@@ -1871,6 +1877,19 @@ function sessionMemoryNote({
         ? `Welcome back — ${title} is marked done, so this is the next move.`
         : "Welcome back — that pick is marked done, so this is the next move.";
     }
+    if (latest.reason === "too_hard") {
+      return title
+        ? `Last time: ${title} felt too hard, so this plan goes easier.`
+        : "Last time: that pick felt too hard, so this plan goes easier.";
+    }
+  }
+
+  const latestMemory = latestRecommendationMemory(feedback, { rsn: activeRsn });
+  if (latestMemory?.action === "try_another") {
+    const title = latestMemory.title ?? allRecs.find((rec) => rec.id === latestMemory.id)?.title;
+    return title
+      ? `Last time: you asked for another route, so ${title} starts lower.`
+      : "Last time: you asked for another route, so that pick starts lower.";
   }
 
   if (!lastSession?.lastHeadlineTitle || !headline) return null;
@@ -2430,8 +2449,22 @@ function sessionSkippedCounts(skipped: Record<string, SessionSkippedPick>): Reco
   return Object.fromEntries(Object.values(skipped).map((entry) => [entry.id, entry.count]));
 }
 
+function mergedSkipCounts(...counts: Record<string, number>[]): Record<string, number> {
+  const merged: Record<string, number> = {};
+  for (const countMap of counts) {
+    for (const [id, count] of Object.entries(countMap)) {
+      merged[id] = Math.min(5, (merged[id] ?? 0) + count);
+    }
+  }
+  return merged;
+}
+
 function latestSessionSkip(skipped: Record<string, SessionSkippedPick>): SessionSkippedPick | null {
   return Object.values(skipped).sort((a, b) => b.skippedAt - a.skippedAt)[0] ?? null;
+}
+
+function memoryKind(memory: RecommendationMemoryEntry | null): RecKind | null {
+  return memory ? (memory.kind as RecKind) : null;
 }
 
 function routeSwitchCopy(nextLens: RouteLens, skipped: Recommendation): string {
@@ -2592,11 +2625,12 @@ function WhatToDo({
   const [shuffleIdx, setShuffleIdx] = useState(0);
   const [sessionSkipped, setSessionSkipped] = useState<Record<string, SessionSkippedPick>>({});
   const [routeSwitchNote, setRouteSwitchNote] = useState<string | null>(null);
-  const [lastSuppressed, setLastSuppressed] = useState<{ id: string; title: string } | null>(null);
+  const [lastSuppressed, setLastSuppressed] = useState<{ id: string; kind: RecKind; title: string } | null>(null);
   const [lastCompleted, setLastCompleted] = useState<{ id: string; title: string } | null>(null);
   const [feedback, setFeedback] = useState<RecommendationFeedback>(() => ({
     version: 1,
-    suppressed: {}
+    suppressed: {},
+    recent: []
   }));
   const [lastSession, setLastSession] = useState<MoodSession | null>(null);
   const [sessionCopyState, setSessionCopyState] = useState<"idle" | "copied" | "error">("idle");
@@ -2629,13 +2663,21 @@ function WhatToDo({
   const hiddenCount = allRecs.filter((rec) => feedback.suppressed[rec.id]).length;
   const visibleRecs = allRecs.filter((rec) => !feedback.suppressed[rec.id]);
   const latestSkipped = useMemo(() => latestSessionSkip(sessionSkipped), [sessionSkipped]);
+  const recentMemoryCounts = useMemo(
+    () => recommendationMemoryCounts(feedback, { rsn: activeRsn }),
+    [activeRsn, feedback]
+  );
+  const latestMemory = useMemo(
+    () => latestRecommendationMemory(feedback, { rsn: activeRsn }),
+    [activeRsn, feedback]
+  );
   const routePickOptions = useMemo(
     () => ({
-      skippedIds: sessionSkippedCounts(sessionSkipped),
-      previousKind: latestSkipped?.kind ?? null,
-      previousId: latestSkipped?.id ?? null
+      skippedIds: mergedSkipCounts(sessionSkippedCounts(sessionSkipped), recentMemoryCounts),
+      previousKind: latestSkipped?.kind ?? memoryKind(latestMemory),
+      previousId: latestSkipped?.id ?? latestMemory?.id ?? null
     }),
-    [latestSkipped?.id, latestSkipped?.kind, sessionSkipped]
+    [latestMemory, latestSkipped?.id, latestSkipped?.kind, recentMemoryCounts, sessionSkipped]
   );
   const actionContext = useMemo<RecommendationActionContext>(
     () => ({ from: "next", hasBankContext, rsn: activeRsn }),
@@ -2666,9 +2708,10 @@ function WhatToDo({
       feedback,
       lastSession,
       allRecs,
-      headline: pick?.headline ?? null
+      headline: pick?.headline ?? null,
+      activeRsn
     }),
-    [feedback, lastSession, allRecs, pick?.headline]
+    [activeRsn, feedback, lastSession, allRecs, pick?.headline]
   );
   const noticedNote = useMemo(
     () => scapestackNotice({
@@ -2714,7 +2757,7 @@ function WhatToDo({
   };
   const hideRecommendation = (rec: Recommendation) => {
     setFeedback(suppressRecommendation({ id: rec.id, kind: rec.kind, title: rec.title, reason: "not_today" }));
-    setLastSuppressed({ id: rec.id, title: rec.title });
+    setLastSuppressed({ id: rec.id, kind: rec.kind, title: rec.title });
     setLastCompleted(null);
   };
   const completeRecommendation = (rec: Recommendation) => {
@@ -2728,6 +2771,16 @@ function WhatToDo({
     setLastSuppressed(null);
     setShuffleIdx(0);
   };
+  const markLastSuppressedTooHard = () => {
+    if (!lastSuppressed) return;
+    setFeedback(suppressRecommendation({
+      id: lastSuppressed.id,
+      kind: lastSuppressed.kind,
+      title: lastSuppressed.title,
+      reason: "too_hard"
+    }));
+    applySessionIntent("chill", 30);
+  };
   const restoreLastCompleted = () => {
     if (!lastCompleted) return;
     setFeedback(restoreRecommendation(lastCompleted.id));
@@ -2739,6 +2792,15 @@ function WhatToDo({
     setLastSuppressed(null);
     if (pick?.headline) {
       setSessionSkipped((current) => recordSessionSkip(current, pick.headline));
+      setFeedback(recordRecommendationMemory({
+        id: pick.headline.id,
+        kind: pick.headline.kind,
+        title: pick.headline.title,
+        action: "try_another",
+        mood,
+        routeLens,
+        rsn: activeRsn
+      }));
       setRouteSwitchNote(routeSwitchCopy(nextRouteLens, pick.headline));
     }
     if (nextRouteLens === "smart") {
@@ -2902,7 +2964,7 @@ function WhatToDo({
             </button>
             <button
               type="button"
-              onClick={() => applySessionIntent("chill", 30)}
+              onClick={markLastSuppressedTooHard}
               className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-warning)] transition-colors hover:bg-[var(--color-warning)]/10"
             >
               Too hard
