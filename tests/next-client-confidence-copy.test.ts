@@ -71,6 +71,13 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('label: "Slayer"');
     expect(source).toContain('label: "Unlock"');
     expect(source).toContain("function RecommendationSessionSummary");
+    expect(source).toContain("function sessionFitCopy");
+    expect(source).toContain("Session fit");
+    expect(source).toContain("Fits a chill");
+    expect(source).toContain("Fits AFK mode");
+    expect(source).toContain("Fits a GP session");
+    expect(source).toContain("Fits a PvM session");
+    expect(source).toContain("Fits a short login");
     expect(source).toContain("function recommendationFirstStepValue");
     expect(source).toContain("function recommendationStopPointValue");
     expect(source).toContain("function recommendationBringValue");

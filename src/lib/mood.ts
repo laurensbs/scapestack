@@ -164,6 +164,24 @@ function timeBudgetFit(rec: Recommendation, minutes: TimeBudget): number {
   return 0.85 + 0.55 * proximity; // 0.85 .. 1.4
 }
 
+function isScoutKc(rec: Recommendation): boolean {
+  if (rec.kind !== "kc") return false;
+  const kc = rec.kcMeta?.kc;
+  if (typeof kc === "number" && kc > 0 && kc < 5) return true;
+  return `${rec.why} ${rec.decisionReason ?? ""}`.toLowerCase().includes("scout read");
+}
+
+function accountFitMultiplier(rec: Recommendation, mood: Mood): number {
+  if (!isScoutKc(rec)) return 1;
+
+  // A 1-4 KC boss read is useful context, but it should feel like a
+  // backup test trip, not the app confidently telling a player to camp it.
+  if (mood === "bossing" || mood === "focused") return 0.55;
+  if (mood === "cash") return 0.45;
+  if (mood === "short") return 0.3;
+  return 0.2;
+}
+
 export interface MoodPick {
   /** De hoofdsuggestie — top na re-scoring. */
   headline: Recommendation;
@@ -196,7 +214,8 @@ export function pickForMood(
   const scored = recs.map((rec) => {
     const kindMult = weights[rec.kind] ?? 1.0;
     const timeMult = timeBudgetFit(rec, minutes);
-    return { rec, adjScore: rec.score * kindMult * timeMult };
+    const accountMult = accountFitMultiplier(rec, mood);
+    return { rec, adjScore: rec.score * kindMult * timeMult * accountMult };
   });
   scored.sort((a, b) => b.adjScore - a.adjScore);
 

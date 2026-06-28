@@ -1564,13 +1564,62 @@ function recommendationAvoidance(rec: Recommendation): string {
   }
 }
 
-function RecommendationSessionSummary({ rec, compact = false }: { rec: Recommendation; compact?: boolean }) {
+function sessionFitCopy(
+  rec: Recommendation,
+  mood: Mood,
+  minutes: TimeBudget,
+  hasBankContext: boolean
+): string {
+  const time = minutes === 60 ? "1 hour" : `${minutes} min`;
+  const noGear = !hasBankContext && (rec.kind === "boss" || rec.kind === "kc" || rec.kind === "money");
+
+  if (mood === "chill") {
+    if (rec.kind === "skill" || rec.kind === "bank" || rec.kind === "minigame") {
+      return `Fits a chill ${time} login: low pressure, clear stop point.`;
+    }
+    return `Still useful, but switch to Bossing or Unlock if you want this to be the main grind.`;
+  }
+  if (mood === "afk") {
+    if (rec.kind === "skill" || rec.kind === "minigame" || rec.kind === "bank") {
+      return `Fits AFK mode: progress without turning the session into a sweaty trip.`;
+    }
+    return `Not really AFK; keep it as a backup unless you want active play.`;
+  }
+  if (mood === "cash") {
+    return noGear
+      ? `GP route, but no gear pasted, so Scapestack keeps the setup conservative.`
+      : `Fits a GP session: aim for the upgrade money, then stop.`;
+  }
+  if (mood === "bossing" || mood === "focused") {
+    return noGear
+      ? `Bossing route with no gear pasted; test a cheap trip before committing.`
+      : `Fits a PvM session: one trip, KC or kill-time check, then decide.`;
+  }
+  if (mood === "short") {
+    return `Fits a short login: one bounded move, no long chain.`;
+  }
+  return `Fits an unlock session: progress the account, then re-run /next.`;
+}
+
+function RecommendationSessionSummary({
+  rec,
+  mood,
+  minutes,
+  hasBankContext,
+  compact = false
+}: {
+  rec: Recommendation;
+  mood: Mood;
+  minutes: TimeBudget;
+  hasBankContext: boolean;
+  compact?: boolean;
+}) {
   const plan = rec.actionPlan;
   if (compact) {
     return (
       <dl className="mt-2 space-y-1.5 border-t border-[var(--color-border)]/60 pt-2">
         {[
-          { label: "Why", value: rec.decisionReason ?? rec.why },
+          { label: "Fit", value: sessionFitCopy(rec, mood, minutes, hasBankContext) },
           { label: "Stop", value: recommendationStopPointValue(rec) }
         ].map((item) => (
           <div key={`${rec.id}:compact-session:${item.label}`} className="grid grid-cols-[42px_minmax(0,1fr)] gap-2 text-[11px] leading-snug">
@@ -1587,6 +1636,10 @@ function RecommendationSessionSummary({ rec, compact = false }: { rec: Recommend
   }
 
   const summary = [
+    {
+      label: "Session fit",
+      value: sessionFitCopy(rec, mood, minutes, hasBankContext)
+    },
     {
       label: "Why this account",
       value: rec.decisionReason ?? rec.why
@@ -1696,11 +1749,17 @@ function ActionPlanBlock({ rec, compact = false }: { rec: Recommendation; compac
 function HeadlineCard({
   rec,
   actionContext,
-  onBossOpen
+  onBossOpen,
+  mood,
+  minutes,
+  hasBankContext
 }: {
   rec: Recommendation;
   actionContext: RecommendationActionContext;
   onBossOpen: (slug: string) => void;
+  mood: Mood;
+  minutes: TimeBudget;
+  hasBankContext: boolean;
 }) {
   // Boss/KC recs expose an explicit modal button. Other kinds expose an
   // explicit route button. The article itself is not a fake button because
@@ -1767,7 +1826,12 @@ function HeadlineCard({
               {payoff}
             </p>
           )}
-          <RecommendationSessionSummary rec={rec} />
+          <RecommendationSessionSummary
+            rec={rec}
+            mood={mood}
+            minutes={minutes}
+            hasBankContext={hasBankContext}
+          />
           {isBossWithDetail && rec.bossSlug ? (
             <button
               type="button"
@@ -1812,11 +1876,17 @@ function HeadlineCard({
 function RecRow({
   rec,
   actionContext,
-  onBossOpen
+  onBossOpen,
+  mood,
+  minutes,
+  hasBankContext
 }: {
   rec: Recommendation;
   actionContext: RecommendationActionContext;
   onBossOpen: (slug: string) => void;
+  mood: Mood;
+  minutes: TimeBudget;
+  hasBankContext: boolean;
 }) {
   const isBossWithDetail = (rec.kind === "kc" || rec.kind === "boss") && !!rec.bossSlug;
   const primaryAction = primaryActionForRecommendation(rec, actionContext);
@@ -1861,7 +1931,13 @@ function RecRow({
           {rec.payoff && (
             <p className="mt-1 line-clamp-2 text-[11px] text-[var(--color-text-muted)] leading-snug">{rec.payoff}</p>
           )}
-          <RecommendationSessionSummary rec={rec} compact />
+          <RecommendationSessionSummary
+            rec={rec}
+            mood={mood}
+            minutes={minutes}
+            hasBankContext={hasBankContext}
+            compact
+          />
           {isBossWithDetail && rec.bossSlug ? (
             <button
               type="button"
@@ -2398,6 +2474,9 @@ function WhatToDo({
               onComplete={completeRecommendation}
               onEdit={onEdit}
               cleanMode={shareMode}
+              mood={mood}
+              minutes={minutes}
+              hasBankContext={hasBankContext}
             />
             {pick.alternatives.length > 0 && (
               <div>
@@ -2416,6 +2495,9 @@ function WhatToDo({
                       rec={r}
                       actionContext={actionContext}
                       onBossOpen={onBossOpen}
+                      mood={mood}
+                      minutes={minutes}
+                      hasBankContext={hasBankContext}
                     />
                   ))}
                 </div>
@@ -2792,7 +2874,10 @@ function RecHeadlineExpandable({
   onSuppress,
   onComplete,
   onEdit,
-  cleanMode = false
+  cleanMode = false,
+  mood,
+  minutes,
+  hasBankContext
 }: {
   rec: Recommendation;
   actionContext: RecommendationActionContext;
@@ -2801,11 +2886,21 @@ function RecHeadlineExpandable({
   onComplete: (rec: Recommendation) => void;
   onEdit: () => void;
   cleanMode?: boolean;
+  mood: Mood;
+  minutes: TimeBudget;
+  hasBankContext: boolean;
 }) {
   const [open, setOpen] = useState(false);
   return (
     <div>
-      <HeadlineCard rec={rec} actionContext={actionContext} onBossOpen={onBossOpen} />
+      <HeadlineCard
+        rec={rec}
+        actionContext={actionContext}
+        onBossOpen={onBossOpen}
+        mood={mood}
+        minutes={minutes}
+        hasBankContext={hasBankContext}
+      />
       {!cleanMode && (
         <div className="flex justify-end mt-1.5 gap-3">
           <button
@@ -2845,11 +2940,26 @@ function RecHeadlineExpandable({
 function RecRowExpandable({
   rec,
   actionContext,
-  onBossOpen
+  onBossOpen,
+  mood,
+  minutes,
+  hasBankContext
 }: {
   rec: Recommendation;
   actionContext: RecommendationActionContext;
   onBossOpen: (slug: string) => void;
+  mood: Mood;
+  minutes: TimeBudget;
+  hasBankContext: boolean;
 }) {
-  return <RecRow rec={rec} actionContext={actionContext} onBossOpen={onBossOpen} />;
+  return (
+    <RecRow
+      rec={rec}
+      actionContext={actionContext}
+      onBossOpen={onBossOpen}
+      mood={mood}
+      minutes={minutes}
+      hasBankContext={hasBankContext}
+    />
+  );
 }

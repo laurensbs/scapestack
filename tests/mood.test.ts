@@ -21,6 +21,18 @@ function rec(kind: Recommendation["kind"], id: string, score = 50): Recommendati
   };
 }
 
+function scoutKc(id = "callisto-scout", score = 95): Recommendation {
+  return {
+    id,
+    kind: "kc",
+    title: "Push Callisto to 50 KC",
+    why: "1 KC is only a scout read.",
+    decisionReason: "This is only 1 KC, so it stays a scout read instead of the main plan.",
+    score,
+    kcMeta: { kc: 1, denom: 50, dropName: "first 50 KC" }
+  };
+}
+
 describe("pickForMood", () => {
   it("null wanneer recs leeg", () => {
     expect(pickForMood([], "chill", 60)).toBeNull();
@@ -48,6 +60,19 @@ describe("pickForMood", () => {
     const recs = [rec("kc", "vorkath-50", 70), rec("skill", "farming", 80)];
     const result = pickForMood(recs, "bossing", 60);
     expect(result!.headline.kind).toBe("kc");
+  });
+
+  it("bossing: 1-4 KC scout read blijft backup wanneer er betere PvM-context is", () => {
+    const recs = [scoutKc(), rec("boss", "vorkath", 70), rec("skill", "farming", 60)];
+    const result = pickForMood(recs, "bossing", 60);
+    expect(result!.headline.id).toBe("vorkath");
+    expect(result!.alternatives.some((alt) => alt.id === "callisto-scout")).toBe(true);
+  });
+
+  it("gp: scout bossing wint niet van echte money route", () => {
+    const recs = [scoutKc(), rec("money", "vorkath-money", 62), rec("skill", "farming", 60)];
+    const result = pickForMood(recs, "cash", 60);
+    expect(result!.headline.kind).toBe("money");
   });
 
   it("unlock: diary of quest wint van ongeankerde bossing", () => {

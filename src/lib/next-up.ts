@@ -1116,7 +1116,7 @@ function questRecs(
           ? `Prereq check: ${q.questReqs.slice(0, 3).join(", ")}${q.questReqs.length > 3 ? ` (+${q.questReqs.length - 3} more)` : ""}.`
           : "No direct quest prerequisites found in the dataset.",
         steps: [
-          `Confirm the prereq chain for ${q.name} before gearing; Hiscores cannot prove every quest state.`,
+          `Check ${q.name} prereqs before grabbing supplies; stop if the chain is longer than tonight's session.`,
           q.skillReqs.length > 0 ? `Your skills meet the listed gates; bank teleports, stamina and combat supplies for a ${q.length ?? "variable"} quest.` : "Bank teleports, stamina and any quest items before starting the guide.",
           `Clear ${q.name} or one blocking prereq, then re-run /next for newly unlocked bosses/diaries.`
         ]
