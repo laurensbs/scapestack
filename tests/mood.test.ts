@@ -155,6 +155,32 @@ describe("pickForMood", () => {
     expect(altKinds).not.toContain("boss");
   });
 
+  it("bossing backups kiezen lagere druk en GP in plaats van nog een boss", () => {
+    const recs = [
+      rec("boss", "vorkath", 80),
+      rec("kc", "vardorvis", 78),
+      rec("skill", "farming", 70),
+      rec("money", "herb-run", 68),
+      rec("quest", "mm2", 66),
+    ];
+    const result = pickForMood(recs, "bossing", 60);
+    expect(result!.headline.kind).toBe("boss");
+    expect(result!.alternatives.map((alt) => alt.kind)).toEqual(["skill", "money"]);
+  });
+
+  it("unlock backups geven chill progress en GP als echte alternatieven", () => {
+    const recs = [
+      rec("quest", "mm2", 80),
+      rec("diary", "desert-hard", 78),
+      rec("skill", "farming", 70),
+      rec("money", "herb-run", 68),
+      rec("boss", "dks", 66),
+    ];
+    const result = pickForMood(recs, "unlock", 60);
+    expect(result!.headline.kind).toBe("quest");
+    expect(result!.alternatives.map((alt) => alt.kind)).toEqual(["skill", "money"]);
+  });
+
   it("fallback: minder dan 3 recs → vult met wat-dan-ook", () => {
     const recs = [rec("boss", "vorkath", 80), rec("boss", "kbd", 60)];
     const result = pickForMood(recs, "focused", 60);

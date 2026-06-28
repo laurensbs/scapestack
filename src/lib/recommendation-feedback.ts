@@ -12,12 +12,15 @@ export type RecommendationFeedbackReason =
 
 export interface RecommendationFeedback {
   version: 1;
-  suppressed: Record<string, {
+  suppressed: Record<string, RecommendationFeedbackEntry>;
+}
+
+export interface RecommendationFeedbackEntry {
     id: string;
     kind: string;
+    title?: string;
     reason: RecommendationFeedbackReason;
     savedAt: number;
-  }>;
 }
 
 const EMPTY: RecommendationFeedback = { version: 1, suppressed: {} };
@@ -38,6 +41,7 @@ export function loadRecommendationFeedback(): RecommendationFeedback {
 export function suppressRecommendation(input: {
   id: string;
   kind: string;
+  title?: string;
   reason: RecommendationFeedbackReason;
 }): RecommendationFeedback {
   const current = loadRecommendationFeedback();
@@ -68,6 +72,13 @@ export function clearRecommendationFeedback(): RecommendationFeedback {
 
 export function isRecommendationSuppressed(id: string, feedback = loadRecommendationFeedback()): boolean {
   return Boolean(feedback.suppressed[id]);
+}
+
+export function latestRecommendationFeedback(
+  feedback = loadRecommendationFeedback()
+): RecommendationFeedbackEntry | null {
+  return Object.values(feedback.suppressed)
+    .sort((a, b) => b.savedAt - a.savedAt)[0] ?? null;
 }
 
 function saveRecommendationFeedback(feedback: RecommendationFeedback): void {

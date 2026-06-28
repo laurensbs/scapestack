@@ -26,9 +26,10 @@ import { track } from "@/lib/analytics";
 import type { Recommendation, RecKind, NextUpResult } from "@/lib/next-up";
 import { defaultActionHints } from "@/lib/rec-hints";
 import { pickForMood, MOOD_LABEL, type Mood, type TimeBudget } from "@/lib/mood";
-import { saveMood, loadMood, relativeSince } from "@/lib/mood-storage";
+import { saveMood, loadMood, relativeSince, type MoodSession } from "@/lib/mood-storage";
 import {
   clearRecommendationFeedback,
+  latestRecommendationFeedback,
   loadRecommendationFeedback,
   restoreRecommendation,
   suppressRecommendation,
@@ -1564,6 +1565,54 @@ function recommendationAvoidance(rec: Recommendation): string {
   }
 }
 
+function backupChoicePrompt(rec: Recommendation, headline: Recommendation): { label: string; helper: string } {
+  if (rec.kind === "money") {
+    return { label: "Need GP?", helper: "Pick this if funding the next upgrade matters more than the main route." };
+  }
+  if (rec.kind === "skill" || rec.kind === "bank" || rec.kind === "minigame") {
+    return headline.kind === "boss" || headline.kind === "kc" || headline.kind === "slayer"
+      ? { label: "Too sweaty?", helper: "Lower-pressure progress if the main trip feels like too much." }
+      : { label: "Want chill?", helper: "Lower-pressure progress with a clearer stop point." };
+  }
+  if (rec.kind === "boss" || rec.kind === "kc" || rec.kind === "slayer") {
+    return { label: "Want action?", helper: "Use this when you would rather do a trip, task or KC block." };
+  }
+  return { label: "Prefer unlock?", helper: "Use this when account progress matters more than GP or KC." };
+}
+
+function sessionMemoryNote({
+  feedback,
+  lastSession,
+  allRecs,
+  headline
+}: {
+  feedback: RecommendationFeedback;
+  lastSession: MoodSession | null;
+  allRecs: Recommendation[];
+  headline: Recommendation | null;
+}): string | null {
+  const twoWeeks = 14 * 24 * 60 * 60 * 1000;
+  const latest = latestRecommendationFeedback(feedback);
+  if (latest && Date.now() - latest.savedAt < twoWeeks) {
+    const title = latest.title ?? allRecs.find((rec) => rec.id === latest.id)?.title;
+    if (latest.reason === "not_today") {
+      return title
+        ? `Last time: you skipped ${title}, so this plan avoids it.`
+        : "Last time: you skipped a pick, so this plan avoids it.";
+    }
+    if (latest.reason === "already_done") {
+      return title
+        ? `Welcome back — ${title} is marked done, so this is the next move.`
+        : "Welcome back — that pick is marked done, so this is the next move.";
+    }
+  }
+
+  if (!lastSession?.lastHeadlineTitle || !headline) return null;
+  if (lastSession.lastHeadlineId === headline.id) return null;
+  if (Date.now() - lastSession.savedAt > twoWeeks) return null;
+  return `Welcome back — last pick was ${lastSession.lastHeadlineTitle}. This is the next move.`;
+}
+
 function sessionFitCopy(
   rec: Recommendation,
   mood: Mood,
@@ -1879,7 +1928,8 @@ function RecRow({
   onBossOpen,
   mood,
   minutes,
-  hasBankContext
+  hasBankContext,
+  backupPrompt
 }: {
   rec: Recommendation;
   actionContext: RecommendationActionContext;
@@ -1887,6 +1937,7 @@ function RecRow({
   mood: Mood;
   minutes: TimeBudget;
   hasBankContext: boolean;
+  backupPrompt?: { label: string; helper: string };
 }) {
   const isBossWithDetail = (rec.kind === "kc" || rec.kind === "boss") && !!rec.bossSlug;
   const primaryAction = primaryActionForRecommendation(rec, actionContext);
@@ -1917,6 +1968,14 @@ function RecRow({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
+            {backupPrompt && (
+              <span
+                className="rounded-full border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-2 py-0.5 text-[10px] font-bold text-[var(--color-accent)]"
+                title={backupPrompt.helper}
+              >
+                {backupPrompt.label}
+              </span>
+            )}
             <span
               className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-0.5 text-[10px] font-bold text-[var(--color-accent)]"
               title={choice.helper}
@@ -2135,10 +2194,12 @@ function WhatToDo({
     version: 1,
     suppressed: {}
   }));
+  const [lastSession, setLastSession] = useState<MoodSession | null>(null);
   const [sessionCopyState, setSessionCopyState] = useState<"idle" | "copied" | "error">("idle");
 
   useEffect(() => {
     const last = loadMood();
+    setLastSession(last);
     if (last) {
       if (!routeIntent) {
         setMood(visibleMood(last.mood));
@@ -2177,6 +2238,15 @@ function WhatToDo({
     ),
     [pick, visibleRecs, actionContext]
   );
+  const memoryNote = useMemo(
+    () => sessionMemoryNote({
+      feedback,
+      lastSession,
+      allRecs,
+      headline: pick?.headline ?? null
+    }),
+    [feedback, lastSession, allRecs, pick?.headline]
+  );
 
   useEffect(() => {
     if (!pick) return;
@@ -2198,12 +2268,12 @@ function WhatToDo({
     setLastCompleted(null);
   };
   const hideRecommendation = (rec: Recommendation) => {
-    setFeedback(suppressRecommendation({ id: rec.id, kind: rec.kind, reason: "not_today" }));
+    setFeedback(suppressRecommendation({ id: rec.id, kind: rec.kind, title: rec.title, reason: "not_today" }));
     setLastSuppressed({ id: rec.id, title: rec.title });
     setLastCompleted(null);
   };
   const completeRecommendation = (rec: Recommendation) => {
-    setFeedback(suppressRecommendation({ id: rec.id, kind: rec.kind, reason: "already_done" }));
+    setFeedback(suppressRecommendation({ id: rec.id, kind: rec.kind, title: rec.title, reason: "already_done" }));
     setLastCompleted({ id: rec.id, title: rec.title });
     setLastSuppressed(null);
   };
@@ -2463,6 +2533,16 @@ function WhatToDo({
         </div>
       )}
 
+      {memoryNote && !lastSuppressed && !lastCompleted && !shareMode && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="mb-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 px-3.5 py-2.5 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]"
+        >
+          {memoryNote}
+        </div>
+      )}
+
       <div className="space-y-3">
         {pick ? (
           <>
@@ -2498,6 +2578,7 @@ function WhatToDo({
                       mood={mood}
                       minutes={minutes}
                       hasBankContext={hasBankContext}
+                      backupPrompt={backupChoicePrompt(r, pick.headline)}
                     />
                   ))}
                 </div>
@@ -2943,7 +3024,8 @@ function RecRowExpandable({
   onBossOpen,
   mood,
   minutes,
-  hasBankContext
+  hasBankContext,
+  backupPrompt
 }: {
   rec: Recommendation;
   actionContext: RecommendationActionContext;
@@ -2951,6 +3033,7 @@ function RecRowExpandable({
   mood: Mood;
   minutes: TimeBudget;
   hasBankContext: boolean;
+  backupPrompt?: { label: string; helper: string };
 }) {
   return (
     <RecRow
@@ -2960,6 +3043,7 @@ function RecRowExpandable({
       mood={mood}
       minutes={minutes}
       hasBankContext={hasBankContext}
+      backupPrompt={backupPrompt}
     />
   );
 }

@@ -1,7 +1,8 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   clearRecommendationFeedback,
   isRecommendationSuppressed,
+  latestRecommendationFeedback,
   loadRecommendationFeedback,
   restoreRecommendation,
   suppressRecommendation
@@ -16,6 +17,7 @@ class MemoryStorage {
 }
 
 beforeEach(() => {
+  vi.useRealTimers();
   const storage = new MemoryStorage();
   Object.assign(globalThis, {
     localStorage: storage,
@@ -35,11 +37,28 @@ describe("recommendation feedback", () => {
   });
 
   it("can suppress completed recommendations separately from not-today hides", () => {
-    suppressRecommendation({ id: "quest:dragon-slayer", kind: "quest", reason: "already_done" });
+    suppressRecommendation({
+      id: "quest:dragon-slayer",
+      kind: "quest",
+      title: "Dragon Slayer",
+      reason: "already_done"
+    });
 
     const feedback = loadRecommendationFeedback();
     expect(feedback.suppressed["quest:dragon-slayer"]?.reason).toBe("already_done");
+    expect(feedback.suppressed["quest:dragon-slayer"]?.title).toBe("Dragon Slayer");
     expect(isRecommendationSuppressed("quest:dragon-slayer")).toBe(true);
+  });
+
+  it("returns the most recent feedback entry for welcome-back copy", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1_000);
+    suppressRecommendation({ id: "kc:vorkath", kind: "kc", title: "Push Vorkath to 50 KC", reason: "not_today" });
+    vi.setSystemTime(2_000);
+    suppressRecommendation({ id: "skill:farming", kind: "skill", title: "Push Farming to 99", reason: "already_done" });
+
+    expect(latestRecommendationFeedback()?.id).toBe("skill:farming");
+    expect(latestRecommendationFeedback()?.title).toBe("Push Farming to 99");
   });
 
   it("clears all suppressed recommendations", () => {

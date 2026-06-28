@@ -208,6 +208,10 @@ describe("/next confidence UI copy", () => {
 
   it("gives hidden recommendations an immediate undo path", () => {
     expect(source).toContain("restoreRecommendation");
+    expect(source).toContain("latestRecommendationFeedback");
+    expect(source).toContain("function sessionMemoryNote");
+    expect(source).toContain("Last time: you skipped");
+    expect(source).toContain("so this plan avoids it.");
     expect(source).toContain("lastSuppressed");
     expect(source).toContain("Hidden for now:");
     expect(source).toContain("Need GP");
@@ -216,6 +220,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('applySessionIntent("cash", 60)');
     expect(source).toContain('applySessionIntent("afk", 60)');
     expect(source).toContain('applySessionIntent("chill", 30)');
+    expect(source).toContain("title: rec.title");
     expect(source).toContain("Undo hide");
     expect(source).toContain("aria-label={`Not today: hide ${rec.title}`}");
   });
@@ -226,6 +231,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("const completeRecommendation = (rec: Recommendation) =>");
     expect(source).toContain("Nice.");
     expect(source).toContain("Pick the next move.");
+    expect(source).toContain("is marked done, so this is the next move.");
     expect(source).toContain("Another trip");
     expect(source).toContain("Chill now");
     expect(source).toContain("Undo done");
@@ -234,6 +240,17 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("aria-label={`Done: mark ${rec.title} complete`}");
     expect(source).toContain("onComplete={completeRecommendation}");
     expect(source).toContain("onComplete: (rec: Recommendation) => void");
+  });
+
+  it("labels backups as real player choices instead of leftover rows", () => {
+    expect(source).toContain("function backupChoicePrompt");
+    expect(source).toContain("Need GP?");
+    expect(source).toContain("Too sweaty?");
+    expect(source).toContain("Want chill?");
+    expect(source).toContain("Want action?");
+    expect(source).toContain("Prefer unlock?");
+    expect(source).toContain("backupPrompt={backupChoicePrompt(r, pick.headline)}");
+    expect(source).toContain("backupPrompt?: { label: string; helper: string }");
   });
 
   it("has a clean screenshot/share mode without turning the planner into a dashboard", () => {

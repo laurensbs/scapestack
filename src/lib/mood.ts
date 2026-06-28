@@ -182,6 +182,28 @@ function accountFitMultiplier(rec: Recommendation, mood: Mood): number {
   return 0.2;
 }
 
+type BackupBucket = "low-effort" | "gp" | "active" | "unlock";
+
+function backupBucket(rec: Recommendation): BackupBucket {
+  if (rec.kind === "money") return "gp";
+  if (rec.kind === "boss" || rec.kind === "kc" || rec.kind === "slayer") return "active";
+  if (rec.kind === "skill" || rec.kind === "bank" || rec.kind === "minigame") return "low-effort";
+  return "unlock";
+}
+
+function backupBucketOrder(headline: Recommendation): BackupBucket[] {
+  switch (backupBucket(headline)) {
+    case "active":
+      return ["low-effort", "gp", "unlock", "active"];
+    case "gp":
+      return ["low-effort", "unlock", "active", "gp"];
+    case "low-effort":
+      return ["active", "unlock", "gp", "low-effort"];
+    case "unlock":
+      return ["low-effort", "gp", "active", "unlock"];
+  }
+}
+
 export interface MoodPick {
   /** De hoofdsuggestie — top na re-scoring. */
   headline: Recommendation;
@@ -239,16 +261,21 @@ export function pickForMood(
     ?? fallbackList[shuffleIndex % fallbackList.length]
     ?? scored[0].rec;
 
-  // Alternatieven: pak de volgende twee uit heroCandidates die niet
-  // headline zijn. Wanneer minder dan 2 over, val terug op fallback.
+  // Alternatieven: kies bewust een andere sessie-beloning/intensiteit.
+  // Dit voorkomt dat backups voelen als "de rest van de sortering".
   const alts: Recommendation[] = [];
   const seenIds = new Set([headline.id]);
-  for (const r of heroCandidates) {
+  const seenBuckets = new Set<BackupBucket>();
+  const bucketOrder = backupBucketOrder(headline);
+  for (const bucket of bucketOrder) {
     if (alts.length === 2) break;
-    if (!seenIds.has(r.id)) {
-      alts.push(r);
-      seenIds.add(r.id);
-    }
+    const next = scored.find((s) => !seenIds.has(s.rec.id)
+      && backupBucket(s.rec) === bucket
+      && !seenBuckets.has(bucket))?.rec;
+    if (!next) continue;
+    alts.push(next);
+    seenIds.add(next.id);
+    seenBuckets.add(bucket);
   }
   // Vul aan met wat-dan-ook (zelfde kind mag) als we minder dan 2 hebben.
   for (const r of fallbackList) {
