@@ -55,12 +55,12 @@ export interface ScapestackReadiness {
 }
 
 const surfaceNames: Record<ScapestackSurface, string> = {
-  bank: "Gear & Bank",
-  next: "Do this first",
-  dps: "Boss Trip Check",
-  goals: "Unlock Planner",
-  profile: "Player profile",
-  slayer: "Task Check"
+  bank: "gear",
+  next: "next plan",
+  dps: "boss trip",
+  goals: "unlock route",
+  profile: "profile",
+  slayer: "Slayer task"
 };
 
 function sourceForSurface(surface: ScapestackSurface): ToolHandoffSource {
@@ -90,31 +90,31 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
     hasBankContext: input.hasBankContext
   });
   const syncHref = pluginVerifyUrlForSyncedRsn(cleanRsn, input.surface);
-  const syncSetupAction = { label: "Open sync checker", href: syncHref };
+  const syncSetupAction = { label: "Check RuneLite", href: syncHref };
   const syncSourceLabel = (() => {
-    if (hasExactPluginSync) return "RuneLite sync fresh";
-    if (hasPluginSync) return "RuneLite sync needs refresh";
-    if (pluginHubState === "merged") return "Ready to check";
-    return "Optional account sync";
+    if (hasExactPluginSync) return "RuneLite helping";
+    if (hasPluginSync) return "Press Sync again";
+    if (pluginHubState === "merged") return "RuneLite can help";
+    return "RuneLite later";
   })();
   const syncDetail = (() => {
     if (hasExactPluginSync) {
-      return "Quests, diaries, collection log and Slayer are included for this RSN.";
+      return "Finished quests, diaries, clog slots and Slayer are skipped for this RSN.";
     }
     if (pluginSyncState === "outdated") {
-      return "Sync exists, but update the RuneLite plugin before relying on newer Slayer and collection-log details.";
+      return "Update RuneLite, then press Sync before long Slayer, clog or quest choices.";
     }
     if (pluginSyncState === "stale") {
-      return "Sync exists, but refresh RuneLite before a long grind or GP spend.";
+      return "Press Sync again before a long grind or GP spend.";
     }
     if (pluginHubState === "merged") {
-      return "Check the same RSN on /plugin after RuneLite syncs, then /next can avoid finished account progress.";
+      return "Check this same RSN after pressing Sync in RuneLite, then /next can skip finished progress.";
     }
-    return "Use /next now, or check sync when quests, diaries, log items or Slayer matter.";
+    return "Use /next now. Check RuneLite later when quests, diaries, clog or Slayer matter.";
   })();
   const syncNotice = (() => {
     if (hasPluginSync) return undefined;
-    if (pluginHubState === "merged") return "RuneLite sync can be checked from the plugin page.";
+    if (pluginHubState === "merged") return "RuneLite can be checked from the plugin page.";
     return undefined;
   })();
   const syncSteps = hasPluginSync
@@ -122,15 +122,15 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
     : [
       {
         label: "Open RuneLite",
-        body: "Turn on Scapestack Sync for the account you want to plan."
+        body: "Turn on Scapestack Sync for this account."
       },
       {
-        label: "Confirm sync URL",
+        label: "Use scapestack.org link",
         body: "The Sync URL should point to https://www.scapestack.org/api/sync."
       },
       {
-        label: "Check RSN",
-        body: "Run a sync in RuneLite, then check this same OSRS name in Scapestack."
+        label: "Check the RSN",
+        body: "Press Sync, then check this same OSRS name in Scapestack."
       }
     ];
   const syncCopy = hasPluginSync
@@ -141,29 +141,29 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
       id: "bank",
       label: "Bank",
       status: input.hasBankContext ? "exact" : "missing",
-      sourceLabel: input.hasBankContext ? "Browser-only bank paste" : "No bank source attached",
+      sourceLabel: input.hasBankContext ? "Gear pasted" : "No gear pasted",
       detail: input.hasBankContext
-        ? "Exact pasted item stack is active."
-        : "Paste Bank Tags or use a saved bank.",
+        ? "Gear, supplies, quantities and GP are in this browser tab."
+        : "Paste Bank Memory or Bank Tags when gear or supplies change the trip.",
       adds: ["gear", "supplies", "quantities", "GP"],
       boundary: "Does not prove quests, diaries, collection log or Slayer state.",
       action: input.hasBankContext
         ? undefined
-        : { label: "Paste bank", href: "/bank" }
+        : { label: "Paste gear", href: "/bank" }
     },
     {
       id: "rsn",
       label: "RSN",
       status: input.hasRsn ? "ready" : "missing",
-      sourceLabel: input.hasRsn ? "Official OSRS Hiscores" : "No OSRS name attached",
+      sourceLabel: input.hasRsn ? "Hiscores loaded" : "No OSRS name",
       detail: input.hasRsn
-        ? `${cleanRsn || "OSRS name"} is attached for Hiscores.`
-        : "Add your OSRS name for stat-aware advice.",
+        ? `${cleanRsn || "OSRS name"} is used for stats and public boss KC.`
+        : "Add an OSRS name for stat-aware picks.",
       adds: ["stats", "combat level", "public boss KC"],
       boundary: "Does not include bank, inventory, quest completion, diaries or private settings.",
       action: input.hasRsn
         ? undefined
-        : { label: "Add RSN", href: addRsnHref }
+        : { label: "Add OSRS name", href: addRsnHref }
     },
     {
       id: "sync",
@@ -175,7 +175,7 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
       boundary: "Never includes bank, inventory, equipment, chat, screenshots, clicks or account login.",
       notice: syncNotice,
       action: hasPluginSync
-        ? { label: "Open sync checker", href: syncHref }
+        ? { label: "Check RuneLite", href: syncHref }
         : syncSetupAction,
       copy: syncCopy,
       steps: syncSteps
@@ -184,34 +184,33 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
 
   const primaryAction = (() => {
     if (!input.hasBankContext) {
-      return { label: "Paste bank", href: "/bank" };
+      return { label: "Paste gear", href: "/bank" };
     }
     if (!input.hasRsn) {
       return {
-        label: "Add RSN context",
+        label: "Add OSRS name",
         href: toolHandoffUrl("/next", source, cleanRsn, { hasBankContext: true })
       };
     }
     if (!hasExactPluginSync) {
       return {
-        label: hasPluginSync ? "Refresh sync" : "Check sync",
+        label: hasPluginSync ? "Fresh RuneLite check" : "Check RuneLite",
         href: syncHref
       };
     }
     return {
-      label: "Open synced /next",
+      label: "Open next plan",
       href: toolHandoffUrl("/next", source, cleanRsn, { hasBankContext: true })
     };
   })();
 
-  const readyCount = signals.filter((signal) => signal.status !== "missing").length;
   const body = hasPluginSync && !hasExactPluginSync
-    ? "Bank and public stats can plan now. Refresh sync before long quests, diaries, log or Slayer decisions."
-    : "Bank and public stats are enough to plan now. Sync is optional for finished quests, diaries, log and Slayer.";
+    ? "Gear and stats can plan now. Press RuneLite sync again before long quests, diaries, clog or Slayer choices."
+    : "Gear and stats are enough for a first plan. RuneLite only helps avoid finished quests, diary steps, clog slots and Slayer mistakes.";
 
   return {
-    eyebrow: "Plan context",
-    title: `${surfaceNames[input.surface]} is ready to plan`,
+    eyebrow: "Optional help",
+    title: `Make this ${surfaceNames[input.surface]} sharper`,
     body,
     signals,
     primaryAction

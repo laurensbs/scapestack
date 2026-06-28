@@ -518,8 +518,8 @@ export function DpsClient() {
 
       <details className="mb-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/50 p-3">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-semibold text-[var(--color-text)] marker:hidden">
-          <span>Setup details</span>
-          <span className="text-[11px] font-medium text-[var(--color-text-muted)]">bank, RuneLite, route links</span>
+          <span>Make this trip sharper</span>
+          <span className="text-[11px] font-medium text-[var(--color-text-muted)]">gear, RSN, RuneLite</span>
         </summary>
         <div className="mt-4 space-y-4">
           <ScapestackReadinessRail
@@ -909,7 +909,7 @@ function BossRow({ boss, dps, isFocused, onOpen }: {
       ) : (
         <div className="flex flex-1 flex-wrap items-center justify-between gap-2">
           <span className="text-[12px] text-[var(--color-text-dim)] italic">
-            Locked until Scapestack recognises a usable weapon.
+            Add a weapon before picking this trip.
           </span>
           <span className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-text-dim)]">
             View requirements
@@ -958,10 +958,10 @@ function DpsHandoffIntakeHint({
         <Sparkles className="mt-0.5 size-4 shrink-0 text-[var(--color-warning)]" />
         <p className="text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
           {pluginSync
-            ? "RuneLite sync is account proof, not gear proof. DPS needs a browser-only Bank Memory or Bank Tags paste before it can calculate real setups."
+            ? "RuneLite skips finished account stuff, but DPS still needs your gear. Paste Bank Memory or Bank Tags to check real setups."
             : slayerTask
-            ? "This boss came from Task Check, but the route is marked bankless. Paste Bank Memory or Bank Tags before trusting DPS rows, upgrades or setup links."
-            : "This route is marked bankless. Paste Bank Memory or Bank Tags before trusting DPS rows, upgrades or boss setup links."}
+            ? "This boss came from Task Check. Paste gear before buying supplies or trusting upgrades."
+            : "Paste Bank Memory or Bank Tags before using boss checks, upgrades or setup links."}
         </p>
       </div>
     );
@@ -996,8 +996,8 @@ function DpsBankContextBanner({
 }) {
   const hasWeapons = weaponCount > 0;
   const focusedBossLabel = focusedBossSource === "slayer-task"
-    ? "Boss selected from Slayer:"
-    : "Boss selected from bank:";
+    ? "Slayer picked:"
+    : "Bank picked:";
   return (
     <section className="mb-6 rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/8 px-4 py-3">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -1007,7 +1007,7 @@ function DpsBankContextBanner({
           </span>
           <div className="min-w-0">
             <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              {loadedFromHandoff ? "Bank handoff loaded" : "Bank parsed for DPS"}
+              {loadedFromHandoff ? "Gear loaded" : "Gear pasted"}
             </div>
             {focusedBoss && (
               <div
@@ -1027,18 +1027,18 @@ function DpsBankContextBanner({
               {" · "}
               {weaponCount} weapon{weaponCount === 1 ? "" : "s"} recognised.{" "}
               {hasWeapons && focusedBoss
-                ? `${focusedBoss.name} and every boss row are using this exact bank context.`
+                ? `${focusedBoss.name} and the boss list now use this gear.`
                 : hasWeapons
-                ? "Every boss row is using this exact bank context."
-                : "DPS rows are blocked until Scapestack sees at least one usable combat weapon."}
+                ? "The boss list now uses this gear."
+                : "Boss checks need at least one usable combat weapon."}
             </p>
             {!hasWeapons && (
               <div className="mt-3 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 px-3 py-2.5">
                 <p className="text-[12px] font-semibold leading-relaxed text-[var(--color-warning)]">
-                  Exact bank handoff is active, but this looks like supplies/jewellery only.
+                  Gear paste is active, but this looks like supplies/jewellery only.
                 </p>
                 <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
-                  Paste a full Bank Memory export or a combat tab with weapons like whip, fang, blowpipe, trident, bowfa, godswords or scythe to unlock real boss DPS.
+                  Paste a full Bank Memory export or a combat tab with weapons like whip, fang, blowpipe, trident, bowfa, godswords or scythe to unlock real boss checks.
                 </p>
               </div>
             )}
@@ -1090,13 +1090,13 @@ function DpsNoWeaponGate({
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="min-w-0">
           <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-warning)]">
-            Boss setup locked
+            Need a weapon first
           </div>
           <h2 className="mt-1 text-[17px] font-bold tracking-normal text-[var(--color-text)]">
-            Paste a combat bank before trusting DPS rows
+            Paste combat gear before picking a boss
           </h2>
           <p className="mt-1 max-w-2xl text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-            This bank has supplies, jewellery or loot, but no usable weapon. Add a full Bank Memory export or a combat tab with one of these weapon types, then DPS can choose real boss setups from owned gear.
+            This bank has supplies, jewellery or loot, but no usable weapon. Add a full Bank Memory export or a combat tab with one of these weapon types, then Scapestack can choose real boss trips from owned gear.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {weaponExamples.map((item) => (

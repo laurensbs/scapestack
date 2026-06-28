@@ -8,7 +8,7 @@ describe("Goals data source copy", () => {
   it("explains which goal progress comes from bank, Hiscores and RuneLite sync", () => {
     expect(source).toContain("Bank-owned untradeables are checked from item IDs");
     expect(source).toContain("earned skill capes can come from Hiscores");
-    expect(source).toContain("RuneLite sync is still needed before diary rewards, quest rewards and collection-log-only goals should be treated as verified account coverage");
+    expect(source).toContain("RuneLite can help later when diary rewards, quest rewards or clog-only goals would change the route");
     expect(source).not.toContain("Untradeable sets, capes and milestone items are being checked against this bank context.");
   });
 

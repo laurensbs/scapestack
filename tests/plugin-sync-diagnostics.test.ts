@@ -45,18 +45,18 @@ describe("plugin sync diagnostics", () => {
 
     const diagnostic = diagnosticForSyncedPlayer(player());
     expect(diagnostic.tone).toBe("good");
-    expect(diagnostic.title).toContain("RuneLite sync is live");
+    expect(diagnostic.title).toContain("RuneLite is helping");
     expect(diagnostic.title).not.toContain("Exact account state");
-    expect(diagnostic.primaryAction?.label).toBe("Open synced /next plan");
-    expect(diagnostic.secondaryAction?.label).toBe("Open synced Slayer");
+    expect(diagnostic.primaryAction?.label).toBe("Open next plan");
+    expect(diagnostic.secondaryAction?.label).toBe("Open Slayer task");
     expect(diagnostic.primaryAction?.href).toBe("/next?rsn=Lynx+Titan&source=plugin-sync&bank=none");
     expect(diagnostic.secondaryAction?.href).toBe("/slayer?rsn=Lynx+Titan&source=plugin-sync&bank=none");
 
     const readiness = nextReadinessForSyncedPlayer(player());
     expect(readiness.tone).toBe("good");
-    expect(readiness.title).toBe("RuneLite sync is ready for /next");
-    expect(readiness.actionLabel).toBe("Open synced /next plan");
-    expect(readiness.body).toContain("this sync");
+    expect(readiness.title).toBe("RuneLite is helping /next");
+    expect(readiness.actionLabel).toBe("Open next plan");
+    expect(readiness.body).toContain("skip finished quests");
 
     const coverage = signalCoverageForSyncedPlayer(player());
     expect(coverage.map((signal) => [signal.label, signal.status])).toEqual([
@@ -76,14 +76,14 @@ describe("plugin sync diagnostics", () => {
     const queue = actionQueueForSyncedPlayer(player());
 
     expect(queue.map((action) => action.title)).toEqual([
-      "Open synced /next plan",
+      "Open next plan",
       "Route the live Slayer task",
       "Paste bank for gear and GP context"
     ]);
     expect(queue[0]).toMatchObject({
       tone: "good",
       href: "/next?rsn=Lynx+Titan&source=plugin-sync&bank=none",
-      actionLabel: "Open synced /next"
+      actionLabel: "Open next plan"
     });
     expect(queue[1]).toMatchObject({
       tone: "good",
@@ -93,7 +93,7 @@ describe("plugin sync diagnostics", () => {
       tone: "neutral",
       href: "/bank?rsn=Lynx%20Titan&from=plugin"
     });
-    expect(queue[2].proof).toContain("never goes back to the plugin");
+    expect(queue[2].proof).toContain("never goes back to RuneLite");
 
     vi.useRealTimers();
   });
@@ -110,7 +110,7 @@ describe("plugin sync diagnostics", () => {
     expect(queue.map((action) => action.title)).toEqual([
       "Open Collection Log tabs in-game",
       "Refresh Slayer state",
-      "Open /next without Slayer sync",
+      "Open /next without Slayer",
       "Paste bank for gear and GP context"
     ]);
     expect(queue[0]).toMatchObject({
@@ -135,19 +135,19 @@ describe("plugin sync diagnostics", () => {
 
     const diagnostic = diagnosticForSyncedPlayer(player());
     expect(diagnostic.tone).toBe("warning");
-    expect(diagnostic.title).toContain("stale");
+    expect(diagnostic.title).toContain("fresh press");
     expect(diagnostic.primaryAction?.copy).toBe(PUBLIC_SYNC_URL);
     expect(diagnosticForSyncedPlayer(player(), { origin: "http://127.0.0.1:4173/plugin" }).primaryAction?.copy)
       .toBe(PUBLIC_SYNC_URL);
 
     const readiness = nextReadinessForSyncedPlayer(player());
     expect(readiness.tone).toBe("warning");
-    expect(readiness.title).toContain("Refresh sync");
+    expect(readiness.title).toContain("Press Sync");
     expect(readiness.actionLabel).toBe("Open stale /next plan");
 
     expect(signalCoverageForSyncedPlayer(player()).every((signal) => signal.status === "refresh")).toBe(true);
     expect(actionQueueForSyncedPlayer(player()).map((action) => action.title)).toEqual([
-      "Refresh RuneLite sync first",
+      "Press Sync in RuneLite first",
       "Open current /next if you must"
     ]);
 
@@ -200,7 +200,7 @@ describe("plugin sync diagnostics", () => {
 
     const readiness = nextReadinessForSyncedPlayer(player({ slayer: null }));
     expect(readiness.tone).toBe("warning");
-    expect(readiness.title).toContain("Slayer will be inferred");
+    expect(readiness.title).toContain("Slayer will be guessed");
     expect(readiness.actionLabel).toBe("Open /next without Slayer");
 
     const coverage = signalCoverageForSyncedPlayer(player({
@@ -219,7 +219,7 @@ describe("plugin sync diagnostics", () => {
     expect(missing.primaryAction?.copy).toBe(PUBLIC_SYNC_URL);
     expect(diagnosticForMissingSync("Lynx Titan", { origin: "http://127.0.0.1:4173" }).primaryAction?.copy)
       .toBe(PUBLIC_SYNC_URL);
-    expect(missing.title).toBe("No sync for Lynx Titan");
+    expect(missing.title).toBe("RuneLite not found for Lynx Titan");
     expect(missing.body).toContain("/next still works from public stats");
     expect(missing.steps.join(" ")).toContain("Open RuneLite");
     expect(missing.steps.join(" ")).toContain("https://www.scapestack.org/api/sync");
@@ -229,7 +229,7 @@ describe("plugin sync diagnostics", () => {
 
     const unconfigured = diagnosticForUnconfiguredSync();
     expect(unconfigured.tone).toBe("danger");
-    expect(unconfigured.title).toBe("RuneLite check is not ready");
+    expect(unconfigured.title).toBe("RuneLite needs setup");
     expect(unconfigured.primaryAction?.copy).toBe(DB_INIT_COMMAND);
     expect(unconfigured.steps.join(" ")).toContain("setup command");
     expect(unconfigured.steps.join(" ")).not.toContain("DATABASE_URL");

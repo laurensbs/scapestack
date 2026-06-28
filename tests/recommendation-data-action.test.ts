@@ -53,9 +53,9 @@ describe("recommendation missing-data actions", () => {
 
   expect(action).toMatchObject({
     kind: "plugin-sync",
-    label: "Use Scapestack Sync"
+    label: "Check RuneLite"
   });
-    expect(action?.helper).toContain("finished quests, diaries, collection log and Slayer");
+    expect(action?.helper).toContain("finished quests, diaries, clog and Slayer");
     expect(action?.helper).not.toContain("payload");
     expect(action?.helper).not.toContain("coverage");
     expect(action?.href).toContain("/plugin");
@@ -71,10 +71,10 @@ describe("recommendation missing-data actions", () => {
 
   expect(action).toMatchObject({
     kind: "plugin-sync",
-    label: "Refresh sync"
+    label: "Press Sync again"
   });
-    expect(action?.helper).toContain("Refresh or update");
-    expect(action?.helper).toContain("quests, diaries, collection log or Slayer");
+    expect(action?.helper).toContain("Press Sync");
+    expect(action?.helper).toContain("quests, diaries, clog or Slayer");
     expect(action?.helper).not.toContain("payload");
     expect(action?.href).toBe("/plugin?rsn=Lynx+Titan&from=next#verify-sync");
   });
@@ -87,7 +87,7 @@ describe("recommendation missing-data actions", () => {
 
     expect(action).toMatchObject({
       kind: "plugin-sync",
-      label: "Use Scapestack Sync"
+      label: "Check RuneLite"
     });
     expect(action?.href).toBe("/plugin?rsn=Lynx+Titan&from=next&bank=none#verify-sync");
   });

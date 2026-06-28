@@ -45,8 +45,8 @@ export function summarizePluginSyncService(status: PluginSyncServiceStatus | nul
   if (!status.database?.configured) {
     return {
       tone: "danger",
-      label: "RuneLite check is not ready",
-      detail: "Finish server setup before RuneLite can help plans.",
+      label: "RuneLite needs setup",
+      detail: "This install needs setup before RuneLite can help plans.",
       actions: [
         { label: "Copy setup command", copy: DB_INIT_COMMAND },
         { label: "Copy sync URL", copy: syncUrls.sync }
@@ -57,8 +57,8 @@ export function summarizePluginSyncService(status: PluginSyncServiceStatus | nul
   if (!status.database.ready) {
     return {
       tone: "danger",
-      label: "RuneLite check needs setup",
-      detail: "Finish server setup before RuneLite can help plans.",
+      label: "RuneLite needs setup",
+      detail: "This install needs setup before RuneLite can help plans.",
       actions: [
         { label: "Copy setup command", copy: DB_INIT_COMMAND },
         { label: "Copy sync URL", copy: syncUrls.sync }

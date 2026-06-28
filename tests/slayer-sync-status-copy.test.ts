@@ -6,9 +6,9 @@ const source = readFileSync(join(process.cwd(), "src/app/slayer/slayer-client.ts
 
 describe("Slayer sync status copy", () => {
   it("separates generic RuneLite payloads from live Slayer payloads", () => {
-    expect(source).toContain("RuneLite sync: live Slayer payload");
-    expect(source).toContain("RuneLite sync: account payload only");
-    expect(source).toContain("RuneLite sync missing");
+    expect(source).toContain("RuneLite: Slayer task live");
+    expect(source).toContain("RuneLite: no live task");
+    expect(source).toContain("RuneLite not found");
     expect(source).toContain("const [hasPluginPayload, setHasPluginPayload] = useState(false)");
     expect(source).toContain("setHasPluginPayload(false)");
     expect(source).toContain("setHasPluginPayload(Boolean(sync))");

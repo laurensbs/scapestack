@@ -61,7 +61,7 @@ describe("homepage product flow", () => {
     });
     expect(flow[2].body).toContain("repeats things you already finished");
     expect(homePluginReadinessPill(readiness)).toMatchObject({
-      label: "Check sync",
+      label: "Check RuneLite",
       href: "/plugin#verify-sync",
       playerInstallReady: false
     });
@@ -81,7 +81,7 @@ describe("homepage product flow", () => {
     expect(flow[2].cta).toBe("Use sync");
     expect(flow[2].href).toBe("/plugin#verify-sync");
     expect(homePluginReadinessPill(readiness)).toMatchObject({
-      label: "Sync ready",
+      label: "RuneLite ready",
       href: "/plugin#verify-sync",
       playerInstallReady: true
     });

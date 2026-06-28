@@ -58,10 +58,10 @@ export function missingDataActionForRecommendation(
       || normalized.includes("treating this as exact");
     return {
       kind: "plugin-sync",
-      label: hasConnectedSync ? "Refresh sync" : "Use Scapestack Sync",
+      label: hasConnectedSync ? "Press Sync again" : "Check RuneLite",
       helper: hasConnectedSync
-        ? "Refresh or update Scapestack Sync before relying on quests, diaries, collection log or Slayer for this pick."
-        : "Use Scapestack Sync when you want finished quests, diaries, collection log and Slayer kept out of suggestions.",
+        ? "Press Sync before this pick uses quests, diaries, clog or Slayer."
+        : "Check RuneLite when you want finished quests, diaries, clog and Slayer kept out of suggestions.",
       href: pluginVerifyUrlForSyncedRsn(context.rsn ?? "", "next", {
         hasBankContext: context.hasBankContext
       })

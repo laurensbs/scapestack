@@ -61,7 +61,7 @@ export function signalCoverageForSyncedPlayer(player: SyncedPlayer): PluginSigna
   }
 
   if (health === "stale") {
-    return signalCoverageTemplate("refresh", "Refresh sync first", "This signal exists, but the last sync is old enough that /next should treat it cautiously.");
+    return signalCoverageTemplate("refresh", "Press Sync again", "This may be old enough that /next should be cautious.");
   }
 
   return [
@@ -129,7 +129,7 @@ export function actionQueueForSyncedPlayer(player: SyncedPlayer, context: Plugin
       {
         title: "Open /next only as fallback",
         body: "Planning can still run, but recommendations may ignore newer quest, Slayer or collection-log fields.",
-        proof: "Keeps bank=none so no bank context is implied.",
+        proof: "Keeps bank=none so no gear is guessed.",
         tone: "neutral",
         href: nextUrlForSyncedRsn(displayName),
         actionLabel: "Open /next anyway"
@@ -140,9 +140,9 @@ export function actionQueueForSyncedPlayer(player: SyncedPlayer, context: Plugin
   if (health === "stale") {
     return [
       {
-        title: "Refresh RuneLite sync first",
-        body: "Log into the account and wait for the Scapestack synced chat line before planning tonight's route.",
-        proof: "Old sync can miss newly completed quests, diaries, CL slots or Slayer task changes.",
+        title: "Press Sync in RuneLite first",
+        body: "Log into the account and wait for the Scapestack chat line before planning tonight's route.",
+        proof: "Old RuneLite help can miss newly completed quests, diaries, clog slots or Slayer task changes.",
         tone: "warning",
         copy: syncUrls.sync,
         actionLabel: "Copy sync URL"
@@ -150,7 +150,7 @@ export function actionQueueForSyncedPlayer(player: SyncedPlayer, context: Plugin
       {
         title: "Open current /next if you must",
         body: "Use the stale plan for rough direction only; re-check before buying supplies or committing to a grind.",
-        proof: "The URL stays marked as plugin-sync plus bank=none.",
+        proof: "The URL stays bankless so gear is not guessed.",
         tone: "neutral",
         href: nextUrlForSyncedRsn(displayName),
         actionLabel: "Open stale /next"
@@ -174,7 +174,7 @@ export function actionQueueForSyncedPlayer(player: SyncedPlayer, context: Plugin
     queue.push({
       title: "Refresh Slayer state",
       body: "Stand logged in long enough for RuneLite's Slayer state to populate, then sync again before relying on task recommendations.",
-      proof: "Without Slayer sync, /next treats task routing as inferred.",
+      proof: "Without Slayer, /next treats task routing as inferred.",
       tone: "warning",
       href: nextUrlForSyncedRsn(displayName),
       actionLabel: "Open /next without Slayer"
@@ -182,14 +182,14 @@ export function actionQueueForSyncedPlayer(player: SyncedPlayer, context: Plugin
   }
 
   queue.push({
-    title: player.slayer ? "Open synced /next plan" : "Open /next without Slayer sync",
+    title: player.slayer ? "Open next plan" : "Open /next without Slayer",
     body: player.slayer
-      ? "Use synced quest, diary, collection-log and Slayer as the account baseline."
-      : "Use synced quest, diary and collection-log progress while Slayer remains best-effort.",
-    proof: "RuneLite sync is current and linked to this RSN.",
+      ? "Use RuneLite to skip finished quests, diary steps, clog slots and Slayer mistakes."
+      : "Use RuneLite for quests, diaries and clog while Slayer remains best-effort.",
+    proof: "RuneLite is current and linked to this RSN.",
     tone: player.slayer ? "good" : "warning",
     href: nextUrlForSyncedRsn(displayName),
-    actionLabel: player.slayer ? "Open synced /next" : "Open /next without Slayer"
+    actionLabel: player.slayer ? "Open next plan" : "Open /next without Slayer"
   });
 
   if (player.slayer) {
@@ -199,17 +199,17 @@ export function actionQueueForSyncedPlayer(player: SyncedPlayer, context: Plugin
       proof: "Current task, remaining count, points, streak and blocks are present.",
       tone: "good",
       href: slayerUrlForSyncedRsn(displayName),
-      actionLabel: "Open synced Slayer"
+    actionLabel: "Open Slayer task"
     });
   }
 
   queue.push({
     title: "Paste bank for gear and GP context",
     body: "RuneLite sync deliberately stays bankless; paste a bank in the browser when you want upgrade affordability and item actions.",
-    proof: "Browser-only bank context never goes back to the plugin.",
+    proof: "Browser-only gear never goes back to RuneLite.",
     tone: "neutral",
     href: `/bank?rsn=${encodeURIComponent(displayName)}&from=plugin`,
-    actionLabel: "Add bank context"
+    actionLabel: "Add gear"
   });
 
   return queue;
@@ -233,8 +233,8 @@ export function diagnosticForMissingSync(rsn: string, context: PluginSyncDiagnos
   const syncUrls = syncUrlsForOrigin(context.origin);
   return {
     tone: "warning",
-    title: `No sync for ${displayRsn}`,
-    body: "/next still works from public stats. Sync first when you want quests, diaries, collection log and Slayer included.",
+    title: `RuneLite not found for ${displayRsn}`,
+    body: "/next still works from public stats. Press Sync when you want quests, diaries, clog and Slayer included.",
     steps: [
       "Open RuneLite on this account.",
       "Enable Scapestack Sync and Auto-sync on login.",
@@ -247,8 +247,8 @@ export function diagnosticForMissingSync(rsn: string, context: PluginSyncDiagnos
 export function diagnosticForUnconfiguredSync(): PluginSyncDiagnostic {
   return {
     tone: "danger",
-    title: "RuneLite check is not ready",
-    body: "Scapestack cannot remember RuneLite progress yet. Finish server setup, then check this RSN again.",
+    title: "RuneLite needs setup",
+    body: "Scapestack cannot remember RuneLite progress yet. Finish setup, then check this RSN again.",
     steps: [
       "Finish the sync storage setup for this app.",
       "Run the setup command once.",
@@ -292,8 +292,8 @@ export function nextReadinessForSyncedPlayer(player: SyncedPlayer): PluginNextRe
   if (health === "stale") {
     return {
       tone: "warning",
-      title: "Refresh sync before a serious plan",
-      body: "The planner can use this RSN, but the last sync is old. Re-sync in RuneLite before a long grind or GP spend.",
+      title: "Press Sync before a serious plan",
+      body: "The planner can use this RSN, but the last RuneLite check is old. Press Sync before a long grind or GP spend.",
       actionLabel: "Open stale /next plan",
       href
     };
@@ -302,8 +302,8 @@ export function nextReadinessForSyncedPlayer(player: SyncedPlayer): PluginNextRe
   if (!player.slayer) {
     return {
       tone: "warning",
-      title: "/next is usable, Slayer will be inferred",
-      body: "Quest, diary and collection-log state are live. Current Slayer task recommendations remain best-effort until Slayer state syncs.",
+      title: "/next is usable, Slayer will be guessed",
+      body: "Quest, diary and clog progress are live. Current Slayer task picks stay best-effort until RuneLite sends Slayer.",
       actionLabel: "Open /next without Slayer",
       href
     };
@@ -311,9 +311,9 @@ export function nextReadinessForSyncedPlayer(player: SyncedPlayer): PluginNextRe
 
   return {
     tone: "good",
-    title: "RuneLite sync is ready for /next",
-    body: "Open the planner with this sync so quests, diaries, collection log and Slayer can override guesswork.",
-    actionLabel: "Open synced /next plan",
+    title: "RuneLite is helping /next",
+    body: "Open the planner so RuneLite can skip finished quests, diary steps, clog slots and Slayer mistakes.",
+    actionLabel: "Open next plan",
     href
   };
 }
@@ -321,19 +321,19 @@ export function nextReadinessForSyncedPlayer(player: SyncedPlayer): PluginNextRe
 function liveDiagnostic(player: SyncedPlayer): PluginSyncDiagnostic {
   return {
     tone: "good",
-    title: "RuneLite sync is live",
-    body: "Scapestack has current RuneLite progress for this RSN. /next can use it before public trackers and bank inference.",
+    title: "RuneLite is helping",
+    body: "Scapestack has current RuneLite progress for this RSN. /next can skip finished stuff before guessing from public trackers.",
     steps: [
-      "Open the synced /next plan for this RSN.",
+      "Open the /next plan for this RSN.",
       "Keep RuneLite chat feedback enabled so failed syncs are visible.",
-      "Open collection-log categories in-game when you want CL item checks to expand."
+      "Open collection-log categories in-game when you want clog checks to expand."
     ],
     primaryAction: {
-      label: "Open synced /next plan",
+      label: "Open next plan",
       href: nextUrlForSyncedRsn(player.displayName || player.rsn)
     },
     secondaryAction: {
-      label: "Open synced Slayer",
+      label: "Open Slayer task",
       href: slayerUrlForSyncedRsn(player.displayName || player.rsn)
     }
   };
@@ -343,15 +343,15 @@ function staleDiagnostic(player: SyncedPlayer, hasSlayer: boolean, context: Plug
   const syncUrls = syncUrlsForOrigin(context.origin);
   return {
     tone: "warning",
-    title: "Sync exists, but it is stale",
-    body: "The last sync is old enough that quests, diaries, collection-log state or Slayer task may no longer match the current account.",
+    title: "RuneLite needs a fresh press",
+    body: "The last RuneLite check is old enough that quests, diaries, clog or Slayer may no longer match the account.",
     steps: [
       "Log into RuneLite on the target account.",
       "Make sure “Auto-sync on login” and chat feedback are enabled.",
       hasSlayer
         ? "Wait for the success chat line, then re-check this page."
         : "Stand logged in long enough for Slayer state to be readable, then re-check.",
-      "Use /next only after the checker says the sync is live."
+      "Use /next only after this page finds the fresh RuneLite check."
     ],
     primaryAction: { label: "Copy sync URL", copy: syncUrls.sync },
     secondaryAction: {

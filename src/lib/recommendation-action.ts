@@ -50,8 +50,8 @@ const ROUTE_ACTIONS: Record<string, Omit<RecommendationPrimaryAction, "href">> =
     helper: "Use the synced task, streak, points and block-list."
   },
   "/plugin": {
-    label: "Open plugin guide",
-    helper: "Install or verify RuneLite sync for verified account coverage."
+    label: "Check RuneLite",
+    helper: "Let Scapestack skip finished quests, diary steps, clog slots and Slayer."
   }
 };
 

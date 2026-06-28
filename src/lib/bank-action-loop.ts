@@ -70,11 +70,11 @@ export function buildBankActionLoop(input: BankActionLoopInput): BankActionLoopS
       label: "04",
       title: "Plan the next session",
       body: input.hasPluginSyncHint
-        ? "Send this bank into /next and combine it with RuneLite sync once this same RSN is found."
-        : "Send this bank into /next now. Add RuneLite sync later when you want quests, diaries, CL and Slayer included.",
+        ? "Send this bank into /next and let RuneLite help once this same RSN is found."
+        : "Send this bank into /next now. Add RuneLite later when quests, diaries, clog or Slayer matter.",
       cta: "Open /next",
       destination: "/next planner",
-      proof: "Carries current bank item IDs through session handoff",
+      proof: "Carries current bank gear into the next plan",
       state: "ready"
     },
     syncStep
@@ -86,11 +86,11 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
     return {
       id: "sync",
       label: "05",
-      title: "Check RSN sync",
-      body: "RSN is known. Open the sync hub and check the same name before relying on quests, diaries, CL and Slayer.",
-      cta: "Check RSN sync",
+      title: "Check RuneLite",
+      body: "RSN is known; check the same name before relying on quests, diaries, clog and Slayer.",
+      cta: "Check RuneLite",
       destination: "/plugin#verify-sync",
-      proof: "RSN detected · sync check available",
+      proof: "RSN detected · RuneLite can help",
       state: "ready"
     };
   }
@@ -99,11 +99,11 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
     return {
       id: "sync",
       label: "05",
-      title: "Check sync",
+      title: "Check RuneLite",
       body: "Enable Scapestack Sync in RuneLite, then check this same RSN so recommendations can avoid finished progress.",
-      cta: "Check sync",
+      cta: "Check RuneLite",
       destination: "/plugin#verify-sync",
-      proof: "RuneLite sync · same RSN required",
+      proof: "RuneLite · same RSN required",
       state: "ready"
     };
   }
@@ -112,11 +112,11 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
     return {
       id: "sync",
       label: "05",
-      title: "Check sync",
-      body: "Open the sync checker and use the same RSN when quests, diaries, log items or Slayer matter.",
-      cta: "Check sync",
+      title: "Check RuneLite",
+      body: "Use the same RSN when quests, diaries, clog or Slayer matter.",
+      cta: "Check RuneLite",
       destination: "/plugin#verify-sync",
-      proof: "Sync checker ready · web planner ready",
+      proof: "RuneLite optional · web planner ready",
       state: "optional"
     };
   }
@@ -125,11 +125,11 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
     return {
       id: "sync",
       label: "05",
-      title: "Check sync",
-      body: "Use this bank in /next now. Check sync later if /next repeats finished progress.",
-      cta: "Check sync",
+      title: "Check RuneLite",
+      body: "Use this bank in /next now. Check RuneLite later if /next repeats finished progress.",
+      cta: "Check RuneLite",
       destination: "/plugin#verify-sync",
-      proof: "Sync check optional · web planner ready",
+      proof: "RuneLite optional · web planner ready",
       state: "optional"
     };
   }
@@ -138,11 +138,11 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
     return {
       id: "sync",
       label: "05",
-      title: "Check sync",
-      body: "Use this bank in /next now, or check the same RSN on the sync page.",
-      cta: "Check sync",
+      title: "Check RuneLite",
+      body: "Use this bank in /next now, or check the same RSN on the RuneLite page.",
+      cta: "Check RuneLite",
       destination: "/plugin#verify-sync",
-      proof: "Sync status unknown · checker available",
+      proof: "RuneLite unknown · same RSN required",
       state: "optional"
     };
   }
@@ -150,11 +150,11 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
   return {
     id: "sync",
     label: "05",
-    title: "Check sync",
-    body: "Open the sync checker and use the same RSN when quests, diaries, log items or Slayer matter.",
-    cta: "Check sync",
+    title: "Check RuneLite",
+    body: "Use the same RSN when quests, diaries, clog or Slayer matter.",
+    cta: "Check RuneLite",
     destination: "/plugin#verify-sync",
-    proof: "Sync checker ready · same RSN required",
+    proof: "RuneLite optional · same RSN required",
     state: "optional"
   };
 }

@@ -28,45 +28,45 @@ export interface PluginOnboardingReadinessStep {
 
 export const BANK_PLUGIN_ONBOARDING = {
   eyebrow: "RuneLite sync",
-  title: "One OSRS plan: bank items now, account progress after sync.",
-  body: "Bank Memory gives Scapestack your item stack so the bank organizer can fix layout immediately. Scapestack Sync is a separate opt-in RuneLite plugin that adds quests, diaries, collection log and Slayer for the same RSN.",
+  title: "Paste gear now. RuneLite can help later.",
+  body: "Use Bank Memory when a trip depends on gear, supplies, quantities or GP. RuneLite only helps Scapestack skip quests, diaries, clog slots and Slayer you already handled.",
   lanes: [
     {
-      label: "Paste bank",
-      title: "Bank Memory → item stack",
-      body: "Use this page when you want tabs, GP value, snapshots, drag/drop and copy-back Bank Tags.",
-      proof: "Sends bank items only when you paste them here."
+      label: "Gear now",
+      title: "Bank Memory or Bank Tags",
+      body: "Use this page for tabs, GP value, snapshots and copy-back Bank Tags.",
+      proof: "Stays in this browser unless you paste it."
     },
     {
-      label: "Opt-in sync",
-      title: "Scapestack Sync → finished progress",
-      body: "Use /plugin when you want /next and Slayer advice to avoid quests, diaries, CL items and task state you already handled.",
-      proof: "Never sends RuneScape password, chat, screenshots, inventory or equipment."
+      label: "Progress later",
+      title: "RuneLite skips done stuff",
+      body: "Use /plugin when /next keeps suggesting quests, diaries, clog or Slayer you already finished.",
+      proof: "No password, chat, screenshots, inventory or equipment."
     }
   ] satisfies PluginOnboardingLane[],
   readiness: [
     {
-      label: "Ready now",
-      title: "Paste Bank Memory or Bank Tags",
-      body: "Bank organization, snapshots, tips and copy-back tags work without Scapestack Sync.",
+      label: "1",
+      title: "Paste gear if it matters",
+      body: "Bank organization, snapshots, tips and copy-back tags work without RuneLite.",
       state: "ready"
     },
     {
-      label: "Use now",
-      title: "Use /next with bank-aware context",
-      body: "Use Hiscores plus bank now. Add sync when you want Scapestack to avoid finished account progress for the same RSN.",
+      label: "2",
+      title: "Open one plan",
+      body: "Use Hiscores plus gear now. RuneLite can be added only when finished progress matters.",
       state: "verify"
     },
     {
-      label: "Sync check",
-      title: "Scapestack Sync check",
-      body: "Open /plugin when you want to check the same RSN from RuneLite before relying on quest, diary, CL and Slayer.",
+      label: "3",
+      title: "Check RuneLite later",
+      body: "Open /plugin when quest, diary, clog or Slayer mistakes would waste a session.",
       state: "pending"
     }
   ] satisfies PluginOnboardingReadinessStep[],
   actions: [
     {
-      label: "Check sync",
+      label: "Check RuneLite",
       href: "/plugin?from=bank#verify-sync",
       tone: "primary"
     },
@@ -81,10 +81,10 @@ export const BANK_PLUGIN_ONBOARDING = {
     value: PUBLIC_SYNC_URL
   } satisfies PluginOnboardingCopy,
   signals: [
-    "Quest completion",
+    "Finished quests",
     "Diary tiers",
-    "Collection-log items",
-    "Live Slayer task"
+    "Clog slots",
+    "Slayer task"
   ]
 };
 
@@ -94,7 +94,7 @@ export function bankPluginOnboardingActions(
   if (state === "merged") {
     return [
       {
-        label: "Check sync",
+        label: "Check RuneLite",
         href: "/plugin?from=bank#verify-sync",
         tone: "primary"
       },
@@ -121,7 +121,7 @@ export function bankPluginOnboardingActions(
       tone: "primary"
     },
     {
-      label: "Check sync",
+      label: "Check RuneLite",
       href: "/plugin?from=bank#verify-sync",
       tone: "secondary"
     }

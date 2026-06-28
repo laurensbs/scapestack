@@ -180,7 +180,7 @@ function ProfileActionRail({
         href={profileNextHref}
         eyebrow="Best next move"
         title="Plan from profile"
-        body={`Uses ${rsn}'s Hiscores as the starting point. RuneLite sync and bank context sharpen it and label which account coverage is verified.`}
+        body={`Uses ${rsn}'s Hiscores as the starting point. RuneLite and gear can sharpen it when finished stuff or supplies matter.`}
         cta="Open plan"
         strong
       />

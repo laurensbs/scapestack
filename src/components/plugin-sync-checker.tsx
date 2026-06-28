@@ -124,7 +124,7 @@ export function PluginSyncChecker() {
       } catch (err) {
         setState({
           kind: "error",
-          message: err instanceof Error ? err.message : "Sync check failed"
+          message: err instanceof Error ? err.message : "RuneLite check failed"
         });
       }
     });
@@ -170,7 +170,7 @@ export function PluginSyncChecker() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
-            RuneLite sync
+            RuneLite check
           </div>
           <h2 className="mt-1 text-[22px] font-bold tracking-normal text-[var(--color-text)]">
             Check your RSN
@@ -255,7 +255,7 @@ export function PluginSyncChecker() {
               <div className="flex min-w-0 items-start gap-2">
                 <XCircle className="mt-0.5 size-4 shrink-0 text-[var(--color-warning)]" />
                 <div className="min-w-0">
-                  <div className="text-[13px] font-bold text-[var(--color-warning)]">No sync for {state.rsn}</div>
+                  <div className="text-[13px] font-bold text-[var(--color-warning)]">RuneLite not found for {state.rsn}</div>
                   <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
                     Open RuneLite, press Sync now, then check again.
                   </p>
@@ -301,9 +301,9 @@ export function PluginSyncChecker() {
             <div className="flex items-start gap-2">
               <DatabaseZap className="mt-0.5 size-4 text-[var(--color-danger)] shrink-0" />
               <div>
-                <div className="text-[13px] font-bold text-[var(--color-danger)]">RuneLite check is not ready</div>
+                <div className="text-[13px] font-bold text-[var(--color-danger)]">RuneLite needs setup</div>
                 <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                  Finish server setup, then check this RSN again. /next still works from public stats.
+                  Finish setup, then check this RSN again. /next still works from public stats.
                 </p>
                 <CopyCommand value={DB_INIT_COMMAND} label="Copy command" />
               </div>
@@ -330,7 +330,7 @@ export function PluginSyncChecker() {
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-[var(--color-text-muted)]">
                   <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
-                    Synced {syncAgeLabel(state.player.syncedAt)}
+                    Last press {syncAgeLabel(state.player.syncedAt)}
                   </span>
                   {state.player.slayer && (
                     <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">

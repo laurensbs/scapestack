@@ -123,10 +123,10 @@ export function SlayerClient() {
       setPluginBlocks(new Set(sync?.slayer?.blocks ?? []));
       setPluginSlayer(sync?.slayer ?? null);
       const syncStatus = sync?.slayer
-        ? "RuneLite sync: live Slayer payload"
+        ? "RuneLite: Slayer task live"
         : sync
-          ? "RuneLite sync: account payload only"
-          : "RuneLite sync missing";
+          ? "RuneLite: no live task"
+          : "RuneLite not found";
       const bits = [
         `Combat ${cb}`,
         `Slayer ${sl}`,
@@ -437,13 +437,13 @@ function SlayerBankContextBanner({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="text-[10.5px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
-            Bank context active
+            Gear loaded
           </div>
           <h3 className="mt-1 text-[14px] font-semibold text-[var(--color-text)]">
-            Slayer readiness from your current bank
+            Slayer from this bank
           </h3>
           <p className="mt-1 text-[12px] text-[var(--color-text-muted)]">
-            {context.summary.label} · {context.readyCount} Slayer signals found
+            {context.summary.label} · {context.readyCount} Slayer checks found
           </p>
         </div>
         <BankContextActions source="slayer" rsn={rsn} />

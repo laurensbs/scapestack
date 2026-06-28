@@ -374,9 +374,9 @@ function bankSourceReceipt(initial: OrganizeResult): {
       sourceLabel: "Bank Memory TSV",
       confidenceLabel: "Exact item stacks",
       confidenceTone: "good",
-      exactLine: "Item IDs, names, quantities and stack values are active for sorting, snapshots, DPS and /next handoff.",
-      limitationLine: "Quest, diary, collection-log and live Slayer state still require Scapestack RuneLite sync.",
-      nextLine: "Best source for serious PvM planning: keep using Bank Memory when you want quantities and GP value."
+      exactLine: "Item IDs, names, quantities and stack values are ready for sorting, DPS and the next plan.",
+      limitationLine: "Finished quests, diary steps, clog slots and Slayer still need RuneLite to help.",
+      nextLine: "Best for serious PvM plans when quantities and GP value matter."
     };
   }
 
@@ -385,9 +385,9 @@ function bankSourceReceipt(initial: OrganizeResult): {
       sourceLabel: "RuneLite Bank Tags",
       confidenceLabel: "Exact layout, partial stacks",
       confidenceTone: "warn",
-      exactLine: "Item IDs and tab layout are exact, so copy-back and tool handoff are safe.",
+      exactLine: "Item IDs and tab layout are clear, so copy-back and planning work.",
       limitationLine: "Bank Tags do not include quantities; GP value, stack size and supply counts are inferred or unavailable.",
-      nextLine: "For full value-aware advice, copy Bank Memory item data instead of Bank Tags next time."
+      nextLine: "For value-aware advice, copy Bank Memory item data instead of Bank Tags next time."
     };
   }
 
@@ -395,7 +395,7 @@ function bankSourceReceipt(initial: OrganizeResult): {
     sourceLabel: "Raw item IDs",
     confidenceLabel: "Usable fallback",
     confidenceTone: "warn",
-    exactLine: "Recognized item IDs plus unknown-ID fallback tiles can still be organized and handed to other Scapestack tools.",
+    exactLine: "Recognized item IDs can still be organized and used for the next plan.",
     limitationLine: "Names, quantities, tab names and GP values may be incomplete because the paste was not a full bank export.",
     nextLine: "Use Bank Memory or RuneLite Bank Tags for a cleaner import."
   };
@@ -1373,7 +1373,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
       <details className="mb-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-3">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-semibold text-[var(--color-text)] marker:hidden">
           <span>Bank details</span>
-          <span className="text-[11px] font-medium text-[var(--color-text-muted)]">gear, export, source</span>
+          <span className="text-[11px] font-medium text-[var(--color-text-muted)]">gear, tabs, next move</span>
         </summary>
       <div className="mt-4 flex flex-wrap items-start justify-between gap-4 mb-6">
         <div>
@@ -1541,7 +1541,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
             {sourceReceipt.confidenceTone === "good" ? <Shield className="size-4" /> : <AlertCircle className="size-4" />}
           </div>
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">Data receipt</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">Paste check</p>
             <p className="mt-1 text-[14px] font-semibold text-[var(--color-text)]">{sourceReceipt.sourceLabel}</p>
             <p
               className={cn(
@@ -1743,10 +1743,10 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-warning)]">
-                Bank handoff blocked
+                Bank not saved
               </div>
               <p className="mt-1 max-w-2xl text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                Scapestack could not save this bank into browser storage, so opening another tool would lose the exact item context.
+                Scapestack could not save this bank into browser storage, so opening another tool would lose this gear.
                 Enable storage for this site or copy the RuneLite export before continuing.
               </p>
             </div>

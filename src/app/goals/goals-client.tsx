@@ -713,7 +713,7 @@ function GoalsBankContextBanner({
           </span>
           <div className="min-w-0">
             <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              {loadedFromHandoff ? "Bank handoff loaded" : "Bank parsed for goals"}
+              {loadedFromHandoff ? "Gear loaded" : "Gear checked"}
             </div>
             <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
               <span className="font-semibold text-[var(--color-text)]">{summary.label}</span>
@@ -721,7 +721,7 @@ function GoalsBankContextBanner({
               Bank-owned untradeables are checked from item IDs; earned skill capes can come from Hiscores when an RSN is attached.
             </p>
             <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
-              RuneLite sync is still needed before diary rewards, quest rewards and collection-log-only goals should be treated as verified account coverage.
+              RuneLite can help later when diary rewards, quest rewards or clog-only goals would change the route.
             </p>
             {summary.topItems.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">

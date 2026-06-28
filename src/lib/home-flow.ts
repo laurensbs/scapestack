@@ -87,7 +87,7 @@ export const HOME_PRODUCT_FLOW: HomeFlowStep[] = homeProductFlowForPluginState("
 export function homePluginReadinessPill(readiness: PluginHubReviewReadiness): HomePluginReadinessPill {
   const playerInstallReady = readiness.playerInstallReady;
   return {
-    label: playerInstallReady ? "Sync ready" : "Check sync",
+    label: playerInstallReady ? "RuneLite ready" : "Check RuneLite",
     detail: playerInstallReady
       ? "Use the same RSN so /next skips finished progress."
       : "Check your OSRS name when /next repeats finished progress.",

@@ -136,7 +136,7 @@ describe("plugin page copy constants", () => {
 
     expect(checkerSource).toContain("Open one plan");
     expect(checkerSource).toContain("Check again");
-    expect(checkerSource).toContain("Synced {syncAgeLabel(state.player.syncedAt)}");
+    expect(checkerSource).toContain("Last press {syncAgeLabel(state.player.syncedAt)}");
     expect(checkerSource).not.toContain("formatPluginSyncProof");
     expect(checkerSource).not.toContain("Copy proof");
     expect(checkerSource).not.toContain("Proof copied");

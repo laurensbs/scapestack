@@ -27,7 +27,7 @@ describe("recommendation primary actions", () => {
     expect(routeActionForHref("/skills").label).toBe("Open skill route in /next");
     expect(routeActionForHref("/slayer?rsn=Lynx+Titan&source=plugin-sync").href)
       .toBe("/slayer?rsn=Lynx+Titan&source=plugin-sync");
-    expect(routeActionForHref("/plugin").helper).toBe("Install or verify RuneLite sync for verified account coverage.");
+    expect(routeActionForHref("/plugin").helper).toBe("Let Scapestack skip finished quests, diary steps, clog slots and Slayer.");
     expect(routeActionForHref("/plugin").helper).not.toContain("exact account state");
   });
 

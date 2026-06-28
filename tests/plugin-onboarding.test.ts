@@ -8,7 +8,7 @@ describe("bank plugin onboarding", () => {
   it("sends normal bank users to the sync checker before account coverage is trusted", () => {
     expect(BANK_PLUGIN_ONBOARDING.actions).toEqual([
       {
-        label: "Check sync",
+        label: "Check RuneLite",
         href: "/plugin?from=bank#verify-sync",
         tone: "primary"
       },
@@ -26,7 +26,7 @@ describe("bank plugin onboarding", () => {
     expect(bankPluginOnboardingActions("review-blocked")).toEqual(BANK_PLUGIN_ONBOARDING.actions);
     expect(bankPluginOnboardingActions("merged")).toEqual([
       {
-        label: "Check sync",
+        label: "Check RuneLite",
         href: "/plugin?from=bank#verify-sync",
         tone: "primary"
       },
@@ -37,7 +37,7 @@ describe("bank plugin onboarding", () => {
       }
     ]);
     expect(bankPluginOnboardingActions("unknown")[1]).toEqual({
-      label: "Check sync",
+      label: "Check RuneLite",
       href: "/plugin?from=bank#verify-sync",
       tone: "secondary"
     });
@@ -51,12 +51,12 @@ describe("bank plugin onboarding", () => {
   });
 
   it("communicates finished-progress benefits rather than generic plugin marketing", () => {
-    expect(BANK_PLUGIN_ONBOARDING.signals).toContain("Quest completion");
+    expect(BANK_PLUGIN_ONBOARDING.signals).toContain("Finished quests");
     expect(BANK_PLUGIN_ONBOARDING.signals).not.toContain("Exact quest completion");
-    expect(BANK_PLUGIN_ONBOARDING.signals).toContain("Live Slayer task");
-    expect(BANK_PLUGIN_ONBOARDING.body).toContain("Scapestack Sync is a separate opt-in RuneLite plugin");
-    expect(BANK_PLUGIN_ONBOARDING.title).toContain("account progress after sync");
-    expect(BANK_PLUGIN_ONBOARDING.body).toContain("adds quests, diaries, collection log and Slayer for the same RSN");
+    expect(BANK_PLUGIN_ONBOARDING.signals).toContain("Slayer task");
+    expect(BANK_PLUGIN_ONBOARDING.body).toContain("RuneLite only helps Scapestack skip quests");
+    expect(BANK_PLUGIN_ONBOARDING.title).toContain("RuneLite can help later");
+    expect(BANK_PLUGIN_ONBOARDING.body).toContain("clog slots and Slayer");
     expect(BANK_PLUGIN_ONBOARDING.title).not.toContain("exact account state");
     expect(BANK_PLUGIN_ONBOARDING.title).not.toContain("when you opt in");
     expect(BANK_PLUGIN_ONBOARDING.body).not.toContain("payload");
@@ -65,15 +65,15 @@ describe("bank plugin onboarding", () => {
   it("separates pasted bank data from opt-in account-state sync", () => {
     expect(BANK_PLUGIN_ONBOARDING.lanes).toEqual([
       expect.objectContaining({
-        label: "Paste bank",
-        title: "Bank Memory → item stack",
-        proof: "Sends bank items only when you paste them here."
+        label: "Gear now",
+        title: "Bank Memory or Bank Tags",
+        proof: "Stays in this browser unless you paste it."
       }),
       expect.objectContaining({
-        label: "Opt-in sync",
-        title: "Scapestack Sync → finished progress",
-        body: "Use /plugin when you want /next and Slayer advice to avoid quests, diaries, CL items and task state you already handled.",
-        proof: "Never sends RuneScape password, chat, screenshots, inventory or equipment."
+        label: "Progress later",
+        title: "RuneLite skips done stuff",
+        body: "Use /plugin when /next keeps suggesting quests, diaries, clog or Slayer you already finished.",
+        proof: "No password, chat, screenshots, inventory or equipment."
       })
     ]);
   });
@@ -81,21 +81,21 @@ describe("bank plugin onboarding", () => {
   it("shows a concrete safe path while Plugin Hub review is pending", () => {
     expect(BANK_PLUGIN_ONBOARDING.readiness).toEqual([
       {
-        label: "Ready now",
-        title: "Paste Bank Memory or Bank Tags",
-        body: "Bank organization, snapshots, tips and copy-back tags work without Scapestack Sync.",
+        label: "1",
+        title: "Paste gear if it matters",
+        body: "Bank organization, snapshots, tips and copy-back tags work without RuneLite.",
         state: "ready"
       },
       {
-        label: "Use now",
-        title: "Use /next with bank-aware context",
-        body: "Use Hiscores plus bank now. Add sync when you want Scapestack to avoid finished account progress for the same RSN.",
+        label: "2",
+        title: "Open one plan",
+        body: "Use Hiscores plus gear now. RuneLite can be added only when finished progress matters.",
         state: "verify"
       },
       {
-        label: "Sync check",
-        title: "Scapestack Sync check",
-        body: "Open /plugin when you want to check the same RSN from RuneLite before relying on quest, diary, CL and Slayer.",
+        label: "3",
+        title: "Check RuneLite later",
+        body: "Open /plugin when quest, diary, clog or Slayer mistakes would waste a session.",
         state: "pending"
       }
     ]);
@@ -110,18 +110,18 @@ describe("bank plugin onboarding", () => {
     expect(source).toContain('pluginHubReadinessState === "merged"');
     expect(source).toContain("const SignalIcon = isPluginHubLive ? CheckCircle2 : Clock3");
     expect(source).toContain('isPluginHubLive ? "text-[var(--color-good)]" : "text-[var(--color-warning)]"');
-    expect(source).toContain("Progress Scapestack Sync can add");
-    expect(source).toContain("Synced progress ready");
+    expect(source).toContain("RuneLite can skip");
+    expect(source).toContain("RuneLite is helping");
     expect(source).not.toContain("Exact signals Scapestack Sync can unlock");
     expect(source).not.toContain("Exact signals unlocked");
-    expect(source).toContain("Sync checker available");
-    expect(source).toContain("Check sync later");
-    expect(source).toContain("Use the /plugin checker");
+    expect(source).toContain("Use the plan now");
+    expect(source).toContain("Check RuneLite later");
+    expect(source).toContain("Use /plugin to check");
     expect(source).toContain("CopyCommand");
     expect(source).not.toContain("Open review checklist");
     expect(source).not.toContain("review-readiness");
     expect(source).not.toContain("Review handoff blocker");
-    expect(source).toContain("Safe path today");
+    expect(source).toContain("Simple path");
     expect(source).toContain("BANK_PLUGIN_ONBOARDING.readiness.map");
     expect(source).toContain('step.state === "ready" ? CheckCircle2 : Clock3');
   });

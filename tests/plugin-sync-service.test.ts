@@ -23,7 +23,7 @@ describe("plugin sync service summary", () => {
       }
     })).toMatchObject({
       tone: "danger",
-      label: "RuneLite check is not ready",
+      label: "RuneLite needs setup",
       actions: [
         { label: "Copy setup command", copy: DB_INIT_COMMAND },
         { label: "Copy sync URL", copy: PUBLIC_SYNC_URL }
@@ -63,8 +63,8 @@ describe("plugin sync service summary", () => {
     });
 
     expect(summary.tone).toBe("danger");
-    expect(summary.label).toBe("RuneLite check needs setup");
-    expect(summary.detail).toBe("Finish server setup before RuneLite can help plans.");
+    expect(summary.label).toBe("RuneLite needs setup");
+    expect(summary.detail).toBe("This install needs setup before RuneLite can help plans.");
     expect(summary.detail).not.toContain("player_sync.slayer");
     expect(summary.actions).toContainEqual({ label: "Copy setup command", copy: DB_INIT_COMMAND });
   });

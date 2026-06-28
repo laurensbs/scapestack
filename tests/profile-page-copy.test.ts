@@ -17,7 +17,7 @@ describe("RSN profile handoffs", () => {
     expect(source).toContain("ProfileActionRail");
     expect(source).toContain("Plan from profile");
     expect(source).toContain("Hiscores as the starting point");
-    expect(source).toContain("label which account coverage is verified");
+    expect(source).toContain("finished stuff or supplies matter");
     expect(source).not.toContain("Hiscores als startpunt");
     expect(source).not.toContain("labelen wat exact is");
     expect(source).not.toContain("Plan exact /next");
@@ -42,6 +42,6 @@ describe("RSN profile handoffs", () => {
     expect(railSource).toContain("hasBankContext={hasLocalBank}");
     expect(railSource).toContain("hasRsn");
     expect(readinessSource).toContain('export type ScapestackSurface = "bank" | "next" | "dps" | "goals" | "profile" | "slayer";');
-    expect(readinessSource).toContain('profile: "Player profile"');
+    expect(readinessSource).toContain('profile: "profile"');
   });
 });

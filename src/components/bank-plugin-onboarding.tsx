@@ -33,8 +33,8 @@ export function BankPluginOnboarding() {
   const actions = bankPluginOnboardingActions(pluginHubReadinessState);
   const SignalIcon = isPluginHubLive ? CheckCircle2 : Clock3;
   const signalTitle = isPluginHubLive
-    ? "Synced progress ready"
-    : "Progress Scapestack Sync can add";
+    ? "RuneLite is helping"
+    : "RuneLite can skip";
 
   return (
     <section className="mb-8 overflow-hidden rounded-2xl border border-[var(--color-accent)]/25 bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] shadow-[0_24px_80px_rgba(0,0,0,0.2)]">
@@ -84,7 +84,7 @@ export function BankPluginOnboarding() {
           </div>
           <div className="mt-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/30 p-3.5">
             <div className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-              Safe path today
+              Simple path
             </div>
             <div className="mt-3 grid gap-2">
               {BANK_PLUGIN_ONBOARDING.readiness.map((step) => {
@@ -162,39 +162,39 @@ function statusCopyForPluginHub(
 ): { title: string; body: string; className: string } {
   if (readinessState === "merged") {
     return {
-      title: "RuneLite sync ready",
-      body: "Enable Scapestack Sync, opt in from RuneLite settings, then check this same RSN from /plugin.",
+      title: "RuneLite can help",
+      body: "Enable Scapestack Sync in RuneLite, then check this same RSN from /plugin.",
       className: "border-[var(--color-good)]/25 bg-[var(--color-good)]/10 text-[var(--color-good)]"
     };
   }
 
   if (readinessState === "review-blocked") {
     return {
-      title: "Sync checker available",
-      body: "Use bank paste and /next now. Check sync later when finished progress matters.",
+      title: "Use the plan now",
+      body: "Use bank paste and /next now. Check RuneLite later when finished progress matters.",
       className: "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
     };
   }
 
   if (readinessState === "pending") {
     return {
-      title: "Sync checker available",
-      body: "Use bank paste and /next now. Open /plugin when you want Scapestack to include quests, diaries, collection log and Slayer for the same RSN.",
+      title: "Use the plan now",
+      body: "Use bank paste and /next now. Open /plugin when quests, diaries, clog or Slayer should change the pick.",
       className: "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
     };
   }
 
   if (readinessState === "closed") {
     return {
-      title: "Sync check optional",
-      body: "Bank paste, Hiscores and public trackers still work. Check sync later when RuneLite has sent progress for this RSN.",
+      title: "RuneLite later",
+      body: "Bank paste, Hiscores and public trackers still work. Check RuneLite later when it has sent progress for this RSN.",
       className: "border-[var(--color-danger)]/25 bg-[var(--color-danger)]/10 text-[var(--color-danger)]"
     };
   }
 
   return {
-    title: "Sync status unavailable",
-    body: "Use the /plugin checker to confirm whether Scapestack has RuneLite sync for this RSN.",
+    title: "RuneLite status unknown",
+    body: "Use /plugin to check whether RuneLite is helping this RSN.",
     className: "border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
   };
 }

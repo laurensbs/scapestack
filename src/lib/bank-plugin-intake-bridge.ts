@@ -31,37 +31,37 @@ export function buildBankPluginIntakeBridge(rsn?: string | null): BankPluginInta
   const pluginHref = `${withRsnParam("/plugin", rsn, { from: "bank" })}#verify-sync`;
 
   return {
-    eyebrow: "RuneLite sync handoff",
-    title: "RuneLite is separate from this bank paste",
-    body: "Use this page to add the missing bank layer: gear, supplies, quantities and GP. That makes /next, DPS and snapshot compare bank-aware instead of progress-only.",
-    safety: "Browser-only: this bank paste stays in the web session and is never sent back to the RuneLite plugin.",
+    eyebrow: "Add gear",
+    title: "RuneLite knows progress. Bank paste knows gear.",
+    body: "Paste Bank Memory or Bank Tags when the plan needs gear, supplies, quantities or GP. /next can still work without a bank.",
+    safety: "Browser-only: this paste stays here and never goes back to RuneLite.",
     signals: [
       {
-        label: "Plugin covers",
-        value: "quests, diaries, collection-log IDs and optional Slayer state"
+        label: "RuneLite helps",
+        value: "quests, diaries, clog and Slayer"
       },
       {
-        label: "Bank paste adds",
-        value: "item IDs, quantities, stack value, gear and supplies"
+        label: "Bank paste helps",
+        value: "gear, supplies, quantities and GP"
       },
       {
-        label: "Best format",
-        value: "Bank Memory TSV for quantities; Bank Tags if you only need exact item IDs"
+        label: "Best paste",
+        value: "Bank Memory for quantities; Bank Tags for quick item IDs"
       }
     ],
     actions: [
       {
-        label: "Paste bank below",
+        label: "Paste gear below",
         href: "#bank-paste-panel",
         primary: true
       },
       {
-        label: "Check sync",
+        label: "Check RuneLite",
         href: pluginHref,
         primary: false
       },
       {
-        label: "Continue bankless /next",
+        label: "Plan without bank",
         href: withRsnParam("/next", rsn, { source: "plugin-sync", bank: "none" }),
         primary: false
       }

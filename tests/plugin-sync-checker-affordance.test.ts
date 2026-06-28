@@ -42,7 +42,7 @@ describe("plugin sync checker affordance", () => {
   });
 
   it("shows only the sync status chips players need", () => {
-    expect(source).toContain("Synced {syncAgeLabel(state.player.syncedAt)}");
+    expect(source).toContain("Last press {syncAgeLabel(state.player.syncedAt)}");
     expect(source).not.toContain("{state.player.questsCompleted.length} quests");
     expect(source).not.toContain("{state.player.diariesCompleted.length} diary tiers");
     expect(source).not.toContain("{state.player.collectionLogItemIds.length.toLocaleString()} log items");

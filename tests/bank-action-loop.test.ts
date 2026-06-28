@@ -28,17 +28,17 @@ describe("bank action loop", () => {
     });
     expect(steps[2].body).toContain("this exact bank");
     expect(steps[2].body).toContain("which bosses your current weapons can actually kill");
-    expect(steps[3].body).toContain("RuneLite sync");
+    expect(steps[3].body).toContain("RuneLite help");
     expect(steps[3].body).toContain("once this same RSN is found");
     expect(steps[3].body).not.toContain("combine it with RuneLite sync for exact account-state recommendations");
     expect(steps[3].body).not.toContain("exact account-state recommendations");
     expect(steps[3]).toMatchObject({
       destination: "/next planner",
-      proof: "Carries current bank item IDs through session handoff"
+      proof: "Carries current bank gear into the next plan"
     });
     expect(steps[4]).toMatchObject({
-      title: "Check RSN sync",
-      cta: "Check RSN sync",
+      title: "Check RuneLite",
+      cta: "Check RuneLite",
       destination: "/plugin#verify-sync",
       state: "ready"
     });
@@ -61,12 +61,12 @@ describe("bank action loop", () => {
       proof: "0 blocking cleanup tips"
     });
     expect(steps[4]).toMatchObject({
-      title: "Check sync",
+      title: "Check RuneLite",
       state: "optional",
-      cta: "Check sync",
-      proof: "Sync checker ready · same RSN required"
+      cta: "Check RuneLite",
+      proof: "RuneLite optional · same RSN required"
     });
-    expect(steps[4].body).toContain("quests, diaries, log items or Slayer matter");
+    expect(steps[4].body).toContain("quests, diaries, clog or Slayer matter");
   });
 
   it("turns review-blocked Plugin Hub state into a sync-check action", () => {
@@ -79,13 +79,13 @@ describe("bank action loop", () => {
     });
 
     expect(steps[4]).toMatchObject({
-      title: "Check sync",
-      cta: "Check sync",
+      title: "Check RuneLite",
+      cta: "Check RuneLite",
       destination: "/plugin#verify-sync",
-      proof: "Sync checker ready · web planner ready",
+      proof: "RuneLite optional · web planner ready",
       state: "optional"
     });
-    expect(steps[4].body).toContain("quests, diaries, log items or Slayer matter");
+    expect(steps[4].body).toContain("quests, diaries, clog or Slayer matter");
     expect(steps[4].body).not.toContain("Plugin Hub review is still pending");
   });
 
@@ -106,15 +106,15 @@ describe("bank action loop", () => {
     });
 
     expect(unknown[4]).toMatchObject({
-      title: "Check sync",
+      title: "Check RuneLite",
       destination: "/plugin#verify-sync",
-      proof: "Sync status unknown · checker available",
+      proof: "RuneLite unknown · same RSN required",
       state: "optional"
     });
     expect(closed[4]).toMatchObject({
-      title: "Check sync",
+      title: "Check RuneLite",
       destination: "/plugin#verify-sync",
-      proof: "Sync check optional · web planner ready",
+      proof: "RuneLite optional · web planner ready",
       state: "optional"
     });
     expect(unknown[4].body).not.toContain("Install Scapestack Sync from RuneLite Plugin Hub");
@@ -131,10 +131,10 @@ describe("bank action loop", () => {
     });
 
     expect(steps[4]).toMatchObject({
-      title: "Check sync",
-      cta: "Check sync",
+      title: "Check RuneLite",
+      cta: "Check RuneLite",
       destination: "/plugin#verify-sync",
-      proof: "RuneLite sync · same RSN required",
+      proof: "RuneLite · same RSN required",
       state: "ready"
     });
     expect(steps[4].body).toContain("avoid finished progress");
@@ -170,8 +170,8 @@ describe("bank action loop", () => {
     expect(source).toContain("if (!stored) {");
     expect(source).toContain("setHandoffBlockedHref(href)");
     expect(source).toContain('document.getElementById("bank-handoff-warning")?.scrollIntoView');
-    expect(source).toContain("Bank handoff blocked");
-    expect(source).toContain("would lose the exact item context");
+    expect(source).toContain("Bank not saved");
+    expect(source).toContain("would lose this gear");
     expect(source).toContain("Copy export instead");
     expect(source).toContain("Open without bank");
     expect(source).toContain('params.set("bank", "none")');

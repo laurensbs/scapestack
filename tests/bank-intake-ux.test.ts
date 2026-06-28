@@ -17,8 +17,8 @@ describe("bank intake UX affordances", () => {
 
   it("keeps bank export onboarding distinct from Scapestack Sync", () => {
     expect(introSource).toContain('short: "Bank Memory"');
-    expect(introSource).toContain("separate from Scapestack Sync");
-    expect(introSource).toContain("verified account coverage");
+    expect(introSource).toContain("RuneLite sync is separate");
+    expect(introSource).toContain("skip finished quests, diaries, clog and Slayer");
     expect(introSource).not.toContain('short: "Install plugin"');
   });
 

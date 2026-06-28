@@ -493,7 +493,7 @@ describe("next-up action plans", () => {
       rsn: "Lynx Titan",
       hasBankContext: false
     });
-    expect(text).toContain("Optional: Refresh sync");
+    expect(text).toContain("Optional: Press Sync again");
     expect(text).toContain("https://www.scapestack.org/plugin?rsn=Lynx+Titan&from=next&bank=none#verify-sync");
   });
 

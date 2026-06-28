@@ -14,17 +14,17 @@ describe("bank export feedback", () => {
     expect(source).toContain("Use this bank for one clear session plan");
     expect(source).toContain("<span>Bank details</span>");
     expect(source).toContain("<span>Saved banks</span>");
-    expect(source.indexOf("What can I do with this bank?")).toBeLessThan(source.indexOf("Data receipt"));
+    expect(source.indexOf("What can I do with this bank?")).toBeLessThan(source.indexOf("Paste check"));
   });
 
-  it("shows a data receipt for source precision before export", () => {
+  it("shows a paste check for bank precision before export", () => {
     expect(source).toContain("function bankSourceReceipt");
     expect(source).toContain('data-testid="bank-source-receipt"');
     expect(source).toContain("Bank Memory TSV");
     expect(source).toContain("RuneLite Bank Tags");
     expect(source).toContain("Exact layout, partial stacks");
     expect(source).toContain("Bank Tags do not include quantities");
-    expect(source).toContain("Quest, diary, collection-log and live Slayer state");
+    expect(source).toContain("Finished quests, diary steps, clog slots and Slayer");
   });
 
   it("surfaces item ID and sprite health in the bank result", () => {

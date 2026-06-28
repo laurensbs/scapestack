@@ -27,9 +27,9 @@ function signalTone(signal: ScapestackReadinessSignal): string {
 }
 
 function statusLabel(signal: ScapestackReadinessSignal): string {
-  if (signal.status === "exact") return "Verified";
-  if (signal.status === "ready") return "Ready";
-  return signal.id === "sync" ? "Check" : "Optional";
+  if (signal.status === "exact") return "Used";
+  if (signal.status === "ready") return "Loaded";
+  return signal.id === "sync" ? "Later" : "Add";
 }
 
 export function ScapestackReadinessRail({
@@ -104,7 +104,7 @@ export function ScapestackReadinessRail({
                       value={rsnDraft}
                       onChange={(event) => setRsnDraft(event.target.value)}
                       placeholder="Type RSN"
-                      aria-label="OSRS name for plan context"
+                      aria-label="OSRS name for this plan"
                       className="h-8 min-w-[128px] rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-2.5 text-[11.5px] font-semibold text-[var(--color-text)] outline-none transition-colors placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)]/60"
                     />
                   )}

@@ -59,7 +59,7 @@ export function Intro({ flowStep = 0 }: IntroProps) {
       n: 1,
       title: "Open Bank Memory in RuneLite",
       short: "Bank Memory",
-      body: "Plugin Hub → install \"Bank Memory\" for bank items. This is separate from Scapestack Sync, which only adds verified account coverage.",
+      body: "Plugin Hub -> install \"Bank Memory\" for bank items. RuneLite sync is separate and only helps skip finished quests, diaries, clog and Slayer.",
       illustration: <RuneLiteSideBar />,
       actionLabel: "I have a bank export",
       actionTargetId: "bank-paste-input",
