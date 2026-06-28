@@ -95,6 +95,10 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Do this first");
     expect(source).toContain("Why this pick:");
     expect(source).toContain("headlineSmartRead(rec)");
+    expect(source).toContain("function recommendationWhyNot");
+    expect(source).toContain("Why not");
+    expect(source).toContain("so kill checks stay conservative.");
+    expect(source).toContain("this pace avoids intense trips unless you pick Bossing.");
     expect(source).toContain("First step");
     expect(source).toContain("Gear");
     expect(source).toContain("Stop point");
@@ -143,8 +147,10 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("What to do now");
     expect(source).toContain("Do this first");
     expect(source).toContain("One best move for this account. Two backups");
-    expect(source).toContain("Route");
+    expect(source).toContain("Try a different route");
     expect(source).toContain("Next 3 sessions");
+    expect(source).toContain("Next sessions");
+    expect(source).toContain("Optional follow-up after the stop point.");
     expect(source).toContain("Finish the stop point, then re-run /next.");
     expect(source).toContain("routePreviewRecs");
     expect(source).toContain("function TonightRouteStrip");
@@ -164,7 +170,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("mergedSkipCounts(sessionSkippedCounts(sessionSkipped), recentMemoryCounts)");
     expect(source).toContain("routeSwitchCopy(nextRouteLens, pick.headline)");
     expect(source).toContain("pickForRoute(visibleRecs, mood, minutes, routeLens, shuffleIdx, routePickOptions)");
-    expect(source).toContain("Session length");
+    expect(source).toContain("Change time or pace");
     expect(source).toContain("Backups");
     expect(source).toContain("Chill / GP / Bossing / Unlock / AFK");
     expect(source).toContain("Account details");

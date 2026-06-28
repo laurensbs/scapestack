@@ -1681,6 +1681,55 @@ function headlineSmartRead(rec: Recommendation): string | null {
   return oneLine.length > 150 ? `${oneLine.slice(0, 147).trim()}...` : oneLine;
 }
 
+function recommendationWhyNot({
+  headline,
+  allRecs,
+  mood,
+  hasBankContext,
+  pluginSyncState
+}: {
+  headline: Recommendation;
+  allRecs: Recommendation[];
+  mood: Mood;
+  hasBankContext: boolean;
+  pluginSyncState: "live" | "stale" | "outdated" | null;
+}): string | null {
+  const others = allRecs.filter((rec) => rec.id !== headline.id);
+  const scout = others.find((rec) =>
+    rec.kind === "kc" &&
+    typeof rec.kcMeta?.kc === "number" &&
+    rec.kcMeta.kc > 0 &&
+    rec.kcMeta.kc < 5
+  );
+  if (scout?.kcMeta) {
+    return `Why not ${scout.title}: ${scout.kcMeta.kc.toLocaleString()} KC is still a test trip, so it stays backup.`;
+  }
+
+  const hasBossBackup = others.some((rec) => rec.kind === "boss" || rec.kind === "kc" || rec.kind === "slayer");
+  if ((mood === "chill" || mood === "afk" || mood === "short") && hasBossBackup) {
+    return "Why not bossing: this pace avoids intense trips unless you pick Bossing.";
+  }
+
+  if (!hasBankContext && hasBossBackup && headline.kind !== "boss" && headline.kind !== "kc") {
+    return "Why not a boss headline: no gear pasted, so kill checks stay conservative.";
+  }
+
+  const longQuest = others.find((rec) => {
+    if (rec.kind !== "quest") return false;
+    const text = `${rec.title} ${rec.why} ${rec.payoff ?? ""} ${rec.decisionReason ?? ""}`.toLowerCase();
+    return /grandmaster|very long|\(\+\d+ more\)|long prereq/.test(text);
+  });
+  if (longQuest) {
+    return `Why not ${longQuest.title}: the prereq chain looks longer than this session needs.`;
+  }
+
+  if (pluginSyncState === "live") {
+    return "Why not finished stuff: RuneLite skipped quests, diary steps, clog slots and Slayer mistakes.";
+  }
+
+  return null;
+}
+
 function recommendationAvoidance(rec: Recommendation): string {
   switch (rec.kind) {
     case "kc":
@@ -1739,13 +1788,8 @@ function TonightRouteStrip({
 }) {
   if (recs.length === 0) return null;
 
-  return (
-    <div
-      className={cn(
-        "mb-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-3",
-        shareMode && "border-[var(--color-accent)]/25 bg-[var(--color-bg)]/45"
-      )}
-    >
+  const content = (
+    <>
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
         <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
           Next 3 sessions
@@ -1780,6 +1824,33 @@ function TonightRouteStrip({
           );
         })}
       </div>
+    </>
+  );
+
+  if (!shareMode) {
+    return (
+      <details className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/42 p-2.5">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg px-1 py-1 text-left marker:hidden [&::-webkit-details-marker]:hidden">
+          <span>
+            <span className="block text-[12.5px] font-bold text-[var(--color-text)]">Next sessions</span>
+            <span className="mt-0.5 block text-[11px] text-[var(--color-text-muted)]">
+              Optional follow-up after the stop point.
+            </span>
+          </span>
+          <span className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
+            Show
+          </span>
+        </summary>
+        <div className="mt-3">
+          {content}
+        </div>
+      </details>
+    );
+  }
+
+  return (
+    <div className="mb-3 rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/45 p-3">
+      {content}
     </div>
   );
 }
@@ -1802,22 +1873,22 @@ function scapestackNotice({
   if (!headline) return null;
 
   if (routeLens === "maxing") {
-    return "Maxing route: cape, diary, quest and total-level progress beat random trips.";
+    return "Maxing week: cape, diary, quest and total-level progress beat random trips.";
   }
   if (routeLens === "fun") {
-    return "Fun route: rewards, KC, minigames and lighter grinds stay in the mix.";
+    return "Fun session: rewards, KC, minigames and lighter grinds stay in the mix.";
   }
   if (routeLens === "gp-upgrade") {
-    return "GP route: cash and upgrade funding beat long unlock chains.";
+    return "GP rebuild: cash and upgrade funding beat long unlock chains.";
   }
   if (routeLens === "boss-log") {
-    return "Bossing route: KC, clog chances and realistic trips move up.";
+    return "Boss log: KC, clog chances and realistic trips move up.";
   }
   if (routeLens === "afk-progress") {
-    return "AFK route: low-pressure progress moves up and intense trips move down.";
+    return "AFK progress: low-pressure progress moves up and intense trips move down.";
   }
   if (routeLens === "unlock-chain") {
-    return "Unlock route: quests, diaries and account gates move up.";
+    return "Iron unlock: quests, diaries and account gates move up.";
   }
 
   const scout = allRecs.find((rec) =>
@@ -1921,12 +1992,12 @@ function sessionFitCopy(
   }
   if (mood === "cash") {
     return noGear
-      ? `GP route, but no gear pasted, so Scapestack keeps the setup conservative.`
+      ? `GP plan, but no gear pasted, so Scapestack keeps the setup conservative.`
       : `Fits a GP session: aim for the upgrade money, then stop.`;
   }
   if (mood === "bossing" || mood === "focused") {
     return noGear
-      ? `Bossing route with no gear pasted; test a cheap trip before committing.`
+      ? `Bossing plan with no gear pasted; test a cheap trip before committing.`
       : `Fits a PvM session: one trip, KC or kill-time check, then decide.`;
   }
   if (mood === "short") {
@@ -2087,20 +2158,24 @@ function ActionPlanBlock({ rec, compact = false }: { rec: Recommendation; compac
 // route-accented, with the payoff and a direct link into the relevant tool.
 function HeadlineCard({
   rec,
+  allRecs,
   actionContext,
   onBossOpen,
   mood,
   minutes,
   hasBankContext,
-  bankItems
+  bankItems,
+  pluginSyncState
 }: {
   rec: Recommendation;
+  allRecs: Recommendation[];
   actionContext: RecommendationActionContext;
   onBossOpen: (slug: string) => void;
   mood: Mood;
   minutes: TimeBudget;
   hasBankContext: boolean;
   bankItems: BankHandoffItem[];
+  pluginSyncState: "live" | "stale" | "outdated" | null;
 }) {
   // Boss/KC recs expose an explicit modal button. Other kinds expose an
   // explicit route button. The article itself is not a fake button because
@@ -2112,6 +2187,7 @@ function HeadlineCard({
   const choice = playerChoiceTag(rec);
   const payoff = headlinePayoff(rec);
   const smartRead = headlineSmartRead(rec);
+  const whyNot = recommendationWhyNot({ headline: rec, allRecs, mood, hasBankContext, pluginSyncState });
   const bossViability = bossViabilityForRecommendation(rec, bankItems, hasBankContext);
   const card = (
     <article
@@ -2186,6 +2262,12 @@ function HeadlineCard({
               <span>
                 <span className="text-[var(--color-accent)]">Why this pick:</span> {smartRead}
               </span>
+            </p>
+          )}
+          {whyNot && (
+            <p className="mt-2 flex gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/30 px-3 py-2 text-[12px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+              <Shield className="mt-0.5 size-3.5 shrink-0 text-[var(--color-text-muted)]" />
+              <span>{whyNot}</span>
             </p>
           )}
           <RecommendationSessionSummary
@@ -3049,6 +3131,7 @@ function WhatToDo({
           <>
             <RecHeadlineExpandable
               rec={pick.headline}
+              allRecs={allRecs}
               actionContext={actionContext}
               onBossOpen={onBossOpen}
               onSuppress={hideRecommendation}
@@ -3059,6 +3142,7 @@ function WhatToDo({
               minutes={minutes}
               hasBankContext={hasBankContext}
               bankItems={bankItems}
+              pluginSyncState={pluginSyncState}
             />
             {pick.alternatives.length > 0 && (
               <div>
@@ -3090,11 +3174,14 @@ function WhatToDo({
             {!shareMode && (
               <details className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/42 p-2.5">
                 <summary className="flex list-none items-center justify-between gap-3 rounded-lg px-1 py-1 text-left [&::-webkit-details-marker]:hidden">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-                    Route
+                  <span>
+                    <span className="block text-[12.5px] font-bold text-[var(--color-text)]">Try a different route</span>
+                    <span className="mt-0.5 block text-[11px] text-[var(--color-text-muted)]">
+                      {currentRouteLabel.name}: {currentRouteLabel.tagline}
+                    </span>
                   </span>
                   <span className="text-right text-[11px] font-semibold text-[var(--color-text-dim)]">
-                    {currentRouteLabel.name}: {currentRouteLabel.tagline}
+                    Show
                   </span>
                 </summary>
                 <div className="mt-2 flex gap-1.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-7 sm:overflow-visible sm:pb-0">
@@ -3144,9 +3231,9 @@ function WhatToDo({
       <details className="mt-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-4">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden">
           <span>
-            <span className="block text-[12.5px] font-bold text-[var(--color-text)]">Session length</span>
+            <span className="block text-[12.5px] font-bold text-[var(--color-text)]">Change time or pace</span>
             <span className="mt-0.5 block text-[11px] text-[var(--color-text-muted)]">
-              Current: {minutes === 60 ? "1 hour" : `${minutes} min`}. Route is {currentRouteLabel.name}.
+              Current: {minutes === 60 ? "1 hour" : `${minutes} min`} · {currentRouteLabel.name}.
             </span>
           </span>
           <span className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
@@ -3532,6 +3619,7 @@ function recommendationFeedbackButtonClass(
 
 function RecHeadlineExpandable({
   rec,
+  allRecs,
   actionContext,
   onBossOpen,
   onSuppress,
@@ -3541,9 +3629,11 @@ function RecHeadlineExpandable({
   mood,
   minutes,
   hasBankContext,
-  bankItems
+  bankItems,
+  pluginSyncState
 }: {
   rec: Recommendation;
+  allRecs: Recommendation[];
   actionContext: RecommendationActionContext;
   onBossOpen: (slug: string) => void;
   onSuppress: (rec: Recommendation) => void;
@@ -3554,18 +3644,21 @@ function RecHeadlineExpandable({
   minutes: TimeBudget;
   hasBankContext: boolean;
   bankItems: BankHandoffItem[];
+  pluginSyncState: "live" | "stale" | "outdated" | null;
 }) {
   const [open, setOpen] = useState(false);
   return (
     <div>
       <HeadlineCard
         rec={rec}
+        allRecs={allRecs}
         actionContext={actionContext}
         onBossOpen={onBossOpen}
         mood={mood}
         minutes={minutes}
         hasBankContext={hasBankContext}
         bankItems={bankItems}
+        pluginSyncState={pluginSyncState}
       />
       {!cleanMode && (
         <div className="flex justify-end mt-1.5 gap-3">

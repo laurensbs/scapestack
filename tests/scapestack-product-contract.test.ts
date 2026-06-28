@@ -26,6 +26,8 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).toContain("Do this first");
     expect(next).toContain("One best move for this account. Two backups");
     expect(next).toContain("Next 3 sessions");
+    expect(next).toContain("Next sessions");
+    expect(next).toContain("Why not");
     expect(next).toContain("Trip looks runnable");
     expect(next).toContain("Safer backup");
     expect(next).toContain("Screenshot mode");

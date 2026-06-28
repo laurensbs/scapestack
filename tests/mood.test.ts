@@ -200,7 +200,7 @@ describe("pickForMood", () => {
     ];
     const result = pickForRoute(recs, "unlock", 120, "maxing");
     expect(result!.headline.id).toBe("farming-99");
-    expect(result!.routeLabel).toBe("Maxing");
+    expect(result!.routeLabel).toBe("Maxing week");
   });
 
   it("route tags can surface smarter account-story routes without visible labels", () => {
@@ -225,7 +225,7 @@ describe("pickForMood", () => {
     ];
     const result = pickForRoute(recs, "unlock", 60, "fun");
     expect(["minigame", "kc"]).toContain(result!.headline.kind);
-    expect(result!.routeHelper).toContain("less like chores");
+    expect(result!.routeHelper).toContain("without chores");
   });
 
   it("gp route zet cash funding boven maxing of diary progress", () => {
