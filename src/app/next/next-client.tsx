@@ -984,6 +984,7 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
           activeRsn={activeRsn}
           accountStage={summary.accountStage}
           hasBankContext={bankItems.length > 0}
+          bankItems={bankItems}
           onBossOpen={onBossOpen}
           onEdit={onEdit}
           routeIntent={routeIntent}
@@ -1480,6 +1481,125 @@ function runeLitePlanNote(pluginSyncState: "live" | "stale" | "outdated" | null)
   return "RuneLite can make this smarter later.";
 }
 
+const GEAR_REALITY_KEYWORDS = {
+  weapon: [
+    "whip", "fang", "scythe", "shadow", "trident", "bowfa", "blowpipe", "crossbow",
+    "zaryte", "rapier", "lance", "hasta", "sword", "staff", "bow", "macuahuitl"
+  ],
+  armour: [
+    "bandos", "torva", "barrows", "karil", "ahrim", "void", "masori", "ancestral",
+    "armadyl", "crystal", "inquisitor", "fighter torso", "blessed d'hide", "dhide"
+  ],
+  food: ["shark", "angler", "karambwan", "manta", "monkfish", "brew", "saradomin brew"],
+  potion: [
+    "potion", "restore", "super combat", "ranging", "magic", "antifire", "stamina",
+    "divine", "prayer", "brew"
+  ],
+  travel: ["teleport", "tablet", "tabs", "rune", "ring", "amulet", "necklace", "jewellery", "jewelry"]
+} as const;
+
+type GearReality = {
+  label: string;
+  summary: string;
+  status: "ready" | "partial" | "unknown" | "not-needed";
+};
+
+function gearRealityText(reality: GearReality): string {
+  return `${reality.label}: ${reality.summary}`;
+}
+
+function bankIncludes(items: BankHandoffItem[], keywords: readonly string[]): boolean {
+  return items.some((item) => {
+    const haystack = `${item.name} ${item.subtab}`.toLowerCase();
+    return keywords.some((keyword) => haystack.includes(keyword));
+  });
+}
+
+function recommendationNeedsCombatSetup(rec: Recommendation): boolean {
+  return rec.kind === "boss" || rec.kind === "kc" || rec.kind === "slayer";
+}
+
+function recommendationGearReality(
+  rec: Recommendation,
+  bankItems: BankHandoffItem[],
+  hasBankContext: boolean
+): GearReality {
+  const needsCombat = recommendationNeedsCombatSetup(rec);
+
+  if (!needsCombat) {
+    if (rec.kind === "money") {
+      return hasBankContext
+        ? {
+            label: "GP check",
+            status: "partial",
+            summary: "Gear is loaded; check prices before turning this into a long money session."
+          }
+        : {
+            label: "GP setup unknown",
+            status: "unknown",
+            summary: "No gear pasted, so Scapestack keeps GP advice conservative."
+          };
+    }
+
+    if (rec.kind === "quest" || rec.kind === "diary" || rec.kind === "goal" || rec.kind === "milestone") {
+      return {
+        label: "Light setup",
+        status: "not-needed",
+        summary: "Check teleports, boosts and quest items before leaving the bank."
+      };
+    }
+
+    return {
+      label: "No gear gate",
+      status: "not-needed",
+      summary: "The stop point matters more than the setup for this pick."
+    };
+  }
+
+  if (!hasBankContext || bankItems.length === 0) {
+    return {
+      label: "Gear unknown",
+      status: "unknown",
+      summary: "No gear pasted, so treat this as a short test trip or pick a safer backup."
+    };
+  }
+
+  const hasWeapon = bankIncludes(bankItems, GEAR_REALITY_KEYWORDS.weapon);
+  const hasArmour = bankIncludes(bankItems, GEAR_REALITY_KEYWORDS.armour);
+  const hasFood = bankIncludes(bankItems, GEAR_REALITY_KEYWORDS.food);
+  const hasPotion = bankIncludes(bankItems, GEAR_REALITY_KEYWORDS.potion);
+  const hasTravel = bankIncludes(bankItems, GEAR_REALITY_KEYWORDS.travel);
+  const hasCombatAnchor = hasWeapon || hasArmour;
+  const missing = [
+    !hasCombatAnchor ? "combat gear" : null,
+    !hasFood ? "food" : null,
+    !hasPotion ? "potions" : null,
+    !hasTravel ? "teleports" : null
+  ].filter((item): item is string => item !== null);
+
+  if (missing.length === 0) {
+    return {
+      label: "Trip looks runnable",
+      status: "ready",
+      summary: "Your pasted gear shows combat gear, supplies and travel for a real trip."
+    };
+  }
+
+  if (hasCombatAnchor && missing.length <= 2) {
+    return {
+      label: "Short trip only",
+      status: "partial",
+      summary: `Gear is close, but ${missing.join(" and ")} look thin. Do one short trip first.`
+    };
+  }
+
+  return {
+    label: "Safer backup",
+    status: "partial",
+    summary: `Gear paste is missing ${missing.slice(0, 3).join(", ")}. Use a backup until setup is clearer.`
+  };
+}
+
 function recommendationNeeds(rec: Recommendation): string[] {
   const hints = defaultActionHints(rec.kind);
   return (rec.needs?.length ? rec.needs : hints.needs).slice(0, 3);
@@ -1561,6 +1681,66 @@ function backupChoicePrompt(rec: Recommendation, headline: Recommendation): { la
   return { label: "Prefer unlock?", helper: "Use this when account progress matters more than GP or KC." };
 }
 
+function routeStepLabel(index: number): string {
+  if (index === 0) return "Now";
+  if (index === 1) return "Next login";
+  return "Backup";
+}
+
+function TonightRouteStrip({
+  recs,
+  shareMode
+}: {
+  recs: Recommendation[];
+  shareMode: boolean;
+}) {
+  if (recs.length === 0) return null;
+
+  return (
+    <div
+      className={cn(
+        "mb-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-3",
+        shareMode && "border-[var(--color-accent)]/25 bg-[var(--color-bg)]/45"
+      )}
+    >
+      <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+        <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
+          Next 3 sessions
+        </span>
+        <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">
+          Finish the stop point, then re-run /next.
+        </span>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-3">
+        {recs.map((rec, index) => {
+          const choice = playerChoiceTag(rec);
+          return (
+            <div
+              key={`${rec.id}:route-step:${index}`}
+              className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3"
+            >
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+                  {routeStepLabel(index)}
+                </span>
+                <span className="rounded-full border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-2 py-0.5 text-[9.5px] font-bold text-[var(--color-accent)]">
+                  {choice.label}
+                </span>
+              </div>
+              <p className="line-clamp-2 text-[12.5px] font-bold leading-snug text-[var(--color-text)]">
+                {rec.title}
+              </p>
+              <p className="mt-1 line-clamp-2 text-[11px] font-semibold leading-snug text-[var(--color-text-muted)]">
+                Stop: {recommendationStopPointValue(rec)}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function scapestackNotice({
   headline,
   allRecs,
@@ -1621,7 +1801,7 @@ function scapestackNotice({
   }
 
   if (pluginSyncState === "live") {
-    return "RuneLite skipped finished quests, diary steps, clog slots and Slayer mistakes.";
+    return "RuneLite changed this: finished quests, diary steps, clog slots and Slayer mistakes were skipped before this pick won.";
   }
 
   return null;
@@ -1702,20 +1882,24 @@ function RecommendationSessionSummary({
   mood,
   minutes,
   hasBankContext,
+  bankItems,
   compact = false
 }: {
   rec: Recommendation;
   mood: Mood;
   minutes: TimeBudget;
   hasBankContext: boolean;
+  bankItems: BankHandoffItem[];
   compact?: boolean;
 }) {
   const plan = rec.actionPlan;
+  const gearReality = recommendationGearReality(rec, bankItems, hasBankContext);
   if (compact) {
     return (
       <dl className="mt-2 space-y-1.5 border-t border-[var(--color-border)]/60 pt-2">
         {[
           { label: "Fit", value: sessionFitCopy(rec, mood, minutes, hasBankContext) },
+          { label: "Gear", value: gearRealityText(gearReality) },
           { label: "Stop", value: recommendationStopPointValue(rec) }
         ].map((item) => (
           <div key={`${rec.id}:compact-session:${item.label}`} className="grid grid-cols-[42px_minmax(0,1fr)] gap-2 text-[11px] leading-snug">
@@ -1741,12 +1925,16 @@ function RecommendationSessionSummary({
       value: recommendationFirstStepValue(rec)
     },
     {
-      label: "Stop point",
-      value: recommendationStopPointValue(rec)
+      label: "Gear",
+      value: gearRealityText(gearReality)
     },
     {
       label: "Bring",
       value: recommendationBringValue(rec)
+    },
+    {
+      label: "Stop point",
+      value: recommendationStopPointValue(rec)
     },
     {
       label: "Avoid",
@@ -1844,7 +2032,8 @@ function HeadlineCard({
   onBossOpen,
   mood,
   minutes,
-  hasBankContext
+  hasBankContext,
+  bankItems
 }: {
   rec: Recommendation;
   actionContext: RecommendationActionContext;
@@ -1852,6 +2041,7 @@ function HeadlineCard({
   mood: Mood;
   minutes: TimeBudget;
   hasBankContext: boolean;
+  bankItems: BankHandoffItem[];
 }) {
   // Boss/KC recs expose an explicit modal button. Other kinds expose an
   // explicit route button. The article itself is not a fake button because
@@ -1932,6 +2122,7 @@ function HeadlineCard({
             mood={mood}
             minutes={minutes}
             hasBankContext={hasBankContext}
+            bankItems={bankItems}
           />
           {isBossWithDetail && rec.bossSlug ? (
             <button
@@ -1981,6 +2172,7 @@ function RecRow({
   mood,
   minutes,
   hasBankContext,
+  bankItems,
   backupPrompt
 }: {
   rec: Recommendation;
@@ -1989,6 +2181,7 @@ function RecRow({
   mood: Mood;
   minutes: TimeBudget;
   hasBankContext: boolean;
+  bankItems: BankHandoffItem[];
   backupPrompt?: { label: string; helper: string };
 }) {
   const isBossWithDetail = (rec.kind === "kc" || rec.kind === "boss") && !!rec.bossSlug;
@@ -2047,6 +2240,7 @@ function RecRow({
             mood={mood}
             minutes={minutes}
             hasBankContext={hasBankContext}
+            bankItems={bankItems}
             compact
           />
           {isBossWithDetail && rec.bossSlug ? (
@@ -2308,6 +2502,7 @@ function WhatToDo({
   activeRsn,
   accountStage,
   hasBankContext,
+  bankItems,
   onBossOpen,
   onEdit,
   routeIntent,
@@ -2319,6 +2514,7 @@ function WhatToDo({
   activeRsn: string;
   accountStage: NextUpResult["summary"]["accountStage"];
   hasBankContext: boolean;
+  bankItems: BankHandoffItem[];
   onBossOpen: (slug: string) => void;
   onEdit: () => void;
   routeIntent: NextIntentPreset | null;
@@ -2340,6 +2536,14 @@ function WhatToDo({
   }));
   const [lastSession, setLastSession] = useState<MoodSession | null>(null);
   const [sessionCopyState, setSessionCopyState] = useState<"idle" | "copied" | "error">("idle");
+
+  useEffect(() => {
+    if (!shareMode || typeof document === "undefined") return;
+    document.body.classList.add("scapestack-clean-shot");
+    return () => {
+      document.body.classList.remove("scapestack-clean-shot");
+    };
+  }, [shareMode]);
 
   useEffect(() => {
     const last = loadMood();
@@ -2503,15 +2707,22 @@ function WhatToDo({
     : sessionCopyState === "error"
       ? "Try copy again"
       : "Copy plan";
+  const routePreviewRecs = pick ? [pick.headline, ...pick.alternatives].slice(0, 3) : [];
 
   return (
     <section
       data-screenshot-mode={shareMode ? "true" : undefined}
       className={cn(
         shareMode &&
-          "mx-auto max-w-3xl rounded-2xl border border-[var(--color-accent)]/25 bg-[var(--color-panel)]/78 p-4 shadow-[0_26px_80px_-54px_rgba(15, 118, 110,0.65)] sm:p-5"
+          "fixed inset-0 z-50 overflow-y-auto bg-[var(--color-bg)] px-4 py-6 sm:px-8 sm:py-8"
       )}
     >
+      <div
+        className={cn(
+          shareMode &&
+            "mx-auto max-w-4xl rounded-2xl border border-[var(--color-accent)]/25 bg-[var(--color-panel)]/86 p-4 shadow-[0_26px_80px_-54px_rgba(15,118,110,0.65)] sm:p-5"
+        )}
+      >
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
@@ -2753,6 +2964,8 @@ function WhatToDo({
         </div>
       )}
 
+      <TonightRouteStrip recs={routePreviewRecs} shareMode={shareMode} />
+
       <div className="space-y-3">
         {pick ? (
           <>
@@ -2767,6 +2980,7 @@ function WhatToDo({
               mood={mood}
               minutes={minutes}
               hasBankContext={hasBankContext}
+              bankItems={bankItems}
             />
             {pick.alternatives.length > 0 && (
               <div>
@@ -2788,6 +3002,7 @@ function WhatToDo({
                       mood={mood}
                       minutes={minutes}
                       hasBankContext={hasBankContext}
+                      bankItems={bankItems}
                       backupPrompt={backupChoicePrompt(r, pick.headline)}
                     />
                   ))}
@@ -2889,6 +3104,7 @@ function WhatToDo({
         </div>
       </details>
       )}
+      </div>
     </section>
   );
 }
@@ -3203,7 +3419,8 @@ function RecHeadlineExpandable({
   cleanMode = false,
   mood,
   minutes,
-  hasBankContext
+  hasBankContext,
+  bankItems
 }: {
   rec: Recommendation;
   actionContext: RecommendationActionContext;
@@ -3215,6 +3432,7 @@ function RecHeadlineExpandable({
   mood: Mood;
   minutes: TimeBudget;
   hasBankContext: boolean;
+  bankItems: BankHandoffItem[];
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -3226,6 +3444,7 @@ function RecHeadlineExpandable({
         mood={mood}
         minutes={minutes}
         hasBankContext={hasBankContext}
+        bankItems={bankItems}
       />
       {!cleanMode && (
         <div className="flex justify-end mt-1.5 gap-3">
@@ -3270,6 +3489,7 @@ function RecRowExpandable({
   mood,
   minutes,
   hasBankContext,
+  bankItems,
   backupPrompt
 }: {
   rec: Recommendation;
@@ -3278,6 +3498,7 @@ function RecRowExpandable({
   mood: Mood;
   minutes: TimeBudget;
   hasBankContext: boolean;
+  bankItems: BankHandoffItem[];
   backupPrompt?: { label: string; helper: string };
 }) {
   return (
@@ -3288,6 +3509,7 @@ function RecRowExpandable({
       mood={mood}
       minutes={minutes}
       hasBankContext={hasBankContext}
+      bankItems={bankItems}
       backupPrompt={backupPrompt}
     />
   );

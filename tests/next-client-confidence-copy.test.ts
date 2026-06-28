@@ -72,6 +72,11 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('label: "Unlock"');
     expect(source).toContain("function RecommendationSessionSummary");
     expect(source).toContain("function sessionFitCopy");
+    expect(source).toContain("function recommendationGearReality");
+    expect(source).toContain("bankItems: BankHandoffItem[]");
+    expect(source).toContain("Trip looks runnable");
+    expect(source).toContain("Short trip only");
+    expect(source).toContain("Safer backup");
     expect(source).toContain("Session fit");
     expect(source).toContain("Fits a chill");
     expect(source).toContain("Fits AFK mode");
@@ -85,6 +90,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Why this pick:");
     expect(source).toContain("headlineSmartRead(rec)");
     expect(source).toContain("First step");
+    expect(source).toContain("Gear");
     expect(source).toContain("Stop point");
     expect(source).toContain("Avoid");
     expect(source).toContain("Bring");
@@ -132,6 +138,10 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Do this first");
     expect(source).toContain("One best move for this account. Two backups");
     expect(source).toContain("Route");
+    expect(source).toContain("Next 3 sessions");
+    expect(source).toContain("Finish the stop point, then re-run /next.");
+    expect(source).toContain("routePreviewRecs");
+    expect(source).toContain("function TonightRouteStrip");
     expect(source).toContain("ROUTE_LENS_ORDER.map");
     expect(source).toContain("Pick ${label.name} route");
     expect(source).toContain("Try ${nextRouteLabel.name} route");
@@ -268,6 +278,8 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Screenshot mode");
     expect(source).toContain("Exit clean shot");
     expect(source).toContain("data-screenshot-mode={shareMode ? \"true\" : undefined}");
+    expect(source).toContain('document.body.classList.add("scapestack-clean-shot")');
+    expect(source).toContain("fixed inset-0 z-50 overflow-y-auto");
     expect(source).toContain("{!shareMode && (");
     expect(source).toContain("cleanMode={shareMode}");
     expect(source).not.toContain("Share dashboard");
@@ -280,6 +292,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("title={archetype.helper}");
     expect(source).toContain("{archetype.label}");
     expect(source).toContain("RuneLite helped skip finished quests, diary steps, clog slots and Slayer mistakes.");
+    expect(source).toContain("RuneLite changed this: finished quests, diary steps, clog slots and Slayer mistakes were skipped before this pick won.");
     expect(source).toContain("RuneLite can make this smarter later.");
     expect(source).toContain("function runeLitePlanNote");
     expect(source).toContain("function scapestackNotice");

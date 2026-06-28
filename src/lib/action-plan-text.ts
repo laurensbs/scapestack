@@ -74,7 +74,7 @@ export function formatRecommendationSessionPlan(
       const actionHref = primaryAction.href
         ? `${primaryAction.label}: ${shareableHref(primaryAction.href)}`
         : null;
-      const label = index === 0 ? "Do this first" : `Backup ${index}`;
+      const label = index === 0 ? "Do this first" : index === 1 ? "Next login" : "Backup";
       const title = index === 0 ? rec.title : `${sessionChoiceLabel(rec)} - ${rec.title}`;
       const stopPoint = plan?.steps.at(-1);
 

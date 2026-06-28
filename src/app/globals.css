@@ -798,3 +798,15 @@ body {
 :where(button:disabled, [aria-disabled="true"]) {
   opacity: 0.55;
 }
+
+body.scapestack-clean-shot > div > header,
+body.scapestack-clean-shot > div > footer,
+body.scapestack-clean-shot main > header {
+  display: none;
+}
+
+body.scapestack-clean-shot main {
+  z-index: 80;
+  max-width: none;
+  padding: 0;
+}
