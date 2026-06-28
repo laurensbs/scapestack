@@ -1,6 +1,6 @@
 export const BRAND_NAME = "Scapestack";
 export const BRAND_SHORT_NAME = "Scapestack";
-export const BRAND_TAGLINE = "Know what to do next in OSRS";
+export const BRAND_TAGLINE = "Stop bankstanding. Get one OSRS plan.";
 export const BRAND_SECONDARY_TAGLINE =
   "Type your RSN. Pick one route before you log in.";
 export const BRAND_URL = "https://www.scapestack.org";
@@ -10,7 +10,7 @@ export const BRAND_BACKGROUND_COLOR = "#07090C";
 export const BRAND_IMAGE_FONT_FAMILY = "Geist, Arial, sans-serif";
 
 export const BRAND_DESCRIPTION =
-  "Enter your OSRS name and get one useful next move, two backups and optional bank or RuneLite context.";
+  "Stop bankstanding: enter your OSRS name and get one useful next move, two backups and optional gear or RuneLite context.";
 
 export const BRAND_KEYWORDS = [
   "OSRS",
@@ -70,7 +70,7 @@ export const BRAND_LEGACY_REDIRECT_ROUTES = [
 export const BRAND_POSITIONING = {
   category: "OSRS route planner",
   promise: "From login indecision to one useful route.",
-  feeling: "A clean OSRS route board that knows the account in front of it.",
+  feeling: "A clean OSRS session planner that knows the account in front of it.",
   antiPattern: "Keep player-facing screens about choices, not internal status or generic product wording."
 } as const;
 

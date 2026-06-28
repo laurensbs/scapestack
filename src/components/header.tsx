@@ -10,11 +10,11 @@ import { cn } from "@/lib/utils";
 import { BuyMeCoffee } from "./buy-me-coffee";
 
 const LOOP_STEPS = [
-  { label: "Bank", href: "/bank" },
   { label: "Next", href: "/next" },
+  { label: "Gear", href: "/bank" },
   { label: "Sync", href: "/plugin" }
 ];
-const LOOP_LABEL = "Plan tonight: Bank → Next → Sync";
+const LOOP_LABEL = "Stop bankstanding: Next → Gear → Sync";
 
 export function Header() {
   const pathname = usePathname();
@@ -85,8 +85,8 @@ export function Header() {
 
         <Link
           href={contextualNavHref("/next", pathname, contextQuery)}
-          aria-label="Plan tonight from bank, stats and RuneLite sync"
-          title="Open /next and pick a useful account route for tonight."
+          aria-label="Stop bankstanding with one OSRS plan"
+          title="Open /next first. Add gear or RuneLite only when it changes the route."
           className="hidden lg:flex min-w-0 items-center gap-2 rounded-full border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:border-[var(--color-accent)]/45 hover:bg-[var(--color-accent)]/12"
           style={{ animation: "hero-fade 0.5s cubic-bezier(0.22,1,0.36,1) 0.36s both" }}
         >
@@ -156,7 +156,7 @@ export function Header() {
           <nav id={mobileNavId} className="px-4 py-3 space-y-1" aria-label="Mobile Scapestack tools">
             <div className="mb-3 rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 p-3">
               <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-                Plan tonight
+                Stop bankstanding
               </div>
               <div className="mt-2 grid grid-cols-3 gap-1.5">
                 {LOOP_STEPS.map((step) => (
@@ -172,7 +172,7 @@ export function Header() {
                 ))}
               </div>
               <p className="mt-2 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
-                Boss, Slayer, quest, diary, GP or bank cleanup. Pick one thing before you log in.
+                Pick one plan first. Add gear or RuneLite only when it changes the route.
               </p>
             </div>
             {navTools.map((tool) => {

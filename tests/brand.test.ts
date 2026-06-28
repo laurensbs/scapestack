@@ -37,11 +37,11 @@ describe("Scapestack branding", () => {
   });
 
   it("positions Scapestack as a tactical OSRS decision engine", () => {
-    expect(BRAND_TAGLINE).toBe("Know what to do next in OSRS");
+    expect(BRAND_TAGLINE).toBe("Stop bankstanding. Get one OSRS plan.");
     expect(BRAND_SECONDARY_TAGLINE).toBe("Type your RSN. Pick one route before you log in.");
-    expect(BRAND_DESCRIPTION).toContain("Enter your OSRS name");
+    expect(BRAND_DESCRIPTION).toContain("Stop bankstanding");
     expect(BRAND_POSITIONING.promise).toBe("From login indecision to one useful route.");
-    expect(BRAND_POSITIONING.feeling).toContain("OSRS route board");
+    expect(BRAND_POSITIONING.feeling).toContain("OSRS session planner");
     expect(BRAND_POSITIONING.antiPattern).toContain("player-facing screens about choices");
     expect(BRAND_VOICE_RULES.join(" ")).toContain("practical OSRS player language");
     expect(BRAND_VOICE_RULES.join(" ")).not.toContain("AI-powered");
@@ -139,6 +139,9 @@ describe("Scapestack branding", () => {
     expect(layoutSource).toContain("Made for Gielinor");
     expect(layoutSource).toContain("GeistSans.variable");
     expect(globalsSource).toContain("--font-geist-sans");
+    expect(globalsSource).toContain("Scapestack product primitives");
+    expect(globalsSource).toContain(".scapestack-plan-panel");
+    expect(globalsSource).toContain(".scapestack-session-list");
     expect(layoutSource).not.toContain("next/font/google");
     expect(globalsSource).not.toContain("--font-inter");
     expect(layoutSource).not.toContain("Webstability");

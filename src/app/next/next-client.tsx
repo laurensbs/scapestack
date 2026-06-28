@@ -706,7 +706,7 @@ function NextIntake({
           What should you do<br className="sm:hidden" /> next?
         </h2>
         <p className="mt-3 text-[14px] sm:text-[15px] text-[var(--color-text-dim)] leading-relaxed max-w-md mx-auto">
-          Type your OSRS name. Get one thing to do now, two backups and a clear stop point.
+          Type your OSRS name. Scapestack gives one best move, two backups and a clear stop point.
         </p>
       </header>
 

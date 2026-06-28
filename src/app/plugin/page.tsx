@@ -117,13 +117,21 @@ export default function PluginPage() {
         </div>
 
         <div>
-          <h1 className="max-w-4xl text-[clamp(42px,7vw,74px)] font-bold leading-[0.96] tracking-tight text-[var(--color-text)]">
+          <h1
+            aria-label="Check RuneLite. Skip done stuff."
+            className="max-w-4xl text-[clamp(42px,7vw,74px)] font-bold leading-[0.96] tracking-tight text-[var(--color-text)]"
+          >
             Check RuneLite.
-            <span className="block text-gold-gradient">Skip finished stuff.</span>
+            <span className="block text-gold-gradient">Skip done stuff.</span>
           </h1>
           <p className="mt-5 max-w-2xl text-[16px] leading-[1.55] text-[var(--color-text-dim)] sm:text-[18px]">
-            Type your RSN. If RuneLite is found, Scapestack stops sending you to quests, diary steps, clog slots and Slayer calls you already handled.
+            Type your RSN. If RuneLite shows up, Scapestack stops sending you to quests, diary steps, clog slots and Slayer calls you already handled.
           </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <PluginTrustPill label="No login" />
+            <PluginTrustPill label="No bank" />
+            <PluginTrustPill label="No screenshots" />
+          </div>
         </div>
 
       </section>
@@ -203,5 +211,14 @@ function InfoTile({ title, body }: { title: string; body: string }) {
       <h3 className="text-[13px] font-bold text-[var(--color-text)]">{title}</h3>
       <p className="mt-2 text-[12px] leading-relaxed text-[var(--color-text-dim)]">{body}</p>
     </article>
+  );
+}
+
+function PluginTrustPill({ label }: { label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-3 py-1.5 text-[11.5px] font-bold text-[var(--color-good)]">
+      <ShieldCheck className="size-3.5" aria-hidden="true" />
+      {label}
+    </span>
   );
 }

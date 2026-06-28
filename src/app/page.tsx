@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle2, Clock3, RotateCcw, Target } from "lucide-react";
+import { ArrowRight, CheckCircle2, Target } from "lucide-react";
 import { BuyMeCoffee } from "@/components/buy-me-coffee";
 import { HeroIntake } from "@/components/hero-intake";
 import { ItemSprite } from "@/components/item-sprite";
@@ -11,7 +11,10 @@ export default function HomePage() {
       <section className="relative">
         <div className="grid min-h-[calc(100vh-6rem)] items-center gap-10 lg:grid-cols-[0.9fr_0.82fr] lg:gap-20 xl:gap-28">
           <div className="space-y-6">
-            <h1 className="font-bold leading-[0.97] tracking-[-0.025em] text-[clamp(42px,6.2vw,72px)]">
+            <h1
+              aria-label="Stop bankstanding. One clear OSRS plan."
+              className="font-bold leading-[0.97] tracking-[-0.025em] text-[clamp(42px,6.2vw,72px)]"
+            >
               <RevealLine
                 text="Stop bankstanding."
                 delay={100}
@@ -37,7 +40,7 @@ export default function HomePage() {
                 clipPath: "inset(0 0 100% 0)"
               }}
             >
-              Type your OSRS name. Get one thing to do now, two backups and a clean stop point.
+              Type your OSRS name. Scapestack gives one best move, two backups and a clean stop point.
             </p>
 
             <div
@@ -100,60 +103,63 @@ function HeroProductPreview() {
   return (
     <aside
       aria-label="Live anti-bankstanding plan preview"
-      className="relative overflow-hidden rounded-[28px] border border-[var(--color-border)] bg-[radial-gradient(circle_at_20%_0%,rgba(230,165,47,0.16),transparent_34%),linear-gradient(145deg,var(--color-panel),var(--color-bg-2))] p-4 shadow-[0_30px_90px_rgba(0,0,0,0.36)] sm:p-5"
+      className="scapestack-plan-panel relative overflow-hidden p-4 sm:p-5"
     >
       <div
         className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-accent)]/70 to-transparent"
         aria-hidden="true"
       />
 
-      <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)]/58 p-4 sm:p-5">
-        <div className="flex items-start gap-4">
-          <span className="grid size-14 shrink-0 place-items-center rounded-2xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10">
+      <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)]/62 p-4 sm:p-5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-2.5 py-1 text-[11px] font-bold text-[var(--color-good)]">
+            <CheckCircle2 className="size-3.5" aria-hidden="true" />
+            Screenshot-ready plan
+          </div>
+          <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-panel)]/55 px-2.5 py-1 text-[11px] font-bold text-[var(--color-text-dim)]">
+            45-90 min
+          </span>
+        </div>
+
+        <div className="mt-4 flex items-start gap-4">
+          <span className="grid size-14 shrink-0 place-items-center rounded-2xl border border-[var(--color-accent)]/28 bg-[var(--color-accent)]/10 shadow-[0_12px_30px_-24px_rgba(230,165,47,0.9)]">
             <ItemSprite id={28307} alt="Vardorvis" className="scale-125" />
           </span>
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-2.5 py-1 text-[11px] font-bold text-[var(--color-good)]">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-2.5 py-1 text-[11px] font-bold text-[var(--color-accent)]">
               <Target className="size-3.5" aria-hidden="true" />
-              Anti-bankstanding plan
+              Do this first
             </div>
             <h2 className="mt-3 text-[24px] font-black leading-tight tracking-tight text-[var(--color-text)]">
               Push Vardorvis to 50 KC
             </h2>
+            <p className="mt-2 text-[13px] leading-relaxed text-[var(--color-text-dim)]">
+              15 KC means the boss is already started. 50 KC is a clean stop point.
+            </p>
           </div>
         </div>
 
-        <div className="mt-5 grid gap-2">
-          <PreviewRow
-            icon={<Target className="size-4" />}
-            label="Goal"
-            value="Get enough KC to know if the grind fits."
-          />
-          <PreviewRow
-            icon={<Clock3 className="size-4" />}
-            label="Time"
-            value="45-90 min"
-          />
-          <PreviewRow
-            icon={<ArrowRight className="size-4" />}
-            label="First step"
-            value="Check gear, then do one short trip."
-          />
-          <PreviewRow
-            icon={<RotateCcw className="size-4" />}
-            label="Backup"
-            value="Push Farming to 99 if you want chill progress."
-          />
-          <PreviewRow
-            icon={<CheckCircle2 className="size-4" />}
-            label="Stop point"
-            value="Stop after one trip or 10 KC."
-          />
-          <div className="mt-2 rounded-xl border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-3 py-2">
-            <div className="flex items-center gap-2 text-[12.5px] font-bold text-[var(--color-good)]">
-              <CheckCircle2 className="size-4" />
-              Done: mark it finished and get the next plan.
-            </div>
+        <dl className="scapestack-session-list mt-5">
+          <PreviewLine label="Why" value="Your account has a real PvM thread, not a random boss suggestion." />
+          <PreviewLine label="First step" value="Open DPS, lock setup, then do one short trip." />
+          <PreviewLine label="Stop point" value="Stop after one trip or 10 KC. Re-run /next after." />
+          <PreviewLine label="Bring" value="Best owned melee setup, teleports and supplies for a small block." />
+        </dl>
+
+        <div className="mt-4">
+          <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+            Backups
+          </div>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            <PreviewBackup label="AFK" title="Push Farming to 99" />
+            <PreviewBackup label="Unlock" title="Desert Diary - Hard" />
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-xl border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-3 py-2">
+          <div className="flex items-center gap-2 text-[12.5px] font-bold text-[var(--color-good)]">
+            <CheckCircle2 className="size-4" />
+            RuneLite can skip quests, diaries, clog slots and Slayer mistakes later.
           </div>
         </div>
       </div>
@@ -161,28 +167,37 @@ function HeroProductPreview() {
   );
 }
 
-function PreviewRow({
-  icon,
+function PreviewLine({
   label,
   value
 }: {
-  icon: React.ReactNode;
   label: string;
   value: string;
 }) {
   return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-3 py-2.5">
-      <div className="flex items-start gap-3">
-        <span className="mt-0.5 text-[var(--color-accent)]" aria-hidden="true">{icon}</span>
-        <div>
-          <div className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-            {label}
-          </div>
-          <div className="mt-0.5 text-[13px] font-semibold leading-snug text-[var(--color-text)]">
-            {value}
-          </div>
+    <div className="grid gap-1 py-2.5 sm:grid-cols-[92px_minmax(0,1fr)] sm:gap-3">
+      <dt className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+        {label}
+      </dt>
+      <dd className="text-[13px] font-semibold leading-snug text-[var(--color-text)]">
+        {value}
+      </dd>
+    </div>
+  );
+}
+
+function PreviewBackup({ label, title }: { label: string; title: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-3 py-2.5">
+      <div className="min-w-0">
+        <div className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">
+          {label}
+        </div>
+        <div className="mt-0.5 truncate text-[13px] font-bold text-[var(--color-text)]">
+          {title}
         </div>
       </div>
+      <ArrowRight className="size-4 shrink-0 text-[var(--color-text-muted)]" aria-hidden="true" />
     </div>
   );
 }

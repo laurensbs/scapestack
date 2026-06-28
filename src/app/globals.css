@@ -675,6 +675,26 @@ body {
   background: var(--color-panel-2);
 }
 
+/* Scapestack product primitives — small, reusable surfaces for the
+   session-planner feel. Keep these quiet: the plan itself should carry
+   the page, not decorative chrome. */
+.scapestack-plan-panel {
+  border: 1px solid rgba(230, 165, 47, 0.20);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(230,165,47,0.14), transparent 34%),
+    linear-gradient(145deg, var(--color-panel), var(--color-bg-2));
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.36);
+}
+
+.scapestack-session-list {
+  border-block: 1px solid rgba(35, 31, 26, 0.80);
+}
+
+.scapestack-session-list > * + * {
+  border-top: 1px solid rgba(35, 31, 26, 0.70);
+}
+
 /* ── Buttons ──────────────────────────────────────────────────────────── */
 
 .btn-primary {

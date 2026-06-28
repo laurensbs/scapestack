@@ -12,13 +12,13 @@ describe("global header navigation", () => {
     expect(source).toContain('aria-current={active ? "page" : undefined}');
   });
 
-  it("surfaces the core Bank → Next → Sync loop as clickable navigation", () => {
+  it("surfaces the core Next → Gear → Sync loop as clickable navigation", () => {
     expect(source).toContain("LOOP_STEPS");
-    expect(source).toContain('const LOOP_LABEL = "Plan tonight: Bank → Next → Sync"');
-    expect(source).toContain('aria-label="Plan tonight from bank, stats and RuneLite sync"');
+    expect(source).toContain('const LOOP_LABEL = "Stop bankstanding: Next → Gear → Sync"');
+    expect(source).toContain('aria-label="Stop bankstanding with one OSRS plan"');
     expect(source).toContain('href={contextualNavHref("/next", pathname, contextQuery)}');
-    expect(source).toContain("Plan tonight");
-    expect(source).toContain("Boss, Slayer, quest, diary, GP or bank cleanup. Pick one thing before you log in.");
+    expect(source).toContain("Stop bankstanding");
+    expect(source).toContain("Pick one plan first. Add gear or RuneLite only when it changes the route.");
     expect(source).toContain('aria-label={`${step.label} in Scapestack loop`}');
   });
 

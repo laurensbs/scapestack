@@ -9,7 +9,7 @@ describe("homepage first-impression copy", () => {
     expect(source).not.toContain("BRAND_SECONDARY_TAGLINE");
     expect(source).toContain("Stop bankstanding.");
     expect(source).toContain("One clear OSRS plan.");
-    expect(source).toContain("Type your OSRS name. Get one thing to do now, two backups and a clean stop point.");
+    expect(source).toContain("Type your OSRS name. Scapestack gives one best move, two backups and a clean stop point.");
     expect(source).not.toContain("Get one best move, why it matters, how long it takes");
     expect(source).not.toContain("HERO_LOOP_STEPS");
     expect(source).not.toContain("AI-powered");
@@ -20,17 +20,20 @@ describe("homepage first-impression copy", () => {
   it("shows one example plan instead of a dense product mock", () => {
     expect(source).toContain("HeroProductPreview");
     expect(source).toContain('aria-label="Live anti-bankstanding plan preview"');
-    expect(source).toContain("Anti-bankstanding plan");
+    expect(source).toContain("Screenshot-ready plan");
+    expect(source).toContain("Do this first");
     expect(source).toContain("Push Vardorvis to 50 KC");
-    expect(source).toContain('label="Goal"');
-    expect(source).toContain('label="Time"');
+    expect(source).toContain('label="Why"');
     expect(source).toContain('label="First step"');
-    expect(source).toContain('value="Check gear, then do one short trip."');
-    expect(source).toContain('label="Backup"');
+    expect(source).toContain('value="Open DPS, lock setup, then do one short trip."');
+    expect(source).toContain('label="Bring"');
     expect(source).toContain('label="Stop point"');
-    expect(source).toContain('value="Stop after one trip or 10 KC."');
+    expect(source).toContain('value="Stop after one trip or 10 KC. Re-run /next after."');
     expect(source).toContain("Backup");
-    expect(source).toContain("Done");
+    expect(source).toContain("RuneLite can skip quests, diaries, clog slots and Slayer mistakes later.");
+    expect(source).toContain("scapestack-plan-panel");
+    expect(source).toContain("scapestack-session-list");
+    expect(source).toContain("PreviewBackup");
     expect(source).not.toContain("Item ID 28307");
     expect(source).not.toContain("https://oldschool.runescape.wiki/w/Special:Lookup?type=item&id=28307");
     expect(source).toContain("ItemSprite");
@@ -38,6 +41,7 @@ describe("homepage first-impression copy", () => {
     expect(source).not.toContain("Start");
     expect(source).not.toContain("Setup");
     expect(source).not.toContain("Try this flow");
+    expect(source).not.toContain("function PreviewRow");
   });
 
   it("removes extra above-the-fold dashboard choices", () => {

@@ -8,7 +8,7 @@ import {
   BRAND_TAGLINE
 } from "@/lib/brand";
 
-export const alt = "Scapestack · Know what to do next in OSRS";
+export const alt = "Scapestack · Stop bankstanding. Get one OSRS plan.";
 export const size = {
   width: 1200,
   height: 630
@@ -72,7 +72,7 @@ export default function OpenGraphImage() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
           <div style={{ maxWidth: 850, fontSize: 68, lineHeight: 1.02, fontWeight: 950, letterSpacing: -3 }}>
-            Bank, DPS, goals and Slayer in one next-action plan.
+            Stop bankstanding. Get one OSRS plan.
           </div>
           <div style={{ maxWidth: 840, color: "#C9BFAE", fontSize: 26, lineHeight: 1.35 }}>
             {BRAND_DESCRIPTION}

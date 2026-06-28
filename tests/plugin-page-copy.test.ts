@@ -10,7 +10,11 @@ describe("plugin page copy constants", () => {
 
     expect(PUBLIC_SYNC_URL).toBe("https://www.scapestack.org/api/sync");
     expect(pageSource).toContain("Check RuneLite.");
-    expect(pageSource).toContain("Skip finished stuff.");
+    expect(pageSource).toContain("Skip done stuff.");
+    expect(pageSource).toContain("No login");
+    expect(pageSource).toContain("No bank");
+    expect(pageSource).toContain("No screenshots");
+    expect(pageSource).toContain("PluginTrustPill");
     expect(pageSource).toContain("Check RuneLite");
     expect(pageSource).toContain("Open one plan");
     expect(pageSource).toContain("Setup help");

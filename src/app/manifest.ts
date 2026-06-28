@@ -44,7 +44,7 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "1200x630",
         type: "image/png",
         form_factor: "wide",
-        label: `${BRAND_NAME} account command center`
+        label: `${BRAND_NAME} OSRS session planner`
       }
     ],
     related_applications: [],
