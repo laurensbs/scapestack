@@ -73,7 +73,13 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function RecommendationSessionSummary");
     expect(source).toContain("function sessionFitCopy");
     expect(source).toContain("function recommendationGearReality");
+    expect(source).toContain("bossViabilityFromBankItems");
+    expect(source).toContain("function bossViabilityBadgeText");
+    expect(source).toContain("function bossViabilityBadgeClass");
     expect(source).toContain("bankItems: BankHandoffItem[]");
+    expect(source).toContain("Kill check");
+    expect(source).toContain("bossViability.verdict");
+    expect(source).toContain("bossViability.summary");
     expect(source).toContain("Trip looks runnable");
     expect(source).toContain("Short trip only");
     expect(source).toContain("Safer backup");

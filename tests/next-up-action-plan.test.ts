@@ -219,13 +219,41 @@ describe("next-up action plans", () => {
         { id: 4151, name: "Abyssal whip" },
         { id: 11832, name: "Bandos chestplate" },
         { id: 11834, name: "Bandos tassets" },
-        { id: 19553, name: "Amulet of torture" }
+        { id: 19553, name: "Amulet of torture" },
+        { id: 7462, name: "Barrows gloves" },
+        { id: 12954, name: "Dragon defender" }
       ]
     });
 
     expect(result.headline?.id).toBe("kc:Vardorvis:first-50");
     expect(result.headline?.title).toBe("Push Vardorvis to 50 KC");
     expect(result.headline?.decisionReason).toBe("You already have 15 Vardorvis KC, so 50 KC is a clean stop point.");
+    expect(result.headline?.actionPlan?.prep).toContain("Best owned setup: Abyssal whip");
+    expect(result.headline?.actionPlan?.prep).toContain("DPS");
+    expect(result.headline?.needs?.join(" ")).toContain("Abyssal whip setup");
+  });
+
+  it("does not headline an active boss when the bank cannot support it", async () => {
+    const result = await computeNextUp({
+      skills: skillsFromLevels({
+        Attack: 90, Strength: 90, Defence: 80, Hitpoints: 85, Ranged: 92,
+        Magic: 85, Prayer: 74, Slayer: 80,
+        Cooking: 80, Woodcutting: 70, Fletching: 80, Fishing: 70,
+        Firemaking: 70, Crafting: 75, Smithing: 70, Mining: 72,
+        Herblore: 78, Agility: 70, Thieving: 80, Farming: 75,
+        Runecraft: 70, Hunter: 70, Construction: 75
+      }),
+      questPoints: 180,
+      bossKc: { Vardorvis: 15 },
+      bank: [
+        { id: 12926, name: "Toxic blowpipe" },
+        { id: 12002, name: "Necklace of anguish" }
+      ]
+    });
+    const recs = [result.headline, ...result.rest].filter(Boolean);
+
+    expect(result.headline?.id).not.toBe("kc:Vardorvis:first-50");
+    expect(recs.some((rec) => rec?.id === "kc:Vardorvis:first-50")).toBe(false);
   });
 
   it("does not let one scout KC outrank stronger account progress", async () => {

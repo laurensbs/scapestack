@@ -27,6 +27,12 @@ import { TASK_ID_TO_MONSTER } from "./slayer/task-ids";
 import { MONSTERS_BY_ID } from "./slayer/monsters";
 import { slayerUrlForSyncedRsn } from "./plugin-sync-actions";
 import { pluginSyncHealth } from "./plugin-sync";
+import {
+  bossBySlug,
+  bossViabilityDecisionLine,
+  bossViabilityFromSimpleBank,
+  bossViabilityScoreMultiplier
+} from "./boss-viability";
 
 // Kind drives the icon + accent the hub renders, and groups the checklist.
 export type RecKind =
@@ -810,6 +816,98 @@ function gearWhy(combatLevel: number, matchedItem: string): string | null {
   if (!matchedItem) return null;
   const display = displayMatchedGear(matchedItem);
   return `Your ${display} fits — and CL ${combatLevel} clears the gate.`;
+}
+
+function mergeUniqueShort(first: string[], second: string[], limit: number): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const item of [...first, ...second]) {
+    const clean = item.trim();
+    if (!clean) continue;
+    const key = clean.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(clean);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+function applyBossViability(recs: Recommendation[], bank: CompletionItem[]): Recommendation[] {
+  if (bank.length === 0) return recs;
+
+  return recs.map((rec) => {
+    const boss = bossBySlug(rec.bossSlug);
+    if (!boss) return rec;
+
+    const viability = bossViabilityFromSimpleBank(bank, boss);
+    if (!viability) return rec;
+
+    const blocked = viability.tone === "blocked";
+    const multiplier = bossViabilityScoreMultiplier(viability);
+    const activeKcMomentum = rec.kind === "kc" && (rec.kcMeta?.kc ?? 0) >= 10 && !blocked
+      ? 1.35
+      : 1;
+    const existingQuality = rec.quality ?? defaultQualityFor(rec, true);
+    const existingSteps = rec.planSeed?.steps ?? [];
+    const prepPrefix = blocked
+      ? viability.summary
+      : `${viability.summary} ${viability.firstTrip}`;
+    const steps = blocked
+      ? [
+          `Do not make ${boss.name} the main plan from this bank.`,
+          "Open DPS if you want to inspect the setup gap.",
+          "Pick a backup that your current gear supports tonight."
+        ]
+      : mergeUniqueShort(
+          [
+            `Open ${boss.name} in DPS and lock ${viability.weaponName ?? "the best owned setup"}.`,
+            viability.firstTrip
+          ],
+          existingSteps,
+          4
+        );
+
+    return {
+      ...rec,
+      score: Math.max(blocked ? 4 : 20, Math.round(rec.score * multiplier * activeKcMomentum)),
+      why: blocked
+        ? `${boss.name} is not the move from this bank yet.`
+        : rec.why,
+      decisionReason: blocked
+        ? bossViabilityDecisionLine(viability)
+        : rec.decisionReason ?? bossViabilityDecisionLine(viability),
+      gearConfidence: blocked
+        ? "unknown"
+        : viability.tone === "ready"
+          ? "confirmed"
+          : "likely",
+      quality: {
+        ...existingQuality,
+        actionability: blocked ? 0.18 : viability.tone === "ready" ? Math.max(existingQuality.actionability, 0.86) : Math.min(existingQuality.actionability, 0.66),
+        gearConfidence: blocked ? 0.12 : viability.tone === "ready" ? 0.96 : 0.72,
+        fun: blocked ? Math.min(existingQuality.fun, 0.36) : existingQuality.fun,
+        friction: blocked ? Math.max(existingQuality.friction, 0.88) : viability.tone === "test" ? Math.max(existingQuality.friction, 0.52) : Math.min(existingQuality.friction, 0.34)
+      },
+      needs: mergeUniqueShort(
+        blocked
+          ? viability.missing
+          : [`${viability.weaponName ?? "Best owned setup"} setup`, `${viability.dps.toFixed(viability.dps >= 10 ? 0 : 1)} DPS check`],
+        rec.needs ?? [],
+        4
+      ),
+      planSeed: {
+        ...rec.planSeed,
+        prep: rec.planSeed?.prep
+          ? `${prepPrefix} ${rec.planSeed.prep}`
+          : prepPrefix,
+        steps,
+        caveat: blocked
+          ? "Use a backup unless you add better gear or supplies."
+          : rec.planSeed?.caveat
+      }
+    };
+  });
 }
 
 // Skills sitting just short of a milestone level — a clear, finite push.
@@ -2569,7 +2667,7 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     hasPluginSync: pluginSyncState === "live"
   });
 
-  const rawRecs = [
+  const rawRecs = applyBossViability([
     ...goalRecs(completions),
     ...(combatLevel !== null ? bossRecs(combatLevel, bank, skills, mergedBossKc) : []),
     ...slayerTaskRecs(input.scapestackSync?.slayer, input.scapestackSync?.displayName ?? input.accountMeta?.displayName),
@@ -2592,7 +2690,7 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     // No-Hiscores nudge: when the player only gave a bank, lead with "add
     // your RSN" rather than letting "Tidy your bank" become the headline.
     ...(!hasHiscores && hasBank ? [noHiscoresNudge()] : [])
-  ];
+  ], bank);
   const sortedRecs = rankRecommendations(rawRecs, {
     hasBank,
     accountStage,

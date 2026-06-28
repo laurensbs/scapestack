@@ -53,6 +53,11 @@ import { shouldReadNextBankHandoff, shouldReadNextHeroBank } from "@/lib/next-ro
 import { nextIntentFromSearch, type NextIntentPreset } from "@/lib/next-intent";
 import { formatRecommendationSessionPlan } from "@/lib/action-plan-text";
 import {
+  bossBySlug,
+  bossViabilityFromBankItems,
+  type BossViability
+} from "@/lib/boss-viability";
+import {
   primaryActionForRecommendation,
   recommendationHrefWithContext,
   routeActionForHref,
@@ -128,6 +133,8 @@ const SAMPLE_BANK = [
   { id: 11832, name: "Bandos chestplate" },
   { id: 11834, name: "Bandos tassets" },
   { id: 19553, name: "Amulet of torture" },
+  { id: 12954, name: "Dragon defender" },
+  { id: 7462, name: "Barrows gloves" },
   { id: 21295, name: "Infernal cape" },
   { id: 21907, name: "Vorkath's head" },
   { id: 12921, name: "Magic fang" }
@@ -1508,6 +1515,29 @@ function gearRealityText(reality: GearReality): string {
   return `${reality.label}: ${reality.summary}`;
 }
 
+function bossViabilityForRecommendation(
+  rec: Recommendation,
+  bankItems: BankHandoffItem[],
+  hasBankContext: boolean
+): BossViability | null {
+  if (!hasBankContext || bankItems.length === 0 || !rec.bossSlug) return null;
+  const boss = bossBySlug(rec.bossSlug);
+  return boss ? bossViabilityFromBankItems(bankItems, boss) : null;
+}
+
+function bossViabilityBadgeText(viability: BossViability): string {
+  if (viability.dps > 0) {
+    return `${viability.verdict} · ${viability.dps.toFixed(viability.dps >= 10 ? 0 : 1)} DPS`;
+  }
+  return viability.verdict;
+}
+
+function bossViabilityBadgeClass(viability: BossViability): string {
+  if (viability.tone === "ready") return "border-emerald-400/35 bg-emerald-400/10 text-emerald-300";
+  if (viability.tone === "test") return "border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 text-[var(--color-accent)]";
+  return "border-red-400/30 bg-red-400/10 text-red-200";
+}
+
 function bankIncludes(items: BankHandoffItem[], keywords: readonly string[]): boolean {
   return items.some((item) => {
     const haystack = `${item.name} ${item.subtab}`.toLowerCase();
@@ -1561,6 +1591,15 @@ function recommendationGearReality(
       label: "Gear unknown",
       status: "unknown",
       summary: "No gear pasted, so treat this as a short test trip or pick a safer backup."
+    };
+  }
+
+  const bossViability = bossViabilityForRecommendation(rec, bankItems, hasBankContext);
+  if (bossViability) {
+    return {
+      label: bossViability.verdict,
+      status: bossViability.tone === "ready" ? "ready" : bossViability.tone === "test" ? "partial" : "unknown",
+      summary: bossViability.summary
     };
   }
 
@@ -1894,12 +1933,13 @@ function RecommendationSessionSummary({
 }) {
   const plan = rec.actionPlan;
   const gearReality = recommendationGearReality(rec, bankItems, hasBankContext);
+  const gearLabel = (rec.kind === "boss" || rec.kind === "kc") && rec.bossSlug ? "Kill check" : "Gear";
   if (compact) {
     return (
       <dl className="mt-2 space-y-1.5 border-t border-[var(--color-border)]/60 pt-2">
         {[
           { label: "Fit", value: sessionFitCopy(rec, mood, minutes, hasBankContext) },
-          { label: "Gear", value: gearRealityText(gearReality) },
+          { label: gearLabel === "Kill check" ? "DPS" : "Gear", value: gearRealityText(gearReality) },
           { label: "Stop", value: recommendationStopPointValue(rec) }
         ].map((item) => (
           <div key={`${rec.id}:compact-session:${item.label}`} className="grid grid-cols-[42px_minmax(0,1fr)] gap-2 text-[11px] leading-snug">
@@ -1925,7 +1965,7 @@ function RecommendationSessionSummary({
       value: recommendationFirstStepValue(rec)
     },
     {
-      label: "Gear",
+      label: gearLabel,
       value: gearRealityText(gearReality)
     },
     {
@@ -2053,6 +2093,7 @@ function HeadlineCard({
   const choice = playerChoiceTag(rec);
   const payoff = headlinePayoff(rec);
   const smartRead = headlineSmartRead(rec);
+  const bossViability = bossViabilityForRecommendation(rec, bankItems, hasBankContext);
   const card = (
     <article
       className={cn(
@@ -2097,6 +2138,17 @@ function HeadlineCard({
             >
               {choice.label}
             </span>
+            {bossViability && (
+              <span
+                className={cn(
+                  "rounded-full border px-2 py-0.5 text-[10.5px] font-bold",
+                  bossViabilityBadgeClass(bossViability)
+                )}
+                title={bossViability.summary}
+              >
+                {bossViabilityBadgeText(bossViability)}
+              </span>
+            )}
           </div>
           <h3 className="text-[19px] font-bold text-[var(--color-text)] tracking-normal leading-tight">
             {rec.title}
@@ -2189,6 +2241,7 @@ function RecRow({
   const actionLabel = isBossWithDetail ? "Open boss detail" : primaryAction.label;
   const actionHref = isBossWithDetail ? undefined : primaryAction.href;
   const choice = playerChoiceTag(rec);
+  const bossViability = bossViabilityForRecommendation(rec, bankItems, hasBankContext);
   const inner = (
     <article
       className={cn(
@@ -2227,6 +2280,17 @@ function RecRow({
             >
               {choice.label}
             </span>
+            {bossViability && (
+              <span
+                className={cn(
+                  "rounded-full border px-2 py-0.5 text-[10px] font-bold",
+                  bossViabilityBadgeClass(bossViability)
+                )}
+                title={bossViability.summary}
+              >
+                {bossViabilityBadgeText(bossViability)}
+              </span>
+            )}
             <h4 className="text-[13px] font-semibold text-[var(--color-text)] tracking-normal leading-tight">
               {rec.title}
             </h4>
