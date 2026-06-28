@@ -561,10 +561,13 @@ function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSk
 // surface it ("Your Twisted bow + CL 126 makes this easy") so the player
 // sees the engine read their bank. Falls back to CL-only when match.item
 // is empty (no-gate boss or no bank pasted).
+function displayMatchedGear(matchedItem: string): string {
+  return matchedItem.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 function gearWhy(combatLevel: number, matchedItem: string): string | null {
   if (!matchedItem) return null;
-  // Title-case the item name back from the lowercased match string.
-  const display = matchedItem.replace(/\b\w/g, (c) => c.toUpperCase());
+  const display = displayMatchedGear(matchedItem);
   return `Your ${display} fits — and CL ${combatLevel} clears the gate.`;
 }
 
@@ -1193,6 +1196,37 @@ function bossForKcName(name: string): Boss | undefined {
   );
 }
 
+function activeBossKcScore(kc: number, boss: Boss, hasBank: boolean): number {
+  const avgLoot = boss.avgLootGp ?? 0;
+  const lootBoost =
+    avgLoot >= 300_000 ? 8
+      : avgLoot >= 150_000 ? 5
+        : avgLoot >= 100_000 ? 3
+          : 0;
+  const missingBankPenalty = hasBank ? 0 : 3;
+
+  if (kc < 5) {
+    return Math.max(45, 54 + kc * 1.5 + lootBoost - missingBankPenalty);
+  }
+
+  if (kc < 10) {
+    return 64 + (kc - 5) * 1.5 + lootBoost - missingBankPenalty;
+  }
+
+  const commitmentBoost = Math.min(8, (kc - 10) * 0.35);
+  return Math.min(92, 84 + commitmentBoost + Math.floor(lootBoost / 2) - missingBankPenalty * 0.5);
+}
+
+function activeBossKcWhy(kc: number, boss: Boss): string {
+  if (kc < 5) {
+    return `${kc.toLocaleString()} KC is only a scout read; test a short block before this becomes a real grind.`;
+  }
+  if (kc < 10) {
+    return `${kc.toLocaleString()} KC says you started learning it, but the next block should still be a proof run.`;
+  }
+  return `${kc.toLocaleString()} KC means this is already started; 50 KC is enough to judge whether the grind fits.`;
+}
+
 function activeBossKcRecs(bossKc: Record<string, number>, bank: CompletionItem[], skills: HiscoreSkill[]): Recommendation[] {
   const slayerLevel = lvl(skills, "Slayer");
   const recs: Recommendation[] = [];
@@ -1209,23 +1243,34 @@ function activeBossKcRecs(bossKc: Record<string, number>, bank: CompletionItem[]
     if (match === null) continue;
 
     const remaining = 50 - kc;
+    const matchedGear = match.item ? displayMatchedGear(match.item) : null;
     recs.push({
       id: `kc:${name}:first-50`,
       kind: "kc",
       title: `Push ${boss.name} to 50 KC`,
-      why: `${kc.toLocaleString()} KC means this is already started; 50 KC is enough to judge whether the grind fits.`,
+      why: activeBossKcWhy(kc, boss),
       payoff: boss.avgLootGp ? `~${Math.round(boss.avgLootGp / 1000)}k average loot per kill while you build proof.` : boss.notes,
-      score: 90 - kc * 0.1,
+      score: activeBossKcScore(kc, boss, bank.length > 0),
       link: "/dps",
       iconItemId: boss.iconItemId,
       bossSlug: boss.slug,
       kcMeta: { kc, denom: 50, dropName: "first 50 KC" },
+      needs: [
+        matchedGear ? `${matchedGear} setup` : "DPS setup check",
+        "Teleports and supplies for one fixed trip",
+        boss.category === "wildy" ? "Risk only what you are fine losing" : "Re-check after the KC block"
+      ],
+      details: kc < 10
+        ? `${boss.name} has some account history, but not enough to override stronger unlocks by itself. Treat this as a controlled proof run, not a blind grind.`
+        : `${boss.name} has enough KC history to justify a focused block. The point is to learn whether kill time, supply burn and loot feel worth continuing.`,
       planSeed: {
-        timebox: "45-90 min",
-        prep: `You only need ${remaining} more ${boss.name} kill${remaining === 1 ? "" : "s"} to turn this from a test into a real read.`,
+        timebox: kc < 10 ? "30-60 min" : "45-90 min",
+        prep: kc < 10
+          ? `${boss.name} is still a scout read. Run a small block and let the result decide whether it deserves 50 KC.`
+          : `You only need ${remaining} more ${boss.name} kill${remaining === 1 ? "" : "s"} to turn this from a test into a real read.`,
         steps: [
           `Open ${boss.name} in DPS and lock the setup before the first trip.`,
-          `Run ${Math.min(remaining, 10)}-${Math.min(remaining, 25)} KC without changing the goal mid-session.`,
+          `Run ${kc < 10 ? Math.min(remaining, 5) : Math.min(remaining, 10)}-${kc < 10 ? Math.min(remaining, 10) : Math.min(remaining, 25)} KC without changing the goal mid-session.`,
           "Re-sync after the block; if kill time and supply burn are stable, continue to 50 KC."
         ]
       }

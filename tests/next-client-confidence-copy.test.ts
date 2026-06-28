@@ -72,7 +72,11 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('label: "Unlock"');
     expect(source).toContain("function RecommendationQuickFacts");
     expect(source).toContain("function RecommendationFirstStep");
+    expect(source).toContain("function RecommendationDecisionBrief");
     expect(source).toContain("Do this first");
+    expect(source).toContain("Why this pick");
+    expect(source).toContain("RuneLite check");
+    expect(source).toContain("Avoid");
     expect(source).toContain("Start:");
     expect(source).toContain('label: "Stop"');
     expect(source).toContain("Bring");

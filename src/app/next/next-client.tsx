@@ -1562,6 +1562,72 @@ function RecommendationFirstStep({ rec, compact = false }: { rec: Recommendation
   );
 }
 
+function recommendationAvoidance(rec: Recommendation): string {
+  switch (rec.kind) {
+    case "kc":
+      return rec.kcMeta && rec.kcMeta.kc >= 10
+        ? "Run the fixed KC block. Do not change the goal mid-trip."
+        : "Do a fixed KC block. Do not turn a scout read into an endless grind.";
+    case "boss":
+      return "Do not buy upgrades before DPS proves the trip is worth it.";
+    case "skill":
+      return "Stop at the unlock unless you actually want an AFK grind.";
+    case "quest":
+    case "diary":
+      return "Do not start if the prereq chain makes this a long session.";
+    case "slayer":
+      return "Check points before skipping, blocking or extending the task.";
+    case "money":
+      return "Check prices first. Stop if the GP/hr is not worth your focus.";
+    case "goal":
+      return "Chase the closest missing piece, then re-run the planner.";
+    case "bank":
+      return "Only clean up what changes the next plan.";
+    case "minigame":
+      return "Do one reward or XP block, then switch if it drags.";
+    default:
+      return "Keep it to one clear stop point, then choose again.";
+  }
+}
+
+function RecommendationDecisionBrief({ rec }: { rec: Recommendation }) {
+  const plan = rec.actionPlan;
+  const notes = [
+    {
+      label: "Why this pick",
+      value: rec.payoff ? `${rec.why} ${rec.payoff}` : rec.why
+    },
+    {
+      label: plan?.confidence === "exact" ? "RuneLite check" : "Smarter with",
+      value: plan?.confidence === "exact"
+        ? "Finished quests, diaries, clog slots and Slayer are already filtered."
+        : "Add gear or RuneLite later when supplies, quests, diaries or Slayer could change the route."
+    },
+    {
+      label: "Avoid",
+      value: recommendationAvoidance(rec)
+    }
+  ];
+
+  return (
+    <div className="mt-3 grid gap-1.5 sm:grid-cols-3">
+      {notes.map((note) => (
+        <div
+          key={`${rec.id}:decision:${note.label}`}
+          className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-2.5 py-2"
+        >
+          <div className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+            {note.label}
+          </div>
+          <div className="mt-0.5 line-clamp-3 text-[11.5px] font-semibold leading-snug text-[var(--color-text-dim)]">
+            {note.value}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function ActionPlanBlock({ rec, compact = false }: { rec: Recommendation; compact?: boolean }) {
   const plan = rec.actionPlan;
   if (!plan) return null;
@@ -1694,6 +1760,7 @@ function HeadlineCard({
             </p>
           )}
           <RecommendationQuickFacts rec={rec} />
+          <RecommendationDecisionBrief rec={rec} />
           <RecommendationFirstStep rec={rec} />
           {isBossWithDetail && rec.bossSlug ? (
             <button

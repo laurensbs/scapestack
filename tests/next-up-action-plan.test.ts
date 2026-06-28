@@ -227,6 +227,28 @@ describe("next-up action plans", () => {
     expect(result.headline?.title).toBe("Push Vardorvis to 50 KC");
   });
 
+  it("does not let one scout KC outrank stronger account progress", async () => {
+    const result = await computeNextUp({
+      skills: skillsFromLevels({
+        Attack: 90, Strength: 90, Defence: 80, Hitpoints: 85, Ranged: 92,
+        Magic: 85, Prayer: 74, Slayer: 80,
+        Cooking: 80, Woodcutting: 70, Fletching: 80, Fishing: 70,
+        Firemaking: 70, Crafting: 75, Smithing: 70, Mining: 72,
+        Herblore: 78, Agility: 70, Thieving: 80, Farming: 96,
+        Runecraft: 70, Hunter: 70, Construction: 75
+      }),
+      questPoints: 180,
+      bossKc: { Callisto: 1 }
+    });
+    const recs = [result.headline, ...result.rest].filter(Boolean);
+    const callisto = recs.find((rec) => rec?.id === "kc:Callisto:first-50");
+
+    expect(callisto).toBeTruthy();
+    expect(result.headline?.id).not.toBe("kc:Callisto:first-50");
+    expect(callisto?.why).toContain("scout read");
+    expect(callisto!.score).toBeLessThan(result.headline!.score);
+  });
+
   it("keeps returning-player recommendations diverse instead of filling the checklist with diaries", async () => {
     const result = await computeNextUp({
       skills: skillsFromLevels({
