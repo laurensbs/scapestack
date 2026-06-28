@@ -22,6 +22,7 @@ import { wikiPriceUrl } from "@/lib/item-action";
 import { wikiSearchUrl } from "@/lib/wiki";
 import { bankOrganizerHref } from "@/lib/bank-handoff-url";
 import { buildDpsUpgradeBuyLine } from "@/lib/dps-upgrade-actions";
+import { bossViabilityFromGear, styleLabel, type BossViability } from "@/lib/boss-viability";
 import {
   bankHandoffItemsFromTabs,
   persistBankHandoffPayload,
@@ -48,8 +49,13 @@ function dpsGpPerHour({ boss, dps }: BossDpsResult) {
   return Math.min(boss.killsPerHourCap, Math.floor(3600 / dps.ttk)) * boss.avgLootGp;
 }
 
-function buildDpsDecision(result: BossDpsResult | null, weaponCount: number, topUpgrade?: UpgradeSuggestion): DpsDecision {
-  if (!result || weaponCount === 0 || result.dps.dps <= 0) {
+function buildDpsDecision(
+  result: BossDpsResult | null,
+  viability: BossViability | null,
+  weaponCount: number,
+  topUpgrade?: UpgradeSuggestion
+): DpsDecision {
+  if (!result || !viability || weaponCount === 0 || result.dps.dps <= 0) {
     return {
       title: "Paste combat gear first",
       verdict: "Not yet",
@@ -63,31 +69,63 @@ function buildDpsDecision(result: BossDpsResult | null, weaponCount: number, top
   }
 
   const gpHour = dpsGpPerHour(result);
-  const style = result.dps.style.toUpperCase();
-  const dps = result.dps.dps;
-  const ttk = result.dps.ttk;
-  const title = dps >= 6 || ttk <= 90
-    ? `Try ${result.boss.name}`
-    : dps >= 3.5 || ttk <= 170
+  const style = styleLabel(viability.style);
+  const weapon = viability.weaponName ?? result.dps.weapon.name;
+  const title = viability.tone === "ready"
+    ? `Run ${result.boss.name}`
+    : viability.tone === "test"
     ? `Test ${result.boss.name}`
-    : `${result.boss.name} is a backup`;
+    : `${result.boss.name} is not worth it yet`;
+  const stopPoint = viability.tone === "ready"
+    ? "Stop after 3-5 kills, or sooner if supplies feel wrong."
+    : viability.tone === "test"
+    ? "Stop after 1-2 kills. If it feels slow, pick a backup."
+    : "Stop before entering. Upgrade first or choose an easier boss.";
+  const avoid = viability.tone === "blocked"
+    ? "Avoid making this tonight's plan from this bank."
+    : topUpgrade
+    ? `Avoid camping it before checking whether ${topUpgrade.gear.name} is affordable.`
+    : "Avoid staring at the full boss list before testing one kill.";
 
   return {
     title,
-    verdict: dps >= 6 || ttk <= 90 ? "Yes: do one short trip" : dps >= 3.5 || ttk <= 170 ? "Maybe: test one trip" : "Slow: keep it as backup",
+    verdict: viability.tone === "ready" ? "Can kill: do one short trip" : viability.tone === "test" ? "Test trip only" : "Not worth yet",
     why: [
-      `${result.dps.weapon.name} is your best ${style} setup here at ${dps.toFixed(2)} DPS.`,
+      `Bank says ${result.boss.name} is ${viability.tone === "blocked" ? "a bad main pick" : "runnable"}: ${viability.summary}`,
       gpHour ? `Rough upside: ${formatGp(gpHour)} GP/hr if kills feel stable.` : null,
-      topUpgrade ? `${topUpgrade.gear.name} is the first upgrade worth checking.` : "No must-buy upgrade is required before a test trip."
+      topUpgrade
+        ? `${topUpgrade.gear.name} is the first upgrade worth checking.`
+        : "No must-buy upgrade is required before a short test."
     ].filter(Boolean).join(" "),
-    firstStep: `Open ${result.boss.name} detail, lock the setup, then gear for one trip.`,
-    stopPoint: "Stop after one trip, or earlier if kill time and supply burn feel bad.",
-    bring: `${result.dps.weapon.name}, ${style} gear, food, pots and tele out.`,
-    avoid: topUpgrade
-      ? `Avoid camping it before checking whether ${topUpgrade.gear.name} is affordable.`
-      : "Avoid overthinking the full boss list before testing one kill.",
-    tone: dps >= 3.5 || ttk <= 170 ? "good" : "warning"
+    firstStep: viability.tone === "blocked"
+      ? `Open upgrades or choose a safer boss before gearing for ${result.boss.name}.`
+      : `Open ${result.boss.name} detail, lock ${weapon}, then gear for one trip.`,
+    stopPoint,
+    bring: viability.tone === "blocked"
+      ? `${style} upgrade, food, pots and a safer backup.`
+      : `${weapon}, ${style} gear, food, pots and tele out.`,
+    avoid,
+    tone: viability.tone === "blocked" ? "warning" : "good"
   };
+}
+
+function dpsDecisionScore(result: BossDpsResult, viability: BossViability): number {
+  const gpHour = dpsGpPerHour(result) ?? 0;
+  const ttk = viability.ttk ?? result.dps.ttk;
+  const toneScore = viability.tone === "ready" ? 10_000 : viability.tone === "test" ? 3_500 : -5_000;
+  const speedScore = Number.isFinite(ttk) && ttk > 0 ? Math.max(0, 420 - ttk) * 4 : 0;
+  const gpScore = Math.min(2_000, gpHour / 2_500);
+  return toneScore + speedScore + gpScore + result.dps.dps * 120;
+}
+
+function pickBestBossTrip(results: BossDpsResult[], owned: GearItem[]): BossDpsResult | null {
+  let best: { result: BossDpsResult; score: number } | null = null;
+  for (const result of results) {
+    const viability = bossViabilityFromGear(owned, result.boss);
+    const score = dpsDecisionScore(result, viability);
+    if (!best || score > best.score) best = { result, score };
+  }
+  return best?.result ?? null;
 }
 
 function DpsIntakeHero() {
@@ -153,6 +191,9 @@ function DpsDecisionHero({
             <div className="min-w-0">
               <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-gold-soft)]">
                 Can I kill this?
+              </div>
+              <div className="mt-1 text-[11.5px] font-semibold text-[var(--color-text-muted)]">
+                Best fit from this bank
               </div>
               <h2 className="mt-1 text-[22px] font-bold tracking-normal text-[var(--color-text)] sm:text-[26px]">
                 {decision.title}
@@ -332,6 +373,13 @@ export function DpsClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, pendingBossSlug, searchParams]);
 
+  useEffect(() => {
+    if (view !== "result") return;
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    });
+  }, [view]);
+
   // For each boss, compute the best style/setup. We keep input order so the
   // table groups visually by category; the live search field above handles
   // discovery.
@@ -438,11 +486,15 @@ export function DpsClient() {
     if (focusedBoss) {
       return bossResults.find(({ boss }) => boss.slug === focusedBoss.slug) ?? null;
     }
-    return filteredResults.find(({ dps }) => dps.dps > 0) ?? filteredResults[0] ?? bossResults[0] ?? null;
-  }, [bossResults, filteredResults, focusedBoss]);
+    return pickBestBossTrip(filteredResults.length > 0 ? filteredResults : bossResults, owned);
+  }, [bossResults, filteredResults, focusedBoss, owned]);
+  const decisionBossViability = useMemo(
+    () => decisionBossResult ? bossViabilityFromGear(owned, decisionBossResult.boss) : null,
+    [decisionBossResult, owned]
+  );
   const dpsDecision = useMemo(
-    () => buildDpsDecision(decisionBossResult, weaponCount, visibleUpgrades[0]),
-    [decisionBossResult, visibleUpgrades, weaponCount]
+    () => buildDpsDecision(decisionBossResult, decisionBossViability, weaponCount, visibleUpgrades[0]),
+    [decisionBossResult, decisionBossViability, visibleUpgrades, weaponCount]
   );
   const clearBossFilter = () => {
     setSearch("");

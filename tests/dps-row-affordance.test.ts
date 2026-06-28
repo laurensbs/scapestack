@@ -46,7 +46,16 @@ describe("DPS boss row affordance", () => {
   it("starts DPS as a boss-trip verdict instead of a dashboard", () => {
     expect(source).toContain("function DpsDecisionHero");
     expect(source).toContain("Can I kill this?");
-    expect(source).toContain("Yes: do one short trip");
+    expect(source).toContain("Best fit from this bank");
+    expect(source).toContain("Can kill: do one short trip");
+    expect(source).toContain("Test trip only");
+    expect(source).toContain("Not worth yet");
+    expect(source).toContain('import { bossViabilityFromGear, styleLabel, type BossViability } from "@/lib/boss-viability";');
+    expect(source).toContain("function dpsDecisionScore");
+    expect(source).toContain("function pickBestBossTrip");
+    expect(source).toContain("const decisionBossViability = useMemo(");
+    expect(source).toContain("Bank says ${result.boss.name}");
+    expect(source).toContain("window.scrollTo({ top: 0, behavior: \"instant\" });");
     expect(source).toContain("Make this trip sharper");
     expect(source).toContain("Compare other bosses");
     expect(source).toContain("Search and sort the full table only when the first trip is not the one.");
