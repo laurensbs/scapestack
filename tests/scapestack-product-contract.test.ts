@@ -43,6 +43,8 @@ describe("Scapestack anti-bankstanding product contract", () => {
     const bannedPhrases = [
       "Plugin Hub PR",
       "Track Plugin Hub review",
+      "signals",
+      "payload",
       "exact account state",
       "data source",
       "Trust level",
@@ -68,7 +70,8 @@ describe("Scapestack anti-bankstanding product contract", () => {
   it("keeps RuneLite as quiet intelligence instead of the main task", () => {
     expect(playerFacingSources).toContain("RuneLite helps Scapestack skip stuff you already finished.");
     expect(playerFacingSources).toContain("Skips finished quests, diaries, clog slots and Slayer mistakes.");
-    expect(playerFacingSources).toContain("RuneLite helped avoid finished quests, diary steps, clog slots and Slayer mistakes.");
+    expect(playerFacingSources).toContain("RuneLite helped skip finished quests, diary steps, clog slots and Slayer mistakes.");
+    expect(playerFacingSources).toContain("RuneLite can make this smarter later.");
     expect(playerFacingSources).toContain("Check RuneLite");
     expect(playerFacingSources).not.toContain("Open synced /next");
     expect(playerFacingSources).not.toContain("Verified RuneLite payload");

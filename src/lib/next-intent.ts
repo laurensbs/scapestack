@@ -1,6 +1,16 @@
 import type { Mood, TimeBudget } from "./mood";
 
-export type NextIntent = "cash" | "quest" | "skill" | "focused" | "profile";
+export type NextIntent =
+  | "cash"
+  | "quest"
+  | "skill"
+  | "focused"
+  | "profile"
+  | "chill"
+  | "bossing"
+  | "unlock"
+  | "afk"
+  | "short";
 
 export interface NextIntentPreset {
   intent: NextIntent;
@@ -30,16 +40,46 @@ const INTENT_PRESETS: Record<NextIntent, Omit<NextIntentPreset, "intent">> = {
     helper: "Prioritising skilling sessions and low-friction account progress."
   },
   focused: {
-    mood: "focused",
+    mood: "bossing",
     minutes: 60,
     label: "Focused route",
     helper: "Prioritising bossing, Slayer and high-impact account movement."
   },
   profile: {
-    mood: "focused",
+    mood: "bossing",
     minutes: 60,
     label: "Profile Hiscores route",
     helper: "Started from this RSN's Hiscores; add bank for gear and RuneLite sync when you need verified quest, diary, collection-log or Slayer coverage."
+  },
+  chill: {
+    mood: "chill",
+    minutes: 30,
+    label: "Chill route",
+    helper: "Prioritising low-effort progress and avoiding sweaty boss trips."
+  },
+  bossing: {
+    mood: "bossing",
+    minutes: 60,
+    label: "Bossing route",
+    helper: "Prioritising PvM, KC blocks and Slayer when the account supports it."
+  },
+  unlock: {
+    mood: "unlock",
+    minutes: 120,
+    label: "Unlock route",
+    helper: "Prioritising quests, diaries, goals and account unlocks."
+  },
+  afk: {
+    mood: "afk",
+    minutes: 60,
+    label: "AFK route",
+    helper: "Prioritising skilling and low-attention progress."
+  },
+  short: {
+    mood: "short",
+    minutes: 15,
+    label: "Short route",
+    helper: "Prioritising a fast plan with a clean stop point."
   }
 };
 
@@ -50,6 +90,11 @@ function normalizeIntent(value: string | null): NextIntent | null {
   if (clean === "skill" || clean === "skills" || clean === "skilling") return "skill";
   if (clean === "focused" || clean === "pvm" || clean === "combat") return "focused";
   if (clean === "profile" || clean === "player" || clean === "account") return "profile";
+  if (clean === "chill") return "chill";
+  if (clean === "bossing" || clean === "boss") return "bossing";
+  if (clean === "unlock" || clean === "unlocks") return "unlock";
+  if (clean === "afk") return "afk";
+  if (clean === "short" || clean === "quick") return "short";
   return null;
 }
 

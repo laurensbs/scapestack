@@ -69,6 +69,8 @@ export interface Recommendation {
   title: string;          // the action — imperative, short
   why: string;            // one line: why it's worth doing now
   payoff?: string;        // optional: what completing it unlocks/gives
+  /** Account-specific reason shown in the /next headline card. */
+  decisionReason?: string;
   /** Concrete vereisten die de speler nu moet hebben/doen. Tonen in
    *  de detail-expand als bullet list. Korte regels, max ~5 stuks. */
   needs?: string[];
@@ -254,6 +256,11 @@ function goalRecs(completions: SetCompletion[]): Recommendation[] {
         ? "You're one item away from completing this set."
         : `Only ${missing} items left in this set.`,
       payoff: set.description,
+      decisionReason: missingGoals[0]
+        ? `${missingGoals[0]} is the closest missing piece; finishing it changes the account immediately.`
+        : missing === 1
+          ? "One missing piece makes this the cleanest account progress right now."
+          : `${missing} missing pieces keeps this finite enough for a focused session.`,
       score,
       link: "/goals",
       iconItemId: set.iconItemId,
@@ -343,6 +350,7 @@ function minigameRecs(skills: HiscoreSkill[]): Recommendation[] {
       title: `Try ${mg.name}`,
       why: `${mg.gateSkill} ${level} — ${mg.why}`,
       payoff: mg.payoff,
+      decisionReason: `${mg.name} is open at your ${mg.gateSkill} level and has a clear one-session reward target.`,
       // Minigames sit between freshly-unlocked bosses and skill-pushes.
       score: 55 + freshness * 2,
       link: undefined, // no dedicated tool page yet
@@ -514,6 +522,9 @@ function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSk
         title: group.title,
         why: gearWhy(combatLevel, match.item) ?? `Your combat level (${combatLevel}) clears the entry gate.`,
         payoff: "Three bosses, shared room — solid mid-combat training and rare drops.",
+        decisionReason: match.item
+          ? `${displayMatchedGear(match.item)} makes this a realistic short PvM trip.`
+          : "Combat level fits, but gear is not verified; treat this as a short scouting trip.",
         score: Math.max(40, score),
         link: "/dps",
         iconItemId: group.iconItemId,
@@ -537,7 +548,12 @@ function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSk
       title: `Try ${boss.name}`,
       why: gearWhy(combatLevel, match.item) ?? `Your combat level (${combatLevel}) is in range for this boss.`,
       payoff: boss.avgLootGp ? `~${Math.round(boss.avgLootGp / 1000)}k average loot per kill` : boss.notes,
-      score: Math.max(40, score),
+      decisionReason: match.item
+        ? `${displayMatchedGear(match.item)} gives this trip a gear anchor before you buy upgrades.`
+        : boss.category === "wildy"
+          ? "Wilderness trips need gear and risk context, so this stays a cautious test."
+          : "Combat level fits, but no bank was pasted, so the first trip should stay cheap.",
+      score: Math.max(40, score - (boss.category === "wildy" && bank.length === 0 ? 12 : 0)),
       link: "/dps",
       iconItemId: boss.iconItemId,
       bossSlug: boss.slug,
@@ -594,6 +610,9 @@ function skillRecs(skills: HiscoreSkill[]): Recommendation[] {
         title: `Push ${skill} to ${m.level}`,
         why: `You're ${gap} level${gap === 1 ? "" : "s"} away.`,
         payoff: `Unlocks: ${m.unlock}`,
+        decisionReason: gap <= 2
+          ? `${skill} ${m.level} is within ${gap} level${gap === 1 ? "" : "s"}; stop as soon as the unlock lands.`
+          : `${skill} ${m.level} is close enough to be a clean AFK or focused backup.`,
         // Close milestones can compete with diaries. Longer foundation
         // pushes (Slayer 50→70, Prayer 52→70) stay visible but do not
         // outrank immediately actionable unlocks.
@@ -956,6 +975,7 @@ function moneyRecs(skills: HiscoreSkill[], accountMeta?: AccountMeta | null): Re
       title: m.name,
       why: m.gpHr > 0 ? `~${fmtGp(m.gpHr)} gp/hr · ${m.intensity}` : m.intensity,
       payoff: m.payoff,
+      decisionReason: `${m.name} matches your levels and can fund the next unlock without starting a long grind.`,
       needs: m.needs,
       details: m.details,
       // Higher gp/hr scores higher, capped so it doesn't dominate the list.
@@ -997,6 +1017,7 @@ function slayerTaskRecs(
     title: `Finish your ${monster.name} task`,
     why: `RuneLite sync says you have ${taskLeftLabel} left right now.`,
     payoff: `~${Math.round(taskXp / 100) / 10}k Slayer XP remaining · streak ${slayer.streak.toLocaleString()}.`,
+    decisionReason: `RuneLite says ${taskLeftLabel} are left, so finishing the task beats starting a random grind.`,
     score: slayer.taskRemaining >= 10 ? 94 : 68,
     link: displayName ? slayerUrlForSyncedRsn(displayName) : "/slayer",
     iconItemId: 11864,
@@ -1066,8 +1087,9 @@ function questRecs(
     // Score: harder quest = more impactful to suggest. Grandmaster > Master.
     // Quests with a long prereq chain score slightly lower (more friction).
     const base = q.difficulty === "Grandmaster" ? 70 : q.difficulty === "Master" ? 60 : 55;
-    const prereqPenalty = Math.min(15, Math.floor(q.questReqs.length / 3));
-    const score = base - prereqPenalty;
+    const prereqPenalty = Math.min(q.difficulty === "Grandmaster" ? 22 : 18, Math.floor(q.questReqs.length / 2));
+    const lowFrictionBonus = q.questReqs.length <= 4 ? 4 : 0;
+    const score = base + lowFrictionBonus - prereqPenalty;
 
     // Show only the first 3 prereqs as "you'll also need to have done …"
     // context; the full Wiki-derived chain can be 30+ items, which is noise.
@@ -1081,6 +1103,11 @@ function questRecs(
       title: q.name,
       why: `${q.difficulty} · ${q.length ?? "varies"}${q.qpReq > 0 ? ` · ${q.qpReq} QP` : ""}`,
       payoff: prereqHint,
+      decisionReason: completedQuestNames
+        ? `Completed quests were skipped; ${q.name} still matches your visible stats and quest points.`
+        : q.questReqs.length > 8
+          ? `${q.name} has a long prereq chain, so start only if you want an unlock session.`
+          : `${q.name} fits your stats and is short enough to be a real unlock target.`,
       score,
       link: undefined,
       planSeed: {
@@ -1204,17 +1231,18 @@ function activeBossKcScore(kc: number, boss: Boss, hasBank: boolean): number {
         : avgLoot >= 100_000 ? 3
           : 0;
   const missingBankPenalty = hasBank ? 0 : 3;
+  const wildyPenalty = boss.category === "wildy" ? (hasBank ? 4 : 10) : 0;
 
   if (kc < 5) {
-    return Math.max(45, 54 + kc * 1.5 + lootBoost - missingBankPenalty);
+    return Math.max(40, 54 + kc * 1.5 + lootBoost - missingBankPenalty - wildyPenalty);
   }
 
   if (kc < 10) {
-    return 64 + (kc - 5) * 1.5 + lootBoost - missingBankPenalty;
+    return 64 + (kc - 5) * 1.5 + lootBoost - missingBankPenalty - wildyPenalty;
   }
 
   const commitmentBoost = Math.min(8, (kc - 10) * 0.35);
-  return Math.min(92, 84 + commitmentBoost + Math.floor(lootBoost / 2) - missingBankPenalty * 0.5);
+  return Math.min(92, 84 + commitmentBoost + Math.floor(lootBoost / 2) - missingBankPenalty * 0.5 - wildyPenalty * 0.5);
 }
 
 function activeBossKcWhy(kc: number, boss: Boss): string {
@@ -1250,6 +1278,11 @@ function activeBossKcRecs(bossKc: Record<string, number>, bank: CompletionItem[]
       title: `Push ${boss.name} to 50 KC`,
       why: activeBossKcWhy(kc, boss),
       payoff: boss.avgLootGp ? `~${Math.round(boss.avgLootGp / 1000)}k average loot per kill while you build proof.` : boss.notes,
+      decisionReason: kc < 5
+        ? `This is only ${kc.toLocaleString()} KC, so it stays a scout read instead of the main plan.`
+        : kc < 10
+          ? `${kc.toLocaleString()} ${boss.name} KC is a proof run; keep it short before chasing 50.`
+          : `You already have ${kc.toLocaleString()} ${boss.name} KC, so 50 KC is a clean stop point.`,
       score: activeBossKcScore(kc, boss, bank.length > 0),
       link: "/dps",
       iconItemId: boss.iconItemId,
@@ -1429,6 +1462,7 @@ function diaryRecs(diaries: Map<string, DiaryRecord>, skills: HiscoreSkill[]): R
       payoff: metTier === "Elite"
         ? `Unlocks the tier-4 reward (${region} headgear / cape / cloak).`
         : `Step toward the tier-4 reward; ${metTier} unlocks its tier perks.`,
+      decisionReason: `${region} ${metTier} is close because one requirement is only ${nearestGap} level${nearestGap === 1 ? "" : "s"} above the gate.`,
       score,
       link: undefined,
       iconItemId: DIARY_REWARD_ICONS[region],
@@ -1455,6 +1489,7 @@ function bankRecs(bank: CompletionItem[]): Recommendation[] {
     title: "Tidy your bank",
     why: `${bank.length} items — a clean, tabbed bank makes every trip faster.`,
     payoff: "Auto-sorted into use-case tabs you can paste back into RuneLite.",
+    decisionReason: "Bank cleanup only wins when it reduces friction for every later trip.",
     score: 30,
     link: "/bank",
     planSeed: {
@@ -1480,6 +1515,7 @@ function noHiscoresNudge(): Recommendation {
     title: "Add your OSRS name for a real plan",
     why: "We can only see your bank. Your Hiscores add skills, combat, KC and quest gates.",
     payoff: "Free, no plugin, no account. Just your RSN.",
+    decisionReason: "The bank is loaded, but your OSRS name is what turns this into a real session plan.",
     score: 95,
     link: undefined,
     planSeed: {
@@ -1503,6 +1539,7 @@ function starterQuestRecs(hasHiscores: boolean, bank: CompletionItem[]): Recomme
       title: "Cook's Assistant",
       why: "Fast starter quest · no combat",
       payoff: "Quick quest point and unlocks the habit of quest-first progression.",
+      decisionReason: "This is a quick first quest that moves the account without gear checks.",
       score: 42,
       link: undefined,
       planSeed: {
@@ -1521,6 +1558,7 @@ function starterQuestRecs(hasHiscores: boolean, bank: CompletionItem[]): Recomme
       title: "Sheep Shearer",
       why: "Fast starter quest · no combat",
       payoff: "Easy quest point and basic skilling loop near Lumbridge.",
+      decisionReason: "A fast skilling loop is useful when the account has almost no visible stats yet.",
       score: 41,
       link: undefined,
       planSeed: {
@@ -1539,6 +1577,7 @@ function starterQuestRecs(hasHiscores: boolean, bank: CompletionItem[]): Recomme
       title: "Romeo & Juliet",
       why: "Fast starter quest · no combat",
       payoff: "Five quest points very early, useful for unlocking broader quest chains.",
+      decisionReason: "Five quick quest points is a better starter move than a vague grind.",
       score: 40,
       link: undefined,
       planSeed: {
@@ -1722,10 +1761,26 @@ function actionPlanFor(rec: Recommendation, ctx: ActionPlanContext): Recommendat
   }
 }
 
+function decisionReasonFor(rec: Recommendation, ctx: ActionPlanContext): string {
+  if (rec.decisionReason) return rec.decisionReason;
+  if (ctx.hasExactPluginSync && (rec.kind === "quest" || rec.kind === "diary" || rec.kind === "kc" || rec.kind === "slayer")) {
+    return "RuneLite skipped finished quests, diary steps, clog slots and Slayer mistakes for this pick.";
+  }
+  if (!ctx.hasBank && (rec.kind === "boss" || rec.kind === "kc")) {
+    return "No bank was pasted, so gear advice stays conservative until you add gear.";
+  }
+  if (rec.payoff) return rec.payoff;
+  return rec.why;
+}
+
 function withActionPlans(recs: Recommendation[], ctx: ActionPlanContext): Recommendation[] {
   return recs.map((rec) => {
     const { planSeed: _planSeed, ...clean } = rec;
-    return { ...clean, actionPlan: actionPlanFor(rec, ctx) };
+    return {
+      ...clean,
+      actionPlan: actionPlanFor(rec, ctx),
+      decisionReason: decisionReasonFor(clean, ctx)
+    };
   });
 }
 

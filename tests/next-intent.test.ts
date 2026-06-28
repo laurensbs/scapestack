@@ -29,11 +29,37 @@ describe("/next route intent", () => {
     });
     expect(nextIntentFromSearch("from=profile&rsn=Lynx+Titan")).toMatchObject({
       intent: "profile",
-      mood: "focused",
+      mood: "bossing",
       label: "Profile Hiscores route",
       helper: "Started from this RSN's Hiscores; add bank for gear and RuneLite sync when you need verified quest, diary, collection-log or Slayer coverage."
     });
     expect(nextIntentFromSearch("from=profile&rsn=Lynx+Titan")?.helper).not.toContain("exact quest");
+  });
+
+  it("parses player-first intents for /next tuning", () => {
+    expect(nextIntentFromSearch("?intent=afk")).toMatchObject({
+      intent: "afk",
+      mood: "afk",
+      minutes: 60,
+      label: "AFK route"
+    });
+    expect(nextIntentFromSearch("?intent=bossing")).toMatchObject({
+      intent: "bossing",
+      mood: "bossing",
+      label: "Bossing route"
+    });
+    expect(nextIntentFromSearch("?intent=unlock")).toMatchObject({
+      intent: "unlock",
+      mood: "unlock",
+      minutes: 120,
+      label: "Unlock route"
+    });
+    expect(nextIntentFromSearch("?intent=short")).toMatchObject({
+      intent: "short",
+      mood: "short",
+      minutes: 15,
+      label: "Short route"
+    });
   });
 
   it("ignores unknown intent and invalid time budgets", () => {

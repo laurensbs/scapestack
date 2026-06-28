@@ -5,18 +5,22 @@
 // vanavond." Dat doen we hier — we boosten of penalizen scores op
 // basis van mood + tijdbudget, dan kiezen we de 1 beste + 2 alts.
 //
-// Vier moods (later uitbreidbaar):
-//   chill     — AFK, weinig denkwerk, lange sessies oke
-//   focused   — XP/u optimaliseren, intensive methodes welkom
-//   cash      — netto GP/u maximaliseren
-//   quest     — questing progress (capes/lores/diary-eisen)
+// Intent presets:
+//   chill     - low effort without forcing PvM
+//   cash      - GP and upgrade funding
+//   bossing   - PvM/KC when the account actually supports it
+//   unlock    - quests, diaries, goals and Slayer unlocks
+//   afk       - skilling/minigames with minimal attention
+//   short     - fast sessions with clean stop points
+//   focused   - legacy route alias for older links
+//   quest     - legacy route alias for older links
 //
 // Tijdbudget: 15 / 30 / 60 / 120 minuten. Beïnvloedt of we lange-zware
 // dingen (Inferno) of korte-makkelijke dingen (clue scroll) aanraden.
 
 import type { Recommendation, RecKind } from "./next-up";
 
-export type Mood = "chill" | "focused" | "cash" | "quest";
+export type Mood = "chill" | "focused" | "cash" | "quest" | "bossing" | "unlock" | "afk" | "short";
 
 /** Hoeveel minuten heeft de speler te besteden. Gebruikt om bv. een
  *  3u boss-grind af te wijzen voor een 15min sessie. */
@@ -26,13 +30,15 @@ export type TimeBudget = 15 | 30 | 60 | 120;
  *  bovenop de base score. 1.0 = ongewijzigd, 1.5 = +50%, 0.4 = -60%. */
 const MOOD_KIND_WEIGHTS: Record<Mood, Partial<Record<RecKind, number>>> = {
   chill: {
-    skill:    1.6,  // AFK-able skills (Wintertodt, fishing, RC)
+    skill:    1.6,
     bank:     1.3,  // bank-hygiene is lekker mindless
     minigame: 1.2,  // Tempoross etc.
-    slayer:   1.1,  // huidige task afmaken kan prima semi-AFK
-    boss:     0.4,  // PvM is anti-chill
-    kc:       0.5,
-    quest:    0.6,
+    slayer:   0.9,
+    money:    0.9,
+    boss:     0.15,
+    kc:       0.15,
+    quest:    0.45,
+    diary:    0.6,
   },
   focused: {
     boss:     1.5,
@@ -62,6 +68,55 @@ const MOOD_KIND_WEIGHTS: Record<Mood, Partial<Record<RecKind, number>>> = {
     boss:     0.6,
     kc:       0.5,
     bank:     0.5,
+  },
+  bossing: {
+    boss:     2.0,
+    kc:       1.9,
+    slayer:   1.25,
+    money:    0.9,
+    minigame: 0.7,
+    skill:    0.45,
+    quest:    0.45,
+    diary:    0.55,
+    bank:     0.35,
+    goal:     0.75,
+  },
+  unlock: {
+    quest:    1.9,
+    diary:    1.75,
+    goal:     1.55,
+    milestone:1.45,
+    slayer:   1.15,
+    skill:    1.05,
+    minigame: 1.0,
+    boss:     0.45,
+    kc:       0.45,
+    money:    0.65,
+    bank:     0.55,
+  },
+  afk: {
+    skill:    2.0,
+    minigame: 1.45,
+    bank:     1.3,
+    money:    0.75,
+    slayer:   0.7,
+    goal:     0.7,
+    quest:    0.35,
+    diary:    0.45,
+    boss:     0.08,
+    kc:       0.08,
+  },
+  short: {
+    bank:     1.85,
+    slayer:   1.35,
+    money:    1.3,
+    minigame: 1.15,
+    skill:    0.95,
+    goal:     0.95,
+    diary:    0.8,
+    quest:    0.55,
+    boss:     0.18,
+    kc:       0.18,
   }
 };
 
@@ -188,17 +243,16 @@ export function pickForMood(
   return { headline, alternatives: alts, mood, minutes };
 }
 
-/** Mood labels met OSRS item-icons. Items kiezen we zo dat ze de vibe
- *  in één blik communiceren — iconisch genoeg dat een gemiddelde speler
- *  ze direct herkent uit hun bank.
- *    chill   → Tinderbox     — Wintertodt is dé chill-skill (firemaking)
- *    focused → Abyssal whip  — de meest iconische combat-grind tool
- *    cash    → Coins-stack   — universally GP, geen twijfel mogelijk
- *    quest   → Quest point cape — questing signature
- *  Item-IDs gecheckt op OSRS Wiki sprite-CDN. */
+/** Mood labels met OSRS item-icons. De player-facing set is bewust klein:
+ *  Chill / GP / Bossing / Unlock / AFK / Short. Legacy labels blijven
+ *  bestaan voor oude links en opgeslagen voorkeuren. */
 export const MOOD_LABEL: Record<Mood, { itemId: number; name: string; tagline: string }> = {
-  chill:   { itemId: 6739,  name: "Chill",   tagline: "AFK, low effort" },     // Dragon axe
-  focused: { itemId: 21295, name: "Focused", tagline: "Optimise XP/hour" },    // Infernal cape
-  cash:    { itemId: 22006, name: "Cash",    tagline: "Maximise GP/hour" },    // Vorkath's head
-  quest:   { itemId: 9813,  name: "Quest",   tagline: "Story + unlocks" }      // Quest point cape
+  chill:   { itemId: 6739,  name: "Chill",   tagline: "Low effort, no sweaty PvM" },
+  focused: { itemId: 21295, name: "Focused", tagline: "Legacy focused route" },
+  cash:    { itemId: 995,   name: "GP",      tagline: "Fund the next upgrade" },
+  quest:   { itemId: 9813,  name: "Quest",   tagline: "Legacy unlock route" },
+  bossing: { itemId: 4151,  name: "Bossing", tagline: "Trip, KC, or PvM proof" },
+  unlock:  { itemId: 9813,  name: "Unlock",  tagline: "Quests, diaries, goals" },
+  afk:     { itemId: 12012, name: "AFK",     tagline: "Progress while chilling" },
+  short:   { itemId: 8007,  name: "Short",   tagline: "Quick win, clean stop" }
 };

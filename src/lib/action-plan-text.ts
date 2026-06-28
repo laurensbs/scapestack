@@ -38,7 +38,7 @@ export function formatRecommendationActionPlan(
     rec.title,
     "",
     `Goal: ${rec.title}`,
-    `Why: ${rec.why}`,
+    `Why: ${rec.decisionReason ?? rec.why}`,
     rec.payoff ? `Unlock/payoff: ${rec.payoff}` : null,
     `Time: ${plan.timebox}`,
     "",
@@ -80,7 +80,7 @@ export function formatRecommendationSessionPlan(
 
       return [
         `${label}: ${title}`,
-        `   Why: ${rec.why}`,
+        `   Why: ${rec.decisionReason ?? rec.why}`,
         plan ? `   Time: ${plan.timebox}` : null,
         plan ? `   Gear/supplies: ${plan.prep}` : null,
         plan?.steps[0] ? `   First step: ${plan.steps[0]}` : null,

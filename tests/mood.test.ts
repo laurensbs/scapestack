@@ -3,8 +3,8 @@
 // Geen exhaustive coverage van alle mood × kind combinaties — focus
 // op het kerngedrag dat in de UI verschilt:
 //   - chill kiest geen boss als top
-//   - cash boost money-recs
-//   - quest boost quest + diary
+//   - GP boost money-recs
+//   - unlock/quest boost quest + diary
 //   - time-budget filter: 15min sessie ziet geen 60min boss-grind
 
 import { describe, it, expect } from "vitest";
@@ -32,6 +32,36 @@ describe("pickForMood", () => {
     expect(result!.headline.kind).toBe("skill");
   });
 
+  it("chill: intense boss wordt geen headline tegenover simpele progress", () => {
+    const recs = [rec("boss", "callisto", 95), rec("skill", "fishing", 50)];
+    const result = pickForMood(recs, "chill", 60);
+    expect(result!.headline.kind).toBe("skill");
+  });
+
+  it("afk: skill/chill plan wint boven bossing", () => {
+    const recs = [rec("kc", "vorkath-50", 90), rec("skill", "farming", 55)];
+    const result = pickForMood(recs, "afk", 60);
+    expect(result!.headline.kind).toBe("skill");
+  });
+
+  it("bossing: meaningful PvM kan headline zijn wanneer het past", () => {
+    const recs = [rec("kc", "vorkath-50", 70), rec("skill", "farming", 80)];
+    const result = pickForMood(recs, "bossing", 60);
+    expect(result!.headline.kind).toBe("kc");
+  });
+
+  it("unlock: diary of quest wint van ongeankerde bossing", () => {
+    const recs = [rec("boss", "demonics", 80), rec("diary", "desert-hard", 70), rec("quest", "mm2", 65)];
+    const result = pickForMood(recs, "unlock", 60);
+    expect(["diary", "quest"]).toContain(result!.headline.kind);
+  });
+
+  it("short: kiest een korte route boven bossing", () => {
+    const recs = [rec("boss", "vorkath", 90), rec("bank", "prep", 45)];
+    const result = pickForMood(recs, "short", 15);
+    expect(result!.headline.kind).toBe("bank");
+  });
+
   it("focused: boss/kc wint boven skill", () => {
     const recs = [rec("skill", "fishing", 50), rec("boss", "vorkath", 50)];
     const result = pickForMood(recs, "focused", 60);
@@ -56,7 +86,7 @@ describe("pickForMood", () => {
   it("15min budget: boss-rec krijgt penalty", () => {
     const recs = [rec("boss", "vorkath", 50), rec("bank", "junk", 30)];
     const result = pickForMood(recs, "chill", 15);
-    // bank × chill(1.3) × time(1.4) = 54.6 ; boss × chill(0.4) × time(0.6) = 12
+    // Bank is a quick task; chill + 15min should not headline a boss trip.
     expect(result!.headline.kind).toBe("bank");
   });
 

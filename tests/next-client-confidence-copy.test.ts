@@ -134,7 +134,7 @@ describe("/next confidence UI copy", () => {
 
   it("respects legacy route intent instead of dropping players into default mood", () => {
     expect(source).toContain("nextIntentFromSearch(initialQueryString)");
-    expect(source).toContain("routeIntent?.mood");
+    expect(source).toContain("visibleMood(routeIntent.mood)");
     expect(source).toContain("{routeIntent.label}");
     expect(source).toContain("title={routeIntent.helper}");
     expect(source).toContain("routeIntent={routeIntent}");
@@ -231,8 +231,11 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Returning/midgame");
     expect(source).toContain("PvM-ready");
     expect(source).toContain("Skiller-friendly");
-    expect(source).toContain("RuneLite helped avoid finished quests, diary steps, clog slots and Slayer mistakes.");
+    expect(source).toContain("RuneLite helped skip finished quests, diary steps, clog slots and Slayer mistakes.");
+    expect(source).toContain("RuneLite can make this smarter later.");
     expect(source).toContain("function runeLitePlanNote");
+    expect(source).toContain('const DEFAULT_MOOD: Mood = "unlock";');
+    expect(source).toContain('if (mood === "focused") return "bossing";');
     expect(source).not.toContain("RuneLite evidence dashboard");
   });
 

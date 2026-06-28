@@ -225,6 +225,7 @@ describe("next-up action plans", () => {
 
     expect(result.headline?.id).toBe("kc:Vardorvis:first-50");
     expect(result.headline?.title).toBe("Push Vardorvis to 50 KC");
+    expect(result.headline?.decisionReason).toBe("You already have 15 Vardorvis KC, so 50 KC is a clean stop point.");
   });
 
   it("does not let one scout KC outrank stronger account progress", async () => {
@@ -246,7 +247,41 @@ describe("next-up action plans", () => {
     expect(callisto).toBeTruthy();
     expect(result.headline?.id).not.toBe("kc:Callisto:first-50");
     expect(callisto?.why).toContain("scout read");
+    expect(callisto?.decisionReason).toContain("only 1 KC");
+    expect(callisto?.decisionReason).toContain("scout read");
     expect(callisto!.score).toBeLessThan(result.headline!.score);
+  });
+
+  it("adds a short decision reason to the headline", async () => {
+    const result = await computeNextUp({
+      skills: skillsFromLevels({
+        Attack: 85, Strength: 85, Defence: 80, Hitpoints: 85, Ranged: 85,
+        Magic: 85, Prayer: 70, Slayer: 85,
+        Cooking: 80, Woodcutting: 80, Fletching: 80, Fishing: 80,
+        Firemaking: 80, Crafting: 80, Smithing: 80, Mining: 80,
+        Herblore: 80, Agility: 80, Thieving: 80, Farming: 80,
+        Runecraft: 80, Hunter: 80, Construction: 80
+      }),
+      questPoints: 180,
+      scapestackSync: {
+        displayName: "Lynx Titan",
+        questsCompleted: ["Dragon Slayer II"],
+        diariesCompleted: [{ region: "Karamja", tier: "Hard" }],
+        collectionLogItemIds: [21907],
+        slayer: {
+          points: 132,
+          streak: 51,
+          taskRemaining: 47,
+          currentTaskId: 19,
+          blocks: ["spiritual_creature"]
+        }
+      }
+    });
+
+    expect(result.headline?.decisionReason).toBeTruthy();
+    expect(result.headline?.decisionReason).toContain("RuneLite");
+    expect(result.headline?.decisionReason).not.toContain("signals");
+    expect(result.headline?.decisionReason).not.toContain("payload");
   });
 
   it("keeps returning-player recommendations diverse instead of filling the checklist with diaries", async () => {
@@ -275,7 +310,7 @@ describe("next-up action plans", () => {
     expect(diaryCount).toBeLessThanOrEqual(2);
     expect(topThree.filter((rec) => rec?.kind === "diary")).toHaveLength(1);
     expect(topThree.some((rec) => rec?.id === "skill:Slayer:70")).toBe(true);
-    expect(topThree.some((rec) => rec?.kind === "quest")).toBe(true);
+    expect(topThree.some((rec) => rec?.kind === "boss")).toBe(true);
     expect(visible.some((rec) => rec?.id === "skill:Slayer:70")).toBe(true);
     expect(visible.some((rec) => rec?.kind === "quest")).toBe(true);
   });

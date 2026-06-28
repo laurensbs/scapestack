@@ -1500,7 +1500,7 @@ function accountArchetypeCopy({
 
 function runeLitePlanNote(pluginSyncState: "live" | "stale" | "outdated" | null): string | null {
   if (pluginSyncState === "live") {
-    return "RuneLite helped avoid finished quests, diary steps, clog slots and Slayer mistakes.";
+    return "RuneLite helped skip finished quests, diary steps, clog slots and Slayer mistakes.";
   }
   if (pluginSyncState === "stale") {
     return "RuneLite is old. Refresh before a long grind or GP spend.";
@@ -1508,7 +1508,7 @@ function runeLitePlanNote(pluginSyncState: "live" | "stale" | "outdated" | null)
   if (pluginSyncState === "outdated") {
     return "Update RuneLite before trusting newer Slayer or clog details.";
   }
-  return null;
+  return "RuneLite can make this smarter later.";
 }
 
 function recommendationNeeds(rec: Recommendation): string[] {
@@ -1595,13 +1595,13 @@ function RecommendationDecisionBrief({ rec }: { rec: Recommendation }) {
   const notes = [
     {
       label: "Why this pick",
-      value: rec.payoff ? `${rec.why} ${rec.payoff}` : rec.why
+      value: rec.decisionReason ?? rec.why
     },
     {
       label: plan?.confidence === "exact" ? "RuneLite check" : "Smarter with",
       value: plan?.confidence === "exact"
-        ? "Finished quests, diaries, clog slots and Slayer are already filtered."
-        : "Add gear or RuneLite later when supplies, quests, diaries or Slayer could change the route."
+        ? "RuneLite skipped finished quests, diary steps, clog slots and Slayer mistakes."
+        : "RuneLite can make this smarter later."
     },
     {
       label: "Avoid",
@@ -1908,7 +1908,7 @@ function RecRow({
 // hierboven blijft de objectief-beste anchor voor wie deze keuze wil
 // overslaan. Engine zit in src/lib/mood.ts (pickForMood).
 
-const MOODS: Mood[] = ["chill", "focused", "cash", "quest"];
+const MOODS: Mood[] = ["chill", "cash", "bossing", "unlock", "afk", "short"];
 const TIME_OPTIONS: { value: TimeBudget; label: string }[] = [
   { value: 15,  label: "15 min" },
   { value: 30,  label: "30 min" },
@@ -1916,6 +1916,13 @@ const TIME_OPTIONS: { value: TimeBudget; label: string }[] = [
   { value: 120, label: "2 hours" },
 ];
 
+function defaultTimeForMood(mood: Mood): TimeBudget | null {
+  if (mood === "short") return 15;
+  if (mood === "chill") return 30;
+  if (mood === "unlock") return 120;
+  if (mood === "bossing" || mood === "afk" || mood === "cash") return 60;
+  return null;
+}
 
 // ── Bank progress ──────────────────────────────────────────────────────────
 // Toont "je bent dicht bij completen van deze sets" als chip-row.
@@ -2004,8 +2011,17 @@ function BankProgressSection({ progress }: { progress: SetCompletion[] }) {
 
 // ── WhatToDo (track 1) ─────────────────────────────────────────────────────
 // Side-by-side layout: mood-chips + time-budget links, gekozen suggestie
-// + alternatieven rechts. Default-mood "focused 60min" zodat de pagina
-// nooit leeg start. Save naar localStorage zoals de oude MoodSection.
+// + alternatieven rechts. Default is unlock-first; explicit routes can
+// still opt into GP, Bossing, AFK, Chill or Short.
+
+const DEFAULT_MOOD: Mood = "unlock";
+const DEFAULT_TIME: TimeBudget = 60;
+
+function visibleMood(mood: Mood): Mood {
+  if (mood === "focused") return "bossing";
+  if (mood === "quest") return "unlock";
+  return MOODS.includes(mood) ? mood : DEFAULT_MOOD;
+}
 
 function WhatToDo({
   allRecs,
@@ -2028,8 +2044,8 @@ function WhatToDo({
   shareMode: boolean;
   onShareModeChange: (enabled: boolean) => void;
 }) {
-  const [mood, setMood] = useState<Mood>(routeIntent?.mood ?? "focused");
-  const [minutes, setMinutes] = useState<TimeBudget>(routeIntent?.minutes ?? 60);
+  const [mood, setMood] = useState<Mood>(routeIntent ? visibleMood(routeIntent.mood) : DEFAULT_MOOD);
+  const [minutes, setMinutes] = useState<TimeBudget>(routeIntent?.minutes ?? DEFAULT_TIME);
   const [shuffleIdx, setShuffleIdx] = useState(0);
   const [lastSuppressed, setLastSuppressed] = useState<{ id: string; title: string } | null>(null);
   const [lastCompleted, setLastCompleted] = useState<{ id: string; title: string } | null>(null);
@@ -2043,7 +2059,7 @@ function WhatToDo({
     const last = loadMood();
     if (last) {
       if (!routeIntent) {
-        setMood(last.mood);
+        setMood(visibleMood(last.mood));
         setMinutes(last.minutes);
       }
     }
@@ -2176,7 +2192,9 @@ function WhatToDo({
                   "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 font-semibold",
                   pluginSyncState === "live"
                     ? "border-[var(--color-good)]/25 bg-[var(--color-good)]/10 text-[var(--color-good)]"
-                    : "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
+                    : pluginSyncState
+                      ? "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
+                      : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)]"
                 )}
               >
                 {runeLiteNote}
@@ -2363,7 +2381,11 @@ function WhatToDo({
                     <button
                       key={m}
                       type="button"
-                      onClick={() => setMood(m)}
+                      onClick={() => {
+                        setMood(m);
+                        const defaultTime = defaultTimeForMood(m);
+                        if (defaultTime) setMinutes(defaultTime);
+                      }}
                       className={cn(
                         "group/mood relative overflow-hidden rounded-lg border px-2.5 py-2.5 text-left transition-all duration-200",
                         "flex items-center gap-2.5",
