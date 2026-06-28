@@ -974,6 +974,7 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
         <WhatToDo
           allRecs={allRecs}
           activeRsn={activeRsn}
+          accountStage={summary.accountStage}
           hasBankContext={bankItems.length > 0}
           onBossOpen={onBossOpen}
           onEdit={onEdit}
@@ -1458,47 +1459,6 @@ function playerChoiceTag(rec: Recommendation): { label: string; helper: string }
   return { label: "Unlock", helper: "Pick this when you want quests, diary progress or account unlocks." };
 }
 
-function accountArchetypeCopy({
-  recs,
-  activeRsn,
-  hasBankContext,
-  pluginSyncState
-}: {
-  recs: Recommendation[];
-  activeRsn: string;
-  hasBankContext: boolean;
-  pluginSyncState: "live" | "stale" | "outdated" | null;
-}): { label: string; helper: string } {
-  const kinds = new Set(recs.map((rec) => rec.kind));
-  if (pluginSyncState === "live") {
-    return {
-      label: "RuneLite-aware",
-      helper: "Scapestack knows more of what this account already finished."
-    };
-  }
-  if (!activeRsn.trim()) {
-    return hasBankContext
-      ? { label: "Gear-first", helper: "Good for a rough trip or GP check before adding stats." }
-      : { label: "First run", helper: "Start with an OSRS name. Gear and RuneLite can come later." };
-  }
-  if (kinds.has("boss") || kinds.has("kc")) {
-    return { label: "PvM-ready", helper: "Built around a short trip, KC push or boss unlock." };
-  }
-  if (kinds.has("slayer")) {
-    return { label: "Task-led", helper: "Slayer can be the session anchor." };
-  }
-  if (kinds.has("money")) {
-    return { label: "Upgrade funding", helper: "Use this when GP is blocking the next move." };
-  }
-  if (kinds.has("quest") || kinds.has("diary") || kinds.has("goal")) {
-    return { label: "Returning/midgame", helper: "Best for clearing quests, diaries and account unlocks." };
-  }
-  if (kinds.has("skill")) {
-    return { label: "Skiller-friendly", helper: "Low-friction progress when you want to chill." };
-  }
-  return { label: "One-session", helper: "One useful route for this login." };
-}
-
 function runeLitePlanNote(pluginSyncState: "live" | "stale" | "outdated" | null): string | null {
   if (pluginSyncState === "live") {
     return "RuneLite helped skip finished quests, diary steps, clog slots and Slayer mistakes.";
@@ -1578,6 +1538,51 @@ function backupChoicePrompt(rec: Recommendation, headline: Recommendation): { la
     return { label: "Want action?", helper: "Use this when you would rather do a trip, task or KC block." };
   }
   return { label: "Prefer unlock?", helper: "Use this when account progress matters more than GP or KC." };
+}
+
+function scapestackNotice({
+  headline,
+  allRecs,
+  mood,
+  hasBankContext,
+  pluginSyncState
+}: {
+  headline: Recommendation | null;
+  allRecs: Recommendation[];
+  mood: Mood;
+  hasBankContext: boolean;
+  pluginSyncState: "live" | "stale" | "outdated" | null;
+}): string | null {
+  if (!headline) return null;
+
+  const scout = allRecs.find((rec) =>
+    rec.id !== headline.id &&
+    rec.kind === "kc" &&
+    rec.kcMeta &&
+    rec.kcMeta.kc > 0 &&
+    rec.kcMeta.kc < 5
+  );
+  if (scout?.kcMeta) {
+    return `Scapestack noticed: ${scout.kcMeta.kc.toLocaleString()} KC stays a test trip, not the main grind.`;
+  }
+
+  if (!hasBankContext && (headline.kind === "boss" || headline.kind === "kc" || headline.kind === "money")) {
+    return "Scapestack noticed: no gear pasted, so the trip stays conservative.";
+  }
+
+  const activeBackup = allRecs.find((rec) =>
+    rec.id !== headline.id &&
+    (rec.kind === "boss" || rec.kind === "kc" || rec.kind === "slayer")
+  );
+  if ((mood === "unlock" || mood === "chill" || mood === "afk" || mood === "short") && activeBackup) {
+    return "Scapestack noticed: bossing stays backup while this route has the cleaner stop point.";
+  }
+
+  if (pluginSyncState === "live") {
+    return "Scapestack noticed: RuneLite skipped finished quests, diary steps, clog slots and Slayer mistakes.";
+  }
+
+  return null;
 }
 
 function sessionMemoryNote({
@@ -2167,6 +2172,7 @@ function visibleMood(mood: Mood): Mood {
 function WhatToDo({
   allRecs,
   activeRsn,
+  accountStage,
   hasBankContext,
   onBossOpen,
   onEdit,
@@ -2177,6 +2183,7 @@ function WhatToDo({
 }: {
   allRecs: Recommendation[];
   activeRsn: string;
+  accountStage: NextUpResult["summary"]["accountStage"];
   hasBankContext: boolean;
   onBossOpen: (slug: string) => void;
   onEdit: () => void;
@@ -2215,10 +2222,7 @@ function WhatToDo({
     () => ({ from: "next", hasBankContext, rsn: activeRsn }),
     [activeRsn, hasBankContext]
   );
-  const archetype = useMemo(
-    () => accountArchetypeCopy({ recs: allRecs, activeRsn, hasBankContext, pluginSyncState }),
-    [activeRsn, allRecs, hasBankContext, pluginSyncState]
-  );
+  const archetype = accountStage;
   const runeLiteNote = runeLitePlanNote(pluginSyncState);
 
   // Reset shuffle wanneer mood/time veranderen — een nieuwe vibe begint
@@ -2246,6 +2250,16 @@ function WhatToDo({
       headline: pick?.headline ?? null
     }),
     [feedback, lastSession, allRecs, pick?.headline]
+  );
+  const noticedNote = useMemo(
+    () => scapestackNotice({
+      headline: pick?.headline ?? null,
+      allRecs,
+      mood,
+      hasBankContext,
+      pluginSyncState
+    }),
+    [allRecs, hasBankContext, mood, pick?.headline, pluginSyncState]
   );
 
   useEffect(() => {
@@ -2540,6 +2554,15 @@ function WhatToDo({
           className="mb-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 px-3.5 py-2.5 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]"
         >
           {memoryNote}
+        </div>
+      )}
+
+      {noticedNote && !lastSuppressed && !lastCompleted && !shareMode && (
+        <div
+          role="note"
+          className="mb-3 rounded-xl border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 px-3.5 py-2.5 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]"
+        >
+          {noticedNote}
         </div>
       )}
 

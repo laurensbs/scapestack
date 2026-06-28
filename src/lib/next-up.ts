@@ -21,6 +21,7 @@ import { getQuests, type QuestRecord } from "./quest-db";
 import { getDiaries, type DiaryRecord, type DiaryTier } from "./diary-db";
 import { getDropRates, type BossDropTable } from "./drop-rates-db";
 import { computePathProgress, type AccountMeta, type PathOverview } from "./path-progress";
+import { detectAccountStage, type AccountStage } from "./account-stage";
 import { skillCapeId } from "./skill-capes";
 import { TASK_ID_TO_MONSTER } from "./slayer/task-ids";
 import { MONSTERS_BY_ID } from "./slayer/monsters";
@@ -179,6 +180,7 @@ export interface NextUpResult {
     combatLevel: number | null;
     totalLevel: number | null;
     goalPercent: number | null;
+    accountStage: AccountStage;
     /** Coverage note — which inputs the advice is based on. */
     basis: "full" | "hiscores-only" | "bank-only" | "none";
   };
@@ -1930,10 +1932,21 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     : input.scapestackSync
       ? "live"
     : null;
+  const hasPluginSync = Boolean(input.scapestackSync);
+  const accountStage = detectAccountStage({
+    skills,
+    combatLevel,
+    totalLevel,
+    questPoints: qp,
+    bossKc: mergedBossKc,
+    accountMeta: input.accountMeta ?? null,
+    hasBankContext: hasBank,
+    hasPluginSync: pluginSyncState === "live"
+  });
   const recs: Recommendation[] = withActionPlans(prioritizeVisibleRecommendations(sortedRecs), {
     hasHiscores,
     hasBank,
-    hasPluginSync: Boolean(input.scapestackSync),
+    hasPluginSync,
     hasExactPluginSync: pluginSyncState === "live"
   });
 
@@ -1984,7 +1997,7 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
   return {
     headline: recs[0] ?? null,
     rest: recs.slice(1),
-    summary: { combatLevel, totalLevel, goalPercent, basis },
+    summary: { combatLevel, totalLevel, goalPercent, accountStage, basis },
     pathProgress,
     readiness,
     maxEstimate

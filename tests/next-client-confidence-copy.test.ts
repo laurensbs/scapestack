@@ -264,18 +264,23 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("Share dashboard");
   });
 
-  it("adds subtle OSRS account-archetype and RuneLite avoided-bad-advice copy", () => {
-    expect(source).toContain("function accountArchetypeCopy");
-    expect(source).toContain("RuneLite-aware");
-    expect(source).toContain("Returning/midgame");
-    expect(source).toContain("PvM-ready");
-    expect(source).toContain("Skiller-friendly");
+  it("adds subtle OSRS account-stage and RuneLite avoided-bad-advice copy", () => {
+    expect(source).toContain("accountStage={summary.accountStage}");
+    expect(source).toContain("accountStage: NextUpResult[\"summary\"][\"accountStage\"]");
+    expect(source).toContain("const archetype = accountStage;");
+    expect(source).toContain("title={archetype.helper}");
+    expect(source).toContain("{archetype.label}");
     expect(source).toContain("RuneLite helped skip finished quests, diary steps, clog slots and Slayer mistakes.");
     expect(source).toContain("RuneLite can make this smarter later.");
     expect(source).toContain("function runeLitePlanNote");
+    expect(source).toContain("function scapestackNotice");
+    expect(source).toContain("Scapestack noticed:");
+    expect(source).toContain("KC stays a test trip, not the main grind.");
+    expect(source).toContain("no gear pasted, so the trip stays conservative.");
     expect(source).toContain('const DEFAULT_MOOD: Mood = "unlock";');
     expect(source).toContain('if (mood === "focused") return "bossing";');
     expect(source).not.toContain("RuneLite evidence dashboard");
+    expect(source).not.toContain("function accountArchetypeCopy");
   });
 
   it("keeps recommendation feedback controls on the main pick", () => {
