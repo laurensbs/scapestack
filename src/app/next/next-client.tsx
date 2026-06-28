@@ -1579,22 +1579,22 @@ function scapestackNotice({
   if (!headline) return null;
 
   if (routeLens === "maxing") {
-    return "Scapestack route: maxing favours cape, diary, quest and total-level progress over random trips.";
+    return "Maxing route: cape, diary, quest and total-level progress beat random trips.";
   }
   if (routeLens === "fun") {
-    return "Scapestack route: fun progress keeps rewards, KC, minigames and lighter grinds in the mix.";
+    return "Fun route: rewards, KC, minigames and lighter grinds stay in the mix.";
   }
   if (routeLens === "gp-upgrade") {
-    return "Scapestack route: GP favours cash and upgrade funding before long unlock chains.";
+    return "GP route: cash and upgrade funding beat long unlock chains.";
   }
   if (routeLens === "boss-log") {
-    return "Scapestack route: bossing favours KC, clog chances and trips your account can actually support.";
+    return "Bossing route: KC, clog chances and realistic trips move up.";
   }
   if (routeLens === "afk-progress") {
-    return "Scapestack route: AFK keeps progress low-pressure and avoids intense trips.";
+    return "AFK route: low-pressure progress moves up and intense trips move down.";
   }
   if (routeLens === "unlock-chain") {
-    return "Scapestack route: unlock favours quests, diaries and account gates with clean stop points.";
+    return "Unlock route: quests, diaries and account gates move up.";
   }
 
   const scout = allRecs.find((rec) =>
@@ -1605,11 +1605,11 @@ function scapestackNotice({
     rec.kcMeta.kc < 5
   );
   if (scout?.kcMeta) {
-    return `Scapestack noticed: ${scout.kcMeta.kc.toLocaleString()} KC stays a test trip, not the main grind.`;
+    return `${scout.kcMeta.kc.toLocaleString()} KC stays a test trip, not the main grind.`;
   }
 
   if (!hasBankContext && (headline.kind === "boss" || headline.kind === "kc" || headline.kind === "money")) {
-    return "Scapestack noticed: no gear pasted, so the trip stays conservative.";
+    return "No gear pasted, so the trip stays conservative.";
   }
 
   const activeBackup = allRecs.find((rec) =>
@@ -1617,11 +1617,11 @@ function scapestackNotice({
     (rec.kind === "boss" || rec.kind === "kc" || rec.kind === "slayer")
   );
   if ((mood === "unlock" || mood === "chill" || mood === "afk" || mood === "short") && activeBackup) {
-    return "Scapestack noticed: bossing stays backup while this route has the cleaner stop point.";
+    return "Bossing stays backup while this route has the cleaner stop point.";
   }
 
   if (pluginSyncState === "live") {
-    return "Scapestack noticed: RuneLite skipped finished quests, diary steps, clog slots and Slayer mistakes.";
+    return "RuneLite skipped finished quests, diary steps, clog slots and Slayer mistakes.";
   }
 
   return null;
@@ -1923,7 +1923,7 @@ function HeadlineCard({
             <p className="mt-3 flex gap-2 rounded-lg border border-[var(--color-accent)]/18 bg-[var(--color-bg)]/38 px-3 py-2 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
               <Sparkles className="mt-0.5 size-3.5 shrink-0 text-[var(--color-accent)]" />
               <span>
-                <span className="text-[var(--color-accent)]">Smart read:</span> {smartRead}
+                <span className="text-[var(--color-accent)]">Why this pick:</span> {smartRead}
               </span>
             </p>
           )}
@@ -2614,7 +2614,7 @@ function WhatToDo({
               {currentRouteLabel.tagline}
             </span>
           </div>
-          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-7">
+          <div className="flex gap-1.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-7 sm:overflow-visible sm:pb-0">
             {ROUTE_LENS_ORDER.map((lens) => {
               const label = ROUTE_LENS_LABEL[lens];
               const active = routeLens === lens;
@@ -2626,7 +2626,7 @@ function WhatToDo({
                   aria-label={`Pick ${label.name} route`}
                   onClick={() => applyRouteLens(lens)}
                   className={cn(
-                    "flex min-h-10 items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-[11.5px] font-semibold transition-colors",
+                    "flex min-h-10 min-w-[132px] items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-[11.5px] font-semibold transition-colors sm:min-w-0",
                     active
                       ? "border-[var(--color-accent)]/60 bg-[var(--color-accent)]/12 text-[var(--color-accent)]"
                       : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)]"

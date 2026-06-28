@@ -310,9 +310,80 @@ describe("next-up action plans", () => {
     expect(diaryCount).toBeLessThanOrEqual(2);
     expect(topThree.filter((rec) => rec?.kind === "diary")).toHaveLength(1);
     expect(topThree.some((rec) => rec?.id === "skill:Slayer:70")).toBe(true);
-    expect(topThree.some((rec) => rec?.kind === "boss")).toBe(true);
     expect(visible.some((rec) => rec?.id === "skill:Slayer:70")).toBe(true);
+    expect(visible.some((rec) => rec?.kind === "boss")).toBe(true);
+    expect(visible.some((rec) => rec?.id === "quest:Animal Magnetism")).toBe(true);
     expect(visible.some((rec) => rec?.kind === "quest")).toBe(true);
+  });
+
+  it("adds practical account routes beyond generic boss and diary picks", async () => {
+    const result = await computeNextUp({
+      skills: skillsFromLevels({
+        Attack: 55, Strength: 55, Defence: 50, Hitpoints: 55, Ranged: 45,
+        Magic: 45, Prayer: 40, Slayer: 35,
+        Cooking: 50, Woodcutting: 50, Fletching: 45, Fishing: 45,
+        Firemaking: 45, Crafting: 35, Smithing: 35, Mining: 45,
+        Herblore: 20, Agility: 35, Thieving: 35, Farming: 38,
+        Runecraft: 30, Hunter: 20, Construction: 30
+      }),
+      questPoints: 45
+    });
+    const recs = [result.headline, ...result.rest].filter(Boolean);
+
+    expect(recs.some((rec) => rec?.id === "skill:Prayer:43-protection")).toBe(true);
+    expect(recs.some((rec) => rec?.id === "quest:fairy-rings-route")).toBe(true);
+    expect(recs.some((rec) => rec?.id === "skill:Agility:graceful-route")).toBe(true);
+    expect("quality" in result.headline!).toBe(false);
+    expect("gearConfidence" in result.headline!).toBe(false);
+  });
+
+  it("skips account routes that exact RuneLite quest data already finished", async () => {
+    const result = await computeNextUp({
+      skills: skillsFromLevels({
+        Attack: 70, Strength: 70, Defence: 70, Hitpoints: 70, Ranged: 70,
+        Magic: 70, Prayer: 60, Slayer: 60,
+        Cooking: 70, Woodcutting: 70, Fletching: 70, Fishing: 70,
+        Firemaking: 70, Crafting: 70, Smithing: 70, Mining: 70,
+        Herblore: 60, Agility: 55, Thieving: 60, Farming: 62,
+        Runecraft: 50, Hunter: 60, Construction: 50
+      }),
+      questPoints: 130,
+      scapestackSync: {
+        questsCompleted: ["Fairytale II - Cure a Queen", "Animal Magnetism"],
+        diariesCompleted: [],
+        collectionLogItemIds: [],
+        slayer: null
+      }
+    });
+    const recs = [result.headline, ...result.rest].filter(Boolean);
+
+    expect(recs.some((rec) => rec?.id === "quest:fairy-rings-route")).toBe(false);
+    expect(recs.some((rec) => rec?.id === "quest:Animal Magnetism")).toBe(false);
+  });
+
+  it("gives ironmen supply loops without regular GP money-maker cards", async () => {
+    const result = await computeNextUp({
+      skills: skillsFromLevels({
+        Attack: 60, Strength: 60, Defence: 60, Hitpoints: 60, Ranged: 60,
+        Magic: 60, Prayer: 50, Slayer: 50,
+        Cooking: 60, Woodcutting: 60, Fletching: 60, Fishing: 60,
+        Firemaking: 60, Crafting: 60, Smithing: 60, Mining: 60,
+        Herblore: 45, Agility: 50, Thieving: 50, Farming: 62,
+        Runecraft: 45, Hunter: 55, Construction: 45
+      }),
+      questPoints: 95,
+      accountMeta: {
+        displayName: "Iron Test",
+        accountType: "ironman",
+        ehp: 250,
+        ehb: 10,
+        lastChangedAt: null
+      }
+    });
+    const recs = [result.headline, ...result.rest].filter(Boolean);
+
+    expect(recs.some((rec) => rec?.id === "skill:iron-herb-birdhouse-loop")).toBe(true);
+    expect(recs.some((rec) => rec?.kind === "money")).toBe(false);
   });
 
   it("prioritizes the live RuneLite Slayer task when plugin sync has one", async () => {

@@ -203,6 +203,20 @@ describe("pickForMood", () => {
     expect(result!.routeLabel).toBe("Maxing");
   });
 
+  it("route tags can surface smarter account-story routes without visible labels", () => {
+    const recs: Recommendation[] = [
+      rec("diary", "desert-hard", 82),
+      { ...rec("skill", "iron-supplies", 64), title: "Run herbs + birdhouses", routeTags: ["iron", "afk", "rebuild", "skiller"] },
+      { ...rec("milestone", "maxing-lane", 60), title: "Pick a maxing lane", routeTags: ["maxing", "afk", "skiller"] }
+    ];
+
+    const afk = pickForRoute(recs, "unlock", 60, "afk-progress");
+    const maxing = pickForRoute(recs, "unlock", 120, "maxing");
+
+    expect(afk!.headline.id).toBe("iron-supplies");
+    expect(maxing!.headline.id).toBe("maxing-lane");
+  });
+
   it("fun route kan minigame of PvM kiezen in plaats van dezelfde unlock-chain", () => {
     const recs = [
       rec("diary", "desert-hard", 84),

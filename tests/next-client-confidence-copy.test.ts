@@ -82,7 +82,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function recommendationStopPointValue");
     expect(source).toContain("function recommendationBringValue");
     expect(source).toContain("Do this first");
-    expect(source).toContain("Smart read:");
+    expect(source).toContain("Why this pick:");
     expect(source).toContain("headlineSmartRead(rec)");
     expect(source).toContain("First step");
     expect(source).toContain("Stop point");
@@ -283,9 +283,10 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("RuneLite can make this smarter later.");
     expect(source).toContain("function runeLitePlanNote");
     expect(source).toContain("function scapestackNotice");
-    expect(source).toContain("Scapestack noticed:");
+    expect(source).not.toContain("Scapestack noticed:");
+    expect(source).toContain("Bossing stays backup while this route has the cleaner stop point.");
     expect(source).toContain("KC stays a test trip, not the main grind.");
-    expect(source).toContain("no gear pasted, so the trip stays conservative.");
+    expect(source).toContain("No gear pasted, so the trip stays conservative.");
     expect(source).toContain('const DEFAULT_MOOD: Mood = "unlock";');
     expect(source).toContain('if (mood === "focused") return "bossing";');
     expect(source).not.toContain("RuneLite evidence dashboard");

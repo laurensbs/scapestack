@@ -29,7 +29,7 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).toContain("Another trip");
     expect(next).toContain("Chill now");
     expect(next).toContain("accountStage={summary.accountStage}");
-    expect(next).toContain("Scapestack noticed:");
+    expect(next).toContain("Bossing stays backup while this route has the cleaner stop point.");
     expect(plugin).toContain("Skip done stuff.");
     expect(plugin).toContain("No login");
     expect(plugin).toContain("No bank");

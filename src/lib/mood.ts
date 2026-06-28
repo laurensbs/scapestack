@@ -18,7 +18,7 @@
 // Tijdbudget: 15 / 30 / 60 / 120 minuten. Beïnvloedt of we lange-zware
 // dingen (Inferno) of korte-makkelijke dingen (clue scroll) aanraden.
 
-import type { Recommendation, RecKind } from "./next-up";
+import type { Recommendation, RecommendationRouteTag, RecKind } from "./next-up";
 
 export type Mood = "chill" | "focused" | "cash" | "quest" | "bossing" | "unlock" | "afk" | "short";
 
@@ -299,30 +299,40 @@ function routeLensMultiplier(rec: Recommendation, lens: RouteLens): number {
 
   const text = `${rec.title} ${rec.why} ${rec.payoff ?? ""} ${rec.decisionReason ?? ""}`.toLowerCase();
   let bonus = 1;
+  const hasTag = (tag: RecommendationRouteTag): boolean => rec.routeTags?.includes(tag) ?? false;
 
   if (lens === "maxing") {
+    if (hasTag("maxing")) bonus *= 1.34;
+    if (hasTag("skiller")) bonus *= 1.08;
     if (/\b99\b|cape|max|diary|quest cape|total level/.test(text)) bonus *= 1.28;
     if (rec.kind === "milestone") bonus *= 1.18;
   }
 
   if (lens === "fun") {
+    if (hasTag("fun")) bonus *= 1.34;
+    if (hasTag("pvm")) bonus *= 1.12;
     if (rec.kind === "minigame" || rec.kind === "boss" || rec.kind === "kc") bonus *= 1.16;
     if (/try|trip|kc|reward|drop|clog/.test(text)) bonus *= 1.08;
   }
 
   if (lens === "unlock-chain") {
+    if (hasTag("unlock")) bonus *= 1.34;
+    if (hasTag("returning") || hasTag("iron")) bonus *= 1.08;
     if (/unlock|diary|quest|prereq|cape|reward/.test(text)) bonus *= 1.16;
   }
 
   if (lens === "gp-upgrade") {
+    if (hasTag("gp") || hasTag("rebuild")) bonus *= 1.34;
     if (/gp\/hr|gp|fund|upgrade|loot|profit|cash/.test(text)) bonus *= 1.16;
   }
 
   if (lens === "boss-log") {
+    if (hasTag("pvm") || hasTag("slayer")) bonus *= 1.3;
     if (/kc|clog|drop|boss|slayer|task|trip/.test(text)) bonus *= 1.16;
   }
 
   if (lens === "afk-progress") {
+    if (hasTag("afk") || hasTag("skiller")) bonus *= 1.34;
     if (/afk|chill|run|cape|level|skill/.test(text)) bonus *= 1.12;
   }
 

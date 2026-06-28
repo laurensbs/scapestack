@@ -49,6 +49,39 @@ export interface RecommendationPlanSeed {
   caveat?: string;
 }
 
+export type RecommendationRouteTag =
+  | "beginner"
+  | "returning"
+  | "iron"
+  | "skiller"
+  | "pvm"
+  | "maxing"
+  | "gp"
+  | "unlock"
+  | "afk"
+  | "fun"
+  | "rebuild"
+  | "slayer";
+
+export type RecommendationGearConfidence = "confirmed" | "likely" | "unknown" | "not-needed";
+
+export interface RecommendationQuality {
+  /** Past dit echt bij het account, los van ruwe score. */
+  accountFit: number;
+  /** Kan de speler nu meteen beginnen? */
+  actionability: number;
+  /** Is er een duidelijke stop point voor deze sessie? */
+  stopPoint: number;
+  /** Weten we genoeg over gear/supplies om dit niet te oversellen? */
+  gearConfidence: number;
+  /** Hoeveel unlockt dit downstream? */
+  unlockValue: number;
+  /** Voelt dit als een leuke OSRS sessie, niet alleen als huiswerk? */
+  fun: number;
+  /** Hoeveel prereqs, risk of setup-frictie zit erin? 0 = laag, 1 = hoog. */
+  friction: number;
+}
+
 export interface RecommendationActionPlan {
   /** Short session framing shown on the card, e.g. "45-90 min". */
   timebox: string;
@@ -92,6 +125,12 @@ export interface Recommendation {
   /** Internal engine seed for data-specific plans. Stripped after enrichment
    *  so the UI only sees the normalized actionPlan shape. */
   planSeed?: RecommendationPlanSeed;
+  /** Hidden planner tags for route/archetype ranking. Not rendered as UI copy. */
+  routeTags?: RecommendationRouteTag[];
+  /** Internal quality profile for ranking. Stripped before UI. */
+  quality?: RecommendationQuality;
+  /** Internal gear confidence for boss/KC ranking. Stripped before UI. */
+  gearConfidence?: RecommendationGearConfidence;
   /** Optional boss slug — when set, the hub renders a wiki NPC portrait
    *  instead of an item sprite. Used by the kc-kind recs so the player
    *  sees an actual picture of Vorkath, Olm, etc. */
@@ -231,6 +270,141 @@ const BOSS_CL_GATE: Record<string, number> = {
 const lvl = (skills: HiscoreSkill[], name: string): number =>
   skills.find((s) => s.name === name)?.level ?? 1;
 
+const clamp01 = (n: number): number => Math.max(0, Math.min(1, n));
+
+function isIronAccount(accountMeta?: AccountMeta | null): boolean {
+  return accountMeta?.accountType === "ironman"
+    || accountMeta?.accountType === "hardcore"
+    || accountMeta?.accountType === "ultimate";
+}
+
+function completedQuest(completedQuestNames: Set<string> | undefined, names: string[]): boolean {
+  if (!completedQuestNames) return false;
+  return names.some((name) => completedQuestNames.has(name.toLowerCase()));
+}
+
+function hasRouteTag(rec: Recommendation, tag: RecommendationRouteTag): boolean {
+  return rec.routeTags?.includes(tag) ?? false;
+}
+
+function defaultQualityFor(rec: Recommendation, hasBank: boolean): RecommendationQuality {
+  const text = `${rec.title} ${rec.why} ${rec.payoff ?? ""} ${rec.decisionReason ?? ""}`.toLowerCase();
+  const longQuest = rec.kind === "quest" && /\(\+\d+ more\)|long prereq|very long|grandmaster/.test(text);
+  const scoutKc = rec.kind === "kc" && ((rec.kcMeta?.kc ?? 99) > 0 && (rec.kcMeta?.kc ?? 99) < 5);
+  const bossWithoutGear = (rec.kind === "boss" || rec.kind === "kc")
+    && rec.gearConfidence !== "confirmed"
+    && rec.gearConfidence !== "likely"
+    && rec.gearConfidence !== "not-needed";
+
+  const byKind: Record<RecKind, RecommendationQuality> = {
+    slayer: { accountFit: 0.98, actionability: 0.95, stopPoint: 0.92, gearConfidence: 0.72, unlockValue: 0.78, fun: 0.72, friction: 0.18 },
+    goal: { accountFit: 0.86, actionability: 0.78, stopPoint: 0.86, gearConfidence: 0.72, unlockValue: 0.9, fun: 0.7, friction: 0.24 },
+    diary: { accountFit: 0.78, actionability: 0.7, stopPoint: 0.78, gearConfidence: 0.75, unlockValue: 0.86, fun: 0.56, friction: 0.34 },
+    quest: { accountFit: 0.75, actionability: longQuest ? 0.48 : 0.72, stopPoint: longQuest ? 0.55 : 0.75, gearConfidence: 0.7, unlockValue: 0.9, fun: 0.62, friction: longQuest ? 0.72 : 0.38 },
+    boss: { accountFit: 0.7, actionability: bossWithoutGear ? 0.42 : 0.72, stopPoint: 0.8, gearConfidence: bossWithoutGear ? 0.38 : 0.8, unlockValue: 0.5, fun: 0.82, friction: bossWithoutGear ? 0.68 : 0.42 },
+    kc: { accountFit: scoutKc ? 0.45 : 0.8, actionability: bossWithoutGear ? 0.42 : 0.76, stopPoint: scoutKc ? 0.64 : 0.86, gearConfidence: bossWithoutGear ? 0.38 : 0.82, unlockValue: 0.52, fun: 0.82, friction: scoutKc ? 0.6 : bossWithoutGear ? 0.68 : 0.38 },
+    minigame: { accountFit: 0.78, actionability: 0.82, stopPoint: 0.82, gearConfidence: 0.9, unlockValue: 0.72, fun: 0.88, friction: 0.22 },
+    money: { accountFit: 0.72, actionability: 0.78, stopPoint: 0.76, gearConfidence: hasBank ? 0.76 : 0.58, unlockValue: 0.62, fun: 0.58, friction: 0.32 },
+    skill: { accountFit: 0.78, actionability: 0.84, stopPoint: 0.86, gearConfidence: 0.94, unlockValue: 0.74, fun: 0.6, friction: 0.2 },
+    bank: { accountFit: 0.54, actionability: 0.95, stopPoint: 0.9, gearConfidence: 1, unlockValue: 0.35, fun: 0.25, friction: 0.08 },
+    milestone: { accountFit: 0.74, actionability: 0.62, stopPoint: 0.62, gearConfidence: 0.74, unlockValue: 0.94, fun: 0.62, friction: 0.42 }
+  };
+
+  return rec.quality ?? byKind[rec.kind];
+}
+
+function qualityMultiplier(rec: Recommendation, hasBank: boolean): number {
+  const q = defaultQualityFor(rec, hasBank);
+  const positive =
+    clamp01(q.accountFit) * 0.22
+    + clamp01(q.actionability) * 0.2
+    + clamp01(q.stopPoint) * 0.18
+    + clamp01(q.gearConfidence) * 0.14
+    + clamp01(q.unlockValue) * 0.16
+    + clamp01(q.fun) * 0.1;
+  const frictionPenalty = 1 - clamp01(q.friction) * 0.22;
+  return (0.72 + positive * 0.5) * frictionPenalty;
+}
+
+function gearRealityMultiplier(rec: Recommendation, hasBank: boolean): number {
+  if (rec.kind !== "boss" && rec.kind !== "kc" && rec.kind !== "money") return 1;
+  if (rec.kind === "money") {
+    const intense = `${rec.title} ${rec.why}`.toLowerCase();
+    if (!hasBank && /(vorkath|zulrah|rune dragon|nex|boss)/.test(intense)) return 0.76;
+    return 1;
+  }
+
+  if (rec.gearConfidence === "confirmed") return 1.12;
+  if (rec.gearConfidence === "likely" || rec.gearConfidence === "not-needed") return 1.02;
+  return hasBank ? 0.72 : 0.62;
+}
+
+function archetypeMultiplier(rec: Recommendation, accountStage: AccountStage, accountMeta?: AccountMeta | null): number {
+  let multiplier = 1;
+  const iron = isIronAccount(accountMeta);
+
+  if (iron) {
+    if (hasRouteTag(rec, "iron") || hasRouteTag(rec, "unlock")) multiplier *= 1.2;
+    if (rec.kind === "money") multiplier *= 0.45;
+    if (rec.kind === "boss" || rec.kind === "kc") multiplier *= 0.9;
+  }
+
+  switch (accountStage.id) {
+    case "first-run":
+    case "new-account":
+      if (hasRouteTag(rec, "beginner") || rec.kind === "quest" || rec.kind === "skill") multiplier *= 1.18;
+      if (rec.kind === "boss" || rec.kind === "kc") multiplier *= 0.38;
+      break;
+    case "early-main":
+    case "returning":
+      if ((hasRouteTag(rec, "returning") || hasRouteTag(rec, "unlock") || hasRouteTag(rec, "rebuild")) && rec.kind !== "money") multiplier *= 1.18;
+      if (hasRouteTag(rec, "rebuild") && rec.kind === "money") multiplier *= 0.92;
+      if (rec.kind === "kc" && (rec.kcMeta?.kc ?? 99) < 5) multiplier *= 0.55;
+      break;
+    case "iron-route":
+      if (hasRouteTag(rec, "iron") || hasRouteTag(rec, "unlock")) multiplier *= 1.25;
+      if (rec.kind === "money") multiplier *= 0.4;
+      break;
+    case "skiller":
+      if (hasRouteTag(rec, "skiller") || hasRouteTag(rec, "afk") || rec.kind === "minigame") multiplier *= 1.2;
+      if (rec.kind === "boss" || rec.kind === "kc" || rec.kind === "slayer") multiplier *= 0.22;
+      break;
+    case "pvm-ready":
+      if (hasRouteTag(rec, "pvm") || rec.kind === "boss" || rec.kind === "kc" || rec.kind === "slayer") multiplier *= 1.14;
+      if ((rec.kind === "boss" || rec.kind === "kc") && rec.gearConfidence === "unknown") multiplier *= 0.78;
+      break;
+    case "maxed-grinder":
+      if (hasRouteTag(rec, "maxing") || rec.kind === "kc" || rec.kind === "goal") multiplier *= 1.16;
+      if (rec.kind === "quest" || rec.kind === "diary") multiplier *= 0.82;
+      break;
+    case "runelite-aware":
+      if (rec.kind === "slayer" || hasRouteTag(rec, "slayer")) multiplier *= 1.18;
+      if (hasRouteTag(rec, "unlock")) multiplier *= 1.08;
+      break;
+    case "gear-first":
+    case "midgame-main":
+      if (hasRouteTag(rec, "pvm") || hasRouteTag(rec, "gp") || hasRouteTag(rec, "unlock")) multiplier *= 1.08;
+      break;
+  }
+
+  return multiplier;
+}
+
+function rankRecommendations(
+  recs: Recommendation[],
+  ctx: { hasBank: boolean; accountStage: AccountStage; accountMeta?: AccountMeta | null }
+): Recommendation[] {
+  return recs
+    .map((rec) => {
+      const score = rec.score
+        * qualityMultiplier(rec, ctx.hasBank)
+        * gearRealityMultiplier(rec, ctx.hasBank)
+        * archetypeMultiplier(rec, ctx.accountStage, ctx.accountMeta);
+      return { ...rec, score: Math.max(1, Math.round(score)) };
+    })
+    .sort((a, b) => b.score - a.score);
+}
+
 // ── Recommendation sources ──────────────────────────────────────────────────
 
 // Goal sets the player is 1-2 items away from completing — the highest-value,
@@ -266,6 +440,17 @@ function goalRecs(completions: SetCompletion[]): Recommendation[] {
       score,
       link: "/goals",
       iconItemId: set.iconItemId,
+      routeTags: ["unlock", "maxing"],
+      gearConfidence: "likely",
+      quality: {
+        accountFit: missing === 1 ? 0.9 : 0.8,
+        actionability: missing === 1 ? 0.82 : 0.72,
+        stopPoint: missing === 1 ? 0.9 : 0.8,
+        gearConfidence: 0.78,
+        unlockValue: 0.9,
+        fun: 0.68,
+        friction: missing === 1 ? 0.22 : 0.34
+      },
       planSeed: {
         timebox: missing === 1 ? "30-60 min" : "1-2 sessions",
         prep: missingGoals.length > 0
@@ -357,6 +542,17 @@ function minigameRecs(skills: HiscoreSkill[]): Recommendation[] {
       score: 55 + freshness * 2,
       link: undefined, // no dedicated tool page yet
       iconItemId: mg.iconItemId,
+      routeTags: ["fun", "afk", "skiller", ...(mg.slug === "barbarian-assault" || mg.slug === "soul-wars" ? ["unlock" as const] : [])],
+      gearConfidence: "not-needed",
+      quality: {
+        accountFit: 0.8,
+        actionability: 0.86,
+        stopPoint: 0.84,
+        gearConfidence: 0.94,
+        unlockValue: mg.slug === "gotr" || mg.slug === "barbarian-assault" || mg.slug === "hallowed-sepulchre" ? 0.82 : 0.7,
+        fun: 0.9,
+        friction: 0.22
+      },
       planSeed: {
         timebox: "30-90 min",
         prep: `You meet the ${mg.gateSkill} ${mg.gateLevel} entry point; make this a reward-target session, not an endless queue.`,
@@ -511,6 +707,11 @@ function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSk
       ? matchedGearForBoss(boss.slug, bank, slayerLevel)
       : { item: "" };
     if (match === null) continue;
+    const gearConfidence: RecommendationGearConfidence = match.item
+      ? "confirmed"
+      : bank.length > 0
+        ? "not-needed"
+        : "unknown";
 
     // Group siblings into one rec (Dagannoth Kings → one tile, not three).
     const group = BOSS_GROUPS[boss.slug];
@@ -530,6 +731,17 @@ function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSk
         score: Math.max(40, score),
         link: "/dps",
         iconItemId: group.iconItemId,
+        routeTags: ["pvm", "fun"],
+        gearConfidence,
+        quality: {
+          accountFit: 0.76,
+          actionability: gearConfidence === "unknown" ? 0.52 : 0.78,
+          stopPoint: 0.82,
+          gearConfidence: gearConfidence === "confirmed" ? 0.95 : gearConfidence === "not-needed" ? 0.78 : 0.42,
+          unlockValue: 0.45,
+          fun: 0.82,
+          friction: gearConfidence === "unknown" ? 0.62 : 0.38
+        },
         planSeed: {
           timebox: "30-60 min",
           prep: match.item ? `Use your ${match.item} as the anchor for the first DKs setup.` : "Treat this as a scouting trip before camping the room.",
@@ -559,6 +771,17 @@ function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSk
       link: "/dps",
       iconItemId: boss.iconItemId,
       bossSlug: boss.slug,
+      routeTags: ["pvm", "fun", ...(boss.category === "wildy" ? [] : ["gp" as const])],
+      gearConfidence,
+      quality: {
+        accountFit: boss.category === "wildy" && gearConfidence === "unknown" ? 0.46 : 0.74,
+        actionability: gearConfidence === "unknown" ? 0.48 : 0.78,
+        stopPoint: 0.82,
+        gearConfidence: gearConfidence === "confirmed" ? 0.95 : gearConfidence === "not-needed" ? 0.78 : 0.4,
+        unlockValue: 0.44,
+        fun: 0.84,
+        friction: boss.category === "wildy" && gearConfidence === "unknown" ? 0.82 : gearConfidence === "unknown" ? 0.62 : 0.4
+      },
       planSeed: {
         timebox: "30-60 min",
         prep: match.item ? `Scapestack found ${match.item} in your bank; build the first setup around it.` : `Your combat level is the main signal for ${boss.name}; paste a bank for gear checks.`,
@@ -619,7 +842,7 @@ function skillRecs(skills: HiscoreSkill[]): Recommendation[] {
         // pushes (Slayer 50→70, Prayer 52→70) stay visible but do not
         // outrank immediately actionable unlocks.
         score: returningSlayerFoundation
-          ? 68
+          ? 76
           : nearMilestone
             ? 78 - gap * 6
             : 66 - Math.min(8, Math.floor((gap - 6) / 3)),
@@ -627,6 +850,21 @@ function skillRecs(skills: HiscoreSkill[]): Recommendation[] {
         // Per-skill cape sprite — Slayer cape for 'Push Slayer', not the
         // generic Attack cape stand-in that was shipping before.
         iconItemId: skillCapeId(skill),
+        routeTags: [
+          "afk",
+          "maxing",
+          ...(skill === "Slayer" ? ["slayer" as const, "pvm" as const] : []),
+          ...(skill === "Agility" || skill === "Farming" || skill === "Mining" ? ["skiller" as const] : [])
+        ],
+        quality: {
+          accountFit: 0.8,
+          actionability: nearMilestone ? 0.88 : 0.72,
+          stopPoint: nearMilestone ? 0.92 : 0.76,
+          gearConfidence: 0.96,
+          unlockValue: m.level === 99 ? 0.82 : 0.76,
+          fun: skill === "Slayer" ? 0.72 : 0.58,
+          friction: nearMilestone ? 0.18 : 0.3
+        },
         planSeed: {
           timebox: gap <= 2 ? "30-60 min" : "1-2 sessions",
           prep: `${skill} ${level} → ${m.level}: only ${gap} level${gap === 1 ? "" : "s"} for ${m.unlock}.`,
@@ -984,6 +1222,22 @@ function moneyRecs(skills: HiscoreSkill[], accountMeta?: AccountMeta | null): Re
       score: 50 + Math.min(20, Math.log10(Math.max(1, m.gpHr)) * 2),
       link: undefined,
       iconItemId: m.iconItemId,
+      routeTags: [
+        "gp",
+        ...(m.intensity === "afk" ? ["afk" as const] : []),
+        ...(m.slug.includes("herbs") || m.slug.includes("birdhouses") || m.slug.includes("tree") ? ["rebuild" as const, "returning" as const] : []),
+        ...(m.slug === "vorkath" || m.slug === "zulrah" || m.slug === "rune-dragons" ? ["pvm" as const] : [])
+      ],
+      gearConfidence: m.intensity === "intense" ? "unknown" : "not-needed",
+      quality: {
+        accountFit: 0.74,
+        actionability: m.intensity === "intense" ? 0.58 : 0.84,
+        stopPoint: m.slug.includes("herbs") || m.slug.includes("birdhouses") ? 0.95 : 0.78,
+        gearConfidence: m.intensity === "intense" ? 0.5 : 0.86,
+        unlockValue: 0.62,
+        fun: m.intensity === "afk" ? 0.62 : m.intensity === "intense" ? 0.74 : 0.58,
+        friction: m.intensity === "intense" ? 0.62 : 0.24
+      },
       planSeed: {
         timebox: m.intensity === "afk" ? "45-90 min" : "30-60 min",
         prep: `${m.name} is a ${m.intensity} money option matched to your current levels.`,
@@ -1023,6 +1277,17 @@ function slayerTaskRecs(
     score: slayer.taskRemaining >= 10 ? 94 : 68,
     link: displayName ? slayerUrlForSyncedRsn(displayName) : "/slayer",
     iconItemId: 11864,
+    routeTags: ["slayer", "pvm", "unlock"],
+    gearConfidence: "likely",
+    quality: {
+      accountFit: 0.99,
+      actionability: 0.96,
+      stopPoint: 0.94,
+      gearConfidence: 0.76,
+      unlockValue: 0.78,
+      fun: 0.74,
+      friction: 0.14
+    },
     needs: [
       "Current task from Scapestack RuneLite plugin",
       monster.slayerLevel > 1 ? `${monster.slayerLevel} Slayer requirement` : "No special Slayer level gate",
@@ -1112,6 +1377,17 @@ function questRecs(
           : `${q.name} fits your stats and is short enough to be a real unlock target.`,
       score,
       link: undefined,
+      routeTags: ["unlock", ...(q.questReqs.length <= 4 ? ["returning" as const] : []), ...(q.difficulty === "Grandmaster" ? ["fun" as const] : [])],
+      gearConfidence: q.difficulty === "Grandmaster" ? "unknown" : "likely",
+      quality: {
+        accountFit: q.questReqs.length > 8 ? 0.58 : 0.78,
+        actionability: q.questReqs.length > 8 ? 0.45 : 0.76,
+        stopPoint: q.length === "Very Long" || q.length === "Long" ? 0.54 : 0.82,
+        gearConfidence: q.difficulty === "Grandmaster" ? 0.48 : 0.72,
+        unlockValue: q.difficulty === "Grandmaster" ? 0.96 : 0.86,
+        fun: q.difficulty === "Grandmaster" ? 0.72 : 0.58,
+        friction: q.questReqs.length > 8 ? 0.78 : q.questReqs.length > 4 ? 0.52 : 0.32
+      },
       planSeed: {
         timebox: q.length === "Very Long" || q.length === "Long" ? "2-3 hr" : "1-2 hr",
         prep: q.questReqs.length > 0
@@ -1274,6 +1550,11 @@ function activeBossKcRecs(bossKc: Record<string, number>, bank: CompletionItem[]
 
     const remaining = 50 - kc;
     const matchedGear = match.item ? displayMatchedGear(match.item) : null;
+    const gearConfidence: RecommendationGearConfidence = match.item
+      ? "confirmed"
+      : bank.length > 0
+        ? "not-needed"
+        : "unknown";
     recs.push({
       id: `kc:${name}:first-50`,
       kind: "kc",
@@ -1290,6 +1571,17 @@ function activeBossKcRecs(bossKc: Record<string, number>, bank: CompletionItem[]
       iconItemId: boss.iconItemId,
       bossSlug: boss.slug,
       kcMeta: { kc, denom: 50, dropName: "first 50 KC" },
+      routeTags: ["pvm", "fun", ...(boss.avgLootGp ? ["gp" as const] : [])],
+      gearConfidence,
+      quality: {
+        accountFit: kc < 5 ? 0.44 : kc < 10 ? 0.66 : 0.86,
+        actionability: gearConfidence === "unknown" ? 0.48 : 0.8,
+        stopPoint: kc < 5 ? 0.64 : 0.9,
+        gearConfidence: gearConfidence === "confirmed" ? 0.95 : gearConfidence === "not-needed" ? 0.78 : 0.4,
+        unlockValue: 0.48,
+        fun: 0.84,
+        friction: kc < 5 ? 0.68 : gearConfidence === "unknown" ? 0.62 : 0.34
+      },
       needs: [
         matchedGear ? `${matchedGear} setup` : "DPS setup check",
         "Teleports and supplies for one fixed trip",
@@ -1398,6 +1690,17 @@ function kcRecs(
       iconItemId: boss?.iconItemId,
       bossSlug: boss?.slug,
       kcMeta: { kc, denom: headline.denom, dropName: headline.name },
+      routeTags: ["pvm", "fun", "maxing"],
+      gearConfidence: bank.length > 0 ? "likely" : "unknown",
+      quality: {
+        accountFit: expected >= 1 ? 0.86 : 0.68,
+        actionability: bank.length > 0 ? 0.78 : 0.54,
+        stopPoint: 0.82,
+        gearConfidence: bank.length > 0 ? 0.76 : 0.46,
+        unlockValue: isIconic ? 0.82 : 0.58,
+        fun: 0.9,
+        friction: bank.length > 0 ? 0.36 : 0.6
+      },
       planSeed: {
         timebox: headline.denom > 5000 ? "1-2 hr" : "45-90 min",
         prep: `${headline.name} is the chase here; your current ${wikiName} KC is ${expected.toFixed(2)} expected rolls.`,
@@ -1468,6 +1771,17 @@ function diaryRecs(diaries: Map<string, DiaryRecord>, skills: HiscoreSkill[]): R
       score,
       link: undefined,
       iconItemId: DIARY_REWARD_ICONS[region],
+      routeTags: ["unlock", "maxing", "returning"],
+      gearConfidence: "likely",
+      quality: {
+        accountFit: 0.78,
+        actionability: 0.76,
+        stopPoint: 0.84,
+        gearConfidence: 0.78,
+        unlockValue: metTier === "Elite" ? 0.92 : 0.82,
+        fun: 0.56,
+        friction: metTier === "Elite" ? 0.48 : 0.32
+      },
       planSeed: {
         timebox: metTier === "Elite" ? "1-2 hr" : "45-90 min",
         prep: `You meet every known ${region} ${metTier} skill gate; nearest headroom is ${nearestGap} level${nearestGap === 1 ? "" : "s"}.`,
@@ -1593,6 +1907,330 @@ function starterQuestRecs(hasHiscores: boolean, bank: CompletionItem[]): Recomme
       }
     }
   ];
+}
+
+function accountRouteRecs(input: {
+  skills: HiscoreSkill[];
+  questPoints: number;
+  accountStage: AccountStage;
+  accountMeta?: AccountMeta | null;
+  completedQuestNames?: Set<string>;
+}): Recommendation[] {
+  const { skills, questPoints, accountStage, accountMeta, completedQuestNames } = input;
+  if (skills.length === 0) return [];
+
+  const recs: Recommendation[] = [];
+  const combatLevel = computeCombatLevel(skills);
+  const totalLevel = computeTotalLevel(skills);
+  const iron = isIronAccount(accountMeta);
+  const prayer = lvl(skills, "Prayer");
+  const herblore = lvl(skills, "Herblore");
+  const agility = lvl(skills, "Agility");
+  const farming = lvl(skills, "Farming");
+  const hunter = lvl(skills, "Hunter");
+  const crafting = lvl(skills, "Crafting");
+  const ranged = lvl(skills, "Ranged");
+  const slayer = lvl(skills, "Slayer");
+
+  if (
+    herblore <= 3
+    && questPoints < QUEST_CAPE_QP_THRESHOLD
+    && !completedQuest(completedQuestNames, ["Druidic Ritual"])
+  ) {
+    recs.push({
+      id: "quest:Druidic Ritual",
+      kind: "quest",
+      title: "Unlock Herblore",
+      why: "Druidic Ritual opens potions, quest gates and ironman supply routes.",
+      payoff: "Herblore unlocks quest chains, diary steps and better supplies.",
+      decisionReason: "Herblore is still locked, so this tiny quest unlocks more account routes than random skilling.",
+      score: accountStage.id === "new-account" || iron ? 76 : 66,
+      link: undefined,
+      iconItemId: 255,
+      routeTags: ["beginner", "unlock", "iron", "returning"],
+      gearConfidence: "not-needed",
+      quality: {
+        accountFit: 0.92,
+        actionability: 0.96,
+        stopPoint: 0.95,
+        gearConfidence: 1,
+        unlockValue: 0.96,
+        fun: 0.5,
+        friction: 0.08
+      },
+      planSeed: {
+        timebox: "10-20 min",
+        prep: "Bank raw beef, raw rat meat, raw bear meat and raw chicken before walking to Taverley.",
+        steps: [
+          "Talk to Kaqemeex north of Taverley, then Sanfew upstairs in the Herblore shop.",
+          "Dip the four meats in the Cauldron of Thunder and hand them in.",
+          "Stop when Herblore unlocks; re-run /next because potions and quest chains now open."
+        ]
+      }
+    });
+  }
+
+  if (combatLevel >= 35 && prayer >= 37 && prayer < 43) {
+    const gap = 43 - prayer;
+    recs.push({
+      id: "skill:Prayer:43-protection",
+      kind: "skill",
+      title: "Unlock protection prayers",
+      why: `Prayer ${prayer} -> 43 turns a lot of quests and boss learning from scary to manageable.`,
+      payoff: "Protect from Melee, Missiles and Magic.",
+      decisionReason: `You are only ${gap} Prayer level${gap === 1 ? "" : "s"} from protection prayers, one of the cleanest account unlocks in OSRS.`,
+      score: 80 - gap * 3,
+      link: "/goals",
+      iconItemId: 2412,
+      routeTags: ["beginner", "returning", "unlock", "pvm"],
+      gearConfidence: "not-needed",
+      quality: {
+        accountFit: 0.92,
+        actionability: 0.86,
+        stopPoint: 0.95,
+        gearConfidence: 1,
+        unlockValue: 0.98,
+        fun: 0.58,
+        friction: 0.16
+      },
+      planSeed: {
+        timebox: gap <= 2 ? "20-45 min" : "45-90 min",
+        prep: `Prayer ${prayer} -> 43. Buy only enough bones/ensouled heads for the gap.`,
+        steps: [
+          "Use the fastest altar or ensouled-head method you can afford.",
+          "Stop exactly at 43 Prayer; protection prayers are the unlock, not a random XP grind.",
+          "Re-run /next because quest, diary and PvM routes change immediately."
+        ]
+      }
+    });
+  }
+
+  if (
+    questPoints < QUEST_CAPE_QP_THRESHOLD
+    && ranged >= 30
+    && prayer >= 31
+    && crafting >= 18
+    && slayer >= 18
+    && !completedQuest(completedQuestNames, ["Animal Magnetism"])
+  ) {
+    recs.push({
+      id: "quest:Animal Magnetism",
+      kind: "quest",
+      title: "Get Ava's device",
+      why: "Your stats fit Animal Magnetism; Ava's saves ammo on every ranged trip.",
+      payoff: "Ava's accumulator and a cleaner ranged setup forever.",
+      decisionReason: "This is a small quest with a permanent gear payoff, so it beats another unfocused ranged grind.",
+      score: 60,
+      link: undefined,
+      iconItemId: 10499,
+      routeTags: ["unlock", "pvm", "returning", "iron"],
+      gearConfidence: "not-needed",
+      quality: {
+        accountFit: 0.86,
+        actionability: 0.78,
+        stopPoint: 0.84,
+        gearConfidence: 0.96,
+        unlockValue: 0.92,
+        fun: 0.58,
+        friction: 0.28
+      },
+      planSeed: {
+        timebox: "45-75 min",
+        prep: "Check the short prereqs, then bank teleports to Draynor, Port Phasmatys and the Slayer tower area.",
+        steps: [
+          "Start with Ava in Draynor Manor and keep the quest guide open for item hand-ins.",
+          "Finish the undead chicken/magnet pieces before doing extra training.",
+          "Equip Ava's and re-run /next; ranged bosses and Slayer tasks become cleaner."
+        ]
+      }
+    });
+  }
+
+  if (
+    totalLevel >= 450
+    && totalLevel < 2100
+    && agility >= 10
+    && agility < 60
+  ) {
+    const target = agility < 40 ? 40 : 60;
+    recs.push({
+      id: "skill:Agility:graceful-route",
+      kind: "skill",
+      title: target === 40 ? "Start Graceful" : "Finish Graceful",
+      why: `Agility ${agility}. Rooftops make questing, clues and herb runs less painful.`,
+      payoff: "Marks of grace, run energy and a smoother account.",
+      decisionReason: "Run energy is account-wide friction; Graceful makes almost every later route feel better.",
+      score: target === 40 ? 56 : 60,
+      link: "/goals",
+      iconItemId: 11850,
+      routeTags: ["afk", "skiller", "returning", "unlock"],
+      gearConfidence: "not-needed",
+      quality: {
+        accountFit: 0.82,
+        actionability: 0.86,
+        stopPoint: target === 40 ? 0.78 : 0.72,
+        gearConfidence: 1,
+        unlockValue: 0.78,
+        fun: 0.48,
+        friction: 0.24
+      },
+      planSeed: {
+        timebox: "45-90 min",
+        prep: `Run rooftops toward Agility ${target}; marks of grace are the real reward.`,
+        steps: [
+          "Pick the highest rooftop course you can run comfortably.",
+          "Do one clean mark/level block, not an endless agility session.",
+          "Stop when the level target or Graceful piece lands, then re-run /next."
+        ]
+      }
+    });
+  }
+
+  if (totalLevel >= 650 && questPoints < QUEST_CAPE_QP_THRESHOLD && !completedQuest(completedQuestNames, [
+    "Fairytale II - Cure a Queen",
+    "Fairy Tale II - Cure a Queen"
+  ])) {
+    recs.push({
+      id: "quest:fairy-rings-route",
+      kind: "quest",
+      title: "Unlock fairy rings",
+      why: "Fairy rings make quests, clues, herb runs and Slayer routes massively shorter.",
+      payoff: "Travel upgrade: less walking, faster trips, better daily loops.",
+      decisionReason: "Travel time is hidden bankstanding; fairy rings remove friction from almost every account route.",
+      score: accountStage.id === "returning" || iron ? 62 : 58,
+      link: undefined,
+      iconItemId: 772,
+      routeTags: ["unlock", "returning", "iron"],
+      gearConfidence: "not-needed",
+      quality: {
+        accountFit: 0.86,
+        actionability: 0.7,
+        stopPoint: 0.72,
+        gearConfidence: 0.94,
+        unlockValue: 0.96,
+        fun: 0.62,
+        friction: 0.36
+      },
+      planSeed: {
+        timebox: "1-2 hr",
+        prep: "Check Fairytale I/II prereqs first. You only need partial Fairytale II progress for ring access.",
+        steps: [
+          "Clear Fairytale I if needed, then start Fairytale II until fairy rings unlock.",
+          "Set a fairy ring near your bank route and test one herb/clue/Slayer trip.",
+          "Stop at fairy ring access; full quest completion can be a later unlock session."
+        ]
+      }
+    });
+  }
+
+  if (farming >= 32 && hunter >= 5) {
+    if (iron) {
+      recs.push({
+        id: "skill:iron-herb-birdhouse-loop",
+        kind: "skill",
+        title: "Run herbs + birdhouses",
+        why: "Ironman supplies come from loops: herbs, nests, seeds and passive Hunter XP.",
+        payoff: "Prayer pots, brews later, tree seeds and easy daily progress.",
+        decisionReason: "Your Farming and Hunter already support the supply loop that keeps ironman progress moving.",
+        score: 60,
+        link: "/goals",
+        iconItemId: 10092,
+        routeTags: ["iron", "afk", "rebuild", "skiller"],
+        gearConfidence: "not-needed",
+        quality: {
+          accountFit: 0.9,
+          actionability: 0.9,
+          stopPoint: 0.95,
+          gearConfidence: 1,
+          unlockValue: 0.82,
+          fun: 0.62,
+          friction: 0.14
+        },
+        planSeed: {
+          timebox: "10-15 min",
+          prep: "Bring seeds, compost, logs, clockworks and Fossil Island teleports.",
+          steps: [
+            "Do a herb run first, then reset all four birdhouses.",
+            "Bank seeds/nests immediately so the next loop is ready.",
+            "Stop after the loop; use the downtime for the main /next plan."
+          ]
+        }
+      });
+    } else {
+      recs.push({
+        id: "money:rebuild-herb-birdhouse-loop",
+        kind: "money",
+        title: "Run herbs + birdhouses",
+        why: "Fast GP and passive Hunter XP without committing to a grind.",
+        payoff: "A 10-minute loop can fund teleports, supplies and small upgrades.",
+        decisionReason: "This is a practical rebuild loop: low setup, clear stop point, and useful even when you are unsure what to do.",
+        score: 56,
+        link: undefined,
+        iconItemId: 10092,
+        routeTags: ["gp", "afk", "rebuild", "returning"],
+        gearConfidence: "not-needed",
+        quality: {
+          accountFit: 0.86,
+          actionability: 0.92,
+          stopPoint: 0.96,
+          gearConfidence: 1,
+          unlockValue: 0.7,
+          fun: 0.6,
+          friction: 0.12
+        },
+        planSeed: {
+          timebox: "10-15 min",
+          prep: "Bring seeds, ultracompost, birdhouse logs, clockworks and Fossil Island access.",
+          steps: [
+            "Clear herb patches, replant, then reset all four birdhouses.",
+            "Sell herbs/nests only after checking whether an upgrade or quest supply stack needs them.",
+            "Stop after one loop; this should support the main plan, not replace it."
+          ]
+        }
+      });
+    }
+  }
+
+  if (totalLevel >= 1700 && totalLevel < 2277) {
+    const near99 = skills
+      .filter((skill) => skill.name !== "Overall" && skill.level >= 90 && skill.level < 99)
+      .sort((a, b) => b.level - a.level)[0];
+    if (near99) {
+      recs.push({
+        id: `milestone:maxing-lane:${near99.name}`,
+        kind: "milestone",
+        title: `Pick a maxing lane: ${near99.name}`,
+        why: `${near99.name} ${near99.level}. Close enough to turn spare sessions into cape progress.`,
+        payoff: "A focused maxing lane stops /next from feeling like random chores.",
+        decisionReason: `${near99.name} is your cleanest visible maxing lane, so it is a better long arc than bouncing between unrelated grinds.`,
+        score: near99.level >= 95 ? 73 : 64,
+        link: "/goals",
+        iconItemId: skillCapeId(near99.name),
+        routeTags: ["maxing", "afk", "skiller"],
+        gearConfidence: "not-needed",
+        quality: {
+          accountFit: 0.82,
+          actionability: 0.72,
+          stopPoint: 0.66,
+          gearConfidence: 1,
+          unlockValue: 0.8,
+          fun: 0.56,
+          friction: near99.level >= 95 ? 0.24 : 0.42
+        },
+        planSeed: {
+          timebox: "1-2 sessions",
+          prep: `Choose one ${near99.name} method and stop at a level, XP chunk or cape prep milestone.`,
+          steps: [
+            `Train ${near99.name} only for this block; do not mix in random chores mid-session.`,
+            "Use AFK if you are low-energy, or a faster method if you are focused.",
+            "Re-run /next after the level; maxing routes should change as soon as the closest lane changes."
+          ]
+        }
+      });
+    }
+  }
+
+  return recs.sort((a, b) => b.score - a.score).slice(0, 6);
 }
 
 // ── Action-plan enrichment ──────────────────────────────────────────────────
@@ -1777,7 +2415,12 @@ function decisionReasonFor(rec: Recommendation, ctx: ActionPlanContext): string 
 
 function withActionPlans(recs: Recommendation[], ctx: ActionPlanContext): Recommendation[] {
   return recs.map((rec) => {
-    const { planSeed: _planSeed, ...clean } = rec;
+    const {
+      planSeed: _planSeed,
+      quality: _quality,
+      gearConfidence: _gearConfidence,
+      ...clean
+    } = rec;
     return {
       ...clean,
       actionPlan: actionPlanFor(rec, ctx),
@@ -1906,24 +2549,6 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     // to the path-progress layer that has both.
   }
 
-  const sortedRecs = [
-    ...goalRecs(completions),
-    ...(combatLevel !== null ? bossRecs(combatLevel, bank, skills, mergedBossKc) : []),
-    ...slayerTaskRecs(input.scapestackSync?.slayer, input.scapestackSync?.displayName ?? input.accountMeta?.displayName),
-    ...questRecs(quests, skills, qp, completedQuestNames),
-    ...activeBossKcRecs(mergedBossKc, bank, skills),
-    ...diaryRecs(diaries, skills),
-    ...kcRecs(dropTables, mergedBossKc, bank, clOwned),
-    ...minigameRecs(skills),
-    ...moneyRecs(skills, input.accountMeta),
-    ...skillRecs(skills),
-    ...starterQuestRecs(hasHiscores, bank),
-    ...bankRecs(bank),
-    // No-Hiscores nudge: when the player only gave a bank, lead with "add
-    // your RSN" rather than letting "Tidy your bank" become the headline.
-    ...(!hasHiscores && hasBank ? [noHiscoresNudge()] : [])
-  ].sort((a, b) => b.score - a.score);
-
   const pluginSyncState = input.syncedSources?.scapestack
     ? pluginSyncHealth({
         pluginVersion: input.syncedSources.scapestack.pluginVersion,
@@ -1931,7 +2556,7 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
       })
     : input.scapestackSync
       ? "live"
-    : null;
+      : null;
   const hasPluginSync = Boolean(input.scapestackSync);
   const accountStage = detectAccountStage({
     skills,
@@ -1942,6 +2567,36 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     accountMeta: input.accountMeta ?? null,
     hasBankContext: hasBank,
     hasPluginSync: pluginSyncState === "live"
+  });
+
+  const rawRecs = [
+    ...goalRecs(completions),
+    ...(combatLevel !== null ? bossRecs(combatLevel, bank, skills, mergedBossKc) : []),
+    ...slayerTaskRecs(input.scapestackSync?.slayer, input.scapestackSync?.displayName ?? input.accountMeta?.displayName),
+    ...questRecs(quests, skills, qp, completedQuestNames),
+    ...activeBossKcRecs(mergedBossKc, bank, skills),
+    ...diaryRecs(diaries, skills),
+    ...kcRecs(dropTables, mergedBossKc, bank, clOwned),
+    ...minigameRecs(skills),
+    ...moneyRecs(skills, input.accountMeta),
+    ...skillRecs(skills),
+    ...accountRouteRecs({
+      skills,
+      questPoints: qp,
+      accountStage,
+      accountMeta: input.accountMeta ?? null,
+      completedQuestNames
+    }),
+    ...starterQuestRecs(hasHiscores, bank),
+    ...bankRecs(bank),
+    // No-Hiscores nudge: when the player only gave a bank, lead with "add
+    // your RSN" rather than letting "Tidy your bank" become the headline.
+    ...(!hasHiscores && hasBank ? [noHiscoresNudge()] : [])
+  ];
+  const sortedRecs = rankRecommendations(rawRecs, {
+    hasBank,
+    accountStage,
+    accountMeta: input.accountMeta ?? null
   });
   const recs: Recommendation[] = withActionPlans(prioritizeVisibleRecommendations(sortedRecs), {
     hasHiscores,
