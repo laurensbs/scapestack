@@ -29,12 +29,12 @@ export const TOOLS: Tool[] = [
   {
     slug: "next",
     href: "/next",
-    name: "What should I do next?",
+    name: "What should I do now?",
     navLabel: "Next",
     short: "Enter your OSRS name and get one clear next move",
-    tagline: "RSN in → one plan, two backups",
+    tagline: "RSN in → do this first",
     description:
-      "Stop bankstanding: enter your OSRS name and get one useful move for this account, plus two backups. Add gear or RuneLite only when it changes the pick.",
+      "Stop bankstanding: enter your OSRS name and get one useful move for this account, plus two backups. Add gear or RuneLite only when it changes the route.",
     icon: Sparkles,
     iconItemId: 11865, // Slayer helmet (i) — "what to do next" / next-task icon
     status: "live",
@@ -43,12 +43,12 @@ export const TOOLS: Tool[] = [
   {
     slug: "bank",
     href: "/bank",
-    name: "Bank Organizer",
+    name: "Gear & Bank",
     navLabel: "Bank",
-    short: "Auto-organize your bank into tidy tabs",
-    tagline: "Paste your bank → get clean tabs back",
+    short: "Use gear and supplies to make plans smarter",
+    tagline: "Paste bank → smarter trips",
     description:
-      "Paste a Bank Memory or Bank Tags export and the organizer splits everything into Combat, Range, Magic, Food, Potions, Runes, Skilling, Jewellery, Trophy and more — with quantities, GP value, drag-and-drop, and copy-back-to-RuneLite strings.",
+      "Paste Bank Memory or Bank Tags when gear, supplies or GP should change the route. Scapestack still gives one useful next move first, then keeps the clean tabs and copy-back tools below.",
     icon: Layers,
     iconItemId: 20594, // Bank filler — literal bank icon
     status: "live",
@@ -79,12 +79,12 @@ export const TOOLS: Tool[] = [
   {
     slug: "goals",
     href: "/goals",
-    name: "Goal Tracker",
+    name: "Unlock Planner",
     navLabel: "Goals",
-    short: "Tick off your untradeable goals",
-    tagline: "Paste your bank → see what you've earned",
+    short: "Find the closest useful unlock",
+    tagline: "Quests, diaries, capes, useful grinds",
     description:
-      "Tracks 30+ goal sets across capes, combat prestige, diary rewards, Barrows, GWD, raids, skilling outfits and quest rewards. Surfaces sets you're 1-2 items away from completing.",
+      "Find nearby quests, diaries, capes, Barrows gloves, skilling outfits and account milestones that create better future sessions.",
     icon: Target,
     iconItemId: 9813,  // Quest point cape — generic completion goal
     status: "live",
@@ -111,12 +111,12 @@ export const TOOLS: Tool[] = [
   {
     slug: "slayer",
     href: "/slayer",
-    name: "Slayer Planner",
+    name: "Task Check",
     navLabel: "Slayer",
-    short: "Pick the right master, see expected XP/hour",
-    tagline: "Your stats → best master, task probabilities, block list",
+    short: "Kill, skip, extend, burst or cannon",
+    tagline: "Task → route, supplies, stop point",
     description:
-      "Enter your combat + slayer level (or paste your RSN) and we rank the 7 masters by expected XP/hour. Per master: every possible task, the chance you'll get it, expected XP, and which 5 tasks you should block for max efficiency.",
+      "Use Slayer level, combat, blocks and RuneLite task state to decide whether this task is worth killing, skipping, extending, bursting or cannoning.",
     icon: Skull,
     iconItemId: 11864,  // Slayer helmet — signature item
     status: "live",
@@ -125,7 +125,7 @@ export const TOOLS: Tool[] = [
   {
     slug: "plugin",
     href: "/plugin",
-    name: "RuneLite Sync",
+    name: "RuneLite Check",
     navLabel: "Sync",
     short: "Check RuneLite for finished progress",
     tagline: "Skip finished quests, diaries, clog and Slayer",

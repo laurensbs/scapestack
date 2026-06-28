@@ -113,7 +113,7 @@ export default function PluginPage() {
       <section className="space-y-6">
         <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">
           <PlugZap className="size-3.5" />
-          RuneLite Sync
+          RuneLite Check
         </div>
 
         <div>

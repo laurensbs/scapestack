@@ -7,13 +7,13 @@ describe("tool registry", () => {
 
     expect(next).toMatchObject({
       href: "/next",
-      name: "What should I do next?",
+      name: "What should I do now?",
       navLabel: "Next",
       status: "live"
     });
     expect(next?.description).toContain("Stop bankstanding");
     expect(next?.description).toContain("one useful move");
-    expect(next?.tagline).toBe("RSN in → one plan, two backups");
+    expect(next?.tagline).toBe("RSN in → do this first");
   });
 
   it("registers RuneLite sync as a live first-class tool", () => {
@@ -21,7 +21,7 @@ describe("tool registry", () => {
 
     expect(plugin).toMatchObject({
       href: "/plugin",
-      name: "RuneLite Sync",
+      name: "RuneLite Check",
       navLabel: "Sync",
       status: "live"
     });

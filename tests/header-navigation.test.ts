@@ -14,8 +14,8 @@ describe("global header navigation", () => {
 
   it("surfaces the core Next → Gear → Sync loop as clickable navigation", () => {
     expect(source).toContain("LOOP_STEPS");
-    expect(source).toContain('const LOOP_LABEL = "Stop bankstanding: Next → Gear → Sync"');
-    expect(source).toContain('aria-label="Stop bankstanding with one OSRS plan"');
+    expect(source).toContain('const LOOP_LABEL = "Do this first: Next → Gear → RuneLite"');
+    expect(source).toContain('aria-label="Stop bankstanding with one next move"');
     expect(source).toContain('href={contextualNavHref("/next", pathname, contextQuery)}');
     expect(source).toContain("Stop bankstanding");
     expect(source).toContain("Pick one plan first. Add gear or RuneLite only when it changes the route.");

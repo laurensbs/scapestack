@@ -8,7 +8,7 @@ import {
   BRAND_TAGLINE
 } from "@/lib/brand";
 
-export const alt = "Scapestack · Stop bankstanding. Get one OSRS plan.";
+export const alt = "Scapestack · Stop bankstanding. Do this first.";
 export const size = {
   width: 1200,
   height: 630
@@ -26,8 +26,8 @@ export default function OpenGraphImage() {
           flexDirection: "column",
           justifyContent: "space-between",
           padding: 64,
-          background: `radial-gradient(circle at 22% 20%, ${BRAND_ACCENT_COLOR}30, transparent 36%), radial-gradient(circle at 82% 72%, #6d4b1a66, transparent 34%), ${BRAND_BACKGROUND_COLOR}`,
-          color: "#F5E9D2",
+          background: `radial-gradient(circle at 22% 20%, ${BRAND_ACCENT_COLOR}33, transparent 36%), radial-gradient(circle at 82% 72%, #1FB6A633, transparent 34%), ${BRAND_BACKGROUND_COLOR}`,
+          color: "#F5EAD2",
           fontFamily: BRAND_IMAGE_FONT_FAMILY
         }}
       >
@@ -46,7 +46,7 @@ export default function OpenGraphImage() {
                 fontSize: 30,
                 fontWeight: 900,
                 letterSpacing: -2,
-                background: "rgba(15, 118, 110,0.11)"
+                background: "rgba(214, 168, 58,0.11)"
               }}
             >
               SS
@@ -58,7 +58,7 @@ export default function OpenGraphImage() {
           </div>
           <div
             style={{
-              border: "1px solid rgba(15, 118, 110,0.38)",
+              border: "1px solid rgba(214, 168, 58,0.38)",
               borderRadius: 999,
               padding: "12px 18px",
               color: BRAND_ACCENT_COLOR,
@@ -66,13 +66,13 @@ export default function OpenGraphImage() {
               fontWeight: 800
             }}
           >
-            RuneLite-ready
+            Anti-bankstanding
           </div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
           <div style={{ maxWidth: 850, fontSize: 68, lineHeight: 1.02, fontWeight: 950, letterSpacing: -3 }}>
-            Stop bankstanding. Get one OSRS plan.
+            Stop bankstanding. Do this first.
           </div>
           <div style={{ maxWidth: 840, color: "#C9BFAE", fontSize: 26, lineHeight: 1.35 }}>
             {BRAND_DESCRIPTION}
@@ -80,7 +80,7 @@ export default function OpenGraphImage() {
         </div>
 
         <div style={{ display: "flex", gap: 14 }}>
-          {["Bank Organizer", "Next Up", "DPS", "Slayer", "RuneLite Sync"].map((label) => (
+          {["Do this first", "Gear & Bank", "Boss check", "Task check", "RuneLite"].map((label) => (
             <div
               key={label}
               style={{

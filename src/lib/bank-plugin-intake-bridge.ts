@@ -32,7 +32,7 @@ export function buildBankPluginIntakeBridge(rsn?: string | null): BankPluginInta
 
   return {
     eyebrow: "RuneLite sync handoff",
-    title: "RuneLite Sync is separate from this bank paste",
+    title: "RuneLite is separate from this bank paste",
     body: "Use this page to add the missing bank layer: gear, supplies, quantities and GP. That makes /next, DPS and snapshot compare bank-aware instead of progress-only.",
     safety: "Browser-only: this bank paste stays in the web session and is never sent back to the RuneLite plugin.",
     signals: [

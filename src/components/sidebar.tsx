@@ -131,7 +131,7 @@ function BrandMark() {
       style={{
         background: "linear-gradient(135deg, var(--color-accent-soft) 0%, var(--color-accent) 54%, var(--color-gold-deep) 100%)",
         color: "#FFFCF6",
-        boxShadow: "0 0 16px -4px rgba(15, 118, 110, 0.4)"
+        boxShadow: "0 0 16px -4px rgba(31, 182, 166, 0.4)"
       }}
     >
       S

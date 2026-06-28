@@ -37,11 +37,11 @@ describe("Scapestack branding", () => {
   });
 
   it("positions Scapestack as a tactical OSRS decision engine", () => {
-    expect(BRAND_TAGLINE).toBe("Stop bankstanding. Get one OSRS plan.");
-    expect(BRAND_SECONDARY_TAGLINE).toBe("Type your RSN. Pick one route before you log in.");
-    expect(BRAND_DESCRIPTION).toContain("Stop bankstanding");
-    expect(BRAND_POSITIONING.promise).toBe("From login indecision to one useful route.");
-    expect(BRAND_POSITIONING.feeling).toContain("OSRS session planner");
+    expect(BRAND_TAGLINE).toBe("Stop bankstanding. Do this first.");
+    expect(BRAND_SECONDARY_TAGLINE).toBe("Type your RSN. Get one plan, two backups and a stop point.");
+    expect(BRAND_DESCRIPTION).toContain("anti-bankstanding planner");
+    expect(BRAND_POSITIONING.promise).toBe("From login indecision to one thing worth doing now.");
+    expect(BRAND_POSITIONING.feeling).toContain("RuneLite-adjacent session card");
     expect(BRAND_POSITIONING.antiPattern).toContain("player-facing screens about choices");
     expect(BRAND_VOICE_RULES.join(" ")).toContain("practical OSRS player language");
     expect(BRAND_VOICE_RULES.join(" ")).not.toContain("AI-powered");
@@ -57,7 +57,7 @@ describe("Scapestack branding", () => {
       "Sync"
     ]);
     expect(BRAND_UI_SURFACES.map((surface) => surface.primaryAction).join(" ")).toContain("Plan my next move");
-    expect(BRAND_UI_SURFACES.map((surface) => surface.requiredFeeling).join(" ")).toContain("Backups below");
+    expect(BRAND_UI_SURFACES.map((surface) => surface.requiredFeeling).join(" ")).toContain("Two backups below");
     expect(BRAND_PLAYER_PROMPTS.map((prompt) => prompt.label)).toEqual([
       "I have 45 minutes",
       "I need GP",
@@ -137,8 +137,8 @@ describe("Scapestack branding", () => {
     expect(layoutSource).toContain("publisher: BRAND_NAME");
     expect(layoutSource).toContain("{BRAND_TAGLINE}");
     expect(layoutSource).toContain("Made for Gielinor");
-    expect(globalsSource).toContain('--font-sans: "Avenir Next"');
-    expect(globalsSource).toContain('--font-display: "Iowan Old Style"');
+    expect(globalsSource).toContain('--font-sans: "Atkinson Hyperlegible"');
+    expect(globalsSource).toContain('--font-display: "Georgia"');
     expect(globalsSource).toContain("Scapestack product primitives");
     expect(globalsSource).toContain(".scapestack-plan-panel");
     expect(globalsSource).toContain(".scapestack-session-list");
@@ -162,13 +162,13 @@ describe("Scapestack branding", () => {
     expect(globalsSource).toContain("cursor: not-allowed");
   });
 
-  it("keeps decorative markers on the route palette instead of casino gold", () => {
+  it("keeps decorative markers on the OSRS route palette instead of SaaS dots", () => {
     const globalsSource = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
 
-    expect(globalsSource).toContain("Coin marker — now a route marker");
-    expect(globalsSource).toContain("radial-gradient(circle at 30% 30%, #CCFBF1 0%, #14B8A6 48%, #0F766E 100%)");
-    expect(globalsSource).toContain("inset 0 0 0 1px #0B4F4A");
-    expect(globalsSource).not.toContain("Coin marker — OSRS gold");
+    expect(globalsSource).toContain("Coin marker — OSRS route marker");
+    expect(globalsSource).toContain("radial-gradient(circle at 30% 30%, #FFF1A8 0%, #D6A83A 48%, #7A5417 100%)");
+    expect(globalsSource).toContain("inset 0 0 0 1px #7A5417");
+    expect(globalsSource).not.toContain("Coin marker — now a route marker");
   });
 
   it("keeps retained sidebar brandmark on the route palette", () => {
@@ -190,7 +190,7 @@ describe("Scapestack branding", () => {
       "src/app/u/[rsn]/opengraph-image.tsx"
     ].map((path) => readFileSync(join(process.cwd(), path), "utf8"));
 
-    expect(BRAND_IMAGE_FONT_FAMILY).toBe("Avenir Next, Segoe UI, Arial, sans-serif");
+    expect(BRAND_IMAGE_FONT_FAMILY).toBe("Inter, Avenir Next, Segoe UI, Arial, sans-serif");
     for (const source of imageSources) {
       expect(source).toContain("BRAND_IMAGE_FONT_FAMILY");
       expect(source).not.toContain("Geist, Arial");

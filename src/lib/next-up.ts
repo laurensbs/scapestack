@@ -1812,7 +1812,7 @@ function bankRecs(bank: CompletionItem[]): Recommendation[] {
       timebox: "10-20 min",
       prep: `You have ${bank.length} recognized bank items; clean tabs reduce friction on every later trip.`,
       steps: [
-        "Open Bank Organizer and export the cleaned RuneLite tabs.",
+        "Open Gear & Bank and export the cleaned RuneLite tabs.",
         "Decant potions, recharge jewellery and move obvious junk before the next PvM/skilling run.",
         "Save the cleaned bank so future /next runs compare against the new baseline."
       ]
@@ -2383,7 +2383,7 @@ function actionPlanFor(rec: Recommendation, ctx: ActionPlanContext): Recommendat
         timebox: "10-20 min",
         prep: "Bank work pays off when it removes friction from every later trip.",
         steps: [
-          "Open the Bank Organizer and export the clean RuneLite tabs.",
+          "Open Gear & Bank and export the clean RuneLite tabs.",
           "Decant potions, recharge jewellery and move obvious junk before the next PvM/skilling run.",
           "Save the cleaned bank so future /next runs compare against the new baseline."
         ]

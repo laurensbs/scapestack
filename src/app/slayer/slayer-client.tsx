@@ -17,7 +17,7 @@ import { BankContextActions } from "@/components/bank-context-actions";
 import { ScapestackReadinessRail } from "@/components/scapestack-readiness-rail";
 import { buildSlayerTaskActions, type SlayerTaskActionOptions } from "@/lib/slayer-task-actions";
 
-// Slayer Planner — eerste versie.
+// Task Check — eerste versie.
 //
 // Geen RSN-lookup nog (dat sluit aan op het plugin-pad in fase 3); voor
 // nu typt de speler combat + slayer level handmatig. Output:
@@ -517,7 +517,7 @@ function MasterCard({ sim, isExpanded, onToggle, blocks, isTop, taskActionOption
     <div className={cn(
       "rounded-xl border bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] overflow-hidden",
       isTop
-        ? "border-[var(--color-accent)]/40 shadow-[0_0_0_1px_rgba(15, 118, 110,0.15)]"
+        ? "border-[var(--color-accent)]/40 shadow-[0_0_0_1px_rgba(31, 182, 166,0.15)]"
         : "border-[var(--color-border)]"
     )}>
       <button

@@ -217,7 +217,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
   const [modalBoss, setModalBoss] = useState<Boss | null>(null);
   const [pending, startTransition] = useTransition();
   const [expectedPluginSync, setExpectedPluginSync] = useState(false);
-  // When the user came from /bank's "What should I do next?" handoff,
+  // When the user came from /bank's plan-next-move handoff,
   // we surface a small banner on the intake so they know the bank is
   // already loaded — they only need to add an RSN for stat-aware advice.
   // Avoids `useSearchParams` (which would need a Suspense wrapper at the
@@ -244,7 +244,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
 
   // Three intake paths feed the same engine: RSN-only (no bank),
   // RSN + bank (full data), or sample data (demo). A fourth, hidden
-  // path: pre-parsed `bankItems` from /bank's "What should I do next?"
+  // path: pre-parsed `bankItems` from /bank's plan-next-move
   // handoff via sessionStorage — skips the textarea + organizeAction
   // round-trip entirely. Each path builds the same engine input shape;
   // we branch at the edges, not in the engine.
@@ -761,7 +761,7 @@ function NextIntake({
       )}
 
       {/* Handoff banner — appears when the user arrived here via the
-          Bank Organizer's "What should I do next?" button. The bank is
+          Gear & Bank's "Plan next move" button. The bank is
           already loaded; an RSN is optional and adds stats. */}
       {fromBank && (
         <div className="mb-4 rounded-lg border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/8 px-4 py-3 flex items-start gap-3 animate-[fade-in_0.3s_ease-out] text-left">
@@ -822,8 +822,8 @@ function NextIntake({
         <div className={cn(
           "group relative rounded-2xl bg-[var(--color-panel)] border transition-all",
           loading
-            ? "border-[var(--color-accent)]/60 shadow-[0_0_0_4px_rgba(15, 118, 110,0.10)]"
-            : "border-[var(--color-border)] focus-within:border-[var(--color-accent)]/60 focus-within:shadow-[0_0_0_4px_rgba(15, 118, 110,0.10)]"
+            ? "border-[var(--color-accent)]/60 shadow-[0_0_0_4px_rgba(31, 182, 166,0.10)]"
+            : "border-[var(--color-border)] focus-within:border-[var(--color-accent)]/60 focus-within:shadow-[0_0_0_4px_rgba(31, 182, 166,0.10)]"
         )}>
           <div className="flex flex-col sm:flex-row sm:items-center">
             <input
@@ -1359,7 +1359,7 @@ function HeroStrip({ summary, basisNote, onEdit }: {
           en headline-card. Bindt het visueel aan de rest van /next. */}
       <div
         className="absolute inset-x-0 top-0 h-px"
-        style={{ background: "linear-gradient(to right, transparent, rgba(15, 118, 110,0.55), transparent)" }}
+        style={{ background: "linear-gradient(to right, transparent, rgba(31, 182, 166,0.55), transparent)" }}
       />
       {/* Sweep — zachte route-tint die elke 6s van links naar rechts wandelt.
           Subtieler dan de loader-spotlight (we zijn klaar met laden),
@@ -1367,7 +1367,7 @@ function HeroStrip({ summary, basisNote, onEdit }: {
       <div
         className="pointer-events-none absolute inset-y-0 -inset-x-1/2 opacity-60"
         style={{
-          background: "linear-gradient(90deg, transparent 0%, transparent 35%, rgba(15, 118, 110,0.06) 50%, transparent 65%, transparent 100%)",
+          background: "linear-gradient(90deg, transparent 0%, transparent 35%, rgba(31, 182, 166,0.06) 50%, transparent 65%, transparent 100%)",
           animation: "hero-sweep 6s linear infinite"
         }}
       />
@@ -2065,7 +2065,7 @@ function HeadlineCard({
     >
       <div
         className="absolute inset-x-0 top-0 h-px"
-        style={{ background: "linear-gradient(to right, transparent, rgba(15, 118, 110,0.55), transparent)" }}
+        style={{ background: "linear-gradient(to right, transparent, rgba(31, 182, 166,0.55), transparent)" }}
       />
       <div className="flex items-start gap-4">
         <div className="size-12 shrink-0 rounded-lg flex items-center justify-center bg-[var(--color-accent)]/15 border border-[var(--color-accent)]/30 text-[var(--color-accent)] overflow-hidden">
@@ -2720,7 +2720,7 @@ function WhatToDo({
       <div
         className={cn(
           shareMode &&
-            "mx-auto max-w-4xl rounded-2xl border border-[var(--color-accent)]/25 bg-[var(--color-panel)]/86 p-4 shadow-[0_26px_80px_-54px_rgba(15,118,110,0.65)] sm:p-5"
+            "mx-auto max-w-4xl rounded-2xl border border-[var(--color-accent)]/25 bg-[var(--color-panel)]/86 p-4 shadow-[0_26px_80px_-54px_rgba(31, 182, 166,0.65)] sm:p-5"
         )}
       >
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -3220,7 +3220,7 @@ function WhereYouAre({
                         width: `${p.percent}%`,
                         transform: filled ? "scaleX(1)" : "scaleX(0)",
                         transition: "transform 900ms cubic-bezier(0.22, 1, 0.36, 1)",
-                        boxShadow: isFocus ? "0 0 14px -2px rgba(15, 118, 110,0.55)" : undefined,
+                        boxShadow: isFocus ? "0 0 14px -2px rgba(31, 182, 166,0.55)" : undefined,
                         animation: isFocus && filled ? "card-breath 3.2s ease-in-out infinite" : undefined,
                       }}
                     />

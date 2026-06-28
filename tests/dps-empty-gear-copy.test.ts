@@ -25,7 +25,7 @@ describe("DPS empty gear copy", () => {
     expect(source).toContain("slayerTask={isSlayerTaskSource}");
     expect(source).toContain("RuneLite sync is account proof, not gear proof.");
     expect(source).toContain("DPS needs a browser-only Bank Memory or Bank Tags paste before it can calculate real setups.");
-    expect(source).toContain("This boss came from Slayer Planner, but the route is marked bankless.");
+    expect(source).toContain("This boss came from Task Check, but the route is marked bankless.");
     expect(source).toContain("This route is marked bankless.");
     expect(source).toContain("Paste Bank Memory or Bank Tags before trusting DPS rows, upgrades or boss setup links.");
     expect(source).not.toContain("No usable weapon in your bank for this boss.");

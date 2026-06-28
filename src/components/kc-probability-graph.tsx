@@ -111,7 +111,7 @@ function Chart({ kc, denom, dropName }: Props) {
         )}
 
         {/* Area + curve */}
-        <path d={areaPath} fill="rgba(15, 118, 110, 0.12)" />
+        <path d={areaPath} fill="rgba(31, 182, 166, 0.12)" />
         <path d={linePath} fill="none" stroke="var(--color-accent)" strokeWidth="1.4" />
 
         {/* Player marker */}

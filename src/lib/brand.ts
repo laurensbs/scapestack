@@ -1,16 +1,16 @@
 export const BRAND_NAME = "Scapestack";
 export const BRAND_SHORT_NAME = "Scapestack";
-export const BRAND_TAGLINE = "Stop bankstanding. Get one OSRS plan.";
+export const BRAND_TAGLINE = "Stop bankstanding. Do this first.";
 export const BRAND_SECONDARY_TAGLINE =
-  "Type your RSN. Pick one route before you log in.";
+  "Type your RSN. Get one plan, two backups and a stop point.";
 export const BRAND_URL = "https://www.scapestack.org";
-export const BRAND_THEME_COLOR = "#F5F0E6";
-export const BRAND_ACCENT_COLOR = "#0F766E";
-export const BRAND_BACKGROUND_COLOR = "#F5F0E6";
-export const BRAND_IMAGE_FONT_FAMILY = "Avenir Next, Segoe UI, Arial, sans-serif";
+export const BRAND_THEME_COLOR = "#11130F";
+export const BRAND_ACCENT_COLOR = "#D6A83A";
+export const BRAND_BACKGROUND_COLOR = "#11130F";
+export const BRAND_IMAGE_FONT_FAMILY = "Inter, Avenir Next, Segoe UI, Arial, sans-serif";
 
 export const BRAND_DESCRIPTION =
-  "Stop bankstanding: enter your OSRS name and get one useful next move, two backups and optional gear or RuneLite context.";
+  "The OSRS anti-bankstanding planner: type your RSN and get one thing to do now, two backups and a clean stop point.";
 
 export const BRAND_KEYWORDS = [
   "OSRS",
@@ -26,23 +26,23 @@ export const BRAND_KEYWORDS = [
 
 export const BRAND_SHORTCUTS = [
   {
-    name: "Bank Organizer",
+    name: "Gear & Bank",
     short_name: "Bank",
-    description: "Paste RuneLite Bank Tags and get a clean OSRS bank layout.",
+    description: "Paste gear when supplies, GP or boss setup changes the plan.",
     url: "/bank",
     icon: "/icon?tool=bank"
   },
   {
-    name: "Next Up",
+    name: "Do This First",
     short_name: "Next",
     description: "Enter an OSRS name and get one clear next move.",
     url: "/next",
     icon: "/icon?tool=next"
   },
   {
-    name: "RuneLite Sync",
+    name: "RuneLite Check",
     short_name: "Sync",
-    description: "Install and verify the Scapestack RuneLite plugin.",
+    description: "Let RuneLite skip quests, diaries, clog slots and Slayer you already finished.",
     url: "/plugin",
     icon: "/icon?tool=sync"
   }
@@ -68,9 +68,9 @@ export const BRAND_LEGACY_REDIRECT_ROUTES = [
 ] as const;
 
 export const BRAND_POSITIONING = {
-  category: "OSRS route planner",
-  promise: "From login indecision to one useful route.",
-  feeling: "A clean OSRS session planner that knows the account in front of it.",
+  category: "OSRS anti-bankstanding planner",
+  promise: "From login indecision to one thing worth doing now.",
+  feeling: "A RuneLite-adjacent session card that feels made by someone who actually banks in OSRS.",
   antiPattern: "Keep player-facing screens about choices, not internal status or generic product wording."
 } as const;
 
@@ -87,13 +87,13 @@ export const BRAND_UI_SURFACES = [
     page: "Tonight",
     role: "What is worth doing tonight?",
     primaryAction: "Plan my next move",
-    requiredFeeling: "One useful move first. Backups below. Context optional."
+    requiredFeeling: "One useful move first. Two backups below. Context optional."
   },
   {
     page: "Bank",
     role: "What can I do with this bank?",
-    primaryAction: "Use my bank",
-    requiredFeeling: "Owned gear, supplies and cheap upgrades without another bank-standing loop."
+    primaryAction: "Check this bank",
+    requiredFeeling: "Owned gear, supplies and cheap upgrades without another bankstanding loop."
   },
   {
     page: "Boss",

@@ -2,8 +2,8 @@ import { ToolHeader } from "@/components/tool-header";
 import { SlayerClient } from "./slayer-client";
 
 export const metadata = {
-  title: "Slayer Planner",
-  description: "Pick the right master, see expected XP/hour, get a block-list recommendation. Powered by the OSRS Wiki task tables."
+  title: "Task Check",
+  description: "Decide whether this Slayer task is worth killing, skipping, extending, bursting or cannoning."
 };
 
 export default function SlayerPage() {

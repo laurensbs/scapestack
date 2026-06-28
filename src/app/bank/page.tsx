@@ -184,7 +184,15 @@ function BankPageContent() {
       />
       {view === "intake" && (
         <>
-          <BankPluginOnboarding />
+          <details className="mb-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/70 p-4">
+            <summary className="flex items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)]">
+              <span>RuneLite can skip finished stuff later</span>
+              <span className="text-[11px] font-semibold text-[var(--color-accent)]">Optional</span>
+            </summary>
+            <div className="mt-4">
+              <BankPluginOnboarding />
+            </div>
+          </details>
           {returnContext && (
             <BankReturnContextBanner context={returnContext} rsn={prefilledRsn} />
           )}

@@ -12,7 +12,7 @@ export default function HomePage() {
         <div className="grid min-h-[calc(100vh-6rem)] items-center gap-10 lg:grid-cols-[0.9fr_0.82fr] lg:gap-20 xl:gap-28">
           <div className="space-y-6">
             <h1
-              aria-label="Stop bankstanding. One clear OSRS plan."
+              aria-label="Stop bankstanding. Do this first."
               className="text-[48px] font-semibold leading-[0.96] text-[var(--color-text)] sm:text-[64px] lg:text-[72px]"
             >
               <RevealLine
@@ -22,7 +22,7 @@ export default function HomePage() {
                 className="block text-[var(--color-text)]"
               />
               <RevealLine
-                text="One clear OSRS plan."
+                text="Do this first."
                 delay={350}
                 wordStaggerMs={80}
                 className="block text-route-gradient"
@@ -40,7 +40,7 @@ export default function HomePage() {
                 clipPath: "inset(0 0 100% 0)"
               }}
             >
-              Type your OSRS name. Scapestack gives one best move, two backups and a clean stop point.
+              Type your OSRS name. Get one plan, two backups and a stop point before you open another Wiki tab.
             </p>
 
             <div
@@ -60,10 +60,10 @@ export default function HomePage() {
       </section>
 
       <footer className="mt-14 border-t border-[var(--color-border)] pt-10">
-        <div className="relative mx-auto max-w-3xl overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] shadow-[0_24px_70px_-48px_rgba(65,49,25,0.45)] animate-[slide-up_0.5s_cubic-bezier(0.22,1,0.36,1)_0.2s_both]">
+        <div className="relative mx-auto max-w-3xl overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] shadow-[0_24px_70px_-48px_rgba(0,0,0,0.78)] animate-[slide-up_0.5s_cubic-bezier(0.22,1,0.36,1)_0.2s_both]">
           <div
             className="absolute inset-x-0 top-0 h-px"
-            style={{ background: "linear-gradient(to right, transparent, rgba(15, 118, 110,0.4), transparent)" }}
+            style={{ background: "linear-gradient(to right, transparent, rgba(31, 182, 166,0.4), transparent)" }}
           />
 
           <div className="relative p-8 sm:p-10 grid sm:grid-cols-[1fr_auto] items-center gap-6">
@@ -105,7 +105,7 @@ function HeroProductPreview() {
         <div className="flex items-center justify-between gap-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-2.5 py-1 text-[11px] font-bold text-[var(--color-good)]">
             <CheckCircle2 className="size-3.5" aria-hidden="true" />
-            Screenshot-ready plan
+            One clean session
           </div>
           <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-panel)]/55 px-2.5 py-1 text-[11px] font-bold text-[var(--color-text-dim)]">
             45-90 min
@@ -113,7 +113,7 @@ function HeroProductPreview() {
         </div>
 
         <div className="mt-4 flex items-start gap-4">
-          <span className="grid size-14 shrink-0 place-items-center rounded-2xl border border-[var(--color-accent)]/28 bg-[var(--color-accent)]/10 shadow-[0_12px_30px_-24px_rgba(15,118,110,0.56)]">
+          <span className="grid size-14 shrink-0 place-items-center rounded-2xl border border-[var(--color-accent)]/28 bg-[var(--color-accent)]/10 shadow-[0_12px_30px_-24px_rgba(31, 182, 166,0.56)]">
             <ItemSprite id={28307} alt="Vardorvis" className="scale-125" />
           </span>
           <div className="min-w-0">

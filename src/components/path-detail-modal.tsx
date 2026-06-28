@@ -129,7 +129,7 @@ export function PathDetailModal({ path, onClose }: Props) {
                 className={cn(
                   "px-3 py-1.5 rounded text-[11.5px] font-semibold uppercase tracking-wider transition-colors",
                   filter === f
-                    ? "bg-[var(--color-accent)] text-white"
+                    ? "bg-[var(--color-accent)] text-[#07110F]"
                     : "text-[var(--color-text-dim)] hover:text-[var(--color-text)]"
                 )}
               >

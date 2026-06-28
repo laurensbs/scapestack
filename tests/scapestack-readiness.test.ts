@@ -270,7 +270,7 @@ describe("Scapestack readiness rail", () => {
       label: "Refresh sync",
       href: "/plugin?rsn=Lynx+Titan&from=next#verify-sync"
     });
-    expect(readiness.title).toBe("Next planner is ready to plan");
+    expect(readiness.title).toBe("Do this first is ready to plan");
     expect(readiness.body).toContain("Bank and public stats can plan now");
     expect(readiness.body).toContain("Refresh sync before long quests");
   });
@@ -285,7 +285,7 @@ describe("Scapestack readiness rail", () => {
       rsn: "Duradel Main"
     });
 
-    expect(readiness.title).toBe("Slayer planner is ready to plan");
+    expect(readiness.title).toBe("Task Check is ready to plan");
     expect(readiness.primaryAction).toEqual({
       label: "Refresh sync",
       href: "/plugin?rsn=Duradel+Main&from=slayer#verify-sync"
@@ -302,7 +302,7 @@ describe("Scapestack readiness rail", () => {
       rsn: "Lynx Titan"
     });
 
-    expect(readiness.title).toBe("Bank Organizer is ready to plan");
+    expect(readiness.title).toBe("Gear & Bank is ready to plan");
     expect(readiness.body).toContain("Bank and public stats are enough to plan now");
     expect(readiness.title).not.toContain("signals connected");
   });

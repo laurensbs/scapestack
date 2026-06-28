@@ -88,7 +88,7 @@ export function BossDetailModal({ boss, owned, onClose }: Props) {
           <div
             className="absolute inset-[-10%] pointer-events-none"
             style={{
-              background: "radial-gradient(closest-side, rgba(15, 118, 110, 0.18) 0%, transparent 70%)",
+              background: "radial-gradient(closest-side, rgba(31, 182, 166, 0.18) 0%, transparent 70%)",
               opacity: 0.5
             }}
           />

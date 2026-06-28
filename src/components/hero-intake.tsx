@@ -51,9 +51,9 @@ export function HeroIntake() {
       <div
         className={cn(
           "grid gap-2 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] p-2",
-          "shadow-[0_18px_48px_-36px_rgba(65,49,25,0.38),inset_0_1px_0_rgba(255,255,255,0.72)]",
+          "shadow-[0_18px_48px_-36px_rgba(0,0,0,0.78),inset_0_1px_0_rgba(245,234,210,0.08)]",
           "transition-colors duration-200 ease-out focus-within:border-[var(--color-accent)]/45",
-          "focus-within:bg-white focus-within:shadow-[0_20px_52px_-38px_rgba(15,118,110,0.34),0_0_0_3px_rgba(15,118,110,0.08)]",
+          "focus-within:bg-[var(--color-panel-2)] focus-within:shadow-[0_20px_52px_-38px_rgba(31,182,166,0.34),0_0_0_3px_rgba(31,182,166,0.08)]",
           "sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-1.5"
         )}
       >
@@ -75,7 +75,7 @@ export function HeroIntake() {
             className={cn(
               "h-13 w-full min-w-0 rounded-xl border border-transparent bg-[var(--color-bg)]/72 px-3.5 outline-none",
               "text-[16px] font-semibold text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]/72",
-              "transition-all duration-200 focus:bg-white focus:shadow-[inset_0_0_0_1px_rgba(15,118,110,0.16)]",
+              "transition-all duration-200 focus:bg-[var(--color-bg)] focus:shadow-[inset_0_0_0_1px_rgba(31,182,166,0.16)]",
               "sm:h-12 sm:text-[15px]"
             )}
           />
@@ -93,11 +93,11 @@ export function HeroIntake() {
           disabled={!canSubmit}
           className={cn(
             "inline-flex h-13 w-full shrink-0 items-center justify-center gap-2 rounded-xl px-4",
-            "bg-[var(--color-accent)] text-white text-[14px] font-bold",
-            "shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_12px_24px_-18px_rgba(15,118,110,0.82)]",
+            "bg-[var(--color-accent)] text-[#07110F] text-[14px] font-bold",
+            "shadow-[inset_0_1px_0_rgba(245,234,210,0.24),0_12px_24px_-18px_rgba(31,182,166,0.82)]",
             "transition-all duration-200 hover:bg-[var(--color-accent-soft)] active:translate-y-px",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]",
-            "disabled:cursor-not-allowed disabled:bg-[var(--color-border-strong)] disabled:text-[var(--color-text-muted)] disabled:shadow-none",
+            "disabled:cursor-not-allowed disabled:bg-[var(--color-border-strong)] disabled:text-[var(--color-text-secondary)] disabled:shadow-none",
             "sm:h-12 sm:w-auto sm:min-w-[174px]"
           )}
         >

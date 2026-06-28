@@ -7,7 +7,7 @@ describe("bank plugin intake bridge", () => {
   it("explains the plugin-to-bank boundary without claiming bank sync", () => {
     const bridge = buildBankPluginIntakeBridge(" Lynx Titan ");
 
-    expect(bridge.title).toContain("RuneLite Sync is separate");
+    expect(bridge.title).toContain("RuneLite is separate");
     expect(bridge.body).toContain("gear, supplies, quantities and GP");
     expect(bridge.safety).toContain("never sent back to the RuneLite plugin");
     expect(bridge.signals.map((signal) => signal.label)).toEqual([

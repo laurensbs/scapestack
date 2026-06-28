@@ -21,7 +21,7 @@ describe("recommendation primary actions", () => {
   it("labels known Scapestack routes with concrete tool names", () => {
     expect(routeActionForHref("/dps").label).toBe("Open DPS setup");
     expect(routeActionForHref("/goals").label).toBe("Open goals tracker");
-    expect(routeActionForHref("/bank?sample=1").label).toBe("Open Bank Organizer");
+    expect(routeActionForHref("/bank?sample=1").label).toBe("Open Gear & Bank");
     expect(routeActionForHref("/slayer/").label).toBe("Open Slayer view");
     expect(routeActionForHref("/gp").label).toBe("Open cash route in /next");
     expect(routeActionForHref("/skills").label).toBe("Open skill route in /next");

@@ -1435,8 +1435,8 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
             aria-label="Copy every organized Bank Tags tab to RuneLite"
             className={cn(
               "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12.5px] font-semibold transition-all",
-              "bg-[var(--color-accent)] text-white hover:brightness-110 shadow-[0_0_0_3px_rgba(15, 118, 110,0.15)]",
-              "hover:shadow-[0_0_0_4px_rgba(15, 118, 110,0.25)]"
+              "bg-[var(--color-accent)] text-[#07110F] hover:brightness-110 shadow-[0_0_0_3px_rgba(31, 182, 166,0.15)]",
+              "hover:shadow-[0_0_0_4px_rgba(31, 182, 166,0.25)]"
             )}
             title="Copy every tab's Bank Tags string to your clipboard — paste each into RuneLite"
           >
@@ -1455,10 +1455,10 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
               "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12.5px] font-medium border transition-colors",
               "border-[var(--color-accent)]/40 text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10"
             )}
-            title="Take this bank into the 'what to do next' hub"
+            title="Take this bank into the next plan"
           >
             <Sparkles className="size-3.5" />
-            What should I do next?
+            Plan next move
           </button>
           {/* Smart tidy — secondary action, ghost-styled. Re-tidies in place
               if the user wants a different layout (each press uses a fresh
@@ -1760,7 +1760,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
           className={cn(
             "group/frame relative mt-3 rounded-lg overflow-hidden",
             "transition-[border-color,box-shadow] duration-300 ease-out",
-            "hover:border-[var(--color-accent)]/30 hover:shadow-[0_28px_70px_-28px_rgb(0_0_0/0.75),0_0_0_1px_rgba(15, 118, 110,0.18)]",
+            "hover:border-[var(--color-accent)]/30 hover:shadow-[0_28px_70px_-28px_rgb(0_0_0/0.75),0_0_0_1px_rgba(31, 182, 166,0.18)]",
             reorgFlash && "animate-[reshuffle_0.55s_cubic-bezier(0.22,1,0.36,1),mint-sweep_0.7s_ease-out]"
           )}
           style={{
@@ -1773,7 +1773,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
           <span
             aria-hidden="true"
             className="pointer-events-none absolute top-0 inset-x-0 h-px opacity-0 group-hover/frame:opacity-100 transition-opacity duration-500"
-            style={{ background: "linear-gradient(to right, transparent, rgba(15, 118, 110,0.6), transparent)" }}
+            style={{ background: "linear-gradient(to right, transparent, rgba(31, 182, 166,0.6), transparent)" }}
           />
           {/* Title bar — minimal monochrome */}
           <div className="relative flex items-center justify-between py-2.5 px-4 border-b border-[var(--color-border)] bg-[var(--color-bg-2)] gap-3">
@@ -1916,7 +1916,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
               className={cn(
                 "rounded-md flex items-center justify-center",
                 "bg-[var(--color-osrs-slot)] border-2 border-[var(--color-accent)]",
-                "shadow-[0_12px_28px_-8px_rgb(0_0_0/0.7),0_0_0_4px_rgba(15, 118, 110,0.15)]",
+                "shadow-[0_12px_28px_-8px_rgb(0_0_0/0.7),0_0_0_4px_rgba(31, 182, 166,0.15)]",
                 "animate-[pop-in_0.16s_cubic-bezier(0.22,1,0.36,1)] cursor-grabbing"
               )}
               // Match the lifted slot's real size so the overlay stays
@@ -2196,7 +2196,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
             onClick={copyAll}
             className={cn(
               "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium",
-              "bg-[var(--color-accent)] text-white hover:brightness-110 transition-all"
+              "bg-[var(--color-accent)] text-[#07110F] hover:brightness-110 transition-all"
             )}
           >
             {copied === "all" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
@@ -3033,7 +3033,7 @@ function BankActionLoopRail({
               aria-label={`${step.cta}: ${step.destination}`}
               data-testid="bank-action-loop-card"
               className={cn(
-                "group/bank-action rounded-lg border p-3 text-left transition-all hover:-translate-y-0.5 focus:outline-none focus-visible:border-[var(--color-accent)]/60 focus-visible:shadow-[0_0_0_3px_rgba(15, 118, 110,0.13)]",
+                "group/bank-action rounded-lg border p-3 text-left transition-all hover:-translate-y-0.5 focus:outline-none focus-visible:border-[var(--color-accent)]/60 focus-visible:shadow-[0_0_0_3px_rgba(31, 182, 166,0.13)]",
                 step.state === "attention"
                   ? "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/8 hover:border-[var(--color-warning)]/55"
                   : step.state === "ready"
@@ -3769,7 +3769,7 @@ function SubtabFilterRow({ subtabs, active, onChange, search, onSearchChange, it
             "w-full pl-7 pr-16 py-1.5 rounded-md text-[12px]",
             "bg-[var(--color-bg-2)] border border-[var(--color-border)]",
             "text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]",
-            "focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(15, 118, 110,0.12)]"
+            "focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(31, 182, 166,0.12)]"
           )}
         />
         <svg className="absolute left-2 top-1/2 -translate-y-1/2 size-3.5 text-[var(--color-text-muted)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
@@ -4289,7 +4289,7 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
           "relative h-full w-full cursor-grab active:cursor-grabbing",
           "bg-[var(--color-osrs-slot)] border-r border-b border-[var(--color-border)]/40",
           "flex items-center justify-center select-none",
-          "hover:bg-[var(--color-panel-2)] hover:outline hover:outline-2 hover:outline-[var(--color-accent)] hover:outline-offset-[-2px] hover:z-10 hover:shadow-[0_0_18px_-4px_rgba(15, 118, 110,0.4)]",
+          "hover:bg-[var(--color-panel-2)] hover:outline hover:outline-2 hover:outline-[var(--color-accent)] hover:outline-offset-[-2px] hover:z-10 hover:shadow-[0_0_18px_-4px_rgba(31, 182, 166,0.4)]",
           "transition-[background-color,outline-color,box-shadow,transform] duration-150",
           "[&:hover>img]:scale-[1.07]",
           isDragging && "opacity-25",
@@ -5116,7 +5116,7 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search bosses…"
-          className="w-full pl-8 pr-7 py-1.5 rounded-md text-[12px] bg-[var(--color-bg-2)] border border-[var(--color-border)] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(15, 118, 110,0.12)]"
+          className="w-full pl-8 pr-7 py-1.5 rounded-md text-[12px] bg-[var(--color-bg-2)] border border-[var(--color-border)] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(31, 182, 166,0.12)]"
         />
         {query && (
           <button
@@ -5155,7 +5155,7 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
                       "aspect-square rounded-md flex items-center justify-center relative",
                       "border transition-all",
                       isSelected
-                        ? "border-[var(--color-accent)] bg-[var(--color-accent)]/12 shadow-[0_0_0_3px_rgba(15, 118, 110,0.18)] scale-[1.05] z-10"
+                        ? "border-[var(--color-accent)] bg-[var(--color-accent)]/12 shadow-[0_0_0_3px_rgba(31, 182, 166,0.18)] scale-[1.05] z-10"
                         : "border-[var(--color-border)] bg-[var(--color-bg-2)] hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-panel-2)] hover:scale-[1.04]"
                     )}
                   >
@@ -5188,7 +5188,7 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
               className={cn(
                 "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium transition-all",
                 tagString
-                  ? "bg-[var(--color-accent)] text-white hover:brightness-110"
+                  ? "bg-[var(--color-accent)] text-[#07110F] hover:brightness-110"
                   : "bg-[var(--color-panel-2)] text-[var(--color-text-muted)] cursor-not-allowed"
               )}
             >

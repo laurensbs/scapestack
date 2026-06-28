@@ -18,7 +18,7 @@ export interface RecommendationPrimaryAction {
 
 const ROUTE_ACTIONS: Record<string, Omit<RecommendationPrimaryAction, "href">> = {
   "/bank": {
-    label: "Open Bank Organizer",
+    label: "Open Gear & Bank",
     helper: "Clean the bank and export a usable RuneLite Bank Tags layout."
   },
   "/dps": {

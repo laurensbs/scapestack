@@ -55,12 +55,12 @@ export interface ScapestackReadiness {
 }
 
 const surfaceNames: Record<ScapestackSurface, string> = {
-  bank: "Bank Organizer",
-  next: "Next planner",
-  dps: "DPS planner",
-  goals: "Goals tracker",
+  bank: "Gear & Bank",
+  next: "Do this first",
+  dps: "Boss Trip Check",
+  goals: "Unlock Planner",
   profile: "Player profile",
-  slayer: "Slayer planner"
+  slayer: "Task Check"
 };
 
 function sourceForSurface(surface: ScapestackSurface): ToolHandoffSource {

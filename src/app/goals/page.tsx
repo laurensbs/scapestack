@@ -2,8 +2,8 @@ import { ToolHeader } from "@/components/tool-header";
 import { GoalsClient } from "./goals-client";
 
 export const metadata = {
-  title: "Untradeable Goal Tracker",
-  description: "Paste your bank export — see every untradeable, achievement, and milestone item you've earned, and which ones you're closest to completing."
+  title: "Unlock Planner",
+  description: "Find the closest useful quest, diary, cape, gear unlock or account milestone."
 };
 
 export default function GoalsPage() {

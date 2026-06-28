@@ -34,7 +34,7 @@ export default function HiscorePage() {
             "flex items-stretch gap-2 max-w-xl mx-auto rounded-2xl p-2",
             "bg-[var(--color-panel)] border border-[var(--color-border)]",
             "focus-within:border-[var(--color-accent)]/50",
-            "focus-within:shadow-[0_0_0_3px_rgba(15, 118, 110,0.10)]",
+            "focus-within:shadow-[0_0_0_3px_rgba(31, 182, 166,0.10)]",
             "transition-all"
           )}
         >
@@ -67,7 +67,7 @@ export default function HiscorePage() {
             aria-label="Look up OSRS player Hiscores"
             className={cn(
               "flex items-center gap-1.5 px-5 py-3 rounded-xl text-[14px] font-semibold",
-              "bg-[var(--color-accent)] text-white",
+              "bg-[var(--color-accent)] text-[#07110F]",
               "hover:brightness-110 transition-all"
             )}
           >
