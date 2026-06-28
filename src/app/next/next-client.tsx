@@ -2113,6 +2113,14 @@ function WhatToDo({
   }, [mood, minutes, pick]);
 
   if (allRecs.length === 0) return null;
+  const applySessionIntent = (nextMood: Mood, nextMinutes?: TimeBudget) => {
+    setMood(nextMood);
+    const defaultTime = nextMinutes ?? defaultTimeForMood(nextMood);
+    if (defaultTime) setMinutes(defaultTime);
+    setShuffleIdx(0);
+    setLastSuppressed(null);
+    setLastCompleted(null);
+  };
   const hideRecommendation = (rec: Recommendation) => {
     setFeedback(suppressRecommendation({ id: rec.id, kind: rec.kind, reason: "not_today" }));
     setLastSuppressed({ id: rec.id, title: rec.title });
@@ -2140,10 +2148,7 @@ function WhatToDo({
     setShuffleIdx((i) => i + 1);
   };
   const moveToChillPlan = () => {
-    setLastCompleted(null);
-    setMood("chill");
-    setMinutes(30);
-    setShuffleIdx((i) => i + 1);
+    applySessionIntent("chill", 30);
   };
   const restoreHidden = () => {
     setFeedback(clearRecommendationFeedback());
@@ -2262,6 +2267,49 @@ function WhatToDo({
         </div>
       </div>
 
+      {!shareMode && (
+        <div className="mb-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-2.5">
+          <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
+            <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+              I feel like
+            </span>
+            <span className="text-[11px] font-semibold text-[var(--color-text-dim)]">
+              {minutes === 60 ? "1 hour" : `${minutes} min`}
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
+            {MOODS.map((m) => {
+              const label = MOOD_LABEL[m];
+              const active = mood === m;
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  aria-pressed={active}
+                  aria-label={`Pick ${label.name} session`}
+                  onClick={() => applySessionIntent(m)}
+                  className={cn(
+                    "flex min-h-10 items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-[11.5px] font-semibold transition-colors",
+                    active
+                      ? "border-[var(--color-accent)]/60 bg-[var(--color-accent)]/12 text-[var(--color-accent)]"
+                      : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)]"
+                  )}
+                  title={label.tagline}
+                >
+                  <ItemSprite
+                    id={label.itemId}
+                    alt=""
+                    className="pixelated shrink-0"
+                    style={{ width: 18, height: 18, imageRendering: "pixelated", objectFit: "contain" }}
+                  />
+                  <span className="truncate">{label.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {lastSuppressed && (
         <div
           role="status"
@@ -2271,13 +2319,36 @@ function WhatToDo({
           <span className="text-[var(--color-text-dim)]">
             Hidden for now: <span className="font-semibold text-[var(--color-text)]">{lastSuppressed.title}</span>.
           </span>
-          <button
-            type="button"
-            onClick={restoreLastSuppressed}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-warning)] transition-colors hover:bg-[var(--color-warning)]/10"
-          >
-            Undo hide
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => applySessionIntent("cash", 60)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-warning)] transition-colors hover:bg-[var(--color-warning)]/10"
+            >
+              Need GP
+            </button>
+            <button
+              type="button"
+              onClick={() => applySessionIntent("afk", 60)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-warning)] transition-colors hover:bg-[var(--color-warning)]/10"
+            >
+              Want AFK
+            </button>
+            <button
+              type="button"
+              onClick={() => applySessionIntent("chill", 30)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-warning)] transition-colors hover:bg-[var(--color-warning)]/10"
+            >
+              Too hard
+            </button>
+            <button
+              type="button"
+              onClick={restoreLastSuppressed}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-warning)] transition-colors hover:bg-[var(--color-warning)]/10"
+            >
+              Undo hide
+            </button>
+          </div>
         </div>
       )}
 
@@ -2364,9 +2435,9 @@ function WhatToDo({
       <details className="mt-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-4">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden">
           <span>
-            <span className="block text-[12.5px] font-bold text-[var(--color-text)]">Change vibe or time</span>
+            <span className="block text-[12.5px] font-bold text-[var(--color-text)]">Session length</span>
             <span className="mt-0.5 block text-[11px] text-[var(--color-text-muted)]">
-              Current: {MOOD_LABEL[mood].name}, {minutes === 60 ? "1 hour" : `${minutes} min`}.
+              Current: {minutes === 60 ? "1 hour" : `${minutes} min`}. Vibe is picked above.
             </span>
           </span>
           <span className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
@@ -2375,60 +2446,6 @@ function WhatToDo({
         </summary>
         <div className="mt-4 space-y-4">
           <div className="space-y-4">
-            <div>
-              <div className="mb-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                I want to
-              </div>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {MOODS.map((m) => {
-                  const label = MOOD_LABEL[m];
-                  const active = mood === m;
-                  return (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => {
-                        setMood(m);
-                        const defaultTime = defaultTimeForMood(m);
-                        if (defaultTime) setMinutes(defaultTime);
-                      }}
-                      className={cn(
-                        "group/mood relative overflow-hidden rounded-lg border px-2.5 py-2.5 text-left transition-all duration-200",
-                        "flex items-center gap-2.5",
-                        active
-                          ? "border-[var(--color-accent)]/60 bg-gradient-to-br from-[var(--color-accent)]/15 to-[var(--color-accent)]/5 shadow-[0_0_18px_-6px_rgba(230,165,47,0.45)]"
-                          : "border-[var(--color-border)] bg-[var(--color-bg-2)]/40 hover:border-[var(--color-accent)]/30 hover:bg-[var(--color-accent)]/5"
-                      )}
-                    >
-                      <ItemSprite
-                        id={label.itemId}
-                        alt=""
-                        className="pixelated shrink-0 transition-transform duration-200 group-hover/mood:scale-110"
-                        style={{
-                          width: 22,
-                          height: 22,
-                          imageRendering: "pixelated",
-                          filter: active
-                            ? "drop-shadow(0 0 4px rgba(230,165,47,0.6)) drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))"
-                            : "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))",
-                          objectFit: "contain",
-                          transform: active ? "scale(1.08)" : undefined
-                        }}
-                      />
-                      <span className={cn(
-                        "text-[12.5px] font-semibold transition-colors",
-                        active ? "text-[var(--color-accent)]" : "text-[var(--color-text)]"
-                      )}>
-                        {label.name}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="mt-2 text-[10.5px] italic text-[var(--color-text-muted)]">
-                {MOOD_LABEL[mood].tagline}
-              </p>
-            </div>
             <div>
               <div className="mb-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
                 Time
