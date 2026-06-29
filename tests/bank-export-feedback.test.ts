@@ -12,6 +12,10 @@ describe("bank export feedback", () => {
     expect(source).toContain("Send this bank to /next.");
     expect(source).toContain("Check one boss trip before buying upgrades");
     expect(source).toContain("Use this bank for one clear session plan");
+    expect(source).toContain("function buildTripReadinessChips");
+    expect(source).toContain('"Ready" | "Missing food" | "Missing teleport" | "Gear looks weak"');
+    expect(source).toContain("const bankReadiness = useMemo(");
+    expect(source).toContain("readiness={bankReadiness}");
     expect(source).toContain("<span>Bank details</span>");
     expect(source).toContain("<span>Saved banks</span>");
     expect(source.indexOf("What can I do with this bank?")).toBeLessThan(source.indexOf("Paste check"));

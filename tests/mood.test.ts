@@ -200,7 +200,13 @@ describe("pickForMood", () => {
     ];
     const result = pickForRoute(recs, "unlock", 120, "maxing");
     expect(result!.headline.id).toBe("farming-99");
-    expect(result!.routeLabel).toBe("Maxing week");
+    expect(result!.routeLabel).toBe("Progress account");
+  });
+
+  it("route lens labels read like player choices instead of dashboard filters", () => {
+    expect(pickForRoute([rec("money", "herb-run", 70)], "cash", 30, "gp-upgrade")!.routeLabel).toBe("Make GP");
+    expect(pickForRoute([rec("boss", "vorkath", 70)], "bossing", 60, "boss-log")!.routeLabel).toBe("Boss trip");
+    expect(pickForRoute([rec("skill", "redwoods", 70)], "afk", 60, "afk-progress")!.routeLabel).toBe("Something AFK");
   });
 
   it("route tags can surface smarter account-story routes without visible labels", () => {

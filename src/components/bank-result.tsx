@@ -118,6 +118,41 @@ interface BankDecision {
   secondaryLabel: string;
 }
 
+interface TripReadinessChip {
+  label: "Ready" | "Missing food" | "Missing teleport" | "Gear looks weak";
+  tone: "good" | "warn";
+}
+
+const BANK_FOOD_RE = /\b(anglerfish|manta ray|dark crab|sea turtle|shark|monkfish|karambwan|saradomin brew|tuna potato)\b/i;
+const BANK_TELEPORT_RE = /\b(teleport|tablet|scroll of redirection|house tab|xeric|glory|dueling|games necklace|skills necklace|combat bracelet|drakan|ectophial|royal seed pod|crystal seed)\b/i;
+
+function hasBankItem(items: OrganizedItem[], pattern: RegExp): boolean {
+  return items.some((item) => pattern.test(item.name));
+}
+
+function buildTripReadinessChips({
+  items,
+  weaponCount
+}: {
+  items: OrganizedItem[];
+  weaponCount: number;
+}): TripReadinessChip[] {
+  const hasFood = hasBankItem(items, BANK_FOOD_RE);
+  const hasTeleport = hasBankItem(items, BANK_TELEPORT_RE);
+  const chips: TripReadinessChip[] = [];
+
+  if (weaponCount > 0 && hasFood && hasTeleport) {
+    chips.push({ label: "Ready", tone: "good" });
+  } else if (weaponCount === 0) {
+    chips.push({ label: "Gear looks weak", tone: "warn" });
+  }
+
+  if (!hasFood) chips.push({ label: "Missing food", tone: "warn" });
+  if (!hasTeleport) chips.push({ label: "Missing teleport", tone: "warn" });
+
+  return chips.slice(0, 3);
+}
+
 function buildBankDecision({
   weaponCount,
   tipCount,
@@ -205,6 +240,7 @@ function BankDecisionHero({
   weaponCount,
   tipCount,
   hasPrices,
+  readiness,
   copied,
   onPrimary,
   onSecondary,
@@ -217,6 +253,7 @@ function BankDecisionHero({
   weaponCount: number;
   tipCount: number;
   hasPrices: boolean;
+  readiness: TripReadinessChip[];
   copied: string | null;
   onPrimary: (action: BankDecisionAction) => void;
   onSecondary: (action: BankDecisionAction) => void;
@@ -265,6 +302,19 @@ function BankDecisionHero({
             {decision.why}
           </p>
           <div className="mt-3 flex flex-wrap gap-1.5">
+            {readiness.map((chip) => (
+              <span
+                key={chip.label}
+                className={cn(
+                  "rounded-full border px-2.5 py-1 text-[11px] font-bold",
+                  chip.tone === "good"
+                    ? "border-[var(--color-good)]/35 bg-[var(--color-good)]/10 text-[var(--color-good)]"
+                    : "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
+                )}
+              >
+                {chip.label}
+              </span>
+            ))}
             {chips.map((chip) => (
               <span
                 key={chip}
@@ -1336,6 +1386,10 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
     totalItems,
     hasPrices: initial.stats.hasPrices
   }), [bankTips.length, bankWeaponCount, initial.stats.hasPrices, tipSlotsFreed, totalItems, totalValue]);
+  const bankReadiness = useMemo(
+    () => buildTripReadinessChips({ items: allItems, weaponCount: bankWeaponCount }),
+    [allItems, bankWeaponCount]
+  );
   const pluginSyncHref = useMemo(() => {
     const params = new URLSearchParams();
     if (inferredRsn?.trim()) params.set("rsn", inferredRsn.trim());
@@ -1363,6 +1417,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
         weaponCount={bankWeaponCount}
         tipCount={bankTips.length}
         hasPrices={initial.stats.hasPrices}
+        readiness={bankReadiness}
         copied={copied}
         onPrimary={runBankDecision}
         onSecondary={runBankDecision}

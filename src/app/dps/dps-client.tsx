@@ -44,6 +44,40 @@ interface DpsDecision {
   tone: "good" | "warning" | "locked";
 }
 
+interface DpsTripReadinessChip {
+  label: "Ready" | "Missing food" | "Missing teleport" | "Gear looks weak";
+  tone: "good" | "warn";
+}
+
+function dpsTripReadiness(
+  decision: DpsDecision,
+  result: BossDpsResult | null,
+  weaponCount: number
+): DpsTripReadinessChip[] {
+  if (decision.tone === "locked" || weaponCount === 0) {
+    return [
+      { label: "Gear looks weak", tone: "warn" },
+      { label: "Missing food", tone: "warn" }
+    ];
+  }
+
+  const chips: DpsTripReadinessChip[] = [];
+  if (decision.tone === "good" && result) {
+    chips.push({ label: "Ready", tone: "good" });
+  }
+  if (/food/i.test(decision.bring) === false) {
+    chips.push({ label: "Missing food", tone: "warn" });
+  }
+  if (/tele|out/i.test(decision.bring) === false) {
+    chips.push({ label: "Missing teleport", tone: "warn" });
+  }
+  if (decision.tone === "warning") {
+    chips.push({ label: "Gear looks weak", tone: "warn" });
+  }
+
+  return chips.slice(0, 3);
+}
+
 function dpsGpPerHour({ boss, dps }: BossDpsResult) {
   if (!boss.avgLootGp || !boss.killsPerHourCap || dps.dps <= 0) return null;
   return Math.min(boss.killsPerHourCap, Math.floor(3600 / dps.ttk)) * boss.avgLootGp;
@@ -179,6 +213,7 @@ function DpsDecisionHero({
     : decision.tone === "warning"
     ? "border-[var(--color-gold)]/30"
     : "border-[var(--color-accent)]/30";
+  const readiness = dpsTripReadiness(decision, result, weaponCount);
 
   return (
     <section className={cn("mb-6 rounded-xl border bg-[var(--color-panel)] px-4 py-4 shadow-[0_18px_55px_rgba(0,0,0,0.18)] sm:px-5 sm:py-5", toneClass)}>
@@ -207,6 +242,19 @@ function DpsDecisionHero({
             {decision.why}
           </p>
           <div className="mt-3 flex flex-wrap gap-1.5">
+            {readiness.map((chip) => (
+              <span
+                key={chip.label}
+                className={cn(
+                  "rounded-full border px-2.5 py-1 text-[11px] font-bold",
+                  chip.tone === "good"
+                    ? "border-[var(--color-good)]/35 bg-[var(--color-good)]/10 text-[var(--color-good)]"
+                    : "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
+                )}
+              >
+                {chip.label}
+              </span>
+            ))}
             <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-text-dim)]">
               {weaponCount} weapon{weaponCount === 1 ? "" : "s"}
             </span>

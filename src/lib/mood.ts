@@ -46,13 +46,13 @@ export const ROUTE_LENS_ORDER: RouteLens[] = [
 ];
 
 export const ROUTE_LENS_LABEL: Record<RouteLens, { itemId: number; name: string; tagline: string }> = {
-  smart:        { itemId: 995,   name: "Best now",     tagline: "The cleanest move for this login" },
-  maxing:       { itemId: 13342, name: "Maxing week",  tagline: "Cape, diary, quest and total-level progress" },
-  fun:          { itemId: 20720, name: "Fun session",  tagline: "Rewards, KC or minigames without chores" },
-  "unlock-chain": { itemId: 9813,  name: "Iron unlock",  tagline: "Quest, diary and account unlock chain" },
-  "gp-upgrade":   { itemId: 995,   name: "GP rebuild",   tagline: "Fund the next upgrade or supply stack" },
-  "boss-log":     { itemId: 4151,  name: "Boss log",     tagline: "KC, clog and PvM proof route" },
-  "afk-progress": { itemId: 12012, name: "AFK progress", tagline: "Low-attention progress that still matters" }
+  smart:        { itemId: 995,   name: "Best now",         tagline: "The cleanest move for this login" },
+  maxing:       { itemId: 13342, name: "Progress account", tagline: "Cape, diary, quest and total-level progress" },
+  fun:          { itemId: 20720, name: "Fun detour",       tagline: "Rewards, KC or minigames without chores" },
+  "unlock-chain": { itemId: 9813,  name: "Unlock something", tagline: "Quest, diary and account gates" },
+  "gp-upgrade":   { itemId: 995,   name: "Make GP",          tagline: "Fund the next upgrade or supply stack" },
+  "boss-log":     { itemId: 4151,  name: "Boss trip",        tagline: "KC, clog and PvM proof route" },
+  "afk-progress": { itemId: 12012, name: "Something AFK",    tagline: "Low-attention progress that still matters" }
 };
 
 /** Hoeveel minuten heeft de speler te besteden. Gebruikt om bv. een
