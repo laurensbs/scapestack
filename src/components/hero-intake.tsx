@@ -19,7 +19,6 @@ import { cn } from "@/lib/utils";
 // duidelijk submit-doel.
 
 const HERO_BANK_KEY = "scapestack:hero:bank";
-const HERO_BANK_PANEL_ID = "hero-bank-paste-panel";
 const HERO_BANK_TEXTAREA_ID = "hero-bank-paste";
 const HERO_BANK_HELP_ID = "hero-bank-paste-help";
 
@@ -27,11 +26,10 @@ export function HeroIntake() {
   const router = useRouter();
   const [rsn, setRsn] = useState("");
   const [rememberedRsn, setRememberedRsn] = useState("");
-  const [showBank, setShowBank] = useState(false);
   const [showBankGuide, setShowBankGuide] = useState(false);
   const [showRuneliteGuide, setShowRuneliteGuide] = useState(false);
   const [bank, setBank] = useState("");
-  const hasBankPaste = showBank && Boolean(bank.trim());
+  const hasBankPaste = Boolean(bank.trim());
   const canSubmit = Boolean(rsn.trim() || hasBankPaste);
   const cleanRsn = rsn.trim();
   const isRememberedRun = Boolean(rememberedRsn && cleanRsn === rememberedRsn);
@@ -142,83 +140,41 @@ export function HeroIntake() {
       {/* Secundaire acties — één rustige regel, link-stijl, gescheiden
           door een dot. Geen tweede knop die met Generate concurreert. */}
       <div className="flex items-center justify-center gap-3 text-[12.5px] text-[var(--color-text-dim)]">
-        {!showBank && (
-          <>
-            <button
-              type="button"
-              onClick={() => {
-                setShowBank(true);
-                setShowBankGuide(true);
-              }}
-              aria-controls={HERO_BANK_PANEL_ID}
-              aria-expanded={showBank}
-              aria-label="Add bank to Scapestack"
-              className="hover:text-[var(--color-accent)] underline underline-offset-4 decoration-dotted transition-colors"
-            >
-              Add bank
-            </button>
-            <span aria-hidden="true" className="text-[var(--color-border-strong)]">·</span>
-            <button
-              type="button"
-              onClick={() => setShowRuneliteGuide(true)}
-              aria-label="Show RuneLite plugin setup"
-              className="hover:text-[var(--color-accent)] underline underline-offset-4 decoration-dotted transition-colors"
-            >
-              RuneLite later
-            </button>
-          </>
-        )}
-      </div>
-
-      {/* Bank-paste textarea — alleen zichtbaar als toggle aan staat. */}
-      {showBank && (
-        <div
-          id={HERO_BANK_PANEL_ID}
-          role="region"
-          aria-label="Optional bank paste"
-          className="animate-[fade-in_0.3s_ease-out]"
+        <button
+          type="button"
+          onClick={() => setShowBankGuide(true)}
+          aria-haspopup="dialog"
+          aria-expanded={showBankGuide}
+          aria-label={hasBankPaste ? "Edit bank paste for Scapestack" : "Add bank to Scapestack"}
+          className={cn(
+            "inline-flex items-center gap-1.5 underline underline-offset-4 decoration-dotted transition-colors",
+            hasBankPaste ? "text-[var(--color-accent)] hover:text-[var(--color-accent-soft)]" : "hover:text-[var(--color-accent)]"
+          )}
         >
-          <label className="block">
-            <span
-              id={`${HERO_BANK_TEXTAREA_ID}-label`}
-              className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]"
-            >
-              Bank paste <span className="normal-case tracking-normal">(optional)</span>
-            </span>
-            <textarea
-              id={HERO_BANK_TEXTAREA_ID}
-              name="bank"
-              value={bank}
-              onChange={(e) => setBank(e.target.value)}
-              placeholder="Paste Bank Memory or Bank Tags here..."
-              rows={4}
-              spellCheck={false}
-              aria-labelledby={`${HERO_BANK_TEXTAREA_ID}-label`}
-              aria-describedby={HERO_BANK_HELP_ID}
-              className="mt-2 w-full rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none px-3 py-2 text-[12px] font-mono text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] resize-y"
-            />
-            <span
-              id={HERO_BANK_HELP_ID}
-              role="status"
-              aria-live="polite"
-              className="mt-1 block text-[11px] leading-relaxed text-[var(--color-text-muted)]"
-            >
-              {bank.trim()
-                ? "Bank added. Supplies and GP can shape the trip."
-                : "Optional: add bank when gear, supplies or GP matters."}
-            </span>
-            <button
-              type="button"
-              onClick={() => { setShowBank(false); setBank(""); }}
-              aria-controls={HERO_BANK_PANEL_ID}
-              aria-label="Hide bank paste and plan the trip from OSRS name only"
-              className="mt-1.5 text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-text-dim)] transition-colors"
-            >
-              Hide bank
-            </button>
-          </label>
-        </div>
-      )}
+          <ClipboardPaste className="size-3.5" />
+          {hasBankPaste ? "Bank added" : "Add bank"}
+        </button>
+        {hasBankPaste && (
+          <button
+            type="button"
+            onClick={() => setBank("")}
+            aria-label="Remove pasted bank from this plan"
+            className="text-[11.5px] font-semibold text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-danger)]"
+          >
+            Remove
+          </button>
+        )}
+        <span aria-hidden="true" className="text-[var(--color-border-strong)]">·</span>
+        <button
+          type="button"
+          onClick={() => setShowRuneliteGuide(true)}
+          aria-haspopup="dialog"
+          aria-label="Show RuneLite plugin setup"
+          className="hover:text-[var(--color-accent)] underline underline-offset-4 decoration-dotted transition-colors"
+        >
+          RuneLite later
+        </button>
+      </div>
 
       {showBankGuide && (
         <div
@@ -284,18 +240,54 @@ export function HeroIntake() {
               ))}
             </div>
 
-            <div className="border-t border-[var(--color-border)] px-5 pb-5 sm:px-6 sm:pb-6">
+            <div className="border-t border-[var(--color-border)] px-5 py-5 sm:px-6">
+              <label className="block">
+                <span
+                  id={`${HERO_BANK_TEXTAREA_ID}-label`}
+                  className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]"
+                >
+                  Bank Memory or Bank Tags
+                </span>
+                <textarea
+                  id={HERO_BANK_TEXTAREA_ID}
+                  name="bank"
+                  value={bank}
+                  onChange={(e) => setBank(e.target.value)}
+                  placeholder="Paste your bank here..."
+                  rows={7}
+                  spellCheck={false}
+                  aria-labelledby={`${HERO_BANK_TEXTAREA_ID}-label`}
+                  aria-describedby={HERO_BANK_HELP_ID}
+                  className="mt-2 w-full resize-y rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-3 font-mono text-[12px] text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)]"
+                />
+              </label>
+              <span
+                id={HERO_BANK_HELP_ID}
+                role="status"
+                aria-live="polite"
+                className="mt-2 block text-[12px] leading-relaxed text-[var(--color-text-muted)]"
+              >
+                {bank.trim()
+                  ? "Bank added. Gear, supplies and GP can shape the trip."
+                  : "Optional. Add this only when gear, supplies or GP should change the answer."}
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-2 border-t border-[var(--color-border)] px-5 pb-5 sm:flex-row sm:px-6 sm:pb-6">
               <button
                 type="button"
-                onClick={() => {
-                  setShowBank(true);
-                  setShowBankGuide(false);
-                  requestAnimationFrame(() => document.getElementById(HERO_BANK_TEXTAREA_ID)?.focus());
-                }}
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[var(--color-accent)] px-4 text-[14px] font-bold text-[#0B0F0D] transition-colors hover:bg-[var(--color-accent-soft)] sm:w-auto"
+                onClick={() => setShowBankGuide(false)}
+                className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--color-accent)] px-4 text-[14px] font-bold text-[#0B0F0D] transition-colors hover:bg-[var(--color-accent-soft)]"
               >
                 <ClipboardPaste className="size-4" />
-                Paste bank
+                Use this bank
+              </button>
+              <button
+                type="button"
+                onClick={() => { setBank(""); setShowBankGuide(false); }}
+                className="inline-flex h-11 items-center justify-center rounded-lg border border-[var(--color-border)] px-4 text-[13px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-danger)]/45 hover:text-[var(--color-danger)]"
+              >
+                Skip bank
               </button>
             </div>
           </div>

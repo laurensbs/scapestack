@@ -6,7 +6,7 @@ const source = readFileSync(join(process.cwd(), "src/components/hero-intake.tsx"
 
 describe("hero intake copy and routing", () => {
   it("marks RSN-only homepage runs as bankless while allowing bank-only starts", () => {
-    expect(source).toContain("const hasBankPaste = showBank && Boolean(bank.trim())");
+    expect(source).toContain("const hasBankPaste = Boolean(bank.trim())");
     expect(source).toContain("const canSubmit = Boolean(rsn.trim() || hasBankPaste)");
     expect(source).toContain('if (!hasBankPaste) params.set("bank", "none");');
     expect(source).toContain("router.push(`/next?${params.toString()}`)");
@@ -20,7 +20,7 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain('aria-label="Show RuneLite plugin setup"');
     expect(source).toContain("RuneliteOpenButton");
     expect(source).toContain("Plan my next trip with this bank");
-    expect(source).toContain("Bank paste");
+    expect(source).toContain("Bank added");
   });
 
   it("explains why the hero planner CTA is disabled", () => {
@@ -43,26 +43,27 @@ describe("hero intake copy and routing", () => {
   });
 
   it("treats optional bank paste as an explicit setup-context control", () => {
-    expect(source).toContain('const HERO_BANK_PANEL_ID = "hero-bank-paste-panel";');
     expect(source).toContain('const HERO_BANK_TEXTAREA_ID = "hero-bank-paste";');
     expect(source).toContain('const HERO_BANK_HELP_ID = "hero-bank-paste-help";');
-    expect(source).toContain("aria-controls={HERO_BANK_PANEL_ID}");
-    expect(source).toContain("aria-expanded={showBank}");
-    expect(source).toContain('aria-label="Add bank to Scapestack"');
-    expect(source).toContain('role="region"');
-    expect(source).toContain('aria-label="Optional bank paste"');
+    expect(source).toContain("aria-expanded={showBankGuide}");
+    expect(source).toContain('aria-label={hasBankPaste ? "Edit bank paste for Scapestack" : "Add bank to Scapestack"}');
+    expect(source).toContain('aria-label="Remove pasted bank from this plan"');
+    expect(source).toContain('aria-labelledby="hero-bank-guide-title"');
     expect(source).toContain('name="bank"');
     expect(source).toContain("aria-labelledby={`${HERO_BANK_TEXTAREA_ID}-label`}");
     expect(source).toContain("aria-describedby={HERO_BANK_HELP_ID}");
-    expect(source).toContain("Bank added. Supplies and GP can shape the trip.");
-    expect(source).toContain("Optional: add bank when gear, supplies or GP matters.");
-    expect(source).toContain('aria-label="Hide bank paste and plan the trip from OSRS name only"');
+    expect(source).toContain("Bank added. Gear, supplies and GP can shape the trip.");
+    expect(source).toContain("Optional. Add this only when gear, supplies or GP should change the answer.");
     expect(source).toContain('role="dialog"');
     expect(source).toContain("Paste your bank once.");
+    expect(source).toContain("Use this bank");
+    expect(source).toContain("Skip bank");
     expect(source).toContain('src: "/intro/step1.png"');
     expect(source).toContain('src: "/intro/step2.png"');
     expect(source).toContain('aria-labelledby="hero-runelite-guide-title"');
     expect(source).toContain("Let Scapestack skip finished stuff.");
     expect(source).toContain("Search Plugin Hub for Scapestack Sync.");
+    expect(source).not.toContain('aria-label="Optional bank paste"');
+    expect(source).not.toContain("Hide bank");
   });
 });
