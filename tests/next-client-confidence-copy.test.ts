@@ -56,7 +56,8 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("<ActionPlanBlock rec={rec} />");
     expect(source).toContain("You'll need");
     expect(source).toContain("OSRS Wiki");
-    expect(source).toContain("{open && <RecDetailPanel rec={rec} actionContext={actionContext} />}");
+    expect(source).toContain("{open && <RecDetailPanel rec={rec} actionContext={actionContext} whyNot={whyNot} />}");
+    expect(source).toContain("whyNot?: string | null;");
     expect(source).not.toContain("function RecommendationProofStrip");
     expect(source).not.toContain('data-testid={compact ? "next-row-proof-strip" : "next-headline-proof-strip"}');
     expect(source).not.toContain("<RecommendationProofStrip rec={rec} />");
@@ -97,7 +98,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Add gear to build a Bank Tag.");
     expect(source).toContain("Best teleport near the first step");
     expect(source).toContain("Do this first");
-    expect(source).toContain("Why this pick:");
+    expect(source).not.toContain("Why this pick:");
     expect(source).toContain("headlineSmartRead(rec)");
     expect(source).toContain("function recommendationWhyNot");
     expect(source).toContain("Why not");
@@ -133,8 +134,9 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function MakePlanSmarter");
     expect(source).not.toContain("function EvidenceLedger");
     expect(source).not.toContain('data-testid="next-evidence-ledger"');
-    expect(source).toContain("Make this smarter");
-    expect(source).toContain("Optional: add gear or RuneLite when the pick looks off.");
+    expect(source).not.toContain("Make this smarter");
+    expect(source).not.toContain("Optional: add gear or RuneLite when the pick looks off.");
+    expect(source).toContain("Better supplies, boss picks and Bank Tags.");
     expect(source).not.toContain("What shaped this");
     expect(source).toContain("Add gear");
     expect(source).toContain("Check RuneLite");
@@ -151,7 +153,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("What to do now");
     expect(source).toContain("Do this first");
     expect(source).toContain("One best move for this account. Two backups");
-    expect(source).toContain("Try a different route");
+    expect(source).toContain("Try another");
     expect(source).toContain("Next 3 sessions");
     expect(source).toContain("Next sessions");
     expect(source).toContain("Optional follow-up after the stop point.");
@@ -174,7 +176,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("mergedSkipCounts(sessionSkippedCounts(sessionSkipped), recentMemoryCounts)");
     expect(source).toContain("routeSwitchCopy(nextRouteLens, pick.headline)");
     expect(source).toContain("pickForRoute(visibleRecs, mood, minutes, routeLens, shuffleIdx, routePickOptions)");
-    expect(source).toContain("Change time or pace");
+    expect(source).not.toContain("Change time or pace");
     expect(source).toContain("Backups");
     expect(source).toContain("Chill / GP / Bossing / Unlock / AFK");
     expect(source).toContain("Account details");
@@ -320,7 +322,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("{archetype.label}");
     expect(source).toContain("RuneLite helped skip finished quests, diary steps, clog slots and Slayer mistakes.");
     expect(source).toContain("RuneLite changed this: finished quests, diary steps, clog slots and Slayer mistakes were skipped before this pick won.");
-    expect(source).toContain("RuneLite can make this smarter later.");
+    expect(source).toContain("RuneLite can improve picks later.");
     expect(source).toContain("function runeLitePlanNote");
     expect(source).toContain("function scapestackNotice");
     expect(source).not.toContain("Scapestack noticed:");
@@ -413,8 +415,9 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('import { exportTag } from "@/lib/bank-tags";');
     expect(source).toContain("const TRIP_BANK_KEYWORDS");
     expect(source).toContain("const pickedItems = hasBankContext ? tripBankItems(bankItems, keywordGroups, 18) : [];");
+    expect(source).toContain("const tagItems = needsCombat");
     expect(source).toContain("exportTag({");
-    expect(source).toContain("items: pickedItems.map((item) => ({ id: item.id }))");
+    expect(source).toContain("items: tagItems.map((item) => ({ id: item.id }))");
     expect(source).toContain("<TripBuilder rec={rec} bankItems={bankItems} hasBankContext={hasBankContext} />");
     expect(source).toContain("Bring, teleport, stop point.");
     expect(source).toContain('aria-label={`Copy RuneLite Bank Tag for ${rec.title}`}');

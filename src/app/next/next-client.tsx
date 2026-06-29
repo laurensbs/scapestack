@@ -1076,9 +1076,9 @@ function MakePlanSmarter({
     <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-4 sm:p-5">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden">
         <span>
-          <span className="block text-[13px] font-bold text-[var(--color-text)]">Make this smarter</span>
+          <span className="block text-[13px] font-bold text-[var(--color-text)]">Add gear</span>
           <span className="mt-0.5 block text-[11.5px] font-medium text-[var(--color-text-muted)]">
-            Optional: add gear or RuneLite when the pick looks off.
+            Better supplies, boss picks and Bank Tags.
           </span>
         </span>
         <span className="shrink-0 rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
@@ -1490,7 +1490,7 @@ function runeLitePlanNote(pluginSyncState: "live" | "stale" | "outdated" | null)
   if (pluginSyncState === "outdated") {
     return "Update RuneLite before trusting newer Slayer or clog details.";
   }
-  return "RuneLite can make this smarter later.";
+  return "RuneLite can improve picks later.";
 }
 
 const GEAR_REALITY_KEYWORDS = {
@@ -1651,12 +1651,18 @@ function buildRecommendationTrip(
   }
 
   const tagName = `Scapestack ${playerChoiceTag(rec).label}`;
-  const iconItemId = rec.iconItemId ?? KIND_META[rec.kind].iconItemId ?? pickedItems[0]?.id ?? 995;
-  const tag = pickedItems.length
+  const tagItems = needsCombat
+    ? pickedItems
+    : pickedItems.filter((item) =>
+        tripItemMatches(item, TRIP_BANK_KEYWORDS.travel) ||
+        tripItemMatches(item, TRIP_BANK_KEYWORDS.quest)
+      );
+  const iconItemId = rec.iconItemId ?? KIND_META[rec.kind].iconItemId ?? tagItems[0]?.id ?? 995;
+  const tag = tagItems.length
     ? exportTag({
         name: tagName,
         iconItemId,
-        items: pickedItems.map((item) => ({ id: item.id }))
+        items: tagItems.map((item) => ({ id: item.id }))
       })
     : null;
 
@@ -2001,16 +2007,16 @@ function RecommendationSessionSummary({
 
   return (
     <div className="mt-4">
-      <dl className="grid gap-2 sm:grid-cols-2">
+      <dl className="divide-y divide-[var(--color-border)]/55 border-y border-[var(--color-border)]/60">
         {summary.map((note) => (
           <div
             key={`${rec.id}:session:${note.label}`}
-            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3"
+            className="grid gap-1 py-2.5 sm:grid-cols-[74px_minmax(0,1fr)] sm:gap-4"
           >
             <dt className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">
               {note.label}
             </dt>
-            <dd className="mt-1 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+            <dd className="text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
               {note.value}
             </dd>
           </div>
@@ -2043,7 +2049,10 @@ function TripBuilder({
   };
 
   return (
-    <details className="group mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3">
+    <details
+      className="group mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3"
+      open={hasBankContext && Boolean(trip.tag)}
+    >
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden [&::-webkit-details-marker]:hidden">
         <span>
           <span className="block text-[12px] font-bold text-[var(--color-text)]">Build trip</span>
@@ -2197,7 +2206,6 @@ function HeadlineCard({
   const choice = playerChoiceTag(rec);
   const payoff = headlinePayoff(rec);
   const smartRead = headlineSmartRead(rec);
-  const whyNot = recommendationWhyNot({ headline: rec, allRecs, mood, hasBankContext, pluginSyncState });
   const bossViability = bossViabilityForRecommendation(rec, bankItems, hasBankContext);
   const card = (
     <article
@@ -2267,17 +2275,9 @@ function HeadlineCard({
             </p>
           )}
           {smartRead && (
-            <p className="mt-3 flex gap-2 rounded-lg border border-[var(--color-accent)]/18 bg-[var(--color-bg)]/38 px-3 py-2 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+            <p className="mt-2 flex items-start gap-1.5 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
               <Sparkles className="mt-0.5 size-3.5 shrink-0 text-[var(--color-accent)]" />
-              <span>
-                <span className="text-[var(--color-accent)]">Why this pick:</span> {smartRead}
-              </span>
-            </p>
-          )}
-          {whyNot && (
-            <p className="mt-2 flex gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/30 px-3 py-2 text-[12px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
-              <Shield className="mt-0.5 size-3.5 shrink-0 text-[var(--color-text-muted)]" />
-              <span>{whyNot}</span>
+              <span>{smartRead}</span>
             </p>
           )}
           <RecommendationSessionSummary
@@ -2351,18 +2351,17 @@ function RecRow({
   const actionLabel = isBossWithDetail ? "Open boss detail" : primaryAction.label;
   const actionHref = isBossWithDetail ? undefined : primaryAction.href;
   const choice = playerChoiceTag(rec);
-  const bossViability = bossViabilityForRecommendation(rec, bankItems, hasBankContext);
   const inner = (
     <article
       className={cn(
-        "group h-full rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] p-3.5",
+        "group rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] px-3 py-2.5",
         (actionHref || isBossWithDetail) && "transition-colors hover:border-[var(--color-accent)]/40"
       )}
     >
-      <div className="flex items-start gap-3">
-        <div className="size-9 shrink-0 rounded-md flex items-center justify-center bg-[var(--color-bg-2)] border border-[var(--color-border)] text-[var(--color-accent)] overflow-hidden">
+      <div className="flex min-h-10 items-center gap-2.5">
+        <div className="size-8 shrink-0 rounded-md flex items-center justify-center bg-[var(--color-bg-2)] border border-[var(--color-border)] text-[var(--color-accent)] overflow-hidden">
           {rec.kind === "kc" && rec.bossSlug ? (
-            <KcPortrait rec={rec} size={30} />
+            <KcPortrait rec={rec} size={28} />
           ) : rec.iconItemId ? (
             <ItemSprite
               id={rec.iconItemId}
@@ -2374,54 +2373,29 @@ function RecRow({
             <KindGlyph kind={rec.kind} size={20} tone="accent" />
           )}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {backupPrompt && (
-              <span
-                className="rounded-full border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-2 py-0.5 text-[10px] font-bold text-[var(--color-accent)]"
-                title={backupPrompt.helper}
-              >
-                {backupPrompt.label}
-              </span>
-            )}
+        <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 items-center gap-1.5">
             <span
-              className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-0.5 text-[10px] font-bold text-[var(--color-accent)]"
-              title={choice.helper}
+              className="shrink-0 rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-0.5 text-[10px] font-bold text-[var(--color-accent)]"
+              title={backupPrompt?.helper ?? choice.helper}
             >
-              {choice.label}
+              {backupPrompt?.label ?? choice.label}
             </span>
-            {bossViability && (
-              <span
-                className={cn(
-                  "rounded-full border px-2 py-0.5 text-[10px] font-bold",
-                  bossViabilityBadgeClass(bossViability)
-                )}
-                title={bossViability.summary}
-              >
-                {bossViabilityBadgeText(bossViability)}
-              </span>
-            )}
-            <h4 className="text-[13px] font-semibold text-[var(--color-text)] tracking-normal leading-tight">
+            <h4 className="truncate text-[13px] font-semibold tracking-normal text-[var(--color-text)]">
               {rec.title}
             </h4>
           </div>
-          <p className="mt-1.5 text-[12px] text-[var(--color-text-dim)] leading-snug">{rec.why}</p>
-          {rec.payoff && (
-            <p className="mt-1 line-clamp-2 text-[11px] text-[var(--color-text-muted)] leading-snug">{rec.payoff}</p>
-          )}
-          <RecommendationSessionSummary
-            rec={rec}
-            compact
-          />
+        </div>
+        <div className="shrink-0">
           {isBossWithDetail && rec.bossSlug ? (
             <button
               type="button"
               onClick={() => onBossOpen(rec.bossSlug!)}
-              className="mt-2 inline-flex items-center gap-1 rounded border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] transition-all hover:bg-[var(--color-accent)]/15 hover:gap-1.5"
+              className="inline-flex items-center gap-1 rounded-md border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
               aria-label={`${actionLabel}: ${rec.title}`}
               title={`${actionLabel}: ${rec.title}`}
             >
-              {actionLabel} <ArrowRight className="size-3.5" />
+              Open <ArrowRight className="size-3.5" />
             </button>
           ) : actionHref && (
             primaryAction.external ? (
@@ -2431,28 +2405,22 @@ function RecRow({
                 rel="noopener noreferrer"
                 aria-label={`${actionLabel}: ${rec.title}`}
                 title={`${actionLabel}: ${rec.title}`}
-                className="mt-2 inline-flex items-center gap-1 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] transition-all hover:bg-[var(--color-accent)]/15 hover:gap-1.5"
+                className="inline-flex items-center gap-1 rounded-md border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
               >
-                {actionLabel} <ExternalLink className="size-3" />
+                Open <ExternalLink className="size-3" />
               </a>
             ) : (
               <Link
                 href={actionHref}
                 aria-label={`${actionLabel}: ${rec.title}`}
                 title={`${actionLabel}: ${rec.title}`}
-                className="mt-2 inline-flex items-center gap-1 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] transition-all hover:bg-[var(--color-accent)]/15 hover:gap-1.5"
+                className="inline-flex items-center gap-1 rounded-md border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
               >
-                {actionLabel} <ArrowRight className="size-3.5" />
+                Open <ArrowRight className="size-3.5" />
               </Link>
             )
           )}
         </div>
-        {actionHref && !primaryAction.external && (
-          <ArrowRight
-            aria-hidden="true"
-            className="size-3.5 text-[var(--color-text-muted)] group-hover:text-[var(--color-accent)] transition-colors shrink-0 mt-0.5"
-          />
-        )}
       </div>
     </article>
   );
@@ -3182,44 +3150,119 @@ function WhatToDo({
               <details className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/42 p-2.5">
                 <summary className="flex list-none items-center justify-between gap-3 rounded-lg px-1 py-1 text-left [&::-webkit-details-marker]:hidden">
                   <span>
-                    <span className="block text-[12.5px] font-bold text-[var(--color-text)]">Try a different route</span>
+                    <span className="block text-[12.5px] font-bold text-[var(--color-text)]">Try another</span>
                     <span className="mt-0.5 block text-[11px] text-[var(--color-text-muted)]">
-                      {currentRouteLabel.name}: {currentRouteLabel.tagline}
+                      {currentRouteLabel.name} · {minutes === 60 ? "1 hour" : `${minutes} min`}
                     </span>
                   </span>
                   <span className="text-right text-[11px] font-semibold text-[var(--color-text-dim)]">
                     Show
                   </span>
                 </summary>
-                <div className="mt-2 flex gap-1.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-7 sm:overflow-visible sm:pb-0">
-                  {ROUTE_LENS_ORDER.map((lens) => {
-                    const label = ROUTE_LENS_LABEL[lens];
-                    const active = routeLens === lens;
-                    return (
-                      <button
-                        key={lens}
-                        type="button"
-                        aria-pressed={active}
-                        aria-label={`Pick ${label.name} route`}
-                        onClick={() => applyRouteLens(lens)}
-                        className={cn(
-                          "flex min-h-10 min-w-[132px] items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-[11.5px] font-semibold transition-colors sm:min-w-0",
-                          active
-                            ? "border-[var(--color-accent)]/60 bg-[var(--color-accent)]/12 text-[var(--color-accent)]"
-                            : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)]"
-                        )}
-                        title={label.tagline}
-                      >
-                        <ItemSprite
-                          id={label.itemId}
-                          alt=""
-                          className="pixelated shrink-0"
-                          style={{ width: 18, height: 18, imageRendering: "pixelated", objectFit: "contain" }}
-                        />
-                        <span className="truncate">{label.name}</span>
-                      </button>
-                    );
-                  })}
+                <div className="mt-3 space-y-4">
+                  <div>
+                    <div className="mb-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                      Route
+                    </div>
+                    <div className="flex gap-1.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-7 sm:overflow-visible sm:pb-0">
+                      {ROUTE_LENS_ORDER.map((lens) => {
+                        const label = ROUTE_LENS_LABEL[lens];
+                        const active = routeLens === lens;
+                        return (
+                          <button
+                            key={lens}
+                            type="button"
+                            aria-pressed={active}
+                            aria-label={`Pick ${label.name} route`}
+                            onClick={() => applyRouteLens(lens)}
+                            className={cn(
+                              "flex min-h-10 min-w-[132px] items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-[11.5px] font-semibold transition-colors sm:min-w-0",
+                              active
+                                ? "border-[var(--color-accent)]/60 bg-[var(--color-accent)]/12 text-[var(--color-accent)]"
+                                : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)]"
+                            )}
+                            title={label.tagline}
+                          >
+                            <ItemSprite
+                              id={label.itemId}
+                              alt=""
+                              className="pixelated shrink-0"
+                              style={{ width: 18, height: 18, imageRendering: "pixelated", objectFit: "contain" }}
+                            />
+                            <span className="truncate">{label.name}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-[190px_minmax(0,1fr)]">
+                    <div>
+                      <div className="mb-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                        Time
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {TIME_OPTIONS.map((t) => (
+                          <button
+                            key={t.value}
+                            type="button"
+                            onClick={() => setMinutes(t.value)}
+                            className={cn(
+                              "rounded-md border px-2.5 py-1 text-[11px] transition-colors",
+                              minutes === t.value
+                                ? "border-[var(--color-accent)]/50 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
+                                : "border-[var(--color-border)] text-[var(--color-text-dim)] hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]"
+                            )}
+                          >
+                            {t.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="mb-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                        Pace
+                      </div>
+                      <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
+                        {MOODS.map((m) => {
+                          const label = MOOD_LABEL[m];
+                          const active = mood === m;
+                          return (
+                            <button
+                              key={m}
+                              type="button"
+                              aria-pressed={active}
+                              aria-label={`Pick ${label.name} session pace`}
+                              onClick={() => applySessionIntent(m)}
+                              className={cn(
+                                "flex min-h-9 items-center justify-center gap-1.5 rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition-colors",
+                                active
+                                  ? "border-[var(--color-accent)]/60 bg-[var(--color-accent)]/12 text-[var(--color-accent)]"
+                                  : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)]"
+                              )}
+                              title={label.tagline}
+                            >
+                              <ItemSprite
+                                id={label.itemId}
+                                alt=""
+                                className="pixelated shrink-0"
+                                style={{ width: 16, height: 16, imageRendering: "pixelated", objectFit: "contain" }}
+                              />
+                              <span className="truncate">{label.name}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                  {hiddenCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={restoreHidden}
+                      className="text-[11px] font-semibold text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-accent)]"
+                    >
+                      Show hidden ({hiddenCount})
+                    </button>
+                  )}
                 </div>
               </details>
             )}
@@ -3234,91 +3277,6 @@ function WhatToDo({
         )}
       </div>
 
-      {!shareMode && (
-      <details className="mt-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-4">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden">
-          <span>
-            <span className="block text-[12.5px] font-bold text-[var(--color-text)]">Change time or pace</span>
-            <span className="mt-0.5 block text-[11px] text-[var(--color-text-muted)]">
-              Current: {minutes === 60 ? "1 hour" : `${minutes} min`} · {currentRouteLabel.name}.
-            </span>
-          </span>
-          <span className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
-            Tune
-          </span>
-        </summary>
-        <div className="mt-4 space-y-4">
-          <div className="space-y-4">
-            <div>
-              <div className="mb-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                Time
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {TIME_OPTIONS.map((t) => (
-                  <button
-                    key={t.value}
-                    type="button"
-                    onClick={() => setMinutes(t.value)}
-                    className={cn(
-                      "rounded-md border px-2.5 py-1 text-[11px] transition-colors",
-                      minutes === t.value
-                        ? "border-[var(--color-accent)]/50 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
-                        : "border-[var(--color-border)] text-[var(--color-text-dim)] hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]"
-                    )}
-                  >
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <div className="mb-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                Pace
-              </div>
-              <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
-                {MOODS.map((m) => {
-                  const label = MOOD_LABEL[m];
-                  const active = mood === m;
-                  return (
-                    <button
-                      key={m}
-                      type="button"
-                      aria-pressed={active}
-                      aria-label={`Pick ${label.name} session pace`}
-                      onClick={() => applySessionIntent(m)}
-                      className={cn(
-                        "flex min-h-9 items-center justify-center gap-1.5 rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition-colors",
-                        active
-                          ? "border-[var(--color-accent)]/60 bg-[var(--color-accent)]/12 text-[var(--color-accent)]"
-                          : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)]"
-                      )}
-                      title={label.tagline}
-                    >
-                      <ItemSprite
-                        id={label.itemId}
-                        alt=""
-                        className="pixelated shrink-0"
-                        style={{ width: 16, height: 16, imageRendering: "pixelated", objectFit: "contain" }}
-                      />
-                      <span className="truncate">{label.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            {hiddenCount > 0 && (
-              <button
-                type="button"
-                onClick={restoreHidden}
-                className="text-[11px] font-semibold text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-accent)]"
-              >
-                Show hidden ({hiddenCount})
-              </button>
-            )}
-          </div>
-        </div>
-      </details>
-      )}
       </div>
     </section>
   );
@@ -3524,10 +3482,12 @@ function Metric({ label, value, suffix, sub, animate }: {
 
 function RecDetailPanel({
   rec,
-  actionContext
+  actionContext,
+  whyNot
 }: {
   rec: Recommendation;
   actionContext: RecommendationActionContext;
+  whyNot?: string | null;
 }) {
   // Fallback naar default hints wanneer rec ze niet expliciet meegaf.
   const hints = defaultActionHints(rec.kind);
@@ -3548,6 +3508,12 @@ function RecDetailPanel({
       {details && (
         <p className="text-[12.5px] text-[var(--color-text-dim)] leading-relaxed">
           {details}
+        </p>
+      )}
+      {whyNot && (
+        <p className="flex gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+          <Shield className="mt-0.5 size-3.5 shrink-0 text-[var(--color-text-muted)]" />
+          <span>{whyNot}</span>
         </p>
       )}
       {needs.length > 0 && (
@@ -3656,6 +3622,7 @@ function RecHeadlineExpandable({
   pluginSyncState: "live" | "stale" | "outdated" | null;
 }) {
   const [open, setOpen] = useState(false);
+  const whyNot = recommendationWhyNot({ headline: rec, allRecs, mood, hasBankContext, pluginSyncState });
   return (
     <div>
       <HeadlineCard
@@ -3701,7 +3668,7 @@ function RecHeadlineExpandable({
           </button>
         </div>
       )}
-      {open && <RecDetailPanel rec={rec} actionContext={actionContext} />}
+      {open && <RecDetailPanel rec={rec} actionContext={actionContext} whyNot={whyNot} />}
     </div>
   );
 }

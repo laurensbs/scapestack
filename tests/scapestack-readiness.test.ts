@@ -323,7 +323,7 @@ describe("Scapestack readiness rail", () => {
 
     const nextSource = readFileSync(join(process.cwd(), "src/app/next/next-client.tsx"), "utf8");
     expect(nextSource).not.toContain("ScapestackReadinessRail");
-    expect(nextSource).toContain("Make this smarter");
+    expect(nextSource).toContain("Better supplies, boss picks and Bank Tags.");
   });
 
   it("renders per-signal inline actions in the rail component", () => {

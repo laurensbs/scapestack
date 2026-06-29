@@ -27,6 +27,9 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).toContain("One best move for this account. Two backups");
     expect(next).toContain("Next 3 sessions");
     expect(next).toContain("Next sessions");
+    expect(next).toContain("Try another");
+    expect(next).not.toContain("Try a different route");
+    expect(next).not.toContain("Change time or pace");
     expect(next).toContain("Why not");
     expect(next).toContain("Build trip");
     expect(next).toContain("Copy Bank Tag");
@@ -83,7 +86,7 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(playerFacingSources).toContain("Skips finished quests, diaries, clog slots and Slayer mistakes.");
     expect(playerFacingSources).toContain("RuneLite helped skip finished quests, diary steps, clog slots and Slayer mistakes.");
     expect(playerFacingSources).toContain("RuneLite changed this: finished quests, diary steps, clog slots and Slayer mistakes were skipped before this pick won.");
-    expect(playerFacingSources).toContain("RuneLite can make this smarter later.");
+    expect(playerFacingSources).toContain("RuneLite can improve picks later.");
     expect(playerFacingSources).toContain("Check RuneLite");
     expect(playerFacingSources).not.toContain("Open synced /next");
     expect(playerFacingSources).not.toContain("Verified RuneLite payload");
