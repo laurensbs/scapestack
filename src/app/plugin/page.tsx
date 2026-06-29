@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CheckCircle2, PlugZap, ShieldCheck } from "lucide-react";
 import { CopyCommand } from "@/components/copy-command";
 import { PluginSyncChecker } from "@/components/plugin-sync-checker";
+import { RuneliteOpenButton } from "@/components/runelite-open-button";
 import { PLUGIN_VERIFY_SYNC_HASH } from "@/lib/plugin-bank-bridge";
 import { PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
 
@@ -132,6 +133,9 @@ export default function PluginPage() {
             <PluginTrustPill label="No bank" />
             <PluginTrustPill label="No screenshots" />
           </div>
+          <div className="mt-5">
+            <RuneliteOpenButton />
+          </div>
         </div>
 
       </section>
@@ -162,6 +166,9 @@ export default function PluginPage() {
           </div>
 
           <div className="flex flex-wrap gap-2">
+            <div className="inline-flex min-w-[220px] flex-1 items-center gap-2 rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3 py-2">
+              <RuneliteOpenButton />
+            </div>
             {SYNC_STEPS.map((step, index) => (
               <div
                 key={step.title}

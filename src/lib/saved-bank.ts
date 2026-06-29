@@ -15,6 +15,8 @@
 // All functions are safe to call on the server (SSR) — they no-op on
 // missing window, never throw on parse failures.
 
+import { markActiveAccountBankSaved, upsertAccount } from "./account-storage";
+
 const BANK_KEY = "scapestack:saved-bank:v1";
 const RSN_KEY = "scapestack:saved-rsn:v1";
 const DISABLED_SESSION_KEY = "scapestack:save-bank:disabled";
@@ -88,6 +90,7 @@ export function saveSavedBank(banktags: string): void {
   const payload: SavedBank = { version: 1, banktags: trimmed, savedAt: Date.now() };
   try {
     localStorage.setItem(BANK_KEY, JSON.stringify(payload));
+    markActiveAccountBankSaved(payload.savedAt);
   } catch { /* quota exceeded / private mode — silently skip */ }
 }
 
@@ -116,7 +119,10 @@ export function saveSavedRsn(rsn: string): void {
   if (isSaveBankDisabled()) return; // the same opt-out covers RSN
   const trimmed = rsn.trim();
   if (!trimmed) return;
-  try { localStorage.setItem(RSN_KEY, trimmed); } catch {}
+  try {
+    localStorage.setItem(RSN_KEY, trimmed);
+    upsertAccount(trimmed);
+  } catch {}
 }
 
 export function clearSavedRsn(): void {

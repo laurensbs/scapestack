@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { getActiveAccount } from "@/lib/account-storage";
+import { loadSavedRsn, saveSavedRsn } from "@/lib/saved-bank";
 import { cn } from "@/lib/utils";
 
 // Homepage hero intake — kleine zus van /next's NextIntake. Eén RSN
@@ -28,10 +30,16 @@ export function HeroIntake() {
   const hasBankPaste = showBank && Boolean(bank.trim());
   const canSubmit = Boolean(rsn.trim() || hasBankPaste);
 
+  useEffect(() => {
+    const remembered = getActiveAccount()?.rsn ?? loadSavedRsn() ?? "";
+    if (remembered) setRsn(remembered);
+  }, []);
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = rsn.trim();
     if (!canSubmit) return;
+    if (trimmed) saveSavedRsn(trimmed);
     // Bank-paste mag persistent — voor de hero is sessionStorage genoeg
     // omdat /next 'm meteen consumeert. Geen langdurige opslag.
     if (hasBankPaste) {

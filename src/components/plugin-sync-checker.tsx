@@ -5,9 +5,11 @@ import { FormEvent, useCallback, useEffect, useMemo, useRef, useState, useTransi
 import { AlertTriangle, ArrowRight, CheckCircle2, DatabaseZap, RefreshCw, Search, XCircle } from "lucide-react";
 import { pluginSyncStatusAction } from "@/app/actions";
 import { CopyCommand } from "@/components/copy-command";
+import { RuneliteOpenButton } from "@/components/runelite-open-button";
 import type { SyncedPlayer } from "@/lib/sync-repo";
 import { copyText } from "@/lib/clipboard";
 import { pluginSyncHealth } from "@/lib/plugin-sync";
+import { markRuneliteChecked } from "@/lib/account-storage";
 import {
   diagnosticForUnconfiguredSync,
   healthLabel,
@@ -120,7 +122,10 @@ export function PluginSyncChecker() {
       try {
         const next = await pluginSyncStatusAction(clean);
         setState(next);
-        if (next.kind !== "unconfigured") saveSavedRsn(clean);
+        if (next.kind !== "unconfigured") {
+          saveSavedRsn(clean);
+          markRuneliteChecked(clean);
+        }
       } catch (err) {
         setState({
           kind: "error",
@@ -178,6 +183,9 @@ export function PluginSyncChecker() {
           <p className="mt-2 max-w-2xl text-[13.5px] leading-relaxed text-[var(--color-text-dim)]">
             Same RSN as RuneLite. Found it? Open one plan.
           </p>
+          <div className="mt-3">
+            <RuneliteOpenButton />
+          </div>
         </div>
         {summary && (
           <div className={cn(

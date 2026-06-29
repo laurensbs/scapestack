@@ -34,7 +34,7 @@ describe("contextualNavHref", () => {
     expect(contextualNavHref("/bank", "/goals", "rsn=Lynx+Titan")).toBe("/bank");
   });
 
-  it("does not invent context outside tool pages", () => {
-    expect(contextualNavHref("/dps", "/", "rsn=Lynx+Titan")).toBe("/dps");
+  it("uses the active account on tool nav outside handoff pages", () => {
+    expect(contextualNavHref("/dps", "/", "rsn=Lynx+Titan")).toBe("/dps?rsn=Lynx+Titan");
   });
 });

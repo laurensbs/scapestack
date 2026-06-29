@@ -22,6 +22,7 @@ describe("plugin page copy constants", () => {
     expect(pageSource).toContain(PUBLIC_SYNC_URL);
     expect(pageSource).not.toContain("scapestack.app");
     expect(pageSource).toContain("PluginSyncChecker");
+    expect(pageSource).toContain("RuneliteOpenButton");
     expect(pageSource).toContain("Open one plan");
     expect(pageSource).not.toContain("Sync found? Pick a route.");
     expect(pageSource).not.toContain("POST_SYNC_ACTIONS");
@@ -32,6 +33,15 @@ describe("plugin page copy constants", () => {
     expect(pageSource).toContain("Nothing showing?");
     expect(pageSource).not.toContain("After a successful sync");
     expect(pageSource).not.toContain("Turn sync into the next thing to do.");
+  });
+
+  it("offers a RuneLite open button without pretending browser search is guaranteed", () => {
+    const source = readFileSync(join(process.cwd(), "src/components/runelite-open-button.tsx"), "utf8");
+
+    expect(source).toContain('const PLUGIN_SEARCH = "Scapestack Sync"');
+    expect(source).toContain('window.location.href = "runelite://"');
+    expect(source).toContain("Copied “Scapestack Sync”. Paste it in Plugin Hub search.");
+    expect(source).not.toContain("Automatically installs");
   });
 
   it("does not render Plugin Hub PR or reviewer workflow copy on the player plugin page", () => {

@@ -19,15 +19,24 @@ function paramsFromQuery(query?: string | URLSearchParams | null): URLSearchPara
 export function contextualNavHref(
   href: string,
   currentPathname: string,
-  currentQuery?: string | URLSearchParams | null
+  currentQuery?: string | URLSearchParams | null,
+  fallbackRsn?: string | null
 ): string {
   if (!CONTEXT_TOOL_PATHS.has(href as BankToolPath)) return href;
 
-  const source = sourceFromPathname(currentPathname);
-  if (!source) return href;
-
   const params = paramsFromQuery(currentQuery);
-  return toolHandoffUrl(href as BankToolPath, source, params.get("rsn"), {
+  const rsn = params.get("rsn") || fallbackRsn || "";
+  const source = sourceFromPathname(currentPathname);
+  if (!source) {
+    const cleanRsn = rsn.trim();
+    if (!cleanRsn) return href;
+    const next = new URLSearchParams();
+    next.set("rsn", cleanRsn);
+    if (href === "/plugin") return `/plugin?${next.toString()}#verify-sync`;
+    return `${href}?${next.toString()}`;
+  }
+
+  return toolHandoffUrl(href as BankToolPath, source, rsn, {
     hasBankContext: params.get("bank") === "none" ? false : undefined
   });
 }

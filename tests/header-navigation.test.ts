@@ -10,13 +10,16 @@ describe("global header navigation", () => {
     expect(source).toContain('aria-label="Primary Scapestack tools"');
     expect(source).toContain('aria-label={`${tool.navLabel ?? tool.name}: ${tool.short}`}');
     expect(source).toContain('aria-current={active ? "page" : undefined}');
+    expect(source).toContain("AccountSwitcher");
+    expect(source).toContain("Add account");
+    expect(source).toContain("Gear saved");
   });
 
   it("surfaces the core Do now → Gear → RuneLite loop as clickable navigation", () => {
     expect(source).toContain("LOOP_STEPS");
     expect(source).toContain('const LOOP_LABEL = "Start with one trip. Gear and RuneLite stay optional."');
     expect(source).toContain('aria-label="Pick the next OSRS trip"');
-    expect(source).toContain('href={contextualNavHref("/next", pathname, contextQuery)}');
+    expect(source).toContain('href={contextualNavHref("/next", pathname, contextQuery, activeRsn)}');
     expect(source).toContain("Start with one trip");
     expect(source).toContain("Open the plan first. Add gear or RuneLite only when it changes the trip.");
     expect(source).toContain('aria-label={`${step.label} in Scapestack loop`}');

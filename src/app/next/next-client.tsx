@@ -22,6 +22,7 @@ import { organizeAction, nextUpAction, hiscoresAction, womAction, collectionLogA
 import { type HiscoreSkill } from "@/lib/hiscores";
 import { unlockedFromHiscores, GOAL_SETS, normaliseCompletion, type SetCompletion } from "@/lib/goals";
 import type { HoursToMaxSummary } from "@/lib/hours-to-max";
+import { getActiveAccount } from "@/lib/account-storage";
 import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
 import { track } from "@/lib/analytics";
 import type { Recommendation, RecKind, NextUpResult } from "@/lib/next-up";
@@ -465,6 +466,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
     setExpectedPluginSync(isPluginSyncSource(params.get("source")));
     const hasFromParam = params.has("from");
     const heroRsn = params.get("rsn");
+    const activeAccountRsn = getActiveAccount()?.rsn ?? loadSavedRsn() ?? "";
     const shouldReadBankHandoff = shouldReadNextBankHandoff(queryString);
     const shouldReadHeroBank = shouldReadNextHeroBank(queryString);
     const isDirectRun = params.get("sample") === "1" || Boolean(heroRsn?.trim());
@@ -482,7 +484,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
       // running immediately.
       if (!isDirectRun) setSavedBank(loadSavedBank());
     }
-    setSavedRsn(loadSavedRsn());
+    setSavedRsn(activeAccountRsn || null);
 
     // Demo deep-link: /next?sample=1 should behave like clicking the
     // sample CTA. Useful for homepage previews, browser verification and
@@ -517,6 +519,10 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
       // te agressief throttlen waardoor deep-links stil op de intake bleven.
       window.setTimeout(() => {
         run({ rsn: heroRsn.trim(), input: heroBank, bankItems: heroBankItems });
+      }, 0);
+    } else if (!hasFromParam && activeAccountRsn && !shouldReadBankHandoff && !shouldReadHeroBank) {
+      window.setTimeout(() => {
+        run({ rsn: activeAccountRsn, input: loadSavedBank()?.banktags });
       }, 0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

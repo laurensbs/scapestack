@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronDown, Menu, Plus, UserRound, X } from "lucide-react";
+import { ACCOUNT_EVENT, getActiveAccount, loadAccountStore, setActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
 import { contextualNavHref } from "@/lib/nav-context";
+import { loadSavedBank, loadSavedRsn, saveSavedRsn } from "@/lib/saved-bank";
 import { getPrimaryNavTools } from "@/lib/tools";
 import { cn } from "@/lib/utils";
 import { BuyMeCoffee } from "./buy-me-coffee";
@@ -19,6 +21,7 @@ const LOOP_LABEL = "Start with one trip. Gear and RuneLite stay optional.";
 export function Header() {
   const pathname = usePathname();
   const [contextQuery, setContextQuery] = useState("");
+  const [activeRsn, setActiveRsn] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const mobileNavId = "scapestack-mobile-nav";
 
@@ -28,6 +31,28 @@ export function Header() {
     window.addEventListener("popstate", syncQuery);
     return () => window.removeEventListener("popstate", syncQuery);
   }, [pathname]);
+
+  useEffect(() => {
+    const syncAccount = () => {
+      const active = getActiveAccount();
+      const legacy = loadSavedRsn();
+      if (active?.rsn) {
+        setActiveRsn(active.rsn);
+      } else if (legacy) {
+        saveSavedRsn(legacy);
+        setActiveRsn(legacy);
+      } else {
+        setActiveRsn("");
+      }
+    };
+    syncAccount();
+    window.addEventListener(ACCOUNT_EVENT, syncAccount);
+    window.addEventListener("storage", syncAccount);
+    return () => {
+      window.removeEventListener(ACCOUNT_EVENT, syncAccount);
+      window.removeEventListener("storage", syncAccount);
+    };
+  }, []);
 
   const navTools = getPrimaryNavTools();
   const currentTool = navTools.find((t) => pathname.startsWith(t.href));
@@ -81,7 +106,7 @@ export function Header() {
         </div>
 
         <Link
-          href={contextualNavHref("/next", pathname, contextQuery)}
+          href={contextualNavHref("/next", pathname, contextQuery, activeRsn)}
           aria-label="Pick the next OSRS trip"
           title="Open the plan first. Add gear or RuneLite only when it changes the trip."
           className="hidden lg:flex min-w-0 items-center gap-2 rounded-md px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-panel-2)]/45 hover:text-[var(--color-accent)]"
@@ -98,7 +123,7 @@ export function Header() {
         <nav className="hidden sm:flex items-center gap-1" aria-label="Primary Scapestack tools">
           {navTools.map((tool, i) => {
             const Icon = tool.icon;
-            const href = contextualNavHref(tool.href, pathname, contextQuery);
+            const href = contextualNavHref(tool.href, pathname, contextQuery, activeRsn);
             const active =
               currentTool?.slug === tool.slug ||
               (tool.href === "/" && onHome);
@@ -123,6 +148,7 @@ export function Header() {
               </Link>
             );
           })}
+          <AccountSwitcher activeRsn={activeRsn} onActiveRsnChange={setActiveRsn} />
           <span
             className="mx-2 h-5 w-px bg-[var(--color-border)]"
             aria-hidden="true"
@@ -159,7 +185,7 @@ export function Header() {
                 {LOOP_STEPS.map((step) => (
                   <Link
                     key={step.href}
-                    href={contextualNavHref(step.href, pathname, contextQuery)}
+                    href={contextualNavHref(step.href, pathname, contextQuery, activeRsn)}
                     onClick={() => setMobileOpen(false)}
                     aria-label={`${step.label} in Scapestack loop`}
                     className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-2 text-center text-[11.5px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
@@ -174,7 +200,7 @@ export function Header() {
             </div>
             {navTools.map((tool) => {
               const Icon = tool.icon;
-              const href = contextualNavHref(tool.href, pathname, contextQuery);
+              const href = contextualNavHref(tool.href, pathname, contextQuery, activeRsn);
               const active = currentTool?.slug === tool.slug;
               return (
                 <Link
@@ -195,9 +221,160 @@ export function Header() {
                 </Link>
               );
             })}
+            <div className="pt-2">
+              <AccountSwitcher activeRsn={activeRsn} onActiveRsnChange={setActiveRsn} compact />
+            </div>
           </nav>
         </div>
       )}
     </header>
+  );
+}
+
+function AccountSwitcher({
+  activeRsn,
+  onActiveRsnChange,
+  compact = false
+}: {
+  activeRsn: string;
+  onActiveRsnChange: (rsn: string) => void;
+  compact?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [accounts, setAccounts] = useState<ScapestackAccount[]>([]);
+  const [draft, setDraft] = useState(activeRsn);
+  const [hasSavedGear, setHasSavedGear] = useState(false);
+
+  const refresh = () => {
+    const store = loadAccountStore();
+    setAccounts(store.accounts);
+    const active = getActiveAccount();
+    const nextRsn = active?.rsn ?? loadSavedRsn() ?? "";
+    onActiveRsnChange(nextRsn);
+    setDraft(nextRsn);
+    setHasSavedGear(Boolean(loadSavedBank()));
+  };
+
+  useEffect(() => {
+    refresh();
+    window.addEventListener(ACCOUNT_EVENT, refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener(ACCOUNT_EVENT, refresh);
+      window.removeEventListener("storage", refresh);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    setDraft(activeRsn);
+  }, [activeRsn]);
+
+  const saveAccount = (event: React.FormEvent) => {
+    event.preventDefault();
+    const clean = draft.trim();
+    if (!clean) return;
+    saveSavedRsn(clean);
+    setActiveAccount(clean);
+    onActiveRsnChange(clean);
+    refresh();
+    setOpen(false);
+  };
+
+  const pickAccount = (rsn: string) => {
+    setActiveAccount(rsn);
+    saveSavedRsn(rsn);
+    onActiveRsnChange(rsn);
+    refresh();
+    setOpen(false);
+  };
+
+  const accountLabel = activeRsn || "Add account";
+  const nextHref = activeRsn ? `/next?rsn=${encodeURIComponent(activeRsn)}` : "/next";
+  const bankHref = activeRsn ? `/bank?rsn=${encodeURIComponent(activeRsn)}&from=next` : "/bank";
+  const pluginHref = activeRsn ? `/plugin?rsn=${encodeURIComponent(activeRsn)}#verify-sync` : "/plugin#verify-sync";
+
+  return (
+    <div className={cn("relative", compact ? "w-full" : "hidden sm:block")}>
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className={cn(
+          "inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[12px] font-semibold transition-colors hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)]",
+          activeRsn ? "text-[var(--color-text)]" : "text-[var(--color-text-dim)]",
+          compact && "w-full justify-between px-3 py-2"
+        )}
+        aria-expanded={open}
+        aria-label={activeRsn ? `Current account ${activeRsn}` : "Add OSRS account"}
+      >
+        <span className="inline-flex min-w-0 items-center gap-1.5">
+          <UserRound className="size-3.5 shrink-0 text-[var(--color-accent)]" />
+          <span className="max-w-[120px] truncate">{accountLabel}</span>
+        </span>
+        <ChevronDown className={cn("size-3.5 shrink-0 transition-transform", open && "rotate-180")} />
+      </button>
+
+      {open && (
+        <div className={cn(
+          "z-40 mt-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-3 shadow-[0_18px_55px_rgba(0,0,0,0.28)]",
+          compact ? "w-full" : "absolute right-0 w-[320px]"
+        )}>
+          <form onSubmit={saveAccount} className="space-y-2">
+            <label htmlFor="header-account-rsn" className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+              OSRS account
+            </label>
+            <div className="flex gap-2">
+              <input
+                id="header-account-rsn"
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                placeholder="Type your OSRS name"
+                maxLength={12}
+                autoComplete="off"
+                spellCheck={false}
+                className="min-w-0 flex-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-[13px] font-semibold text-[var(--color-text)] outline-none focus:border-[var(--color-accent)]/55"
+              />
+              <button
+                type="submit"
+                disabled={!draft.trim()}
+                className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-accent)] px-3 py-2 text-[12px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110 disabled:opacity-50"
+              >
+                <Plus className="size-3.5" />
+                Use
+              </button>
+            </div>
+          </form>
+
+          {accounts.length > 0 && (
+            <div className="mt-3 space-y-1">
+              {accounts.map((account) => (
+                <button
+                  key={account.id}
+                  type="button"
+                  onClick={() => pickAccount(account.rsn)}
+                  className="flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/45 hover:text-[var(--color-text)]"
+                >
+                  <span className="truncate">{account.rsn}</span>
+                  {account.rsn === activeRsn && <CheckCircle2 className="size-3.5 text-[var(--color-good)]" />}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-3 grid grid-cols-3 gap-1.5 border-t border-[var(--color-border)] pt-3">
+            <Link href={nextHref} onClick={() => setOpen(false)} className="rounded-lg border border-[var(--color-border)] px-2 py-2 text-center text-[11px] font-bold text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]">
+              Plan
+            </Link>
+            <Link href={bankHref} onClick={() => setOpen(false)} className="rounded-lg border border-[var(--color-border)] px-2 py-2 text-center text-[11px] font-bold text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]">
+              {hasSavedGear ? "Gear saved" : "Add gear"}
+            </Link>
+            <Link href={pluginHref} onClick={() => setOpen(false)} className="inline-flex items-center justify-center gap-1 rounded-lg border border-[var(--color-border)] px-2 py-2 text-center text-[11px] font-bold text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]">
+              RuneLite
+              <ArrowRight className="size-3" />
+            </Link>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
