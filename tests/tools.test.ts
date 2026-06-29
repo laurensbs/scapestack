@@ -8,7 +8,7 @@ describe("tool registry", () => {
     expect(next).toMatchObject({
       href: "/next",
       name: "What should I do now?",
-      navLabel: "Do now",
+      navLabel: "Plan",
       status: "live"
     });
     expect(next?.description).toContain("Stop bankstanding");
@@ -41,10 +41,10 @@ describe("tool registry", () => {
   it("keeps global nav labels compact", () => {
     const primary = getPrimaryNavTools();
 
-    expect(PRIMARY_NAV_SLUGS).toEqual(["next", "bank", "dps", "goals", "slayer", "plugin"]);
-    expect(primary.map((tool) => tool.slug)).toEqual(["next", "bank", "dps", "goals", "slayer", "plugin"]);
-    expect(primary.map((tool) => tool.navLabel)).toEqual(["Do now", "Gear", "Kill", "Unlocks", "Task", "RuneLite"]);
-    expect(primary.every((tool) => (tool.navLabel ?? tool.name).length <= 8)).toBe(true);
+    expect(PRIMARY_NAV_SLUGS).toEqual(["next", "bank", "dps"]);
+    expect(primary.map((tool) => tool.slug)).toEqual(["next", "bank", "dps"]);
+    expect(primary.map((tool) => tool.navLabel)).toEqual(["Plan", "Setup", "Check kill"]);
+    expect(primary.every((tool) => (tool.navLabel ?? tool.name).length <= 10)).toBe(true);
   });
 
   it("keeps live tool copy aligned with current product scope", () => {

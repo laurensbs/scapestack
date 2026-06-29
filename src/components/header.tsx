@@ -10,13 +10,13 @@ import { clearSavedRsn, loadSavedBank, loadSavedRsn, saveSavedRsn } from "@/lib/
 import { getPrimaryNavTools } from "@/lib/tools";
 import { cn } from "@/lib/utils";
 import { BuyMeCoffee } from "./buy-me-coffee";
+import { CurrentRunBar } from "./current-run-bar";
 
 const LOOP_STEPS = [
-  { label: "Do now", href: "/next" },
-  { label: "Gear", href: "/bank" },
-  { label: "RuneLite", href: "/plugin" }
+  { label: "Plan", href: "/next" },
+  { label: "Setup", href: "/bank" },
+  { label: "Kill", href: "/dps" }
 ];
-const LOOP_LABEL = "Start with one trip. Gear and RuneLite stay optional.";
 
 export function Header() {
   const pathname = usePathname();
@@ -105,16 +105,9 @@ export function Header() {
           )}
         </div>
 
-        <Link
-          href={contextualNavHref("/next", pathname, contextQuery, activeRsn)}
-          aria-label="Pick the next OSRS trip"
-          title="Open the plan first. Add gear or RuneLite only when it changes the trip."
-          className="hidden lg:flex min-w-0 items-center gap-2 rounded-md px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-panel-2)]/45 hover:text-[var(--color-accent)]"
-          style={{ animation: "hero-fade 0.5s cubic-bezier(0.22,1,0.36,1) 0.36s both" }}
-        >
-          <span className="size-1.5 shrink-0 rounded-full bg-[var(--color-gold)]" aria-hidden="true" />
-          <span className="truncate">{LOOP_LABEL}</span>
-        </Link>
+        <CurrentRunBar
+          className="hidden lg:flex"
+        />
 
         {/* Desktop nav — primary live tools + a discreet BMC icon. The icon
             variant stays muted until hover so it doesn't compete with the
@@ -175,11 +168,14 @@ export function Header() {
       {/* Mobile drawer — shown when hamburger is open. Slides down from
           beneath the header bar; click anywhere inside to navigate. */}
       {mobileOpen && (
-        <div className="sm:hidden border-t border-[var(--color-border)] bg-[var(--color-panel)] shadow-[0_22px_50px_-36px_rgba(0,0,0,0.82)] animate-[fade-in_0.18s_ease-out]">
+        <div className="fixed inset-x-0 top-14 z-40 sm:hidden border-t border-[var(--color-border)] bg-[#050505] shadow-[0_22px_50px_-36px_rgba(0,0,0,0.82)]">
           <nav id={mobileNavId} className="px-4 py-3 space-y-1" aria-label="Mobile Scapestack tools">
-            <div className="mb-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 p-3">
+            <div className="mb-3 rounded-xl border border-[var(--color-border)] bg-[#090909] p-3">
               <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-gold)]">
-                Start with one trip
+                Current run
+              </div>
+              <div className="mt-2">
+                <CurrentRunBar compact />
               </div>
               <div className="mt-2 grid grid-cols-3 gap-1.5">
                 {LOOP_STEPS.map((step) => (
@@ -188,14 +184,14 @@ export function Header() {
                     href={contextualNavHref(step.href, pathname, contextQuery, activeRsn)}
                     onClick={() => setMobileOpen(false)}
                     aria-label={`${step.label} in Scapestack loop`}
-                    className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-2 text-center text-[11.5px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+                    className="rounded-lg border border-[var(--color-border)] bg-[#101010] px-2 py-2 text-center text-[11.5px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
                   >
                     {step.label}
                   </Link>
                 ))}
               </div>
               <p className="mt-2 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
-                Start with one trip. Add gear or RuneLite only when it changes the route.
+                One account. One setup. One next trip.
               </p>
             </div>
             {navTools.map((tool) => {

@@ -19,15 +19,16 @@ describe("global header navigation", () => {
     expect(source).toContain("Remove ${rsn} from Scapestack on this device?");
     expect(source).toContain("<Package");
     expect(source).toContain("<PlugZap");
+    expect(source).toContain("CurrentRunBar");
   });
 
-  it("surfaces the core Do now → Gear → RuneLite loop as clickable navigation", () => {
+  it("surfaces the core Plan → Setup → Kill loop as clickable navigation", () => {
     expect(source).toContain("LOOP_STEPS");
-    expect(source).toContain('const LOOP_LABEL = "Start with one trip. Gear and RuneLite stay optional."');
-    expect(source).toContain('aria-label="Pick the next OSRS trip"');
-    expect(source).toContain('href={contextualNavHref("/next", pathname, contextQuery, activeRsn)}');
-    expect(source).toContain("Start with one trip");
-    expect(source).toContain("Open the plan first. Add gear or RuneLite only when it changes the trip.");
+    expect(source).toContain('{ label: "Plan", href: "/next" }');
+    expect(source).toContain('{ label: "Setup", href: "/bank" }');
+    expect(source).toContain('{ label: "Kill", href: "/dps" }');
+    expect(source).toContain("Current run");
+    expect(source).toContain("One account. One setup. One next trip.");
     expect(source).toContain('aria-label={`${step.label} in Scapestack loop`}');
   });
 

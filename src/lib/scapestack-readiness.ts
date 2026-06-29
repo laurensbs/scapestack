@@ -55,7 +55,7 @@ export interface ScapestackReadiness {
 }
 
 const surfaceNames: Record<ScapestackSurface, string> = {
-  bank: "gear",
+  bank: "setup",
   next: "next plan",
   dps: "boss trip",
   goals: "unlock route",
@@ -139,17 +139,17 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
   const signals: ScapestackReadinessSignal[] = [
     {
       id: "bank",
-      label: "Bank",
+      label: "Setup",
       status: input.hasBankContext ? "exact" : "missing",
-      sourceLabel: input.hasBankContext ? "Gear pasted" : "No gear pasted",
+      sourceLabel: input.hasBankContext ? "Setup added" : "No setup",
       detail: input.hasBankContext
-        ? "Gear, supplies, quantities and GP are in this browser tab."
-        : "Paste Bank Memory or Bank Tags when gear or supplies change the trip.",
+        ? "Gear, supplies, quantities and GP can shape this trip."
+        : "Add setup when gear, supplies or GP change the trip.",
       adds: ["gear", "supplies", "quantities", "GP"],
       boundary: "Does not prove quests, diaries, collection log or Slayer state.",
       action: input.hasBankContext
         ? undefined
-        : { label: "Paste gear", href: "/bank" }
+        : { label: "Add setup", href: "/bank" }
     },
     {
       id: "rsn",
@@ -184,7 +184,7 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
 
   const primaryAction = (() => {
     if (!input.hasBankContext) {
-      return { label: "Paste gear", href: "/bank" };
+      return { label: "Add setup", href: "/bank" };
     }
     if (!input.hasRsn) {
       return {
@@ -205,11 +205,11 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
   })();
 
   const body = hasPluginSync && !hasExactPluginSync
-    ? "Gear and stats can plan now. Press RuneLite sync again before long quests, diaries, clog or Slayer choices."
-    : "Gear and stats are enough for a first plan. RuneLite only helps avoid finished quests, diary steps, clog slots and Slayer mistakes.";
+    ? "Setup and stats can plan now. Press RuneLite sync again before long quests, diaries, clog or Slayer choices."
+    : "Setup and stats are enough for a first plan. RuneLite only helps avoid finished quests, diary steps, clog slots and Slayer mistakes.";
 
   return {
-    eyebrow: "Optional help",
+    eyebrow: "Make it smarter",
     title: `Make this ${surfaceNames[input.surface]} sharper`,
     body,
     signals,

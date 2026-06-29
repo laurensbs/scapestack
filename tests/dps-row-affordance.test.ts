@@ -65,7 +65,8 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("const decisionBossViability = useMemo(");
     expect(source).toContain("Bank says ${result.boss.name}");
     expect(source).toContain("window.scrollTo({ top: 0, behavior: \"instant\" });");
-    expect(source).toContain("Add gear or RuneLite");
+    expect(source).toContain("Make this smarter");
+    expect(source).toContain("Setup, RSN, RuneLite");
     expect(source).toContain("Compare other bosses");
     expect(source).toContain("Search and sort the full table only when the first trip is not the one.");
     expect(source).toContain("Boss options with this bank");

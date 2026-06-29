@@ -768,8 +768,8 @@ export function DpsClient() {
 
       <details className="mb-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/50 p-3">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-semibold text-[var(--color-text)] marker:hidden">
-          <span>Add gear or RuneLite</span>
-          <span className="text-[11px] font-medium text-[var(--color-text-muted)]">gear, RSN, RuneLite</span>
+          <span>Make this smarter</span>
+          <span className="text-[11px] font-medium text-[var(--color-text-muted)]">Setup, RSN, RuneLite</span>
         </summary>
         <div className="mt-4 space-y-4">
           <ScapestackReadinessRail

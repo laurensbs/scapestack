@@ -45,16 +45,15 @@ export function ScapestackReadinessRail({
 
   return (
     <section className={cn(
-      "mb-6 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/80",
-      "shadow-[0_18px_60px_rgba(0,0,0,0.18)]",
+      "mb-5 overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55",
       className
     )}>
-      <div className="flex flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-3 p-3.5 sm:p-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
             {readiness.eyebrow}
           </div>
-          <h2 className="mt-1 text-[17px] font-bold tracking-normal text-[var(--color-text)]">
+          <h2 className="mt-1 text-[15px] font-bold tracking-normal text-[var(--color-text)]">
             {readiness.title}
           </h2>
           <p className="mt-1 max-w-3xl text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
@@ -63,14 +62,14 @@ export function ScapestackReadinessRail({
         </div>
         <Link
           href={readiness.primaryAction.href}
-          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/12 px-4 py-2.5 text-[12.5px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/18"
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[12px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
         >
           {readiness.primaryAction.label}
           <ArrowRight className="size-4" />
         </Link>
       </div>
 
-      <div className="grid border-t border-[var(--color-border)] bg-[var(--color-bg)]/25 sm:grid-cols-3">
+      <div className="grid border-t border-[var(--color-border)] bg-[var(--color-bg)]/18 sm:grid-cols-3">
         {readiness.signals.map((signal) => {
           const Icon = signalIcons[signal.id];
           const StatusIcon = signal.status === "missing" ? CircleDashed : CheckCircle2;

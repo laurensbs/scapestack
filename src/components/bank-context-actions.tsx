@@ -30,31 +30,31 @@ const toolActions: Array<Omit<BankContextAction, "href"> & { id: BankContextTool
   {
     id: "next",
     path: "/next",
-    label: "Plan next",
+    label: "Plan",
     primary: true
   },
   {
     id: "dps",
     path: "/dps",
-    label: "DPS",
+    label: "Check kill",
     primary: false
   },
   {
     id: "goals",
     path: "/goals",
-    label: "Goals",
+    label: "Unlocks",
     primary: false
   },
   {
     id: "slayer",
     path: "/slayer",
-    label: "Slayer",
+    label: "Task",
     primary: false
   },
   {
     id: "plugin",
     path: "/plugin",
-    label: "Verify sync",
+    label: "RuneLite",
     primary: false
   }
 ];
@@ -76,7 +76,7 @@ export function getBankContextActions(
     {
       id: "bank",
       href: bankOrganizerHref(context.rsn, source),
-      label: "Review bank",
+      label: "Setup",
       primary: false
     },
     ...toolActions

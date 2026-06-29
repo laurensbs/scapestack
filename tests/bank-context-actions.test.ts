@@ -9,7 +9,7 @@ describe("getBankContextActions", () => {
       expect(getBankContextActions(source)[0]).toEqual({
         id: "bank",
         href: `/bank?from=${source}`,
-        label: "Review bank",
+        label: "Setup",
         primary: false
       });
     }
@@ -68,7 +68,7 @@ describe("getBankContextActions", () => {
     expect(plugin).toEqual({
       id: "plugin",
       href: "/plugin?rsn=Lynx+Titan&from=dps#verify-sync",
-      label: "Verify sync",
+      label: "RuneLite",
       primary: false
     });
   });

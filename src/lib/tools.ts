@@ -5,7 +5,7 @@ import type { LucideIcon } from "lucide-react";
 import { Layers, Trophy, Sword, Target, Sparkles, Skull, PlugZap } from "lucide-react";
 
 export type ToolStatus = "live" | "soon" | "planned";
-export const PRIMARY_NAV_SLUGS = ["next", "bank", "dps", "goals", "slayer", "plugin"] as const;
+export const PRIMARY_NAV_SLUGS = ["next", "bank", "dps"] as const;
 
 export interface Tool {
   slug: string;
@@ -30,11 +30,11 @@ export const TOOLS: Tool[] = [
     slug: "next",
     href: "/next",
     name: "What should I do now?",
-    navLabel: "Do now",
+    navLabel: "Plan",
     short: "Enter your OSRS name and get one clear next move",
     tagline: "RSN in → do this first",
     description:
-      "Stop bankstanding: enter your OSRS name and get one useful move for this account, plus two backups. Add gear or RuneLite only when it changes the route.",
+      "Stop bankstanding: enter your OSRS name and get one useful move for this account, plus two backups. Add setup or RuneLite only when it changes the route.",
     icon: Sparkles,
     iconItemId: 11865, // Slayer helmet (i) — "what to do next" / next-task icon
     status: "live",
@@ -44,9 +44,9 @@ export const TOOLS: Tool[] = [
     slug: "bank",
     href: "/bank",
     name: "Can I leave?",
-    navLabel: "Gear",
-    short: "Check gear, food and teleports before leaving",
-    tagline: "Gear in → leave the bank",
+    navLabel: "Setup",
+    short: "Add setup once, use it everywhere",
+    tagline: "Setup in → leave the bank",
     description:
       "Paste Bank Memory or Bank Tags when gear, supplies or GP should change the route. Scapestack still gives one useful next move first, then keeps the clean tabs and copy-back tools below.",
     icon: Layers,
@@ -98,7 +98,7 @@ export const TOOLS: Tool[] = [
     slug: "dps",
     href: "/dps",
     name: "Can I kill this?",
-    navLabel: "Kill",
+    navLabel: "Check kill",
     short: "Can this bank handle the trip?",
     tagline: "Add setup → one boss verdict",
     description:

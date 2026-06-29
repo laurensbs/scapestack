@@ -13,19 +13,19 @@ describe("Scapestack readiness rail", () => {
       rsn: "Zezima"
     });
 
-    expect(readiness.primaryAction).toEqual({ label: "Paste gear", href: "/bank" });
+    expect(readiness.primaryAction).toEqual({ label: "Add setup", href: "/bank" });
     expect(readiness.signals.map((signal) => [signal.id, signal.status])).toEqual([
       ["bank", "missing"],
       ["rsn", "ready"],
       ["sync", "missing"]
     ]);
     expect(readiness.signals.map((signal) => [signal.id, signal.sourceLabel])).toEqual([
-      ["bank", "No gear pasted"],
+      ["bank", "No setup"],
       ["rsn", "Hiscores loaded"],
       ["sync", "RuneLite later"]
     ]);
     expect(readiness.signals.find((signal) => signal.id === "bank")?.action).toEqual({
-      label: "Paste gear",
+      label: "Add setup",
       href: "/bank"
     });
     expect(readiness.signals.find((signal) => signal.id === "bank")).toMatchObject({
@@ -248,7 +248,7 @@ describe("Scapestack readiness rail", () => {
     });
     expect(readiness.signals.find((signal) => signal.id === "sync")?.copy).toBeUndefined();
     expect(readiness.signals.find((signal) => signal.id === "sync")?.steps).toBeUndefined();
-    expect(readiness.signals.find((signal) => signal.id === "bank")?.sourceLabel).toBe("Gear pasted");
+    expect(readiness.signals.find((signal) => signal.id === "bank")?.sourceLabel).toBe("Setup added");
     expect(readiness.signals.find((signal) => signal.id === "sync")?.sourceLabel).toBe("RuneLite helping");
   });
 
@@ -271,7 +271,7 @@ describe("Scapestack readiness rail", () => {
       href: "/plugin?rsn=Lynx+Titan&from=next#verify-sync"
     });
     expect(readiness.title).toBe("Make this next plan sharper");
-    expect(readiness.body).toContain("Gear and stats can plan now");
+    expect(readiness.body).toContain("Setup and stats can plan now");
     expect(readiness.body).toContain("Press RuneLite sync again before long quests");
   });
 
@@ -302,8 +302,8 @@ describe("Scapestack readiness rail", () => {
       rsn: "Lynx Titan"
     });
 
-    expect(readiness.title).toBe("Make this gear sharper");
-    expect(readiness.body).toContain("Gear and stats are enough for a first plan");
+    expect(readiness.title).toBe("Make this setup sharper");
+    expect(readiness.body).toContain("Setup and stats are enough for a first plan");
     expect(readiness.title).not.toContain("signals connected");
   });
 

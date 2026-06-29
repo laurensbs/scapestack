@@ -43,7 +43,6 @@ describe("homepage first-impression copy", () => {
     expect(source).not.toContain("https://oldschool.runescape.wiki/w/Special:Lookup?type=item&id=28307");
     expect(source).not.toContain('import { ItemSprite } from "@/components/item-sprite";');
     expect(source).not.toContain("HERO_PREVIEW_ITEMS");
-    expect(source).not.toContain("Setup");
     expect(source).not.toContain("Try this flow");
     expect(source).not.toContain("function PreviewRow");
     expect(source).not.toContain("PreviewBackup");
