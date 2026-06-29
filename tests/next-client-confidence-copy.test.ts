@@ -94,10 +94,18 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function recommendationFirstStepValue");
     expect(source).toContain("function recommendationStopPointValue");
     expect(source).toContain("function recommendationBringValue");
+    expect(source).toContain("function recommendationNeedsItemCheck");
+    expect(source).toContain("function recommendationUsesTripBuilder");
+    expect(source).toContain("function recommendationSkillLabel");
     expect(source).toContain("function buildRecommendationTrip");
     expect(source).toContain("function buildNextReadyToLeave");
     expect(source).toContain("ReadyToLeave");
     expect(source).toContain("Add gear to check trip readiness");
+    expect(source).toContain("Ready to train");
+    expect(source).toContain('label: "Skill"');
+    expect(source).toContain('label: "Supplies"');
+    expect(source).toContain('label: "Location"');
+    expect(source).toContain("Check quest/diary items");
     expect(source).toContain("Ready to leave");
     expect(source).toContain("Add gear first");
     expect(source).toContain("function TripBuilder");

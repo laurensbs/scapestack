@@ -12,11 +12,14 @@ describe("ready to leave UX", () => {
 
     expect(component).toContain("ReadyToLeaveStatus");
     expect(component).toContain('"Ready to leave"');
+    expect(component).toContain('"Ready to train"');
+    expect(component).toContain('"Ready to start"');
     expect(component).toContain('"Missing food"');
     expect(component).toContain('"Missing teleport"');
     expect(component).toContain('"Gear looks weak"');
     expect(component).toContain('"Add gear first"');
-    expect(component).toContain('"Gear" | "Food" | "Teleport" | "Stop point"');
+    expect(component).toContain('"Check items first"');
+    expect(component).toContain('"Gear" | "Food" | "Teleport" | "Stop point" | "Skill" | "Supplies" | "Location" | "Unlock" | "Items"');
     expect(component).not.toContain("dashboard");
     expect(component).not.toContain("signals");
     expect(component).not.toContain("payload");

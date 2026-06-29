@@ -5,15 +5,18 @@ import { cn } from "@/lib/utils";
 
 export type ReadyToLeaveStatus =
   | "Ready to leave"
+  | "Ready to train"
+  | "Ready to start"
   | "Missing food"
   | "Missing teleport"
   | "Gear looks weak"
-  | "Add gear first";
+  | "Add gear first"
+  | "Check items first";
 
 export type ReadyToLeaveTone = "good" | "warn" | "neutral";
 
 export interface ReadyToLeaveItem {
-  label: "Gear" | "Food" | "Teleport" | "Stop point";
+  label: "Gear" | "Food" | "Teleport" | "Stop point" | "Skill" | "Supplies" | "Location" | "Unlock" | "Items";
   value: string;
   tone?: ReadyToLeaveTone;
 }
@@ -27,7 +30,7 @@ export function ReadyToLeave({
   items: ReadyToLeaveItem[];
   compact?: boolean;
 }) {
-  const good = status === "Ready to leave";
+  const good = status === "Ready to leave" || status === "Ready to train" || status === "Ready to start";
   const Icon = good ? CheckCircle2 : AlertCircle;
 
   return (

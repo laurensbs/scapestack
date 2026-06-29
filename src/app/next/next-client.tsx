@@ -1545,6 +1545,14 @@ function recommendationNeedsCombatSetup(rec: Recommendation): boolean {
   return rec.kind === "boss" || rec.kind === "kc" || rec.kind === "slayer";
 }
 
+function recommendationNeedsItemCheck(rec: Recommendation): boolean {
+  return rec.kind === "quest" || rec.kind === "diary" || rec.kind === "goal" || rec.kind === "milestone";
+}
+
+function recommendationUsesTripBuilder(rec: Recommendation): boolean {
+  return recommendationNeedsCombatSetup(rec) || recommendationNeedsItemCheck(rec);
+}
+
 function recommendationNeeds(rec: Recommendation): string[] {
   const hints = defaultActionHints(rec.kind);
   return (rec.needs?.length ? rec.needs : hints.needs).slice(0, 3);
@@ -1562,6 +1570,14 @@ function recommendationStopPointValue(rec: Recommendation): string {
 function recommendationBringValue(rec: Recommendation): string {
   const needs = recommendationNeeds(rec);
   return needs[0] ?? rec.actionPlan?.prep ?? "Nothing special flagged.";
+}
+
+function recommendationSkillLabel(rec: Recommendation): string {
+  const haystack = [rec.title, rec.why, rec.payoff].filter(Boolean).join(" ");
+  const titleMatch = haystack.match(/\b(Attack|Defence|Strength|Hitpoints|Ranged|Prayer|Magic|Cooking|Woodcutting|Fletching|Fishing|Firemaking|Crafting|Smithing|Mining|Herblore|Agility|Thieving|Slayer|Farming|Runecraft|Hunter|Construction)\b/i);
+  if (titleMatch?.[0]) return titleMatch[0];
+  if (rec.kind === "skill") return "Skill";
+  return playerChoiceTag(rec).label;
 }
 
 const TRIP_BANK_KEYWORDS = {
@@ -1616,7 +1632,7 @@ function buildRecommendationTrip(
   hasBankContext: boolean
 ): TripBuilderPlan {
   const needsCombat = recommendationNeedsCombatSetup(rec);
-  const isUnlock = rec.kind === "quest" || rec.kind === "diary" || rec.kind === "goal" || rec.kind === "milestone";
+  const isUnlock = recommendationNeedsItemCheck(rec);
   const keywordGroups = needsCombat
     ? [
         TRIP_BANK_KEYWORDS.weapon,
@@ -1636,7 +1652,8 @@ function buildRecommendationTrip(
   const missing: string[] = [];
 
   if (!hasBankContext) {
-    missing.push("gear for a cleaner trip");
+    if (needsCombat) missing.push("gear for a cleaner trip");
+    if (isUnlock) missing.push("quest items check");
   } else if (needsCombat) {
     if (!bankIncludes(bankItems, TRIP_BANK_KEYWORDS.weapon) && !bankIncludes(bankItems, TRIP_BANK_KEYWORDS.armour)) {
       missing.push("combat gear");
@@ -1683,12 +1700,30 @@ function buildNextReadyToLeave(
   hasBankContext: boolean
 ): { status: ReadyToLeaveStatus; items: ReadyToLeaveItem[] } {
   const trip = buildRecommendationTrip(rec, bankItems, hasBankContext);
+  const needsCombat = recommendationNeedsCombatSetup(rec);
+  const needsItems = recommendationNeedsItemCheck(rec);
+
+  if (!needsCombat && !needsItems) {
+    return {
+      status: "Ready to train",
+      items: [
+        { label: "Skill", value: recommendationSkillLabel(rec), tone: "good" },
+        { label: "Supplies", value: rec.actionPlan?.prep ?? recommendationBringValue(rec), tone: "neutral" },
+        { label: "Location", value: "Use the best method you already know", tone: "neutral" },
+        { label: "Stop point", value: trip.stopPoint, tone: "neutral" }
+      ]
+    };
+  }
+
   const missing = trip.missing.join(" ").toLowerCase();
   const missingGear = /gear|combat/.test(missing);
+  const missingItems = /item|quest/.test(missing);
   const missingFood = /food/.test(missing);
   const missingTeleport = /teleport/.test(missing);
-  const status: ReadyToLeaveStatus = !hasBankContext
+  const status: ReadyToLeaveStatus = needsCombat && !hasBankContext
     ? "Add gear first"
+    : needsItems && (!hasBankContext || missingItems)
+    ? "Check items first"
     : missingGear
     ? "Gear looks weak"
     : missingFood
@@ -1698,6 +1733,18 @@ function buildNextReadyToLeave(
     : "Ready to leave";
 
   if (!hasBankContext) {
+    if (needsItems) {
+      return {
+        status,
+        items: [
+          { label: "Unlock", value: recommendationSkillLabel(rec), tone: "good" },
+          { label: "Items", value: "Check quest/diary items", tone: "warn" },
+          { label: "Location", value: trip.teleport, tone: "neutral" },
+          { label: "Stop point", value: trip.stopPoint, tone: "neutral" }
+        ]
+      };
+    }
+
     return {
       status,
       items: [
@@ -1711,28 +1758,35 @@ function buildNextReadyToLeave(
 
   return {
     status,
-    items: [
-      {
-        label: "Gear",
-        value: missingGear ? "Needs check" : "Found",
-        tone: missingGear ? "warn" : "good"
-      },
-      {
-        label: "Food",
-        value: missingFood ? "Missing food" : "Found",
-        tone: missingFood ? "warn" : "good"
-      },
-      {
-        label: "Teleport",
-        value: missingTeleport ? "Missing teleport" : trip.teleport,
-        tone: missingTeleport ? "warn" : "good"
-      },
-      {
-        label: "Stop point",
-        value: trip.stopPoint,
-        tone: "neutral"
-      }
-    ]
+    items: needsItems
+      ? [
+          { label: "Unlock", value: recommendationSkillLabel(rec), tone: "good" },
+          { label: "Items", value: missingItems ? "Check quest/diary items" : "Bank has useful items", tone: missingItems ? "warn" : "good" },
+          { label: "Location", value: missingTeleport ? "Pick closest teleport" : trip.teleport, tone: missingTeleport ? "warn" : "good" },
+          { label: "Stop point", value: trip.stopPoint, tone: "neutral" }
+        ]
+      : [
+          {
+            label: "Gear",
+            value: missingGear ? "Needs check" : "Found",
+            tone: missingGear ? "warn" : "good"
+          },
+          {
+            label: "Food",
+            value: missingFood ? "Missing food" : "Found",
+            tone: missingFood ? "warn" : "good"
+          },
+          {
+            label: "Teleport",
+            value: missingTeleport ? "Missing teleport" : trip.teleport,
+            tone: missingTeleport ? "warn" : "good"
+          },
+          {
+            label: "Stop point",
+            value: trip.stopPoint,
+            tone: "neutral"
+          }
+        ]
   };
 }
 
@@ -2286,7 +2340,9 @@ function HeadlineCard({
             <span>{oneLineReason}</span>
           </p>
           <ReadyToLeave status={readyToLeave.status} items={readyToLeave.items} />
-          <TripBuilder rec={rec} bankItems={bankItems} hasBankContext={hasBankContext} />
+          {recommendationUsesTripBuilder(rec) && (
+            <TripBuilder rec={rec} bankItems={bankItems} hasBankContext={hasBankContext} />
+          )}
           {isBossWithDetail && rec.bossSlug ? (
             <button
               type="button"
