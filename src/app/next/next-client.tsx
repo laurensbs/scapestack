@@ -67,6 +67,7 @@ import {
   routeActionForHref,
   type RecommendationActionContext
 } from "@/lib/recommendation-action";
+import { exportTag } from "@/lib/bank-tags";
 import { copyText } from "@/lib/clipboard";
 import { cn, formatGp } from "@/lib/utils";
 import {
@@ -1662,6 +1663,113 @@ function recommendationBringValue(rec: Recommendation): string {
   return needs[0] ?? rec.actionPlan?.prep ?? "Nothing special flagged.";
 }
 
+const TRIP_BANK_KEYWORDS = {
+  weapon: GEAR_REALITY_KEYWORDS.weapon,
+  armour: GEAR_REALITY_KEYWORDS.armour,
+  food: GEAR_REALITY_KEYWORDS.food,
+  potion: GEAR_REALITY_KEYWORDS.potion,
+  travel: GEAR_REALITY_KEYWORDS.travel,
+  quest: ["key", "seal", "mould", "rune", "rope", "hammer", "spade", "saw", "axe", "pickaxe", "tinderbox", "lantern"]
+} as const;
+
+type TripBuilderPlan = {
+  bring: string[];
+  missing: string[];
+  teleport: string;
+  stopPoint: string;
+  tagName: string;
+  tag: string | null;
+};
+
+function tripItemMatches(item: BankHandoffItem, keywords: readonly string[]): boolean {
+  const haystack = `${item.name} ${item.subtab}`.toLowerCase();
+  return keywords.some((keyword) => haystack.includes(keyword));
+}
+
+function tripBankItems(
+  bankItems: BankHandoffItem[],
+  keywordGroups: Array<readonly string[]>,
+  limit: number
+): BankHandoffItem[] {
+  const seen = new Set<number>();
+  const picks: BankHandoffItem[] = [];
+  for (const group of keywordGroups) {
+    for (const item of bankItems) {
+      if (seen.has(item.id) || !tripItemMatches(item, group)) continue;
+      seen.add(item.id);
+      picks.push(item);
+      if (picks.length >= limit) return picks;
+    }
+  }
+  return picks;
+}
+
+function tripItemLabel(item: BankHandoffItem): string {
+  if (item.quantity > 1 && item.quantity < 10_000) return `${item.name} x${item.quantity}`;
+  return item.name;
+}
+
+function buildRecommendationTrip(
+  rec: Recommendation,
+  bankItems: BankHandoffItem[],
+  hasBankContext: boolean
+): TripBuilderPlan {
+  const needsCombat = recommendationNeedsCombatSetup(rec);
+  const isUnlock = rec.kind === "quest" || rec.kind === "diary" || rec.kind === "goal" || rec.kind === "milestone";
+  const keywordGroups = needsCombat
+    ? [
+        TRIP_BANK_KEYWORDS.weapon,
+        TRIP_BANK_KEYWORDS.armour,
+        TRIP_BANK_KEYWORDS.food,
+        TRIP_BANK_KEYWORDS.potion,
+        TRIP_BANK_KEYWORDS.travel
+      ]
+    : isUnlock
+      ? [TRIP_BANK_KEYWORDS.travel, TRIP_BANK_KEYWORDS.quest, TRIP_BANK_KEYWORDS.potion]
+      : [TRIP_BANK_KEYWORDS.travel, TRIP_BANK_KEYWORDS.food, TRIP_BANK_KEYWORDS.potion, TRIP_BANK_KEYWORDS.weapon];
+  const pickedItems = hasBankContext ? tripBankItems(bankItems, keywordGroups, 18) : [];
+  const travelItem = pickedItems.find((item) => tripItemMatches(item, TRIP_BANK_KEYWORDS.travel));
+  const bring = pickedItems.length
+    ? pickedItems.slice(0, 6).map(tripItemLabel)
+    : recommendationNeeds(rec).slice(0, 3);
+  const missing: string[] = [];
+
+  if (!hasBankContext) {
+    missing.push("gear for a cleaner trip");
+  } else if (needsCombat) {
+    if (!bankIncludes(bankItems, TRIP_BANK_KEYWORDS.weapon) && !bankIncludes(bankItems, TRIP_BANK_KEYWORDS.armour)) {
+      missing.push("combat gear");
+    }
+    if (!bankIncludes(bankItems, TRIP_BANK_KEYWORDS.food)) missing.push("food");
+    if (!bankIncludes(bankItems, TRIP_BANK_KEYWORDS.potion)) missing.push("potions");
+    if (!bankIncludes(bankItems, TRIP_BANK_KEYWORDS.travel)) missing.push("teleport");
+  } else if (isUnlock) {
+    if (!bankIncludes(bankItems, TRIP_BANK_KEYWORDS.travel)) missing.push("teleport near the start");
+    missing.push("quest items check");
+  } else if (pickedItems.length === 0) {
+    missing.push("supplies check");
+  }
+
+  const tagName = `Scapestack ${playerChoiceTag(rec).label}`;
+  const iconItemId = rec.iconItemId ?? KIND_META[rec.kind].iconItemId ?? pickedItems[0]?.id ?? 995;
+  const tag = pickedItems.length
+    ? exportTag({
+        name: tagName,
+        iconItemId,
+        items: pickedItems.map((item) => ({ id: item.id }))
+      })
+    : null;
+
+  return {
+    bring,
+    missing: missing.slice(0, 3),
+    teleport: travelItem ? tripItemLabel(travelItem) : "Best teleport near the first step",
+    stopPoint: recommendationStopPointValue(rec),
+    tagName,
+    tag
+  };
+}
+
 function playerStageTip(
   rec: Recommendation,
   accountStage: NextUpResult["summary"]["accountStage"],
@@ -2143,6 +2251,92 @@ function RecommendationSessionSummary({
   );
 }
 
+function TripBuilder({
+  rec,
+  bankItems,
+  hasBankContext
+}: {
+  rec: Recommendation;
+  bankItems: BankHandoffItem[];
+  hasBankContext: boolean;
+}) {
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
+  const trip = useMemo(
+    () => buildRecommendationTrip(rec, bankItems, hasBankContext),
+    [rec, bankItems, hasBankContext]
+  );
+
+  const copyBankTag = async () => {
+    if (!trip.tag) return;
+    const ok = await copyText(trip.tag);
+    setCopyState(ok ? "copied" : "failed");
+    window.setTimeout(() => setCopyState("idle"), 1800);
+  };
+
+  return (
+    <details className="group mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden [&::-webkit-details-marker]:hidden">
+        <span>
+          <span className="block text-[12px] font-bold text-[var(--color-text)]">Build trip</span>
+          <span className="mt-0.5 block text-[11px] font-semibold text-[var(--color-text-muted)]">
+            Bring, teleport, stop point.
+          </span>
+        </span>
+        <span className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)] transition-colors group-open:border-[var(--color-accent)]/35 group-open:text-[var(--color-accent)]">
+          <span className="group-open:hidden">Show</span>
+          <span className="hidden group-open:inline">Hide</span>
+        </span>
+      </summary>
+
+      <div className="mt-3 grid gap-2 sm:grid-cols-3">
+        <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-2.5">
+          <div className="mb-1 text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+            Bring
+          </div>
+          <p className="text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+            {trip.bring.length ? trip.bring.join(", ") : "Check setup before leaving the bank."}
+          </p>
+        </div>
+        <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-2.5">
+          <div className="mb-1 text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+            Teleport
+          </div>
+          <p className="text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">{trip.teleport}</p>
+        </div>
+        <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-2.5">
+          <div className="mb-1 text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+            Missing
+          </div>
+          <p className="text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+            {trip.missing.length ? trip.missing.join(", ") : "Looks ready enough for one short run."}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-2.5 py-2">
+        <p className="min-w-0 text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+          Stop: <span className="text-[var(--color-text-dim)]">{trip.stopPoint}</span>
+        </p>
+        {trip.tag ? (
+          <button
+            type="button"
+            onClick={copyBankTag}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-1.5 text-[11.5px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
+            aria-label={`Copy RuneLite Bank Tag for ${rec.title}`}
+          >
+            {copyState === "copied" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
+            {copyState === "copied" ? "Bank Tag copied" : copyState === "failed" ? "Try copy again" : "Copy Bank Tag"}
+          </button>
+        ) : (
+          <span className="shrink-0 rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
+            Add gear to build a Bank Tag.
+          </span>
+        )}
+      </div>
+    </details>
+  );
+}
+
 function ActionPlanBlock({ rec, compact = false }: { rec: Recommendation; compact?: boolean }) {
   const plan = rec.actionPlan;
   if (!plan) return null;
@@ -2325,6 +2519,7 @@ function HeadlineCard({
             bankItems={bankItems}
             accountStage={accountStage}
           />
+          <TripBuilder rec={rec} bankItems={bankItems} hasBankContext={hasBankContext} />
           {isBossWithDetail && rec.bossSlug ? (
             <button
               type="button"

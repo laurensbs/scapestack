@@ -92,6 +92,12 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function recommendationFirstStepValue");
     expect(source).toContain("function recommendationStopPointValue");
     expect(source).toContain("function recommendationBringValue");
+    expect(source).toContain("function buildRecommendationTrip");
+    expect(source).toContain("function TripBuilder");
+    expect(source).toContain("tripBankItems");
+    expect(source).toContain("Copy Bank Tag");
+    expect(source).toContain("Add gear to build a Bank Tag.");
+    expect(source).toContain("Best teleport near the first step");
     expect(source).toContain("Do this first");
     expect(source).toContain("Why this pick:");
     expect(source).toContain("headlineSmartRead(rec)");
@@ -104,6 +110,8 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Stop point");
     expect(source).toContain("Avoid");
     expect(source).toContain("Bring");
+    expect(source).toContain("Teleport");
+    expect(source).toContain("Missing");
     expect(source).toContain("recommendationNeeds(rec)");
     expect(source).not.toContain("function RecommendationQuickFacts");
     expect(source).not.toContain("function RecommendationFirstStep");
@@ -407,5 +415,19 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Gear + RuneLite");
     expect(source).not.toContain("Exact fusion");
     expect(source).toContain("Update RuneLite");
+  });
+
+  it("turns the main pick into a compact trip builder when gear exists", () => {
+    expect(source).toContain('import { exportTag } from "@/lib/bank-tags";');
+    expect(source).toContain("const TRIP_BANK_KEYWORDS");
+    expect(source).toContain("const pickedItems = hasBankContext ? tripBankItems(bankItems, keywordGroups, 18) : [];");
+    expect(source).toContain("exportTag({");
+    expect(source).toContain("items: pickedItems.map((item) => ({ id: item.id }))");
+    expect(source).toContain("<TripBuilder rec={rec} bankItems={bankItems} hasBankContext={hasBankContext} />");
+    expect(source).toContain("Bring, teleport, stop point.");
+    expect(source).toContain('aria-label={`Copy RuneLite Bank Tag for ${rec.title}`}');
+    expect(source).toContain("Bank Tag copied");
+    expect(source).not.toContain("Trip payload");
+    expect(source).not.toContain("Bank Tag dashboard");
   });
 });
