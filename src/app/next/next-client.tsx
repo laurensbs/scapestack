@@ -8,6 +8,7 @@ import {
   Copy, CheckCheck, CheckCircle2, Shield, Trash2, Camera, ClipboardPaste, X
 } from "lucide-react";
 import { SupportCard } from "@/components/support-card";
+import { BankSetupSteps } from "@/components/bank-setup-steps";
 import { ReadyToLeave, type ReadyToLeaveItem, type ReadyToLeaveStatus } from "@/components/ready-to-leave";
 import { SavedBankBanner } from "@/components/saved-bank-banner";
 import { BossSprite } from "@/components/boss-picker";
@@ -1046,11 +1047,7 @@ function NextIntake({
                   className="mt-2 w-full resize-y rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-3 font-mono text-[12px] text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)]"
                 />
               </label>
-              <div className="mt-3 grid gap-2 text-[12.5px] text-[var(--color-text-muted)] sm:grid-cols-3">
-                <span className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] px-3 py-2">1. Open bank</span>
-                <span className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] px-3 py-2">2. Copy Bank Memory</span>
-                <span className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] px-3 py-2">3. Paste here</span>
-              </div>
+              <BankSetupSteps className="mt-3" compact />
             </div>
 
             <div className="flex flex-col gap-2 border-t border-[var(--color-border)] px-5 pb-5 sm:flex-row sm:px-6 sm:pb-6">

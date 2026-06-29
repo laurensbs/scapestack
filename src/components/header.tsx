@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { CheckCircle2, ChevronDown, Menu, Package, PlugZap, Plus, UserRound, X } from "lucide-react";
 import { ACCOUNT_EVENT, getActiveAccount, loadAccountStore, removeAccount, setActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
 import { contextualNavHref } from "@/lib/nav-context";
-import { clearSavedRsn, loadSavedBank, loadSavedRsn, saveSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
+import { clearSavedRsn, describeSavedAt, loadSavedBank, loadSavedRsn, saveSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
 import { getPrimaryNavTools } from "@/lib/tools";
 import { cn } from "@/lib/utils";
 import { BuyMeCoffee } from "./buy-me-coffee";
@@ -242,6 +242,7 @@ function AccountSwitcher({
   const [accounts, setAccounts] = useState<ScapestackAccount[]>([]);
   const [draft, setDraft] = useState(activeRsn);
   const [hasSavedSetup, setHasSavedSetup] = useState(false);
+  const [bankSavedAt, setBankSavedAt] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const refresh = () => {
@@ -249,9 +250,11 @@ function AccountSwitcher({
     setAccounts(store.accounts);
     const active = getActiveAccount();
     const nextRsn = active?.rsn ?? loadSavedRsn() ?? "";
+    const savedBank = loadSavedBank(nextRsn);
     onActiveRsnChange(nextRsn);
     setDraft(nextRsn);
-    setHasSavedSetup(Boolean(active?.bankSavedAt || loadSavedBank(nextRsn)));
+    setHasSavedSetup(Boolean(active?.bankSavedAt || savedBank));
+    setBankSavedAt(active?.bankSavedAt ?? savedBank?.savedAt ?? null);
   };
 
   useEffect(() => {
@@ -312,6 +315,8 @@ function AccountSwitcher({
   const accountLabel = activeRsn || "Add RSN";
   const bankHref = activeRsn ? `/bank?rsn=${encodeURIComponent(activeRsn)}&from=next` : "/bank";
   const pluginHref = activeRsn ? `/plugin?rsn=${encodeURIComponent(activeRsn)}#verify-sync` : "/plugin#verify-sync";
+  const bankStatusLabel = hasSavedSetup ? "Bank added" : "Add bank";
+  const bankFreshness = bankSavedAt ? `Bank saved ${describeSavedAt(bankSavedAt)}` : bankStatusLabel;
 
   return (
     <div className={cn("relative", compact ? "w-full" : "hidden sm:block")}>
@@ -392,7 +397,7 @@ function AccountSwitcher({
             <div className="mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text-muted)]">
               <span className="text-[var(--color-text)]">{activeRsn}</span>
               <span className="mx-1.5 text-[var(--color-border-strong)]">·</span>
-              <span>{hasSavedSetup ? "Bank added" : "Add bank"}</span>
+              <span title={bankFreshness}>{bankStatusLabel}</span>
               <span className="mx-1.5 text-[var(--color-border-strong)]">·</span>
               <span>RuneLite later</span>
             </div>
@@ -413,7 +418,7 @@ function AccountSwitcher({
               className="grid min-h-[76px] place-items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
             >
               <Package className="mb-1 size-5" />
-              {hasSavedSetup ? "Bank added" : "Add bank"}
+              <span title={bankFreshness}>{bankStatusLabel}</span>
             </Link>
             <Link
               href={pluginHref}

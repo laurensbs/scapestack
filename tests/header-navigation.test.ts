@@ -15,6 +15,8 @@ describe("global header navigation", () => {
     expect(source).toContain("SAVED_BANK_EVENT");
     expect(source).toContain("window.addEventListener(SAVED_BANK_EVENT, refresh)");
     expect(source).toContain("window.addEventListener(SAVED_BANK_EVENT, syncAccount)");
+    expect(source).toContain("describeSavedAt");
+    expect(source).toContain("Bank saved ${describeSavedAt(bankSavedAt)}");
     expect(source).toContain("Bank added");
     expect(source).toContain("Add bank");
     expect(source).toContain("Check RuneLite");

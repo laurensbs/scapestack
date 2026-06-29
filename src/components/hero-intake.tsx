@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { ArrowRight, ClipboardPaste, PlugZap, X } from "lucide-react";
+import { BankSetupSteps } from "@/components/bank-setup-steps";
 import { RuneliteOpenButton } from "@/components/runelite-open-button";
 import { getActiveAccount, markRuneliteChecked } from "@/lib/account-storage";
 import type { Mood, TimeBudget } from "@/lib/mood";
 import { saveMood } from "@/lib/mood-storage";
-import { loadSavedRsn, saveSavedBank, saveSavedRsn } from "@/lib/saved-bank";
+import { loadSavedBank, loadSavedRsn, saveSavedBank, saveSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
 import { cn } from "@/lib/utils";
 
 // Homepage hero intake — kleine zus van /next's NextIntake. Eén RSN
@@ -80,7 +80,9 @@ export function HeroIntake() {
   const [showFirstSetupBank, setShowFirstSetupBank] = useState(false);
   const [firstSetupRunelite, setFirstSetupRunelite] = useState(false);
   const [bank, setBank] = useState("");
+  const [savedBankAt, setSavedBankAt] = useState<number | null>(null);
   const hasBankPaste = Boolean(bank.trim());
+  const hasBankContext = hasBankPaste || Boolean(savedBankAt);
   const canSubmit = Boolean(rsn.trim() || hasBankPaste);
   const cleanRsn = rsn.trim();
   const isRememberedRun = Boolean(rememberedRsn && cleanRsn === rememberedRsn);
@@ -92,6 +94,20 @@ export function HeroIntake() {
       setRememberedRsn(remembered);
     }
   }, []);
+
+  useEffect(() => {
+    const refreshSavedBank = () => {
+      const saved = cleanRsn ? loadSavedBank(cleanRsn) : loadSavedBank();
+      setSavedBankAt(saved?.savedAt ?? null);
+    };
+    refreshSavedBank();
+    window.addEventListener(SAVED_BANK_EVENT, refreshSavedBank);
+    window.addEventListener("storage", refreshSavedBank);
+    return () => {
+      window.removeEventListener(SAVED_BANK_EVENT, refreshSavedBank);
+      window.removeEventListener("storage", refreshSavedBank);
+    };
+  }, [cleanRsn]);
 
   const openPlan = (options: { markSetup?: boolean; includeSetupIntent?: boolean } = {}) => {
     const trimmed = cleanRsn;
@@ -114,7 +130,7 @@ export function HeroIntake() {
     }
     const params = new URLSearchParams();
     if (trimmed) params.set("rsn", trimmed);
-    if (!hasBankPaste) params.set("bank", "none");
+    if (!hasBankContext) params.set("bank", "none");
     if (options.includeSetupIntent) {
       params.set("intent", selectedFirstSetupIntent);
       params.set("time", String(intentPreset.minutes));
@@ -206,6 +222,8 @@ export function HeroIntake() {
         {rsn.trim()
           ? hasBankPaste
             ? "Bank added. Scapestack can check gear, supplies and GP."
+            : savedBankAt
+            ? "Bank saved for this account. Scapestack can use it when gear matters."
             : "One name is enough to plan your next trip."
           : hasBankPaste
             ? "Bank added. Add a name for stats and KC."
@@ -220,14 +238,14 @@ export function HeroIntake() {
           onClick={() => setShowBankGuide(true)}
           aria-haspopup="dialog"
           aria-expanded={showBankGuide}
-          aria-label={hasBankPaste ? "Edit bank paste for Scapestack" : "Add bank to Scapestack"}
+          aria-label={hasBankContext ? "Edit bank paste for Scapestack" : "Add bank to Scapestack"}
           className={cn(
             "inline-flex items-center gap-1.5 underline underline-offset-4 decoration-dotted transition-colors",
-            hasBankPaste ? "text-[var(--color-accent)] hover:text-[var(--color-accent-soft)]" : "hover:text-[var(--color-accent)]"
+            hasBankContext ? "text-[var(--color-accent)] hover:text-[var(--color-accent-soft)]" : "hover:text-[var(--color-accent)]"
           )}
         >
           <ClipboardPaste className="size-3.5" />
-          {hasBankPaste ? "Bank added" : "Add bank"}
+          {hasBankContext ? "Bank added" : "Add bank"}
         </button>
         {hasBankPaste && (
           <button
@@ -316,7 +334,7 @@ export function HeroIntake() {
                 aria-controls={HERO_FIRST_SETUP_BANK_ID}
                 className={cn(
                   "rounded-2xl border p-4 text-left transition-colors",
-                  hasBankPaste
+                  hasBankContext
                     ? "border-[var(--color-accent)]/40 bg-[var(--color-accent)]/10"
                     : "border-[var(--color-border)] bg-[var(--color-panel)] hover:border-[var(--color-accent)]/45"
                 )}
@@ -325,7 +343,7 @@ export function HeroIntake() {
                   <ClipboardPaste className="size-4" />
                 </span>
                 <span className="mt-3 block text-[16px] font-bold text-[var(--color-text)]">
-                  {hasBankPaste ? "Bank added" : "Add bank"}
+                  {hasBankContext ? "Bank added" : "Add bank"}
                 </span>
                 <span className="mt-1 block text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">
                   Better gear, supplies and GP checks for this RSN.
@@ -448,37 +466,7 @@ export function HeroIntake() {
               </button>
             </div>
 
-            <div className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
-              {[
-                {
-                  src: "/intro/step1.png",
-                  title: "1. Open your bank",
-                  body: "In RuneLite, open the bank view you want Scapestack to use."
-                },
-                {
-                  src: "/intro/step2.png",
-                  title: "2. Copy Bank Memory",
-                  body: "Copy the Bank Memory text, then paste it below."
-                }
-              ].map((step) => (
-                <div key={step.title} className="overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]">
-                  <div className="relative aspect-[16/10] bg-black">
-                    <Image
-                      src={step.src}
-                      alt={step.title}
-                      width={720}
-                      height={450}
-                      sizes="(max-width: 640px) 90vw, 360px"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-[15px] font-semibold text-[var(--color-text)]">{step.title}</h3>
-                    <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">{step.body}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <BankSetupSteps className="p-5 sm:p-6" />
 
             <div className="border-t border-[var(--color-border)] px-5 py-5 sm:px-6">
               <label className="block">

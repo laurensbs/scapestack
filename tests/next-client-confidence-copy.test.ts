@@ -439,9 +439,8 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Optional. Use Bank Memory or Bank Tags when supplies, GP or boss gear should change the plan.");
     expect(source).toContain("Use this bank");
     expect(source).toContain("Skip bank");
-    expect(source).toContain("1. Open bank");
-    expect(source).toContain("2. Copy Bank Memory");
-    expect(source).toContain("3. Paste here");
+    expect(source).toContain("BankSetupSteps");
+    expect(source).toContain('<BankSetupSteps className="mt-3" compact />');
     expect(source).toContain("input: bank.trim() ? bank : undefined");
     expect(source).not.toContain('placeholder="Paste Bank Memory or Bank Tags here..."');
     expect(source).not.toContain("Gear paste");

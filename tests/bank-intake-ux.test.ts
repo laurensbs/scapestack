@@ -51,12 +51,9 @@ describe("bank intake UX affordances", () => {
   });
 
   it("labels the bank paste box as a browser-only import surface", () => {
-    expect(intakeSource).toContain("BANK_SETUP_STEPS");
+    expect(intakeSource).toContain("BankSetupSteps");
     expect(intakeSource).toContain("How to copy your bank");
-    expect(intakeSource).toContain('src: "/intro/step1.png"');
-    expect(intakeSource).toContain('src: "/intro/step2.png"');
-    expect(intakeSource).toContain("RuneLite Plugin Hub -> Bank Memory.");
-    expect(intakeSource).toContain("Right-click your saved bank and copy item data.");
+    expect(intakeSource).toContain('<BankSetupSteps className="mt-3" compact />');
     expect(intakeSource).toContain('htmlFor="bank-paste-input"');
     expect(intakeSource).toContain("Paste RuneLite Bank Memory, Bank Tags or item IDs");
     expect(intakeSource).toContain('name="bank-export"');
@@ -75,6 +72,9 @@ describe("bank intake UX affordances", () => {
     expect(intakeSource).toContain("if (!pasteDone) return;");
     expect(intakeSource).toContain("saveSavedBank(value, targetRsn || null);");
     expect(intakeSource).toContain("if (targetRsn) saveSavedRsn(targetRsn);");
+    expect(intakeSource).toContain("Use for next plan");
+    expect(intakeSource).toContain("Check bosses");
+    expect(intakeSource).toContain("Organize tabs");
   });
 
   it("explains paste button failures instead of failing silently", () => {

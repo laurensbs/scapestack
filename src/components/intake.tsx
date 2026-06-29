@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import Image from "next/image";
+import Link from "next/link";
 import { ClipboardPaste, Trash2, ArrowRight, Loader2, User, Sparkles, Filter, Check, Upload } from "lucide-react";
 import { cn, SAMPLE_BANKTAGS } from "@/lib/utils";
 import { loadStoredRsn, saveStoredRsn } from "@/lib/archetype";
 import { ItemSprite } from "@/components/item-sprite";
+import { BankSetupSteps } from "@/components/bank-setup-steps";
 import { saveSavedBank, saveSavedRsn } from "@/lib/saved-bank";
 
 const STORAGE_KEY = "osrs-bank-organizer:last-input";
@@ -67,19 +68,6 @@ const HINTS: Record<NonNullable<InputKind>, { msg: string; tone: "good" | "neutr
   unknown: { msg: "Unrecognized format — paste a Bank Tags string or Bank Memory TSV", tone: "bad" }
 };
 
-const BANK_SETUP_STEPS = [
-  {
-    src: "/intro/step1.png",
-    title: "1. Install Bank Memory",
-    body: "RuneLite Plugin Hub -> Bank Memory."
-  },
-  {
-    src: "/intro/step2.png",
-    title: "2. Copy item data",
-    body: "Right-click your saved bank and copy item data."
-  }
-];
-
 interface IntakeProps {
   onSubmit: (input: string, junkFilter: boolean, rsn: string) => void;
   loading: boolean;
@@ -132,6 +120,9 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
   // This flips the badge to a checkmark and lets step 4 light up as current,
   // so the flow visibly advances as the user fills it in.
   const pasteDone = !!value.trim() && kind !== "unknown" && kind !== null;
+  const targetRsn = cleanRsn(rsn) || handoffRsn || rsnFromCurrentUrl();
+  const nextPlanHref = targetRsn ? `/next?rsn=${encodeURIComponent(targetRsn)}` : "/next";
+  const bossCheckHref = targetRsn ? `/dps?rsn=${encodeURIComponent(targetRsn)}&from=bank` : "/dps?from=bank";
 
   // Bubble paste-progress up so the Intro rail can auto-advance. Only a
   // *fresh* paste counts — a value silently restored from localStorage on
@@ -143,13 +134,12 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
 
   useEffect(() => {
     if (!pasteDone) return;
-    const targetRsn = cleanRsn(rsn) || handoffRsn || rsnFromCurrentUrl();
     const saveKey = `${targetRsn || "bank-only"}:${value.length}:${value.slice(0, 48)}`;
     if (lastAutoSavedRef.current === saveKey) return;
     lastAutoSavedRef.current = saveKey;
     saveSavedBank(value, targetRsn || null);
     if (targetRsn) saveSavedRsn(targetRsn);
-  }, [handoffRsn, pasteDone, rsn, value]);
+  }, [pasteDone, targetRsn, value]);
 
   const submit = useCallback(() => {
     if (!value.trim()) return;
@@ -328,26 +318,7 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
         <summary className="cursor-pointer list-none text-[12.5px] font-semibold text-[var(--color-text)] marker:hidden">
           How to copy your bank
         </summary>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          {BANK_SETUP_STEPS.map((step) => (
-            <div key={step.title} className="overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]">
-              <div className="relative flex min-h-[118px] items-center justify-center bg-black p-3">
-                <Image
-                  src={step.src}
-                  alt={step.title}
-                  width={360}
-                  height={240}
-                  sizes="(max-width: 640px) 82vw, 300px"
-                  className="h-auto max-h-[168px] w-auto max-w-full"
-                />
-              </div>
-              <div className="p-3">
-                <p className="text-[12.5px] font-bold text-[var(--color-text)]">{step.title}</p>
-                <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">{step.body}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        <BankSetupSteps className="mt-3" compact />
       </details>
 
       <div
@@ -504,6 +475,31 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
         >
           <p className="text-[12.5px] font-semibold text-[var(--color-text)]">{inputSummary.label}</p>
           <p className="mt-1 text-[11.5px] text-[var(--color-text-dim)]">{inputSummary.detail}</p>
+        </div>
+      )}
+
+      {pasteDone && (
+        <div className="mt-3 grid gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 p-3 sm:grid-cols-3">
+          <Link
+            href={nextPlanHref}
+            className="inline-flex items-center justify-center rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-3 py-2 text-[12px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
+          >
+            Use for next plan
+          </Link>
+          <Link
+            href={bossCheckHref}
+            className="inline-flex items-center justify-center rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-3 py-2 text-[12px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
+          >
+            Check bosses
+          </Link>
+          <button
+            type="button"
+            onClick={submit}
+            disabled={loading}
+            className="inline-flex items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] px-3 py-2 text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/40 disabled:opacity-50"
+          >
+            Organize tabs
+          </button>
         </div>
       )}
 

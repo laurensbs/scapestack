@@ -10,6 +10,8 @@ describe("current run bar", () => {
     expect(source).toContain("getActiveAccount");
     expect(source).toContain("SAVED_BANK_EVENT");
     expect(source).toContain("window.addEventListener(SAVED_BANK_EVENT, refresh)");
+    expect(source).toContain("describeSavedAt");
+    expect(source).toContain("Bank saved ${describeSavedAt(bankSavedAt)}");
     expect(source).toContain("loadSavedBank(savedRsn)");
     expect(source).toContain("Bank added");
     expect(source).toContain("Add bank");
