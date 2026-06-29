@@ -11,6 +11,10 @@ describe("first impression sprites", () => {
     expect(shuffleLoaderSource).toContain("<ItemSprite");
     expect(shuffleLoaderSource).not.toContain('import { ICON_URL } from "@/lib/utils";');
     expect(shuffleLoaderSource).not.toContain("src={ICON_URL(itemId)}");
+    expect(shuffleLoaderSource).not.toContain("LORE_QUOTES");
+    expect(shuffleLoaderSource).not.toContain("I'm only checking the GE.");
+    expect(shuffleLoaderSource).not.toContain("key={quote}");
+    expect(shuffleLoaderSource).not.toContain("setQuote");
 
     expect(intakeSource).toContain('import { ItemSprite } from "@/components/item-sprite";');
     expect(intakeSource).toContain("<ItemSprite");

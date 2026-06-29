@@ -16,11 +16,6 @@ import { ItemSprite } from "@/components/item-sprite";
 //   - Per cell: fade-out + scale-down → instant item-swap → fade-in
 //     + scale-up via loader-cell-fade keyframe.
 //
-// Lore-quotes:
-//   - rotate elke 3.5s
-//   - één regel; iconisch & speels, niet preachy
-//   - anti-repeat zodat dezelfde nooit 2x achter elkaar komt
-
 // Iconische items + boss-trophy heads (Vorkath / Kraken / KBD / KQ /
 // Cerberus / DT2 ingots / etc) zodat de speler "his world" voorbij ziet
 // trekken. Mix van combat-gear, capes, drops, supplies en boss-trophies.
@@ -70,29 +65,6 @@ const ITEM_POOL = [
   4585,   // Dragon chainbody
 ];
 
-const LORE_QUOTES = [
-  "It's safe to drop trade…",
-  "0 attempts.",
-  "Trust me bro.",
-  "Skull yourself, it's faster.",
-  "I'm building my bank back up.",
-  "RNG manipulation isn't real (it's real).",
-  "One more kill.",
-  "Just one tick off PB.",
-  "I'm only checking the GE.",
-  "Mod Ash, fix Slayer.",
-  "Almost broken, the bank is.",
-  "Stake responsibly, kids.",
-  "We do a little trolling.",
-  "Pet luck > drop rate.",
-  "10 hour Vorkath grind, no visage.",
-  "I needed that for my zenyte.",
-  "Pets count, right?",
-  "Bring slash, bring stab.",
-  "Have you tried turning RuneLite off and on again?",
-  "Splash mage, the OG bot defense.",
-];
-
 interface ShuffleLoaderProps {
   /** Hoofd-tekst boven de grid. Default: 'Reading your account…' */
   label?: string;
@@ -114,7 +86,6 @@ export function ShuffleLoader({ label = "Reading your account…" }: ShuffleLoad
   }, []);
   const [cells, setCells] = useState<number[]>(initial);
   const [sweepCol, setSweepCol] = useState(0);  // welke kolom flippen we nu
-  const [quote, setQuote] = useState(() => LORE_QUOTES[Math.floor(Math.random() * LORE_QUOTES.length)]);
 
   // Sweep-loop: elke 120ms één kolom doorflippen (alle ROW_COUNT cells
   // in die kolom). Na de laatste kolom: 200ms pauze, dan sweep opnieuw
@@ -142,20 +113,6 @@ export function ShuffleLoader({ label = "Reading your account…" }: ShuffleLoad
         return nextCol;
       });
     }, 120);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Quote-rotation: elke 3.5s. Anti-repeat: niet 2x dezelfde achter elkaar.
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setQuote((current) => {
-        let next = current;
-        while (next === current) {
-          next = LORE_QUOTES[Math.floor(Math.random() * LORE_QUOTES.length)];
-        }
-        return next;
-      });
-    }, 3500);
     return () => clearInterval(interval);
   }, []);
 
@@ -219,17 +176,6 @@ export function ShuffleLoader({ label = "Reading your account…" }: ShuffleLoad
             );
           })}
         </div>
-      </div>
-      {/* Lore quote — kruistabel-fade tussen oude en nieuwe quote.
-          key={quote} forceert mount-cycle dus de animatie pakt opnieuw. */}
-      <div className="h-6 flex items-center">
-        <p
-          key={quote}
-          className="text-[12.5px] sm:text-[13px] italic text-[var(--color-text-dim)] text-center"
-          style={{ animation: "fade-in 0.5s ease-out both" }}
-        >
-          “{quote}”
-        </p>
       </div>
     </div>
   );
