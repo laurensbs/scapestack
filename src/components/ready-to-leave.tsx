@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 export type ReadyToLeaveStatus =
   | "Ready to leave"
   | "Ready to train"
+  | "Ready to AFK"
+  | "Ready to make GP"
   | "Ready to start"
   | "Missing food"
   | "Missing teleport"
@@ -16,7 +18,29 @@ export type ReadyToLeaveStatus =
 export type ReadyToLeaveTone = "good" | "warn" | "neutral";
 
 export interface ReadyToLeaveItem {
-  label: "Gear" | "Food" | "Teleport" | "Stop point" | "Skill" | "Supplies" | "Location" | "Unlock" | "Items";
+  label:
+    | "Gear"
+    | "Food"
+    | "Teleport"
+    | "Tele out"
+    | "Stop point"
+    | "Stop at"
+    | "Skill"
+    | "Train"
+    | "Supplies"
+    | "Bring"
+    | "Location"
+    | "Go to"
+    | "Unlock"
+    | "Items"
+    | "Start at"
+    | "Method"
+    | "Setup"
+    | "Cash out"
+    | "Task"
+    | "Style"
+    | "Activity"
+    | "Attention";
   value: string;
   tone?: ReadyToLeaveTone;
 }
@@ -30,7 +54,12 @@ export function ReadyToLeave({
   items: ReadyToLeaveItem[];
   compact?: boolean;
 }) {
-  const good = status === "Ready to leave" || status === "Ready to train" || status === "Ready to start";
+  const good =
+    status === "Ready to leave" ||
+    status === "Ready to train" ||
+    status === "Ready to AFK" ||
+    status === "Ready to make GP" ||
+    status === "Ready to start";
   const Icon = good ? CheckCircle2 : AlertCircle;
 
   return (

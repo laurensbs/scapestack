@@ -1011,6 +1011,7 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
         <>
           <div style={trackAnim(150)}>
             <MakePlanSmarter
+              headline={headline}
               summary={summary}
               basisNote={basisNote}
               bankItems={bankItems}
@@ -1051,6 +1052,7 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
 }
 
 function MakePlanSmarter({
+  headline,
   summary,
   basisNote,
   bankItems,
@@ -1060,6 +1062,7 @@ function MakePlanSmarter({
   onEdit,
   onClearStoredBankHandoff
 }: {
+  headline: Recommendation | null;
   summary: NextUpResult["summary"];
   basisNote: string;
   bankItems: BankHandoffItem[];
@@ -1072,14 +1075,15 @@ function MakePlanSmarter({
   const hasBank = bankItems.length > 0 || summary.basis === "full" || summary.basis === "bank-only";
   const hasRsn = Boolean(activeRsn.trim());
   const syncHref = pluginVerifyUrlForSyncedRsn(activeRsn, "next", { hasBankContext: hasBank });
+  const contextCopy = makePlanSmarterCopy(headline);
 
   return (
     <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-4 sm:p-5">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden">
         <span>
-          <span className="block text-[13px] font-bold text-[var(--color-text)]">Add gear</span>
+          <span className="block text-[13px] font-bold text-[var(--color-text)]">{contextCopy.title}</span>
           <span className="mt-0.5 block text-[11.5px] font-medium text-[var(--color-text-muted)]">
-            Better supplies, boss picks and Bank Tags.
+            {contextCopy.helper}
           </span>
         </span>
         <span className="shrink-0 rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
@@ -1096,9 +1100,9 @@ function MakePlanSmarter({
             tone={hasRsn ? "good" : "muted"}
           />
           <PlanInputTile
-            label="Gear"
+            label={contextCopy.bankLabel}
             value={hasBank ? "Loaded" : "Optional"}
-            helper={hasBank ? "Gear, supplies and GP can shape the pick." : "Use it when gear matters."}
+            helper={hasBank ? contextCopy.loadedHelper : contextCopy.emptyHelper}
             tone={hasBank ? "good" : "muted"}
           />
           <PlanInputTile
@@ -1125,7 +1129,7 @@ function MakePlanSmarter({
               href={bankOrganizerHref(activeRsn, "next")}
               className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
             >
-              Add gear
+              {contextCopy.bankCta}
               <ArrowRight className="size-3.5" />
             </Link>
           )}
@@ -1494,6 +1498,90 @@ function runeLitePlanNote(pluginSyncState: "live" | "stale" | "outdated" | null)
   return "RuneLite can improve picks later.";
 }
 
+type RecommendationPlanSurface = "combat" | "slayer" | "skilling" | "afk" | "unlock" | "gp" | "chill";
+
+function recommendationPlanSurface(rec: Recommendation | null): RecommendationPlanSurface {
+  if (!rec) return "chill";
+  if (rec.kind === "slayer") return "slayer";
+  if (rec.kind === "boss" || rec.kind === "kc") return "combat";
+  if (rec.kind === "money") return "gp";
+  if (rec.kind === "skill") {
+    return rec.routeTags?.includes("afk") ? "afk" : "skilling";
+  }
+  if (rec.kind === "quest" || rec.kind === "diary" || rec.kind === "goal" || rec.kind === "milestone") {
+    return "unlock";
+  }
+  return "chill";
+}
+
+function makePlanSmarterCopy(rec: Recommendation | null): {
+  title: string;
+  helper: string;
+  bankLabel: string;
+  loadedHelper: string;
+  emptyHelper: string;
+  bankCta: string;
+} {
+  switch (recommendationPlanSurface(rec)) {
+    case "combat":
+      return {
+        title: "Add gear",
+        helper: "Gear, food and teleports can change the trip.",
+        bankLabel: "Gear",
+        loadedHelper: "Gear, supplies and GP can shape this boss pick.",
+        emptyHelper: "Use it when PvM setup matters.",
+        bankCta: "Add gear"
+      };
+    case "slayer":
+      return {
+        title: "Add Slayer setup",
+        helper: "Task gear, supplies and teleports can change the route.",
+        bankLabel: "Task setup",
+        loadedHelper: "Gear and supplies can shape the task plan.",
+        emptyHelper: "Use it when task setup matters.",
+        bankCta: "Add setup"
+      };
+    case "gp":
+      return {
+        title: "Add GP check",
+        helper: "Cash, supplies and items can change the money-maker.",
+        bankLabel: "Bank/GP",
+        loadedHelper: "Cash stack and items can shape this GP pick.",
+        emptyHelper: "Use it when profit or supplies matter.",
+        bankCta: "Add GP"
+      };
+    case "unlock":
+      return {
+        title: "Add quest items",
+        helper: "Items and teleports can change the unlock route.",
+        bankLabel: "Items",
+        loadedHelper: "Quest items and teleports can shape this unlock.",
+        emptyHelper: "Use it when required items matter.",
+        bankCta: "Add items"
+      };
+    case "afk":
+    case "skilling":
+      return {
+        title: "Add supplies later",
+        helper: "Supplies or GP only matter if they change the method.",
+        bankLabel: "Supplies",
+        loadedHelper: "Supplies and GP can shape this skilling pick.",
+        emptyHelper: "Skip this for simple level pushes.",
+        bankCta: "Add supplies"
+      };
+    case "chill":
+    default:
+      return {
+        title: "Add context later",
+        helper: "Use gear or RuneLite only when the plan feels off.",
+        bankLabel: "Bank",
+        loadedHelper: "Your bank can shape the next pick.",
+        emptyHelper: "Optional for lighter sessions.",
+        bankCta: "Add gear"
+      };
+  }
+}
+
 const GEAR_REALITY_KEYWORDS = {
   weapon: [
     "whip", "fang", "scythe", "shadow", "trident", "bowfa", "blowpipe", "crossbow",
@@ -1702,15 +1790,40 @@ function buildNextReadyToLeave(
   const trip = buildRecommendationTrip(rec, bankItems, hasBankContext);
   const needsCombat = recommendationNeedsCombatSetup(rec);
   const needsItems = recommendationNeedsItemCheck(rec);
+  const surface = recommendationPlanSurface(rec);
 
   if (!needsCombat && !needsItems) {
+    if (surface === "gp") {
+      return {
+        status: "Ready to make GP",
+        items: [
+          { label: "Method", value: recommendationSkillLabel(rec), tone: "good" },
+          { label: "Setup", value: rec.actionPlan?.prep ?? recommendationBringValue(rec), tone: "neutral" },
+          { label: "Cash out", value: "Bank when profit or supplies change", tone: "neutral" },
+          { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
+        ]
+      };
+    }
+
+    if (surface === "afk") {
+      return {
+        status: "Ready to AFK",
+        items: [
+          { label: "Activity", value: recommendationSkillLabel(rec), tone: "good" },
+          { label: "Attention", value: "Low-pressure progress", tone: "neutral" },
+          { label: "Setup", value: rec.actionPlan?.prep ?? recommendationBringValue(rec), tone: "neutral" },
+          { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
+        ]
+      };
+    }
+
     return {
       status: "Ready to train",
       items: [
-        { label: "Skill", value: recommendationSkillLabel(rec), tone: "good" },
-        { label: "Supplies", value: rec.actionPlan?.prep ?? recommendationBringValue(rec), tone: "neutral" },
-        { label: "Location", value: "Use the best method you already know", tone: "neutral" },
-        { label: "Stop point", value: trip.stopPoint, tone: "neutral" }
+        { label: "Train", value: recommendationSkillLabel(rec), tone: "good" },
+        { label: "Bring", value: rec.actionPlan?.prep ?? recommendationBringValue(rec), tone: "neutral" },
+        { label: "Go to", value: "Best method you already know", tone: "neutral" },
+        { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
       ]
     };
   }
@@ -1738,9 +1851,21 @@ function buildNextReadyToLeave(
         status,
         items: [
           { label: "Unlock", value: recommendationSkillLabel(rec), tone: "good" },
-          { label: "Items", value: "Check quest/diary items", tone: "warn" },
-          { label: "Location", value: trip.teleport, tone: "neutral" },
-          { label: "Stop point", value: trip.stopPoint, tone: "neutral" }
+          { label: "Bring", value: "Check quest/diary items", tone: "warn" },
+          { label: "Start at", value: trip.teleport, tone: "neutral" },
+          { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
+        ]
+      };
+    }
+
+    if (surface === "slayer") {
+      return {
+        status,
+        items: [
+          { label: "Task", value: recommendationSkillLabel(rec), tone: "good" },
+          { label: "Style", value: "Add setup to check task gear", tone: "warn" },
+          { label: "Bring", value: "Check after setup", tone: "neutral" },
+          { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
         ]
       };
     }
@@ -1750,8 +1875,8 @@ function buildNextReadyToLeave(
       items: [
         { label: "Gear", value: "Add gear to check trip readiness", tone: "warn" },
         { label: "Food", value: "Check after gear", tone: "neutral" },
-        { label: "Teleport", value: "Check after gear", tone: "neutral" },
-        { label: "Stop point", value: trip.stopPoint, tone: "neutral" }
+        { label: "Tele out", value: "Check after gear", tone: "neutral" },
+        { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
       ]
     };
   }
@@ -1761,11 +1886,18 @@ function buildNextReadyToLeave(
     items: needsItems
       ? [
           { label: "Unlock", value: recommendationSkillLabel(rec), tone: "good" },
-          { label: "Items", value: missingItems ? "Check quest/diary items" : "Bank has useful items", tone: missingItems ? "warn" : "good" },
-          { label: "Location", value: missingTeleport ? "Pick closest teleport" : trip.teleport, tone: missingTeleport ? "warn" : "good" },
-          { label: "Stop point", value: trip.stopPoint, tone: "neutral" }
+          { label: "Bring", value: missingItems ? "Check quest/diary items" : "Bank has useful items", tone: missingItems ? "warn" : "good" },
+          { label: "Start at", value: missingTeleport ? "Pick closest teleport" : trip.teleport, tone: missingTeleport ? "warn" : "good" },
+          { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
         ]
-      : [
+      : surface === "slayer"
+        ? [
+          { label: "Task", value: recommendationSkillLabel(rec), tone: "good" },
+          { label: "Style", value: missingGear ? "Needs gear check" : "Gear found", tone: missingGear ? "warn" : "good" },
+          { label: "Bring", value: missingFood ? "Add food" : trip.bring[0] ?? "Task supplies", tone: missingFood ? "warn" : "good" },
+          { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
+        ]
+        : [
           {
             label: "Gear",
             value: missingGear ? "Needs check" : "Found",
@@ -1777,12 +1909,12 @@ function buildNextReadyToLeave(
             tone: missingFood ? "warn" : "good"
           },
           {
-            label: "Teleport",
+            label: "Tele out",
             value: missingTeleport ? "Missing teleport" : trip.teleport,
             tone: missingTeleport ? "warn" : "good"
           },
           {
-            label: "Stop point",
+            label: "Stop at",
             value: trip.stopPoint,
             tone: "neutral"
           }
