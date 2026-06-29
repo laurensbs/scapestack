@@ -21,8 +21,8 @@ describe("bank action loop", () => {
     expect(steps[1].proof).toContain("up to 5 slots");
     expect(steps[2]).toMatchObject({
       title: "Check boss gear",
-      cta: "Open DPS",
-      destination: "/dps calculator",
+      cta: "Check kill",
+      destination: "/dps kill check",
       proof: "Uses current bank gear and item IDs",
       state: "ready"
     });

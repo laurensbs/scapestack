@@ -12,7 +12,7 @@ const HERO_SESSION_SWITCHER = [
     itemId: 28307,
     meta: "45-90 min",
     why: "Started KC. Clean stop point.",
-    start: "Open DPS, lock setup, do one trip."
+    start: "Check kill setup, then do one trip."
   },
   {
     label: "AFK",

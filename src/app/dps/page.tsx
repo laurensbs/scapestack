@@ -3,7 +3,7 @@ import { ToolHeader } from "@/components/tool-header";
 import { DpsClient } from "./dps-client";
 
 export const metadata = {
-  title: "Boss Trip Check",
+  title: "Can I kill this?",
   description: "Paste your bank and get one boss verdict: setup, first trip, stop point and upgrade check from gear you already own."
 };
 

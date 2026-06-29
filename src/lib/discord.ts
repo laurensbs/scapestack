@@ -277,7 +277,7 @@ export async function pingWebhook(url: string): Promise<SendResult> {
     username: BRAND_NAME,
     embeds: [{
       title: "Webhook test ping",
-      description: "Scapestack will post your bank updates here. You can disable this anytime in Gear & Bank.",
+      description: "Scapestack will post your gear updates here. You can disable this anytime from Gear.",
       color: SCAPESTACK_GOLD,
       footer: { text: "via Scapestack" },
       timestamp: new Date().toISOString()

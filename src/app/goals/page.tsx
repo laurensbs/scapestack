@@ -2,7 +2,7 @@ import { ToolHeader } from "@/components/tool-header";
 import { GoalsClient } from "./goals-client";
 
 export const metadata = {
-  title: "Unlock Planner",
+  title: "What unlock next?",
   description: "Find the closest useful quest, diary, cape, gear unlock or account milestone."
 };
 

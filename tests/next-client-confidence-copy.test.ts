@@ -184,7 +184,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("What to do now");
     expect(source).toContain("Do this first");
     expect(source).toContain("One best move for this account. Two backups");
-    expect(source).toContain("Change trip");
+    expect(source).toContain("Change vibe");
     expect(source).toContain("After this run");
     expect(source).toContain("After this");
     expect(source).toContain("Two clean follow-ups after the stop point.");
@@ -208,8 +208,8 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("routeSwitchCopy(nextRouteLens, pick.headline)");
     expect(source).toContain("pickForRoute(visibleRecs, mood, minutes, routeLens, shuffleIdx, routePickOptions)");
     expect(source).not.toContain("Change time or pace");
-    expect(source).toContain("Other trips");
-    expect(source).toContain("Chill / GP / Bossing / Unlock / AFK");
+    expect(source).toContain("Backups");
+    expect(source).toContain("Chill, GP, Bossing, Unlock or AFK");
     expect(source).toContain("What changed the pick");
     expect(source).toContain("Only if you want the deeper read");
     expect(source).not.toContain("Try another");

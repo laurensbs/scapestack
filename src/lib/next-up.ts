@@ -752,7 +752,7 @@ function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSk
           timebox: "30-60 min",
           prep: match.item ? `Use your ${match.item} as the anchor for the first DKs setup.` : "Treat this as a scouting trip before camping the room.",
           steps: [
-            "Open DPS to compare your melee/range/mage options before entering Waterbirth.",
+            "Check the kill setup before entering Waterbirth.",
             "Bring supplies for a short rotation and prove you can sustain the room safely.",
             "After the trip, decide whether DKs becomes a ring grind or just a diary/KC clear."
           ]
@@ -792,7 +792,7 @@ function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSk
         timebox: "30-60 min",
         prep: match.item ? `Scapestack found ${match.item} in your bank; build the first setup around it.` : `Your combat level is the main signal for ${boss.name}; paste a bank for gear checks.`,
         steps: [
-          `Open ${boss.name} in DPS and use the best owned setup before buying anything.`,
+          `Check ${boss.name} and use the best owned setup before buying anything.`,
           "Bring supplies for 3-5 kills so mistakes stay cheap.",
           boss.avgLootGp ? `Compare your real supply cost against ~${Math.round(boss.avgLootGp / 1000)}k average loot/kill after the test trip.` : "After the test trip, compare kill time and supply burn before committing to a grind."
         ]
@@ -800,7 +800,7 @@ function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSk
     });
   }
   // Cap at top-4 — beyond that the checklist becomes "every boss in CL range"
-  // which is noise. The DPS calculator is one click away for the full list.
+  // which is noise. The kill check is one click away for the full list.
   return recs.sort((a, b) => b.score - a.score).slice(0, 4);
 }
 
@@ -856,12 +856,12 @@ function applyBossViability(recs: Recommendation[], bank: CompletionItem[]): Rec
     const steps = blocked
       ? [
           `Do not make ${boss.name} the main plan from this bank.`,
-          "Open DPS if you want to inspect the setup gap.",
+          "Check the kill setup if you want to inspect the gap.",
           "Pick a backup that your current gear supports tonight."
         ]
       : mergeUniqueShort(
           [
-            `Open ${boss.name} in DPS and lock ${viability.weaponName ?? "the best owned setup"}.`,
+            `Check ${boss.name} and lock ${viability.weaponName ?? "the best owned setup"}.`,
             viability.firstTrip
           ],
           existingSteps,
@@ -1910,7 +1910,7 @@ function bankRecs(bank: CompletionItem[]): Recommendation[] {
       timebox: "10-20 min",
       prep: `You have ${bank.length} recognized bank items; clean tabs reduce friction on every later trip.`,
       steps: [
-        "Open Gear & Bank and export the cleaned RuneLite tabs.",
+        "Check gear and export the cleaned RuneLite tabs.",
         "Decant potions, recharge jewellery and move obvious junk before the next PvM/skilling run.",
         "Save the cleaned bank so future /next runs compare against the new baseline."
       ]
@@ -2481,7 +2481,7 @@ function actionPlanFor(rec: Recommendation, ctx: ActionPlanContext): Recommendat
         timebox: "10-20 min",
         prep: "Bank work pays off when it removes friction from every later trip.",
         steps: [
-          "Open Gear & Bank and export the clean RuneLite tabs.",
+          "Check gear and export the clean RuneLite tabs.",
           "Decant potions, recharge jewellery and move obvious junk before the next PvM/skilling run.",
           "Save the cleaned bank so future /next runs compare against the new baseline."
         ]

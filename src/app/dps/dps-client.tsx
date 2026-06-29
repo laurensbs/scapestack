@@ -1246,7 +1246,7 @@ function DpsNoWeaponGate({
             href={bankHref}
             className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
           >
-            Open Gear & Bank
+            Check gear
             <Sparkles className="size-3.5" />
           </Link>
         </div>

@@ -12,13 +12,13 @@ describe("global header navigation", () => {
     expect(source).toContain('aria-current={active ? "page" : undefined}');
   });
 
-  it("surfaces the core Next → Gear → Sync loop as clickable navigation", () => {
+  it("surfaces the core Do now → Gear → RuneLite loop as clickable navigation", () => {
     expect(source).toContain("LOOP_STEPS");
-    expect(source).toContain('const LOOP_LABEL = "Pick the next trip: Next → Gear → RuneLite"');
+    expect(source).toContain('const LOOP_LABEL = "Start with one trip. Gear and RuneLite stay optional."');
     expect(source).toContain('aria-label="Pick the next OSRS trip"');
     expect(source).toContain('href={contextualNavHref("/next", pathname, contextQuery)}');
-    expect(source).toContain("Pick the next trip");
-    expect(source).toContain("Start with one trip. Add gear or RuneLite only when it changes the route.");
+    expect(source).toContain("Start with one trip");
+    expect(source).toContain("Open the plan first. Add gear or RuneLite only when it changes the trip.");
     expect(source).toContain('aria-label={`${step.label} in Scapestack loop`}');
   });
 

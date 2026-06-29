@@ -8,7 +8,7 @@ describe("tool registry", () => {
     expect(next).toMatchObject({
       href: "/next",
       name: "What should I do now?",
-      navLabel: "Next",
+      navLabel: "Do now",
       status: "live"
     });
     expect(next?.description).toContain("Stop bankstanding");
@@ -21,8 +21,8 @@ describe("tool registry", () => {
 
     expect(plugin).toMatchObject({
       href: "/plugin",
-      name: "RuneLite Check",
-      navLabel: "Sync",
+      name: "RuneLite helper",
+      navLabel: "RuneLite",
       status: "live"
     });
     expect(plugin?.short).toBe("Check RuneLite for finished progress");
@@ -43,19 +43,19 @@ describe("tool registry", () => {
 
     expect(PRIMARY_NAV_SLUGS).toEqual(["next", "bank", "dps", "goals", "slayer", "plugin"]);
     expect(primary.map((tool) => tool.slug)).toEqual(["next", "bank", "dps", "goals", "slayer", "plugin"]);
-    expect(primary.map((tool) => tool.navLabel)).toEqual(["Next", "Bank", "DPS", "Goals", "Slayer", "Sync"]);
-    expect(primary.every((tool) => (tool.navLabel ?? tool.name).length <= 6)).toBe(true);
+    expect(primary.map((tool) => tool.navLabel)).toEqual(["Do now", "Gear", "Kill", "Unlocks", "Task", "RuneLite"]);
+    expect(primary.every((tool) => (tool.navLabel ?? tool.name).length <= 8)).toBe(true);
   });
 
   it("keeps live tool copy aligned with current product scope", () => {
     expect(getTool("dps")).toMatchObject({
-      name: "Boss Trip Check",
+      name: "Can I kill this?",
       tagline: "Paste your bank → one boss verdict"
     });
     expect(getTool("dps")?.description).toContain("first trip, stop point and upgrade check");
     expect(getTool("slayer")).toMatchObject({
       href: "/slayer",
-      navLabel: "Slayer",
+      navLabel: "Task",
       status: "live"
     });
   });

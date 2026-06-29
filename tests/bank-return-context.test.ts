@@ -7,8 +7,8 @@ describe("bank return context", () => {
   it("explains why DPS users should refresh bank gear", () => {
     expect(bankReturnContextFromSource("dps")).toMatchObject({
       source: "dps",
-      label: "Back from DPS",
-      title: "Update combat gear before trusting boss DPS"
+      label: "Back from kill check",
+      title: "Update combat gear before trusting the boss trip"
     });
     expect(bankReturnContextFromSource("dps")?.body).toContain("weapons, upgrades and supplies");
   });

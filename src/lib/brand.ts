@@ -18,7 +18,7 @@ export const BRAND_KEYWORDS = [
   "RuneLite",
   "bank organizer",
   "Bank Tags",
-  "DPS calculator",
+  "boss kill check",
   "Slayer",
   "collection log",
   "Scapestack"
@@ -26,8 +26,8 @@ export const BRAND_KEYWORDS = [
 
 export const BRAND_SHORTCUTS = [
   {
-    name: "Gear & Bank",
-    short_name: "Bank",
+    name: "Can I leave?",
+    short_name: "Gear",
     description: "Paste gear when supplies, GP or boss setup changes the plan.",
     url: "/bank",
     icon: "/icon?tool=bank"
@@ -40,8 +40,8 @@ export const BRAND_SHORTCUTS = [
     icon: "/icon?tool=next"
   },
   {
-    name: "RuneLite Check",
-    short_name: "Sync",
+    name: "RuneLite helper",
+    short_name: "RuneLite",
     description: "Let RuneLite skip quests, diaries, clog slots and Slayer you already finished.",
     url: "/plugin",
     icon: "/icon?tool=sync"

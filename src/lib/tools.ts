@@ -30,7 +30,7 @@ export const TOOLS: Tool[] = [
     slug: "next",
     href: "/next",
     name: "What should I do now?",
-    navLabel: "Next",
+    navLabel: "Do now",
     short: "Enter your OSRS name and get one clear next move",
     tagline: "RSN in → do this first",
     description:
@@ -43,10 +43,10 @@ export const TOOLS: Tool[] = [
   {
     slug: "bank",
     href: "/bank",
-    name: "Gear & Bank",
-    navLabel: "Bank",
-    short: "Use gear and supplies to make plans smarter",
-    tagline: "Paste bank → smarter trips",
+    name: "Can I leave?",
+    navLabel: "Gear",
+    short: "Check gear, food and teleports before leaving",
+    tagline: "Gear in → leave the bank",
     description:
       "Paste Bank Memory or Bank Tags when gear, supplies or GP should change the route. Scapestack still gives one useful next move first, then keeps the clean tabs and copy-back tools below.",
     icon: Layers,
@@ -79,8 +79,8 @@ export const TOOLS: Tool[] = [
   {
     slug: "goals",
     href: "/goals",
-    name: "Unlock Planner",
-    navLabel: "Goals",
+    name: "What unlock next?",
+    navLabel: "Unlocks",
     short: "Find the closest useful unlock",
     tagline: "Quests, diaries, capes, useful grinds",
     description:
@@ -97,8 +97,8 @@ export const TOOLS: Tool[] = [
   {
     slug: "dps",
     href: "/dps",
-    name: "Boss Trip Check",
-    navLabel: "DPS",
+    name: "Can I kill this?",
+    navLabel: "Kill",
     short: "Can this bank handle the trip?",
     tagline: "Paste your bank → one boss verdict",
     description:
@@ -112,7 +112,7 @@ export const TOOLS: Tool[] = [
     slug: "slayer",
     href: "/slayer",
     name: "Task Check",
-    navLabel: "Slayer",
+    navLabel: "Task",
     short: "Kill, skip, extend, burst or cannon",
     tagline: "Task → route, supplies, stop point",
     description:
@@ -125,8 +125,8 @@ export const TOOLS: Tool[] = [
   {
     slug: "plugin",
     href: "/plugin",
-    name: "RuneLite Check",
-    navLabel: "Sync",
+    name: "RuneLite helper",
+    navLabel: "RuneLite",
     short: "Check RuneLite for finished progress",
     tagline: "Skip finished quests, diaries, clog and Slayer",
     description:

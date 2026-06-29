@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   keywords: BRAND_KEYWORDS,
   // Punchier than the old "Scapestack — OSRS toolkit" — the new tagline
   // hints at *what* the tools do rather than just labelling the category.
-  // Per-page templates still take precedence (e.g. "Gear & Bank · Scapestack").
+  // Per-page templates still take precedence (e.g. "Can I leave the bank? · Scapestack").
   title: {
     default: `${BRAND_NAME} · ${BRAND_TAGLINE}`,
     template: "%s · Scapestack"

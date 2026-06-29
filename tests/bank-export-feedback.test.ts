@@ -98,9 +98,9 @@ describe("bank export feedback", () => {
 
   it("makes selected boss loadouts actionable in DPS", () => {
     expect(source).toContain("onOpenDps: (bossSlug: string) => void;");
-    expect(source).toContain("Open DPS");
-    expect(source).toContain("aria-label={`Open DPS calculator for ${boss.name} with this bank`}");
+    expect(source).toContain("Check kill");
+    expect(source).toContain("aria-label={`Check ${boss.name} kill setup with this bank`}");
     expect(source).toContain("title={`/dps?boss=${boss.slug}`}");
-    expect(source).toContain("opens DPS with this boss selected.");
+    expect(source).toContain("opens kill check with this boss selected.");
   });
 });

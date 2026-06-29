@@ -10,11 +10,11 @@ import { cn } from "@/lib/utils";
 import { BuyMeCoffee } from "./buy-me-coffee";
 
 const LOOP_STEPS = [
-  { label: "Next", href: "/next" },
+  { label: "Do now", href: "/next" },
   { label: "Gear", href: "/bank" },
-  { label: "Sync", href: "/plugin" }
+  { label: "RuneLite", href: "/plugin" }
 ];
-const LOOP_LABEL = "Pick the next trip: Next → Gear → RuneLite";
+const LOOP_LABEL = "Start with one trip. Gear and RuneLite stay optional.";
 
 export function Header() {
   const pathname = usePathname();
@@ -83,7 +83,7 @@ export function Header() {
         <Link
           href={contextualNavHref("/next", pathname, contextQuery)}
           aria-label="Pick the next OSRS trip"
-          title="Open /next first. Add gear or RuneLite only when it changes the trip."
+          title="Open the plan first. Add gear or RuneLite only when it changes the trip."
           className="hidden lg:flex min-w-0 items-center gap-2 rounded-md px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-panel-2)]/45 hover:text-[var(--color-accent)]"
           style={{ animation: "hero-fade 0.5s cubic-bezier(0.22,1,0.36,1) 0.36s both" }}
         >
@@ -153,7 +153,7 @@ export function Header() {
           <nav id={mobileNavId} className="px-4 py-3 space-y-1" aria-label="Mobile Scapestack tools">
             <div className="mb-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 p-3">
               <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-gold)]">
-                Pick the next trip
+                Start with one trip
               </div>
               <div className="mt-2 grid grid-cols-3 gap-1.5">
                 {LOOP_STEPS.map((step) => (

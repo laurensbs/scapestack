@@ -59,9 +59,9 @@ export function buildBankActionLoop(input: BankActionLoopInput): BankActionLoopS
       id: "dps",
       label: "03",
       title: "Check boss gear",
-      body: "Open DPS with this exact bank before you buy upgrades. Scapestack will show which bosses your current weapons can actually kill and what item helps next.",
-      cta: "Open DPS",
-      destination: "/dps calculator",
+      body: "Check the kill with this exact bank before you buy upgrades. Scapestack will show which bosses your current weapons can actually kill and what item helps next.",
+      cta: "Check kill",
+      destination: "/dps kill check",
       proof: "Uses current bank gear and item IDs",
       state: "ready"
     },

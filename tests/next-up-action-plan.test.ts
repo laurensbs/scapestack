@@ -54,7 +54,7 @@ describe("next-up action plans", () => {
     expect(text).toContain("Time:");
     expect(text).toContain("Gear/supplies:");
     expect(text).toMatch(/\n1\. /);
-    expect(text).toContain("Open");
+    expect(text).toContain("Find unlock");
     expect(text).toContain("https://www.scapestack.org/");
     expect(text).toContain("rsn=Lynx+Titan");
     expect(text).toContain("from=next");
@@ -229,7 +229,7 @@ describe("next-up action plans", () => {
     expect(result.headline?.title).toBe("Push Vardorvis to 50 KC");
     expect(result.headline?.decisionReason).toBe("You already have 15 Vardorvis KC, so 50 KC is a clean stop point.");
     expect(result.headline?.actionPlan?.prep).toContain("Best owned setup: Abyssal whip");
-    expect(result.headline?.actionPlan?.prep).toContain("DPS");
+    expect(result.headline?.actionPlan?.prep).toContain("Keep it short");
     expect(result.headline?.needs?.join(" ")).toContain("Abyssal whip setup");
   });
 

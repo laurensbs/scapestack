@@ -18,7 +18,7 @@ export interface RecommendationPrimaryAction {
 
 const ROUTE_ACTIONS: Record<string, Omit<RecommendationPrimaryAction, "href">> = {
   "/bank": {
-    label: "Open Gear & Bank",
+    label: "Check gear",
     helper: "Clean the bank and export a usable RuneLite Bank Tags layout."
   },
   "/dps": {
@@ -26,7 +26,7 @@ const ROUTE_ACTIONS: Record<string, Omit<RecommendationPrimaryAction, "href">> =
     helper: "Tune owned gear, boss weakness and kill setup before committing supplies."
   },
   "/goals": {
-    label: "Open goals tracker",
+    label: "Find unlock",
     helper: "Track missing set pieces, unlocks and long-term account progress."
   },
   "/gp": {
@@ -46,7 +46,7 @@ const ROUTE_ACTIONS: Record<string, Omit<RecommendationPrimaryAction, "href">> =
     helper: "Use the active /next planner intent for diaries and unlock chains."
   },
   "/slayer": {
-    label: "Open Slayer view",
+    label: "Check task",
     helper: "Use the synced task, streak, points and block-list."
   },
   "/plugin": {

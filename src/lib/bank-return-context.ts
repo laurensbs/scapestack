@@ -14,13 +14,13 @@ const contexts: Record<BankReturnSource, Omit<BankReturnContext, "source">> = {
     body: "Paste Bank Memory or Bank Tags again if gear, supplies or GP changed after your last recommendation."
   },
   dps: {
-    label: "Back from DPS",
-    title: "Update combat gear before trusting boss DPS",
-    body: "Paste your latest bank so DPS can use the weapons, upgrades and supplies you actually own now."
+    label: "Back from kill check",
+    title: "Update combat gear before trusting the boss trip",
+    body: "Paste your latest bank so Scapestack can use the weapons, upgrades and supplies you actually own now."
   },
   goals: {
-    label: "Back from Goals",
-    title: "Refresh the bank before reprioritising goals",
+    label: "Back from unlocks",
+    title: "Refresh the bank before picking the next unlock",
     body: "Paste the current bank if you bought supplies, sold gear or finished a milestone that changes affordability."
   },
   slayer: {

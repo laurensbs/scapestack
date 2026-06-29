@@ -34,7 +34,7 @@ describe("snapshot single compare UX", () => {
     expect(bankResultSource).toContain('data-testid="snapshot-compare-action-rail"');
     expect(bankResultSource).toContain("Do something with this diff");
     expect(bankResultSource).toContain("Open next upgrades using this bank");
-    expect(bankResultSource).toContain("Open DPS using this bank");
+    expect(bankResultSource).toContain("Check kill using this bank");
     expect(bankResultSource).toContain("Copy bank compare summary");
     expect(bankResultSource).toContain("buildSnapshotCompareShareText(compare)");
     expect(bankResultSource).toContain("recommendSnapshotCompareActions(diff)");

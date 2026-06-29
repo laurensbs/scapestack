@@ -2815,7 +2815,7 @@ function SnapshotCompareActionRail({
             type="button"
             onClick={onOpenDps}
             className="inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1 text-[10.5px] font-semibold text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
-            aria-label="Open DPS using this bank"
+            aria-label="Check kill using this bank"
           >
             <Sword className="size-3" />
             Check kill
@@ -5312,10 +5312,10 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
               type="button"
               onClick={() => onOpenDps(boss.slug)}
               className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-bg-2)] px-3 py-1.5 text-[12px] font-semibold text-[var(--color-accent)] transition-all hover:border-[var(--color-accent)]/60 hover:bg-[var(--color-accent)]/10"
-              aria-label={`Open DPS calculator for ${boss.name} with this bank`}
+              aria-label={`Check ${boss.name} kill setup with this bank`}
               title={`/dps?boss=${boss.slug}`}
             >
-              Open DPS
+              Check kill
               <Sword className="size-3.5" />
             </button>
             <button
@@ -5355,7 +5355,7 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
           </div>
 
           <p className="mt-3 text-[10.5px] text-[var(--color-text-muted)]">
-            {haveGearCount}/{setupSlots.length} slots filled from your bank · imports as a fresh tab in RuneLite Bank Tags · opens DPS with this boss selected.
+            {haveGearCount}/{setupSlots.length} slots filled from your bank · imports as a fresh tab in RuneLite Bank Tags · opens kill check with this boss selected.
           </p>
           {copied === "boss-tag-error" && manualBossTag && (
             <div className="mt-3 rounded-lg border border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8 p-2" aria-live="polite">

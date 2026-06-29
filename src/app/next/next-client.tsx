@@ -774,7 +774,7 @@ function NextIntake({
       )}
 
       {/* Handoff banner — appears when the user arrived here via the
-          Gear & Bank's trip handoff button. The bank is
+          Gear trip handoff button. The bank is
           already loaded; an RSN is optional and adds stats. */}
       {fromBank && (
         <div className="mb-4 rounded-lg border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/8 px-4 py-3 flex items-start gap-3 animate-[fade-in_0.3s_ease-out] text-left">
@@ -1327,21 +1327,21 @@ function NextBankContextStrip({
             href={toolHandoffUrl("/dps", "next", activeRsn)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
           >
-            Open DPS
+            Check kill
             <Sword className="size-3.5" />
           </Link>
           <Link
             href={toolHandoffUrl("/goals", "next", activeRsn)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
           >
-            Open goals
+            Find unlock
             <Target className="size-3.5" />
           </Link>
           <Link
             href={toolHandoffUrl("/slayer", "next", activeRsn)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
           >
-            Open Slayer
+            Check task
             <Shield className="size-3.5" />
           </Link>
           <Link
@@ -3314,10 +3314,10 @@ function WhatToDo({
               <div>
                 <div className="mb-2 flex flex-wrap items-baseline gap-2">
                   <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                    Other trips
+                    Backups
                   </span>
                   <span className="text-[11px] text-[var(--color-text-muted)]">
-                    Chill / GP / Bossing / Unlock / AFK
+                    Chill, GP, Bossing, Unlock or AFK
                   </span>
                 </div>
                 <div className="grid gap-2.5 sm:grid-cols-2">
@@ -3342,7 +3342,7 @@ function WhatToDo({
               <details className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/42 p-2.5">
                 <summary className="flex list-none items-center justify-between gap-3 rounded-lg px-1 py-1 text-left [&::-webkit-details-marker]:hidden">
                   <span>
-                    <span className="block text-[12.5px] font-bold text-[var(--color-text)]">Change trip</span>
+                    <span className="block text-[12.5px] font-bold text-[var(--color-text)]">Change vibe</span>
                     <span className="mt-0.5 block text-[11px] text-[var(--color-text-muted)]">
                       {currentRouteLabel.name} · {minutes === 60 ? "1 hour" : `${minutes} min`}
                     </span>
@@ -3354,7 +3354,7 @@ function WhatToDo({
                 <div className="mt-3 space-y-4">
                   <div>
                     <div className="mb-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                      Trip type
+                      What sounds good
                     </div>
                     <div className="flex gap-1.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-4 sm:overflow-visible sm:pb-0 lg:grid-cols-8">
                       {ROUTE_LENS_ORDER.map((lens) => {

@@ -19,7 +19,7 @@ export function defaultActionHints(kind: RecKind): ActionHints {
   switch (kind) {
     case "goal":
       return {
-        needs: ["Open Goals", "Check the missing piece"],
+        needs: ["Find unlock", "Check the missing piece"],
         details: "Good when you want a visible unlock. Start with the closest missing item, tier or requirement."
       };
     case "quest":
@@ -64,7 +64,7 @@ export function defaultActionHints(kind: RecKind): ActionHints {
       };
     case "bank":
       return {
-        needs: ["Open Bank", "Paste bank"],
+        needs: ["Check gear", "Paste bank"],
         details: "Good when your setup feels messy. Clean tabs make the next trip faster."
       };
     case "milestone":
