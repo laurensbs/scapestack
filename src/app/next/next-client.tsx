@@ -2722,19 +2722,19 @@ function routeSwitchCopy(nextLens: RouteLens, skipped: Recommendation): string {
   const label = ROUTE_LENS_LABEL[nextLens];
   switch (nextLens) {
     case "maxing":
-      return `Showing ${label.name}: cape, diary and total-level progress instead of ${skipped.title}.`;
+      return `${label.name}: cape, diary and total-level progress instead of ${skipped.title}.`;
     case "fun":
-      return `Showing ${label.name}: rewards, KC or minigames instead of another chore.`;
+      return `${label.name}: rewards, KC or minigames instead of another chore.`;
     case "unlock-chain":
-      return `Showing ${label.name}: a cleaner account unlock instead of ${skipped.title}.`;
+      return `${label.name}: a cleaner account unlock instead of ${skipped.title}.`;
     case "gp-upgrade":
-      return `Showing ${label.name}: funding the next upgrade instead of ${skipped.title}.`;
+      return `${label.name}: funding the next upgrade instead of ${skipped.title}.`;
     case "boss-log":
-      return `Showing ${label.name}: a trip, KC block or clog angle instead of ${skipped.title}.`;
+      return `${label.name}: a trip, KC block or clog angle instead of ${skipped.title}.`;
     case "afk-progress":
-      return `Showing ${label.name}: lower-pressure progress instead of ${skipped.title}.`;
+      return `${label.name}: lower-pressure progress instead of ${skipped.title}.`;
     case "short-login":
-      return `Showing ${label.name}: a clean stop point instead of ${skipped.title}.`;
+      return `${label.name}: a clean stop point instead of ${skipped.title}.`;
     case "smart":
       return `Fresh pick: ${skipped.title} is lowered for this session.`;
   }
@@ -3151,6 +3151,17 @@ function WhatToDo({
               {sessionCopyLabel}
             </button>
           )}
+          {pick && allRecs.length > 1 && !shareMode && (
+            <button
+              type="button"
+              onClick={moveToAnotherPlan}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/65 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)]"
+              title={`Show ${nextRouteLabel.name}`}
+            >
+              <Dices className="size-3.5" />
+              Another route
+            </button>
+          )}
           {shareMode ? (
             <button
               type="button"
@@ -3168,17 +3179,6 @@ function WhatToDo({
                 <ChevronRight className="size-3.5 transition-transform group-open:rotate-90" />
               </summary>
               <div className="absolute right-0 z-20 mt-2 w-56 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-2 shadow-[0_18px_55px_rgba(0,0,0,0.28)]">
-                {pick && allRecs.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={moveToAnotherPlan}
-                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-accent)]"
-                    title={`Show ${nextRouteLabel.name} route`}
-                  >
-                    <Dices className="size-3.5" />
-                    Show {nextRouteLabel.name}
-                  </button>
-                )}
                 <button
                   type="button"
                   onClick={() => onShareModeChange(true)}
@@ -3342,9 +3342,9 @@ function WhatToDo({
               <details className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/42 p-2.5">
                 <summary className="flex list-none items-center justify-between gap-3 rounded-lg px-1 py-1 text-left [&::-webkit-details-marker]:hidden">
                   <span>
-                    <span className="block text-[12.5px] font-bold text-[var(--color-text)]">Change vibe</span>
+                    <span className="block text-[12.5px] font-bold text-[var(--color-text)]">Pick a route</span>
                     <span className="mt-0.5 block text-[11px] text-[var(--color-text-muted)]">
-                      {currentRouteLabel.name} · {minutes === 60 ? "1 hour" : `${minutes} min`}
+                      {currentRouteLabel.name} · {currentRouteLabel.tagline}
                     </span>
                   </span>
                   <span className="text-right text-[11px] font-semibold text-[var(--color-text-dim)]">
@@ -3354,9 +3354,9 @@ function WhatToDo({
                 <div className="mt-3 space-y-4">
                   <div>
                     <div className="mb-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                      What sounds good
+                      Session route
                     </div>
-                    <div className="flex gap-1.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-4 sm:overflow-visible sm:pb-0 lg:grid-cols-8">
+                    <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
                       {ROUTE_LENS_ORDER.map((lens) => {
                         const label = ROUTE_LENS_LABEL[lens];
                         const active = routeLens === lens;
@@ -3368,7 +3368,7 @@ function WhatToDo({
                             aria-label={`Pick ${label.name} route`}
                             onClick={() => applyRouteLens(lens)}
                             className={cn(
-                              "flex min-h-10 min-w-[132px] items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-[11.5px] font-semibold transition-colors sm:min-w-0",
+                              "flex min-h-11 items-center justify-start gap-1.5 rounded-lg border px-2.5 py-2 text-left text-[11.5px] font-semibold leading-tight transition-colors",
                               active
                                 ? "border-[var(--color-accent)]/60 bg-[var(--color-accent)]/12 text-[var(--color-accent)]"
                                 : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)]"
@@ -3381,7 +3381,7 @@ function WhatToDo({
                               className="pixelated shrink-0"
                               style={{ width: 18, height: 18, imageRendering: "pixelated", objectFit: "contain" }}
                             />
-                            <span className="truncate">{label.name}</span>
+                            <span>{label.name}</span>
                           </button>
                         );
                       })}
@@ -3412,7 +3412,7 @@ function WhatToDo({
                     </div>
                     <div>
                       <div className="mb-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                        Mood
+                        Effort
                       </div>
                       <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
                         {MOODS.map((m) => {

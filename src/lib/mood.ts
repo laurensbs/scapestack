@@ -48,14 +48,14 @@ export const ROUTE_LENS_ORDER: RouteLens[] = [
 ];
 
 export const ROUTE_LENS_LABEL: Record<RouteLens, { itemId: number; name: string; tagline: string }> = {
-  smart:        { itemId: 995,   name: "Smart route", tagline: "The cleanest move for this login" },
-  maxing:       { itemId: 13342, name: "Maxing",      tagline: "Cape, diary, quest and total-level progress" },
-  fun:          { itemId: 20720, name: "Fun",         tagline: "Rewards, KC or minigames without chores" },
-  "unlock-chain": { itemId: 9813,  name: "Unlock",      tagline: "Quest, diary and account gates" },
-  "gp-upgrade":   { itemId: 995,   name: "GP",          tagline: "Fund the next upgrade or supply stack" },
-  "boss-log":     { itemId: 4151,  name: "Bossing",     tagline: "KC, clog and PvM proof route" },
-  "afk-progress": { itemId: 12012, name: "AFK",         tagline: "Low-attention progress that still matters" },
-  "short-login":  { itemId: 8007,  name: "Short login", tagline: "Fast stop point before you log out" }
+  smart:        { itemId: 995,   name: "Best now",        tagline: "The cleanest move for this login" },
+  maxing:       { itemId: 13342, name: "Maxing lane",     tagline: "Cape, diary, quest and total-level progress" },
+  fun:          { itemId: 20720, name: "Fun route",       tagline: "Rewards, KC or minigames without chores" },
+  "unlock-chain": { itemId: 9813,  name: "Quest cape route", tagline: "Quest, diary and account gates" },
+  "gp-upgrade":   { itemId: 995,   name: "Rebuild GP",      tagline: "Fund the next upgrade or supply stack" },
+  "boss-log":     { itemId: 4151,  name: "Boss log",        tagline: "KC, clog and PvM proof route" },
+  "afk-progress": { itemId: 12012, name: "AFK progress",    tagline: "Low-attention progress that still matters" },
+  "short-login":  { itemId: 8007,  name: "Quick win",       tagline: "Fast stop point before you log out" }
 };
 
 /** Hoeveel minuten heeft de speler te besteden. Gebruikt om bv. een

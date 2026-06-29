@@ -200,14 +200,14 @@ describe("pickForMood", () => {
     ];
     const result = pickForRoute(recs, "unlock", 120, "maxing");
     expect(result!.headline.id).toBe("farming-99");
-    expect(result!.routeLabel).toBe("Maxing");
+    expect(result!.routeLabel).toBe("Maxing lane");
   });
 
   it("route lens labels read like player choices instead of dashboard filters", () => {
-    expect(pickForRoute([rec("money", "herb-run", 70)], "cash", 30, "gp-upgrade")!.routeLabel).toBe("GP");
-    expect(pickForRoute([rec("boss", "vorkath", 70)], "bossing", 60, "boss-log")!.routeLabel).toBe("Bossing");
-    expect(pickForRoute([rec("skill", "redwoods", 70)], "afk", 60, "afk-progress")!.routeLabel).toBe("AFK");
-    expect(pickForRoute([rec("skill", "birdhouses", 70)], "short", 15, "short-login")!.routeLabel).toBe("Short login");
+    expect(pickForRoute([rec("money", "herb-run", 70)], "cash", 30, "gp-upgrade")!.routeLabel).toBe("Rebuild GP");
+    expect(pickForRoute([rec("boss", "vorkath", 70)], "bossing", 60, "boss-log")!.routeLabel).toBe("Boss log");
+    expect(pickForRoute([rec("skill", "redwoods", 70)], "afk", 60, "afk-progress")!.routeLabel).toBe("AFK progress");
+    expect(pickForRoute([rec("skill", "birdhouses", 70)], "short", 15, "short-login")!.routeLabel).toBe("Quick win");
   });
 
   it("route tags can surface smarter account-story routes without visible labels", () => {
