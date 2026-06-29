@@ -12,6 +12,9 @@ describe("global header navigation", () => {
     expect(source).toContain('aria-current={active ? "page" : undefined}');
     expect(source).toContain("AccountSwitcher");
     expect(source).toContain("Add RSN");
+    expect(source).toContain("SAVED_BANK_EVENT");
+    expect(source).toContain("window.addEventListener(SAVED_BANK_EVENT, refresh)");
+    expect(source).toContain("window.addEventListener(SAVED_BANK_EVENT, syncAccount)");
     expect(source).toContain("Bank added");
     expect(source).toContain("Add bank");
     expect(source).toContain("Check RuneLite");

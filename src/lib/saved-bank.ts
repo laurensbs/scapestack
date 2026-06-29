@@ -21,6 +21,7 @@ const BANK_KEY = "scapestack:saved-bank:v1";
 const ACCOUNT_BANK_KEY = (rsn: string) => `scapestack:saved-bank:${accountIdForRsn(rsn)}:v1`;
 const RSN_KEY = "scapestack:saved-rsn:v1";
 const DISABLED_SESSION_KEY = "scapestack:save-bank:disabled";
+export const SAVED_BANK_EVENT = "scapestack:saved-bank-change";
 
 export interface SavedBank {
   /** Schema version — bump only if the payload shape changes. */
@@ -30,6 +31,14 @@ export interface SavedBank {
   banktags: string;
   /** Epoch ms when the bank was saved. Used for the "from X ago" badge. */
   savedAt: number;
+}
+
+function notifySavedBankChange(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.dispatchEvent(new CustomEvent(SAVED_BANK_EVENT));
+  } catch {
+  }
 }
 
 // ── Bank ─────────────────────────────────────────────────────────────
@@ -112,6 +121,7 @@ export function saveSavedBank(banktags: string, rsn?: string | null): void {
       localStorage.setItem(ACCOUNT_BANK_KEY(cleanRsn), JSON.stringify(payload));
       markAccountBankSaved(cleanRsn, payload.savedAt);
     }
+    notifySavedBankChange();
   } catch { /* quota exceeded / private mode — silently skip */ }
 }
 
@@ -119,6 +129,7 @@ export function saveSavedBank(banktags: string, rsn?: string | null): void {
 export function clearSavedBank(): void {
   if (typeof window === "undefined") return;
   try { localStorage.removeItem(BANK_KEY); } catch {}
+  notifySavedBankChange();
 }
 
 // ── RSN ─────────────────────────────────────────────────────────────

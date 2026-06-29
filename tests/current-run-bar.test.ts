@@ -8,6 +8,8 @@ describe("current run bar", () => {
   it("centralizes account, setup, RuneLite and vibe context without a dashboard panel", () => {
     expect(source).toContain('aria-label="Current Scapestack run"');
     expect(source).toContain("getActiveAccount");
+    expect(source).toContain("SAVED_BANK_EVENT");
+    expect(source).toContain("window.addEventListener(SAVED_BANK_EVENT, refresh)");
     expect(source).toContain("loadSavedBank(savedRsn)");
     expect(source).toContain("Bank added");
     expect(source).toContain("Add bank");

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Package, PlugZap, Sword, UserRound } from "lucide-react";
 import { ACCOUNT_EVENT, getActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
 import { loadMood } from "@/lib/mood-storage";
-import { loadSavedBank, loadSavedRsn } from "@/lib/saved-bank";
+import { loadSavedBank, loadSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
 import { cn } from "@/lib/utils";
 
 interface CurrentRunBarProps {
@@ -31,9 +31,11 @@ export function CurrentRunBar({ className, compact = false }: CurrentRunBarProps
     };
     refresh();
     window.addEventListener(ACCOUNT_EVENT, refresh);
+    window.addEventListener(SAVED_BANK_EVENT, refresh);
     window.addEventListener("storage", refresh);
     return () => {
       window.removeEventListener(ACCOUNT_EVENT, refresh);
+      window.removeEventListener(SAVED_BANK_EVENT, refresh);
       window.removeEventListener("storage", refresh);
     };
   }, []);

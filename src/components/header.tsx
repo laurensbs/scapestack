@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { CheckCircle2, ChevronDown, Menu, Package, PlugZap, Plus, UserRound, X } from "lucide-react";
 import { ACCOUNT_EVENT, getActiveAccount, loadAccountStore, removeAccount, setActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
 import { contextualNavHref } from "@/lib/nav-context";
-import { clearSavedRsn, loadSavedBank, loadSavedRsn, saveSavedRsn } from "@/lib/saved-bank";
+import { clearSavedRsn, loadSavedBank, loadSavedRsn, saveSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
 import { getPrimaryNavTools } from "@/lib/tools";
 import { cn } from "@/lib/utils";
 import { BuyMeCoffee } from "./buy-me-coffee";
@@ -47,9 +47,11 @@ export function Header() {
     };
     syncAccount();
     window.addEventListener(ACCOUNT_EVENT, syncAccount);
+    window.addEventListener(SAVED_BANK_EVENT, syncAccount);
     window.addEventListener("storage", syncAccount);
     return () => {
       window.removeEventListener(ACCOUNT_EVENT, syncAccount);
+      window.removeEventListener(SAVED_BANK_EVENT, syncAccount);
       window.removeEventListener("storage", syncAccount);
     };
   }, []);
@@ -255,9 +257,11 @@ function AccountSwitcher({
   useEffect(() => {
     refresh();
     window.addEventListener(ACCOUNT_EVENT, refresh);
+    window.addEventListener(SAVED_BANK_EVENT, refresh);
     window.addEventListener("storage", refresh);
     return () => {
       window.removeEventListener(ACCOUNT_EVENT, refresh);
+      window.removeEventListener(SAVED_BANK_EVENT, refresh);
       window.removeEventListener("storage", refresh);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

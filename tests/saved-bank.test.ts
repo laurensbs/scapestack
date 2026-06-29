@@ -22,12 +22,17 @@ type Mutable = Record<string, unknown>;
 const g = globalThis as Mutable;
 
 beforeEach(() => {
+  let dispatchCount = 0;
   g.localStorage = new MemoryStorage();
   g.sessionStorage = new MemoryStorage();
   g.window = {
     localStorage: g.localStorage,
     sessionStorage: g.sessionStorage,
-    dispatchEvent: () => true
+    dispatchEvent: (event: Event) => {
+      if (event.type === "scapestack:saved-bank-change") dispatchCount += 1;
+      return true;
+    },
+    __savedBankDispatchCount: () => dispatchCount
   };
   g.CustomEvent = class CustomEventPolyfill<T = unknown> extends Event {
     detail: T | undefined;
@@ -40,6 +45,9 @@ beforeEach(() => {
 
 // Tiny helper so tests can read the mocked storage without retyping the cast.
 function ls(): MemoryStorage { return g.localStorage as MemoryStorage; }
+function savedBankDispatchCount(): number {
+  return (g.window as { __savedBankDispatchCount: () => number }).__savedBankDispatchCount();
+}
 
 // Lazy-import so each test sees a fresh module-level read of `window`/storage.
 async function loadModule() {
@@ -49,13 +57,15 @@ async function loadModule() {
 
 describe("saved-bank: bank round-trip", () => {
   it("saves and reloads the same banktags string", async () => {
-    const { saveSavedBank, loadSavedBank } = await loadModule();
+    const { saveSavedBank, loadSavedBank, SAVED_BANK_EVENT } = await loadModule();
+    expect(SAVED_BANK_EVENT).toBe("scapestack:saved-bank-change");
     saveSavedBank("Combat\n4151,1\n11804,1\n");
     const got = loadSavedBank();
     expect(got).not.toBeNull();
     expect(got!.banktags).toBe("Combat\n4151,1\n11804,1");
     expect(got!.version).toBe(1);
     expect(typeof got!.savedAt).toBe("number");
+    expect(savedBankDispatchCount()).toBe(1);
   });
 
   it("keeps setup separate per remembered RSN", async () => {
