@@ -35,4 +35,14 @@ describe("bank return context", () => {
     expect(source).toContain('data-testid="bank-return-context-banner"');
     expect(source).toContain("RSN: <span");
   });
+
+  it("keeps a DPS boss target while setup is added on the bank page", () => {
+    const source = readFileSync(join(process.cwd(), "src/app/bank/page.tsx"), "utf8");
+
+    expect(source).toContain("function bossFromUrl()");
+    expect(source).toContain('new URLSearchParams(window.location.search).get("boss")');
+    expect(source).toContain("const [returnBossSlug, setReturnBossSlug] = useState<string | null>(null);");
+    expect(source).toContain("setReturnBossSlug(bossFromUrl());");
+    expect(source).toContain("returnBossSlug={returnBossSlug}");
+  });
 });

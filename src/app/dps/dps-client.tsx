@@ -201,7 +201,7 @@ function DpsIntakeHero() {
             Can I kill this with my bank?
           </h2>
           <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-dim)]">
-            Paste gear once. Scapestack picks a boss, setup and first trip to try.
+            Add setup once. Scapestack picks a boss, gear and first trip to try.
           </p>
         </div>
         <div className="flex flex-wrap gap-1.5 text-[11px] font-semibold text-[var(--color-text-dim)]">
@@ -216,12 +216,64 @@ function DpsIntakeHero() {
   );
 }
 
+function DpsMissingSetupState({
+  boss,
+  setupHref,
+  pluginSync,
+  slayerTask
+}: {
+  boss: Boss | null;
+  setupHref: string;
+  pluginSync: boolean;
+  slayerTask: boolean;
+}) {
+  const title = boss ? `Add setup for ${boss.name}` : "Add setup";
+  const body = pluginSync
+    ? "RuneLite skips finished account stuff, but this kill check still needs your bank setup."
+    : slayerTask && boss
+    ? `${boss.name} came from Task Check. Add setup before buying supplies or trusting upgrades.`
+    : boss
+    ? `Scapestack will pick your best owned setup for ${boss.name}.`
+    : "Scapestack will pick the best boss setup from your bank.";
+
+  return (
+    <section className="mx-auto max-w-2xl rounded-2xl border border-[var(--color-accent)]/35 bg-[var(--color-panel)] px-4 py-5 shadow-[0_18px_55px_rgba(0,0,0,0.2)] sm:px-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 gap-3">
+          <span className="inline-flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/50">
+            {boss ? <BossSprite boss={boss} size={42} /> : <ItemSprite id={20594} alt="" size={30} />}
+          </span>
+          <div className="min-w-0">
+            <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
+              No setup yet
+            </div>
+            <h2 className="mt-1 text-[22px] font-bold tracking-normal text-[var(--color-text)]">
+              {title}
+            </h2>
+            <p className="mt-1 max-w-xl text-[13px] leading-relaxed text-[var(--color-text-dim)]">
+              {body}
+            </p>
+          </div>
+        </div>
+        <Link
+          href={setupHref}
+          className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-4 py-3 text-[13px] font-bold text-white transition-all hover:brightness-110 sm:w-auto"
+        >
+          Add setup
+          <ExternalLink className="size-3.5" />
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 function DpsDecisionHero({
   decision,
   result,
   weaponCount,
   upgradeCount,
   copiedUpgradeList,
+  setupHref,
   onOpenBoss,
   onCopyUpgrades,
   onEditInput
@@ -231,6 +283,7 @@ function DpsDecisionHero({
   weaponCount: number;
   upgradeCount: number;
   copiedUpgradeList: "copied" | "failed" | null;
+  setupHref: string;
   onOpenBoss: () => void;
   onCopyUpgrades: () => void;
   onEditInput: () => void;
@@ -286,7 +339,7 @@ function DpsDecisionHero({
           </div>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2 lg:justify-end">
-          {result && (
+          {result ? (
             <button
               type="button"
               onClick={onOpenBoss}
@@ -295,6 +348,14 @@ function DpsDecisionHero({
               Open setup
               <ExternalLink className="size-3.5" />
             </button>
+          ) : (
+            <Link
+              href={setupHref}
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-bold text-white transition-all hover:brightness-110"
+            >
+              Add setup
+              <ExternalLink className="size-3.5" />
+            </Link>
           )}
           <details className="group relative">
             <summary className="inline-flex cursor-pointer list-none items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-transparent px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)] marker:hidden [&::-webkit-details-marker]:hidden">
@@ -586,33 +647,60 @@ export function DpsClient() {
     return b?.name ?? null;
   }, [pendingBossSlug]);
   const deepLinkedBoss = useMemo(() => bossFromDpsParam(pendingBossSlug ?? searchParams.get("boss")), [pendingBossSlug, searchParams]);
+  const setupBossSlug = pendingBossSlug ?? searchParams.get("boss");
+  const setupBankHref = useMemo(
+    () => bankOrganizerHref(searchParams.get("rsn"), "dps", { boss: setupBossSlug }),
+    [searchParams, setupBossSlug]
+  );
   const isSlayerTaskSource = searchParams.get("from") === "slayer-task";
+  const needsSetupBeforeDps = Boolean(deepLinkedBoss) || searchParams.get("bank") === "none";
 
   if (view === "intake") {
+    if (needsSetupBeforeDps) {
+      return (
+        <DpsMissingSetupState
+          boss={deepLinkedBoss}
+          setupHref={setupBankHref}
+          pluginSync={searchParams.get("source") === "plugin-sync"}
+          slayerTask={isSlayerTaskSource}
+        />
+      );
+    }
+
     return (
       <>
         {pendingBossName && (
-          <div className="mb-4 rounded-lg border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/8 px-4 py-3 flex items-center gap-3 animate-[fade-in_0.3s_ease-out]">
+          <div className="mb-4 rounded-lg border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/8 px-4 py-3 flex flex-col gap-3 animate-[fade-in_0.3s_ease-out] sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-3">
             <Sword className="size-4 text-[var(--color-accent)] shrink-0" />
             <p className="text-[13px] text-[var(--color-text)] leading-relaxed">
               {isSlayerTaskSource ? (
                 <>
                   <span className="font-semibold">Slayer task selected:</span>{" "}
-                  <span className="text-[var(--color-accent)]">{pendingBossName}</span>. Paste your bank to build the actual setup.
+                  <span className="text-[var(--color-accent)]">{pendingBossName}</span>. Add setup to build the trip from your bank.
                 </>
               ) : (
                 <>
-                  <span className="font-semibold">Paste your bank</span> and we&apos;ll jump straight to{" "}
-                  <span className="text-[var(--color-accent)]">{pendingBossName}</span>&apos;s best setup.
+                  <span className="font-semibold">Add setup</span> and we&apos;ll jump straight to{" "}
+                  <span className="text-[var(--color-accent)]">{pendingBossName}</span> with your best gear.
                 </>
               )}
             </p>
+            </div>
+            <Link
+              href={setupBankHref}
+              className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-bold text-white transition-all hover:brightness-110 sm:w-auto"
+            >
+              Add setup
+              <ExternalLink className="size-3.5" />
+            </Link>
           </div>
         )}
         <DpsHandoffIntakeHint
           bankless={searchParams.get("bank") === "none"}
           pluginSync={searchParams.get("source") === "plugin-sync"}
           slayerTask={isSlayerTaskSource}
+          setupHref={setupBankHref}
         />
         <DpsIntakeHero />
         <Intake onSubmit={run} loading={pending} error={error} />
@@ -628,6 +716,7 @@ export function DpsClient() {
         weaponCount={weaponCount}
         upgradeCount={visibleUpgrades.length}
         copiedUpgradeList={copiedUpgradeList}
+        setupHref={setupBankHref}
         onOpenBoss={() => {
           if (decisionBossResult) setModalBoss(decisionBossResult.boss);
         }}
@@ -636,7 +725,7 @@ export function DpsClient() {
       />
 
       {bankSummary && weaponCount === 0 && (
-        <DpsNoWeaponGate onEditInput={editInput} rsn={searchParams.get("rsn")} />
+        <DpsNoWeaponGate onEditInput={editInput} setupHref={setupBankHref} />
       )}
 
       <details className="mb-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/50 p-3">
@@ -1069,23 +1158,34 @@ function Stat({ label, value, icon, highlight }: {
 function DpsHandoffIntakeHint({
   bankless,
   pluginSync,
-  slayerTask
+  slayerTask,
+  setupHref
 }: {
   bankless: boolean;
   pluginSync: boolean;
   slayerTask: boolean;
+  setupHref: string;
 }) {
   if (bankless) {
     return (
-      <div className="mb-4 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 px-4 py-3 flex items-start gap-3">
-        <Sparkles className="mt-0.5 size-4 shrink-0 text-[var(--color-warning)]" />
-        <p className="text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-          {pluginSync
-            ? "RuneLite skips finished account stuff, but DPS still needs your gear. Paste Bank Memory or Bank Tags to check real setups."
-            : slayerTask
-            ? "This boss came from Task Check. Paste gear before buying supplies or trusting upgrades."
-            : "Paste Bank Memory or Bank Tags before using boss checks, upgrades or setup links."}
-        </p>
+      <div className="mb-4 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-start gap-3">
+          <Sparkles className="mt-0.5 size-4 shrink-0 text-[var(--color-warning)]" />
+          <p className="text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
+            {pluginSync
+              ? "RuneLite skips finished account stuff, but boss checks still need your setup."
+              : slayerTask
+              ? "This boss came from Task Check. Add setup before buying supplies or trusting upgrades."
+              : "Add setup before using boss checks, upgrades or setup links."}
+          </p>
+        </div>
+        <Link
+          href={setupHref}
+          className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-warning)] px-3.5 py-2 text-[12.5px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110 sm:w-auto"
+        >
+          Add setup
+          <ExternalLink className="size-3.5" />
+        </Link>
       </div>
     );
   }
@@ -1190,12 +1290,11 @@ function DpsBankContextBanner({
 
 function DpsNoWeaponGate({
   onEditInput,
-  rsn
+  setupHref
 }: {
   onEditInput: () => void;
-  rsn?: string | null;
+  setupHref: string;
 }) {
-  const bankHref = bankOrganizerHref(rsn, "dps");
   const weaponExamples = [
     { id: 4151, name: "Whip" },
     { id: 26219, name: "Fang" },
@@ -1239,14 +1338,14 @@ function DpsNoWeaponGate({
             onClick={onEditInput}
             className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-warning)] px-3.5 py-2 text-[12.5px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110"
           >
-            Paste combat bank
+            Add setup here
             <Edit3 className="size-3.5" />
           </button>
           <Link
-            href={bankHref}
+            href={setupHref}
             className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
           >
-            Check gear
+            Add setup in Bank
             <Sparkles className="size-3.5" />
           </Link>
         </div>

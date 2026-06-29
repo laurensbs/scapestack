@@ -97,6 +97,7 @@ interface BankResultProps {
   inferredArchetype?: Archetype | null;
   inferredRsn?: string | null;
   hiscoreSkills?: HiscoreSkill[] | null;
+  returnBossSlug?: string | null;
 }
 
 type SortMode = "default" | "value" | "quantity" | "name";
@@ -563,7 +564,15 @@ interface DropFlashContextValue {
 }
 const DropFlashContext = createContext<DropFlashContextValue>({ flashedId: null, token: 0 });
 
-export function BankResult({ initial, initialStrings, onEditInput, inferredArchetype, inferredRsn, hiscoreSkills }: BankResultProps) {
+export function BankResult({
+  initial,
+  initialStrings,
+  onEditInput,
+  inferredArchetype,
+  inferredRsn,
+  hiscoreSkills,
+  returnBossSlug
+}: BankResultProps) {
   const [tabs, setTabs] = useState<OrganizedTab[]>(initial.tabs);
   const [strings, setStrings] = useState<string[]>(initialStrings);
   // Active archetype — starts as the auto-inferred one (from Hiscores), but
@@ -1428,9 +1437,13 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
     params.set("from", "bank");
     return `/plugin?${params.toString()}#verify-sync`;
   }, [inferredRsn]);
+  const dpsHandoffOptions = useMemo(
+    () => returnBossSlug ? { boss: returnBossSlug } : undefined,
+    [returnBossSlug]
+  );
   const runBankDecision = useCallback((action: BankDecisionAction) => {
     if (action === "dps") {
-      openBankHandoffRoute(bankToolUrl("/dps", inferredRsn));
+      openBankHandoffRoute(bankToolUrl("/dps", inferredRsn, dpsHandoffOptions));
       return;
     }
     if (action === "next") {
@@ -1438,7 +1451,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
       return;
     }
     void copyAll();
-  }, [copyAll, inferredRsn, openBankHandoffRoute]);
+  }, [copyAll, dpsHandoffOptions, inferredRsn, openBankHandoffRoute]);
 
   return (
     <div className="animate-[slide-up_0.35s_ease-out]">
@@ -1783,7 +1796,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
             onUndoDelete={undoDeleteSnapshot}
             onRestore={restoreSnapshot}
             onOpenNext={() => openBankHandoffRoute(bankToolUrl("/next", inferredRsn))}
-            onOpenDps={() => openBankHandoffRoute(bankToolUrl("/dps", inferredRsn))}
+            onOpenDps={() => openBankHandoffRoute(bankToolUrl("/dps", inferredRsn, dpsHandoffOptions))}
             onSearchItems={searchSuggestionItems}
             onCopyCompareSummary={copyCompareSummary}
             compareSummaryCopied={copied === "snapshot-compare-summary"}
@@ -1814,7 +1827,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
           document.getElementById("bank-insights-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
         }}
         onNext={() => openBankHandoffRoute(bankToolUrl("/next", inferredRsn))}
-        onDps={() => openBankHandoffRoute(bankToolUrl("/dps", inferredRsn))}
+        onDps={() => openBankHandoffRoute(bankToolUrl("/dps", inferredRsn, dpsHandoffOptions))}
         onGoals={() => openBankHandoffRoute(bankToolUrl("/goals", inferredRsn))}
         onSlayer={() => openBankHandoffRoute(bankToolUrl("/slayer", inferredRsn))}
         onPlugin={() => openBankHandoffRoute(pluginSyncHref)}

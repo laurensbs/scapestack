@@ -50,6 +50,12 @@ function bankReturnContextFromUrl(): BankReturnContext | null {
   return bankReturnContextFromSource(new URLSearchParams(window.location.search).get("from"));
 }
 
+function bossFromUrl(): string | null {
+  if (typeof window === "undefined") return null;
+  const boss = (new URLSearchParams(window.location.search).get("boss") ?? "").trim();
+  return boss || null;
+}
+
 function BankPageContent() {
   const [view, setView] = useState<View>("intake");
   const [result, setResult] = useState<OrganizeResult | null>(null);
@@ -76,6 +82,7 @@ function BankPageContent() {
   // instructions and the live form move together.
   const [pasted, setPasted] = useState(false);
   const [returnContext, setReturnContext] = useState<BankReturnContext | null>(null);
+  const [returnBossSlug, setReturnBossSlug] = useState<string | null>(null);
   const onPasteStateChange = useCallback((isPasted: boolean) => setPasted(isPasted), []);
 
   // Resolve archetype from RSN (if provided) via Hiscores, else "unspecified".
@@ -152,6 +159,7 @@ function BankPageContent() {
   useEffect(() => {
     setPrefilledRsn(rsnFromUrl());
     setReturnContext(bankReturnContextFromUrl());
+    setReturnBossSlug(bossFromUrl());
   }, []);
 
   // Welcome-back: look up a saved bank on mount. Skip when the URL is in
@@ -242,6 +250,7 @@ function BankPageContent() {
             inferredArchetype={inferredArchetype}
             inferredRsn={inferredRsn}
             hiscoreSkills={hiscoreSkills}
+            returnBossSlug={returnBossSlug}
           />
           <details className="mt-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-3">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-semibold text-[var(--color-text)] marker:hidden">

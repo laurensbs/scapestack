@@ -100,7 +100,7 @@ export const TOOLS: Tool[] = [
     name: "Can I kill this?",
     navLabel: "Kill",
     short: "Can this bank handle the trip?",
-    tagline: "Paste your bank → one boss verdict",
+    tagline: "Add setup → one boss verdict",
     description:
       "Picks a boss, setup, first trip, stop point and upgrade check from gear you already own. Numbers are still there, but the first answer is whether the trip makes sense.",
     icon: Sword,

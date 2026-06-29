@@ -42,7 +42,7 @@ describe("snapshot single compare UX", () => {
     expect(bankResultSource).toContain("bank:snapshot_compare_copy");
     expect(bankResultSource).toContain("Save current bank as new compare baseline");
     expect(bankResultSource).toContain('onOpenNext={() => openBankHandoffRoute(bankToolUrl("/next", inferredRsn))}');
-    expect(bankResultSource).toContain('onOpenDps={() => openBankHandoffRoute(bankToolUrl("/dps", inferredRsn))}');
+    expect(bankResultSource).toContain('onOpenDps={() => openBankHandoffRoute(bankToolUrl("/dps", inferredRsn, dpsHandoffOptions))}');
   });
 
   it("turns compare item rows into concrete actions", () => {

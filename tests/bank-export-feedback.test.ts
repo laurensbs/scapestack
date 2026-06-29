@@ -103,4 +103,12 @@ describe("bank export feedback", () => {
     expect(source).toContain("title={`/dps?boss=${boss.slug}`}");
     expect(source).toContain("opens kill check with this boss selected.");
   });
+
+  it("keeps a DPS boss target when setup is added through the bank", () => {
+    expect(source).toContain("returnBossSlug?: string | null;");
+    expect(source).toContain("returnBossSlug");
+    expect(source).toContain("const dpsHandoffOptions = useMemo(");
+    expect(source).toContain("returnBossSlug ? { boss: returnBossSlug } : undefined");
+    expect(source).toContain('bankToolUrl("/dps", inferredRsn, dpsHandoffOptions)');
+  });
 });

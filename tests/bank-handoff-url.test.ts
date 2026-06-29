@@ -14,4 +14,13 @@ describe("bank handoff URLs", () => {
     expect(bankOrganizerHref("Lynx Titan", "dps")).toBe("/bank?rsn=Lynx+Titan&from=dps");
     expect(bankOrganizerHref(null, "slayer")).toBe("/bank?from=slayer");
   });
+
+  it("keeps a selected DPS boss while adding setup", () => {
+    expect(bankOrganizerHref("Lynx Titan", "dps", { boss: "vardorvis" }))
+      .toBe("/bank?rsn=Lynx+Titan&from=dps&boss=vardorvis");
+    expect(bankOrganizerHref(null, "dps", { boss: "zulrah" }))
+      .toBe("/bank?from=dps&boss=zulrah");
+    expect(bankOrganizerHref("Lynx Titan", "next", { boss: "vardorvis" }))
+      .toBe("/bank?rsn=Lynx+Titan&from=next");
+  });
 });
