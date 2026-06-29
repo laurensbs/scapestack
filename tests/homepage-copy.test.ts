@@ -18,30 +18,25 @@ describe("homepage first-impression copy", () => {
   });
 
   it("shows one example plan instead of a dense product mock", () => {
-    expect(source).toContain("HeroProductPreview");
-    expect(source).toContain('aria-label="Live OSRS trip preview"');
-    expect(source).toContain("Next trip ready");
+    expect(source).toContain("HeroSessionSwitcher");
+    expect(source).toContain("HERO_SESSION_SWITCHER");
+    expect(source).toContain('aria-label="Live OSRS trip switcher"');
+    expect(source).toContain("Live trip preview");
     expect(source).toContain("Do this first");
     expect(source).toContain("Push Vardorvis to 50 KC");
-    expect(source).toContain('label="Why"');
-    expect(source).toContain('label="First step"');
-    expect(source).toContain('value="Open DPS, lock setup, then do one short trip."');
-    expect(source).toContain('label="Bring"');
-    expect(source).toContain('label="Stop point"');
-    expect(source).toContain('value="Stop after one trip or 10 KC. Check /next again after."');
-    expect(source).toContain("Backup");
-    expect(source).toContain("RuneLite can skip quests, diaries, clog slots and Slayer mistakes later.");
-    expect(source).toContain("scapestack-plan-panel");
-    expect(source).toContain("scapestack-session-list");
-    expect(source).toContain("PreviewBackup");
+    expect(source).toContain("Run herbs + birdhouses");
+    expect(source).toContain("Desert Diary - Hard");
+    expect(source).toContain("Start: {primary.start}");
+    expect(source).toContain("RuneLite can quietly skip quests, diaries, clog slots and Slayer mistakes later.");
     expect(source).not.toContain("Item ID 28307");
     expect(source).not.toContain("https://oldschool.runescape.wiki/w/Special:Lookup?type=item&id=28307");
     expect(source).toContain("ItemSprite");
     expect(source).not.toContain("HERO_PREVIEW_ITEMS");
-    expect(source).not.toContain("Start");
     expect(source).not.toContain("Setup");
     expect(source).not.toContain("Try this flow");
     expect(source).not.toContain("function PreviewRow");
+    expect(source).not.toContain("PreviewBackup");
+    expect(source).not.toContain("PreviewLine");
   });
 
   it("removes extra above-the-fold dashboard choices", () => {

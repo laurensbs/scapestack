@@ -65,9 +65,9 @@ export function ReadyToLeave({
   return (
     <div
       className={cn(
-        "mt-3 rounded-lg border bg-[var(--color-bg)]/35",
-        good ? "border-[var(--color-good)]/30" : "border-[var(--color-warning)]/28",
-        compact ? "p-2.5" : "p-3"
+        "mt-3 border-y bg-transparent",
+        good ? "border-[var(--color-good)]/22" : "border-[var(--color-warning)]/24",
+        compact ? "py-2" : "py-3"
       )}
     >
       <div
@@ -81,11 +81,11 @@ export function ReadyToLeave({
         <Icon className="size-3.5" />
         {status}
       </div>
-      <dl className="grid gap-1.5 sm:grid-cols-4">
+      <dl className="grid gap-x-4 gap-y-2 sm:grid-cols-4">
         {items.map((item) => (
           <div
             key={item.label}
-            className="min-w-0 rounded-md border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-2.5 py-2"
+            className="min-w-0"
           >
             <dt className="text-[9.5px] font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
               {item.label}

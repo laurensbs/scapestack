@@ -26,6 +26,9 @@ describe("ready to leave UX", () => {
     expect(component).toContain('"Cash out"');
     expect(component).toContain('"Task"');
     expect(component).toContain('"Stop at"');
+    expect(component).toContain('"mt-3 border-y bg-transparent"');
+    expect(component).toContain('"grid gap-x-4 gap-y-2 sm:grid-cols-4"');
+    expect(component).not.toContain('"min-w-0 rounded-md border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-2.5 py-2"');
     expect(component).not.toContain("dashboard");
     expect(component).not.toContain("signals");
     expect(component).not.toContain("payload");

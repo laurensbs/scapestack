@@ -2421,25 +2421,26 @@ function HeadlineCard({
         className="absolute inset-x-0 top-0 h-px"
         style={{ background: "linear-gradient(to right, transparent, rgba(200, 154, 61,0.55), transparent)" }}
       />
-      <div className="flex items-start gap-4">
-        <div className="size-12 shrink-0 rounded-lg flex items-center justify-center bg-[var(--color-accent)]/15 border border-[var(--color-accent)]/30 text-[var(--color-accent)] overflow-hidden">
+      <div className="grid gap-5 sm:grid-cols-[116px_minmax(0,1fr)] sm:items-start">
+        <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl border border-[var(--color-accent)]/24 bg-[var(--color-bg)]/48 text-[var(--color-accent)] shadow-[inset_0_1px_0_rgba(233,221,197,0.05),0_18px_48px_-36px_rgba(200,154,61,0.62)] sm:size-28">
           {rec.kind === "kc" && rec.bossSlug ? (
             // KC-rec gets a live boss portrait + pulsing halo on the
             // headline (this IS the strongest pick). The portrait is
             // the strongest emotional signal in /next — players know
             // their boss by face faster than by name.
-            <KcPortrait rec={rec} size={42} prominent />
+            <KcPortrait rec={rec} size={92} prominent />
           ) : rec.iconItemId ? (
             <ItemSprite
               id={rec.iconItemId}
               alt=""
               className="pixelated"
-              style={{ maxWidth: "70%", maxHeight: "70%", imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
+              size={72}
+              style={{ imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
             />
           ) : (
             // No per-rec sprite — fall back to the kind's signature sprite
             // (Lucide is the third-tier fallback inside KindGlyph).
-            <KindGlyph kind={rec.kind} size={28} tone="accent" />
+            <KindGlyph kind={rec.kind} size={48} tone="accent" />
           )}
         </div>
         <div className="flex-1 min-w-0">
