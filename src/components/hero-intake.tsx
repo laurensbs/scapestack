@@ -5,29 +5,56 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ArrowRight, ClipboardPaste, PlugZap, X } from "lucide-react";
 import { RuneliteOpenButton } from "@/components/runelite-open-button";
-import { getActiveAccount } from "@/lib/account-storage";
-import { loadSavedRsn, saveSavedRsn } from "@/lib/saved-bank";
+import { getActiveAccount, markRuneliteChecked } from "@/lib/account-storage";
+import { loadSavedRsn, saveSavedBank, saveSavedRsn } from "@/lib/saved-bank";
 import { cn } from "@/lib/utils";
 
 // Homepage hero intake — kleine zus van /next's NextIntake. Eén RSN
-// input + optionele bank-paste. Submit → navigate naar /next met RSN en/of
-// bank-paste via sessionStorage. /next pakt het op via z'n useEffect en runt
-// direct (skip de intake-step).
+// input + first-time setup voor bank/RuneLite. Submit → navigate naar
+// /next met RSN en/of bank-paste. /next pakt de hero bank op via
+// sessionStorage en saved-bank bewaart hem per RSN.
 //
 // Bewust geen mood/time-keuze hier — dat zit in /next's WhatToDo en
 // die heeft een localStorage-default. We willen op de homepage één
 // duidelijk submit-doel.
 
 const HERO_BANK_KEY = "scapestack:hero:bank";
+const HERO_FIRST_SETUP_KEY = "scapestack:first-setup:v1";
 const HERO_BANK_TEXTAREA_ID = "hero-bank-paste";
 const HERO_BANK_HELP_ID = "hero-bank-paste-help";
+const HERO_FIRST_SETUP_BANK_ID = "hero-first-setup-bank";
+const HERO_FIRST_SETUP_BANK_HELP_ID = "hero-first-setup-bank-help";
+
+function setupKeyForRsn(rsn: string): string {
+  return `${HERO_FIRST_SETUP_KEY}:${rsn.trim().toLowerCase().replace(/\s+/g, "-")}`;
+}
+
+function hasSeenFirstSetup(rsn: string): boolean {
+  if (typeof window === "undefined") return true;
+  try {
+    return localStorage.getItem(setupKeyForRsn(rsn)) === "1";
+  } catch {
+    return true;
+  }
+}
+
+function markFirstSetupSeen(rsn: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(setupKeyForRsn(rsn), "1");
+  } catch {
+  }
+}
 
 export function HeroIntake() {
   const router = useRouter();
   const [rsn, setRsn] = useState("");
   const [rememberedRsn, setRememberedRsn] = useState("");
+  const [showFirstSetup, setShowFirstSetup] = useState(false);
   const [showBankGuide, setShowBankGuide] = useState(false);
   const [showRuneliteGuide, setShowRuneliteGuide] = useState(false);
+  const [showFirstSetupBank, setShowFirstSetupBank] = useState(false);
+  const [firstSetupRunelite, setFirstSetupRunelite] = useState(false);
   const [bank, setBank] = useState("");
   const hasBankPaste = Boolean(bank.trim());
   const canSubmit = Boolean(rsn.trim() || hasBankPaste);
@@ -42,14 +69,15 @@ export function HeroIntake() {
     }
   }, []);
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const openPlan = (options: { markSetup?: boolean } = {}) => {
     const trimmed = cleanRsn;
-    if (!canSubmit) return;
-    if (trimmed) saveSavedRsn(trimmed);
-    // Bank-paste mag persistent — voor de hero is sessionStorage genoeg
-    // omdat /next 'm meteen consumeert. Geen langdurige opslag.
+    if (trimmed) {
+      saveSavedRsn(trimmed);
+      if (options.markSetup) markFirstSetupSeen(trimmed);
+      if (firstSetupRunelite) markRuneliteChecked(trimmed);
+    }
     if (hasBankPaste) {
+      if (trimmed) saveSavedBank(bank, trimmed);
       try { sessionStorage.setItem(HERO_BANK_KEY, bank); }
       catch { /* private mode → silently skip; /next valt terug op stat-only */ }
     }
@@ -57,6 +85,18 @@ export function HeroIntake() {
     if (trimmed) params.set("rsn", trimmed);
     if (!hasBankPaste) params.set("bank", "none");
     router.push(`/next?${params.toString()}`);
+  };
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = cleanRsn;
+    if (!canSubmit) return;
+    if (trimmed) saveSavedRsn(trimmed);
+    if (trimmed && !hasSeenFirstSetup(trimmed)) {
+      setShowFirstSetup(true);
+      return;
+    }
+    openPlan();
   };
 
   return (
@@ -175,6 +215,146 @@ export function HeroIntake() {
           RuneLite later
         </button>
       </div>
+
+      {showFirstSetup && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="hero-first-setup-title"
+          className="fixed inset-0 z-[110] overflow-y-auto bg-black/72 px-4 pb-8 pt-20 backdrop-blur-sm sm:grid sm:place-items-center sm:py-8"
+          onClick={() => setShowFirstSetup(false)}
+        >
+          <div
+            className="w-full max-w-2xl overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[#090909] text-left shadow-[0_32px_120px_-42px_rgba(0,0,0,0.92)]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-5 py-4 sm:px-6">
+              <div>
+                <p className="eyebrow text-[var(--color-accent)]">First setup</p>
+                <h2 id="hero-first-setup-title" className="mt-1 text-[24px] font-semibold leading-tight text-[var(--color-text)]">
+                  Make {cleanRsn || "this account"} smarter?
+                </h2>
+                <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
+                  RSN is enough for a first plan. Bank and RuneLite make the pick better when gear, supplies or finished progress matter.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowFirstSetup(false)}
+                aria-label="Close first setup"
+                className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="grid gap-3 p-5 sm:grid-cols-2 sm:p-6">
+              <button
+                type="button"
+                onClick={() => setShowFirstSetupBank((value) => !value)}
+                aria-expanded={showFirstSetupBank}
+                aria-controls={HERO_FIRST_SETUP_BANK_ID}
+                className={cn(
+                  "rounded-2xl border p-4 text-left transition-colors",
+                  hasBankPaste
+                    ? "border-[var(--color-accent)]/40 bg-[var(--color-accent)]/10"
+                    : "border-[var(--color-border)] bg-[var(--color-panel)] hover:border-[var(--color-accent)]/45"
+                )}
+              >
+                <span className="inline-flex size-9 items-center justify-center rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 text-[var(--color-accent)]">
+                  <ClipboardPaste className="size-4" />
+                </span>
+                <span className="mt-3 block text-[16px] font-bold text-[var(--color-text)]">
+                  {hasBankPaste ? "Bank added" : "Add bank"}
+                </span>
+                <span className="mt-1 block text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">
+                  Better gear, supplies and GP checks for this RSN.
+                </span>
+              </button>
+
+              <div
+                className={cn(
+                  "rounded-2xl border p-4 transition-colors",
+                  firstSetupRunelite
+                    ? "border-[var(--color-accent)]/40 bg-[var(--color-accent)]/10"
+                    : "border-[var(--color-border)] bg-[var(--color-panel)]"
+                )}
+              >
+                <button
+                  type="button"
+                  onClick={() => setFirstSetupRunelite(true)}
+                  className="w-full text-left"
+                >
+                  <span className="inline-flex size-9 items-center justify-center rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 text-[var(--color-accent)]">
+                    <PlugZap className="size-4" />
+                  </span>
+                  <span className="mt-3 block text-[16px] font-bold text-[var(--color-text)]">
+                    {firstSetupRunelite ? "RuneLite selected" : "Add RuneLite plugin"}
+                  </span>
+                  <span className="mt-1 block text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">
+                    Helps skip finished quests, diary steps, clog slots and Slayer mistakes.
+                  </span>
+                </button>
+                {firstSetupRunelite && (
+                  <div className="mt-3">
+                    <RuneliteOpenButton className="w-full" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {showFirstSetupBank && (
+              <div id={HERO_FIRST_SETUP_BANK_ID} className="border-t border-[var(--color-border)] px-5 py-5 sm:px-6">
+                <label className="block">
+                  <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                    Bank Memory or Bank Tags
+                  </span>
+                  <textarea
+                    value={bank}
+                    onChange={(event) => setBank(event.target.value)}
+                    placeholder="Paste your bank here..."
+                    rows={6}
+                    spellCheck={false}
+                    aria-describedby={HERO_FIRST_SETUP_BANK_HELP_ID}
+                    className="mt-2 w-full resize-y rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-3 font-mono text-[12px] text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)]"
+                  />
+                </label>
+                <span
+                  id={HERO_FIRST_SETUP_BANK_HELP_ID}
+                  role="status"
+                  aria-live="polite"
+                  className="mt-2 block text-[12px] leading-relaxed text-[var(--color-text-muted)]"
+                >
+                  {hasBankPaste
+                    ? "Saved for this account and used for the first plan."
+                    : "Optional. Paste only if gear, supplies or GP should affect the answer."}
+                </span>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-2 border-t border-[var(--color-border)] px-5 pb-5 sm:flex-row sm:px-6 sm:pb-6">
+              <button
+                type="button"
+                onClick={() => openPlan({ markSetup: true })}
+                className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--color-accent)] px-4 text-[14px] font-bold text-[#0B0F0D] transition-colors hover:bg-[var(--color-accent-soft)]"
+              >
+                Get my best plan
+                <ArrowRight className="size-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (cleanRsn) markFirstSetupSeen(cleanRsn);
+                  openPlan({ markSetup: false });
+                }}
+                className="inline-flex h-11 items-center justify-center rounded-lg border border-[var(--color-border)] px-4 text-[13px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+              >
+                Skip for now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showBankGuide && (
         <div

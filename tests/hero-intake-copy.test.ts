@@ -8,6 +8,8 @@ describe("hero intake copy and routing", () => {
   it("marks RSN-only homepage runs as bankless while allowing bank-only starts", () => {
     expect(source).toContain("const hasBankPaste = Boolean(bank.trim())");
     expect(source).toContain("const canSubmit = Boolean(rsn.trim() || hasBankPaste)");
+    expect(source).toContain("if (trimmed && !hasSeenFirstSetup(trimmed))");
+    expect(source).toContain("setShowFirstSetup(true);");
     expect(source).toContain('if (!hasBankPaste) params.set("bank", "none");');
     expect(source).toContain("router.push(`/next?${params.toString()}`)");
   });
@@ -21,6 +23,27 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("RuneliteOpenButton");
     expect(source).toContain("Plan my next trip with this bank");
     expect(source).toContain("Bank added");
+  });
+
+  it("shows first-time setup before the first /next plan", () => {
+    expect(source).toContain('const HERO_FIRST_SETUP_KEY = "scapestack:first-setup:v1";');
+    expect(source).toContain("function setupKeyForRsn(rsn: string): string");
+    expect(source).toContain("function hasSeenFirstSetup(rsn: string): boolean");
+    expect(source).toContain("function markFirstSetupSeen(rsn: string): void");
+    expect(source).toContain("const [showFirstSetup, setShowFirstSetup] = useState(false);");
+    expect(source).toContain('aria-labelledby="hero-first-setup-title"');
+    expect(source).toContain("First setup");
+    expect(source).toContain('Make {cleanRsn || "this account"} smarter?');
+    expect(source).toContain("RSN is enough for a first plan. Bank and RuneLite make the pick better when gear, supplies or finished progress matter.");
+    expect(source).toContain("Add RuneLite plugin");
+    expect(source).toContain("RuneLite selected");
+    expect(source).toContain("Get my best plan");
+    expect(source).toContain("Skip for now");
+    expect(source).toContain("markFirstSetupSeen(trimmed)");
+    expect(source).toContain("markRuneliteChecked(trimmed)");
+    expect(source).toContain("saveSavedBank(bank, trimmed)");
+    expect(source).toContain("Saved for this account and used for the first plan.");
+    expect(source).not.toContain("RuneLite is connected");
   });
 
   it("explains why the hero planner CTA is disabled", () => {
