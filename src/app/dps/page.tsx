@@ -4,7 +4,7 @@ import { DpsClient } from "./dps-client";
 
 export const metadata = {
   title: "Can I kill this?",
-  description: "Add setup and get one boss verdict: best gear, first trip, stop point and upgrade check from your bank."
+  description: "Add bank and get one boss verdict: best gear, first trip, stop point and upgrade check from your bank."
 };
 
 // Suspense wrapper required by Next.js 16 for any child that calls

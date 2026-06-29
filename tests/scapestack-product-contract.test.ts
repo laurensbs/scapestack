@@ -72,7 +72,6 @@ describe("Scapestack anti-bankstanding product contract", () => {
       "Session action queue",
       "Sync details",
       "Scapestack readiness",
-      "Add bank",
       "Check sync",
       "Bank + sync ready",
       "Bank loaded",

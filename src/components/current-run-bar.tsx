@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { PlugZap, Sword, UserRound } from "lucide-react";
+import { Package, PlugZap, Sword, UserRound } from "lucide-react";
 import { ACCOUNT_EVENT, getActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
 import { loadMood } from "@/lib/mood-storage";
 import { loadSavedBank, loadSavedRsn } from "@/lib/saved-bank";
@@ -61,7 +61,10 @@ export function CurrentRunBar({ className, compact = false }: CurrentRunBarProps
       </Link>
       <span className="text-[var(--color-border-strong)]" aria-hidden="true">·</span>
       <Link href={bankHref} className="whitespace-nowrap rounded-full px-1.5 py-1 transition-colors hover:text-[var(--color-accent)]">
-        {hasSetup ? "Setup added" : "Add setup"}
+        <span className="inline-flex items-center gap-1">
+          <Package className="size-3.5" />
+          {hasSetup ? "Bank added" : "Add bank"}
+        </span>
       </Link>
       {!compact && (
         <>

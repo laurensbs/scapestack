@@ -34,7 +34,7 @@ export const TOOLS: Tool[] = [
     short: "Enter your OSRS name and get one clear next move",
     tagline: "RSN in → do this first",
     description:
-      "Stop bankstanding: enter your OSRS name and get one useful move for this account, plus two backups. Add setup or RuneLite only when it changes the route.",
+      "Stop bankstanding: enter your OSRS name and get one useful move for this account, plus two backups. Add bank or RuneLite only when it changes the route.",
     icon: Sparkles,
     iconItemId: 11865, // Slayer helmet (i) — "what to do next" / next-task icon
     status: "live",
@@ -45,8 +45,8 @@ export const TOOLS: Tool[] = [
     href: "/bank",
     name: "Can I leave?",
     navLabel: "Setup",
-    short: "Add setup once, use it everywhere",
-    tagline: "Setup in → leave the bank",
+    short: "Add bank once, use it everywhere",
+    tagline: "Bank in → leave the bank",
     description:
       "Paste Bank Memory or Bank Tags when gear, supplies or GP should change the route. Scapestack still gives one useful next move first, then keeps the clean tabs and copy-back tools below.",
     icon: Layers,
@@ -100,7 +100,7 @@ export const TOOLS: Tool[] = [
     name: "Can I kill this?",
     navLabel: "Check kill",
     short: "Can this bank handle the trip?",
-    tagline: "Add setup → one boss verdict",
+    tagline: "Add bank → one boss verdict",
     description:
       "Picks a boss, setup, first trip, stop point and upgrade check from gear you already own. Numbers are still there, but the first answer is whether the trip makes sense.",
     icon: Sword,

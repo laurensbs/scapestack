@@ -13,19 +13,19 @@ describe("Scapestack readiness rail", () => {
       rsn: "Zezima"
     });
 
-    expect(readiness.primaryAction).toEqual({ label: "Add setup", href: "/bank" });
+    expect(readiness.primaryAction).toEqual({ label: "Add bank", href: "/bank" });
     expect(readiness.signals.map((signal) => [signal.id, signal.status])).toEqual([
       ["bank", "missing"],
       ["rsn", "ready"],
       ["sync", "missing"]
     ]);
     expect(readiness.signals.map((signal) => [signal.id, signal.sourceLabel])).toEqual([
-      ["bank", "No setup"],
+      ["bank", "No bank"],
       ["rsn", "Hiscores loaded"],
       ["sync", "RuneLite later"]
     ]);
     expect(readiness.signals.find((signal) => signal.id === "bank")?.action).toEqual({
-      label: "Add setup",
+      label: "Add bank",
       href: "/bank"
     });
     expect(readiness.signals.find((signal) => signal.id === "bank")).toMatchObject({
@@ -248,7 +248,7 @@ describe("Scapestack readiness rail", () => {
     });
     expect(readiness.signals.find((signal) => signal.id === "sync")?.copy).toBeUndefined();
     expect(readiness.signals.find((signal) => signal.id === "sync")?.steps).toBeUndefined();
-    expect(readiness.signals.find((signal) => signal.id === "bank")?.sourceLabel).toBe("Setup added");
+    expect(readiness.signals.find((signal) => signal.id === "bank")?.sourceLabel).toBe("Bank added");
     expect(readiness.signals.find((signal) => signal.id === "sync")?.sourceLabel).toBe("RuneLite helping");
   });
 

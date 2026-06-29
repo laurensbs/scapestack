@@ -388,7 +388,7 @@ function AccountSwitcher({
             <div className="mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text-muted)]">
               <span className="text-[var(--color-text)]">{activeRsn}</span>
               <span className="mx-1.5 text-[var(--color-border-strong)]">·</span>
-              <span>{hasSavedSetup ? "Setup added" : "Add setup"}</span>
+              <span>{hasSavedSetup ? "Bank added" : "Add bank"}</span>
               <span className="mx-1.5 text-[var(--color-border-strong)]">·</span>
               <span>RuneLite later</span>
             </div>
@@ -409,7 +409,7 @@ function AccountSwitcher({
               className="grid min-h-[76px] place-items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
             >
               <Package className="mb-1 size-5" />
-              {hasSavedSetup ? "Setup added" : "Add setup"}
+              {hasSavedSetup ? "Bank added" : "Add bank"}
             </Link>
             <Link
               href={pluginHref}

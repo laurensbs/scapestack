@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ClipboardPaste, X } from "lucide-react";
 import { getActiveAccount } from "@/lib/account-storage";
 import { loadSavedRsn, saveSavedRsn } from "@/lib/saved-bank";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,7 @@ export function HeroIntake() {
   const [rsn, setRsn] = useState("");
   const [rememberedRsn, setRememberedRsn] = useState("");
   const [showBank, setShowBank] = useState(false);
+  const [showBankGuide, setShowBankGuide] = useState(false);
   const [bank, setBank] = useState("");
   const hasBankPaste = showBank && Boolean(bank.trim());
   const canSubmit = Boolean(rsn.trim() || hasBankPaste);
@@ -99,8 +101,8 @@ export function HeroIntake() {
           aria-label={
             hasBankPaste
               ? rsn.trim()
-                ? "Plan my next trip with OSRS name and setup"
-                : "Plan my next trip with this setup"
+              ? "Plan my next trip with OSRS name and bank"
+                : "Plan my next trip with this bank"
               : "Plan my next trip with OSRS name"
           }
           aria-describedby="hero-plan-disabled-help"
@@ -129,10 +131,10 @@ export function HeroIntake() {
       >
         {rsn.trim()
           ? hasBankPaste
-            ? "Ready: stats and setup can shape the trip."
-            : "Ready: public stats are enough for a first trip."
+            ? "Bank added. Scapestack can check gear, supplies and GP."
+            : "One name is enough to plan your next trip."
           : hasBankPaste
-            ? "Ready: setup-only route. Add a name for stats and KC."
+            ? "Bank added. Add a name for stats and KC."
             : "Enter an OSRS name to get one clear trip."}
       </p>
 
@@ -143,13 +145,16 @@ export function HeroIntake() {
           <>
             <button
               type="button"
-              onClick={() => setShowBank(true)}
+              onClick={() => {
+                setShowBank(true);
+                setShowBankGuide(true);
+              }}
               aria-controls={HERO_BANK_PANEL_ID}
               aria-expanded={showBank}
-              aria-label="Show optional setup paste field"
+              aria-label="Add bank to Scapestack"
               className="hover:text-[var(--color-accent)] underline underline-offset-4 decoration-dotted transition-colors"
             >
-              Add setup
+              Add bank
             </button>
             <span aria-hidden="true" className="text-[var(--color-border-strong)]">·</span>
             <Link
@@ -167,7 +172,7 @@ export function HeroIntake() {
         <div
           id={HERO_BANK_PANEL_ID}
           role="region"
-          aria-label="Optional setup paste"
+          aria-label="Optional bank paste"
           className="animate-[fade-in_0.3s_ease-out]"
         >
           <label className="block">
@@ -175,7 +180,7 @@ export function HeroIntake() {
               id={`${HERO_BANK_TEXTAREA_ID}-label`}
               className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]"
             >
-              Setup paste <span className="normal-case tracking-normal">(optional)</span>
+              Bank paste <span className="normal-case tracking-normal">(optional)</span>
             </span>
             <textarea
               id={HERO_BANK_TEXTAREA_ID}
@@ -196,19 +201,100 @@ export function HeroIntake() {
               className="mt-1 block text-[11px] leading-relaxed text-[var(--color-text-muted)]"
             >
               {bank.trim()
-                ? "Setup added. Supplies and GP can shape the trip."
-                : "Optional: add setup when supplies or GP matters."}
+                ? "Bank added. Supplies and GP can shape the trip."
+                : "Optional: add bank when gear, supplies or GP matters."}
             </span>
             <button
               type="button"
               onClick={() => { setShowBank(false); setBank(""); }}
               aria-controls={HERO_BANK_PANEL_ID}
-              aria-label="Hide setup paste and plan the trip from public stats only"
+              aria-label="Hide bank paste and plan the trip from OSRS name only"
               className="mt-1.5 text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-text-dim)] transition-colors"
             >
-              Hide setup
+              Hide bank
             </button>
           </label>
+        </div>
+      )}
+
+      {showBankGuide && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="hero-bank-guide-title"
+          className="fixed inset-0 z-[100] overflow-y-auto bg-black/72 px-4 pb-8 pt-20 backdrop-blur-sm sm:grid sm:place-items-center sm:py-8"
+          onClick={() => setShowBankGuide(false)}
+        >
+          <div
+            className="w-full max-w-3xl overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[#090909] text-left shadow-[0_32px_120px_-42px_rgba(0,0,0,0.92)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-5 py-4 sm:px-6">
+              <div>
+                <p className="eyebrow text-[var(--color-accent)]">Add bank</p>
+                <h2 id="hero-bank-guide-title" className="mt-1 text-[22px] font-semibold leading-tight text-[var(--color-text)]">
+                  Paste your bank once.
+                </h2>
+                <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
+                  Use Bank Memory or Bank Tags from RuneLite. Scapestack uses it for gear, supplies and GP.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowBankGuide(false)}
+                aria-label="Close bank guide"
+                className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
+              {[
+                {
+                  src: "/intro/step1.png",
+                  title: "1. Open your bank",
+                  body: "In RuneLite, open the bank view you want Scapestack to use."
+                },
+                {
+                  src: "/intro/step2.png",
+                  title: "2. Copy Bank Memory",
+                  body: "Copy the Bank Memory text, then paste it below."
+                }
+              ].map((step) => (
+                <div key={step.title} className="overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]">
+                  <div className="relative aspect-[16/10] bg-black">
+                    <Image
+                      src={step.src}
+                      alt={step.title}
+                      fill
+                      sizes="(max-width: 640px) 90vw, 360px"
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <h3 className="text-[15px] font-semibold text-[var(--color-text)]">{step.title}</h3>
+                    <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">{step.body}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="border-t border-[var(--color-border)] px-5 pb-5 sm:px-6 sm:pb-6">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowBank(true);
+                  setShowBankGuide(false);
+                  requestAnimationFrame(() => document.getElementById(HERO_BANK_TEXTAREA_ID)?.focus());
+                }}
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[var(--color-accent)] px-4 text-[14px] font-bold text-[#0B0F0D] transition-colors hover:bg-[var(--color-accent-soft)] sm:w-auto"
+              >
+                <ClipboardPaste className="size-4" />
+                Paste bank
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </form>

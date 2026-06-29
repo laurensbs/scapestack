@@ -877,9 +877,9 @@ function NextIntake({
             {loading
               ? "Building one clear plan…"
               : rsn.trim()
-              ? "Ready: public stats are enough. Gear or RuneLite can come later."
+              ? "One name is enough. Bank or RuneLite can make it sharper later."
               : fromBank
-              ? "Ready: gear-only plan. Add a name for stats and KC."
+              ? "Bank added. Add a name for stats and KC."
               : "Enter an OSRS name to get one clear next move."}
           </p>
 
@@ -1545,7 +1545,7 @@ function makePlanSmarterCopy(rec: Recommendation | null): {
         bankLabel: "Task setup",
         loadedHelper: "Gear and supplies can shape the task plan.",
         emptyHelper: "Use it when task setup matters.",
-        bankCta: "Add setup"
+        bankCta: "Add bank"
       };
     case "gp":
       return {
@@ -1869,8 +1869,8 @@ function buildNextReadyToLeave(
         status,
         items: [
           { label: "Task", value: recommendationSkillLabel(rec), tone: "good" },
-          { label: "Style", value: "Add setup to check task gear", tone: "warn" },
-          { label: "Bring", value: "Check after setup", tone: "neutral" },
+          { label: "Style", value: "Add bank to check task gear", tone: "warn" },
+          { label: "Bring", value: "Check after bank", tone: "neutral" },
           { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
         ]
       };

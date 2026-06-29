@@ -139,17 +139,17 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
   const signals: ScapestackReadinessSignal[] = [
     {
       id: "bank",
-      label: "Setup",
+      label: "Bank",
       status: input.hasBankContext ? "exact" : "missing",
-      sourceLabel: input.hasBankContext ? "Setup added" : "No setup",
+      sourceLabel: input.hasBankContext ? "Bank added" : "No bank",
       detail: input.hasBankContext
         ? "Gear, supplies, quantities and GP can shape this trip."
-        : "Add setup when gear, supplies or GP change the trip.",
+        : "Add bank when gear, supplies or GP change the trip.",
       adds: ["gear", "supplies", "quantities", "GP"],
       boundary: "Does not prove quests, diaries, collection log or Slayer state.",
       action: input.hasBankContext
         ? undefined
-        : { label: "Add setup", href: "/bank" }
+        : { label: "Add bank", href: "/bank" }
     },
     {
       id: "rsn",
@@ -184,7 +184,7 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
 
   const primaryAction = (() => {
     if (!input.hasBankContext) {
-      return { label: "Add setup", href: "/bank" };
+      return { label: "Add bank", href: "/bank" };
     }
     if (!input.hasRsn) {
       return {

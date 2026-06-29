@@ -15,11 +15,11 @@ describe("hero intake copy and routing", () => {
   it("uses the three homepage CTAs requested by the product prompt", () => {
     expect(source).toContain("Plan my next move");
     expect(source).toContain("Continue as ${rememberedRsn}");
-    expect(source).toContain("Add setup");
+    expect(source).toContain("Add bank");
     expect(source).toContain("RuneLite later");
     expect(source).toContain('href="/plugin#verify-sync"');
-    expect(source).toContain("Plan my next trip with this setup");
-    expect(source).toContain("Setup paste");
+    expect(source).toContain("Plan my next trip with this bank");
+    expect(source).toContain("Bank paste");
   });
 
   it("explains why the hero planner CTA is disabled", () => {
@@ -27,8 +27,9 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain('id="hero-plan-disabled-help"');
     expect(source).toContain("Enter an OSRS name to get one clear trip.");
     expect(source).toContain("Add a name for stats and KC.");
-    expect(source).toContain("public stats are enough for a first trip");
-    expect(source).toContain("setup-only route");
+    expect(source).toContain("One name is enough to plan your next trip.");
+    expect(source).not.toContain("public stats are enough for a first trip");
+    expect(source).not.toContain("setup-only route");
   });
 
   it("labels the homepage RSN input as a real OSRS-name field", () => {
@@ -46,14 +47,18 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain('const HERO_BANK_HELP_ID = "hero-bank-paste-help";');
     expect(source).toContain("aria-controls={HERO_BANK_PANEL_ID}");
     expect(source).toContain("aria-expanded={showBank}");
-    expect(source).toContain('aria-label="Show optional setup paste field"');
+    expect(source).toContain('aria-label="Add bank to Scapestack"');
     expect(source).toContain('role="region"');
-    expect(source).toContain('aria-label="Optional setup paste"');
+    expect(source).toContain('aria-label="Optional bank paste"');
     expect(source).toContain('name="bank"');
     expect(source).toContain("aria-labelledby={`${HERO_BANK_TEXTAREA_ID}-label`}");
     expect(source).toContain("aria-describedby={HERO_BANK_HELP_ID}");
-    expect(source).toContain("Setup added. Supplies and GP can shape the trip.");
-    expect(source).toContain("Optional: add setup when supplies or GP matters.");
-    expect(source).toContain('aria-label="Hide setup paste and plan the trip from public stats only"');
+    expect(source).toContain("Bank added. Supplies and GP can shape the trip.");
+    expect(source).toContain("Optional: add bank when gear, supplies or GP matters.");
+    expect(source).toContain('aria-label="Hide bank paste and plan the trip from OSRS name only"');
+    expect(source).toContain('role="dialog"');
+    expect(source).toContain("Paste your bank once.");
+    expect(source).toContain('src: "/intro/step1.png"');
+    expect(source).toContain('src: "/intro/step2.png"');
   });
 });

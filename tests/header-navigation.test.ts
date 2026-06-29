@@ -12,8 +12,8 @@ describe("global header navigation", () => {
     expect(source).toContain('aria-current={active ? "page" : undefined}');
     expect(source).toContain("AccountSwitcher");
     expect(source).toContain("Add RSN");
-    expect(source).toContain("Setup added");
-    expect(source).toContain("Add setup");
+    expect(source).toContain("Bank added");
+    expect(source).toContain("Add bank");
     expect(source).toContain("Check RuneLite");
     expect(source).toContain("Remove account");
     expect(source).toContain("Remove ${rsn} from Scapestack on this device?");

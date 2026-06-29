@@ -203,7 +203,7 @@ function DpsIntakeHero() {
             Can I kill this with my bank?
           </h2>
           <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-dim)]">
-            Add setup once. Scapestack picks a boss, gear and first trip to try.
+            Add bank once. Scapestack picks a boss, gear and first trip to try.
           </p>
         </div>
         <div className="flex flex-wrap gap-1.5 text-[11px] font-semibold text-[var(--color-text-dim)]">
@@ -229,11 +229,11 @@ function DpsMissingSetupState({
   pluginSync: boolean;
   slayerTask: boolean;
 }) {
-  const title = boss ? `Add setup for ${boss.name}` : "Add setup";
+  const title = boss ? `Add bank for ${boss.name}` : "Add bank";
   const body = pluginSync
-    ? "RuneLite skips finished account stuff, but this kill check still needs your bank setup."
+    ? "RuneLite skips finished account stuff, but this kill check still needs your bank."
     : slayerTask && boss
-    ? `${boss.name} came from Task Check. Add setup before buying supplies or trusting upgrades.`
+    ? `${boss.name} came from Task Check. Add bank before buying supplies or trusting upgrades.`
     : boss
     ? `Scapestack will pick your best owned setup for ${boss.name}.`
     : "Scapestack will pick the best boss setup from your bank.";
@@ -247,7 +247,7 @@ function DpsMissingSetupState({
           </span>
           <div className="min-w-0">
             <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              No setup yet
+              No bank yet
             </div>
             <h2 className="mt-1 text-[22px] font-bold tracking-normal text-[var(--color-text)]">
               {title}
@@ -261,7 +261,7 @@ function DpsMissingSetupState({
           href={setupHref}
           className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-4 py-3 text-[13px] font-bold text-white transition-all hover:brightness-110 sm:w-auto"
         >
-          Add setup
+          Add bank
           <ExternalLink className="size-3.5" />
         </Link>
       </div>
@@ -355,7 +355,7 @@ function DpsDecisionHero({
               href={setupHref}
               className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-bold text-white transition-all hover:brightness-110"
             >
-              Add setup
+              Add bank
               <ExternalLink className="size-3.5" />
             </Link>
           )}
@@ -715,11 +715,11 @@ export function DpsClient() {
               {isSlayerTaskSource ? (
                 <>
                   <span className="font-semibold">Slayer task selected:</span>{" "}
-                  <span className="text-[var(--color-accent)]">{pendingBossName}</span>. Add setup to build the trip from your bank.
+                  <span className="text-[var(--color-accent)]">{pendingBossName}</span>. Add bank to build the trip from your bank.
                 </>
               ) : (
                 <>
-                  <span className="font-semibold">Add setup</span> and we&apos;ll jump straight to{" "}
+                  <span className="font-semibold">Add bank</span> and we&apos;ll jump straight to{" "}
                   <span className="text-[var(--color-accent)]">{pendingBossName}</span> with your best gear.
                 </>
               )}
@@ -729,7 +729,7 @@ export function DpsClient() {
               href={setupBankHref}
               className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-bold text-white transition-all hover:brightness-110 sm:w-auto"
             >
-              Add setup
+              Add bank
               <ExternalLink className="size-3.5" />
             </Link>
           </div>
@@ -1211,17 +1211,17 @@ function DpsHandoffIntakeHint({
           <Sparkles className="mt-0.5 size-4 shrink-0 text-[var(--color-warning)]" />
           <p className="text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
             {pluginSync
-              ? "RuneLite skips finished account stuff, but boss checks still need your setup."
+              ? "RuneLite skips finished account stuff, but boss checks still need your bank."
               : slayerTask
-              ? "This boss came from Task Check. Add setup before buying supplies or trusting upgrades."
-              : "Add setup before using boss checks, upgrades or setup links."}
+              ? "This boss came from Task Check. Add bank before buying supplies or trusting upgrades."
+              : "Add bank before using boss checks, upgrades or setup links."}
           </p>
         </div>
         <Link
           href={setupHref}
           className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-warning)] px-3.5 py-2 text-[12.5px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110 sm:w-auto"
         >
-          Add setup
+          Add bank
           <ExternalLink className="size-3.5" />
         </Link>
       </div>
@@ -1376,14 +1376,14 @@ function DpsNoWeaponGate({
             onClick={onEditInput}
             className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-warning)] px-3.5 py-2 text-[12.5px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110"
           >
-            Add setup here
+            Add bank here
             <Edit3 className="size-3.5" />
           </button>
           <Link
             href={setupHref}
             className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
           >
-            Add setup in Bank
+            Add bank
             <Sparkles className="size-3.5" />
           </Link>
         </div>

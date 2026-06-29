@@ -433,7 +433,8 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('aria-describedby="next-show-me-disabled-help"');
     expect(source).toContain('id="next-show-me-disabled-help"');
     expect(source).toContain("Enter an OSRS name to get one clear next move.");
-    expect(source).toContain("gear-only plan");
+    expect(source).toContain("Bank added. Add a name for stats and KC.");
+    expect(source).not.toContain("gear-only plan");
   });
 
   it("shows when bank context and RuneLite sync are fused", () => {

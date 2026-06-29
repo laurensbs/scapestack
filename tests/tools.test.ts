@@ -50,7 +50,7 @@ describe("tool registry", () => {
   it("keeps live tool copy aligned with current product scope", () => {
     expect(getTool("dps")).toMatchObject({
       name: "Can I kill this?",
-      tagline: "Add setup → one boss verdict"
+      tagline: "Add bank → one boss verdict"
     });
     expect(getTool("dps")?.description).toContain("first trip, stop point and upgrade check");
     expect(getTool("slayer")).toMatchObject({

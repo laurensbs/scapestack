@@ -18,7 +18,7 @@ export default function HomePage() {
             </div>
             <h1
               aria-label="Stop bankstanding. Pick the next trip."
-              className="mx-auto max-w-[860px] text-[44px] font-semibold leading-[0.95] text-[var(--color-text)] sm:text-[62px] lg:text-[80px]"
+              className="mx-auto max-w-[860px] pb-1 text-[44px] font-semibold leading-[1.06] text-[var(--color-text)] sm:text-[62px] sm:leading-[1.02] lg:text-[80px] lg:leading-[1.02]"
             >
               <RevealLine
                 text="Stop bankstanding."
@@ -129,7 +129,7 @@ function RevealLine({
           // buiten de regel-baseline reikt. translate-Y(110%) zit in
           // de keyframe; transform-origin onderaan zodat het woord
           // "uit z'n shell" omhoog komt.
-          className="inline-block overflow-hidden align-bottom"
+          className="inline-block overflow-visible align-bottom"
         >
           <span
             className="inline-block"

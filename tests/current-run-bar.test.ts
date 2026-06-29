@@ -9,8 +9,8 @@ describe("current run bar", () => {
     expect(source).toContain('aria-label="Current Scapestack run"');
     expect(source).toContain("getActiveAccount");
     expect(source).toContain("loadSavedBank(savedRsn)");
-    expect(source).toContain("Setup added");
-    expect(source).toContain("Add setup");
+    expect(source).toContain("Bank added");
+    expect(source).toContain("Add bank");
     expect(source).toContain("RuneLite later");
     expect(source).toContain("Best now");
     expect(source).not.toContain("signals");
