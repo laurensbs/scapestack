@@ -432,6 +432,21 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Add your OSRS name for stats and KC, or start with gear alone.");
   });
 
+  it("keeps optional bank paste inside a compact popup", () => {
+    expect(source).toContain('aria-label={bank.trim() ? "Edit pasted bank" : "Add bank paste"}');
+    expect(source).toContain('aria-labelledby="next-bank-popup-title"');
+    expect(source).toContain("Paste bank when gear matters.");
+    expect(source).toContain("Optional. Use Bank Memory or Bank Tags when supplies, GP or boss gear should change the plan.");
+    expect(source).toContain("Use this bank");
+    expect(source).toContain("Skip bank");
+    expect(source).toContain("1. Open bank");
+    expect(source).toContain("2. Copy Bank Memory");
+    expect(source).toContain("3. Paste here");
+    expect(source).toContain("input: bank.trim() ? bank : undefined");
+    expect(source).not.toContain('placeholder="Paste Bank Memory or Bank Tags here..."');
+    expect(source).not.toContain("Gear paste");
+  });
+
   it("explains why the /next submit CTA is disabled", () => {
     expect(source).toContain('aria-describedby="next-show-me-disabled-help"');
     expect(source).toContain('id="next-show-me-disabled-help"');
