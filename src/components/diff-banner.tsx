@@ -59,7 +59,7 @@ export function DiffBanner({ diff, history = [], onDismiss }: Props) {
           <div
             className="shrink-0 size-9 rounded-lg flex items-center justify-center"
             style={{
-              background: up ? "oklch(0.32 0.08 145 / 0.18)" : "oklch(0.32 0.08 25 / 0.18)",
+              background: up ? "oklch(0.32 0.05 65 / 0.18)" : "oklch(0.32 0.08 25 / 0.18)",
               color: up ? "var(--color-good)" : "var(--color-danger)"
             }}
           >

@@ -40,7 +40,7 @@ describe("account storage", () => {
   });
 
   it("keeps recent accounts and switches active account", async () => {
-    const { getActiveAccount, loadAccountStore, setActiveAccount, upsertAccount } = await import("@/lib/account-storage");
+    const { getActiveAccount, loadAccountStore, removeAccount, setActiveAccount, upsertAccount } = await import("@/lib/account-storage");
 
     upsertAccount("Main Guy");
     upsertAccount("Iron Guy");
@@ -48,6 +48,11 @@ describe("account storage", () => {
 
     expect(getActiveAccount()?.rsn).toBe("Main Guy");
     expect(loadAccountStore().accounts.map((account) => account.rsn)).toEqual(["Main Guy", "Iron Guy"]);
+
+    removeAccount("Main Guy");
+
+    expect(getActiveAccount()?.rsn).toBe("Iron Guy");
+    expect(loadAccountStore().accounts.map((account) => account.rsn)).toEqual(["Iron Guy"]);
   });
 
   it("records bank and runelite status on the active account", async () => {

@@ -116,6 +116,16 @@ export function clearActiveAccount(): void {
   saveAccountStore({ ...store, activeId: null });
 }
 
+export function removeAccount(rsn: string): void {
+  const id = accountIdForRsn(rsn);
+  const store = loadAccountStore();
+  const accounts = store.accounts.filter((account) => account.id !== id);
+  const activeId = store.activeId === id
+    ? accounts[0]?.id ?? null
+    : store.activeId;
+  saveAccountStore({ version: 1, activeId, accounts });
+}
+
 export function markActiveAccountBankSaved(savedAt: number = now()): void {
   const active = getActiveAccount();
   if (!active) return;

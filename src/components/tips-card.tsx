@@ -21,7 +21,7 @@ const KIND_META: Record<BankTip["kind"], { icon: typeof Lightbulb; label: string
   decant:              { icon: Coins,    label: "Decant",  accent: "text-amber-400" },
   "stack-merge":       { icon: Wrench,   label: "Merge",   accent: "text-sky-400" },
   "outfit-incomplete": { icon: Sparkles, label: "Outfit",  accent: "text-violet-400" },
-  "untradeable-pickup":{ icon: Trophy,   label: "Pickup",  accent: "text-emerald-400" }
+  "untradeable-pickup":{ icon: Trophy,   label: "Pickup",  accent: "text-amber-300" }
 };
 
 // A grouped tip entry — either a single standalone tip or a header for a

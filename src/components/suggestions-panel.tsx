@@ -227,7 +227,7 @@ function SuggestionCard({
   const accent = {
     tip: { fg: "var(--color-gold-soft)", bg: "oklch(0.32 0.05 65 / 0.18)", line: "var(--color-gold-soft)" },
     warning: { fg: "var(--color-danger)", bg: "oklch(0.32 0.08 25 / 0.18)", line: "var(--color-danger)" },
-    win: { fg: "var(--color-good)", bg: "oklch(0.32 0.08 145 / 0.18)", line: "var(--color-good)" }
+    win: { fg: "var(--color-good)", bg: "oklch(0.32 0.05 65 / 0.18)", line: "var(--color-good)" }
   }[tone];
 
   const copySteps = async () => {

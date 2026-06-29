@@ -1,10 +1,8 @@
 @import "tailwindcss";
 
-/*  Scapestack — Gielinor session board palette
-    The product should feel like a calm OSRS planning surface:
-    deep green-black, weathered brass, warm readable text and almost no
-    synthetic blue glow. No parchment cosplay, no neon gaming UI, no SaaS
-    chrome.
+/*  Scapestack — black, white and OSRS gold.
+    Keep the app sharp and simple: true black surfaces, white text, gold for
+    actions/status. No green-black wash, no SaaS blue glow, no noisy palette.
 
     Critical implementation note: every accent-aware animation in the
     keyframes below uses literal rgba(...) calls, not CSS variables.
@@ -13,37 +11,37 @@
     the keyframe rgba values still match. */
 
 @theme {
-  /* Surfaces — Gielinor night, not analytics chrome */
-  --color-bg: #0B0F0D;
-  --color-bg-2: #0F1512;
-  --color-panel: #131A16;
-  --color-panel-2: #19231E;
-  --color-surface: #131A16;
-  --color-border: #28322C;
-  --color-border-strong: #3E4B43;
+  /* Surfaces — true black app chrome */
+  --color-bg: #030303;
+  --color-bg-2: #090909;
+  --color-panel: #0E0E0E;
+  --color-panel-2: #161616;
+  --color-surface: #101010;
+  --color-border: #2B2B2B;
+  --color-border-strong: #464646;
 
   /* Text */
-  --color-text: #E9DDC5;
-  --color-text-secondary: #CBBF9F;
-  --color-text-dim: #9A917D;
-  --color-text-muted: #6F776D;
+  --color-text: #F5F1E8;
+  --color-text-secondary: #D8D2C6;
+  --color-text-dim: #A8A198;
+  --color-text-muted: #77736B;
 
   /* Brass is identity and primary action; blue is reserved for small RuneLite hints. */
-  --color-gold: #C89A3D;
-  --color-gold-soft: #E0BE72;
-  --color-gold-deep: #74551F;
-  --color-accent: #C89A3D;
-  --color-accent-soft: #E0BE72;
-  --color-rune: #7EA0C4;
+  --color-gold: #D6A63A;
+  --color-gold-soft: #F0CC72;
+  --color-gold-deep: #8A641C;
+  --color-accent: #D6A63A;
+  --color-accent-soft: #F0CC72;
+  --color-rune: #D6A63A;
 
-  --color-good: #78A66F;
-  --color-warning: #C28A35;
+  --color-good: #D6A63A;
+  --color-warning: #D6A63A;
   --color-danger: #B76A57;
   --color-bad: #B76A57;
 
   /* Slot palette — readable OSRS inventory energy without heavy skeuomorphism */
-  --color-slot: #19231E;
-  --color-slot-edge: #3E4B43;
+  --color-slot: #121212;
+  --color-slot-edge: #464646;
 
   /* Bank skeumorphic vars — tuned dark so bank/DPS stop feeling like
      separate products. */
@@ -51,18 +49,18 @@
   --color-osrs-wood: #262018;
   --color-osrs-wood-light: #332A1D;
   --color-osrs-wood-edge: #6E5B3A;
-  --color-osrs-bank-bg: #0F1512;
-  --color-osrs-bank-inner: #0B0F0D;
-  --color-osrs-slot: #19231E;
-  --color-osrs-slot-edge: #3E4B43;
-  --color-osrs-slot-empty: #111713;
-  --color-osrs-slot-hover: #C89A3D;
-  --color-osrs-tab-active: #24281F;
-  --color-osrs-tab-inactive: #171A14;
-  --color-osrs-title: #C89A3D;
-  --color-osrs-qty-yellow: #E0BE72;
-  --color-osrs-qty-white: #F2E6CF;
-  --color-osrs-qty-green: #22C55E;
+  --color-osrs-bank-bg: #090909;
+  --color-osrs-bank-inner: #030303;
+  --color-osrs-slot: #121212;
+  --color-osrs-slot-edge: #464646;
+  --color-osrs-slot-empty: #080808;
+  --color-osrs-slot-hover: #D6A63A;
+  --color-osrs-tab-active: #1B1B1B;
+  --color-osrs-tab-inactive: #101010;
+  --color-osrs-title: #D6A63A;
+  --color-osrs-qty-yellow: #F0CC72;
+  --color-osrs-qty-white: #F5F1E8;
+  --color-osrs-qty-green: #D6A63A;
   --color-osrs-btn-red: #EF6A3A;
 
   /* Fonts — mature app typography with a restrained OSRS-adjacent serif accent. */
@@ -587,10 +585,9 @@ code, pre, .font-mono {
 }
 
 body {
-  /* Gielinor-night base. Flat enough to feel professional; still warm
-     enough to avoid generic product chrome. */
+  /* Black app base with a very small gold warmth. */
   background:
-    linear-gradient(180deg, #101415 0%, #0B0F0D 48%, #10100E 100%),
+    linear-gradient(180deg, #0A0A0A 0%, #030303 48%, #0B0905 100%),
     var(--color-bg);
   background-attachment: fixed;
   min-height: 100dvh;
@@ -609,7 +606,7 @@ body {
   background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3E4B43;
+  background: #4A4A4A;
   background-clip: padding-box;
 }
 
@@ -675,7 +672,7 @@ body {
   border: 1px solid color-mix(in srgb, var(--color-border) 78%, var(--color-gold) 22%);
   border-radius: 18px;
   background:
-    linear-gradient(180deg, rgba(19, 26, 22, 0.98), rgba(11, 15, 13, 0.98)),
+    linear-gradient(180deg, rgba(14, 14, 14, 0.98), rgba(3, 3, 3, 0.98)),
     radial-gradient(circle at top left, rgba(200, 154, 61, 0.08), transparent 38%);
   box-shadow:
     inset 0 1px 0 rgba(233, 221, 197, 0.05),

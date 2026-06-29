@@ -1623,7 +1623,7 @@ function bossViabilityBadgeText(viability: BossViability): string {
 }
 
 function bossViabilityBadgeClass(viability: BossViability): string {
-  if (viability.tone === "ready") return "border-emerald-400/35 bg-emerald-400/10 text-emerald-300";
+  if (viability.tone === "ready") return "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[var(--color-accent)]";
   if (viability.tone === "test") return "border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 text-[var(--color-accent)]";
   return "border-red-400/30 bg-red-400/10 text-red-200";
 }

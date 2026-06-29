@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { ArrowRight, CheckCircle2, ChevronDown, Menu, Plus, UserRound, X } from "lucide-react";
-import { ACCOUNT_EVENT, getActiveAccount, loadAccountStore, setActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
+import { CheckCircle2, ChevronDown, Menu, Package, PlugZap, Plus, UserRound, X } from "lucide-react";
+import { ACCOUNT_EVENT, getActiveAccount, loadAccountStore, removeAccount, setActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
 import { contextualNavHref } from "@/lib/nav-context";
-import { loadSavedBank, loadSavedRsn, saveSavedRsn } from "@/lib/saved-bank";
+import { clearSavedRsn, loadSavedBank, loadSavedRsn, saveSavedRsn } from "@/lib/saved-bank";
 import { getPrimaryNavTools } from "@/lib/tools";
 import { cn } from "@/lib/utils";
 import { BuyMeCoffee } from "./buy-me-coffee";
@@ -244,6 +244,7 @@ function AccountSwitcher({
   const [accounts, setAccounts] = useState<ScapestackAccount[]>([]);
   const [draft, setDraft] = useState(activeRsn);
   const [hasSavedGear, setHasSavedGear] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const refresh = () => {
     const store = loadAccountStore();
@@ -270,7 +271,7 @@ function AccountSwitcher({
     setDraft(activeRsn);
   }, [activeRsn]);
 
-  const saveAccount = (event: React.FormEvent) => {
+  const saveAccount = (event: FormEvent) => {
     event.preventDefault();
     const clean = draft.trim();
     if (!clean) return;
@@ -289,8 +290,26 @@ function AccountSwitcher({
     setOpen(false);
   };
 
+  const removeSavedAccount = (rsn: string) => {
+    const confirmed = window.confirm(`Remove ${rsn} from Scapestack on this device?`);
+    if (!confirmed) return;
+    const removingActive = rsn === activeRsn;
+    removeAccount(rsn);
+    const nextActive = getActiveAccount();
+    if (removingActive && !nextActive) clearSavedRsn();
+    if (nextActive?.rsn) saveSavedRsn(nextActive.rsn);
+    refresh();
+  };
+
+  const focusRsnInput = () => {
+    setOpen(true);
+    window.setTimeout(() => {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }, 0);
+  };
+
   const accountLabel = activeRsn || "Add account";
-  const nextHref = activeRsn ? `/next?rsn=${encodeURIComponent(activeRsn)}` : "/next";
   const bankHref = activeRsn ? `/bank?rsn=${encodeURIComponent(activeRsn)}&from=next` : "/bank";
   const pluginHref = activeRsn ? `/plugin?rsn=${encodeURIComponent(activeRsn)}#verify-sync` : "/plugin#verify-sync";
 
@@ -316,19 +335,17 @@ function AccountSwitcher({
 
       {open && (
         <div className={cn(
-          "z-40 mt-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-3 shadow-[0_18px_55px_rgba(0,0,0,0.28)]",
-          compact ? "w-full" : "absolute right-0 w-[320px]"
+          "z-40 mt-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-3 shadow-[0_18px_55px_rgba(0,0,0,0.55)]",
+          compact ? "w-full" : "absolute right-0 w-[340px]"
         )}>
           <form onSubmit={saveAccount} className="space-y-2">
-            <label htmlFor="header-account-rsn" className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-              OSRS account
-            </label>
             <div className="flex gap-2">
               <input
+                ref={inputRef}
                 id="header-account-rsn"
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
-                placeholder="Type your OSRS name"
+                placeholder="Paste RSN"
                 maxLength={12}
                 autoComplete="off"
                 spellCheck={false}
@@ -348,29 +365,53 @@ function AccountSwitcher({
           {accounts.length > 0 && (
             <div className="mt-3 space-y-1">
               {accounts.map((account) => (
-                <button
-                  key={account.id}
-                  type="button"
-                  onClick={() => pickAccount(account.rsn)}
-                  className="flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/45 hover:text-[var(--color-text)]"
-                >
-                  <span className="truncate">{account.rsn}</span>
-                  {account.rsn === activeRsn && <CheckCircle2 className="size-3.5 text-[var(--color-good)]" />}
-                </button>
+                <div key={account.id} className="flex items-center gap-1 rounded-lg hover:bg-[var(--color-bg)]/60">
+                  <button
+                    type="button"
+                    onClick={() => pickAccount(account.rsn)}
+                    className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:text-[var(--color-text)]"
+                  >
+                    <span className="truncate">{account.rsn}</span>
+                    {account.rsn === activeRsn && <CheckCircle2 className="size-3.5 text-[var(--color-good)]" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeSavedAccount(account.rsn)}
+                    className="mr-1 inline-flex size-7 shrink-0 items-center justify-center rounded-md text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-danger)]/10 hover:text-[var(--color-danger)]"
+                    aria-label={`Remove ${account.rsn}`}
+                    title="Remove account"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                </div>
               ))}
             </div>
           )}
 
-          <div className="mt-3 grid grid-cols-3 gap-1.5 border-t border-[var(--color-border)] pt-3">
-            <Link href={nextHref} onClick={() => setOpen(false)} className="rounded-lg border border-[var(--color-border)] px-2 py-2 text-center text-[11px] font-bold text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]">
-              Plan
+          <div className="mt-3 grid grid-cols-3 gap-2 border-t border-[var(--color-border)] pt-3">
+            <button
+              type="button"
+              onClick={focusRsnInput}
+              className="grid min-h-[76px] place-items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+            >
+              <UserRound className="mb-1 size-5" />
+              RSN
+            </button>
+            <Link
+              href={bankHref}
+              onClick={() => setOpen(false)}
+              className="grid min-h-[76px] place-items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+            >
+              <Package className="mb-1 size-5" />
+              {hasSavedGear ? "Bank saved" : "Bank"}
             </Link>
-            <Link href={bankHref} onClick={() => setOpen(false)} className="rounded-lg border border-[var(--color-border)] px-2 py-2 text-center text-[11px] font-bold text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]">
-              {hasSavedGear ? "Gear saved" : "Add gear"}
-            </Link>
-            <Link href={pluginHref} onClick={() => setOpen(false)} className="inline-flex items-center justify-center gap-1 rounded-lg border border-[var(--color-border)] px-2 py-2 text-center text-[11px] font-bold text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]">
+            <Link
+              href={pluginHref}
+              onClick={() => setOpen(false)}
+              className="grid min-h-[76px] place-items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+            >
+              <PlugZap className="mb-1 size-5" />
               RuneLite
-              <ArrowRight className="size-3" />
             </Link>
           </div>
         </div>

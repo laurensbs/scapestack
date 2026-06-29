@@ -560,7 +560,7 @@ function GoalSetCard({ set, completion }: { set: typeof GOAL_SETS[0]; completion
     <div className={cn(
       "rounded-xl border transition-colors",
       isComplete
-        ? "bg-gradient-to-br from-[oklch(0.22_0.06_145/0.15)] to-[var(--color-bg-2)] border-[var(--color-good)]/40"
+        ? "bg-gradient-to-br from-[oklch(0.24_0.05_65/0.16)] to-[var(--color-bg-2)] border-[var(--color-good)]/40"
         : "bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] border-[var(--color-border)] hover:border-[var(--color-border-strong)]"
     )}>
       <button
@@ -598,7 +598,7 @@ function GoalSetCard({ set, completion }: { set: typeof GOAL_SETS[0]; completion
               </span>
             )}
             {isComplete && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-[oklch(0.32_0.08_145/0.3)] text-[var(--color-good)]">
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-[oklch(0.32_0.05_65/0.3)] text-[var(--color-good)]">
                 <Check className="size-2.5" /> Complete
               </span>
             )}
@@ -648,7 +648,7 @@ function GoalSetCard({ set, completion }: { set: typeof GOAL_SETS[0]; completion
                 }
                 className={cn(
                   "relative flex flex-col items-center gap-1 p-1.5 rounded-md border",
-                  direct && "bg-[oklch(0.32_0.08_145/0.10)] border-[var(--color-good)]/40",
+                  direct && "bg-[oklch(0.32_0.05_65/0.10)] border-[var(--color-good)]/40",
                   !direct && got && "bg-[oklch(0.32_0.05_65/0.10)] border-[var(--color-gold-soft)]/30",
                   !got && "bg-[var(--color-slot)]/40 border-[var(--color-border)]/40"
                 )}

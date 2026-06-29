@@ -5074,7 +5074,7 @@ function JunkTile({ item, tab }: { item: OrganizedItem; tab: string }) {
 }
 
 // Hover chip that explains the OSRS quantity colours so first-timers know
-// what yellow/white/green numbers mean.
+// what yellow/white/gold numbers mean in Scapestack.
 function QtyColorLegend() {
   return (
     <div className="relative group/legend ml-auto">
@@ -5100,7 +5100,7 @@ function QtyColorLegend() {
               <span className="text-[var(--color-text-dim)]">100k – 10M</span>
             </li>
             <li className="flex items-center justify-between">
-              <span className="text-[var(--color-osrs-qty-green)] font-mono font-semibold">Green</span>
+              <span className="text-[var(--color-osrs-qty-green)] font-mono font-semibold">Gold</span>
               <span className="text-[var(--color-text-dim)]">10M+</span>
             </li>
           </ul>

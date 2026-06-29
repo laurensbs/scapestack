@@ -22,7 +22,7 @@ export interface Tool {
    *  fall back to the Lucide icon. */
   iconItemId?: number;
   status: ToolStatus;
-  accent: "amber" | "emerald" | "sky" | "violet" | "rose"; // for landing cards
+  accent: "amber" | "sky" | "violet" | "rose"; // for landing cards
 }
 
 export const TOOLS: Tool[] = [
@@ -38,7 +38,7 @@ export const TOOLS: Tool[] = [
     icon: Sparkles,
     iconItemId: 11865, // Slayer helmet (i) — "what to do next" / next-task icon
     status: "live",
-    accent: "emerald"
+    accent: "amber"
   },
   {
     slug: "bank",
@@ -88,7 +88,7 @@ export const TOOLS: Tool[] = [
     icon: Target,
     iconItemId: 9813,  // Quest point cape — generic completion goal
     status: "live",
-    accent: "emerald"
+    accent: "amber"
   },
   // Quest / Skill / Diary planners removed as separate tools per STRATEGY.md:
   // their functionality lives inside /next as rec-types (quest, skill,
@@ -134,7 +134,7 @@ export const TOOLS: Tool[] = [
     icon: PlugZap,
     iconItemId: 11865,
     status: "live",
-    accent: "emerald"
+    accent: "amber"
   }
 ];
 

@@ -711,7 +711,7 @@ export function DpsClient() {
                 key={upgrade.gear.id}
                 className={cn(
                   "rounded-xl p-3 border border-[var(--color-good)]/30",
-                  "bg-gradient-to-br from-[oklch(0.22_0.06_145/0.10)] to-[var(--color-bg-2)]"
+                  "bg-gradient-to-br from-[oklch(0.24_0.05_65/0.12)] to-[var(--color-bg-2)]"
                 )}
               >
                 <div className="flex items-center gap-2 mb-1">

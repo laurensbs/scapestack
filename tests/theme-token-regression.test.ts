@@ -47,8 +47,8 @@ describe("theme token regressions", () => {
     }
   });
 
-  it("keeps the canonical warning token defined globally", () => {
-    expect(globalsCss).toContain("--color-warning: #C28A35;");
+  it("keeps the canonical warning token on the gold brand palette", () => {
+    expect(globalsCss).toContain("--color-warning: #D6A63A;");
     expect(globalsCss).not.toContain("--color-warn:");
   });
 

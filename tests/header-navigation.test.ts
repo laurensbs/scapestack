@@ -12,7 +12,11 @@ describe("global header navigation", () => {
     expect(source).toContain('aria-current={active ? "page" : undefined}');
     expect(source).toContain("AccountSwitcher");
     expect(source).toContain("Add account");
-    expect(source).toContain("Gear saved");
+    expect(source).toContain("Bank saved");
+    expect(source).toContain("Remove account");
+    expect(source).toContain("Remove ${rsn} from Scapestack on this device?");
+    expect(source).toContain("<Package");
+    expect(source).toContain("<PlugZap");
   });
 
   it("surfaces the core Do now → Gear → RuneLite loop as clickable navigation", () => {
