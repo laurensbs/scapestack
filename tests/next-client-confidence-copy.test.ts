@@ -308,6 +308,14 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("accountStage={summary.accountStage}");
     expect(source).toContain("accountStage: NextUpResult[\"summary\"][\"accountStage\"]");
     expect(source).toContain("const archetype = accountStage;");
+    expect(source).toContain("function playerStageTip");
+    expect(source).toContain("accountStage: NextUpResult[\"summary\"][\"accountStage\"]");
+    expect(source).toContain("const stageTip = playerStageTip(rec, accountStage, hasBankContext);");
+    expect(source).toContain('label: "For you"');
+    expect(source).toContain("Good new-account move: finish one unlock, then re-run /next instead of starting a long chain.");
+    expect(source).toContain("Returning route: one bounded goal, one stop point, then re-run /next so the account feels manageable.");
+    expect(source).toContain("PvM-ready: lock the setup in DPS before buying upgrades or camping the trip.");
+    expect(source).toContain("RuneLite already helps skip finished stuff. Trust the stop point, then sync again after progress.");
     expect(source).toContain("title={archetype.helper}");
     expect(source).toContain("{archetype.label}");
     expect(source).toContain("RuneLite helped skip finished quests, diary steps, clog slots and Slayer mistakes.");

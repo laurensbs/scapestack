@@ -1662,6 +1662,43 @@ function recommendationBringValue(rec: Recommendation): string {
   return needs[0] ?? rec.actionPlan?.prep ?? "Nothing special flagged.";
 }
 
+function playerStageTip(
+  rec: Recommendation,
+  accountStage: NextUpResult["summary"]["accountStage"],
+  hasBankContext: boolean
+): string | null {
+  switch (accountStage.id) {
+    case "first-run":
+      return "Start with the first step only. Add your OSRS name later when you want stats and KC to shape the pick.";
+    case "gear-first":
+      return hasBankContext
+        ? "This is based on gear only. Add your OSRS name later if quests, KC or Slayer could change the answer."
+        : "Start with an OSRS name or gear before treating this as tonight's route.";
+    case "new-account":
+      if (rec.kind === "boss" || rec.kind === "kc") return "Keep this as a test trip. Early accounts usually get more from unlocks first.";
+      return "Good new-account move: finish one unlock, then re-run /next instead of starting a long chain.";
+    case "returning":
+      return "Returning route: one bounded goal, one stop point, then re-run /next so the account feels manageable.";
+    case "iron-route":
+      return "Iron route: check supplies and unlock path before spending gathered resources.";
+    case "skiller":
+      return "Skiller route: keep combat steps as backups and favour low-combat progress.";
+    case "pvm-ready":
+      if (rec.kind === "boss" || rec.kind === "kc" || rec.kind === "slayer") return "PvM-ready: lock the setup in DPS before buying upgrades or camping the trip.";
+      return "PvM is available, but this stop point is cleaner than forcing a random trip.";
+    case "maxed-grinder":
+      return "Endgame route: use the stop point as the block. Do not let one session become an open-ended grind.";
+    case "runelite-aware":
+      return "RuneLite already helps skip finished stuff. Trust the stop point, then sync again after progress.";
+    case "early-main":
+    case "midgame-main":
+      if (rec.kind === "quest" || rec.kind === "diary" || rec.kind === "goal" || rec.kind === "milestone") {
+        return "Unlock route: finish the unlock, then stop before the prereq chain expands.";
+      }
+      return null;
+  }
+}
+
 function headlinePayoff(rec: Recommendation): string | null {
   const payoff = rec.payoff?.trim();
   if (!payoff) return null;
@@ -2012,6 +2049,7 @@ function RecommendationSessionSummary({
   minutes,
   hasBankContext,
   bankItems,
+  accountStage,
   compact = false
 }: {
   rec: Recommendation;
@@ -2019,17 +2057,20 @@ function RecommendationSessionSummary({
   minutes: TimeBudget;
   hasBankContext: boolean;
   bankItems: BankHandoffItem[];
+  accountStage: NextUpResult["summary"]["accountStage"];
   compact?: boolean;
 }) {
   const plan = rec.actionPlan;
   const gearReality = recommendationGearReality(rec, bankItems, hasBankContext);
   const gearLabel = (rec.kind === "boss" || rec.kind === "kc") && rec.bossSlug ? "Kill check" : "Gear";
+  const stageTip = playerStageTip(rec, accountStage, hasBankContext);
   if (compact) {
     return (
       <dl className="mt-2 space-y-1.5 border-t border-[var(--color-border)]/60 pt-2">
         {[
           { label: "Fit", value: sessionFitCopy(rec, mood, minutes, hasBankContext) },
           { label: gearLabel === "Kill check" ? "DPS" : "Gear", value: gearRealityText(gearReality) },
+          ...(stageTip ? [{ label: "Tip", value: stageTip }] : []),
           { label: "Stop", value: recommendationStopPointValue(rec) }
         ].map((item) => (
           <div key={`${rec.id}:compact-session:${item.label}`} className="grid grid-cols-[42px_minmax(0,1fr)] gap-2 text-[11px] leading-snug">
@@ -2058,6 +2099,10 @@ function RecommendationSessionSummary({
       label: gearLabel,
       value: gearRealityText(gearReality)
     },
+    ...(stageTip ? [{
+      label: "For you",
+      value: stageTip
+    }] : []),
     {
       label: "Bring",
       value: recommendationBringValue(rec)
@@ -2165,6 +2210,7 @@ function HeadlineCard({
   minutes,
   hasBankContext,
   bankItems,
+  accountStage,
   pluginSyncState
 }: {
   rec: Recommendation;
@@ -2175,6 +2221,7 @@ function HeadlineCard({
   minutes: TimeBudget;
   hasBankContext: boolean;
   bankItems: BankHandoffItem[];
+  accountStage: NextUpResult["summary"]["accountStage"];
   pluginSyncState: "live" | "stale" | "outdated" | null;
 }) {
   // Boss/KC recs expose an explicit modal button. Other kinds expose an
@@ -2276,6 +2323,7 @@ function HeadlineCard({
             minutes={minutes}
             hasBankContext={hasBankContext}
             bankItems={bankItems}
+            accountStage={accountStage}
           />
           {isBossWithDetail && rec.bossSlug ? (
             <button
@@ -2326,6 +2374,7 @@ function RecRow({
   minutes,
   hasBankContext,
   bankItems,
+  accountStage,
   backupPrompt
 }: {
   rec: Recommendation;
@@ -2335,6 +2384,7 @@ function RecRow({
   minutes: TimeBudget;
   hasBankContext: boolean;
   bankItems: BankHandoffItem[];
+  accountStage: NextUpResult["summary"]["accountStage"];
   backupPrompt?: { label: string; helper: string };
 }) {
   const isBossWithDetail = (rec.kind === "kc" || rec.kind === "boss") && !!rec.bossSlug;
@@ -2406,6 +2456,7 @@ function RecRow({
             minutes={minutes}
             hasBankContext={hasBankContext}
             bankItems={bankItems}
+            accountStage={accountStage}
             compact
           />
           {isBossWithDetail && rec.bossSlug ? (
@@ -3142,6 +3193,7 @@ function WhatToDo({
               minutes={minutes}
               hasBankContext={hasBankContext}
               bankItems={bankItems}
+              accountStage={accountStage}
               pluginSyncState={pluginSyncState}
             />
             {pick.alternatives.length > 0 && (
@@ -3165,6 +3217,7 @@ function WhatToDo({
                       minutes={minutes}
                       hasBankContext={hasBankContext}
                       bankItems={bankItems}
+                      accountStage={accountStage}
                       backupPrompt={backupChoicePrompt(r, pick.headline)}
                     />
                   ))}
@@ -3630,6 +3683,7 @@ function RecHeadlineExpandable({
   minutes,
   hasBankContext,
   bankItems,
+  accountStage,
   pluginSyncState
 }: {
   rec: Recommendation;
@@ -3644,6 +3698,7 @@ function RecHeadlineExpandable({
   minutes: TimeBudget;
   hasBankContext: boolean;
   bankItems: BankHandoffItem[];
+  accountStage: NextUpResult["summary"]["accountStage"];
   pluginSyncState: "live" | "stale" | "outdated" | null;
 }) {
   const [open, setOpen] = useState(false);
@@ -3658,6 +3713,7 @@ function RecHeadlineExpandable({
         minutes={minutes}
         hasBankContext={hasBankContext}
         bankItems={bankItems}
+        accountStage={accountStage}
         pluginSyncState={pluginSyncState}
       />
       {!cleanMode && (
@@ -3704,6 +3760,7 @@ function RecRowExpandable({
   minutes,
   hasBankContext,
   bankItems,
+  accountStage,
   backupPrompt
 }: {
   rec: Recommendation;
@@ -3713,6 +3770,7 @@ function RecRowExpandable({
   minutes: TimeBudget;
   hasBankContext: boolean;
   bankItems: BankHandoffItem[];
+  accountStage: NextUpResult["summary"]["accountStage"];
   backupPrompt?: { label: string; helper: string };
 }) {
   return (
@@ -3724,6 +3782,7 @@ function RecRowExpandable({
       minutes={minutes}
       hasBankContext={hasBankContext}
       bankItems={bankItems}
+      accountStage={accountStage}
       backupPrompt={backupPrompt}
     />
   );
