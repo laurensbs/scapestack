@@ -2,7 +2,10 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const source = readFileSync(join(process.cwd(), "src/app/page.tsx"), "utf8");
+const source = [
+  readFileSync(join(process.cwd(), "src/app/page.tsx"), "utf8"),
+  readFileSync(join(process.cwd(), "src/components/hero-boss-trip-preview.tsx"), "utf8")
+].join("\n");
 
 describe("homepage first-impression copy", () => {
   it("opens with the five-second OSRS planner promise", () => {
@@ -17,20 +20,23 @@ describe("homepage first-impression copy", () => {
     expect(source).not.toContain("bank standing");
   });
 
-  it("shows one example plan instead of a dense product mock", () => {
-    expect(source).toContain("HeroSessionSwitcher");
-    expect(source).toContain("HERO_SESSION_SWITCHER");
-    expect(source).toContain('aria-label="Live OSRS trip switcher"');
-    expect(source).toContain("Live trip preview");
+  it("shows one boss-led example plan instead of a dense product mock", () => {
+    expect(source).toContain("HeroBossTripPreview");
+    expect(source).toContain("HERO_BOSS_TRIPS");
+    expect(source).toContain('aria-label="Live OSRS boss trip preview"');
+    expect(source).toContain("Live boss preview");
     expect(source).toContain("Do this first");
     expect(source).toContain("Push Vardorvis to 50 KC");
-    expect(source).toContain("Run herbs + birdhouses");
-    expect(source).toContain("Desert Diary - Hard");
-    expect(source).toContain("Start: {primary.start}");
-    expect(source).toContain("RuneLite can quietly skip quests, diaries, clog slots and Slayer mistakes later.");
+    expect(source).toContain("Run Vorkath for a clean trip");
+    expect(source).toContain("Send a Zulrah block");
+    expect(source).toContain("Use Hydra while the task is live");
+    expect(source).toContain("Pick a Nex mass or small team");
+    expect(source).toContain("Start: {active.start}");
+    expect(source).toContain("RuneLite can quietly avoid bosses, quests, diary steps and Slayer calls you already handled.");
     expect(source).not.toContain("Item ID 28307");
     expect(source).not.toContain("https://oldschool.runescape.wiki/w/Special:Lookup?type=item&id=28307");
-    expect(source).toContain("ItemSprite");
+    expect(source).toContain('src={`/sprites/bosses/${trip.boss}.png`}');
+    expect(source).not.toContain('import { ItemSprite } from "@/components/item-sprite";');
     expect(source).not.toContain("HERO_PREVIEW_ITEMS");
     expect(source).not.toContain("Setup");
     expect(source).not.toContain("Try this flow");

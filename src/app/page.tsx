@@ -1,36 +1,8 @@
-import { CheckCircle2, Target } from "lucide-react";
 import { BuyMeCoffee } from "@/components/buy-me-coffee";
+import { HeroBossTripPreview } from "@/components/hero-boss-trip-preview";
 import { HeroIntake } from "@/components/hero-intake";
-import { ItemSprite } from "@/components/item-sprite";
 
 export const revalidate = 300;
-
-const HERO_SESSION_SWITCHER = [
-  {
-    label: "Bossing",
-    title: "Push Vardorvis to 50 KC",
-    itemId: 28307,
-    meta: "45-90 min",
-    why: "Started KC. Clean stop point.",
-    start: "Check kill setup, then do one trip."
-  },
-  {
-    label: "AFK",
-    title: "Run herbs + birdhouses",
-    itemId: 9810,
-    meta: "10 min loop",
-    why: "Useful progress with low attention.",
-    start: "Do herbs first, then reset houses."
-  },
-  {
-    label: "Unlock",
-    title: "Desert Diary - Hard",
-    itemId: 13133,
-    meta: "One task block",
-    why: "Diary reward beats random skilling.",
-    start: "Check the closest unfinished task."
-  }
-] as const;
 
 export default function HomePage() {
   return (
@@ -88,7 +60,7 @@ export default function HomePage() {
             className="relative mx-auto w-full max-w-[440px] lg:mx-0"
             style={{ animation: "hero-boss-in 1.1s cubic-bezier(0.22,1,0.36,1) 0.65s both" }}
           >
-            <HeroSessionSwitcher />
+            <HeroBossTripPreview />
           </div>
         </div>
       </section>
@@ -126,96 +98,6 @@ export default function HomePage() {
             footer disappear from sight. */}
       </footer>
     </main>
-  );
-}
-
-function HeroSessionSwitcher() {
-  const [primary, ...backups] = HERO_SESSION_SWITCHER;
-
-  return (
-    <aside
-      aria-label="Live OSRS trip switcher"
-      className="relative overflow-hidden rounded-[28px] border border-[var(--color-border)] bg-[var(--color-panel)] p-4 text-left shadow-[0_28px_90px_-64px_rgba(0,0,0,0.92)] sm:p-5"
-    >
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(circle at 48% 24%, rgba(200,154,61,0.20), transparent 32%), radial-gradient(circle at 80% 82%, rgba(126,160,196,0.10), transparent 34%)"
-        }}
-      />
-
-      <div className="relative flex flex-wrap items-center justify-between gap-3">
-        <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-2.5 py-1 text-[11px] font-bold text-[var(--color-good)]">
-          <CheckCircle2 className="size-3.5" aria-hidden="true" />
-          Live trip preview
-        </div>
-        <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/38 px-2.5 py-1 text-[11px] font-bold text-[var(--color-text-dim)]">
-          {primary.meta}
-        </span>
-      </div>
-
-      <div className="relative mt-5">
-        <div className="mx-auto grid aspect-square max-w-[300px] place-items-center rounded-[32px] border border-[var(--color-accent)]/18 bg-[var(--color-bg)]/48 shadow-[inset_0_1px_0_rgba(233,221,197,0.06),0_24px_70px_-50px_rgba(200,154,61,0.65)]">
-          <div className="grid size-[72%] place-items-center rounded-full border border-[var(--color-accent)]/24 bg-[var(--color-accent)]/8">
-            <ItemSprite
-              id={primary.itemId}
-              alt=""
-              size={164}
-              className="scale-[1.08]"
-              loading="eager"
-            />
-          </div>
-        </div>
-
-        <div className="mt-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)]/42 p-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-accent)]/22 bg-[var(--color-accent)]/8 px-2.5 py-1 text-[11px] font-bold text-[var(--color-accent)]">
-            <Target className="size-3.5" aria-hidden="true" />
-            Do this first
-          </div>
-          <h2 className="mt-2.5 text-[27px] font-semibold leading-tight text-[var(--color-text)]">
-            {primary.title}
-          </h2>
-          <p className="mt-2 text-[13px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-            {primary.why}
-          </p>
-          <p className="mt-3 rounded-xl border border-[var(--color-accent)]/16 bg-[var(--color-accent)]/7 px-3 py-2 text-[12.5px] font-bold leading-snug text-[var(--color-text)]">
-            Start: {primary.start}
-          </p>
-        </div>
-
-        <div className="mt-3 grid gap-2">
-          {backups.map((session) => (
-            <div
-              key={session.label}
-              className="grid grid-cols-[42px_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)]/34 px-3 py-2.5"
-            >
-              <span className="grid size-10 place-items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/75">
-                <ItemSprite id={session.itemId} alt="" size={28} />
-              </span>
-              <span className="min-w-0">
-                <span className="block text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">
-                  {session.label}
-                </span>
-                <span className="mt-0.5 block truncate text-[13px] font-bold text-[var(--color-text)]">
-                  {session.title}
-                </span>
-              </span>
-              <span className="text-[11px] font-bold text-[var(--color-text-muted)]">
-                {session.meta}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-3 rounded-2xl border border-[var(--color-good)]/22 bg-[var(--color-good)]/8 px-3 py-2">
-          <div className="flex items-start gap-2 text-[12.5px] font-bold leading-snug text-[var(--color-good)]">
-            <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
-            <span>RuneLite can quietly skip quests, diaries, clog slots and Slayer mistakes later.</span>
-          </div>
-        </div>
-      </div>
-    </aside>
   );
 }
 
