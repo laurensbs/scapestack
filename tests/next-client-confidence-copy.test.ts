@@ -18,12 +18,15 @@ describe("/next confidence UI copy", () => {
   it("makes compact recommendation rows visibly and accessibly clickable", () => {
     expect(source).toContain("const primaryAction = primaryActionForRecommendation(rec, actionContext);");
     expect(source).toContain("const actionLabel = isBossWithDetail ? \"Open boss detail\" : primaryAction.label;");
+    expect(source).toContain("const headlineCtaLabel = compactActionLabel(rec, actionLabel);");
+    expect(source).toContain("const compactCtaLabel = compactActionLabel(rec, actionLabel);");
     expect(source).toContain("const actionHref = isBossWithDetail ? undefined : primaryAction.href;");
     expect(source).toContain("aria-label={`${actionLabel}: ${rec.title}`}");
     expect(source).toContain("title={`${actionLabel}: ${rec.title}`}");
     expect(source).toContain('type="button"');
     expect(source).toContain("onClick={() => onBossOpen(rec.bossSlug!)}");
-    expect(source).toContain("{actionLabel} <ArrowRight");
+    expect(source).toContain("{headlineCtaLabel} <ArrowRight");
+    expect(source).toContain("{compactCtaLabel} <ArrowRight");
     expect(source).toContain('target="_blank"');
     expect(source).toContain('rel="noopener noreferrer"');
     expect(source).not.toContain('role="button"');
@@ -99,7 +102,11 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Best teleport near the first step");
     expect(source).toContain("Do this first");
     expect(source).not.toContain("Why this pick:");
-    expect(source).toContain("headlineSmartRead(rec)");
+    expect(source).toContain("function headlineOneLineReason");
+    expect(source).toContain("const oneLineReason = headlineOneLineReason(rec);");
+    expect(source).toContain("{oneLineReason}");
+    expect(source).toContain("const payoff = headlinePayoff(rec);");
+    expect(source).toContain("{rec.why}");
     expect(source).toContain("function recommendationWhyNot");
     expect(source).toContain("Why not");
     expect(source).toContain("so kill checks stay conservative.");
@@ -265,7 +272,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('reason: "too_hard"');
     expect(source).toContain("title: rec.title");
     expect(source).toContain("Undo hide");
-    expect(source).toContain("aria-label={`Not today: hide ${rec.title}`}");
+    expect(source).toContain("aria-label={`Skip: hide ${rec.title}`}");
   });
 
   it("lets players mark recommendations done without calling them irrelevant", () => {
@@ -321,14 +328,13 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("title={archetype.helper}");
     expect(source).toContain("{archetype.label}");
     expect(source).toContain("RuneLite helped skip finished quests, diary steps, clog slots and Slayer mistakes.");
-    expect(source).toContain("RuneLite changed this: finished quests, diary steps, clog slots and Slayer mistakes were skipped before this pick won.");
     expect(source).toContain("RuneLite can improve picks later.");
     expect(source).toContain("function runeLitePlanNote");
-    expect(source).toContain("function scapestackNotice");
+    expect(source).not.toContain("function scapestackNotice");
     expect(source).not.toContain("Scapestack noticed:");
-    expect(source).toContain("Bossing stays backup while this route has the cleaner stop point.");
-    expect(source).toContain("KC stays a test trip, not the main grind.");
-    expect(source).toContain("No gear pasted, so the trip stays conservative.");
+    expect(source).not.toContain("Bossing stays backup while this route has the cleaner stop point.");
+    expect(source).not.toContain("KC stays a test trip, not the main grind.");
+    expect(source).not.toContain("No gear pasted, so the trip stays conservative.");
     expect(source).toContain('const DEFAULT_MOOD: Mood = "unlock";');
     expect(source).toContain('if (mood === "focused") return "bossing";');
     expect(source).not.toContain("RuneLite evidence dashboard");
@@ -342,6 +348,11 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('recommendationFeedbackButtonClass("done")');
     expect(source).toContain('recommendationFeedbackButtonClass("skip")');
     expect(source).toContain('recommendationFeedbackButtonClass("details")');
+    expect(source).toContain("Skip");
+    expect(source).toContain("Steps");
+    expect(source).not.toContain("Not today");
+    expect(source).not.toContain("Show steps");
+    expect(source).not.toContain("Hide steps");
     expect(source).not.toContain('recommendationFeedbackButtonClass("done", true)');
     expect(source).not.toContain('recommendationFeedbackButtonClass("skip", true)');
     expect(source).not.toContain('recommendationFeedbackButtonClass("details", true)');

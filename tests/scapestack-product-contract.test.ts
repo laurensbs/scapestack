@@ -39,7 +39,7 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).toContain("Another trip");
     expect(next).toContain("Chill now");
     expect(next).toContain("accountStage={summary.accountStage}");
-    expect(next).toContain("Bossing stays backup while this route has the cleaner stop point.");
+    expect(next).not.toContain("Bossing stays backup while this route has the cleaner stop point.");
     expect(plugin).toContain("Skip done stuff.");
     expect(plugin).toContain("No login");
     expect(plugin).toContain("No bank");
@@ -85,7 +85,6 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(playerFacingSources).toContain("RuneLite helps Scapestack skip stuff you already finished.");
     expect(playerFacingSources).toContain("Skips finished quests, diaries, clog slots and Slayer mistakes.");
     expect(playerFacingSources).toContain("RuneLite helped skip finished quests, diary steps, clog slots and Slayer mistakes.");
-    expect(playerFacingSources).toContain("RuneLite changed this: finished quests, diary steps, clog slots and Slayer mistakes were skipped before this pick won.");
     expect(playerFacingSources).toContain("RuneLite can improve picks later.");
     expect(playerFacingSources).toContain("Check RuneLite");
     expect(playerFacingSources).not.toContain("Open synced /next");

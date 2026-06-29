@@ -1695,6 +1695,26 @@ function headlineSmartRead(rec: Recommendation): string | null {
   return oneLine.length > 150 ? `${oneLine.slice(0, 147).trim()}...` : oneLine;
 }
 
+function headlineOneLineReason(rec: Recommendation): string {
+  const smart = headlineSmartRead(rec);
+  if (smart) return smart;
+  const fallback = firstSentence(rec.why);
+  return fallback.length > 140 ? `${fallback.slice(0, 137).trim()}...` : fallback;
+}
+
+function compactActionLabel(rec: Recommendation, actionLabel: string): string {
+  if (rec.kind === "kc" || rec.kind === "boss" || rec.kind === "slayer") return "Setup";
+  if (rec.kind === "quest" || rec.kind === "diary") return "Guide";
+  if (rec.kind === "goal" || rec.kind === "skill" || rec.kind === "milestone") return "Tracker";
+  if (rec.kind === "money") return "Route";
+
+  return actionLabel
+    .replace(/^Open\s+/i, "")
+    .replace(/^View\s+/i, "")
+    .replace(/^Start\s+/i, "")
+    .trim() || "Open";
+}
+
 function recommendationWhyNot({
   headline,
   allRecs,
@@ -1867,72 +1887,6 @@ function TonightRouteStrip({
       {content}
     </div>
   );
-}
-
-function scapestackNotice({
-  headline,
-  allRecs,
-  mood,
-  routeLens,
-  hasBankContext,
-  pluginSyncState
-}: {
-  headline: Recommendation | null;
-  allRecs: Recommendation[];
-  mood: Mood;
-  routeLens: RouteLens;
-  hasBankContext: boolean;
-  pluginSyncState: "live" | "stale" | "outdated" | null;
-}): string | null {
-  if (!headline) return null;
-
-  if (routeLens === "maxing") {
-    return "Maxing week: cape, diary, quest and total-level progress beat random trips.";
-  }
-  if (routeLens === "fun") {
-    return "Fun session: rewards, KC, minigames and lighter grinds stay in the mix.";
-  }
-  if (routeLens === "gp-upgrade") {
-    return "GP rebuild: cash and upgrade funding beat long unlock chains.";
-  }
-  if (routeLens === "boss-log") {
-    return "Boss log: KC, clog chances and realistic trips move up.";
-  }
-  if (routeLens === "afk-progress") {
-    return "AFK progress: low-pressure progress moves up and intense trips move down.";
-  }
-  if (routeLens === "unlock-chain") {
-    return "Iron unlock: quests, diaries and account gates move up.";
-  }
-
-  const scout = allRecs.find((rec) =>
-    rec.id !== headline.id &&
-    rec.kind === "kc" &&
-    rec.kcMeta &&
-    rec.kcMeta.kc > 0 &&
-    rec.kcMeta.kc < 5
-  );
-  if (scout?.kcMeta) {
-    return `${scout.kcMeta.kc.toLocaleString()} KC stays a test trip, not the main grind.`;
-  }
-
-  if (!hasBankContext && (headline.kind === "boss" || headline.kind === "kc" || headline.kind === "money")) {
-    return "No gear pasted, so the trip stays conservative.";
-  }
-
-  const activeBackup = allRecs.find((rec) =>
-    rec.id !== headline.id &&
-    (rec.kind === "boss" || rec.kind === "kc" || rec.kind === "slayer")
-  );
-  if ((mood === "unlock" || mood === "chill" || mood === "afk" || mood === "short") && activeBackup) {
-    return "Bossing stays backup while this route has the cleaner stop point.";
-  }
-
-  if (pluginSyncState === "live") {
-    return "RuneLite changed this: finished quests, diary steps, clog slots and Slayer mistakes were skipped before this pick won.";
-  }
-
-  return null;
 }
 
 function sessionMemoryNote({
@@ -2202,10 +2156,10 @@ function HeadlineCard({
   const isBossWithDetail = (rec.kind === "kc" || rec.kind === "boss") && !!rec.bossSlug;
   const primaryAction = primaryActionForRecommendation(rec, actionContext);
   const actionLabel = isBossWithDetail ? "Open boss detail" : primaryAction.label;
+  const headlineCtaLabel = compactActionLabel(rec, actionLabel);
   const actionHref = isBossWithDetail ? undefined : primaryAction.href;
   const choice = playerChoiceTag(rec);
-  const payoff = headlinePayoff(rec);
-  const smartRead = headlineSmartRead(rec);
+  const oneLineReason = headlineOneLineReason(rec);
   const bossViability = bossViabilityForRecommendation(rec, bankItems, hasBankContext);
   const card = (
     <article
@@ -2266,20 +2220,10 @@ function HeadlineCard({
           <h3 className="text-[19px] font-bold text-[var(--color-text)] tracking-normal leading-tight">
             {rec.title}
           </h3>
-          <p className="mt-2 text-[13.5px] text-[var(--color-text-dim)] leading-relaxed">
-            {rec.why}
+          <p className="mt-2 flex items-start gap-1.5 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+            <Sparkles className="mt-0.5 size-3.5 shrink-0 text-[var(--color-accent)]" />
+            <span>{oneLineReason}</span>
           </p>
-          {payoff && (
-            <p className="mt-2 text-[12.5px] text-[var(--color-text-secondary)] border-t border-[var(--color-border)] pt-2">
-              {payoff}
-            </p>
-          )}
-          {smartRead && (
-            <p className="mt-2 flex items-start gap-1.5 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-              <Sparkles className="mt-0.5 size-3.5 shrink-0 text-[var(--color-accent)]" />
-              <span>{smartRead}</span>
-            </p>
-          )}
           <RecommendationSessionSummary
             rec={rec}
           />
@@ -2292,7 +2236,7 @@ function HeadlineCard({
               aria-label={`${actionLabel}: ${rec.title}`}
               title={`${actionLabel}: ${rec.title}`}
             >
-              {actionLabel} <ArrowRight className="size-4" />
+              {headlineCtaLabel} <ArrowRight className="size-4" />
             </button>
           ) : actionHref && (
             primaryAction.external ? (
@@ -2304,7 +2248,7 @@ function HeadlineCard({
                 title={`${actionLabel}: ${rec.title}`}
                 className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-accent)] transition-all hover:bg-[var(--color-accent)]/15 hover:gap-2"
               >
-                {actionLabel} <ExternalLink className="size-3.5" />
+                {headlineCtaLabel} <ExternalLink className="size-3.5" />
               </a>
             ) : (
               <Link
@@ -2313,7 +2257,7 @@ function HeadlineCard({
                 title={`${actionLabel}: ${rec.title}`}
                 className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-accent)] transition-all hover:bg-[var(--color-accent)]/15 hover:gap-2"
               >
-              {actionLabel} <ArrowRight className="size-4" />
+              {headlineCtaLabel} <ArrowRight className="size-4" />
               </Link>
             )
           )}
@@ -2349,6 +2293,7 @@ function RecRow({
   const isBossWithDetail = (rec.kind === "kc" || rec.kind === "boss") && !!rec.bossSlug;
   const primaryAction = primaryActionForRecommendation(rec, actionContext);
   const actionLabel = isBossWithDetail ? "Open boss detail" : primaryAction.label;
+  const compactCtaLabel = compactActionLabel(rec, actionLabel);
   const actionHref = isBossWithDetail ? undefined : primaryAction.href;
   const choice = playerChoiceTag(rec);
   const inner = (
@@ -2395,7 +2340,7 @@ function RecRow({
               aria-label={`${actionLabel}: ${rec.title}`}
               title={`${actionLabel}: ${rec.title}`}
             >
-              Open <ArrowRight className="size-3.5" />
+              {compactCtaLabel} <ArrowRight className="size-3.5" />
             </button>
           ) : actionHref && (
             primaryAction.external ? (
@@ -2407,7 +2352,7 @@ function RecRow({
                 title={`${actionLabel}: ${rec.title}`}
                 className="inline-flex items-center gap-1 rounded-md border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
               >
-                Open <ExternalLink className="size-3" />
+                {compactCtaLabel} <ExternalLink className="size-3" />
               </a>
             ) : (
               <Link
@@ -2416,7 +2361,7 @@ function RecRow({
                 title={`${actionLabel}: ${rec.title}`}
                 className="inline-flex items-center gap-1 rounded-md border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
               >
-                Open <ArrowRight className="size-3.5" />
+                {compactCtaLabel} <ArrowRight className="size-3.5" />
               </Link>
             )
           )}
@@ -2768,17 +2713,6 @@ function WhatToDo({
     }),
     [activeRsn, feedback, lastSession, allRecs, pick?.headline]
   );
-  const noticedNote = useMemo(
-    () => scapestackNotice({
-      headline: pick?.headline ?? null,
-      allRecs,
-      mood,
-      routeLens,
-      hasBankContext,
-      pluginSyncState
-    }),
-    [allRecs, hasBankContext, mood, pick?.headline, pluginSyncState, routeLens]
-  );
 
   useEffect(() => {
     if (!pick) return;
@@ -3087,15 +3021,6 @@ function WhatToDo({
           className="mb-3 rounded-xl border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 px-3.5 py-2.5 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]"
         >
           {routeSwitchNote}
-        </div>
-      )}
-
-      {noticedNote && !routeSwitchNote && !lastSuppressed && !lastCompleted && !shareMode && (
-        <div
-          role="note"
-          className="mb-3 rounded-xl border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 px-3.5 py-2.5 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]"
-        >
-          {noticedNote}
         </div>
       )}
 
@@ -3493,11 +3418,20 @@ function RecDetailPanel({
   const hints = defaultActionHints(rec.kind);
   const needs = rec.needs ?? hints.needs;
   const details = rec.details ?? hints.details;
+  const payoff = headlinePayoff(rec);
   const linkedAction = rec.link ? routeActionForHref(rec.link, actionContext) : null;
   const wikiQuery = recommendationWikiQuery(rec);
   return (
     <div className="mt-2 px-4 py-3 rounded-lg bg-[var(--color-bg-2)]/40 border border-[var(--color-border)] animate-[fade-in_0.2s_ease-out] space-y-2.5">
       <ActionPlanBlock rec={rec} />
+      <p className="text-[12.5px] text-[var(--color-text-dim)] leading-relaxed">
+        {rec.why}
+      </p>
+      {payoff && (
+        <p className="text-[12px] font-semibold text-[var(--color-text-secondary)] leading-relaxed">
+          {payoff}
+        </p>
+      )}
       {hasDropChanceGraph(rec) && (
         <KcProbabilityGraph
           kc={rec.kcMeta.kc}
@@ -3651,17 +3585,17 @@ function RecHeadlineExpandable({
           <button
             type="button"
             onClick={() => onSuppress(rec)}
-            aria-label={`Not today: hide ${rec.title}`}
+            aria-label={`Skip: hide ${rec.title}`}
             className={recommendationFeedbackButtonClass("skip")}
           >
-            Not today
+            Skip
           </button>
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
             className={recommendationFeedbackButtonClass("details")}
           >
-            {open ? "Hide steps" : "Show steps"}
+            Steps
             <ChevronRight
               className={cn("size-3 transition-transform", open && "rotate-90")}
             />
