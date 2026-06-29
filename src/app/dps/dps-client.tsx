@@ -62,9 +62,9 @@ function buildDpsReadyToLeave(
 
   if (decision.tone === "locked" || weaponCount === 0) {
     return {
-      status: "Add gear first",
+      status: "Add bank first",
       items: [
-        { label: "Gear", value: "Add combat gear", tone: "warn" },
+        { label: "Bank", value: "Paste bank to check gear", tone: "warn" },
         { label: "Food", value: hasFood ? "In bring list" : "Missing food", tone: hasFood ? "good" : "warn" },
         { label: "Teleport", value: hasTeleport ? "Tele out" : "Missing teleport", tone: hasTeleport ? "good" : "warn" },
         { label: "Stop point", value: decision.stopPoint, tone: "neutral" }

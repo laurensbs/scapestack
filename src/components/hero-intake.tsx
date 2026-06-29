@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
-import { ArrowRight, ClipboardPaste, X } from "lucide-react";
+import { ArrowRight, ClipboardPaste, PlugZap, X } from "lucide-react";
+import { RuneliteOpenButton } from "@/components/runelite-open-button";
 import { getActiveAccount } from "@/lib/account-storage";
 import { loadSavedRsn, saveSavedRsn } from "@/lib/saved-bank";
 import { cn } from "@/lib/utils";
@@ -29,6 +29,7 @@ export function HeroIntake() {
   const [rememberedRsn, setRememberedRsn] = useState("");
   const [showBank, setShowBank] = useState(false);
   const [showBankGuide, setShowBankGuide] = useState(false);
+  const [showRuneliteGuide, setShowRuneliteGuide] = useState(false);
   const [bank, setBank] = useState("");
   const hasBankPaste = showBank && Boolean(bank.trim());
   const canSubmit = Boolean(rsn.trim() || hasBankPaste);
@@ -157,12 +158,14 @@ export function HeroIntake() {
               Add bank
             </button>
             <span aria-hidden="true" className="text-[var(--color-border-strong)]">·</span>
-            <Link
-              href="/plugin#verify-sync"
+            <button
+              type="button"
+              onClick={() => setShowRuneliteGuide(true)}
+              aria-label="Show RuneLite plugin setup"
               className="hover:text-[var(--color-accent)] underline underline-offset-4 decoration-dotted transition-colors"
             >
               RuneLite later
-            </Link>
+            </button>
           </>
         )}
       </div>
@@ -267,9 +270,10 @@ export function HeroIntake() {
                     <Image
                       src={step.src}
                       alt={step.title}
-                      fill
+                      width={720}
+                      height={450}
                       sizes="(max-width: 640px) 90vw, 360px"
-                      className="object-cover"
+                      className="h-full w-full object-cover"
                     />
                   </div>
                   <div className="p-4">
@@ -292,6 +296,68 @@ export function HeroIntake() {
               >
                 <ClipboardPaste className="size-4" />
                 Paste bank
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showRuneliteGuide && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="hero-runelite-guide-title"
+          className="fixed inset-0 z-[100] overflow-y-auto bg-black/72 px-4 pb-8 pt-20 backdrop-blur-sm sm:grid sm:place-items-center sm:py-8"
+          onClick={() => setShowRuneliteGuide(false)}
+        >
+          <div
+            className="w-full max-w-xl overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[#090909] text-left shadow-[0_32px_120px_-42px_rgba(0,0,0,0.92)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-5 py-4 sm:px-6">
+              <div>
+                <p className="eyebrow text-[var(--color-accent)]">RuneLite</p>
+                <h2 id="hero-runelite-guide-title" className="mt-1 text-[22px] font-semibold leading-tight text-[var(--color-text)]">
+                  Let Scapestack skip finished stuff.
+                </h2>
+                <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
+                  Install Scapestack Sync when you want quests, diaries, clog and Slayer to shape the next plan.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowRuneliteGuide(false)}
+                aria-label="Close RuneLite guide"
+                className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 p-5 sm:p-6">
+              {[
+                "Open RuneLite.",
+                "Search Plugin Hub for Scapestack Sync.",
+                "Press Sync now, then check the same RSN."
+              ].map((step, index) => (
+                <div key={step} className="flex items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] px-3 py-3">
+                  <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[13px] font-bold text-[var(--color-accent)]">
+                    {index + 1}
+                  </span>
+                  <span className="text-[13px] font-semibold text-[var(--color-text)]">{step}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="border-t border-[var(--color-border)] px-5 pb-5 sm:px-6 sm:pb-6">
+              <RuneliteOpenButton className="w-full" />
+              <button
+                type="button"
+                onClick={() => setShowRuneliteGuide(false)}
+                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] px-4 py-3 text-[13px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+              >
+                <PlugZap className="size-4" />
+                Do this later
               </button>
             </div>
           </div>

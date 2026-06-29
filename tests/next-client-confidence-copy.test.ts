@@ -48,7 +48,7 @@ describe("/next confidence UI copy", () => {
   it("keeps missing context out of the recommendation card chrome", () => {
     expect(source).toContain("function MakePlanSmarter");
     expect(source).toContain("Change input");
-    expect(source).toContain("Add gear");
+    expect(source).toContain("Add bank");
     expect(source).toContain("Check RuneLite");
     expect(source).not.toContain("missingDataActionForRecommendation(rec, actionContext)");
     expect(source).not.toContain("function RecommendationDataActionCallout");
@@ -101,7 +101,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function buildRecommendationTrip");
     expect(source).toContain("function buildNextReadyToLeave");
     expect(source).toContain("ReadyToLeave");
-    expect(source).toContain("Add gear to check trip readiness");
+    expect(source).toContain("Paste bank to check gear");
     expect(source).toContain("Ready to train");
     expect(source).toContain('label: "Train"');
     expect(source).toContain('label: "Bring"');
@@ -112,11 +112,11 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Check quest/diary items");
     expect(source).toContain("Ready to leave");
     expect(source).toContain("Ready to make GP");
-    expect(source).toContain("Add gear first");
+    expect(source).toContain("Add bank first");
     expect(source).toContain("function TripBuilder");
     expect(source).toContain("tripBankItems");
     expect(source).toContain("Copy Bank Tag");
-    expect(source).toContain("Add gear to build a Bank Tag.");
+    expect(source).toContain("Add bank to build a Bank Tag.");
     expect(source).toContain("Best teleport near the first step");
     expect(source).toContain("Do this first");
     expect(source).not.toContain("Why this pick:");
@@ -165,7 +165,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Supplies or GP only matter if they change the method.");
     expect(source).not.toContain("Better supplies, boss picks and Bank Tags.");
     expect(source).not.toContain("What shaped this");
-    expect(source).toContain("Add gear");
+    expect(source).toContain("Add bank");
     expect(source).toContain("Add supplies if needed");
     expect(source).toContain("Add quest items");
     expect(source).toContain("Add GP check");
@@ -185,21 +185,22 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Do this first");
     expect(source).toContain("One best move for this account. Two backups");
     expect(source).toContain("Pick a route");
-    expect(source).toContain("Another route");
+    expect(source).toContain("Surprise me");
+    expect(source).not.toContain("Another route");
+    expect(source).not.toContain("Show ${nextRouteLabel.name}");
     expect(source).toContain("After this run");
     expect(source).toContain("After this");
     expect(source).toContain("Two clean follow-ups after the stop point.");
     expect(source).toContain("Finish the stop point, then re-run /next.");
     expect(source).toContain("routePreviewRecs");
     expect(source).toContain("function TonightRouteStrip");
-    expect(source).toContain("ROUTE_LENS_ORDER.map");
+    expect(source).toContain("INTAKE_ROUTE_LENSES.map");
     expect(source).toContain("Pick ${label.name} route");
-    expect(source).toContain("Show ${nextRouteLabel.name}");
-    expect(source).toContain("Session route");
-    expect(source).toContain("Effort");
-    expect(source).toContain("Pick ${label.name} session pace");
-    expect(source).toContain("applySessionIntent(m)");
-    expect(source).toContain("applyRouteLens(lens)");
+    expect(source).not.toContain("Show ${nextRouteLabel.name}");
+    expect(source).not.toContain("Session route");
+    expect(source).not.toContain("Effort");
+    expect(source).not.toContain("Pick ${label.name} session pace");
+    expect(source).toContain("setSelectedRouteLens(lens)");
     expect(source).toContain("sessionSkipped");
     expect(source).toContain("recordSessionSkip(current, pick.headline)");
     expect(source).toContain("recordRecommendationMemory");
@@ -424,7 +425,8 @@ describe("/next confidence UI copy", () => {
   it("lets bank-handoff players run /next without typing an RSN", () => {
     expect(source).toContain("Using the gear you just organised");
     expect(source).toContain("Plan with this gear");
-    expect(source).toContain("onClick={() => onRun({ bankItems: fromBank.items })}");
+    expect(source).toContain("bankItems: fromBank.items");
+    expect(source).toContain("routeLens: selectedRouteLens");
     expect(source).toContain("disabled={loading}");
     expect(source).toContain("Add your OSRS name for stats and KC, or start with gear alone.");
   });

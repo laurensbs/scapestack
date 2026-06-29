@@ -19,9 +19,10 @@ describe("ready to leave UX", () => {
     expect(component).toContain('"Missing food"');
     expect(component).toContain('"Missing teleport"');
     expect(component).toContain('"Gear looks weak"');
-    expect(component).toContain('"Add gear first"');
+    expect(component).toContain('"Add bank first"');
     expect(component).toContain('"Check items first"');
     expect(component).toContain('"Gear"');
+    expect(component).toContain('"Bank"');
     expect(component).toContain('"Train"');
     expect(component).toContain('"Cash out"');
     expect(component).toContain('"Task"');

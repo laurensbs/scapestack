@@ -6,9 +6,13 @@ const shuffleLoaderSource = readFileSync(join(process.cwd(), "src/components/shu
 const intakeSource = readFileSync(join(process.cwd(), "src/components/intake.tsx"), "utf8");
 
 describe("first impression sprites", () => {
-  it("uses the ItemSprite fallback pipeline in loader and bank intake previews", () => {
-    expect(shuffleLoaderSource).toContain('import { ItemSprite } from "@/components/item-sprite";');
-    expect(shuffleLoaderSource).toContain("<ItemSprite");
+  it("keeps the first-load experience visual without item-ID noise", () => {
+    expect(shuffleLoaderSource).toContain("LOADER_BOSSES");
+    expect(shuffleLoaderSource).toContain("<Image");
+    expect(shuffleLoaderSource).toContain("Building your next trip");
+    expect(shuffleLoaderSource).toContain("Checking {active.label}");
+    expect(shuffleLoaderSource).not.toContain("ITEM_POOL");
+    expect(shuffleLoaderSource).not.toContain("<ItemSprite");
     expect(shuffleLoaderSource).not.toContain('import { ICON_URL } from "@/lib/utils";');
     expect(shuffleLoaderSource).not.toContain("src={ICON_URL(itemId)}");
     expect(shuffleLoaderSource).not.toContain("LORE_QUOTES");

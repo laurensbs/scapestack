@@ -17,7 +17,8 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("Continue as ${rememberedRsn}");
     expect(source).toContain("Add bank");
     expect(source).toContain("RuneLite later");
-    expect(source).toContain('href="/plugin#verify-sync"');
+    expect(source).toContain('aria-label="Show RuneLite plugin setup"');
+    expect(source).toContain("RuneliteOpenButton");
     expect(source).toContain("Plan my next trip with this bank");
     expect(source).toContain("Bank paste");
   });
@@ -60,5 +61,8 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("Paste your bank once.");
     expect(source).toContain('src: "/intro/step1.png"');
     expect(source).toContain('src: "/intro/step2.png"');
+    expect(source).toContain('aria-labelledby="hero-runelite-guide-title"');
+    expect(source).toContain("Let Scapestack skip finished stuff.");
+    expect(source).toContain("Search Plugin Hub for Scapestack Sync.");
   });
 });

@@ -12,7 +12,7 @@ export type ReadyToLeaveStatus =
   | "Missing food"
   | "Missing teleport"
   | "Gear looks weak"
-  | "Add gear first"
+  | "Add bank first"
   | "Check items first";
 
 export type ReadyToLeaveTone = "good" | "warn" | "neutral";
@@ -20,6 +20,7 @@ export type ReadyToLeaveTone = "good" | "warn" | "neutral";
 export interface ReadyToLeaveItem {
   label:
     | "Gear"
+    | "Bank"
     | "Food"
     | "Teleport"
     | "Tele out"

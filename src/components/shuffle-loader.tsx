@@ -1,181 +1,74 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { ItemSprite } from "@/components/item-sprite";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 
-// Shuffle loader — tijdens het laden van /next data hebben we tot ~2s
-// vrijwel niets te tonen. Voor de wow-factor: een brede sweep waar
-// kolommen item-sprites van links naar rechts "doorflippen" naar
-// andere items. Voelt als data die de pagina in komt rollen.
-//
-// De grid:
-//   - Volle breedte container, 12 kolommen × 2 rijen op desktop,
-//     6 × 2 op mobiel (CSS auto-fit doet de keuze).
-//   - Sweep loopt elke 60ms één kolom door — 12 kolommen = ~720ms
-//     per sweep, dan herhaalt. Niet random meer; voelt direction-aware.
-//   - Per cell: fade-out + scale-down → instant item-swap → fade-in
-//     + scale-up via loader-cell-fade keyframe.
-//
-// Iconische items + boss-trophy heads (Vorkath / Kraken / KBD / KQ /
-// Cerberus / DT2 ingots / etc) zodat de speler "his world" voorbij ziet
-// trekken. Mix van combat-gear, capes, drops, supplies en boss-trophies.
-const ITEM_POOL = [
-  // Combat capes + iconische gear
-  4151,   // Abyssal whip
-  21295,  // Infernal cape
-  6570,   // Fire cape
-  20997,  // Twisted bow
-  12006,  // Kraken tentacle
-  12904,  // Toxic staff (e)
-  12936,  // Toxic blowpipe
-  19553,  // Avernic defender
-  11785,  // Bandos chestplate
-  11804,  // Bandos tassets
-  11862,  // Bandos boots
-  4587,   // Dragon scimitar
-  4153,   // Granite maul
-  11920,  // Dharok's helm
-  21015,  // Zenyte
-  6739,   // Dragon axe
-  19481,  // Heavy ballista
-  11865,  // Black mask (i)
-  11864,  // Slayer helmet (i)
-  19722,  // Bow of faerdhinen
-  // Capes & quest rewards
-  9813,   // Quest point cape
-  9948,   // Achievement diary cape
-  13384,  // Max cape
-  // Drops & trophies (boss-heads etc.)
-  22006,  // Vorkath's head (mounted)
-  11942,  // King Black Dragon head
-  11944,  // Kalphite Queen head
-  23047,  // Phoenix
-  12655,  // KBD head loot
-  21043,  // Hydra leather
-  22325,  // Scythe of Vitur head
-  // Supplies + economie
-  995,    // Coins
-  385,    // Shark
-  3024,   // Super restore (4)
-  12695,  // Super combat potion (4)
-  12791,  // Rune pouch
-  20720,  // Bond
-  23979,  // Salve amulet (ei)
-  21034,  // Brimstone key
-  4585,   // Dragon chainbody
+const LOADER_BOSSES = [
+  { slug: "vardorvis", label: "Vardorvis" },
+  { slug: "vorkath", label: "Vorkath" },
+  { slug: "zulrah", label: "Zulrah" },
+  { slug: "hydra", label: "Hydra" },
+  { slug: "nex", label: "Nex" }
 ];
 
+const LOADER_STEPS = ["Stats", "Bank", "RuneLite", "Trip"];
+
 interface ShuffleLoaderProps {
-  /** Hoofd-tekst boven de grid. Default: 'Reading your account…' */
   label?: string;
 }
 
-// Aantal kolommen × 2 rijen — totaal 24 cells. ROW_COUNT × COL_COUNT
-// bepaalt ook de sweep-snelheid: meer kolommen = langere sweep.
-const COL_COUNT = 12;
-const ROW_COUNT = 2;
-const TOTAL_CELLS = COL_COUNT * ROW_COUNT;
+export function ShuffleLoader({ label = "Building your next trip…" }: ShuffleLoaderProps) {
+  const [idx, setIdx] = useState(0);
 
-export function ShuffleLoader({ label = "Reading your account…" }: ShuffleLoaderProps) {
-  // Initial state: 24 willekeurige items (mogelijk repeats — pool is
-  // kleiner dan grid). Memo zodat we niet bij elke render reshuffle'n.
-  const initial = useMemo(() => {
-    return Array.from({ length: TOTAL_CELLS }, () =>
-      ITEM_POOL[Math.floor(Math.random() * ITEM_POOL.length)]
-    );
-  }, []);
-  const [cells, setCells] = useState<number[]>(initial);
-  const [sweepCol, setSweepCol] = useState(0);  // welke kolom flippen we nu
-
-  // Sweep-loop: elke 120ms één kolom doorflippen (alle ROW_COUNT cells
-  // in die kolom). Na de laatste kolom: 200ms pauze, dan sweep opnieuw
-  // van links. Total cycle = COL_COUNT × 120ms + pauze ≈ 1.6s. Voelt
-  // als een continue golf, niet als losse flickers.
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSweepCol((col) => {
-        const nextCol = (col + 1) % COL_COUNT;
-        // Update de cells in déze kolom met fresh random items
-        setCells((prev) => {
-          const next = [...prev];
-          for (let row = 0; row < ROW_COUNT; row++) {
-            const idx = row * COL_COUNT + col;
-            // Pak een ander item dan wat er nu staat (anders voelt de
-            // sweep onzichtbaar als hetzelfde item terugkomt)
-            let nu = prev[idx];
-            while (nu === prev[idx]) {
-              nu = ITEM_POOL[Math.floor(Math.random() * ITEM_POOL.length)];
-            }
-            next[idx] = nu;
-          }
-          return next;
-        });
-        return nextCol;
-      });
-    }, 120);
-    return () => clearInterval(interval);
+    const interval = window.setInterval(() => {
+      setIdx((current) => (current + 1) % LOADER_BOSSES.length);
+    }, 850);
+    return () => window.clearInterval(interval);
   }, []);
+
+  const active = LOADER_BOSSES[idx];
 
   return (
-    <div className="flex flex-col items-center gap-5 py-8 px-2 w-full">
-      <div className="text-[11px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+    <div className="mx-auto flex w-full max-w-xl flex-col items-center px-4 py-8 text-center sm:py-10">
+      <div className="text-[12px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)]">
         {label}
       </div>
-      {/* Volle-breedte sweep grid. Subtiele gradient-overlay van links
-          naar rechts suggereert beweging zelfs als individuele cells
-          stil zijn. */}
-      <div
-        className="relative w-full max-w-3xl rounded-xl bg-[var(--color-panel)] border border-[var(--color-border)] p-3 overflow-hidden"
-        style={{ animation: "loader-pulse 2.4s ease-in-out infinite" }}
-      >
-        {/* Sweep-glow: een route-tint die langzaam meeloopt met de
-            actieve kolom. Pure cosmetic, voelt als spotlight. */}
-        <div
-          className="pointer-events-none absolute inset-y-0 w-32 bg-gradient-to-r from-transparent via-[var(--color-accent)]/15 to-transparent transition-transform duration-[120ms] ease-linear"
-          style={{
-            transform: `translateX(${(sweepCol / COL_COUNT) * 100}vw - 50%)`,
-            left: `${(sweepCol / COL_COUNT) * 100}%`,
-            marginLeft: "-4rem"
-          }}
-        />
-        <div
-          className="relative grid gap-1.5"
-          style={{ gridTemplateColumns: `repeat(${COL_COUNT}, minmax(0, 1fr))` }}
-        >
-          {cells.map((itemId, i) => {
-            const col = i % COL_COUNT;
-            const isActive = col === sweepCol;
-            return (
-              <div
-                key={`${i}-${itemId}`}
-                className="aspect-square rounded bg-[var(--color-bg-2)] border border-[var(--color-border)] flex items-center justify-center overflow-hidden transition-all duration-300"
-                style={{
-                  // Active kolom: lichte highlight + scale, anders neutral.
-                  // Niet keyframe-based zodat de overgang vloeiend interpoleert.
-                  transform: isActive ? "scale(1.08)" : "scale(1)",
-                  borderColor: isActive ? "var(--color-accent)" : undefined,
-                  boxShadow: isActive
-                    ? "0 0 12px rgba(134, 166, 217,0.25)"
-                    : undefined
-                }}
-              >
-                <ItemSprite
-                  // key forceert React om de img te remount'en wanneer
-                  // itemId verandert → fresh fade-in van loader-cell-fade.
-                  key={itemId}
-                  id={itemId}
-                  alt=""
-                  className="pixelated"
-                  style={{
-                    maxWidth: "78%",
-                    maxHeight: "78%",
-                    animation: "loader-cell-fade 0.45s ease-out both"
-                  }}
-                />
-              </div>
-            );
-          })}
+
+      <div className="relative mt-5 grid h-[260px] w-full place-items-center overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[#080808] sm:h-[340px]">
+        <div className="absolute inset-x-10 bottom-8 h-20 rounded-full bg-[var(--color-accent)]/10 blur-3xl" />
+        {LOADER_BOSSES.map((boss, bossIdx) => (
+          <Image
+            key={boss.slug}
+            src={`/sprites/bosses/${boss.slug}.png`}
+            alt=""
+            width={420}
+            height={420}
+            priority={bossIdx === 0}
+            className="absolute max-h-[86%] w-auto object-contain transition-all duration-500"
+            style={{
+              opacity: bossIdx === idx ? 1 : 0,
+              transform: bossIdx === idx ? "translateY(0) scale(1)" : "translateY(10px) scale(0.96)",
+              filter: "drop-shadow(0 20px 28px rgb(0 0 0 / 0.65))"
+            }}
+          />
+        ))}
+        <div className="absolute bottom-4 rounded-full border border-[var(--color-border)] bg-black/55 px-3 py-1 text-[11px] font-semibold text-[var(--color-text-muted)]">
+          Checking {active.label}
         </div>
+      </div>
+
+      <div className="mt-4 grid w-full grid-cols-4 gap-1.5">
+        {LOADER_STEPS.map((step, stepIdx) => (
+          <div
+            key={step}
+            className="rounded-full border border-[var(--color-border)] bg-[var(--color-panel)] px-2 py-2 text-[11px] font-bold text-[var(--color-text-dim)]"
+          >
+            <span className={stepIdx <= idx % LOADER_STEPS.length ? "text-[var(--color-accent)]" : ""}>
+              {step}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );

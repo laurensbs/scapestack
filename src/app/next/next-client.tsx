@@ -171,6 +171,24 @@ function asOrganizedItems(items: Array<{ id: number; name: string }>): Organized
   }));
 }
 
+type NextRunOptions = {
+  input?: string;
+  rsn?: string;
+  bankItems?: BankHandoffItem[];
+  sample?: boolean;
+  routeLens?: RouteLens;
+  mood?: Mood;
+  minutes?: TimeBudget;
+};
+
+type InitialRouteChoice = {
+  routeLens: RouteLens;
+  mood: Mood;
+  minutes: TimeBudget;
+};
+
+const INTAKE_ROUTE_LENSES: RouteLens[] = ["smart", "boss-log", "maxing", "gp-upgrade", "afk-progress", "short-login"];
+
 // Render a kind's signature glyph: OSRS sprite first (with a mounted-fade-in
 // so the wiki round-trip doesn't pop), Lucide icon as a fallback when the
 // sprite 404s. Used in the kind-group header — small, monochrome-ish, no
@@ -247,6 +265,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
   const [savedRsn, setSavedRsn] = useState<string | null>(null);
   const [activeBankItems, setActiveBankItems] = useState<BankHandoffItem[]>([]);
   const [activeRsn, setActiveRsn] = useState("");
+  const [initialRouteChoice, setInitialRouteChoice] = useState<InitialRouteChoice | null>(null);
   const routeIntent = useMemo(
     () => nextIntentFromSearch(initialQueryString),
     [initialQueryString]
@@ -262,7 +281,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
   // handoff via sessionStorage — skips the textarea + organizeAction
   // round-trip entirely. Each path builds the same engine input shape;
   // we branch at the edges, not in the engine.
-  const run = (opts: { input?: string; rsn?: string; bankItems?: BankHandoffItem[]; sample?: boolean }) => {
+  const run = (opts: NextRunOptions) => {
     setError(null);
     setActiveBankItems([]);
     // Fire the funnel event *before* the async work — Plausible is
@@ -280,6 +299,11 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
       const rsn = (opts.rsn ?? "").trim();
       const input = (opts.input ?? "").trim();
       setActiveRsn(rsn);
+      setInitialRouteChoice(opts.routeLens ? {
+        routeLens: opts.routeLens,
+        mood: opts.mood ?? moodForRouteLens(opts.routeLens, DEFAULT_MOOD),
+        minutes: opts.minutes ?? defaultTimeForRouteLens(opts.routeLens) ?? DEFAULT_TIME
+      } : null);
 
       if (opts.sample) {
         setActiveRsn("");
@@ -592,6 +616,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
         onClearStoredBankHandoff={clearStoredBankHandoff}
         expectedPluginSync={expectedPluginSync}
         routeIntent={routeIntent}
+        initialRouteChoice={initialRouteChoice}
         onBossOpen={(slug) => {
           const target = BOSSES.find((b) => b.slug === slug);
           if (target) setModalBoss(target);
@@ -687,7 +712,7 @@ function NotFoundPreview({ rsn, onRetry }: { rsn: string; onRetry: () => void })
 function NextIntake({
   onRun, loading, error, fromBank, savedBank, savedRsn, cameFromPlugin, onUseSaved, onDismissSaved, onClearBankHandoff
 }: {
-  onRun: (opts: { input?: string; rsn?: string; bankItems?: BankHandoffItem[]; sample?: boolean }) => void;
+  onRun: (opts: NextRunOptions) => void;
   loading: boolean;
   error: string | null;
   fromBank: { items: BankHandoffItem[] } | null;
@@ -704,6 +729,7 @@ function NextIntake({
   const [rsn, setRsn] = useState(savedRsn ?? "");
   const [showBankField, setShowBankField] = useState(false);
   const [bank, setBank] = useState("");
+  const [selectedRouteLens, setSelectedRouteLens] = useState<RouteLens>("smart");
   const handoffSummary = fromBank ? summarizeBankHandoff(fromBank.items) : null;
   const pluginVerifyHref = pluginVerifyUrlForSyncedRsn(rsn, "next", {
     hasBankContext: Boolean(fromBank)
@@ -712,12 +738,18 @@ function NextIntake({
   const submitRsn = (e: React.FormEvent) => {
     e.preventDefault();
     if (!rsn.trim() && !fromBank) return;
+    const clean = rsn.trim();
+    if (clean) saveSavedRsn(clean);
+    const routeDefaultTime = defaultTimeForRouteLens(selectedRouteLens);
     onRun({
-      rsn,
+      rsn: clean,
       input: showBankField ? bank : undefined,
       // If the user came from /bank, ride that bank along so /next can
       // give gear-aware recs even before they type their RSN.
-      bankItems: fromBank?.items
+      bankItems: fromBank?.items,
+      routeLens: selectedRouteLens,
+      mood: moodForRouteLens(selectedRouteLens, DEFAULT_MOOD),
+      minutes: routeDefaultTime ?? DEFAULT_TIME
     });
   };
 
@@ -737,6 +769,50 @@ function NextIntake({
           Type your OSRS name. Scapestack gives one best move, two backups and a clear stop point.
         </p>
       </header>
+
+      <div className="mb-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] p-3 text-left sm:p-4">
+        <div className="mb-3 flex items-baseline justify-between gap-3">
+          <div>
+            <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
+              Pick a route
+            </div>
+            <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-muted)]">
+              Start with Surprise me, or tell Scapestack what kind of session you want.
+            </p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {INTAKE_ROUTE_LENSES.map((lens) => {
+            const label = ROUTE_LENS_LABEL[lens];
+            const active = selectedRouteLens === lens;
+            return (
+              <button
+                key={lens}
+                type="button"
+                aria-pressed={active}
+                aria-label={lens === "smart" ? "Surprise me route" : `Pick ${label.name} route`}
+                onClick={() => setSelectedRouteLens(lens)}
+                className={cn(
+                  "flex min-h-[58px] items-center gap-2 rounded-xl border px-3 py-3 text-left transition-colors",
+                  active
+                    ? "border-[var(--color-accent)]/60 bg-[var(--color-accent)]/12 text-[var(--color-accent)]"
+                    : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)]"
+                )}
+              >
+                <ItemSprite id={label.itemId} alt="" size={22} />
+                <span className="min-w-0">
+                  <span className="block truncate text-[13px] font-bold">
+                    {lens === "smart" ? "Surprise me" : label.name}
+                  </span>
+                  <span className="mt-0.5 block truncate text-[10.5px] opacity-80">
+                    {label.tagline}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Welcome-back banner. Only shown when there's no fresh /bank
           handoff — the loader above already skips populating savedBank
@@ -815,7 +891,15 @@ function NextIntake({
           <div className="flex shrink-0 flex-wrap gap-2 sm:flex-col sm:items-stretch">
             <button
               type="button"
-              onClick={() => onRun({ bankItems: fromBank.items })}
+              onClick={() => {
+                const routeDefaultTime = defaultTimeForRouteLens(selectedRouteLens);
+                onRun({
+                  bankItems: fromBank.items,
+                  routeLens: selectedRouteLens,
+                  mood: moodForRouteLens(selectedRouteLens, DEFAULT_MOOD),
+                  minutes: routeDefaultTime ?? DEFAULT_TIME
+                });
+              }}
               disabled={loading}
               className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15 disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -914,7 +998,7 @@ function NextIntake({
                   onClick={() => { setShowBankField(false); setBank(""); }}
                   className="mt-2 text-[11.5px] text-[var(--color-text-muted)] hover:text-[var(--color-text-dim)] transition-colors"
                 >
-                  Hide gear
+                  Hide bank
                 </button>
               </label>
             </div>
@@ -925,7 +1009,7 @@ function NextIntake({
               disabled={loading}
               className="text-[12.5px] text-[var(--color-text-dim)] hover:text-[var(--color-accent)] underline underline-offset-4 decoration-dotted transition-colors disabled:opacity-50"
             >
-              + Add gear (optional)
+              + Add bank (optional)
             </button>
           )}
         </div>
@@ -956,7 +1040,7 @@ function NextIntake({
   );
 }
 
-function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearStoredBankHandoff, expectedPluginSync, routeIntent }: {
+function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearStoredBankHandoff, expectedPluginSync, routeIntent, initialRouteChoice }: {
   result: NextUpResult;
   bankItems: BankHandoffItem[];
   activeRsn: string;
@@ -967,13 +1051,14 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
   onClearStoredBankHandoff: () => void;
   expectedPluginSync: boolean;
   routeIntent: NextIntentPreset | null;
+  initialRouteChoice: InitialRouteChoice | null;
 }) {
   const { headline, rest, summary } = result;
   const [shareMode, setShareMode] = useState(false);
 
   const basisNote =
     summary.basis === "full" ? "Stats and gear are helping this pick."
-    : summary.basis === "hiscores-only" ? "Public stats are enough. Add gear only when GP or supplies change the answer."
+    : summary.basis === "hiscores-only" ? "Your OSRS name is enough. Add bank only when GP or supplies change the answer."
     : summary.basis === "bank-only" ? "Gear is enough for a rough plan. Add your OSRS name for stats and KC."
     : "Add your OSRS name or gear when you want a sharper plan.";
 
@@ -1007,6 +1092,7 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
           onBossOpen={onBossOpen}
           onEdit={onEdit}
           routeIntent={routeIntent}
+          initialRouteChoice={initialRouteChoice}
           pluginSyncState={pluginSyncState}
           shareMode={shareMode}
           onShareModeChange={setShareMode}
@@ -1531,19 +1617,19 @@ function makePlanSmarterCopy(rec: Recommendation | null): {
   switch (recommendationPlanSurface(rec)) {
     case "combat":
       return {
-        title: "Add gear",
+        title: "Add bank",
         helper: "Gear, food and teleports can change the trip.",
-        bankLabel: "Gear",
-        loadedHelper: "Gear, supplies and GP can shape this boss pick.",
-        emptyHelper: "Use it when PvM setup matters.",
-        bankCta: "Add gear"
+        bankLabel: "Bank",
+        loadedHelper: "Your bank can shape this boss pick.",
+        emptyHelper: "Use it when PvM supplies matter.",
+        bankCta: "Add bank"
       };
     case "slayer":
       return {
-        title: "Add Slayer setup",
+        title: "Add bank",
         helper: "Task gear, supplies and teleports can change the route.",
-        bankLabel: "Task setup",
-        loadedHelper: "Gear and supplies can shape the task plan.",
+        bankLabel: "Bank",
+        loadedHelper: "Your bank can shape the task plan.",
         emptyHelper: "Use it when task setup matters.",
         bankCta: "Add bank"
       };
@@ -1583,7 +1669,7 @@ function makePlanSmarterCopy(rec: Recommendation | null): {
         bankLabel: "Bank",
         loadedHelper: "Your bank can shape the next pick.",
         emptyHelper: "Optional for lighter sessions.",
-        bankCta: "Add gear"
+        bankCta: "Add bank"
       };
   }
 }
@@ -1840,7 +1926,7 @@ function buildNextReadyToLeave(
   const missingFood = /food/.test(missing);
   const missingTeleport = /teleport/.test(missing);
   const status: ReadyToLeaveStatus = needsCombat && !hasBankContext
-    ? "Add gear first"
+    ? "Add bank first"
     : needsItems && (!hasBankContext || missingItems)
     ? "Check items first"
     : missingGear
@@ -1879,9 +1965,9 @@ function buildNextReadyToLeave(
     return {
       status,
       items: [
-        { label: "Gear", value: "Add gear to check trip readiness", tone: "warn" },
-        { label: "Food", value: "Check after gear", tone: "neutral" },
-        { label: "Tele out", value: "Check after gear", tone: "neutral" },
+        { label: "Bank", value: "Paste bank to check gear", tone: "warn" },
+        { label: "Food", value: "Checked after bank", tone: "neutral" },
+        { label: "Tele out", value: "Checked after bank", tone: "neutral" },
         { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
       ]
     };
@@ -2313,7 +2399,7 @@ function TripBuilder({
           </button>
         ) : (
           <span className="shrink-0 rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
-            Add gear to build a Bank Tag.
+            Add bank to build a Bank Tag.
           </span>
         )}
       </div>
@@ -2862,6 +2948,7 @@ function WhatToDo({
   onBossOpen,
   onEdit,
   routeIntent,
+  initialRouteChoice,
   pluginSyncState,
   shareMode,
   onShareModeChange
@@ -2874,13 +2961,16 @@ function WhatToDo({
   onBossOpen: (slug: string) => void;
   onEdit: () => void;
   routeIntent: NextIntentPreset | null;
+  initialRouteChoice: InitialRouteChoice | null;
   pluginSyncState: "live" | "stale" | "outdated" | null;
   shareMode: boolean;
   onShareModeChange: (enabled: boolean) => void;
 }) {
-  const [mood, setMood] = useState<Mood>(routeIntent ? visibleMood(routeIntent.mood) : DEFAULT_MOOD);
-  const [minutes, setMinutes] = useState<TimeBudget>(routeIntent?.minutes ?? DEFAULT_TIME);
-  const [routeLens, setRouteLens] = useState<RouteLens>("smart");
+  const [mood, setMood] = useState<Mood>(
+    routeIntent ? visibleMood(routeIntent.mood) : initialRouteChoice?.mood ?? DEFAULT_MOOD
+  );
+  const [minutes, setMinutes] = useState<TimeBudget>(routeIntent?.minutes ?? initialRouteChoice?.minutes ?? DEFAULT_TIME);
+  const [routeLens, setRouteLens] = useState<RouteLens>(initialRouteChoice?.routeLens ?? "smart");
   const [shuffleIdx, setShuffleIdx] = useState(0);
   const [sessionSkipped, setSessionSkipped] = useState<Record<string, SessionSkippedPick>>({});
   const [routeSwitchNote, setRouteSwitchNote] = useState<string | null>(null);
@@ -2906,18 +2996,16 @@ function WhatToDo({
     const last = loadMood();
     setLastSession(last);
     if (last) {
-      if (!routeIntent) {
+      if (!routeIntent && !initialRouteChoice) {
         setMood(visibleMood(last.mood));
         setMinutes(last.minutes);
       }
     }
     setFeedback(loadRecommendationFeedback());
-  }, [routeIntent]);
+  }, [routeIntent, initialRouteChoice]);
 
   const routeLensIndex = ROUTE_LENS_ORDER.indexOf(routeLens);
   const nextRouteLens = ROUTE_LENS_ORDER[(routeLensIndex + 1) % ROUTE_LENS_ORDER.length] ?? "smart";
-  const currentRouteLabel = ROUTE_LENS_LABEL[routeLens];
-  const nextRouteLabel = ROUTE_LENS_LABEL[nextRouteLens];
 
   const hiddenCount = allRecs.filter((rec) => feedback.suppressed[rec.id]).length;
   const visibleRecs = allRecs.filter((rec) => !feedback.suppressed[rec.id]);
@@ -3157,17 +3245,6 @@ function WhatToDo({
               {sessionCopyLabel}
             </button>
           )}
-          {pick && allRecs.length > 1 && !shareMode && (
-            <button
-              type="button"
-              onClick={moveToAnotherPlan}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/65 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)]"
-              title={`Show ${nextRouteLabel.name}`}
-            >
-              <Dices className="size-3.5" />
-              Another route
-            </button>
-          )}
           {shareMode ? (
             <button
               type="button"
@@ -3344,125 +3421,14 @@ function WhatToDo({
                 </div>
               </div>
             )}
-            {!shareMode && (
-              <details className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/42 p-2.5">
-                <summary className="flex list-none items-center justify-between gap-3 rounded-lg px-1 py-1 text-left [&::-webkit-details-marker]:hidden">
-                  <span>
-                    <span className="block text-[12.5px] font-bold text-[var(--color-text)]">Pick a route</span>
-                    <span className="mt-0.5 block text-[11px] text-[var(--color-text-muted)]">
-                      {currentRouteLabel.name} · {currentRouteLabel.tagline}
-                    </span>
-                  </span>
-                  <span className="text-right text-[11px] font-semibold text-[var(--color-text-dim)]">
-                    Show
-                  </span>
-                </summary>
-                <div className="mt-3 space-y-4">
-                  <div>
-                    <div className="mb-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                      Session route
-                    </div>
-                    <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-                      {ROUTE_LENS_ORDER.map((lens) => {
-                        const label = ROUTE_LENS_LABEL[lens];
-                        const active = routeLens === lens;
-                        return (
-                          <button
-                            key={lens}
-                            type="button"
-                            aria-pressed={active}
-                            aria-label={`Pick ${label.name} route`}
-                            onClick={() => applyRouteLens(lens)}
-                            className={cn(
-                              "flex min-h-11 items-center justify-start gap-1.5 rounded-lg border px-2.5 py-2 text-left text-[11.5px] font-semibold leading-tight transition-colors",
-                              active
-                                ? "border-[var(--color-accent)]/60 bg-[var(--color-accent)]/12 text-[var(--color-accent)]"
-                                : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)]"
-                            )}
-                            title={label.tagline}
-                          >
-                            <ItemSprite
-                              id={label.itemId}
-                              alt=""
-                              className="pixelated shrink-0"
-                              style={{ width: 18, height: 18, imageRendering: "pixelated", objectFit: "contain" }}
-                            />
-                            <span>{label.name}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-[190px_minmax(0,1fr)]">
-                    <div>
-                      <div className="mb-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                        Time
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {TIME_OPTIONS.map((t) => (
-                          <button
-                            key={t.value}
-                            type="button"
-                            onClick={() => setMinutes(t.value)}
-                            className={cn(
-                              "rounded-md border px-2.5 py-1 text-[11px] transition-colors",
-                              minutes === t.value
-                                ? "border-[var(--color-accent)]/50 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
-                                : "border-[var(--color-border)] text-[var(--color-text-dim)] hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]"
-                            )}
-                          >
-                            {t.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="mb-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                        Effort
-                      </div>
-                      <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
-                        {MOODS.map((m) => {
-                          const label = MOOD_LABEL[m];
-                          const active = mood === m;
-                          return (
-                            <button
-                              key={m}
-                              type="button"
-                              aria-pressed={active}
-                              aria-label={`Pick ${label.name} session pace`}
-                              onClick={() => applySessionIntent(m)}
-                              className={cn(
-                                "flex min-h-9 items-center justify-center gap-1.5 rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition-colors",
-                                active
-                                  ? "border-[var(--color-accent)]/60 bg-[var(--color-accent)]/12 text-[var(--color-accent)]"
-                                  : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)]"
-                              )}
-                              title={label.tagline}
-                            >
-                              <ItemSprite
-                                id={label.itemId}
-                                alt=""
-                                className="pixelated shrink-0"
-                                style={{ width: 16, height: 16, imageRendering: "pixelated", objectFit: "contain" }}
-                              />
-                              <span className="truncate">{label.name}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                  {hiddenCount > 0 && (
-                    <button
-                      type="button"
-                      onClick={restoreHidden}
-                      className="text-[11px] font-semibold text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-accent)]"
-                    >
-                      Show hidden ({hiddenCount})
-                    </button>
-                  )}
-                </div>
-              </details>
+            {!shareMode && hiddenCount > 0 && (
+              <button
+                type="button"
+                onClick={restoreHidden}
+                className="text-[11px] font-semibold text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-accent)]"
+              >
+                Show hidden ({hiddenCount})
+              </button>
             )}
             <TonightRouteStrip recs={routePreviewRecs} shareMode={shareMode} />
           </>

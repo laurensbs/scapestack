@@ -57,7 +57,7 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain('"Missing food"');
     expect(source).toContain('"Missing teleport"');
     expect(source).toContain('"Gear looks weak"');
-    expect(source).toContain('"Add gear first"');
+    expect(source).toContain('"Add bank first"');
     expect(source).toContain("const readiness = buildDpsReadyToLeave(decision, result, weaponCount);");
     expect(source).toContain('import { bossViabilityFromGear, styleLabel, type BossViability } from "@/lib/boss-viability";');
     expect(source).toContain("function dpsDecisionScore");
