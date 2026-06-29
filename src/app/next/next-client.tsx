@@ -2941,18 +2941,6 @@ function WhatToDo({
               {routeIntent.label}
             </span>
           )}
-          {pick && allRecs.length > 1 && !shareMode && (
-            <button
-              type="button"
-              onClick={moveToAnotherPlan}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/65 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)]"
-              title={`Try ${nextRouteLabel.name} route`}
-            >
-              <Dices className="size-3.5" />
-              <span className="sm:hidden">Try {nextRouteLabel.name}</span>
-              <span className="hidden sm:inline">Try {nextRouteLabel.name}</span>
-            </button>
-          )}
           {visibleRecs.length > 0 && !shareMode && (
             <button
               type="button"
@@ -2969,20 +2957,46 @@ function WhatToDo({
               {sessionCopyLabel}
             </button>
           )}
-          <button
-            type="button"
-            onClick={() => onShareModeChange(!shareMode)}
-            aria-pressed={shareMode}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-lg border bg-[var(--color-panel)]/65 px-3 py-2 text-[11.5px] font-semibold transition-colors",
-              shareMode
-                ? "border-[var(--color-accent)]/45 text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10"
-                : "border-[var(--color-border)] text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)]"
-            )}
-          >
-            <Camera className="size-3.5" />
-            {shareMode ? "Exit clean shot" : "Screenshot mode"}
-          </button>
+          {shareMode ? (
+            <button
+              type="button"
+              onClick={() => onShareModeChange(false)}
+              aria-pressed={shareMode}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/45 bg-[var(--color-panel)]/65 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/10"
+            >
+              <Camera className="size-3.5" />
+              Exit clean shot
+            </button>
+          ) : (
+            <details className="group relative">
+              <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/65 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)] marker:hidden [&::-webkit-details-marker]:hidden">
+                More
+                <ChevronRight className="size-3.5 transition-transform group-open:rotate-90" />
+              </summary>
+              <div className="absolute right-0 z-20 mt-2 w-56 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-2 shadow-[0_18px_55px_rgba(0,0,0,0.28)]">
+                {pick && allRecs.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={moveToAnotherPlan}
+                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-accent)]"
+                    title={`Try ${nextRouteLabel.name} route`}
+                  >
+                    <Dices className="size-3.5" />
+                    Try {nextRouteLabel.name}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => onShareModeChange(true)}
+                  aria-pressed={shareMode}
+                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-accent)]"
+                >
+                  <Camera className="size-3.5" />
+                  Screenshot mode
+                </button>
+              </div>
+            </details>
+          )}
         </div>
       </div>
 
@@ -3631,35 +3645,41 @@ function RecHeadlineExpandable({
         pluginSyncState={pluginSyncState}
       />
       {!cleanMode && (
-        <div className="flex justify-end mt-1.5 gap-3">
-          <button
-            type="button"
-            onClick={() => onComplete(rec)}
-            aria-label={`Done: mark ${rec.title} complete`}
-            className={recommendationFeedbackButtonClass("done")}
-          >
-            Done
-            <CheckCheck className="size-3" />
-          </button>
-          <button
-            type="button"
-            onClick={() => onSuppress(rec)}
-            aria-label={`Skip: hide ${rec.title}`}
-            className={recommendationFeedbackButtonClass("skip")}
-          >
-            Skip
-          </button>
-          <button
-            type="button"
-            onClick={() => setOpen((v) => !v)}
-            className={recommendationFeedbackButtonClass("details")}
-          >
-            Steps
-            <ChevronRight
-              className={cn("size-3 transition-transform", open && "rotate-90")}
-            />
-          </button>
-        </div>
+        <details className="group mt-1.5 flex justify-end">
+          <summary className="ml-auto inline-flex cursor-pointer list-none items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-panel)]/65 px-3 py-1.5 text-[11px] font-semibold text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)] marker:hidden [&::-webkit-details-marker]:hidden">
+            Options
+            <ChevronRight className="size-3 transition-transform group-open:rotate-90" />
+          </summary>
+          <div className="mt-2 flex flex-wrap justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => onComplete(rec)}
+              aria-label={`Done: mark ${rec.title} complete`}
+              className={recommendationFeedbackButtonClass("done")}
+            >
+              Done
+              <CheckCheck className="size-3" />
+            </button>
+            <button
+              type="button"
+              onClick={() => onSuppress(rec)}
+              aria-label={`Skip: hide ${rec.title}`}
+              className={recommendationFeedbackButtonClass("skip")}
+            >
+              Skip
+            </button>
+            <button
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              className={recommendationFeedbackButtonClass("details")}
+            >
+              Steps
+              <ChevronRight
+                className={cn("size-3 transition-transform", open && "rotate-90")}
+              />
+            </button>
+          </div>
+        </details>
       )}
       {open && <RecDetailPanel rec={rec} actionContext={actionContext} whyNot={whyNot} />}
     </div>

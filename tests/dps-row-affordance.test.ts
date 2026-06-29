@@ -26,7 +26,7 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("title={`Open ${boss.name} DPS setup details`}");
     expect(source).toContain("Details");
     expect(source).toContain("View requirements");
-    expect(source).toContain('import { CheckCheck, Copy, Edit3, Sword, Zap, Target, TrendingUp, Coins, Search, X, Sparkles, ExternalLink } from "lucide-react";');
+    expect(source).toContain('import { CheckCheck, Copy, Edit3, Sword, Zap, Target, TrendingUp, Coins, Search, X, Sparkles, ExternalLink, ChevronDown } from "lucide-react";');
     expect(source).not.toContain("role=\"button\"");
     expect(source).not.toContain("tabIndex={0}");
   });
@@ -65,7 +65,7 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("const decisionBossViability = useMemo(");
     expect(source).toContain("Bank says ${result.boss.name}");
     expect(source).toContain("window.scrollTo({ top: 0, behavior: \"instant\" });");
-    expect(source).toContain("Make this trip sharper");
+    expect(source).toContain("Add gear or RuneLite");
     expect(source).toContain("Compare other bosses");
     expect(source).toContain("Search and sort the full table only when the first trip is not the one.");
     expect(source).toContain("Boss options with this bank");

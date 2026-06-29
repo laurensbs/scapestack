@@ -3,7 +3,7 @@
 import { useState, useTransition, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { CheckCheck, Copy, Edit3, Sword, Zap, Target, TrendingUp, Coins, Search, X, Sparkles, ExternalLink } from "lucide-react";
+import { CheckCheck, Copy, Edit3, Sword, Zap, Target, TrendingUp, Coins, Search, X, Sparkles, ExternalLink, ChevronDown } from "lucide-react";
 import { Intake } from "@/components/intake";
 import { SupportCard } from "@/components/support-card";
 import { ItemSprite } from "@/components/item-sprite";
@@ -296,24 +296,32 @@ function DpsDecisionHero({
               <ExternalLink className="size-3.5" />
             </button>
           )}
-          {upgradeCount > 0 && (
-            <button
-              type="button"
-              onClick={onCopyUpgrades}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-good)]/30 bg-[var(--color-good)]/8 px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-good)] transition-colors hover:border-[var(--color-good)]/45 hover:bg-[var(--color-good)]/12"
-            >
-              {copiedUpgradeList === "copied" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
-              {copiedUpgradeList === "copied" ? "Copied" : "Copy upgrades"}
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={onEditInput}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-transparent px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]"
-          >
-            <Edit3 className="size-3.5" />
-            Edit bank
-          </button>
+          <details className="group relative">
+            <summary className="inline-flex cursor-pointer list-none items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-transparent px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)] marker:hidden [&::-webkit-details-marker]:hidden">
+              More
+              <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="absolute right-0 z-20 mt-2 w-52 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-2 shadow-[0_18px_55px_rgba(0,0,0,0.28)]">
+              {upgradeCount > 0 && (
+                <button
+                  type="button"
+                  onClick={onCopyUpgrades}
+                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-good)]"
+                >
+                  {copiedUpgradeList === "copied" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
+                  {copiedUpgradeList === "copied" ? "Copied" : "Copy upgrades"}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={onEditInput}
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-accent)]"
+              >
+                <Edit3 className="size-3.5" />
+                Edit bank
+              </button>
+            </div>
+          </details>
         </div>
       </div>
 
@@ -633,7 +641,7 @@ export function DpsClient() {
 
       <details className="mb-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/50 p-3">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-semibold text-[var(--color-text)] marker:hidden">
-          <span>Make this trip sharper</span>
+          <span>Add gear or RuneLite</span>
           <span className="text-[11px] font-medium text-[var(--color-text-muted)]">gear, RSN, RuneLite</span>
         </summary>
         <div className="mt-4 space-y-4">

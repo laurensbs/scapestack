@@ -346,56 +346,72 @@ function BankDecisionHero({
             {copied === "all" && decision.primaryAction === "copy" ? <CheckCheck className="size-3.5" /> : <ArrowRight className="size-3.5" />}
             {copied === "all" && decision.primaryAction === "copy" ? "Copied" : decision.primaryLabel}
           </button>
-          <button
-            type="button"
-            onClick={() => onSecondary(decision.secondaryAction)}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
-          >
-            {decision.secondaryLabel}
-            <ArrowRight className="size-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={onTidy}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-transparent px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]"
-          >
-            <Wand2 className="size-3.5" />
-            Tidy
-          </button>
-          <button
-            type="button"
-            onClick={onEditInput}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-transparent px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]"
-          >
-            <Edit3 className="size-3.5" />
-            Edit
-          </button>
+          <details className="group relative">
+            <summary className="inline-flex cursor-pointer list-none items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-transparent px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)] marker:hidden [&::-webkit-details-marker]:hidden">
+              More
+              <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="absolute right-0 z-20 mt-2 w-48 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-2 shadow-[0_18px_55px_rgba(0,0,0,0.28)]">
+              <button
+                type="button"
+                onClick={() => onSecondary(decision.secondaryAction)}
+                className="flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-accent)]"
+              >
+                {decision.secondaryLabel}
+                <ArrowRight className="size-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={onTidy}
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-accent)]"
+              >
+                <Wand2 className="size-3.5" />
+                Tidy
+              </button>
+              <button
+                type="button"
+                onClick={onEditInput}
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-accent)]"
+              >
+                <Edit3 className="size-3.5" />
+                Edit
+              </button>
+            </div>
+          </details>
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3 border-t border-[var(--color-border)] pt-4 sm:grid-cols-3">
-        {outcomes.map((outcome) => (
-          <div key={outcome.label} className="min-w-0">
-            <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">{outcome.label}</div>
-            <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{outcome.value}</p>
+      <details className="group mt-4 border-t border-[var(--color-border)] pt-3">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[12px] font-semibold text-[var(--color-text-muted)] marker:hidden [&::-webkit-details-marker]:hidden">
+          <span>Why this bank helps</span>
+          <span className="inline-flex items-center gap-1 text-[11px] text-[var(--color-text-muted)]">
+            Show
+            <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" />
+          </span>
+        </summary>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          {outcomes.map((outcome) => (
+            <div key={outcome.label} className="min-w-0">
+              <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">{outcome.label}</div>
+              <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{outcome.value}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 grid gap-3 border-t border-[var(--color-border)] pt-4 md:grid-cols-3">
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">First step</div>
+            <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{decision.firstStep}</p>
           </div>
-        ))}
-      </div>
-
-      <div className="mt-4 grid gap-3 border-t border-[var(--color-border)] pt-4 md:grid-cols-3">
-        <div>
-          <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">First step</div>
-          <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{decision.firstStep}</p>
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Stop point</div>
+            <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{decision.stopPoint}</p>
+          </div>
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Avoid</div>
+            <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{decision.avoid}</p>
+          </div>
         </div>
-        <div>
-          <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Stop point</div>
-          <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{decision.stopPoint}</p>
-        </div>
-        <div>
-          <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Avoid</div>
-          <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{decision.avoid}</p>
-        </div>
-      </div>
+      </details>
     </section>
   );
 }
