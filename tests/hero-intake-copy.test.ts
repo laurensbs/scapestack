@@ -27,23 +27,38 @@ describe("hero intake copy and routing", () => {
 
   it("shows first-time setup before the first /next plan", () => {
     expect(source).toContain('const HERO_FIRST_SETUP_KEY = "scapestack:first-setup:v1";');
+    expect(source).toContain('type FirstSetupIntent = "chill" | "cash" | "bossing" | "unlock" | "afk" | "short";');
+    expect(source).toContain("const FIRST_SETUP_INTENTS:");
+    expect(source).toContain('label: "Chill"');
+    expect(source).toContain('label: "GP"');
+    expect(source).toContain('label: "Bossing"');
+    expect(source).toContain('label: "Unlock"');
+    expect(source).toContain('label: "AFK"');
+    expect(source).toContain('label: "Short"');
     expect(source).toContain("function setupKeyForRsn(rsn: string): string");
     expect(source).toContain("function hasSeenFirstSetup(rsn: string): boolean");
     expect(source).toContain("function markFirstSetupSeen(rsn: string): void");
     expect(source).toContain("const [showFirstSetup, setShowFirstSetup] = useState(false);");
+    expect(source).toContain('const [selectedFirstSetupIntent, setSelectedFirstSetupIntent] = useState<FirstSetupIntent>("chill");');
     expect(source).toContain('aria-labelledby="hero-first-setup-title"');
-    expect(source).toContain("First setup");
-    expect(source).toContain('Make {cleanRsn || "this account"} smarter?');
-    expect(source).toContain("RSN is enough for a first plan. Bank and RuneLite make the pick better when gear, supplies or finished progress matter.");
+    expect(source).toContain("First session");
+    expect(source).toContain("What are you in the mood for?");
+    expect(source).toContain("Pick the kind of session first. Bank and RuneLite can make the plan sharper after that.");
+    expect(source).toContain("setSelectedFirstSetupIntent(choice.intent)");
     expect(source).toContain("Add RuneLite plugin");
     expect(source).toContain("RuneLite selected");
-    expect(source).toContain("Get my best plan");
-    expect(source).toContain("Skip for now");
+    expect(source).toContain("Plan this session");
+    expect(source).toContain("Skip setup");
     expect(source).toContain("markFirstSetupSeen(trimmed)");
     expect(source).toContain("markRuneliteChecked(trimmed)");
+    expect(source).toContain("saveMood({");
+    expect(source).toContain('params.set("intent", selectedFirstSetupIntent);');
+    expect(source).toContain('params.set("time", String(intentPreset.minutes));');
+    expect(source).toContain("openPlan({ markSetup: true, includeSetupIntent: true })");
     expect(source).toContain("saveSavedBank(bank, trimmed)");
     expect(source).toContain("Saved for this account and used for the first plan.");
     expect(source).not.toContain("RuneLite is connected");
+    expect(source).not.toContain("Make {cleanRsn || \"this account\"} smarter?");
   });
 
   it("explains why the hero planner CTA is disabled", () => {

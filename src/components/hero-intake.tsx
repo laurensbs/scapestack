@@ -6,17 +6,19 @@ import Image from "next/image";
 import { ArrowRight, ClipboardPaste, PlugZap, X } from "lucide-react";
 import { RuneliteOpenButton } from "@/components/runelite-open-button";
 import { getActiveAccount, markRuneliteChecked } from "@/lib/account-storage";
+import type { Mood, TimeBudget } from "@/lib/mood";
+import { saveMood } from "@/lib/mood-storage";
 import { loadSavedRsn, saveSavedBank, saveSavedRsn } from "@/lib/saved-bank";
 import { cn } from "@/lib/utils";
 
 // Homepage hero intake — kleine zus van /next's NextIntake. Eén RSN
-// input + first-time setup voor bank/RuneLite. Submit → navigate naar
-// /next met RSN en/of bank-paste. /next pakt de hero bank op via
-// sessionStorage en saved-bank bewaart hem per RSN.
+// input + first-time intent/setup voor bank/RuneLite. Submit → navigate
+// naar /next met RSN, gekozen sessie-vibe en/of bank-paste. /next pakt de
+// hero bank op via sessionStorage en saved-bank bewaart hem per RSN.
 //
-// Bewust geen mood/time-keuze hier — dat zit in /next's WhatToDo en
-// die heeft een localStorage-default. We willen op de homepage één
-// duidelijk submit-doel.
+// Returning players houden één duidelijk submit-doel; first timers krijgen
+// alleen één korte "waar heb je zin in?" keuze zodat het advies meteen
+// minder willekeurig voelt.
 
 const HERO_BANK_KEY = "scapestack:hero:bank";
 const HERO_FIRST_SETUP_KEY = "scapestack:first-setup:v1";
@@ -24,6 +26,27 @@ const HERO_BANK_TEXTAREA_ID = "hero-bank-paste";
 const HERO_BANK_HELP_ID = "hero-bank-paste-help";
 const HERO_FIRST_SETUP_BANK_ID = "hero-first-setup-bank";
 const HERO_FIRST_SETUP_BANK_HELP_ID = "hero-first-setup-bank-help";
+
+type FirstSetupIntent = "chill" | "cash" | "bossing" | "unlock" | "afk" | "short";
+
+const FIRST_SETUP_INTENTS: Array<{
+  intent: FirstSetupIntent;
+  mood: Mood;
+  minutes: TimeBudget;
+  label: string;
+  helper: string;
+}> = [
+  { intent: "chill", mood: "chill", minutes: 30, label: "Chill", helper: "Low effort progress" },
+  { intent: "cash", mood: "cash", minutes: 60, label: "GP", helper: "Fund upgrades" },
+  { intent: "bossing", mood: "bossing", minutes: 60, label: "Bossing", helper: "Trip or KC block" },
+  { intent: "unlock", mood: "unlock", minutes: 120, label: "Unlock", helper: "Quest or diary" },
+  { intent: "afk", mood: "afk", minutes: 60, label: "AFK", helper: "Progress while chilling" },
+  { intent: "short", mood: "short", minutes: 15, label: "Short", helper: "Quick stop point" }
+];
+
+function firstSetupIntentPreset(intent: FirstSetupIntent) {
+  return FIRST_SETUP_INTENTS.find((preset) => preset.intent === intent) ?? FIRST_SETUP_INTENTS[0];
+}
 
 function setupKeyForRsn(rsn: string): string {
   return `${HERO_FIRST_SETUP_KEY}:${rsn.trim().toLowerCase().replace(/\s+/g, "-")}`;
@@ -53,6 +76,7 @@ export function HeroIntake() {
   const [showFirstSetup, setShowFirstSetup] = useState(false);
   const [showBankGuide, setShowBankGuide] = useState(false);
   const [showRuneliteGuide, setShowRuneliteGuide] = useState(false);
+  const [selectedFirstSetupIntent, setSelectedFirstSetupIntent] = useState<FirstSetupIntent>("chill");
   const [showFirstSetupBank, setShowFirstSetupBank] = useState(false);
   const [firstSetupRunelite, setFirstSetupRunelite] = useState(false);
   const [bank, setBank] = useState("");
@@ -69,12 +93,19 @@ export function HeroIntake() {
     }
   }, []);
 
-  const openPlan = (options: { markSetup?: boolean } = {}) => {
+  const openPlan = (options: { markSetup?: boolean; includeSetupIntent?: boolean } = {}) => {
     const trimmed = cleanRsn;
+    const intentPreset = firstSetupIntentPreset(selectedFirstSetupIntent);
     if (trimmed) {
       saveSavedRsn(trimmed);
       if (options.markSetup) markFirstSetupSeen(trimmed);
       if (firstSetupRunelite) markRuneliteChecked(trimmed);
+    }
+    if (options.includeSetupIntent) {
+      saveMood({
+        mood: intentPreset.mood,
+        minutes: intentPreset.minutes
+      });
     }
     if (hasBankPaste) {
       if (trimmed) saveSavedBank(bank, trimmed);
@@ -84,6 +115,10 @@ export function HeroIntake() {
     const params = new URLSearchParams();
     if (trimmed) params.set("rsn", trimmed);
     if (!hasBankPaste) params.set("bank", "none");
+    if (options.includeSetupIntent) {
+      params.set("intent", selectedFirstSetupIntent);
+      params.set("time", String(intentPreset.minutes));
+    }
     router.push(`/next?${params.toString()}`);
   };
 
@@ -230,12 +265,12 @@ export function HeroIntake() {
           >
             <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-5 py-4 sm:px-6">
               <div>
-                <p className="eyebrow text-[var(--color-accent)]">First setup</p>
+                <p className="eyebrow text-[var(--color-accent)]">First session</p>
                 <h2 id="hero-first-setup-title" className="mt-1 text-[24px] font-semibold leading-tight text-[var(--color-text)]">
-                  Make {cleanRsn || "this account"} smarter?
+                  What are you in the mood for?
                 </h2>
                 <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
-                  RSN is enough for a first plan. Bank and RuneLite make the pick better when gear, supplies or finished progress matter.
+                  Pick the kind of session first. Bank and RuneLite can make the plan sharper after that.
                 </p>
               </div>
               <button
@@ -246,6 +281,31 @@ export function HeroIntake() {
               >
                 <X className="size-4" />
               </button>
+            </div>
+
+            <div className="border-b border-[var(--color-border)] p-5 sm:p-6">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {FIRST_SETUP_INTENTS.map((choice) => {
+                  const selected = selectedFirstSetupIntent === choice.intent;
+                  return (
+                    <button
+                      key={choice.intent}
+                      type="button"
+                      onClick={() => setSelectedFirstSetupIntent(choice.intent)}
+                      aria-pressed={selected}
+                      className={cn(
+                        "min-h-[74px] rounded-xl border px-3 py-3 text-left transition-colors",
+                        selected
+                          ? "border-[var(--color-accent)]/55 bg-[var(--color-accent)]/12 text-[var(--color-text)]"
+                          : "border-[var(--color-border)] bg-[var(--color-panel)] text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35 hover:text-[var(--color-text)]"
+                      )}
+                    >
+                      <span className="block text-[14px] font-bold text-[var(--color-text)]">{choice.label}</span>
+                      <span className="mt-1 block text-[11.5px] leading-snug text-[var(--color-text-muted)]">{choice.helper}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="grid gap-3 p-5 sm:grid-cols-2 sm:p-6">
@@ -335,21 +395,21 @@ export function HeroIntake() {
             <div className="flex flex-col gap-2 border-t border-[var(--color-border)] px-5 pb-5 sm:flex-row sm:px-6 sm:pb-6">
               <button
                 type="button"
-                onClick={() => openPlan({ markSetup: true })}
+                onClick={() => openPlan({ markSetup: true, includeSetupIntent: true })}
                 className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--color-accent)] px-4 text-[14px] font-bold text-[#0B0F0D] transition-colors hover:bg-[var(--color-accent-soft)]"
               >
-                Get my best plan
+                Plan this session
                 <ArrowRight className="size-4" />
               </button>
               <button
                 type="button"
                 onClick={() => {
                   if (cleanRsn) markFirstSetupSeen(cleanRsn);
-                  openPlan({ markSetup: false });
+                  openPlan({ markSetup: false, includeSetupIntent: true });
                 }}
                 className="inline-flex h-11 items-center justify-center rounded-lg border border-[var(--color-border)] px-4 text-[13px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
               >
-                Skip for now
+                Skip setup
               </button>
             </div>
           </div>
