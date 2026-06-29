@@ -220,7 +220,7 @@ describe("plugin sync diagnostics", () => {
     expect(diagnosticForMissingSync("Lynx Titan", { origin: "http://127.0.0.1:4173" }).primaryAction?.copy)
       .toBe(PUBLIC_SYNC_URL);
     expect(missing.title).toBe("RuneLite not found for Lynx Titan");
-    expect(missing.body).toContain("/next still works from public stats");
+    expect(missing.body).toContain("/next still works from your OSRS name");
     expect(missing.steps.join(" ")).toContain("Open RuneLite");
     expect(missing.steps.join(" ")).toContain("https://www.scapestack.org/api/sync");
     expect(missing.steps.join(" ")).toContain("Auto-sync on login");

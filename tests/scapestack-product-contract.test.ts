@@ -40,7 +40,7 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).not.toContain("Trip looks runnable");
     expect(next).not.toContain("Safer backup");
     expect(next).toContain("Screenshot mode");
-    expect(next).toContain("Another trip");
+    expect(next).toContain("Next trip");
     expect(next).toContain("Chill now");
     expect(next).toContain("accountStage={summary.accountStage}");
     expect(next).not.toContain("Bossing stays backup while this route has the cleaner stop point.");

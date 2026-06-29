@@ -13,7 +13,7 @@ describe("tool registry", () => {
     });
     expect(next?.description).toContain("Stop bankstanding");
     expect(next?.description).toContain("one useful move");
-    expect(next?.tagline).toBe("RSN in → do this first");
+    expect(next?.tagline).toBe("One clear plan");
   });
 
   it("registers RuneLite sync as a live first-class tool", () => {

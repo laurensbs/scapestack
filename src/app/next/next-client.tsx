@@ -115,7 +115,7 @@ function hasDropChanceGraph(rec: Recommendation): rec is Recommendation & { kcMe
   return Boolean(rec.kcMeta && rec.kcMeta.dropName !== "first 50 KC");
 }
 
-const SAMPLE_LABEL = "simple returning-player plan";
+const SAMPLE_LABEL = "sample plan";
 const COMPACT_NUMBER = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 
 const SAMPLE_SKILL_NAMES = [
@@ -760,24 +760,14 @@ function NextIntake({
         ? "animate-[intake-lift_0.5s_cubic-bezier(0.22,1,0.36,1)_both]"
         : "animate-[slide-up_0.4s_ease-out]"
     )}>
-      {/* Hero-vraag: groot, gecentreerd, voelt als één doel-moment. */}
-      <header className="mb-8 text-center">
-        <h2 className="text-[28px] sm:text-[36px] font-bold text-[var(--color-text)] tracking-normal leading-[1.1]">
-          What should you do<br className="sm:hidden" /> next?
-        </h2>
-        <p className="mt-3 text-[14px] sm:text-[15px] text-[var(--color-text-dim)] leading-relaxed max-w-md mx-auto">
-          Type your OSRS name. Scapestack gives one best move, two backups and a clear stop point.
-        </p>
-      </header>
-
-      <div className="mb-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] p-3 text-left sm:p-4">
+      <div className="mb-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] p-3 text-left sm:p-4">
         <div className="mb-3 flex items-baseline justify-between gap-3">
           <div>
             <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
               Pick a route
             </div>
             <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-muted)]">
-              Start with Surprise me, or tell Scapestack what kind of session you want.
+              Start with Surprise me, or pick the session you want before entering your RSN.
             </p>
           </div>
         </div>
@@ -793,7 +783,7 @@ function NextIntake({
                 aria-label={lens === "smart" ? "Surprise me route" : `Pick ${label.name} route`}
                 onClick={() => setSelectedRouteLens(lens)}
                 className={cn(
-                  "flex min-h-[58px] items-center gap-2 rounded-xl border px-3 py-3 text-left transition-colors",
+                  "flex min-h-[58px] items-center gap-2 rounded-xl border px-3 py-3 text-left transition-colors sm:min-h-[64px]",
                   active
                     ? "border-[var(--color-accent)]/60 bg-[var(--color-accent)]/12 text-[var(--color-accent)]"
                     : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)]"
@@ -801,10 +791,10 @@ function NextIntake({
               >
                 <ItemSprite id={label.itemId} alt="" size={22} />
                 <span className="min-w-0">
-                  <span className="block truncate text-[13px] font-bold">
+                  <span className="block truncate text-[14px] font-bold sm:text-[13px]">
                     {lens === "smart" ? "Surprise me" : label.name}
                   </span>
-                  <span className="mt-0.5 block truncate text-[10.5px] opacity-80">
+                  <span className="mt-0.5 hidden truncate text-[10.5px] opacity-80 sm:block">
                     {label.tagline}
                   </span>
                 </span>
@@ -1027,14 +1017,14 @@ function NextIntake({
           disabled={loading}
           className="text-[12.5px] text-[var(--color-text-dim)] hover:text-[var(--color-text)] underline underline-offset-4 decoration-dotted transition-colors disabled:opacity-50"
         >
-          New or returning? See a {SAMPLE_LABEL}
+          Try a {SAMPLE_LABEL}
         </button>
       </div>
 
       <p className="mt-8 text-[11.5px] text-[var(--color-text-muted)] text-center leading-relaxed">
         {cameFromPlugin
-          ? "RuneLite is optional. If it finds this RSN, /next can avoid progress you already finished. Gear stays in this browser."
-          : "Free, no account needed. Gear paste stays in this browser."}
+          ? "RuneLite is optional. If it finds this RSN, /next can avoid progress you already finished. Your bank stays in this browser."
+          : "Free. Your bank stays in this browser."}
       </p>
     </section>
   );
@@ -3334,7 +3324,7 @@ function WhatToDo({
               onClick={moveToAnotherPlan}
               className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-good)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-good)] transition-colors hover:bg-[var(--color-good)]/10"
             >
-              Another trip
+              Next trip
             </button>
             <button
               type="button"

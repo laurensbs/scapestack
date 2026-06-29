@@ -32,7 +32,7 @@ export const TOOLS: Tool[] = [
     name: "What should I do now?",
     navLabel: "Plan",
     short: "Enter your OSRS name and get one clear next move",
-    tagline: "RSN in → do this first",
+    tagline: "One clear plan",
     description:
       "Stop bankstanding: enter your OSRS name and get one useful move for this account, plus two backups. Add bank or RuneLite only when it changes the route.",
     icon: Sparkles,

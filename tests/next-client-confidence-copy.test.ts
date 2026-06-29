@@ -240,13 +240,13 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('params.get("from") === "plugin"');
     expect(source).toContain("cameFromPlugin={cameFromPlugin}");
     expect(source).toContain("RuneLite is optional. If it finds this RSN, /next can avoid progress you already finished.");
-    expect(source).toContain("Gear stays in this browser.");
-    expect(source).toContain("Free, no account needed.");
+    expect(source).toContain("Your bank stays in this browser.");
+    expect(source).toContain("Free. Your bank stays in this browser.");
   });
 
   it("offers a simple first-run sample for new or returning players", () => {
-    expect(source).toContain('const SAMPLE_LABEL = "simple returning-player plan";');
-    expect(source).toContain("New or returning? See a {SAMPLE_LABEL}");
+    expect(source).toContain('const SAMPLE_LABEL = "sample plan";');
+    expect(source).toContain("Try a {SAMPLE_LABEL}");
     expect(source).not.toContain("mid-game PvM sample");
   });
 
@@ -312,7 +312,8 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Nice.");
     expect(source).toContain("Pick the next move.");
     expect(source).toContain("is marked done, so this is the next move.");
-    expect(source).toContain("Another trip");
+    expect(source).toContain("Next trip");
+    expect(source).not.toContain("Another trip");
     expect(source).toContain("Chill now");
     expect(source).toContain('applySessionIntent("chill", 30)');
     expect(source).toContain("Undo done");

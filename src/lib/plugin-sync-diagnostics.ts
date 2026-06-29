@@ -234,7 +234,7 @@ export function diagnosticForMissingSync(rsn: string, context: PluginSyncDiagnos
   return {
     tone: "warning",
     title: `RuneLite not found for ${displayRsn}`,
-    body: "/next still works from public stats. Press Sync when you want quests, diaries, clog and Slayer included.",
+    body: "/next still works from your OSRS name. Press Sync when you want quests, diaries, clog and Slayer included.",
     steps: [
       "Open RuneLite on this account.",
       "Enable Scapestack Sync and Auto-sync on login.",

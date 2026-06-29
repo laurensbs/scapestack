@@ -6,7 +6,7 @@ describe("next plugin hub CTA copy", () => {
     const cta = nextPluginHubCta("open", false);
 
     expect(cta.title).toBe("Add Scapestack Sync");
-    expect(cta.body).toContain("works from public stats");
+    expect(cta.body).toContain("Your OSRS name is enough for a first plan");
     expect(cta.body).toContain("completed quests, diaries, collection log and Slayer");
     expect(cta.cta).toBe("Open sync →");
     expect(cta.body).not.toContain("Plugin Hub review");
@@ -28,7 +28,7 @@ describe("next plugin hub CTA copy", () => {
     for (const state of ["review-blocked", "closed", "unknown"] as const) {
       const cta = nextPluginHubCta(state, false);
       expect(cta.title).toBe("Add Scapestack Sync");
-      expect(cta.body).toContain("This route works from public stats");
+      expect(cta.body).toContain("Your OSRS name is enough for a first plan");
       expect(cta.body).toContain("completed quests");
       expect(cta.cta).toBe("Open sync →");
       expect(cta.body).not.toContain("reviewer checklist");

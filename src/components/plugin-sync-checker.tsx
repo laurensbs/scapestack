@@ -65,7 +65,7 @@ export function PluginSyncChecker() {
       return {
         tone: "warning",
         label: "RuneLite check paused",
-        detail: "Try again in a moment. /next still works from public stats.",
+        detail: "Try again in a moment. /next still works from your OSRS name.",
         actions: []
       };
     }
@@ -311,7 +311,7 @@ export function PluginSyncChecker() {
               <div>
                 <div className="text-[13px] font-bold text-[var(--color-danger)]">RuneLite needs setup</div>
                 <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                  Finish setup, then check this RSN again. /next still works from public stats.
+                  Finish setup, then check this RSN again. /next still works from your OSRS name.
                 </p>
                 <CopyCommand value={DB_INIT_COMMAND} label="Copy command" />
               </div>

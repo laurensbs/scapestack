@@ -13,7 +13,7 @@ export function nextPluginHubCta(state: NextPluginHubState, hasExternalTracker: 
     title: "Add Scapestack Sync",
     body: hasExternalTracker
       ? "External trackers helped this run. Sync the same RSN when you want Scapestack to avoid finished quests, diary tiers, collection-log items and Slayer mistakes."
-      : "This route works from public stats. Add Scapestack Sync when you want completed quests, diaries, collection log and Slayer included.",
+      : "Your OSRS name is enough for a first plan. Add Scapestack Sync when you want completed quests, diaries, collection log and Slayer included.",
     cta: "Open sync →"
   };
 }

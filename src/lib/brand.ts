@@ -174,7 +174,7 @@ export const BRAND_STATE_SYSTEM = [
   {
     state: "Loading",
     label: "Building your plan",
-    copy: "Checking public stats and preparing one clear next move.",
+    copy: "Checking your OSRS name and preparing one clear next move.",
     action: "Show progress"
   },
   {

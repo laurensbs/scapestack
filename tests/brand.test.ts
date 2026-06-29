@@ -70,6 +70,8 @@ describe("Scapestack branding", () => {
     ]);
     expect(BRAND_PLAYER_PROMPTS.map((prompt) => prompt.copy).join(" ")).toContain("finished quests");
     expect(BRAND_STATE_SYSTEM.map((state) => state.state)).toEqual(["Empty", "Loading", "Error", "Mobile"]);
+    expect(BRAND_STATE_SYSTEM.map((state) => state.copy).join(" ")).toContain("Checking your OSRS name");
+    expect(BRAND_STATE_SYSTEM.map((state) => state.copy).join(" ")).not.toContain("public stats");
     expect(BRAND_STATE_SYSTEM.map((state) => state.copy).join(" ")).toContain("no hover-only affordances");
   });
 
