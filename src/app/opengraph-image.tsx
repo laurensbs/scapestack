@@ -8,7 +8,7 @@ import {
   BRAND_TAGLINE
 } from "@/lib/brand";
 
-export const alt = "Scapestack · Stop bankstanding. Do this first.";
+export const alt = "Scapestack · Stop bankstanding. Pick the next trip.";
 export const size = {
   width: 1200,
   height: 630
@@ -26,8 +26,8 @@ export default function OpenGraphImage() {
           flexDirection: "column",
           justifyContent: "space-between",
           padding: 64,
-          background: `radial-gradient(circle at 22% 20%, ${BRAND_ACCENT_COLOR}33, transparent 36%), radial-gradient(circle at 82% 72%, #86A6D933, transparent 34%), ${BRAND_BACKGROUND_COLOR}`,
-          color: "#F5EAD2",
+          background: `radial-gradient(circle at 22% 20%, ${BRAND_ACCENT_COLOR}33, transparent 36%), radial-gradient(circle at 82% 72%, #7EA0C433, transparent 34%), ${BRAND_BACKGROUND_COLOR}`,
+          color: "#F2E6CF",
           fontFamily: BRAND_IMAGE_FONT_FAMILY
         }}
       >
@@ -46,7 +46,7 @@ export default function OpenGraphImage() {
                 fontSize: 30,
                 fontWeight: 900,
                 letterSpacing: -2,
-                background: "rgba(184, 146, 74,0.11)"
+                background: "rgba(200, 154, 61,0.11)"
               }}
             >
               SS
@@ -58,7 +58,7 @@ export default function OpenGraphImage() {
           </div>
           <div
             style={{
-              border: "1px solid rgba(184, 146, 74,0.38)",
+              border: "1px solid rgba(200, 154, 61,0.38)",
               borderRadius: 999,
               padding: "12px 18px",
               color: BRAND_ACCENT_COLOR,
@@ -72,15 +72,15 @@ export default function OpenGraphImage() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
           <div style={{ maxWidth: 850, fontSize: 68, lineHeight: 1.02, fontWeight: 950, letterSpacing: -3 }}>
-            Stop bankstanding. Do this first.
+            Stop bankstanding. Pick the next trip.
           </div>
-          <div style={{ maxWidth: 840, color: "#C9BFAE", fontSize: 26, lineHeight: 1.35 }}>
+          <div style={{ maxWidth: 840, color: "#CBBF9F", fontSize: 26, lineHeight: 1.35 }}>
             {BRAND_DESCRIPTION}
           </div>
         </div>
 
         <div style={{ display: "flex", gap: 14 }}>
-          {["Do this first", "Gear & Bank", "Boss check", "Task check", "RuneLite"].map((label) => (
+          {["Next trip", "Gear", "Boss check", "Task check", "RuneLite"].map((label) => (
             <div
               key={label}
               style={{
@@ -88,7 +88,7 @@ export default function OpenGraphImage() {
                 borderRadius: 14,
                 padding: "12px 16px",
                 background: "rgba(255,255,255,0.045)",
-                color: "#EDE1CA",
+                color: "#E9DDC5",
                 fontSize: 18,
                 fontWeight: 750
               }}

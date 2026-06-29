@@ -14,13 +14,11 @@ function parseItemId(raw: string): number | null {
 
 function fallbackSvg(itemId?: number): Response {
   const label = itemId ? `Item ${itemId}` : "Unknown item";
-  const idLabel = itemId ? `#${itemId}` : "ID ?";
   return new Response(
     `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-      <rect width="32" height="32" rx="6" fill="#0E1112"/>
-      <rect x="4" y="4" width="24" height="24" rx="4" fill="#1B1F18" stroke="#77643A"/>
-      <text x="16" y="15" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-size="12" font-weight="900" fill="#86A6D9">?</text>
-      <text x="16" y="25" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-size="6.5" font-weight="800" fill="#A99B7D">${idLabel}</text>
+      <rect width="32" height="32" rx="6" fill="#0B0F0D"/>
+      <rect x="4" y="4" width="24" height="24" rx="4" fill="#111713" stroke="#6F5A2B"/>
+      <circle cx="16" cy="16" r="6" fill="#1A231D" stroke="#C89A3D" stroke-width="1.5"/>
       <title>${label} sprite unavailable</title>
     </svg>`,
     {

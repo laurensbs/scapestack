@@ -37,11 +37,11 @@ describe("Scapestack branding", () => {
   });
 
   it("positions Scapestack as a tactical OSRS decision engine", () => {
-    expect(BRAND_TAGLINE).toBe("Stop bankstanding. Do this first.");
-    expect(BRAND_SECONDARY_TAGLINE).toBe("Type your RSN. Get one plan, two backups and a stop point.");
-    expect(BRAND_DESCRIPTION).toContain("anti-bankstanding planner");
-    expect(BRAND_POSITIONING.promise).toBe("From login indecision to one thing worth doing now.");
-    expect(BRAND_POSITIONING.feeling).toContain("RuneLite-adjacent session card");
+    expect(BRAND_TAGLINE).toBe("Stop bankstanding. Pick the next trip.");
+    expect(BRAND_SECONDARY_TAGLINE).toBe("Type your RSN. Get one trip, two backups and a stop point.");
+    expect(BRAND_DESCRIPTION).toContain("anti-bankstanding session board");
+    expect(BRAND_POSITIONING.promise).toBe("From bankstanding to one trip worth doing now.");
+    expect(BRAND_POSITIONING.feeling).toContain("Gielinor session board");
     expect(BRAND_POSITIONING.antiPattern).toContain("player-facing screens about choices");
     expect(BRAND_VOICE_RULES.join(" ")).toContain("practical OSRS player language");
     expect(BRAND_VOICE_RULES.join(" ")).not.toContain("AI-powered");
@@ -49,7 +49,7 @@ describe("Scapestack branding", () => {
 
   it("defines player-facing routes and prompt chips", () => {
     expect(BRAND_UI_SURFACES.map((surface) => surface.page)).toEqual([
-      "Tonight",
+      "Next trip",
       "Bank",
       "Boss",
       "Slayer",
@@ -137,7 +137,7 @@ describe("Scapestack branding", () => {
     expect(layoutSource).toContain("publisher: BRAND_NAME");
     expect(layoutSource).toContain("{BRAND_TAGLINE}");
     expect(layoutSource).toContain("Made for Gielinor");
-    expect(globalsSource).toContain('--font-sans: "Avenir Next"');
+    expect(globalsSource).toContain('--font-sans: "Atkinson Hyperlegible"');
     expect(globalsSource).toContain('--font-display: "Iowan Old Style"');
     expect(globalsSource).toContain("Scapestack product primitives");
     expect(globalsSource).toContain(".scapestack-plan-panel");
@@ -166,8 +166,8 @@ describe("Scapestack branding", () => {
     const globalsSource = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
 
     expect(globalsSource).toContain("Coin marker — OSRS route marker");
-    expect(globalsSource).toContain("radial-gradient(circle at 30% 30%, #FFF1A8 0%, #B8924A 48%, #6F5628 100%)");
-    expect(globalsSource).toContain("inset 0 0 0 1px #6F5628");
+    expect(globalsSource).toContain("radial-gradient(circle at 30% 30%, #FFF1A8 0%, #C89A3D 48%, #74551F 100%)");
+    expect(globalsSource).toContain("inset 0 0 0 1px #74551F");
     expect(globalsSource).not.toContain("Coin marker — now a route marker");
   });
 
@@ -190,7 +190,7 @@ describe("Scapestack branding", () => {
       "src/app/u/[rsn]/opengraph-image.tsx"
     ].map((path) => readFileSync(join(process.cwd(), path), "utf8"));
 
-    expect(BRAND_IMAGE_FONT_FAMILY).toBe("Inter, Avenir Next, Segoe UI, Arial, sans-serif");
+    expect(BRAND_IMAGE_FONT_FAMILY).toBe("Atkinson Hyperlegible, Avenir Next, Segoe UI, Arial, sans-serif");
     for (const source of imageSources) {
       expect(source).toContain("BRAND_IMAGE_FONT_FAMILY");
       expect(source).not.toContain("Geist, Arial");

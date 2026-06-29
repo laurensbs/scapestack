@@ -10,10 +10,10 @@ describe("ItemSprite fallback UX", () => {
     expect(source).toContain("data-sprite-fallback=\"missing\"");
     expect(source).toContain("data-sprite-missing-id={cleanId || undefined}");
     expect(source).toContain("sprite unavailable");
-    expect(source).toContain("item ID");
     expect(source).toContain("<span aria-hidden=\"true\">?</span>");
-    expect(source).toContain("{cleanId ? `#${cleanId}` : \"ID ?\"}");
-    expect(source).toContain("max-w-full truncate");
+    expect(source).not.toContain("item ID");
+    expect(source).not.toContain("{cleanId ? `#${cleanId}` : \"ID ?\"}");
+    expect(source).not.toContain("max-w-full truncate");
   });
 
   it("resets the fallback stage when a reused sprite receives a new item ID", () => {

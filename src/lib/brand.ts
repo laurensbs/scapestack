@@ -1,16 +1,16 @@
 export const BRAND_NAME = "Scapestack";
 export const BRAND_SHORT_NAME = "Scapestack";
-export const BRAND_TAGLINE = "Stop bankstanding. Do this first.";
+export const BRAND_TAGLINE = "Stop bankstanding. Pick the next trip.";
 export const BRAND_SECONDARY_TAGLINE =
-  "Type your RSN. Get one plan, two backups and a stop point.";
+  "Type your RSN. Get one trip, two backups and a stop point.";
 export const BRAND_URL = "https://www.scapestack.org";
-export const BRAND_THEME_COLOR = "#0E1112";
-export const BRAND_ACCENT_COLOR = "#B8924A";
-export const BRAND_BACKGROUND_COLOR = "#0E1112";
-export const BRAND_IMAGE_FONT_FAMILY = "Inter, Avenir Next, Segoe UI, Arial, sans-serif";
+export const BRAND_THEME_COLOR = "#0B0F0D";
+export const BRAND_ACCENT_COLOR = "#C89A3D";
+export const BRAND_BACKGROUND_COLOR = "#0B0F0D";
+export const BRAND_IMAGE_FONT_FAMILY = "Atkinson Hyperlegible, Avenir Next, Segoe UI, Arial, sans-serif";
 
 export const BRAND_DESCRIPTION =
-  "The OSRS anti-bankstanding planner: type your RSN and get one thing to do now, two backups and a clean stop point.";
+  "The OSRS anti-bankstanding session board: type your RSN and get one trip to do now, two backups and a clean stop point.";
 
 export const BRAND_KEYWORDS = [
   "OSRS",
@@ -69,8 +69,8 @@ export const BRAND_LEGACY_REDIRECT_ROUTES = [
 
 export const BRAND_POSITIONING = {
   category: "OSRS anti-bankstanding planner",
-  promise: "From login indecision to one thing worth doing now.",
-  feeling: "A RuneLite-adjacent session card that feels made by someone who actually banks in OSRS.",
+  promise: "From bankstanding to one trip worth doing now.",
+  feeling: "A quiet Gielinor session board that feels made by someone who actually banks in OSRS.",
   antiPattern: "Keep player-facing screens about choices, not internal status or generic product wording."
 } as const;
 
@@ -84,7 +84,7 @@ export const BRAND_VOICE_RULES = [
 
 export const BRAND_UI_SURFACES = [
   {
-    page: "Tonight",
+    page: "Next trip",
     role: "What is worth doing tonight?",
     primaryAction: "Plan my next move",
     requiredFeeling: "One useful move first. Two backups below. Context optional."
@@ -168,7 +168,7 @@ export const BRAND_STATE_SYSTEM = [
   {
     state: "Empty",
     label: "Add a name",
-    copy: "Enter an OSRS name first. Add bank only when gear, supplies or GP matter.",
+    copy: "Enter an OSRS name first. Add gear only when supplies, GP or boss setup matter.",
     action: "Plan my next move"
   },
   {
@@ -186,7 +186,7 @@ export const BRAND_STATE_SYSTEM = [
   {
     state: "Mobile",
     label: "One-thumb prep",
-    copy: "Primary action first, secondary links collapsed, item IDs still visible, no hover-only affordances.",
+    copy: "Primary action first, secondary links collapsed, debug IDs hidden, no hover-only affordances.",
     action: "Open action sheet"
   }
 ] as const;

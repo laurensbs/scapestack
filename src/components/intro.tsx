@@ -330,7 +330,7 @@ function CopyTabs() {
       <defs>
         <linearGradient id="copy-route" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#AFC4E8" />
-          <stop offset="1" stopColor="#86A6D9" />
+          <stop offset="1" stopColor="#C89A3D" />
         </linearGradient>
       </defs>
       {/* Tab list — matches the export rows in .surface bg */}

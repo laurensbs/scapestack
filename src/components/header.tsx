@@ -14,7 +14,7 @@ const LOOP_STEPS = [
   { label: "Gear", href: "/bank" },
   { label: "Sync", href: "/plugin" }
 ];
-const LOOP_LABEL = "Do this first: Next → Gear → RuneLite";
+const LOOP_LABEL = "Pick the next trip: Next → Gear → RuneLite";
 
 export function Header() {
   const pathname = usePathname();
@@ -82,8 +82,8 @@ export function Header() {
 
         <Link
           href={contextualNavHref("/next", pathname, contextQuery)}
-          aria-label="Stop bankstanding with one next move"
-          title="Open /next first. Add gear or RuneLite only when it changes the route."
+          aria-label="Pick the next OSRS trip"
+          title="Open /next first. Add gear or RuneLite only when it changes the trip."
           className="hidden lg:flex min-w-0 items-center gap-2 rounded-md px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-panel-2)]/45 hover:text-[var(--color-accent)]"
           style={{ animation: "hero-fade 0.5s cubic-bezier(0.22,1,0.36,1) 0.36s both" }}
         >
@@ -153,7 +153,7 @@ export function Header() {
           <nav id={mobileNavId} className="px-4 py-3 space-y-1" aria-label="Mobile Scapestack tools">
             <div className="mb-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 p-3">
               <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-gold)]">
-                Stop bankstanding
+                Pick the next trip
               </div>
               <div className="mt-2 grid grid-cols-3 gap-1.5">
                 {LOOP_STEPS.map((step) => (
@@ -169,7 +169,7 @@ export function Header() {
                 ))}
               </div>
               <p className="mt-2 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
-                Pick one plan first. Add gear or RuneLite only when it changes the route.
+                Start with one trip. Add gear or RuneLite only when it changes the route.
               </p>
             </div>
             {navTools.map((tool) => {

@@ -22,7 +22,7 @@ describe("Scapestack anti-bankstanding product contract", () => {
     const direction = read("docs/scapestack-product-direction.md");
 
     expect(homepage).toContain("Stop bankstanding.");
-    expect(homepage).toContain("Do this first.");
+    expect(homepage).toContain("Pick the next trip.");
     expect(next).toContain("Do this first");
     expect(next).toContain("One best move for this account. Two backups");
     expect(next).toContain("Next 3 sessions");

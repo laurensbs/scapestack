@@ -835,8 +835,8 @@ function NextIntake({
         <div className={cn(
           "group relative rounded-2xl bg-[var(--color-panel)] border transition-all",
           loading
-            ? "border-[var(--color-accent)]/60 shadow-[0_0_0_4px_rgba(134, 166, 217,0.10)]"
-            : "border-[var(--color-border)] focus-within:border-[var(--color-accent)]/60 focus-within:shadow-[0_0_0_4px_rgba(134, 166, 217,0.10)]"
+            ? "border-[var(--color-accent)]/60 shadow-[0_0_0_4px_rgba(200, 154, 61,0.10)]"
+            : "border-[var(--color-border)] focus-within:border-[var(--color-accent)]/60 focus-within:shadow-[0_0_0_4px_rgba(200, 154, 61,0.10)]"
         )}>
           <div className="flex flex-col sm:flex-row sm:items-center">
             <input
@@ -1376,7 +1376,7 @@ function HeroStrip({ summary, basisNote, onEdit }: {
           en headline-card. Bindt het visueel aan de rest van /next. */}
       <div
         className="absolute inset-x-0 top-0 h-px"
-        style={{ background: "linear-gradient(to right, transparent, rgba(134, 166, 217,0.55), transparent)" }}
+        style={{ background: "linear-gradient(to right, transparent, rgba(200, 154, 61,0.55), transparent)" }}
       />
       {/* Sweep — zachte route-tint die elke 6s van links naar rechts wandelt.
           Subtieler dan de loader-spotlight (we zijn klaar met laden),
@@ -1384,7 +1384,7 @@ function HeroStrip({ summary, basisNote, onEdit }: {
       <div
         className="pointer-events-none absolute inset-y-0 -inset-x-1/2 opacity-60"
         style={{
-          background: "linear-gradient(90deg, transparent 0%, transparent 35%, rgba(134, 166, 217,0.06) 50%, transparent 65%, transparent 100%)",
+          background: "linear-gradient(90deg, transparent 0%, transparent 35%, rgba(200, 154, 61,0.06) 50%, transparent 65%, transparent 100%)",
           animation: "hero-sweep 6s linear infinite"
         }}
       />
@@ -2413,14 +2413,13 @@ function HeadlineCard({
       className={cn(
         // group/headline triggers the headline-shimmer-target::after sweep
         // defined in globals.css — fires once on hover, doesn't loop.
-        "group/headline group relative overflow-hidden rounded-xl p-6 headline-shimmer-target",
-        "border border-[var(--color-accent)]/30 bg-gradient-to-br from-[var(--color-accent)]/12 to-transparent",
+        "scapestack-plan-panel group/headline group relative overflow-hidden p-5 headline-shimmer-target sm:p-6",
         (actionHref || isBossWithDetail) && "surface-interactive transition-transform duration-200 hover:-translate-y-0.5"
       )}
     >
       <div
         className="absolute inset-x-0 top-0 h-px"
-        style={{ background: "linear-gradient(to right, transparent, rgba(134, 166, 217,0.55), transparent)" }}
+        style={{ background: "linear-gradient(to right, transparent, rgba(200, 154, 61,0.55), transparent)" }}
       />
       <div className="flex items-start gap-4">
         <div className="size-12 shrink-0 rounded-lg flex items-center justify-center bg-[var(--color-accent)]/15 border border-[var(--color-accent)]/30 text-[var(--color-accent)] overflow-hidden">
@@ -3082,7 +3081,7 @@ function WhatToDo({
       <div
         className={cn(
           shareMode &&
-            "mx-auto max-w-4xl rounded-2xl border border-[var(--color-accent)]/25 bg-[var(--color-panel)]/86 p-4 shadow-[0_26px_80px_-54px_rgba(134, 166, 217,0.65)] sm:p-5"
+            "mx-auto max-w-4xl rounded-2xl border border-[var(--color-accent)]/25 bg-[var(--color-panel)]/86 p-4 shadow-[0_26px_80px_-54px_rgba(200, 154, 61,0.65)] sm:p-5"
         )}
       >
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -3579,7 +3578,7 @@ function WhereYouAre({
                         width: `${p.percent}%`,
                         transform: filled ? "scaleX(1)" : "scaleX(0)",
                         transition: "transform 900ms cubic-bezier(0.22, 1, 0.36, 1)",
-                        boxShadow: isFocus ? "0 0 14px -2px rgba(134, 166, 217,0.55)" : undefined,
+                        boxShadow: isFocus ? "0 0 14px -2px rgba(200, 154, 61,0.55)" : undefined,
                         animation: isFocus && filled ? "card-breath 3.2s ease-in-out infinite" : undefined,
                       }}
                     />

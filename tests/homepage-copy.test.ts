@@ -8,8 +8,8 @@ describe("homepage first-impression copy", () => {
   it("opens with the five-second OSRS planner promise", () => {
     expect(source).not.toContain("BRAND_SECONDARY_TAGLINE");
     expect(source).toContain("Stop bankstanding.");
-    expect(source).toContain("Do this first.");
-    expect(source).toContain("Type your OSRS name. Get one plan, two backups and a stop point before you open another Wiki tab.");
+    expect(source).toContain("Pick the next trip.");
+    expect(source).toContain("Type your OSRS name. Get one trip, two backups and a stop point before you open another Wiki tab.");
     expect(source).not.toContain("Get one best move, why it matters, how long it takes");
     expect(source).not.toContain("HERO_LOOP_STEPS");
     expect(source).not.toContain("AI-powered");
@@ -19,8 +19,8 @@ describe("homepage first-impression copy", () => {
 
   it("shows one example plan instead of a dense product mock", () => {
     expect(source).toContain("HeroProductPreview");
-    expect(source).toContain('aria-label="Live anti-bankstanding plan preview"');
-    expect(source).toContain("One clean session");
+    expect(source).toContain('aria-label="Live OSRS trip preview"');
+    expect(source).toContain("Next trip ready");
     expect(source).toContain("Do this first");
     expect(source).toContain("Push Vardorvis to 50 KC");
     expect(source).toContain('label="Why"');
@@ -28,7 +28,7 @@ describe("homepage first-impression copy", () => {
     expect(source).toContain('value="Open DPS, lock setup, then do one short trip."');
     expect(source).toContain('label="Bring"');
     expect(source).toContain('label="Stop point"');
-    expect(source).toContain('value="Stop after one trip or 10 KC. Re-run /next after."');
+    expect(source).toContain('value="Stop after one trip or 10 KC. Check /next again after."');
     expect(source).toContain("Backup");
     expect(source).toContain("RuneLite can skip quests, diaries, clog slots and Slayer mistakes later.");
     expect(source).toContain("scapestack-plan-panel");

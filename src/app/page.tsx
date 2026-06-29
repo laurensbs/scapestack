@@ -15,10 +15,10 @@ export default function HomePage() {
               className="eyebrow"
               style={{ animation: "hero-fade 0.55s cubic-bezier(0.22,1,0.36,1) 0.02s both" }}
             >
-              OSRS session planner
+              OSRS session board
             </div>
             <h1
-              aria-label="Stop bankstanding. Do this first."
+              aria-label="Stop bankstanding. Pick the next trip."
               className="mx-auto max-w-[820px] text-[44px] font-semibold leading-[0.95] text-[var(--color-text)] sm:text-[62px] lg:text-[76px]"
             >
               <RevealLine
@@ -28,7 +28,7 @@ export default function HomePage() {
                 className="block text-[var(--color-text)]"
               />
               <RevealLine
-                text="Do this first."
+                text="Pick the next trip."
                 delay={350}
                 wordStaggerMs={80}
                 className="block text-route-gradient"
@@ -46,7 +46,7 @@ export default function HomePage() {
                 clipPath: "inset(0 0 100% 0)"
               }}
             >
-              Type your OSRS name. Get one plan, two backups and a stop point before you open another Wiki tab.
+              Type your OSRS name. Get one trip, two backups and a stop point before you open another Wiki tab.
             </p>
 
             <div
@@ -70,7 +70,7 @@ export default function HomePage() {
         <div className="relative mx-auto max-w-3xl overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] shadow-[0_24px_70px_-48px_rgba(0,0,0,0.78)] animate-[slide-up_0.5s_cubic-bezier(0.22,1,0.36,1)_0.2s_both]">
           <div
             className="absolute inset-x-0 top-0 h-px"
-            style={{ background: "linear-gradient(to right, transparent, rgba(134, 166, 217,0.4), transparent)" }}
+            style={{ background: "linear-gradient(to right, transparent, rgba(200, 154, 61,0.4), transparent)" }}
           />
 
           <div className="relative p-8 sm:p-10 grid sm:grid-cols-[1fr_auto] items-center gap-6">
@@ -79,10 +79,10 @@ export default function HomePage() {
                 Solo project · No ads · No accounts
               </div>
               <h3 className="text-[22px] sm:text-[26px] font-semibold text-[var(--color-text)] tracking-normal leading-tight">
-                Saved a trip?
+                Help keep Scapestack running
               </h3>
               <p className="mt-2.5 text-[14px] text-[var(--color-text-dim)] leading-relaxed max-w-md">
-                Scapestack is free, no ads, no account. Coffee keeps the tools online.
+                Free, no ads, no account. Coffee keeps the tools online.
               </p>
             </div>
             <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
@@ -105,13 +105,13 @@ export default function HomePage() {
 function HeroProductPreview() {
   return (
     <aside
-      aria-label="Live anti-bankstanding plan preview"
+      aria-label="Live OSRS trip preview"
       className="scapestack-plan-panel relative overflow-hidden p-4 text-left sm:p-5"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-2.5 py-1 text-[11px] font-bold text-[var(--color-good)]">
           <CheckCircle2 className="size-3.5" aria-hidden="true" />
-          One clean session
+          Next trip ready
         </div>
         <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/38 px-2.5 py-1 text-[11px] font-bold text-[var(--color-text-dim)]">
           45-90 min
@@ -121,7 +121,7 @@ function HeroProductPreview() {
       <div className="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
         <div>
           <div className="flex items-start gap-4">
-            <span className="grid size-12 shrink-0 place-items-center rounded-xl border border-[var(--color-accent)]/24 bg-[var(--color-accent)]/8 shadow-[0_12px_30px_-24px_rgba(134,166,217,0.46)]">
+            <span className="grid size-12 shrink-0 place-items-center rounded-xl border border-[var(--color-accent)]/24 bg-[var(--color-accent)]/8 shadow-[0_12px_30px_-24px_rgba(200, 154, 61,0.46)]">
               <ItemSprite id={28307} alt="Vardorvis" className="scale-[1.15]" />
             </span>
             <div className="min-w-0">
@@ -139,9 +139,9 @@ function HeroProductPreview() {
           </div>
 
           <dl className="scapestack-session-list mt-5">
-            <PreviewLine label="Why" value="Your account has a real PvM thread, not a random boss suggestion." />
+            <PreviewLine label="Why" value="Your account has a real PvM thread, not a random boss pick." />
             <PreviewLine label="First step" value="Open DPS, lock setup, then do one short trip." />
-            <PreviewLine label="Stop point" value="Stop after one trip or 10 KC. Re-run /next after." />
+            <PreviewLine label="Stop point" value="Stop after one trip or 10 KC. Check /next again after." />
             <PreviewLine label="Bring" value="Best owned melee setup, teleports and supplies for a small block." />
           </dl>
         </div>

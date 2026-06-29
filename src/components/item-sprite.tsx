@@ -28,9 +28,7 @@ export function ItemSprite({
   const cleanId = Number.isFinite(id) ? Math.abs(Math.trunc(id)) : 0;
   const cleanFallbackId = Number.isFinite(fallbackId) ? Math.abs(Math.trunc(fallbackId)) : 0;
   const spriteId = stage === "primary" ? cleanId : cleanFallbackId;
-  const fallbackLabel = alt
-    ? `${alt} sprite unavailable${cleanId ? ` · item ID ${cleanId}` : ""}`
-    : undefined;
+  const fallbackLabel = alt ? `${alt} sprite unavailable` : undefined;
 
   useEffect(() => {
     setStage("primary");
@@ -46,7 +44,7 @@ export function ItemSprite({
         data-sprite-fallback="missing"
         data-sprite-missing-id={cleanId || undefined}
         className={cn(
-          "inline-flex flex-col items-center justify-center gap-0.5 rounded-sm border border-[var(--color-border)] bg-[var(--color-bg)]/80 text-[9px] font-black leading-none text-[var(--color-accent)] shadow-[0_0_10px_rgba(134, 166, 217,0.2)]",
+          "inline-flex items-center justify-center rounded-sm border border-[var(--color-border)] bg-[var(--color-bg)]/80 text-[9px] font-black leading-none text-[var(--color-accent)] shadow-[0_0_10px_rgba(200,154,61,0.16)]",
           className
         )}
         style={{
@@ -56,9 +54,6 @@ export function ItemSprite({
         }}
       >
         <span aria-hidden="true">?</span>
-        <span aria-hidden="true" className="max-w-full truncate px-0.5 text-[5.5px] leading-none text-[var(--color-text-muted)]">
-          {cleanId ? `#${cleanId}` : "ID ?"}
-        </span>
       </span>
     );
   }

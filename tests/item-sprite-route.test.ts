@@ -46,8 +46,8 @@ describe("item sprite route", () => {
     expect(response.headers.get("x-scapestack-sprite-source")).toBe("generated-fallback");
     expect(response.headers.get("x-scapestack-missing-sprite-id")).toBe("999999");
     expect(response.headers.get("x-scapestack-sprite-label")).toBe("Item 999999 sprite unavailable");
-    expect(body).toContain("?");
-    expect(body).toContain("#999999");
+    expect(body).toContain("#C89A3D");
+    expect(body).not.toContain("#999999");
     expect(body).toContain("Item 999999 sprite unavailable");
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
@@ -63,8 +63,8 @@ describe("item sprite route", () => {
     expect(response.headers.get("x-scapestack-sprite-source")).toBe("generated-fallback");
     expect(response.headers.get("x-scapestack-missing-sprite-id")).toBe("4151");
     expect(response.headers.get("x-scapestack-sprite-label")).toBe("Item 4151 sprite unavailable");
-    expect(body).toContain("#86A6D9");
-    expect(body).toContain("#4151");
+    expect(body).toContain("#C89A3D");
+    expect(body).not.toContain("#4151");
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
@@ -77,8 +77,8 @@ describe("item sprite route", () => {
     expect(response.headers.get("content-type")).toBe("image/svg+xml");
     expect(response.headers.get("x-scapestack-sprite-source")).toBe("generated-fallback");
     expect(response.headers.get("x-scapestack-sprite-label")).toBe("Unknown item sprite unavailable");
-    expect(body).toContain("#86A6D9");
-    expect(body).toContain("ID ?");
+    expect(body).toContain("#C89A3D");
+    expect(body).not.toContain("ID ?");
     expect(body).toContain("Unknown item sprite unavailable");
     expect(fetchMock).not.toHaveBeenCalled();
   });

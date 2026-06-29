@@ -17,16 +17,16 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("Add gear");
     expect(source).toContain("RuneLite later");
     expect(source).toContain('href="/plugin#verify-sync"');
-    expect(source).toContain("Plan my next move with this gear");
+    expect(source).toContain("Plan my next trip with this gear");
     expect(source).toContain("Gear paste");
   });
 
   it("explains why the hero planner CTA is disabled", () => {
     expect(source).toContain('aria-describedby="hero-plan-disabled-help"');
     expect(source).toContain('id="hero-plan-disabled-help"');
-    expect(source).toContain("Enter an OSRS name to get one clear next move.");
+    expect(source).toContain("Enter an OSRS name to get one clear trip.");
     expect(source).toContain("Add a name for stats and KC.");
-    expect(source).toContain("public stats are enough to start");
+    expect(source).toContain("public stats are enough for a first trip");
   });
 
   it("labels the homepage RSN input as a real OSRS-name field", () => {
@@ -50,8 +50,8 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain('name="bank"');
     expect(source).toContain("aria-labelledby={`${HERO_BANK_TEXTAREA_ID}-label`}");
     expect(source).toContain("aria-describedby={HERO_BANK_HELP_ID}");
-    expect(source).toContain("Gear added. Supplies and GP can shape the plan.");
+    expect(source).toContain("Gear added. Supplies and GP can shape the trip.");
     expect(source).toContain("Optional: add gear when supplies or GP matters.");
-    expect(source).toContain('aria-label="Hide gear paste and plan from public stats only"');
+    expect(source).toContain('aria-label="Hide gear paste and plan the trip from public stats only"');
   });
 });
