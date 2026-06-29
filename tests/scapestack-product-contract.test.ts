@@ -28,8 +28,10 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).toContain("Next 3 sessions");
     expect(next).toContain("Next sessions");
     expect(next).toContain("Why not");
-    expect(next).toContain("Trip looks runnable");
-    expect(next).toContain("Safer backup");
+    expect(next).toContain("Build trip");
+    expect(next).toContain("Copy Bank Tag");
+    expect(next).not.toContain("Trip looks runnable");
+    expect(next).not.toContain("Safer backup");
     expect(next).toContain("Screenshot mode");
     expect(next).toContain("Another trip");
     expect(next).toContain("Chill now");

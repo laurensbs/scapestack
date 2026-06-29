@@ -1510,16 +1510,6 @@ const GEAR_REALITY_KEYWORDS = {
   travel: ["teleport", "tablet", "tabs", "rune", "ring", "amulet", "necklace", "jewellery", "jewelry"]
 } as const;
 
-type GearReality = {
-  label: string;
-  summary: string;
-  status: "ready" | "partial" | "unknown" | "not-needed";
-};
-
-function gearRealityText(reality: GearReality): string {
-  return `${reality.label}: ${reality.summary}`;
-}
-
 function bossViabilityForRecommendation(
   rec: Recommendation,
   bankItems: BankHandoffItem[],
@@ -1552,96 +1542,6 @@ function bankIncludes(items: BankHandoffItem[], keywords: readonly string[]): bo
 
 function recommendationNeedsCombatSetup(rec: Recommendation): boolean {
   return rec.kind === "boss" || rec.kind === "kc" || rec.kind === "slayer";
-}
-
-function recommendationGearReality(
-  rec: Recommendation,
-  bankItems: BankHandoffItem[],
-  hasBankContext: boolean
-): GearReality {
-  const needsCombat = recommendationNeedsCombatSetup(rec);
-
-  if (!needsCombat) {
-    if (rec.kind === "money") {
-      return hasBankContext
-        ? {
-            label: "GP check",
-            status: "partial",
-            summary: "Gear is loaded; check prices before turning this into a long money session."
-          }
-        : {
-            label: "GP setup unknown",
-            status: "unknown",
-            summary: "No gear pasted, so Scapestack keeps GP advice conservative."
-          };
-    }
-
-    if (rec.kind === "quest" || rec.kind === "diary" || rec.kind === "goal" || rec.kind === "milestone") {
-      return {
-        label: "Light setup",
-        status: "not-needed",
-        summary: "Check teleports, boosts and quest items before leaving the bank."
-      };
-    }
-
-    return {
-      label: "No gear gate",
-      status: "not-needed",
-      summary: "The stop point matters more than the setup for this pick."
-    };
-  }
-
-  if (!hasBankContext || bankItems.length === 0) {
-    return {
-      label: "Gear unknown",
-      status: "unknown",
-      summary: "No gear pasted, so treat this as a short test trip or pick a safer backup."
-    };
-  }
-
-  const bossViability = bossViabilityForRecommendation(rec, bankItems, hasBankContext);
-  if (bossViability) {
-    return {
-      label: bossViability.verdict,
-      status: bossViability.tone === "ready" ? "ready" : bossViability.tone === "test" ? "partial" : "unknown",
-      summary: bossViability.summary
-    };
-  }
-
-  const hasWeapon = bankIncludes(bankItems, GEAR_REALITY_KEYWORDS.weapon);
-  const hasArmour = bankIncludes(bankItems, GEAR_REALITY_KEYWORDS.armour);
-  const hasFood = bankIncludes(bankItems, GEAR_REALITY_KEYWORDS.food);
-  const hasPotion = bankIncludes(bankItems, GEAR_REALITY_KEYWORDS.potion);
-  const hasTravel = bankIncludes(bankItems, GEAR_REALITY_KEYWORDS.travel);
-  const hasCombatAnchor = hasWeapon || hasArmour;
-  const missing = [
-    !hasCombatAnchor ? "combat gear" : null,
-    !hasFood ? "food" : null,
-    !hasPotion ? "potions" : null,
-    !hasTravel ? "teleports" : null
-  ].filter((item): item is string => item !== null);
-
-  if (missing.length === 0) {
-    return {
-      label: "Trip looks runnable",
-      status: "ready",
-      summary: "Your pasted gear shows combat gear, supplies and travel for a real trip."
-    };
-  }
-
-  if (hasCombatAnchor && missing.length <= 2) {
-    return {
-      label: "Short trip only",
-      status: "partial",
-      summary: `Gear is close, but ${missing.join(" and ")} look thin. Do one short trip first.`
-    };
-  }
-
-  return {
-    label: "Safer backup",
-    status: "partial",
-    summary: `Gear paste is missing ${missing.slice(0, 3).join(", ")}. Use a backup until setup is clearer.`
-  };
 }
 
 function recommendationNeeds(rec: Recommendation): string[] {
@@ -1768,43 +1668,6 @@ function buildRecommendationTrip(
     tagName,
     tag
   };
-}
-
-function playerStageTip(
-  rec: Recommendation,
-  accountStage: NextUpResult["summary"]["accountStage"],
-  hasBankContext: boolean
-): string | null {
-  switch (accountStage.id) {
-    case "first-run":
-      return "Start with the first step only. Add your OSRS name later when you want stats and KC to shape the pick.";
-    case "gear-first":
-      return hasBankContext
-        ? "This is based on gear only. Add your OSRS name later if quests, KC or Slayer could change the answer."
-        : "Start with an OSRS name or gear before treating this as tonight's route.";
-    case "new-account":
-      if (rec.kind === "boss" || rec.kind === "kc") return "Keep this as a test trip. Early accounts usually get more from unlocks first.";
-      return "Good new-account move: finish one unlock, then re-run /next instead of starting a long chain.";
-    case "returning":
-      return "Returning route: one bounded goal, one stop point, then re-run /next so the account feels manageable.";
-    case "iron-route":
-      return "Iron route: check supplies and unlock path before spending gathered resources.";
-    case "skiller":
-      return "Skiller route: keep combat steps as backups and favour low-combat progress.";
-    case "pvm-ready":
-      if (rec.kind === "boss" || rec.kind === "kc" || rec.kind === "slayer") return "PvM-ready: lock the setup in DPS before buying upgrades or camping the trip.";
-      return "PvM is available, but this stop point is cleaner than forcing a random trip.";
-    case "maxed-grinder":
-      return "Endgame route: use the stop point as the block. Do not let one session become an open-ended grind.";
-    case "runelite-aware":
-      return "RuneLite already helps skip finished stuff. Trust the stop point, then sync again after progress.";
-    case "early-main":
-    case "midgame-main":
-      if (rec.kind === "quest" || rec.kind === "diary" || rec.kind === "goal" || rec.kind === "milestone") {
-        return "Unlock route: finish the unlock, then stop before the prereq chain expands.";
-      }
-      return null;
-  }
 }
 
 function headlinePayoff(rec: Recommendation): string | null {
@@ -2114,139 +1977,45 @@ function sessionMemoryNote({
   return `Welcome back — last pick was ${lastSession.lastHeadlineTitle}. This is the next move.`;
 }
 
-function sessionFitCopy(
-  rec: Recommendation,
-  mood: Mood,
-  minutes: TimeBudget,
-  hasBankContext: boolean
-): string {
-  const time = minutes === 60 ? "1 hour" : `${minutes} min`;
-  const noGear = !hasBankContext && (rec.kind === "boss" || rec.kind === "kc" || rec.kind === "money");
-
-  if (mood === "chill") {
-    if (rec.kind === "skill" || rec.kind === "bank" || rec.kind === "minigame") {
-      return `Fits a chill ${time} login: low pressure, clear stop point.`;
-    }
-    return `Still useful, but switch to Bossing or Unlock if you want this to be the main grind.`;
-  }
-  if (mood === "afk") {
-    if (rec.kind === "skill" || rec.kind === "minigame" || rec.kind === "bank") {
-      return `Fits AFK mode: progress without turning the session into a sweaty trip.`;
-    }
-    return `Not really AFK; keep it as a backup unless you want active play.`;
-  }
-  if (mood === "cash") {
-    return noGear
-      ? `GP plan, but no gear pasted, so Scapestack keeps the setup conservative.`
-      : `Fits a GP session: aim for the upgrade money, then stop.`;
-  }
-  if (mood === "bossing" || mood === "focused") {
-    return noGear
-      ? `Bossing plan with no gear pasted; test a cheap trip before committing.`
-      : `Fits a PvM session: one trip, KC or kill-time check, then decide.`;
-  }
-  if (mood === "short") {
-    return `Fits a short login: one bounded move, no long chain.`;
-  }
-  return `Fits an unlock session: progress the account, then re-run /next.`;
-}
-
 function RecommendationSessionSummary({
   rec,
-  mood,
-  minutes,
-  hasBankContext,
-  bankItems,
-  accountStage,
   compact = false
 }: {
   rec: Recommendation;
-  mood: Mood;
-  minutes: TimeBudget;
-  hasBankContext: boolean;
-  bankItems: BankHandoffItem[];
-  accountStage: NextUpResult["summary"]["accountStage"];
   compact?: boolean;
 }) {
-  const plan = rec.actionPlan;
-  const gearReality = recommendationGearReality(rec, bankItems, hasBankContext);
-  const gearLabel = (rec.kind === "boss" || rec.kind === "kc") && rec.bossSlug ? "Kill check" : "Gear";
-  const stageTip = playerStageTip(rec, accountStage, hasBankContext);
   if (compact) {
-    return (
-      <dl className="mt-2 space-y-1.5 border-t border-[var(--color-border)]/60 pt-2">
-        {[
-          { label: "Fit", value: sessionFitCopy(rec, mood, minutes, hasBankContext) },
-          { label: gearLabel === "Kill check" ? "DPS" : "Gear", value: gearRealityText(gearReality) },
-          ...(stageTip ? [{ label: "Tip", value: stageTip }] : []),
-          { label: "Stop", value: recommendationStopPointValue(rec) }
-        ].map((item) => (
-          <div key={`${rec.id}:compact-session:${item.label}`} className="grid grid-cols-[42px_minmax(0,1fr)] gap-2 text-[11px] leading-snug">
-            <dt className="font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
-              {item.label}
-            </dt>
-            <dd className="line-clamp-2 font-semibold text-[var(--color-text-dim)]">
-              {item.value}
-            </dd>
-          </div>
-        ))}
-      </dl>
-    );
+    return null;
   }
 
   const summary = [
     {
-      label: "Session fit",
-      value: sessionFitCopy(rec, mood, minutes, hasBankContext)
-    },
-    {
-      label: "First step",
+      label: "Start",
       value: recommendationFirstStepValue(rec)
     },
     {
-      label: gearLabel,
-      value: gearRealityText(gearReality)
-    },
-    ...(stageTip ? [{
-      label: "For you",
-      value: stageTip
-    }] : []),
-    {
-      label: "Bring",
-      value: recommendationBringValue(rec)
-    },
-    {
-      label: "Stop point",
+      label: "Stop",
       value: recommendationStopPointValue(rec)
-    },
-    {
-      label: "Avoid",
-      value: recommendationAvoidance(rec)
     }
   ];
 
   return (
     <div className="mt-4">
-      <dl className="divide-y divide-[var(--color-border)]/60 rounded-lg border-y border-[var(--color-border)]/70">
+      <dl className="grid gap-2 sm:grid-cols-2">
         {summary.map((note) => (
           <div
             key={`${rec.id}:session:${note.label}`}
-            className="grid gap-1 py-2.5 sm:grid-cols-[132px_minmax(0,1fr)] sm:gap-4"
+            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3"
           >
-            <dt className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+            <dt className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">
               {note.label}
             </dt>
-            <dd className="text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+            <dd className="mt-1 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
               {note.value}
             </dd>
           </div>
         ))}
       </dl>
-      {plan?.confidence === "exact" && (
-        <p className="mt-2 text-[11.5px] font-semibold leading-relaxed text-[var(--color-good)]">
-          RuneLite skipped finished quests, diary steps, clog slots and Slayer mistakes.
-        </p>
-      )}
     </div>
   );
 }
@@ -2513,11 +2282,6 @@ function HeadlineCard({
           )}
           <RecommendationSessionSummary
             rec={rec}
-            mood={mood}
-            minutes={minutes}
-            hasBankContext={hasBankContext}
-            bankItems={bankItems}
-            accountStage={accountStage}
           />
           <TripBuilder rec={rec} bankItems={bankItems} hasBankContext={hasBankContext} />
           {isBossWithDetail && rec.bossSlug ? (
@@ -2647,11 +2411,6 @@ function RecRow({
           )}
           <RecommendationSessionSummary
             rec={rec}
-            mood={mood}
-            minutes={minutes}
-            hasBankContext={hasBankContext}
-            bankItems={bankItems}
-            accountStage={accountStage}
             compact
           />
           {isBossWithDetail && rec.bossSlug ? (
