@@ -57,6 +57,7 @@ import { bestStyleAndSetup } from "@/lib/dps";
 import { exportTag } from "@/lib/bank-tags";
 import { DiscordWebhookCard } from "./discord-webhook-card";
 import { SupportCard } from "./support-card";
+import { ReadyToLeave, type ReadyToLeaveItem, type ReadyToLeaveStatus } from "./ready-to-leave";
 import { buildItemVerdict, type ItemVerdictTone } from "@/lib/item-action";
 import { copyText } from "@/lib/clipboard";
 import { buildBankActionLoop, type BankActionLoopInput, type BankActionLoopStep } from "@/lib/bank-action-loop";
@@ -118,9 +119,9 @@ interface BankDecision {
   secondaryLabel: string;
 }
 
-interface TripReadinessChip {
-  label: "Ready" | "Missing food" | "Missing teleport" | "Gear looks weak";
-  tone: "good" | "warn";
+interface BankReadyToLeave {
+  status: ReadyToLeaveStatus;
+  items: ReadyToLeaveItem[];
 }
 
 const BANK_FOOD_RE = /\b(anglerfish|manta ray|dark crab|sea turtle|shark|monkfish|karambwan|saradomin brew|tuna potato)\b/i;
@@ -130,27 +131,50 @@ function hasBankItem(items: OrganizedItem[], pattern: RegExp): boolean {
   return items.some((item) => pattern.test(item.name));
 }
 
-function buildTripReadinessChips({
+function buildBankReadyToLeave({
   items,
-  weaponCount
+  weaponCount,
+  stopPoint
 }: {
   items: OrganizedItem[];
   weaponCount: number;
-}): TripReadinessChip[] {
+  stopPoint: string;
+}): BankReadyToLeave {
   const hasFood = hasBankItem(items, BANK_FOOD_RE);
   const hasTeleport = hasBankItem(items, BANK_TELEPORT_RE);
-  const chips: TripReadinessChip[] = [];
+  const status: ReadyToLeaveStatus = weaponCount === 0
+    ? "Gear looks weak"
+    : !hasFood
+    ? "Missing food"
+    : !hasTeleport
+    ? "Missing teleport"
+    : "Ready to leave";
 
-  if (weaponCount > 0 && hasFood && hasTeleport) {
-    chips.push({ label: "Ready", tone: "good" });
-  } else if (weaponCount === 0) {
-    chips.push({ label: "Gear looks weak", tone: "warn" });
-  }
-
-  if (!hasFood) chips.push({ label: "Missing food", tone: "warn" });
-  if (!hasTeleport) chips.push({ label: "Missing teleport", tone: "warn" });
-
-  return chips.slice(0, 3);
+  return {
+    status,
+    items: [
+      {
+        label: "Gear",
+        value: weaponCount > 0 ? `${weaponCount} weapon${weaponCount === 1 ? "" : "s"}` : "Add combat gear",
+        tone: weaponCount > 0 ? "good" : "warn"
+      },
+      {
+        label: "Food",
+        value: hasFood ? "Found" : "Missing food",
+        tone: hasFood ? "good" : "warn"
+      },
+      {
+        label: "Teleport",
+        value: hasTeleport ? "Found" : "Missing teleport",
+        tone: hasTeleport ? "good" : "warn"
+      },
+      {
+        label: "Stop point",
+        value: stopPoint,
+        tone: "neutral"
+      }
+    ]
+  };
 }
 
 function buildBankDecision({
@@ -253,7 +277,7 @@ function BankDecisionHero({
   weaponCount: number;
   tipCount: number;
   hasPrices: boolean;
-  readiness: TripReadinessChip[];
+  readiness: BankReadyToLeave;
   copied: string | null;
   onPrimary: (action: BankDecisionAction) => void;
   onSecondary: (action: BankDecisionAction) => void;
@@ -301,20 +325,8 @@ function BankDecisionHero({
           <p className="max-w-3xl text-[13.5px] leading-relaxed text-[var(--color-text-dim)]">
             {decision.why}
           </p>
+          <ReadyToLeave status={readiness.status} items={readiness.items} compact />
           <div className="mt-3 flex flex-wrap gap-1.5">
-            {readiness.map((chip) => (
-              <span
-                key={chip.label}
-                className={cn(
-                  "rounded-full border px-2.5 py-1 text-[11px] font-bold",
-                  chip.tone === "good"
-                    ? "border-[var(--color-good)]/35 bg-[var(--color-good)]/10 text-[var(--color-good)]"
-                    : "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
-                )}
-              >
-                {chip.label}
-              </span>
-            ))}
             {chips.map((chip) => (
               <span
                 key={chip}
@@ -1387,8 +1399,12 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
     hasPrices: initial.stats.hasPrices
   }), [bankTips.length, bankWeaponCount, initial.stats.hasPrices, tipSlotsFreed, totalItems, totalValue]);
   const bankReadiness = useMemo(
-    () => buildTripReadinessChips({ items: allItems, weaponCount: bankWeaponCount }),
-    [allItems, bankWeaponCount]
+    () => buildBankReadyToLeave({
+      items: allItems,
+      weaponCount: bankWeaponCount,
+      stopPoint: bankDecision.stopPoint
+    }),
+    [allItems, bankDecision.stopPoint, bankWeaponCount]
   );
   const pluginSyncHref = useMemo(() => {
     const params = new URLSearchParams();

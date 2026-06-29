@@ -50,9 +50,15 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("Can kill: do one short trip");
     expect(source).toContain("Test trip only");
     expect(source).toContain("Not worth yet");
-    expect(source).toContain("function dpsTripReadiness");
-    expect(source).toContain('"Ready" | "Missing food" | "Missing teleport" | "Gear looks weak"');
-    expect(source).toContain("const readiness = dpsTripReadiness(decision, result, weaponCount);");
+    expect(source).toContain("ReadyToLeave");
+    expect(source).toContain("function buildDpsReadyToLeave");
+    expect(source).toContain("ReadyToLeaveStatus");
+    expect(source).toContain('"Ready to leave"');
+    expect(source).toContain('"Missing food"');
+    expect(source).toContain('"Missing teleport"');
+    expect(source).toContain('"Gear looks weak"');
+    expect(source).toContain('"Add gear first"');
+    expect(source).toContain("const readiness = buildDpsReadyToLeave(decision, result, weaponCount);");
     expect(source).toContain('import { bossViabilityFromGear, styleLabel, type BossViability } from "@/lib/boss-viability";');
     expect(source).toContain("function dpsDecisionScore");
     expect(source).toContain("function pickBestBossTrip");

@@ -62,12 +62,12 @@ export function formatRecommendationSessionPlan(
   limit = 3
 ): string {
   const planned = recs.slice(0, limit);
-  if (planned.length === 0) return "Scapestack anti-bankstanding plan\n\nNo plan available yet.";
+  if (planned.length === 0) return "Tonight:\nNo plan available yet.";
 
   const lines = [
-    "Scapestack anti-bankstanding plan",
+    "Tonight:",
     context.rsn ? `RSN: ${context.rsn}` : null,
-    "Stop bankstanding: do the first step, then stop at the stop point.",
+    "Do the first step. Stop at the stop point.",
     "",
     ...planned.flatMap((rec, index) => {
       const plan = rec.actionPlan;
@@ -80,13 +80,14 @@ export function formatRecommendationSessionPlan(
       const stopPoint = plan?.steps.at(-1);
 
       return [
-        `${label}: ${title}`,
-        `   Why: ${rec.decisionReason ?? rec.why}`,
-        plan ? `   Time: ${plan.timebox}` : null,
-        plan?.steps[0] ? `   First step: ${plan.steps[0]}` : null,
-        plan ? `   Bring: ${plan.prep}` : null,
-        stopPoint ? `   Stop point: ${stopPoint}` : null,
-        actionHref ? `   ${actionHref}` : null,
+        `${label}`,
+        `Goal: ${title}`,
+        `Why: ${rec.decisionReason ?? rec.why}`,
+        plan ? `Time: ${plan.timebox}` : null,
+        plan?.steps[0] ? `Start: ${plan.steps[0]}` : null,
+        plan ? `Bring: ${plan.prep}` : null,
+        stopPoint ? `Stop: ${stopPoint}` : null,
+        actionHref ? `Link: ${actionHref}` : null,
         ""
       ].filter((line): line is string => line !== null);
     })

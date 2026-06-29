@@ -8,6 +8,7 @@ import {
   Copy, CheckCheck, CheckCircle2, Shield, Trash2, Camera
 } from "lucide-react";
 import { SupportCard } from "@/components/support-card";
+import { ReadyToLeave, type ReadyToLeaveItem, type ReadyToLeaveStatus } from "@/components/ready-to-leave";
 import { SavedBankBanner } from "@/components/saved-bank-banner";
 import { BossSprite } from "@/components/boss-picker";
 import { ItemSprite } from "@/components/item-sprite";
@@ -1676,6 +1677,65 @@ function buildRecommendationTrip(
   };
 }
 
+function buildNextReadyToLeave(
+  rec: Recommendation,
+  bankItems: BankHandoffItem[],
+  hasBankContext: boolean
+): { status: ReadyToLeaveStatus; items: ReadyToLeaveItem[] } {
+  const trip = buildRecommendationTrip(rec, bankItems, hasBankContext);
+  const missing = trip.missing.join(" ").toLowerCase();
+  const missingGear = /gear|combat/.test(missing);
+  const missingFood = /food/.test(missing);
+  const missingTeleport = /teleport/.test(missing);
+  const status: ReadyToLeaveStatus = !hasBankContext
+    ? "Add gear first"
+    : missingGear
+    ? "Gear looks weak"
+    : missingFood
+    ? "Missing food"
+    : missingTeleport
+    ? "Missing teleport"
+    : "Ready to leave";
+
+  if (!hasBankContext) {
+    return {
+      status,
+      items: [
+        { label: "Gear", value: "Add gear to check trip readiness", tone: "warn" },
+        { label: "Food", value: "Check after gear", tone: "neutral" },
+        { label: "Teleport", value: "Check after gear", tone: "neutral" },
+        { label: "Stop point", value: trip.stopPoint, tone: "neutral" }
+      ]
+    };
+  }
+
+  return {
+    status,
+    items: [
+      {
+        label: "Gear",
+        value: missingGear ? "Needs check" : "Found",
+        tone: missingGear ? "warn" : "good"
+      },
+      {
+        label: "Food",
+        value: missingFood ? "Missing food" : "Found",
+        tone: missingFood ? "warn" : "good"
+      },
+      {
+        label: "Teleport",
+        value: missingTeleport ? "Missing teleport" : trip.teleport,
+        tone: missingTeleport ? "warn" : "good"
+      },
+      {
+        label: "Stop point",
+        value: trip.stopPoint,
+        tone: "neutral"
+      }
+    ]
+  };
+}
+
 function headlinePayoff(rec: Recommendation): string | null {
   const payoff = rec.payoff?.trim();
   if (!payoff) return null;
@@ -2161,6 +2221,7 @@ function HeadlineCard({
   const choice = playerChoiceTag(rec);
   const oneLineReason = headlineOneLineReason(rec);
   const bossViability = bossViabilityForRecommendation(rec, bankItems, hasBankContext);
+  const readyToLeave = buildNextReadyToLeave(rec, bankItems, hasBankContext);
   const card = (
     <article
       className={cn(
@@ -2224,9 +2285,7 @@ function HeadlineCard({
             <Sparkles className="mt-0.5 size-3.5 shrink-0 text-[var(--color-accent)]" />
             <span>{oneLineReason}</span>
           </p>
-          <RecommendationSessionSummary
-            rec={rec}
-          />
+          <ReadyToLeave status={readyToLeave.status} items={readyToLeave.items} />
           <TripBuilder rec={rec} bankItems={bankItems} hasBankContext={hasBankContext} />
           {isBossWithDetail && rec.bossSlug ? (
             <button

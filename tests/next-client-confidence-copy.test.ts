@@ -95,6 +95,11 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function recommendationStopPointValue");
     expect(source).toContain("function recommendationBringValue");
     expect(source).toContain("function buildRecommendationTrip");
+    expect(source).toContain("function buildNextReadyToLeave");
+    expect(source).toContain("ReadyToLeave");
+    expect(source).toContain("Add gear to check trip readiness");
+    expect(source).toContain("Ready to leave");
+    expect(source).toContain("Add gear first");
     expect(source).toContain("function TripBuilder");
     expect(source).toContain("tripBankItems");
     expect(source).toContain("Copy Bank Tag");
@@ -111,8 +116,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Why not");
     expect(source).toContain("so kill checks stay conservative.");
     expect(source).toContain("this pace avoids intense trips unless you pick Bossing.");
-    expect(source).toContain("Start");
-    expect(source).toContain("Stop");
+    expect(source).toContain("Stop point");
     expect(source).toContain("Bring");
     expect(source).toContain("Teleport");
     expect(source).toContain("Missing");
