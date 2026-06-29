@@ -20,10 +20,12 @@ import {
   loadSavedBank,
   saveSavedBank,
   saveSavedRsn,
+  loadSavedRsn,
   diffIconicItems,
   type SavedBank,
   type IconicItem
 } from "@/lib/saved-bank";
+import { getActiveAccount } from "@/lib/account-storage";
 import { persistBankHandoffPayload } from "@/lib/next-bank-handoff";
 import { bankReturnContextFromSource, type BankReturnContext } from "@/lib/bank-return-context";
 import { buildBankPluginIntakeBridge } from "@/lib/bank-plugin-intake-bridge";
@@ -126,15 +128,16 @@ function BankPageContent() {
       // banktags — pinning the demo string as a "saved bank" would mean
       // every welcome-back banner shows the sample, which is misleading.
       if (input !== SAMPLE_BANKTAGS) {
+        const bankRsn = resolvedRsn ?? rsn.trim() ?? "";
         // Diff iconics *before* we overwrite the saved bank. Only fires
         // celebrations on the second+ paste; first visit returns [].
-        const prev = loadSavedBank();
+        const prev = loadSavedBank(bankRsn);
         if (prev?.banktags && prev.banktags !== input) {
           const fresh = diffIconicItems(prev.banktags, input);
           if (fresh.length > 0) setFreshIconics(fresh);
         }
-        saveSavedBank(input);
-        if (resolvedRsn) saveSavedRsn(resolvedRsn);
+        saveSavedBank(input, bankRsn);
+        if (bankRsn) saveSavedRsn(bankRsn);
       }
     });
   };
@@ -157,7 +160,8 @@ function BankPageContent() {
   }, []);
 
   useEffect(() => {
-    setPrefilledRsn(rsnFromUrl());
+    const initialRsn = rsnFromUrl() || getActiveAccount()?.rsn || loadSavedRsn() || "";
+    setPrefilledRsn(initialRsn);
     setReturnContext(bankReturnContextFromUrl());
     setReturnBossSlug(bossFromUrl());
   }, []);
@@ -168,15 +172,16 @@ function BankPageContent() {
   // bank instead." Only the intake view shows the banner.
   useEffect(() => {
     if (isSampleMode()) return;
-    setSavedBank(loadSavedBank());
+    const initialRsn = rsnFromUrl() || getActiveAccount()?.rsn || loadSavedRsn() || "";
+    setSavedBank(loadSavedBank(initialRsn));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onUseSavedBank = useCallback((bank: SavedBank) => {
     setSavedBank(null);
-    onIntakeSubmit(bank.banktags, false, "");
+    onIntakeSubmit(bank.banktags, false, prefilledRsn);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [prefilledRsn]);
 
   return (
     <main className="relative z-10 mx-auto max-w-6xl px-5 py-7 pb-20">

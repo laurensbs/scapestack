@@ -24,6 +24,8 @@ import { wikiSearchUrl } from "@/lib/wiki";
 import { bankOrganizerHref } from "@/lib/bank-handoff-url";
 import { buildDpsUpgradeBuyLine } from "@/lib/dps-upgrade-actions";
 import { bossViabilityFromGear, styleLabel, type BossViability } from "@/lib/boss-viability";
+import { getActiveAccount } from "@/lib/account-storage";
+import { loadSavedBank, loadSavedRsn, saveSavedBank, saveSavedRsn } from "@/lib/saved-bank";
 import {
   bankHandoffItemsFromTabs,
   persistBankHandoffPayload,
@@ -436,7 +438,20 @@ export function DpsClient() {
   // view (the player still needs to paste a bank first). We persist the
   // intent across the intake → result transition via a stashed slug.
   const searchParams = useSearchParams();
+  const [accountRsn, setAccountRsn] = useState("");
+  const [hasKnownSetup, setHasKnownSetup] = useState(false);
   const [pendingBossSlug, setPendingBossSlug] = useState<string | null>(null);
+  const urlRsn = searchParams.get("rsn")?.trim() ?? "";
+  const effectiveRsn = urlRsn || accountRsn;
+
+  useEffect(() => {
+    const nextRsn = urlRsn || getActiveAccount()?.rsn || loadSavedRsn() || "";
+    setAccountRsn(nextRsn);
+    setHasKnownSetup(Boolean(loadSavedBank(nextRsn)));
+    if (nextRsn && !urlRsn) saveSavedRsn(nextRsn);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     const slug = searchParams.get("boss");
     if (slug) setPendingBossSlug(slug);
@@ -457,19 +472,38 @@ export function DpsClient() {
     if (typeof window === "undefined") return;
     if (view !== "intake") return;
     if (skipHandoff) return;
+    const savedSetup = loadSavedBank(effectiveRsn);
+    setHasKnownSetup(Boolean(savedSetup));
     try {
-      if (searchParams.get("bank") === "none") return;
+      if (searchParams.get("bank") === "none" && !savedSetup) return;
       const context = buildDpsBankContext(readBankHandoffPayload(window));
-      if (!context) return;
-      setOwned(context.owned);
-      setBankSummary(context.summary);
-      setLoadedFromHandoff(true);
-      setView("result");
+      if (context) {
+        setOwned(context.owned);
+        setBankSummary(context.summary);
+        setLoadedFromHandoff(true);
+        setView("result");
+        return;
+      }
     } catch {
       // Storage is best-effort. If unavailable, keep the normal paste flow.
     }
+    if (savedSetup) {
+      startTransition(async () => {
+        const res = await organizeAction(savedSetup.banktags, { junkFilter: false, includePrices: false });
+        if (res.error || !res.result) {
+          setError(res.error || "Failed to read setup");
+          return;
+        }
+        const context = buildDpsBankContext(bankHandoffItemsFromTabs(res.result.tabs));
+        if (!context) return;
+        setOwned(context.owned);
+        setBankSummary(context.summary);
+        setLoadedFromHandoff(true);
+        setView("result");
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, skipHandoff, view]);
+  }, [effectiveRsn, searchParams, skipHandoff, view]);
 
   const run = (input: string, _junk: boolean, _rsn: string) => {
     setError(null);
@@ -489,6 +523,10 @@ export function DpsClient() {
       } catch {
         // Cross-tool handoff is best-effort; DPS still has local state.
       }
+      const setupRsn = _rsn.trim() || effectiveRsn;
+      saveSavedBank(input, setupRsn);
+      if (setupRsn) saveSavedRsn(setupRsn);
+      setHasKnownSetup(true);
       setBankSummary(context?.summary ?? null);
       setLoadedFromHandoff(false);
       setView("result");
@@ -649,11 +687,11 @@ export function DpsClient() {
   const deepLinkedBoss = useMemo(() => bossFromDpsParam(pendingBossSlug ?? searchParams.get("boss")), [pendingBossSlug, searchParams]);
   const setupBossSlug = pendingBossSlug ?? searchParams.get("boss");
   const setupBankHref = useMemo(
-    () => bankOrganizerHref(searchParams.get("rsn"), "dps", { boss: setupBossSlug }),
-    [searchParams, setupBossSlug]
+    () => bankOrganizerHref(effectiveRsn, "dps", { boss: setupBossSlug }),
+    [effectiveRsn, setupBossSlug]
   );
   const isSlayerTaskSource = searchParams.get("from") === "slayer-task";
-  const needsSetupBeforeDps = Boolean(deepLinkedBoss) || searchParams.get("bank") === "none";
+  const needsSetupBeforeDps = (Boolean(deepLinkedBoss) || searchParams.get("bank") === "none") && !hasKnownSetup;
 
   if (view === "intake") {
     if (needsSetupBeforeDps) {

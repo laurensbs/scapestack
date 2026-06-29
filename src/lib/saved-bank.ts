@@ -15,9 +15,10 @@
 // All functions are safe to call on the server (SSR) — they no-op on
 // missing window, never throw on parse failures.
 
-import { markActiveAccountBankSaved, upsertAccount } from "./account-storage";
+import { accountIdForRsn, getActiveAccount, loadAccountStore, markAccountBankSaved, upsertAccount } from "./account-storage";
 
 const BANK_KEY = "scapestack:saved-bank:v1";
+const ACCOUNT_BANK_KEY = (rsn: string) => `scapestack:saved-bank:${accountIdForRsn(rsn)}:v1`;
 const RSN_KEY = "scapestack:saved-rsn:v1";
 const DISABLED_SESSION_KEY = "scapestack:save-bank:disabled";
 
@@ -58,11 +59,21 @@ export function disableSaveBankForSession(): void {
 /** Load the most recent saved bank, or null if there isn't one /
  *  storage is unreadable / the payload is corrupt. Never throws.
  *  Corrupt payloads are wiped so we don't trip over them on every load. */
-export function loadSavedBank(): SavedBank | null {
+export function loadSavedBank(rsn?: string | null): SavedBank | null {
   if (typeof window === "undefined") return null;
+  const cleanRsn = (rsn ?? "").trim();
+  if (cleanRsn) {
+    const accountBank = loadSavedBankFromKey(ACCOUNT_BANK_KEY(cleanRsn));
+    if (accountBank) return accountBank;
+    if (!shouldUseLegacyBankFallback(cleanRsn)) return null;
+  }
+  return loadSavedBankFromKey(BANK_KEY);
+}
+
+function loadSavedBankFromKey(key: string): SavedBank | null {
   let raw: string | null;
   try {
-    raw = localStorage.getItem(BANK_KEY);
+    raw = localStorage.getItem(key);
   } catch { return null; }
   if (!raw) return null;
   let parsed: unknown;
@@ -70,27 +81,37 @@ export function loadSavedBank(): SavedBank | null {
     parsed = JSON.parse(raw);
   } catch {
     // Malformed JSON — clean the slot and bail.
-    try { localStorage.removeItem(BANK_KEY); } catch {}
+    try { localStorage.removeItem(key); } catch {}
     return null;
   }
   if (!isValidSavedBank(parsed)) {
-    try { localStorage.removeItem(BANK_KEY); } catch {}
+    try { localStorage.removeItem(key); } catch {}
     return null;
   }
   return parsed;
 }
 
+function shouldUseLegacyBankFallback(rsn: string): boolean {
+  const store = loadAccountStore();
+  if (store.accounts.length <= 1) return true;
+  return store.accounts.some((account) => account.rsn === rsn && account.bankSavedAt);
+}
+
 /** Save the bank. No-op when the user has disabled saving for this
  *  session; that keeps shared-device hygiene predictable. */
-export function saveSavedBank(banktags: string): void {
+export function saveSavedBank(banktags: string, rsn?: string | null): void {
   if (typeof window === "undefined") return;
   if (isSaveBankDisabled()) return;
   const trimmed = banktags.trim();
   if (!trimmed) return; // never persist an empty paste
   const payload: SavedBank = { version: 1, banktags: trimmed, savedAt: Date.now() };
+  const cleanRsn = (rsn ?? getActiveAccount()?.rsn ?? "").trim();
   try {
     localStorage.setItem(BANK_KEY, JSON.stringify(payload));
-    markActiveAccountBankSaved(payload.savedAt);
+    if (cleanRsn) {
+      localStorage.setItem(ACCOUNT_BANK_KEY(cleanRsn), JSON.stringify(payload));
+      markAccountBankSaved(cleanRsn, payload.savedAt);
+    }
   } catch { /* quota exceeded / private mode — silently skip */ }
 }
 

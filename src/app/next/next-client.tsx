@@ -482,7 +482,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
       // Only look up the saved bank when we're not in a handoff/direct-run flow.
       // Otherwise deep links like /next?rsn=X get blocked by a modal instead of
       // running immediately.
-      if (!isDirectRun) setSavedBank(loadSavedBank());
+      if (!isDirectRun) setSavedBank(loadSavedBank(activeAccountRsn));
     }
     setSavedRsn(activeAccountRsn || null);
 
@@ -522,7 +522,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
       }, 0);
     } else if (!hasFromParam && activeAccountRsn && !shouldReadBankHandoff && !shouldReadHeroBank) {
       window.setTimeout(() => {
-        run({ rsn: activeAccountRsn, input: loadSavedBank()?.banktags });
+        run({ rsn: activeAccountRsn, input: loadSavedBank(activeAccountRsn)?.banktags });
       }, 0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

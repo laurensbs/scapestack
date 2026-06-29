@@ -25,19 +25,25 @@ const HERO_BANK_HELP_ID = "hero-bank-paste-help";
 export function HeroIntake() {
   const router = useRouter();
   const [rsn, setRsn] = useState("");
+  const [rememberedRsn, setRememberedRsn] = useState("");
   const [showBank, setShowBank] = useState(false);
   const [bank, setBank] = useState("");
   const hasBankPaste = showBank && Boolean(bank.trim());
   const canSubmit = Boolean(rsn.trim() || hasBankPaste);
+  const cleanRsn = rsn.trim();
+  const isRememberedRun = Boolean(rememberedRsn && cleanRsn === rememberedRsn);
 
   useEffect(() => {
     const remembered = getActiveAccount()?.rsn ?? loadSavedRsn() ?? "";
-    if (remembered) setRsn(remembered);
+    if (remembered) {
+      setRsn(remembered);
+      setRememberedRsn(remembered);
+    }
   }, []);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmed = rsn.trim();
+    const trimmed = cleanRsn;
     if (!canSubmit) return;
     if (trimmed) saveSavedRsn(trimmed);
     // Bank-paste mag persistent — voor de hero is sessionStorage genoeg
@@ -93,8 +99,8 @@ export function HeroIntake() {
           aria-label={
             hasBankPaste
               ? rsn.trim()
-                ? "Plan my next trip with OSRS name and gear"
-                : "Plan my next trip with this gear"
+                ? "Plan my next trip with OSRS name and setup"
+                : "Plan my next trip with this setup"
               : "Plan my next trip with OSRS name"
           }
           aria-describedby="hero-plan-disabled-help"
@@ -109,7 +115,10 @@ export function HeroIntake() {
             "sm:h-12 sm:w-auto sm:min-w-[174px]"
           )}
         >
-          <span>Plan my next move</span>
+          <span className="sm:hidden">{isRememberedRun ? "Continue" : "Plan"}</span>
+          <span className="hidden sm:inline">
+            {isRememberedRun ? `Continue as ${rememberedRsn}` : "Plan my next move"}
+          </span>
           <ArrowRight className="size-4" />
         </button>
       </div>
@@ -120,10 +129,10 @@ export function HeroIntake() {
       >
         {rsn.trim()
           ? hasBankPaste
-            ? "Ready: stats and gear can shape the trip."
+            ? "Ready: stats and setup can shape the trip."
             : "Ready: public stats are enough for a first trip."
           : hasBankPaste
-            ? "Ready: gear-only route. Add a name for stats and KC."
+            ? "Ready: setup-only route. Add a name for stats and KC."
             : "Enter an OSRS name to get one clear trip."}
       </p>
 
@@ -137,10 +146,10 @@ export function HeroIntake() {
               onClick={() => setShowBank(true)}
               aria-controls={HERO_BANK_PANEL_ID}
               aria-expanded={showBank}
-              aria-label="Show optional gear paste field"
+              aria-label="Show optional setup paste field"
               className="hover:text-[var(--color-accent)] underline underline-offset-4 decoration-dotted transition-colors"
             >
-              Add gear
+              Add setup
             </button>
             <span aria-hidden="true" className="text-[var(--color-border-strong)]">·</span>
             <Link
@@ -158,7 +167,7 @@ export function HeroIntake() {
         <div
           id={HERO_BANK_PANEL_ID}
           role="region"
-          aria-label="Optional bank paste"
+          aria-label="Optional setup paste"
           className="animate-[fade-in_0.3s_ease-out]"
         >
           <label className="block">
@@ -166,14 +175,14 @@ export function HeroIntake() {
               id={`${HERO_BANK_TEXTAREA_ID}-label`}
               className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]"
             >
-              Gear paste <span className="normal-case tracking-normal">(optional)</span>
+              Setup paste <span className="normal-case tracking-normal">(optional)</span>
             </span>
             <textarea
               id={HERO_BANK_TEXTAREA_ID}
               name="bank"
               value={bank}
               onChange={(e) => setBank(e.target.value)}
-              placeholder="Paste Bank Memory or Bank Tags here…"
+              placeholder="Paste Bank Memory or Bank Tags here..."
               rows={4}
               spellCheck={false}
               aria-labelledby={`${HERO_BANK_TEXTAREA_ID}-label`}
@@ -187,17 +196,17 @@ export function HeroIntake() {
               className="mt-1 block text-[11px] leading-relaxed text-[var(--color-text-muted)]"
             >
               {bank.trim()
-                ? "Gear added. Supplies and GP can shape the trip."
-                : "Optional: add gear when supplies or GP matters."}
+                ? "Setup added. Supplies and GP can shape the trip."
+                : "Optional: add setup when supplies or GP matters."}
             </span>
             <button
               type="button"
               onClick={() => { setShowBank(false); setBank(""); }}
               aria-controls={HERO_BANK_PANEL_ID}
-              aria-label="Hide gear paste and plan the trip from public stats only"
+              aria-label="Hide setup paste and plan the trip from public stats only"
               className="mt-1.5 text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-text-dim)] transition-colors"
             >
-              Hide gear
+              Hide setup
             </button>
           </label>
         </div>

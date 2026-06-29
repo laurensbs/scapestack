@@ -12,7 +12,7 @@ describe("DPS empty gear copy", () => {
     expect(source).toContain("Paste a full Bank Memory export or a combat tab with weapons");
     expect(source).toContain("function DpsNoWeaponGate");
     expect(source).toContain("function DpsMissingSetupState");
-    expect(source).toContain("const needsSetupBeforeDps = Boolean(deepLinkedBoss) || searchParams.get(\"bank\") === \"none\";");
+    expect(source).toContain("const needsSetupBeforeDps = (Boolean(deepLinkedBoss) || searchParams.get(\"bank\") === \"none\") && !hasKnownSetup;");
     expect(source).toContain("if (needsSetupBeforeDps) {");
     expect(source).toContain("<DpsMissingSetupState");
     expect(source).toContain("No setup yet");
@@ -25,8 +25,12 @@ describe("DPS empty gear copy", () => {
     expect(source).toContain("Add setup in Bank");
     expect(source).toContain('import { bankOrganizerHref } from "@/lib/bank-handoff-url";');
     expect(source).toContain('const setupBankHref = useMemo(');
-    expect(source).toContain('bankOrganizerHref(searchParams.get("rsn"), "dps", { boss: setupBossSlug })');
+    expect(source).toContain('bankOrganizerHref(effectiveRsn, "dps", { boss: setupBossSlug })');
     expect(source).toContain("href={setupHref}");
+    expect(source).toContain("const [accountRsn, setAccountRsn] = useState(\"\");");
+    expect(source).toContain("const [hasKnownSetup, setHasKnownSetup] = useState(false);");
+    expect(source).toContain("loadSavedBank(effectiveRsn)");
+    expect(source).toContain("saveSavedBank(input, setupRsn)");
     expect(source).toContain("Add a weapon before picking this trip.");
     expect(source).toContain("bankless={searchParams.get(\"bank\") === \"none\"}");
     expect(source).toContain("pluginSync={searchParams.get(\"source\") === \"plugin-sync\"}");

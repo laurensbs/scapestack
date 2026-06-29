@@ -129,7 +129,11 @@ export function removeAccount(rsn: string): void {
 export function markActiveAccountBankSaved(savedAt: number = now()): void {
   const active = getActiveAccount();
   if (!active) return;
-  upsertAccount(active.rsn, { bankSavedAt: savedAt });
+  markAccountBankSaved(active.rsn, savedAt);
+}
+
+export function markAccountBankSaved(rsn: string, savedAt: number = now()): void {
+  upsertAccount(rsn, { bankSavedAt: savedAt });
 }
 
 export function markRuneliteChecked(rsn: string, checkedAt: number = now()): void {

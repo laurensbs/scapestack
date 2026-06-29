@@ -56,16 +56,20 @@ describe("account storage", () => {
   });
 
   it("records bank and runelite status on the active account", async () => {
-    const { getActiveAccount, markActiveAccountBankSaved, markRuneliteChecked, upsertAccount } = await import("@/lib/account-storage");
+    const { getActiveAccount, loadAccountStore, markAccountBankSaved, markActiveAccountBankSaved, markRuneliteChecked, upsertAccount } = await import("@/lib/account-storage");
 
     upsertAccount("Lynx Titan");
     markActiveAccountBankSaved(1_780_000_000_000);
+    markAccountBankSaved("Iron Guy", 1_780_000_005_000);
     markRuneliteChecked("Lynx Titan", 1_780_000_010_000);
 
     expect(getActiveAccount()).toMatchObject({
       rsn: "Lynx Titan",
       bankSavedAt: 1_780_000_000_000,
       runeliteCheckedAt: 1_780_000_010_000
+    });
+    expect(loadAccountStore().accounts.find((account) => account.rsn === "Iron Guy")).toMatchObject({
+      bankSavedAt: 1_780_000_005_000
     });
   });
 });

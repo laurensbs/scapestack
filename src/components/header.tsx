@@ -243,7 +243,7 @@ function AccountSwitcher({
   const [open, setOpen] = useState(false);
   const [accounts, setAccounts] = useState<ScapestackAccount[]>([]);
   const [draft, setDraft] = useState(activeRsn);
-  const [hasSavedGear, setHasSavedGear] = useState(false);
+  const [hasSavedSetup, setHasSavedSetup] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const refresh = () => {
@@ -253,7 +253,7 @@ function AccountSwitcher({
     const nextRsn = active?.rsn ?? loadSavedRsn() ?? "";
     onActiveRsnChange(nextRsn);
     setDraft(nextRsn);
-    setHasSavedGear(Boolean(loadSavedBank()));
+    setHasSavedSetup(Boolean(active?.bankSavedAt || loadSavedBank(nextRsn)));
   };
 
   useEffect(() => {
@@ -309,7 +309,7 @@ function AccountSwitcher({
     }, 0);
   };
 
-  const accountLabel = activeRsn || "Add account";
+  const accountLabel = activeRsn || "Add RSN";
   const bankHref = activeRsn ? `/bank?rsn=${encodeURIComponent(activeRsn)}&from=next` : "/bank";
   const pluginHref = activeRsn ? `/plugin?rsn=${encodeURIComponent(activeRsn)}#verify-sync` : "/plugin#verify-sync";
 
@@ -345,7 +345,7 @@ function AccountSwitcher({
                 id="header-account-rsn"
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
-                placeholder="Paste RSN"
+                placeholder="Type RSN"
                 maxLength={12}
                 autoComplete="off"
                 spellCheck={false}
@@ -388,6 +388,16 @@ function AccountSwitcher({
             </div>
           )}
 
+          {activeRsn && (
+            <div className="mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text-muted)]">
+              <span className="text-[var(--color-text)]">{activeRsn}</span>
+              <span className="mx-1.5 text-[var(--color-border-strong)]">·</span>
+              <span>{hasSavedSetup ? "Setup added" : "Add setup"}</span>
+              <span className="mx-1.5 text-[var(--color-border-strong)]">·</span>
+              <span>RuneLite later</span>
+            </div>
+          )}
+
           <div className="mt-3 grid grid-cols-3 gap-2 border-t border-[var(--color-border)] pt-3">
             <button
               type="button"
@@ -403,7 +413,7 @@ function AccountSwitcher({
               className="grid min-h-[76px] place-items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
             >
               <Package className="mb-1 size-5" />
-              {hasSavedGear ? "Bank saved" : "Bank"}
+              {hasSavedSetup ? "Setup added" : "Add setup"}
             </Link>
             <Link
               href={pluginHref}
@@ -411,7 +421,7 @@ function AccountSwitcher({
               className="grid min-h-[76px] place-items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
             >
               <PlugZap className="mb-1 size-5" />
-              RuneLite
+              Check RuneLite
             </Link>
           </div>
         </div>

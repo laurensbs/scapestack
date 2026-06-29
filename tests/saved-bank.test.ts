@@ -24,7 +24,18 @@ const g = globalThis as Mutable;
 beforeEach(() => {
   g.localStorage = new MemoryStorage();
   g.sessionStorage = new MemoryStorage();
-  g.window = { localStorage: g.localStorage, sessionStorage: g.sessionStorage };
+  g.window = {
+    localStorage: g.localStorage,
+    sessionStorage: g.sessionStorage,
+    dispatchEvent: () => true
+  };
+  g.CustomEvent = class CustomEventPolyfill<T = unknown> extends Event {
+    detail: T | undefined;
+    constructor(type: string, init?: CustomEventInit<T>) {
+      super(type);
+      this.detail = init?.detail;
+    }
+  };
 });
 
 // Tiny helper so tests can read the mocked storage without retyping the cast.
@@ -45,6 +56,16 @@ describe("saved-bank: bank round-trip", () => {
     expect(got!.banktags).toBe("Combat\n4151,1\n11804,1");
     expect(got!.version).toBe(1);
     expect(typeof got!.savedAt).toBe("number");
+  });
+
+  it("keeps setup separate per remembered RSN", async () => {
+    const { saveSavedBank, loadSavedBank } = await loadModule();
+
+    saveSavedBank("Main setup\n4151,1", "Main Guy");
+    saveSavedBank("Iron setup\n4587,1", "Iron Guy");
+
+    expect(loadSavedBank("Main Guy")?.banktags).toBe("Main setup\n4151,1");
+    expect(loadSavedBank("Iron Guy")?.banktags).toBe("Iron setup\n4587,1");
   });
 
   it("returns null when nothing is saved", async () => {
