@@ -8,8 +8,8 @@ export default function HomePage() {
   return (
     <main className="relative z-10 mx-auto max-w-6xl px-5 pb-18 pt-10 sm:px-8 sm:pt-14">
       <section className="relative flex min-h-[calc(100vh-6rem)] items-center">
-        <div className="mx-auto grid w-full items-center gap-10 py-8 lg:grid-cols-[minmax(0,1fr)_420px] lg:gap-12">
-          <div className="space-y-5 text-center lg:text-left">
+        <div className="mx-auto flex w-full max-w-5xl flex-col items-center gap-7 py-8 text-center">
+          <div className="w-full space-y-5">
             <div
               className="eyebrow"
               style={{ animation: "hero-fade 0.55s cubic-bezier(0.22,1,0.36,1) 0.02s both" }}
@@ -18,7 +18,7 @@ export default function HomePage() {
             </div>
             <h1
               aria-label="Stop bankstanding. Pick the next trip."
-              className="mx-auto max-w-[820px] text-[44px] font-semibold leading-[0.95] text-[var(--color-text)] sm:text-[62px] lg:mx-0 lg:text-[76px]"
+              className="mx-auto max-w-[860px] text-[44px] font-semibold leading-[0.95] text-[var(--color-text)] sm:text-[62px] lg:text-[80px]"
             >
               <RevealLine
                 text="Stop bankstanding."
@@ -39,7 +39,7 @@ export default function HomePage() {
             </h1>
 
             <p
-              className="mx-auto max-w-[610px] text-[16px] leading-[1.6] text-[var(--color-text-secondary)] sm:text-[18px] lg:mx-0"
+              className="mx-auto max-w-[610px] text-[16px] leading-[1.6] text-[var(--color-text-secondary)] sm:text-[18px]"
               style={{
                 animation: "hero-mask-reveal 1s cubic-bezier(0.22,1,0.36,1) 0.85s both",
                 clipPath: "inset(0 0 100% 0)"
@@ -49,7 +49,7 @@ export default function HomePage() {
             </p>
 
             <div
-              className="mx-auto max-w-[720px] lg:mx-0"
+              className="mx-auto max-w-[720px]"
               style={{ animation: "hero-scale-in 0.9s cubic-bezier(0.22,1,0.36,1) 0.95s both" }}
             >
               <HeroIntake />
@@ -57,7 +57,7 @@ export default function HomePage() {
           </div>
 
           <div
-            className="relative mx-auto w-full max-w-[440px] lg:mx-0"
+            className="relative mx-auto w-full max-w-[560px]"
             style={{ animation: "hero-boss-in 1.1s cubic-bezier(0.22,1,0.36,1) 0.65s both" }}
           >
             <HeroBossTripPreview />

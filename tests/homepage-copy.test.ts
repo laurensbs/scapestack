@@ -20,22 +20,27 @@ describe("homepage first-impression copy", () => {
     expect(source).not.toContain("bank standing");
   });
 
-  it("shows one boss-led example plan instead of a dense product mock", () => {
+  it("shows a boss-only visual instead of a dense product mock", () => {
     expect(source).toContain("HeroBossTripPreview");
-    expect(source).toContain("HERO_BOSS_TRIPS");
-    expect(source).toContain('aria-label="Live OSRS boss trip preview"');
-    expect(source).toContain("Live boss preview");
-    expect(source).toContain("Do this first");
-    expect(source).toContain("Push Vardorvis to 50 KC");
-    expect(source).toContain("Run Vorkath for a clean trip");
-    expect(source).toContain("Send a Zulrah block");
-    expect(source).toContain("Use Hydra while the task is live");
-    expect(source).toContain("Pick a Nex mass or small team");
-    expect(source).toContain("Start: {active.start}");
-    expect(source).toContain("RuneLite can quietly avoid bosses, quests, diary steps and Slayer calls you already handled.");
+    expect(source).toContain("HERO_BOSSES");
+    expect(source).toContain('aria-label="Rotating OSRS bosses"');
+    expect(source).toContain('src={`/sprites/bosses/${trip.boss}.png`}');
+    expect(source).toContain("Vardorvis");
+    expect(source).toContain("Vorkath");
+    expect(source).toContain("Zulrah");
+    expect(source).toContain("Alchemical Hydra");
+    expect(source).toContain("Nex");
+    expect(source).toContain('source: "hero-boss"');
+    expect(source).not.toContain("Live boss preview");
+    expect(source).not.toContain("Push Vardorvis to 50 KC");
+    expect(source).not.toContain("Run Vorkath for a clean trip");
+    expect(source).not.toContain("Send a Zulrah block");
+    expect(source).not.toContain("Use Hydra while the task is live");
+    expect(source).not.toContain("Pick a Nex mass or small team");
+    expect(source).not.toContain("Start: {active.start}");
+    expect(source).not.toContain("RuneLite can quietly avoid bosses, quests, diary steps and Slayer calls you already handled.");
     expect(source).not.toContain("Item ID 28307");
     expect(source).not.toContain("https://oldschool.runescape.wiki/w/Special:Lookup?type=item&id=28307");
-    expect(source).toContain('src={`/sprites/bosses/${trip.boss}.png`}');
     expect(source).not.toContain('import { ItemSprite } from "@/components/item-sprite";');
     expect(source).not.toContain("HERO_PREVIEW_ITEMS");
     expect(source).not.toContain("Setup");
@@ -43,6 +48,17 @@ describe("homepage first-impression copy", () => {
     expect(source).not.toContain("function PreviewRow");
     expect(source).not.toContain("PreviewBackup");
     expect(source).not.toContain("PreviewLine");
+  });
+
+  it("keeps the first screen in one clean order: hero, input, boss", () => {
+    const intakeIndex = source.indexOf("<HeroIntake />");
+    const bossIndex = source.indexOf("<HeroBossTripPreview />");
+
+    expect(source).toContain("flex-col items-center");
+    expect(intakeIndex).toBeGreaterThan(-1);
+    expect(bossIndex).toBeGreaterThan(-1);
+    expect(intakeIndex).toBeLessThan(bossIndex);
+    expect(source).not.toContain("lg:grid-cols-[minmax(0,1fr)_520px]");
   });
 
   it("removes extra above-the-fold dashboard choices", () => {
