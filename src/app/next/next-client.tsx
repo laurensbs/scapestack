@@ -774,7 +774,7 @@ function NextIntake({
       )}
 
       {/* Handoff banner — appears when the user arrived here via the
-          Gear & Bank's "Plan next move" button. The bank is
+          Gear & Bank's trip handoff button. The bank is
           already loaded; an RSN is optional and adds stats. */}
       {fromBank && (
         <div className="mb-4 rounded-lg border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/8 px-4 py-3 flex items-start gap-3 animate-[fade-in_0.3s_ease-out] text-left">
@@ -1026,9 +1026,9 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
           <div style={trackAnim(300)}>
             <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-4 sm:p-5">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)] marker:hidden">
-                <span>Account details</span>
+                <span>What changed the pick</span>
                 <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
-                  Open later
+                  Only if you want the deeper read
                 </span>
               </summary>
               <div className="mt-4 space-y-6">
@@ -1562,7 +1562,7 @@ function makePlanSmarterCopy(rec: Recommendation | null): {
     case "afk":
     case "skilling":
       return {
-        title: "Add supplies later",
+        title: "Add supplies if needed",
         helper: "Supplies or GP only matter if they change the method.",
         bankLabel: "Supplies",
         loadedHelper: "Supplies and GP can shape this skilling pick.",
@@ -2112,9 +2112,9 @@ function TonightRouteStrip({
       <details className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/42 p-2.5">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg px-1 py-1 text-left marker:hidden [&::-webkit-details-marker]:hidden">
           <span>
-            <span className="block text-[12.5px] font-bold text-[var(--color-text)]">Next sessions</span>
+            <span className="block text-[12.5px] font-bold text-[var(--color-text)]">After this</span>
             <span className="mt-0.5 block text-[11px] text-[var(--color-text-muted)]">
-              Optional follow-up after the stop point.
+              Two clean follow-ups after the stop point.
             </span>
           </span>
           <span className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
@@ -2401,7 +2401,7 @@ function HeadlineCard({
   // the card also contains Wiki/copy/detail controls.
   const isBossWithDetail = (rec.kind === "kc" || rec.kind === "boss") && !!rec.bossSlug;
   const primaryAction = primaryActionForRecommendation(rec, actionContext);
-  const actionLabel = isBossWithDetail ? "Open boss detail" : primaryAction.label;
+  const actionLabel = isBossWithDetail ? "Open setup" : primaryAction.label;
   const headlineCtaLabel = compactActionLabel(rec, actionLabel);
   const actionHref = isBossWithDetail ? undefined : primaryAction.href;
   const choice = playerChoiceTag(rec);
@@ -2539,7 +2539,7 @@ function RecRow({
 }) {
   const isBossWithDetail = (rec.kind === "kc" || rec.kind === "boss") && !!rec.bossSlug;
   const primaryAction = primaryActionForRecommendation(rec, actionContext);
-  const actionLabel = isBossWithDetail ? "Open boss detail" : primaryAction.label;
+  const actionLabel = isBossWithDetail ? "Open setup" : primaryAction.label;
   const compactCtaLabel = compactActionLabel(rec, actionLabel);
   const actionHref = isBossWithDetail ? undefined : primaryAction.href;
   const choice = playerChoiceTag(rec);
@@ -3308,7 +3308,7 @@ function WhatToDo({
               <div>
                 <div className="mb-2 flex flex-wrap items-baseline gap-2">
                   <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                    Backups
+                    Other trips
                   </span>
                   <span className="text-[11px] text-[var(--color-text-muted)]">
                     Chill / GP / Bossing / Unlock / AFK
@@ -3336,7 +3336,7 @@ function WhatToDo({
               <details className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/42 p-2.5">
                 <summary className="flex list-none items-center justify-between gap-3 rounded-lg px-1 py-1 text-left [&::-webkit-details-marker]:hidden">
                   <span>
-                    <span className="block text-[12.5px] font-bold text-[var(--color-text)]">Try another</span>
+                    <span className="block text-[12.5px] font-bold text-[var(--color-text)]">Change trip</span>
                     <span className="mt-0.5 block text-[11px] text-[var(--color-text-muted)]">
                       {currentRouteLabel.name} · {minutes === 60 ? "1 hour" : `${minutes} min`}
                     </span>
@@ -3348,7 +3348,7 @@ function WhatToDo({
                 <div className="mt-3 space-y-4">
                   <div>
                     <div className="mb-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                      Route
+                      Trip type
                     </div>
                     <div className="flex gap-1.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-7 sm:overflow-visible sm:pb-0">
                       {ROUTE_LENS_ORDER.map((lens) => {
@@ -3406,7 +3406,7 @@ function WhatToDo({
                     </div>
                     <div>
                       <div className="mb-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                        Pace
+                        Mood
                       </div>
                       <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
                         {MOODS.map((m) => {
@@ -3835,7 +3835,7 @@ function RecHeadlineExpandable({
       {!cleanMode && (
         <details className="group mt-1.5 flex justify-end">
           <summary className="ml-auto inline-flex cursor-pointer list-none items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-panel)]/65 px-3 py-1.5 text-[11px] font-semibold text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)] marker:hidden [&::-webkit-details-marker]:hidden">
-            Options
+            More
             <ChevronRight className="size-3 transition-transform group-open:rotate-90" />
           </summary>
           <div className="mt-2 flex flex-wrap justify-end gap-2">

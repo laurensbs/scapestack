@@ -24,7 +24,7 @@ export type Mood = "chill" | "focused" | "cash" | "quest" | "bossing" | "unlock"
 
 /** A route lens is broader than a mood. Mood answers "what pace do I want?";
  *  route answers "what kind of account story should this session move?".
- *  `Try another` cycles these lenses so it can surface maxing, fun-progress,
+ *  The route changer cycles these lenses so it can surface maxing, fun-progress,
  *  GP and boss-log angles instead of showing the same six mood labels. */
 export type RouteLens =
   | "smart"
@@ -377,11 +377,11 @@ export interface MoodPick {
 }
 
 export interface RoutePickOptions {
-  /** Session-only skips from "Try another". Values are skip counts; a card
+  /** Session-only skips from the route changer. Values are skip counts; a card
    *  clicked away twice gets demoted harder than a card skipped once. */
   skippedIds?: Record<string, number> | string[];
   /** The last headline kind the player moved away from. Used as a light
-   *  novelty guard so Try another does not feel like quest -> quest -> quest. */
+   *  novelty guard so changing trips does not feel like quest -> quest -> quest. */
   previousKind?: RecKind | null;
   /** The last headline id the player moved away from. Stronger than kind. */
   previousId?: string | null;
@@ -429,7 +429,7 @@ export function pickForMood(
 /** Route-aware planner picker. A route lens is intentionally stronger than
  *  mood because it answers a different user request: "show me a maxing
  *  route" should actually beat the default unlock/chill bias. Mood still
- *  matters as a pacing/timing guard, but it no longer traps Try another in
+ *  matters as a pacing/timing guard, but it no longer traps the route changer in
  *  the same visible six labels. */
 export function pickForRoute(
   recs: Recommendation[],

@@ -17,7 +17,7 @@ describe("/next confidence UI copy", () => {
 
   it("makes compact recommendation rows visibly and accessibly clickable", () => {
     expect(source).toContain("const primaryAction = primaryActionForRecommendation(rec, actionContext);");
-    expect(source).toContain("const actionLabel = isBossWithDetail ? \"Open boss detail\" : primaryAction.label;");
+    expect(source).toContain("const actionLabel = isBossWithDetail ? \"Open setup\" : primaryAction.label;");
     expect(source).toContain("const headlineCtaLabel = compactActionLabel(rec, actionLabel);");
     expect(source).toContain("const compactCtaLabel = compactActionLabel(rec, actionLabel);");
     expect(source).toContain("const actionHref = isBossWithDetail ? undefined : primaryAction.href;");
@@ -147,7 +147,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('aria-label={`${actionLabel}: ${rec.title}`}');
     expect(source).toContain("primaryAction.external ? (");
     expect(source).toContain("rel=\"noopener noreferrer\"");
-    expect(source).toContain("Open boss detail");
+    expect(source).toContain("Open setup");
     expect(source).not.toContain("<Link href={actionHref}>{card}</Link>");
     expect(source).not.toContain("<a href={actionHref} target=\"_blank\" rel=\"noopener noreferrer\">{card}</a>");
     expect(source).not.toContain("cursor-pointer transition-transform");
@@ -166,7 +166,7 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("Better supplies, boss picks and Bank Tags.");
     expect(source).not.toContain("What shaped this");
     expect(source).toContain("Add gear");
-    expect(source).toContain("Add supplies later");
+    expect(source).toContain("Add supplies if needed");
     expect(source).toContain("Add quest items");
     expect(source).toContain("Add GP check");
     expect(source).not.toContain("Add bank for GP");
@@ -184,17 +184,17 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("What to do now");
     expect(source).toContain("Do this first");
     expect(source).toContain("One best move for this account. Two backups");
-    expect(source).toContain("Try another");
+    expect(source).toContain("Change trip");
     expect(source).toContain("Next 3 sessions");
-    expect(source).toContain("Next sessions");
-    expect(source).toContain("Optional follow-up after the stop point.");
+    expect(source).toContain("After this");
+    expect(source).toContain("Two clean follow-ups after the stop point.");
     expect(source).toContain("Finish the stop point, then re-run /next.");
     expect(source).toContain("routePreviewRecs");
     expect(source).toContain("function TonightRouteStrip");
     expect(source).toContain("ROUTE_LENS_ORDER.map");
     expect(source).toContain("Pick ${label.name} route");
     expect(source).toContain("Try ${nextRouteLabel.name} route");
-    expect(source).toContain("Pace");
+    expect(source).toContain("Mood");
     expect(source).toContain("Pick ${label.name} session pace");
     expect(source).toContain("applySessionIntent(m)");
     expect(source).toContain("applyRouteLens(lens)");
@@ -208,10 +208,13 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("routeSwitchCopy(nextRouteLens, pick.headline)");
     expect(source).toContain("pickForRoute(visibleRecs, mood, minutes, routeLens, shuffleIdx, routePickOptions)");
     expect(source).not.toContain("Change time or pace");
-    expect(source).toContain("Backups");
+    expect(source).toContain("Other trips");
     expect(source).toContain("Chill / GP / Bossing / Unlock / AFK");
-    expect(source).toContain("Account details");
-    expect(source).toContain("Open later");
+    expect(source).toContain("What changed the pick");
+    expect(source).toContain("Only if you want the deeper read");
+    expect(source).not.toContain("Try another");
+    expect(source).not.toContain("Next sessions");
+    expect(source).not.toContain("Account details");
     expect(source).not.toContain("Change vibe or time");
     expect(source).not.toContain("I want to");
     expect(source).not.toContain("function SessionBrief");

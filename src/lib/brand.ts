@@ -91,7 +91,7 @@ export const BRAND_UI_SURFACES = [
   },
   {
     page: "Bank",
-    role: "What can I do with this bank?",
+    role: "Can I do a trip with this bank?",
     primaryAction: "Check this bank",
     requiredFeeling: "Owned gear, supplies and cheap upgrades without another bankstanding loop."
   },

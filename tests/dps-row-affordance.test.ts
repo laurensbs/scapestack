@@ -46,7 +46,7 @@ describe("DPS boss row affordance", () => {
   it("starts DPS as a boss-trip verdict instead of a dashboard", () => {
     expect(source).toContain("function DpsDecisionHero");
     expect(source).toContain("Can I kill this?");
-    expect(source).toContain("Best fit from this bank");
+    expect(source).toContain("Best trip from this bank");
     expect(source).toContain("Can kill: do one short trip");
     expect(source).toContain("Test trip only");
     expect(source).toContain("Not worth yet");

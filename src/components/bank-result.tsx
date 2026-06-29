@@ -201,9 +201,9 @@ function buildBankDecision({
       stopPoint: "Stop after the first trip if kills feel slow or supplies burn too fast.",
       avoid: "Avoid buying upgrades before checking what your bank can already do.",
       primaryAction: "dps",
-      primaryLabel: "Check DPS",
+      primaryLabel: "Check kill",
       secondaryAction: "next",
-      secondaryLabel: "Plan next move"
+      secondaryLabel: "Open next trip"
     };
   }
 
@@ -222,24 +222,24 @@ function buildBankDecision({
       primaryAction: "copy",
       primaryLabel: "Copy to RuneLite",
       secondaryAction: "next",
-      secondaryLabel: "Plan next move"
+      secondaryLabel: "Open next trip"
     };
   }
 
   if (totalValue > 0 || totalItems > 0) {
     return {
       iconItemId: hasPrices ? 995 : 13307,
-      title: "Use this bank for one clear session plan",
+      title: "Use this bank for one clear trip",
       why: hasPrices && totalValue > 0
         ? `Gear, supplies and ${formatGp(totalValue)} GP are now part of the next recommendation.`
         : "Gear and supplies are now part of the next recommendation.",
-      firstStep: "Open /next and pick the one session that fits tonight.",
+      firstStep: "Open /next and pick the trip that fits tonight.",
       stopPoint: "Stop when you have one trip, unlock or AFK goal picked.",
       avoid: "Avoid comparing every tab before deciding what to do.",
       primaryAction: "next",
-      primaryLabel: "Plan next move",
+      primaryLabel: "Open next trip",
       secondaryAction: "dps",
-      secondaryLabel: "Check DPS"
+      secondaryLabel: "Check kill"
     };
   }
 
@@ -251,7 +251,7 @@ function buildBankDecision({
     stopPoint: "Stop once Scapestack can see combat gear and supplies.",
     avoid: "Avoid using a tiny loot tab as your whole bank.",
     primaryAction: "copy",
-    primaryLabel: "Copy current tabs",
+    primaryLabel: "Copy tabs",
     secondaryAction: "next",
     secondaryLabel: "Plan anyway"
   };
@@ -300,8 +300,8 @@ function BankDecisionHero({
       value: hasPrices && totalValue > 0 ? "Use GP context before buying." : "Add prices for upgrade calls."
     },
     {
-      label: "Next",
-      value: tipCount > 0 ? "Clean a few slots, then plan." : "Send this bank to /next."
+      label: "Next trip",
+      value: tipCount > 0 ? "Clean a few slots, then pick a trip." : "Use this bank for /next."
     }
   ];
 
@@ -315,7 +315,7 @@ function BankDecisionHero({
             </span>
             <div className="min-w-0">
               <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-gold-soft)]">
-                What can I do with this bank?
+                Can I do a trip with this bank?
               </div>
               <h2 className="mt-1 text-[21px] font-bold tracking-normal text-[var(--color-text)] sm:text-[25px]">
                 {decision.title}
@@ -1568,7 +1568,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
             title="Take this bank into the next plan"
           >
             <Sparkles className="size-3.5" />
-            Plan next move
+            Open next trip
           </button>
           {/* Smart tidy — secondary action, ghost-styled. Re-tidies in place
               if the user wants a different layout (each press uses a fresh
@@ -2818,7 +2818,7 @@ function SnapshotCompareActionRail({
             aria-label="Open DPS using this bank"
           >
             <Sword className="size-3" />
-            Check DPS impact
+            Check kill
           </button>
           <button
             type="button"
@@ -3114,14 +3114,14 @@ function BankActionLoopRail({
   };
 
   return (
-    <section className="mt-4 mb-3 rounded-xl border border-[var(--color-accent)]/25 bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] p-3 shadow-[0_20px_55px_-36px_rgb(0_0_0/0.85)] sm:p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <details className="group mt-4 mb-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-3 sm:p-4">
+      <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 marker:hidden [&::-webkit-details-marker]:hidden">
         <div>
           <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-            One Scapestack loop
+            From bank to trip
           </div>
           <h3 className="mt-1 text-[15px] font-bold text-[var(--color-text)]">
-            Clean bank → fix the obvious → plan the next session
+            Copy tabs, check the setup, then pick one trip.
           </h3>
         </div>
         {copied === "all" && (
@@ -3130,7 +3130,10 @@ function BankActionLoopRail({
             Export copied
           </span>
         )}
-      </div>
+        <span className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)] group-open:hidden">
+          Show
+        </span>
+      </summary>
       <div className="mt-3 grid gap-2 md:grid-cols-5">
         {steps.map((step) => {
           const isCopiedExport = step.id === "export" && copied === "all";
@@ -3234,7 +3237,7 @@ function BankActionLoopRail({
           <PlugZap className="size-3.5" />
         </button>
       </div>
-    </section>
+    </details>
   );
 }
 

@@ -54,7 +54,7 @@ describe("player-facing copy avoids dashboard language", () => {
   });
 
   it("keeps the replacement copy concrete and OSRS-native", () => {
-    expect(source).toContain("Make future plans sharper");
+    expect(source).toContain("Make the next trip smarter");
     expect(source).toContain("Paste check");
     expect(source).toContain("Add gear or RuneLite");
     expect(source).toContain("Need a weapon first");

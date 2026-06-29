@@ -201,7 +201,7 @@ function DpsIntakeHero() {
             Can I kill this with my bank?
           </h2>
           <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-dim)]">
-            Paste gear once. Scapestack picks a boss, setup, first trip and upgrade to check.
+            Paste gear once. Scapestack picks a boss, setup and first trip to try.
           </p>
         </div>
         <div className="flex flex-wrap gap-1.5 text-[11px] font-semibold text-[var(--color-text-dim)]">
@@ -255,7 +255,7 @@ function DpsDecisionHero({
                 Can I kill this?
               </div>
               <div className="mt-1 text-[11.5px] font-semibold text-[var(--color-text-muted)]">
-                Best fit from this bank
+                Best trip from this bank
               </div>
               <h2 className="mt-1 text-[22px] font-bold tracking-normal text-[var(--color-text)] sm:text-[26px]">
                 {decision.title}
@@ -292,7 +292,7 @@ function DpsDecisionHero({
               onClick={onOpenBoss}
               className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-bold text-white transition-all hover:brightness-110"
             >
-              Open boss detail
+              Open setup
               <ExternalLink className="size-3.5" />
             </button>
           )}
@@ -309,7 +309,7 @@ function DpsDecisionHero({
                   className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-good)]"
                 >
                   {copiedUpgradeList === "copied" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
-                  {copiedUpgradeList === "copied" ? "Copied" : "Copy upgrades"}
+                  {copiedUpgradeList === "copied" ? "Copied" : "Copy shopping list"}
                 </button>
               )}
               <button
