@@ -7,23 +7,23 @@ const source = readFileSync(join(process.cwd(), "src/app/dps/dps-client.tsx"), "
 describe("DPS boss row affordance", () => {
   it("labels the boss search and sort controls as real interactive controls", () => {
     expect(source).toContain('htmlFor="dps-boss-search"');
-    expect(source).toContain("Search bosses for DPS setup");
+    expect(source).toContain("Search bosses for a kill setup");
     expect(source).toContain('id="dps-boss-search"');
     expect(source).toContain('name="boss"');
     expect(source).toContain('aria-describedby="dps-boss-search-help dps-boss-search-status"');
     expect(source).toContain("Type a boss name, press Enter to open the first match");
-    expect(source).toContain('aria-label="Clear boss DPS search"');
+    expect(source).toContain('aria-label="Clear boss search"');
     expect(source).toContain('id="dps-boss-search-status"');
     expect(source).toContain('role="status"');
     expect(source).toContain("aria-pressed={sortBy === opt.key}");
-    expect(source).toContain("aria-label={`Sort boss DPS rows by ${opt.label}`}");
+    expect(source).toContain("aria-label={`Sort boss rows by ${opt.label}`}");
   });
 
   it("renders boss rows as explicit setup-detail buttons", () => {
     expect(source).toContain("function BossRow");
     expect(source).toContain("<button\n      type=\"button\"\n      id={`boss-${boss.slug}`}");
-    expect(source).toContain("aria-label={`Open ${boss.name} DPS setup details`}");
-    expect(source).toContain("title={`Open ${boss.name} DPS setup details`}");
+    expect(source).toContain("aria-label={`Open ${boss.name} kill setup details`}");
+    expect(source).toContain("title={`Open ${boss.name} kill setup details`}");
     expect(source).toContain("Details");
     expect(source).toContain("View requirements");
     expect(source).toContain('import { CheckCheck, Copy, Edit3, Sword, Zap, Target, TrendingUp, Coins, Search, X, Sparkles, ExternalLink, ChevronDown } from "lucide-react";');

@@ -126,9 +126,9 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("const payoff = headlinePayoff(rec);");
     expect(source).toContain("{rec.why}");
     expect(source).toContain("function recommendationWhyNot");
-    expect(source).toContain("Why not");
-    expect(source).toContain("so kill checks stay conservative.");
-    expect(source).toContain("this pace avoids intense trips unless you pick Bossing.");
+    expect(source).toContain("Not picked");
+    expect(source).toContain("so boss trips stay conservative.");
+    expect(source).toContain("bossing stays lower unless you ask for a sweaty trip.");
     expect(source).toContain("Stop at");
     expect(source).toContain("Bring");
     expect(source).toContain("Teleport");
@@ -185,7 +185,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Do this first");
     expect(source).toContain("One best move for this account. Two backups");
     expect(source).toContain("Change trip");
-    expect(source).toContain("Next 3 sessions");
+    expect(source).toContain("After this run");
     expect(source).toContain("After this");
     expect(source).toContain("Two clean follow-ups after the stop point.");
     expect(source).toContain("Finish the stop point, then re-run /next.");
@@ -193,7 +193,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function TonightRouteStrip");
     expect(source).toContain("ROUTE_LENS_ORDER.map");
     expect(source).toContain("Pick ${label.name} route");
-    expect(source).toContain("Try ${nextRouteLabel.name} route");
+    expect(source).toContain("Show ${nextRouteLabel.name} route");
     expect(source).toContain("Mood");
     expect(source).toContain("Pick ${label.name} session pace");
     expect(source).toContain("applySessionIntent(m)");

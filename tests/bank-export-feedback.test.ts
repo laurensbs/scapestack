@@ -7,8 +7,8 @@ const source = readFileSync(join(process.cwd(), "src/components/bank-result.tsx"
 describe("bank export feedback", () => {
   it("starts the bank result with one useful next move before technical details", () => {
     expect(source).toContain("function BankDecisionHero");
-    expect(source).toContain("Can I do a trip with this bank?");
-    expect(source).toContain("DPS can build one owned-gear trip.");
+    expect(source).toContain("Can I leave the bank?");
+    expect(source).toContain("Kill check can build one owned-gear trip.");
     expect(source).toContain("Use this bank for /next.");
     expect(source).toContain("Check one boss trip before buying upgrades");
     expect(source).toContain("Use this bank for one clear trip");
@@ -21,9 +21,9 @@ describe("bank export feedback", () => {
     expect(source).toContain('"Gear looks weak"');
     expect(source).toContain("const bankReadiness = useMemo(");
     expect(source).toContain("readiness={bankReadiness}");
-    expect(source).toContain("<span>Bank details</span>");
+    expect(source).toContain("<span>Organize tabs</span>");
     expect(source).toContain("<span>Saved banks</span>");
-    expect(source.indexOf("Can I do a trip with this bank?")).toBeLessThan(source.indexOf("Paste check"));
+    expect(source.indexOf("Can I leave the bank?")).toBeLessThan(source.indexOf("Paste check"));
   });
 
   it("shows a paste check for bank precision before export", () => {

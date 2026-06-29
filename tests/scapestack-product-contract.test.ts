@@ -25,7 +25,7 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(homepage).toContain("Pick the next trip.");
     expect(next).toContain("Do this first");
     expect(next).toContain("One best move for this account. Two backups");
-    expect(next).toContain("Next 3 sessions");
+    expect(next).toContain("After this run");
     expect(next).toContain("After this");
     expect(next).toContain("Change trip");
     expect(next).toContain("Other trips");
@@ -33,7 +33,7 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).not.toContain("Try another");
     expect(next).not.toContain("Try a different route");
     expect(next).not.toContain("Change time or pace");
-    expect(next).toContain("Why not");
+    expect(next).toContain("Not picked");
     expect(next).toContain("Build trip");
     expect(next).toContain("Copy Bank Tag");
     expect(next).not.toContain("Trip looks runnable");

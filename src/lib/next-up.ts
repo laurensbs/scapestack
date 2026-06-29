@@ -1681,7 +1681,7 @@ function activeBossKcRecs(bossKc: Record<string, number>, bank: CompletionItem[]
         friction: kc < 5 ? 0.68 : gearConfidence === "unknown" ? 0.62 : 0.34
       },
       needs: [
-        matchedGear ? `${matchedGear} setup` : "DPS setup check",
+        matchedGear ? `${matchedGear} setup` : "Kill check",
         "Teleports and supplies for one fixed trip",
         boss.category === "wildy" ? "Risk only what you are fine losing" : "Re-check after the KC block"
       ],

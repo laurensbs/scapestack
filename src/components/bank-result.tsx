@@ -196,8 +196,8 @@ function buildBankDecision({
     return {
       iconItemId: 4151,
       title: "Check one boss trip before buying upgrades",
-      why: `This bank has ${weaponCount} combat weapon${weaponCount === 1 ? "" : "s"}, so DPS can pick from gear you actually own.`,
-      firstStep: "Open DPS, lock a setup, then do one short trip.",
+      why: `This bank has ${weaponCount} combat weapon${weaponCount === 1 ? "" : "s"}, so the kill check can use gear you actually own.`,
+      firstStep: "Open the kill check, lock a setup, then do one short trip.",
       stopPoint: "Stop after the first trip if kills feel slow or supplies burn too fast.",
       avoid: "Avoid buying upgrades before checking what your bank can already do.",
       primaryAction: "dps",
@@ -293,7 +293,7 @@ function BankDecisionHero({
   const outcomes = [
     {
       label: "Trip",
-      value: weaponCount > 0 ? "DPS can build one owned-gear trip." : "Add combat gear for boss checks."
+      value: weaponCount > 0 ? "Kill check can build one owned-gear trip." : "Add combat gear for boss checks."
     },
     {
       label: "Upgrade",
@@ -315,7 +315,7 @@ function BankDecisionHero({
             </span>
             <div className="min-w-0">
               <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-gold-soft)]">
-                Can I do a trip with this bank?
+                Can I leave the bank?
               </div>
               <h2 className="mt-1 text-[21px] font-bold tracking-normal text-[var(--color-text)] sm:text-[25px]">
                 {decision.title}
@@ -1459,8 +1459,8 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
       {/* Header — minimal, mono stats, single mint accent on gp */}
       <details className="mb-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-3">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-semibold text-[var(--color-text)] marker:hidden">
-          <span>Bank details</span>
-          <span className="text-[11px] font-medium text-[var(--color-text-muted)]">gear, tabs, next move</span>
+          <span>Organize tabs</span>
+          <span className="text-[11px] font-medium text-[var(--color-text-muted)]">Only after the trip is picked</span>
         </summary>
       <div className="mt-4 flex flex-wrap items-start justify-between gap-4 mb-6">
         <div>
@@ -1890,7 +1890,7 @@ export function BankResult({ initial, initialStrings, onEditInput, inferredArche
             <div className="flex items-center gap-2">
               <span className="size-1.5 rounded-full bg-[var(--color-accent)]" />
               <span className="text-[10.5px] uppercase tracking-[0.18em] font-semibold text-[var(--color-text-dim)]">
-                Bank view
+                Tabs
               </span>
             </div>
             <QtyColorLegend />

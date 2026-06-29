@@ -33,7 +33,8 @@ export type RouteLens =
   | "unlock-chain"
   | "gp-upgrade"
   | "boss-log"
-  | "afk-progress";
+  | "afk-progress"
+  | "short-login";
 
 export const ROUTE_LENS_ORDER: RouteLens[] = [
   "smart",
@@ -42,17 +43,19 @@ export const ROUTE_LENS_ORDER: RouteLens[] = [
   "unlock-chain",
   "gp-upgrade",
   "boss-log",
-  "afk-progress"
+  "afk-progress",
+  "short-login"
 ];
 
 export const ROUTE_LENS_LABEL: Record<RouteLens, { itemId: number; name: string; tagline: string }> = {
-  smart:        { itemId: 995,   name: "Best now",         tagline: "The cleanest move for this login" },
-  maxing:       { itemId: 13342, name: "Progress account", tagline: "Cape, diary, quest and total-level progress" },
-  fun:          { itemId: 20720, name: "Fun detour",       tagline: "Rewards, KC or minigames without chores" },
-  "unlock-chain": { itemId: 9813,  name: "Unlock something", tagline: "Quest, diary and account gates" },
-  "gp-upgrade":   { itemId: 995,   name: "Make GP",          tagline: "Fund the next upgrade or supply stack" },
-  "boss-log":     { itemId: 4151,  name: "Boss trip",        tagline: "KC, clog and PvM proof route" },
-  "afk-progress": { itemId: 12012, name: "Something AFK",    tagline: "Low-attention progress that still matters" }
+  smart:        { itemId: 995,   name: "Smart route", tagline: "The cleanest move for this login" },
+  maxing:       { itemId: 13342, name: "Maxing",      tagline: "Cape, diary, quest and total-level progress" },
+  fun:          { itemId: 20720, name: "Fun",         tagline: "Rewards, KC or minigames without chores" },
+  "unlock-chain": { itemId: 9813,  name: "Unlock",      tagline: "Quest, diary and account gates" },
+  "gp-upgrade":   { itemId: 995,   name: "GP",          tagline: "Fund the next upgrade or supply stack" },
+  "boss-log":     { itemId: 4151,  name: "Bossing",     tagline: "KC, clog and PvM proof route" },
+  "afk-progress": { itemId: 12012, name: "AFK",         tagline: "Low-attention progress that still matters" },
+  "short-login":  { itemId: 8007,  name: "Short login", tagline: "Fast stop point before you log out" }
 };
 
 /** Hoeveel minuten heeft de speler te besteden. Gebruikt om bv. een
@@ -228,6 +231,18 @@ const ROUTE_LENS_KIND_WEIGHTS: Record<RouteLens, Partial<Record<RecKind, number>
     quest: 0.45,
     boss: 0.08,
     kc: 0.08
+  },
+  "short-login": {
+    bank: 2.35,
+    slayer: 1.55,
+    money: 1.45,
+    minigame: 1.3,
+    skill: 1.1,
+    goal: 0.95,
+    diary: 0.85,
+    quest: 0.55,
+    boss: 0.18,
+    kc: 0.18
   }
 };
 
@@ -334,6 +349,12 @@ function routeLensMultiplier(rec: Recommendation, lens: RouteLens): number {
   if (lens === "afk-progress") {
     if (hasTag("afk") || hasTag("skiller")) bonus *= 1.34;
     if (/afk|chill|run|cape|level|skill/.test(text)) bonus *= 1.12;
+  }
+
+  if (lens === "short-login") {
+    if (hasTag("afk") || hasTag("gp")) bonus *= 1.12;
+    if (/short|quick|run|task|stop|daily|herb|birdhouse|clue|bank/.test(text)) bonus *= 1.22;
+    if (/grandmaster|very long|raid|inferno|cape grind/.test(text)) bonus *= 0.45;
   }
 
   return base * bonus;

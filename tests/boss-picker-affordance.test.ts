@@ -7,12 +7,12 @@ const source = readFileSync(join(process.cwd(), "src/components/boss-picker.tsx"
 describe("Boss picker affordance", () => {
   it("exposes the dropdown as a labelled boss setup dialog", () => {
     expect(source).toContain('const pickerId = "boss-picker-dialog";');
-    expect(source).toContain("Choose boss for DPS setup. Current boss:");
+    expect(source).toContain("Choose boss for kill check. Current boss:");
     expect(source).toContain('aria-haspopup="dialog"');
     expect(source).toContain("aria-controls={open ? pickerId : undefined}");
     expect(source).toContain("aria-expanded={open}");
     expect(source).toContain("role=\"dialog\"");
-    expect(source).toContain('aria-label="Choose boss for DPS setup"');
+    expect(source).toContain('aria-label="Choose boss for kill check"');
   });
 
   it("labels boss search, result status and clear action", () => {

@@ -22,7 +22,7 @@ const ROUTE_ACTIONS: Record<string, Omit<RecommendationPrimaryAction, "href">> =
     helper: "Clean the bank and export a usable RuneLite Bank Tags layout."
   },
   "/dps": {
-    label: "Open DPS setup",
+    label: "Open kill check",
     helper: "Tune owned gear, boss weakness and kill setup before committing supplies."
   },
   "/goals": {

@@ -1982,16 +1982,16 @@ function recommendationWhyNot({
     rec.kcMeta.kc < 5
   );
   if (scout?.kcMeta) {
-    return `Why not ${scout.title}: ${scout.kcMeta.kc.toLocaleString()} KC is still a test trip, so it stays backup.`;
+    return `Not picked: ${scout.title} is only ${scout.kcMeta.kc.toLocaleString()} KC, so it stays a backup.`;
   }
 
   const hasBossBackup = others.some((rec) => rec.kind === "boss" || rec.kind === "kc" || rec.kind === "slayer");
   if ((mood === "chill" || mood === "afk" || mood === "short") && hasBossBackup) {
-    return "Why not bossing: this pace avoids intense trips unless you pick Bossing.";
+    return "Not picked: bossing stays lower unless you ask for a sweaty trip.";
   }
 
   if (!hasBankContext && hasBossBackup && headline.kind !== "boss" && headline.kind !== "kc") {
-    return "Why not a boss headline: no gear pasted, so kill checks stay conservative.";
+    return "Not picked: no gear pasted, so boss trips stay conservative.";
   }
 
   const longQuest = others.find((rec) => {
@@ -2000,11 +2000,11 @@ function recommendationWhyNot({
     return /grandmaster|very long|\(\+\d+ more\)|long prereq/.test(text);
   });
   if (longQuest) {
-    return `Why not ${longQuest.title}: the prereq chain looks longer than this session needs.`;
+    return `Not picked: ${longQuest.title} looks longer than this session needs.`;
   }
 
   if (pluginSyncState === "live") {
-    return "Why not finished stuff: RuneLite skipped quests, diary steps, clog slots and Slayer mistakes.";
+    return "Not picked: RuneLite skipped finished quests, diary steps, clog slots and Slayer mistakes.";
   }
 
   return null;
@@ -2072,7 +2072,7 @@ function TonightRouteStrip({
     <>
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
         <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-          Next 3 sessions
+          After this run
         </span>
         <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">
           Finish the stop point, then re-run /next.
@@ -2646,6 +2646,8 @@ function moodForRouteLens(lens: RouteLens, currentMood: Mood): Mood {
       return "bossing";
     case "afk-progress":
       return "afk";
+    case "short-login":
+      return "short";
     case "smart":
       return currentMood;
   }
@@ -2662,6 +2664,8 @@ function defaultTimeForRouteLens(lens: RouteLens): TimeBudget | null {
       return 60;
     case "fun":
       return 60;
+    case "short-login":
+      return 15;
     case "smart":
       return null;
   }
@@ -2718,17 +2722,19 @@ function routeSwitchCopy(nextLens: RouteLens, skipped: Recommendation): string {
   const label = ROUTE_LENS_LABEL[nextLens];
   switch (nextLens) {
     case "maxing":
-      return `Trying ${label.name}: cape, diary and total-level progress instead of ${skipped.title}.`;
+      return `Showing ${label.name}: cape, diary and total-level progress instead of ${skipped.title}.`;
     case "fun":
-      return `Trying ${label.name}: rewards, KC or minigames instead of another chore.`;
+      return `Showing ${label.name}: rewards, KC or minigames instead of another chore.`;
     case "unlock-chain":
-      return `Trying ${label.name}: a cleaner account unlock instead of ${skipped.title}.`;
+      return `Showing ${label.name}: a cleaner account unlock instead of ${skipped.title}.`;
     case "gp-upgrade":
-      return `Trying ${label.name}: funding the next upgrade instead of ${skipped.title}.`;
+      return `Showing ${label.name}: funding the next upgrade instead of ${skipped.title}.`;
     case "boss-log":
-      return `Trying ${label.name}: a trip, KC block or clog angle instead of ${skipped.title}.`;
+      return `Showing ${label.name}: a trip, KC block or clog angle instead of ${skipped.title}.`;
     case "afk-progress":
-      return `Trying ${label.name}: lower-pressure progress instead of ${skipped.title}.`;
+      return `Showing ${label.name}: lower-pressure progress instead of ${skipped.title}.`;
+    case "short-login":
+      return `Showing ${label.name}: a clean stop point instead of ${skipped.title}.`;
     case "smart":
       return `Fresh pick: ${skipped.title} is lowered for this session.`;
   }
@@ -3167,10 +3173,10 @@ function WhatToDo({
                     type="button"
                     onClick={moveToAnotherPlan}
                     className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-accent)]"
-                    title={`Try ${nextRouteLabel.name} route`}
+                    title={`Show ${nextRouteLabel.name} route`}
                   >
                     <Dices className="size-3.5" />
-                    Try {nextRouteLabel.name}
+                    Show {nextRouteLabel.name}
                   </button>
                 )}
                 <button
@@ -3350,7 +3356,7 @@ function WhatToDo({
                     <div className="mb-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
                       Trip type
                     </div>
-                    <div className="flex gap-1.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-7 sm:overflow-visible sm:pb-0">
+                    <div className="flex gap-1.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-4 sm:overflow-visible sm:pb-0 lg:grid-cols-8">
                       {ROUTE_LENS_ORDER.map((lens) => {
                         const label = ROUTE_LENS_LABEL[lens];
                         const active = routeLens === lens;

@@ -19,7 +19,7 @@ function rec(overrides: Partial<Recommendation>): Recommendation {
 
 describe("recommendation primary actions", () => {
   it("labels known Scapestack routes with concrete tool names", () => {
-    expect(routeActionForHref("/dps").label).toBe("Open DPS setup");
+    expect(routeActionForHref("/dps").label).toBe("Open kill check");
     expect(routeActionForHref("/goals").label).toBe("Open goals tracker");
     expect(routeActionForHref("/bank?sample=1").label).toBe("Open Gear & Bank");
     expect(routeActionForHref("/slayer/").label).toBe("Open Slayer view");

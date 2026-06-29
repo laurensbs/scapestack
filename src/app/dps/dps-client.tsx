@@ -122,7 +122,7 @@ function buildDpsDecision(
       verdict: "Not yet",
       why: "Scapestack needs at least one usable weapon before it can judge boss trips from this bank.",
       firstStep: "Paste Bank Memory or a combat tab with your weapons.",
-      stopPoint: "Stop once DPS can pick a real setup.",
+      stopPoint: "Stop once the kill check can pick a real setup.",
       bring: "Whip, fang, blowpipe, trident, bowfa or another real weapon.",
       avoid: "Avoid trusting boss rows from a supplies-only bank.",
       tone: "locked"
@@ -195,7 +195,7 @@ function DpsIntakeHero() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-gold-soft)]">
-            Boss trip check
+            Kill check
           </div>
           <h2 className="mt-1 text-[22px] font-bold tracking-normal text-[var(--color-text)]">
             Can I kill this with my bank?
@@ -275,7 +275,7 @@ function DpsDecisionHero({
             </span>
             {result && (
               <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-text-dim)]">
-                {result.dps.dps.toFixed(2)} DPS
+                {result.dps.dps.toFixed(2)} kill speed
               </span>
             )}
             {upgradeCount > 0 && (
@@ -836,7 +836,7 @@ export function DpsClient() {
                 'click to open a hidden menu.' */}
             <div className="relative">
               <label htmlFor="dps-boss-search" className="sr-only">
-                Search bosses for DPS setup
+                Search bosses for a kill setup
               </label>
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[var(--color-text-muted)]" />
               <input
@@ -868,7 +868,7 @@ export function DpsClient() {
                 <button
                   type="button"
                   onClick={clearBossFilter}
-                  aria-label="Clear boss DPS search"
+                  aria-label="Clear boss search"
                   className="absolute right-3 top-1/2 -translate-y-1/2 size-5 rounded flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-2)] transition-colors"
                 >
                   <X className="size-4" />
@@ -904,7 +904,7 @@ export function DpsClient() {
                   : `Showing ${filteredResults.length} of ${bossResults.length} bosses.`}
               </p>
             )}
-            {/* Sort selector — pill-style toggle group. Default DPS is de
+            {/* Sort selector — pill-style toggle group. Default kill speed is de
                 standaard waar mensen voor komen; de andere drie geven
                 dezelfde lijst maar door een andere bril ('wie raakt vaakst',
                 'wie levert het meest GP', 'wie gaat snelst dood'). */}
@@ -913,7 +913,7 @@ export function DpsClient() {
                 Sort
               </span>
               {([
-                { key: "dps",      label: "Best DPS" },
+                { key: "dps",      label: "Best kill speed" },
                 { key: "accuracy", label: "Most accurate" },
                 { key: "gpHour",   label: "Most GP/hour" },
                 { key: "ttk",      label: "Fastest kill" }
@@ -922,7 +922,7 @@ export function DpsClient() {
                   key={opt.key}
                   type="button"
                   aria-pressed={sortBy === opt.key}
-                  aria-label={`Sort boss DPS rows by ${opt.label}`}
+                  aria-label={`Sort boss rows by ${opt.label}`}
                   onClick={() => setSortBy(opt.key)}
                   className={cn(
                     "px-2.5 py-1 rounded-md text-[11px] border transition-colors",
@@ -948,7 +948,7 @@ export function DpsClient() {
             ))}
           </div>
           <p className="mt-6 text-[10.5px] text-center text-[var(--color-text-dim)] italic">
-            DPS calculated at level 99 stats with full offensive prayer (Piety / Rigour / Augury).
+            Kill speed is estimated at level 99 stats with full offensive prayer (Piety / Rigour / Augury).
             Boss-specific mechanics (heap mode, transitions, specs) not modelled.
           </p>
         </div>
@@ -997,8 +997,8 @@ function BossRow({ boss, dps, isFocused, onOpen }: {
       type="button"
       id={`boss-${boss.slug}`}
       onClick={onOpen}
-      aria-label={`Open ${boss.name} DPS setup details`}
-      title={`Open ${boss.name} DPS setup details`}
+      aria-label={`Open ${boss.name} kill setup details`}
+      title={`Open ${boss.name} kill setup details`}
       className={cn(
         "w-full text-left rounded-xl border scroll-mt-24 p-3.5 flex items-center gap-4 flex-wrap",
         "bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] border-[var(--color-border)]",
@@ -1351,7 +1351,7 @@ function suggestUpgradesForBoss(owned: GearItem[], boss: Boss): UpgradeSuggestio
 }
 
 // Boss thumbnail. Tries the local wiki portrait first
-// Uses the shared BossSprite fallback contract so DPS rows never fall back to
+// Uses the shared BossSprite fallback contract so boss options never fall back to
 // emoji or an anonymous dot: local boss art → signature item sprite → labelled
 // missing-sprite tile.
 function BossThumb({ boss }: { boss: Boss }) {

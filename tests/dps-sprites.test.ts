@@ -30,10 +30,10 @@ describe("DPS and boss sprites", () => {
     expect(dpsClientSource).not.toContain("ICON_URL");
   });
 
-  it("uses the shared labelled BossSprite fallback in DPS rows", () => {
+  it("uses the shared labelled BossSprite fallback in boss options", () => {
     expect(dpsClientSource).toContain('import { BossSprite } from "@/components/boss-picker";');
     expect(dpsClientSource).toContain("<BossSprite boss={boss} size={36} />");
-    expect(dpsClientSource).toContain("DPS rows never fall back to");
+    expect(dpsClientSource).toContain("boss options never fall back to");
     expect(dpsClientSource).not.toContain('useState<"portrait" | "drop" | "dot">("portrait")');
     expect(dpsClientSource).not.toContain('className="size-9 shrink-0 rounded-full bg-[var(--color-text-muted)]/40 inline-block"');
   });

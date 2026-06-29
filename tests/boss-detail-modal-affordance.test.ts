@@ -24,7 +24,7 @@ describe("boss detail modal affordance", () => {
     expect(source).not.toContain('aria-label="Close"');
   });
 
-  it("keeps the boss modal grounded in bank-derived DPS setup copy", () => {
+  it("keeps the boss modal grounded in owned-bank setup copy", () => {
     expect(source).toContain("Best style with your gear");
     expect(source).toContain("Best setup");
     expect(source).toContain("Upgrades you don&apos;t have");

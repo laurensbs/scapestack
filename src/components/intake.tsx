@@ -224,7 +224,7 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
   const PREVIEW_IDS = [4151, 11802, 11806, 4712, 5616, 12791];
 
   return (
-    <section id="bank-paste-panel" data-testid="bank-paste-panel" className="surface p-6 animate-[slide-up_0.4s_ease-out_0.15s_both]">
+    <section id="bank-paste-panel" data-testid="bank-paste-panel" className="surface p-6 animate-[fade-in_0.2s_ease-out]">
       <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
         <div className="flex items-center gap-3">
           <div
@@ -266,8 +266,8 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
       </div>
 
       {showEmptyState && (
-        <div className="mb-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]/50 px-4 py-3 flex items-center gap-3 animate-[fade-in_0.3s_ease-out]">
-          <div className="flex -space-x-2">
+        <div className="mb-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]/50 px-4 py-3 flex flex-col gap-3 animate-[fade-in_0.3s_ease-out] sm:flex-row sm:items-center">
+          <div className="flex -space-x-2 overflow-hidden pb-0.5 sm:shrink-0">
             {PREVIEW_IDS.map((id, i) => (
               <div
                 key={id}

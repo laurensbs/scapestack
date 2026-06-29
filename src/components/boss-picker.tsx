@@ -161,7 +161,7 @@ export function BossPicker({ selected, onSelect, className, sortKey }: Props) {
         ref={buttonRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label={`Choose boss for DPS setup. Current boss: ${selected.name}`}
+        aria-label={`Choose boss for kill check. Current boss: ${selected.name}`}
         aria-haspopup="dialog"
         aria-controls={open ? pickerId : undefined}
         aria-expanded={open}
@@ -189,7 +189,7 @@ export function BossPicker({ selected, onSelect, className, sortKey }: Props) {
           id={pickerId}
           ref={popoverRef}
           role="dialog"
-          aria-label="Choose boss for DPS setup"
+          aria-label="Choose boss for kill check"
           className="fixed z-[120] rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-[0_24px_60px_-20px_rgb(0_0_0/0.75)] animate-[pop-in_0.18s_ease-out] origin-top-left flex flex-col"
           style={{
             left: anchor.left,
