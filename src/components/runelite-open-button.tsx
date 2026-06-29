@@ -1,48 +1,90 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, ExternalLink } from "lucide-react";
+import { CheckCircle2, Copy, ExternalLink, PlugZap } from "lucide-react";
 import { copyText } from "@/lib/clipboard";
+import { PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
 import { cn } from "@/lib/utils";
 
 const PLUGIN_SEARCH = "Scapestack Sync";
+const RUNELITE_PROTOCOL_URL = "runelite://";
+const RUNELITE_PLUGIN_HUB_URL = "https://runelite.net/plugin-hub/show/scapestack-sync";
 
 export function RuneliteOpenButton({ className }: { className?: string }) {
-  const [state, setState] = useState<"idle" | "copied" | "error">("idle");
+  const [state, setState] = useState<"idle" | "opening" | "copied" | "error">("idle");
 
   const openRunelite = async () => {
     const result = await copyText(PLUGIN_SEARCH);
-    setState(result === "failed" ? "error" : "copied");
-    window.setTimeout(() => setState("idle"), 1800);
+    if (result === "failed") {
+      setState("error");
+    } else {
+      setState("opening");
+      window.setTimeout(() => {
+        setState((current) => current === "opening" ? "copied" : current);
+      }, 650);
+    }
+    window.setTimeout(() => setState("idle"), 6200);
     try {
-      window.location.href = "runelite://";
+      window.location.href = RUNELITE_PROTOCOL_URL;
     } catch {
+      setState("error");
     }
   };
 
+  const copySyncUrl = async () => {
+    const result = await copyText(PUBLIC_SYNC_URL);
+    setState(result === "failed" ? "error" : "copied");
+    window.setTimeout(() => setState("idle"), 2400);
+  };
+
   return (
-    <div className={cn("flex flex-wrap items-center gap-2", className)}>
+    <div className={cn("flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center", className)}>
       <button
         type="button"
         onClick={openRunelite}
         className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-accent)] px-4 py-3 text-[13px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110"
         aria-label="Open RuneLite and copy Scapestack Sync plugin search"
       >
-        <ExternalLink className="size-4" />
+        <PlugZap className="size-4" />
         Open RuneLite
       </button>
-      <span role="status" aria-live="polite" className="text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
-        {state === "copied"
-          ? "Copied “Scapestack Sync”. Paste it in Plugin Hub search."
-          : state === "error"
-            ? "Search Plugin Hub for Scapestack Sync."
-            : (
-              <span className="inline-flex items-center gap-1">
-                <Copy className="size-3" />
-                Copies plugin name for Plugin Hub search
-              </span>
-            )}
-      </span>
+      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
+        <span role="status" aria-live="polite" className="inline-flex min-w-0 items-center gap-1">
+          {state === "opening" ? (
+            <>
+              <ExternalLink className="size-3" />
+              Opening RuneLite. Plugin name copied.
+            </>
+          ) : state === "copied" ? (
+            <>
+              <CheckCircle2 className="size-3 text-[var(--color-good)]" />
+              Copied. Search Plugin Hub for Scapestack Sync.
+            </>
+          ) : state === "error" ? (
+            "Open RuneLite, search Plugin Hub for Scapestack Sync."
+          ) : (
+            <>
+              <Copy className="size-3" />
+              Copies plugin name, then opens RuneLite.
+            </>
+          )}
+        </span>
+        <a
+          href={RUNELITE_PLUGIN_HUB_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-semibold text-[var(--color-text-dim)] underline decoration-dotted underline-offset-4 transition-colors hover:text-[var(--color-accent)]"
+        >
+          Plugin Hub page
+        </a>
+        <button
+          type="button"
+          onClick={copySyncUrl}
+          className="font-semibold text-[var(--color-text-dim)] underline decoration-dotted underline-offset-4 transition-colors hover:text-[var(--color-accent)]"
+        >
+          Copy scapestack.org sync URL
+        </button>
+      </div>
     </div>
   );
 }

@@ -39,8 +39,14 @@ describe("plugin page copy constants", () => {
     const source = readFileSync(join(process.cwd(), "src/components/runelite-open-button.tsx"), "utf8");
 
     expect(source).toContain('const PLUGIN_SEARCH = "Scapestack Sync"');
-    expect(source).toContain('window.location.href = "runelite://"');
-    expect(source).toContain("Copied “Scapestack Sync”. Paste it in Plugin Hub search.");
+    expect(source).toContain('const RUNELITE_PROTOCOL_URL = "runelite://"');
+    expect(source).toContain('const RUNELITE_PLUGIN_HUB_URL = "https://runelite.net/plugin-hub/show/scapestack-sync"');
+    expect(source).toContain("window.location.href = RUNELITE_PROTOCOL_URL");
+    expect(source).toContain("Opening RuneLite. Plugin name copied.");
+    expect(source).toContain("Copied. Search Plugin Hub for Scapestack Sync.");
+    expect(source).toContain("Plugin Hub page");
+    expect(source).toContain("Copy scapestack.org sync URL");
+    expect(source).toContain("PUBLIC_SYNC_URL");
     expect(source).not.toContain("Automatically installs");
   });
 
