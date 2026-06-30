@@ -9,6 +9,7 @@ describe("session mood picker", () => {
     expect(source).toContain("What do you feel like doing?");
     expect(source).toContain("Your next plan changes for this account.");
     expect(source).toContain("saveMood({ mood, minutes }, rsn || undefined)");
+    expect(source).toContain("onMoodChange?.({ mood, minutes, label: MOOD_LABEL[mood].name })");
     expect(source).toContain("SESSION_MOODS");
     expect(source).toContain('mood: "chill"');
     expect(source).toContain('mood: "cash"');

@@ -22,6 +22,7 @@ interface SessionMoodPickerProps {
   compact?: boolean;
   mobileTile?: boolean;
   className?: string;
+  onMoodChange?: (selection: { mood: Mood; minutes: TimeBudget; label: string }) => void;
 }
 
 export function SessionMoodPicker({
@@ -29,7 +30,8 @@ export function SessionMoodPicker({
   label = "Best now",
   compact = false,
   mobileTile = false,
-  className
+  className,
+  onMoodChange
 }: SessionMoodPickerProps) {
   const [open, setOpen] = useState(false);
   const [picked, setPicked] = useState(label);
@@ -41,6 +43,7 @@ export function SessionMoodPicker({
   const chooseMood = (mood: Mood, minutes: TimeBudget) => {
     saveMood({ mood, minutes }, rsn || undefined);
     setPicked(MOOD_LABEL[mood].name);
+    onMoodChange?.({ mood, minutes, label: MOOD_LABEL[mood].name });
     setOpen(false);
   };
 

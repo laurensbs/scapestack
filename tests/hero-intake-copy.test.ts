@@ -27,15 +27,22 @@ describe("hero intake copy and routing", () => {
 
   it("turns the homepage account-first when an RSN is already saved", () => {
     expect(source).toContain("const [editingAccount, setEditingAccount] = useState(false);");
+    expect(source).toContain("const [rememberedRuneliteChecked, setRememberedRuneliteChecked] = useState(false);");
+    expect(source).toContain("const [returningMood, setReturningMood] = useState<{ mood: Mood; minutes: TimeBudget; label: string } | null>(null);");
     expect(source).toContain("if (isRememberedRun && !editingAccount)");
+    expect(source).toContain("const planHref = returningMood");
+    expect(source).toContain('`/next?rsn=${encodedRsn}&intent=${encodeURIComponent(returningMood.mood)}&time=${returningMood.minutes}`');
+    expect(source).toContain("const readyLine = [");
+    expect(source).toContain('rememberedRuneliteChecked ? "RuneLite checked" : "RuneLite later"');
+    expect(source).toContain('returningMood ? `Last vibe: ${returningMood.label}` : "Last vibe: Best now"');
     expect(source).toContain("Welcome back, {rememberedRsn}.");
     expect(source).toContain("Plan next trip");
-    expect(source).toContain("Review bank");
+    expect(source).toContain('{hasBankContext ? "Bank" : "Add bank"}');
     expect(source).toContain("Check kill");
     expect(source).toContain("RuneLite");
     expect(source).toContain("Change RSN");
     expect(source).toContain("What are you in the mood for?");
-    expect(source).toContain('<SessionMoodPicker rsn={rememberedRsn} label="Best now" compact />');
+    expect(source).toContain("onMoodChange={setReturningMood}");
   });
 
   it("shows first-time setup before the first /next plan", () => {
