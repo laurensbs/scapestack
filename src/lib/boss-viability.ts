@@ -83,6 +83,58 @@ function simpleBankToGear(bank: NextUpBankItem[]): GearItem[] {
   }));
 }
 
+function ownsNamedItem(items: Array<{ name: string }>, pattern: RegExp): boolean {
+  return items.some((item) => pattern.test(item.name));
+}
+
+function bankQuantity(items: BankHandoffItem[], pattern: RegExp): number {
+  return items.reduce((total, item) => total + (pattern.test(item.name) ? item.quantity : 0), 0);
+}
+
+function withMissing(base: BossViability, item: string): string[] {
+  return base.missing.includes(item) ? base.missing : [...base.missing, item];
+}
+
+function appendSentence(text: string, sentence: string): string {
+  return text.includes(sentence) ? text : `${text} ${sentence}`;
+}
+
+function applyOwnedBossHints(base: BossViability, owned: GearItem[]): BossViability {
+  if (base.boss.slug !== "vorkath") return base;
+  if (ownsNamedItem(owned, /salve amulet/i)) return base;
+
+  if (base.canKill) {
+    return {
+      ...base,
+      summary: appendSentence(base.summary, "You can kill Vorkath, but missing Salve makes it worse."),
+      firstTrip: "Do one short Vorkath trip; unlock Salve amulet(ei) before camping it.",
+      missing: withMissing(base, "Salve amulet(ei)")
+    };
+  }
+
+  return {
+    ...base,
+    summary: appendSentence(base.summary, "Unlock Salve amulet(ei) before making Vorkath the plan."),
+    firstTrip: "Skip Vorkath for now; unlock Salve amulet(ei) first.",
+    missing: withMissing(base, "Salve amulet(ei)")
+  };
+}
+
+function applyBankBossHints(base: BossViability, items: BankHandoffItem[]): BossViability {
+  if (base.boss.slug !== "zulrah" || !base.canKill) return base;
+
+  const foodQty = bankQuantity(items, /karambwan|shark|manta ray|anglerfish|dark crab|sea turtle|saradomin brew/i);
+  const venomQty = bankQuantity(items, /anti-venom|antidote\+\+|antidote\+|serpentine helm/i);
+  if (foodQty >= 8 && venomQty > 0) return base;
+
+  return {
+    ...base,
+    summary: appendSentence(base.summary, "Your bank supports Zulrah, but supplies are low."),
+    firstTrip: "Restock food and venom protection, then do one short Zulrah trip.",
+    missing: withMissing(base, "Zulrah supplies")
+  };
+}
+
 function isSpecWeaponAsMain(weaponName: string): boolean {
   return /godsword|dragon claws/i.test(weaponName);
 }
@@ -117,7 +169,7 @@ export function bossViabilityFromGear(owned: GearItem[], boss: Boss): BossViabil
   const dpsText = fmtDps(best.dps);
 
   if (noWeapon) {
-    return {
+    return applyOwnedBossHints({
       boss,
       tone,
       canKill: false,
@@ -129,11 +181,11 @@ export function bossViabilityFromGear(owned: GearItem[], boss: Boss): BossViabil
       summary: "No usable weapon found in this bank.",
       firstTrip: "Pick a safer backup or add gear first.",
       missing: ["usable weapon"]
-    };
+    }, owned);
   }
 
   if (tone === "ready") {
-    return {
+    return applyOwnedBossHints({
       boss,
       tone,
       canKill: true,
@@ -145,11 +197,11 @@ export function bossViabilityFromGear(owned: GearItem[], boss: Boss): BossViabil
       summary: `Best owned setup: ${weaponName} (${styleText}) at ${dpsText} DPS${ttkText ? `, ~${ttkText} kill` : ""}.`,
       firstTrip: "Do one 3-5 kill trip, then decide if it becomes a block.",
       missing: []
-    };
+    }, owned);
   }
 
   if (tone === "test") {
-    return {
+    return applyOwnedBossHints({
       boss,
       tone,
       canKill: true,
@@ -161,10 +213,10 @@ export function bossViabilityFromGear(owned: GearItem[], boss: Boss): BossViabil
       summary: `Best owned setup: ${weaponName} (${styleText}) at ${dpsText} DPS${ttkText ? `, ~${ttkText} kill` : ""}. Keep it short.`,
       firstTrip: "Test 1-2 kills before calling it tonight's grind.",
       missing: ["stronger setup for longer trips"]
-    };
+    }, owned);
   }
 
-  return {
+  return applyOwnedBossHints({
     boss,
     tone,
     canKill: false,
@@ -174,14 +226,14 @@ export function bossViabilityFromGear(owned: GearItem[], boss: Boss): BossViabil
     weaponName,
     verdict: "Blocked",
     summary: `${weaponName} is only ${dpsText} DPS here. Pick a safer boss or upgrade first.`,
-    firstTrip: "Do not make this the main plan from this bank.",
+    firstTrip: `Skip for now; unlock or buy a stronger ${styleText.toLowerCase()} setup first.`,
     missing: [`stronger ${styleText.toLowerCase()} setup`]
-  };
+  }, owned);
 }
 
 export function bossViabilityFromBankItems(items: BankHandoffItem[], boss: Boss): BossViability | null {
   if (items.length === 0) return null;
-  return bossViabilityFromGear(ownedGear(organizedItemsFromHandoff(items)), boss);
+  return applyBankBossHints(bossViabilityFromGear(ownedGear(organizedItemsFromHandoff(items)), boss), items);
 }
 
 export function bossViabilityFromSimpleBank(bank: NextUpBankItem[], boss: Boss): BossViability | null {

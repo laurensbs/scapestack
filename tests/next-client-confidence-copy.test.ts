@@ -106,7 +106,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Add bank to pick teleports");
     expect(source).toContain("Add bank to pick supplies");
     expect(source).not.toContain("Check after bank");
-    expect(source).toContain("Ready to train");
+    expect(source).toContain("Worth doing");
     expect(source).toContain('label: "Train"');
     expect(source).toContain('label: "Bring"');
     expect(source).toContain('label: "Go to"');
@@ -114,9 +114,10 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('label: "Cash out"');
     expect(source).toContain('label: "Task"');
     expect(source).toContain("Check quest/diary items");
-    expect(source).toContain("Ready to leave");
-    expect(source).toContain("Ready to make GP");
-    expect(source).toContain("Add bank first");
+    expect(source).toContain("Good first trip");
+    expect(source).toContain("Bank first");
+    expect(source).toContain("Bring food");
+    expect(source).toContain("Pick a teleport");
     expect(source).toContain("function TripBuilder");
     expect(source).toContain("tripBankItems");
     expect(source).toContain("Copy Bank Tag");

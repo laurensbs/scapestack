@@ -15,10 +15,10 @@ describe("bank export feedback", () => {
     expect(source).toContain("ReadyToLeave");
     expect(source).toContain("function buildBankReadyToLeave");
     expect(source).toContain("ReadyToLeaveStatus");
-    expect(source).toContain('"Ready to leave"');
-    expect(source).toContain('"Missing food"');
-    expect(source).toContain('"Missing teleport"');
-    expect(source).toContain('"Gear looks weak"');
+    expect(source).toContain('"Good first trip"');
+    expect(source).toContain('"Bring food"');
+    expect(source).toContain('"Pick a teleport"');
+    expect(source).toContain('"Skip for now"');
     expect(source).toContain("const bankReadiness = useMemo(");
     expect(source).toContain("readiness={bankReadiness}");
     expect(source).toContain("<span>Organize tabs</span>");

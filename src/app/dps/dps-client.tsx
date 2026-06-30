@@ -62,23 +62,23 @@ function buildDpsReadyToLeave(
 
   if (decision.tone === "locked" || weaponCount === 0) {
     return {
-      status: "Add bank first",
+      status: "Bank first",
       items: [
         { label: "Bank", value: "Paste bank to check gear", tone: "warn" },
-        { label: "Food", value: hasFood ? "In bring list" : "Missing food", tone: hasFood ? "good" : "warn" },
-        { label: "Teleport", value: hasTeleport ? "Tele out" : "Missing teleport", tone: hasTeleport ? "good" : "warn" },
+        { label: "Food", value: hasFood ? "In bring list" : "Bring food", tone: hasFood ? "good" : "warn" },
+        { label: "Teleport", value: hasTeleport ? "Tele out" : "Pick a teleport", tone: hasTeleport ? "good" : "warn" },
         { label: "Stop point", value: decision.stopPoint, tone: "neutral" }
       ]
     };
   }
 
   const status: ReadyToLeaveStatus = decision.tone === "warning"
-    ? "Gear looks weak"
+    ? "Skip for now"
     : !hasFood
-    ? "Missing food"
+    ? "Bring food"
     : !hasTeleport
-    ? "Missing teleport"
-    : "Ready to leave";
+    ? "Pick a teleport"
+    : "Good first trip";
 
   return {
     status,
@@ -90,12 +90,12 @@ function buildDpsReadyToLeave(
       },
       {
         label: "Food",
-        value: hasFood ? "In bring list" : "Missing food",
+        value: hasFood ? "In bring list" : "Bring food",
         tone: hasFood ? "good" : "warn"
       },
       {
         label: "Teleport",
-        value: hasTeleport ? "Tele out" : "Missing teleport",
+        value: hasTeleport ? "Tele out" : "Pick a teleport",
         tone: hasTeleport ? "good" : "warn"
       },
       {
@@ -769,7 +769,7 @@ export function DpsClient() {
       <details className="mb-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/50 p-3">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-semibold text-[var(--color-text)] marker:hidden">
           <span>Make this smarter</span>
-          <span className="text-[11px] font-medium text-[var(--color-text-muted)]">Setup, RSN, RuneLite</span>
+          <span className="text-[11px] font-medium text-[var(--color-text-muted)]">Bank, RSN, RuneLite</span>
         </summary>
         <div className="mt-4 space-y-4">
           <ScapestackReadinessRail

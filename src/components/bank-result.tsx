@@ -144,12 +144,12 @@ function buildBankReadyToLeave({
   const hasFood = hasBankItem(items, BANK_FOOD_RE);
   const hasTeleport = hasBankItem(items, BANK_TELEPORT_RE);
   const status: ReadyToLeaveStatus = weaponCount === 0
-    ? "Gear looks weak"
+    ? "Skip for now"
     : !hasFood
-    ? "Missing food"
+    ? "Bring food"
     : !hasTeleport
-    ? "Missing teleport"
-    : "Ready to leave";
+    ? "Pick a teleport"
+    : "Good first trip";
 
   return {
     status,
@@ -161,12 +161,12 @@ function buildBankReadyToLeave({
       },
       {
         label: "Food",
-        value: hasFood ? "Found" : "Missing food",
+        value: hasFood ? "Found" : "Bring food",
         tone: hasFood ? "good" : "warn"
       },
       {
         label: "Teleport",
-        value: hasTeleport ? "Found" : "Missing teleport",
+        value: hasTeleport ? "Found" : "Pick a teleport",
         tone: hasTeleport ? "good" : "warn"
       },
       {

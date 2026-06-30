@@ -1939,7 +1939,7 @@ function buildNextReadyToLeave(
   if (!needsCombat && !needsItems) {
     if (surface === "gp") {
       return {
-        status: "Ready to make GP",
+        status: "Worth doing",
         items: [
           { label: "Method", value: recommendationSkillLabel(rec), tone: "good" },
           { label: "Bring", value: rec.actionPlan?.prep ?? recommendationBringValue(rec), tone: "neutral" },
@@ -1951,7 +1951,7 @@ function buildNextReadyToLeave(
 
     if (surface === "afk") {
       return {
-        status: "Ready to AFK",
+        status: "Good AFK loop",
         items: [
           { label: "Activity", value: recommendationSkillLabel(rec), tone: "good" },
           { label: "Attention", value: "Low-pressure progress", tone: "neutral" },
@@ -1962,7 +1962,7 @@ function buildNextReadyToLeave(
     }
 
     return {
-      status: "Ready to train",
+      status: "Worth doing",
       items: [
         { label: "Train", value: recommendationSkillLabel(rec), tone: "good" },
         { label: "Bring", value: rec.actionPlan?.prep ?? recommendationBringValue(rec), tone: "neutral" },
@@ -1978,16 +1978,16 @@ function buildNextReadyToLeave(
   const missingFood = /food/.test(missing);
   const missingTeleport = /teleport/.test(missing);
   const status: ReadyToLeaveStatus = needsCombat && !hasBankContext
-    ? "Add bank first"
+    ? "Bank first"
     : needsItems && (!hasBankContext || missingItems)
-    ? "Check items first"
+    ? "Check items"
     : missingGear
-    ? "Gear looks weak"
+    ? "Skip for now"
     : missingFood
-    ? "Missing food"
+    ? "Bring food"
     : missingTeleport
-    ? "Missing teleport"
-    : "Ready to leave";
+    ? "Pick a teleport"
+    : "Good first trip";
 
   if (!hasBankContext) {
     if (needsItems) {
@@ -2049,12 +2049,12 @@ function buildNextReadyToLeave(
           },
           {
             label: "Food",
-            value: missingFood ? "Missing food" : "Found",
+            value: missingFood ? "Bring food" : "Found",
             tone: missingFood ? "warn" : "good"
           },
           {
             label: "Tele out",
-            value: missingTeleport ? "Missing teleport" : trip.teleport,
+            value: missingTeleport ? "Pick a teleport" : trip.teleport,
             tone: missingTeleport ? "warn" : "good"
           },
           {
@@ -2145,6 +2145,10 @@ function recommendationWhyNot({
   });
   if (longQuest) {
     return `Not picked: ${longQuest.title} looks longer than this session needs.`;
+  }
+
+  if (headline.kind === "diary" && others.some((rec) => rec.kind === "slayer")) {
+    return "Worth doing: do this diary before more Slayer.";
   }
 
   if (pluginSyncState === "live") {

@@ -11,16 +11,15 @@ describe("ready to leave UX", () => {
     const component = read("src/components/ready-to-leave.tsx");
 
     expect(component).toContain("ReadyToLeaveStatus");
-    expect(component).toContain('"Ready to leave"');
-    expect(component).toContain('"Ready to train"');
-    expect(component).toContain('"Ready to AFK"');
-    expect(component).toContain('"Ready to make GP"');
-    expect(component).toContain('"Ready to start"');
-    expect(component).toContain('"Missing food"');
-    expect(component).toContain('"Missing teleport"');
-    expect(component).toContain('"Gear looks weak"');
-    expect(component).toContain('"Add bank first"');
-    expect(component).toContain('"Check items first"');
+    expect(component).toContain('"Good first trip"');
+    expect(component).toContain('"Worth doing"');
+    expect(component).toContain('"Good AFK loop"');
+    expect(component).toContain('"Bank first"');
+    expect(component).toContain('"Bring food"');
+    expect(component).toContain('"Pick a teleport"');
+    expect(component).toContain('"Skip for now"');
+    expect(component).toContain('"Unlock first"');
+    expect(component).toContain('"Check items"');
     expect(component).toContain('"Gear"');
     expect(component).toContain('"Bank"');
     expect(component).toContain('"Train"');
@@ -30,6 +29,10 @@ describe("ready to leave UX", () => {
     expect(component).toContain('"mt-3 border-y bg-transparent"');
     expect(component).toContain('"grid gap-x-4 gap-y-2 sm:grid-cols-4"');
     expect(component).not.toContain('"min-w-0 rounded-md border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-2.5 py-2"');
+    expect(component).not.toContain('"Ready to leave"');
+    expect(component).not.toContain('"Missing food"');
+    expect(component).not.toContain('"Gear looks weak"');
+    expect(component).not.toContain('"Add bank first"');
     expect(component).not.toContain("dashboard");
     expect(component).not.toContain("signals");
     expect(component).not.toContain("payload");

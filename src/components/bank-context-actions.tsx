@@ -76,7 +76,7 @@ export function getBankContextActions(
     {
       id: "bank",
       href: bankOrganizerHref(context.rsn, source),
-      label: "Setup",
+      label: "Bank",
       primary: false
     },
     ...toolActions

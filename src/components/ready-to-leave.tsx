@@ -4,16 +4,15 @@ import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type ReadyToLeaveStatus =
-  | "Ready to leave"
-  | "Ready to train"
-  | "Ready to AFK"
-  | "Ready to make GP"
-  | "Ready to start"
-  | "Missing food"
-  | "Missing teleport"
-  | "Gear looks weak"
-  | "Add bank first"
-  | "Check items first";
+  | "Good first trip"
+  | "Worth doing"
+  | "Good AFK loop"
+  | "Bank first"
+  | "Bring food"
+  | "Pick a teleport"
+  | "Skip for now"
+  | "Unlock first"
+  | "Check items";
 
 export type ReadyToLeaveTone = "good" | "warn" | "neutral";
 
@@ -36,7 +35,6 @@ export interface ReadyToLeaveItem {
     | "Items"
     | "Start at"
     | "Method"
-    | "Setup"
     | "Cash out"
     | "Task"
     | "Style"
@@ -56,11 +54,9 @@ export function ReadyToLeave({
   compact?: boolean;
 }) {
   const good =
-    status === "Ready to leave" ||
-    status === "Ready to train" ||
-    status === "Ready to AFK" ||
-    status === "Ready to make GP" ||
-    status === "Ready to start";
+    status === "Good first trip" ||
+    status === "Worth doing" ||
+    status === "Good AFK loop";
   const Icon = good ? CheckCircle2 : AlertCircle;
 
   return (

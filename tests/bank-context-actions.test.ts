@@ -9,7 +9,7 @@ describe("getBankContextActions", () => {
       expect(getBankContextActions(source)[0]).toEqual({
         id: "bank",
         href: `/bank?from=${source}`,
-        label: "Setup",
+        label: "Bank",
         primary: false
       });
     }

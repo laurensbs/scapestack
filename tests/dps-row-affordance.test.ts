@@ -53,11 +53,11 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("ReadyToLeave");
     expect(source).toContain("function buildDpsReadyToLeave");
     expect(source).toContain("ReadyToLeaveStatus");
-    expect(source).toContain('"Ready to leave"');
-    expect(source).toContain('"Missing food"');
-    expect(source).toContain('"Missing teleport"');
-    expect(source).toContain('"Gear looks weak"');
-    expect(source).toContain('"Add bank first"');
+    expect(source).toContain('"Good first trip"');
+    expect(source).toContain('"Bring food"');
+    expect(source).toContain('"Pick a teleport"');
+    expect(source).toContain('"Skip for now"');
+    expect(source).toContain('"Bank first"');
     expect(source).toContain("const readiness = buildDpsReadyToLeave(decision, result, weaponCount);");
     expect(source).toContain('import { bossViabilityFromGear, styleLabel, type BossViability } from "@/lib/boss-viability";');
     expect(source).toContain("function dpsDecisionScore");
@@ -66,7 +66,7 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("Bank says ${result.boss.name}");
     expect(source).toContain("window.scrollTo({ top: 0, behavior: \"instant\" });");
     expect(source).toContain("Make this smarter");
-    expect(source).toContain("Setup, RSN, RuneLite");
+    expect(source).toContain("Bank, RSN, RuneLite");
     expect(source).toContain("Compare other bosses");
     expect(source).toContain("Search and sort the full table only when the first trip is not the one.");
     expect(source).toContain("Boss options with this bank");

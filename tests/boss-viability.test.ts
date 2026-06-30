@@ -2,13 +2,28 @@ import { describe, expect, it } from "vitest";
 import { BOSSES } from "@/lib/bosses";
 import {
   bossViabilityDecisionLine,
+  bossViabilityFromBankItems,
   bossViabilityFromSimpleBank
 } from "@/lib/boss-viability";
+import type { BankHandoffItem } from "@/lib/next-bank-handoff";
 
 function boss(slug: string) {
   const found = BOSSES.find((candidate) => candidate.slug === slug);
   if (!found) throw new Error(`Missing boss fixture: ${slug}`);
   return found;
+}
+
+function bankItem(id: number, name: string, quantity = 1): BankHandoffItem {
+  return {
+    id,
+    name,
+    quantity,
+    unitPrice: 0,
+    stackValue: 0,
+    subtab: "Test",
+    slot: null,
+    weight: 0
+  };
 }
 
 describe("boss viability", () => {
@@ -34,8 +49,28 @@ describe("boss viability", () => {
     expect(viability?.tone).toBe("test");
     expect(viability?.canKill).toBe(true);
     expect(viability?.summary).toContain("Best owned setup: Toxic blowpipe");
+    expect(viability?.summary).toContain("missing Salve makes it worse");
+    expect(viability?.missing).toContain("Salve amulet(ei)");
     expect(viability?.summary).toContain("DPS");
-    expect(viability?.firstTrip).toContain("Test 1-2 kills");
+    expect(viability?.firstTrip).toContain("unlock Salve amulet(ei)");
+  });
+
+  it("turns low Zulrah supplies into a useful warning instead of a vague ready state", () => {
+    const viability = bossViabilityFromBankItems([
+      bankItem(24424, "Tumeken's shadow"),
+      bankItem(12899, "Trident of the swamp"),
+      bankItem(12926, "Toxic blowpipe"),
+      bankItem(12002, "Necklace of anguish"),
+      bankItem(12932, "Occult necklace"),
+      bankItem(22109, "Ava's assembler"),
+      bankItem(11230, "Dragon dart"),
+      bankItem(385, "Shark", 2)
+    ], boss("zulrah"));
+
+    expect(viability?.canKill).toBe(true);
+    expect(viability?.summary).toContain("Your bank supports Zulrah, but supplies are low.");
+    expect(viability?.firstTrip).toContain("Restock food and venom protection");
+    expect(viability?.missing).toContain("Zulrah supplies");
   });
 
   it("prefers a sensible mainhand over a marginal godsword DPS edge", () => {
