@@ -504,11 +504,23 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("const tagItems = needsCombat");
     expect(source).toContain("exportTag({");
     expect(source).toContain("items: tagItems.map((item) => ({ id: item.id }))");
-    expect(source).toContain("<TripBuilder rec={rec} bankItems={bankItems} hasBankContext={hasBankContext} />");
+    expect(source).toContain("<TripBuilder rec={rec} bankItems={bankItems} hasBankContext={hasBankContext} maxEstimate={maxEstimate} />");
     expect(source).toContain("Bring, teleport, stop point.");
     expect(source).toContain('aria-label={`Copy RuneLite Bank Tag for ${rec.title}`}');
     expect(source).toContain("Bank Tag copied");
     expect(source).not.toContain("Trip payload");
     expect(source).not.toContain("Bank Tag dashboard");
+  });
+
+  it("turns Cooking maxing picks into bank-aware XP progress", () => {
+    expect(source).toContain("function skillingBankSummaryForRecommendation");
+    expect(source).toContain("const COOKING_BANK_XP");
+    expect(source).toContain("raw shark");
+    expect(source).toContain("Cooking stack");
+    expect(source).toContain("Still needed:");
+    expect(source).toContain("Bank covers:");
+    expect(source).toContain("No raw fish found in this bank");
+    expect(source).toContain("TRIP_BANK_KEYWORDS.cookingRaw");
+    expect(source).toContain("raw fish stack");
   });
 });

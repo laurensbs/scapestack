@@ -1255,6 +1255,7 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
           allRecs={allRecs}
           activeRsn={activeRsn}
           accountStage={summary.accountStage}
+          maxEstimate={result.maxEstimate}
           hasBankContext={bankItems.length > 0}
           bankItems={bankItems}
           onBossOpen={onBossOpen}
@@ -1946,6 +1947,7 @@ const TRIP_BANK_KEYWORDS = {
   food: GEAR_REALITY_KEYWORDS.food,
   potion: GEAR_REALITY_KEYWORDS.potion,
   travel: GEAR_REALITY_KEYWORDS.travel,
+  cookingRaw: ["raw karambwan", "raw shark", "raw monkfish", "raw anglerfish", "raw manta", "raw lobster", "raw swordfish", "raw tuna", "raw salmon", "raw trout", "raw"],
   quest: ["key", "seal", "mould", "rune", "rope", "hammer", "spade", "saw", "axe", "pickaxe", "tinderbox", "lantern"]
 } as const;
 
@@ -1993,6 +1995,7 @@ function buildRecommendationTrip(
 ): TripBuilderPlan {
   const needsCombat = recommendationNeedsCombatSetup(rec);
   const isUnlock = recommendationNeedsItemCheck(rec);
+  const isCooking = skillNameForRecommendation(rec).toLowerCase() === "cooking";
   const keywordGroups = needsCombat
     ? [
         TRIP_BANK_KEYWORDS.weapon,
@@ -2001,6 +2004,8 @@ function buildRecommendationTrip(
         TRIP_BANK_KEYWORDS.potion,
         TRIP_BANK_KEYWORDS.travel
       ]
+    : isCooking
+      ? [TRIP_BANK_KEYWORDS.cookingRaw, TRIP_BANK_KEYWORDS.travel]
     : isUnlock
       ? [TRIP_BANK_KEYWORDS.travel, TRIP_BANK_KEYWORDS.quest, TRIP_BANK_KEYWORDS.potion]
       : [TRIP_BANK_KEYWORDS.travel, TRIP_BANK_KEYWORDS.food, TRIP_BANK_KEYWORDS.potion, TRIP_BANK_KEYWORDS.weapon];
@@ -2013,7 +2018,8 @@ function buildRecommendationTrip(
 
   if (!hasBankContext) {
     if (needsCombat) missing.push("gear for a cleaner trip");
-    if (isUnlock) missing.push("quest items check");
+    if (isCooking) missing.push("raw fish stack");
+    else if (isUnlock) missing.push("quest items check");
   } else if (needsCombat) {
     if (!bankIncludes(bankItems, TRIP_BANK_KEYWORDS.weapon) && !bankIncludes(bankItems, TRIP_BANK_KEYWORDS.armour)) {
       missing.push("combat gear");
@@ -2021,6 +2027,8 @@ function buildRecommendationTrip(
     if (!bankIncludes(bankItems, TRIP_BANK_KEYWORDS.food)) missing.push("food");
     if (!bankIncludes(bankItems, TRIP_BANK_KEYWORDS.potion)) missing.push("potions");
     if (!bankIncludes(bankItems, TRIP_BANK_KEYWORDS.travel)) missing.push("teleport");
+  } else if (isCooking) {
+    if (!bankIncludes(bankItems, TRIP_BANK_KEYWORDS.cookingRaw)) missing.push("raw fish");
   } else if (isUnlock) {
     if (!bankIncludes(bankItems, TRIP_BANK_KEYWORDS.travel)) missing.push("teleport near the start");
     missing.push("quest items check");
@@ -2031,6 +2039,11 @@ function buildRecommendationTrip(
   const tagName = `Scapestack ${playerChoiceTag(rec).label}`;
   const tagItems = needsCombat
     ? pickedItems
+    : isCooking
+      ? pickedItems.filter((item) =>
+          tripItemMatches(item, TRIP_BANK_KEYWORDS.cookingRaw) ||
+          tripItemMatches(item, TRIP_BANK_KEYWORDS.travel)
+        )
     : pickedItems.filter((item) =>
         tripItemMatches(item, TRIP_BANK_KEYWORDS.travel) ||
         tripItemMatches(item, TRIP_BANK_KEYWORDS.quest)
@@ -2057,12 +2070,47 @@ function buildRecommendationTrip(
 function buildNextReadyToLeave(
   rec: Recommendation,
   bankItems: BankHandoffItem[],
-  hasBankContext: boolean
+  hasBankContext: boolean,
+  maxEstimate: HoursToMaxSummary | null = null
 ): { status: ReadyToLeaveStatus; items: ReadyToLeaveItem[] } {
   const trip = buildRecommendationTrip(rec, bankItems, hasBankContext);
   const needsCombat = recommendationNeedsCombatSetup(rec);
   const needsItems = recommendationNeedsItemCheck(rec);
   const surface = recommendationPlanSurface(rec);
+  const skillingSummary = skillingBankSummaryForRecommendation(rec, bankItems, maxEstimate);
+
+  if (skillingSummary) {
+    const gapLine = cookingLevelGapLine(skillingSummary);
+    return {
+      status: skillingSummary.bankCoversTarget ? "Worth doing" : skillingSummary.bankXp > 0 ? "Check items" : "Bank first",
+      items: [
+        {
+          label: "Skill",
+          value: gapLine ?? "Cook the next stack, then re-run /next.",
+          tone: skillingSummary.xpRemaining === 0 ? "good" : "neutral"
+        },
+        {
+          label: "Bank",
+          value: skillingSummary.bankItemsLabel,
+          tone: skillingSummary.bankXp > 0 ? "good" : "warn"
+        },
+        {
+          label: "Supplies",
+          value: skillingSummary.bankXp > 0 ? `~${formatXp(skillingSummary.bankXp)}` : "No raw fish found",
+          tone: skillingSummary.bankXp > 0 ? "good" : "warn"
+        },
+        {
+          label: "Stop at",
+          value: skillingSummary.remainingAfterBank === null
+            ? "Re-check level gap"
+            : skillingSummary.remainingAfterBank === 0
+              ? "99 covered"
+              : `${formatXp(skillingSummary.remainingAfterBank)} left`,
+          tone: skillingSummary.bankCoversTarget ? "good" : "neutral"
+        }
+      ]
+    };
+  }
 
   if (!needsCombat && !needsItems) {
     if (surface === "gp") {
@@ -2338,18 +2386,102 @@ function routeStepLabel(index: number): string {
 }
 
 function bankQuantityMatching(bankItems: BankHandoffItem[], pattern: RegExp): number {
-  return bankItems.reduce((sum, item) => pattern.test(item.name.toLowerCase()) ? sum + item.quantity : sum, 0);
+  return bankItems.reduce((sum, item) => {
+    pattern.lastIndex = 0;
+    return pattern.test(item.name.toLowerCase()) ? sum + item.quantity : sum;
+  }, 0);
 }
 
-function routeStepPrep(rec: Recommendation, bankItems: BankHandoffItem[], accountStage: NextUpResult["summary"]["accountStage"]): string {
+type SkillingBankSummary = {
+  skill: string;
+  xpRemaining: number | null;
+  bankXp: number;
+  bankItemsLabel: string;
+  remainingAfterBank: number | null;
+  bankCoversTarget: boolean;
+};
+
+const COOKING_BANK_XP: Array<{ pattern: RegExp; label: string; xp: number }> = [
+  { pattern: /^raw karambwan$/i, label: "raw karambwan", xp: 190 },
+  { pattern: /^raw shark$/i, label: "raw shark", xp: 210 },
+  { pattern: /^raw monkfish$/i, label: "raw monkfish", xp: 150 },
+  { pattern: /^raw anglerfish$/i, label: "raw anglerfish", xp: 230 },
+  { pattern: /^raw manta ray$/i, label: "raw manta ray", xp: 216.3 },
+  { pattern: /^raw sea turtle$/i, label: "raw sea turtle", xp: 211.3 },
+  { pattern: /^raw lobster$/i, label: "raw lobster", xp: 120 },
+  { pattern: /^raw swordfish$/i, label: "raw swordfish", xp: 140 },
+  { pattern: /^raw tuna$/i, label: "raw tuna", xp: 100 },
+  { pattern: /^raw salmon$/i, label: "raw salmon", xp: 90 },
+  { pattern: /^raw trout$/i, label: "raw trout", xp: 70 }
+];
+
+function formatXp(value: number): string {
+  return `${Math.round(value).toLocaleString()} XP`;
+}
+
+function skillNameForRecommendation(rec: Recommendation): string {
+  return recommendationSkillLabel(rec);
+}
+
+function skillingBankSummaryForRecommendation(
+  rec: Recommendation,
+  bankItems: BankHandoffItem[],
+  maxEstimate: HoursToMaxSummary | null
+): SkillingBankSummary | null {
+  const skill = skillNameForRecommendation(rec);
+  if (skill.toLowerCase() !== "cooking") return null;
+
+  const estimate = maxEstimate?.perSkill.find((entry) => entry.skill.toLowerCase() === "cooking") ?? null;
+  const xpRemaining = estimate?.xpRemaining ?? null;
+  const owned = COOKING_BANK_XP
+    .map((method) => {
+      const quantity = bankQuantityMatching(bankItems, method.pattern);
+      return { ...method, quantity, xpTotal: quantity * method.xp };
+    })
+    .filter((item) => item.quantity > 0)
+    .sort((a, b) => b.xpTotal - a.xpTotal);
+  const bankXp = owned.reduce((sum, item) => sum + item.xpTotal, 0);
+  const bankItemsLabel = owned.length
+    ? owned.slice(0, 3).map((item) => `${item.quantity.toLocaleString()} ${item.label}`).join(", ")
+    : "No raw fish found in this bank";
+  const remainingAfterBank = xpRemaining === null ? null : Math.max(0, xpRemaining - bankXp);
+
+  return {
+    skill,
+    xpRemaining,
+    bankXp,
+    bankItemsLabel,
+    remainingAfterBank,
+    bankCoversTarget: xpRemaining !== null && bankXp >= xpRemaining && xpRemaining > 0
+  };
+}
+
+function cookingLevelGapLine(summary: SkillingBankSummary | null): string | null {
+  if (!summary) return null;
+  if (summary.xpRemaining === null) return "Cook the banked stack first, then re-check your level gap.";
+  if (summary.xpRemaining <= 0) return "Cooking is already 99; pick a different maxing lane.";
+  return `Cook ${formatXp(summary.xpRemaining)} more for 99.`;
+}
+
+function routeStepPrep(
+  rec: Recommendation,
+  bankItems: BankHandoffItem[],
+  accountStage: NextUpResult["summary"]["accountStage"],
+  maxEstimate: HoursToMaxSummary | null = null
+): string {
   const title = rec.title.toLowerCase();
   const why = rec.why.toLowerCase();
   const isIron = accountStage.id === "iron-route";
 
   if (title.includes("cooking") || why.includes("cooking")) {
-    const rawFish = bankQuantityMatching(bankItems, /^raw (karambwan|shark|monkfish|lobster|swordfish|tuna|salmon|trout|anglerfish|manta ray|sea turtle|bass|cod|herring|sardine|pike)\b/i);
-    if (rawFish > 0) {
-      return `Bank has ${rawFish.toLocaleString()} raw fish. Cook those first, then re-check the level gap.`;
+    const summary = skillingBankSummaryForRecommendation(rec, bankItems, maxEstimate);
+    if (summary && summary.bankXp > 0) {
+      const gap = summary.remainingAfterBank === null
+        ? "then re-check the level gap"
+        : summary.remainingAfterBank === 0
+          ? "enough for the 99 push"
+          : `${formatXp(summary.remainingAfterBank)} still left after that`;
+      return `Bank has ${summary.bankItemsLabel} (~${formatXp(summary.bankXp)}). Cook those first; ${gap}.`;
     }
     return isIron
       ? "No raw fish in the pasted bank. Fish your own supply first, then cook the stack."
@@ -2373,11 +2505,16 @@ function routeStepStart(rec: Recommendation): string {
   return rec.actionPlan?.steps[0] ?? recommendationFirstStepValue(rec);
 }
 
-function routeStepBring(rec: Recommendation, bankItems: BankHandoffItem[], accountStage: NextUpResult["summary"]["accountStage"]): string {
+function routeStepBring(
+  rec: Recommendation,
+  bankItems: BankHandoffItem[],
+  accountStage: NextUpResult["summary"]["accountStage"],
+  maxEstimate: HoursToMaxSummary | null = null
+): string {
   const title = rec.title.toLowerCase();
   if (title.includes("cooking")) {
-    const rawFish = bankQuantityMatching(bankItems, /^raw /i);
-    if (rawFish > 0) return "Raw fish stack, cooking gauntlets if useful, and a close range/bank.";
+    const summary = skillingBankSummaryForRecommendation(rec, bankItems, maxEstimate);
+    if (summary && summary.bankXp > 0) return `${summary.bankItemsLabel}. Cooking gauntlets if useful.`;
     return accountStage.id === "iron-route"
       ? "Fishing gear first, then cook what you catch."
       : "Raw fish or GP for the method.";
@@ -2388,11 +2525,13 @@ function routeStepBring(rec: Recommendation, bankItems: BankHandoffItem[], accou
 function RouteChain({
   recs,
   bankItems,
-  accountStage
+  accountStage,
+  maxEstimate
 }: {
   recs: Recommendation[];
   bankItems: BankHandoffItem[];
   accountStage: NextUpResult["summary"]["accountStage"];
+  maxEstimate: HoursToMaxSummary | null;
 }) {
   if (recs.length === 0) return null;
 
@@ -2437,9 +2576,9 @@ function RouteChain({
               </summary>
               <div className="mt-3 grid gap-2 border-t border-[var(--color-border)] pt-3 text-[11.5px] leading-relaxed text-[var(--color-text-muted)] sm:grid-cols-2">
                 <p><span className="font-bold text-[var(--color-text)]">Start:</span> {routeStepStart(rec)}</p>
-                <p><span className="font-bold text-[var(--color-text)]">Bring:</span> {routeStepBring(rec, bankItems, accountStage)}</p>
+                <p><span className="font-bold text-[var(--color-text)]">Bring:</span> {routeStepBring(rec, bankItems, accountStage, maxEstimate)}</p>
                 <p><span className="font-bold text-[var(--color-text)]">Stop:</span> {recommendationStopPointValue(rec)}</p>
-                <p><span className="font-bold text-[var(--color-text)]">Check:</span> {routeStepPrep(rec, bankItems, accountStage)}</p>
+                <p><span className="font-bold text-[var(--color-text)]">Check:</span> {routeStepPrep(rec, bankItems, accountStage, maxEstimate)}</p>
               </div>
             </details>
           );
@@ -2549,16 +2688,22 @@ function RecommendationSessionSummary({
 function TripBuilder({
   rec,
   bankItems,
-  hasBankContext
+  hasBankContext,
+  maxEstimate
 }: {
   rec: Recommendation;
   bankItems: BankHandoffItem[];
   hasBankContext: boolean;
+  maxEstimate: HoursToMaxSummary | null;
 }) {
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
   const trip = useMemo(
     () => buildRecommendationTrip(rec, bankItems, hasBankContext),
     [rec, bankItems, hasBankContext]
+  );
+  const skillingSummary = useMemo(
+    () => skillingBankSummaryForRecommendation(rec, bankItems, maxEstimate),
+    [rec, bankItems, maxEstimate]
   );
 
   const copyBankTag = async () => {
@@ -2585,6 +2730,20 @@ function TripBuilder({
           <span className="hidden group-open:inline">Hide</span>
         </span>
       </summary>
+
+      {skillingSummary && (
+        <div className="mt-3 rounded-md border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 p-3">
+          <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">
+            Cooking stack
+          </div>
+          <div className="grid gap-2 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)] sm:grid-cols-2">
+            <p><span className="text-[var(--color-text)]">Still needed:</span> {skillingSummary.xpRemaining === null ? "Re-check Hiscores" : formatXp(skillingSummary.xpRemaining)}</p>
+            <p><span className="text-[var(--color-text)]">In bank:</span> {skillingSummary.bankItemsLabel}</p>
+            <p><span className="text-[var(--color-text)]">Bank covers:</span> {skillingSummary.bankXp > 0 ? `~${formatXp(skillingSummary.bankXp)}` : "No raw fish found"}</p>
+            <p><span className="text-[var(--color-text)]">After bank:</span> {skillingSummary.remainingAfterBank === null ? "Re-check level gap" : skillingSummary.remainingAfterBank === 0 ? "99 covered" : `${formatXp(skillingSummary.remainingAfterBank)} left`}</p>
+          </div>
+        </div>
+      )}
 
       <div className="mt-3 grid gap-2 sm:grid-cols-3">
         <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-2.5">
@@ -2703,6 +2862,7 @@ function HeadlineCard({
   hasBankContext,
   bankItems,
   accountStage,
+  maxEstimate,
   pluginSyncState
 }: {
   rec: Recommendation;
@@ -2714,6 +2874,7 @@ function HeadlineCard({
   hasBankContext: boolean;
   bankItems: BankHandoffItem[];
   accountStage: NextUpResult["summary"]["accountStage"];
+  maxEstimate: HoursToMaxSummary | null;
   pluginSyncState: "live" | "stale" | "outdated" | null;
 }) {
   // Boss/KC recs expose an explicit modal button. Other kinds expose an
@@ -2727,7 +2888,7 @@ function HeadlineCard({
   const choice = playerChoiceTag(rec);
   const oneLineReason = headlineOneLineReason(rec);
   const bossViability = bossViabilityForRecommendation(rec, bankItems, hasBankContext);
-  const readyToLeave = buildNextReadyToLeave(rec, bankItems, hasBankContext);
+  const readyToLeave = buildNextReadyToLeave(rec, bankItems, hasBankContext, maxEstimate);
   const card = (
     <article
       className={cn(
@@ -2793,7 +2954,7 @@ function HeadlineCard({
           </p>
           <ReadyToLeave status={readyToLeave.status} items={readyToLeave.items} />
           {recommendationUsesTripBuilder(rec) && (
-            <TripBuilder rec={rec} bankItems={bankItems} hasBankContext={hasBankContext} />
+            <TripBuilder rec={rec} bankItems={bankItems} hasBankContext={hasBankContext} maxEstimate={maxEstimate} />
           )}
           {isBossWithDetail && rec.bossSlug ? (
             <button
@@ -3183,6 +3344,7 @@ function WhatToDo({
   allRecs,
   activeRsn,
   accountStage,
+  maxEstimate,
   hasBankContext,
   bankItems,
   onBossOpen,
@@ -3195,6 +3357,7 @@ function WhatToDo({
   allRecs: Recommendation[];
   activeRsn: string;
   accountStage: NextUpResult["summary"]["accountStage"];
+  maxEstimate: HoursToMaxSummary | null;
   hasBankContext: boolean;
   bankItems: BankHandoffItem[];
   onBossOpen: (slug: string) => void;
@@ -3559,6 +3722,7 @@ function WhatToDo({
               hasBankContext={hasBankContext}
               bankItems={bankItems}
               accountStage={accountStage}
+              maxEstimate={maxEstimate}
               pluginSyncState={pluginSyncState}
             />
             {pick.alternatives.length > 0 && (
@@ -3608,7 +3772,7 @@ function WhatToDo({
                 Show hidden ({hiddenCount})
               </button>
             )}
-            <RouteChain recs={routePreviewRecs} bankItems={bankItems} accountStage={accountStage} />
+            <RouteChain recs={routePreviewRecs} bankItems={bankItems} accountStage={accountStage} maxEstimate={maxEstimate} />
           </>
         ) : (
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-8 text-center text-[var(--color-text-muted)] text-[13px]">
@@ -3955,6 +4119,7 @@ function RecHeadlineExpandable({
   hasBankContext,
   bankItems,
   accountStage,
+  maxEstimate,
   pluginSyncState
 }: {
   rec: Recommendation;
@@ -3970,6 +4135,7 @@ function RecHeadlineExpandable({
   hasBankContext: boolean;
   bankItems: BankHandoffItem[];
   accountStage: NextUpResult["summary"]["accountStage"];
+  maxEstimate: HoursToMaxSummary | null;
   pluginSyncState: "live" | "stale" | "outdated" | null;
 }) {
   const [open, setOpen] = useState(false);
@@ -3986,6 +4152,7 @@ function RecHeadlineExpandable({
         hasBankContext={hasBankContext}
         bankItems={bankItems}
         accountStage={accountStage}
+        maxEstimate={maxEstimate}
         pluginSyncState={pluginSyncState}
       />
       {!cleanMode && (
