@@ -56,6 +56,19 @@ describe("pickForMood", () => {
     expect(result!.headline.kind).toBe("skill");
   });
 
+  it("chill shuffle blijft weg van raids en bossing headlines", () => {
+    const recs = [
+      { ...rec("kc", "chambers-of-xeric", 120), title: "Run Chambers of Xeric", why: "Raid KC block." },
+      rec("skill", "fishing", 60),
+      rec("bank", "birdhouses", 58),
+      rec("diary", "easy-diary", 52)
+    ];
+
+    expect(pickForRoute(recs, "chill", 30, "smart", 0)!.headline.kind).not.toMatch(/boss|kc/);
+    expect(pickForRoute(recs, "chill", 30, "smart", 1)!.headline.kind).not.toMatch(/boss|kc/);
+    expect(pickForRoute(recs, "chill", 30, "fun", 2)!.headline.kind).not.toMatch(/boss|kc/);
+  });
+
   it("bossing: meaningful PvM kan headline zijn wanneer het past", () => {
     const recs = [rec("kc", "vorkath-50", 70), rec("skill", "farming", 80)];
     const result = pickForMood(recs, "bossing", 60);

@@ -430,6 +430,15 @@ function sessionNoveltyMultiplier(rec: Recommendation, options: RoutePickOptions
   return multiplier;
 }
 
+function canHeadlineForMood(rec: Recommendation, mood: Mood, routeLens: RouteLens): boolean {
+  if (routeLens === "boss-log" || mood === "bossing" || mood === "focused") return true;
+  if (mood === "cash") return (rec.kind !== "boss" && rec.kind !== "kc") || routeLens === "gp-upgrade";
+  if (mood === "chill" || mood === "afk" || mood === "short") {
+    return rec.kind !== "boss" && rec.kind !== "kc";
+  }
+  return true;
+}
+
 /** Hoofdfunctie: ranked recs in, mood + tijd erbij, één hoofdpick +
  *  twee alternatieven uit. Wanneer er minder dan 3 recs zijn, vult
  *  alternatives met wat er overblijft.
@@ -475,6 +484,8 @@ export function pickForRoute(
     return { rec, adjScore: rec.score * kindMult * timeMult * accountMult * noveltyMult };
   });
   scored.sort((a, b) => b.adjScore - a.adjScore);
+  const headlineScored = scored.filter((s) => canHeadlineForMood(s.rec, mood, routeLens));
+  const headlinePool = headlineScored.length ? headlineScored : scored;
 
   // Shuffle: bouw een lijst van "hero-kandidaten" waar elke
   // opeenvolgende een ander kind heeft dan z'n voorganger. Dat
@@ -482,7 +493,7 @@ export function pickForRoute(
   // ramt.
   const heroCandidates: Recommendation[] = [];
   const usedKinds = new Set<RecKind>();
-  for (const s of scored) {
+  for (const s of headlinePool) {
     if (!usedKinds.has(s.rec.kind)) {
       heroCandidates.push(s.rec);
       usedKinds.add(s.rec.kind);
@@ -490,7 +501,7 @@ export function pickForRoute(
   }
   // Als de speler verder shuffled dan we kinds hebben → cycle terug
   // door alle scored recs (zelfde kind mag dan terugkomen).
-  const fallbackList = scored.map((s) => s.rec);
+  const fallbackList = headlinePool.map((s) => s.rec);
   const headline =
     heroCandidates[shuffleIndex % Math.max(1, heroCandidates.length)]
     ?? fallbackList[shuffleIndex % fallbackList.length]

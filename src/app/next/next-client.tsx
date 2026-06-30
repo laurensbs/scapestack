@@ -3393,13 +3393,33 @@ function routeSwitchCopy(nextLens: RouteLens, skipped: Recommendation): string {
   }
 }
 
-function randomRouteLens(currentLens: RouteLens, previousLens: RouteLens | null = null): RouteLens {
-  const candidates = ROUTE_LENS_ORDER.filter((lens) => lens !== currentLens && lens !== previousLens);
+function randomRouteLens(currentLens: RouteLens, previousLens: RouteLens | null = null, mood: Mood = "unlock"): RouteLens {
+  const allowed = randomRouteLensCandidatesForMood(mood);
+  const candidates = allowed.filter((lens) => lens !== currentLens && lens !== previousLens);
   if (candidates.length === 0) {
-    const fallback = ROUTE_LENS_ORDER.filter((lens) => lens !== currentLens);
+    const fallback = allowed.filter((lens) => lens !== currentLens);
     return fallback[Math.floor(Math.random() * fallback.length)] ?? "smart";
   }
   return candidates[Math.floor(Math.random() * candidates.length)] ?? "smart";
+}
+
+function randomRouteLensCandidatesForMood(mood: Mood): RouteLens[] {
+  switch (mood) {
+    case "chill":
+      return ["smart", "afk-progress", "short-login", "maxing"];
+    case "afk":
+      return ["afk-progress", "smart", "short-login", "maxing"];
+    case "short":
+      return ["short-login", "smart", "afk-progress"];
+    case "cash":
+      return ["gp-upgrade", "smart", "short-login"];
+    case "bossing":
+    case "focused":
+      return ["boss-log", "fun", "gp-upgrade", "smart"];
+    case "unlock":
+    case "quest":
+      return ["unlock-chain", "maxing", "smart", "short-login"];
+  }
 }
 
 function defaultTimeForMood(mood: Mood): TimeBudget | null {
@@ -3675,7 +3695,7 @@ function WhatToDo({
     setShuffleIdx(0);
   };
   const moveToAnotherPlan = () => {
-    const randomLens = randomRouteLens(routeLens, lastRandomLens);
+    const randomLens = randomRouteLens(routeLens, lastRandomLens, mood);
     const randomShuffle = 1 + Math.floor(Math.random() * Math.max(3, visibleRecs.length));
     setLastRandomLens(randomLens);
     setLastCompleted(null);
@@ -3700,8 +3720,7 @@ function WhatToDo({
     }
     const routeDefaultTime = defaultTimeForRouteLens(randomLens);
     setRouteLens(randomLens);
-    setMood((currentMood) => moodForRouteLens(randomLens, currentMood));
-    if (routeDefaultTime) setMinutes(routeDefaultTime);
+    if (routeDefaultTime && mood !== "chill" && mood !== "afk" && mood !== "short") setMinutes(routeDefaultTime);
     setShuffleIdx(randomShuffle);
     setLastSuppressed(null);
     setLastCompleted(null);
