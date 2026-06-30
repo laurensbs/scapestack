@@ -1929,14 +1929,14 @@ function noHiscoresNudge(): Recommendation {
     title: "Add your OSRS name for a real plan",
     why: "We can only see your bank. Your Hiscores add skills, combat, KC and quest gates.",
     payoff: "Free, no plugin, no account. Just your RSN.",
-    decisionReason: "The bank is loaded, but your OSRS name is what turns this into a real session plan.",
+    decisionReason: "Bank added. Your OSRS name turns this into a real session plan.",
     score: 95,
     link: undefined,
     planSeed: {
       timebox: "2 min",
-      prep: "The bank is loaded, but stats make the next move useful.",
+      prep: "Bank added. Stats make the next move useful.",
       steps: [
-        "Enter your OSRS name on /next and keep the current bank loaded.",
+        "Enter your OSRS name on /next and keep this bank attached.",
         "Use the first plan it gives you, then add bank or RuneLite only if the pick looks off.",
         "Run Scapestack Sync later if /next suggests quests, diary tiers, collection-log slots or Slayer tasks you already finished."
       ]

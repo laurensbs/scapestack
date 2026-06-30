@@ -167,7 +167,7 @@ describe("plugin page copy constants", () => {
     expect(pageSource).not.toContain("PluginBankHandoffBanner");
     expect(bannerSource).toContain("clearBankHandoffPayload(window)");
     expect(bannerSource).toContain("Clear bank");
-    expect(bannerSource).toContain("Bank loaded");
+    expect(bannerSource).toContain("Bank added");
     expect(bannerSource).toContain("What sync can add");
     expect(bannerSource).toContain("The plugin never receives your bank, inventory, equipment, screenshots, clicks or account login.");
   });

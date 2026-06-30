@@ -52,7 +52,7 @@ export function PluginBankHandoffBanner() {
           </span>
           <div className="min-w-0">
             <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              Bank loaded
+              Bank added
             </div>
             <h2 className="mt-1 text-[17px] font-bold tracking-normal text-[var(--color-text)]">
               Use sync if /next repeats finished progress.

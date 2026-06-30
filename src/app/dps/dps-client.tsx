@@ -347,7 +347,7 @@ function DpsDecisionHero({
               onClick={onOpenBoss}
               className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-bold text-white transition-all hover:brightness-110"
             >
-              Open setup
+              Check kill
               <ExternalLink className="size-3.5" />
             </button>
           ) : (
@@ -1234,7 +1234,7 @@ function DpsHandoffIntakeHint({
     <div className="mb-4 rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-panel)]/70 px-4 py-3 flex items-start gap-3">
       <Sparkles className="mt-0.5 size-4 shrink-0 text-[var(--color-accent)]" />
       <p className="text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-        Task picked. Paste gear to check the setup before the first trip.
+        Task picked. Add bank before trusting the first trip.
       </p>
     </div>
   );
@@ -1268,7 +1268,7 @@ function DpsBankContextBanner({
           </span>
           <div className="min-w-0">
             <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              {loadedFromHandoff ? "Gear loaded" : "Gear pasted"}
+              {loadedFromHandoff ? "Bank added" : "Bank pasted"}
             </div>
             {focusedBoss && (
               <div
@@ -1288,15 +1288,15 @@ function DpsBankContextBanner({
               {" · "}
               {weaponCount} weapon{weaponCount === 1 ? "" : "s"} recognised.{" "}
               {hasWeapons && focusedBoss
-                ? `${focusedBoss.name} and the boss list now use this gear.`
+                ? `${focusedBoss.name} and the boss list now use this bank.`
                 : hasWeapons
-                ? "The boss list now uses this gear."
+                ? "The boss list now uses this bank."
                 : "Boss checks need at least one usable combat weapon."}
             </p>
             {!hasWeapons && (
               <div className="mt-3 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 px-3 py-2.5">
                 <p className="text-[12px] font-semibold leading-relaxed text-[var(--color-warning)]">
-                  Gear paste is active, but this looks like supplies/jewellery only.
+                  Bank is active, but this looks like supplies/jewellery only.
                 </p>
                 <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
                   Paste a full Bank Memory export or a combat tab with weapons like whip, fang, blowpipe, trident, bowfa, godswords or scythe to unlock real boss checks.

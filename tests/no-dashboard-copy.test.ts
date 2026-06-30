@@ -60,7 +60,7 @@ describe("player-facing copy avoids dashboard language", () => {
     expect(source).toContain("Need a weapon first");
     expect(source).toContain("Check RuneLite");
     expect(source).toContain("RuneLite can help later");
-    expect(source).toContain("Gear loaded");
+    expect(source).toContain("Bank added");
     expect(source).toContain("Slayer checks found");
   });
 });

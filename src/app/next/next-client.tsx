@@ -553,7 +553,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialQueryString]);
 
-  // "Use saved gear" from the welcome-back banner. Reuses the same engine
+  // "Use saved bank" from the welcome-back banner. Reuses the same engine
   // pipeline as a fresh paste — by calling run() with the stored input
   // string, we always re-derive recommendations from the latest engine,
   // not from any cached output.
@@ -768,7 +768,7 @@ function NextIntake({
               Pick a route
             </div>
             <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-muted)]">
-              Start with Surprise me, or pick the session you want before entering your RSN.
+              Pick the session you want, or let Scapestack choose the cleanest route.
             </p>
           </div>
         </div>
@@ -781,7 +781,7 @@ function NextIntake({
                 key={lens}
                 type="button"
                 aria-pressed={active}
-                aria-label={lens === "smart" ? "Surprise me route" : `Pick ${label.name} route`}
+                aria-label={lens === "smart" ? "Pick best route now" : `Pick ${label.name} route`}
                 onClick={() => setSelectedRouteLens(lens)}
                 className={cn(
                   "flex min-h-[58px] items-center gap-2 rounded-xl border px-3 py-3 text-left transition-colors sm:min-h-[64px]",
@@ -793,7 +793,7 @@ function NextIntake({
                 <ItemSprite id={label.itemId} alt="" size={22} />
                 <span className="min-w-0">
                   <span className="block truncate text-[14px] font-bold sm:text-[13px]">
-                    {lens === "smart" ? "Surprise me" : label.name}
+                    {lens === "smart" ? "Best now" : label.name}
                   </span>
                   <span className="mt-0.5 hidden truncate text-[10.5px] opacity-80 sm:block">
                     {label.tagline}
@@ -813,10 +813,10 @@ function NextIntake({
           saved={savedBank}
           loading={loading}
           presentation="inline"
-          title="Use your saved gear?"
-          message={`We found gear from ${savedBank ? relativeSince(savedBank.savedAt) : "earlier"}. Use it when supplies or GP would change the plan, or skip and start with only an OSRS name.`}
-          primaryLabel="Use saved gear"
-          secondaryLabel="Skip gear"
+          title="Use your saved bank?"
+          message={`We found a bank from ${savedBank ? relativeSince(savedBank.savedAt) : "earlier"}. Use it when supplies or GP would change the plan, or skip and start with only an OSRS name.`}
+          primaryLabel="Use saved bank"
+          secondaryLabel="Skip bank"
           secondaryMode="dismiss"
           onUse={() => onUseSaved(savedBank)}
           onDismiss={onDismissSaved}
@@ -847,19 +847,19 @@ function NextIntake({
       )}
 
       {/* Handoff banner — appears when the user arrived here via the
-          Gear trip handoff button. The bank is
+          Bank trip handoff button. The bank is
           already loaded; an RSN is optional and adds stats. */}
       {fromBank && (
         <div className="mb-4 rounded-lg border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/8 px-4 py-3 flex items-start gap-3 animate-[fade-in_0.3s_ease-out] text-left">
           <Sparkles className="size-4 text-[var(--color-accent)] shrink-0 mt-0.5" />
           <div className="min-w-0 flex-1">
             <p className="text-[13px] text-[var(--color-text)] leading-relaxed">
-              <span className="font-semibold">Using the gear you just organised</span>
+              <span className="font-semibold">Using the bank you just organised</span>
               {handoffSummary ? ` (${handoffSummary.label}).` : "."}{" "}
-              Add your OSRS name for stats and KC, or start with gear alone.
+              Add your OSRS name for stats and KC, or start with this bank alone.
             </p>
             <p className="mt-1 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
-              This gear stays in this browser and expires automatically.
+              This bank stays in this browser and expires automatically.
             </p>
             {handoffSummary && handoffSummary.topItems.length > 0 && (
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -894,7 +894,7 @@ function NextIntake({
               disabled={loading}
               className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Plan with this gear
+              Plan with this bank
               <ArrowRight className="size-3" />
             </button>
             <button
@@ -902,7 +902,7 @@ function NextIntake({
               onClick={onClearBankHandoff}
               className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-danger)]/45 hover:text-[var(--color-danger)]"
             >
-              Clear gear
+              Clear bank
               <Trash2 className="size-3" />
             </button>
           </div>
@@ -1109,10 +1109,10 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
   const [shareMode, setShareMode] = useState(false);
 
   const basisNote =
-    summary.basis === "full" ? "Stats and gear are helping this pick."
+    summary.basis === "full" ? "Bank and stats are shaping this pick."
     : summary.basis === "hiscores-only" ? "Your OSRS name is enough. Add bank only when GP or supplies change the answer."
-    : summary.basis === "bank-only" ? "Gear is enough for a rough plan. Add your OSRS name for stats and KC."
-    : "Add your OSRS name or gear when you want a sharper plan.";
+    : summary.basis === "bank-only" ? "Bank is enough for a rough plan. Add your OSRS name for stats and KC."
+    : "Add your OSRS name or bank when you want a sharper plan.";
 
   // Alle recommendations voor de What-to-do track. Mood-laag herrangschikt
   // ze; "Also worth knowing" is verdwenen — niet-getoonde recs blijven
@@ -1372,16 +1372,16 @@ function NextBankContextStrip({
   const hasPluginSync = pluginSyncState !== null;
   const basisCopy =
     hasLivePluginSync && bankItems.length > 0
-      ? "Gear and finished progress are both shaping this pick."
+      ? "Bank and finished progress are both shaping this pick."
       : pluginSyncState === "stale"
         ? "RuneLite is connected, but refresh before a long grind or GP spend."
         : pluginSyncState === "outdated"
           ? "RuneLite is connected, but update it before trusting newer details."
-          : basis === "full"
-            ? "Gear, goals and account gates are ranked together."
+            : basis === "full"
+              ? "Bank, goals and account gates are ranked together."
             : basis === "bank-only"
-              ? "Gear is loaded. Add an OSRS name next time for account gates."
-              : "Gear is loaded for item checks.";
+              ? "Bank added. Add an OSRS name next time for account gates."
+              : "Bank added for item checks.";
 
   const backToBank = () => {
     if (typeof window === "undefined") return;
@@ -1401,7 +1401,7 @@ function NextBankContextStrip({
           </span>
           <div className="min-w-0">
             <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              {hasPluginSync ? "Gear + RuneLite" : "Gear loaded"}
+              {hasPluginSync ? "Bank + RuneLite" : "Bank added"}
             </div>
             {hasPluginSync && (
               <div className={cn(
@@ -1411,7 +1411,7 @@ function NextBankContextStrip({
                   : "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
               )}>
                 <CheckCircle2 className="size-3" />
-                {hasLivePluginSync ? "Gear + RuneLite" : pluginSyncState === "outdated" ? "Update RuneLite" : "Refresh RuneLite"}
+                {hasLivePluginSync ? "Bank + RuneLite" : pluginSyncState === "outdated" ? "Update RuneLite" : "Refresh RuneLite"}
               </div>
             )}
             <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
@@ -1420,8 +1420,8 @@ function NextBankContextStrip({
               {basisCopy}
             </p>
             <p className="mt-1 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
-              This gear stays in this browser. Clear it when you want Scapestack to ignore this gear.
-              {handoffCleared ? " Stored gear cleared; this current result keeps the plan it already made until you rerun." : ""}
+              This bank stays in this browser. Clear it when you want Scapestack to ignore this bank.
+              {handoffCleared ? " Stored bank cleared; this current result keeps the plan it already made until you rerun." : ""}
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               {context.summary.topItems.map((item) => (
@@ -1453,7 +1453,7 @@ function NextBankContextStrip({
             onClick={backToBank}
             className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
           >
-            Review gear
+            Review bank
             <ArrowRight className="size-3.5" />
           </button>
           <button
@@ -1464,7 +1464,7 @@ function NextBankContextStrip({
             }}
             className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-danger)]/45 hover:text-[var(--color-danger)]"
           >
-            Clear gear
+            Clear bank
             <Trash2 className="size-3.5" />
           </button>
           <Link
@@ -2549,7 +2549,7 @@ function HeadlineCard({
   // the card also contains Wiki/copy/detail controls.
   const isBossWithDetail = (rec.kind === "kc" || rec.kind === "boss") && !!rec.bossSlug;
   const primaryAction = primaryActionForRecommendation(rec, actionContext);
-  const actionLabel = isBossWithDetail ? "Open setup" : primaryAction.label;
+  const actionLabel = isBossWithDetail ? "Check kill" : primaryAction.label;
   const headlineCtaLabel = compactActionLabel(rec, actionLabel);
   const actionHref = isBossWithDetail ? undefined : primaryAction.href;
   const choice = playerChoiceTag(rec);
@@ -2687,7 +2687,7 @@ function RecRow({
 }) {
   const isBossWithDetail = (rec.kind === "kc" || rec.kind === "boss") && !!rec.bossSlug;
   const primaryAction = primaryActionForRecommendation(rec, actionContext);
-  const actionLabel = isBossWithDetail ? "Open setup" : primaryAction.label;
+  const actionLabel = isBossWithDetail ? "Check kill" : primaryAction.label;
   const compactCtaLabel = compactActionLabel(rec, actionLabel);
   const actionHref = isBossWithDetail ? undefined : primaryAction.href;
   const choice = playerChoiceTag(rec);

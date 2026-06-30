@@ -17,7 +17,7 @@ describe("/next confidence UI copy", () => {
 
   it("makes compact recommendation rows visibly and accessibly clickable", () => {
     expect(source).toContain("const primaryAction = primaryActionForRecommendation(rec, actionContext);");
-    expect(source).toContain("const actionLabel = isBossWithDetail ? \"Open setup\" : primaryAction.label;");
+    expect(source).toContain("const actionLabel = isBossWithDetail ? \"Check kill\" : primaryAction.label;");
     expect(source).toContain("const headlineCtaLabel = compactActionLabel(rec, actionLabel);");
     expect(source).toContain("const compactCtaLabel = compactActionLabel(rec, actionLabel);");
     expect(source).toContain("const actionHref = isBossWithDetail ? undefined : primaryAction.href;");
@@ -152,7 +152,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('aria-label={`${actionLabel}: ${rec.title}`}');
     expect(source).toContain("primaryAction.external ? (");
     expect(source).toContain("rel=\"noopener noreferrer\"");
-    expect(source).toContain("Open setup");
+    expect(source).toContain("Check kill");
     expect(source).not.toContain("<Link href={actionHref}>{card}</Link>");
     expect(source).not.toContain("<a href={actionHref} target=\"_blank\" rel=\"noopener noreferrer\">{card}</a>");
     expect(source).not.toContain("cursor-pointer transition-transform");
@@ -190,7 +190,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Do this first");
     expect(source).toContain("One best move for this account. Two backups");
     expect(source).toContain("Pick a route");
-    expect(source).toContain("Surprise me");
+    expect(source).toContain("Best now");
     expect(source).not.toContain("Another route");
     expect(source).not.toContain("Show ${nextRouteLabel.name}");
     expect(source).toContain("After this run");
@@ -283,9 +283,9 @@ describe("/next confidence UI copy", () => {
 
   it("lets players clear temporary bank handoff storage", () => {
     expect(source).toContain("clearBankHandoffPayload(window)");
-    expect(source).toContain("Clear gear");
-    expect(source).toContain("This gear stays in this browser and expires automatically.");
-    expect(source).toContain("Stored gear cleared");
+    expect(source).toContain("Clear bank");
+    expect(source).toContain("This bank stays in this browser and expires automatically.");
+    expect(source).toContain("Stored bank cleared");
     expect(source).toContain('import { bankOrganizerHref } from "@/lib/bank-handoff-url";');
     expect(source).toContain('window.location.href = bankOrganizerHref(activeRsn, "next");');
   });
@@ -429,12 +429,12 @@ describe("/next confidence UI copy", () => {
   });
 
   it("lets bank-handoff players run /next without typing an RSN", () => {
-    expect(source).toContain("Using the gear you just organised");
-    expect(source).toContain("Plan with this gear");
+    expect(source).toContain("Using the bank you just organised");
+    expect(source).toContain("Plan with this bank");
     expect(source).toContain("bankItems: fromBank.items");
     expect(source).toContain("routeLens: selectedRouteLens");
     expect(source).toContain("disabled={loading}");
-    expect(source).toContain("Add your OSRS name for stats and KC, or start with gear alone.");
+    expect(source).toContain("Add your OSRS name for stats and KC, or start with this bank alone.");
   });
 
   it("keeps optional bank paste inside a compact popup", () => {
@@ -465,11 +465,11 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('pluginSyncState: "live" | "stale" | "outdated" | null;');
     expect(source).toContain("const hasLivePluginSync = pluginSyncState === \"live\";");
     expect(source).toContain("hasLivePluginSync && bankItems.length > 0");
-    expect(source).toContain("Gear and finished progress are both shaping this pick.");
+    expect(source).toContain("Bank and finished progress are both shaping this pick.");
     expect(source).not.toContain("verified RuneLite account payload");
     expect(source).toContain("RuneLite is connected, but update it before trusting newer details.");
-    expect(source).toContain("{hasPluginSync ? \"Gear + RuneLite\" : \"Gear loaded\"}");
-    expect(source).toContain("Gear + RuneLite");
+    expect(source).toContain("{hasPluginSync ? \"Bank + RuneLite\" : \"Bank added\"}");
+    expect(source).toContain("Bank + RuneLite");
     expect(source).not.toContain("Exact fusion");
     expect(source).toContain("Update RuneLite");
   });

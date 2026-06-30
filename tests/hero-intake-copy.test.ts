@@ -41,10 +41,10 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("const [showFirstSetup, setShowFirstSetup] = useState(false);");
     expect(source).toContain('const [selectedFirstSetupIntent, setSelectedFirstSetupIntent] = useState<FirstSetupIntent>("surprise");');
     expect(source).toContain('aria-labelledby="hero-first-setup-title"');
-    expect(source).toContain('label: "Surprise me"');
+    expect(source).toContain('label: "Best now"');
     expect(source).toContain("Before we pick");
     expect(source).toContain("What do you feel like doing?");
-    expect(source).toContain("Pick a vibe, or let Scapestack choose. Add bank or RuneLite now only if you want the first plan sharper.");
+    expect(source).toContain("Pick a route. Add bank or RuneLite now only if you want the first plan sharper.");
     expect(source).toContain("setSelectedFirstSetupIntent(choice.intent)");
     expect(source).toContain("Add RuneLite plugin");
     expect(source).toContain("RuneLite selected");
@@ -53,7 +53,7 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("markFirstSetupSeen(trimmed)");
     expect(source).toContain("markRuneliteChecked(trimmed)");
     expect(source).toContain("saveMood({");
-    expect(source).toContain('selectedFirstSetupIntent !== "surprise"');
+    expect(source).toContain("if (options.includeSetupIntent) {");
     expect(source).toContain('params.set("intent", selectedFirstSetupIntent);');
     expect(source).toContain('params.set("time", String(intentPreset.minutes));');
     expect(source).toContain("openPlan({ markSetup: true, includeSetupIntent: true })");

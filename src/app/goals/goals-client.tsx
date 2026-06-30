@@ -713,7 +713,7 @@ function GoalsBankContextBanner({
           </span>
           <div className="min-w-0">
             <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              {loadedFromHandoff ? "Gear loaded" : "Gear checked"}
+              {loadedFromHandoff ? "Bank added" : "Bank checked"}
             </div>
             <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
               <span className="font-semibold text-[var(--color-text)]">{summary.label}</span>

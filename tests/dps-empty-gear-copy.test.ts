@@ -8,7 +8,7 @@ describe("DPS empty gear copy", () => {
   it("does not imply DPS is calculated when the bank has zero weapons", () => {
     expect(source).toContain("const hasWeapons = weaponCount > 0");
     expect(source).toContain("Boss checks need at least one usable combat weapon.");
-    expect(source).toContain("Gear paste is active, but this looks like supplies/jewellery only.");
+    expect(source).toContain("Bank is active, but this looks like supplies/jewellery only.");
     expect(source).toContain("Paste a full Bank Memory export or a combat tab with weapons");
     expect(source).toContain("function DpsNoWeaponGate");
     expect(source).toContain("function DpsMissingSetupState");
@@ -38,7 +38,7 @@ describe("DPS empty gear copy", () => {
     expect(source).toContain("RuneLite skips finished account stuff, but boss checks still need your bank.");
     expect(source).toContain("This boss came from Task Check. Add bank before buying supplies or trusting upgrades.");
     expect(source).toContain("Add bank before using boss checks, upgrades or setup links.");
-    expect(source).toContain("Task picked. Paste gear to check the setup before the first trip.");
+    expect(source).toContain("Task picked. Add bank before trusting the first trip.");
     expect(source).toContain("Add bank");
     expect(source).not.toContain("Paste Bank Memory or Bank Tags before using boss checks, upgrades or setup links.");
     expect(source).not.toContain("Coming from Gear & Bank or /next?");
@@ -54,7 +54,7 @@ describe("DPS empty gear copy", () => {
     expect(source).toContain("Bank picked:");
     expect(source).toContain("Slayer picked:");
     expect(source).toContain('focusedBossSource={isSlayerTaskSource ? "slayer-task" : "bank"}');
-    expect(source).toContain("${focusedBoss.name} and the boss list now use this gear.");
+    expect(source).toContain("${focusedBoss.name} and the boss list now use this bank.");
     expect(source).toContain('<BankContextActions source="dps" rsn={rsn} />');
   });
 

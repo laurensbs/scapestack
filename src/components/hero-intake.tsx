@@ -36,7 +36,7 @@ const FIRST_SETUP_INTENTS: Array<{
   label: string;
   helper: string;
 }> = [
-  { intent: "surprise", mood: "unlock", minutes: 60, label: "Surprise me", helper: "Best route for this login" },
+  { intent: "surprise", mood: "unlock", minutes: 60, label: "Best now", helper: "Cleanest route for this login" },
   { intent: "chill", mood: "chill", minutes: 30, label: "Chill", helper: "Low effort progress" },
   { intent: "cash", mood: "cash", minutes: 60, label: "GP", helper: "Fund upgrades" },
   { intent: "bossing", mood: "bossing", minutes: 60, label: "Bossing", helper: "Trip or KC block" },
@@ -118,7 +118,7 @@ export function HeroIntake() {
       if (options.markSetup) markFirstSetupSeen(trimmed);
       if (firstSetupRunelite) markRuneliteChecked(trimmed);
     }
-    if (options.includeSetupIntent && selectedFirstSetupIntent !== "surprise") {
+    if (options.includeSetupIntent) {
       saveMood({
         mood: intentPreset.mood,
         minutes: intentPreset.minutes
@@ -289,7 +289,7 @@ export function HeroIntake() {
                   What do you feel like doing?
                 </h2>
                 <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
-                  Pick a vibe, or let Scapestack choose. Add bank or RuneLite now only if you want the first plan sharper.
+                  Pick a route. Add bank or RuneLite now only if you want the first plan sharper.
                 </p>
               </div>
               <button
