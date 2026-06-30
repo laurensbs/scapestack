@@ -12,6 +12,9 @@ describe("bank RSN prefill", () => {
     expect(intakeSource).toContain("initialRsn");
     expect(intakeSource).toContain("rsnFromCurrentUrl");
     expect(intakeSource).toContain("saveStoredRsn(urlRsn)");
-    expect(intakeSource).toContain("RSN overgenomen uit je vorige Scapestack stap.");
+    expect(intakeSource).toContain("getActiveAccount()?.rsn");
+    expect(intakeSource).toContain("const cleanedRsn = targetRsn;");
+    expect(intakeSource).not.toContain("RSN overgenomen uit je vorige Scapestack stap.");
+    expect(intakeSource).not.toContain('id="bank-rsn-input"');
   });
 });

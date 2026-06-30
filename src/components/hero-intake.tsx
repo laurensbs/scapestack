@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CheckCircle2, ClipboardPaste, PlugZap, RefreshCw, Sword, UserRound, X } from "lucide-react";
+import { ArrowRight, CheckCircle2, ClipboardPaste, PlugZap, RefreshCw, Sword, X } from "lucide-react";
 import { pluginSyncStatusAction } from "@/app/actions";
 import { BankSetupSteps } from "@/components/bank-setup-steps";
 import { RuneliteOpenButton } from "@/components/runelite-open-button";
@@ -238,11 +238,7 @@ export function HeroIntake() {
       <div className="osrs-frame p-4 text-left sm:p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-3 py-1 text-[11.5px] font-bold text-[var(--color-accent)]">
-              <UserRound className="size-3.5" />
-              {rememberedRsn}
-            </div>
-            <h2 className="mt-3 text-[26px] font-semibold leading-tight text-[var(--color-text)]">
+            <h2 className="text-[26px] font-semibold leading-tight text-[var(--color-text)]">
               Welcome back, {rememberedRsn}.
             </h2>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] font-semibold">

@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { ClipboardPaste, Trash2, ArrowRight, Loader2, User, Sparkles, Filter, Check, Upload, PencilLine } from "lucide-react";
+import { ClipboardPaste, Trash2, ArrowRight, Loader2, Sparkles, Filter, Check, Upload, PencilLine } from "lucide-react";
 import { cn, SAMPLE_BANKTAGS } from "@/lib/utils";
 import { loadStoredRsn, saveStoredRsn } from "@/lib/archetype";
 import { ItemSprite } from "@/components/item-sprite";
 import { BankSetupSteps } from "@/components/bank-setup-steps";
 import { saveSavedBank, saveSavedRsn } from "@/lib/saved-bank";
+import { getActiveAccount } from "@/lib/account-storage";
 
 const STORAGE_KEY = "osrs-bank-organizer:last-input";
 
@@ -86,7 +87,6 @@ export function Intake({
   onSubmit,
   loading,
   error,
-  askRsn = false,
   initialRsn = "",
   compactSave = false,
   saveLabel = "Save bank",
@@ -117,7 +117,8 @@ export function Intake({
         setCompactPasteOpen(false);
       }
     } catch { /* localStorage blocked — fine */ }
-    const urlRsn = cleanInitialRsn || rsnFromCurrentUrl();
+    const activeRsn = cleanRsn(getActiveAccount()?.rsn);
+    const urlRsn = cleanInitialRsn || rsnFromCurrentUrl() || activeRsn;
     if (urlRsn) {
       setRsn(urlRsn);
       setHandoffRsn(urlRsn);
@@ -135,7 +136,7 @@ export function Intake({
   // This flips the badge to a checkmark and lets step 4 light up as current,
   // so the flow visibly advances as the user fills it in.
   const pasteDone = !!value.trim() && kind !== "unknown" && kind !== null;
-  const targetRsn = cleanRsn(rsn) || handoffRsn || rsnFromCurrentUrl();
+  const targetRsn = cleanRsn(rsn) || handoffRsn || rsnFromCurrentUrl() || cleanRsn(getActiveAccount()?.rsn);
   const nextPlanHref = targetRsn ? `/next?rsn=${encodeURIComponent(targetRsn)}` : "/next";
   const bossCheckHref = targetRsn ? `/dps?rsn=${encodeURIComponent(targetRsn)}&from=bank` : "/dps?from=bank";
 
@@ -159,22 +160,22 @@ export function Intake({
   const submit = useCallback(() => {
     if (!value.trim()) return;
     try { localStorage.setItem(STORAGE_KEY, value); } catch {}
-    const cleanedRsn = rsn.trim();
+    const cleanedRsn = targetRsn;
     if (cleanedRsn) saveStoredRsn(cleanedRsn);
     onSubmit(value, junkFilter, cleanedRsn);
-  }, [value, junkFilter, rsn, onSubmit]);
+  }, [value, junkFilter, targetRsn, onSubmit]);
 
   const saveOnly = useCallback(() => {
     if (!value.trim()) return;
     try { localStorage.setItem(STORAGE_KEY, value); } catch {}
-    const cleanedRsn = cleanRsn(rsn);
+    const cleanedRsn = targetRsn;
     if (cleanedRsn) {
       saveStoredRsn(cleanedRsn);
       saveSavedRsn(cleanedRsn);
     }
     saveSavedBank(value, cleanedRsn || null);
     onSaveOnly?.(value, cleanedRsn);
-  }, [value, rsn, onSaveOnly]);
+  }, [value, targetRsn, onSaveOnly]);
 
   // ⌘/Ctrl + Enter to submit
   useEffect(() => {
@@ -593,70 +594,6 @@ export function Intake({
         <p className="mt-2 text-[12px] text-[var(--color-text-muted)] italic">
           Restored your last paste — hit Organize, or Clear to start fresh.
         </p>
-      )}
-
-      {askRsn && (
-        <div className={cn("mt-5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)] p-4", compactSave && "bg-black/18")}>
-          <div className="flex items-center gap-3 mb-3">
-            {!compactSave && (
-              <div
-                className={cn(
-                  "size-7 shrink-0 rounded-full flex items-center justify-center text-[12px] font-semibold border-2 transition-all duration-200",
-                  pasteDone
-                    ? "bg-[var(--color-accent)]/15 text-[var(--color-accent)] border-[var(--color-accent)]"
-                    : "bg-[var(--color-bg-2)] text-[var(--color-text-dim)] border-[var(--color-border)]"
-                )}
-              >
-                4
-              </div>
-            )}
-            <div className="min-w-0">
-              <h3 className="text-[14px] font-semibold text-[var(--color-text)] tracking-normal leading-tight flex items-center gap-2">
-                OSRS name
-                <span className="px-1.5 py-0.5 rounded text-[9.5px] font-semibold tracking-wider uppercase bg-[var(--color-panel-2)] border border-[var(--color-border)] text-[var(--color-text-muted)]">
-                  Optional
-                </span>
-              </h3>
-              <p className="text-[11.5px] text-[var(--color-text-muted)] mt-0.5">
-                {compactSave ? "Keeps this bank attached to the right account." : "Step 4 of 4 — tailors the tab layout to your account"}
-              </p>
-            </div>
-          </div>
-          <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[var(--color-accent)] pointer-events-none" />
-            <label htmlFor="bank-rsn-input" className="sr-only">
-              OSRS name for bank layout personalization
-            </label>
-            <input
-              id="bank-rsn-input"
-              name="rsn"
-              type="text"
-              value={rsn}
-              onChange={(e) => setRsn(e.target.value)}
-              maxLength={12}
-              autoComplete="off"
-              spellCheck={false}
-              aria-describedby={compactSave ? undefined : "bank-rsn-help"}
-              placeholder="e.g. Lynx Titan"
-              className={cn(
-                "w-full rounded-md pl-9 pr-3 py-2.5 text-[13px] font-mono",
-                "bg-[var(--color-panel)] border border-[var(--color-border)]",
-                "focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(134, 166, 217,0.12)]",
-                "placeholder:text-[var(--color-text-muted)]"
-              )}
-            />
-          </div>
-          {!compactSave && (
-            <p id="bank-rsn-help" className="mt-2.5 text-[11.5px] text-[var(--color-text-dim)] leading-relaxed">
-              We check your hiscores once to spot a maxed main, PvMer, skiller or ironman — so the layout fits how you actually play. Leave it blank for a balanced default.
-            </p>
-          )}
-          {handoffRsn && !compactSave && (
-            <p className="mt-2 text-[11.5px] font-medium text-[var(--color-accent)]">
-              RSN overgenomen uit je vorige Scapestack stap.
-            </p>
-          )}
-        </div>
       )}
 
       <div className="mt-5 flex items-center gap-4 flex-wrap">

@@ -51,6 +51,7 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("Refresh RuneLite");
     expect(source).toContain('returningMood ? `Last vibe: ${returningMood.label}` : "Last vibe: Best now"');
     expect(source).toContain("Welcome back, {rememberedRsn}.");
+    expect(source).not.toContain("UserRound");
     expect(source).toContain("Plan next trip");
     expect(source).toContain('{hasBankContext ? "Bank" : "Add bank"}');
     expect(source).toContain("Check kill");
