@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sword, X } from "lucide-react";
+import { ChevronRight, Sword, X } from "lucide-react";
 import { ItemSprite } from "@/components/item-sprite";
 import { MOOD_LABEL, type Mood, type TimeBudget } from "@/lib/mood";
 import { saveMood } from "@/lib/mood-storage";
@@ -21,6 +21,7 @@ interface SessionMoodPickerProps {
   label?: string;
   compact?: boolean;
   mobileTile?: boolean;
+  wide?: boolean;
   className?: string;
   onMoodChange?: (selection: { mood: Mood; minutes: TimeBudget; label: string }) => void;
 }
@@ -30,6 +31,7 @@ export function SessionMoodPicker({
   label = "Best now",
   compact = false,
   mobileTile = false,
+  wide = false,
   className,
   onMoodChange
 }: SessionMoodPickerProps) {
@@ -55,21 +57,43 @@ export function SessionMoodPicker({
         aria-haspopup="dialog"
         aria-expanded={open}
         className={cn(
-          mobileTile
-            ? "flex min-h-[54px] flex-col items-center justify-center rounded-xl border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-1.5 text-center text-[var(--color-accent)] transition-colors hover:border-[var(--color-accent)]/55"
-            : "inline-flex items-center gap-1 whitespace-nowrap rounded-full px-1.5 py-1 transition-colors hover:text-[var(--color-accent)]",
-          compact && !mobileTile && "rounded-lg border border-[var(--color-border)] px-2 py-1.5",
+          wide
+            ? "group flex min-h-[64px] w-full items-center justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-3 text-left transition-colors hover:border-[var(--color-accent)]/45 hover:bg-[var(--color-accent)]/8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/35"
+            : mobileTile
+              ? "flex min-h-[54px] flex-col items-center justify-center rounded-xl border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-1.5 text-center text-[var(--color-accent)] transition-colors hover:border-[var(--color-accent)]/55"
+              : "inline-flex items-center gap-1 whitespace-nowrap rounded-full px-1.5 py-1 transition-colors hover:text-[var(--color-accent)]",
+          compact && !mobileTile && !wide && "rounded-lg border border-[var(--color-border)] px-2 py-1.5",
           className
         )}
       >
-        <Sword className={mobileTile ? "size-4" : "size-3.5"} />
-        <span className={mobileTile ? "mt-1 max-w-full truncate text-[11px] font-bold leading-none" : ""}>
-          {picked}
-        </span>
-        {mobileTile && (
-          <span className="mt-0.5 max-w-full truncate text-[9.5px] font-semibold leading-none opacity-70">
-            Vibe
-          </span>
+        {wide ? (
+          <>
+            <span className="min-w-0">
+              <span className="block text-[12.5px] font-bold text-[var(--color-text)]">
+                What are you in the mood for?
+              </span>
+              <span className="mt-0.5 block text-[11px] leading-relaxed text-[var(--color-text-muted)]">
+                Tap to pick Chill, GP, Bossing, Unlock, AFK or Short.
+              </span>
+            </span>
+            <span className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[13px] font-bold text-[var(--color-text)]">
+              <Sword className="size-3.5 text-[var(--color-accent)]" />
+              <span className="max-w-[92px] truncate">{picked}</span>
+              <ChevronRight className="size-3.5 text-[var(--color-text-muted)] transition-transform group-hover:translate-x-0.5" />
+            </span>
+          </>
+        ) : (
+          <>
+            <Sword className={mobileTile ? "size-4" : "size-3.5"} />
+            <span className={mobileTile ? "mt-1 max-w-full truncate text-[11px] font-bold leading-none" : ""}>
+              {picked}
+            </span>
+            {mobileTile && (
+              <span className="mt-0.5 max-w-full truncate text-[9.5px] font-semibold leading-none opacity-70">
+                Vibe
+              </span>
+            )}
+          </>
         )}
       </button>
 

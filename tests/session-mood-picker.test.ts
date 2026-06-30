@@ -8,6 +8,10 @@ describe("session mood picker", () => {
   it("keeps the reusable mood picker player-first and account-aware", () => {
     expect(source).toContain("What do you feel like doing?");
     expect(source).toContain("Your next plan changes for this account.");
+    expect(source).toContain("wide?: boolean;");
+    expect(source).toContain("What are you in the mood for?");
+    expect(source).toContain("Tap to pick Chill, GP, Bossing, Unlock, AFK or Short.");
+    expect(source).toContain("ChevronRight");
     expect(source).toContain("saveMood({ mood, minutes }, rsn || undefined)");
     expect(source).toContain("onMoodChange?.({ mood, minutes, label: MOOD_LABEL[mood].name })");
     expect(source).toContain("SESSION_MOODS");
@@ -18,6 +22,7 @@ describe("session mood picker", () => {
     expect(source).toContain('mood: "afk"');
     expect(source).toContain('mood: "short"');
     expect(source).toContain("mobileTile");
+    expect(source).toContain("wide");
     expect(source).not.toContain("dashboard");
     expect(source).not.toContain("signals");
     expect(source).not.toContain("payload");

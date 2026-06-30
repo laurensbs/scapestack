@@ -234,14 +234,11 @@ export function HeroIntake() {
           </Link>
         </div>
 
-        <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2">
-          <span className="text-[12.5px] font-semibold text-[var(--color-text-muted)]">
-            What are you in the mood for?
-          </span>
+        <div className="mt-3">
           <SessionMoodPicker
             rsn={rememberedRsn}
             label={returningMood?.label ?? "Best now"}
-            compact
+            wide
             onMoodChange={setReturningMood}
           />
         </div>

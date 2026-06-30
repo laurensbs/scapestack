@@ -41,7 +41,7 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("Check kill");
     expect(source).toContain("RuneLite");
     expect(source).toContain("Change RSN");
-    expect(source).toContain("What are you in the mood for?");
+    expect(source).toContain("wide");
     expect(source).toContain("onMoodChange={setReturningMood}");
   });
 
