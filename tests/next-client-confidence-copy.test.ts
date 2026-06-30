@@ -204,8 +204,8 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function RouteChain");
     expect(source).toContain("routeStepPrep");
     expect(source).toContain("routeStepBring");
-    expect(source).toContain("No raw fish in the pasted bank.");
-    expect(source).toContain("Fish your own supply first");
+    expect(source).toContain("Gather your own supply first");
+    expect(source).toContain("Buy or gather a clean stack before committing.");
     expect(source).toContain("INTAKE_ROUTE_LENSES.map");
     expect(source).toContain("INTAKE_SESSION_CHOICES");
     expect(source).toContain("What do you feel like doing?");
@@ -512,15 +512,22 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("Bank Tag dashboard");
   });
 
-  it("turns Cooking maxing picks into bank-aware XP progress", () => {
+  it("turns skilling maxing picks into bank-aware XP progress", () => {
     expect(source).toContain("function skillingBankSummaryForRecommendation");
-    expect(source).toContain("const COOKING_BANK_XP");
+    expect(source).toContain("const SKILL_BANK_XP");
     expect(source).toContain("raw shark");
-    expect(source).toContain("Cooking stack");
+    expect(source).toContain("dragon bones");
+    expect(source).toContain("mahogany planks");
+    expect(source).toContain("broad arrowheads");
+    expect(source).toContain("gold ore");
+    expect(source).toContain("torstol");
+    expect(source).toContain("pure essence");
+    expect(source).toContain("magic seeds");
+    expect(source).toContain("{skillingSummary.skill} supplies");
     expect(source).toContain("Still needed:");
     expect(source).toContain("Bank covers:");
-    expect(source).toContain("No raw fish found in this bank");
-    expect(source).toContain("TRIP_BANK_KEYWORDS.cookingRaw");
-    expect(source).toContain("raw fish stack");
+    expect(source).toContain("No ${config.suppliesLabel} found in this bank");
+    expect(source).toContain("skillConfig.keywords");
+    expect(source).toContain("${skillConfig.suppliesLabel} stack");
   });
 });

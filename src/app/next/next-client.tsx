@@ -1911,7 +1911,7 @@ function recommendationNeedsItemCheck(rec: Recommendation): boolean {
 }
 
 function recommendationUsesTripBuilder(rec: Recommendation): boolean {
-  return recommendationNeedsCombatSetup(rec) || recommendationNeedsItemCheck(rec);
+  return recommendationNeedsCombatSetup(rec) || recommendationNeedsItemCheck(rec) || Boolean(skillBankConfigForRecommendation(rec));
 }
 
 function recommendationNeeds(rec: Recommendation): string[] {
@@ -1947,7 +1947,6 @@ const TRIP_BANK_KEYWORDS = {
   food: GEAR_REALITY_KEYWORDS.food,
   potion: GEAR_REALITY_KEYWORDS.potion,
   travel: GEAR_REALITY_KEYWORDS.travel,
-  cookingRaw: ["raw karambwan", "raw shark", "raw monkfish", "raw anglerfish", "raw manta", "raw lobster", "raw swordfish", "raw tuna", "raw salmon", "raw trout", "raw"],
   quest: ["key", "seal", "mould", "rune", "rope", "hammer", "spade", "saw", "axe", "pickaxe", "tinderbox", "lantern"]
 } as const;
 
@@ -1995,7 +1994,7 @@ function buildRecommendationTrip(
 ): TripBuilderPlan {
   const needsCombat = recommendationNeedsCombatSetup(rec);
   const isUnlock = recommendationNeedsItemCheck(rec);
-  const isCooking = skillNameForRecommendation(rec).toLowerCase() === "cooking";
+  const skillConfig = skillBankConfigForRecommendation(rec);
   const keywordGroups = needsCombat
     ? [
         TRIP_BANK_KEYWORDS.weapon,
@@ -2004,8 +2003,8 @@ function buildRecommendationTrip(
         TRIP_BANK_KEYWORDS.potion,
         TRIP_BANK_KEYWORDS.travel
       ]
-    : isCooking
-      ? [TRIP_BANK_KEYWORDS.cookingRaw, TRIP_BANK_KEYWORDS.travel]
+    : skillConfig
+      ? [skillConfig.keywords, TRIP_BANK_KEYWORDS.travel]
     : isUnlock
       ? [TRIP_BANK_KEYWORDS.travel, TRIP_BANK_KEYWORDS.quest, TRIP_BANK_KEYWORDS.potion]
       : [TRIP_BANK_KEYWORDS.travel, TRIP_BANK_KEYWORDS.food, TRIP_BANK_KEYWORDS.potion, TRIP_BANK_KEYWORDS.weapon];
@@ -2018,7 +2017,7 @@ function buildRecommendationTrip(
 
   if (!hasBankContext) {
     if (needsCombat) missing.push("gear for a cleaner trip");
-    if (isCooking) missing.push("raw fish stack");
+    if (skillConfig) missing.push(`${skillConfig.suppliesLabel} stack`);
     else if (isUnlock) missing.push("quest items check");
   } else if (needsCombat) {
     if (!bankIncludes(bankItems, TRIP_BANK_KEYWORDS.weapon) && !bankIncludes(bankItems, TRIP_BANK_KEYWORDS.armour)) {
@@ -2027,8 +2026,8 @@ function buildRecommendationTrip(
     if (!bankIncludes(bankItems, TRIP_BANK_KEYWORDS.food)) missing.push("food");
     if (!bankIncludes(bankItems, TRIP_BANK_KEYWORDS.potion)) missing.push("potions");
     if (!bankIncludes(bankItems, TRIP_BANK_KEYWORDS.travel)) missing.push("teleport");
-  } else if (isCooking) {
-    if (!bankIncludes(bankItems, TRIP_BANK_KEYWORDS.cookingRaw)) missing.push("raw fish");
+  } else if (skillConfig) {
+    if (!bankIncludes(bankItems, skillConfig.keywords)) missing.push(skillConfig.suppliesLabel);
   } else if (isUnlock) {
     if (!bankIncludes(bankItems, TRIP_BANK_KEYWORDS.travel)) missing.push("teleport near the start");
     missing.push("quest items check");
@@ -2039,9 +2038,9 @@ function buildRecommendationTrip(
   const tagName = `Scapestack ${playerChoiceTag(rec).label}`;
   const tagItems = needsCombat
     ? pickedItems
-    : isCooking
+    : skillConfig
       ? pickedItems.filter((item) =>
-          tripItemMatches(item, TRIP_BANK_KEYWORDS.cookingRaw) ||
+          tripItemMatches(item, skillConfig.keywords) ||
           tripItemMatches(item, TRIP_BANK_KEYWORDS.travel)
         )
     : pickedItems.filter((item) =>
@@ -2080,13 +2079,13 @@ function buildNextReadyToLeave(
   const skillingSummary = skillingBankSummaryForRecommendation(rec, bankItems, maxEstimate);
 
   if (skillingSummary) {
-    const gapLine = cookingLevelGapLine(skillingSummary);
+    const gapLine = skillingLevelGapLine(skillingSummary);
     return {
       status: skillingSummary.bankCoversTarget ? "Worth doing" : skillingSummary.bankXp > 0 ? "Check items" : "Bank first",
       items: [
         {
           label: "Skill",
-          value: gapLine ?? "Cook the next stack, then re-run /next.",
+          value: gapLine ?? `${skillingSummary.actionVerb} the next stack, then re-run /next.`,
           tone: skillingSummary.xpRemaining === 0 ? "good" : "neutral"
         },
         {
@@ -2096,7 +2095,7 @@ function buildNextReadyToLeave(
         },
         {
           label: "Supplies",
-          value: skillingSummary.bankXp > 0 ? `~${formatXp(skillingSummary.bankXp)}` : "No raw fish found",
+          value: skillingSummary.bankXp > 0 ? `~${formatXp(skillingSummary.bankXp)}` : `No ${skillingSummary.suppliesLabel} found`,
           tone: skillingSummary.bankXp > 0 ? "good" : "warn"
         },
         {
@@ -2397,22 +2396,183 @@ type SkillingBankSummary = {
   xpRemaining: number | null;
   bankXp: number;
   bankItemsLabel: string;
+  suppliesLabel: string;
+  actionVerb: string;
+  bringHint: string;
   remainingAfterBank: number | null;
   bankCoversTarget: boolean;
 };
 
-const COOKING_BANK_XP: Array<{ pattern: RegExp; label: string; xp: number }> = [
-  { pattern: /^raw karambwan$/i, label: "raw karambwan", xp: 190 },
-  { pattern: /^raw shark$/i, label: "raw shark", xp: 210 },
-  { pattern: /^raw monkfish$/i, label: "raw monkfish", xp: 150 },
-  { pattern: /^raw anglerfish$/i, label: "raw anglerfish", xp: 230 },
-  { pattern: /^raw manta ray$/i, label: "raw manta ray", xp: 216.3 },
-  { pattern: /^raw sea turtle$/i, label: "raw sea turtle", xp: 211.3 },
-  { pattern: /^raw lobster$/i, label: "raw lobster", xp: 120 },
-  { pattern: /^raw swordfish$/i, label: "raw swordfish", xp: 140 },
-  { pattern: /^raw tuna$/i, label: "raw tuna", xp: 100 },
-  { pattern: /^raw salmon$/i, label: "raw salmon", xp: 90 },
-  { pattern: /^raw trout$/i, label: "raw trout", xp: 70 }
+type SkillBankSupply = { pattern: RegExp; label: string; xp: number };
+
+type SkillBankConfig = {
+  skill: string;
+  suppliesLabel: string;
+  actionVerb: string;
+  bringHint: string;
+  keywords: readonly string[];
+  items: SkillBankSupply[];
+};
+
+const SKILL_BANK_XP: SkillBankConfig[] = [
+  {
+    skill: "Cooking",
+    suppliesLabel: "raw fish",
+    actionVerb: "Cook",
+    bringHint: "Cooking gauntlets if useful, then use the closest range/bank",
+    keywords: ["raw karambwan", "raw shark", "raw monkfish", "raw anglerfish", "raw manta", "raw sea turtle", "raw lobster", "raw swordfish", "raw tuna", "raw salmon", "raw trout", "raw"],
+    items: [
+      { pattern: /^raw karambwan$/i, label: "raw karambwan", xp: 190 },
+      { pattern: /^raw shark$/i, label: "raw shark", xp: 210 },
+      { pattern: /^raw monkfish$/i, label: "raw monkfish", xp: 150 },
+      { pattern: /^raw anglerfish$/i, label: "raw anglerfish", xp: 230 },
+      { pattern: /^raw manta ray$/i, label: "raw manta ray", xp: 216.3 },
+      { pattern: /^raw sea turtle$/i, label: "raw sea turtle", xp: 211.3 },
+      { pattern: /^raw lobster$/i, label: "raw lobster", xp: 120 },
+      { pattern: /^raw swordfish$/i, label: "raw swordfish", xp: 140 },
+      { pattern: /^raw tuna$/i, label: "raw tuna", xp: 100 },
+      { pattern: /^raw salmon$/i, label: "raw salmon", xp: 90 },
+      { pattern: /^raw trout$/i, label: "raw trout", xp: 70 }
+    ]
+  },
+  {
+    skill: "Prayer",
+    suppliesLabel: "bones/ashes",
+    actionVerb: "Offer",
+    bringHint: "Use your best altar method and bank the noted stacks",
+    keywords: ["bone", "bones", "ashes", "ensouled"],
+    items: [
+      { pattern: /^superior dragon bones$/i, label: "superior dragon bones", xp: 525 },
+      { pattern: /^dragon bones$/i, label: "dragon bones", xp: 252 },
+      { pattern: /^dagannoth bones$/i, label: "dagannoth bones", xp: 437.5 },
+      { pattern: /^wyvern bones$/i, label: "wyvern bones", xp: 72 },
+      { pattern: /^lava dragon bones$/i, label: "lava dragon bones", xp: 340 },
+      { pattern: /^big bones$/i, label: "big bones", xp: 52.5 },
+      { pattern: /^infernal ashes$/i, label: "infernal ashes", xp: 330 },
+      { pattern: /^abyssal ashes$/i, label: "abyssal ashes", xp: 255 }
+    ]
+  },
+  {
+    skill: "Construction",
+    suppliesLabel: "planks",
+    actionVerb: "Build",
+    bringHint: "House tabs, saw, hammer and the best servant route you use",
+    keywords: ["plank", "saw", "hammer", "house tab", "teleport to house"],
+    items: [
+      { pattern: /^mahogany plank$/i, label: "mahogany planks", xp: 140 },
+      { pattern: /^teak plank$/i, label: "teak planks", xp: 90 },
+      { pattern: /^oak plank$/i, label: "oak planks", xp: 60 },
+      { pattern: /^plank$/i, label: "planks", xp: 29 }
+    ]
+  },
+  {
+    skill: "Fletching",
+    suppliesLabel: "logs/arrow supplies",
+    actionVerb: "Fletch",
+    bringHint: "Knife, logs, bowstrings or arrow supplies depending on the method",
+    keywords: ["log", "bow string", "arrow", "dart tip", "knife"],
+    items: [
+      { pattern: /^redwood logs$/i, label: "redwood logs", xp: 380 },
+      { pattern: /^magic logs$/i, label: "magic logs", xp: 250 },
+      { pattern: /^yew logs$/i, label: "yew logs", xp: 175 },
+      { pattern: /^maple logs$/i, label: "maple logs", xp: 58.3 },
+      { pattern: /^willow logs$/i, label: "willow logs", xp: 33.3 },
+      { pattern: /^broad arrowheads$/i, label: "broad arrowheads", xp: 15 },
+      { pattern: /^headless arrows$/i, label: "headless arrows", xp: 15 }
+    ]
+  },
+  {
+    skill: "Firemaking",
+    suppliesLabel: "logs",
+    actionVerb: "Burn",
+    bringHint: "Tinderbox and the log stack; use Wintertodt instead if that is the route",
+    keywords: ["log", "tinderbox", "bruma"],
+    items: [
+      { pattern: /^redwood logs$/i, label: "redwood logs", xp: 350 },
+      { pattern: /^magic logs$/i, label: "magic logs", xp: 303.8 },
+      { pattern: /^yew logs$/i, label: "yew logs", xp: 202.5 },
+      { pattern: /^maple logs$/i, label: "maple logs", xp: 135 },
+      { pattern: /^willow logs$/i, label: "willow logs", xp: 90 },
+      { pattern: /^oak logs$/i, label: "oak logs", xp: 60 }
+    ]
+  },
+  {
+    skill: "Crafting",
+    suppliesLabel: "glass/gems/leather",
+    actionVerb: "Craft",
+    bringHint: "Moulds, thread or jewellery tools if the stack needs them",
+    keywords: ["molten glass", "uncut", "battlestaff", "dragon leather", "hide", "orb", "mould"],
+    items: [
+      { pattern: /^molten glass$/i, label: "molten glass", xp: 55 },
+      { pattern: /^battlestaff$/i, label: "battlestaves", xp: 137.5 },
+      { pattern: /^uncut dragonstone$/i, label: "uncut dragonstones", xp: 137.5 },
+      { pattern: /^uncut diamond$/i, label: "uncut diamonds", xp: 107.5 },
+      { pattern: /^uncut ruby$/i, label: "uncut rubies", xp: 85 },
+      { pattern: /^uncut emerald$/i, label: "uncut emeralds", xp: 67.5 },
+      { pattern: /^uncut sapphire$/i, label: "uncut sapphires", xp: 50 },
+      { pattern: /dragon leather$/i, label: "dragon leather", xp: 62 }
+    ]
+  },
+  {
+    skill: "Smithing",
+    suppliesLabel: "ores/bars",
+    actionVerb: "Smith",
+    bringHint: "Goldsmith gauntlets, coal bag or moulds if the method needs them",
+    keywords: ["ore", "bar", "coal", "gauntlets", "mould"],
+    items: [
+      { pattern: /^gold ore$/i, label: "gold ore", xp: 56.2 },
+      { pattern: /^runite bar$/i, label: "runite bars", xp: 75 },
+      { pattern: /^adamantite bar$/i, label: "adamantite bars", xp: 62.5 },
+      { pattern: /^mithril bar$/i, label: "mithril bars", xp: 50 },
+      { pattern: /^steel bar$/i, label: "steel bars", xp: 37.5 },
+      { pattern: /^iron bar$/i, label: "iron bars", xp: 25 }
+    ]
+  },
+  {
+    skill: "Herblore",
+    suppliesLabel: "herbs/secondaries",
+    actionVerb: "Mix",
+    bringHint: "Vials, herbs and secondaries; keep the stack to one potion type",
+    keywords: ["herb", "weed", "leaf", "root", "scale", "nest", "vial", "unf potion", "potion"],
+    items: [
+      { pattern: /^torstol$/i, label: "torstol", xp: 175 },
+      { pattern: /^dwarf weed$/i, label: "dwarf weed", xp: 162.5 },
+      { pattern: /^lantadyme$/i, label: "lantadyme", xp: 160 },
+      { pattern: /^cadantine$/i, label: "cadantine", xp: 150 },
+      { pattern: /^kwuarm$/i, label: "kwuarm", xp: 125 },
+      { pattern: /^snapdragon$/i, label: "snapdragon", xp: 142.5 },
+      { pattern: /^toadflax$/i, label: "toadflax", xp: 63.3 },
+      { pattern: /^ranarr weed$/i, label: "ranarr weed", xp: 87.5 }
+    ]
+  },
+  {
+    skill: "Runecraft",
+    suppliesLabel: "essence",
+    actionVerb: "Runecraft",
+    bringHint: "Pouches, essence and the altar teleport route",
+    keywords: ["essence", "pouch", "tiara", "talisman"],
+    items: [
+      { pattern: /^pure essence$/i, label: "pure essence", xp: 8 },
+      { pattern: /^daeyalt essence$/i, label: "daeyalt essence", xp: 12 },
+      { pattern: /^rune essence$/i, label: "rune essence", xp: 5 }
+    ]
+  },
+  {
+    skill: "Farming",
+    suppliesLabel: "seeds/saplings",
+    actionVerb: "Plant",
+    bringHint: "Seeds, saplings, compost and teleports for one clean run",
+    keywords: ["seed", "sapling", "compost", "secateurs", "spade"],
+    items: [
+      { pattern: /^magic seed$/i, label: "magic seeds", xp: 13768 },
+      { pattern: /^palm tree seed$/i, label: "palm tree seeds", xp: 10150 },
+      { pattern: /^yew seed$/i, label: "yew seeds", xp: 7069 },
+      { pattern: /^papaya tree seed$/i, label: "papaya seeds", xp: 6146 },
+      { pattern: /^maple seed$/i, label: "maple seeds", xp: 3403 },
+      { pattern: /^ranarr seed$/i, label: "ranarr seeds", xp: 39 },
+      { pattern: /^snapdragon seed$/i, label: "snapdragon seeds", xp: 98.5 }
+    ]
+  }
 ];
 
 function formatXp(value: number): string {
@@ -2429,11 +2589,12 @@ function skillingBankSummaryForRecommendation(
   maxEstimate: HoursToMaxSummary | null
 ): SkillingBankSummary | null {
   const skill = skillNameForRecommendation(rec);
-  if (skill.toLowerCase() !== "cooking") return null;
+  const config = skillBankConfigForSkill(skill);
+  if (!config) return null;
 
-  const estimate = maxEstimate?.perSkill.find((entry) => entry.skill.toLowerCase() === "cooking") ?? null;
+  const estimate = maxEstimate?.perSkill.find((entry) => entry.skill.toLowerCase() === config.skill.toLowerCase()) ?? null;
   const xpRemaining = estimate?.xpRemaining ?? null;
-  const owned = COOKING_BANK_XP
+  const owned = config.items
     .map((method) => {
       const quantity = bankQuantityMatching(bankItems, method.pattern);
       return { ...method, quantity, xpTotal: quantity * method.xp };
@@ -2443,24 +2604,35 @@ function skillingBankSummaryForRecommendation(
   const bankXp = owned.reduce((sum, item) => sum + item.xpTotal, 0);
   const bankItemsLabel = owned.length
     ? owned.slice(0, 3).map((item) => `${item.quantity.toLocaleString()} ${item.label}`).join(", ")
-    : "No raw fish found in this bank";
+    : `No ${config.suppliesLabel} found in this bank`;
   const remainingAfterBank = xpRemaining === null ? null : Math.max(0, xpRemaining - bankXp);
 
   return {
-    skill,
+    skill: config.skill,
     xpRemaining,
     bankXp,
     bankItemsLabel,
+    suppliesLabel: config.suppliesLabel,
+    actionVerb: config.actionVerb,
+    bringHint: config.bringHint,
     remainingAfterBank,
     bankCoversTarget: xpRemaining !== null && bankXp >= xpRemaining && xpRemaining > 0
   };
 }
 
-function cookingLevelGapLine(summary: SkillingBankSummary | null): string | null {
+function skillBankConfigForSkill(skill: string): SkillBankConfig | null {
+  return SKILL_BANK_XP.find((config) => config.skill.toLowerCase() === skill.toLowerCase()) ?? null;
+}
+
+function skillBankConfigForRecommendation(rec: Recommendation): SkillBankConfig | null {
+  return skillBankConfigForSkill(skillNameForRecommendation(rec));
+}
+
+function skillingLevelGapLine(summary: SkillingBankSummary | null): string | null {
   if (!summary) return null;
-  if (summary.xpRemaining === null) return "Cook the banked stack first, then re-check your level gap.";
-  if (summary.xpRemaining <= 0) return "Cooking is already 99; pick a different maxing lane.";
-  return `Cook ${formatXp(summary.xpRemaining)} more for 99.`;
+  if (summary.xpRemaining === null) return `${summary.actionVerb} the banked stack first, then re-check your ${summary.skill} gap.`;
+  if (summary.xpRemaining <= 0) return `${summary.skill} is already 99; pick a different maxing lane.`;
+  return `${summary.skill}: ${formatXp(summary.xpRemaining)} left for 99.`;
 }
 
 function routeStepPrep(
@@ -2469,23 +2641,21 @@ function routeStepPrep(
   accountStage: NextUpResult["summary"]["accountStage"],
   maxEstimate: HoursToMaxSummary | null = null
 ): string {
-  const title = rec.title.toLowerCase();
-  const why = rec.why.toLowerCase();
   const isIron = accountStage.id === "iron-route";
+  const summary = skillingBankSummaryForRecommendation(rec, bankItems, maxEstimate);
 
-  if (title.includes("cooking") || why.includes("cooking")) {
-    const summary = skillingBankSummaryForRecommendation(rec, bankItems, maxEstimate);
-    if (summary && summary.bankXp > 0) {
+  if (summary) {
+    if (summary.bankXp > 0) {
       const gap = summary.remainingAfterBank === null
         ? "then re-check the level gap"
         : summary.remainingAfterBank === 0
           ? "enough for the 99 push"
           : `${formatXp(summary.remainingAfterBank)} still left after that`;
-      return `Bank has ${summary.bankItemsLabel} (~${formatXp(summary.bankXp)}). Cook those first; ${gap}.`;
+      return `Bank has ${summary.bankItemsLabel} (~${formatXp(summary.bankXp)}). ${summary.actionVerb} those first; ${gap}.`;
     }
     return isIron
-      ? "No raw fish in the pasted bank. Fish your own supply first, then cook the stack."
-      : "No raw fish in the pasted bank. Buy a clean stack or add bank before committing.";
+      ? `No ${summary.suppliesLabel} in the pasted bank. Gather your own supply first, then train the stack.`
+      : `No ${summary.suppliesLabel} in the pasted bank. Buy or gather a clean stack before committing.`;
   }
 
   if (rec.kind === "kc" || rec.kind === "boss") {
@@ -2511,13 +2681,12 @@ function routeStepBring(
   accountStage: NextUpResult["summary"]["accountStage"],
   maxEstimate: HoursToMaxSummary | null = null
 ): string {
-  const title = rec.title.toLowerCase();
-  if (title.includes("cooking")) {
-    const summary = skillingBankSummaryForRecommendation(rec, bankItems, maxEstimate);
-    if (summary && summary.bankXp > 0) return `${summary.bankItemsLabel}. Cooking gauntlets if useful.`;
+  const summary = skillingBankSummaryForRecommendation(rec, bankItems, maxEstimate);
+  if (summary) {
+    if (summary.bankXp > 0) return `${summary.bankItemsLabel}. ${summary.bringHint}.`;
     return accountStage.id === "iron-route"
-      ? "Fishing gear first, then cook what you catch."
-      : "Raw fish or GP for the method.";
+      ? `${summary.suppliesLabel} first, then train what you gather.`
+      : `${summary.suppliesLabel} or GP for the method.`;
   }
   return recommendationBringValue(rec);
 }
@@ -2734,12 +2903,12 @@ function TripBuilder({
       {skillingSummary && (
         <div className="mt-3 rounded-md border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 p-3">
           <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">
-            Cooking stack
+            {skillingSummary.skill} supplies
           </div>
           <div className="grid gap-2 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)] sm:grid-cols-2">
             <p><span className="text-[var(--color-text)]">Still needed:</span> {skillingSummary.xpRemaining === null ? "Re-check Hiscores" : formatXp(skillingSummary.xpRemaining)}</p>
             <p><span className="text-[var(--color-text)]">In bank:</span> {skillingSummary.bankItemsLabel}</p>
-            <p><span className="text-[var(--color-text)]">Bank covers:</span> {skillingSummary.bankXp > 0 ? `~${formatXp(skillingSummary.bankXp)}` : "No raw fish found"}</p>
+            <p><span className="text-[var(--color-text)]">Bank covers:</span> {skillingSummary.bankXp > 0 ? `~${formatXp(skillingSummary.bankXp)}` : `No ${skillingSummary.suppliesLabel} found`}</p>
             <p><span className="text-[var(--color-text)]">After bank:</span> {skillingSummary.remainingAfterBank === null ? "Re-check level gap" : skillingSummary.remainingAfterBank === 0 ? "99 covered" : `${formatXp(skillingSummary.remainingAfterBank)} left`}</p>
           </div>
         </div>
