@@ -1942,7 +1942,7 @@ function buildNextReadyToLeave(
         status: "Ready to make GP",
         items: [
           { label: "Method", value: recommendationSkillLabel(rec), tone: "good" },
-          { label: "Setup", value: rec.actionPlan?.prep ?? recommendationBringValue(rec), tone: "neutral" },
+          { label: "Bring", value: rec.actionPlan?.prep ?? recommendationBringValue(rec), tone: "neutral" },
           { label: "Cash out", value: "Bank when profit or supplies change", tone: "neutral" },
           { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
         ]
@@ -1955,7 +1955,7 @@ function buildNextReadyToLeave(
         items: [
           { label: "Activity", value: recommendationSkillLabel(rec), tone: "good" },
           { label: "Attention", value: "Low-pressure progress", tone: "neutral" },
-          { label: "Setup", value: rec.actionPlan?.prep ?? recommendationBringValue(rec), tone: "neutral" },
+          { label: "Bring", value: rec.actionPlan?.prep ?? recommendationBringValue(rec), tone: "neutral" },
           { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
         ]
       };
@@ -2008,7 +2008,7 @@ function buildNextReadyToLeave(
         items: [
           { label: "Task", value: recommendationSkillLabel(rec), tone: "good" },
           { label: "Style", value: "Add bank to check task gear", tone: "warn" },
-          { label: "Bring", value: "Check after bank", tone: "neutral" },
+          { label: "Bring", value: "Add bank to pick supplies", tone: "neutral" },
           { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
         ]
       };
@@ -2018,8 +2018,8 @@ function buildNextReadyToLeave(
       status,
       items: [
         { label: "Bank", value: "Paste bank to check gear", tone: "warn" },
-        { label: "Food", value: "Checked after bank", tone: "neutral" },
-        { label: "Tele out", value: "Checked after bank", tone: "neutral" },
+        { label: "Food", value: "Add bank to check supplies", tone: "neutral" },
+        { label: "Tele out", value: "Add bank to pick teleports", tone: "neutral" },
         { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
       ]
     };
@@ -2093,7 +2093,7 @@ function headlineOneLineReason(rec: Recommendation): string {
 }
 
 function compactActionLabel(rec: Recommendation, actionLabel: string): string {
-  if (rec.kind === "kc" || rec.kind === "boss" || rec.kind === "slayer") return "Setup";
+  if (rec.kind === "kc" || rec.kind === "boss" || rec.kind === "slayer") return "Trip";
   if (rec.kind === "quest" || rec.kind === "diary") return "Guide";
   if (rec.kind === "goal" || rec.kind === "skill" || rec.kind === "milestone") return "Tracker";
   if (rec.kind === "money") return "Route";

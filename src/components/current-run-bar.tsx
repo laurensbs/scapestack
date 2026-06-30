@@ -52,7 +52,7 @@ export function CurrentRunBar({ className, compact = false }: CurrentRunBarProps
 
   return (
     <nav
-      aria-label="Current Scapestack run"
+      aria-label="Scapestack account setup"
       className={cn(
         "flex min-w-0 items-center gap-1.5 rounded-full border border-[var(--color-border)] px-2 py-1 text-[11.5px] font-semibold text-[var(--color-text-muted)]",
         compact ? "w-full justify-between rounded-xl bg-[#101010] px-3 py-2" : "max-w-full bg-[var(--color-bg)]/35",
@@ -78,7 +78,7 @@ export function CurrentRunBar({ className, compact = false }: CurrentRunBarProps
           <span className="text-[var(--color-border-strong)]" aria-hidden="true">·</span>
           <Link href={pluginHref} className="inline-flex items-center gap-1 whitespace-nowrap rounded-full px-1.5 py-1 transition-colors hover:text-[var(--color-accent)]">
             <PlugZap className="size-3.5" />
-            {account?.runeliteCheckedAt ? "RuneLite checked" : "RuneLite later"}
+            {account?.runeliteCheckedAt ? "RuneLite checked" : "Add RuneLite"}
           </Link>
           <span className="text-[var(--color-border-strong)]" aria-hidden="true">·</span>
           <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full px-1.5 py-1">

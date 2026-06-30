@@ -27,7 +27,7 @@ const HERO_BANK_HELP_ID = "hero-bank-paste-help";
 const HERO_FIRST_SETUP_BANK_ID = "hero-first-setup-bank";
 const HERO_FIRST_SETUP_BANK_HELP_ID = "hero-first-setup-bank-help";
 
-type FirstSetupIntent = "chill" | "cash" | "bossing" | "unlock" | "afk" | "short";
+type FirstSetupIntent = "surprise" | "chill" | "cash" | "bossing" | "unlock" | "afk" | "short";
 
 const FIRST_SETUP_INTENTS: Array<{
   intent: FirstSetupIntent;
@@ -36,6 +36,7 @@ const FIRST_SETUP_INTENTS: Array<{
   label: string;
   helper: string;
 }> = [
+  { intent: "surprise", mood: "unlock", minutes: 60, label: "Surprise me", helper: "Best route for this login" },
   { intent: "chill", mood: "chill", minutes: 30, label: "Chill", helper: "Low effort progress" },
   { intent: "cash", mood: "cash", minutes: 60, label: "GP", helper: "Fund upgrades" },
   { intent: "bossing", mood: "bossing", minutes: 60, label: "Bossing", helper: "Trip or KC block" },
@@ -76,7 +77,7 @@ export function HeroIntake() {
   const [showFirstSetup, setShowFirstSetup] = useState(false);
   const [showBankGuide, setShowBankGuide] = useState(false);
   const [showRuneliteGuide, setShowRuneliteGuide] = useState(false);
-  const [selectedFirstSetupIntent, setSelectedFirstSetupIntent] = useState<FirstSetupIntent>("chill");
+  const [selectedFirstSetupIntent, setSelectedFirstSetupIntent] = useState<FirstSetupIntent>("surprise");
   const [showFirstSetupBank, setShowFirstSetupBank] = useState(false);
   const [firstSetupRunelite, setFirstSetupRunelite] = useState(false);
   const [bank, setBank] = useState("");
@@ -117,7 +118,7 @@ export function HeroIntake() {
       if (options.markSetup) markFirstSetupSeen(trimmed);
       if (firstSetupRunelite) markRuneliteChecked(trimmed);
     }
-    if (options.includeSetupIntent) {
+    if (options.includeSetupIntent && selectedFirstSetupIntent !== "surprise") {
       saveMood({
         mood: intentPreset.mood,
         minutes: intentPreset.minutes
@@ -131,7 +132,7 @@ export function HeroIntake() {
     const params = new URLSearchParams();
     if (trimmed) params.set("rsn", trimmed);
     if (!hasBankContext) params.set("bank", "none");
-    if (options.includeSetupIntent) {
+    if (options.includeSetupIntent && selectedFirstSetupIntent !== "surprise") {
       params.set("intent", selectedFirstSetupIntent);
       params.set("time", String(intentPreset.minutes));
     }
@@ -283,12 +284,12 @@ export function HeroIntake() {
           >
             <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-5 py-4 sm:px-6">
               <div>
-                <p className="eyebrow text-[var(--color-accent)]">First session</p>
+                <p className="eyebrow text-[var(--color-accent)]">Before we pick</p>
                 <h2 id="hero-first-setup-title" className="mt-1 text-[24px] font-semibold leading-tight text-[var(--color-text)]">
-                  What are you in the mood for?
+                  What do you feel like doing?
                 </h2>
                 <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
-                  Pick the kind of session first. Bank and RuneLite can make the plan sharper after that.
+                  Pick a vibe, or let Scapestack choose. Add bank or RuneLite now only if you want the first plan sharper.
                 </p>
               </div>
               <button
@@ -302,7 +303,7 @@ export function HeroIntake() {
             </div>
 
             <div className="border-b border-[var(--color-border)] p-5 sm:p-6">
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {FIRST_SETUP_INTENTS.map((choice) => {
                   const selected = selectedFirstSetupIntent === choice.intent;
                   return (
@@ -346,7 +347,7 @@ export function HeroIntake() {
                   {hasBankContext ? "Bank added" : "Add bank"}
                 </span>
                 <span className="mt-1 block text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">
-                  Better gear, supplies and GP checks for this RSN.
+                  Better gear, supplies and GP calls for this RSN.
                 </span>
               </button>
 
@@ -370,7 +371,7 @@ export function HeroIntake() {
                     {firstSetupRunelite ? "RuneLite selected" : "Add RuneLite plugin"}
                   </span>
                   <span className="mt-1 block text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">
-                    Helps skip finished quests, diary steps, clog slots and Slayer mistakes.
+                    Helps avoid finished quests, diary steps, clog slots and Slayer mistakes.
                   </span>
                 </button>
                 {firstSetupRunelite && (
@@ -403,9 +404,9 @@ export function HeroIntake() {
                   aria-live="polite"
                   className="mt-2 block text-[12px] leading-relaxed text-[var(--color-text-muted)]"
                 >
-                  {hasBankPaste
-                    ? "Saved for this account and used for the first plan."
-                    : "Optional. Paste only if gear, supplies or GP should affect the answer."}
+                {hasBankPaste
+                  ? "Saved for this account and used for the first plan."
+                    : "Optional. Paste only if gear, supplies or GP should change the route."}
                 </span>
               </div>
             )}

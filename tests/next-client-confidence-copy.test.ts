@@ -102,6 +102,10 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function buildNextReadyToLeave");
     expect(source).toContain("ReadyToLeave");
     expect(source).toContain("Paste bank to check gear");
+    expect(source).toContain("Add bank to check supplies");
+    expect(source).toContain("Add bank to pick teleports");
+    expect(source).toContain("Add bank to pick supplies");
+    expect(source).not.toContain("Check after bank");
     expect(source).toContain("Ready to train");
     expect(source).toContain('label: "Train"');
     expect(source).toContain('label: "Bring"');

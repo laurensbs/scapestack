@@ -44,7 +44,7 @@ export const TOOLS: Tool[] = [
     slug: "bank",
     href: "/bank",
     name: "Can I leave?",
-    navLabel: "Setup",
+    navLabel: "Bank",
     short: "Add bank once, use it everywhere",
     tagline: "Bank in → leave the bank",
     description:

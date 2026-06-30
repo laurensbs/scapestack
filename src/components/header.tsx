@@ -14,7 +14,7 @@ import { CurrentRunBar } from "./current-run-bar";
 
 const LOOP_STEPS = [
   { label: "Plan", href: "/next" },
-  { label: "Setup", href: "/bank" },
+  { label: "Bank", href: "/bank" },
   { label: "Kill", href: "/dps" }
 ];
 
@@ -174,7 +174,7 @@ export function Header() {
           <nav id={mobileNavId} className="px-4 py-3 space-y-1" aria-label="Mobile Scapestack tools">
             <div className="mb-3 rounded-xl border border-[var(--color-border)] bg-[#090909] p-3">
               <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-gold)]">
-                Current run
+                Your account
               </div>
               <div className="mt-2">
                 <CurrentRunBar compact />
@@ -193,7 +193,7 @@ export function Header() {
                 ))}
               </div>
               <p className="mt-2 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
-                One account. One setup. One next trip.
+                Saved once. Used everywhere.
               </p>
             </div>
             {navTools.map((tool) => {
@@ -317,6 +317,7 @@ function AccountSwitcher({
   const pluginHref = activeRsn ? `/plugin?rsn=${encodeURIComponent(activeRsn)}#verify-sync` : "/plugin#verify-sync";
   const bankStatusLabel = hasSavedSetup ? "Bank added" : "Add bank";
   const bankFreshness = bankSavedAt ? `Bank saved ${describeSavedAt(bankSavedAt)}` : bankStatusLabel;
+  const activeAccount = accounts.find((account) => account.rsn === activeRsn);
 
   return (
     <div className={cn("relative", compact ? "w-full" : "hidden sm:block")}>
@@ -399,7 +400,7 @@ function AccountSwitcher({
               <span className="mx-1.5 text-[var(--color-border-strong)]">·</span>
               <span title={bankFreshness}>{bankStatusLabel}</span>
               <span className="mx-1.5 text-[var(--color-border-strong)]">·</span>
-              <span>RuneLite later</span>
+              <span>{activeAccount?.runeliteCheckedAt ? "RuneLite checked" : "Add RuneLite"}</span>
             </div>
           )}
 

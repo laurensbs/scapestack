@@ -6,7 +6,7 @@ const source = readFileSync(join(process.cwd(), "src/components/current-run-bar.
 
 describe("current run bar", () => {
   it("centralizes account, setup, RuneLite and vibe context without a dashboard panel", () => {
-    expect(source).toContain('aria-label="Current Scapestack run"');
+    expect(source).toContain('aria-label="Scapestack account setup"');
     expect(source).toContain("getActiveAccount");
     expect(source).toContain("SAVED_BANK_EVENT");
     expect(source).toContain("window.addEventListener(SAVED_BANK_EVENT, refresh)");
@@ -15,7 +15,7 @@ describe("current run bar", () => {
     expect(source).toContain("loadSavedBank(savedRsn)");
     expect(source).toContain("Bank added");
     expect(source).toContain("Add bank");
-    expect(source).toContain("RuneLite later");
+    expect(source).toContain("Add RuneLite");
     expect(source).toContain("Best now");
     expect(source).not.toContain("signals");
     expect(source).not.toContain("readiness");

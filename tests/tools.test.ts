@@ -43,7 +43,7 @@ describe("tool registry", () => {
 
     expect(PRIMARY_NAV_SLUGS).toEqual(["next", "bank", "dps"]);
     expect(primary.map((tool) => tool.slug)).toEqual(["next", "bank", "dps"]);
-    expect(primary.map((tool) => tool.navLabel)).toEqual(["Plan", "Setup", "Check kill"]);
+    expect(primary.map((tool) => tool.navLabel)).toEqual(["Plan", "Bank", "Check kill"]);
     expect(primary.every((tool) => (tool.navLabel ?? tool.name).length <= 10)).toBe(true);
   });
 

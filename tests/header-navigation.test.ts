@@ -20,6 +20,7 @@ describe("global header navigation", () => {
     expect(source).toContain("Bank added");
     expect(source).toContain("Add bank");
     expect(source).toContain("Check RuneLite");
+    expect(source).toContain("Add RuneLite");
     expect(source).toContain("Remove account");
     expect(source).toContain("Remove ${rsn} from Scapestack on this device?");
     expect(source).toContain("<Package");
@@ -30,10 +31,10 @@ describe("global header navigation", () => {
   it("surfaces the core Plan → Setup → Kill loop as clickable navigation", () => {
     expect(source).toContain("LOOP_STEPS");
     expect(source).toContain('{ label: "Plan", href: "/next" }');
-    expect(source).toContain('{ label: "Setup", href: "/bank" }');
+    expect(source).toContain('{ label: "Bank", href: "/bank" }');
     expect(source).toContain('{ label: "Kill", href: "/dps" }');
-    expect(source).toContain("Current run");
-    expect(source).toContain("One account. One setup. One next trip.");
+    expect(source).toContain("Your account");
+    expect(source).toContain("Saved once. Used everywhere.");
     expect(source).toContain('aria-label={`${step.label} in Scapestack loop`}');
   });
 

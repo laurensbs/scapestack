@@ -27,7 +27,7 @@ describe("hero intake copy and routing", () => {
 
   it("shows first-time setup before the first /next plan", () => {
     expect(source).toContain('const HERO_FIRST_SETUP_KEY = "scapestack:first-setup:v1";');
-    expect(source).toContain('type FirstSetupIntent = "chill" | "cash" | "bossing" | "unlock" | "afk" | "short";');
+    expect(source).toContain('type FirstSetupIntent = "surprise" | "chill" | "cash" | "bossing" | "unlock" | "afk" | "short";');
     expect(source).toContain("const FIRST_SETUP_INTENTS:");
     expect(source).toContain('label: "Chill"');
     expect(source).toContain('label: "GP"');
@@ -39,11 +39,12 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("function hasSeenFirstSetup(rsn: string): boolean");
     expect(source).toContain("function markFirstSetupSeen(rsn: string): void");
     expect(source).toContain("const [showFirstSetup, setShowFirstSetup] = useState(false);");
-    expect(source).toContain('const [selectedFirstSetupIntent, setSelectedFirstSetupIntent] = useState<FirstSetupIntent>("chill");');
+    expect(source).toContain('const [selectedFirstSetupIntent, setSelectedFirstSetupIntent] = useState<FirstSetupIntent>("surprise");');
     expect(source).toContain('aria-labelledby="hero-first-setup-title"');
-    expect(source).toContain("First session");
-    expect(source).toContain("What are you in the mood for?");
-    expect(source).toContain("Pick the kind of session first. Bank and RuneLite can make the plan sharper after that.");
+    expect(source).toContain('label: "Surprise me"');
+    expect(source).toContain("Before we pick");
+    expect(source).toContain("What do you feel like doing?");
+    expect(source).toContain("Pick a vibe, or let Scapestack choose. Add bank or RuneLite now only if you want the first plan sharper.");
     expect(source).toContain("setSelectedFirstSetupIntent(choice.intent)");
     expect(source).toContain("Add RuneLite plugin");
     expect(source).toContain("RuneLite selected");
@@ -52,6 +53,7 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("markFirstSetupSeen(trimmed)");
     expect(source).toContain("markRuneliteChecked(trimmed)");
     expect(source).toContain("saveMood({");
+    expect(source).toContain('selectedFirstSetupIntent !== "surprise"');
     expect(source).toContain('params.set("intent", selectedFirstSetupIntent);');
     expect(source).toContain('params.set("time", String(intentPreset.minutes));');
     expect(source).toContain("openPlan({ markSetup: true, includeSetupIntent: true })");
