@@ -63,9 +63,11 @@ export function loadAccountStore(): ScapestackAccountStore {
     const parsed = JSON.parse(raw) as Partial<ScapestackAccountStore>;
     if (parsed.version !== 1 || !Array.isArray(parsed.accounts)) return emptyStore();
     const accounts = parsed.accounts.filter(isAccount);
-    const activeId = typeof parsed.activeId === "string" && accounts.some((account) => account.id === parsed.activeId)
-      ? parsed.activeId
-      : accounts[0]?.id ?? null;
+    const activeId = parsed.activeId === null
+      ? null
+      : typeof parsed.activeId === "string" && accounts.some((account) => account.id === parsed.activeId)
+        ? parsed.activeId
+        : accounts[0]?.id ?? null;
     return { version: 1, activeId, accounts };
   } catch {
     return emptyStore();
@@ -125,9 +127,7 @@ export function removeAccount(rsn: string): void {
   const id = accountIdForRsn(rsn);
   const store = loadAccountStore();
   const accounts = store.accounts.filter((account) => account.id !== id);
-  const activeId = store.activeId === id
-    ? accounts[0]?.id ?? null
-    : store.activeId;
+  const activeId = store.activeId === id ? null : store.activeId;
   saveAccountStore({ version: 1, activeId, accounts });
 }
 

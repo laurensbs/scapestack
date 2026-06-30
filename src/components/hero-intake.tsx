@@ -7,7 +7,7 @@ import { ArrowRight, ClipboardPaste, PlugZap, Sword, UserRound, X } from "lucide
 import { BankSetupSteps } from "@/components/bank-setup-steps";
 import { RuneliteOpenButton } from "@/components/runelite-open-button";
 import { SessionMoodPicker } from "@/components/session-mood-picker";
-import { getActiveAccount, markRuneliteChecked } from "@/lib/account-storage";
+import { ACCOUNT_EVENT, getActiveAccount, markRuneliteChecked } from "@/lib/account-storage";
 import { MOOD_LABEL, type Mood, type TimeBudget } from "@/lib/mood";
 import { loadMood, saveMood } from "@/lib/mood-storage";
 import { loadSavedBank, loadSavedRsn, saveSavedBank, saveSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
@@ -85,21 +85,38 @@ export function HeroIntake() {
   const isRememberedRun = Boolean(rememberedRsn && cleanRsn === rememberedRsn);
 
   useEffect(() => {
-    const active = getActiveAccount();
-    const remembered = active?.rsn ?? loadSavedRsn() ?? "";
-    if (remembered) {
+    const refreshRememberedAccount = () => {
+      const active = getActiveAccount();
+      const remembered = active?.rsn ?? loadSavedRsn() ?? "";
+      if (!remembered) {
+        setRsn("");
+        setRememberedRsn("");
+        setRememberedRuneliteChecked(false);
+        setReturningMood(null);
+        setEditingAccount(false);
+        return;
+      }
+
       setRsn(remembered);
       setRememberedRsn(remembered);
       setRememberedRuneliteChecked(Boolean(active?.runeliteCheckedAt));
+      setEditingAccount(false);
       const savedMood = loadMood(remembered);
-      if (savedMood?.mood) {
-        setReturningMood({
-          mood: savedMood.mood,
-          minutes: savedMood.minutes,
-          label: MOOD_LABEL[savedMood.mood].name
-        });
-      }
-    }
+      setReturningMood(savedMood?.mood
+        ? {
+            mood: savedMood.mood,
+            minutes: savedMood.minutes,
+            label: MOOD_LABEL[savedMood.mood].name
+          }
+        : null);
+    };
+    refreshRememberedAccount();
+    window.addEventListener(ACCOUNT_EVENT, refreshRememberedAccount);
+    window.addEventListener("storage", refreshRememberedAccount);
+    return () => {
+      window.removeEventListener(ACCOUNT_EVENT, refreshRememberedAccount);
+      window.removeEventListener("storage", refreshRememberedAccount);
+    };
   }, []);
 
   useEffect(() => {

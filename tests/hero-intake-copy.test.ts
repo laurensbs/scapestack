@@ -27,6 +27,11 @@ describe("hero intake copy and routing", () => {
   });
 
   it("turns the homepage account-first when an RSN is already saved", () => {
+    expect(source).toContain("ACCOUNT_EVENT");
+    expect(source).toContain("refreshRememberedAccount");
+    expect(source).toContain("window.addEventListener(ACCOUNT_EVENT, refreshRememberedAccount)");
+    expect(source).toContain("setRememberedRsn(\"\");");
+    expect(source).toContain("setEditingAccount(false);");
     expect(source).toContain("const [editingAccount, setEditingAccount] = useState(false);");
     expect(source).toContain("const [rememberedRuneliteChecked, setRememberedRuneliteChecked] = useState(false);");
     expect(source).toContain("const [returningMood, setReturningMood] = useState<{ mood: Mood; minutes: TimeBudget; label: string } | null>(null);");

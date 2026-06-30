@@ -297,9 +297,10 @@ function AccountSwitcher({
     const confirmed = window.confirm(`Remove ${rsn} from Scapestack on this device?`);
     if (!confirmed) return;
     const removingActive = rsn === activeRsn;
+    const removingLegacy = loadSavedRsn()?.trim().toLowerCase() === rsn.trim().toLowerCase();
+    if (removingActive || removingLegacy) clearSavedRsn();
     removeAccount(rsn);
     const nextActive = getActiveAccount();
-    if (removingActive && !nextActive) clearSavedRsn();
     if (nextActive?.rsn) saveSavedRsn(nextActive.rsn);
     refresh();
   };

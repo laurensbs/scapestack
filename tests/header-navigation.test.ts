@@ -23,6 +23,9 @@ describe("global header navigation", () => {
     expect(source).toContain("Add RuneLite");
     expect(source).toContain("Remove account");
     expect(source).toContain("Remove ${rsn} from Scapestack on this device?");
+    expect(source).toContain("const removingLegacy = loadSavedRsn()?.trim().toLowerCase() === rsn.trim().toLowerCase();");
+    expect(source).toContain("if (removingActive || removingLegacy) clearSavedRsn();");
+    expect(source).toContain("removeAccount(rsn);");
     expect(source).toContain("<Package");
     expect(source).toContain("<PlugZap");
     expect(source).toContain("CurrentRunBar");
