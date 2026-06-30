@@ -60,6 +60,12 @@ describe("homepage first-impression copy", () => {
     expect(source).not.toContain("lg:grid-cols-[minmax(0,1fr)_520px]");
   });
 
+  it("uses oldschool OSRS surfaces instead of generic black cards", () => {
+    expect(source).toContain("osrs-frame");
+    expect(source).toContain("osrs-body");
+    expect(source).not.toContain('bg-[#090909]');
+  });
+
   it("removes extra above-the-fold dashboard choices", () => {
     expect(source).not.toContain("HERO_ACTION_CHOICES");
     expect(source).not.toContain("HERO_ACCOUNT_LEVERS");

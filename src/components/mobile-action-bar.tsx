@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ClipboardPaste, PlugZap, Sparkles } from "lucide-react";
 import { ACCOUNT_EVENT, getActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
 import { loadMood } from "@/lib/mood-storage";
@@ -23,6 +24,7 @@ function moodLabel(mood?: string): string {
 }
 
 export function MobileActionBar() {
+  const pathname = usePathname();
   const [account, setAccount] = useState<ScapestackAccount | null>(null);
   const [rsn, setRsn] = useState("");
   const [hasBank, setHasBank] = useState(false);
@@ -77,10 +79,12 @@ export function MobileActionBar() {
     }
   ];
 
+  if (pathname === "/") return null;
+
   return (
     <nav
       aria-label="Mobile quick actions"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--color-border)] bg-[#050505]/94 px-2 pb-[calc(env(safe-area-inset-bottom)+0.45rem)] pt-2 shadow-[0_-18px_50px_-36px_rgba(0,0,0,0.95)] backdrop-blur-md sm:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/94 px-2 pb-[calc(env(safe-area-inset-bottom)+0.45rem)] pt-2 shadow-[0_-18px_50px_-36px_rgba(0,0,0,0.95)] backdrop-blur-md sm:hidden"
     >
       <div className="mx-auto grid max-w-md grid-cols-4 gap-1.5">
         {actions.map((action) => {

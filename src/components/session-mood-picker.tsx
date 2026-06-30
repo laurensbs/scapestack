@@ -58,7 +58,7 @@ export function SessionMoodPicker({
         aria-expanded={open}
         className={cn(
           wide
-            ? "group flex min-h-[64px] w-full items-center justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-3 text-left transition-colors hover:border-[var(--color-accent)]/45 hover:bg-[var(--color-accent)]/8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/35"
+            ? "group flex min-h-[68px] w-full items-center justify-between gap-3 rounded-lg border border-[var(--color-parchment-edge)] bg-[var(--color-parchment-dark)]/42 px-3 py-3 text-left shadow-[inset_0_1px_0_rgba(245,236,221,0.05)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-parchment)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/45"
             : mobileTile
               ? "flex min-h-[54px] flex-col items-center justify-center rounded-xl border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-1.5 text-center text-[var(--color-accent)] transition-colors hover:border-[var(--color-accent)]/55"
               : "inline-flex items-center gap-1 whitespace-nowrap rounded-full px-1.5 py-1 transition-colors hover:text-[var(--color-accent)]",
@@ -76,10 +76,10 @@ export function SessionMoodPicker({
                 Tap to pick Chill, GP, Bossing, Unlock, AFK or Short.
               </span>
             </span>
-            <span className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[13px] font-bold text-[var(--color-text)]">
-              <Sword className="size-3.5 text-[var(--color-accent)]" />
+            <span className="inline-flex shrink-0 items-center gap-2 rounded-md border border-[var(--color-gold-deep)] bg-[var(--color-accent)] px-3 py-2 text-[13px] font-extrabold text-[#0B0906] shadow-[inset_0_1px_0_rgba(255,241,168,0.32),inset_0_-2px_0_rgba(0,0,0,0.22)]">
+              <Sword className="size-3.5 text-[#0B0906]" />
               <span className="max-w-[92px] truncate">{picked}</span>
-              <ChevronRight className="size-3.5 text-[var(--color-text-muted)] transition-transform group-hover:translate-x-0.5" />
+              <ChevronRight className="size-3.5 text-[#0B0906] transition-transform group-hover:translate-x-0.5" />
             </span>
           </>
         ) : (
@@ -106,18 +106,15 @@ export function SessionMoodPicker({
           onClick={() => setOpen(false)}
         >
           <div
-            className="w-full max-w-xl rounded-2xl border border-[var(--color-border)] bg-[#090909] p-5 text-left shadow-[0_30px_100px_-45px_rgba(0,0,0,0.92)] sm:p-6"
+            className="osrs-frame w-full max-w-xl text-left"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-4">
+            <div className="osrs-title-bar flex items-start justify-between gap-4 px-5 py-3 sm:px-6">
               <div>
-                <p className="eyebrow text-[var(--color-accent)]">Pick a session</p>
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">Pick a session</p>
                 <h2 id="session-mood-title" className="mt-1 text-[24px] font-semibold leading-tight text-[var(--color-text)]">
                   What do you feel like doing?
                 </h2>
-                <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
-                  Your next plan changes for this account.
-                </p>
               </div>
               <button
                 type="button"
@@ -129,7 +126,11 @@ export function SessionMoodPicker({
               </button>
             </div>
 
-            <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            <div className="osrs-body px-5 pb-5 pt-4 sm:px-6 sm:pb-6">
+              <p className="text-[13px] leading-relaxed text-[var(--color-text-muted)]">
+                Your next plan changes for this account.
+              </p>
+              <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
               {SESSION_MOODS.map(({ mood, minutes }) => {
                 const meta = MOOD_LABEL[mood];
                 return (
@@ -137,7 +138,7 @@ export function SessionMoodPicker({
                     key={mood}
                     type="button"
                     onClick={() => chooseMood(mood, minutes)}
-                    className="min-h-[88px] rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] px-3 py-3 text-left transition-colors hover:border-[var(--color-accent)]/45 hover:bg-[var(--color-accent)]/8"
+                    className="min-h-[88px] rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/58 px-3 py-3 text-left shadow-[inset_0_1px_0_rgba(245,236,221,0.04)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-parchment)]"
                   >
                     <span className="flex items-center gap-2">
                       <span className="inline-flex size-8 items-center justify-center rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10">
@@ -151,6 +152,7 @@ export function SessionMoodPicker({
                   </button>
                 );
               })}
+              </div>
             </div>
           </div>
         </div>

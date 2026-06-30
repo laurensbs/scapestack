@@ -66,7 +66,7 @@ export function Header() {
     <header
       className={cn(
         "sticky top-0 z-30 h-14 shrink-0",
-        "border-b border-[var(--color-border)] bg-[var(--color-panel)]/82 backdrop-blur-md"
+        "border-b border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/92 shadow-[0_14px_42px_-34px_rgba(0,0,0,0.9)] backdrop-blur-md"
       )}
     >
       <div className="mx-auto max-w-7xl h-full px-4 sm:px-6 flex items-center justify-between gap-3">
@@ -78,7 +78,7 @@ export function Header() {
             aria-label="Scapestack home"
             className={cn(
               "group flex items-baseline shrink-0 leading-none",
-              "text-[18px] font-semibold tracking-normal lowercase"
+              "text-[18px] font-semibold tracking-normal lowercase drop-shadow-[1px_1px_0_rgba(0,0,0,0.85)]"
             )}
           >
             <span
@@ -134,8 +134,8 @@ export function Header() {
                 className={cn(
                   "group/tool inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12.5px] font-medium transition-colors",
                   active
-                    ? "bg-[var(--color-panel-2)] text-[var(--color-text)]"
-                    : "text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-panel-2)]/60"
+                    ? "bg-[var(--color-accent)]/13 text-[var(--color-text)] ring-1 ring-[var(--color-accent)]/35"
+                    : "text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-parchment)]/70"
                 )}
               >
                 <Icon data-tool-icon={tool.slug} className={cn("size-3.5", active && "text-[var(--color-accent)]")} />
@@ -170,9 +170,9 @@ export function Header() {
       {/* Mobile drawer — shown when hamburger is open. Slides down from
           beneath the header bar; click anywhere inside to navigate. */}
       {mobileOpen && (
-        <div className="fixed inset-x-0 top-14 z-40 sm:hidden border-t border-[var(--color-border)] bg-[#050505] shadow-[0_22px_50px_-36px_rgba(0,0,0,0.82)]">
+        <div className="fixed inset-x-0 top-14 z-40 border-t border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)] shadow-[0_22px_50px_-36px_rgba(0,0,0,0.82)] sm:hidden">
           <nav id={mobileNavId} className="px-4 py-3 space-y-1" aria-label="Mobile Scapestack tools">
-            <div className="mb-3 rounded-xl border border-[var(--color-border)] bg-[#090909] p-3">
+            <div className="mb-3 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment)] p-3">
               <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-gold)]">
                 Your account
               </div>
@@ -186,7 +186,7 @@ export function Header() {
                     href={contextualNavHref(step.href, pathname, contextQuery, activeRsn)}
                     onClick={() => setMobileOpen(false)}
                     aria-label={`${step.label} in Scapestack loop`}
-                    className="rounded-lg border border-[var(--color-border)] bg-[#101010] px-2 py-2 text-center text-[11.5px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+                    className="rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2 py-2 text-center text-[11.5px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
                   >
                     {step.label}
                   </Link>
@@ -325,7 +325,7 @@ function AccountSwitcher({
         type="button"
         onClick={() => setOpen((value) => !value)}
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[12px] font-semibold transition-colors hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)]",
+          "inline-flex items-center gap-1.5 rounded-md border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2.5 py-1.5 text-[12px] font-semibold transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]",
           activeRsn ? "text-[var(--color-text)]" : "text-[var(--color-text-dim)]",
           compact && "w-full justify-between px-3 py-2"
         )}
@@ -341,7 +341,7 @@ function AccountSwitcher({
 
       {open && (
         <div className={cn(
-          "z-40 mt-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-3 shadow-[0_18px_55px_rgba(0,0,0,0.55)]",
+          "osrs-frame z-40 mt-2 p-3",
           compact ? "w-full" : "absolute right-0 w-[340px]"
         )}>
           <form onSubmit={saveAccount} className="space-y-2">
@@ -355,12 +355,12 @@ function AccountSwitcher({
                 maxLength={12}
                 autoComplete="off"
                 spellCheck={false}
-                className="min-w-0 flex-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-[13px] font-semibold text-[var(--color-text)] outline-none focus:border-[var(--color-accent)]/55"
+                className="min-w-0 flex-1 rounded-md border border-[var(--color-parchment-edge)]/70 bg-[var(--color-bg)] px-3 py-2 text-[13px] font-semibold text-[var(--color-text)] outline-none focus:border-[var(--color-accent)]/55"
               />
               <button
                 type="submit"
                 disabled={!draft.trim()}
-                className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-accent)] px-3 py-2 text-[12px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110 disabled:opacity-50"
+                className="btn-primary px-3 py-2 text-[12px] disabled:opacity-50"
               >
                 <Plus className="size-3.5" />
                 Use

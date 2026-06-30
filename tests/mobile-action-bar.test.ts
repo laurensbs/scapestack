@@ -8,6 +8,8 @@ const layout = readFileSync(join(process.cwd(), "src/app/layout.tsx"), "utf8");
 describe("mobile action bar", () => {
   it("keeps the core account flow thumb-first on mobile", () => {
     expect(source).toContain('aria-label="Mobile quick actions"');
+    expect(source).toContain('import { usePathname } from "next/navigation";');
+    expect(source).toContain('if (pathname === "/") return null;');
     expect(source).toContain("Plan");
     expect(source).toContain("Add bank");
     expect(source).toContain("RuneLite");

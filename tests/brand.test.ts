@@ -144,6 +144,12 @@ describe("Scapestack branding", () => {
     expect(globalsSource).toContain("Scapestack product primitives");
     expect(globalsSource).toContain(".scapestack-plan-panel");
     expect(globalsSource).toContain(".scapestack-session-list");
+    expect(globalsSource).toContain("oldschool black, parchment brown and OSRS gold");
+    expect(globalsSource).toContain("--color-parchment:");
+    expect(globalsSource).toContain("--color-parchment-edge:");
+    expect(globalsSource).toContain(".osrs-frame");
+    expect(globalsSource).toContain(".osrs-title-bar");
+    expect(globalsSource).toContain(".osrs-body");
     expect(layoutSource).not.toContain("next/font/google");
     expect(layoutSource).not.toContain("GeistSans.variable");
     expect(globalsSource).not.toContain("--font-geist-sans");

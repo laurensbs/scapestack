@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
-/*  Scapestack — black, white and OSRS gold.
-    Keep the app sharp and simple: true black surfaces, white text, gold for
-    actions/status. No green-black wash, no SaaS blue glow, no noisy palette.
+/*  Scapestack — oldschool black, parchment brown and OSRS gold.
+    The app should feel like an in-game choice window: dark outside, warm
+    wood/parchment panels, gold borders and obvious yellow actions.
 
     Critical implementation note: every accent-aware animation in the
     keyframes below uses literal rgba(...) calls, not CSS variables.
@@ -11,20 +11,24 @@
     the keyframe rgba values still match. */
 
 @theme {
-  /* Surfaces — true black app chrome */
-  --color-bg: #030303;
-  --color-bg-2: #090909;
-  --color-panel: #0E0E0E;
-  --color-panel-2: #161616;
-  --color-surface: #101010;
-  --color-border: #2B2B2B;
-  --color-border-strong: #464646;
+  /* Surfaces — black app chrome with OSRS parchment panels */
+  --color-bg: #050403;
+  --color-bg-2: #0B0906;
+  --color-panel: #1B1711;
+  --color-panel-2: #241D14;
+  --color-surface: #201910;
+  --color-border: #4B3F2A;
+  --color-border-strong: #8A7348;
+  --color-parchment: #2B2418;
+  --color-parchment-2: #352B1D;
+  --color-parchment-dark: #18130D;
+  --color-parchment-edge: #8A7348;
 
   /* Text */
-  --color-text: #F5F1E8;
-  --color-text-secondary: #D8D2C6;
-  --color-text-dim: #A8A198;
-  --color-text-muted: #77736B;
+  --color-text: #F5ECDD;
+  --color-text-secondary: #D9CEBA;
+  --color-text-dim: #AFA491;
+  --color-text-muted: #857B6A;
 
   /* Brass is identity and primary action; blue is reserved for small RuneLite hints. */
   --color-gold: #D6A63A;
@@ -45,12 +49,12 @@
 
   /* Bank skeumorphic vars — tuned dark so bank/DPS stop feeling like
      separate products. */
-  --color-osrs-wood-dark: #1B1712;
-  --color-osrs-wood: #262018;
-  --color-osrs-wood-light: #332A1D;
-  --color-osrs-wood-edge: #6E5B3A;
-  --color-osrs-bank-bg: #090909;
-  --color-osrs-bank-inner: #030303;
+  --color-osrs-wood-dark: #18130D;
+  --color-osrs-wood: #2B2418;
+  --color-osrs-wood-light: #352B1D;
+  --color-osrs-wood-edge: #8A7348;
+  --color-osrs-bank-bg: #0B0906;
+  --color-osrs-bank-inner: #050403;
   --color-osrs-slot: #121212;
   --color-osrs-slot-edge: #464646;
   --color-osrs-slot-empty: #080808;
@@ -585,9 +589,10 @@ code, pre, .font-mono {
 }
 
 body {
-  /* Black app base with a very small gold warmth. */
+  /* Oldschool game-window base: black edges, warm parchment glow in the middle. */
   background:
-    linear-gradient(180deg, #0A0A0A 0%, #030303 48%, #0B0905 100%),
+    radial-gradient(circle at 50% 18%, rgba(82, 63, 35, 0.20), transparent 38%),
+    linear-gradient(180deg, #080706 0%, #050403 48%, #0D0A06 100%),
     var(--color-bg);
   background-attachment: fixed;
   min-height: 100dvh;
@@ -653,37 +658,46 @@ body {
 /* ── Surfaces ─────────────────────────────────────────────────────────── */
 
 .surface {
-  background: var(--color-panel);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
+  background:
+    linear-gradient(180deg, var(--color-parchment-2) 0%, var(--color-parchment) 100%);
+  border: 1px solid color-mix(in srgb, var(--color-parchment-edge) 78%, black 22%);
+  border-radius: 10px;
+  box-shadow:
+    inset 0 1px 0 rgba(245, 236, 221, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.32),
+    0 22px 60px -44px rgba(0, 0, 0, 0.9);
 }
 .surface-interactive {
   transition: border-color 200ms ease, background 200ms ease;
 }
 .surface-interactive:hover {
-  border-color: var(--color-border-strong);
-  background: var(--color-panel-2);
+  border-color: var(--color-accent);
+  background:
+    linear-gradient(180deg, #3A2F20 0%, var(--color-parchment) 100%);
 }
 
 /* Scapestack product primitives — small, reusable surfaces for the
    session-planner feel. Keep these quiet: the plan itself should carry
    the page, not decorative chrome. */
 .scapestack-plan-panel {
-  border: 1px solid color-mix(in srgb, var(--color-border) 78%, var(--color-gold) 22%);
-  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--color-parchment-edge) 78%, var(--color-gold) 22%);
+  border-radius: 14px;
   background:
-    linear-gradient(180deg, rgba(14, 14, 14, 0.98), rgba(3, 3, 3, 0.98)),
-    radial-gradient(circle at top left, rgba(200, 154, 61, 0.08), transparent 38%);
+    linear-gradient(180deg, rgba(53, 43, 29, 0.96), rgba(24, 19, 13, 0.98)),
+    radial-gradient(circle at top left, rgba(214, 166, 58, 0.12), transparent 42%);
   box-shadow:
-    inset 0 1px 0 rgba(233, 221, 197, 0.05),
+    inset 0 1px 0 rgba(245, 236, 221, 0.07),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35),
     0 28px 82px -56px rgba(0, 0, 0, 0.9);
 }
 
 .scapestack-board-panel {
-  border: 1px solid color-mix(in srgb, var(--color-border) 88%, var(--color-gold) 12%);
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--color-panel) 88%, var(--color-bg) 12%);
-  box-shadow: inset 0 1px 0 rgba(233, 221, 197, 0.04);
+  border: 1px solid color-mix(in srgb, var(--color-parchment-edge) 86%, var(--color-gold) 14%);
+  border-radius: 12px;
+  background: linear-gradient(180deg, var(--color-parchment) 0%, var(--color-parchment-dark) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(245, 236, 221, 0.05),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25);
 }
 
 .scapestack-session-list {
@@ -701,18 +715,26 @@ body {
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: 0.55rem;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: 0;
   background: var(--color-accent);
-  color: #0B1116;
-  border: 1px solid transparent;
-  transition: background 160ms ease, transform 120ms ease;
+  color: #0B0906;
+  border: 2px solid color-mix(in srgb, var(--color-gold-deep) 70%, black 30%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 241, 168, 0.38),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.26),
+    0 10px 26px -20px rgba(214, 166, 58, 0.8);
+  transition: background 160ms ease, transform 120ms ease, box-shadow 160ms ease;
 }
 .btn-primary:hover {
   background: var(--color-accent-soft);
   transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 241, 168, 0.45),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.24),
+    0 14px 30px -20px rgba(214, 166, 58, 0.95);
 }
 .btn-primary:active {
   transform: translateY(0);
@@ -723,18 +745,49 @@ body {
   align-items: center;
   gap: 0.4rem;
   padding: 0.45rem 0.8rem;
-  border-radius: 0.5rem;
+  border-radius: 0.55rem;
   font-size: 12.5px;
   font-weight: 500;
-  background: transparent;
+  background: rgba(24, 19, 13, 0.48);
   border: 1px solid var(--color-border);
   color: var(--color-text-dim);
   transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
 }
 .btn-ghost:hover {
   color: var(--color-text);
-  border-color: var(--color-border-strong);
-  background: var(--color-panel-2);
+  border-color: var(--color-parchment-edge);
+  background: rgba(53, 43, 29, 0.72);
+}
+
+/* OSRS frame primitives. Use for dialogs, first-screen cards and other
+   high-attention surfaces so the product reads as one oldschool app instead
+   of a pile of unrelated dark panels. */
+.osrs-frame {
+  overflow: hidden;
+  border: 2px solid var(--color-parchment-edge);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, var(--color-parchment-2) 0%, var(--color-parchment) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(214, 166, 58, 0.16),
+    0 28px 80px -42px rgba(0, 0, 0, 0.92);
+}
+
+.osrs-title-bar {
+  border-bottom: 1px solid var(--color-parchment-edge);
+  background: linear-gradient(180deg, var(--color-parchment) 0%, var(--color-parchment-dark) 100%);
+  color: var(--color-osrs-qty-yellow);
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-shadow: 1px 1px 0 rgb(0 0 0);
+}
+
+.osrs-body {
+  background:
+    radial-gradient(circle at top left, rgba(214, 166, 58, 0.08), transparent 42%),
+    linear-gradient(180deg, rgba(53, 43, 29, 0.84), rgba(24, 19, 13, 0.96));
 }
 
 /* ── Eyebrow / labels ─────────────────────────────────────────────────── */

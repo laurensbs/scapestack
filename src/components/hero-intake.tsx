@@ -177,7 +177,7 @@ export function HeroIntake() {
       returningMood ? `Last vibe: ${returningMood.label}` : "Last vibe: Best now"
     ].join(" · ");
     return (
-      <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] p-4 text-left shadow-[0_18px_48px_-40px_rgba(0,0,0,0.82)] sm:p-5">
+      <div className="osrs-frame p-4 text-left sm:p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-3 py-1 text-[11.5px] font-bold text-[var(--color-accent)]">
@@ -203,7 +203,7 @@ export function HeroIntake() {
         <div className="mt-5">
           <Link
             href={planHref}
-            className="inline-flex min-h-[62px] w-full items-center justify-between gap-3 rounded-xl bg-[var(--color-accent)] px-4 py-4 text-[15px] font-bold text-[#0B0F0D] transition-colors hover:bg-[var(--color-accent-soft)]"
+            className="btn-primary min-h-[62px] w-full justify-between px-4 py-4 text-[15px]"
           >
             Plan next trip
             <ArrowRight className="size-4" />
@@ -213,21 +213,21 @@ export function HeroIntake() {
         <div className="mt-3 grid grid-cols-3 gap-2">
           <Link
             href={`/bank?rsn=${encodedRsn}&from=home`}
-            className="flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+            className="flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2 py-3 text-center text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
           >
             <ClipboardPaste className="size-4" />
             {hasBankContext ? "Bank" : "Add bank"}
           </Link>
           <Link
             href={`/dps?rsn=${encodedRsn}&from=home`}
-            className="flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+            className="flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2 py-3 text-center text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
           >
             <Sword className="size-4" />
             Check kill
           </Link>
           <Link
             href={`/plugin?rsn=${encodedRsn}&from=home#verify-sync`}
-            className="flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+            className="flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2 py-3 text-center text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
           >
             <PlugZap className="size-4" />
             RuneLite
@@ -374,10 +374,10 @@ export function HeroIntake() {
           onClick={() => setShowFirstSetup(false)}
         >
           <div
-            className="w-full max-w-2xl overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[#090909] text-left shadow-[0_32px_120px_-42px_rgba(0,0,0,0.92)]"
+            className="osrs-frame w-full max-w-2xl text-left"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-5 py-4 sm:px-6">
+            <div className="osrs-title-bar flex items-start justify-between gap-4 px-5 py-4 sm:px-6">
               <div>
                 <p className="eyebrow text-[var(--color-accent)]">Before we pick</p>
                 <h2 id="hero-first-setup-title" className="mt-1 text-[24px] font-semibold leading-tight text-[var(--color-text)]">
@@ -397,7 +397,7 @@ export function HeroIntake() {
               </button>
             </div>
 
-            <div className="border-b border-[var(--color-border)] p-5 sm:p-6">
+            <div className="osrs-body border-b border-[var(--color-parchment-edge)] p-5 sm:p-6">
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {FIRST_SETUP_INTENTS.map((choice) => {
                   const selected = selectedFirstSetupIntent === choice.intent;
@@ -408,10 +408,10 @@ export function HeroIntake() {
                       onClick={() => setSelectedFirstSetupIntent(choice.intent)}
                       aria-pressed={selected}
                       className={cn(
-                        "min-h-[74px] rounded-xl border px-3 py-3 text-left transition-colors",
+                        "min-h-[74px] rounded-lg border px-3 py-3 text-left transition-colors",
                         selected
-                          ? "border-[var(--color-accent)]/55 bg-[var(--color-accent)]/12 text-[var(--color-text)]"
-                          : "border-[var(--color-border)] bg-[var(--color-panel)] text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35 hover:text-[var(--color-text)]"
+                          ? "border-[var(--color-accent)] bg-[var(--color-accent)]/16 text-[var(--color-text)]"
+                          : "border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 text-[var(--color-text-dim)] hover:border-[var(--color-accent)] hover:text-[var(--color-text)]"
                       )}
                     >
                       <span className="block text-[14px] font-bold text-[var(--color-text)]">{choice.label}</span>
@@ -422,17 +422,17 @@ export function HeroIntake() {
               </div>
             </div>
 
-            <div className="grid gap-3 p-5 sm:grid-cols-2 sm:p-6">
+            <div className="osrs-body grid gap-3 p-5 sm:grid-cols-2 sm:p-6">
               <button
                 type="button"
                 onClick={() => setShowFirstSetupBank((value) => !value)}
                 aria-expanded={showFirstSetupBank}
                 aria-controls={HERO_FIRST_SETUP_BANK_ID}
                 className={cn(
-                  "rounded-2xl border p-4 text-left transition-colors",
+                  "rounded-lg border p-4 text-left transition-colors",
                   hasBankContext
-                    ? "border-[var(--color-accent)]/40 bg-[var(--color-accent)]/10"
-                    : "border-[var(--color-border)] bg-[var(--color-panel)] hover:border-[var(--color-accent)]/45"
+                    ? "border-[var(--color-accent)] bg-[var(--color-accent)]/12"
+                    : "border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 hover:border-[var(--color-accent)]"
                 )}
               >
                 <span className="inline-flex size-9 items-center justify-center rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 text-[var(--color-accent)]">
@@ -448,10 +448,10 @@ export function HeroIntake() {
 
               <div
                 className={cn(
-                  "rounded-2xl border p-4 transition-colors",
+                  "rounded-lg border p-4 transition-colors",
                   firstSetupRunelite
-                    ? "border-[var(--color-accent)]/40 bg-[var(--color-accent)]/10"
-                    : "border-[var(--color-border)] bg-[var(--color-panel)]"
+                    ? "border-[var(--color-accent)] bg-[var(--color-accent)]/12"
+                    : "border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45"
                 )}
               >
                 <button
@@ -478,7 +478,7 @@ export function HeroIntake() {
             </div>
 
             {showFirstSetupBank && (
-              <div id={HERO_FIRST_SETUP_BANK_ID} className="border-t border-[var(--color-border)] px-5 py-5 sm:px-6">
+              <div id={HERO_FIRST_SETUP_BANK_ID} className="osrs-body border-t border-[var(--color-parchment-edge)] px-5 py-5 sm:px-6">
                 <label className="block">
                   <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
                     Bank Memory or Bank Tags
@@ -506,11 +506,11 @@ export function HeroIntake() {
               </div>
             )}
 
-            <div className="flex flex-col gap-2 border-t border-[var(--color-border)] px-5 pb-5 sm:flex-row sm:px-6 sm:pb-6">
+            <div className="osrs-body flex flex-col gap-2 border-t border-[var(--color-parchment-edge)] px-5 pb-5 sm:flex-row sm:px-6 sm:pb-6">
               <button
                 type="button"
                 onClick={() => openPlan({ markSetup: true, includeSetupIntent: true })}
-                className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--color-accent)] px-4 text-[14px] font-bold text-[#0B0F0D] transition-colors hover:bg-[var(--color-accent-soft)]"
+                className="btn-primary h-11 flex-1 justify-center px-4 text-[14px]"
               >
                 Plan this session
                 <ArrowRight className="size-4" />
@@ -521,7 +521,7 @@ export function HeroIntake() {
                   if (cleanRsn) markFirstSetupSeen(cleanRsn);
                   openPlan({ markSetup: false, includeSetupIntent: true });
                 }}
-                className="inline-flex h-11 items-center justify-center rounded-lg border border-[var(--color-border)] px-4 text-[13px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+                className="btn-ghost h-11 justify-center px-4 text-[13px] font-bold"
               >
                 Skip setup
               </button>
@@ -539,10 +539,10 @@ export function HeroIntake() {
           onClick={() => setShowBankGuide(false)}
         >
           <div
-            className="w-full max-w-3xl overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[#090909] text-left shadow-[0_32px_120px_-42px_rgba(0,0,0,0.92)]"
+            className="osrs-frame w-full max-w-3xl text-left"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-5 py-4 sm:px-6">
+            <div className="osrs-title-bar flex items-start justify-between gap-4 px-5 py-4 sm:px-6">
               <div>
                 <p className="eyebrow text-[var(--color-accent)]">Add bank</p>
                 <h2 id="hero-bank-guide-title" className="mt-1 text-[22px] font-semibold leading-tight text-[var(--color-text)]">
@@ -564,7 +564,7 @@ export function HeroIntake() {
 
             <BankSetupSteps className="p-5 sm:p-6" />
 
-            <div className="border-t border-[var(--color-border)] px-5 py-5 sm:px-6">
+            <div className="osrs-body border-t border-[var(--color-parchment-edge)] px-5 py-5 sm:px-6">
               <label className="block">
                 <span
                   id={`${HERO_BANK_TEXTAREA_ID}-label`}
@@ -597,11 +597,11 @@ export function HeroIntake() {
               </span>
             </div>
 
-            <div className="flex flex-col gap-2 border-t border-[var(--color-border)] px-5 pb-5 sm:flex-row sm:px-6 sm:pb-6">
+            <div className="osrs-body flex flex-col gap-2 border-t border-[var(--color-parchment-edge)] px-5 pb-5 sm:flex-row sm:px-6 sm:pb-6">
               <button
                 type="button"
                 onClick={() => setShowBankGuide(false)}
-                className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--color-accent)] px-4 text-[14px] font-bold text-[#0B0F0D] transition-colors hover:bg-[var(--color-accent-soft)]"
+                className="btn-primary h-11 flex-1 justify-center px-4 text-[14px]"
               >
                 <ClipboardPaste className="size-4" />
                 Use this bank
@@ -609,7 +609,7 @@ export function HeroIntake() {
               <button
                 type="button"
                 onClick={() => { setBank(""); setShowBankGuide(false); }}
-                className="inline-flex h-11 items-center justify-center rounded-lg border border-[var(--color-border)] px-4 text-[13px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-danger)]/45 hover:text-[var(--color-danger)]"
+                className="btn-ghost h-11 justify-center px-4 text-[13px] font-bold hover:border-[var(--color-danger)]/45 hover:text-[var(--color-danger)]"
               >
                 Skip bank
               </button>
@@ -627,10 +627,10 @@ export function HeroIntake() {
           onClick={() => setShowRuneliteGuide(false)}
         >
           <div
-            className="w-full max-w-xl overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[#090909] text-left shadow-[0_32px_120px_-42px_rgba(0,0,0,0.92)]"
+            className="osrs-frame w-full max-w-xl text-left"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-5 py-4 sm:px-6">
+            <div className="osrs-title-bar flex items-start justify-between gap-4 px-5 py-4 sm:px-6">
               <div>
                 <p className="eyebrow text-[var(--color-accent)]">RuneLite</p>
                 <h2 id="hero-runelite-guide-title" className="mt-1 text-[22px] font-semibold leading-tight text-[var(--color-text)]">
@@ -650,13 +650,13 @@ export function HeroIntake() {
               </button>
             </div>
 
-            <div className="space-y-3 p-5 sm:p-6">
+            <div className="osrs-body space-y-3 p-5 sm:p-6">
               {[
                 "Open RuneLite.",
                 "Search Plugin Hub for Scapestack Sync.",
                 "Press Sync now, then check the same RSN."
               ].map((step, index) => (
-                <div key={step} className="flex items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] px-3 py-3">
+                <div key={step} className="flex items-center gap-3 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-3 py-3">
                   <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[13px] font-bold text-[var(--color-accent)]">
                     {index + 1}
                   </span>
@@ -665,12 +665,12 @@ export function HeroIntake() {
               ))}
             </div>
 
-            <div className="border-t border-[var(--color-border)] px-5 pb-5 sm:px-6 sm:pb-6">
+            <div className="osrs-body border-t border-[var(--color-parchment-edge)] px-5 pb-5 sm:px-6 sm:pb-6">
               <RuneliteOpenButton className="w-full" />
               <button
                 type="button"
                 onClick={() => setShowRuneliteGuide(false)}
-                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] px-4 py-3 text-[13px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+                className="btn-ghost mt-3 w-full justify-center px-4 py-3 text-[13px] font-bold"
               >
                 <PlugZap className="size-4" />
                 Do this later

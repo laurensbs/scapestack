@@ -65,14 +65,14 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer className="mt-14 border-t border-[var(--color-border)] pt-10">
-        <div className="relative mx-auto max-w-3xl overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] shadow-[0_24px_70px_-48px_rgba(0,0,0,0.78)] animate-[slide-up_0.5s_cubic-bezier(0.22,1,0.36,1)_0.2s_both]">
+      <footer className="mt-14 border-t border-[var(--color-parchment-edge)]/50 pt-10">
+        <div className="osrs-frame relative mx-auto max-w-3xl animate-[slide-up_0.5s_cubic-bezier(0.22,1,0.36,1)_0.2s_both]">
           <div
             className="absolute inset-x-0 top-0 h-px"
             style={{ background: "linear-gradient(to right, transparent, rgba(200, 154, 61,0.4), transparent)" }}
           />
 
-          <div className="relative p-8 sm:p-10 grid sm:grid-cols-[1fr_auto] items-center gap-6">
+          <div className="osrs-body relative grid items-center gap-6 p-8 sm:grid-cols-[1fr_auto] sm:p-10">
             <div>
               <div className="eyebrow mb-2" style={{ color: "var(--color-accent)" }}>
                 Solo project · No ads · No accounts
