@@ -1170,7 +1170,7 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
           <div style={trackAnim(300)}>
             <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-4 sm:p-5">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)] marker:hidden">
-                <span>What changed the pick</span>
+                <span>Why is this recommended?</span>
                 <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
                   Only if you want the deeper read
                 </span>
@@ -1706,12 +1706,12 @@ function makePlanSmarterCopy(rec: Recommendation | null): {
     case "afk":
     case "skilling":
       return {
-        title: "Add supplies if needed",
-        helper: "Supplies or GP only matter if they change the method.",
-        bankLabel: "Supplies",
-        loadedHelper: "Supplies and GP can shape this skilling pick.",
+        title: "Want a sharper pick?",
+        helper: "Add bank only when GP, gear or items should change the method.",
+        bankLabel: "Bank",
+        loadedHelper: "Your bank can shape this skilling pick.",
         emptyHelper: "Skip this for simple level pushes.",
-        bankCta: "Add supplies"
+        bankCta: "Add bank"
       };
     case "chill":
     default:
@@ -2694,37 +2694,40 @@ function RecRow({
   const inner = (
     <article
       className={cn(
-        "group rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] px-3 py-2.5",
+        "group min-h-[118px] rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-4",
         (actionHref || isBossWithDetail) && "transition-colors hover:border-[var(--color-accent)]/40"
       )}
     >
-      <div className="flex min-h-10 items-center gap-2.5">
-        <div className="size-8 shrink-0 rounded-md flex items-center justify-center bg-[var(--color-bg-2)] border border-[var(--color-border)] text-[var(--color-accent)] overflow-hidden">
+      <div className="flex min-h-10 items-start gap-3">
+        <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)] text-[var(--color-accent)]">
           {rec.kind === "kc" && rec.bossSlug ? (
-            <KcPortrait rec={rec} size={28} />
+            <KcPortrait rec={rec} size={40} />
           ) : rec.iconItemId ? (
             <ItemSprite
               id={rec.iconItemId}
               alt=""
               className="pixelated"
-              style={{ maxWidth: "72%", maxHeight: "72%", imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
+              style={{ maxWidth: "78%", maxHeight: "78%", imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
             />
           ) : (
-            <KindGlyph kind={rec.kind} size={20} tone="accent" />
+            <KindGlyph kind={rec.kind} size={26} tone="accent" />
           )}
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-center gap-1.5">
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-1.5">
             <span
               className="shrink-0 rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-0.5 text-[10px] font-bold text-[var(--color-accent)]"
               title={backupPrompt?.helper ?? choice.helper}
             >
               {backupPrompt?.label ?? choice.label}
             </span>
-            <h4 className="truncate text-[13px] font-semibold tracking-normal text-[var(--color-text)]">
+            <h4 className="min-w-0 text-[15px] font-bold leading-snug tracking-normal text-[var(--color-text)]">
               {rec.title}
             </h4>
           </div>
+          <p className="max-h-[2.9em] overflow-hidden text-[12px] leading-relaxed text-[var(--color-text-muted)]">
+            {backupPrompt?.helper ?? choice.helper}
+          </p>
         </div>
         <div className="shrink-0">
           {isBossWithDetail && rec.bossSlug ? (
@@ -3285,6 +3288,17 @@ function WhatToDo({
               {routeIntent.label}
             </span>
           )}
+          {visibleRecs.length > 1 && !shareMode && (
+            <button
+              type="button"
+              onClick={moveToAnotherPlan}
+              aria-label="Randomize another OSRS plan"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/45 bg-[var(--color-accent)]/12 px-3 py-2 text-[11.5px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/18"
+            >
+              <Dices className="size-3.5" />
+              Randomize
+            </button>
+          )}
           {visibleRecs.length > 0 && !shareMode && (
             <button
               type="button"
@@ -3451,15 +3465,27 @@ function WhatToDo({
             />
             {pick.alternatives.length > 0 && (
               <div>
-                <div className="mb-2 flex flex-wrap items-baseline gap-2">
-                  <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                    Backups
-                  </span>
-                  <span className="text-[11px] text-[var(--color-text-muted)]">
-                    Chill, GP, Bossing, Unlock or AFK
-                  </span>
+                <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                      Backups
+                    </span>
+                    <p className="mt-1 text-[12px] text-[var(--color-text-muted)]">
+                      Bigger alternatives if the first pick is not your mood.
+                    </p>
+                  </div>
+                  {!shareMode && (
+                    <button
+                      type="button"
+                      onClick={moveToAnotherPlan}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/65 px-3 py-2 text-[11.5px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+                    >
+                      Want something else?
+                      <Dices className="size-3.5" />
+                    </button>
+                  )}
                 </div>
-                <div className="grid gap-2.5 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2">
                   {pick.alternatives.map((r) => (
                     <RecRowExpandable
                       key={r.id}

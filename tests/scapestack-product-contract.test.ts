@@ -30,6 +30,11 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).toContain("Pick a route");
     expect(next).not.toContain("Another route");
     expect(next).toContain("Backups");
+    expect(next).toContain("Bigger alternatives if the first pick is not your mood.");
+    expect(next).toContain("Want something else?");
+    expect(next).toContain("Randomize");
+    expect(next).toContain("Why is this recommended?");
+    expect(next).not.toContain("Add supplies if needed");
     expect(next).not.toContain("Next sessions");
     expect(next).not.toContain("Try another");
     expect(next).not.toContain("Try a different route");

@@ -167,11 +167,13 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("Optional: add gear or RuneLite when the pick looks off.");
     expect(source).toContain("function makePlanSmarterCopy");
     expect(source).toContain("Gear, food and teleports can change the trip.");
-    expect(source).toContain("Supplies or GP only matter if they change the method.");
+    expect(source).toContain("Add bank only when GP, gear or items should change the method.");
     expect(source).not.toContain("Better supplies, boss picks and Bank Tags.");
     expect(source).not.toContain("What shaped this");
     expect(source).toContain("Add bank");
-    expect(source).toContain("Add supplies if needed");
+    expect(source).toContain("Want a sharper pick?");
+    expect(source).not.toContain("Add supplies if needed");
+    expect(source).not.toContain('bankCta: "Add supplies"');
     expect(source).toContain("Add quest items");
     expect(source).toContain("Add GP check");
     expect(source).not.toContain("Add bank for GP");
@@ -219,8 +221,11 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("pickForRoute(visibleRecs, mood, minutes, routeLens, shuffleIdx, routePickOptions)");
     expect(source).not.toContain("Change time or pace");
     expect(source).toContain("Backups");
-    expect(source).toContain("Chill, GP, Bossing, Unlock or AFK");
-    expect(source).toContain("What changed the pick");
+    expect(source).toContain("Bigger alternatives if the first pick is not your mood.");
+    expect(source).toContain("Want something else?");
+    expect(source).toContain("Randomize");
+    expect(source).toContain('aria-label="Randomize another OSRS plan"');
+    expect(source).toContain("Why is this recommended?");
     expect(source).toContain("Only if you want the deeper read");
     expect(source).not.toContain("Try another");
     expect(source).not.toContain("Next sessions");
@@ -232,6 +237,14 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("ScapestackReadinessRail");
     expect(source).not.toContain("Tonight&apos;s session brief");
     expect(source).not.toContain("Trust level");
+  });
+
+  it("makes backup cards feel like real alternatives instead of tiny rows", () => {
+    expect(source).toContain("function RecRow");
+    expect(source).toContain("min-h-[118px]");
+    expect(source).toContain("size-12");
+    expect(source).toContain("max-h-[2.9em]");
+    expect(source).toContain("Bigger alternatives if the first pick is not your mood.");
   });
 
   it("respects legacy route intent instead of dropping players into default mood", () => {
