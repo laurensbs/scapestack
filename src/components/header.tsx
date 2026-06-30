@@ -107,10 +107,6 @@ export function Header() {
           )}
         </div>
 
-        <CurrentRunBar
-          className="hidden lg:flex"
-        />
-
         {/* Desktop nav — primary live tools + a discreet BMC icon. The icon
             variant stays muted until hover so it doesn't compete with the
             page content, but is always one click away from anywhere in
