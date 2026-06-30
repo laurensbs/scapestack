@@ -15,6 +15,9 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain('aria-label="Clear boss search"');
     expect(source).toContain('id="dps-boss-search-status"');
     expect(source).toContain('role="status"');
+    expect(source).toContain("BOSS_FILTERS");
+    expect(source).toContain('aria-label="Filter bosses"');
+    expect(source).toContain('aria-pressed={bossFilter === filter.key}');
     expect(source).toContain("aria-pressed={sortBy === opt.key}");
     expect(source).toContain("aria-label={`Sort boss rows by ${opt.label}`}");
   });
@@ -67,9 +70,13 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("window.scrollTo({ top: 0, behavior: \"instant\" });");
     expect(source).toContain("Make this smarter");
     expect(source).toContain("Bank, RSN, RuneLite");
-    expect(source).toContain("Compare other bosses");
-    expect(source).toContain("Search and sort the full table only when the first trip is not the one.");
-    expect(source).toContain("Boss options with this bank");
+    expect(source).toContain("Recommended for your bank");
+    expect(source).toContain("Scapestack picks a few good trips, but every boss stays searchable below.");
+    expect(source).toContain("All bosses");
+    expect(source).toContain("bosses checked");
+    expect(source).not.toContain("Compare other bosses");
+    expect(source).not.toContain("Search and sort the full table only when the first trip is not the one.");
+    expect(source).not.toContain("Boss options with this bank");
     expect(source).not.toContain("Gear recognized");
     expect(source).not.toContain("Per-boss DPS with your gear");
   });

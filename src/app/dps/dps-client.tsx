@@ -35,6 +35,17 @@ import {
 import { buildDpsBankContext } from "@/lib/dps-bank-context";
 
 type BossDpsResult = { boss: Boss; dps: DpsBreakdown };
+type BossFilter = "all" | "solo" | "slayer" | "wildy" | "raid" | "beginner" | "gp";
+
+const BOSS_FILTERS: Array<{ key: BossFilter; label: string }> = [
+  { key: "all", label: "All bosses" },
+  { key: "solo", label: "Solo" },
+  { key: "slayer", label: "Slayer" },
+  { key: "wildy", label: "Wildy" },
+  { key: "raid", label: "Raid" },
+  { key: "beginner", label: "Beginner" },
+  { key: "gp", label: "GP" }
+];
 
 interface DpsDecision {
   title: string;
@@ -422,6 +433,7 @@ export function DpsClient() {
   //   ttk       → wie sterft het snelst per kill (XP/u proxy)
   type SortKey = "dps" | "accuracy" | "gpHour" | "ttk";
   const [sortBy, setSortBy] = useState<SortKey>("dps");
+  const [bossFilter, setBossFilter] = useState<BossFilter>("all");
   // Currently-open boss in the detail modal. Lifted here so deep-link
   // (?boss=<slug>) can open it on result-view mount, and so the Enter-
   // key search shortcut can open it too.
@@ -618,30 +630,61 @@ export function DpsClient() {
     }
   };
 
+  const bossMatchesFilter = (entry: BossDpsResult) => {
+    const { boss } = entry;
+    switch (bossFilter) {
+      case "solo":
+        return boss.category !== "raid" && boss.slug !== "nex";
+      case "slayer":
+        return boss.category === "slayer";
+      case "wildy":
+        return boss.category === "wildy";
+      case "raid":
+        return boss.category === "raid";
+      case "beginner":
+        return boss.hp > 0 && boss.hp <= 320 && boss.category !== "raid" && boss.category !== "dt2" && boss.category !== "gwd";
+      case "gp":
+        return Boolean(boss.avgLootGp);
+      case "all":
+      default:
+        return true;
+    }
+  };
+
+  const gpHourForBoss = (entry: BossDpsResult) => {
+    const k = entry.boss.killsPerHourCap;
+    const gp = entry.boss.avgLootGp;
+    if (!k || !gp || entry.dps.dps <= 0) return -1;
+    return Math.min(k, Math.floor(3600 / entry.dps.ttk)) * gp;
+  };
+
+  const recommendedResults = useMemo(() => (
+    [...bossResults]
+      .filter((entry) => entry.dps.dps > 0)
+      .sort((a, b) => (
+        dpsDecisionScore(b, bossViabilityFromGear(owned, b.boss))
+        - dpsDecisionScore(a, bossViabilityFromGear(owned, a.boss))
+      ))
+      .slice(0, 3)
+  ), [bossResults, owned]);
+
   // Live-filtered + sorted boss list. Matches against boss.name
   // (lowercased substring) so 'gra' finds 'General Graardor'. Empty
   // query = full list. Sort runs AFTER filter zodat het aantal blijft
   // kloppen met de zichtbare rows.
   const filteredResults = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const base = q
+    const searched = q
       ? bossResults.filter(({ boss }) =>
           boss.name.toLowerCase().includes(q) || boss.slug.includes(q)
         )
       : bossResults;
-    // GP/u berekening matched aan BossRow logica (zie regel 300):
-    //   capped kills × avgLootGp. Null = onbekend → naar achteren.
-    const gpHour = (b: typeof base[number]) => {
-      const k = b.boss.killsPerHourCap;
-      const gp = b.boss.avgLootGp;
-      if (!k || !gp || b.dps.dps <= 0) return -1;
-      return Math.min(k, Math.floor(3600 / b.dps.ttk)) * gp;
-    };
+    const base = searched.filter(bossMatchesFilter);
     const sorted = [...base];
     switch (sortBy) {
       case "dps":      sorted.sort((a, b) => b.dps.dps - a.dps.dps); break;
       case "accuracy": sorted.sort((a, b) => b.dps.hitChance - a.dps.hitChance); break;
-      case "gpHour":   sorted.sort((a, b) => gpHour(b) - gpHour(a)); break;
+      case "gpHour":   sorted.sort((a, b) => gpHourForBoss(b) - gpHourForBoss(a)); break;
       case "ttk":      sorted.sort((a, b) => {
         // TTK = lager is beter; 0/negatief = "niet killbaar" → naar achteren.
         const aT = a.dps.ttk > 0 ? a.dps.ttk : Infinity;
@@ -650,7 +693,7 @@ export function DpsClient() {
       }); break;
     }
     return sorted;
-  }, [bossResults, search, sortBy]);
+  }, [bossResults, bossFilter, search, sortBy]);
   const weaponCount = useMemo(() => owned.filter((gear) => gear.slot === "weapon").length, [owned]);
   const decisionBossResult = useMemo(() => {
     if (focusedBoss) {
@@ -937,25 +980,49 @@ export function DpsClient() {
         </section>
       )}
 
-      {/* Boss table */}
-      <details className="mb-7 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-3">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden">
-          <span className="min-w-0">
-            <span className="block text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              Compare other bosses
-            </span>
-            <span className="mt-1 block text-[12px] leading-relaxed text-[var(--color-text-muted)]">
-              Search and sort the full table only when the first trip is not the one.
-            </span>
+      {/* Boss list */}
+      <section className="mb-7 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-3 sm:p-4">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
+              Recommended for your bank
+            </h2>
+            <p className="mt-1 max-w-2xl text-[12px] leading-relaxed text-[var(--color-text-muted)]">
+              Scapestack picks a few good trips, but every boss stays searchable below.
+            </p>
+          </div>
+          <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">
+            {bossResults.length} bosses checked
           </span>
-          <span className="shrink-0 rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-[11.5px] font-semibold text-[var(--color-text-dim)]">
-            Show
-          </span>
-        </summary>
-        <div className="mt-4">
+        </div>
+        {recommendedResults.length > 0 && (
+          <div className="mb-5 grid gap-2 sm:grid-cols-3">
+            {recommendedResults.map(({ boss, dps }) => (
+              <button
+                key={boss.slug}
+                type="button"
+                onClick={() => setModalBoss(boss)}
+                className="group flex min-h-[92px] items-center gap-3 rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/8 p-3 text-left transition-colors hover:border-[var(--color-accent)]/55 hover:bg-[var(--color-accent)]/12"
+                aria-label={`Open recommended ${boss.name} kill setup`}
+              >
+                <BossThumb boss={boss} />
+                <span className="min-w-0">
+                  <span className="block truncate text-[13px] font-bold text-[var(--color-text)]">{boss.name}</span>
+                  <span className="mt-1 block text-[11px] text-[var(--color-text-dim)]">
+                    {dps.dps > 0 ? `${dps.dps.toFixed(2)} DPS · ${dps.style}` : "Add weapon first"}
+                  </span>
+                  <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-[var(--color-accent)]">
+                    Check kill <ExternalLink className="size-3" />
+                  </span>
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+        <div>
           <div className="mb-3">
             <h2 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)] mb-2">
-              Boss options with this bank
+              All bosses
             </h2>
             {/* Live search. Filters the rows below on every keystroke;
                 ESC clears. The dropdown BossPicker is gone — for a table
@@ -1031,6 +1098,24 @@ export function DpsClient() {
                   : `Showing ${filteredResults.length} of ${bossResults.length} bosses.`}
               </p>
             )}
+            <div className="mt-3 flex flex-wrap gap-2" aria-label="Filter bosses">
+              {BOSS_FILTERS.map((filter) => (
+                <button
+                  key={filter.key}
+                  type="button"
+                  aria-pressed={bossFilter === filter.key}
+                  onClick={() => setBossFilter(filter.key)}
+                  className={cn(
+                    "rounded-lg border px-3 py-2 text-[12px] font-bold transition-colors",
+                    bossFilter === filter.key
+                      ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-black"
+                      : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/45 hover:text-[var(--color-text)]"
+                  )}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
             {/* Sort selector — pill-style toggle group. Default kill speed is de
                 standaard waar mensen voor komen; de andere drie geven
                 dezelfde lijst maar door een andere bril ('wie raakt vaakst',
@@ -1079,7 +1164,7 @@ export function DpsClient() {
             Boss-specific mechanics (heap mode, transitions, specs) not modelled.
           </p>
         </div>
-      </details>
+      </section>
 
       <SupportCard context="Helped pick your gear for tonight's trip?" />
 

@@ -27,6 +27,25 @@ function bankItem(id: number, name: string, quantity = 1): BankHandoffItem {
 }
 
 describe("boss viability", () => {
+  it("keeps Check kill backed by the broad boss list", () => {
+    const slugs = new Set(BOSSES.map((entry) => entry.slug));
+
+    expect(BOSSES.length).toBeGreaterThanOrEqual(55);
+    expect(Array.from(slugs)).toEqual(expect.arrayContaining([
+      "vorkath",
+      "zulrah",
+      "graardor",
+      "nex",
+      "callisto",
+      "vardorvis",
+      "toa",
+      "cox",
+      "tob",
+      "tzkal-zuk",
+      "moons-of-peril"
+    ]));
+  });
+
   it("blocks boss plans when the bank has no usable weapon", () => {
     const viability = bossViabilityFromSimpleBank([{ id: 995, name: "Coins" }], boss("vorkath"));
 
