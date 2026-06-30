@@ -26,14 +26,18 @@ describe("bank return context", () => {
     expect(bankReturnContextFromSource("unknown")).toBeNull();
   });
 
-  it("renders the return context banner on bank intake", () => {
+  it("renders the bank intake as a save popup instead of a full return page", () => {
     const source = readFileSync(join(process.cwd(), "src/app/bank/page.tsx"), "utf8");
 
-    expect(source).toContain("function bankReturnContextFromUrl()");
-    expect(source).toContain("bankReturnContextFromSource(new URLSearchParams(window.location.search).get(\"from\"))");
-    expect(source).toContain("<BankReturnContextBanner context={returnContext} rsn={prefilledRsn} />");
-    expect(source).toContain('data-testid="bank-return-context-banner"');
-    expect(source).toContain("RSN: <span");
+    expect(source).toContain('role="dialog"');
+    expect(source).toContain('data-testid="bank-save-popup"');
+    expect(source).toContain("Add bank");
+    expect(source).toContain("Paste your RuneLite bank once");
+    expect(source).toContain("compactSave");
+    expect(source).toContain('saveLabel="Save bank"');
+    expect(source).toContain("bankCloseHref");
+    expect(source).not.toContain("<BankReturnContextBanner");
+    expect(source).not.toContain('data-testid="bank-return-context-banner"');
   });
 
   it("keeps a DPS boss target while setup is added on the bank page", () => {

@@ -40,12 +40,13 @@ describe("bank plugin intake bridge", () => {
     ]);
   });
 
-  it("renders only for the plugin-origin bank intake", () => {
+  it("keeps the bank page focused on the paste popup", () => {
     const pageSource = readFileSync(join(process.cwd(), "src/app/bank/page.tsx"), "utf8");
 
-    expect(pageSource).toContain('data-testid="plugin-bank-intake-bridge"');
-    expect(pageSource).toContain('returnContext?.source === "plugin"');
-    expect(pageSource).toContain("buildBankPluginIntakeBridge(rsn)");
-    expect(pageSource).toContain("{bridge.safety}");
+    expect(pageSource).toContain('data-testid="bank-save-popup"');
+    expect(pageSource).toContain("Paste your RuneLite bank once");
+    expect(pageSource).not.toContain('data-testid="plugin-bank-intake-bridge"');
+    expect(pageSource).not.toContain('returnContext?.source === "plugin"');
+    expect(pageSource).not.toContain("buildBankPluginIntakeBridge(rsn)");
   });
 });

@@ -74,12 +74,25 @@ interface IntakeProps {
   error: string | null;
   askRsn?: boolean;
   initialRsn?: string;
+  compactSave?: boolean;
+  saveLabel?: string;
+  onSaveOnly?: (input: string, rsn: string) => void;
   // Fired as the user fills the flow in: false → empty box, true → a valid
   // bank is pasted. The parent uses this to advance the Intro's step rail.
   onPasteStateChange?: (pasted: boolean) => void;
 }
 
-export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = "", onPasteStateChange }: IntakeProps) {
+export function Intake({
+  onSubmit,
+  loading,
+  error,
+  askRsn = false,
+  initialRsn = "",
+  compactSave = false,
+  saveLabel = "Save bank",
+  onSaveOnly,
+  onPasteStateChange
+}: IntakeProps) {
   const [value, setValue] = useState("");
   const [restored, setRestored] = useState(false);
   const [junkFilter, setJunkFilter] = useState(false);
@@ -148,6 +161,18 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
     if (cleanedRsn) saveStoredRsn(cleanedRsn);
     onSubmit(value, junkFilter, cleanedRsn);
   }, [value, junkFilter, rsn, onSubmit]);
+
+  const saveOnly = useCallback(() => {
+    if (!value.trim()) return;
+    try { localStorage.setItem(STORAGE_KEY, value); } catch {}
+    const cleanedRsn = cleanRsn(rsn);
+    if (cleanedRsn) {
+      saveStoredRsn(cleanedRsn);
+      saveSavedRsn(cleanedRsn);
+    }
+    saveSavedBank(value, cleanedRsn || null);
+    onSaveOnly?.(value, cleanedRsn);
+  }, [value, rsn, onSaveOnly]);
 
   // ⌘/Ctrl + Enter to submit
   useEffect(() => {
@@ -240,29 +265,44 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
   const PREVIEW_IDS = [4151, 11802, 11806, 4712, 5616, 12791];
 
   return (
-    <section id="bank-paste-panel" data-testid="bank-paste-panel" className="surface p-6 animate-[fade-in_0.2s_ease-out]">
+    <section
+      id="bank-paste-panel"
+      data-testid="bank-paste-panel"
+      className={cn(
+        "animate-[fade-in_0.2s_ease-out]",
+        compactSave ? "p-0" : "surface p-6"
+      )}
+    >
       <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
         <div className="flex items-center gap-3">
-          <div
-            className={cn(
-              "size-7 rounded-full flex items-center justify-center text-[12px] font-semibold border-2 transition-all duration-200",
-              pasteDone
-                ? "bg-[var(--color-accent)] text-[var(--color-bg)] border-[var(--color-accent)]"
-                : "bg-[var(--color-accent)]/15 text-[var(--color-accent)] border-[var(--color-accent)]"
-            )}
-          >
-            {pasteDone ? <Check className="size-3.5" strokeWidth={3} /> : "3"}
-          </div>
+          {!compactSave && (
+            <div
+              className={cn(
+                "size-7 rounded-full flex items-center justify-center text-[12px] font-semibold border-2 transition-all duration-200",
+                pasteDone
+                  ? "bg-[var(--color-accent)] text-[var(--color-bg)] border-[var(--color-accent)]"
+                  : "bg-[var(--color-accent)]/15 text-[var(--color-accent)] border-[var(--color-accent)]"
+              )}
+            >
+              {pasteDone ? <Check className="size-3.5" strokeWidth={3} /> : "3"}
+            </div>
+          )}
           <div>
-            <h2 className="text-[15px] font-semibold text-[var(--color-text)] tracking-normal leading-tight">
-              Paste or drop your bank
+            <h2 className="text-[15px] font-semibold text-[var(--color-text)] tracking-normal leading-tight sm:text-[18px]">
+              {compactSave ? "Paste bank" : "Paste or drop your bank"}
             </h2>
             <p className="text-[11.5px] text-[var(--color-text-muted)] mt-0.5">
-              {pasteDone ? "Bank detected — review the OSRS name below, then organize" : "Step 3 of 4 — drop the export from RuneLite here"}
+              {compactSave
+                ? pasteDone
+                  ? "Bank detected. Save it once and use it everywhere."
+                  : "Paste Bank Memory or Bank Tags from RuneLite."
+                : pasteDone
+                  ? "Bank detected — review the OSRS name below, then organize"
+                  : "Step 3 of 4 — drop the export from RuneLite here"}
             </p>
           </div>
         </div>
-        {showEmptyState && (
+        {showEmptyState && !compactSave && (
           <button
             type="button"
             onClick={loadSample}
@@ -281,7 +321,7 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
         )}
       </div>
 
-      {showEmptyState && (
+      {showEmptyState && !compactSave && (
         <div className="mb-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]/50 px-4 py-3 flex flex-col gap-3 animate-[fade-in_0.3s_ease-out] sm:flex-row sm:items-center">
           <div className="flex -space-x-2 overflow-hidden pb-0.5 sm:shrink-0">
             {PREVIEW_IDS.map((id, i) => (
@@ -312,8 +352,11 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
       )}
 
       <details
-        className="mb-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 px-4 py-3"
-        open={showEmptyState}
+        className={cn(
+          "mb-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 px-4 py-3",
+          compactSave && "border-[var(--color-accent)]/25 bg-black/18"
+        )}
+        open={showEmptyState && !compactSave}
       >
         <summary className="cursor-pointer list-none text-[12.5px] font-semibold text-[var(--color-text)] marker:hidden">
           How to copy your bank
@@ -340,7 +383,7 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
           ref={taRef}
           value={value}
           onChange={(e) => { setValue(e.target.value); setRestored(false); setClipboardState("idle"); setFileImportState("idle"); }}
-          rows={6}
+          rows={compactSave ? 8 : 6}
           spellCheck={false}
           aria-describedby="bank-paste-help bank-paste-status"
           className={cn(
@@ -348,12 +391,13 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
             "bg-[var(--color-bg-2)] border border-[var(--color-border)]",
             "focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(134, 166, 217,0.12)]",
             "placeholder:text-[var(--color-text-muted)]",
-            "resize-y min-h-[140px]"
+            "resize-y",
+            compactSave ? "min-h-[210px] text-[13px]" : "min-h-[140px]"
           )}
           placeholder={`Paste either:\n\nbanktags,1,mybank,4151,1213,995,...\n\nor a Bank Memory TSV:\nItem id\tItem name\tItem quantity\n4151\tAbyssal whip\t1\n995\tCoins\t12345`}
         />
         <p id="bank-paste-help" className="mt-2 text-[11.5px] text-[var(--color-text-muted)]">
-          Browser-only paste. Bank Memory gives quantities and GP value; Bank Tags gives exact item IDs and layout.
+          Saved on this device only. Bank Memory gives quantities; Bank Tags gives exact item IDs and layout.
         </p>
         <p id="bank-paste-status" role="status" aria-live="polite" className="sr-only">
           {inputSummary
@@ -478,7 +522,7 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
         </div>
       )}
 
-      {pasteDone && (
+      {pasteDone && !compactSave && (
         <div className="mt-3 grid gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 p-3 sm:grid-cols-3">
           <Link
             href={nextPlanHref}
@@ -510,27 +554,29 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
       )}
 
       {askRsn && (
-        <div className="mt-5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)] p-4">
+        <div className={cn("mt-5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)] p-4", compactSave && "bg-black/18")}>
           <div className="flex items-center gap-3 mb-3">
-            <div
-              className={cn(
-                "size-7 shrink-0 rounded-full flex items-center justify-center text-[12px] font-semibold border-2 transition-all duration-200",
-                pasteDone
-                  ? "bg-[var(--color-accent)]/15 text-[var(--color-accent)] border-[var(--color-accent)]"
-                  : "bg-[var(--color-bg-2)] text-[var(--color-text-dim)] border-[var(--color-border)]"
-              )}
-            >
-              4
-            </div>
+            {!compactSave && (
+              <div
+                className={cn(
+                  "size-7 shrink-0 rounded-full flex items-center justify-center text-[12px] font-semibold border-2 transition-all duration-200",
+                  pasteDone
+                    ? "bg-[var(--color-accent)]/15 text-[var(--color-accent)] border-[var(--color-accent)]"
+                    : "bg-[var(--color-bg-2)] text-[var(--color-text-dim)] border-[var(--color-border)]"
+                )}
+              >
+                4
+              </div>
+            )}
             <div className="min-w-0">
               <h3 className="text-[14px] font-semibold text-[var(--color-text)] tracking-normal leading-tight flex items-center gap-2">
-                Your OSRS name
+                OSRS name
                 <span className="px-1.5 py-0.5 rounded text-[9.5px] font-semibold tracking-wider uppercase bg-[var(--color-panel-2)] border border-[var(--color-border)] text-[var(--color-text-muted)]">
                   Optional
                 </span>
               </h3>
               <p className="text-[11.5px] text-[var(--color-text-muted)] mt-0.5">
-                Step 4 of 4 — tailors the tab layout to your account
+                {compactSave ? "Keeps this bank attached to the right account." : "Step 4 of 4 — tailors the tab layout to your account"}
               </p>
             </div>
           </div>
@@ -559,8 +605,9 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
             />
           </div>
           <p id="bank-rsn-help" className="mt-2.5 text-[11.5px] text-[var(--color-text-dim)] leading-relaxed">
-            We check your hiscores once to spot a maxed main, PvMer, skiller or ironman —
-            so the layout fits how you actually play. Leave it blank for a balanced default.
+            {compactSave
+              ? "Use the same name you use on Scapestack."
+              : "We check your hiscores once to spot a maxed main, PvMer, skiller or ironman — so the layout fits how you actually play. Leave it blank for a balanced default."}
           </p>
           {handoffRsn && (
             <p className="mt-2 text-[11.5px] font-medium text-[var(--color-accent)]">
@@ -575,13 +622,15 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
           id="bank-organize-button"
           data-testid="bank-organize-button"
           type="button"
-          onClick={submit}
+          onClick={compactSave ? saveOnly : submit}
           aria-describedby="bank-organize-disabled-help"
           aria-label={
             loading
               ? "Organizing pasted bank"
               : value.trim()
-                ? "Organize pasted bank into RuneLite-ready tabs"
+                ? compactSave
+                  ? "Save pasted bank to this device"
+                  : "Organize pasted bank into RuneLite-ready tabs"
                 : "Paste a bank export before organizing"
           }
           disabled={!value.trim() || loading}
@@ -597,9 +646,9 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
             </>
           ) : (
             <>
-              Organize
+              {compactSave ? saveLabel : "Organize"}
               <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform" />
-              <span className="ml-1 text-[10px] font-mono opacity-60 bg-black/15 px-1.5 py-0.5 rounded">⌘↵</span>
+              {!compactSave && <span className="ml-1 text-[10px] font-mono opacity-60 bg-black/15 px-1.5 py-0.5 rounded">⌘↵</span>}
             </>
           )}
         </button>
@@ -609,10 +658,14 @@ export function Intake({ onSubmit, loading, error, askRsn = false, initialRsn = 
           className="text-[12px] leading-relaxed text-[var(--color-text-muted)]"
         >
           {!value.trim()
-            ? "Paste a Bank Memory export, Bank Tags string or item IDs to unlock Organize."
+            ? compactSave
+              ? "Paste Bank Memory or Bank Tags to save your bank."
+              : "Paste a Bank Memory export, Bank Tags string or item IDs to unlock Organize."
             : loading
             ? "Organizing your bank into OSRS-ready tabs…"
-            : "Ready to organize."}
+            : compactSave
+              ? "Ready to save."
+              : "Ready to organize."}
         </span>
 
         {error && (

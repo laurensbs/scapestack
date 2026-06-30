@@ -1,15 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useTransition, useCallback, useEffect } from "react";
-import { ArrowRight, DatabaseZap, ShieldCheck, Sparkles } from "lucide-react";
-import { Intro } from "@/components/intro";
+import { X } from "lucide-react";
 import { Intake } from "@/components/intake";
 import { BankResult } from "@/components/bank-result";
-import { ToolHeader } from "@/components/tool-header";
 import { SavedBankBanner } from "@/components/saved-bank-banner";
 import { DropCelebration } from "@/components/drop-celebration";
-import { BankPluginOnboarding } from "@/components/bank-plugin-onboarding";
 import { ScapestackReadinessRail } from "@/components/scapestack-readiness-rail";
 import { SAMPLE_BANKTAGS } from "@/lib/utils";
 import { organizeAction } from "../actions";
@@ -27,8 +25,6 @@ import {
 } from "@/lib/saved-bank";
 import { getActiveAccount } from "@/lib/account-storage";
 import { persistBankHandoffPayload } from "@/lib/next-bank-handoff";
-import { bankReturnContextFromSource, type BankReturnContext } from "@/lib/bank-return-context";
-import { buildBankPluginIntakeBridge } from "@/lib/bank-plugin-intake-bridge";
 import type { OrganizeResult } from "@/lib/organizer";
 
 type View = "intake" | "result";
@@ -47,18 +43,28 @@ function rsnFromUrl(): string {
   return (new URLSearchParams(window.location.search).get("rsn") ?? "").trim().slice(0, 12);
 }
 
-function bankReturnContextFromUrl(): BankReturnContext | null {
-  if (typeof window === "undefined") return null;
-  return bankReturnContextFromSource(new URLSearchParams(window.location.search).get("from"));
-}
-
 function bossFromUrl(): string | null {
   if (typeof window === "undefined") return null;
   const boss = (new URLSearchParams(window.location.search).get("boss") ?? "").trim();
   return boss || null;
 }
 
+function sourceFromUrl(): string | null {
+  if (typeof window === "undefined") return null;
+  return new URLSearchParams(window.location.search).get("from");
+}
+
+function bankCloseHref(rsn: string): string {
+  const cleanRsn = rsn.trim();
+  const source = sourceFromUrl();
+  const suffix = cleanRsn ? `?rsn=${encodeURIComponent(cleanRsn)}&bank=local` : "?bank=local";
+  if (source === "dps") return cleanRsn ? `/dps?rsn=${encodeURIComponent(cleanRsn)}&from=bank` : "/dps?from=bank";
+  if (source === "goals") return cleanRsn ? `/goals?rsn=${encodeURIComponent(cleanRsn)}&from=bank` : "/goals?from=bank";
+  return `/next${suffix}`;
+}
+
 function BankPageContent() {
+  const router = useRouter();
   const [view, setView] = useState<View>("intake");
   const [result, setResult] = useState<OrganizeResult | null>(null);
   const [strings, setStrings] = useState<string[]>([]);
@@ -79,13 +85,7 @@ function BankPageContent() {
   // above BankResult. Set right before we overwrite the saved bank;
   // cleared when the user leaves the result view.
   const [freshIconics, setFreshIconics] = useState<IconicItem[]>([]);
-  // Drives the Intro step rail: 0 = reading instructions, 2 = a valid bank
-  // is in the textarea (steps 1-2 done, on step 3). Lifted here so the
-  // instructions and the live form move together.
-  const [pasted, setPasted] = useState(false);
-  const [returnContext, setReturnContext] = useState<BankReturnContext | null>(null);
   const [returnBossSlug, setReturnBossSlug] = useState<string | null>(null);
-  const onPasteStateChange = useCallback((isPasted: boolean) => setPasted(isPasted), []);
 
   // Resolve archetype from RSN (if provided) via Hiscores, else "unspecified".
   const resolveArchetype = async (rsn: string): Promise<{ archetype: Archetype; rsn: string | null; skills: HiscoreSkill[] | null }> => {
@@ -162,7 +162,6 @@ function BankPageContent() {
   useEffect(() => {
     const initialRsn = rsnFromUrl() || getActiveAccount()?.rsn || loadSavedRsn() || "";
     setPrefilledRsn(initialRsn);
-    setReturnContext(bankReturnContextFromUrl());
     setReturnBossSlug(bossFromUrl());
   }, []);
 
@@ -179,39 +178,48 @@ function BankPageContent() {
 
   const onUseSavedBank = useCallback((bank: SavedBank) => {
     setSavedBank(null);
-    onIntakeSubmit(bank.banktags, false, prefilledRsn);
+    saveSavedBank(bank.banktags, prefilledRsn || null);
+    if (prefilledRsn) saveSavedRsn(prefilledRsn);
+    router.push(bankCloseHref(prefilledRsn));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prefilledRsn]);
+  }, [prefilledRsn, router]);
+
+  const onSaveBankOnly = useCallback((_input: string, rsn: string) => {
+    const targetRsn = rsn.trim() || prefilledRsn;
+    router.push(bankCloseHref(targetRsn));
+  }, [prefilledRsn, router]);
+
+  const closeHref = bankCloseHref(prefilledRsn);
 
   return (
     <main className="relative z-10 mx-auto max-w-6xl px-5 py-7 pb-20">
-      <ToolHeader
-        slug="bank"
-        actions={
-          view === "intake" && !savedBank ? (
-            <button type="button" onClick={onSample} className="btn-ghost">
-              <Sparkles className="size-3.5" /> Try sample
-            </button>
-          ) : null
-        }
-      />
       {view === "intake" && (
-        <>
-          <details className="mb-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/70 p-4">
-            <summary className="flex items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)]">
-              <span>RuneLite can skip finished stuff later</span>
-              <span className="text-[11px] font-semibold text-[var(--color-accent)]">Optional</span>
-            </summary>
-            <div className="mt-4">
-              <BankPluginOnboarding />
+        <section
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="bank-popup-title"
+          data-testid="bank-save-popup"
+          className="mx-auto max-w-3xl overflow-hidden rounded-[18px] border-2 border-[var(--color-accent)]/55 bg-[#2b2418] shadow-[0_30px_120px_-45px_rgba(0,0,0,0.95)]"
+        >
+          <div className="flex items-start justify-between gap-4 border-b border-[var(--color-accent)]/35 px-5 py-4 sm:px-7">
+            <div>
+              <p className="eyebrow text-[var(--color-accent)]">Bank setup</p>
+              <h1 id="bank-popup-title" className="mt-1 font-serif text-[28px] font-bold leading-none text-[var(--color-text)] sm:text-[34px]">
+                Add bank
+              </h1>
+              <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-dim)]">
+                Paste your RuneLite bank once. Scapestack saves it on this device and uses it for trips, supplies and kill checks.
+              </p>
             </div>
-          </details>
-          {returnContext && (
-            <BankReturnContextBanner context={returnContext} rsn={prefilledRsn} />
-          )}
-          {returnContext?.source === "plugin" && (
-            <PluginBankIntakeBridge rsn={prefilledRsn} />
-          )}
+            <Link
+              href={closeHref}
+              aria-label="Close bank popup"
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-[var(--color-border)] text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+            >
+              <X className="size-5" />
+            </Link>
+          </div>
+          <div className="p-5 sm:p-7">
           {savedBank && (
             <SavedBankBanner
               saved={savedBank}
@@ -225,7 +233,6 @@ function BankPageContent() {
               }}
             />
           )}
-          <Intro flowStep={pasted ? 2 : 0} />
           <Intake
             key={sampleInput ?? "fresh"}
             onSubmit={onIntakeSubmit}
@@ -233,9 +240,19 @@ function BankPageContent() {
             error={error}
             askRsn
             initialRsn={prefilledRsn}
-            onPasteStateChange={onPasteStateChange}
+            compactSave
+            saveLabel="Save bank"
+            onSaveOnly={onSaveBankOnly}
           />
-        </>
+            <button
+              type="button"
+              onClick={onSample}
+              className="mt-4 inline-flex text-[12px] font-semibold text-[var(--color-text-muted)] underline decoration-dotted underline-offset-4 transition-colors hover:text-[var(--color-accent)]"
+            >
+              Try sample instead
+            </button>
+          </div>
+        </section>
       )}
       {view === "result" && result && (
         <>
@@ -274,106 +291,5 @@ function BankPageContent() {
         </>
       )}
     </main>
-  );
-}
-
-function PluginBankIntakeBridge({ rsn }: { rsn: string }) {
-  const bridge = buildBankPluginIntakeBridge(rsn);
-
-  return (
-    <section
-      data-testid="plugin-bank-intake-bridge"
-      className="mb-4 rounded-2xl border border-[var(--color-accent)]/25 bg-[var(--color-panel)]/80 px-4 py-3.5 shadow-[0_18px_50px_-36px_rgba(0,0,0,0.75)]"
-    >
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="flex min-w-0 gap-3">
-          <span className="mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 text-[var(--color-accent)]">
-            <DatabaseZap className="size-5" />
-          </span>
-          <div className="min-w-0">
-            <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              {bridge.eyebrow}
-            </div>
-            <h2 className="mt-1 text-[16px] font-bold tracking-normal text-[var(--color-text)]">
-              {bridge.title}
-            </h2>
-            <p className="mt-1 max-w-3xl text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-              {bridge.body}
-            </p>
-            <div className="mt-3 grid gap-2 md:grid-cols-3">
-              {bridge.signals.map((signal) => (
-                <div
-                  key={signal.label}
-                  className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2"
-                >
-                  <div className="text-[9.5px] font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
-                    {signal.label}
-                  </div>
-                  <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text)]">
-                    {signal.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <p className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[var(--color-good)]/20 bg-[var(--color-good)]/8 px-2.5 py-1 text-[10.5px] font-semibold text-[var(--color-good)]">
-              <ShieldCheck className="size-3.5" />
-              {bridge.safety}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex shrink-0 flex-wrap gap-2 lg:max-w-[230px]">
-          {bridge.actions.map((action) => (
-            <Link
-              key={action.label}
-              href={action.href}
-              className={[
-                "inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[12px] font-bold transition-colors",
-                action.primary
-                  ? "border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/12 text-[var(--color-accent)] hover:bg-[var(--color-accent)]/18"
-                  : "border border-[var(--color-border)] bg-[var(--color-bg)]/45 text-[var(--color-text)] hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
-              ].join(" ")}
-            >
-              {action.label}
-              <ArrowRight className="size-3.5" />
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function BankReturnContextBanner({
-  context,
-  rsn
-}: {
-  context: BankReturnContext;
-  rsn: string;
-}) {
-  return (
-    <section
-      data-testid="bank-return-context-banner"
-      className="mb-4 rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/8 px-4 py-3"
-    >
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-            {context.label}
-          </div>
-          <h2 className="mt-1 text-[14px] font-semibold text-[var(--color-text)]">
-            {context.title}
-          </h2>
-          <p className="mt-1 max-w-2xl text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-            {context.body}
-          </p>
-        </div>
-        {rsn.trim() && (
-          <span className="inline-flex shrink-0 rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-text-muted)]">
-            RSN: <span className="ml-1 text-[var(--color-text)]">{rsn.trim()}</span>
-          </span>
-        )}
-      </div>
-    </section>
   );
 }

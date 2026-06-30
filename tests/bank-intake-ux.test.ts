@@ -62,7 +62,7 @@ describe("bank intake UX affordances", () => {
     expect(intakeSource).toContain('id="bank-paste-help"');
     expect(intakeSource).toContain('id="bank-paste-status"');
     expect(intakeSource).toContain('role="status"');
-    expect(intakeSource).toContain("Browser-only paste. Bank Memory gives quantities and GP value");
+    expect(intakeSource).toContain("Saved on this device only. Bank Memory gives quantities");
     expect(intakeSource).toContain("No bank export detected yet.");
   });
 
@@ -75,6 +75,9 @@ describe("bank intake UX affordances", () => {
     expect(intakeSource).toContain("Use for next plan");
     expect(intakeSource).toContain("Check bosses");
     expect(intakeSource).toContain("Organize tabs");
+    expect(intakeSource).toContain("compactSave");
+    expect(intakeSource).toContain("Save bank");
+    expect(intakeSource).toContain("Save pasted bank to this device");
   });
 
   it("explains paste button failures instead of failing silently", () => {
