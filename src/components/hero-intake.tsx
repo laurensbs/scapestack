@@ -122,7 +122,7 @@ export function HeroIntake() {
       saveMood({
         mood: intentPreset.mood,
         minutes: intentPreset.minutes
-      });
+      }, trimmed || undefined);
     }
     if (hasBankPaste) {
       if (trimmed) saveSavedBank(bank, trimmed);

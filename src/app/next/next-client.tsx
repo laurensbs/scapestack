@@ -3049,7 +3049,7 @@ function WhatToDo({
   }, [shareMode]);
 
   useEffect(() => {
-    const last = loadMood();
+    const last = loadMood(activeRsn);
     setLastSession(last);
     if (last) {
       if (!routeIntent && !initialRouteChoice) {
@@ -3124,7 +3124,7 @@ function WhatToDo({
       minutes,
       lastHeadlineId: pick.headline.id,
       lastHeadlineTitle: pick.headline.title
-    });
+    }, activeRsn || undefined);
   }, [mood, minutes, pick]);
 
   if (allRecs.length === 0) return null;

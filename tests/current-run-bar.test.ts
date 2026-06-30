@@ -13,6 +13,7 @@ describe("current run bar", () => {
     expect(source).toContain("describeSavedAt");
     expect(source).toContain("Bank saved ${describeSavedAt(bankSavedAt)}");
     expect(source).toContain("loadSavedBank(savedRsn)");
+    expect(source).toContain("loadMood(savedRsn)");
     expect(source).toContain("Bank added");
     expect(source).toContain("Add bank");
     expect(source).toContain("Add RuneLite");

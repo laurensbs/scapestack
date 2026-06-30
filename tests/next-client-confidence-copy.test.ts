@@ -212,6 +212,8 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('action: "try_another"');
     expect(source).toContain("recommendationMemoryCounts(feedback, { rsn: activeRsn })");
     expect(source).toContain("latestRecommendationMemory(feedback, { rsn: activeRsn })");
+    expect(source).toContain("loadMood(activeRsn)");
+    expect(source).toContain("}, activeRsn || undefined);");
     expect(source).toContain("mergedSkipCounts(sessionSkippedCounts(sessionSkipped), recentMemoryCounts)");
     expect(source).toContain("routeSwitchCopy(nextRouteLens, pick.headline)");
     expect(source).toContain("pickForRoute(visibleRecs, mood, minutes, routeLens, shuffleIdx, routePickOptions)");

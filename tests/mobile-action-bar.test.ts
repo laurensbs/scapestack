@@ -13,7 +13,7 @@ describe("mobile action bar", () => {
     expect(source).toContain("RuneLite");
     expect(source).toContain("Mood");
     expect(source).toContain("loadSavedBank(nextRsn)");
-    expect(source).toContain("loadMood()");
+    expect(source).toContain("loadMood(nextRsn)");
     expect(source).toContain("SAVED_BANK_EVENT");
     expect(source).toContain("fixed inset-x-0 bottom-0");
     expect(layout).toContain('import { MobileActionBar } from "@/components/mobile-action-bar";');

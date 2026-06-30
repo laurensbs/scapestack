@@ -1,4 +1,5 @@
 import { rsnSlug } from "./hiscores";
+import type { Mood, TimeBudget } from "./mood";
 
 export const ACCOUNT_STORE_KEY = "scapestack:accounts:v1";
 export const ACCOUNT_EVENT = "scapestack:account-change";
@@ -10,6 +11,8 @@ export interface ScapestackAccount {
   lastUsedAt: number;
   bankSavedAt?: number;
   runeliteCheckedAt?: number;
+  preferredMood?: Mood;
+  preferredMinutes?: TimeBudget;
 }
 
 export interface ScapestackAccountStore {
@@ -97,6 +100,8 @@ export function upsertAccount(rsn: string, patch: Partial<Omit<ScapestackAccount
     lastUsedAt: timestamp,
     bankSavedAt: existing?.bankSavedAt,
     runeliteCheckedAt: existing?.runeliteCheckedAt,
+    preferredMood: existing?.preferredMood,
+    preferredMinutes: existing?.preferredMinutes,
     ...patch
   };
   const accounts = [
@@ -138,4 +143,14 @@ export function markAccountBankSaved(rsn: string, savedAt: number = now()): void
 
 export function markRuneliteChecked(rsn: string, checkedAt: number = now()): void {
   upsertAccount(rsn, { runeliteCheckedAt: checkedAt });
+}
+
+export function markAccountMood(rsn: string, mood: Mood, minutes: TimeBudget): void {
+  upsertAccount(rsn, { preferredMood: mood, preferredMinutes: minutes });
+}
+
+export function markActiveAccountMood(mood: Mood, minutes: TimeBudget): void {
+  const active = getActiveAccount();
+  if (!active) return;
+  markAccountMood(active.rsn, mood, minutes);
 }

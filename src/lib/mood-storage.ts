@@ -11,6 +11,7 @@
 // een feature niet een bug (geen lock-in).
 
 import type { Mood, TimeBudget } from "./mood";
+import { accountIdForRsn, getActiveAccount, loadAccountStore, markAccountMood } from "./account-storage";
 
 const KEY = "scapestack:mood-last:v1";
 
@@ -28,18 +29,22 @@ export interface MoodSession {
   savedAt: number;
 }
 
-export function saveMood(session: Omit<MoodSession, "version" | "savedAt">): void {
+export function saveMood(session: Omit<MoodSession, "version" | "savedAt">, rsn?: string | null): void {
   if (typeof window === "undefined") return;
   try {
     const payload: MoodSession = { version: 1, ...session, savedAt: Date.now() };
     localStorage.setItem(KEY, JSON.stringify(payload));
+    const accountRsn = (rsn ?? getActiveAccount()?.rsn ?? "").trim();
+    if (accountRsn) markAccountMood(accountRsn, session.mood, session.minutes);
   } catch {
     // Quota / disabled storage → silently skip
   }
 }
 
-export function loadMood(): MoodSession | null {
+export function loadMood(rsn?: string | null): MoodSession | null {
   if (typeof window === "undefined") return null;
+  const accountMood = loadAccountMood(rsn);
+  if (accountMood) return accountMood;
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return null;
@@ -49,6 +54,20 @@ export function loadMood(): MoodSession | null {
   } catch {
     return null;
   }
+}
+
+function loadAccountMood(rsn?: string | null): MoodSession | null {
+  const cleanRsn = (rsn ?? "").trim();
+  const account = cleanRsn
+    ? loadAccountStore().accounts.find((entry) => entry.id === accountIdForRsn(cleanRsn))
+    : getActiveAccount();
+  if (!account?.preferredMood || !account.preferredMinutes) return null;
+  return {
+    version: 1,
+    mood: account.preferredMood,
+    minutes: account.preferredMinutes,
+    savedAt: account.lastUsedAt
+  };
 }
 
 /** "5 hours ago" / "2 days ago" / "just now" — for the welcome-back

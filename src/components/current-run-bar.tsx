@@ -24,7 +24,7 @@ export function CurrentRunBar({ className, compact = false }: CurrentRunBarProps
     const refresh = () => {
       const active = getActiveAccount();
       const savedRsn = active?.rsn ?? loadSavedRsn() ?? "";
-      const savedMood = loadMood();
+      const savedMood = loadMood(savedRsn);
       const savedBank = loadSavedBank(savedRsn);
       setAccount(active);
       setFallbackRsn(savedRsn);

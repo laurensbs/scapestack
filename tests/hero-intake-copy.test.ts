@@ -53,6 +53,7 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("markFirstSetupSeen(trimmed)");
     expect(source).toContain("markRuneliteChecked(trimmed)");
     expect(source).toContain("saveMood({");
+    expect(source).toContain("}, trimmed || undefined);");
     expect(source).toContain("if (options.includeSetupIntent) {");
     expect(source).toContain('params.set("intent", selectedFirstSetupIntent);');
     expect(source).toContain('params.set("time", String(intentPreset.minutes));');

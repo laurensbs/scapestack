@@ -51,6 +51,23 @@ describe("mood-storage", () => {
     expect(back!.savedAt).toBeGreaterThan(0);
   });
 
+  it("prefers the active account mood when one is saved", async () => {
+    const { upsertAccount, markAccountMood } = await import("@/lib/account-storage");
+    const { loadMood } = await import("@/lib/mood-storage");
+
+    upsertAccount("Lynx Titan");
+    markAccountMood("Lynx Titan", "afk", 30);
+
+    expect(loadMood()).toMatchObject({
+      mood: "afk",
+      minutes: 30
+    });
+    expect(loadMood("Lynx Titan")).toMatchObject({
+      mood: "afk",
+      minutes: 30
+    });
+  });
+
   it("oude versie (v0) wordt genegeerd", async () => {
     const { loadMood } = await import("@/lib/mood-storage");
     localStorage.setItem(

@@ -32,7 +32,7 @@ export function MobileActionBar() {
       const active = getActiveAccount();
       const nextRsn = active?.rsn ?? loadSavedRsn() ?? "";
       const savedBank = loadSavedBank(nextRsn);
-      const savedMood = loadMood();
+      const savedMood = loadMood(nextRsn);
       setAccount(active);
       setRsn(nextRsn);
       setHasBank(Boolean(active?.bankSavedAt || savedBank));
