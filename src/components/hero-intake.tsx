@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, ClipboardPaste, PlugZap, X } from "lucide-react";
+import { ArrowRight, ClipboardPaste, PlugZap, Sword, UserRound, X } from "lucide-react";
 import { BankSetupSteps } from "@/components/bank-setup-steps";
 import { RuneliteOpenButton } from "@/components/runelite-open-button";
+import { SessionMoodPicker } from "@/components/session-mood-picker";
 import { getActiveAccount, markRuneliteChecked } from "@/lib/account-storage";
 import type { Mood, TimeBudget } from "@/lib/mood";
 import { saveMood } from "@/lib/mood-storage";
@@ -77,6 +79,7 @@ export function HeroIntake() {
   const [showFirstSetup, setShowFirstSetup] = useState(false);
   const [showBankGuide, setShowBankGuide] = useState(false);
   const [showRuneliteGuide, setShowRuneliteGuide] = useState(false);
+  const [editingAccount, setEditingAccount] = useState(false);
   const [selectedFirstSetupIntent, setSelectedFirstSetupIntent] = useState<FirstSetupIntent>("surprise");
   const [showFirstSetupBank, setShowFirstSetupBank] = useState(false);
   const [firstSetupRunelite, setFirstSetupRunelite] = useState(false);
@@ -150,6 +153,73 @@ export function HeroIntake() {
     }
     openPlan();
   };
+
+  if (isRememberedRun && !editingAccount) {
+    const encodedRsn = encodeURIComponent(rememberedRsn);
+    return (
+      <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] p-4 text-left shadow-[0_18px_48px_-40px_rgba(0,0,0,0.82)] sm:p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-3 py-1 text-[11.5px] font-bold text-[var(--color-accent)]">
+              <UserRound className="size-3.5" />
+              {rememberedRsn}
+            </div>
+            <h2 className="mt-3 text-[26px] font-semibold leading-tight text-[var(--color-text)]">
+              Welcome back, {rememberedRsn}.
+            </h2>
+            <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
+              Pick the next trip or add context when gear, supplies or finished progress should change the answer.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setEditingAccount(true)}
+            className="inline-flex shrink-0 items-center justify-center rounded-lg border border-[var(--color-border)] px-3 py-2 text-[12px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+          >
+            Change RSN
+          </button>
+        </div>
+
+        <div className="mt-5 grid gap-2 sm:grid-cols-2">
+          <Link
+            href={`/next?rsn=${encodedRsn}`}
+            className="inline-flex min-h-[58px] items-center justify-between gap-3 rounded-xl bg-[var(--color-accent)] px-4 py-3 text-[14px] font-bold text-[#0B0F0D] transition-colors hover:bg-[var(--color-accent-soft)]"
+          >
+            Plan next trip
+            <ArrowRight className="size-4" />
+          </Link>
+          <Link
+            href={`/bank?rsn=${encodedRsn}&from=home`}
+            className="inline-flex min-h-[58px] items-center justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-4 py-3 text-[14px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+          >
+            {hasBankContext ? "Review bank" : "Add bank"}
+            <ClipboardPaste className="size-4" />
+          </Link>
+          <Link
+            href={`/dps?rsn=${encodedRsn}&from=home`}
+            className="inline-flex min-h-[58px] items-center justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-4 py-3 text-[14px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+          >
+            Check kill
+            <Sword className="size-4" />
+          </Link>
+          <Link
+            href={`/plugin?rsn=${encodedRsn}&from=home#verify-sync`}
+            className="inline-flex min-h-[58px] items-center justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-4 py-3 text-[14px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+          >
+            RuneLite
+            <PlugZap className="size-4" />
+          </Link>
+        </div>
+
+        <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2">
+          <span className="text-[12.5px] font-semibold text-[var(--color-text-muted)]">
+            What are you in the mood for?
+          </span>
+          <SessionMoodPicker rsn={rememberedRsn} label="Best now" compact />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={submit} className="space-y-4">

@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Package, PlugZap, Sword, UserRound } from "lucide-react";
+import { Package, PlugZap, UserRound } from "lucide-react";
 import { ACCOUNT_EVENT, getActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
 import { loadMood } from "@/lib/mood-storage";
 import { describeSavedAt, loadSavedBank, loadSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
 import { cn } from "@/lib/utils";
+import { SessionMoodPicker } from "./session-mood-picker";
 
 interface CurrentRunBarProps {
   className?: string;
@@ -81,10 +82,7 @@ export function CurrentRunBar({ className, compact = false }: CurrentRunBarProps
             {account?.runeliteCheckedAt ? "RuneLite checked" : "Add RuneLite"}
           </Link>
           <span className="text-[var(--color-border-strong)]" aria-hidden="true">·</span>
-          <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full px-1.5 py-1">
-            <Sword className="size-3.5" />
-            {vibe}
-          </span>
+          <SessionMoodPicker rsn={rsn} label={vibe} />
         </>
       )}
     </nav>

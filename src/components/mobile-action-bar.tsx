@@ -1,12 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ClipboardPaste, PlugZap, Sparkles, Sword } from "lucide-react";
+import Link from "next/link";
+import { ClipboardPaste, PlugZap, Sparkles } from "lucide-react";
 import { ACCOUNT_EVENT, getActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
 import { loadMood } from "@/lib/mood-storage";
 import { loadSavedBank, loadSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
 import { cn } from "@/lib/utils";
+import { SessionMoodPicker } from "./session-mood-picker";
 
 function moodLabel(mood?: string): string {
   switch (mood) {
@@ -52,8 +53,6 @@ export function MobileActionBar() {
   const rsnQuery = rsn ? `?rsn=${encodeURIComponent(rsn)}` : "";
   const bankHref = rsn ? `/bank?rsn=${encodeURIComponent(rsn)}&from=mobile` : "/bank?from=mobile";
   const pluginHref = rsn ? `/plugin?rsn=${encodeURIComponent(rsn)}&from=mobile#verify-sync` : "/plugin?from=mobile#verify-sync";
-  const moodHref = rsn ? `/next?rsn=${encodeURIComponent(rsn)}#mood` : "/next#mood";
-
   const actions = [
     {
       href: `/next${rsnQuery}`,
@@ -75,13 +74,6 @@ export function MobileActionBar() {
       helper: account?.runeliteCheckedAt ? "Checked" : "Later",
       icon: PlugZap,
       active: Boolean(account?.runeliteCheckedAt)
-    },
-    {
-      href: moodHref,
-      label: mood,
-      helper: "Vibe",
-      icon: Sword,
-      active: mood !== "Mood"
     }
   ];
 
@@ -110,6 +102,7 @@ export function MobileActionBar() {
             </Link>
           );
         })}
+        <SessionMoodPicker rsn={rsn} label={mood} mobileTile />
       </div>
     </nav>
   );

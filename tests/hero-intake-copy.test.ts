@@ -25,6 +25,19 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("Bank added");
   });
 
+  it("turns the homepage account-first when an RSN is already saved", () => {
+    expect(source).toContain("const [editingAccount, setEditingAccount] = useState(false);");
+    expect(source).toContain("if (isRememberedRun && !editingAccount)");
+    expect(source).toContain("Welcome back, {rememberedRsn}.");
+    expect(source).toContain("Plan next trip");
+    expect(source).toContain("Review bank");
+    expect(source).toContain("Check kill");
+    expect(source).toContain("RuneLite");
+    expect(source).toContain("Change RSN");
+    expect(source).toContain("What are you in the mood for?");
+    expect(source).toContain('<SessionMoodPicker rsn={rememberedRsn} label="Best now" compact />');
+  });
+
   it("shows first-time setup before the first /next plan", () => {
     expect(source).toContain('const HERO_FIRST_SETUP_KEY = "scapestack:first-setup:v1";');
     expect(source).toContain('type FirstSetupIntent = "surprise" | "chill" | "cash" | "bossing" | "unlock" | "afk" | "short";');

@@ -12,6 +12,8 @@ describe("mobile action bar", () => {
     expect(source).toContain("Add bank");
     expect(source).toContain("RuneLite");
     expect(source).toContain("Mood");
+    expect(source).toContain("SessionMoodPicker");
+    expect(source).toContain("<SessionMoodPicker rsn={rsn} label={mood} mobileTile />");
     expect(source).toContain("loadSavedBank(nextRsn)");
     expect(source).toContain("loadMood(nextRsn)");
     expect(source).toContain("SAVED_BANK_EVENT");
