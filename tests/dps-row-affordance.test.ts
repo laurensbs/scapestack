@@ -27,8 +27,10 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("<button\n      type=\"button\"\n      id={`boss-${boss.slug}`}");
     expect(source).toContain("aria-label={`Open ${boss.name} kill setup details`}");
     expect(source).toContain("title={`Open ${boss.name} kill setup details`}");
-    expect(source).toContain("Open details");
-    expect(source).toContain("grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5");
+    expect(source).toContain("group min-h-[238px] w-full");
+    expect(source).toContain("{boss.slug}");
+    expect(source).toContain("grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4");
+    expect(source).not.toContain("Open details");
     expect(source).toContain("Add a weapon to see setup and upgrades.");
     expect(source).toContain('import { Edit3, Sword, Search, X, Sparkles, ExternalLink } from "lucide-react";');
     expect(source).not.toContain("role=\"button\"");

@@ -22,6 +22,7 @@ import {
   bankHandoffItemsFromTabs,
   persistBankHandoffPayload,
   readBankHandoffPayload,
+  type BankHandoffItem,
   type BankHandoffSummary
 } from "@/lib/next-bank-handoff";
 import { buildDpsBankContext } from "@/lib/dps-bank-context";
@@ -139,6 +140,7 @@ export function DpsClient() {
   // (?boss=<slug>) can open it on result-view mount, and so the Enter-
   // key search shortcut can open it too.
   const [modalBoss, setModalBoss] = useState<Boss | null>(null);
+  const [bankItems, setBankItems] = useState<BankHandoffItem[]>([]);
   const [bankSummary, setBankSummary] = useState<BankHandoffSummary | null>(null);
   const [loadedFromHandoff, setLoadedFromHandoff] = useState(false);
   const [skipHandoff, setSkipHandoff] = useState(false);
@@ -186,9 +188,11 @@ export function DpsClient() {
     setHasKnownSetup(Boolean(savedSetup));
     try {
       if (searchParams.get("bank") === "none" && !savedSetup) return;
-      const context = buildDpsBankContext(readBankHandoffPayload(window));
+      const handoffItems = readBankHandoffPayload(window);
+      const context = buildDpsBankContext(handoffItems);
       if (context) {
         setOwned(context.owned);
+        setBankItems(handoffItems);
         setBankSummary(context.summary);
         setLoadedFromHandoff(true);
         setView("result");
@@ -204,9 +208,11 @@ export function DpsClient() {
           setError(res.error || "Failed to read setup");
           return;
         }
-        const context = buildDpsBankContext(bankHandoffItemsFromTabs(res.result.tabs));
+        const nextBankItems = bankHandoffItemsFromTabs(res.result.tabs);
+        const context = buildDpsBankContext(nextBankItems);
         if (!context) return;
         setOwned(context.owned);
+        setBankItems(nextBankItems);
         setBankSummary(context.summary);
         setLoadedFromHandoff(true);
         setView("result");
@@ -227,7 +233,9 @@ export function DpsClient() {
       const flat = res.result.tabs.flatMap((t) => t.items);
       const gear = ownedGear(flat);
       setOwned(gear);
-      const context = buildDpsBankContext(bankHandoffItemsFromTabs(res.result.tabs));
+      const nextBankItems = bankHandoffItemsFromTabs(res.result.tabs);
+      const context = buildDpsBankContext(nextBankItems);
+      setBankItems(nextBankItems);
       try {
         persistBankHandoffPayload(res.result.tabs, window);
       } catch {
@@ -559,7 +567,7 @@ export function DpsClient() {
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredResults.map(({ boss, dps }) => (
               <BossCard
                 key={boss.slug}
@@ -586,6 +594,7 @@ export function DpsClient() {
         <BossDetailModal
           boss={modalBoss}
           owned={owned}
+          bankItems={bankItems}
           onClose={() => setModalBoss(null)}
         />
       )}
@@ -616,7 +625,7 @@ function BossCard({ boss, dps, isFocused, onOpen }: {
       aria-label={`Open ${boss.name} kill setup details`}
       title={`Open ${boss.name} kill setup details`}
       className={cn(
-        "group min-h-[178px] w-full scroll-mt-24 rounded-xl border p-3 text-left transition-all",
+        "group min-h-[238px] w-full scroll-mt-24 rounded-xl border p-4 text-left transition-all",
         "bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] border-[var(--color-border)]",
         "hover:-translate-y-0.5 hover:border-[var(--color-accent)]/55 hover:shadow-[0_14px_34px_-24px_rgba(240,176,44,0.55)]",
         isFocused && "border-[var(--color-accent)]/55 shadow-[0_0_0_1px_rgba(240,176,44,0.22)]"
@@ -635,8 +644,13 @@ function BossCard({ boss, dps, isFocused, onOpen }: {
         </span>
       </div>
       <div className="mt-3 min-w-0">
-        <div className="truncate text-[13px] font-bold text-[var(--color-text)]">{boss.name}</div>
-        <div className="mt-0.5 text-[10.5px] text-[var(--color-text-dim)]">{boss.hp} hp</div>
+        <div className="truncate text-[15px] font-bold text-[var(--color-text)]">{boss.name}</div>
+        <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10.5px] text-[var(--color-text-dim)]">
+          <span>{boss.hp} hp</span>
+          <span className="rounded border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-1.5 py-0.5 font-mono text-[9.5px] uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
+            {boss.slug}
+          </span>
+        </div>
       </div>
       {usable ? (
         <div className="mt-3 space-y-1.5">
@@ -664,10 +678,6 @@ function BossCard({ boss, dps, isFocused, onOpen }: {
           Add a weapon to see setup and upgrades.
         </p>
       )}
-      <span className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-[var(--color-accent)]">
-        Open details
-        <ExternalLink className="size-3 transition-transform group-hover:translate-x-0.5" />
-      </span>
     </button>
   );
 }
@@ -791,8 +801,8 @@ function DpsNoWeaponGate({
 // missing-sprite tile.
 function BossThumb({ boss }: { boss: Boss }) {
   return (
-    <div className="size-9 shrink-0 rounded-md bg-[var(--color-bg-2)] border border-[var(--color-border)] flex items-center justify-center overflow-hidden">
-      <BossSprite boss={boss} size={36} />
+    <div className="size-14 shrink-0 rounded-lg bg-[var(--color-bg-2)] border border-[var(--color-border)] flex items-center justify-center overflow-hidden">
+      <BossSprite boss={boss} size={52} />
     </div>
   );
 }

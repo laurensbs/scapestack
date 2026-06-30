@@ -28,6 +28,20 @@ describe("boss detail modal affordance", () => {
     expect(source).toContain("Best style with your gear");
     expect(source).toContain("Best setup");
     expect(source).toContain("Upgrades you don&apos;t have");
-    expect(source).toContain("Bright chips = you have it");
+    expect(source).toContain("Best inventory setup");
+    expect(source).toContain("Bright chips = in your bank");
+    expect(source).toContain("Buy chips = missing");
+  });
+
+  it("builds boss inventory from the pasted bank and marks missing buys", () => {
+    expect(source).toContain("bankItems?: BankHandoffItem[]");
+    expect(source).toContain("buildInventoryRows({ preset, bankItems, owned, dps })");
+    expect(source).toContain("function buildInventoryRows");
+    expect(source).toContain("function findBankItemByPattern");
+    expect(source).toContain("function bankItemFromGear");
+    expect(source).toContain("Extra supplies");
+    expect(source).toContain("slot.item ? wikiSearchUrl(slot.item.name) : wikiSearchUrl(slot.label)");
+    expect(source).toContain("Buy");
+    expect(source).toContain("x{slot.item.quantity.toLocaleString()}");
   });
 });

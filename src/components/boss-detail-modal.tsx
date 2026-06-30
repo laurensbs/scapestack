@@ -6,15 +6,17 @@ import { X, Sword, Target, Zap, TrendingUp, Package, ExternalLink } from "lucide
 import type { Boss } from "@/lib/bosses";
 import { bestStyleAndSetup, calcDps, autoSetup, type DpsBreakdown, type Setup } from "@/lib/dps";
 import { GEAR, type GearItem, type CombatStyle } from "@/lib/gear";
-import { PRESETS } from "@/lib/presets";
+import { PRESETS, type Preset } from "@/lib/presets";
 import { formatGp, cn } from "@/lib/utils";
 import { ItemSprite } from "@/components/item-sprite";
 import { wikiPriceUrl } from "@/lib/item-action";
 import { wikiSearchUrl } from "@/lib/wiki";
+import type { BankHandoffItem } from "@/lib/next-bank-handoff";
 
 interface Props {
   boss: Boss;
   owned: GearItem[];
+  bankItems?: BankHandoffItem[];
   onClose: () => void;
 }
 
@@ -22,7 +24,7 @@ interface Props {
 // /next (KC-rec portrait click). Layout is side-by-side on desktop —
 // big portrait left 60%, gear+stats+upgrades+inventory right — and
 // stacks on mobile.
-export function BossDetailModal({ boss, owned, onClose }: Props) {
+export function BossDetailModal({ boss, owned, bankItems = [], onClose }: Props) {
   const titleId = "boss-modal-title";
   const descriptionId = "boss-modal-description";
   const statsId = "boss-modal-stats";
@@ -41,6 +43,10 @@ export function BossDetailModal({ boss, owned, onClose }: Props) {
   const dps = useMemo(() => bestStyleAndSetup(owned, boss), [owned, boss]);
   const upgrades = useMemo(() => suggestUpgradesForBoss(owned, boss, dps), [owned, boss, dps]);
   const preset = useMemo(() => PRESETS.find((p) => p.slug === boss.slug), [boss]);
+  const inventoryRows = useMemo(
+    () => buildInventoryRows({ preset, bankItems, owned, dps }),
+    [preset, bankItems, owned, dps]
+  );
 
   // GP/hr is honest: cap kills/hour at the boss's killsPerHourCap. Skipped
   // when the engine couldn't find a usable weapon (dps === 0).
@@ -237,45 +243,55 @@ export function BossDetailModal({ boss, owned, onClose }: Props) {
             </section>
           )}
 
-          {/* Inventory loadout — pulled from PRESETS if the boss has one.
-              Shows the standard 'what to take with you' list. Not all
-              bosses have presets; we hide the whole section then. */}
-          {preset && (
+          {/* Inventory loadout — built from boss presets when available,
+              then matched against the full pasted bank. Missing slots stay
+              visible as buy/check chips so the player knows what to fix. */}
+          {inventoryRows.length > 0 && (
             <section>
               <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">
-                <Package className="size-3 inline-block mr-1" />Bring with you
+                <Package className="size-3 inline-block mr-1" />Best inventory setup
               </h3>
               <div className="space-y-2.5">
-                {preset.rows.map((row) => (
+                {inventoryRows.map((row) => (
                   <div key={row.label}>
                     <div className="text-[10.5px] uppercase tracking-wider text-[var(--color-text-dim)] mb-1.5">
                       {row.label}
                     </div>
                     <div className="flex flex-wrap gap-1.5">
-                      {row.patterns.map((re, i) => {
-                        const owned_match = owned.find((g) => re.test(g.name));
-                        const label = describePattern(re);
+                      {row.slots.map((slot, i) => {
                         return (
-                          <div
-                            key={i}
+                          <a
+                            key={`${row.label}-${i}-${slot.label}`}
+                            href={slot.item ? wikiSearchUrl(slot.item.name) : wikiSearchUrl(slot.label)}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className={cn(
-                              "inline-flex items-center gap-1.5 px-2 py-1 rounded text-[11px] border",
-                              owned_match
+                              "inline-flex min-h-9 items-center gap-1.5 rounded border px-2 py-1 text-[11px] transition-colors",
+                              slot.item
                                 ? "bg-[var(--color-accent)]/10 border-[var(--color-accent)]/30 text-[var(--color-text)]"
-                                : "bg-[var(--color-bg-2)] border-[var(--color-border)] text-[var(--color-text-muted)]"
+                                : "bg-[var(--color-bg-2)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
                             )}
-                            title={owned_match ? owned_match.name : "Not in your bank"}
+                            title={slot.item ? `${slot.item.name}: ${slot.item.quantity.toLocaleString()} in bank` : `${slot.label}: missing from bank`}
                           >
-                            {owned_match && (
+                            {slot.item ? (
                               <ItemSprite
-                                id={owned_match.id}
+                                id={slot.item.id}
                                 alt=""
                                 size={14}
                                 className="pixelated"
                               />
+                            ) : (
+                              <span className="rounded bg-[var(--color-bg)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-[var(--color-accent)]">
+                                Buy
+                              </span>
                             )}
-                            <span className="truncate max-w-[140px]">{owned_match?.name ?? label}</span>
-                          </div>
+                            <span className="truncate max-w-[155px]">{slot.item?.name ?? slot.label}</span>
+                            {slot.item && slot.item.quantity > 1 && (
+                              <span className="font-mono text-[10px] text-[var(--color-text-muted)]">
+                                x{slot.item.quantity.toLocaleString()}
+                              </span>
+                            )}
+                          </a>
                         );
                       })}
                     </div>
@@ -283,7 +299,7 @@ export function BossDetailModal({ boss, owned, onClose }: Props) {
                 ))}
               </div>
               <p className="mt-2 text-[10.5px] text-[var(--color-text-muted)] italic">
-                Bright chips = you have it. Dim chips = pattern matches nothing in your bank yet.
+                Bright chips = in your bank. Buy chips = missing or too specific to detect from this paste.
               </p>
             </section>
           )}
@@ -363,6 +379,157 @@ interface UpgradePick {
   /** TTK (seconds per kill) met deze upgrade. Gebruikt om kc/u en
    *  GP/u te tonen — meer concreet dan "DPS +0.5". */
   newTtk: number;
+}
+
+interface InventorySlotPick {
+  label: string;
+  item: BankHandoffItem | null;
+}
+
+interface InventoryRowPick {
+  label: string;
+  slots: InventorySlotPick[];
+}
+
+const FOOD_PATTERNS = [
+  /^anglerfish$/i,
+  /^manta ray$/i,
+  /^shark$/i,
+  /^cooked karambwan$/i,
+  /^monkfish$/i,
+  /^karambwan$/i
+] as const;
+
+const PRAYER_PATTERNS = [
+  /^super restore\(4\)$/i,
+  /^prayer potion\(4\)$/i,
+  /^sanfew serum\(4\)$/i
+] as const;
+
+const TELEPORT_PATTERNS = [
+  /^royal seed pod$/i,
+  /^teleport to house$/i,
+  /^house teleport$/i,
+  /^varrock teleport$/i,
+  /^falador teleport$/i,
+  /^camelot teleport$/i,
+  /^ardougne teleport$/i,
+  /^ring of dueling/i,
+  /^games necklace/i,
+  /^amulet of glory/i
+] as const;
+
+const STYLE_BOOSTS: Record<CombatStyle, { label: string; patterns: readonly RegExp[] }> = {
+  stab: {
+    label: "Super combat potion(4)",
+    patterns: [/^super combat potion\(4\)$/i, /^super attack\(4\)$/i]
+  },
+  slash: {
+    label: "Super combat potion(4)",
+    patterns: [/^super combat potion\(4\)$/i, /^super strength\(4\)$/i, /^super attack\(4\)$/i]
+  },
+  crush: {
+    label: "Super combat potion(4)",
+    patterns: [/^super combat potion\(4\)$/i, /^super strength\(4\)$/i, /^super attack\(4\)$/i]
+  },
+  ranged: {
+    label: "Ranging potion(4)",
+    patterns: [/^ranging potion\(4\)$/i, /^bastion potion\(4\)$/i]
+  },
+  magic: {
+    label: "Magic potion(4)",
+    patterns: [/^magic potion\(4\)$/i, /^forgotten brew\(4\)$/i, /^imbued heart$/i]
+  }
+};
+
+function buildInventoryRows({
+  preset,
+  bankItems,
+  owned,
+  dps
+}: {
+  preset: Preset | undefined;
+  bankItems: BankHandoffItem[];
+  owned: GearItem[];
+  dps: DpsBreakdown;
+}): InventoryRowPick[] {
+  if (preset) {
+    const rows = preset.rows.map((row) => ({
+      label: row.label,
+      slots: row.patterns.map((pattern) => ({
+        label: describePattern(pattern),
+        item: findBankItemByPattern(pattern, bankItems, owned)
+      }))
+    }));
+    const extras = fallbackInventorySlots(bankItems, owned, dps)
+      .filter((slot) => slot.label === "Food" || slot.label === "Teleport out")
+      .filter((slot) => !inventoryRowsContain(rows, slot));
+    return extras.length > 0 ? [...rows, { label: "Extra supplies", slots: extras }] : rows;
+  }
+
+  return [{ label: "Inventory", slots: fallbackInventorySlots(bankItems, owned, dps) }];
+}
+
+function fallbackInventorySlots(
+  bankItems: BankHandoffItem[],
+  owned: GearItem[],
+  dps: DpsBreakdown
+): InventorySlotPick[] {
+  const styleBoost = STYLE_BOOSTS[dps.style];
+  return [
+    {
+      label: dps.dps > 0 ? dps.weapon.name : "Usable weapon",
+      item: dps.dps > 0 ? bankItemFromGear(dps.weapon, bankItems) : null
+    },
+    { label: styleBoost.label, item: firstBankMatch(styleBoost.patterns, bankItems) },
+    { label: "Prayer restore", item: firstBankMatch(PRAYER_PATTERNS, bankItems) },
+    { label: "Food", item: firstBankMatch(FOOD_PATTERNS, bankItems) },
+    { label: "Teleport out", item: firstBankMatch(TELEPORT_PATTERNS, bankItems) }
+  ].filter((slot) => slot.item || slot.label !== "Usable weapon" || owned.length === 0);
+}
+
+function inventoryRowsContain(rows: InventoryRowPick[], slot: InventorySlotPick): boolean {
+  const needle = (slot.item?.name ?? slot.label).toLowerCase();
+  return rows.some((row) =>
+    row.slots.some((existing) => (existing.item?.name ?? existing.label).toLowerCase() === needle)
+  );
+}
+
+function firstBankMatch(patterns: readonly RegExp[], bankItems: BankHandoffItem[]): BankHandoffItem | null {
+  for (const pattern of patterns) {
+    const item = bankItems.find((candidate) => patternMatches(pattern, candidate.name));
+    if (item) return item;
+  }
+  return null;
+}
+
+function findBankItemByPattern(
+  pattern: RegExp,
+  bankItems: BankHandoffItem[],
+  owned: GearItem[]
+): BankHandoffItem | null {
+  const bankMatch = bankItems.find((item) => patternMatches(pattern, item.name));
+  if (bankMatch) return bankMatch;
+  const gearMatch = owned.find((item) => patternMatches(pattern, item.name));
+  return gearMatch ? bankItemFromGear(gearMatch, bankItems) : null;
+}
+
+function patternMatches(pattern: RegExp, value: string): boolean {
+  pattern.lastIndex = 0;
+  return pattern.test(value);
+}
+
+function bankItemFromGear(gear: GearItem, bankItems: BankHandoffItem[]): BankHandoffItem {
+  return bankItems.find((item) => item.id === gear.id || item.name.toLowerCase() === gear.name.toLowerCase()) ?? {
+    id: gear.id,
+    name: gear.name,
+    quantity: 1,
+    unitPrice: 0,
+    stackValue: 0,
+    subtab: "Gear",
+    slot: gear.slot,
+    weight: 0
+  };
 }
 
 // Per-boss upgrade picker. Tries each unowned gear item against the
