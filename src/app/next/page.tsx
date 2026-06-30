@@ -1,4 +1,3 @@
-import { ToolHeader } from "@/components/tool-header";
 import { NextClient } from "./next-client";
 
 export const metadata = {
@@ -29,7 +28,6 @@ export default async function NextPage({
 
   return (
     <main className="relative z-10 mx-auto max-w-6xl px-5 py-7 pb-20">
-      <ToolHeader slug="next" />
       <NextClient initialQueryString={queryString} />
     </main>
   );

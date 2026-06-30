@@ -578,7 +578,7 @@ function TipCardActions({
           <CheckCheck className="size-3" />
         </button>
       )}
-      <TipCopyButton tips={tips} label="Copy plan" />
+      <TipCopyButton tips={tips} label="Copy tips" />
     </div>
   );
 }
@@ -688,7 +688,7 @@ function TipFocusedView({ panelId, group, onBack, onDismissTip, onDismissGroup, 
               <ListChecks className="size-3" />
             </button>
           )}
-          <TipCopyButton tips={group.tips} label="Copy action plan" />
+          <TipCopyButton tips={group.tips} label="Copy actions" />
           <button
             type="button"
             onClick={() => { onDismissGroup(); onBack(); }}
@@ -895,7 +895,7 @@ function TipCopyButton({ tips, label, compact = false }: {
       <button
         type="button"
         onClick={copyPlan}
-        aria-label={`Copy action plan for ${tips.length === 1 ? tips[0].title : `${tips.length} Scapestack bank tips`}`}
+        aria-label={`Copy tips for ${tips.length === 1 ? tips[0].title : `${tips.length} Scapestack bank tips`}`}
         className={cn(
           "inline-flex items-center gap-1 rounded border border-[var(--color-border)] font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-accent)] hover:border-[var(--color-accent)]/35 transition-colors",
           copyState === "error" && "border-[var(--color-danger)]/35 text-[var(--color-danger)]",

@@ -29,10 +29,10 @@ export const TOOLS: Tool[] = [
   {
     slug: "next",
     href: "/next",
-    name: "What should I do now?",
+    name: "Do This First",
     navLabel: "Plan",
     short: "Enter your OSRS name and get one clear next move",
-    tagline: "One clear plan",
+    tagline: "Pick the next trip",
     description:
       "Stop bankstanding: enter your OSRS name and get one useful move for this account, plus two backups. Add bank or RuneLite only when it changes the route.",
     icon: Sparkles,

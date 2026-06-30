@@ -32,7 +32,7 @@ describe("bank tips card actions", () => {
     expect(tipsCardSource).toContain("dismissLabel={`Dismiss ${group.label} tips`}");
     expect(tipsCardSource).toContain("aria-label={dismissLabel}");
     expect(tipsCardSource).toContain("aria-label={`Dismiss ${tip.title} tip`}");
-    expect(tipsCardSource).toContain("aria-label={`Copy action plan for ${tips.length === 1 ? tips[0].title : `${tips.length} Scapestack bank tips`}`}");
+    expect(tipsCardSource).toContain("aria-label={`Copy tips for ${tips.length === 1 ? tips[0].title : `${tips.length} Scapestack bank tips`}`}");
     expect(tipsCardSource).not.toContain("Open exact step-by-step action plan");
     expect(tipsCardSource).toContain("Open action steps for");
     expect(tipsCardSource).toContain("aria-label={`Open action steps for ${group.label}`}");

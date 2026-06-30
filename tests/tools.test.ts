@@ -7,13 +7,13 @@ describe("tool registry", () => {
 
     expect(next).toMatchObject({
       href: "/next",
-      name: "What should I do now?",
+      name: "Do This First",
       navLabel: "Plan",
       status: "live"
     });
     expect(next?.description).toContain("Stop bankstanding");
     expect(next?.description).toContain("one useful move");
-    expect(next?.tagline).toBe("One clear plan");
+    expect(next?.tagline).toBe("Pick the next trip");
   });
 
   it("registers RuneLite sync as a live first-class tool", () => {

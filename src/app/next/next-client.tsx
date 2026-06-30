@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   ArrowRight, ChevronRight, Edit3, Target, Sword, TrendingUp, Layers,
   Sparkles, Trophy, Gamepad2, Coins, Scroll, Map as MapIcon, Dices, ExternalLink,
-  Copy, CheckCheck, CheckCircle2, Shield, Trash2, Camera, ClipboardPaste, X
+  Copy, CheckCheck, CheckCircle2, Shield, Trash2, ClipboardPaste, X
 } from "lucide-react";
 import { SupportCard } from "@/components/support-card";
 import { BankSetupSteps } from "@/components/bank-setup-steps";
@@ -53,12 +53,11 @@ import {
 import { wikiSearchUrl } from "@/lib/wiki";
 import { pluginSyncHealth } from "@/lib/plugin-sync";
 import { isPluginSyncSource, pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
-import { summarizeNextPluginSync } from "@/lib/next-plugin-sync-summary";
+import { summarizeNextPluginSync, type NextPluginSyncSummary } from "@/lib/next-plugin-sync-summary";
 import { toolHandoffUrl } from "@/lib/bank-tool-routes";
 import { bankOrganizerHref } from "@/lib/bank-handoff-url";
 import { shouldReadNextBankHandoff, shouldReadNextHeroBank } from "@/lib/next-route-context";
 import { nextIntentFromSearch, type NextIntentPreset } from "@/lib/next-intent";
-import { formatRecommendationSessionPlan } from "@/lib/action-plan-text";
 import {
   bossBySlug,
   bossViabilityFromBankItems,
@@ -189,6 +188,23 @@ type InitialRouteChoice = {
 };
 
 const INTAKE_ROUTE_LENSES: RouteLens[] = ["smart", "boss-log", "maxing", "gp-upgrade", "afk-progress", "short-login"];
+const INTAKE_SESSION_CHOICES: Array<{
+  id: string;
+  label: string;
+  helper: string;
+  routeLens: RouteLens;
+  mood: Mood;
+  minutes: TimeBudget;
+}> = [
+  { id: "best", label: "Best now", helper: "Let Scapestack pick the cleanest route.", routeLens: "smart", mood: "unlock", minutes: 60 },
+  { id: "chill", label: "Chill", helper: "Low effort progress, no sweaty trip.", routeLens: "fun", mood: "chill", minutes: 30 },
+  { id: "gp", label: "GP", helper: "Fund supplies or your next upgrade.", routeLens: "gp-upgrade", mood: "cash", minutes: 60 },
+  { id: "intense", label: "Intense", helper: "Bossing, KC or a harder unlock block.", routeLens: "boss-log", mood: "bossing", minutes: 120 },
+  { id: "unlock", label: "Unlock", helper: "Quest, diary or account gates.", routeLens: "unlock-chain", mood: "unlock", minutes: 120 },
+  { id: "afk", label: "AFK", helper: "Progress while doing something else.", routeLens: "afk-progress", mood: "afk", minutes: 60 },
+  { id: "short", label: "Short", helper: "One clean stop point before logout.", routeLens: "short-login", mood: "short", minutes: 15 },
+  { id: "maxing", label: "Maxing", helper: "Longer account route toward 99s.", routeLens: "maxing", mood: "unlock", minutes: 120 }
+];
 
 // Render a kind's signature glyph: OSRS sprite first (with a mounted-fade-in
 // so the wiki round-trip doesn't pop), Lucide icon as a fallback when the
@@ -729,6 +745,7 @@ function NextIntake({
   // might have one without the other.
   const [rsn, setRsn] = useState(savedRsn ?? "");
   const [showBankField, setShowBankField] = useState(false);
+  const [showRoutePicker, setShowRoutePicker] = useState(false);
   const [bank, setBank] = useState("");
   const [selectedRouteLens, setSelectedRouteLens] = useState<RouteLens>("smart");
   const handoffSummary = fromBank ? summarizeBankHandoff(fromBank.items) : null;
@@ -736,22 +753,38 @@ function NextIntake({
     hasBankContext: Boolean(fromBank)
   });
 
-  const submitRsn = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!rsn.trim() && !fromBank) return;
+  const runWithRoute = (choice?: {
+    routeLens: RouteLens;
+    mood: Mood;
+    minutes: TimeBudget;
+  }) => {
     const clean = rsn.trim();
+    const routeLens = choice?.routeLens ?? selectedRouteLens;
+    const routeDefaultTime = defaultTimeForRouteLens(routeLens);
     if (clean) saveSavedRsn(clean);
-    const routeDefaultTime = defaultTimeForRouteLens(selectedRouteLens);
+    setShowRoutePicker(false);
     onRun({
       rsn: clean,
       input: bank.trim() ? bank : undefined,
       // If the user came from /bank, ride that bank along so /next can
       // give gear-aware recs even before they type their RSN.
       bankItems: fromBank?.items,
-      routeLens: selectedRouteLens,
-      mood: moodForRouteLens(selectedRouteLens, DEFAULT_MOOD),
-      minutes: routeDefaultTime ?? DEFAULT_TIME
+      routeLens,
+      mood: choice?.mood ?? moodForRouteLens(routeLens, DEFAULT_MOOD),
+      minutes: choice?.minutes ?? routeDefaultTime ?? DEFAULT_TIME
     });
+  };
+
+  const submitRsn = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rsn.trim() && !fromBank) return;
+    const clean = rsn.trim();
+    if (clean) saveSavedRsn(clean);
+    if (clean) {
+      setShowRoutePicker(true);
+      return;
+    }
+    runWithRoute();
   };
 
   return (
@@ -1000,6 +1033,89 @@ function NextIntake({
         )}
       </form>
 
+      {showRoutePicker && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="next-route-popup-title"
+          className="fixed inset-0 z-[110] overflow-y-auto bg-black/72 px-4 pb-8 pt-20 backdrop-blur-sm sm:grid sm:place-items-center sm:py-8"
+          onClick={() => setShowRoutePicker(false)}
+        >
+          <div
+            className="osrs-frame w-full max-w-2xl text-left"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="osrs-title-bar flex items-start justify-between gap-4 px-5 py-4 sm:px-6">
+              <div>
+                <p className="eyebrow text-[var(--color-accent)]">Before we pick</p>
+                <h2 id="next-route-popup-title" className="mt-1 text-[24px] font-semibold leading-tight text-[var(--color-text)]">
+                  What do you feel like doing?
+                </h2>
+                <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
+                  Pick the session. Bank and RuneLite can make the route sharper later.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowRoutePicker(false)}
+                aria-label="Close route picker"
+                className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="osrs-body grid grid-cols-2 gap-2 p-5 sm:grid-cols-4 sm:p-6">
+              {INTAKE_SESSION_CHOICES.map((choice) => {
+                const selected = selectedRouteLens === choice.routeLens;
+                return (
+                  <button
+                    key={choice.id}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => {
+                      setSelectedRouteLens(choice.routeLens);
+                      runWithRoute(choice);
+                    }}
+                    className={cn(
+                      "min-h-[82px] rounded-lg border px-3 py-3 text-left transition-colors",
+                      selected
+                        ? "border-[var(--color-accent)] bg-[var(--color-accent)]/16 text-[var(--color-text)]"
+                        : "border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 text-[var(--color-text-dim)] hover:border-[var(--color-accent)] hover:text-[var(--color-text)]"
+                    )}
+                  >
+                    <span className="block text-[14px] font-bold text-[var(--color-text)]">{choice.label}</span>
+                    <span className="mt-1 block text-[11.5px] leading-snug text-[var(--color-text-muted)]">{choice.helper}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="osrs-body flex flex-col gap-2 border-t border-[var(--color-parchment-edge)] px-5 pb-5 sm:flex-row sm:px-6 sm:pb-6">
+              <button
+                type="button"
+                onClick={() => runWithRoute()}
+                className="btn-primary h-11 flex-1 justify-center px-4 text-[14px]"
+              >
+                Plan best route
+                <ArrowRight className="size-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowRoutePicker(false);
+                  setShowBankField(true);
+                }}
+                className="btn-ghost h-11 justify-center px-4 text-[13px] font-bold"
+              >
+                <ClipboardPaste className="size-4" />
+                Add bank first
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showBankField && (
         <div
           role="dialog"
@@ -1106,7 +1222,6 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
   initialRouteChoice: InitialRouteChoice | null;
 }) {
   const { headline, rest, summary } = result;
-  const [shareMode, setShareMode] = useState(false);
 
   const basisNote =
     summary.basis === "full" ? "Bank and stats are shaping this pick."
@@ -1127,9 +1242,10 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
     animation: "track-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both",
     animationDelay: `${delayMs}ms`,
   });
-  const pluginSyncState = result.pathProgress.syncedSources?.scapestack
-    ? summarizeNextPluginSync(result.pathProgress.syncedSources.scapestack).state
+  const pluginSyncSummary = result.pathProgress.syncedSources?.scapestack
+    ? summarizeNextPluginSync(result.pathProgress.syncedSources.scapestack)
     : null;
+  const pluginSyncState = pluginSyncSummary?.state ?? null;
 
   return (
     <div className="space-y-6">
@@ -1146,51 +1262,46 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
           routeIntent={routeIntent}
           initialRouteChoice={initialRouteChoice}
           pluginSyncState={pluginSyncState}
-          shareMode={shareMode}
-          onShareModeChange={setShareMode}
+          pluginSyncSummary={pluginSyncSummary}
         />
       </div>
 
-      {!shareMode && (
-        <>
-          <div style={trackAnim(150)}>
-            <MakePlanSmarter
-              headline={headline}
-              summary={summary}
-              basisNote={basisNote}
-              bankItems={bankItems}
-              activeRsn={activeRsn}
-              pluginSyncState={pluginSyncState}
-              expectedPluginSync={expectedPluginSync}
-              onEdit={onEdit}
-              onClearStoredBankHandoff={onClearStoredBankHandoff}
+      <div style={trackAnim(150)}>
+        <MakePlanSmarter
+          headline={headline}
+          summary={summary}
+          basisNote={basisNote}
+          bankItems={bankItems}
+          activeRsn={activeRsn}
+          pluginSyncState={pluginSyncState}
+          expectedPluginSync={expectedPluginSync}
+          onEdit={onEdit}
+          onClearStoredBankHandoff={onClearStoredBankHandoff}
+        />
+      </div>
+
+      <div style={trackAnim(300)}>
+        <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-4 sm:p-5">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)] marker:hidden">
+            <span>Why is this recommended?</span>
+            <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
+              Only if you want the deeper read
+            </span>
+          </summary>
+          <div className="mt-4 space-y-6">
+            <HeroStrip summary={summary} basisNote={basisNote} onEdit={onEdit} />
+            <WhereYouAre
+              pathData={result.pathProgress}
+              maxEstimate={result.maxEstimate}
             />
+            <BankProgressSection progress={result.readiness} />
           </div>
+        </details>
+      </div>
 
-          <div style={trackAnim(300)}>
-            <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-4 sm:p-5">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)] marker:hidden">
-                <span>Why is this recommended?</span>
-                <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
-                  Only if you want the deeper read
-                </span>
-              </summary>
-              <div className="mt-4 space-y-6">
-                <HeroStrip summary={summary} basisNote={basisNote} onEdit={onEdit} />
-                <WhereYouAre
-                  pathData={result.pathProgress}
-                  maxEstimate={result.maxEstimate}
-                />
-                <BankProgressSection progress={result.readiness} />
-              </div>
-            </details>
-          </div>
-
-          <div className="pt-2" style={trackAnim(450)}>
-            <SupportCard />
-          </div>
-        </>
-      )}
+      <div className="pt-2" style={trackAnim(450)}>
+        <SupportCard />
+      </div>
     </div>
   );
 }
@@ -1535,9 +1646,7 @@ function HeroStrip({ summary, basisNote, onEdit }: {
 
       <div className="relative flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-3">
-          {/* Vier metrics als één rij — primary stat per metric.
-              Geen duplicate titel meer; ToolHeader hierboven is de titel.
-              Hier draait het om de échte read-out. */}
+          {/* Vier metrics als één rij — primary stat per metric. */}
           <div className="flex flex-wrap gap-x-7 gap-y-3">
             {summary.combatLevel !== null && (
               <HeroStat icon={<Sword className="size-4 opacity-60" />} label="Combat" value={summary.combatLevel} />
@@ -1629,15 +1738,34 @@ function playerChoiceTag(rec: Recommendation): { label: string; helper: string }
   return { label: "Unlock", helper: "Pick this when you want quests, diary progress or account unlocks." };
 }
 
-function runeLitePlanNote(pluginSyncState: "live" | "stale" | "outdated" | null): string | null {
+function formatRuneLiteScanTime(syncedAt: string): string {
+  const date = new Date(syncedAt);
+  if (Number.isNaN(date.getTime())) return "scan time unknown";
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(date);
+}
+
+function runeLitePlanNote(pluginSyncSummary: NextPluginSyncSummary | null): string | null {
+  const pluginSyncState = pluginSyncSummary?.state ?? null;
   if (pluginSyncState === "live") {
-    return "RuneLite helped skip finished quests, diary steps, clog slots and Slayer mistakes.";
+    const syncedAt = pluginSyncSummary?.syncedAt
+      ? `Last RuneLite scan: ${formatRuneLiteScanTime(pluginSyncSummary.syncedAt)}.`
+      : "Last RuneLite scan is fresh.";
+    return `${syncedAt} Finished quests, diary steps, clog slots and Slayer mistakes are skipped.`;
   }
   if (pluginSyncState === "stale") {
-    return "RuneLite is old. Refresh before a long grind or GP spend.";
+    return pluginSyncSummary?.syncedAt
+      ? `Last RuneLite scan: ${formatRuneLiteScanTime(pluginSyncSummary.syncedAt)}. Sync again before a long grind or GP spend.`
+      : "Last RuneLite scan: check again before a long grind or GP spend.";
   }
   if (pluginSyncState === "outdated") {
-    return "Update RuneLite before trusting newer Slayer or clog details.";
+    return pluginSyncSummary?.syncedAt
+      ? `Last RuneLite scan: ${formatRuneLiteScanTime(pluginSyncSummary.syncedAt)}. Update the plugin before trusting newer Slayer or clog details.`
+      : "Last RuneLite scan: update the plugin before trusting newer Slayer or clog details.";
   }
   return "RuneLite can improve picks later.";
 }
@@ -2202,84 +2330,128 @@ function backupChoicePrompt(rec: Recommendation, headline: Recommendation): { la
 }
 
 function routeStepLabel(index: number): string {
-  if (index === 0) return "Now";
-  if (index === 1) return "Next login";
-  return "Backup";
+  if (index === 0) return "First this";
+  if (index === 1) return "Then";
+  if (index === 2) return "After that";
+  if (index === 3) return "If you want more";
+  return "Later";
 }
 
-function TonightRouteStrip({
+function bankQuantityMatching(bankItems: BankHandoffItem[], pattern: RegExp): number {
+  return bankItems.reduce((sum, item) => pattern.test(item.name.toLowerCase()) ? sum + item.quantity : sum, 0);
+}
+
+function routeStepPrep(rec: Recommendation, bankItems: BankHandoffItem[], accountStage: NextUpResult["summary"]["accountStage"]): string {
+  const title = rec.title.toLowerCase();
+  const why = rec.why.toLowerCase();
+  const isIron = accountStage.id === "iron-route";
+
+  if (title.includes("cooking") || why.includes("cooking")) {
+    const rawFish = bankQuantityMatching(bankItems, /^raw (karambwan|shark|monkfish|lobster|swordfish|tuna|salmon|trout|anglerfish|manta ray|sea turtle|bass|cod|herring|sardine|pike)\b/i);
+    if (rawFish > 0) {
+      return `Bank has ${rawFish.toLocaleString()} raw fish. Cook those first, then re-check the level gap.`;
+    }
+    return isIron
+      ? "No raw fish in the pasted bank. Fish your own supply first, then cook the stack."
+      : "No raw fish in the pasted bank. Buy a clean stack or add bank before committing.";
+  }
+
+  if (rec.kind === "kc" || rec.kind === "boss") {
+    return bankItems.length > 0
+      ? "Use your pasted bank to build the first setup before entering."
+      : "Add bank before trusting gear, food or teleport calls.";
+  }
+
+  if (rec.kind === "slayer") return "Check task, points and bracelet/rune pouch setup before leaving.";
+  if (rec.kind === "money") return "Check price first; only run it while the margin is still worth it.";
+  if (rec.kind === "quest" || rec.kind === "diary") return "Check the prereq list, pull quest items, then do one clean unlock block.";
+  if (rec.kind === "skill") return "Bank the method items first; if supplies are missing, switch to the gathering step.";
+  return "Do one bounded block, stop, then let /next adjust the route.";
+}
+
+function routeStepStart(rec: Recommendation): string {
+  return rec.actionPlan?.steps[0] ?? recommendationFirstStepValue(rec);
+}
+
+function routeStepBring(rec: Recommendation, bankItems: BankHandoffItem[], accountStage: NextUpResult["summary"]["accountStage"]): string {
+  const title = rec.title.toLowerCase();
+  if (title.includes("cooking")) {
+    const rawFish = bankQuantityMatching(bankItems, /^raw /i);
+    if (rawFish > 0) return "Raw fish stack, cooking gauntlets if useful, and a close range/bank.";
+    return accountStage.id === "iron-route"
+      ? "Fishing gear first, then cook what you catch."
+      : "Raw fish or GP for the method.";
+  }
+  return recommendationBringValue(rec);
+}
+
+function RouteChain({
   recs,
-  shareMode
+  bankItems,
+  accountStage
 }: {
   recs: Recommendation[];
-  shareMode: boolean;
+  bankItems: BankHandoffItem[];
+  accountStage: NextUpResult["summary"]["accountStage"];
 }) {
   if (recs.length === 0) return null;
 
   const content = (
     <>
-      <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
         <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-          After this run
+          Route
         </span>
         <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">
-          Finish the stop point, then re-run /next.
+          First step, then what logically follows.
         </span>
       </div>
-      <div className="grid gap-2 sm:grid-cols-3">
-        {recs.map((rec, index) => {
+      <div className="space-y-2.5">
+        {recs.slice(0, 5).map((rec, index) => {
           const choice = playerChoiceTag(rec);
           return (
-            <div
+            <details
               key={`${rec.id}:route-step:${index}`}
-              className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3"
+              className="group rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3 transition-colors open:border-[var(--color-accent)]/40 open:bg-[var(--color-bg)]/55"
             >
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-                  {routeStepLabel(index)}
+              <summary className="flex cursor-pointer list-none items-center gap-3 marker:hidden [&::-webkit-details-marker]:hidden">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-md border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 text-[11px] font-black text-[var(--color-accent)] tabular-nums">
+                  {index + 1}
                 </span>
-                <span className="rounded-full border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-2 py-0.5 text-[9.5px] font-bold text-[var(--color-accent)]">
-                  {choice.label}
+                <span className="min-w-0 flex-1">
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+                      {routeStepLabel(index)}
+                    </span>
+                    <span className="rounded-full border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-2 py-0.5 text-[9.5px] font-bold text-[var(--color-accent)]">
+                      {choice.label}
+                    </span>
+                  </span>
+                  <span className="mt-1 block text-[13px] font-bold leading-snug text-[var(--color-text)]">
+                    {rec.title}
+                  </span>
                 </span>
+                <span className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)] transition-colors group-open:border-[var(--color-accent)]/35 group-open:text-[var(--color-accent)]">
+                  Plan
+                </span>
+              </summary>
+              <div className="mt-3 grid gap-2 border-t border-[var(--color-border)] pt-3 text-[11.5px] leading-relaxed text-[var(--color-text-muted)] sm:grid-cols-2">
+                <p><span className="font-bold text-[var(--color-text)]">Start:</span> {routeStepStart(rec)}</p>
+                <p><span className="font-bold text-[var(--color-text)]">Bring:</span> {routeStepBring(rec, bankItems, accountStage)}</p>
+                <p><span className="font-bold text-[var(--color-text)]">Stop:</span> {recommendationStopPointValue(rec)}</p>
+                <p><span className="font-bold text-[var(--color-text)]">Check:</span> {routeStepPrep(rec, bankItems, accountStage)}</p>
               </div>
-              <p className="line-clamp-2 text-[12.5px] font-bold leading-snug text-[var(--color-text)]">
-                {rec.title}
-              </p>
-              <p className="mt-1 line-clamp-2 text-[11px] font-semibold leading-snug text-[var(--color-text-muted)]">
-                Stop: {recommendationStopPointValue(rec)}
-              </p>
-            </div>
+            </details>
           );
         })}
       </div>
     </>
   );
 
-  if (!shareMode) {
-    return (
-      <details className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/42 p-2.5">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg px-1 py-1 text-left marker:hidden [&::-webkit-details-marker]:hidden">
-          <span>
-            <span className="block text-[12.5px] font-bold text-[var(--color-text)]">After this</span>
-            <span className="mt-0.5 block text-[11px] text-[var(--color-text-muted)]">
-              Two clean follow-ups after the stop point.
-            </span>
-          </span>
-          <span className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
-            Show
-          </span>
-        </summary>
-        <div className="mt-3">
-          {content}
-        </div>
-      </details>
-    );
-  }
-
   return (
-    <div className="mb-3 rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/45 p-3">
+    <section className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/42 p-3.5">
       {content}
-    </div>
+    </section>
   );
 }
 
@@ -2891,8 +3063,12 @@ function routeSwitchCopy(nextLens: RouteLens, skipped: Recommendation): string {
   }
 }
 
-function randomRouteLens(currentLens: RouteLens): RouteLens {
-  const candidates = ROUTE_LENS_ORDER.filter((lens) => lens !== currentLens);
+function randomRouteLens(currentLens: RouteLens, previousLens: RouteLens | null = null): RouteLens {
+  const candidates = ROUTE_LENS_ORDER.filter((lens) => lens !== currentLens && lens !== previousLens);
+  if (candidates.length === 0) {
+    const fallback = ROUTE_LENS_ORDER.filter((lens) => lens !== currentLens);
+    return fallback[Math.floor(Math.random() * fallback.length)] ?? "smart";
+  }
   return candidates[Math.floor(Math.random() * candidates.length)] ?? "smart";
 }
 
@@ -3014,8 +3190,7 @@ function WhatToDo({
   routeIntent,
   initialRouteChoice,
   pluginSyncState,
-  shareMode,
-  onShareModeChange
+  pluginSyncSummary
 }: {
   allRecs: Recommendation[];
   activeRsn: string;
@@ -3027,8 +3202,7 @@ function WhatToDo({
   routeIntent: NextIntentPreset | null;
   initialRouteChoice: InitialRouteChoice | null;
   pluginSyncState: "live" | "stale" | "outdated" | null;
-  shareMode: boolean;
-  onShareModeChange: (enabled: boolean) => void;
+  pluginSyncSummary: NextPluginSyncSummary | null;
 }) {
   const [mood, setMood] = useState<Mood>(
     routeIntent ? visibleMood(routeIntent.mood) : initialRouteChoice?.mood ?? DEFAULT_MOOD
@@ -3036,6 +3210,7 @@ function WhatToDo({
   const [minutes, setMinutes] = useState<TimeBudget>(routeIntent?.minutes ?? initialRouteChoice?.minutes ?? DEFAULT_TIME);
   const [routeLens, setRouteLens] = useState<RouteLens>(initialRouteChoice?.routeLens ?? "smart");
   const [shuffleIdx, setShuffleIdx] = useState(0);
+  const [lastRandomLens, setLastRandomLens] = useState<RouteLens | null>(null);
   const [sessionSkipped, setSessionSkipped] = useState<Record<string, SessionSkippedPick>>({});
   const [routeSwitchNote, setRouteSwitchNote] = useState<string | null>(null);
   const [lastSuppressed, setLastSuppressed] = useState<{ id: string; kind: RecKind; title: string } | null>(null);
@@ -3046,16 +3221,6 @@ function WhatToDo({
     recent: []
   }));
   const [lastSession, setLastSession] = useState<MoodSession | null>(null);
-  const [sessionCopyState, setSessionCopyState] = useState<"idle" | "copied" | "error">("idle");
-
-  useEffect(() => {
-    if (!shareMode || typeof document === "undefined") return;
-    document.body.classList.add("scapestack-clean-shot");
-    return () => {
-      document.body.classList.remove("scapestack-clean-shot");
-    };
-  }, [shareMode]);
-
   useEffect(() => {
     const last = loadMood(activeRsn);
     setLastSession(last);
@@ -3092,7 +3257,7 @@ function WhatToDo({
     [activeRsn, hasBankContext]
   );
   const archetype = accountStage;
-  const runeLiteNote = runeLitePlanNote(pluginSyncState);
+  const runeLiteNote = runeLitePlanNote(pluginSyncSummary);
 
   // Reset shuffle wanneer mood/time veranderen — een nieuwe vibe begint
   // op de top-pick, anders blijven we stiekem op een oude alternative.
@@ -3103,13 +3268,6 @@ function WhatToDo({
   const pick = useMemo(
     () => pickForRoute(visibleRecs, mood, minutes, routeLens, shuffleIdx, routePickOptions),
     [visibleRecs, mood, minutes, routeLens, shuffleIdx, routePickOptions]
-  );
-  const sessionPlanText = useMemo(
-    () => formatRecommendationSessionPlan(
-      pick ? [pick.headline, ...pick.alternatives] : visibleRecs,
-      actionContext
-    ),
-    [pick, visibleRecs, actionContext]
   );
   const memoryNote = useMemo(
     () => sessionMemoryNote({
@@ -3185,7 +3343,9 @@ function WhatToDo({
     setShuffleIdx(0);
   };
   const moveToAnotherPlan = () => {
-    const randomLens = randomRouteLens(routeLens);
+    const randomLens = randomRouteLens(routeLens, lastRandomLens);
+    const randomShuffle = 1 + Math.floor(Math.random() * Math.max(3, visibleRecs.length));
+    setLastRandomLens(randomLens);
     setLastCompleted(null);
     setLastSuppressed(null);
     if (pick?.headline) {
@@ -3203,10 +3363,16 @@ function WhatToDo({
     }
     if (randomLens === "smart") {
       setRouteLens("smart");
-      setShuffleIdx((i) => i + 1 + Math.floor(Math.random() * Math.max(2, visibleRecs.length)));
+      setShuffleIdx((i) => i + randomShuffle);
       return;
     }
-    applyRouteLens(randomLens, { keepRouteSwitchNote: true });
+    const routeDefaultTime = defaultTimeForRouteLens(randomLens);
+    setRouteLens(randomLens);
+    setMood((currentMood) => moodForRouteLens(randomLens, currentMood));
+    if (routeDefaultTime) setMinutes(routeDefaultTime);
+    setShuffleIdx(randomShuffle);
+    setLastSuppressed(null);
+    setLastCompleted(null);
   };
   const moveToChillPlan = () => {
     applySessionIntent("chill", 30);
@@ -3217,40 +3383,15 @@ function WhatToDo({
     setLastCompleted(null);
     setShuffleIdx(0);
   };
-  const copySessionPlan = async () => {
-    const result = await copyText(sessionPlanText);
-    if (result !== "failed") {
-      setSessionCopyState("copied");
-      window.setTimeout(() => setSessionCopyState("idle"), 1600);
-    } else {
-      setSessionCopyState("error");
-    }
-  };
-  const sessionCopyLabel = sessionCopyState === "copied"
-    ? "Plan copied"
-    : sessionCopyState === "error"
-      ? "Try copy again"
-      : "Copy plan";
-  const routePreviewRecs = pick ? [pick.headline, ...pick.alternatives].slice(0, 3) : [];
+  const routePreviewRecs = pick ? [pick.headline, ...pick.alternatives, ...visibleRecs].slice(0, 5) : [];
 
   return (
-    <section
-      data-screenshot-mode={shareMode ? "true" : undefined}
-      className={cn(
-        shareMode &&
-          "fixed inset-0 z-50 overflow-y-auto bg-[var(--color-bg)] px-4 py-6 sm:px-8 sm:py-8"
-      )}
-    >
-      <div
-        className={cn(
-          shareMode &&
-            "mx-auto max-w-4xl rounded-2xl border border-[var(--color-accent)]/25 bg-[var(--color-panel)]/86 p-4 shadow-[0_26px_80px_-54px_rgba(200, 154, 61,0.65)] sm:p-5"
-        )}
-      >
+    <section>
+      <div>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-            {shareMode ? "Scapestack /next" : "What to do now"}
+            What to do now
           </div>
           <h2 className="mt-1 text-[26px] font-bold tracking-normal text-[var(--color-text)]">
             Do this first
@@ -3291,7 +3432,7 @@ function WhatToDo({
               {routeIntent.label}
             </span>
           )}
-          {visibleRecs.length > 1 && !shareMode && (
+          {visibleRecs.length > 1 && (
             <button
               type="button"
               onClick={moveToAnotherPlan}
@@ -3301,51 +3442,6 @@ function WhatToDo({
               <Dices className="size-3.5" />
               Randomize
             </button>
-          )}
-          {visibleRecs.length > 0 && !shareMode && (
-            <button
-              type="button"
-              onClick={copySessionPlan}
-              aria-label="Copy top OSRS plan"
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-lg border bg-[var(--color-panel)]/65 px-3 py-2 text-[11.5px] font-semibold transition-colors",
-                sessionCopyState === "error"
-                  ? "border-[var(--color-danger)]/40 text-[var(--color-danger)] hover:border-[var(--color-danger)]/55"
-                  : "border-[var(--color-border)] text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)]"
-              )}
-            >
-              {sessionCopyState === "copied" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
-              {sessionCopyLabel}
-            </button>
-          )}
-          {shareMode ? (
-            <button
-              type="button"
-              onClick={() => onShareModeChange(false)}
-              aria-pressed={shareMode}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/45 bg-[var(--color-panel)]/65 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/10"
-            >
-              <Camera className="size-3.5" />
-              Exit clean shot
-            </button>
-          ) : (
-            <details className="group relative">
-              <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/65 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)] marker:hidden [&::-webkit-details-marker]:hidden">
-                More
-                <ChevronRight className="size-3.5 transition-transform group-open:rotate-90" />
-              </summary>
-              <div className="absolute right-0 z-20 mt-2 w-56 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-2 shadow-[0_18px_55px_rgba(0,0,0,0.28)]">
-                <button
-                  type="button"
-                  onClick={() => onShareModeChange(true)}
-                  aria-pressed={shareMode}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-accent)]"
-                >
-                  <Camera className="size-3.5" />
-                  Screenshot mode
-                </button>
-              </div>
-            </details>
           )}
         </div>
       </div>
@@ -3427,7 +3523,7 @@ function WhatToDo({
         </div>
       )}
 
-      {memoryNote && !routeSwitchNote && !lastSuppressed && !lastCompleted && !shareMode && (
+      {memoryNote && !routeSwitchNote && !lastSuppressed && !lastCompleted && (
         <div
           role="status"
           aria-live="polite"
@@ -3437,7 +3533,7 @@ function WhatToDo({
         </div>
       )}
 
-      {routeSwitchNote && !lastSuppressed && !lastCompleted && !shareMode && (
+      {routeSwitchNote && !lastSuppressed && !lastCompleted && (
         <div
           role="status"
           aria-live="polite"
@@ -3458,7 +3554,6 @@ function WhatToDo({
               onSuppress={hideRecommendation}
               onComplete={completeRecommendation}
               onEdit={onEdit}
-              cleanMode={shareMode}
               mood={mood}
               minutes={minutes}
               hasBankContext={hasBankContext}
@@ -3477,16 +3572,14 @@ function WhatToDo({
                       Bigger alternatives if the first pick is not your mood.
                     </p>
                   </div>
-                  {!shareMode && (
-                    <button
-                      type="button"
-                      onClick={moveToAnotherPlan}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/65 px-3 py-2 text-[11.5px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
-                    >
-                      Want something else?
-                      <Dices className="size-3.5" />
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={moveToAnotherPlan}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/65 px-3 py-2 text-[11.5px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+                  >
+                    Want something else?
+                    <Dices className="size-3.5" />
+                  </button>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {pick.alternatives.map((r) => (
@@ -3506,7 +3599,7 @@ function WhatToDo({
                 </div>
               </div>
             )}
-            {!shareMode && hiddenCount > 0 && (
+            {hiddenCount > 0 && (
               <button
                 type="button"
                 onClick={restoreHidden}
@@ -3515,7 +3608,7 @@ function WhatToDo({
                 Show hidden ({hiddenCount})
               </button>
             )}
-            <TonightRouteStrip recs={routePreviewRecs} shareMode={shareMode} />
+            <RouteChain recs={routePreviewRecs} bankItems={bankItems} accountStage={accountStage} />
           </>
         ) : (
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-8 text-center text-[var(--color-text-muted)] text-[13px]">

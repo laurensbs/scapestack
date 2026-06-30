@@ -13,6 +13,7 @@ export interface NextPluginSyncSummary {
   state: "live" | "stale" | "outdated";
   title: string;
   body: string;
+  syncedAt: string | null;
   signals: NextPluginSignalSummary[];
 }
 
@@ -29,6 +30,7 @@ export function summarizeNextPluginSync(plugin: PluginSource): NextPluginSyncSum
       state: "outdated",
       title: "Update Scapestack Sync",
       body: `Last sync used v${plugin.pluginVersion ?? "unknown"}. Update to v${CURRENT_PLUGIN_VERSION} so Slayer, diary and collection-log picks stay current.`,
+      syncedAt: plugin.syncedAt ?? null,
       signals: baseSignals(plugin, "update")
     };
   }
@@ -37,7 +39,10 @@ export function summarizeNextPluginSync(plugin: PluginSource): NextPluginSyncSum
     return {
       state: "stale",
       title: "Refresh Scapestack Sync",
-      body: "Your last sync is old. Refresh RuneLite before spending GP or starting a long grind.",
+      body: plugin.syncedAt
+        ? `Last RuneLite scan: ${new Date(plugin.syncedAt).toLocaleString("en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}. Sync again before spending GP or starting a long grind.`
+        : "Last RuneLite scan: check again before spending GP or starting a long grind.",
+      syncedAt: plugin.syncedAt ?? null,
       signals: baseSignals(plugin, "refresh")
     };
   }
@@ -55,6 +60,7 @@ export function summarizeNextPluginSync(plugin: PluginSource): NextPluginSyncSum
     body: missing.length > 0
       ? `Quests and diaries are synced; ${missing.join(", ")}.`
       : "Quests, diaries, collection log and Slayer are coming from your RuneLite client.",
+    syncedAt: plugin.syncedAt ?? null,
     signals: [
       { label: "Quests", status: "exact", value: `${plugin.quests.toLocaleString()} done` },
       { label: "Diaries", status: "exact", value: `${plugin.diaries.toLocaleString()} tiers` },

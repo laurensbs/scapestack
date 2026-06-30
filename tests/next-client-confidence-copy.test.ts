@@ -195,13 +195,23 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Best now");
     expect(source).not.toContain("Another route");
     expect(source).not.toContain("Show ${nextRouteLabel.name}");
-    expect(source).toContain("After this run");
-    expect(source).toContain("After this");
-    expect(source).toContain("Two clean follow-ups after the stop point.");
-    expect(source).toContain("Finish the stop point, then re-run /next.");
+    expect(source).toContain("Route");
+    expect(source).toContain("First step, then what logically follows.");
+    expect(source).toContain("First this");
+    expect(source).toContain("Then");
+    expect(source).toContain("After that");
     expect(source).toContain("routePreviewRecs");
-    expect(source).toContain("function TonightRouteStrip");
+    expect(source).toContain("function RouteChain");
+    expect(source).toContain("routeStepPrep");
+    expect(source).toContain("routeStepBring");
+    expect(source).toContain("No raw fish in the pasted bank.");
+    expect(source).toContain("Fish your own supply first");
     expect(source).toContain("INTAKE_ROUTE_LENSES.map");
+    expect(source).toContain("INTAKE_SESSION_CHOICES");
+    expect(source).toContain("What do you feel like doing?");
+    expect(source).toContain("Intense");
+    expect(source).toContain("Plan best route");
+    expect(source).toContain("setShowRoutePicker(true)");
     expect(source).toContain("Pick ${label.name} route");
     expect(source).not.toContain("Show ${nextRouteLabel.name}");
     expect(source).not.toContain("Session route");
@@ -217,9 +227,11 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("loadMood(activeRsn)");
     expect(source).toContain("}, activeRsn || undefined);");
     expect(source).toContain("mergedSkipCounts(sessionSkippedCounts(sessionSkipped), recentMemoryCounts)");
-    expect(source).toContain("function randomRouteLens(currentLens: RouteLens): RouteLens");
+    expect(source).toContain("function randomRouteLens(currentLens: RouteLens, previousLens: RouteLens | null = null)");
     expect(source).toContain("Math.random()");
-    expect(source).toContain("const randomLens = randomRouteLens(routeLens);");
+    expect(source).toContain("const randomLens = randomRouteLens(routeLens, lastRandomLens);");
+    expect(source).toContain("const randomShuffle = 1 + Math.floor(Math.random()");
+    expect(source).toContain("setLastRandomLens(randomLens)");
     expect(source).toContain("routeSwitchCopy(randomLens, pick.headline)");
     expect(source).toContain("routeLens: randomLens");
     expect(source).toContain("pickForRoute(visibleRecs, mood, minutes, routeLens, shuffleIdx, routePickOptions)");
@@ -359,16 +371,16 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("backupPrompt?: { label: string; helper: string }");
   });
 
-  it("has a clean screenshot/share mode without turning the planner into a dashboard", () => {
-    expect(source).toContain("shareMode");
-    expect(source).toContain("onShareModeChange");
-    expect(source).toContain("Screenshot mode");
-    expect(source).toContain("Exit clean shot");
-    expect(source).toContain("data-screenshot-mode={shareMode ? \"true\" : undefined}");
-    expect(source).toContain('document.body.classList.add("scapestack-clean-shot")');
-    expect(source).toContain("fixed inset-0 z-50 overflow-y-auto");
-    expect(source).toContain("{!shareMode && (");
-    expect(source).toContain("cleanMode={shareMode}");
+  it("keeps top actions focused without copy-plan or screenshot controls", () => {
+    expect(source).not.toContain("shareMode");
+    expect(source).not.toContain("onShareModeChange");
+    expect(source).not.toContain("Screenshot mode");
+    expect(source).not.toContain("Exit clean shot");
+    expect(source).not.toContain("data-screenshot-mode={shareMode ? \"true\" : undefined}");
+    expect(source).not.toContain('document.body.classList.add("scapestack-clean-shot")');
+    expect(source).not.toContain('aria-label="Copy top OSRS plan"');
+    expect(source).not.toContain("sessionCopyState");
+    expect(source).not.toContain("Copy plan");
     expect(source).not.toContain("Share dashboard");
   });
 
@@ -382,7 +394,9 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("RuneLite already helps skip finished stuff. Trust the stop point, then sync again after progress.");
     expect(source).toContain("title={archetype.helper}");
     expect(source).toContain("{archetype.label}");
-    expect(source).toContain("RuneLite helped skip finished quests, diary steps, clog slots and Slayer mistakes.");
+    expect(source).toContain("Last RuneLite scan:");
+    expect(source).toContain("Finished quests, diary steps, clog slots and Slayer mistakes are skipped.");
+    expect(source).not.toContain("RuneLite is old. Refresh before a long grind or GP spend.");
     expect(source).toContain("RuneLite can improve picks later.");
     expect(source).toContain("function runeLitePlanNote");
     expect(source).not.toContain("function scapestackNotice");
@@ -411,20 +425,6 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain('recommendationFeedbackButtonClass("done", true)');
     expect(source).not.toContain('recommendationFeedbackButtonClass("skip", true)');
     expect(source).not.toContain('recommendationFeedbackButtonClass("details", true)');
-  });
-
-  it("copies recommendation plans with route context", () => {
-    expect(source).toContain("pick ? [pick.headline, ...pick.alternatives] : visibleRecs");
-    expect(source).toContain("formatRecommendationSessionPlan(");
-    expect(source).toContain('aria-label="Copy top OSRS plan"');
-    expect(source).toContain("Copy plan");
-    expect(source).toContain("Plan copied");
-    expect(source).toContain('useState<"idle" | "copied" | "error">("idle")');
-    expect(source).toContain("Try copy again");
-    expect(source).not.toContain("formatRecommendationActionPlan(rec, actionContext)");
-    expect(source).not.toContain("aria-label={`Copy plan for ${rec.title}`}");
-    expect(source).not.toContain("Clipboard failed — copy manually");
-    expect(source).not.toContain('window.setTimeout(() => setCopyState("idle"), 2400)');
   });
 
   it("makes expanded recommendation details triangulate to OSRS Wiki", () => {
@@ -479,9 +479,13 @@ describe("/next confidence UI copy", () => {
   });
 
   it("shows when bank context and RuneLite sync are fused", () => {
-    expect(source).toContain("const pluginSyncState = result.pathProgress.syncedSources?.scapestack");
+    expect(source).toContain("const pluginSyncSummary = result.pathProgress.syncedSources?.scapestack");
+    expect(source).toContain("summarizeNextPluginSync(result.pathProgress.syncedSources.scapestack)");
+    expect(source).toContain("const pluginSyncState = pluginSyncSummary?.state ?? null;");
     expect(source).toContain("pluginSyncState={pluginSyncState}");
+    expect(source).toContain("pluginSyncSummary={pluginSyncSummary}");
     expect(source).toContain('pluginSyncState: "live" | "stale" | "outdated" | null;');
+    expect(source).toContain("pluginSyncSummary: NextPluginSyncSummary | null;");
     expect(source).toContain("const hasLivePluginSync = pluginSyncState === \"live\";");
     expect(source).toContain("hasLivePluginSync && bankItems.length > 0");
     expect(source).toContain("Bank and finished progress are both shaping this pick.");

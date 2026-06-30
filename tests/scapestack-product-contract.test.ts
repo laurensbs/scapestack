@@ -25,8 +25,10 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(homepage).toContain("Pick the next trip.");
     expect(next).toContain("Do this first");
     expect(next).toContain("One best move for this account. Two backups");
-    expect(next).toContain("After this run");
-    expect(next).toContain("After this");
+    expect(next).toContain("Route");
+    expect(next).toContain("First step, then what logically follows.");
+    expect(next).toContain("First this");
+    expect(next).toContain("Then");
     expect(next).toContain("Pick a route");
     expect(next).not.toContain("Another route");
     expect(next).toContain("Backups");
@@ -44,7 +46,9 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).toContain("Copy Bank Tag");
     expect(next).not.toContain("Trip looks runnable");
     expect(next).not.toContain("Safer backup");
-    expect(next).toContain("Screenshot mode");
+    expect(next).not.toContain("Screenshot mode");
+    expect(next).not.toContain("Copy plan");
+    expect(next).toContain("Last RuneLite scan:");
     expect(next).toContain("Next trip");
     expect(next).toContain("Chill now");
     expect(next).toContain("accountStage={summary.accountStage}");
@@ -92,7 +96,8 @@ describe("Scapestack anti-bankstanding product contract", () => {
   it("keeps RuneLite as quiet intelligence instead of the main task", () => {
     expect(playerFacingSources).toContain("RuneLite helps Scapestack skip stuff you already finished.");
     expect(playerFacingSources).toContain("Skips finished quests, diaries, clog slots and Slayer mistakes.");
-    expect(playerFacingSources).toContain("RuneLite helped skip finished quests, diary steps, clog slots and Slayer mistakes.");
+    expect(playerFacingSources).toContain("Finished quests, diary steps, clog slots and Slayer mistakes are skipped.");
+    expect(playerFacingSources).toContain("Last RuneLite scan:");
     expect(playerFacingSources).toContain("RuneLite can improve picks later.");
     expect(playerFacingSources).toContain("Check RuneLite");
     expect(playerFacingSources).not.toContain("Open synced /next");
