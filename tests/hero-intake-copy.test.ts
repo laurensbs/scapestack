@@ -8,8 +8,9 @@ describe("hero intake copy and routing", () => {
   it("marks RSN-only homepage runs as bankless while allowing bank-only starts", () => {
     expect(source).toContain("const hasBankPaste = Boolean(bank.trim())");
     expect(source).toContain("const canSubmit = Boolean(rsn.trim() || hasBankPaste)");
-    expect(source).toContain("if (trimmed && !hasSeenFirstSetup(trimmed))");
+    expect(source).toContain("if (trimmed) {");
     expect(source).toContain("setShowFirstSetup(true);");
+    expect(source).not.toContain("hasSeenFirstSetup");
     expect(source).toContain('if (!hasBankContext) params.set("bank", "none");');
     expect(source).toContain("router.push(`/next?${params.toString()}`)");
   });
@@ -56,7 +57,6 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain('label: "AFK"');
     expect(source).toContain('label: "Short"');
     expect(source).toContain("function setupKeyForRsn(rsn: string): string");
-    expect(source).toContain("function hasSeenFirstSetup(rsn: string): boolean");
     expect(source).toContain("function markFirstSetupSeen(rsn: string): void");
     expect(source).toContain("const [showFirstSetup, setShowFirstSetup] = useState(false);");
     expect(source).toContain('const [selectedFirstSetupIntent, setSelectedFirstSetupIntent] = useState<FirstSetupIntent>("surprise");');

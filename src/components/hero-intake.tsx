@@ -55,15 +55,6 @@ function setupKeyForRsn(rsn: string): string {
   return `${HERO_FIRST_SETUP_KEY}:${rsn.trim().toLowerCase().replace(/\s+/g, "-")}`;
 }
 
-function hasSeenFirstSetup(rsn: string): boolean {
-  if (typeof window === "undefined") return true;
-  try {
-    return localStorage.getItem(setupKeyForRsn(rsn)) === "1";
-  } catch {
-    return true;
-  }
-}
-
 function markFirstSetupSeen(rsn: string): void {
   if (typeof window === "undefined") return;
   try {
@@ -159,7 +150,7 @@ export function HeroIntake() {
     const trimmed = cleanRsn;
     if (!canSubmit) return;
     if (trimmed) saveSavedRsn(trimmed);
-    if (trimmed && !hasSeenFirstSetup(trimmed)) {
+    if (trimmed) {
       setShowFirstSetup(true);
       return;
     }

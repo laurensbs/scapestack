@@ -217,7 +217,11 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("loadMood(activeRsn)");
     expect(source).toContain("}, activeRsn || undefined);");
     expect(source).toContain("mergedSkipCounts(sessionSkippedCounts(sessionSkipped), recentMemoryCounts)");
-    expect(source).toContain("routeSwitchCopy(nextRouteLens, pick.headline)");
+    expect(source).toContain("function randomRouteLens(currentLens: RouteLens): RouteLens");
+    expect(source).toContain("Math.random()");
+    expect(source).toContain("const randomLens = randomRouteLens(routeLens);");
+    expect(source).toContain("routeSwitchCopy(randomLens, pick.headline)");
+    expect(source).toContain("routeLens: randomLens");
     expect(source).toContain("pickForRoute(visibleRecs, mood, minutes, routeLens, shuffleIdx, routePickOptions)");
     expect(source).not.toContain("Change time or pace");
     expect(source).toContain("Backups");

@@ -2891,6 +2891,11 @@ function routeSwitchCopy(nextLens: RouteLens, skipped: Recommendation): string {
   }
 }
 
+function randomRouteLens(currentLens: RouteLens): RouteLens {
+  const candidates = ROUTE_LENS_ORDER.filter((lens) => lens !== currentLens);
+  return candidates[Math.floor(Math.random() * candidates.length)] ?? "smart";
+}
+
 function defaultTimeForMood(mood: Mood): TimeBudget | null {
   if (mood === "short") return 15;
   if (mood === "chill") return 30;
@@ -3063,9 +3068,6 @@ function WhatToDo({
     setFeedback(loadRecommendationFeedback());
   }, [routeIntent, initialRouteChoice]);
 
-  const routeLensIndex = ROUTE_LENS_ORDER.indexOf(routeLens);
-  const nextRouteLens = ROUTE_LENS_ORDER[(routeLensIndex + 1) % ROUTE_LENS_ORDER.length] ?? "smart";
-
   const hiddenCount = allRecs.filter((rec) => feedback.suppressed[rec.id]).length;
   const visibleRecs = allRecs.filter((rec) => !feedback.suppressed[rec.id]);
   const latestSkipped = useMemo(() => latestSessionSkip(sessionSkipped), [sessionSkipped]);
@@ -3183,6 +3185,7 @@ function WhatToDo({
     setShuffleIdx(0);
   };
   const moveToAnotherPlan = () => {
+    const randomLens = randomRouteLens(routeLens);
     setLastCompleted(null);
     setLastSuppressed(null);
     if (pick?.headline) {
@@ -3193,17 +3196,17 @@ function WhatToDo({
         title: pick.headline.title,
         action: "try_another",
         mood,
-        routeLens,
+        routeLens: randomLens,
         rsn: activeRsn
       }));
-      setRouteSwitchNote(routeSwitchCopy(nextRouteLens, pick.headline));
+      setRouteSwitchNote(routeSwitchCopy(randomLens, pick.headline));
     }
-    if (nextRouteLens === "smart") {
+    if (randomLens === "smart") {
       setRouteLens("smart");
-      setShuffleIdx((i) => i + 1);
+      setShuffleIdx((i) => i + 1 + Math.floor(Math.random() * Math.max(2, visibleRecs.length)));
       return;
     }
-    applyRouteLens(nextRouteLens, { keepRouteSwitchNote: true });
+    applyRouteLens(randomLens, { keepRouteSwitchNote: true });
   };
   const moveToChillPlan = () => {
     applySessionIntent("chill", 30);
