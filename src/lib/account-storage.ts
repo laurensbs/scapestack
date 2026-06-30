@@ -149,6 +149,10 @@ export function markRuneliteChecked(rsn: string, checkedAt: number = now()): voi
   upsertAccount(rsn, { runeliteCheckedAt: checkedAt });
 }
 
+export function clearRuneliteChecked(rsn: string): void {
+  upsertAccount(rsn, { runeliteCheckedAt: undefined });
+}
+
 export function markAccountMood(rsn: string, mood: Mood, minutes: TimeBudget): void {
   upsertAccount(rsn, { preferredMood: mood, preferredMinutes: minutes });
 }

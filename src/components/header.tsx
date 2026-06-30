@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { CheckCircle2, ChevronDown, Menu, Package, PlugZap, Plus, UserRound, X } from "lucide-react";
+import { CheckCircle2, ChevronDown, Menu, Package, PlugZap, Plus, RefreshCw, UserRound, X } from "lucide-react";
 import { ACCOUNT_EVENT, getActiveAccount, loadAccountStore, removeAccount, setActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
 import { contextualNavHref } from "@/lib/nav-context";
 import { clearSavedRsn, describeSavedAt, loadSavedBank, loadSavedRsn, saveSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
@@ -315,6 +315,8 @@ function AccountSwitcher({
   const bankStatusLabel = hasSavedSetup ? "Bank added" : "Add bank";
   const bankFreshness = bankSavedAt ? `Bank saved ${describeSavedAt(bankSavedAt)}` : bankStatusLabel;
   const activeAccount = accounts.find((account) => account.rsn === activeRsn);
+  const runeliteReady = Boolean(activeAccount?.runeliteCheckedAt);
+  const runeliteLabel = runeliteReady ? "Refresh RuneLite" : "Add RuneLite";
 
   return (
     <div className={cn("relative", compact ? "w-full" : "hidden sm:block")}>
@@ -395,9 +397,15 @@ function AccountSwitcher({
             <div className="mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text-muted)]">
               <span className="text-[var(--color-text)]">{activeRsn}</span>
               <span className="mx-1.5 text-[var(--color-border-strong)]">·</span>
-              <span title={bankFreshness}>{bankStatusLabel}</span>
+              <span title={bankFreshness} className="inline-flex items-center gap-1">
+                {hasSavedSetup && <CheckCircle2 className="size-3 text-[var(--color-accent)]" />}
+                {bankStatusLabel}
+              </span>
               <span className="mx-1.5 text-[var(--color-border-strong)]">·</span>
-              <span>{activeAccount?.runeliteCheckedAt ? "RuneLite checked" : "Add RuneLite"}</span>
+              <span className="inline-flex items-center gap-1">
+                {runeliteReady && <CheckCircle2 className="size-3 text-[var(--color-accent)]" />}
+                {runeliteLabel}
+              </span>
             </div>
           )}
 
@@ -416,15 +424,21 @@ function AccountSwitcher({
               className="grid min-h-[76px] place-items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
             >
               <Package className="mb-1 size-5" />
-              <span title={bankFreshness}>{bankStatusLabel}</span>
+              <span title={bankFreshness} className="inline-flex items-center gap-1">
+                {hasSavedSetup && <CheckCircle2 className="size-3 text-[var(--color-accent)]" />}
+                {bankStatusLabel}
+              </span>
             </Link>
             <Link
               href={pluginHref}
               onClick={() => setOpen(false)}
               className="grid min-h-[76px] place-items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
             >
-              <PlugZap className="mb-1 size-5" />
-              Check RuneLite
+              {runeliteReady ? <RefreshCw className="mb-1 size-5" /> : <PlugZap className="mb-1 size-5" />}
+              <span className="inline-flex items-center gap-1">
+                {runeliteReady && <CheckCircle2 className="size-3 text-[var(--color-accent)]" />}
+                {runeliteLabel}
+              </span>
             </Link>
           </div>
         </div>

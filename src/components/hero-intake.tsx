@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, ClipboardPaste, PlugZap, Sword, UserRound, X } from "lucide-react";
+import { ArrowRight, CheckCircle2, ClipboardPaste, PlugZap, RefreshCw, Sword, UserRound, X } from "lucide-react";
+import { pluginSyncStatusAction } from "@/app/actions";
 import { BankSetupSteps } from "@/components/bank-setup-steps";
 import { RuneliteOpenButton } from "@/components/runelite-open-button";
 import { SessionMoodPicker } from "@/components/session-mood-picker";
-import { ACCOUNT_EVENT, getActiveAccount, markRuneliteChecked } from "@/lib/account-storage";
+import { ACCOUNT_EVENT, clearRuneliteChecked, getActiveAccount, markRuneliteChecked } from "@/lib/account-storage";
 import { MOOD_LABEL, type Mood, type TimeBudget } from "@/lib/mood";
 import { loadMood, saveMood } from "@/lib/mood-storage";
 import { loadSavedBank, loadSavedRsn, saveSavedBank, saveSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
@@ -63,6 +64,23 @@ function markFirstSetupSeen(rsn: string): void {
   }
 }
 
+function formatRuneliteCheckedAt(value: number | null): string {
+  if (!value) return "RuneLite later";
+  const ageMs = Math.max(0, Date.now() - value);
+  const minutes = Math.floor(ageMs / 60_000);
+  if (minutes < 1) return "RuneLite synced just now";
+  if (minutes < 60) return `RuneLite synced ${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `RuneLite synced ${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `RuneLite synced ${days}d ago`;
+}
+
+function runeliteNeedsRefresh(value: number | null): boolean {
+  if (!value) return false;
+  return Date.now() - value > 24 * 60 * 60 * 1000;
+}
+
 export function HeroIntake() {
   const router = useRouter();
   const [rsn, setRsn] = useState("");
@@ -71,7 +89,8 @@ export function HeroIntake() {
   const [showBankGuide, setShowBankGuide] = useState(false);
   const [showRuneliteGuide, setShowRuneliteGuide] = useState(false);
   const [editingAccount, setEditingAccount] = useState(false);
-  const [rememberedRuneliteChecked, setRememberedRuneliteChecked] = useState(false);
+  const [rememberedRuneliteCheckedAt, setRememberedRuneliteCheckedAt] = useState<number | null>(null);
+  const [runeliteRefresh, setRuneliteRefresh] = useState<"idle" | "checking" | "found" | "missing" | "error">("idle");
   const [returningMood, setReturningMood] = useState<{ mood: Mood; minutes: TimeBudget; label: string } | null>(null);
   const [selectedFirstSetupIntent, setSelectedFirstSetupIntent] = useState<FirstSetupIntent>("surprise");
   const [showFirstSetupBank, setShowFirstSetupBank] = useState(false);
@@ -83,6 +102,8 @@ export function HeroIntake() {
   const canSubmit = Boolean(rsn.trim() || hasBankPaste);
   const cleanRsn = rsn.trim();
   const isRememberedRun = Boolean(rememberedRsn && cleanRsn === rememberedRsn);
+  const rememberedRuneliteChecked = Boolean(rememberedRuneliteCheckedAt);
+  const shouldRefreshRunelite = runeliteNeedsRefresh(rememberedRuneliteCheckedAt);
 
   useEffect(() => {
     const refreshRememberedAccount = () => {
@@ -91,7 +112,8 @@ export function HeroIntake() {
       if (!remembered) {
         setRsn("");
         setRememberedRsn("");
-        setRememberedRuneliteChecked(false);
+        setRememberedRuneliteCheckedAt(null);
+        setRuneliteRefresh("idle");
         setReturningMood(null);
         setEditingAccount(false);
         return;
@@ -99,7 +121,7 @@ export function HeroIntake() {
 
       setRsn(remembered);
       setRememberedRsn(remembered);
-      setRememberedRuneliteChecked(Boolean(active?.runeliteCheckedAt));
+      setRememberedRuneliteCheckedAt(active?.runeliteCheckedAt ?? null);
       setEditingAccount(false);
       const savedMood = loadMood(remembered);
       setReturningMood(savedMood?.mood
@@ -139,7 +161,6 @@ export function HeroIntake() {
     if (trimmed) {
       saveSavedRsn(trimmed);
       if (options.markSetup) markFirstSetupSeen(trimmed);
-      if (firstSetupRunelite) markRuneliteChecked(trimmed);
     }
     if (options.includeSetupIntent) {
       saveMood({
@@ -162,6 +183,28 @@ export function HeroIntake() {
     router.push(`/next?${params.toString()}`);
   };
 
+  const refreshRunelite = async () => {
+    const target = rememberedRsn.trim();
+    if (!target || runeliteRefresh === "checking") return;
+    setRuneliteRefresh("checking");
+    try {
+      const next = await pluginSyncStatusAction(target);
+      if (next.kind === "found") {
+        const syncedAt = new Date(next.player.syncedAt).getTime();
+        const checkedAt = Number.isFinite(syncedAt) ? syncedAt : Date.now();
+        markRuneliteChecked(target, checkedAt);
+        setRememberedRuneliteCheckedAt(checkedAt);
+        setRuneliteRefresh("found");
+      } else {
+        clearRuneliteChecked(target);
+        setRememberedRuneliteCheckedAt(null);
+        setRuneliteRefresh("missing");
+      }
+    } catch {
+      setRuneliteRefresh("error");
+    }
+  };
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = cleanRsn;
@@ -179,11 +222,18 @@ export function HeroIntake() {
     const planHref = returningMood
       ? `/next?rsn=${encodedRsn}&intent=${encodeURIComponent(returningMood.mood)}&time=${returningMood.minutes}`
       : `/next?rsn=${encodedRsn}`;
-    const readyLine = [
-      hasBankContext ? "Bank added" : "Add bank",
-      rememberedRuneliteChecked ? "RuneLite checked" : "RuneLite later",
-      returningMood ? `Last vibe: ${returningMood.label}` : "Last vibe: Best now"
-    ].join(" · ");
+    const runeliteStatusLabel = shouldRefreshRunelite
+      ? "Refresh RuneLite"
+      : formatRuneliteCheckedAt(rememberedRuneliteCheckedAt);
+    const runeliteRefreshMessage = runeliteRefresh === "checking"
+      ? "Checking RuneLite…"
+      : runeliteRefresh === "found"
+        ? "RuneLite refreshed."
+        : runeliteRefresh === "missing"
+          ? "No fresh sync yet. Open RuneLite, press Sync now, then refresh."
+          : runeliteRefresh === "error"
+            ? "RuneLite check failed. Try again."
+            : null;
     return (
       <div className="osrs-frame p-4 text-left sm:p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -195,9 +245,43 @@ export function HeroIntake() {
             <h2 className="mt-3 text-[26px] font-semibold leading-tight text-[var(--color-text)]">
               Welcome back, {rememberedRsn}.
             </h2>
-            <p className="mt-1 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
-              {readyLine}
-            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] font-semibold">
+              <span className={cn(
+                "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1",
+                hasBankContext
+                  ? "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/12 text-[var(--color-accent)]"
+                  : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-muted)]"
+              )}>
+                {hasBankContext && <CheckCircle2 className="size-3.5" />}
+                {hasBankContext ? "Bank added" : "Add bank"}
+              </span>
+              <span className={cn(
+                "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1",
+                rememberedRuneliteChecked
+                  ? shouldRefreshRunelite
+                    ? "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
+                    : "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/12 text-[var(--color-accent)]"
+                  : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-muted)]"
+              )}>
+                {rememberedRuneliteChecked && <CheckCircle2 className="size-3.5" />}
+                {runeliteStatusLabel}
+              </span>
+              <span className="inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1 text-[var(--color-text-muted)]">
+                {returningMood ? `Last vibe: ${returningMood.label}` : "Last vibe: Best now"}
+              </span>
+            </div>
+            {runeliteRefreshMessage && (
+              <p
+                role="status"
+                aria-live="polite"
+                className={cn(
+                  "mt-2 text-[12px] font-semibold leading-relaxed",
+                  runeliteRefresh === "found" ? "text-[var(--color-accent)]" : "text-[var(--color-warning)]"
+                )}
+              >
+                {runeliteRefreshMessage}
+              </p>
+            )}
           </div>
           <button
             type="button"
@@ -221,8 +305,9 @@ export function HeroIntake() {
         <div className="mt-3 grid grid-cols-3 gap-2">
           <Link
             href={`/bank?rsn=${encodedRsn}&from=home`}
-            className="flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2 py-3 text-center text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+            className="relative flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2 py-3 text-center text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
           >
+            {hasBankContext && <CheckCircle2 className="absolute right-2 top-2 size-3.5 text-[var(--color-accent)]" />}
             <ClipboardPaste className="size-4" />
             {hasBankContext ? "Bank" : "Add bank"}
           </Link>
@@ -233,13 +318,27 @@ export function HeroIntake() {
             <Sword className="size-4" />
             Check kill
           </Link>
-          <Link
-            href={`/plugin?rsn=${encodedRsn}&from=home#verify-sync`}
-            className="flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2 py-3 text-center text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
-          >
-            <PlugZap className="size-4" />
-            RuneLite
-          </Link>
+          {rememberedRuneliteChecked || runeliteRefresh === "missing" || runeliteRefresh === "error" ? (
+            <button
+              type="button"
+              onClick={refreshRunelite}
+              disabled={runeliteRefresh === "checking"}
+              className="relative flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2 py-3 text-center text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] disabled:opacity-60"
+              aria-label={`Refresh RuneLite sync for ${rememberedRsn}`}
+            >
+              {rememberedRuneliteChecked && <CheckCircle2 className="absolute right-2 top-2 size-3.5 text-[var(--color-accent)]" />}
+              <RefreshCw className={cn("size-4", runeliteRefresh === "checking" && "animate-spin")} />
+              Refresh
+            </button>
+          ) : (
+            <Link
+              href={`/plugin?rsn=${encodedRsn}&from=home#verify-sync`}
+              className="flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2 py-3 text-center text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+            >
+              <PlugZap className="size-4" />
+              Add RuneLite
+            </Link>
+          )}
         </div>
 
         <div className="mt-3">

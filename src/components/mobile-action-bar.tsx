@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClipboardPaste, PlugZap, Sparkles } from "lucide-react";
+import { CheckCircle2, ClipboardPaste, PlugZap, RefreshCw, Sparkles } from "lucide-react";
 import { ACCOUNT_EVENT, getActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
 import { loadMood } from "@/lib/mood-storage";
 import { loadSavedBank, loadSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
@@ -73,8 +73,8 @@ export function MobileActionBar() {
     {
       href: pluginHref,
       label: "RuneLite",
-      helper: account?.runeliteCheckedAt ? "Checked" : "Later",
-      icon: PlugZap,
+      helper: account?.runeliteCheckedAt ? "Synced" : "Later",
+      icon: account?.runeliteCheckedAt ? RefreshCw : PlugZap,
       active: Boolean(account?.runeliteCheckedAt)
     }
   ];
@@ -94,13 +94,16 @@ export function MobileActionBar() {
               key={action.href}
               href={action.href}
               className={cn(
-                "flex min-h-[54px] flex-col items-center justify-center rounded-xl border px-1.5 text-center transition-colors",
+                "relative flex min-h-[54px] flex-col items-center justify-center rounded-xl border px-1.5 text-center transition-colors",
                 action.active
                   ? "border-[var(--color-accent)]/45 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
                   : "border-transparent text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/30 hover:text-[var(--color-accent)]"
               )}
             >
               <Icon className="size-4" />
+              {action.active && action.label !== "Plan" && (
+                <CheckCircle2 className="absolute right-1.5 top-1.5 size-3 text-[var(--color-accent)]" />
+              )}
               <span className="mt-1 max-w-full truncate text-[11px] font-bold leading-none">{action.label}</span>
               <span className="mt-0.5 max-w-full truncate text-[9.5px] font-semibold leading-none opacity-70">{action.helper}</span>
             </Link>

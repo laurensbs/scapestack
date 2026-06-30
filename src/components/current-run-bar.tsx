@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Package, PlugZap, UserRound } from "lucide-react";
+import { CheckCircle2, Package, PlugZap, RefreshCw, UserRound } from "lucide-react";
 import { ACCOUNT_EVENT, getActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
 import { loadMood } from "@/lib/mood-storage";
 import { describeSavedAt, loadSavedBank, loadSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
@@ -50,6 +50,8 @@ export function CurrentRunBar({ className, compact = false }: CurrentRunBarProps
   const nextHref = rsn ? `/next?rsn=${encodeURIComponent(rsn)}` : "/next";
   const bankLabel = hasSetup ? "Bank added" : "Add bank";
   const bankTitle = bankSavedAt ? `Bank saved ${describeSavedAt(bankSavedAt)}` : bankLabel;
+  const runeliteReady = Boolean(account?.runeliteCheckedAt);
+  const runeliteLabel = runeliteReady ? "Refresh RuneLite" : "Add RuneLite";
 
   return (
     <nav
@@ -71,6 +73,7 @@ export function CurrentRunBar({ className, compact = false }: CurrentRunBarProps
       <Link href={bankHref} title={bankTitle} className="whitespace-nowrap rounded-full px-1.5 py-1 transition-colors hover:text-[var(--color-accent)]">
         <span className="inline-flex items-center gap-1">
           <Package className="size-3.5" />
+          {hasSetup && <CheckCircle2 className="size-3 text-[var(--color-accent)]" />}
           {bankLabel}
         </span>
       </Link>
@@ -78,8 +81,9 @@ export function CurrentRunBar({ className, compact = false }: CurrentRunBarProps
         <>
           <span className="text-[var(--color-border-strong)]" aria-hidden="true">·</span>
           <Link href={pluginHref} className="inline-flex items-center gap-1 whitespace-nowrap rounded-full px-1.5 py-1 transition-colors hover:text-[var(--color-accent)]">
-            <PlugZap className="size-3.5" />
-            {account?.runeliteCheckedAt ? "RuneLite checked" : "Add RuneLite"}
+            {runeliteReady ? <RefreshCw className="size-3.5" /> : <PlugZap className="size-3.5" />}
+            {runeliteReady && <CheckCircle2 className="size-3 text-[var(--color-accent)]" />}
+            {runeliteLabel}
           </Link>
           <span className="text-[var(--color-border-strong)]" aria-hidden="true">·</span>
           <SessionMoodPicker rsn={rsn} label={vibe} />

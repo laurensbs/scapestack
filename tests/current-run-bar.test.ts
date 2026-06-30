@@ -17,6 +17,10 @@ describe("current run bar", () => {
     expect(source).toContain("Bank added");
     expect(source).toContain("Add bank");
     expect(source).toContain("Add RuneLite");
+    expect(source).toContain("Refresh RuneLite");
+    expect(source).toContain("runeliteReady");
+    expect(source).toContain("<CheckCircle2");
+    expect(source).toContain("<RefreshCw");
     expect(source).toContain("Best now");
     expect(source).toContain("SessionMoodPicker");
     expect(source).toContain("<SessionMoodPicker rsn={rsn} label={vibe} />");

@@ -19,8 +19,11 @@ describe("global header navigation", () => {
     expect(source).toContain("Bank saved ${describeSavedAt(bankSavedAt)}");
     expect(source).toContain("Bank added");
     expect(source).toContain("Add bank");
-    expect(source).toContain("Check RuneLite");
+    expect(source).toContain("Refresh RuneLite");
     expect(source).toContain("Add RuneLite");
+    expect(source).toContain("runeliteReady");
+    expect(source).toContain("<CheckCircle2");
+    expect(source).toContain("<RefreshCw");
     expect(source).toContain("Remove account");
     expect(source).toContain("Remove ${rsn} from Scapestack on this device?");
     expect(source).toContain("const removingLegacy = loadSavedRsn()?.trim().toLowerCase() === rsn.trim().toLowerCase();");
