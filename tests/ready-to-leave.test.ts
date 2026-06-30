@@ -39,9 +39,11 @@ describe("ready to leave UX", () => {
     expect(component).not.toContain("readiness panel");
   });
 
-  it("uses the shared trip check on /next, Bank and DPS", () => {
+  it("uses the shared trip check on /next and Bank while DPS stays a boss picker", () => {
     expect(read("src/app/next/next-client.tsx")).toContain("<ReadyToLeave status={readyToLeave.status} items={readyToLeave.items}");
     expect(read("src/components/bank-result.tsx")).toContain("<ReadyToLeave status={readiness.status} items={readiness.items} compact");
-    expect(read("src/app/dps/dps-client.tsx")).toContain("<ReadyToLeave status={readiness.status} items={readiness.items} compact");
+    expect(read("src/app/dps/dps-client.tsx")).not.toContain("ReadyToLeave");
+    expect(read("src/app/dps/dps-client.tsx")).toContain("Pick a boss");
+    expect(read("src/app/dps/dps-client.tsx")).toContain("Search any boss. Click one to see your best gear, DPS, supplies and upgrades from this bank.");
   });
 });

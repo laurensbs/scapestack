@@ -19,15 +19,15 @@ describe("DPS upgrade actions", () => {
   });
 
   it("keeps DPS upgrade cards clickable and item-ID visible", () => {
-    const source = readFileSync(join(process.cwd(), "src/app/dps/dps-client.tsx"), "utf8");
+    const source = readFileSync(join(process.cwd(), "src/components/boss-detail-modal.tsx"), "utf8");
 
-    expect(source).toContain("buildDpsUpgradeBuyLine");
-    expect(source).toContain("copiedUpgradeItem");
-    expect(source).toContain("#{upgrade.gear.id} · {upgrade.gear.slot}");
-    expect(source).toContain("Copy buy line");
-    expect(source).toContain("copyUpgradeBuyLine(upgrade)");
-    expect(source).toContain("Copy ${upgrade.gear.name} item ID ${upgrade.gear.id} DPS upgrade buy line");
-    expect(source).toContain("Open ${upgrade.gear.name} item ID ${upgrade.gear.id} on the OSRS Wiki");
-    expect(source).toContain("Open ${upgrade.gear.name} item ID ${upgrade.gear.id} GE price on the OSRS Wiki");
+    expect(source).toContain("const upgrades = useMemo(() => suggestUpgradesForBoss(owned, boss, dps)");
+    expect(source).toContain("Upgrades you don&apos;t have");
+    expect(source).toContain("{u.item.name}");
+    expect(source).toContain("+{u.gain.toFixed(2)} DPS");
+    expect(source).toContain("href={wikiSearchUrl(u.item.name)}");
+    expect(source).toContain("href={wikiPriceUrl(u.item.id)}");
+    expect(source).toContain("Open ${u.item.name} on the OSRS Wiki");
+    expect(source).toContain("Open ${u.item.name} GE price");
   });
 });

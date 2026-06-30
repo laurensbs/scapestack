@@ -6,10 +6,8 @@ const source = readFileSync(join(process.cwd(), "src/app/dps/dps-client.tsx"), "
 
 describe("DPS empty gear copy", () => {
   it("does not imply DPS is calculated when the bank has zero weapons", () => {
-    expect(source).toContain("const hasWeapons = weaponCount > 0");
-    expect(source).toContain("Boss checks need at least one usable combat weapon.");
-    expect(source).toContain("Bank is active, but this looks like supplies/jewellery only.");
-    expect(source).toContain("Paste a full Bank Memory export or a combat tab with weapons");
+    expect(source).toContain("This bank has supplies, jewellery or loot, but no usable weapon.");
+    expect(source).toContain("Add a full Bank Memory export or a combat tab with one of these weapon types");
     expect(source).toContain("function DpsNoWeaponGate");
     expect(source).toContain("function DpsMissingSetupState");
     expect(source).toContain("const needsSetupBeforeDps = (Boolean(deepLinkedBoss) || searchParams.get(\"bank\") === \"none\") && !hasKnownSetup;");
@@ -31,7 +29,7 @@ describe("DPS empty gear copy", () => {
     expect(source).toContain("const [hasKnownSetup, setHasKnownSetup] = useState(false);");
     expect(source).toContain("loadSavedBank(effectiveRsn)");
     expect(source).toContain("saveSavedBank(input, setupRsn)");
-    expect(source).toContain("Add a weapon before picking this trip.");
+    expect(source).toContain("Add a weapon to see setup and upgrades.");
     expect(source).toContain("bankless={searchParams.get(\"bank\") === \"none\"}");
     expect(source).toContain("pluginSync={searchParams.get(\"source\") === \"plugin-sync\"}");
     expect(source).toContain("slayerTask={isSlayerTaskSource}");
@@ -45,17 +43,18 @@ describe("DPS empty gear copy", () => {
     expect(source).not.toContain("No usable weapon in your bank for this boss.");
   });
 
-  it("labels bank-to-DPS boss handoffs as boss-specific gear proof", () => {
+  it("uses bank-to-DPS boss handoffs to focus the boss picker", () => {
     expect(source).toContain("const deepLinkedBoss = useMemo(() => bossFromDpsParam(pendingBossSlug ?? searchParams.get(\"boss\"))");
-    expect(source).toContain("focusedBoss={deepLinkedBoss}");
-    expect(source).toContain("focusedBoss: Boss | null;");
-    expect(source).toContain('data-testid="dps-focused-boss-receipt"');
-    expect(source).toContain("inline-flex size-6 shrink-0 items-center justify-center overflow-hidden");
-    expect(source).toContain("Bank picked:");
-    expect(source).toContain("Slayer picked:");
-    expect(source).toContain('focusedBossSource={isSlayerTaskSource ? "slayer-task" : "bank"}');
-    expect(source).toContain("${focusedBoss.name} and the boss list now use this bank.");
-    expect(source).toContain('<BankContextActions source="dps" rsn={rsn} />');
+    expect(source).toContain("const openPendingBoss = (slug: string | null) => {");
+    expect(source).toContain("setFocusedBoss(target);");
+    expect(source).toContain("setSearch(target.name);");
+    expect(source).toContain("setModalBoss(target);");
+    expect(source).toContain("openPendingBoss(pendingBossSlug ?? searchParams.get(\"boss\"));");
+    expect(source).toContain("Filtered from bank boss:");
+    expect(source).toContain("Clear it to compare all bosses with the same bank.");
+    expect(source).not.toContain('data-testid="dps-focused-boss-receipt"');
+    expect(source).not.toContain("Bank picked:");
+    expect(source).not.toContain("Slayer picked:");
   });
 
   it("makes bank boss filters visible and easy to clear", () => {

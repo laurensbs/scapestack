@@ -22,58 +22,45 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("aria-label={`Sort boss rows by ${opt.label}`}");
   });
 
-  it("renders boss rows as explicit setup-detail buttons", () => {
-    expect(source).toContain("function BossRow");
+  it("renders bosses as explicit clickable cards instead of dashboard rows", () => {
+    expect(source).toContain("function BossCard");
     expect(source).toContain("<button\n      type=\"button\"\n      id={`boss-${boss.slug}`}");
     expect(source).toContain("aria-label={`Open ${boss.name} kill setup details`}");
     expect(source).toContain("title={`Open ${boss.name} kill setup details`}");
-    expect(source).toContain("Details");
-    expect(source).toContain("View requirements");
-    expect(source).toContain('import { CheckCheck, Copy, Edit3, Sword, Zap, Target, TrendingUp, Coins, Search, X, Sparkles, ExternalLink, ChevronDown } from "lucide-react";');
+    expect(source).toContain("Open details");
+    expect(source).toContain("grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5");
+    expect(source).toContain("Add a weapon to see setup and upgrades.");
+    expect(source).toContain('import { Edit3, Sword, Search, X, Sparkles, ExternalLink } from "lucide-react";');
     expect(source).not.toContain("role=\"button\"");
     expect(source).not.toContain("tabIndex={0}");
   });
 
-  it("switches upgrade suggestions from global to focused boss context", () => {
-    expect(source).toContain("const focusedBossUpgrades = useMemo(");
-    expect(source).toContain("focusedBoss ? suggestUpgradesForBoss(owned, focusedBoss).slice(0, 3) : []");
-    expect(source).toContain("const visibleUpgrades = focusedBoss ? focusedBossUpgrades : upgrades;");
-    expect(source).toContain("{focusedBoss ? `${focusedBoss.name} upgrade check` : \"Upgrade before camping\"}");
-    expect(source).toContain("Only items that help ${focusedBoss.name} from this bank.");
-    expect(source).toContain("Worth checking before you camp a boss for a longer session.");
-    expect(source).toContain('{focusedBoss ? "vs current setup" : "avg"}');
-    expect(source).toContain("Helps <span className=\"text-[var(--color-gold-soft)]\">{focusedBoss.name}</span> directly.");
-    expect(source).toContain("function suggestUpgradesForBoss(owned: GearItem[], boss: Boss): UpgradeSuggestion[]");
+  it("keeps boss-specific upgrades inside the clicked boss modal", () => {
+    const modalSource = readFileSync(join(process.cwd(), "src/components/boss-detail-modal.tsx"), "utf8");
+
+    expect(modalSource).toContain("const upgrades = useMemo(() => suggestUpgradesForBoss(owned, boss, dps)");
+    expect(modalSource).toContain("Upgrades you don&apos;t have");
+    expect(modalSource).toContain("wikiSearchUrl(u.item.name)");
+    expect(modalSource).toContain("wikiPriceUrl(u.item.id)");
+    expect(modalSource).toContain("Open ${u.item.name} on the OSRS Wiki");
+    expect(modalSource).toContain("Open ${u.item.name} GE price");
+    expect(source).not.toContain("function suggestUpgradesForBoss(owned: GearItem[], boss: Boss): UpgradeSuggestion[]");
+    expect(source).not.toContain("Upgrade before camping");
   });
 
-  it("starts DPS as a boss-trip verdict instead of a dashboard", () => {
-    expect(source).toContain("function DpsDecisionHero");
-    expect(source).toContain("Can I kill this?");
-    expect(source).toContain("Best trip from this bank");
-    expect(source).toContain("Can kill: do one short trip");
-    expect(source).toContain("Test trip only");
-    expect(source).toContain("Not worth yet");
-    expect(source).toContain("ReadyToLeave");
-    expect(source).toContain("function buildDpsReadyToLeave");
-    expect(source).toContain("ReadyToLeaveStatus");
-    expect(source).toContain('"Good first trip"');
-    expect(source).toContain('"Bring food"');
-    expect(source).toContain('"Pick a teleport"');
-    expect(source).toContain('"Skip for now"');
-    expect(source).toContain('"Bank first"');
-    expect(source).toContain("const readiness = buildDpsReadyToLeave(decision, result, weaponCount);");
-    expect(source).toContain('import { bossViabilityFromGear, styleLabel, type BossViability } from "@/lib/boss-viability";');
-    expect(source).toContain("function dpsDecisionScore");
-    expect(source).toContain("function pickBestBossTrip");
-    expect(source).toContain("const decisionBossViability = useMemo(");
-    expect(source).toContain("Bank says ${result.boss.name}");
+  it("starts DPS as a boss browser instead of a dashboard verdict", () => {
+    expect(source).toContain("Can I kill this with my bank?");
+    expect(source).not.toContain('import { bossViabilityFromGear, styleLabel, type BossViability } from "@/lib/boss-viability";');
+    expect(source).not.toContain("function dpsDecisionScore");
+    expect(source).not.toContain("function pickBestBossTrip");
     expect(source).toContain("window.scrollTo({ top: 0, behavior: \"instant\" });");
-    expect(source).toContain("Make this smarter");
-    expect(source).toContain("Bank, RSN, RuneLite");
-    expect(source).toContain("Recommended for your bank");
-    expect(source).toContain("Scapestack picks a few good trips, but every boss stays searchable below.");
+    expect(source).toContain("Pick a boss");
+    expect(source).toContain("Search any boss. Click one to see your best gear, DPS, supplies and upgrades from this bank.");
     expect(source).toContain("All bosses");
     expect(source).toContain("bosses checked");
+    expect(source).not.toContain("<DpsDecisionHero");
+    expect(source).not.toContain("Make this smarter");
+    expect(source).not.toContain("Recommended for your bank");
     expect(source).not.toContain("Compare other bosses");
     expect(source).not.toContain("Search and sort the full table only when the first trip is not the one.");
     expect(source).not.toContain("Boss options with this bank");
@@ -82,42 +69,17 @@ describe("DPS boss row affordance", () => {
   });
 
   it("makes upgrade items actionable with Wiki and GE price links", () => {
-    expect(source).toContain('import { copyText } from "@/lib/clipboard";');
-    expect(source).toContain('import { wikiPriceUrl } from "@/lib/item-action";');
-    expect(source).toContain('import { wikiSearchUrl } from "@/lib/wiki";');
-    expect(source).toContain('import { buildDpsUpgradeBuyLine } from "@/lib/dps-upgrade-actions";');
-    expect(source).toContain('const [copiedUpgradeList, setCopiedUpgradeList] = useState<"copied" | "failed" | null>(null);');
-    expect(source).toContain('const [copiedUpgradeItem, setCopiedUpgradeItem] = useState<{ id: number; status: "copied" | "failed" } | null>(null);');
-    expect(source).toContain("const [showUpgradeShoppingList, setShowUpgradeShoppingList] = useState(false);");
-    expect(source).toContain("const upgradeShoppingList = useMemo(() => {");
-    expect(source).toContain("`${focusedBoss.name} DPS upgrades`");
-    expect(source).toContain("buildDpsUpgradeBuyLine({");
-    expect(source).toContain("scope: focusedBoss ? \"vs current setup\" : \"avg\"");
-    expect(source).toContain("const copyUpgradeShoppingList = async () => {");
-    expect(source).toContain("const result = await copyText(upgradeShoppingList);");
-    expect(source).toContain('if (result === "failed") {');
-    expect(source).toContain('setCopiedUpgradeList("failed");');
-    expect(source).toContain("return;");
-    expect(source).toContain("Copy shopping list");
-    expect(source).toContain("View list");
-    expect(source).toContain("Hide list");
-    expect(source).toContain("aria-expanded={showUpgradeShoppingList}");
-    expect(source).toContain("Show upgrade shopping list text");
-    expect(source).toContain("Upgrade list copied");
-    expect(source).toContain("Clipboard failed — copy shopping list manually");
-    expect(source).toContain("Upgrade shopping list text");
-    expect(source).toContain('(copiedUpgradeList === "failed" || showUpgradeShoppingList)');
-    expect(source).toContain("value={upgradeShoppingList}");
-    expect(source).toContain("event.currentTarget.select()");
-    expect(source).toContain("Manual ${focusedBoss.name} upgrade shopping list");
-    expect(source).toContain("href={wikiSearchUrl(upgrade.gear.name)}");
-    expect(source).toContain("href={wikiPriceUrl(upgrade.gear.id)}");
-    expect(source).toContain("Open ${upgrade.gear.name} item ID ${upgrade.gear.id} on the OSRS Wiki");
-    expect(source).toContain("Open ${upgrade.gear.name} item ID ${upgrade.gear.id} GE price on the OSRS Wiki");
-    expect(source).toContain("#{upgrade.gear.id} · {upgrade.gear.slot}");
-    expect(source).toContain("const copyUpgradeBuyLine = async (upgrade: UpgradeSuggestion) => {");
-    expect(source).toContain("Copy ${upgrade.gear.name} item ID ${upgrade.gear.id} DPS upgrade buy line");
-    expect(source).toContain("Copy buy line");
-    expect(source).toContain("GE price");
+    const modalSource = readFileSync(join(process.cwd(), "src/components/boss-detail-modal.tsx"), "utf8");
+
+    expect(modalSource).toContain('import { wikiPriceUrl } from "@/lib/item-action";');
+    expect(modalSource).toContain('import { wikiSearchUrl } from "@/lib/wiki";');
+    expect(modalSource).toContain("Upgrades you don&apos;t have");
+    expect(modalSource).toContain("href={wikiSearchUrl(u.item.name)}");
+    expect(modalSource).toContain("href={wikiPriceUrl(u.item.id)}");
+    expect(modalSource).toContain("Open ${u.item.name} on the OSRS Wiki");
+    expect(modalSource).toContain("Open ${u.item.name} GE price");
+    expect(modalSource).toContain("{u.item.name}");
+    expect(modalSource).toContain("+{u.gain.toFixed(2)} DPS");
+    expect(modalSource).toContain("GE <ExternalLink");
   });
 });

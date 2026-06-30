@@ -2,13 +2,15 @@
 
 import { useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
-import { X, Sword, Target, Zap, TrendingUp, Package } from "lucide-react";
+import { X, Sword, Target, Zap, TrendingUp, Package, ExternalLink } from "lucide-react";
 import type { Boss } from "@/lib/bosses";
 import { bestStyleAndSetup, calcDps, autoSetup, type DpsBreakdown, type Setup } from "@/lib/dps";
 import { GEAR, type GearItem, type CombatStyle } from "@/lib/gear";
 import { PRESETS } from "@/lib/presets";
 import { formatGp, cn } from "@/lib/utils";
 import { ItemSprite } from "@/components/item-sprite";
+import { wikiPriceUrl } from "@/lib/item-action";
+import { wikiSearchUrl } from "@/lib/wiki";
 
 interface Props {
   boss: Boss;
@@ -207,6 +209,26 @@ export function BossDetailModal({ boss, owned, onClose }: Props) {
                           )}
                           {" · "}{u.item.slot ?? "weapon"}
                         </div>
+                      </div>
+                      <div className="flex shrink-0 flex-col gap-1">
+                        <a
+                          href={wikiSearchUrl(u.item.name)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center gap-1 rounded border border-[var(--color-border)] px-2 py-1 text-[10px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+                          aria-label={`Open ${u.item.name} on the OSRS Wiki`}
+                        >
+                          Wiki <ExternalLink className="size-2.5" />
+                        </a>
+                        <a
+                          href={wikiPriceUrl(u.item.id)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center gap-1 rounded border border-[var(--color-accent)]/25 px-2 py-1 text-[10px] font-semibold text-[var(--color-accent)] transition-colors hover:border-[var(--color-accent)]/45"
+                          aria-label={`Open ${u.item.name} GE price`}
+                        >
+                          GE <ExternalLink className="size-2.5" />
+                        </a>
                       </div>
                     </div>
                   );

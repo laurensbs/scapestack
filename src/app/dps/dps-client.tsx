@@ -3,27 +3,19 @@
 import { useState, useTransition, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { CheckCheck, Copy, Edit3, Sword, Zap, Target, TrendingUp, Coins, Search, X, Sparkles, ExternalLink, ChevronDown } from "lucide-react";
+import { Edit3, Sword, Search, X, Sparkles, ExternalLink } from "lucide-react";
 import { Intake } from "@/components/intake";
 import { SupportCard } from "@/components/support-card";
 import { ItemSprite } from "@/components/item-sprite";
-import { ScapestackReadinessRail } from "@/components/scapestack-readiness-rail";
 import { organizeAction } from "@/app/actions";
 import { BOSSES, type Boss } from "@/lib/bosses";
-import { ownedGear, lookupGear, GEAR, type GearItem, type CombatStyle } from "@/lib/gear";
-import { bestStyleAndSetup, calcDps, autoSetup, type DpsBreakdown } from "@/lib/dps";
+import { ownedGear, lookupGear, type GearItem } from "@/lib/gear";
+import { bestStyleAndSetup, type DpsBreakdown } from "@/lib/dps";
 import { cn, formatGp } from "@/lib/utils";
 import { BossDetailModal } from "@/components/boss-detail-modal";
 import { BossSprite } from "@/components/boss-picker";
-import { BankContextActions } from "@/components/bank-context-actions";
-import { ReadyToLeave, type ReadyToLeaveItem, type ReadyToLeaveStatus } from "@/components/ready-to-leave";
 import { bossFromDpsParam } from "@/lib/dps-route";
-import { copyText } from "@/lib/clipboard";
-import { wikiPriceUrl } from "@/lib/item-action";
-import { wikiSearchUrl } from "@/lib/wiki";
 import { bankOrganizerHref } from "@/lib/bank-handoff-url";
-import { buildDpsUpgradeBuyLine } from "@/lib/dps-upgrade-actions";
-import { bossViabilityFromGear, styleLabel, type BossViability } from "@/lib/boss-viability";
 import { getActiveAccount } from "@/lib/account-storage";
 import { loadSavedBank, loadSavedRsn, saveSavedBank, saveSavedRsn } from "@/lib/saved-bank";
 import {
@@ -46,161 +38,6 @@ const BOSS_FILTERS: Array<{ key: BossFilter; label: string }> = [
   { key: "beginner", label: "Beginner" },
   { key: "gp", label: "GP" }
 ];
-
-interface DpsDecision {
-  title: string;
-  verdict: string;
-  why: string;
-  firstStep: string;
-  stopPoint: string;
-  bring: string;
-  avoid: string;
-  tone: "good" | "warning" | "locked";
-}
-
-interface DpsReadyToLeave {
-  status: ReadyToLeaveStatus;
-  items: ReadyToLeaveItem[];
-}
-
-function buildDpsReadyToLeave(
-  decision: DpsDecision,
-  result: BossDpsResult | null,
-  weaponCount: number
-): DpsReadyToLeave {
-  const hasFood = /food|brew|karambwan|angler|shark|manta/i.test(decision.bring);
-  const hasTeleport = /tele|out|escape/i.test(decision.bring);
-
-  if (decision.tone === "locked" || weaponCount === 0) {
-    return {
-      status: "Bank first",
-      items: [
-        { label: "Bank", value: "Paste bank to check gear", tone: "warn" },
-        { label: "Food", value: hasFood ? "In bring list" : "Bring food", tone: hasFood ? "good" : "warn" },
-        { label: "Teleport", value: hasTeleport ? "Tele out" : "Pick a teleport", tone: hasTeleport ? "good" : "warn" },
-        { label: "Stop point", value: decision.stopPoint, tone: "neutral" }
-      ]
-    };
-  }
-
-  const status: ReadyToLeaveStatus = decision.tone === "warning"
-    ? "Skip for now"
-    : !hasFood
-    ? "Bring food"
-    : !hasTeleport
-    ? "Pick a teleport"
-    : "Good first trip";
-
-  return {
-    status,
-    items: [
-      {
-        label: "Gear",
-        value: result ? `${weaponCount} weapon${weaponCount === 1 ? "" : "s"}` : "Add combat gear",
-        tone: result ? "good" : "warn"
-      },
-      {
-        label: "Food",
-        value: hasFood ? "In bring list" : "Bring food",
-        tone: hasFood ? "good" : "warn"
-      },
-      {
-        label: "Teleport",
-        value: hasTeleport ? "Tele out" : "Pick a teleport",
-        tone: hasTeleport ? "good" : "warn"
-      },
-      {
-        label: "Stop point",
-        value: decision.stopPoint,
-        tone: "neutral"
-      }
-    ]
-  };
-}
-
-function dpsGpPerHour({ boss, dps }: BossDpsResult) {
-  if (!boss.avgLootGp || !boss.killsPerHourCap || dps.dps <= 0) return null;
-  return Math.min(boss.killsPerHourCap, Math.floor(3600 / dps.ttk)) * boss.avgLootGp;
-}
-
-function buildDpsDecision(
-  result: BossDpsResult | null,
-  viability: BossViability | null,
-  weaponCount: number,
-  topUpgrade?: UpgradeSuggestion
-): DpsDecision {
-  if (!result || !viability || weaponCount === 0 || result.dps.dps <= 0) {
-    return {
-      title: "Paste combat gear first",
-      verdict: "Not yet",
-      why: "Scapestack needs at least one usable weapon before it can judge boss trips from this bank.",
-      firstStep: "Paste Bank Memory or a combat tab with your weapons.",
-      stopPoint: "Stop once the kill check can pick a real setup.",
-      bring: "Whip, fang, blowpipe, trident, bowfa or another real weapon.",
-      avoid: "Avoid trusting boss rows from a supplies-only bank.",
-      tone: "locked"
-    };
-  }
-
-  const gpHour = dpsGpPerHour(result);
-  const style = styleLabel(viability.style);
-  const weapon = viability.weaponName ?? result.dps.weapon.name;
-  const title = viability.tone === "ready"
-    ? `Run ${result.boss.name}`
-    : viability.tone === "test"
-    ? `Test ${result.boss.name}`
-    : `${result.boss.name} is not worth it yet`;
-  const stopPoint = viability.tone === "ready"
-    ? "Stop after 3-5 kills, or sooner if supplies feel wrong."
-    : viability.tone === "test"
-    ? "Stop after 1-2 kills. If it feels slow, pick a backup."
-    : "Stop before entering. Upgrade first or choose an easier boss.";
-  const avoid = viability.tone === "blocked"
-    ? "Avoid making this tonight's plan from this bank."
-    : topUpgrade
-    ? `Avoid camping it before checking whether ${topUpgrade.gear.name} is affordable.`
-    : "Avoid staring at the full boss list before testing one kill.";
-
-  return {
-    title,
-    verdict: viability.tone === "ready" ? "Can kill: do one short trip" : viability.tone === "test" ? "Test trip only" : "Not worth yet",
-    why: [
-      `Bank says ${result.boss.name} is ${viability.tone === "blocked" ? "a bad main pick" : "runnable"}: ${viability.summary}`,
-      gpHour ? `Rough upside: ${formatGp(gpHour)} GP/hr if kills feel stable.` : null,
-      topUpgrade
-        ? `${topUpgrade.gear.name} is the first upgrade worth checking.`
-        : "No must-buy upgrade is required before a short test."
-    ].filter(Boolean).join(" "),
-    firstStep: viability.tone === "blocked"
-      ? `Open upgrades or choose a safer boss before gearing for ${result.boss.name}.`
-      : `Open ${result.boss.name} detail, lock ${weapon}, then gear for one trip.`,
-    stopPoint,
-    bring: viability.tone === "blocked"
-      ? `${style} upgrade, food, pots and a safer backup.`
-      : `${weapon}, ${style} gear, food, pots and tele out.`,
-    avoid,
-    tone: viability.tone === "blocked" ? "warning" : "good"
-  };
-}
-
-function dpsDecisionScore(result: BossDpsResult, viability: BossViability): number {
-  const gpHour = dpsGpPerHour(result) ?? 0;
-  const ttk = viability.ttk ?? result.dps.ttk;
-  const toneScore = viability.tone === "ready" ? 10_000 : viability.tone === "test" ? 3_500 : -5_000;
-  const speedScore = Number.isFinite(ttk) && ttk > 0 ? Math.max(0, 420 - ttk) * 4 : 0;
-  const gpScore = Math.min(2_000, gpHour / 2_500);
-  return toneScore + speedScore + gpScore + result.dps.dps * 120;
-}
-
-function pickBestBossTrip(results: BossDpsResult[], owned: GearItem[]): BossDpsResult | null {
-  let best: { result: BossDpsResult; score: number } | null = null;
-  for (const result of results) {
-    const viability = bossViabilityFromGear(owned, result.boss);
-    const score = dpsDecisionScore(result, viability);
-    if (!best || score > best.score) best = { result, score };
-  }
-  return best?.result ?? null;
-}
 
 function DpsIntakeHero() {
   return (
@@ -280,142 +117,6 @@ function DpsMissingSetupState({
   );
 }
 
-function DpsDecisionHero({
-  decision,
-  result,
-  weaponCount,
-  upgradeCount,
-  copiedUpgradeList,
-  setupHref,
-  onOpenBoss,
-  onCopyUpgrades,
-  onEditInput
-}: {
-  decision: DpsDecision;
-  result: BossDpsResult | null;
-  weaponCount: number;
-  upgradeCount: number;
-  copiedUpgradeList: "copied" | "failed" | null;
-  setupHref: string;
-  onOpenBoss: () => void;
-  onCopyUpgrades: () => void;
-  onEditInput: () => void;
-}) {
-  const toneClass = decision.tone === "locked"
-    ? "border-[var(--color-warning)]/30"
-    : decision.tone === "warning"
-    ? "border-[var(--color-gold)]/30"
-    : "border-[var(--color-accent)]/30";
-  const readiness = buildDpsReadyToLeave(decision, result, weaponCount);
-
-  return (
-    <section className={cn("mb-6 rounded-xl border bg-[var(--color-panel)] px-4 py-4 shadow-[0_18px_55px_rgba(0,0,0,0.18)] sm:px-5 sm:py-5", toneClass)}>
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="min-w-0 flex-1">
-          <div className="mb-3 flex items-center gap-3">
-            <span className="inline-flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/55">
-              {result ? <BossSprite boss={result.boss} size={40} /> : <ItemSprite id={4151} alt="" size={30} />}
-            </span>
-            <div className="min-w-0">
-              <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-gold-soft)]">
-                Can I kill this?
-              </div>
-              <div className="mt-1 text-[11.5px] font-semibold text-[var(--color-text-muted)]">
-                Best trip from this bank
-              </div>
-              <h2 className="mt-1 text-[22px] font-bold tracking-normal text-[var(--color-text)] sm:text-[26px]">
-                {decision.title}
-              </h2>
-            </div>
-          </div>
-          <div className="inline-flex rounded-full border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-2.5 py-1 text-[11.5px] font-bold text-[var(--color-accent)]">
-            {decision.verdict}
-          </div>
-          <p className="mt-3 max-w-3xl text-[13.5px] leading-relaxed text-[var(--color-text-dim)]">
-            {decision.why}
-          </p>
-          <ReadyToLeave status={readiness.status} items={readiness.items} compact />
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-text-dim)]">
-              {weaponCount} weapon{weaponCount === 1 ? "" : "s"}
-            </span>
-            {result && (
-              <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-text-dim)]">
-                {result.dps.dps.toFixed(2)} kill speed
-              </span>
-            )}
-            {upgradeCount > 0 && (
-              <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-text-dim)]">
-                {upgradeCount} upgrade check{upgradeCount === 1 ? "" : "s"}
-              </span>
-            )}
-          </div>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2 lg:justify-end">
-          {result ? (
-            <button
-              type="button"
-              onClick={onOpenBoss}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-bold text-white transition-all hover:brightness-110"
-            >
-              Check kill
-              <ExternalLink className="size-3.5" />
-            </button>
-          ) : (
-            <Link
-              href={setupHref}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-bold text-white transition-all hover:brightness-110"
-            >
-              Add bank
-              <ExternalLink className="size-3.5" />
-            </Link>
-          )}
-          <details className="group relative">
-            <summary className="inline-flex cursor-pointer list-none items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-transparent px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)] marker:hidden [&::-webkit-details-marker]:hidden">
-              More
-              <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" />
-            </summary>
-            <div className="absolute right-0 z-20 mt-2 w-52 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-2 shadow-[0_18px_55px_rgba(0,0,0,0.28)]">
-              {upgradeCount > 0 && (
-                <button
-                  type="button"
-                  onClick={onCopyUpgrades}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-good)]"
-                >
-                  {copiedUpgradeList === "copied" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
-                  {copiedUpgradeList === "copied" ? "Copied" : "Copy shopping list"}
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={onEditInput}
-                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-accent)]"
-              >
-                <Edit3 className="size-3.5" />
-                Edit bank
-              </button>
-            </div>
-          </details>
-        </div>
-      </div>
-
-      <div className="mt-4 grid gap-2 md:grid-cols-4">
-        {[
-          ["First step", decision.firstStep],
-          ["Stop point", decision.stopPoint],
-          ["Bring", decision.bring],
-          ["Avoid", decision.avoid]
-        ].map(([label, value]) => (
-          <div key={label} className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3">
-            <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">{label}</div>
-            <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{value}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 export function DpsClient() {
   const [view, setView] = useState<"intake" | "result">("intake");
   const [owned, setOwned] = useState<GearItem[]>([]);
@@ -441,9 +142,6 @@ export function DpsClient() {
   const [bankSummary, setBankSummary] = useState<BankHandoffSummary | null>(null);
   const [loadedFromHandoff, setLoadedFromHandoff] = useState(false);
   const [skipHandoff, setSkipHandoff] = useState(false);
-  const [copiedUpgradeList, setCopiedUpgradeList] = useState<"copied" | "failed" | null>(null);
-  const [copiedUpgradeItem, setCopiedUpgradeItem] = useState<{ id: number; status: "copied" | "failed" } | null>(null);
-  const [showUpgradeShoppingList, setShowUpgradeShoppingList] = useState(false);
 
   // Deep-link: /dps?boss=<slug> pre-selects a boss from the home page's
   // boss-showcase. The actual focus + scroll happens once we have a result
@@ -576,60 +274,6 @@ export function DpsClient() {
     [owned]
   );
 
-  // Find global upgrade suggestions — items the player doesn't have that would
-  // improve DPS by the largest factor across most bosses.
-  const upgrades = useMemo(() => suggestUpgrades(owned), [owned]);
-  const focusedBossUpgrades = useMemo(
-    () => focusedBoss ? suggestUpgradesForBoss(owned, focusedBoss).slice(0, 3) : [],
-    [focusedBoss, owned]
-  );
-  const visibleUpgrades = focusedBoss ? focusedBossUpgrades : upgrades;
-  const upgradeShoppingList = useMemo(() => {
-    const title = focusedBoss ? `${focusedBoss.name} DPS upgrades` : "Global DPS upgrades";
-    return [
-      title,
-      ...visibleUpgrades.map((upgrade, index) => `${index + 1}. ${buildDpsUpgradeBuyLine({
-        id: upgrade.gear.id,
-        name: upgrade.gear.name,
-        slot: upgrade.gear.slot,
-        dpsGain: upgrade.avgGain,
-        scope: focusedBoss ? "vs current setup" : "avg",
-        wikiUrl: wikiSearchUrl(upgrade.gear.name),
-        geUrl: wikiPriceUrl(upgrade.gear.id)
-      })}`)
-    ].join("\n");
-  }, [focusedBoss, visibleUpgrades]);
-
-  const copyUpgradeShoppingList = async () => {
-    const result = await copyText(upgradeShoppingList);
-    if (result === "failed") {
-      setCopiedUpgradeList("failed");
-      return;
-    }
-    setCopiedUpgradeList("copied");
-    window.setTimeout(() => setCopiedUpgradeList(null), 1800);
-  };
-  const copyUpgradeBuyLine = async (upgrade: UpgradeSuggestion) => {
-    const result = await copyText(buildDpsUpgradeBuyLine({
-      id: upgrade.gear.id,
-      name: upgrade.gear.name,
-      slot: upgrade.gear.slot,
-      dpsGain: upgrade.avgGain,
-      scope: focusedBoss ? "vs current setup" : "avg",
-      wikiUrl: wikiSearchUrl(upgrade.gear.name),
-      geUrl: wikiPriceUrl(upgrade.gear.id)
-    }));
-    setCopiedUpgradeItem({
-      id: upgrade.gear.id,
-      status: result === "failed" ? "failed" : "copied"
-    });
-    if (result !== "failed") {
-      window.setTimeout(() => {
-        setCopiedUpgradeItem((current) => current?.id === upgrade.gear.id ? null : current);
-      }, 1800);
-    }
-  };
-
   const bossMatchesFilter = (entry: BossDpsResult) => {
     const { boss } = entry;
     switch (bossFilter) {
@@ -658,16 +302,6 @@ export function DpsClient() {
     return Math.min(k, Math.floor(3600 / entry.dps.ttk)) * gp;
   };
 
-  const recommendedResults = useMemo(() => (
-    [...bossResults]
-      .filter((entry) => entry.dps.dps > 0)
-      .sort((a, b) => (
-        dpsDecisionScore(b, bossViabilityFromGear(owned, b.boss))
-        - dpsDecisionScore(a, bossViabilityFromGear(owned, a.boss))
-      ))
-      .slice(0, 3)
-  ), [bossResults, owned]);
-
   // Live-filtered + sorted boss list. Matches against boss.name
   // (lowercased substring) so 'gra' finds 'General Graardor'. Empty
   // query = full list. Sort runs AFTER filter zodat het aantal blijft
@@ -695,20 +329,6 @@ export function DpsClient() {
     return sorted;
   }, [bossResults, bossFilter, search, sortBy]);
   const weaponCount = useMemo(() => owned.filter((gear) => gear.slot === "weapon").length, [owned]);
-  const decisionBossResult = useMemo(() => {
-    if (focusedBoss) {
-      return bossResults.find(({ boss }) => boss.slug === focusedBoss.slug) ?? null;
-    }
-    return pickBestBossTrip(filteredResults.length > 0 ? filteredResults : bossResults, owned);
-  }, [bossResults, filteredResults, focusedBoss, owned]);
-  const decisionBossViability = useMemo(
-    () => decisionBossResult ? bossViabilityFromGear(owned, decisionBossResult.boss) : null,
-    [decisionBossResult, owned]
-  );
-  const dpsDecision = useMemo(
-    () => buildDpsDecision(decisionBossResult, decisionBossViability, weaponCount, visibleUpgrades[0]),
-    [decisionBossResult, decisionBossViability, visibleUpgrades, weaponCount]
-  );
   const clearBossFilter = () => {
     setSearch("");
     setFocusedBoss(null);
@@ -791,193 +411,8 @@ export function DpsClient() {
 
   return (
     <div className="animate-[slide-up_0.35s_ease-out]">
-      <DpsDecisionHero
-        decision={dpsDecision}
-        result={decisionBossResult}
-        weaponCount={weaponCount}
-        upgradeCount={visibleUpgrades.length}
-        copiedUpgradeList={copiedUpgradeList}
-        setupHref={setupBankHref}
-        onOpenBoss={() => {
-          if (decisionBossResult) setModalBoss(decisionBossResult.boss);
-        }}
-        onCopyUpgrades={copyUpgradeShoppingList}
-        onEditInput={editInput}
-      />
-
       {bankSummary && weaponCount === 0 && (
         <DpsNoWeaponGate onEditInput={editInput} setupHref={setupBankHref} />
-      )}
-
-      <details className="mb-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/50 p-3">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-semibold text-[var(--color-text)] marker:hidden">
-          <span>Make this smarter</span>
-          <span className="text-[11px] font-medium text-[var(--color-text-muted)]">Bank, RSN, RuneLite</span>
-        </summary>
-        <div className="mt-4 space-y-4">
-          <ScapestackReadinessRail
-            surface="dps"
-            hasBankContext={owned.length > 0 || Boolean(bankSummary)}
-            hasRsn={Boolean(searchParams.get("rsn"))}
-            rsn={searchParams.get("rsn")}
-          />
-
-          {bankSummary && (
-            <DpsBankContextBanner
-              rsn={searchParams.get("rsn")}
-              summary={bankSummary}
-              weaponCount={weaponCount}
-              loadedFromHandoff={loadedFromHandoff}
-              focusedBoss={deepLinkedBoss}
-              focusedBossSource={isSlayerTaskSource ? "slayer-task" : "bank"}
-            />
-          )}
-        </div>
-      </details>
-
-      {/* Upgrade suggestions */}
-      {visibleUpgrades.length > 0 && (
-        <section className="mb-7">
-          <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
-            <div>
-              <div className="flex items-center gap-2">
-                <TrendingUp className="size-4 text-[var(--color-good)]" />
-                <h2 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-gold-soft)]">
-                  {focusedBoss ? `${focusedBoss.name} upgrade check` : "Upgrade before camping"}
-                </h2>
-              </div>
-              <p className="mt-1 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
-                {focusedBoss
-                  ? `Only items that help ${focusedBoss.name} from this bank. Clear the boss filter to compare every boss.`
-                  : "Worth checking before you camp a boss for a longer session."}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={copyUpgradeShoppingList}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-good)]/30 bg-[var(--color-good)]/8 px-3 py-1.5 text-[11.5px] font-semibold text-[var(--color-good)] transition-colors hover:border-[var(--color-good)]/45 hover:bg-[var(--color-good)]/12"
-              aria-label={focusedBoss ? `Copy ${focusedBoss.name} upgrade shopping list` : "Copy global upgrade shopping list"}
-            >
-              {copiedUpgradeList === "copied" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
-              {copiedUpgradeList === "copied"
-                ? "Upgrade list copied"
-                : copiedUpgradeList === "failed"
-                  ? "Copy failed"
-                  : "Copy shopping list"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowUpgradeShoppingList((open) => !open)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-1.5 text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
-              aria-expanded={showUpgradeShoppingList}
-              aria-label={showUpgradeShoppingList ? "Hide upgrade shopping list text" : "Show upgrade shopping list text"}
-            >
-              {showUpgradeShoppingList ? "Hide list" : "View list"}
-            </button>
-          </div>
-          <div className="grid sm:grid-cols-3 gap-2.5">
-            {visibleUpgrades.map((upgrade) => (
-              <div
-                key={upgrade.gear.id}
-                className={cn(
-                  "rounded-xl p-3 border border-[var(--color-good)]/30",
-                  "bg-gradient-to-br from-[oklch(0.24_0.05_65/0.12)] to-[var(--color-bg-2)]"
-                )}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <ItemSprite
-                    id={upgrade.gear.id}
-                    alt=""
-                    loading="lazy"
-                    className="pixelated shrink-0 pointer-events-none"
-                    style={{
-                      maxWidth: "28px",
-                      maxHeight: "28px",
-                      width: "auto",
-                      height: "auto"
-                    }}
-                  />
-                  <span className="min-w-0">
-                    <span className="block truncate text-[13px] font-semibold text-[var(--color-text)]">{upgrade.gear.name}</span>
-                    <span className="mt-0.5 block font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
-                      #{upgrade.gear.id} · {upgrade.gear.slot}
-                    </span>
-                  </span>
-                </div>
-                <div className="text-[11px] text-[var(--color-text-dim)] mb-1.5">
-                  Adds <span className="text-[var(--color-good)] font-bold">+{upgrade.avgGain.toFixed(1)} DPS</span>{" "}
-                  {focusedBoss ? "vs current setup" : "avg"}
-                </div>
-                <div className="text-[10.5px] text-[var(--color-text-dim)]">
-                  {focusedBoss ? (
-                    <>
-                      Helps <span className="text-[var(--color-gold-soft)]">{focusedBoss.name}</span> directly.
-                    </>
-                  ) : (
-                    <>
-                      Helps in: <span className="text-[var(--color-gold-soft)]">{upgrade.bossLabels.slice(0, 3).join(", ")}</span>
-                      {upgrade.bossLabels.length > 3 && ` +${upgrade.bossLabels.length - 3}`}
-                    </>
-                  )}
-                </div>
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  <a
-                    href={wikiSearchUrl(upgrade.gear.name)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1 text-[10.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
-                    aria-label={`Open ${upgrade.gear.name} item ID ${upgrade.gear.id} on the OSRS Wiki`}
-                  >
-                    Wiki
-                    <ExternalLink className="size-3" />
-                  </a>
-                  <a
-                    href={wikiPriceUrl(upgrade.gear.id)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 rounded-md border border-[var(--color-good)]/25 bg-[var(--color-good)]/8 px-2 py-1 text-[10.5px] font-semibold text-[var(--color-good)] transition-colors hover:border-[var(--color-good)]/45 hover:bg-[var(--color-good)]/12"
-                    aria-label={`Open ${upgrade.gear.name} item ID ${upgrade.gear.id} GE price on the OSRS Wiki`}
-                  >
-                    GE price
-                    <ExternalLink className="size-3" />
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => copyUpgradeBuyLine(upgrade)}
-                    className={cn(
-                      "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[10.5px] font-semibold transition-colors",
-                      copiedUpgradeItem?.id === upgrade.gear.id && copiedUpgradeItem.status === "copied"
-                        ? "border-[var(--color-good)]/35 bg-[var(--color-good)]/10 text-[var(--color-good)]"
-                        : copiedUpgradeItem?.id === upgrade.gear.id && copiedUpgradeItem.status === "failed"
-                          ? "border-[var(--color-danger)]/35 bg-[var(--color-danger)]/10 text-[var(--color-danger)]"
-                          : "border-[var(--color-border)] bg-[var(--color-bg)]/45 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
-                    )}
-                    aria-label={`Copy ${upgrade.gear.name} item ID ${upgrade.gear.id} DPS upgrade buy line`}
-                  >
-                    <Copy className="size-3" />
-                    {copiedUpgradeItem?.id === upgrade.gear.id
-                      ? copiedUpgradeItem.status === "copied" ? "Copied" : "Copy failed"
-                      : "Copy buy line"}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-          {(copiedUpgradeList === "failed" || showUpgradeShoppingList) && (
-            <div className="mt-3 rounded-lg border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/8 p-3" aria-live="polite">
-              <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-warning)]">
-                {copiedUpgradeList === "failed" ? "Clipboard failed — copy shopping list manually" : "Upgrade shopping list text"}
-              </label>
-              <textarea
-                readOnly
-                value={upgradeShoppingList}
-                onFocus={(event) => event.currentTarget.select()}
-                className="min-h-[116px] w-full resize-y rounded border border-[var(--color-border)] bg-[var(--color-bg)] p-2 font-mono text-[10.5px] leading-relaxed text-[var(--color-text)]"
-                aria-label={focusedBoss ? `Manual ${focusedBoss.name} upgrade shopping list` : "Manual global upgrade shopping list"}
-              />
-            </div>
-          )}
-        </section>
       )}
 
       {/* Boss list */}
@@ -985,40 +420,16 @@ export function DpsClient() {
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
-              Recommended for your bank
+              Pick a boss
             </h2>
             <p className="mt-1 max-w-2xl text-[12px] leading-relaxed text-[var(--color-text-muted)]">
-              Scapestack picks a few good trips, but every boss stays searchable below.
+              Search any boss. Click one to see your best gear, DPS, supplies and upgrades from this bank.
             </p>
           </div>
           <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">
             {bossResults.length} bosses checked
           </span>
         </div>
-        {recommendedResults.length > 0 && (
-          <div className="mb-5 grid gap-2 sm:grid-cols-3">
-            {recommendedResults.map(({ boss, dps }) => (
-              <button
-                key={boss.slug}
-                type="button"
-                onClick={() => setModalBoss(boss)}
-                className="group flex min-h-[92px] items-center gap-3 rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/8 p-3 text-left transition-colors hover:border-[var(--color-accent)]/55 hover:bg-[var(--color-accent)]/12"
-                aria-label={`Open recommended ${boss.name} kill setup`}
-              >
-                <BossThumb boss={boss} />
-                <span className="min-w-0">
-                  <span className="block truncate text-[13px] font-bold text-[var(--color-text)]">{boss.name}</span>
-                  <span className="mt-1 block text-[11px] text-[var(--color-text-dim)]">
-                    {dps.dps > 0 ? `${dps.dps.toFixed(2)} DPS · ${dps.style}` : "Add weapon first"}
-                  </span>
-                  <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-[var(--color-accent)]">
-                    Check kill <ExternalLink className="size-3" />
-                  </span>
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
         <div>
           <div className="mb-3">
             <h2 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)] mb-2">
@@ -1148,9 +559,9 @@ export function DpsClient() {
               ))}
             </div>
           </div>
-          <div className="space-y-2.5">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {filteredResults.map(({ boss, dps }) => (
-              <BossRow
+              <BossCard
                 key={boss.slug}
                 boss={boss}
                 dps={dps}
@@ -1182,9 +593,9 @@ export function DpsClient() {
   );
 }
 
-// ── Boss row ──
+// ── Boss card ──
 
-function BossRow({ boss, dps, isFocused, onOpen }: {
+function BossCard({ boss, dps, isFocused, onOpen }: {
   boss: Boss;
   dps: DpsBreakdown;
   isFocused: boolean;
@@ -1195,14 +606,7 @@ function BossRow({ boss, dps, isFocused, onOpen }: {
     usable && boss.avgLootGp && boss.killsPerHourCap
       ? Math.min(boss.killsPerHourCap, Math.floor(3600 / dps.ttk)) * boss.avgLootGp
       : null;
-
-  const styleIcon: Record<CombatStyle, React.ReactNode> = {
-    stab:    <Sword className="size-3.5" />,
-    slash:   <Sword className="size-3.5" />,
-    crush:   <Sword className="size-3.5" />,
-    ranged:  <Target className="size-3.5" />,
-    magic:   <Zap className="size-3.5" />
-  };
+  const status = !usable ? "Need weapon" : dps.hitChance >= 0.55 ? "Can kill" : "Test first";
 
   return (
     <button
@@ -1212,69 +616,59 @@ function BossRow({ boss, dps, isFocused, onOpen }: {
       aria-label={`Open ${boss.name} kill setup details`}
       title={`Open ${boss.name} kill setup details`}
       className={cn(
-        "w-full text-left rounded-xl border scroll-mt-24 p-3.5 flex items-center gap-4 flex-wrap",
+        "group min-h-[178px] w-full scroll-mt-24 rounded-xl border p-3 text-left transition-all",
         "bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] border-[var(--color-border)]",
-        "hover:border-[var(--color-accent)]/40 hover:shadow-[0_0_0_1px_rgba(134, 166, 217,0.12)] transition-all cursor-pointer",
-        isFocused && "border-[var(--color-accent)]/40 shadow-[0_0_0_1px_rgba(134, 166, 217,0.18)]"
+        "hover:-translate-y-0.5 hover:border-[var(--color-accent)]/55 hover:shadow-[0_14px_34px_-24px_rgba(240,176,44,0.55)]",
+        isFocused && "border-[var(--color-accent)]/55 shadow-[0_0_0_1px_rgba(240,176,44,0.22)]"
       )}>
-      <div className="flex items-center gap-2.5 min-w-0 w-[160px]">
+      <div className="flex items-start justify-between gap-2">
         <BossThumb boss={boss} />
-        <div className="min-w-0">
-          <div className="text-[13px] font-semibold text-[var(--color-text)] truncate">{boss.name}</div>
-          <div className="text-[10.5px] text-[var(--color-text-dim)]">{boss.hp} hp</div>
-        </div>
+        <span className={cn(
+          "rounded-full border px-2 py-1 text-[10px] font-bold",
+          !usable
+            ? "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
+            : dps.hitChance >= 0.55
+              ? "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
+              : "border-[var(--color-border)] bg-[var(--color-bg)]/45 text-[var(--color-text-dim)]"
+        )}>
+          {status}
+        </span>
       </div>
-
+      <div className="mt-3 min-w-0">
+        <div className="truncate text-[13px] font-bold text-[var(--color-text)]">{boss.name}</div>
+        <div className="mt-0.5 text-[10.5px] text-[var(--color-text-dim)]">{boss.hp} hp</div>
+      </div>
       {usable ? (
-        <>
-          <Stat label="Style" value={dps.style.toUpperCase()} icon={styleIcon[dps.style]} />
-          <Stat label="Weapon" value={dps.weapon.name} />
-          <Stat label="Max hit" value={String(dps.maxHit)} />
-          <Stat label="Accuracy" value={`${Math.round(dps.hitChance * 100)}%`} />
-          <Stat label="DPS" value={dps.dps.toFixed(2)} highlight />
-          <Stat label="TTK" value={`${dps.ttk.toFixed(0)}s`} />
+        <div className="mt-3 space-y-1.5">
+          <div className="flex items-center justify-between gap-2 text-[11px]">
+            <span className="text-[var(--color-text-muted)]">DPS</span>
+            <span className="font-mono font-bold text-[var(--color-accent)]">{dps.dps.toFixed(2)}</span>
+          </div>
+          <div className="flex items-center justify-between gap-2 text-[11px]">
+            <span className="text-[var(--color-text-muted)]">Style</span>
+            <span className="font-bold uppercase text-[var(--color-text)]">{dps.style}</span>
+          </div>
+          <div className="flex items-center justify-between gap-2 text-[11px]">
+            <span className="text-[var(--color-text-muted)]">Weapon</span>
+            <span className="max-w-[105px] truncate font-semibold text-[var(--color-text)]">{dps.weapon.name}</span>
+          </div>
           {gpPerHour && (
-            <Stat label="GP/hr" value={formatGp(gpPerHour)} icon={<Coins className="size-3.5 text-[var(--color-gold)]" />} />
+            <div className="flex items-center justify-between gap-2 text-[11px]">
+              <span className="text-[var(--color-text-muted)]">GP/hr</span>
+              <span className="font-mono font-semibold text-[var(--color-text)]">{formatGp(gpPerHour)}</span>
+            </div>
           )}
-          <span className="ml-auto inline-flex items-center gap-1 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-accent)]">
-            Details
-            <ExternalLink className="size-3" />
-          </span>
-        </>
-      ) : (
-        <div className="flex flex-1 flex-wrap items-center justify-between gap-2">
-          <span className="text-[12px] text-[var(--color-text-dim)] italic">
-            Add a weapon before picking this trip.
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-text-dim)]">
-            View requirements
-            <ExternalLink className="size-3" />
-          </span>
         </div>
+      ) : (
+        <p className="mt-3 text-[11px] leading-relaxed text-[var(--color-text-dim)]">
+          Add a weapon to see setup and upgrades.
+        </p>
       )}
+      <span className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-[var(--color-accent)]">
+        Open details
+        <ExternalLink className="size-3 transition-transform group-hover:translate-x-0.5" />
+      </span>
     </button>
-  );
-}
-
-function Stat({ label, value, icon, highlight }: {
-  label: string;
-  value: string;
-  icon?: React.ReactNode;
-  highlight?: boolean;
-}) {
-  return (
-    <div className="flex flex-col">
-      <div className="text-[9px] uppercase tracking-widest text-[var(--color-text-dim)]/70 flex items-center gap-0.5">
-        {icon}
-        {label}
-      </div>
-      <div className={cn(
-        "text-[12.5px] font-bold tabular-nums",
-        highlight ? "text-[var(--color-gold)]" : "text-[var(--color-text)]"
-      )}>
-        {value}
-      </div>
-    </div>
   );
 }
 
@@ -1322,92 +716,6 @@ function DpsHandoffIntakeHint({
         Task picked. Add bank before trusting the first trip.
       </p>
     </div>
-  );
-}
-
-function DpsBankContextBanner({
-  rsn,
-  summary,
-  weaponCount,
-  loadedFromHandoff,
-  focusedBoss,
-  focusedBossSource
-}: {
-  rsn?: string | null;
-  summary: BankHandoffSummary;
-  weaponCount: number;
-  loadedFromHandoff: boolean;
-  focusedBoss: Boss | null;
-  focusedBossSource: "bank" | "slayer-task";
-}) {
-  const hasWeapons = weaponCount > 0;
-  const focusedBossLabel = focusedBossSource === "slayer-task"
-    ? "Slayer picked:"
-    : "Bank picked:";
-  return (
-    <section className="mb-6 rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/8 px-4 py-3">
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div className="flex min-w-0 gap-3">
-          <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/40">
-            <ItemSprite id={20594} alt="" size={25} />
-          </span>
-          <div className="min-w-0">
-            <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              {loadedFromHandoff ? "Bank added" : "Bank pasted"}
-            </div>
-            {focusedBoss && (
-              <div
-                data-testid="dps-focused-boss-receipt"
-                className="mt-2 inline-flex max-w-full items-center gap-2 rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/45 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text)]"
-              >
-                <span className="inline-flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/60">
-                  <BossSprite boss={focusedBoss} size={22} />
-                </span>
-                <span className="truncate">
-                  {focusedBossLabel} <span className="text-[var(--color-accent)]">{focusedBoss.name}</span>
-                </span>
-              </div>
-            )}
-            <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-              <span className="font-semibold text-[var(--color-text)]">{summary.label}</span>
-              {" · "}
-              {weaponCount} weapon{weaponCount === 1 ? "" : "s"} recognised.{" "}
-              {hasWeapons && focusedBoss
-                ? `${focusedBoss.name} and the boss list now use this bank.`
-                : hasWeapons
-                ? "The boss list now uses this bank."
-                : "Boss checks need at least one usable combat weapon."}
-            </p>
-            {!hasWeapons && (
-              <div className="mt-3 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 px-3 py-2.5">
-                <p className="text-[12px] font-semibold leading-relaxed text-[var(--color-warning)]">
-                  Bank is active, but this looks like supplies/jewellery only.
-                </p>
-                <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
-                  Paste a full Bank Memory export or a combat tab with weapons like whip, fang, blowpipe, trident, bowfa, godswords or scythe to unlock real boss checks.
-                </p>
-              </div>
-            )}
-            {summary.topItems.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {summary.topItems.map((item) => (
-                  <span
-                    key={item.id}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1 text-[11px] text-[var(--color-text-dim)]"
-                    title={`${item.name}: ${item.stackValue.toLocaleString()} gp`}
-                  >
-                    <ItemSprite id={item.id} alt="" size={15} />
-                    <span className="max-w-[130px] truncate">{item.name}</span>
-                    <span className="font-mono text-[var(--color-text-muted)]">{formatGp(item.stackValue)}</span>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-        <BankContextActions source="dps" rsn={rsn} />
-      </div>
-    </section>
   );
 }
 
@@ -1475,101 +783,6 @@ function DpsNoWeaponGate({
       </div>
     </section>
   );
-}
-
-// ── Upgrade suggester ──
-
-interface UpgradeSuggestion {
-  gear: GearItem;
-  avgGain: number;
-  bossLabels: string[];
-}
-
-function suggestUpgrades(owned: GearItem[]): UpgradeSuggestion[] {
-  const ownedIds = new Set(owned.map((g) => g.id));
-  const candidates: UpgradeSuggestion[] = [];
-
-  // For each item player DOESN'T own, simulate giving it to them and measure
-  // DPS gain averaged across all bosses where it helps.
-  for (const g of GEAR) {
-    if (ownedIds.has(g.id)) continue;
-
-    let totalGain = 0;
-    const helpedBosses: string[] = [];
-
-    for (const boss of BOSSES) {
-      // For each style, compare with vs without
-      const styles: CombatStyle[] = g.weaponStyle
-        ? [g.weaponStyle]
-        : g.slot === "weapon"
-          ? []
-          : ["stab", "slash", "crush", "ranged", "magic"];
-
-      for (const style of styles) {
-        const baseSetup = autoSetup(owned, style);
-        if (!baseSetup.weapon) continue;
-        const baseDps = calcDps(baseSetup, boss, style).dps;
-
-        const withGear = autoSetup([...owned, g], style);
-        if (!withGear.weapon) continue;
-        const newDps = calcDps(withGear, boss, style).dps;
-
-        const gain = newDps - baseDps;
-        if (gain > 0.05) {
-          totalGain += gain;
-          if (!helpedBosses.includes(boss.name)) helpedBosses.push(boss.name);
-        }
-      }
-    }
-
-    if (totalGain > 0.5 && helpedBosses.length > 0) {
-      candidates.push({
-        gear: g,
-        avgGain: totalGain / helpedBosses.length,
-        bossLabels: helpedBosses
-      });
-    }
-  }
-
-  return candidates
-    .sort((a, b) => (b.avgGain * b.bossLabels.length) - (a.avgGain * a.bossLabels.length))
-    .slice(0, 3);
-}
-
-function suggestUpgradesForBoss(owned: GearItem[], boss: Boss): UpgradeSuggestion[] {
-  const ownedIds = new Set(owned.map((g) => g.id));
-  const candidates: UpgradeSuggestion[] = [];
-
-  for (const gear of GEAR) {
-    if (ownedIds.has(gear.id)) continue;
-
-    const styles: CombatStyle[] = gear.weaponStyle
-      ? [gear.weaponStyle]
-      : gear.slot === "weapon"
-        ? []
-        : ["stab", "slash", "crush", "ranged", "magic"];
-
-    let bestGain = 0;
-    for (const style of styles) {
-      const baseSetup = autoSetup(owned, style);
-      if (!baseSetup.weapon) continue;
-      const baseDps = calcDps(baseSetup, boss, style).dps;
-      const withGear = autoSetup([...owned, gear], style);
-      if (!withGear.weapon) continue;
-      const newDps = calcDps(withGear, boss, style).dps;
-      bestGain = Math.max(bestGain, newDps - baseDps);
-    }
-
-    if (bestGain > 0.05) {
-      candidates.push({
-        gear,
-        avgGain: bestGain,
-        bossLabels: [boss.name]
-      });
-    }
-  }
-
-  return candidates.sort((a, b) => b.avgGain - a.avgGain);
 }
 
 // Boss thumbnail. Tries the local wiki portrait first

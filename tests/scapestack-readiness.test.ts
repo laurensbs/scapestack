@@ -310,7 +310,6 @@ describe("Scapestack readiness rail", () => {
   it("is mounted on the core product result routes", () => {
     const files = [
       "src/app/bank/page.tsx",
-      "src/app/dps/dps-client.tsx",
       "src/app/goals/goals-client.tsx",
       "src/app/slayer/slayer-client.tsx"
     ];
@@ -320,6 +319,11 @@ describe("Scapestack readiness rail", () => {
       expect(source, file).toContain("ScapestackReadinessRail");
       expect(source, file).toContain('surface="');
     }
+
+    const dpsSource = readFileSync(join(process.cwd(), "src/app/dps/dps-client.tsx"), "utf8");
+    expect(dpsSource).not.toContain("ScapestackReadinessRail");
+    expect(dpsSource).toContain("Pick a boss");
+    expect(dpsSource).toContain("Search any boss. Click one to see your best gear, DPS, supplies and upgrades from this bank.");
 
     const nextSource = readFileSync(join(process.cwd(), "src/app/next/next-client.tsx"), "utf8");
     expect(nextSource).not.toContain("ScapestackReadinessRail");
