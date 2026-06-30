@@ -199,7 +199,7 @@ function BankPageContent() {
           aria-modal="true"
           aria-labelledby="bank-popup-title"
           data-testid="bank-save-popup"
-          className="mx-auto max-w-3xl overflow-hidden rounded-[18px] border-2 border-[var(--color-accent)]/55 bg-[#2b2418] shadow-[0_30px_120px_-45px_rgba(0,0,0,0.95)]"
+          className="mx-auto max-w-2xl overflow-hidden rounded-[18px] border-2 border-[var(--color-accent)]/55 bg-[#2b2418] shadow-[0_30px_120px_-45px_rgba(0,0,0,0.95)]"
         >
           <div className="flex items-start justify-between gap-4 border-b border-[var(--color-accent)]/35 px-5 py-4 sm:px-7">
             <div>
@@ -208,7 +208,7 @@ function BankPageContent() {
                 Add bank
               </h1>
               <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-dim)]">
-                Paste your RuneLite bank once. Scapestack saves it on this device and uses it for trips, supplies and kill checks.
+                Paste once. Save. Better trips everywhere.
               </p>
             </div>
             <Link
@@ -219,7 +219,7 @@ function BankPageContent() {
               <X className="size-5" />
             </Link>
           </div>
-          <div className="p-5 sm:p-7">
+          <div className="p-5 pb-24 sm:p-7">
           {savedBank && (
             <SavedBankBanner
               saved={savedBank}

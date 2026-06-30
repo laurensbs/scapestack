@@ -44,7 +44,7 @@ describe("bank plugin intake bridge", () => {
     const pageSource = readFileSync(join(process.cwd(), "src/app/bank/page.tsx"), "utf8");
 
     expect(pageSource).toContain('data-testid="bank-save-popup"');
-    expect(pageSource).toContain("Paste your RuneLite bank once");
+    expect(pageSource).toContain("Paste once. Save. Better trips everywhere.");
     expect(pageSource).not.toContain('data-testid="plugin-bank-intake-bridge"');
     expect(pageSource).not.toContain('returnContext?.source === "plugin"');
     expect(pageSource).not.toContain("buildBankPluginIntakeBridge(rsn)");

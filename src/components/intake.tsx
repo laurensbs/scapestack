@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { ClipboardPaste, Trash2, ArrowRight, Loader2, User, Sparkles, Filter, Check, Upload } from "lucide-react";
+import { ClipboardPaste, Trash2, ArrowRight, Loader2, User, Sparkles, Filter, Check, Upload, PencilLine } from "lucide-react";
 import { cn, SAMPLE_BANKTAGS } from "@/lib/utils";
 import { loadStoredRsn, saveStoredRsn } from "@/lib/archetype";
 import { ItemSprite } from "@/components/item-sprite";
@@ -99,6 +99,7 @@ export function Intake({
   const [dragOver, setDragOver] = useState(false);
   const [clipboardState, setClipboardState] = useState<"idle" | "pasted" | "empty" | "blocked">("idle");
   const [fileImportState, setFileImportState] = useState<"idle" | "loaded" | "unsupported">("idle");
+  const [compactPasteOpen, setCompactPasteOpen] = useState(false);
   const cleanInitialRsn = cleanRsn(initialRsn);
   const [rsn, setRsn] = useState(cleanInitialRsn);
   const [handoffRsn, setHandoffRsn] = useState(cleanInitialRsn);
@@ -113,6 +114,7 @@ export function Intake({
       if (saved) {
         setValue(saved);
         setRestored(true);
+        setCompactPasteOpen(false);
       }
     } catch { /* localStorage blocked — fine */ }
     const urlRsn = cleanInitialRsn || rsnFromCurrentUrl();
@@ -196,6 +198,7 @@ export function Intake({
       const text = String(reader.result || "").trim();
       setValue(text);
       setRestored(false);
+      setCompactPasteOpen(false);
       setClipboardState("idle");
       setFileImportState("loaded");
       taRef.current?.focus();
@@ -228,6 +231,7 @@ export function Intake({
       if (text) {
         setValue(text.trim());
         setRestored(false);
+        setCompactPasteOpen(false);
         setClipboardState("pasted");
         setFileImportState("idle");
         taRef.current?.focus();
@@ -246,6 +250,7 @@ export function Intake({
   const onClear = () => {
     setValue("");
     setRestored(false);
+    setCompactPasteOpen(true);
     setClipboardState("idle");
     setFileImportState("idle");
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
@@ -255,6 +260,7 @@ export function Intake({
   const loadSample = () => {
     setValue(SAMPLE_BANKTAGS);
     setRestored(false);
+    setCompactPasteOpen(false);
     setClipboardState("idle");
     setFileImportState("idle");
     taRef.current?.focus();
@@ -262,6 +268,8 @@ export function Intake({
 
   // Empty-state preview: show 6 mock sprite slots when textarea is empty.
   const showEmptyState = !value.trim();
+  const showCompactReceipt = compactSave && pasteDone && !compactPasteOpen;
+  const showPasteEditor = !showCompactReceipt;
   const PREVIEW_IDS = [4151, 11802, 11806, 4712, 5616, 12791];
 
   return (
@@ -289,12 +297,12 @@ export function Intake({
           )}
           <div>
             <h2 className="text-[15px] font-semibold text-[var(--color-text)] tracking-normal leading-tight sm:text-[18px]">
-              {compactSave ? "Paste bank" : "Paste or drop your bank"}
+              {compactSave ? (showCompactReceipt ? "Bank ready" : "Paste bank") : "Paste or drop your bank"}
             </h2>
             <p className="text-[11.5px] text-[var(--color-text-muted)] mt-0.5">
               {compactSave
                 ? pasteDone
-                  ? "Bank detected. Save it once and use it everywhere."
+                  ? "Saved on this device after you press Save."
                   : "Paste Bank Memory or Bank Tags from RuneLite."
                 : pasteDone
                   ? "Bank detected — review the OSRS name below, then organize"
@@ -361,59 +369,87 @@ export function Intake({
         <summary className="cursor-pointer list-none text-[12.5px] font-semibold text-[var(--color-text)] marker:hidden">
           How to copy your bank
         </summary>
-        <BankSetupSteps className="mt-3" compact />
+        <BankSetupSteps className="mt-3" compact showBankExample={compactSave} />
       </details>
 
-      <div
-        className={cn(
-          "relative rounded-lg transition-all",
-          dragOver && "ring-2 ring-[var(--color-accent)] ring-offset-2 ring-offset-transparent"
-        )}
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={onDrop}
-      >
-        <label htmlFor="bank-paste-input" className="sr-only">
-          Paste RuneLite Bank Memory, Bank Tags or item IDs
-        </label>
-        <textarea
-          id="bank-paste-input"
-          data-testid="bank-paste-input"
-          name="bank-export"
-          ref={taRef}
-          value={value}
-          onChange={(e) => { setValue(e.target.value); setRestored(false); setClipboardState("idle"); setFileImportState("idle"); }}
-          rows={compactSave ? 8 : 6}
-          spellCheck={false}
-          aria-describedby="bank-paste-help bank-paste-status"
-          className={cn(
-            "w-full rounded-lg px-4 py-3.5 font-mono text-[12.5px] leading-relaxed",
-            "bg-[var(--color-bg-2)] border border-[var(--color-border)]",
-            "focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(134, 166, 217,0.12)]",
-            "placeholder:text-[var(--color-text-muted)]",
-            "resize-y",
-            compactSave ? "min-h-[210px] text-[13px]" : "min-h-[140px]"
-          )}
-          placeholder={`Paste either:\n\nbanktags,1,mybank,4151,1213,995,...\n\nor a Bank Memory TSV:\nItem id\tItem name\tItem quantity\n4151\tAbyssal whip\t1\n995\tCoins\t12345`}
-        />
-        <p id="bank-paste-help" className="mt-2 text-[11.5px] text-[var(--color-text-muted)]">
-          Saved on this device only. Bank Memory gives quantities; Bank Tags gives exact item IDs and layout.
-        </p>
-        <p id="bank-paste-status" role="status" aria-live="polite" className="sr-only">
-          {inputSummary
-            ? `${inputSummary.label}. ${inputSummary.detail}.`
-            : hint
-              ? hint.msg
-              : "No bank export detected yet."}
-        </p>
-        {dragOver && (
-          <div className="absolute inset-0 rounded-lg bg-[var(--color-accent)]/10 border-2 border-dashed border-[var(--color-accent)] flex items-center justify-center pointer-events-none animate-[pop-in_0.18s_ease-out]">
-            <div className="bg-[var(--color-panel)] border border-[var(--color-accent)] px-4 py-2 rounded-md text-[var(--color-accent)] font-medium text-[13px]">
-              Drop your .tsv or .txt
+      {showCompactReceipt && inputSummary && (
+        <div
+          data-testid="bank-compact-receipt"
+          className="rounded-xl border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 p-4"
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-[14px] font-bold text-[var(--color-text)]">{inputSummary.label}</p>
+              <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-dim)]">
+                {inputSummary.detail}. Save it once and Scapestack can use it for gear, supplies and kill checks.
+              </p>
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                setCompactPasteOpen(true);
+                window.setTimeout(() => taRef.current?.focus(), 50);
+              }}
+              className="btn-ghost shrink-0"
+            >
+              <PencilLine className="size-3.5" /> Edit paste
+            </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {showPasteEditor && (
+        <div
+          className={cn(
+            "relative rounded-lg transition-all",
+            dragOver && "ring-2 ring-[var(--color-accent)] ring-offset-2 ring-offset-transparent"
+          )}
+          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={onDrop}
+        >
+          <label htmlFor="bank-paste-input" className="sr-only">
+            Paste RuneLite Bank Memory, Bank Tags or item IDs
+          </label>
+          <textarea
+            id="bank-paste-input"
+            data-testid="bank-paste-input"
+            name="bank-export"
+            ref={taRef}
+            value={value}
+            onChange={(e) => { setValue(e.target.value); setRestored(false); setCompactPasteOpen(true); setClipboardState("idle"); setFileImportState("idle"); }}
+            rows={compactSave ? 5 : 6}
+            spellCheck={false}
+            aria-describedby="bank-paste-help bank-paste-status"
+            className={cn(
+              "w-full rounded-lg px-4 py-3.5 font-mono text-[12.5px] leading-relaxed",
+              "bg-[var(--color-bg-2)] border border-[var(--color-border)]",
+              "focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(134, 166, 217,0.12)]",
+              "placeholder:text-[var(--color-text-muted)]",
+              "resize-y",
+              compactSave ? "min-h-[150px] text-[12.5px]" : "min-h-[140px]"
+            )}
+            placeholder={`Paste either:\n\nbanktags,1,mybank,4151,1213,995,...\n\nor a Bank Memory TSV:\nItem id\tItem name\tItem quantity\n4151\tAbyssal whip\t1\n995\tCoins\t12345`}
+          />
+          <p id="bank-paste-help" className="mt-2 text-[11.5px] text-[var(--color-text-muted)]">
+            Saved on this device only. Bank Memory gives quantities; Bank Tags gives exact item IDs and layout.
+          </p>
+          <p id="bank-paste-status" role="status" aria-live="polite" className="sr-only">
+            {inputSummary
+              ? `${inputSummary.label}. ${inputSummary.detail}.`
+              : hint
+                ? hint.msg
+                : "No bank export detected yet."}
+          </p>
+          {dragOver && (
+            <div className="absolute inset-0 rounded-lg bg-[var(--color-accent)]/10 border-2 border-dashed border-[var(--color-accent)] flex items-center justify-center pointer-events-none animate-[pop-in_0.18s_ease-out]">
+              <div className="bg-[var(--color-panel)] border border-[var(--color-accent)] px-4 py-2 rounded-md text-[var(--color-accent)] font-medium text-[13px]">
+                Drop your .tsv or .txt
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <input
@@ -444,32 +480,34 @@ export function Intake({
         >
           <Trash2 className="size-3.5" /> Clear
         </button>
-        <button
-          type="button"
-          onClick={() => setJunkFilter(!junkFilter)}
-          aria-pressed={junkFilter}
-          aria-label={junkFilter ? "Disable junk filter" : "Enable junk filter"}
-          title="Hide low-value single-stack items (under 25 gp, no equip slot, no high-alch)"
-          className={cn(
-            "ml-auto inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[12px] font-medium transition-all border",
-            junkFilter
-              ? "bg-[var(--color-accent)]/12 text-[var(--color-accent)] border-[var(--color-accent)]/35 hover:bg-[var(--color-accent)]/18"
-              : "bg-transparent text-[var(--color-text-dim)] border-[var(--color-border)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
-          )}
-        >
-          <span
+        {!compactSave && (
+          <button
+            type="button"
+            onClick={() => setJunkFilter(!junkFilter)}
+            aria-pressed={junkFilter}
+            aria-label={junkFilter ? "Disable junk filter" : "Enable junk filter"}
+            title="Hide low-value single-stack items (under 25 gp, no equip slot, no high-alch)"
             className={cn(
-              "inline-flex items-center justify-center size-3.5 rounded-[4px] border transition-colors",
+              "ml-auto inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[12px] font-medium transition-all border",
               junkFilter
-                ? "bg-[var(--color-accent)] border-[var(--color-accent)]"
-                : "bg-[var(--color-bg-2)] border-[var(--color-border)]"
+                ? "bg-[var(--color-accent)]/12 text-[var(--color-accent)] border-[var(--color-accent)]/35 hover:bg-[var(--color-accent)]/18"
+                : "bg-transparent text-[var(--color-text-dim)] border-[var(--color-border)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
             )}
           >
-            {junkFilter && <Check className="size-2.5 text-[var(--color-bg)]" strokeWidth={3.5} />}
-          </span>
-          <Filter className="size-3.5" />
-          Junk filter
-        </button>
+            <span
+              className={cn(
+                "inline-flex items-center justify-center size-3.5 rounded-[4px] border transition-colors",
+                junkFilter
+                  ? "bg-[var(--color-accent)] border-[var(--color-accent)]"
+                  : "bg-[var(--color-bg-2)] border-[var(--color-border)]"
+              )}
+            >
+              {junkFilter && <Check className="size-2.5 text-[var(--color-bg)]" strokeWidth={3.5} />}
+            </span>
+            <Filter className="size-3.5" />
+            Junk filter
+          </button>
+        )}
       </div>
 
       {clipboardState !== "idle" && (
@@ -501,7 +539,7 @@ export function Intake({
         </p>
       )}
 
-      {hint && (
+      {hint && !showCompactReceipt && (
         <p className={cn(
           "mt-3 text-[12px] flex items-center gap-2 animate-[pop-in_0.18s_ease-out]",
           hint.tone === "good" && "text-[var(--color-accent)]",
@@ -512,7 +550,7 @@ export function Intake({
         </p>
       )}
 
-      {inputSummary && (
+      {inputSummary && !showCompactReceipt && (
         <div
           data-testid="bank-input-summary"
           className="mt-3 rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3.5 py-3 animate-[pop-in_0.18s_ease-out]"
@@ -547,7 +585,7 @@ export function Intake({
         </div>
       )}
 
-      {restored && (
+      {restored && !compactSave && (
         <p className="mt-2 text-[12px] text-[var(--color-text-muted)] italic">
           Restored your last paste — hit Organize, or Clear to start fresh.
         </p>
@@ -594,7 +632,7 @@ export function Intake({
               maxLength={12}
               autoComplete="off"
               spellCheck={false}
-              aria-describedby="bank-rsn-help"
+              aria-describedby={compactSave ? undefined : "bank-rsn-help"}
               placeholder="e.g. Lynx Titan"
               className={cn(
                 "w-full rounded-md pl-9 pr-3 py-2.5 text-[13px] font-mono",
@@ -604,12 +642,12 @@ export function Intake({
               )}
             />
           </div>
-          <p id="bank-rsn-help" className="mt-2.5 text-[11.5px] text-[var(--color-text-dim)] leading-relaxed">
-            {compactSave
-              ? "Use the same name you use on Scapestack."
-              : "We check your hiscores once to spot a maxed main, PvMer, skiller or ironman — so the layout fits how you actually play. Leave it blank for a balanced default."}
-          </p>
-          {handoffRsn && (
+          {!compactSave && (
+            <p id="bank-rsn-help" className="mt-2.5 text-[11.5px] text-[var(--color-text-dim)] leading-relaxed">
+              We check your hiscores once to spot a maxed main, PvMer, skiller or ironman — so the layout fits how you actually play. Leave it blank for a balanced default.
+            </p>
+          )}
+          {handoffRsn && !compactSave && (
             <p className="mt-2 text-[11.5px] font-medium text-[var(--color-accent)]">
               RSN overgenomen uit je vorige Scapestack stap.
             </p>

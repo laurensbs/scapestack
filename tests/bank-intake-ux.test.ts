@@ -53,7 +53,7 @@ describe("bank intake UX affordances", () => {
   it("labels the bank paste box as a browser-only import surface", () => {
     expect(intakeSource).toContain("BankSetupSteps");
     expect(intakeSource).toContain("How to copy your bank");
-    expect(intakeSource).toContain('<BankSetupSteps className="mt-3" compact />');
+    expect(intakeSource).toContain('<BankSetupSteps className="mt-3" compact showBankExample={compactSave} />');
     expect(intakeSource).toContain('htmlFor="bank-paste-input"');
     expect(intakeSource).toContain("Paste RuneLite Bank Memory, Bank Tags or item IDs");
     expect(intakeSource).toContain('name="bank-export"');
@@ -78,6 +78,9 @@ describe("bank intake UX affordances", () => {
     expect(intakeSource).toContain("compactSave");
     expect(intakeSource).toContain("Save bank");
     expect(intakeSource).toContain("Save pasted bank to this device");
+    expect(intakeSource).toContain('data-testid="bank-compact-receipt"');
+    expect(intakeSource).toContain("Edit paste");
+    expect(intakeSource).toContain("showCompactReceipt");
   });
 
   it("explains paste button failures instead of failing silently", () => {
@@ -123,7 +126,7 @@ describe("bank intake UX affordances", () => {
     expect(intakeSource).toContain('id="bank-rsn-input"');
     expect(intakeSource).toContain('name="rsn"');
     expect(intakeSource).toContain('autoComplete="off"');
-    expect(intakeSource).toContain('aria-describedby="bank-rsn-help"');
+    expect(intakeSource).toContain('aria-describedby={compactSave ? undefined : "bank-rsn-help"}');
     expect(intakeSource).toContain('id="bank-rsn-help"');
   });
 });

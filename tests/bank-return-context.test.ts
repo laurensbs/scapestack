@@ -32,7 +32,7 @@ describe("bank return context", () => {
     expect(source).toContain('role="dialog"');
     expect(source).toContain('data-testid="bank-save-popup"');
     expect(source).toContain("Add bank");
-    expect(source).toContain("Paste your RuneLite bank once");
+    expect(source).toContain("Paste once. Save. Better trips everywhere.");
     expect(source).toContain("compactSave");
     expect(source).toContain('saveLabel="Save bank"');
     expect(source).toContain("bankCloseHref");

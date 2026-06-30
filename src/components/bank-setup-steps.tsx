@@ -1,6 +1,8 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
+const CUBEUPLOAD_BANK_EXAMPLE = "https://u.cubeupload.com/laurensbos/scapestackbankmemory.png";
+
 export const BANK_SETUP_STEPS = [
   {
     src: "/intro/step1.png",
@@ -17,11 +19,33 @@ export const BANK_SETUP_STEPS = [
 interface BankSetupStepsProps {
   className?: string;
   compact?: boolean;
+  showBankExample?: boolean;
 }
 
-export function BankSetupSteps({ className, compact = false }: BankSetupStepsProps) {
+export function BankSetupSteps({ className, compact = false, showBankExample = false }: BankSetupStepsProps) {
   return (
     <div className={cn("grid gap-3 sm:grid-cols-2", className)}>
+      {showBankExample && (
+        <div className="overflow-hidden rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-panel)] sm:col-span-2">
+          <div className="relative flex items-center justify-center bg-black p-2">
+            <img
+              src={CUBEUPLOAD_BANK_EXAMPLE}
+              alt="Bank Memory bank example"
+              loading="lazy"
+              className="max-h-[180px] w-full rounded-md object-contain"
+              onError={(event) => {
+                event.currentTarget.src = "/intro/step2.png";
+              }}
+            />
+          </div>
+          <div className={compact ? "p-3" : "p-4"}>
+            <p className="text-[12.5px] font-bold text-[var(--color-text)] sm:text-[15px]">Your bank in RuneLite</p>
+            <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-muted)] sm:text-[12.5px]">
+              Copy the saved bank from Bank Memory, then paste it into Scapestack.
+            </p>
+          </div>
+        </div>
+      )}
       {BANK_SETUP_STEPS.map((step) => (
         <div
           key={step.title}
