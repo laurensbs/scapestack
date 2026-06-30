@@ -91,6 +91,27 @@ describe("saved-bank: bank round-trip", () => {
     expect(loadSavedBank()).toBeNull();
   });
 
+  it("clearSavedBank(rsn) removes the bank attached to that account", async () => {
+    const { saveSavedBank, loadSavedBank, clearSavedBank } = await loadModule();
+    saveSavedBank("Main setup\n4151,1", "Main Guy");
+    saveSavedBank("Iron setup\n4587,1", "Iron Guy");
+
+    clearSavedBank("Main Guy");
+
+    expect(loadSavedBank("Main Guy")).toBeNull();
+    expect(loadSavedBank("Iron Guy")?.banktags).toBe("Iron setup\n4587,1");
+  });
+
+  it("clearSavedBank(rsn) does not fall back to the old global slot", async () => {
+    const { saveSavedBank, loadSavedBank, clearSavedBank } = await loadModule();
+    saveSavedBank("Main setup\n4151,1", "Main Guy");
+    expect(loadSavedBank("Main Guy")).not.toBeNull();
+
+    clearSavedBank("Main Guy");
+
+    expect(loadSavedBank("Main Guy")).toBeNull();
+  });
+
   it("ignores empty / whitespace-only paste", async () => {
     const { saveSavedBank, loadSavedBank } = await loadModule();
     saveSavedBank("   \n\t   ");

@@ -141,6 +141,10 @@ export function markAccountBankSaved(rsn: string, savedAt: number = now()): void
   upsertAccount(rsn, { bankSavedAt: savedAt });
 }
 
+export function clearAccountBankSaved(rsn: string): void {
+  upsertAccount(rsn, { bankSavedAt: undefined });
+}
+
 export function markRuneliteChecked(rsn: string, checkedAt: number = now()): void {
   upsertAccount(rsn, { runeliteCheckedAt: checkedAt });
 }

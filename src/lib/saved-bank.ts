@@ -15,7 +15,7 @@
 // All functions are safe to call on the server (SSR) — they no-op on
 // missing window, never throw on parse failures.
 
-import { ACCOUNT_EVENT, accountIdForRsn, getActiveAccount, loadAccountStore, markAccountBankSaved, upsertAccount } from "./account-storage";
+import { ACCOUNT_EVENT, accountIdForRsn, clearAccountBankSaved, getActiveAccount, loadAccountStore, markAccountBankSaved, upsertAccount } from "./account-storage";
 
 const BANK_KEY = "scapestack:saved-bank:v1";
 const ACCOUNT_BANK_KEY = (rsn: string) => `scapestack:saved-bank:${accountIdForRsn(rsn)}:v1`;
@@ -134,9 +134,18 @@ export function saveSavedBank(banktags: string, rsn?: string | null): void {
 }
 
 /** Drop the saved bank. Safe to call when nothing is saved. */
-export function clearSavedBank(): void {
+export function clearSavedBank(rsn?: string | null): void {
   if (typeof window === "undefined") return;
-  try { localStorage.removeItem(BANK_KEY); } catch {}
+  const cleanRsn = (rsn ?? "").trim();
+  try {
+    if (cleanRsn) {
+      localStorage.removeItem(ACCOUNT_BANK_KEY(cleanRsn));
+      localStorage.removeItem(BANK_KEY);
+      clearAccountBankSaved(cleanRsn);
+    } else {
+      localStorage.removeItem(BANK_KEY);
+    }
+  } catch {}
   notifySavedBankChange();
 }
 

@@ -35,7 +35,12 @@ describe("bank return context", () => {
     expect(source).toContain("Paste once. Save. Better trips everywhere.");
     expect(source).toContain("compactSave");
     expect(source).toContain('saveLabel="Save bank"');
+    expect(source).toContain("SavedBankChoice");
+    expect(source).toContain("Keep bank");
+    expect(source).toContain("Replace");
+    expect(source).toContain("Remove");
     expect(source).toContain("bankCloseHref");
+    expect(source).not.toContain("<SavedBankBanner");
     expect(source).not.toContain("<BankReturnContextBanner");
     expect(source).not.toContain('data-testid="bank-return-context-banner"');
   });

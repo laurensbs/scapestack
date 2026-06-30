@@ -32,23 +32,23 @@ function summarizeInput(value: string, kind: InputKind): { label: string; detail
     const parts = text.split(",").map((part) => part.trim()).filter(Boolean);
     const itemCount = Math.max(0, parts.length - 3);
     return {
-      label: "Bank Tags detected",
-      detail: `${itemCount.toLocaleString()} item IDs · layout exact · quantities unavailable`
+      label: "Quick bank item list",
+      detail: `${itemCount.toLocaleString()} items found`
     };
   }
 
   if (kind === "bankMemory") {
     const rows = text.split(/\r?\n/).filter((line) => line.trim()).slice(1);
     return {
-      label: "Bank Memory detected",
-      detail: `${rows.length.toLocaleString()} item rows · quantities active · value sorting enabled`
+      label: "Full bank with quantities",
+      detail: `${rows.length.toLocaleString()} items found`
     };
   }
 
   const itemCount = text.split(/[,\s]+/).filter(Boolean).length;
   return {
-    label: "Raw item IDs detected",
-    detail: `${itemCount.toLocaleString()} item IDs · layout works · names and quantities inferred where possible`
+    label: "Item list pasted",
+    detail: `${itemCount.toLocaleString()} items found`
   };
 }
 
@@ -62,10 +62,10 @@ function rsnFromCurrentUrl(): string {
 }
 
 const HINTS: Record<NonNullable<InputKind>, { msg: string; tone: "good" | "neutral" | "bad" }> = {
-  banktags: { msg: "Bank Tags string — no quantities, but layout still works", tone: "neutral" },
-  bankMemory: { msg: "Bank Memory TSV — includes quantities, smart sort enabled", tone: "good" },
-  ids: { msg: "Raw item ID list — no quantities or names", tone: "neutral" },
-  unknown: { msg: "Unrecognized format — paste a Bank Tags string or Bank Memory TSV", tone: "bad" }
+  banktags: { msg: "Quick bank list pasted. Good enough for gear checks.", tone: "neutral" },
+  bankMemory: { msg: "Full bank pasted. Best for supplies and GP.", tone: "good" },
+  ids: { msg: "Item list pasted. Good enough for a rough gear check.", tone: "neutral" },
+  unknown: { msg: "Paste Bank Memory or Bank Tags from RuneLite.", tone: "bad" }
 };
 
 interface IntakeProps {
@@ -302,8 +302,8 @@ export function Intake({
             <p className="text-[11.5px] text-[var(--color-text-muted)] mt-0.5">
               {compactSave
                 ? pasteDone
-                  ? "Saved on this device after you press Save."
-                  : "Paste Bank Memory or Bank Tags from RuneLite."
+                  ? "Press Save and use it everywhere."
+                  : "Paste your RuneLite bank."
                 : pasteDone
                   ? "Bank detected — review the OSRS name below, then organize"
                   : "Step 3 of 4 — drop the export from RuneLite here"}
@@ -381,7 +381,7 @@ export function Intake({
             <div className="min-w-0">
               <p className="text-[14px] font-bold text-[var(--color-text)]">{inputSummary.label}</p>
               <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-dim)]">
-                {inputSummary.detail}. Save it once and Scapestack can use it for gear, supplies and kill checks.
+                {inputSummary.detail}. Good for gear, supplies and kill checks.
               </p>
             </div>
             <button
@@ -418,6 +418,10 @@ export function Intake({
             ref={taRef}
             value={value}
             onChange={(e) => { setValue(e.target.value); setRestored(false); setCompactPasteOpen(true); setClipboardState("idle"); setFileImportState("idle"); }}
+            onPaste={() => {
+              if (!compactSave) return;
+              window.setTimeout(() => setCompactPasteOpen(false), 0);
+            }}
             rows={compactSave ? 5 : 6}
             spellCheck={false}
             aria-describedby="bank-paste-help bank-paste-status"
@@ -432,7 +436,7 @@ export function Intake({
             placeholder={`Paste either:\n\nbanktags,1,mybank,4151,1213,995,...\n\nor a Bank Memory TSV:\nItem id\tItem name\tItem quantity\n4151\tAbyssal whip\t1\n995\tCoins\t12345`}
           />
           <p id="bank-paste-help" className="mt-2 text-[11.5px] text-[var(--color-text-muted)]">
-            Saved on this device only. Bank Memory gives quantities; Bank Tags gives exact item IDs and layout.
+            Saved on this device only. Bank Memory is best for supplies and GP.
           </p>
           <p id="bank-paste-status" role="status" aria-live="polite" className="sr-only">
             {inputSummary
@@ -697,12 +701,12 @@ export function Intake({
         >
           {!value.trim()
             ? compactSave
-              ? "Paste Bank Memory or Bank Tags to save your bank."
+              ? "Paste your bank first."
               : "Paste a Bank Memory export, Bank Tags string or item IDs to unlock Organize."
             : loading
             ? "Organizing your bank into OSRS-ready tabs…"
             : compactSave
-              ? "Ready to save."
+              ? "Bank ready."
               : "Ready to organize."}
         </span>
 

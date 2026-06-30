@@ -3,10 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, useCallback, useEffect } from "react";
-import { X } from "lucide-react";
+import { ArrowRight, Check, PencilLine, Trash2, X } from "lucide-react";
 import { Intake } from "@/components/intake";
 import { BankResult } from "@/components/bank-result";
-import { SavedBankBanner } from "@/components/saved-bank-banner";
 import { DropCelebration } from "@/components/drop-celebration";
 import { ScapestackReadinessRail } from "@/components/scapestack-readiness-rail";
 import { SAMPLE_BANKTAGS } from "@/lib/utils";
@@ -16,6 +15,8 @@ import { computeCombatLevel, computeTotalLevel, type HiscoreSkill } from "@/lib/
 import { hiscoresAction } from "@/app/actions";
 import {
   loadSavedBank,
+  clearSavedBank,
+  describeSavedAt,
   saveSavedBank,
   saveSavedRsn,
   loadSavedRsn,
@@ -28,6 +29,7 @@ import { persistBankHandoffPayload } from "@/lib/next-bank-handoff";
 import type { OrganizeResult } from "@/lib/organizer";
 
 type View = "intake" | "result";
+const LAST_BANK_INPUT_KEY = "osrs-bank-organizer:last-input";
 
 export default function BankPage() {
   return <BankPageContent />;
@@ -63,6 +65,14 @@ function bankCloseHref(rsn: string): string {
   return `/next${suffix}`;
 }
 
+function clearLastBankPaste(): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(LAST_BANK_INPUT_KEY);
+  } catch {
+  }
+}
+
 function BankPageContent() {
   const router = useRouter();
   const [view, setView] = useState<View>("intake");
@@ -80,6 +90,7 @@ function BankPageContent() {
   // dismisses it ("Start fresh" / "Don't save on this device"). Lives at
   // the page level because the banner needs to drive a programmatic submit.
   const [savedBank, setSavedBank] = useState<SavedBank | null>(null);
+  const [replaceSavedBank, setReplaceSavedBank] = useState(false);
   // New iconic items detected by diffing the fresh paste against the
   // previously-saved bank. Drives the one-shot drop-celebration banner
   // above BankResult. Set right before we overwrite the saved bank;
@@ -173,6 +184,7 @@ function BankPageContent() {
     if (isSampleMode()) return;
     const initialRsn = rsnFromUrl() || getActiveAccount()?.rsn || loadSavedRsn() || "";
     setSavedBank(loadSavedBank(initialRsn));
+    setReplaceSavedBank(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -183,6 +195,14 @@ function BankPageContent() {
     router.push(bankCloseHref(prefilledRsn));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefilledRsn, router]);
+
+  const onRemoveSavedBank = useCallback(() => {
+    clearSavedBank(prefilledRsn || null);
+    if (!prefilledRsn) clearSavedBank();
+    clearLastBankPaste();
+    setSavedBank(null);
+    setReplaceSavedBank(true);
+  }, [prefilledRsn]);
 
   const onSaveBankOnly = useCallback((_input: string, rsn: string) => {
     const targetRsn = rsn.trim() || prefilledRsn;
@@ -220,37 +240,40 @@ function BankPageContent() {
             </Link>
           </div>
           <div className="p-5 pb-24 sm:p-7">
-          {savedBank && (
-            <SavedBankBanner
+          {savedBank && !replaceSavedBank ? (
+            <SavedBankChoice
               saved={savedBank}
               loading={pending}
-              onUse={() => onUseSavedBank(savedBank)}
-              onDismiss={() => setSavedBank(null)}
-              tertiaryLabel="Try sample instead"
-              onTertiary={() => {
+              onKeep={() => onUseSavedBank(savedBank)}
+              onReplace={() => {
+                clearLastBankPaste();
                 setSavedBank(null);
-                onSample();
+                setReplaceSavedBank(true);
               }}
+              onRemove={onRemoveSavedBank}
             />
+          ) : (
+            <>
+              <Intake
+                key={sampleInput ?? (replaceSavedBank ? "replace-bank" : "fresh")}
+                onSubmit={onIntakeSubmit}
+                loading={pending}
+                error={error}
+                askRsn
+                initialRsn={prefilledRsn}
+                compactSave
+                saveLabel="Save bank"
+                onSaveOnly={onSaveBankOnly}
+              />
+              <button
+                type="button"
+                onClick={onSample}
+                className="mt-4 inline-flex text-[12px] font-semibold text-[var(--color-text-muted)] underline decoration-dotted underline-offset-4 transition-colors hover:text-[var(--color-accent)]"
+              >
+                Try sample instead
+              </button>
+            </>
           )}
-          <Intake
-            key={sampleInput ?? "fresh"}
-            onSubmit={onIntakeSubmit}
-            loading={pending}
-            error={error}
-            askRsn
-            initialRsn={prefilledRsn}
-            compactSave
-            saveLabel="Save bank"
-            onSaveOnly={onSaveBankOnly}
-          />
-            <button
-              type="button"
-              onClick={onSample}
-              className="mt-4 inline-flex text-[12px] font-semibold text-[var(--color-text-muted)] underline decoration-dotted underline-offset-4 transition-colors hover:text-[var(--color-accent)]"
-            >
-              Try sample instead
-            </button>
           </div>
         </section>
       )}
@@ -291,5 +314,62 @@ function BankPageContent() {
         </>
       )}
     </main>
+  );
+}
+
+function SavedBankChoice({
+  saved,
+  loading,
+  onKeep,
+  onReplace,
+  onRemove
+}: {
+  saved: SavedBank;
+  loading: boolean;
+  onKeep: () => void;
+  onReplace: () => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="rounded-xl border border-[var(--color-accent)]/40 bg-black/20 p-4 sm:p-5">
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[var(--color-accent)]">
+          <Check className="size-5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="font-serif text-[23px] font-bold leading-tight text-[var(--color-text)]">Bank saved</p>
+          <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-dim)]">
+            Updated {describeSavedAt(saved.savedAt)}. Use it for gear, supplies and GP checks.
+          </p>
+        </div>
+      </div>
+      <div className="mt-5 grid gap-2 sm:grid-cols-[1.25fr_1fr_1fr]">
+        <button
+          type="button"
+          onClick={onKeep}
+          disabled={loading}
+          className="btn-primary group min-h-12 justify-center disabled:opacity-55"
+        >
+          Keep bank
+          <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+        </button>
+        <button
+          type="button"
+          onClick={onReplace}
+          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] px-4 py-3 text-[13px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45"
+        >
+          <PencilLine className="size-4" />
+          Replace
+        </button>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-[var(--color-danger)]/35 bg-[var(--color-danger)]/10 px-4 py-3 text-[13px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-danger)]/65"
+        >
+          <Trash2 className="size-4" />
+          Remove
+        </button>
+      </div>
+    </div>
   );
 }

@@ -44,10 +44,13 @@ describe("bank intake UX affordances", () => {
 
   it("summarizes the detected bank format before organize", () => {
     expect(intakeSource).toContain("function summarizeInput");
-    expect(intakeSource).toContain("Bank Tags detected");
-    expect(intakeSource).toContain("Bank Memory detected");
-    expect(intakeSource).toContain("Raw item IDs detected");
+    expect(intakeSource).toContain("Quick bank item list");
+    expect(intakeSource).toContain("Full bank with quantities");
+    expect(intakeSource).toContain("Item list pasted");
     expect(intakeSource).toContain('data-testid="bank-input-summary"');
+    expect(intakeSource).not.toContain("item rows");
+    expect(intakeSource).not.toContain("layout exact");
+    expect(intakeSource).not.toContain("value sorting enabled");
   });
 
   it("labels the bank paste box as a browser-only import surface", () => {
@@ -62,7 +65,7 @@ describe("bank intake UX affordances", () => {
     expect(intakeSource).toContain('id="bank-paste-help"');
     expect(intakeSource).toContain('id="bank-paste-status"');
     expect(intakeSource).toContain('role="status"');
-    expect(intakeSource).toContain("Saved on this device only. Bank Memory gives quantities");
+    expect(intakeSource).toContain("Saved on this device only. Bank Memory is best for supplies and GP.");
     expect(intakeSource).toContain("No bank export detected yet.");
   });
 
@@ -80,7 +83,10 @@ describe("bank intake UX affordances", () => {
     expect(intakeSource).toContain("Save pasted bank to this device");
     expect(intakeSource).toContain('data-testid="bank-compact-receipt"');
     expect(intakeSource).toContain("Edit paste");
+    expect(intakeSource).toContain("Good for gear, supplies and kill checks.");
     expect(intakeSource).toContain("showCompactReceipt");
+    expect(intakeSource).toContain("onPaste={() =>");
+    expect(intakeSource).toContain("window.setTimeout(() => setCompactPasteOpen(false), 0);");
   });
 
   it("explains paste button failures instead of failing silently", () => {
@@ -99,6 +105,7 @@ describe("bank intake UX affordances", () => {
     expect(intakeSource).toContain("Organizing pasted bank");
     expect(intakeSource).toContain("Paste a Bank Memory export, Bank Tags string or item IDs to unlock Organize.");
     expect(intakeSource).toContain("Ready to organize.");
+    expect(intakeSource).toContain("Bank ready.");
   });
 
   it("gives every bank import action a concrete accessible name", () => {
