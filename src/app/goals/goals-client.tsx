@@ -7,7 +7,6 @@ import {
 import { Intake } from "@/components/intake";
 import { ItemSprite } from "@/components/item-sprite";
 import { BankContextActions } from "@/components/bank-context-actions";
-import { ScapestackReadinessRail } from "@/components/scapestack-readiness-rail";
 import { SupportCard } from "@/components/support-card";
 import { organizeAction } from "@/app/actions";
 import {
@@ -241,22 +240,27 @@ export function GoalsClient() {
   // ── Result view ──
   return (
     <div className="animate-[slide-up_0.35s_ease-out]">
-      <section className="mb-4 flex flex-wrap items-end justify-between gap-4">
+      <section className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="flex items-baseline gap-3">
-            <h2 className="font-serif text-[32px] font-bold leading-none text-[var(--color-text)]">Pick an unlock</h2>
-            <span className="text-[13px] font-semibold text-[var(--color-text-muted)]">
-              {stats.done}/{stats.total} done
-            </span>
+            <h2 className="font-serif text-[34px] font-bold leading-none text-[var(--color-text)]">Pick a reward</h2>
           </div>
-          <div className="mt-3 h-2 w-[220px] overflow-hidden rounded-full bg-[var(--color-slot)]">
-            <div
-              className="h-full rounded-full transition-all"
-              style={{
-                width: `${stats.percent}%`,
-                background: "linear-gradient(90deg, oklch(0.56 0.13 65), oklch(0.84 0.16 80))"
-              }}
-            />
+          <p className="mt-2 max-w-xl text-[13.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+            Start with the closest useful unlock. Click any reward below to change the route.
+          </p>
+          <div className="mt-4 flex items-center gap-3">
+            <div className="h-2 w-[180px] overflow-hidden rounded-full bg-[var(--color-slot)]">
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: `${stats.percent}%`,
+                  background: "linear-gradient(90deg, oklch(0.56 0.13 65), oklch(0.84 0.16 80))"
+                }}
+              />
+            </div>
+            <span className="text-[12px] font-bold text-[var(--color-text-muted)]">
+              {stats.done}/{stats.total} rewards found
+            </span>
           </div>
         </div>
         <button
@@ -273,7 +277,7 @@ export function GoalsClient() {
             "hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)] transition-colors"
           )}
         >
-          <Edit3 className="size-3.5" /> Edit input
+          <Edit3 className="size-3.5" /> Change input
         </button>
       </section>
 
@@ -287,16 +291,16 @@ export function GoalsClient() {
       )}
 
       {closest.length > 0 && (
-        <section className="mb-7 mt-5">
+        <section className="mb-7 mt-6">
           <div className="mb-3 flex items-end justify-between gap-3">
             <div>
-              <h2 className="font-serif text-[22px] font-bold text-[var(--color-text)]">Almost there</h2>
+              <h2 className="font-serif text-[24px] font-bold text-[var(--color-text)]">Good rewards to chase</h2>
               <p className="mt-1 text-[12.5px] text-[var(--color-text-muted)]">
-                Click a reward to see what is done, what counts through upgrades, and what is still missing.
+                Close wins first. Pick a tile to see the route, missing pieces and what counts through upgrades.
               </p>
             </div>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {closest.map((c) => {
               const set = GOAL_SETS.find((s) => s.id === c.setId)!;
               const norm = normaliseCompletion(c, set);
@@ -313,43 +317,45 @@ export function GoalsClient() {
               const headerIconId = ownedTop
                 ? iconForGoal(ownedTop.id, c.perGoal[ownedTop.id])
                 : set.iconItemId ?? iconForGoal(set.goals[set.goals.length - 1].id);
+              const selected = (selectedSetId ?? spotlight?.setId) === c.setId;
               return (
                 <button
                   key={c.setId}
                   type="button"
                   onClick={() => setSelectedSetId(c.setId)}
-                  aria-pressed={(selectedSetId ?? spotlight?.setId) === c.setId}
+                  aria-pressed={selected}
                   className={cn(
-                    "group rounded-2xl border p-4 text-left transition-colors",
-                    (selectedSetId ?? spotlight?.setId) === c.setId
-                      ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10"
-                      : "border-[var(--color-border)] bg-[var(--color-panel)]/75 hover:border-[var(--color-accent)]/55"
+                    "group min-h-[150px] rounded-2xl border p-4 text-left transition-colors",
+                    selected
+                      ? "border-[var(--color-accent)] bg-[#3a2b17]"
+                      : "border-[var(--color-border)] bg-[#17130c]/85 hover:border-[var(--color-accent)]/55"
                   )}
                 >
-                  <div className="mb-3 flex items-center gap-3">
+                  <div className="flex h-full gap-4">
                     {headerIconId ? (
-                      <span className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-[var(--color-border)] bg-black/25">
-                        <ItemSprite id={headerIconId} alt="" size={36} className="pixelated shrink-0" />
+                      <span className="flex size-16 shrink-0 items-center justify-center rounded-2xl border border-[var(--color-accent)]/25 bg-black/25">
+                        <ItemSprite id={headerIconId} alt="" size={48} className="pixelated shrink-0" />
                       </span>
                     ) : (
-                      <span aria-hidden="true" className="size-3 rounded-full bg-[var(--color-text-muted)] inline-block" />
+                      <span aria-hidden="true" className="mt-2 size-3 rounded-full bg-[var(--color-text-muted)] inline-block" />
                     )}
                     <div className="min-w-0 flex-1">
-                      <span className="block truncate text-[15px] font-bold text-[var(--color-text)]">{set.name}</span>
-                      <span className="mt-1 block text-[11px] font-semibold text-[var(--color-accent)]">
-                        {norm.progress}/{norm.max} done
-                      </span>
-                    </div>
-                    <ArrowRight className="size-4 text-[var(--color-text-muted)] transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--color-accent)]" />
-                  </div>
-                  <div className="min-h-[34px]">
-                    <div className="flex flex-wrap items-center gap-1.5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <span className="block truncate font-serif text-[20px] font-bold leading-tight text-[var(--color-text)]">{set.name}</span>
+                          <span className="mt-1 block text-[12px] font-bold text-[var(--color-accent)]">
+                            {rewardTileLine(set, c)}
+                          </span>
+                        </div>
+                        <ArrowRight className="mt-1 size-4 shrink-0 text-[var(--color-text-muted)] transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--color-accent)]" />
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-1.5">
                       {nextGoals.map((g) => {
                         const iconId = iconForGoal(g.id, c.perGoal[g.id]);
                         return (
-                          <div
+                          <span
                             key={g.id}
-                            className="flex items-center gap-1 text-[11px] text-[var(--color-text-dim)]"
+                            className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-black/20 px-2 py-1 text-[11px] font-semibold text-[var(--color-text-dim)]"
                             title={g.name}
                           >
                             {iconId && (
@@ -361,14 +367,15 @@ export function GoalsClient() {
                               />
                             )}
                             <span className="truncate">{g.name}</span>
-                          </div>
+                          </span>
                         );
                       })}
                       {missingGoals.length > nextGoals.length && (
-                        <span className="text-[10.5px] text-[var(--color-text-muted)]">
-                          +{missingGoals.length - nextGoals.length} more
+                        <span className="inline-flex items-center rounded-lg border border-[var(--color-border)] bg-black/15 px-2 py-1 text-[11px] font-semibold text-[var(--color-text-muted)]">
+                          +{missingGoals.length - nextGoals.length} later
                         </span>
                       )}
+                      </div>
                     </div>
                   </div>
                 </button>
@@ -378,18 +385,32 @@ export function GoalsClient() {
         </section>
       )}
 
-      <details className="mb-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-4">
+      <details className="mb-6 rounded-2xl border border-[var(--color-border)] bg-[#15120c]/75 p-4">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)] marker:hidden">
-          <span>Make unlocks sharper</span>
+          <span>Make rewards smarter</span>
           <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">Bank, RSN, RuneLite</span>
         </summary>
         <div className="mt-4 space-y-4">
-          <ScapestackReadinessRail
-            surface="goals"
-            hasBankContext={items.length > 0 && !loadedFromHiscoresOnly}
-            hasRsn={Boolean(activeRsn)}
-            rsn={activeRsn}
-          />
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="rounded-xl border border-[var(--color-border)] bg-black/15 p-3">
+              <p className="text-[12px] font-bold text-[var(--color-text)]">Bank</p>
+              <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
+                Checks capes, outfits, Void, Barrows pieces and other bank-owned rewards.
+              </p>
+            </div>
+            <div className="rounded-xl border border-[var(--color-border)] bg-black/15 p-3">
+              <p className="text-[12px] font-bold text-[var(--color-text)]">RSN</p>
+              <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
+                Adds public Hiscores, so earned 99s count even when the cape is not in your bank.
+              </p>
+            </div>
+            <div className="rounded-xl border border-[var(--color-border)] bg-black/15 p-3">
+              <p className="text-[12px] font-bold text-[var(--color-text)]">RuneLite</p>
+              <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
+                Later it can skip finished diary, quest and clog steps without showing account tables.
+              </p>
+            </div>
+          </div>
           {bankSummary && (
             <GoalsBankContextBanner
               rsn={activeRsn}
@@ -400,6 +421,7 @@ export function GoalsClient() {
           {loadedFromHiscoresOnly && activeRsn && (
             <GoalsHiscoreContextBanner rsn={activeRsn} />
           )}
+          <BankContextActions source="goals" rsn={activeRsn} hasBankContext={items.length > 0 && !loadedFromHiscoresOnly} />
         </div>
       </details>
 
@@ -416,7 +438,7 @@ export function GoalsClient() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search goals…"
+            placeholder="Search rewards…"
             autoComplete="off"
             spellCheck={false}
             aria-describedby="goals-search-help goals-search-status"
@@ -443,8 +465,8 @@ export function GoalsClient() {
         </p>
         <p id="goals-search-status" role="status" aria-live="polite" className="sr-only">
           {searchQuery
-            ? `${filteredSets.length} goal set${filteredSets.length === 1 ? "" : "s"} match ${searchQuery}.`
-            : `${GOAL_SETS.length} goal sets available.`}
+            ? `${filteredSets.length} reward path${filteredSets.length === 1 ? "" : "s"} match ${searchQuery}.`
+            : `${GOAL_SETS.length} reward paths available.`}
         </p>
         <CompletionFilterChips active={filter} onChange={setFilter} stats={stats} />
         <CategoryFilter active={categoryFilter} onChange={setCategoryFilter} counts={categoryCounts} />
@@ -466,7 +488,7 @@ export function GoalsClient() {
         ))}
         {filteredSets.length === 0 && (
           <div className="rounded-xl p-12 text-center text-[var(--color-text-dim)] bg-[var(--color-panel)]/40 border border-[var(--color-border)]">
-            No goal sets match this filter.
+            No reward paths match this filter.
           </div>
         )}
       </section>
@@ -506,6 +528,14 @@ function ownedGoalLabel(set: GoalSetModel, completion: SetCompletion): string {
     .map((goal) => goal.name);
   if (owned.length > 0) return `You have ${owned.join(", ")}`;
   return "Nothing checked yet";
+}
+
+function rewardTileLine(set: GoalSetModel, completion: SetCompletion): string {
+  const norm = normaliseCompletion(completion, set);
+  const missing = nextMissingGoals(set, completion);
+  if (norm.complete) return "Finished";
+  if (missing[0]) return `Need ${missing[0].name}`;
+  return `${norm.progress}/${norm.max} found`;
 }
 
 function unlockNudge(set: GoalSetModel, completion: SetCompletion): string {
@@ -636,11 +666,11 @@ function NextUnlockCompanion({
   const guideTarget = missing[0]?.name ?? set.name;
 
   return (
-    <section className="rounded-[20px] border-2 border-[var(--color-accent)]/45 bg-[#2b2418]/90 p-4 shadow-[0_24px_90px_-55px_rgba(0,0,0,0.95)] sm:p-5">
-      <div className="grid gap-5 md:grid-cols-[170px_minmax(0,1fr)]">
-        <div className="flex items-center justify-center rounded-2xl border border-[var(--color-accent)]/30 bg-black/25 p-5">
+    <section className="rounded-[22px] border-2 border-[var(--color-accent)]/45 bg-[#2b2418]/90 p-4 shadow-[0_24px_90px_-55px_rgba(0,0,0,0.95)] sm:p-5">
+      <div className="grid gap-5 md:grid-cols-[210px_minmax(0,1fr)]">
+        <div className="flex min-h-[210px] items-center justify-center rounded-[20px] border border-[var(--color-accent)]/30 bg-black/25 p-5">
           {rewardIconId ? (
-            <ItemSprite id={rewardIconId} alt="" size={104} className="pixelated" />
+            <ItemSprite id={rewardIconId} alt="" size={132} className="pixelated" />
           ) : (
             <Target className="size-16 text-[var(--color-accent)]" />
           )}
@@ -648,7 +678,7 @@ function NextUnlockCompanion({
         <div className="min-w-0">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="eyebrow text-[var(--color-accent)]">Next unlock</p>
+              <p className="eyebrow text-[var(--color-accent)]">Start here</p>
               <h3 className="mt-1 font-serif text-[30px] font-bold leading-tight text-[var(--color-text)] sm:text-[36px]">
                 {set.name}
               </h3>
@@ -656,30 +686,30 @@ function NextUnlockCompanion({
                 {unlockNudge(set, completion)}
               </p>
               <p className="mt-2 max-w-2xl text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">
-                <span className="font-bold text-[var(--color-accent)]">Why:</span>{" "}
+                <span className="font-bold text-[var(--color-accent)]">Why this one:</span>{" "}
                 {whyThisUnlock(set, completion)}
               </p>
             </div>
             <span className="inline-flex items-center rounded-full border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-1.5 text-[12px] font-bold text-[var(--color-accent)]">
-              {norm.progress}/{norm.max}
+              {norm.progress}/{norm.max} found
             </span>
           </div>
 
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-xl border border-[var(--color-border)] bg-black/15 p-3">
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Already got</p>
-              <p className="mt-1 text-[13px] font-bold text-[var(--color-text)]">{ownedGoalLabel(set, completion)}</p>
-            </div>
-            <div className="rounded-xl border border-[var(--color-border)] bg-black/15 p-3">
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Next missing</p>
-              <p className="mt-1 text-[13px] font-bold text-[var(--color-text)]">{missing[0]?.name ?? "Nothing missing"}</p>
-            </div>
-            <div className="rounded-xl border border-[var(--color-border)] bg-black/15 p-3">
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Counts through</p>
-              <p className="mt-1 text-[13px] font-bold text-[var(--color-text)]">
-                {completedViaUpgrade.length > 0 ? `${completedViaUpgrade.length} lower tier${completedViaUpgrade.length === 1 ? "" : "s"}` : "Direct items only"}
+          <div className="mt-4 space-y-2 rounded-2xl border border-[var(--color-accent)]/20 bg-black/15 p-3">
+            <p className="text-[13px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+              <span className="font-bold text-[var(--color-text)]">You have:</span>{" "}
+              {ownedGoalLabel(set, completion)}
+            </p>
+            <p className="text-[13px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+              <span className="font-bold text-[var(--color-text)]">You need:</span>{" "}
+              {missing[0]?.name ?? "Nothing missing"}
+            </p>
+            {completedViaUpgrade.length > 0 && (
+              <p className="text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">
+                <span className="font-bold text-[var(--color-accent)]">Counts through:</span>{" "}
+                {completedViaUpgrade.length} lower tier{completedViaUpgrade.length === 1 ? "" : "s"} already count because you own the better reward.
               </p>
-            </div>
+            )}
           </div>
 
           <div className="mt-4 rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 p-3">
@@ -707,8 +737,8 @@ function NextUnlockCompanion({
 
           <div className="mt-4 rounded-xl border border-[var(--color-border)] bg-black/15 p-3">
             <div className="mb-2 flex items-center justify-between gap-3">
-              <p className="text-[12px] font-bold text-[var(--color-text)]">Finish this</p>
-              <p className="text-[11px] text-[var(--color-text-muted)]">Local checklist</p>
+              <p className="text-[12px] font-bold text-[var(--color-text)]">Tick off the missing bits</p>
+              <p className="text-[11px] text-[var(--color-text-muted)]">Saved on this device</p>
             </div>
             {missing.length > 0 ? (
               <div className="grid gap-2 sm:grid-cols-2">
@@ -1060,10 +1090,10 @@ function GoalsBankContextBanner({
             <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
               <span className="font-semibold text-[var(--color-text)]">{summary.label}</span>
               {" · "}
-              Bank-owned untradeables are checked from item IDs; earned skill capes can come from Hiscores when an RSN is attached.
+              Bank rewards are ticked from the items you pasted; earned 99 capes can come from Hiscores when an RSN is attached.
             </p>
             <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
-              RuneLite can help later when diary rewards, quest rewards or clog-only goals would change the route.
+              RuneLite can skip finished diary rewards, quest rewards and clog-only steps later.
             </p>
             {summary.topItems.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">
@@ -1098,12 +1128,12 @@ function GoalsHiscoreContextBanner({ rsn }: { rsn: string }) {
           </span>
           <div className="min-w-0">
             <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-good)]">
-              Hiscores handoff loaded
+              RSN found
             </div>
             <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
               <span className="font-semibold text-[var(--color-text)]">{rsn}</span>
               {" · "}
-              Skill-cape goals are inferred from public Hiscores. Paste a bank or sync RuneLite to add gear, diaries and untradeable item ownership.
+              Public Hiscores can tick earned 99 capes. Add a bank or RuneLite later for diary rewards, quest rewards and bank-owned gear.
             </p>
           </div>
         </div>

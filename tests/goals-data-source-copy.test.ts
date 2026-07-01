@@ -6,9 +6,9 @@ const source = readFileSync(join(process.cwd(), "src/app/goals/goals-client.tsx"
 
 describe("Goals data source copy", () => {
   it("explains which goal progress comes from bank, Hiscores and RuneLite sync", () => {
-    expect(source).toContain("Bank-owned untradeables are checked from item IDs");
-    expect(source).toContain("earned skill capes can come from Hiscores");
-    expect(source).toContain("RuneLite can help later when diary rewards, quest rewards or clog-only goals would change the route");
+    expect(source).toContain("Bank rewards are ticked from the items you pasted");
+    expect(source).toContain("earned 99 capes can come from Hiscores");
+    expect(source).toContain("RuneLite can skip finished diary rewards, quest rewards and clog-only steps later");
     expect(source).not.toContain("Untradeable sets, capes and milestone items are being checked against this bank context.");
   });
 
@@ -34,19 +34,20 @@ describe("Goals data source copy", () => {
 
   it("opens with a companion-style next unlock instead of a status dashboard", () => {
     expect(source).toContain("function NextUnlockCompanion");
-    expect(source).toContain("Pick an unlock");
-    expect(source).toContain("Next unlock");
-    expect(source).toContain("Already got");
-    expect(source).toContain("Next missing");
+    expect(source).toContain("Pick a reward");
+    expect(source).toContain("Start here");
+    expect(source).toContain("You have:");
+    expect(source).toContain("You need:");
     expect(source).toContain("Counts through");
-    expect(source).toContain("Finish this");
-    expect(source).toContain("Local checklist");
+    expect(source).toContain("Tick off the missing bits");
+    expect(source).toContain("Saved on this device");
     expect(source).toContain("GOAL_CHECK_STORAGE_KEY");
     expect(source).toContain("Higher-tier rewards already tick lower tiers.");
-    expect(source).toContain("Almost there");
-    expect(source).toContain("Make unlocks sharper");
+    expect(source).toContain("Good rewards to chase");
+    expect(source).toContain("Make rewards smarter");
     expect(source).not.toContain("Make this unlock route sharper");
     expect(source).not.toContain("Closest to complete");
+    expect(source).not.toContain("ScapestackReadinessRail");
   });
 
   it("deepens the unlock companion with route guidance instead of panels", () => {
@@ -54,7 +55,7 @@ describe("Goals data source copy", () => {
     expect(source).toContain("function sourceHintForGoal");
     expect(source).toContain("function unlockPlanSteps");
     expect(source).toContain("Do this next");
-    expect(source).toContain("Why:");
+    expect(source).toContain("Why this one:");
     expect(source).toContain("Wiki");
     expect(source).toContain("Claim from the diary NPC");
     expect(source).toContain("Needs the Void pieces plus the Western Provinces diary gate.");

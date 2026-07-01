@@ -310,7 +310,6 @@ describe("Scapestack readiness rail", () => {
   it("is mounted on the core product result routes", () => {
     const files = [
       "src/app/bank/page.tsx",
-      "src/app/goals/goals-client.tsx",
       "src/app/slayer/slayer-client.tsx"
     ];
 
@@ -319,6 +318,11 @@ describe("Scapestack readiness rail", () => {
       expect(source, file).toContain("ScapestackReadinessRail");
       expect(source, file).toContain('surface="');
     }
+
+    const goalsSource = readFileSync(join(process.cwd(), "src/app/goals/goals-client.tsx"), "utf8");
+    expect(goalsSource).not.toContain("ScapestackReadinessRail");
+    expect(goalsSource).toContain("Make rewards smarter");
+    expect(goalsSource).toContain("Bank rewards are ticked from the items you pasted");
 
     const dpsSource = readFileSync(join(process.cwd(), "src/app/dps/dps-client.tsx"), "utf8");
     expect(dpsSource).not.toContain("ScapestackReadinessRail");
