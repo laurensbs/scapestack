@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type ReadyToLeaveStatus =
@@ -18,6 +18,9 @@ export type ReadyToLeaveTone = "good" | "warn" | "neutral";
 
 export interface ReadyToLeaveItem {
   label:
+    | "Start"
+    | "Need"
+    | "Stop"
     | "Gear"
     | "Bank"
     | "Food"
@@ -58,11 +61,41 @@ export function ReadyToLeave({
     status === "Worth doing" ||
     status === "Good AFK loop";
   const Icon = good ? CheckCircle2 : AlertCircle;
+  const displayLabel = (label: ReadyToLeaveItem["label"]): string => {
+    switch (label) {
+      case "Skill":
+      case "Train":
+      case "Method":
+      case "Activity":
+      case "Unlock":
+      case "Task":
+      case "Style":
+      case "Start at":
+        return "Start";
+      case "Supplies":
+      case "Items":
+      case "Food":
+      case "Gear":
+      case "Bring":
+      case "Teleport":
+      case "Tele out":
+        return label === "Gear" || label === "Food" ? "Bank" : label;
+      case "Stop at":
+      case "Stop point":
+      case "Cash out":
+        return "Stop";
+      case "Go to":
+      case "Location":
+        return "Bank";
+      default:
+        return label;
+    }
+  };
 
   return (
     <div
       className={cn(
-        "mt-3 border-y bg-transparent",
+        "mt-3 bg-transparent",
         good ? "border-[var(--color-good)]/22" : "border-[var(--color-warning)]/24",
         compact ? "py-2" : "py-3"
       )}
@@ -78,18 +111,19 @@ export function ReadyToLeave({
         <Icon className="size-3.5" />
         {status}
       </div>
-      <dl className="grid gap-x-4 gap-y-2 sm:grid-cols-4">
+      <dl className="divide-y divide-[var(--color-border)]/45 border-y border-[var(--color-border)]/45">
         {items.map((item) => (
           <div
             key={item.label}
-            className="min-w-0"
+            className="grid min-w-0 gap-1 py-2 sm:grid-cols-[82px_minmax(0,1fr)] sm:gap-4"
           >
-            <dt className="text-[9.5px] font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
-              {item.label}
+            <dt className="inline-flex items-center gap-1.5 text-[10.5px] font-bold text-[var(--color-accent)]">
+              <ArrowRight className="size-3" />
+              {displayLabel(item.label)}
             </dt>
             <dd
               className={cn(
-                "mt-1 truncate text-[12px] font-semibold text-[var(--color-text-dim)]",
+                "text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]",
                 item.tone === "good" && "text-[var(--color-good)]",
                 item.tone === "warn" && "text-[var(--color-warning)]"
               )}

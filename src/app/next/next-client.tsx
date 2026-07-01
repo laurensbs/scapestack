@@ -2084,8 +2084,15 @@ function buildNextReadyToLeave(
       status: skillingSummary.bankCoversTarget ? "Worth doing" : skillingSummary.bankXp > 0 ? "Check items" : "Bank first",
       items: [
         {
-          label: "Skill",
-          value: gapLine ?? `${skillingSummary.actionVerb} the next stack, then re-run /next.`,
+          label: "Start",
+          value: skillingSummary.bankXp > 0
+            ? `${skillingSummary.actionVerb} the banked stack first.`
+            : `Buy or gather ${skillingSummary.suppliesLabel} first.`,
+          tone: skillingSummary.bankXp > 0 ? "good" : "warn"
+        },
+        {
+          label: "Need",
+          value: gapLine ?? `${skillingSummary.skill} level gap needs a fresh Hiscores check.`,
           tone: skillingSummary.xpRemaining === 0 ? "good" : "neutral"
         },
         {
@@ -2094,12 +2101,7 @@ function buildNextReadyToLeave(
           tone: skillingSummary.bankXp > 0 ? "good" : "warn"
         },
         {
-          label: "Supplies",
-          value: skillingSummary.bankXp > 0 ? `~${formatXp(skillingSummary.bankXp)}` : `No ${skillingSummary.suppliesLabel} found`,
-          tone: skillingSummary.bankXp > 0 ? "good" : "warn"
-        },
-        {
-          label: "Stop at",
+          label: "Stop",
           value: skillingSummary.remainingAfterBank === null
             ? "Re-check level gap"
             : skillingSummary.remainingAfterBank === 0
@@ -2116,10 +2118,10 @@ function buildNextReadyToLeave(
       return {
         status: "Worth doing",
         items: [
-          { label: "Method", value: recommendationSkillLabel(rec), tone: "good" },
+          { label: "Start", value: recommendationFirstStepValue(rec), tone: "good" },
           { label: "Bring", value: rec.actionPlan?.prep ?? recommendationBringValue(rec), tone: "neutral" },
-          { label: "Cash out", value: "Bank when profit or supplies change", tone: "neutral" },
-          { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
+          { label: "Bank", value: "Cash out when profit or supplies change", tone: "neutral" },
+          { label: "Stop", value: trip.stopPoint, tone: "neutral" }
         ]
       };
     }
@@ -2128,10 +2130,10 @@ function buildNextReadyToLeave(
       return {
         status: "Good AFK loop",
         items: [
-          { label: "Activity", value: recommendationSkillLabel(rec), tone: "good" },
+          { label: "Start", value: recommendationFirstStepValue(rec), tone: "good" },
           { label: "Attention", value: "Low-pressure progress", tone: "neutral" },
           { label: "Bring", value: rec.actionPlan?.prep ?? recommendationBringValue(rec), tone: "neutral" },
-          { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
+          { label: "Stop", value: trip.stopPoint, tone: "neutral" }
         ]
       };
     }
@@ -2139,10 +2141,10 @@ function buildNextReadyToLeave(
     return {
       status: "Worth doing",
       items: [
-        { label: "Train", value: recommendationSkillLabel(rec), tone: "good" },
+        { label: "Start", value: recommendationFirstStepValue(rec), tone: "good" },
         { label: "Bring", value: rec.actionPlan?.prep ?? recommendationBringValue(rec), tone: "neutral" },
-        { label: "Go to", value: "Best method you already know", tone: "neutral" },
-        { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
+        { label: "Bank", value: "Best method you already know", tone: "neutral" },
+        { label: "Stop", value: trip.stopPoint, tone: "neutral" }
       ]
     };
   }
@@ -2169,10 +2171,10 @@ function buildNextReadyToLeave(
       return {
         status,
         items: [
-          { label: "Unlock", value: recommendationSkillLabel(rec), tone: "good" },
+          { label: "Start", value: recommendationFirstStepValue(rec), tone: "good" },
           { label: "Bring", value: "Check quest/diary items", tone: "warn" },
-          { label: "Start at", value: trip.teleport, tone: "neutral" },
-          { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
+          { label: "Bank", value: trip.teleport, tone: "neutral" },
+          { label: "Stop", value: trip.stopPoint, tone: "neutral" }
         ]
       };
     }
@@ -2181,10 +2183,10 @@ function buildNextReadyToLeave(
       return {
         status,
         items: [
-          { label: "Task", value: recommendationSkillLabel(rec), tone: "good" },
-          { label: "Style", value: "Add bank to check task gear", tone: "warn" },
+          { label: "Start", value: recommendationFirstStepValue(rec), tone: "good" },
+          { label: "Bank", value: "Add bank to check task gear", tone: "warn" },
           { label: "Bring", value: "Add bank to pick supplies", tone: "neutral" },
-          { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
+          { label: "Stop", value: trip.stopPoint, tone: "neutral" }
         ]
       };
     }
@@ -2192,10 +2194,10 @@ function buildNextReadyToLeave(
     return {
       status,
       items: [
+        { label: "Start", value: recommendationFirstStepValue(rec), tone: "good" },
         { label: "Bank", value: "Paste bank to check gear", tone: "warn" },
-        { label: "Food", value: "Add bank to check supplies", tone: "neutral" },
-        { label: "Tele out", value: "Add bank to pick teleports", tone: "neutral" },
-        { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
+        { label: "Bring", value: "Add bank to check supplies", tone: "neutral" },
+        { label: "Stop", value: trip.stopPoint, tone: "neutral" }
       ]
     };
   }
@@ -2204,21 +2206,26 @@ function buildNextReadyToLeave(
     status,
     items: needsItems
       ? [
-          { label: "Unlock", value: recommendationSkillLabel(rec), tone: "good" },
+          { label: "Start", value: recommendationFirstStepValue(rec), tone: "good" },
           { label: "Bring", value: missingItems ? "Check quest/diary items" : "Bank has useful items", tone: missingItems ? "warn" : "good" },
-          { label: "Start at", value: missingTeleport ? "Pick closest teleport" : trip.teleport, tone: missingTeleport ? "warn" : "good" },
-          { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
+          { label: "Bank", value: missingTeleport ? "Pick closest teleport" : trip.teleport, tone: missingTeleport ? "warn" : "good" },
+          { label: "Stop", value: trip.stopPoint, tone: "neutral" }
         ]
       : surface === "slayer"
         ? [
-          { label: "Task", value: recommendationSkillLabel(rec), tone: "good" },
-          { label: "Style", value: missingGear ? "Needs gear check" : "Gear found", tone: missingGear ? "warn" : "good" },
+          { label: "Start", value: recommendationFirstStepValue(rec), tone: "good" },
+          { label: "Bank", value: missingGear ? "Needs gear check" : "Gear found", tone: missingGear ? "warn" : "good" },
           { label: "Bring", value: missingFood ? "Add food" : trip.bring[0] ?? "Task supplies", tone: missingFood ? "warn" : "good" },
-          { label: "Stop at", value: trip.stopPoint, tone: "neutral" }
+          { label: "Stop", value: trip.stopPoint, tone: "neutral" }
         ]
         : [
           {
-            label: "Gear",
+            label: "Start",
+            value: recommendationFirstStepValue(rec),
+            tone: "good"
+          },
+          {
+            label: "Bank",
             value: missingGear ? "Needs check" : "Found",
             tone: missingGear ? "warn" : "good"
           },
@@ -2233,7 +2240,7 @@ function buildNextReadyToLeave(
             tone: missingTeleport ? "warn" : "good"
           },
           {
-            label: "Stop at",
+            label: "Stop",
             value: trip.stopPoint,
             tone: "neutral"
           }
@@ -2889,9 +2896,15 @@ function TripBuilder({
     >
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden [&::-webkit-details-marker]:hidden">
         <span>
-          <span className="block text-[12px] font-bold text-[var(--color-text)]">Build trip</span>
+          <span className="block text-[12px] font-bold text-[var(--color-text)]">
+            {skillingSummary ? "What do I need?" : "Prep this trip"}
+          </span>
           <span className="mt-0.5 block text-[11px] font-semibold text-[var(--color-text-muted)]">
-            Bring, teleport, stop point.
+            {skillingSummary
+              ? skillingSummary.bankXp > 0
+                ? "Bank stack, XP left and stop point."
+                : `No ${skillingSummary.suppliesLabel} found.`
+              : "Bring, teleport, stop point."}
           </span>
         </span>
         <span className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)] transition-colors group-open:border-[var(--color-accent)]/35 group-open:text-[var(--color-accent)]">
@@ -2903,13 +2916,13 @@ function TripBuilder({
       {skillingSummary && (
         <div className="mt-3 rounded-md border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 p-3">
           <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">
-            {skillingSummary.skill} supplies
+            {skillingSummary.skill} route
           </div>
           <div className="grid gap-2 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)] sm:grid-cols-2">
-            <p><span className="text-[var(--color-text)]">Still needed:</span> {skillingSummary.xpRemaining === null ? "Re-check Hiscores" : formatXp(skillingSummary.xpRemaining)}</p>
-            <p><span className="text-[var(--color-text)]">In bank:</span> {skillingSummary.bankItemsLabel}</p>
-            <p><span className="text-[var(--color-text)]">Bank covers:</span> {skillingSummary.bankXp > 0 ? `~${formatXp(skillingSummary.bankXp)}` : `No ${skillingSummary.suppliesLabel} found`}</p>
-            <p><span className="text-[var(--color-text)]">After bank:</span> {skillingSummary.remainingAfterBank === null ? "Re-check level gap" : skillingSummary.remainingAfterBank === 0 ? "99 covered" : `${formatXp(skillingSummary.remainingAfterBank)} left`}</p>
+            <p><span className="text-[var(--color-text)]">Need:</span> {skillingSummary.xpRemaining === null ? "Re-check Hiscores" : formatXp(skillingSummary.xpRemaining)}</p>
+            <p><span className="text-[var(--color-text)]">Bank:</span> {skillingSummary.bankItemsLabel}</p>
+            <p><span className="text-[var(--color-text)]">Use:</span> {skillingSummary.bankXp > 0 ? `~${formatXp(skillingSummary.bankXp)}` : `No ${skillingSummary.suppliesLabel} found`}</p>
+            <p><span className="text-[var(--color-text)]">Stop:</span> {skillingSummary.remainingAfterBank === null ? "Re-check level gap" : skillingSummary.remainingAfterBank === 0 ? "99 covered" : `${formatXp(skillingSummary.remainingAfterBank)} left`}</p>
           </div>
         </div>
       )}
@@ -3748,7 +3761,7 @@ function WhatToDo({
             Do this first
           </h2>
           <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-dim)]">
-            One best move for this account. Two backups if you want a different kind of session.
+            One best move for this account. Two alternatives if you want a different kind of session.
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
             <span
@@ -3782,17 +3795,6 @@ function WhatToDo({
             >
               {routeIntent.label}
             </span>
-          )}
-          {visibleRecs.length > 1 && (
-            <button
-              type="button"
-              onClick={moveToAnotherPlan}
-              aria-label="Randomize another OSRS plan"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/45 bg-[var(--color-accent)]/12 px-3 py-2 text-[11.5px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/18"
-            >
-              <Dices className="size-3.5" />
-              Randomize
-            </button>
           )}
         </div>
       </div>
@@ -3917,20 +3919,21 @@ function WhatToDo({
               <div>
                 <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
                   <div>
-                    <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                      Backups
-                    </span>
+                    <h3 className="text-[18px] font-bold tracking-normal text-[var(--color-text)]">
+                      Not feeling this?
+                    </h3>
                     <p className="mt-1 text-[12px] text-[var(--color-text-muted)]">
-                      Bigger alternatives if the first pick is not your mood.
+                      Pick a different kind of session.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={moveToAnotherPlan}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/65 px-3 py-2 text-[11.5px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+                    aria-label="Randomize another OSRS plan"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/45 bg-[var(--color-accent)]/12 px-3 py-2 text-[11.5px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/18"
                   >
-                    Want something else?
                     <Dices className="size-3.5" />
+                    Randomize
                   </button>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">

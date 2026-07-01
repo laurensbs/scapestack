@@ -103,16 +103,19 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("ReadyToLeave");
     expect(source).toContain("Paste bank to check gear");
     expect(source).toContain("Add bank to check supplies");
-    expect(source).toContain("Add bank to pick teleports");
     expect(source).toContain("Add bank to pick supplies");
+    expect(source).toContain('label: "Start"');
+    expect(source).toContain('label: "Need"');
+    expect(source).toContain('label: "Bank"');
+    expect(source).toContain('label: "Stop"');
     expect(source).not.toContain("Check after bank");
     expect(source).toContain("Worth doing");
-    expect(source).toContain('label: "Train"');
     expect(source).toContain('label: "Bring"');
-    expect(source).toContain('label: "Go to"');
-    expect(source).toContain('label: "Method"');
-    expect(source).toContain('label: "Cash out"');
-    expect(source).toContain('label: "Task"');
+    expect(source).not.toContain('label: "Train"');
+    expect(source).not.toContain('label: "Go to"');
+    expect(source).not.toContain('label: "Method"');
+    expect(source).not.toContain('label: "Cash out"');
+    expect(source).not.toContain('label: "Task"');
     expect(source).toContain("Check quest/diary items");
     expect(source).toContain("Good first trip");
     expect(source).toContain("Bank first");
@@ -190,7 +193,7 @@ describe("/next confidence UI copy", () => {
   it("starts the result page with one plan instead of setup panels", () => {
     expect(source).toContain("What to do now");
     expect(source).toContain("Do this first");
-    expect(source).toContain("One best move for this account. Two backups");
+    expect(source).toContain("One best move for this account. Two alternatives");
     expect(source).toContain("Pick a route");
     expect(source).toContain("Best now");
     expect(source).not.toContain("Another route");
@@ -240,9 +243,11 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("setMood((currentMood) => moodForRouteLens(randomLens, currentMood));");
     expect(source).toContain("pickForRoute(visibleRecs, mood, minutes, routeLens, shuffleIdx, routePickOptions)");
     expect(source).not.toContain("Change time or pace");
-    expect(source).toContain("Backups");
-    expect(source).toContain("Bigger alternatives if the first pick is not your mood.");
-    expect(source).toContain("Want something else?");
+    expect(source).toContain("Not feeling this?");
+    expect(source).toContain("Pick a different kind of session.");
+    expect(source).not.toContain("Backups");
+    expect(source).not.toContain("Bigger alternatives if the first pick is not your mood.");
+    expect(source).not.toContain("Want something else?");
     expect(source).toContain("Randomize");
     expect(source).toContain('aria-label="Randomize another OSRS plan"');
     expect(source).toContain("Why is this recommended?");
@@ -264,7 +269,8 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("min-h-[118px]");
     expect(source).toContain("size-12");
     expect(source).toContain("max-h-[2.9em]");
-    expect(source).toContain("Bigger alternatives if the first pick is not your mood.");
+    expect(source).toContain("Not feeling this?");
+    expect(source).toContain("Pick a different kind of session.");
   });
 
   it("respects legacy route intent instead of dropping players into default mood", () => {
@@ -509,7 +515,10 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("exportTag({");
     expect(source).toContain("items: tagItems.map((item) => ({ id: item.id }))");
     expect(source).toContain("<TripBuilder rec={rec} bankItems={bankItems} hasBankContext={hasBankContext} maxEstimate={maxEstimate} />");
+    expect(source).toContain("Prep this trip");
+    expect(source).toContain("What do I need?");
     expect(source).toContain("Bring, teleport, stop point.");
+    expect(source).not.toContain("Build trip");
     expect(source).toContain('aria-label={`Copy RuneLite Bank Tag for ${rec.title}`}');
     expect(source).toContain("Bank Tag copied");
     expect(source).not.toContain("Trip payload");
@@ -527,9 +536,10 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("torstol");
     expect(source).toContain("pure essence");
     expect(source).toContain("magic seeds");
-    expect(source).toContain("{skillingSummary.skill} supplies");
-    expect(source).toContain("Still needed:");
-    expect(source).toContain("Bank covers:");
+    expect(source).toContain("{skillingSummary.skill} route");
+    expect(source).toContain("Need:");
+    expect(source).toContain("Use:");
+    expect(source).toContain("Stop:");
     expect(source).toContain("No ${config.suppliesLabel} found in this bank");
     expect(source).toContain("skillConfig.keywords");
     expect(source).toContain("${skillConfig.suppliesLabel} stack");
