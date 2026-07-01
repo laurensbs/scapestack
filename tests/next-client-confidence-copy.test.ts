@@ -528,6 +528,9 @@ describe("/next confidence UI copy", () => {
   it("turns skilling maxing picks into bank-aware XP progress", () => {
     expect(source).toContain("function skillingBankSummaryForRecommendation");
     expect(source).toContain("const SKILL_BANK_XP");
+    expect(source).toContain("function savedBankForRun");
+    expect(source).toContain("heroBank = savedBankForRun(heroRsn.trim(), activeAccountRsn)?.banktags;");
+    expect(source).toContain("input: savedBankForRun(activeAccountRsn)?.banktags");
     expect(source).toContain("raw shark");
     expect(source).toContain("dragon bones");
     expect(source).toContain("mahogany planks");

@@ -171,6 +171,12 @@ function asOrganizedItems(items: Array<{ id: number; name: string }>): Organized
   }));
 }
 
+function savedBankForRun(primaryRsn: string, fallbackRsn = ""): SavedBank | null {
+  const primary = primaryRsn.trim();
+  const fallback = fallbackRsn.trim();
+  return loadSavedBank(primary) ?? (fallback && fallback !== primary ? loadSavedBank(fallback) : null);
+}
+
 type NextRunOptions = {
   input?: string;
   rsn?: string;
@@ -555,6 +561,9 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
           heroBankItems = readBankHandoffPayload(window);
         } catch { /* malformed handoff — run with RSN only */ }
       }
+      if (shouldReadHeroBank && heroBankItems.length === 0 && !heroBank) {
+        heroBank = savedBankForRun(heroRsn.trim(), activeAccountRsn)?.banktags;
+      }
       // Trigger run zodra de component-state is gestabiliseerd. setTimeout
       // blijft ook werken in background tabs; requestAnimationFrame kan daar
       // te agressief throttlen waardoor deep-links stil op de intake bleven.
@@ -563,7 +572,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
       }, 0);
     } else if (!hasFromParam && activeAccountRsn && !shouldReadBankHandoff && !shouldReadHeroBank) {
       window.setTimeout(() => {
-        run({ rsn: activeAccountRsn, input: loadSavedBank(activeAccountRsn)?.banktags });
+        run({ rsn: activeAccountRsn, input: savedBankForRun(activeAccountRsn)?.banktags });
       }, 0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
