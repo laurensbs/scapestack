@@ -31,4 +31,21 @@ describe("Goals data source copy", () => {
     expect(source).toContain('aria-label={`${expanded ? "Hide" : "Show"} ${set.name} goal details`}');
     expect(source).toContain("<div id={panelId}");
   });
+
+  it("opens with a companion-style next unlock instead of a status dashboard", () => {
+    expect(source).toContain("function NextUnlockCompanion");
+    expect(source).toContain("Pick an unlock");
+    expect(source).toContain("Next unlock");
+    expect(source).toContain("Already got");
+    expect(source).toContain("Next missing");
+    expect(source).toContain("Counts through");
+    expect(source).toContain("Finish this");
+    expect(source).toContain("Local checklist");
+    expect(source).toContain("GOAL_CHECK_STORAGE_KEY");
+    expect(source).toContain("Higher-tier rewards already tick lower tiers.");
+    expect(source).toContain("Almost there");
+    expect(source).toContain("Make unlocks sharper");
+    expect(source).not.toContain("Make this unlock route sharper");
+    expect(source).not.toContain("Closest to complete");
+  });
 });
