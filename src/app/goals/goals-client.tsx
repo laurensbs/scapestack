@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useMemo, useEffect } from "react";
 import {
-  Edit3, Check, Search, Target, Trophy, Filter, ChevronDown, ArrowRight, CheckCircle2, Circle
+  Edit3, Check, Search, Target, Trophy, Filter, ChevronDown, ArrowRight, CheckCircle2, Circle, ExternalLink
 } from "lucide-react";
 import { Intake } from "@/components/intake";
 import { ItemSprite } from "@/components/item-sprite";
@@ -18,6 +18,7 @@ import {
 import { loadArchetype, type Archetype } from "@/lib/archetype";
 import { hiscoresAction } from "@/app/actions";
 import { cn, formatGp } from "@/lib/utils";
+import { wikiSearchUrl } from "@/lib/wiki";
 import { goalItemsWithHiscoreUnlocks } from "@/lib/goal-handoff";
 import {
   bankHandoffItemsFromTabs,
@@ -521,6 +522,91 @@ function unlockNudge(set: GoalSetModel, completion: SetCompletion): string {
   return "Work through the closest missing pieces first.";
 }
 
+function whyThisUnlock(set: GoalSetModel, completion: SetCompletion): string {
+  const norm = normaliseCompletion(completion, set);
+  const missingCount = set.goals.filter((goal) => !completion.perGoal[goal.id]?.satisfied).length;
+  if (norm.complete) return "You already finished this set, so it is only here for review.";
+  if (norm.isTiered && norm.progress > 0) {
+    return `You are already on tier ${norm.progress}. The next reward is a clean account upgrade, not a random checklist.`;
+  }
+  if (missingCount === 1) return "Only one piece is missing, so this is the fastest visible unlock.";
+  if (set.category === "diary") return "Diary rewards unlock useful teleports and perks, and higher tiers cover the earlier rewards.";
+  if (set.id === "void-knight" || set.id === "elite-void") return "Void is a real PvM unlock path: normal pieces first, elite upgrades after the diary gate.";
+  if (set.category === "barrows") return "A near-complete Barrows set is worth finishing because the set effect only matters when all pieces are owned.";
+  return "This is close enough that chasing it should feel better than browsing every possible unlock.";
+}
+
+function sourceHintForGoal(set: GoalSetModel, goal: GoalModel): string {
+  const name = `${set.name} ${goal.name}`.toLowerCase();
+  if (set.category === "diary") return "Claim from the diary NPC after finishing the next tier.";
+  if (set.id === "void-knight") return "Buy with Pest Control points. Body, robe, gloves and helms make the set usable.";
+  if (set.id === "elite-void") return "Needs the Void pieces plus the Western Provinces diary gate.";
+  if (set.category === "barrows") return "Run Barrows and stop when this missing piece lands.";
+  if (set.category === "gwd") return "Boss drop. Check whether your bank supports the trip before camping it.";
+  if (set.category === "raid-uniques") return "Raid unique. Treat it as a long-term chase, not a quick checklist.";
+  if (set.category === "wildy-bosses") return "Wilderness drop. Only chase it when you actually want a risk session.";
+  if (set.category === "skill-outfits" || name.includes("graceful")) return "Earn with the activity currency, then re-check the set.";
+  if (set.category === "capes") return goal.notes ?? "Earn the requirement, then claim or buy the cape.";
+  return goal.notes ?? "Check the OSRS Wiki route before committing.";
+}
+
+function unlockPlanSteps(set: GoalSetModel, completion: SetCompletion, missing: GoalModel[]): Array<{ title: string; body: string }> {
+  const norm = normaliseCompletion(completion, set);
+  const target = missing[0];
+  if (!target) {
+    return [
+      { title: "Done", body: "Pick another unlock or use /next for tonight's trip." }
+    ];
+  }
+  if (set.category === "diary") {
+    return [
+      { title: "Start", body: `Open the ${set.name.replace(/ (gloves|cloak|shield|legs|amulet|armour|sea boots|headgear|sword|banner)$/i, "")} diary and finish the next tier tasks.` },
+      { title: "Claim", body: `Claim ${target.name}, then it will count the lower tiers automatically.` },
+      { title: "Stop", body: "Re-open unlocks after the reward is in your bank or RuneLite sync sees it." }
+    ];
+  }
+  if (set.id === "elite-void") {
+    return [
+      { title: "Start", body: "Check normal Void first: top, robe, gloves and the helm you actually use." },
+      { title: "Then", body: "Finish the Western Provinces diary gate before spending more Pest Control points." },
+      { title: "Stop", body: `Stop when ${target.name} is bought, then check whether the second elite piece is next.` }
+    ];
+  }
+  if (set.id === "void-knight") {
+    return [
+      { title: "Start", body: "Buy the body, robe and gloves before treating Void as a PvM setup." },
+      { title: "Then", body: `Pick up ${target.name}; helms only matter for the style you plan to use.` },
+      { title: "Stop", body: "Stop after the missing piece and let /next decide whether Elite Void is worth it." }
+    ];
+  }
+  if (set.category === "barrows") {
+    return [
+      { title: "Start", body: `Run Barrows for ${target.name}; the set only turns on when all pieces are owned.` },
+      { title: "Bring", body: "Use your normal Barrows teleports, prayer restore and loot route." },
+      { title: "Stop", body: "Stop at the missing piece or when the session turns into dry streak misery." }
+    ];
+  }
+  if (set.category === "gwd" || set.category === "raid-uniques" || set.category === "wildy-bosses") {
+    return [
+      { title: "Start", body: `Open Check kill before chasing ${target.name}. Gear decides if this is worth doing now.` },
+      { title: "Then", body: "Do one short trip or raid block instead of committing to a huge grind blind." },
+      { title: "Stop", body: "Stop after the block and re-check upgrades, supplies and the next unlock." }
+    ];
+  }
+  if (norm.progress > 0 || missing.length <= 2) {
+    return [
+      { title: "Start", body: `Chase ${target.name} first; it is the cleanest missing piece.` },
+      { title: "Then", body: missing[1] ? `After that, check ${missing[1].name}.` : "After that, re-check the set." },
+      { title: "Stop", body: "Stop when the set changes so Scapestack can pick the next best unlock." }
+    ];
+  }
+  return [
+    { title: "Start", body: `Start with ${target.name}.` },
+    { title: "Then", body: "Keep the session narrow: one unlock lane, not the whole collection log." },
+    { title: "Stop", body: "Stop after one piece or one clear progress block." }
+  ];
+}
+
 function NextUnlockCompanion({
   set,
   completion,
@@ -546,6 +632,8 @@ function NextUnlockCompanion({
     const state = completion.perGoal[goal.id];
     return state?.satisfied && !state.owned && state.satisfiedBy;
   });
+  const planSteps = unlockPlanSteps(set, completion, missing);
+  const guideTarget = missing[0]?.name ?? set.name;
 
   return (
     <section className="rounded-[20px] border-2 border-[var(--color-accent)]/45 bg-[#2b2418]/90 p-4 shadow-[0_24px_90px_-55px_rgba(0,0,0,0.95)] sm:p-5">
@@ -567,6 +655,10 @@ function NextUnlockCompanion({
               <p className="mt-2 max-w-2xl text-[14px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
                 {unlockNudge(set, completion)}
               </p>
+              <p className="mt-2 max-w-2xl text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">
+                <span className="font-bold text-[var(--color-accent)]">Why:</span>{" "}
+                {whyThisUnlock(set, completion)}
+              </p>
             </div>
             <span className="inline-flex items-center rounded-full border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-1.5 text-[12px] font-bold text-[var(--color-accent)]">
               {norm.progress}/{norm.max}
@@ -587,6 +679,29 @@ function NextUnlockCompanion({
               <p className="mt-1 text-[13px] font-bold text-[var(--color-text)]">
                 {completedViaUpgrade.length > 0 ? `${completedViaUpgrade.length} lower tier${completedViaUpgrade.length === 1 ? "" : "s"}` : "Direct items only"}
               </p>
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 p-3">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <p className="text-[12px] font-bold text-[var(--color-text)]">Do this next</p>
+              <a
+                href={wikiSearchUrl(guideTarget)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/25 bg-black/15 px-2.5 py-1.5 text-[11px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/10"
+              >
+                Wiki
+                <ExternalLink className="size-3" />
+              </a>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {planSteps.map((step) => (
+                <div key={step.title} className="rounded-lg border border-[var(--color-border)]/60 bg-black/15 p-3">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">{step.title}</p>
+                  <p className="mt-1 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">{step.body}</p>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -619,7 +734,7 @@ function NextUnlockCompanion({
                       <span className="min-w-0">
                         <span className="block truncate text-[13px] font-bold">{goal.name}</span>
                         <span className="mt-0.5 block truncate text-[11px] opacity-75">
-                          {goal.notes ?? (norm.isTiered ? "Next diary tier" : "Missing piece")}
+                          {sourceHintForGoal(set, goal)}
                         </span>
                       </span>
                     </button>

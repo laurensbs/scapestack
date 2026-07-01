@@ -48,4 +48,17 @@ describe("Goals data source copy", () => {
     expect(source).not.toContain("Make this unlock route sharper");
     expect(source).not.toContain("Closest to complete");
   });
+
+  it("deepens the unlock companion with route guidance instead of panels", () => {
+    expect(source).toContain("function whyThisUnlock");
+    expect(source).toContain("function sourceHintForGoal");
+    expect(source).toContain("function unlockPlanSteps");
+    expect(source).toContain("Do this next");
+    expect(source).toContain("Why:");
+    expect(source).toContain("Wiki");
+    expect(source).toContain("Claim from the diary NPC");
+    expect(source).toContain("Needs the Void pieces plus the Western Provinces diary gate.");
+    expect(source).toContain("Open Check kill before chasing");
+    expect(source).toContain("Higher diary rewards count the lower tiers automatically.");
+  });
 });
