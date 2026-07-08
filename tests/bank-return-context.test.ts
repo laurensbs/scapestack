@@ -36,7 +36,10 @@ describe("bank return context", () => {
     expect(source).toContain("compactSave");
     expect(source).toContain('saveLabel="Save bank"');
     expect(source).toContain("SavedBankChoice");
-    expect(source).toContain("Keep bank");
+    expect(source).toContain("Use saved bank");
+    expect(source).toContain("Back to plan");
+    expect(source).toContain("autoLoadedSavedBank");
+    expect(source).toContain("onIntakeSubmit(savedBank.banktags, false, prefilledRsn)");
     expect(source).toContain("Replace");
     expect(source).toContain("Remove");
     expect(source).toContain("bankCloseHref");

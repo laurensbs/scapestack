@@ -2393,7 +2393,7 @@ function bankRecs(bank: CompletionItem[]): Recommendation[] {
     payoff: "Auto-sorted into use-case tabs you can paste back into RuneLite.",
     decisionReason: "Bank cleanup only wins when it reduces friction for every later trip.",
     score: 30,
-    link: "/bank",
+    link: "/bank?mode=tidy",
     planSeed: {
       timebox: "10-20 min",
       prep: `You have ${bank.length} recognized bank items; clean tabs reduce friction on every later trip.`,

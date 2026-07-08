@@ -51,9 +51,19 @@ function bossFromUrl(): string | null {
   return boss || null;
 }
 
+function modeFromUrl(): string | null {
+  if (typeof window === "undefined") return null;
+  const mode = (new URLSearchParams(window.location.search).get("mode") ?? "").trim();
+  return mode || null;
+}
+
 function sourceFromUrl(): string | null {
   if (typeof window === "undefined") return null;
   return new URLSearchParams(window.location.search).get("from");
+}
+
+function cameFromNext(): boolean {
+  return sourceFromUrl() === "next";
 }
 
 function bankCloseHref(rsn: string): string {
@@ -91,6 +101,7 @@ function BankPageContent() {
   // the page level because the banner needs to drive a programmatic submit.
   const [savedBank, setSavedBank] = useState<SavedBank | null>(null);
   const [replaceSavedBank, setReplaceSavedBank] = useState(false);
+  const [autoLoadedSavedBank, setAutoLoadedSavedBank] = useState(false);
   // New iconic items detected by diffing the fresh paste against the
   // previously-saved bank. Drives the one-shot drop-celebration banner
   // above BankResult. Set right before we overwrite the saved bank;
@@ -188,6 +199,14 @@ function BankPageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (!cameFromNext()) return;
+    if (autoLoadedSavedBank || replaceSavedBank || pending || view !== "intake" || !savedBank) return;
+    setAutoLoadedSavedBank(true);
+    onIntakeSubmit(savedBank.banktags, false, prefilledRsn);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoLoadedSavedBank, pending, prefilledRsn, replaceSavedBank, savedBank, view]);
+
   const onUseSavedBank = useCallback((bank: SavedBank) => {
     setSavedBank(null);
     saveSavedBank(bank.banktags, prefilledRsn || null);
@@ -225,10 +244,12 @@ function BankPageContent() {
             <div>
               <p className="eyebrow text-[var(--color-accent)]">Bank setup</p>
               <h1 id="bank-popup-title" className="mt-1 font-serif text-[28px] font-bold leading-none text-[var(--color-text)] sm:text-[34px]">
-                Add bank
+                {savedBank && !replaceSavedBank ? "Bank is ready" : "Add bank"}
               </h1>
               <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-dim)]">
-                Paste once. Save. Better trips everywhere.
+                {savedBank && !replaceSavedBank
+                  ? "Use the saved bank for the plan, or replace it if your tabs changed."
+                  : "Paste once. Save. Better trips everywhere."}
               </p>
             </div>
             <Link
@@ -244,6 +265,7 @@ function BankPageContent() {
             <SavedBankChoice
               saved={savedBank}
               loading={pending}
+              cameFromNext={cameFromNext()}
               onKeep={() => onUseSavedBank(savedBank)}
               onReplace={() => {
                 clearLastBankPaste();
@@ -296,6 +318,7 @@ function BankPageContent() {
             inferredRsn={inferredRsn}
             hiscoreSkills={hiscoreSkills}
             returnBossSlug={returnBossSlug}
+            initialMode={modeFromUrl()}
           />
           <details className="mt-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-3">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-semibold text-[var(--color-text)] marker:hidden">
@@ -320,12 +343,14 @@ function BankPageContent() {
 function SavedBankChoice({
   saved,
   loading,
+  cameFromNext,
   onKeep,
   onReplace,
   onRemove
 }: {
   saved: SavedBank;
   loading: boolean;
+  cameFromNext: boolean;
   onKeep: () => void;
   onReplace: () => void;
   onRemove: () => void;
@@ -337,9 +362,13 @@ function SavedBankChoice({
           <Check className="size-5" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="font-serif text-[23px] font-bold leading-tight text-[var(--color-text)]">Bank saved</p>
+          <p className="font-serif text-[23px] font-bold leading-tight text-[var(--color-text)]">
+            {cameFromNext ? "Using saved bank" : "Bank saved"}
+          </p>
           <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-dim)]">
-            Updated {describeSavedAt(saved.savedAt)}. Use it for gear, supplies and GP checks.
+            {cameFromNext
+              ? `Updated ${describeSavedAt(saved.savedAt)}. Scapestack can use this for quest items, gear and supply checks.`
+              : `Updated ${describeSavedAt(saved.savedAt)}. Use it for gear, supplies and GP checks.`}
           </p>
         </div>
       </div>
@@ -350,7 +379,7 @@ function SavedBankChoice({
           disabled={loading}
           className="btn-primary group min-h-12 justify-center disabled:opacity-55"
         >
-          Keep bank
+          {cameFromNext ? "Back to plan" : "Use saved bank"}
           <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
         </button>
         <button

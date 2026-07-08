@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { SupportCard } from "@/components/support-card";
 import { BankSetupSteps } from "@/components/bank-setup-steps";
-import { ReadyToLeave, type ReadyToLeaveItem, type ReadyToLeaveStatus } from "@/components/ready-to-leave";
 import { SavedBankBanner } from "@/components/saved-bank-banner";
 import { BossSprite } from "@/components/boss-picker";
 import { ItemSprite } from "@/components/item-sprite";
@@ -2584,202 +2583,6 @@ function buildRecommendationTrip(
   };
 }
 
-function buildNextReadyToLeave(
-  rec: Recommendation,
-  bankItems: BankHandoffItem[],
-  hasBankContext: boolean,
-  maxEstimate: HoursToMaxSummary | null = null,
-  accountType: PlannerAccountType | null = null
-): { status: ReadyToLeaveStatus; items: ReadyToLeaveItem[] } {
-  const trip = buildRecommendationTrip(rec, bankItems, hasBankContext);
-  const needsCombat = recommendationNeedsCombatSetup(rec);
-  const needsItems = recommendationNeedsItemCheck(rec);
-  const surface = recommendationPlanSurface(rec);
-  const skillingSummary = skillingBankSummaryForRecommendation(rec, bankItems, maxEstimate);
-  const isUim = isUltimatePlannerAccount(accountType);
-
-  if (isUim && (needsItems || needsCombat || hasBankContext)) {
-    return {
-      status: "UIM setup",
-      items: [
-        { label: "Start", value: recommendationFirstStepValue(rec), tone: "good" },
-        { label: "Items", value: needsItems ? "Gather or stage quest items manually" : "Use carried items, looting bag or storage unlocks", tone: "warn" },
-        { label: "Bank", value: "Bank-ready is not applicable for UIM", tone: "warn" },
-        { label: "Stop", value: trip.stopPoint, tone: "neutral" }
-      ]
-    };
-  }
-
-  if (skillingSummary) {
-    const gapLine = skillingLevelGapLine(skillingSummary);
-    return {
-      status: skillingSummary.bankCoversTarget ? "Worth doing" : skillingSummary.bankXp > 0 ? "Check items" : "Bank first",
-      items: [
-        {
-          label: "Start",
-          value: skillingSummary.bankXp > 0
-            ? `${skillingSummary.actionVerb} the banked stack first.`
-            : `Buy or gather ${skillingSummary.suppliesLabel} first.`,
-          tone: skillingSummary.bankXp > 0 ? "good" : "warn"
-        },
-        {
-          label: "Need",
-          value: gapLine ?? `${skillingSummary.skill} level gap needs a fresh Hiscores check.`,
-          tone: skillingSummary.xpRemaining === 0 ? "good" : "neutral"
-        },
-        {
-          label: "Bank",
-          value: skillingSummary.bankItemsLabel,
-          tone: skillingSummary.bankXp > 0 ? "good" : "warn"
-        },
-        {
-          label: "Stop",
-          value: skillingSummary.remainingAfterBank === null
-            ? "Re-check level gap"
-            : skillingSummary.remainingAfterBank === 0
-              ? "99 covered"
-              : `${formatXp(skillingSummary.remainingAfterBank)} left`,
-          tone: skillingSummary.bankCoversTarget ? "good" : "neutral"
-        }
-      ]
-    };
-  }
-
-  if (!needsCombat && !needsItems) {
-    if (surface === "gp") {
-      return {
-        status: "Worth doing",
-        items: [
-          { label: "Start", value: recommendationFirstStepValue(rec), tone: "good" },
-          { label: "Bring", value: rec.actionPlan?.prep ?? recommendationBringValue(rec), tone: "neutral" },
-          { label: "Bank", value: "Cash out when profit or supplies change", tone: "neutral" },
-          { label: "Stop", value: trip.stopPoint, tone: "neutral" }
-        ]
-      };
-    }
-
-    if (surface === "afk") {
-      return {
-        status: "Good AFK loop",
-        items: [
-          { label: "Start", value: recommendationFirstStepValue(rec), tone: "good" },
-          { label: "Attention", value: "Low-pressure progress", tone: "neutral" },
-          { label: "Bring", value: rec.actionPlan?.prep ?? recommendationBringValue(rec), tone: "neutral" },
-          { label: "Stop", value: trip.stopPoint, tone: "neutral" }
-        ]
-      };
-    }
-
-    return {
-      status: "Worth doing",
-      items: [
-        { label: "Start", value: recommendationFirstStepValue(rec), tone: "good" },
-        { label: "Bring", value: rec.actionPlan?.prep ?? recommendationBringValue(rec), tone: "neutral" },
-        { label: "Bank", value: "Best method you already know", tone: "neutral" },
-        { label: "Stop", value: trip.stopPoint, tone: "neutral" }
-      ]
-    };
-  }
-
-  const missing = trip.missing.join(" ").toLowerCase();
-  const missingGear = /gear|combat/.test(missing);
-  const missingItems = /item|quest/.test(missing);
-  const missingFood = /food/.test(missing);
-  const missingTeleport = /teleport/.test(missing);
-  const status: ReadyToLeaveStatus = needsCombat && !hasBankContext
-    ? "Bank first"
-    : needsItems && (!hasBankContext || missingItems)
-    ? "Check items"
-    : missingGear
-    ? "Skip for now"
-    : missingFood
-    ? "Bring food"
-    : missingTeleport
-    ? "Pick a teleport"
-    : "Good first trip";
-
-  if (!hasBankContext) {
-    if (needsItems) {
-      return {
-        status,
-        items: [
-          { label: "Start", value: recommendationFirstStepValue(rec), tone: "good" },
-          { label: "Bring", value: "Check quest/diary items", tone: "warn" },
-          { label: "Bank", value: trip.teleport, tone: "neutral" },
-          { label: "Stop", value: trip.stopPoint, tone: "neutral" }
-        ]
-      };
-    }
-
-    if (surface === "slayer") {
-      return {
-        status,
-        items: [
-          { label: "Start", value: recommendationFirstStepValue(rec), tone: "good" },
-          { label: "Bank", value: "Add bank to check task gear", tone: "warn" },
-          { label: "Bring", value: "Add bank to pick supplies", tone: "neutral" },
-          { label: "Stop", value: trip.stopPoint, tone: "neutral" }
-        ]
-      };
-    }
-
-    return {
-      status,
-      items: [
-        { label: "Start", value: recommendationFirstStepValue(rec), tone: "good" },
-        { label: "Bank", value: "Paste bank to check gear", tone: "warn" },
-        { label: "Bring", value: "Add bank to check supplies", tone: "neutral" },
-        { label: "Stop", value: trip.stopPoint, tone: "neutral" }
-      ]
-    };
-  }
-
-  return {
-    status,
-    items: needsItems
-      ? [
-          { label: "Start", value: recommendationFirstStepValue(rec), tone: "good" },
-          { label: "Bring", value: missingItems ? "Check quest/diary items" : "Bank has useful items", tone: missingItems ? "warn" : "good" },
-          { label: "Bank", value: missingTeleport ? "Pick closest teleport" : trip.teleport, tone: missingTeleport ? "warn" : "good" },
-          { label: "Stop", value: trip.stopPoint, tone: "neutral" }
-        ]
-      : surface === "slayer"
-        ? [
-          { label: "Start", value: recommendationFirstStepValue(rec), tone: "good" },
-          { label: "Bank", value: missingGear ? "Needs gear check" : "Gear found", tone: missingGear ? "warn" : "good" },
-          { label: "Bring", value: missingFood ? "Add food" : trip.bring[0] ?? "Task supplies", tone: missingFood ? "warn" : "good" },
-          { label: "Stop", value: trip.stopPoint, tone: "neutral" }
-        ]
-        : [
-          {
-            label: "Start",
-            value: recommendationFirstStepValue(rec),
-            tone: "good"
-          },
-          {
-            label: "Bank",
-            value: missingGear ? "Needs check" : "Found",
-            tone: missingGear ? "warn" : "good"
-          },
-          {
-            label: "Food",
-            value: missingFood ? "Bring food" : "Found",
-            tone: missingFood ? "warn" : "good"
-          },
-          {
-            label: "Tele out",
-            value: missingTeleport ? "Pick a teleport" : trip.teleport,
-            tone: missingTeleport ? "warn" : "good"
-          },
-          {
-            label: "Stop",
-            value: trip.stopPoint,
-            tone: "neutral"
-          }
-        ]
-  };
-}
-
 function headlinePayoff(rec: Recommendation): string | null {
   const payoff = rec.payoff?.trim();
   if (!payoff) return null;
@@ -2941,38 +2744,58 @@ function sessionBoardItems({
   const blocker = rec.needs?.find((need) => need.trim())?.trim();
   const payoff = headlinePayoff(rec) || rec.payoff?.trim();
   const bankSignal = sessionBoardBankSignal(hasBankContext, accountMode.type, pluginBankStatus);
-  return [
+  const items: Array<{ label: string; value: string; tone: "good" | "warn" | "neutral" }> = [
     {
-      label: "Account mode",
-      value: accountMode.planningNote,
-      tone: accountMode.confidence === "unknown" ? "warn" : "neutral"
+      label: "Start",
+      value: recommendationFirstStepValue(rec),
+      tone: "neutral"
     },
     {
-      label: "Prep needed",
+      label: "Check first",
       value: prep.length > 72 ? `${prep.slice(0, 69).trim()}...` : prep,
       tone: "neutral"
     },
     {
-      label: "Missing blockers",
-      value: blocker ? (blocker.length > 72 ? `${blocker.slice(0, 69).trim()}...` : blocker) : "No hard blocker found.",
-      tone: blocker ? "warn" : "good"
-    },
-    {
-      label: "Bank-ready status",
+      label: accountMode.type === "ultimate" ? "Carry" : "Bank",
       value: bankSignal.value,
       tone: bankSignal.tone
     },
     {
-      label: "Stop point",
+      label: "Stop",
       value: rec.actionPlan?.timebox || payoff || "Stop after one clear completion.",
       tone: "neutral"
-    },
-    {
-      label: "Skip reason",
-      value: skipReason ?? "No safer backup outranks this pick right now.",
-      tone: skipReason ? "warn" : "good"
     }
   ];
+
+  if (blocker) {
+    items.push({
+      label: "Blocked by",
+      value: blocker.length > 72 ? `${blocker.slice(0, 69).trim()}...` : blocker,
+      tone: "warn"
+    });
+  } else if (skipReason) {
+    items.push({
+      label: "If not this",
+      value: skipReason.length > 72 ? `${skipReason.slice(0, 69).trim()}...` : skipReason,
+      tone: "neutral"
+    });
+  }
+
+  if (accountMode.confidence === "unknown" || accountMode.type !== "regular") {
+    items.push({
+      label: "Account",
+      value: accountMode.type === "ultimate"
+        ? "UIM: treat items as a staging list, not a bank checklist."
+        : accountMode.confidence === "unknown"
+          ? "Mode unknown: item checks stay cautious."
+          : accountMode.planningNote.length > 72
+            ? `${accountMode.planningNote.slice(0, 69).trim()}...`
+            : accountMode.planningNote,
+      tone: accountMode.confidence === "unknown" ? "warn" : "neutral"
+    });
+  }
+
+  return items;
 }
 
 function SessionBoardStrip({
@@ -2989,24 +2812,29 @@ function SessionBoardStrip({
   skipReason: string | null;
 }) {
   return (
-    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="mt-4 rounded-lg border border-[var(--color-border)]/75 bg-[var(--color-bg)]/24 px-3.5 py-3">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <p className="text-[12px] font-bold text-[var(--color-text)]">Start here</p>
+        <p className="text-[11px] font-semibold text-[var(--color-text-muted)]">One step, then re-check</p>
+      </div>
+      <dl className="divide-y divide-[var(--color-border)]/50">
       {sessionBoardItems({ rec, hasBankContext, accountMode, pluginBankStatus, skipReason }).map((item) => (
         <div
           key={item.label}
           className={cn(
-            "min-h-[76px] rounded-lg border px-3 py-2",
-            item.tone === "good"
-              ? "border-[var(--color-good)]/25 bg-[var(--color-good)]/10"
-              : item.tone === "warn"
-                ? "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10"
-                : "border-[var(--color-border)] bg-[var(--color-bg)]/35"
+            "grid gap-1 py-2.5 sm:grid-cols-[92px_minmax(0,1fr)] sm:gap-3",
+            item.tone === "warn" && "text-[var(--color-warning)]"
           )}
         >
-          <div className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+          <dt className={cn(
+            "text-[11px] font-bold text-[var(--color-accent)]",
+            item.tone === "warn" && "text-[var(--color-warning)]",
+            item.tone === "good" && "text-[var(--color-good)]"
+          )}>
             {item.label}
-          </div>
-          <p className={cn(
-            "mt-1 text-[11.5px] font-semibold leading-snug",
+          </dt>
+          <dd className={cn(
+            "text-[12.5px] font-semibold leading-relaxed",
             item.tone === "good"
               ? "text-[var(--color-good)]"
               : item.tone === "warn"
@@ -3014,9 +2842,10 @@ function SessionBoardStrip({
                 : "text-[var(--color-text-dim)]"
           )}>
             {item.value}
-          </p>
+          </dd>
         </div>
       ))}
+      </dl>
     </div>
   );
 }
@@ -3545,19 +3374,18 @@ function TripBuilder({
   return (
     <details
       className="group mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3"
-      open={hasBankContext && Boolean(trip.tag)}
     >
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden [&::-webkit-details-marker]:hidden">
         <span>
           <span className="block text-[12px] font-bold text-[var(--color-text)]">
-            {skillingSummary ? "What do I need?" : "Prep this trip"}
+            {skillingSummary ? "Show banked skilling stack" : "Show exact items"}
           </span>
           <span className="mt-0.5 block text-[11px] font-semibold text-[var(--color-text-muted)]">
             {skillingSummary
               ? skillingSummary.bankXp > 0
-                ? "Bank stack, XP left and stop point."
+                ? "Bank stack, XP left and when to stop."
                 : `No ${skillingSummary.suppliesLabel} found.`
-              : "Bring, teleport, stop point."}
+              : "Bring list, teleport and Bank Tag."}
           </span>
         </span>
         <span className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)] transition-colors group-open:border-[var(--color-accent)]/35 group-open:text-[var(--color-accent)]">
@@ -3729,7 +3557,6 @@ function HeadlineCard({
   const choice = playerChoiceTag(rec);
   const oneLineReason = headlineOneLineReason(rec);
   const bossViability = bossViabilityForRecommendation(rec, bankItems, hasBankContext);
-  const readyToLeave = buildNextReadyToLeave(rec, bankItems, hasBankContext, maxEstimate, accountType);
   const skipReason = recommendationWhyNot({ headline: rec, allRecs, mood, hasBankContext, pluginSyncState });
   const card = (
     <article
@@ -3801,7 +3628,6 @@ function HeadlineCard({
             pluginBankStatus={pluginBankStatus}
             skipReason={skipReason}
           />
-          <ReadyToLeave status={readyToLeave.status} items={readyToLeave.items} />
           {recommendationUsesTripBuilder(rec) && (
             <TripBuilder rec={rec} bankItems={bankItems} hasBankContext={hasBankContext} maxEstimate={maxEstimate} />
           )}

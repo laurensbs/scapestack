@@ -98,6 +98,7 @@ interface BankResultProps {
   inferredRsn?: string | null;
   hiscoreSkills?: HiscoreSkill[] | null;
   returnBossSlug?: string | null;
+  initialMode?: string | null;
 }
 
 type SortMode = "default" | "value" | "quantity" | "name";
@@ -105,7 +106,7 @@ type Density = "ultra" | "compact" | "comfortable";
 type TabMode = "type" | "useCase";
 const PREFS_KEY = "scapestack-bank:prefs";
 type BankPluginHubActionState = NonNullable<BankActionLoopInput["pluginHubState"]>;
-type BankDecisionAction = "next" | "dps" | "copy";
+type BankDecisionAction = "next" | "dps" | "copy" | "tidy";
 
 interface BankDecision {
   iconItemId: number;
@@ -184,7 +185,8 @@ function buildBankDecision({
   tipSlotsFreed,
   totalValue,
   totalItems,
-  hasPrices
+  hasPrices,
+  focusMode
 }: {
   weaponCount: number;
   tipCount: number;
@@ -192,23 +194,9 @@ function buildBankDecision({
   totalValue: number;
   totalItems: number;
   hasPrices: boolean;
+  focusMode?: string | null;
 }): BankDecision {
-  if (weaponCount > 0) {
-    return {
-      iconItemId: 4151,
-      title: "Check one boss trip before buying upgrades",
-      why: `This bank has ${weaponCount} combat weapon${weaponCount === 1 ? "" : "s"}, so the kill check can use gear you actually own.`,
-      firstStep: "Open the kill check, lock a setup, then do one short trip.",
-      stopPoint: "Stop after the first trip if kills feel slow or supplies burn too fast.",
-      avoid: "Avoid buying upgrades before checking what your bank can already do.",
-      primaryAction: "dps",
-      primaryLabel: "Check kill",
-      secondaryAction: "next",
-      secondaryLabel: "Open next trip"
-    };
-  }
-
-  if (tipCount > 0) {
+  if ((focusMode === "tidy" || weaponCount === 0) && tipCount > 0) {
     const slotCopy = tipSlotsFreed > 0
       ? `${tipSlotsFreed} slot${tipSlotsFreed === 1 ? "" : "s"}`
       : "a few slots";
@@ -220,10 +208,25 @@ function buildBankDecision({
       firstStep: "Run Smart tidy, then copy the tabs back to RuneLite.",
       stopPoint: "Stop when gear, supplies and teleports are easy to find.",
       avoid: "Avoid dragging every item by hand.",
-      primaryAction: "copy",
-      primaryLabel: "Copy to RuneLite",
-      secondaryAction: "next",
-      secondaryLabel: "Open next trip"
+      primaryAction: "tidy",
+      primaryLabel: "Smart tidy",
+      secondaryAction: "copy",
+      secondaryLabel: "Copy to RuneLite"
+    };
+  }
+
+  if (weaponCount > 0) {
+    return {
+      iconItemId: 4151,
+      title: "Check one boss trip before buying upgrades",
+      why: `This bank has ${weaponCount} combat weapon${weaponCount === 1 ? "" : "s"}, so the kill check can use gear you actually own.`,
+      firstStep: "Open the kill check, lock a setup, then do one short trip.",
+      stopPoint: "Stop after the first trip if kills feel slow or supplies burn too fast.",
+      avoid: "Avoid buying upgrades before checking what your bank can already do.",
+      primaryAction: "dps",
+      primaryLabel: "Check kill",
+      secondaryAction: tipCount > 0 ? "tidy" : "next",
+      secondaryLabel: tipCount > 0 ? "Tidy bank" : "Open next trip"
     };
   }
 
@@ -571,7 +574,8 @@ export function BankResult({
   inferredArchetype,
   inferredRsn,
   hiscoreSkills,
-  returnBossSlug
+  returnBossSlug,
+  initialMode
 }: BankResultProps) {
   const [tabs, setTabs] = useState<OrganizedTab[]>(initial.tabs);
   const [strings, setStrings] = useState<string[]>(initialStrings);
@@ -1421,8 +1425,9 @@ export function BankResult({
     tipSlotsFreed,
     totalValue,
     totalItems,
-    hasPrices: initial.stats.hasPrices
-  }), [bankTips.length, bankWeaponCount, initial.stats.hasPrices, tipSlotsFreed, totalItems, totalValue]);
+    hasPrices: initial.stats.hasPrices,
+    focusMode: initialMode
+  }), [bankTips.length, bankWeaponCount, initial.stats.hasPrices, initialMode, tipSlotsFreed, totalItems, totalValue]);
   const bankReadiness = useMemo(
     () => buildBankReadyToLeave({
       items: allItems,
@@ -1448,6 +1453,10 @@ export function BankResult({
     }
     if (action === "next") {
       openBankHandoffRoute(bankToolUrl("/next", inferredRsn));
+      return;
+    }
+    if (action === "tidy") {
+      applyReorganize("smart", "Tidied");
       return;
     }
     void copyAll();
