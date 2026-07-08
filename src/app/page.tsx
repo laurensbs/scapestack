@@ -54,17 +54,17 @@ export default function HomePage() {
           <div className="scapestack-board-panel p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
-                <div className="eyebrow text-[var(--color-accent)]">Planner rules</div>
+                <div className="eyebrow text-[var(--color-accent)]">Before you go</div>
                 <h2 className="mt-1 text-[20px] font-semibold leading-tight text-[var(--color-text)]">
-                  Every panel must earn the click
+                  Know what to do next
                 </h2>
               </div>
               <ItemSprite id={12954} alt="" size={34} />
             </div>
             <ul className="space-y-2 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-              <li className="flex gap-2"><span className="text-[var(--color-accent)]">•</span><span>Next blocker, not broad stats.</span></li>
-              <li className="flex gap-2"><span className="text-[var(--color-accent)]">•</span><span>Missing items with bank check.</span></li>
-              <li className="flex gap-2"><span className="text-[var(--color-accent)]">•</span><span>Stop point before the trip drifts.</span></li>
+              <li className="flex gap-2"><span className="text-[var(--color-accent)]">•</span><span>What is blocking this quest or unlock?</span></li>
+              <li className="flex gap-2"><span className="text-[var(--color-accent)]">•</span><span>Which items do I still need, and are they in my bank?</span></li>
+              <li className="flex gap-2"><span className="text-[var(--color-accent)]">•</span><span>What is a good place to stop this session?</span></li>
             </ul>
           </div>
         </div>

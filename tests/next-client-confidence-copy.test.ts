@@ -269,7 +269,8 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Routes to inspect");
     expect(source).toContain("Unlock blockers");
     expect(source).not.toContain("Route blockers worth checking");
-    expect(source).toContain("Next blocker first. Completion stays secondary.");
+    expect(source).toContain("Pick the route with the smallest thing blocking it.");
+    expect(source).not.toContain("Next blocker first. Completion stays secondary.");
     expect(source).not.toContain("route percent second");
     expect(source).toContain("Why this plan?");
     expect(source).toContain("Data sources, route evidence and optional bank checks");

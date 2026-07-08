@@ -4671,7 +4671,7 @@ function RouteBlockers({
         <div>
           <h3 className="eyebrow text-[var(--color-accent)]">Routes to inspect</h3>
           <p className="mt-1 text-[12px] text-[var(--color-text-muted)]">
-            Next blocker first. Completion stays secondary.
+            Pick the route with the smallest thing blocking it.
           </p>
         </div>
         <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">

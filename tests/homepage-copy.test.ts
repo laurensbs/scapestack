@@ -34,9 +34,14 @@ describe("homepage first-impression copy", () => {
     expect(source).toContain("Piety");
     expect(source).toContain("Ava's assembler");
     expect(source).toContain("Slayer unlocks");
-    expect(source).toContain("Every panel must earn the click");
-    expect(source).toContain("Missing items with bank check.");
-    expect(source).toContain("Stop point before the trip drifts.");
+    expect(source).toContain("Before you go");
+    expect(source).toContain("Know what to do next");
+    expect(source).toContain("What is blocking this quest or unlock?");
+    expect(source).toContain("Which items do I still need, and are they in my bank?");
+    expect(source).toContain("What is a good place to stop this session?");
+    expect(source).not.toContain("Every panel must earn the click");
+    expect(source).not.toContain("Next blocker, not broad stats.");
+    expect(source).not.toContain("Stop point before the trip drifts.");
     expect(source).not.toContain("Progression lanes");
     expect(source).not.toContain("Which item is missing, and is it already in the bank?");
     expect(source).not.toContain("<HeroBossTripPreview />");

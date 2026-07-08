@@ -25,7 +25,9 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(homepage).toContain("Quest readiness");
     expect(homepage).toContain("Bank gaps");
     expect(homepage).toContain("Unlock board");
-    expect(homepage).toContain("Every panel must earn the click");
+    expect(homepage).toContain("Know what to do next");
+    expect(homepage).toContain("What is blocking this quest or unlock?");
+    expect(homepage).not.toContain("Every panel must earn the click");
     expect(homepage).not.toContain("Progression lanes");
     expect(homepage).not.toContain("Every panel answers a player question");
     expect(next).toContain("Session board");
