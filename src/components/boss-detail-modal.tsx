@@ -3,12 +3,13 @@
 import { useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { X, Sword, Target, Zap, TrendingUp, Package, ExternalLink } from "lucide-react";
-import type { Boss } from "@/lib/bosses";
+import { BOSSES, type Boss } from "@/lib/bosses";
 import { bestStyleAndSetup, calcDps, autoSetup, type DpsBreakdown, type Setup } from "@/lib/dps";
 import { GEAR, type GearItem, type CombatStyle } from "@/lib/gear";
 import { PRESETS, type Preset } from "@/lib/presets";
 import { formatGp, cn } from "@/lib/utils";
 import { ItemSprite } from "@/components/item-sprite";
+import { BossSprite } from "@/components/boss-picker";
 import { wikiPriceUrl } from "@/lib/item-action";
 import { wikiSearchUrl } from "@/lib/wiki";
 import type { BankHandoffItem } from "@/lib/next-bank-handoff";
@@ -18,13 +19,14 @@ interface Props {
   owned: GearItem[];
   bankItems?: BankHandoffItem[];
   onClose: () => void;
+  onSelectBoss?: (boss: Boss) => void;
 }
 
 // Full-bleed boss profile modal. Triggered from /dps (row click) and
 // /next (KC-rec portrait click). Layout is side-by-side on desktop —
 // big portrait left 60%, gear+stats+upgrades+inventory right — and
 // stacks on mobile.
-export function BossDetailModal({ boss, owned, bankItems = [], onClose }: Props) {
+export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelectBoss }: Props) {
   const titleId = "boss-modal-title";
   const descriptionId = "boss-modal-description";
   const statsId = "boss-modal-stats";
@@ -47,6 +49,11 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose }: Props)
     () => buildInventoryRows({ preset, bankItems, owned, dps }),
     [preset, bankItems, owned, dps]
   );
+  const nearbyBosses = useMemo(() => {
+    const sameCategory = BOSSES.filter((candidate) => candidate.category === boss.category && candidate.slug !== boss.slug);
+    const rest = BOSSES.filter((candidate) => candidate.category !== boss.category && candidate.slug !== boss.slug);
+    return [...sameCategory, ...rest].slice(0, 12);
+  }, [boss]);
 
   // GP/hr is honest: cap kills/hour at the boss's killsPerHourCap. Skipped
   // when the engine couldn't find a usable weapon (dps === 0).
@@ -75,7 +82,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose }: Props)
       />
 
       <div
-        className="relative w-full max-w-5xl max-h-[90vh] rounded-2xl overflow-hidden bg-[var(--color-panel)] border border-[var(--color-border-strong)] shadow-[0_30px_80px_-12px_rgb(0_0_0/0.85)] grid lg:grid-cols-[3fr_2fr]"
+        className="relative grid max-h-[90vh] min-h-0 w-full max-w-5xl overflow-hidden rounded-2xl border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-[0_30px_80px_-12px_rgb(0_0_0/0.85)] lg:grid-cols-[3fr_2fr]"
         style={{ animation: "pop-in 0.28s cubic-bezier(0.22, 1, 0.36, 1)" }}
       >
         {/* Close — floats top-right over the portrait so it stays visible
@@ -124,7 +131,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose }: Props)
 
         {/* Right column — gear, stats, upgrades, inventory. Scrolls
             internally so the modal as a whole stays in viewport. */}
-        <div className="relative overflow-y-auto p-5 sm:p-6 space-y-5">
+        <div className="relative min-h-0 max-h-[90vh] space-y-5 overflow-y-auto overscroll-contain p-5 pb-16 sm:p-6 sm:pb-16">
           {/* Stats row — DPS, Max hit, Accuracy, plus GP/hr if available. */}
           <section id={statsId}>
             <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">Best style with your gear</h3>
@@ -163,6 +170,29 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose }: Props)
               </p>
             )}
           </section>
+
+          {onSelectBoss && nearbyBosses.length > 0 && (
+            <section>
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <h3 className="eyebrow text-[var(--color-text-muted)]">Try another boss</h3>
+                <span className="text-[10.5px] text-[var(--color-text-muted)]">{nearbyBosses.length} quick picks</span>
+              </div>
+              <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+                {nearbyBosses.map((candidate) => (
+                  <button
+                    key={candidate.slug}
+                    type="button"
+                    onClick={() => onSelectBoss(candidate)}
+                    title={candidate.name}
+                    aria-label={`Switch boss setup to ${candidate.name}`}
+                    className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/50 transition-colors hover:border-[var(--color-accent)]/55 hover:bg-[var(--color-accent)]/10"
+                  >
+                    <BossSprite boss={candidate} size={36} />
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Worn gear grid — 8 slots in the OSRS equipment-tab layout
               (best-fit since we don't model 11 slots; missing slots

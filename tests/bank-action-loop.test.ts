@@ -22,24 +22,25 @@ describe("bank action loop", () => {
     expect(steps[2]).toMatchObject({
       title: "Check boss gear",
       cta: "Check kill",
-      destination: "/dps kill check",
+      destination: "Kill check",
       proof: "Uses current bank gear and item IDs",
       state: "ready"
     });
     expect(steps[2].body).toContain("this exact bank");
     expect(steps[2].body).toContain("which bosses your current weapons can actually kill");
-    expect(steps[3].body).toContain("RuneLite help");
-    expect(steps[3].body).toContain("once this same RSN is found");
+    expect(steps[3].body).toContain("Use this cleaned bank");
+    expect(steps[3].body).toContain("RuneLite can refine quests");
     expect(steps[3].body).not.toContain("combine it with RuneLite sync for exact account-state recommendations");
     expect(steps[3].body).not.toContain("exact account-state recommendations");
     expect(steps[3]).toMatchObject({
-      destination: "/next planner",
+      cta: "Plan next trip",
+      destination: "Next trip",
       proof: "Carries current bank gear into the next plan"
     });
     expect(steps[4]).toMatchObject({
       title: "Check RuneLite",
       cta: "Check RuneLite",
-      destination: "/plugin#verify-sync",
+      destination: "RuneLite sync",
       state: "ready"
     });
     expect(steps[4].body).toContain("check the same name");
@@ -81,7 +82,7 @@ describe("bank action loop", () => {
     expect(steps[4]).toMatchObject({
       title: "Check RuneLite",
       cta: "Check RuneLite",
-      destination: "/plugin#verify-sync",
+      destination: "RuneLite sync",
       proof: "RuneLite optional · web planner ready",
       state: "optional"
     });
@@ -107,13 +108,13 @@ describe("bank action loop", () => {
 
     expect(unknown[4]).toMatchObject({
       title: "Check RuneLite",
-      destination: "/plugin#verify-sync",
+      destination: "RuneLite sync",
       proof: "RuneLite unknown · same RSN required",
       state: "optional"
     });
     expect(closed[4]).toMatchObject({
       title: "Check RuneLite",
-      destination: "/plugin#verify-sync",
+      destination: "RuneLite sync",
       proof: "RuneLite optional · web planner ready",
       state: "optional"
     });
@@ -133,7 +134,7 @@ describe("bank action loop", () => {
     expect(steps[4]).toMatchObject({
       title: "Check RuneLite",
       cta: "Check RuneLite",
-      destination: "/plugin#verify-sync",
+      destination: "RuneLite sync",
       proof: "RuneLite · same RSN required",
       state: "ready"
     });
@@ -185,6 +186,9 @@ describe("bank action loop", () => {
     expect(source).toContain("group/bank-action rounded-lg border p-3 text-left");
     expect(source).toContain('if (step.id === "dps") return onDps;');
     expect(source).toContain("md:grid-cols-5");
+    expect(source).not.toContain("Use this bank in");
+    expect(source).not.toContain("onGoals");
+    expect(source).not.toContain("onSlayer");
     expect(source).toContain("group-hover/bank-action:border-[var(--color-accent)]/50");
     expect(source).not.toContain("<article");
     expect(source).not.toContain("className=\"mt-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-bg-2)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/50 hover:text-[var(--color-accent)]\"");

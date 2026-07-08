@@ -31,6 +31,10 @@ describe("boss detail modal affordance", () => {
     expect(source).toContain("Best inventory setup");
     expect(source).toContain("Bright chips = in your bank");
     expect(source).toContain("Buy chips = missing");
+    expect(source).toContain("Try another boss");
+    expect(source).toContain("onSelectBoss?: (boss: Boss) => void");
+    expect(source).toContain("max-h-[90vh]");
+    expect(source).toContain("overflow-y-auto overscroll-contain");
   });
 
   it("builds boss inventory from the pasted bank and marks missing buys", () => {

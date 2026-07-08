@@ -123,6 +123,7 @@ function hasDropChanceGraph(rec: Recommendation): rec is Recommendation & { kcMe
 
 const SAMPLE_LABEL = "sample plan";
 const COMPACT_NUMBER = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+const RANDOMIZE_ROLL_IDS = [20594, 11140, 11772, 6737, 6739, 7462, 772, 11864, 995, 22109];
 
 const SAMPLE_SKILL_NAMES = [
   "Attack", "Defence", "Strength", "Hitpoints", "Ranged", "Prayer",
@@ -687,6 +688,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
         <BossDetailModal
           boss={modalBoss}
           owned={ownedGearItems}
+          onSelectBoss={(nextBoss) => setModalBoss(nextBoss)}
           onClose={() => setModalBoss(null)}
         />
       )}
@@ -2246,6 +2248,71 @@ function KcPortrait({ rec, size, prominent = false }: {
   );
 }
 
+function RouteIdentityStrip({ rec }: { rec: Recommendation }) {
+  const boss = rec.bossSlug ? BOSSES.find((candidate) => candidate.slug === rec.bossSlug) : null;
+  const itemId = rec.iconItemId ?? boss?.iconItemId ?? KIND_META[rec.kind].iconItemId;
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-1.5" aria-label={`OSRS IDs for ${rec.title}`}>
+      {boss ? (
+        <span className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-1.5 py-1 text-[10px] font-semibold text-[var(--color-text-muted)]">
+          <BossSprite boss={boss} size={18} />
+          boss:{boss.slug}
+        </span>
+      ) : null}
+      {itemId ? (
+        <span className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-1.5 py-1 text-[10px] font-semibold text-[var(--color-text-muted)]">
+          <ItemSprite id={itemId} alt="" size={18} className="pixelated" />
+          id:{itemId}
+        </span>
+      ) : null}
+      <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-1.5 py-1 text-[10px] font-semibold text-[var(--color-text-muted)]">
+        {KIND_META[rec.kind].label}
+      </span>
+    </div>
+  );
+}
+
+function RouteStepBrief({
+  label,
+  value,
+  tone = "default"
+}: {
+  label: string;
+  value: string;
+  tone?: "default" | "accent";
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-lg border px-3 py-2",
+        tone === "accent"
+          ? "border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8"
+          : "border-[var(--color-border)] bg-[var(--color-bg)]/35"
+      )}
+    >
+      <div className="text-[9.5px] font-black uppercase tracking-[0.16em] text-[var(--color-text-muted)]">{label}</div>
+      <div className="mt-1 text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">{value}</div>
+    </div>
+  );
+}
+
+function RandomizeRoll({ active }: { active: boolean }) {
+  if (!active) return null;
+  return (
+    <span className="inline-flex items-center gap-1 rounded-md border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-2 py-1">
+      {RANDOMIZE_ROLL_IDS.slice(0, 5).map((id, index) => (
+        <span
+          key={`${id}:${index}`}
+          className="inline-flex size-5 items-center justify-center rounded border border-[var(--color-border)] bg-[var(--color-bg)]/65"
+          style={{ animation: `pop-in 0.45s ease-out ${index * 80}ms infinite alternate` }}
+        >
+          <ItemSprite id={id} alt="" size={15} className="pixelated" />
+        </span>
+      ))}
+    </span>
+  );
+}
+
 function playerChoiceTag(rec: Recommendation): { label: string; helper: string } {
   if (rec.kind === "money") return { label: "GP", helper: "Pick this when you want cash or the next upgrade." };
   if (rec.kind === "boss" || rec.kind === "kc") return { label: "Bossing", helper: "Pick this when you want a PvM trip." };
@@ -3227,16 +3294,16 @@ function RouteChain({
                   <span className="mt-1 block text-[13px] font-bold leading-snug text-[var(--color-text)]">
                     {rec.title}
                   </span>
+                  <RouteIdentityStrip rec={rec} />
                 </span>
                 <span className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)] transition-colors group-open:border-[var(--color-accent)]/35 group-open:text-[var(--color-accent)]">
                   Plan
                 </span>
               </summary>
-              <div className="mt-3 grid gap-2 border-t border-[var(--color-border)] pt-3 text-[11.5px] leading-relaxed text-[var(--color-text-muted)] sm:grid-cols-2">
-                <p><span className="font-bold text-[var(--color-text)]">Start:</span> {routeStepStart(rec)}</p>
-                <p><span className="font-bold text-[var(--color-text)]">Bring:</span> {routeStepBring(rec, bankItems, accountStage, maxEstimate)}</p>
-                <p><span className="font-bold text-[var(--color-text)]">Stop:</span> {recommendationStopPointValue(rec)}</p>
-                <p><span className="font-bold text-[var(--color-text)]">Check:</span> {routeStepPrep(rec, bankItems, accountStage, maxEstimate)}</p>
+              <div className="mt-3 grid gap-2 border-t border-[var(--color-border)] pt-3 sm:grid-cols-3">
+                <RouteStepBrief label="Do" value={routeStepStart(rec)} tone="accent" />
+                <RouteStepBrief label="Bring/check" value={routeStepBring(rec, bankItems, accountStage, maxEstimate)} />
+                <RouteStepBrief label="Stop when" value={recommendationStopPointValue(rec)} />
               </div>
             </details>
           );
@@ -4062,6 +4129,7 @@ function WhatToDo({
   const [routeLens, setRouteLens] = useState<RouteLens>(initialRouteChoice?.routeLens ?? "smart");
   const [shuffleIdx, setShuffleIdx] = useState(0);
   const [lastRandomLens, setLastRandomLens] = useState<RouteLens | null>(null);
+  const [isRandomizing, setIsRandomizing] = useState(false);
   const [sessionSkipped, setSessionSkipped] = useState<Record<string, SessionSkippedPick>>({});
   const [routeSwitchNote, setRouteSwitchNote] = useState<string | null>(null);
   const [lastSuppressed, setLastSuppressed] = useState<{ id: string; kind: RecKind; title: string } | null>(null);
@@ -4072,6 +4140,11 @@ function WhatToDo({
     recent: []
   }));
   const [lastSession, setLastSession] = useState<MoodSession | null>(null);
+  useEffect(() => {
+    if (!isRandomizing) return;
+    const timer = window.setTimeout(() => setIsRandomizing(false), 760);
+    return () => window.clearTimeout(timer);
+  }, [isRandomizing]);
   useEffect(() => {
     const last = loadMood(activeRsn);
     setLastSession(last);
@@ -4194,6 +4267,7 @@ function WhatToDo({
     setShuffleIdx(0);
   };
   const moveToAnotherPlan = () => {
+    setIsRandomizing(true);
     const randomLens = randomRouteLens(routeLens, lastRandomLens, mood);
     const randomShuffle = 1 + Math.floor(Math.random() * Math.max(3, visibleRecs.length));
     setLastRandomLens(randomLens);
@@ -4422,7 +4496,8 @@ function WhatToDo({
                     className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/45 bg-[var(--color-accent)]/12 px-3 py-2 text-[11.5px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/18"
                   >
                     <Dices className="size-3.5" />
-                    Randomize
+                    {isRandomizing ? "Rolling" : "Randomize"}
+                    <RandomizeRoll active={isRandomizing} />
                   </button>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">

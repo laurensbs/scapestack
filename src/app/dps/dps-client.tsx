@@ -595,6 +595,11 @@ export function DpsClient() {
           boss={modalBoss}
           owned={owned}
           bankItems={bankItems}
+          onSelectBoss={(nextBoss) => {
+            setFocusedBoss(nextBoss);
+            setModalBoss(nextBoss);
+            setSearch(nextBoss.name);
+          }}
           onClose={() => setModalBoss(null)}
         />
       )}

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useMemo, useCallback, useEffect, useRef, createContext, useContext } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -237,7 +238,7 @@ function buildBankDecision({
       why: hasPrices && totalValue > 0
         ? `Gear, supplies and ${formatGp(totalValue)} GP are now part of the next recommendation.`
         : "Gear and supplies are now part of the next recommendation.",
-      firstStep: "Open /next and pick the trip that fits tonight.",
+      firstStep: "Open the next trip plan that fits tonight.",
       stopPoint: "Stop when you have one trip, unlock or AFK goal picked.",
       avoid: "Avoid comparing every tab before deciding what to do.",
       primaryAction: "next",
@@ -305,7 +306,7 @@ function BankDecisionHero({
     },
     {
       label: "Next trip",
-      value: tipCount > 0 ? "Clean a few slots, then pick a trip." : "Use this bank for /next."
+      value: tipCount > 0 ? "Clean a few slots, then pick a trip." : "Use this bank for your next trip."
     }
   ];
   const playerSteps = decision.primaryAction === "tidy"
@@ -361,6 +362,7 @@ function BankDecisionHero({
           <button
             type="button"
             onClick={() => onPrimary(decision.primaryAction)}
+            aria-label={decision.primaryAction === "tidy" ? "Smart tidy this organized bank again" : `${decision.primaryLabel}: ${decision.title}`}
             className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-bold text-[#0b0906] transition-all hover:brightness-110"
           >
             {copied === "all" && decision.primaryAction === "copy" ? <CheckCheck className="size-3.5" /> : <ArrowRight className="size-3.5" />}
@@ -375,6 +377,7 @@ function BankDecisionHero({
               <button
                 type="button"
                 onClick={() => onSecondary(decision.secondaryAction)}
+                aria-label={`${decision.secondaryLabel}: ${decision.title}`}
                 className="flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-accent)]"
               >
                 {decision.secondaryLabel}
@@ -383,6 +386,7 @@ function BankDecisionHero({
               <button
                 type="button"
                 onClick={onTidy}
+                aria-label="Smart tidy this organized bank again"
                 className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-accent)]"
               >
                 <Wand2 className="size-3.5" />
@@ -391,6 +395,7 @@ function BankDecisionHero({
               <button
                 type="button"
                 onClick={onEditInput}
+                aria-label="Edit pasted bank input"
                 className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-accent)]"
               >
                 <Edit3 className="size-3.5" />
@@ -1519,6 +1524,18 @@ export function BankResult({
         inferredArchetype={inferredArchetype}
       />
 
+      {inferredRsn && (
+        <div className="mb-3 flex justify-end">
+          <Link
+            href={`/u/${encodeURIComponent(rsnSlug(inferredRsn))}`}
+            className="text-[11px] font-semibold text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:underline"
+            title={`Open ${inferredRsn}'s Scapestack profile`}
+          >
+            Open {inferredRsn}&apos;s Scapestack profile
+          </Link>
+        </div>
+      )}
+
       {handoffBlockedHref && (
         <div
           id="bank-handoff-warning"
@@ -1767,8 +1784,6 @@ export function BankResult({
         }}
         onNext={() => openBankHandoffRoute(bankToolUrl("/next", inferredRsn))}
         onDps={() => openBankHandoffRoute(bankToolUrl("/dps", inferredRsn, dpsHandoffOptions))}
-        onGoals={() => openBankHandoffRoute(bankToolUrl("/goals", inferredRsn))}
-        onSlayer={() => openBankHandoffRoute(bankToolUrl("/slayer", inferredRsn))}
         onPlugin={() => openBankHandoffRoute(pluginSyncHref)}
         copied={copied}
       />
@@ -2960,8 +2975,6 @@ function BankActionLoopRail({
   onTips,
   onNext,
   onDps,
-  onGoals,
-  onSlayer,
   onPlugin,
   copied
 }: {
@@ -2970,8 +2983,6 @@ function BankActionLoopRail({
   onTips: () => void;
   onNext: () => void;
   onDps: () => void;
-  onGoals: () => void;
-  onSlayer: () => void;
   onPlugin: () => void;
   copied: string | null;
 }) {
@@ -2988,10 +2999,10 @@ function BankActionLoopRail({
       <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 marker:hidden [&::-webkit-details-marker]:hidden">
         <div>
           <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-            From bank to trip
+            After tidy
           </div>
           <h3 className="mt-1 text-[15px] font-bold text-[var(--color-text)]">
-            Copy tabs, check the setup, then pick one trip.
+            Copy tabs, check one setup, then pick the next trip.
           </h3>
         </div>
         {copied === "all" && (
@@ -3063,15 +3074,12 @@ function BankActionLoopRail({
         })}
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[var(--color-border)]/50 pt-3">
-        <span className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-          Use this bank in
-        </span>
         <button
           type="button"
           onClick={onNext}
           className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
         >
-          /next
+          Plan next trip
           <Sparkles className="size-3.5" />
         </button>
         <button
@@ -3079,31 +3087,15 @@ function BankActionLoopRail({
           onClick={onDps}
           className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
         >
-          /dps
+          Check kill
           <Sword className="size-3.5" />
-        </button>
-        <button
-          type="button"
-          onClick={onGoals}
-          className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
-        >
-          /goals
-          <Target className="size-3.5" />
-        </button>
-        <button
-          type="button"
-          onClick={onSlayer}
-          className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
-        >
-          /slayer
-          <Shield className="size-3.5" />
         </button>
         <button
           type="button"
           onClick={onPlugin}
           className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
         >
-          /plugin
+          RuneLite sync
           <PlugZap className="size-3.5" />
         </button>
       </div>
@@ -3931,7 +3923,16 @@ function BankGrid({ tab, items, hasPrices, hasQty, density, junkIds, staleIds, g
   }
   const slots = Object.keys(filteredLayout).map(Number);
   const maxSlot = slots.length ? Math.max(...slots) : items.length - 1;
-  const rowsNeeded = Math.max(GRID_ROWS_MIN, Math.ceil((maxSlot + 1) / GRID_COLS));
+  const shouldDensePackSparseLayout =
+    items.length > 0 &&
+    slots.length > 0 &&
+    maxSlot + 1 > Math.max(GRID_ROWS_MIN * GRID_COLS, items.length * 4);
+  const renderLayout: Record<number, number> = shouldDensePackSparseLayout
+    ? Object.fromEntries(items.map((item, index) => [index, item.id]))
+    : filteredLayout;
+  const renderSlots = Object.keys(renderLayout).map(Number);
+  const renderMaxSlot = renderSlots.length ? Math.max(...renderSlots) : items.length - 1;
+  const rowsNeeded = Math.max(GRID_ROWS_MIN, Math.ceil((renderMaxSlot + 1) / GRID_COLS));
   const totalSlots = rowsNeeded * GRID_COLS;
 
   return (
@@ -3944,7 +3945,7 @@ function BankGrid({ tab, items, hasPrices, hasQty, density, junkIds, staleIds, g
       style={{ gridTemplateColumns: "repeat(8, minmax(0, 1fr))" }}
     >
       {Array.from({ length: totalSlots }).map((_, i) => {
-        const id = filteredLayout[i];
+        const id = renderLayout[i];
         if (id === undefined) return <EmptySlot key={i} />;
         // Bank filler sentinel — placed by layout builders to mark "this slot
         // belongs to a set / pipeline template but the player doesn't own the

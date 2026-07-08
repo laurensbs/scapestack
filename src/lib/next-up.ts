@@ -2394,13 +2394,14 @@ function bankRecs(bank: CompletionItem[]): Recommendation[] {
     decisionReason: "Bank cleanup only wins when it reduces friction for every later trip.",
     score: 30,
     link: "/bank?mode=tidy",
+    iconItemId: 20594,
     planSeed: {
       timebox: "10-20 min",
       prep: `You have ${bank.length} recognized bank items; clean tabs reduce friction on every later trip.`,
       steps: [
-        "Check gear and export the cleaned RuneLite tabs.",
-        "Decant potions, recharge jewellery and move obvious junk before the next PvM/skilling run.",
-        "Save the cleaned bank so future /next runs compare against the new baseline."
+        "Pick the bank layout that matches how you play.",
+        "Press Smart tidy, then check Teleports, PvM Gear and Supplies first.",
+        "Copy the cleaned tabs into RuneLite when the layout feels usable."
       ]
     }
   }];

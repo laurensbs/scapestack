@@ -61,7 +61,7 @@ export function buildBankActionLoop(input: BankActionLoopInput): BankActionLoopS
       title: "Check boss gear",
       body: "Check the kill with this exact bank before you buy upgrades. Scapestack will show which bosses your current weapons can actually kill and what item helps next.",
       cta: "Check kill",
-      destination: "/dps kill check",
+      destination: "Kill check",
       proof: "Uses current bank gear and item IDs",
       state: "ready"
     },
@@ -70,10 +70,10 @@ export function buildBankActionLoop(input: BankActionLoopInput): BankActionLoopS
       label: "04",
       title: "Plan the next session",
       body: input.hasPluginSyncHint
-        ? "Send this bank into /next and let RuneLite help once this same RSN is found."
-        : "Send this bank into /next now. Add RuneLite later when quests, diaries, clog or Slayer matter.",
-      cta: "Open /next",
-      destination: "/next planner",
+        ? "Use this cleaned bank for the next trip. RuneLite can refine quests, diaries and unlocks for the same RSN."
+        : "Use this cleaned bank for the next trip. Add RuneLite later when quests, diaries, clog or Slayer matter.",
+      cta: "Plan next trip",
+      destination: "Next trip",
       proof: "Carries current bank gear into the next plan",
       state: "ready"
     },
@@ -89,7 +89,7 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
       title: "Check RuneLite",
       body: "RSN is known; check the same name before relying on quests, diaries, clog and Slayer.",
       cta: "Check RuneLite",
-      destination: "/plugin#verify-sync",
+      destination: "RuneLite sync",
       proof: "RSN detected · RuneLite can help",
       state: "ready"
     };
@@ -102,7 +102,7 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
       title: "Check RuneLite",
       body: "Enable Scapestack Sync in RuneLite, then check this same RSN so recommendations can avoid finished progress.",
       cta: "Check RuneLite",
-      destination: "/plugin#verify-sync",
+      destination: "RuneLite sync",
       proof: "RuneLite · same RSN required",
       state: "ready"
     };
@@ -115,7 +115,7 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
       title: "Check RuneLite",
       body: "Use the same RSN when quests, diaries, clog or Slayer matter.",
       cta: "Check RuneLite",
-      destination: "/plugin#verify-sync",
+      destination: "RuneLite sync",
       proof: "RuneLite optional · web planner ready",
       state: "optional"
     };
@@ -126,9 +126,9 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
       id: "sync",
       label: "05",
       title: "Check RuneLite",
-      body: "Use this bank in /next now. Check RuneLite later if /next repeats finished progress.",
+      body: "Use this bank for the next trip now. Check RuneLite later if finished progress repeats.",
       cta: "Check RuneLite",
-      destination: "/plugin#verify-sync",
+      destination: "RuneLite sync",
       proof: "RuneLite optional · web planner ready",
       state: "optional"
     };
@@ -139,9 +139,9 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
       id: "sync",
       label: "05",
       title: "Check RuneLite",
-      body: "Use this bank in /next now, or check the same RSN on the RuneLite page.",
+      body: "Use this bank for the next trip now, or check the same RSN on the RuneLite page.",
       cta: "Check RuneLite",
-      destination: "/plugin#verify-sync",
+      destination: "RuneLite sync",
       proof: "RuneLite unknown · same RSN required",
       state: "optional"
     };
@@ -153,7 +153,7 @@ function buildSyncStep(hasRsnHint: boolean, pluginHubState: NonNullable<BankActi
     title: "Check RuneLite",
     body: "Use the same RSN when quests, diaries, clog or Slayer matter.",
     cta: "Check RuneLite",
-    destination: "/plugin#verify-sync",
+    destination: "RuneLite sync",
     proof: "RuneLite optional · same RSN required",
     state: "optional"
   };

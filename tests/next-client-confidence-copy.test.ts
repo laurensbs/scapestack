@@ -222,6 +222,10 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("After that");
     expect(source).toContain("routePreviewRecs");
     expect(source).toContain("function RouteChain");
+    expect(source).toContain("function RouteIdentityStrip");
+    expect(source).toContain("function RandomizeRoll");
+    expect(source).toContain("id:{itemId}");
+    expect(source).toContain("boss:{boss.slug}");
     expect(source).toContain("routeStepPrep");
     expect(source).toContain("routeStepBring");
     expect(source).toContain("Gather your own supply first");

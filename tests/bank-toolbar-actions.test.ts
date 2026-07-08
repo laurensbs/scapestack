@@ -6,18 +6,18 @@ const source = readFileSync(join(process.cwd(), "src/components/bank-result.tsx"
 
 describe("bank toolbar actions", () => {
   it("labels the primary bank action buttons as explicit actions", () => {
-    expect(source).toContain('aria-label="Save a local snapshot of this organized bank"');
-    expect(source).toContain('aria-label="Copy every organized Bank Tags tab to RuneLite"');
-    expect(source).toContain('aria-label="Open next-session recommendations using this bank"');
+    expect(source).toContain('aria-label={decision.primaryAction === "tidy" ? "Smart tidy this organized bank again" : `${decision.primaryLabel}: ${decision.title}`}');
+    expect(source).toContain('aria-label={`${decision.secondaryLabel}: ${decision.title}`}');
+    expect(source).toContain("Copy export instead");
+    expect(source).toContain("Plan next trip");
     expect(source).toContain('aria-label="Smart tidy this organized bank again"');
-    expect(source).toContain('aria-label="Customize bank tab order and pinned items"');
     expect(source).toContain('aria-label="Edit pasted bank input"');
   });
 
   it("uses real non-submit buttons for the toolbar actions", () => {
-    expect(source).toContain('<button\n            type="button"\n            onClick={saveCurrentSnapshot}');
-    expect(source).toContain('<button\n            type="button"\n            onClick={copyAll}');
-    expect(source).toContain('<button type="button" onClick={onEditInput}');
+    expect(source).toContain('<button\n            type="button"\n            onClick={() => onPrimary(decision.primaryAction)}');
+    expect(source).toContain('<button\n                type="button"\n                onClick={onTidy}');
+    expect(source).toContain('<button\n                type="button"\n                onClick={onEditInput}');
   });
 
   it("keeps every bank result button as an explicit non-submit action", () => {

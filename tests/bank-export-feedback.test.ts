@@ -9,7 +9,7 @@ describe("bank export feedback", () => {
     expect(source).toContain("function BankDecisionHero");
     expect(source).toContain("Can I leave the bank?");
     expect(source).toContain("Kill check can build one owned-gear trip.");
-    expect(source).toContain("Use this bank for /next.");
+    expect(source).toContain("Use this bank for your next trip.");
     expect(source).toContain("Check one boss trip before buying upgrades");
     expect(source).toContain("Use this bank for one clear trip");
     expect(source).toContain("function buildBankReadyToLeave");
@@ -21,6 +21,7 @@ describe("bank export feedback", () => {
     expect(source).toContain("const bankReadiness = useMemo(");
     expect(source).toContain("readiness={bankReadiness}");
     expect(source).toContain('id="bank-view-panel"');
+    expect(source).toContain("shouldDensePackSparseLayout");
     expect(source).toContain("Do first");
     expect(source).toContain("Leave");
     expect(source).not.toContain("<span>Organize tabs</span>");
@@ -106,6 +107,15 @@ describe("bank export feedback", () => {
     expect(source).toContain("aria-label={`Check ${boss.name} kill setup with this bank`}");
     expect(source).toContain("title={`/dps?boss=${boss.slug}`}");
     expect(source).toContain("opens kill check with this boss selected.");
+  });
+
+  it("keeps the post-bank action rail player-facing instead of slash-route heavy", () => {
+    expect(source).toContain("After tidy");
+    expect(source).toContain("Plan next trip");
+    expect(source).toContain("RuneLite sync");
+    expect(source).not.toContain("Use this bank in");
+    expect(source).not.toContain("onGoals={() => openBankHandoffRoute");
+    expect(source).not.toContain("onSlayer={() => openBankHandoffRoute");
   });
 
   it("keeps a DPS boss target when setup is added through the bank", () => {

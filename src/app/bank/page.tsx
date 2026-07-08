@@ -200,7 +200,6 @@ function BankPageContent() {
   }, []);
 
   useEffect(() => {
-    if (!cameFromNext()) return;
     if (autoLoadedSavedBank || replaceSavedBank || pending || view !== "intake" || !savedBank) return;
     setAutoLoadedSavedBank(true);
     onIntakeSubmit(savedBank.banktags, false, prefilledRsn);
