@@ -12,7 +12,6 @@ describe("bank export feedback", () => {
     expect(source).toContain("Use this bank for /next.");
     expect(source).toContain("Check one boss trip before buying upgrades");
     expect(source).toContain("Use this bank for one clear trip");
-    expect(source).toContain("ReadyToLeave");
     expect(source).toContain("function buildBankReadyToLeave");
     expect(source).toContain("ReadyToLeaveStatus");
     expect(source).toContain('"Good first trip"');
@@ -21,9 +20,14 @@ describe("bank export feedback", () => {
     expect(source).toContain('"Skip for now"');
     expect(source).toContain("const bankReadiness = useMemo(");
     expect(source).toContain("readiness={bankReadiness}");
-    expect(source).toContain("<span>Organize tabs</span>");
+    expect(source).toContain('id="bank-view-panel"');
+    expect(source).toContain("Do first");
+    expect(source).toContain("Leave");
+    expect(source).not.toContain("<span>Organize tabs</span>");
     expect(source).toContain("<span>Saved banks</span>");
-    expect(source.indexOf("Can I leave the bank?")).toBeLessThan(source.indexOf("Paste check"));
+    expect(source.indexOf("Can I leave the bank?")).toBeLessThan(source.indexOf('id="bank-view-panel"'));
+    expect(source.indexOf('id="bank-view-panel"')).toBeLessThan(source.indexOf("Import details"));
+    expect(source.indexOf('id="bank-view-panel"')).toBeLessThan(source.indexOf("<span>Saved banks</span>"));
   });
 
   it("shows a paste check for bank precision before export", () => {

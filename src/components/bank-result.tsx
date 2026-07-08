@@ -57,7 +57,7 @@ import { bestStyleAndSetup } from "@/lib/dps";
 import { exportTag } from "@/lib/bank-tags";
 import { DiscordWebhookCard } from "./discord-webhook-card";
 import { SupportCard } from "./support-card";
-import { ReadyToLeave, type ReadyToLeaveItem, type ReadyToLeaveStatus } from "./ready-to-leave";
+import type { ReadyToLeaveItem, ReadyToLeaveStatus } from "./ready-to-leave";
 import { buildItemVerdict, type ItemVerdictTone } from "@/lib/item-action";
 import { copyText } from "@/lib/clipboard";
 import { buildBankActionLoop, type BankActionLoopInput, type BankActionLoopStep } from "@/lib/bank-action-loop";
@@ -308,6 +308,17 @@ function BankDecisionHero({
       value: tipCount > 0 ? "Clean a few slots, then pick a trip." : "Use this bank for /next."
     }
   ];
+  const playerSteps = decision.primaryAction === "tidy"
+    ? [
+        { label: "Do first", value: "Press Smart tidy. Your bank tabs update on this page." },
+        { label: "Check", value: "Look at Teleports, PvM Gear and Supplies first." },
+        { label: "Leave", value: "Copy to RuneLite when the layout looks usable." }
+      ]
+    : [
+        { label: "Do first", value: decision.firstStep },
+        { label: "Check", value: readiness.status },
+        { label: "Leave", value: decision.stopPoint }
+      ];
 
   return (
     <section className="scapestack-board-panel mb-5 px-4 py-4 sm:px-5">
@@ -329,17 +340,21 @@ function BankDecisionHero({
           <p className="max-w-3xl text-[13px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
             {decision.why}
           </p>
-          <ReadyToLeave status={readiness.status} items={readiness.items} compact />
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {chips.map((chip) => (
-              <span
-                key={chip}
-                className="scapestack-status-badge"
-                data-tone="prep"
-              >
-                {chip}
-              </span>
-            ))}
+          <div className="mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/24 px-3 py-2.5">
+            <div className="mb-1.5 flex flex-wrap items-center gap-2">
+              <span className="scapestack-status-badge" data-tone="ready">{readiness.status}</span>
+              {chips.slice(0, 2).map((chip) => (
+                <span key={chip} className="scapestack-status-badge" data-tone="prep">{chip}</span>
+              ))}
+            </div>
+            <dl className="divide-y divide-[var(--color-border)]/50">
+              {playerSteps.map((step) => (
+                <div key={step.label} className="grid gap-1 py-2 sm:grid-cols-[72px_minmax(0,1fr)] sm:gap-3">
+                  <dt className="text-[11px] font-bold text-[var(--color-accent)]">{step.label}</dt>
+                  <dd className="text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">{step.value}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2 lg:justify-end">
@@ -1479,298 +1494,6 @@ export function BankResult({
         onTidy={() => applyReorganize("smart", "Tidied")}
         onEditInput={onEditInput}
       />
-      {/* Header — minimal, mono stats, single mint accent on gp */}
-      <details className="mb-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-3">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-semibold text-[var(--color-text)] marker:hidden">
-          <span>Organize tabs</span>
-          <span className="text-[11px] font-medium text-[var(--color-text-muted)]">Only after the trip is picked</span>
-        </summary>
-      <div className="mt-4 flex flex-wrap items-start justify-between gap-4 mb-6">
-        <div>
-          <h2 className="text-[20px] font-semibold tracking-normal text-[var(--color-text)] leading-tight">
-            {initial.source.name}
-          </h2>
-          {inferredArchetype && inferredArchetype !== "unspecified" && (() => {
-            const meta = ARCHETYPES.find((a) => a.id === inferredArchetype);
-            if (!meta) return null;
-            return (
-              <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 pl-1.5 pr-2.5 py-0.5 text-[11.5px] font-medium text-[var(--color-accent)]">
-                <span className="size-4 shrink-0 inline-flex items-center justify-center">
-                  <ItemSprite
-                    id={meta.iconItemId}
-                    alt=""
-                    className="pixelated"
-                    style={{ maxWidth: "100%", maxHeight: "100%" }}
-                  />
-                </span>
-                <span>Layout tuned for <span className="font-semibold">{meta.label}</span></span>
-                {inferredRsn && (
-                  <a
-                    href={`/u/${encodeURIComponent(rsnSlug(inferredRsn))}`}
-                    className="font-mono normal-case text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:underline"
-                    title={`Open ${inferredRsn}'s Scapestack profile`}
-                  >
-                    · {inferredRsn}
-                  </a>
-                )}
-              </div>
-            );
-          })()}
-          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-[var(--color-text)] font-mono tabular-nums">
-            <span className="flex items-center gap-1.5">
-              <Layers className="size-3.5 opacity-50" />
-              {totalItems} items · {tabs.length} tabs
-            </span>
-            {initial.stats.hasQuantities && (
-              <span className="flex items-center gap-1.5">
-                <Hash className="size-3.5 opacity-50" />
-                {formatQty(totalQty)} stack
-              </span>
-            )}
-            {initial.stats.hasPrices && totalValue > 0 && (
-              <span className="flex items-center gap-1.5 text-[var(--color-accent)]">
-                <Coins className="size-3.5" />
-                {formatGp(totalValue)} gp
-              </span>
-            )}
-            {initial.stats.junkFilterActive && (
-              <span className="flex items-center gap-1.5 text-[var(--color-warning)]">
-                <AlertCircle className="size-3.5" />
-                Junk filter on
-              </span>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <StackScoreBadge tabs={tabs} previousScore={previousScore} />
-          <button
-            type="button"
-            onClick={saveCurrentSnapshot}
-            aria-label="Save a local snapshot of this organized bank"
-            className={cn(
-              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12.5px] font-medium border transition-colors",
-              copied === "snapshot"
-                ? "border-[var(--color-good)]/40 text-[var(--color-good)] bg-[var(--color-good)]/10"
-                : "border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
-            )}
-            title="Save a local snapshot of this bank state"
-          >
-            {copied === "snapshot" ? <CheckCheck className="size-3.5" /> : <Save className="size-3.5" />}
-            {copied === "snapshot" ? "Saved" : "Save snapshot"}
-          </button>
-          {/* PRIMARY ACTION — the moment-of-truth: paste back into RuneLite.
-              Previously this lived 1000+ pixels below the bank in an Export
-              section, which is the wrong place for the page's main outcome.
-              Now it's right where the eye lands after "your bank is sorted". */}
-          <button
-            type="button"
-            onClick={copyAll}
-            aria-label="Copy every organized Bank Tags tab to RuneLite"
-            className={cn(
-              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12.5px] font-semibold transition-all",
-              "bg-[var(--color-accent)] text-[#0B1116] hover:brightness-110 shadow-[0_0_0_3px_rgba(134, 166, 217,0.15)]",
-              "hover:shadow-[0_0_0_4px_rgba(134, 166, 217,0.25)]"
-            )}
-            title="Copy every tab's Bank Tags string to your clipboard — paste each into RuneLite"
-          >
-            {copied === "all" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
-            {copied === "all" ? "Copied!" : "Copy to RuneLite"}
-          </button>
-          {/* Bank → /next handoff. Per STRATEGY.md the bank organizer is a
-              data feeder for the /next hub, so after a successful organize
-              we offer a one-click jump that carries the bank along via
-              sessionStorage. /next reads it back and skips the intake form. */}
-          <button
-            type="button"
-            onClick={() => openBankHandoffRoute(bankToolUrl("/next", inferredRsn))}
-            aria-label="Open next-session recommendations using this bank"
-            className={cn(
-              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12.5px] font-medium border transition-colors",
-              "border-[var(--color-accent)]/40 text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10"
-            )}
-            title="Take this bank into the next plan"
-          >
-            <Sparkles className="size-3.5" />
-            Open next trip
-          </button>
-          {/* Smart tidy — secondary action, ghost-styled. Re-tidies in place
-              if the user wants a different layout (each press uses a fresh
-              shuffle seed, so equal-rank items shuffle a touch). */}
-          <button
-            type="button"
-            onClick={() => applyReorganize("smart", "Tidied")}
-            aria-label="Smart tidy this organized bank again"
-            className={cn(
-              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12.5px] font-medium border transition-colors",
-              "bg-transparent text-[var(--color-text-dim)] border-[var(--color-border)]",
-              "hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
-            )}
-            title="Re-tidy the bank — groups every tab and packs it neatly"
-          >
-            <Wand2 className="size-3.5" />
-            {reorgFlash ? reorgFlash.replace(/ #\d+$/, "") : "Smart tidy"}
-          </button>
-          {/* Layout popup — tab order + pinned items. Kept off the toolbar so
-              that bar stays focused on view prefs; a dot marks customisation. */}
-          <button
-            type="button"
-            onClick={() => setLayoutOpen(true)}
-            aria-label="Customize bank tab order and pinned items"
-            className={cn(
-              "relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12.5px] font-medium border transition-colors",
-              "bg-transparent text-[var(--color-text-dim)] border-[var(--color-border)]",
-              "hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
-            )}
-            title="Customise tab order and pinned items"
-          >
-            <GripVertical className="size-3.5" />
-            Layout
-            {(prefs.tabOrder.length > 0 || prefs.pinnedItems.length > 0) && (
-              <span className="size-1.5 rounded-full bg-[var(--color-accent)]" aria-hidden="true" />
-            )}
-          </button>
-          <button type="button" onClick={onEditInput} aria-label="Edit pasted bank input" className="btn-ghost">
-            <Edit3 className="size-3.5" /> Edit input
-          </button>
-        </div>
-      </div>
-
-      <div
-        data-testid="bank-source-receipt"
-        className="mb-5 grid gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-2)]/70 p-3.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]"
-      >
-        <div className="flex items-start gap-3">
-          <div
-            className={cn(
-              "mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-lg border",
-              sourceReceipt.confidenceTone === "good"
-                ? "border-[var(--color-good)]/35 bg-[var(--color-good)]/10 text-[var(--color-good)]"
-                : "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
-            )}
-          >
-            {sourceReceipt.confidenceTone === "good" ? <Shield className="size-4" /> : <AlertCircle className="size-4" />}
-          </div>
-          <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">Paste check</p>
-            <p className="mt-1 text-[14px] font-semibold text-[var(--color-text)]">{sourceReceipt.sourceLabel}</p>
-            <p
-              className={cn(
-                "mt-1 inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold",
-                sourceReceipt.confidenceTone === "good"
-                  ? "border-[var(--color-good)]/30 bg-[var(--color-good)]/10 text-[var(--color-good)]"
-                  : "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
-              )}
-            >
-              {sourceReceipt.confidenceLabel}
-            </p>
-          </div>
-        </div>
-        <div className="grid gap-2 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-          <p className="flex gap-2">
-            <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-[var(--color-good)]" />
-            <span>{sourceReceipt.exactLine}</span>
-          </p>
-          <p className="flex gap-2">
-            <AlertCircle className="mt-0.5 size-3.5 shrink-0 text-[var(--color-warning)]" />
-            <span>{sourceReceipt.limitationLine}</span>
-          </p>
-          <p className="flex gap-2">
-            <ArrowRight className="mt-0.5 size-3.5 shrink-0 text-[var(--color-accent)]" />
-            <span>{sourceReceipt.nextLine}</span>
-          </p>
-          <div
-            data-testid="bank-id-sprite-health"
-            className={cn(
-              "mt-1 rounded-lg border px-3 py-2",
-              idSpriteHealth.tone === "good"
-                ? "border-[var(--color-good)]/25 bg-[var(--color-good)]/8"
-                : "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/8"
-            )}
-          >
-            <p className={cn(
-              "flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.16em]",
-              idSpriteHealth.tone === "good" ? "text-[var(--color-good)]" : "text-[var(--color-warning)]"
-            )}>
-              {idSpriteHealth.tone === "good" ? <CheckCircle2 className="size-3.5" /> : <AlertCircle className="size-3.5" />}
-              {idSpriteHealth.label}
-            </p>
-            <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
-              {idSpriteHealth.detail}
-            </p>
-          </div>
-        </div>
-      </div>
-      </details>
-
-      {(initial.importWarnings.fallbackItemCount > 0 || initial.importWarnings.duplicateItemCount > 0) && (
-        <div
-          role="status"
-          className="mb-5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 px-3.5 py-3 text-[12.5px] text-[var(--color-text)]"
-        >
-          <div className="flex flex-wrap items-start gap-2">
-            <AlertCircle className="mt-0.5 size-4 shrink-0 text-[var(--color-warning)]" />
-            <div className="min-w-0 flex-1">
-              <div className="font-semibold text-[var(--color-warning)]">
-                Import adjusted your pasted item IDs
-              </div>
-              <p className="mt-1 leading-relaxed text-[var(--color-text-dim)]">
-                Imported <span className="font-mono text-[var(--color-text)]">{initial.source.itemCount}</span> of{" "}
-                <span className="font-mono text-[var(--color-text)]">{initial.importWarnings.parsedItemCount}</span> pasted entries.
-                {initial.importWarnings.duplicateItemCount > 0 && (
-                  <>
-                    {" "}Collapsed <span className="font-mono text-[var(--color-text)]">{initial.importWarnings.duplicateItemCount}</span> duplicate ID{initial.importWarnings.duplicateItemCount === 1 ? "" : "s"}.
-                  </>
-                )}
-                {initial.importWarnings.fallbackItemCount > 0 && (
-                  <>
-                    {" "}Fallback ID{initial.importWarnings.fallbackItemCount === 1 ? "" : "s"}:{" "}
-                    <span className="font-mono text-[var(--color-text)]">
-                      {initial.importWarnings.fallbackItemIds.slice(0, 8).join(", ")}
-                      {initial.importWarnings.fallbackItemIds.length > 8 ? ", …" : ""}
-                    </span>
-                    . Kept in the bank as unknown item tiles; this usually means a brand-new OSRS item, stale item mapping, or a corrupt export row.
-                  </>
-                )}
-              </p>
-              {initial.importWarnings.fallbackItemCount > 0 && (
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => searchSuggestionItems(fallbackItemSearchQuery, "fallback item IDs")}
-                    className="inline-flex items-center gap-1 rounded-md border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-warning)] hover:bg-[var(--color-warning)]/15 transition-colors"
-                    aria-label="Show fallback item IDs in the bank grid"
-                  >
-                    Show fallback IDs in bank
-                    <Search className="size-3" />
-                  </button>
-                  <a
-                    href={wikiSearchUrl(`OSRS item ID ${initial.importWarnings.fallbackItemIds[0]}`)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-warning)] hover:border-[var(--color-warning)]/45 transition-colors"
-                  >
-                    Check the first fallback ID on the Wiki
-                    <ExternalLink className="size-3" />
-                  </a>
-                  {initial.importWarnings.fallbackItemIds.slice(0, 6).map((id) => (
-                    <a
-                      key={id}
-                      href={wikiSearchUrl(`OSRS item ID ${id}`)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1 font-mono text-[10.5px] font-semibold text-[var(--color-text-dim)] hover:border-[var(--color-warning)]/45 hover:text-[var(--color-warning)] transition-colors"
-                      aria-label={`Check fallback OSRS item ID ${id} on the Wiki`}
-                    >
-                      #{id}
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
       {layoutOpen && (
         <LayoutPopup
           tabNames={visibleTabs.map((t) => String(t.name))}
@@ -1786,34 +1509,6 @@ export function BankResult({
         />
       )}
 
-      <details className="mb-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-3">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-semibold text-[var(--color-text)] marker:hidden">
-          <span>Saved banks</span>
-          <span className="text-[11px] font-medium text-[var(--color-text-muted)]">compare or restore later</span>
-        </summary>
-        <div className="mt-3">
-          <SnapshotHistoryPanel
-            snapshots={rsnSnapshots}
-            scopeLabel={inferredRsn ?? "local device"}
-            currentSummary={summarizeTabsForSnapshot(tabs)}
-            currentSnapshot={currentSnapshot}
-            compareSnapshot={compareSnapshot}
-            compareDiff={compareDiff}
-            deletedSnapshot={deletedSnapshot}
-            onSaveSnapshot={saveCurrentSnapshot}
-            onCompare={(snap) => setCompareSnapshot(compareSnapshot?.ts === snap.ts ? null : snap)}
-            onDelete={deleteStoredSnapshot}
-            onUndoDelete={undoDeleteSnapshot}
-            onRestore={restoreSnapshot}
-            onOpenNext={() => openBankHandoffRoute(bankToolUrl("/next", inferredRsn))}
-            onOpenDps={() => openBankHandoffRoute(bankToolUrl("/dps", inferredRsn, dpsHandoffOptions))}
-            onSearchItems={searchSuggestionItems}
-            onCopyCompareSummary={copyCompareSummary}
-            compareSummaryCopied={copied === "snapshot-compare-summary"}
-          />
-        </div>
-      </details>
-
       {/* Preferences row — sits directly above the bank so the controls and
           the thing they control are visually paired. */}
       <PreferencesBar
@@ -1822,26 +1517,6 @@ export function BankResult({
         activeArchetype={activeArchetype}
         onArchetypeChange={setArchetypeOverride}
         inferredArchetype={inferredArchetype}
-      />
-
-      <BankActionLoopRail
-        steps={bankActionLoop}
-        onCopy={copyAll}
-        onTips={() => {
-          const details = document.getElementById("bank-insights-panel") as HTMLDetailsElement | null;
-          if (details) details.open = true;
-          if (bankTipSearchQuery) {
-            searchSuggestionItems(bankTipSearchQuery, "Bank tips");
-            return;
-          }
-          document.getElementById("bank-insights-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
-        }}
-        onNext={() => openBankHandoffRoute(bankToolUrl("/next", inferredRsn))}
-        onDps={() => openBankHandoffRoute(bankToolUrl("/dps", inferredRsn, dpsHandoffOptions))}
-        onGoals={() => openBankHandoffRoute(bankToolUrl("/goals", inferredRsn))}
-        onSlayer={() => openBankHandoffRoute(bankToolUrl("/slayer", inferredRsn))}
-        onPlugin={() => openBankHandoffRoute(pluginSyncHref)}
-        copied={copied}
       />
 
       {handoffBlockedHref && (
@@ -2077,6 +1752,178 @@ export function BankResult({
       </DndContext>
       </DropFlashContext.Provider>
       </PinContext.Provider>
+
+      <BankActionLoopRail
+        steps={bankActionLoop}
+        onCopy={copyAll}
+        onTips={() => {
+          const details = document.getElementById("bank-insights-panel") as HTMLDetailsElement | null;
+          if (details) details.open = true;
+          if (bankTipSearchQuery) {
+            searchSuggestionItems(bankTipSearchQuery, "Bank tips");
+            return;
+          }
+          document.getElementById("bank-insights-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }}
+        onNext={() => openBankHandoffRoute(bankToolUrl("/next", inferredRsn))}
+        onDps={() => openBankHandoffRoute(bankToolUrl("/dps", inferredRsn, dpsHandoffOptions))}
+        onGoals={() => openBankHandoffRoute(bankToolUrl("/goals", inferredRsn))}
+        onSlayer={() => openBankHandoffRoute(bankToolUrl("/slayer", inferredRsn))}
+        onPlugin={() => openBankHandoffRoute(pluginSyncHref)}
+        copied={copied}
+      />
+
+      {(initial.importWarnings.fallbackItemCount > 0 || initial.importWarnings.duplicateItemCount > 0) && (
+        <details className="mt-4 rounded-xl border border-[var(--color-warning)]/25 bg-[var(--color-warning)]/8 p-3">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden [&::-webkit-details-marker]:hidden">
+            <span className="inline-flex items-center gap-2 text-[12.5px] font-semibold text-[var(--color-warning)]">
+              <AlertCircle className="size-3.5" />
+              Import note
+            </span>
+            <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">
+              Item IDs adjusted
+            </span>
+          </summary>
+          <div className="mt-3 text-[12.5px] text-[var(--color-text)]">
+            <p className="leading-relaxed text-[var(--color-text-dim)]">
+              Imported <span className="font-mono text-[var(--color-text)]">{initial.source.itemCount}</span> of{" "}
+              <span className="font-mono text-[var(--color-text)]">{initial.importWarnings.parsedItemCount}</span> pasted entries.
+              {initial.importWarnings.duplicateItemCount > 0 && (
+                <>
+                  {" "}Collapsed <span className="font-mono text-[var(--color-text)]">{initial.importWarnings.duplicateItemCount}</span> duplicate ID{initial.importWarnings.duplicateItemCount === 1 ? "" : "s"}.
+                </>
+              )}
+              {initial.importWarnings.fallbackItemCount > 0 && (
+                <>
+                  {" "}Some newer/unknown item IDs were kept as fallback tiles.
+                </>
+              )}
+            </p>
+            {initial.importWarnings.fallbackItemCount > 0 && (
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => searchSuggestionItems(fallbackItemSearchQuery, "fallback item IDs")}
+                  className="inline-flex items-center gap-1 rounded-md border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-warning)] hover:bg-[var(--color-warning)]/15 transition-colors"
+                  aria-label="Show fallback item IDs in the bank grid"
+                >
+                  Show in bank
+                  <Search className="size-3" />
+                </button>
+                <a
+                  href={wikiSearchUrl(`OSRS item ID ${initial.importWarnings.fallbackItemIds[0]}`)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-warning)] hover:border-[var(--color-warning)]/45 transition-colors"
+                >
+                  Check first ID on Wiki
+                  <ExternalLink className="size-3" />
+                </a>
+              </div>
+            )}
+          </div>
+        </details>
+      )}
+
+      <details className="mt-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-3">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-semibold text-[var(--color-text)] marker:hidden">
+          <span>Saved banks</span>
+          <span className="text-[11px] font-medium text-[var(--color-text-muted)]">compare or restore later</span>
+        </summary>
+        <div className="mt-3">
+          <SnapshotHistoryPanel
+            snapshots={rsnSnapshots}
+            scopeLabel={inferredRsn ?? "local device"}
+            currentSummary={summarizeTabsForSnapshot(tabs)}
+            currentSnapshot={currentSnapshot}
+            compareSnapshot={compareSnapshot}
+            compareDiff={compareDiff}
+            deletedSnapshot={deletedSnapshot}
+            onSaveSnapshot={saveCurrentSnapshot}
+            onCompare={(snap) => setCompareSnapshot(compareSnapshot?.ts === snap.ts ? null : snap)}
+            onDelete={deleteStoredSnapshot}
+            onUndoDelete={undoDeleteSnapshot}
+            onRestore={restoreSnapshot}
+            onOpenNext={() => openBankHandoffRoute(bankToolUrl("/next", inferredRsn))}
+            onOpenDps={() => openBankHandoffRoute(bankToolUrl("/dps", inferredRsn, dpsHandoffOptions))}
+            onSearchItems={searchSuggestionItems}
+            onCopyCompareSummary={copyCompareSummary}
+            compareSummaryCopied={copied === "snapshot-compare-summary"}
+          />
+        </div>
+      </details>
+
+      <details className="mt-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-3">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-semibold text-[var(--color-text)] marker:hidden">
+          <span>Import details</span>
+          <span className="text-[11px] font-medium text-[var(--color-text-muted)]">source, quantities and item IDs</span>
+        </summary>
+        <div
+          data-testid="bank-source-receipt"
+          className="mt-3 grid gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-2)]/70 p-3.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]"
+        >
+          <div className="flex items-start gap-3">
+            <div
+              className={cn(
+                "mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-lg border",
+                sourceReceipt.confidenceTone === "good"
+                  ? "border-[var(--color-good)]/35 bg-[var(--color-good)]/10 text-[var(--color-good)]"
+                  : "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
+              )}
+            >
+              {sourceReceipt.confidenceTone === "good" ? <Shield className="size-4" /> : <AlertCircle className="size-4" />}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">Paste check</p>
+              <p className="mt-1 text-[14px] font-semibold text-[var(--color-text)]">{sourceReceipt.sourceLabel}</p>
+              <p
+                className={cn(
+                  "mt-1 inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                  sourceReceipt.confidenceTone === "good"
+                    ? "border-[var(--color-good)]/30 bg-[var(--color-good)]/10 text-[var(--color-good)]"
+                    : "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
+                )}
+              >
+                {sourceReceipt.confidenceLabel}
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-2 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
+            <p className="flex gap-2">
+              <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-[var(--color-good)]" />
+              <span>{sourceReceipt.exactLine}</span>
+            </p>
+            <p className="flex gap-2">
+              <AlertCircle className="mt-0.5 size-3.5 shrink-0 text-[var(--color-warning)]" />
+              <span>{sourceReceipt.limitationLine}</span>
+            </p>
+            <p className="flex gap-2">
+              <ArrowRight className="mt-0.5 size-3.5 shrink-0 text-[var(--color-accent)]" />
+              <span>{sourceReceipt.nextLine}</span>
+            </p>
+            <div
+              data-testid="bank-id-sprite-health"
+              className={cn(
+                "mt-1 rounded-lg border px-3 py-2",
+                idSpriteHealth.tone === "good"
+                  ? "border-[var(--color-good)]/25 bg-[var(--color-good)]/8"
+                  : "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/8"
+              )}
+            >
+              <p className={cn(
+                "flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.16em]",
+                idSpriteHealth.tone === "good" ? "text-[var(--color-good)]" : "text-[var(--color-warning)]"
+              )}>
+                {idSpriteHealth.tone === "good" ? <CheckCircle2 className="size-3.5" /> : <AlertCircle className="size-3.5" />}
+                {idSpriteHealth.label}
+              </p>
+              <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
+                {idSpriteHealth.detail}
+              </p>
+            </div>
+          </div>
+        </div>
+      </details>
 
       {/* ── Insights — secondary panels, collapsed below the bank ────────────
           Six analytical panels (tips, diffs, junk, upgrades, goals, diet)

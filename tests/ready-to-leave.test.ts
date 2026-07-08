@@ -45,10 +45,12 @@ describe("ready to leave UX", () => {
     expect(component).not.toContain("readiness panel");
   });
 
-  it("keeps the shared trip check on Bank while /next uses its simpler Session Board", () => {
+  it("keeps /next simple and makes Bank use its own player prompts", () => {
     expect(read("src/app/next/next-client.tsx")).not.toContain("<ReadyToLeave status={readyToLeave.status} items={readyToLeave.items}");
     expect(read("src/app/next/next-client.tsx")).toContain("Start here");
-    expect(read("src/components/bank-result.tsx")).toContain("<ReadyToLeave status={readiness.status} items={readiness.items} compact");
+    expect(read("src/components/bank-result.tsx")).not.toContain("<ReadyToLeave status={readiness.status} items={readiness.items} compact");
+    expect(read("src/components/bank-result.tsx")).toContain("Do first");
+    expect(read("src/components/bank-result.tsx")).toContain("Leave");
     expect(read("src/app/dps/dps-client.tsx")).not.toContain("ReadyToLeave");
     expect(read("src/app/dps/dps-client.tsx")).toContain("Pick a boss");
     expect(read("src/app/dps/dps-client.tsx")).toContain("Search any boss. Click one to see your best gear, DPS, supplies and upgrades from this bank.");
