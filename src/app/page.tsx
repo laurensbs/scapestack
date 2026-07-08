@@ -25,9 +25,9 @@ export default function HomePage() {
           <HeroIntake />
 
           <div className="mt-4 grid gap-2 sm:grid-cols-3">
-            <SessionSignal icon={9813} label="Quest readiness" value="Near-ready unlocks first" tone="ready" />
-            <SessionSignal icon={20594} label="Bank gaps" value="Items only when they change the route" tone="prep" />
-            <SessionSignal icon={8007} label="Stop point" value="End on a clean trip or unlock" tone="ready" />
+            <SessionSignal icon={9813} label="Quests almost ready" value="See the quest you can start soon" tone="ready" />
+            <SessionSignal icon={20594} label="Items to grab" value="Check what is already in your bank" tone="prep" />
+            <SessionSignal icon={8007} label="Good stopping place" value="Finish the trip, quest step or unlock" tone="ready" />
           </div>
         </div>
 

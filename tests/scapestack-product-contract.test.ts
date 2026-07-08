@@ -22,8 +22,10 @@ describe("Scapestack anti-bankstanding product contract", () => {
     const direction = read("docs/scapestack-product-direction.md");
 
     expect(homepage).toContain("What can I do now?");
-    expect(homepage).toContain("Quest readiness");
-    expect(homepage).toContain("Bank gaps");
+    expect(homepage).toContain("Quests almost ready");
+    expect(homepage).toContain("Items to grab");
+    expect(homepage).not.toContain("Quest readiness");
+    expect(homepage).not.toContain("Bank gaps");
     expect(homepage).toContain("Unlock board");
     expect(homepage).toContain("Know what to do next");
     expect(homepage).toContain("What is blocking this quest or unlock?");
