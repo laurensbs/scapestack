@@ -37,8 +37,8 @@ describe("Scapestack readiness rail", () => {
       boundary: "Does not include bank, inventory, quest completion, diaries or private settings."
     });
     expect(readiness.signals.find((signal) => signal.id === "sync")).toMatchObject({
-      adds: ["quests", "diaries", "collection log", "Slayer"],
-      boundary: "Never includes bank, inventory, equipment, chat, screenshots, clicks or account login."
+      adds: ["skills", "quests", "diaries", "collection log", "Slayer", "optional bank readiness"],
+      boundary: "Bank item IDs/names/quantities require the separate bank sync option; never includes inventory, equipment, chat, screenshots, clicks or account login."
     });
     expect(readiness.signals.find((signal) => signal.id === "sync")?.action).toEqual({
       label: "Check RuneLite",

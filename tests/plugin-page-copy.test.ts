@@ -12,14 +12,20 @@ describe("plugin page copy constants", () => {
     expect(pageSource).toContain("Check RuneLite.");
     expect(pageSource).toContain("Skip done stuff.");
     expect(pageSource).toContain("No login");
-    expect(pageSource).toContain("No bank");
+    expect(pageSource).toContain("Bank opt-in");
     expect(pageSource).toContain("No screenshots");
     expect(pageSource).toContain("PluginTrustPill");
     expect(pageSource).toContain("Check RuneLite");
     expect(pageSource).toContain("Open one plan");
     expect(pageSource).toContain("Setup help");
-    expect(pageSource).toContain("Scapestack link");
-    expect(pageSource).toContain(PUBLIC_SYNC_URL);
+    expect(pageSource).toContain("Normal setup");
+    expect(pageSource).toContain("The public plugin connects to Scapestack automatically; there is no URL to paste for normal players.");
+    expect(pageSource).toContain("Developer/self-hosting endpoint");
+    expect(pageSource).toContain("Copy developer endpoint");
+    expect(PUBLIC_SYNC_URL).toBe("https://www.scapestack.org/api/sync");
+    expect(pageSource).toContain("PUBLIC_SYNC_URL");
+    expect(pageSource).not.toContain("Copy sync URL");
+    expect(pageSource).not.toContain("Scapestack link");
     expect(pageSource).not.toContain("scapestack.app");
     expect(pageSource).toContain("PluginSyncChecker");
     expect(pageSource).toContain("RuneliteOpenButton");
@@ -45,8 +51,8 @@ describe("plugin page copy constants", () => {
     expect(source).toContain("Opening RuneLite. Plugin name copied.");
     expect(source).toContain("Copied. Search Plugin Hub for Scapestack Sync.");
     expect(source).toContain("Plugin Hub page");
-    expect(source).toContain("Copy scapestack.org sync URL");
-    expect(source).toContain("PUBLIC_SYNC_URL");
+    expect(source).not.toContain("Copy scapestack.org sync URL");
+    expect(source).not.toContain("PUBLIC_SYNC_URL");
     expect(source).not.toContain("Automatically installs");
   });
 
@@ -131,7 +137,7 @@ describe("plugin page copy constants", () => {
     expect(checkerSource).not.toContain("plugin enabled, confirm the Sync URL");
     expect(checkerSource).not.toContain("if this finds your RSN, /next can use exact account state");
     expect(diagnosticsSource).not.toContain("Scapestack Sync enabled.");
-    expect(diagnosticsSource).toContain("Enable “Auto-sync on login”");
+    expect(diagnosticsSource).toContain("Enable “Sync on login”");
     expect(checkerSource).toContain("RuneLite helps Scapestack skip stuff you already finished.");
     expect(checkerSource).toContain("RuneLite is helping {foundDisplayName}");
     expect(checkerSource).toContain("Open one plan that skips finished quests");
@@ -140,11 +146,11 @@ describe("plugin page copy constants", () => {
     expect(checkerSource).not.toContain("/next sync signals");
     expect(checkerSource).not.toContain("Session action queue");
     expect(checkerSource).not.toContain("actionQueueForSyncedPlayer");
-    expect(checkerSource).toContain("syncUrlsForOrigin(syncOrigin)");
+    expect(checkerSource).not.toContain("syncUrlsForOrigin(syncOrigin)");
     expect(checkerSource).not.toContain("LOCAL_SYNC_URL");
     expect(checkerSource).not.toContain("LOCAL_SYNC_CLAIM_URL");
-    expect(diagnosticsSource).toContain("Use https://www.scapestack.org/api/sync");
-    expect(diagnosticsSource).toContain("Enable “Auto-sync on login”");
+    expect(diagnosticsSource).toContain("Press Sync now, then check this RSN again.");
+    expect(diagnosticsSource).toContain("Enable “Sync on login”");
   });
 
   it("keeps synced player success as status and next action only", () => {
@@ -169,6 +175,7 @@ describe("plugin page copy constants", () => {
     expect(bannerSource).toContain("Clear bank");
     expect(bannerSource).toContain("Bank added");
     expect(bannerSource).toContain("What sync can add");
-    expect(bannerSource).toContain("The plugin never receives your bank, inventory, equipment, screenshots, clicks or account login.");
+    expect(bannerSource).toContain("This browser bank never goes back to RuneLite.");
+    expect(bannerSource).toContain("Plugin bank sync is a separate opt-in");
   });
 });

@@ -5,23 +5,26 @@ import { describe, expect, it } from "vitest";
 const readme = readFileSync(join(process.cwd(), "plugin/README.md"), "utf8");
 
 describe("plugin README copy", () => {
-  it("explains that plugin /next links are bankless by design", () => {
+  it("explains plugin /next links and optional bank readiness", () => {
     expect(readme).toContain("## Web app merge contract");
-    expect(readme).toContain("account-progress verifier, not a bank uploader");
+    expect(readme).toContain("account-progress verifier with optional bank item readiness");
     expect(readme).toContain("/next?rsn=...&source=plugin-sync&bank=none");
     expect(readme).toContain("bank=none");
     expect(readme).toContain("prevents stale browser bank context from being silently reused");
-    expect(readme).toContain("RuneLite sync does not send bank");
-    expect(readme).toContain("inventory, equipment or wealth");
-    expect(readme).toContain("separately paste a bank into the web app");
-    expect(readme).toContain("Gear-aware advice still requires the player to paste Bank Memory or Bank");
+    expect(readme).toContain("Use bank for readiness");
+    expect(readme).toContain("fresh RuneLite bank");
+    expect(readme).toContain("normal players do not paste or configure a");
+    expect(readme).toContain("sync URL");
+    expect(readme).toContain("inventory, equipment, GE offers, chat");
+    expect(readme).toContain("Gear-aware prices and manual Bank Tags still use browser Bank Memory or Bank");
     expect(readme).toContain("/next`, `/slayer`, `/dps`, `/goals` and player profiles");
-    expect(readme).toContain("the verified `/next?rsn=...&source=plugin-sync&bank=none` link");
+    expect(readme).toContain("state without making the RuneLite chat message show a long URL");
+    expect(readme).not.toContain("RuneLite chat shows the verified `/next` link");
     expect(readme).not.toContain("the exact `/next?rsn=...&source=plugin-sync&bank=none` link");
   });
 
   it("documents claim and sync token transport as Authorization bearer", () => {
-    expect(readme).toContain("over HTTPS as `Authorization: Bearer <token>` to `/api/sync/claim`");
+    expect(readme).toContain("Authorization: Bearer <token>` to `/api/sync/claim` and `/api/sync`");
     expect(readme).toMatch(/Claim and sync requests both carry\s+the token as `Authorization: Bearer <token>`/);
     expect(readme).toContain("stores `sha256(token) → RSN` first-wins");
     expect(readme).not.toContain("first opted-in sync sends that token\nover HTTPS to `/api/sync/claim`");
@@ -31,7 +34,8 @@ describe("plugin README copy", () => {
     const manifest = readFileSync(join(process.cwd(), "plugin/runelite-plugin.properties"), "utf8");
 
     expect(readme).toContain("coverage from a verified RuneLite payload");
-    expect(manifest).toContain("verified coverage labels");
+    expect(manifest).toContain("OSRS session planner");
+    expect(manifest).toContain("optional bank readiness");
     expect(manifest).not.toContain("accurate recommendations");
   });
 });

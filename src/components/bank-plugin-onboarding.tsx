@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Clock3, DatabaseZap, PlugZap } from "lucide-react";
-import { CopyCommand } from "@/components/copy-command";
 import { BANK_PLUGIN_ONBOARDING, bankPluginOnboardingActions } from "@/lib/plugin-onboarding";
 import { scapestackPluginHubStateFromStatus } from "@/lib/scapestack-readiness";
 import type { PluginHubStatus } from "@/lib/plugin-hub-status";
@@ -143,12 +142,6 @@ export function BankPluginOnboarding() {
                 {signal}
               </div>
             ))}
-          </div>
-          <div className="mt-4">
-            <CopyCommand
-              value={BANK_PLUGIN_ONBOARDING.copy.value}
-              label={BANK_PLUGIN_ONBOARDING.copy.label}
-            />
           </div>
         </aside>
       </div>

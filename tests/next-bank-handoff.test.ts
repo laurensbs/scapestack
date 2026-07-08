@@ -304,8 +304,8 @@ describe("next bank handoff", () => {
     ]);
 
     expect(nextUpBankFromHandoff(handoff)).toEqual([
-      { id: 4151, name: "Abyssal whip" },
-      { id: 11832, name: "Bandos chestplate" }
+      { id: 4151, name: "Abyssal whip", quantity: 3 },
+      { id: 11832, name: "Bandos chestplate", quantity: 1 }
     ]);
     expect(organizedItemsFromHandoff(handoff)[0]).toMatchObject({
       id: 4151,

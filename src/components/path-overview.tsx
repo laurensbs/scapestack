@@ -22,9 +22,10 @@ function accountTypeLabel(t: NonNullable<PathOverviewData["accountMeta"]>["accou
     case "ironman":  return "Ironman";
     case "hardcore": return "Hardcore Ironman";
     case "ultimate": return "Ultimate Ironman";
+    case "group":    return "Group Ironman";
     case "skiller":  return "Skiller";
     case "pure":     return "Pure";
-    default:         return "Main";
+    default:         return "Normal";
   }
 }
 
@@ -63,7 +64,7 @@ function SyncedBadge({ data }: { data: PathOverviewData }) {
   // the most authoritative.
   if (plugin) {
     sources.push({
-      name: "Scapestack plugin",
+      name: meta ? `Scapestack plugin · ${accountTypeLabel(meta.accountType)}` : "Scapestack plugin",
       url: null,
       primary: true
     });
@@ -172,7 +173,7 @@ export function PathOverview({ data }: { data: PathOverviewData }) {
       >
         <div className="flex items-baseline justify-between mb-3 gap-3 flex-wrap">
           <h2 className="text-[12px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
-            Path to Max
+            Max route
           </h2>
           {/* Synced-sources badge. Shows every external tracker that
               had a record for this player (WOM/Temple/cl.net), so the

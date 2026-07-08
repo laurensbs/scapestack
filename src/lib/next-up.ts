@@ -17,8 +17,15 @@ import {
 import { hoursToMax } from "./hours-to-max";
 import { BOSSES, type Boss } from "./bosses";
 import { computeCombatLevel, computeTotalLevel, type HiscoreSkill } from "./hiscores";
-import { getQuests, type QuestRecord } from "./quest-db";
+import { getQuests, questSlug, type QuestRecord } from "./quest-db";
+import { evaluateQuestRequirements, type QuestBankItem, type QuestRequirementEvaluation } from "./quest-requirements";
 import { getDiaries, type DiaryRecord, type DiaryTier } from "./diary-db";
+import {
+  diaryReadinessLabel,
+  diaryTierKey,
+  evaluateDiaryTier,
+  type DiaryRequirementEvaluation
+} from "./diary-requirements";
 import { getDropRates, type BossDropTable } from "./drop-rates-db";
 import { computePathProgress, type AccountMeta, type PathOverview } from "./path-progress";
 import { detectAccountStage, type AccountStage } from "./account-stage";
@@ -27,6 +34,15 @@ import { TASK_ID_TO_MONSTER } from "./slayer/task-ids";
 import { MONSTERS_BY_ID } from "./slayer/monsters";
 import { slayerUrlForSyncedRsn } from "./plugin-sync-actions";
 import { pluginSyncHealth } from "./plugin-sync";
+import type { PluginBankStatus } from "./plugin-bank-status";
+import {
+  isIronPlannerAccount,
+  normalizeScapestackAccountType,
+  resolveAccountMode,
+  scapestackAccountTypeToPlannerType,
+  type AccountModeAssessment,
+  type PlannerAccountType
+} from "./account-type";
 import {
   bossBySlug,
   bossViabilityDecisionLine,
@@ -151,6 +167,33 @@ export interface Recommendation {
   };
 }
 
+export type NextBestActionKind =
+  | "do-quest"
+  | "collect-items"
+  | "train-skill"
+  | "complete-prereq"
+  | "unlock-route"
+  | "do-diary"
+  | "collect-diary-items"
+  | "train-diary-skill"
+  | "complete-diary-prereq";
+export type NextBestActionPreparation = "Low" | "Medium" | "High";
+
+export interface NextBestAction {
+  id: string;
+  kind: NextBestActionKind;
+  title: string;
+  reason: string;
+  missingRequirements: string[];
+  requiredItems: string[];
+  preparation: NextBestActionPreparation;
+  relevantQuestOrUnlock: string;
+  unlockValue: number;
+  link?: string;
+  iconItemId?: number;
+  accountTypeNote?: string;
+}
+
 export interface NextUpInput {
   /** Live Hiscores skills. Empty when no RSN was looked up. */
   skills?: HiscoreSkill[];
@@ -184,9 +227,11 @@ export interface NextUpInput {
    *  player's game client. */
   scapestackSync?: {
     displayName?: string;
+    accountType?: string;
     questsCompleted: string[];
     diariesCompleted: Array<{ region: string; tier: string }>;
     collectionLogItemIds: number[];
+    bankStatus?: PluginBankStatus;
     slayer?: {
       points: number;
       streak: number;
@@ -211,6 +256,7 @@ export interface NextUpInput {
       pluginVersion?: string;
       slayerTaskRemaining?: number | null;
       slayerBlocks?: number;
+      bankStatus?: PluginBankStatus;
     } | null;
   };
 }
@@ -220,12 +266,17 @@ export interface NextUpResult {
   headline: Recommendation | null;
   /** Everything else, already sorted high-score-first. */
   rest: Recommendation[];
+  /** Specific action queue built from skills, quest state, bank items,
+   *  account type and unlock value. */
+  nextBestActions: NextBestAction[];
   /** Quick account read-out for the hub header. */
   summary: {
     combatLevel: number | null;
     totalLevel: number | null;
     goalPercent: number | null;
     accountStage: AccountStage;
+    accountType: PlannerAccountType | null;
+    accountMode: AccountModeAssessment;
     /** Coverage note — which inputs the advice is based on. */
     basis: "full" | "hiscores-only" | "bank-only" | "none";
   };
@@ -279,9 +330,7 @@ const lvl = (skills: HiscoreSkill[], name: string): number =>
 const clamp01 = (n: number): number => Math.max(0, Math.min(1, n));
 
 function isIronAccount(accountMeta?: AccountMeta | null): boolean {
-  return accountMeta?.accountType === "ironman"
-    || accountMeta?.accountType === "hardcore"
-    || accountMeta?.accountType === "ultimate";
+  return isIronPlannerAccount(accountMeta?.accountType);
 }
 
 function completedQuest(completedQuestNames: Set<string> | undefined, names: string[]): boolean {
@@ -1264,9 +1313,7 @@ function fmtGp(n: number): string {
 function moneyRecs(skills: HiscoreSkill[], accountMeta?: AccountMeta | null): Recommendation[] {
   if (skills.length === 0) return [];
   if (
-    accountMeta?.accountType === "ironman" ||
-    accountMeta?.accountType === "hardcore" ||
-    accountMeta?.accountType === "ultimate"
+    isIronPlannerAccount(accountMeta?.accountType)
   ) {
     return [];
   }
@@ -1474,7 +1521,7 @@ function questRecs(
           ? `${q.name} has a long prereq chain, so start only if you want an unlock session.`
           : `${q.name} fits your stats and is short enough to be a real unlock target.`,
       score,
-      link: undefined,
+      link: `/quests/${questSlug(q.name)}`,
       routeTags: ["unlock", ...(q.questReqs.length <= 4 ? ["returning" as const] : []), ...(q.difficulty === "Grandmaster" ? ["fun" as const] : [])],
       gearConfidence: q.difficulty === "Grandmaster" ? "unknown" : "likely",
       quality: {
@@ -1502,6 +1549,235 @@ function questRecs(
   return recs;
 }
 
+const QUEST_UNLOCK_RULES: Array<{ match: RegExp; unlock: string; value: number; iconItemId?: number }> = [
+  { match: /^tree gnome village$/i, unlock: "Spirit Trees", value: 92, iconItemId: 772 },
+  { match: /^the grand tree$/i, unlock: "Gnome Stronghold route and Monkey Madness chain", value: 84, iconItemId: 9469 },
+  { match: /^animal magnetism$/i, unlock: "Ava's device", value: 94, iconItemId: 10499 },
+  { match: /^druidic ritual$/i, unlock: "Herblore", value: 96, iconItemId: 255 },
+  { match: /fairy/i, unlock: "Fairy ring travel", value: 96, iconItemId: 772 },
+  { match: /^horror from the deep$/i, unlock: "God books and dagannoth quest chain", value: 74, iconItemId: 3840 },
+  { match: /^priest in peril$/i, unlock: "Morytania access", value: 88, iconItemId: 10499 },
+  { match: /^monkey madness/i, unlock: "Dragon scimitar and ape atoll route", value: 90, iconItemId: 4587 },
+  { match: /^recipe for disaster/i, unlock: "Barrows gloves route", value: 98, iconItemId: 7462 },
+  { match: /^king's ransom$/i, unlock: "Piety route", value: 95, iconItemId: 2412 },
+  { match: /^dragon slayer/i, unlock: "Dragon equipment and major quest progression", value: 86, iconItemId: 11283 },
+  { match: /^desert treasure/i, unlock: "Ancient Magicks", value: 92, iconItemId: 4675 },
+  { match: /^song of the elves$/i, unlock: "Prifddinas and corrupted gauntlet", value: 99, iconItemId: 23997 }
+];
+
+function questUnlockSignal(quest: QuestRecord): { label: string; value: number; iconItemId?: number } {
+  const curated = QUEST_UNLOCK_RULES.find((rule) => rule.match.test(quest.name));
+  if (curated) return { label: curated.unlock, value: curated.value, iconItemId: curated.iconItemId };
+
+  const difficultyValue =
+    quest.difficulty === "Grandmaster" ? 88
+    : quest.difficulty === "Master" ? 78
+    : quest.difficulty === "Experienced" ? 66
+    : quest.difficulty === "Intermediate" ? 58
+    : 46;
+  const chainValue = Math.min(12, quest.questReqs.length);
+  return {
+    label: quest.difficulty === "Grandmaster" ? "Grandmaster quest route" : `${quest.name} progression`,
+    value: Math.min(100, difficultyValue + chainValue),
+    iconItemId: 9813
+  };
+}
+
+function completedQuestKnown(completedQuestNames: Set<string> | undefined, questName: string): boolean {
+  return completedQuestNames?.has(questName.toLowerCase()) ?? false;
+}
+
+function relevantQuestPool(quests: Map<string, QuestRecord>): QuestRecord[] {
+  return [...quests.values()].filter((quest) => {
+    if (QUEST_UNLOCK_RULES.some((rule) => rule.match.test(quest.name))) return true;
+    if (quest.difficulty === "Grandmaster" || quest.difficulty === "Master" || quest.difficulty === "Special") return true;
+    if (quest.difficulty === "Intermediate" && quest.questReqs.length <= 3) return true;
+    return false;
+  });
+}
+
+function itemLabel(req: QuestRequirementEvaluation["itemRequirements"][number]): string {
+  return `${req.quantity > 1 ? `${req.quantity}x ` : ""}${req.name}`;
+}
+
+function missingItemLabel(req: QuestRequirementEvaluation["itemRequirements"][number]): string {
+  if (!req.ownedInBank && req.availability?.shortCopy && !req.availability.copy.includes("account mode is unknown")) {
+    return req.availability.shortCopy;
+  }
+  if (req.missingQuantity <= 0) return itemLabel(req);
+  return `${req.missingQuantity > 1 ? `${req.missingQuantity}x ` : ""}${req.name}`;
+}
+
+function preparationForQuest(
+  quest: QuestRecord,
+  evaluation: QuestRequirementEvaluation,
+  kind: NextBestActionKind
+): NextBestActionPreparation {
+  const missingCount = evaluation.missingRequirements.length;
+  if (
+    kind === "do-quest"
+    && quest.length !== "Long"
+    && quest.length !== "Very Long"
+    && quest.difficulty !== "Grandmaster"
+    && missingCount === 0
+  ) {
+    return "Low";
+  }
+  if (
+    kind === "train-skill"
+    || quest.length === "Long"
+    || quest.length === "Very Long"
+    || quest.difficulty === "Grandmaster"
+    || missingCount > 5
+  ) {
+    return "High";
+  }
+  return "Medium";
+}
+
+function buildQuestAction(
+  quest: QuestRecord,
+  evaluation: QuestRequirementEvaluation,
+  completedQuestNames: Set<string> | undefined
+): NextBestAction | null {
+  const missingSkills = evaluation.skillRequirements.filter((req) => !req.met);
+  const missingQuests = evaluation.questRequirements.filter((req) => !req.met);
+  const missingItems = evaluation.bank.notApplicable ? [] : evaluation.bank.missing;
+  const unlock = questUnlockSignal(quest);
+  const link = `/quests/${questSlug(quest.name)}`;
+  const requiredItems = evaluation.itemRequirements.slice(0, 6).map(itemLabel);
+  const accountTypeNote = evaluation.accountWarnings[0];
+
+  if (missingSkills.length === 0 && missingQuests.length === 0 && missingItems.length === 0) {
+    return {
+      id: `nba:quest:${questSlug(quest.name)}`,
+      kind: "do-quest",
+      title: `Do ${quest.name}`,
+      reason: `All visible requirements are met; unlocks ${unlock.label}.`,
+      missingRequirements: [],
+      requiredItems,
+      preparation: preparationForQuest(quest, evaluation, "do-quest"),
+      relevantQuestOrUnlock: unlock.label,
+      unlockValue: unlock.value,
+      link,
+      iconItemId: unlock.iconItemId,
+      accountTypeNote
+    };
+  }
+
+  if (missingSkills.length === 0 && missingQuests.length === 0 && missingItems.length > 0 && missingItems.length <= 5) {
+    const itemCount = missingItems.length;
+    return {
+      id: `nba:items:${questSlug(quest.name)}`,
+      kind: "collect-items",
+      title: `Collect ${itemCount} item${itemCount === 1 ? "" : "s"} for ${quest.name}`,
+      reason: `${quest.name} is blocked mostly by bank prep; finishing the item list unlocks ${unlock.label}.`,
+      missingRequirements: missingItems.map(missingItemLabel),
+      requiredItems,
+      preparation: preparationForQuest(quest, evaluation, "collect-items"),
+      relevantQuestOrUnlock: unlock.label,
+      unlockValue: Math.max(1, unlock.value - 6),
+      link,
+      iconItemId: unlock.iconItemId,
+      accountTypeNote
+    };
+  }
+
+  if (missingSkills.length > 0 && missingSkills.length <= 2) {
+    const closest = missingSkills
+      .map((req) => ({ ...req, gap: req.level - req.currentLevel }))
+      .sort((a, b) => a.gap - b.gap)[0];
+    const widestGap = Math.max(...missingSkills.map((req) => req.level - req.currentLevel));
+    if (closest && closest.gap <= 10 && widestGap <= 10) {
+      return {
+        id: `nba:skill:${questSlug(quest.name)}:${closest.skill}`,
+        kind: "train-skill",
+        title: `Train ${closest.skill} to ${closest.level} for ${quest.name}`,
+        reason: `${closest.skill} is ${closest.gap} level${closest.gap === 1 ? "" : "s"} short; that is the cleanest blocker before ${unlock.label}.`,
+        missingRequirements: missingSkills.map((req) => `${req.skill} ${req.currentLevel}/${req.level}`),
+        requiredItems,
+        preparation: preparationForQuest(quest, evaluation, "train-skill"),
+        relevantQuestOrUnlock: unlock.label,
+        unlockValue: Math.max(1, unlock.value - closest.gap),
+        link,
+        iconItemId: skillCapeId(closest.skill),
+        accountTypeNote
+      };
+    }
+  }
+
+  if (missingSkills.length === 0 && missingQuests.length > 0 && missingQuests.length <= 3) {
+    const nextQuest = missingQuests.find((req) => !completedQuestKnown(completedQuestNames, req.name)) ?? missingQuests[0];
+    return {
+      id: `nba:prereq:${questSlug(quest.name)}`,
+      kind: "complete-prereq",
+      title: `Complete ${nextQuest.name} for ${quest.name}`,
+      reason: `${quest.name} is close, but the prereq chain blocks ${unlock.label}.`,
+      missingRequirements: missingQuests.map((req) => req.name),
+      requiredItems,
+      preparation: preparationForQuest(quest, evaluation, "complete-prereq"),
+      relevantQuestOrUnlock: unlock.label,
+      unlockValue: Math.max(1, unlock.value - missingQuests.length * 4),
+      link,
+      iconItemId: unlock.iconItemId,
+      accountTypeNote
+    };
+  }
+
+  return null;
+}
+
+function nextBestActions(input: {
+  quests: Map<string, QuestRecord>;
+  diaries: Map<string, DiaryRecord>;
+  skills: HiscoreSkill[];
+  bank: CompletionItem[];
+  accountType: PlannerAccountType | null;
+  completedQuestNames?: Set<string>;
+  completedDiaryTiers?: Set<string>;
+}): NextBestAction[] {
+  const completedQuests = input.completedQuestNames ? [...input.completedQuestNames] : [];
+  const bankItems = input.bank.map((item) => ({
+    id: item.id,
+    name: item.name,
+    quantity: item.quantity
+  }));
+
+  const questActions = relevantQuestPool(input.quests)
+    .filter((quest) => !completedQuestKnown(input.completedQuestNames, quest.name))
+    .map((quest) => {
+      const evaluation = evaluateQuestRequirements(quest, {
+        skills: input.skills,
+        completedQuests,
+        bankItems,
+        accountType: input.accountType
+      });
+      return buildQuestAction(quest, evaluation, input.completedQuestNames);
+    })
+    .filter((action): action is NextBestAction => Boolean(action));
+  const diaryActions = diaryNextBestActions({
+    diaries: input.diaries,
+    skills: input.skills,
+    bankItems,
+    accountType: input.accountType,
+    completedQuestNames: input.completedQuestNames,
+    completedDiaryTiers: input.completedDiaryTiers
+  });
+
+  return [...questActions, ...diaryActions]
+    .sort((a, b) => {
+      const kindWeight = (action: NextBestAction): number => {
+        if (action.kind === "do-quest" || action.kind === "do-diary") return 18;
+        if (action.kind === "collect-items" || action.kind === "collect-diary-items") return 12;
+        if (action.kind === "train-skill" || action.kind === "train-diary-skill") return 8;
+        if (action.kind === "complete-prereq" || action.kind === "complete-diary-prereq") return 6;
+        return 0;
+      };
+      return (b.unlockValue + kindWeight(b)) - (a.unlockValue + kindWeight(a));
+    })
+    .slice(0, 20);
+}
+
 // ── Achievement Diaries ─────────────────────────────────────────────────────
 // Diary data comes from the Wiki via scripts/build-diary-data.mjs. For each
 // of the 12 regions we know exact skill requirements per tier. The engine
@@ -1527,6 +1803,170 @@ const DIARY_REWARD_ICONS: Record<string, number> = {
   "Wilderness":           13111, // Wilderness sword 4
   "Kourend & Kebos":      25441  // Rada's blessing 4
 };
+
+function diaryUnlockValue(tier: DiaryTier): number {
+  return { Easy: 55, Medium: 68, Hard: 82, Elite: 94 }[tier];
+}
+
+function diaryItemLabel(req: DiaryRequirementEvaluation["itemRequirements"][number]): string {
+  return `${req.quantity > 1 ? `${req.quantity}x ` : ""}${req.name}`;
+}
+
+function missingDiaryItemLabel(req: DiaryRequirementEvaluation["itemRequirements"][number]): string {
+  if (!req.ownedInBank && req.availability?.shortCopy && !req.availability.copy.includes("account mode is unknown")) {
+    return req.availability.shortCopy;
+  }
+  if (req.missingQuantity <= 0) return diaryItemLabel(req);
+  return `${req.missingQuantity > 1 ? `${req.missingQuantity}x ` : ""}${req.name}`;
+}
+
+function diaryBlockerPreview(evaluation: DiaryRequirementEvaluation, limit = 3): string[] {
+  const skills = evaluation.skillRequirements
+    .filter((req) => !req.met)
+    .map((req) => `${req.skill} ${req.currentLevel}/${req.level}`);
+  const tiers = evaluation.tierDependencies
+    .filter((req) => !req.met)
+    .map((req) => `${evaluation.region} ${req.tier} diary`);
+  const quests = evaluation.questRequirements
+    .filter((req) => !req.met)
+    .map((req) => req.name);
+  const items = evaluation.bank.notApplicable
+    ? evaluation.itemRequirements.map(missingDiaryItemLabel)
+    : evaluation.bank.missing.map(missingDiaryItemLabel);
+  return [...skills, ...tiers, ...quests, ...items, ...evaluation.tasksLeft].slice(0, limit);
+}
+
+function diaryPreparation(evaluation: DiaryRequirementEvaluation, kind: NextBestActionKind): NextBestActionPreparation {
+  if (kind === "do-diary" && evaluation.tier !== "Elite") return "Low";
+  if (evaluation.tier === "Elite" || evaluation.missingRequirements.length > 5 || kind === "train-diary-skill") return "High";
+  return "Medium";
+}
+
+function buildDiaryAction(evaluation: DiaryRequirementEvaluation): NextBestAction | null {
+  if (evaluation.readinessStatus === "completed") return null;
+
+  const missingSkills = evaluation.skillRequirements.filter((req) => !req.met);
+  const missingTiers = evaluation.tierDependencies.filter((req) => !req.met);
+  const missingQuests = evaluation.questRequirements.filter((req) => !req.met);
+  const missingItems = evaluation.bank.notApplicable ? [] : evaluation.bank.missing;
+  const unlockValue = diaryUnlockValue(evaluation.tier);
+  const unlockLabel = `${evaluation.region} ${evaluation.tier} diary`;
+  const requiredItems = evaluation.itemRequirements.slice(0, 6).map(diaryItemLabel);
+  const accountTypeNote = evaluation.accountWarnings[0];
+
+  if (missingSkills.length === 0 && missingTiers.length === 0 && missingQuests.length === 0 && missingItems.length === 0) {
+    const kind: NextBestActionKind = "do-diary";
+    return {
+      id: `nba:diary:${evaluation.region}:${evaluation.tier}`,
+      kind,
+      title: `Do ${unlockLabel}`,
+      reason: `${diaryReadinessLabel(evaluation.readinessStatus)}: ${evaluation.payoff}`,
+      missingRequirements: evaluation.bank.notApplicable ? evaluation.itemRequirements.map(missingDiaryItemLabel) : [],
+      requiredItems,
+      preparation: diaryPreparation(evaluation, kind),
+      relevantQuestOrUnlock: evaluation.payoff,
+      unlockValue,
+      iconItemId: DIARY_REWARD_ICONS[evaluation.region],
+      accountTypeNote
+    };
+  }
+
+  if (missingSkills.length > 0 && missingSkills.length <= 2) {
+    const closest = missingSkills
+      .map((req) => ({ ...req, gap: req.level - req.currentLevel }))
+      .sort((a, b) => a.gap - b.gap)[0];
+    const widestGap = Math.max(...missingSkills.map((req) => req.level - req.currentLevel));
+    if (closest && closest.gap <= 10 && widestGap <= 10) {
+      const kind: NextBestActionKind = "train-diary-skill";
+      return {
+        id: `nba:diary-skill:${evaluation.region}:${evaluation.tier}:${closest.skill}`,
+        kind,
+        title: `Train ${closest.skill} to ${closest.level} for ${unlockLabel}`,
+        reason: `${closest.skill} is ${closest.gap} level${closest.gap === 1 ? "" : "s"} short; that is the nearest diary blocker.`,
+        missingRequirements: missingSkills.map((req) => `${req.skill} ${req.currentLevel}/${req.level}`),
+        requiredItems,
+        preparation: diaryPreparation(evaluation, kind),
+        relevantQuestOrUnlock: unlockLabel,
+        unlockValue: Math.max(1, unlockValue - closest.gap),
+        iconItemId: skillCapeId(closest.skill),
+        accountTypeNote
+      };
+    }
+  }
+
+  if (missingTiers.length === 0 && missingSkills.length === 0 && missingQuests.length === 0 && missingItems.length > 0 && missingItems.length <= 5) {
+    const kind: NextBestActionKind = "collect-diary-items";
+    return {
+      id: `nba:diary-items:${evaluation.region}:${evaluation.tier}`,
+      kind,
+      title: `Collect ${missingItems.length} item${missingItems.length === 1 ? "" : "s"} for ${unlockLabel}`,
+      reason: `${unlockLabel} is blocked by bank prep; finishing the item list unlocks ${evaluation.payoff}`,
+      missingRequirements: missingItems.map(missingDiaryItemLabel),
+      requiredItems,
+      preparation: diaryPreparation(evaluation, kind),
+      relevantQuestOrUnlock: unlockLabel,
+      unlockValue: Math.max(1, unlockValue - 5),
+      iconItemId: DIARY_REWARD_ICONS[evaluation.region],
+      accountTypeNote
+    };
+  }
+
+  if (missingSkills.length === 0 && (missingTiers.length > 0 || missingQuests.length > 0) && missingTiers.length + missingQuests.length <= 3) {
+    const nextBlocker = missingQuests[0]?.name ?? `${evaluation.region} ${missingTiers[0]?.tier} diary`;
+    const kind: NextBestActionKind = "complete-diary-prereq";
+    return {
+      id: `nba:diary-prereq:${evaluation.region}:${evaluation.tier}`,
+      kind,
+      title: `Complete ${nextBlocker} for ${unlockLabel}`,
+      reason: `${unlockLabel} is close, but prerequisite progress blocks the payoff: ${evaluation.payoff}`,
+      missingRequirements: [
+        ...missingTiers.map((req) => `${evaluation.region} ${req.tier} diary`),
+        ...missingQuests.map((req) => req.name)
+      ],
+      requiredItems,
+      preparation: diaryPreparation(evaluation, kind),
+      relevantQuestOrUnlock: unlockLabel,
+      unlockValue: Math.max(1, unlockValue - (missingTiers.length + missingQuests.length) * 4),
+      iconItemId: DIARY_REWARD_ICONS[evaluation.region],
+      accountTypeNote
+    };
+  }
+
+  return null;
+}
+
+function diaryNextBestActions(input: {
+  diaries: Map<string, DiaryRecord>;
+  skills: HiscoreSkill[];
+  bankItems: QuestBankItem[];
+  accountType: PlannerAccountType | null;
+  completedQuestNames?: Set<string>;
+  completedDiaryTiers?: Set<string>;
+}): NextBestAction[] {
+  if (input.skills.length === 0 || input.diaries.size === 0) return [];
+  const completedQuests = input.completedQuestNames ? [...input.completedQuestNames] : [];
+  const actions: NextBestAction[] = [];
+
+  for (const [region, diary] of input.diaries) {
+    for (const tier of DIARY_TIERS_ORDER) {
+      const key = diaryTierKey(region, tier);
+      if (input.completedDiaryTiers?.has(key)) continue;
+      const evaluation = evaluateDiaryTier(region, tier, diary, {
+        skills: input.skills,
+        completedQuests,
+        completedDiaryTiers: input.completedDiaryTiers,
+        bankItems: input.bankItems,
+        accountType: input.accountType
+      });
+      const action = buildDiaryAction(evaluation);
+      if (action) actions.push(action);
+    }
+  }
+
+  return actions
+    .sort((a, b) => b.unlockValue - a.unlockValue)
+    .slice(0, 6);
+}
 
 // ── Boss KC-aware insights ──────────────────────────────────────────────────
 // Hand-picked "this is THE chase at this boss" overrides — substrings
@@ -1784,7 +2224,7 @@ function kcRecs(
         ? `Statistically you'd expect ${expected.toFixed(1)} ${headline.name} by now.`
         : `${(expected * 100).toFixed(0)}% chance of one ${headline.name} based on your KC.`,
       score,
-      link: undefined,
+      link: `/quests/${questSlug("Sheep Shearer")}`,
       iconItemId: boss?.iconItemId,
       bossSlug: boss?.slug,
       kcMeta: { kc, denom: headline.denom, dropName: headline.name },
@@ -1813,7 +2253,16 @@ function kcRecs(
   return recs;
 }
 
-function diaryRecs(diaries: Map<string, DiaryRecord>, skills: HiscoreSkill[]): Recommendation[] {
+function diaryRecs(
+  diaries: Map<string, DiaryRecord>,
+  skills: HiscoreSkill[],
+  context: {
+    bank: CompletionItem[];
+    accountType: PlannerAccountType | null;
+    completedQuestNames?: Set<string>;
+    completedDiaryTiers?: Set<string>;
+  }
+): Recommendation[] {
   if (skills.length === 0 || diaries.size === 0) return [];
 
   // Heuristic for "this player almost certainly already finished all diaries":
@@ -1822,72 +2271,111 @@ function diaryRecs(diaries: Map<string, DiaryRecord>, skills: HiscoreSkill[]): R
   // 2100, suppress all diary recs entirely — the audit found maxed accounts
   // were getting 7 Elite-diary recs as their top picks, which is nonsense.
   const totalLevel = computeTotalLevel(skills);
-  if (totalLevel >= 2100) return [];
+  if (totalLevel >= 2100 && !context.completedDiaryTiers) return [];
 
   const recs: Recommendation[] = [];
+  const completedQuests = context.completedQuestNames ? [...context.completedQuestNames] : [];
+  const bankItems = context.bank.map((item) => ({
+    id: item.id,
+    name: item.name,
+    quantity: item.quantity
+  }));
   for (const [region, d] of diaries) {
-    // Walk tiers high-to-low and find the highest the player meets.
-    let metTier: DiaryTier | null = null;
-    let nearestGap = Infinity;
+    // Prefer the highest concrete tier that is ready, close, or blocked by
+    // a small number of actionable requirements. Exact RuneLite sync skips
+    // already completed tiers.
+    let best:
+      | { tier: DiaryTier; evaluation: DiaryRequirementEvaluation; nearestGap: number; score: number }
+      | null = null;
     for (let i = DIARY_TIERS_ORDER.length - 1; i >= 0; i--) {
       const tier = DIARY_TIERS_ORDER[i];
-      const reqs = d.tiers[tier]?.skills ?? [];
-      if (reqs.length === 0) continue; // no requirements known for this tier
-      let meets = true;
-      let minHeadroom = Infinity;
-      for (const r of reqs) {
-        const playerLvl = lvl(skills, r.skill);
-        if (playerLvl < r.level) { meets = false; break; }
-        minHeadroom = Math.min(minHeadroom, playerLvl - r.level);
-      }
-      if (meets) { metTier = tier; nearestGap = minHeadroom; break; }
+      if (context.completedDiaryTiers?.has(diaryTierKey(region, tier))) continue;
+      const evaluation = evaluateDiaryTier(region, tier, d, {
+        skills,
+        completedQuests,
+        completedDiaryTiers: context.completedDiaryTiers,
+        bankItems,
+        accountType: context.accountType
+      });
+      if (evaluation.readinessStatus === "completed") continue;
+      const skillGaps = evaluation.skillRequirements.map((req) => req.level - req.currentLevel);
+      const maxMissingSkillGap = Math.max(0, ...skillGaps);
+      const nearestHeadroom = Math.min(...skillGaps.map((gap) => -gap));
+      const blockerCount = evaluation.missingRequirements.length;
+      const actionable =
+        evaluation.readinessStatus === "ready"
+        || evaluation.readinessStatus === "partially-ready"
+        || evaluation.readinessStatus === "missing-items"
+        || (evaluation.readinessStatus === "missing-quests" && blockerCount <= 3)
+        || (evaluation.readinessStatus === "missing-skill-levels" && maxMissingSkillGap <= 10 && blockerCount <= 5);
+      if (!actionable) continue;
+      const tierBoost = { Easy: 0, Medium: 6, Hard: 14, Elite: 22 }[tier];
+      const readinessBoost =
+        evaluation.readinessStatus === "ready" ? 8
+        : evaluation.readinessStatus === "partially-ready" || evaluation.readinessStatus === "missing-items" ? 5
+        : evaluation.readinessStatus === "missing-quests" ? 3
+        : 2;
+      const freshness = Math.max(0, 8 - Math.max(0, maxMissingSkillGap));
+      const score = 34 + tierBoost + readinessBoost + freshness - Math.max(0, blockerCount - 1) * 3;
+      best = { tier, evaluation, nearestGap: Math.max(0, -nearestHeadroom), score };
+      break;
     }
-    if (!metTier) continue;
+    if (!best) continue;
 
-    // Only surface a tier that's still meaningful for the player: at least
-    // one required skill is within 8 levels of their actual level. (Was 5,
-    // but that misclassified e.g. a Slayer-70 player getting Karamja Hard
-    // even though Karamja's binding skill is much lower.) Applied to every
-    // tier including Elite — the old "Elite always passes" exception was
-    // the source of the 7-Elite-diaries-for-maxed bug.
-    if (nearestGap > 8) continue;
-
-    // Score: higher tier = higher score; freshly met = higher score still.
-    const tierBoost = { Easy: 0, Medium: 6, Hard: 14, Elite: 22 }[metTier];
-    const freshness = Math.max(0, 8 - nearestGap);
-    const score = 56 + tierBoost + freshness * 2;
+    const { tier, evaluation, score } = best;
+    const blockers = diaryBlockerPreview(evaluation, 4);
+    const blockersText = blockers.length > 0 ? blockers.join(", ") : "no visible blockers";
+    const skillBlocker = evaluation.skillRequirements
+      .filter((req) => !req.met)
+      .map((req) => ({ ...req, gap: req.level - req.currentLevel }))
+      .sort((a, b) => a.gap - b.gap)[0];
+    const missingQuest = evaluation.questRequirements.find((req) => !req.met);
+    const missingItems = evaluation.bank.notApplicable ? [] : evaluation.bank.missing;
+    const title = skillBlocker
+      ? `Train ${skillBlocker.skill} to ${skillBlocker.level} for ${region} ${tier}`
+      : missingQuest
+        ? `Complete ${missingQuest.name} for ${region} ${tier}`
+        : missingItems.length > 0
+          ? `Collect ${missingItems.length} item${missingItems.length === 1 ? "" : "s"} for ${region} ${tier}`
+          : `Do ${region} ${tier} diary`;
+    const why = blockers.length > 0
+      ? `${region} ${tier} is ${blockers.length} blocker${blockers.length === 1 ? "" : "s"} away: ${blockersText}.`
+      : `${region} ${tier} has every visible requirement handled.`;
 
     recs.push({
-      id: `diary:${region}:${metTier}`,
+      id: `diary:${region}:${tier}`,
       kind: "diary",
-      title: `${region} Diary — ${metTier}`,
-      why: `Your visible stats clear the ${metTier} skill gates in this region.`,
-      payoff: metTier === "Elite"
-        ? `Unlocks the tier-4 reward (${region} headgear / cape / cloak).`
-        : `Step toward the tier-4 reward; ${metTier} unlocks its tier perks.`,
-      decisionReason: `${region} ${metTier} is close because one requirement is only ${nearestGap} level${nearestGap === 1 ? "" : "s"} above the gate.`,
+      title,
+      why,
+      payoff: evaluation.payoff,
+      decisionReason: `${diaryReadinessLabel(evaluation.readinessStatus)}: ${blockersText}. Stop point: ${evaluation.stopPoint}`,
+      needs: blockers,
       score,
-      link: undefined,
       iconItemId: DIARY_REWARD_ICONS[region],
       routeTags: ["unlock", "maxing", "returning"],
       gearConfidence: "likely",
       quality: {
         accountFit: 0.78,
-        actionability: 0.76,
+        actionability: evaluation.readinessStatus === "ready" ? 0.9 : evaluation.readinessStatus === "missing-skill-levels" ? 0.68 : 0.76,
         stopPoint: 0.84,
-        gearConfidence: 0.78,
-        unlockValue: metTier === "Elite" ? 0.92 : 0.82,
+        gearConfidence: evaluation.bank.checked ? 0.86 : evaluation.bank.notApplicable ? 0.64 : 0.62,
+        unlockValue: tier === "Elite" ? 0.92 : 0.82,
         fun: 0.56,
-        friction: metTier === "Elite" ? 0.48 : 0.32
+        friction: tier === "Elite" ? 0.52 : evaluation.missingRequirements.length > 0 ? 0.4 : 0.24
       },
       planSeed: {
-        timebox: metTier === "Elite" ? "1-2 hr" : "45-90 min",
-        prep: `You meet every known ${region} ${metTier} skill gate; nearest headroom is ${nearestGap} level${nearestGap === 1 ? "" : "s"}.`,
+        timebox: tier === "Elite" ? "1-2 hr" : "45-90 min",
+        prep: evaluation.bank.notApplicable
+          ? `${region} ${tier}: use staging/carry/storage planning instead of bank-ready.`
+          : blockers.length > 0
+            ? `${region} ${tier}: clear ${blockers[0]} first.`
+            : `${region} ${tier}: every visible blocker is clear.`,
         steps: [
-          `Open the ${region} ${metTier} checklist and gather every task item before traveling.`,
-          "Do travel/skill tasks in one sweep, then finish any combat or minigame task last.",
-          "Claim the diary reward and re-sync so lower-value diary nudges disappear."
-        ]
+          ...blockers.slice(0, 2).map((blocker) => `Clear blocker: ${blocker}.`),
+          `Run the ${region} ${tier} tasks as one regional sweep.`,
+          "Claim the diary reward and re-sync so completed diary nudges disappear."
+        ].slice(0, 4),
+        caveat: evaluation.accountWarnings[0]
       }
     });
   }
@@ -1955,7 +2443,7 @@ function starterQuestRecs(hasHiscores: boolean, bank: CompletionItem[]): Recomme
       payoff: "Quick quest point and unlocks the habit of quest-first progression.",
       decisionReason: "This is a quick first quest that moves the account without gear checks.",
       score: 42,
-      link: undefined,
+      link: `/quests/${questSlug("Cook's Assistant")}`,
       planSeed: {
         timebox: "5-10 min",
         prep: "Grab an egg, bucket of milk and pot of flour before entering Lumbridge Castle.",
@@ -1974,7 +2462,7 @@ function starterQuestRecs(hasHiscores: boolean, bank: CompletionItem[]): Recomme
       payoff: "Easy quest point and basic skilling loop near Lumbridge.",
       decisionReason: "A fast skilling loop is useful when the account has almost no visible stats yet.",
       score: 41,
-      link: undefined,
+      link: `/quests/${questSlug("Sheep Shearer")}`,
       planSeed: {
         timebox: "5-10 min",
         prep: "Bring shears or buy them from a general store before going to Fred's farm.",
@@ -1993,7 +2481,7 @@ function starterQuestRecs(hasHiscores: boolean, bank: CompletionItem[]): Recomme
       payoff: "Five quest points very early, useful for unlocking broader quest chains.",
       decisionReason: "Five quick quest points is a better starter move than a vague grind.",
       score: 40,
-      link: undefined,
+      link: `/quests/${questSlug("Romeo & Juliet")}`,
       planSeed: {
         timebox: "10-15 min",
         prep: "Start in Varrock and bank a cadava berry to avoid extra walking.",
@@ -2043,7 +2531,7 @@ function accountRouteRecs(input: {
       payoff: "Herblore unlocks quest chains, diary steps and better supplies.",
       decisionReason: "Herblore is still locked, so this tiny quest unlocks more account routes than random skilling.",
       score: accountStage.id === "new-account" || iron ? 76 : 66,
-      link: undefined,
+      link: `/quests/${questSlug("Druidic Ritual")}`,
       iconItemId: 255,
       routeTags: ["beginner", "unlock", "iron", "returning"],
       gearConfidence: "not-needed",
@@ -2119,7 +2607,7 @@ function accountRouteRecs(input: {
       payoff: "Ava's accumulator and a cleaner ranged setup forever.",
       decisionReason: "This is a small quest with a permanent gear payoff, so it beats another unfocused ranged grind.",
       score: 60,
-      link: undefined,
+      link: `/quests/${questSlug("Animal Magnetism")}`,
       iconItemId: 10499,
       routeTags: ["unlock", "pvm", "returning", "iron"],
       gearConfidence: "not-needed",
@@ -2196,7 +2684,7 @@ function accountRouteRecs(input: {
       payoff: "Travel upgrade: less walking, faster trips, better daily loops.",
       decisionReason: "Travel time is hidden bankstanding; fairy rings remove friction from almost every account route.",
       score: accountStage.id === "returning" || iron ? 62 : 58,
-      link: undefined,
+      link: `/quests/${questSlug("Fairytale II - Cure a Queen")}`,
       iconItemId: 772,
       routeTags: ["unlock", "returning", "iron"],
       gearConfidence: "not-needed",
@@ -2587,6 +3075,17 @@ function mergeCompletionItems(
   return merged;
 }
 
+function accountMetaFromScapestackSync(sync: NextUpInput["scapestackSync"]): AccountMeta | null {
+  if (!sync) return null;
+  return {
+    displayName: sync.displayName ?? "Scapestack Sync",
+    accountType: scapestackAccountTypeToPlannerType(normalizeScapestackAccountType(sync.accountType)),
+    ehp: 0,
+    ehb: 0,
+    lastChangedAt: null
+  };
+}
+
 // ── Engine ──────────────────────────────────────────────────────────────────
 
 export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
@@ -2596,6 +3095,21 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
   const qp = input.questPoints ?? 0;
   const hasHiscores = skills.length > 0;
   const hasBank = bank.length > 0;
+  const accountMode = resolveAccountMode({
+    scapestackAccountType: input.scapestackSync?.accountType,
+    plannerAccountType: input.accountMeta?.accountType ?? null
+  });
+  const accountMeta = accountMode.type
+    ? {
+        ...(input.accountMeta ?? accountMetaFromScapestackSync(input.scapestackSync) ?? {
+          displayName: input.scapestackSync?.displayName ?? "Unknown player",
+          ehp: 0,
+          ehb: 0,
+          lastChangedAt: null
+        }),
+        accountType: accountMode.type
+      }
+    : null;
 
   const combatLevel = hasHiscores ? computeCombatLevel(skills) : null;
   const totalLevel = hasHiscores ? computeTotalLevel(skills) : null;
@@ -2613,13 +3127,12 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
   // Quest + diary + drop-rate data ship as static JSON files — best-effort,
   // the engine still works if a file is missing (the build scripts generate
   // them). All three loads are kicked off in parallel.
-  const [quests, diaries, dropTables] = hasHiscores
-    ? await Promise.all([
-        getQuests().catch(() => new Map()),
-        getDiaries().catch(() => new Map()),
-        getDropRates().catch(() => new Map())
-      ])
-    : [new Map(), new Map(), new Map()];
+  const shouldLoadQuests = hasHiscores || hasBank || Boolean(input.scapestackSync);
+  const [quests, diaries, dropTables] = await Promise.all([
+    shouldLoadQuests ? getQuests().catch(() => new Map()) : Promise.resolve(new Map<string, QuestRecord>()),
+    hasHiscores ? getDiaries().catch(() => new Map()) : Promise.resolve(new Map()),
+    hasHiscores ? getDropRates().catch(() => new Map()) : Promise.resolve(new Map())
+  ]);
 
   // Collection-log owned-item set (cl.net). Rebuild from the input
   // array — the action layer flattens it to a list because Set isn't
@@ -2633,6 +3146,9 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     : input.templeQuestsCompleted
       ? new Set(input.templeQuestsCompleted.map((q) => q.toLowerCase()))
       : undefined;
+  const completedDiaryTierKeys = input.scapestackSync
+    ? new Set(input.scapestackSync.diariesCompleted.map((d) => diaryTierKey(d.region, d.tier)))
+    : undefined;
 
   // Boss KCs: merge Hiscores + WOM via max — WOM is often fresher
   // because the RuneLite plugin pushes more often than Jagex updates.
@@ -2662,7 +3178,7 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     totalLevel,
     questPoints: qp,
     bossKc: mergedBossKc,
-    accountMeta: input.accountMeta ?? null,
+    accountMeta,
     hasBankContext: hasBank,
     hasPluginSync: pluginSyncState === "live"
   });
@@ -2670,19 +3186,24 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
   const rawRecs = applyBossViability([
     ...goalRecs(completions),
     ...(combatLevel !== null ? bossRecs(combatLevel, bank, skills, mergedBossKc) : []),
-    ...slayerTaskRecs(input.scapestackSync?.slayer, input.scapestackSync?.displayName ?? input.accountMeta?.displayName),
+    ...slayerTaskRecs(input.scapestackSync?.slayer, input.scapestackSync?.displayName ?? accountMeta?.displayName),
     ...questRecs(quests, skills, qp, completedQuestNames),
     ...activeBossKcRecs(mergedBossKc, bank, skills),
-    ...diaryRecs(diaries, skills),
+    ...diaryRecs(diaries, skills, {
+      bank,
+      accountType: accountMeta?.accountType ?? null,
+      completedQuestNames,
+      completedDiaryTiers: completedDiaryTierKeys
+    }),
     ...kcRecs(dropTables, mergedBossKc, bank, clOwned),
     ...minigameRecs(skills),
-    ...moneyRecs(skills, input.accountMeta),
+    ...moneyRecs(skills, accountMeta),
     ...skillRecs(skills),
     ...accountRouteRecs({
       skills,
       questPoints: qp,
       accountStage,
-      accountMeta: input.accountMeta ?? null,
+      accountMeta,
       completedQuestNames
     }),
     ...starterQuestRecs(hasHiscores, bank),
@@ -2694,7 +3215,7 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
   const sortedRecs = rankRecommendations(rawRecs, {
     hasBank,
     accountStage,
-    accountMeta: input.accountMeta ?? null
+    accountMeta
   });
   const recs: Recommendation[] = withActionPlans(prioritizeVisibleRecommendations(sortedRecs), {
     hasHiscores,
@@ -2721,7 +3242,7 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     bossKc: input.bossKc ?? {},
     questPoints: qp,
     womBossKills: input.womBossKills,
-    accountMeta: input.accountMeta ?? null,
+    accountMeta,
     templeQuestsCompleted: input.templeQuestsCompleted
       ? new Set(input.templeQuestsCompleted)
       : undefined,
@@ -2746,11 +3267,21 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
   const maxEstimate = hasHiscores
     ? hoursToMax(skills.map((s) => ({ name: s.name, level: s.level, xp: s.xp })))
     : { totalHours: 0, perSkill: [] };
+  const actionQueue = nextBestActions({
+    quests,
+    diaries,
+    skills,
+    bank,
+    accountType: accountMeta?.accountType ?? null,
+    completedQuestNames,
+    completedDiaryTiers: completedDiaryTierKeys
+  });
 
   return {
     headline: recs[0] ?? null,
     rest: recs.slice(1),
-    summary: { combatLevel, totalLevel, goalPercent, accountStage, basis },
+    nextBestActions: actionQueue,
+    summary: { combatLevel, totalLevel, goalPercent, accountStage, accountType: accountMeta?.accountType ?? null, accountMode, basis },
     pathProgress,
     readiness,
     maxEstimate

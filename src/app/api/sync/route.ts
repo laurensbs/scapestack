@@ -16,6 +16,8 @@ import { upsertSyncedPlayer } from "@/lib/sync-repo";
 import { extractBearerToken, verifyClaim } from "@/lib/sync-auth";
 import { mapBlockTaskIds } from "@/lib/slayer/task-ids";
 import { getSyncServiceStatus, SYNC_SERVICE_LIMITS } from "@/lib/sync-service-readiness";
+import { normalizeScapestackAccountType } from "@/lib/account-type";
+import { normalizePluginBankStatus } from "@/lib/plugin-bank-status";
 
 const MAX_BODY_BYTES = SYNC_SERVICE_LIMITS.maxBodyBytes;
 const ALLOWED_DIARY_TIERS = new Set(["Easy", "Medium", "Hard", "Elite"]);
@@ -28,9 +30,13 @@ const CORS_HEADERS = {
 interface SyncBody {
   rsn?: unknown;
   displayName?: unknown;
+  accountType?: unknown;
+  skills?: unknown;
   questsCompleted?: unknown;
   diariesCompleted?: unknown;
   collectionLogItemIds?: unknown;
+  bankItems?: unknown;
+  bankStatus?: unknown;
   slayer?: unknown;
   pluginVersion?: unknown;
 }
@@ -134,6 +140,25 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   const displayName = cleanDisplayName(body.displayName, rsn);
+  const accountType = normalizeScapestackAccountType(body.accountType);
+
+  // Skills — optional RuneLite real levels. Hiscores may still enrich
+  // rank/xp later, but plugin levels let /next plan from live account data.
+  const skillsReceived = Array.isArray(body.skills) ? body.skills.length : 0;
+  const skills = Array.isArray(body.skills)
+    ? body.skills
+        .filter((x): x is { name: string; level: number } =>
+          typeof x === "object" && x !== null &&
+          typeof (x as { name?: unknown }).name === "string" &&
+          typeof (x as { level?: unknown }).level === "number" &&
+          Number.isFinite((x as { level: number }).level))
+        .map((x) => ({
+          name: x.name.trim().slice(0, 32),
+          level: Math.max(1, Math.min(126, Math.floor(x.level)))
+        }))
+        .filter((x) => x.name.length > 0)
+        .slice(0, 32)
+    : [];
 
   // Quests — array of strings, capped at 500 entries.
   if (!Array.isArray(body.questsCompleted)) return badRequest("questsCompleted must be an array");
@@ -165,6 +190,28 @@ export async function POST(req: Request): Promise<Response> {
     .filter((x): x is number => typeof x === "number" && Number.isFinite(x) && x > 0 && x < 1_000_000)
     .map((x) => Math.floor(x))
     .slice(0, 2000);
+
+  // Bank items — optional opt-in RuneLite payload. Only item identity and
+  // quantity are accepted; no inventory/equipment/chat/client metadata.
+  const bankItemsReceived = Array.isArray(body.bankItems) ? body.bankItems.length : 0;
+  const bankItems = Array.isArray(body.bankItems)
+    ? body.bankItems
+        .filter((x): x is { id: number; name: string; quantity?: number } =>
+          typeof x === "object" && x !== null &&
+          typeof (x as { id?: unknown }).id === "number" &&
+          Number.isFinite((x as { id: number }).id) &&
+          typeof (x as { name?: unknown }).name === "string")
+        .map((x) => ({
+          id: Math.floor(x.id),
+          name: x.name.trim().slice(0, 100),
+          quantity: typeof x.quantity === "number" && Number.isFinite(x.quantity)
+            ? Math.max(1, Math.min(2_147_483_647, Math.floor(x.quantity)))
+            : 1
+        }))
+        .filter((x) => x.id > 0 && x.id < 1_000_000 && x.name.length > 0)
+        .slice(0, SYNC_SERVICE_LIMITS.bankItems)
+    : [];
+  const bankStatus = normalizePluginBankStatus(body.bankStatus, bankItems.length);
 
   const pluginVersion = typeof body.pluginVersion === "string"
     ? body.pluginVersion.slice(0, 32)
@@ -209,9 +256,13 @@ export async function POST(req: Request): Promise<Response> {
     syncedAt = await upsertSyncedPlayer({
       rsn,
       displayName,
+      accountType,
+      skills,
       questsCompleted,
       diariesCompleted,
       collectionLogItemIds,
+      bankItems,
+      bankStatus,
       slayer,
       pluginVersion
     });
@@ -228,7 +279,8 @@ export async function POST(req: Request): Promise<Response> {
     syncedAt,
     player: {
       rsn: normalizedRsn,
-      displayName
+      displayName,
+      accountType
     },
     plugin: {
       version: pluginVersion,
@@ -236,24 +288,31 @@ export async function POST(req: Request): Promise<Response> {
         status: slayerStatus,
         currentTaskId: slayer?.currentTaskId ?? null,
         blocks: slayer?.blocks.length ?? 0
-      }
+      },
+      bank: bankStatus
     },
     counts: {
       quests: questsCompleted.length,
+      skills: skills.length,
       diaries: diariesCompleted.length,
-      collectionLogItems: collectionLogItemIds.length
+      collectionLogItems: collectionLogItemIds.length,
+      bankItems: bankItems.length
     },
     diagnostics: {
       received: {
         bytes: byteLength(rawBody),
+        skills: skillsReceived,
         quests: questsReceived,
         diaries: diariesReceived,
-        collectionLogItems: collectionLogItemsReceived
+        collectionLogItems: collectionLogItemsReceived,
+        bankItems: bankItemsReceived
       },
       truncated: {
+        skills: skills.length >= 32 && skillsReceived > skills.length,
         quests: questsCompleted.length >= 500 && questsReceived > questsCompleted.length,
         diaries: diariesCompleted.length >= 64 && diariesReceived > diariesCompleted.length,
-        collectionLogItems: collectionLogItemIds.length >= 2000 && collectionLogItemsReceived > collectionLogItemIds.length
+        collectionLogItems: collectionLogItemIds.length >= 2000 && collectionLogItemsReceived > collectionLogItemIds.length,
+        bankItems: bankItems.length >= SYNC_SERVICE_LIMITS.bankItems && bankItemsReceived > bankItems.length
       }
     }
   });

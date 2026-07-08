@@ -25,6 +25,7 @@ describe("recommendation primary actions", () => {
     expect(routeActionForHref("/slayer/").label).toBe("Check task");
     expect(routeActionForHref("/gp").label).toBe("Open cash route in /next");
     expect(routeActionForHref("/skills").label).toBe("Open skill route in /next");
+    expect(routeActionForHref("/quests/animal-magnetism").label).toBe("Check quest requirements");
     expect(routeActionForHref("/slayer?rsn=Lynx+Titan&source=plugin-sync").href)
       .toBe("/slayer?rsn=Lynx+Titan&source=plugin-sync");
     expect(routeActionForHref("/plugin").helper).toBe("Let Scapestack skip finished quests, diary steps, clog slots and Slayer.");
@@ -50,6 +51,11 @@ describe("recommendation primary actions", () => {
       .toBe("/slayer?task=greater-demons&rsn=Lynx+Titan&from=next");
     expect(recommendationHrefWithContext("/plugin", { from: "next", rsn: "Lynx Titan" }))
       .toBe("/plugin?rsn=Lynx+Titan&from=next#verify-sync");
+    expect(recommendationHrefWithContext("/quests/animal-magnetism", {
+      from: "next",
+      rsn: "Lynx Titan",
+      hasBankContext: false
+    })).toBe("/quests/animal-magnetism?rsn=Lynx+Titan&from=next&bank=none");
   });
 
   it("sends retired tool routes straight to active /next intents", () => {

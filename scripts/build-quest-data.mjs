@@ -10,7 +10,9 @@
 //   { "<canonical title>": {
 //       name, difficulty, length, qpReq,
 //       skillReqs: [{ skill, level }, ...],
-//       questReqs: [<canonical title>, ...]   // direct prereqs only
+//       questReqs: [<canonical title>, ...],  // direct prereqs only
+//       itemReqs: [{ name, quantity, note, alternatives: [{ name, quantity }] }],
+//       ironmanNotes: [string]
 //     }
 //   }
 //
@@ -145,6 +147,94 @@ function parseQuestPrereqs(requirementsField, knownTitles) {
   return out;
 }
 
+function wikiLinks(value) {
+  return [...String(value ?? "").matchAll(/\[\[([^\]|#]+?)(?:#[^\]|]+)?(?:\|([^\]]+))?\]\]/g)]
+    .map((m) => ({
+      name: (m[2] || m[1]).trim(),
+      target: m[1].trim()
+    }))
+    .filter((link) => link.name);
+}
+
+function cleanWikiText(value) {
+  return String(value ?? "")
+    .replace(/\[\[([^\]|#]+?)(?:#[^\]|]+)?\|([^\]]+)\]\]/g, "$2")
+    .replace(/\[\[([^\]|#]+?)(?:#[^\]]+)?\]\]/g, "$1")
+    .replace(/\{\{SCP\|([^|}]+)\|([^|}]+)[^}]*\}\}/g, "$1 $2")
+    .replace(/\{\{[Qq]ty\|(\d+)\}\}/g, "$1")
+    .replace(/\{\{[^}]+\}\}/g, "")
+    .replace(/'''?/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function parseQuantity(line) {
+  const clean = cleanWikiText(line).replace(/^\*+\s*/, "").trim();
+  const atLeast = clean.match(/^At least\s+(\d+)/i);
+  if (atLeast) return parseInt(atLeast[1], 10);
+  const count = clean.match(/^(\d+)\b/);
+  if (count) return parseInt(count[1], 10);
+  const wordCount = clean.match(/^(?:A|An)\s+/i);
+  if (wordCount) return 1;
+  return 1;
+}
+
+function requirementId(name, index) {
+  return `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "item"}-${index}`;
+}
+
+function parseItemReqs(itemsField) {
+  const reqs = [];
+  let current = null;
+  for (const rawLine of String(itemsField ?? "").split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line.startsWith("*")) continue;
+    const links = wikiLinks(line);
+    if (links.length === 0) continue;
+    const first = links[0];
+    const row = {
+      id: requirementId(first.name, reqs.length + 1),
+      name: first.name,
+      quantity: parseQuantity(line),
+      note: cleanWikiText(line.replace(/^\*+\s*/, "")),
+      alternatives: []
+    };
+
+    if (/^\*\*\s*/.test(line) && current) {
+      current.alternatives.push({
+        name: row.name,
+        quantity: row.quantity,
+        note: row.note
+      });
+      continue;
+    }
+
+    const lower = cleanWikiText(line).toLowerCase();
+    if (lower.includes(" or ")) {
+      for (const alt of links.slice(1)) {
+        row.alternatives.push({
+          name: alt.name,
+          quantity: parseQuantity(line),
+          note: row.note
+        });
+      }
+    }
+
+    reqs.push(row);
+    current = row;
+  }
+  return reqs;
+}
+
+function parseIronmanNotes(ironmanField) {
+  return String(ironmanField ?? "")
+    .split(/\r?\n/)
+    .map((line) => cleanWikiText(line.replace(/^\*+\s*/, "")))
+    .filter(Boolean)
+    .slice(0, 12);
+}
+
 // ── Pipeline ────────────────────────────────────────────────────────────────
 
 async function fetchQuestTitles() {
@@ -181,6 +271,8 @@ async function main() {
       const block = extractQuestDetails(w);
       if (!block) { noBlock++; continue; }
       const requirements = getParam(block, "requirements") ?? "";
+      const items = getParam(block, "items") ?? "";
+      const ironman = getParam(block, "ironman") ?? "";
       const difficulty = getParam(block, "difficulty");
       const length = getParam(block, "length");
       out[title] = {
@@ -189,7 +281,9 @@ async function main() {
         length: length || null,
         qpReq: parseQpReq(requirements),
         skillReqs: parseSkillReqs(requirements),
-        questReqs: parseQuestPrereqs(requirements, knownTitles)
+        questReqs: parseQuestPrereqs(requirements, knownTitles),
+        itemReqs: parseItemReqs(items),
+        ironmanNotes: parseIronmanNotes(ironman)
       };
       parsed++;
     } catch (e) {

@@ -1,15 +1,9 @@
-import { PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
 import type { ScapestackPluginHubState } from "@/lib/scapestack-readiness";
 
 export interface PluginOnboardingAction {
   label: string;
   href: string;
   tone: "primary" | "secondary";
-}
-
-export interface PluginOnboardingCopy {
-  label: string;
-  value: string;
 }
 
 export interface PluginOnboardingLane {
@@ -76,10 +70,6 @@ export const BANK_PLUGIN_ONBOARDING = {
       tone: "secondary"
     }
   ] satisfies PluginOnboardingAction[],
-  copy: {
-    label: "Copy sync URL",
-    value: PUBLIC_SYNC_URL
-  } satisfies PluginOnboardingCopy,
   signals: [
     "Finished quests",
     "Diary tiers",

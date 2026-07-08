@@ -60,8 +60,8 @@ describe("plugin sync checker affordance", () => {
     expect(source).not.toContain("canShowMissingSetup");
     expect(source).not.toContain("review-readiness");
     expect(source).toContain("Open RuneLite, press Sync now, then check again.");
-    expect(source).toContain("Copy scapestack.org sync URL");
-    expect(source).toContain("Sync URL copied");
+    expect(source).not.toContain("Copy scapestack.org sync URL");
+    expect(source).not.toContain("Sync URL copied");
     expect(source).not.toContain("Copy claim URL");
     expect(source).toContain('state.kind === "unconfigured" && diagnostic');
   });

@@ -7,15 +7,17 @@ export const DEFAULT_REVIEWER_PACKET_FILE = "/tmp/scapestack-plugin-reviewer-pac
 const DATA_SENT = [
   "RSN used for the claim",
   "Plugin version and sync status",
+  "Skill levels",
   "Quest and diary completion",
   "Loaded collection-log item IDs",
   "Slayer task, points, streak and block-list state",
+  "Optional bank item IDs, names and quantities when Use bank for readiness is enabled",
   "Local install token only as Authorization bearer on claim/sync requests"
 ];
 
 const DATA_NEVER_SENT = [
   "RuneScape password or account login",
-  "bank, inventory, equipment or GE offers",
+  "inventory, equipment, GE offers or wealth",
   "chat messages, friends list or private messages",
   "mouse clicks, key presses or gameplay inputs",
   "screenshots, client files, config folders, IP or machine fingerprint"
@@ -24,24 +26,24 @@ const DATA_NEVER_SENT = [
 const GAME_INTEGRITY = [
   "Read-only plugin: it reads RuneLite client state and never clicks, types, swaps menus, changes prayers, moves the player or performs game actions.",
   "No overlays, alerts or in-client recommendations that could automate gameplay decisions; recommendations live in the external web app after opt-in sync.",
-  "No item, inventory, equipment, bank, trade, GE offer or wealth data is collected by the plugin."
+  "No inventory, equipment, trade, GE offer or wealth data is collected by the plugin. Bank sync is limited to item IDs, names and quantities after separate opt-in."
 ];
 
 const WEB_APP_MERGE_CONTRACT = [
-  "The plugin is an account-progress verifier, not a bank uploader.",
-  "Successful sync chat links to `/next?rsn=...&source=plugin-sync&bank=none` so the web app treats RuneLite payloads as bankless by default.",
-  "`source=plugin-sync` tells Scapestack to load the verified account payload for coverage labels; it does not remove bank, gear or tracker caveats by itself.",
-  "`bank=none` prevents stale browser bank context from being silently reused after a plugin-only sync.",
-  "Players who want gear-aware advice paste Bank Memory or Bank Tags into the web app separately; that browser-only bank context is never sent back to RuneLite.",
+  "The plugin is an account-progress verifier with optional bank item readiness.",
+  "Successful sync chat stays compact and points players to Scapestack /next without printing a long URL; the website still loads `/next?rsn=...&source=plugin-sync&bank=none` state to avoid stale browser bank context.",
+  "`source=plugin-sync` tells Scapestack to load the verified account payload for coverage labels; it does not remove gear, price or tracker caveats by itself.",
+  "`bank=none` prevents stale browser bank context from being silently reused after a plugin sync.",
+  "Players who want GP valuation or manual Bank Tags can still paste Bank Memory or Bank Tags into the web app separately; that browser-only bank context is never sent back to RuneLite.",
   "/next, /slayer, /dps, /goals and player profiles all show readiness rails so players can see Bank, RSN and RuneLite sync as separate evidence signals."
 ];
 
 const STALE_PR_BODY_REPLACEMENTS = [
-  "Replace “Auto-sync defaults to on” with “Auto-sync on login defaults off and requires explicit player opt-in.”",
+  "Replace “Sync on login defaults to on” with “Sync on login defaults off and requires explicit player opt-in.”",
   "Replace “raw token never leaves the install” with “raw token is sent only as an Authorization bearer for claim/sync; Scapestack stores sha256(token).”",
-  "Replace “POSTs on every login + quest-complete chat messages” with “POSTs only after opt-in; quest-complete POST also defaults off and requires Auto-sync on login.”",
-  "Replace the old capture list with the current opt-in payload: quests, diaries, collection-log item IDs and Slayer task, points, streak and block-list state.",
-  "Keep “No IP, no machine fingerprint, no chat-log content” and add “no bank, inventory, equipment, GE offers, screenshots, inputs or account login.”"
+  "Replace “POSTs on every login + quest-complete chat messages” with “POSTs only after opt-in; quest-complete POST also defaults off and requires Sync on login.”",
+  "Replace the old capture list with the current opt-in payload: skills, quests, diaries, collection-log item IDs, Slayer task state, and optional bank item IDs/names/quantities.",
+  "Keep “No IP, no machine fingerprint, no chat-log content” and add “no inventory, equipment, GE offers, screenshots, inputs or account login; bank sync is item IDs/names/quantities only after separate opt-in.”"
 ];
 
 export function buildPluginReviewerPacket(status: PluginHubStatus): string {
@@ -57,16 +59,16 @@ export function buildPluginReviewerPacket(status: PluginHubStatus): string {
     status.reviewCopySummary ? `- PR body copy: ${status.reviewCopySummary}` : null,
     status.submittedCommit ? `- Plugin Hub pin: ${status.submittedCommit}` : null,
     status.standaloneCommit ? `- Standalone head: ${status.standaloneCommit}` : null,
-    "- Use this packet to replace stale PR-body copy if GitHub still says auto-sync defaults on or implies the raw token never leaves the client.",
+    "- Use this packet to replace stale PR-body copy if GitHub still says sync-on-login defaults on or implies the raw token never leaves the client.",
     "",
     "Stale PR-body replacements",
     ...STALE_PR_BODY_REPLACEMENTS.map((item) => `- ${item}`),
     "",
     "Player consent",
-    "- Auto-sync on login defaults off.",
-    "- Sync on quest complete defaults off.",
-    "- Quest-complete sync is also gated behind Auto-sync on login; enabling the quest-complete setting alone never sends a payload.",
-    "- No progress POST happens until the player enables Auto-sync on login in RuneLite settings.",
+    "- Sync on login defaults off.",
+    "- Refresh after quests defaults off.",
+    "- Quest-complete refresh is also gated behind Sync on login; enabling the quest-complete setting alone never sends a payload.",
+    "- No progress POST happens until the player enables Sync on login in RuneLite settings.",
     "",
     "Data sent after opt-in",
     ...DATA_SENT.map((item) => `- ${item}`),
@@ -85,9 +87,9 @@ export function buildPluginReviewerPacket(status: PluginHubStatus): string {
     "",
     "Web-app merge behavior",
     "- The web app keeps working with Hiscores, bank paste and public trackers while review is pending.",
-    "- After sync, /next labels quest, diary, collection-log and Slayer coverage as verified, partial or missing from the RuneLite payload.",
-    "- Successful sync chat includes the verified /next URL for that RSN with source=plugin-sync&bank=none; local Sync endpoints produce local /next links for testers.",
-    "- Bank handoff remains browser-only; the plugin never receives bank, inventory, equipment, screenshots, clicks or account login.",
+    "- After sync, /next labels skill, quest, diary, collection-log, bank readiness and Slayer coverage as verified, partial or missing from the RuneLite payload.",
+    "- Successful sync chat is URL-free and tells the player to open Scapestack /next; local and production website handoffs still use source=plugin-sync&bank=none internally.",
+    "- Browser bank handoff remains browser-only; optional RuneLite bank sync sends item IDs, names and quantities only, never inventory, equipment, screenshots, clicks or account login.",
     "",
     "Web-app merge contract",
     ...WEB_APP_MERGE_CONTRACT.map((item) => `- ${item}`)
@@ -121,10 +123,10 @@ export function buildPluginPrBodyReplacement(status: PluginHubStatus): string {
     ...GAME_INTEGRITY.map((item) => `- ${item}`),
     "",
     "## Consent defaults",
-    "- Auto-sync on login defaults off.",
-    "- Sync on quest complete defaults off.",
-    "- Quest-complete sync is also gated behind Auto-sync on login; enabling the quest-complete setting alone never sends a payload.",
-    "- No progress POST happens until the player enables Auto-sync on login from RuneLite settings.",
+    "- Sync on login defaults off.",
+    "- Refresh after quests defaults off.",
+    "- Quest-complete refresh is also gated behind Sync on login; enabling the quest-complete setting alone never sends a payload.",
+    "- No progress POST happens until the player enables Sync on login from RuneLite settings.",
     "- Show chat feedback defaults on so players see when sync starts, succeeds, fails, or needs a fresh claim.",
     "",
     "## Network and auth",
@@ -136,9 +138,9 @@ export function buildPluginPrBodyReplacement(status: PluginHubStatus): string {
     "- Shutdown cancels the active OkHttp call and suppresses further chat feedback while the background worker returns normally.",
     "",
     "## Web-app merge behavior",
-    "- Successful sync chat includes the verified `/next?rsn=...&source=plugin-sync&bank=none` link for that RSN.",
-    "- `bank=none` is intentional: RuneLite sync does not send bank, inventory, equipment, GE offers or wealth.",
-    "- Players can still paste a bank into the web app separately; that browser-only bank context is never sent to the plugin.",
+    "- Successful sync chat is URL-free and tells the player to open Scapestack /next; the web app still loads verified `/next?rsn=...&source=plugin-sync&bank=none` state.",
+    "- `bank=none` is intentional: it prevents stale browser bank reuse after a plugin sync. Optional RuneLite bank sync is loaded from the verified server payload.",
+    "- Players can still paste a bank into the web app separately for prices or manual Bank Tags; that browser-only bank context is never sent to the plugin.",
     "- While Plugin Hub review is pending, Scapestack still works with Hiscores, bank paste, TempleOSRS, WOM and collectionlog.net.",
     "",
     "## Web-app merge contract",

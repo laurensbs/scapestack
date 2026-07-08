@@ -1,5 +1,7 @@
 import type { SyncedPlayer } from "./sync-repo";
 import { nextUrlForSyncedRsn, slayerUrlForSyncedRsn } from "./plugin-sync-actions";
+import { scapestackAccountTypeLabel } from "./account-type";
+import { pluginBankStatusLabel } from "./plugin-bank-status";
 
 export function formatPluginSyncProof(player: SyncedPlayer): string {
   const displayName = player.displayName || player.rsn;
@@ -17,14 +19,17 @@ export function formatPluginSyncProof(player: SyncedPlayer): string {
     "Scapestack Sync proof",
     "",
     `RSN: ${displayName}`,
+    `Account type: ${scapestackAccountTypeLabel(player.accountType)}`,
     `Synced at: ${player.syncedAt}`,
     `Plugin version: v${player.pluginVersion || "unknown"}`,
+    `Skills synced: ${player.skills.length}`,
     `Quests completed: ${player.questsCompleted.length}`,
     `Diary tiers completed: ${player.diariesCompleted.length}`,
     `Collection-log item IDs: ${player.collectionLogItemIds.length}`,
+    `Bank: ${pluginBankStatusLabel(player.bankStatus)}`,
     `Slayer: ${slayer}`,
     "",
-    "Not included: account login, bank, inventory, equipment, chat, screenshots, clicks, keys, install token."
+    "Not included: account login, inventory, equipment, chat, screenshots, clicks, keys, install token."
   ].join("\n");
 }
 
@@ -41,6 +46,7 @@ export function formatPluginSyncSessionChecklist(
   const slayerUrl = absoluteAppUrl(slayerUrlForSyncedRsn(displayName), context.origin);
   const bankUrl = absoluteAppUrl(`/bank?rsn=${encodeURIComponent(displayName)}&from=plugin`, context.origin);
   const hasCollectionLog = player.collectionLogItemIds.length > 0;
+  const hasBank = player.bankItems.length > 0;
   const slayerLine = player.slayer
     ? `Route live Slayer: task ID ${player.slayer.currentTaskId || "none"}, ${player.slayer.taskRemaining} left, ${player.slayer.points} points, ${player.slayer.streak} streak. ${slayerUrl}`
     : "Refresh Slayer state in RuneLite before trusting task routing.";
@@ -52,15 +58,18 @@ export function formatPluginSyncSessionChecklist(
     "Scapestack RuneLite session checklist",
     "",
     `RSN: ${displayName}`,
+    `Account type: ${scapestackAccountTypeLabel(player.accountType)}`,
     `Plugin payload: v${player.pluginVersion || "unknown"} at ${player.syncedAt}`,
     "",
     `1. Open /next with source=plugin-sync and bank=none for verified account-state planning. ${nextUrl}`,
     `2. ${slayerLine}`,
     `3. ${collectionLogLine}`,
-    `4. Paste Bank Memory or Bank Tags in the browser when you need GP value, gear, item IDs or DPS affordability. ${bankUrl}`,
+    hasBank
+      ? `4. ${pluginBankStatusLabel(player.bankStatus)}. Use /bank only when you want prices or manual Bank Tags. ${bankUrl}`
+      : `4. ${pluginBankStatusLabel(player.bankStatus)}. Paste Bank Memory/Bank Tags in the browser when you need GP value, gear, item IDs or DPS affordability. ${bankUrl}`,
     "5. Re-check sync after quest completions, diary tiers, Collection Log browsing, or Slayer task changes.",
     "",
-    "Boundary: RuneLite sync does not include bank, inventory, equipment, chat, screenshots, clicks, keys, account login or install token."
+    "Boundary: RuneLite sync can include bank item IDs/names/quantities only when bank sync is enabled. It does not include inventory, equipment, chat, screenshots, clicks, keys, account login or install token."
   ].join("\n");
 }
 

@@ -1,5 +1,6 @@
 import { CURRENT_PLUGIN_VERSION, pluginSyncHealth } from "./plugin-sync";
 import type { PathOverview } from "./path-progress";
+import { isPluginBankStatusStale, pluginBankStatusLabel, type PluginBankStatus } from "./plugin-bank-status";
 
 export type NextPluginSignalStatus = "exact" | "partial" | "missing" | "refresh" | "update";
 
@@ -14,6 +15,8 @@ export interface NextPluginSyncSummary {
   title: string;
   body: string;
   syncedAt: string | null;
+  bankStatus: PluginBankStatus | null;
+  bankStatusLabel: string | null;
   signals: NextPluginSignalSummary[];
 }
 
@@ -31,6 +34,8 @@ export function summarizeNextPluginSync(plugin: PluginSource): NextPluginSyncSum
       title: "Update Scapestack Sync",
       body: `Last sync used v${plugin.pluginVersion ?? "unknown"}. Update to v${CURRENT_PLUGIN_VERSION} so Slayer, diary and collection-log picks stay current.`,
       syncedAt: plugin.syncedAt ?? null,
+      bankStatus: plugin.bankStatus ?? null,
+      bankStatusLabel: plugin.bankStatus ? pluginBankStatusLabel(plugin.bankStatus) : null,
       signals: baseSignals(plugin, "update")
     };
   }
@@ -43,11 +48,16 @@ export function summarizeNextPluginSync(plugin: PluginSource): NextPluginSyncSum
         ? `Last RuneLite scan: ${new Date(plugin.syncedAt).toLocaleString("en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}. Sync again before spending GP or starting a long grind.`
         : "Last RuneLite scan: check again before spending GP or starting a long grind.",
       syncedAt: plugin.syncedAt ?? null,
+      bankStatus: plugin.bankStatus ?? null,
+      bankStatusLabel: plugin.bankStatus ? pluginBankStatusLabel(plugin.bankStatus) : null,
       signals: baseSignals(plugin, "refresh")
     };
   }
 
   const clStatus: NextPluginSignalStatus = plugin.clItems > 0 ? "exact" : "partial";
+  const bankStatus: NextPluginSignalStatus = plugin.bankStatus?.itemCount
+    ? isPluginBankStatusStale(plugin.bankStatus) ? "partial" : "exact"
+    : plugin.bankStatus?.enabled ? "partial" : "missing";
   const hasSlayer = plugin.slayerTaskRemaining !== null && plugin.slayerTaskRemaining !== undefined;
   const missing = [
     plugin.clItems > 0 ? null : "open collection-log categories once for item checks",
@@ -61,9 +71,12 @@ export function summarizeNextPluginSync(plugin: PluginSource): NextPluginSyncSum
       ? `Quests and diaries are synced; ${missing.join(", ")}.`
       : "Quests, diaries, collection log and Slayer are coming from your RuneLite client.",
     syncedAt: plugin.syncedAt ?? null,
+    bankStatus: plugin.bankStatus ?? null,
+    bankStatusLabel: plugin.bankStatus ? pluginBankStatusLabel(plugin.bankStatus) : null,
     signals: [
       { label: "Quests", status: "exact", value: `${plugin.quests.toLocaleString()} done` },
       { label: "Diaries", status: "exact", value: `${plugin.diaries.toLocaleString()} tiers` },
+      { label: "Bank", status: bankStatus, value: plugin.bankStatus ? pluginBankStatusLabel(plugin.bankStatus).replace(/^Bank synced: /, "") : "unknown" },
       { label: "CL", status: clStatus, value: plugin.clItems > 0 ? `${plugin.clItems.toLocaleString()} items` : "open CL" },
       { label: "Slayer", status: hasSlayer ? "exact" : "missing", value: hasSlayer ? `${plugin.slayerTaskRemaining} left` : "not synced" }
     ]
@@ -74,6 +87,7 @@ function baseSignals(plugin: PluginSource, status: Extract<NextPluginSignalStatu
   return [
     { label: "Quests", status, value: `${plugin.quests.toLocaleString()} done` },
     { label: "Diaries", status, value: `${plugin.diaries.toLocaleString()} tiers` },
+    { label: "Bank", status, value: plugin.bankStatus ? pluginBankStatusLabel(plugin.bankStatus).replace(/^Bank synced: /, "") : "unknown" },
     { label: "CL", status, value: `${plugin.clItems.toLocaleString()} items` },
     {
       label: "Slayer",

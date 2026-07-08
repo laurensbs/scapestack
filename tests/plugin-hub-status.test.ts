@@ -28,14 +28,14 @@ describe("plugin hub status", () => {
     expect(status.standaloneCommit).toBe("39931dc965e4e9f01bf549bdc192b85c4cd6c1fc");
     expect(status.pinSummary).toContain("matches standalone repo head");
     expect(status.reviewCopySummary).toContain("Live PR body still needs review-copy fixes");
-    expect(status.reviewCopySummary).toContain("auto-sync defaults");
+    expect(status.reviewCopySummary).toContain("sync-on-login defaults");
     expect(status.reviewCopySummary).toContain("token transport");
     expect(status.reviewCopySummary).toContain("POST timing");
     expect(status.reviewCopySummary).toContain("quest-complete opt-in gate");
     expect(status.reviewCopySummary).toContain("Slayer payload");
     expect(status.reviewCopySummary).toContain("bank/inventory/equipment exclusion");
     expect(status.reviewCopyIssues).toEqual([
-      "auto-sync defaults",
+      "sync-on-login defaults",
       "token transport",
       "POST timing",
       "quest-complete opt-in gate",
@@ -50,7 +50,7 @@ describe("plugin hub status", () => {
     expect(readiness.state).toBe("review-blocked");
     expect(readiness.playerInstallReady).toBe(false);
     expect(readiness.label).toContain("not clean");
-    expect(readiness.blockers).toContain("PR body: auto-sync defaults");
+    expect(readiness.blockers).toContain("PR body: sync-on-login defaults");
     expect(readiness.blockers).toContain("PR body: token transport");
 
     const reviewGate = pluginHubMaintainerReviewGate(status);
@@ -67,7 +67,7 @@ describe("plugin hub status", () => {
       draft: false,
       merged_at: null,
       updated_at: "2026-06-03T08:00:00Z",
-      body: "Auto-sync on login defaults off. Sync on quest complete defaults off. Quest-complete sync is also gated behind Auto-sync on login. The raw local install token is sent only as an Authorization bearer and Scapestack stores sha256(token). Slayer task state is included after opt-in. Shutdown cancels the active OkHttp call while the background worker returns normally. No bank, inventory or equipment data is sent.",
+      body: "Sync on login defaults off. Refresh after quests defaults off. Quest-complete refresh is also gated behind Sync on login. The raw local install token is sent only as an Authorization bearer and Scapestack stores sha256(token). Slayer task state is included after opt-in. Shutdown cancels the active OkHttp call while the background worker returns normally. No bank, inventory or equipment data is sent.",
       html_url: "https://github.com/runelite/plugin-hub/pull/12536"
     }, [], []);
 
@@ -89,7 +89,7 @@ describe("plugin hub status", () => {
       draft: false,
       merged_at: null,
       updated_at: "2026-06-03T08:00:00Z",
-      body: "Live PR body appears aligned with current consent, token, data and web-handoff wording. Auto-sync on login defaults off. Sync on quest complete defaults off. Quest-complete sync is also gated behind Auto-sync on login. Slayer task state is included after opt-in. No bank, inventory or equipment data is sent. Shutdown interrupts the named daemon sync worker.",
+      body: "Live PR body appears aligned with current consent, token, data and web-handoff wording. Sync on login defaults off. Refresh after quests defaults off. Quest-complete refresh is also gated behind Sync on login. Slayer task state is included after opt-in. No bank, inventory or equipment data is sent. Shutdown interrupts the named daemon sync worker.",
       html_url: "https://github.com/runelite/plugin-hub/pull/12536"
     }, [], []);
 
@@ -214,7 +214,7 @@ describe("plugin hub status", () => {
           <span>Open</span>
           <p>Adds Scapestack Sync, a small plugin that POSTs your quest list, diary completion state, and collection-log item IDs.</p>
           <p>POST https://www.scapestack.org/api/sync on every login + on quest-complete chat messages.</p>
-          <p>Auto-sync defaults to on but is visible in plugin settings.</p>
+          <p>Sync on login defaults to on but is visible in plugin settings.</p>
           <p>Each install generates a UUID locally that we hash server-side before storing — the raw token never leaves the install.</p>
           <p>Live PR body appears aligned with current consent, token, data and web-handoff wording.</p>
           <p>Shutdown interrupts the named daemon sync worker.</p>
@@ -237,7 +237,7 @@ describe("plugin hub status", () => {
     expect(status?.reviewSummary).toContain("No RuneLite reviews recorded yet");
     expect(status?.reviewCopySummary).toContain("Live PR body still needs review-copy fixes");
     expect(status?.reviewCopyIssues).toEqual([
-      "auto-sync defaults",
+      "sync-on-login defaults",
       "token transport",
       "POST timing",
       "shutdown thread interrupt",

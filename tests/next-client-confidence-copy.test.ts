@@ -191,9 +191,21 @@ describe("/next confidence UI copy", () => {
   });
 
   it("starts the result page with one plan instead of setup panels", () => {
-    expect(source).toContain("What to do now");
-    expect(source).toContain("Do this first");
-    expect(source).toContain("One best move for this account. Two alternatives");
+    expect(source).toContain("Session board");
+    expect(source).toContain("Main move");
+    expect(source).toContain("One move, two backups, the prep, blockers, bank signal and stop point.");
+    expect(source).toContain("function SessionBoardStrip");
+    expect(source).toContain("function sessionBoardBankSignal");
+    expect(source).toContain("UIM: bank checks are staging only.");
+    expect(source).toContain("UIM: bank checks are staging only");
+    expect(source).toContain("Prep needed");
+    expect(source).toContain("Missing blockers");
+    expect(source).toContain("Bank-ready status");
+    expect(source).toContain("Stop point");
+    expect(source).toContain("Skip reason");
+    expect(source).toContain("No hard blocker found.");
+    expect(source).toContain("No bank check yet.");
+    expect(source).toContain("No safer backup outranks this pick right now.");
     expect(source).toContain("Pick a route");
     expect(source).toContain("Best now");
     expect(source).not.toContain("Another route");
@@ -243,15 +255,42 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("setMood((currentMood) => moodForRouteLens(randomLens, currentMood));");
     expect(source).toContain("pickForRoute(visibleRecs, mood, minutes, routeLens, shuffleIdx, routePickOptions)");
     expect(source).not.toContain("Change time or pace");
-    expect(source).toContain("Not feeling this?");
-    expect(source).toContain("Pick a different kind of session.");
+    expect(source).toContain("Backup moves");
+    expect(source).toContain("Use these when the main move is blocked or not the session you want.");
     expect(source).not.toContain("Backups");
     expect(source).not.toContain("Bigger alternatives if the first pick is not your mood.");
     expect(source).not.toContain("Want something else?");
     expect(source).toContain("Randomize");
     expect(source).toContain('aria-label="Randomize another OSRS plan"');
-    expect(source).toContain("Why is this recommended?");
-    expect(source).toContain("Only if you want the deeper read");
+    expect(source).toContain("More unlock moves and routes");
+    expect(source).toContain("Closest unlocks, route blockers and bank gaps");
+    expect(source).toContain("Closest unlocks");
+    expect(source).toContain("More unlock moves");
+    expect(source).toContain("Routes to inspect");
+    expect(source).toContain("Unlock blockers");
+    expect(source).not.toContain("Route blockers worth checking");
+    expect(source).toContain("Next blocker first. Completion stays secondary.");
+    expect(source).not.toContain("route percent second");
+    expect(source).toContain("Why this plan?");
+    expect(source).toContain("Data sources, route evidence and optional bank checks");
+    expect(source).toContain("Unlock blockers");
+    expect(source).not.toContain("Route blockers");
+    expect(source).not.toContain("Why is this recommended?");
+    expect(source).not.toContain("Route progress");
+    expect(source).not.toContain("Next best actions");
+    expect(source).not.toContain("Specific unlock moves");
+    expect(source).not.toContain("Where you are");
+    expect(source).not.toContain("Path to Max");
+    expect(source).toContain("Barrows gloves route");
+    expect(source).toContain("Fairy rings route");
+    expect(source).toContain("Piety route");
+    expect(source).toContain("Ava's assembler route");
+    expect(source).toContain("Dragon defender route");
+    expect(source).toContain("Quest cape route");
+    expect(source).toContain("Raids prep route");
+    expect(source).toContain("Slayer unlock route");
+    expect(source).toContain("Quests and diaries almost ready");
+    expect(source).toContain("Items missing");
     expect(source).not.toContain("Try another");
     expect(source).not.toContain("Next sessions");
     expect(source).not.toContain("Account details");
@@ -269,8 +308,8 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("min-h-[118px]");
     expect(source).toContain("size-12");
     expect(source).toContain("max-h-[2.9em]");
-    expect(source).toContain("Not feeling this?");
-    expect(source).toContain("Pick a different kind of session.");
+    expect(source).toContain("Backup moves");
+    expect(source).toContain("Use these when the main move is blocked or not the session you want.");
   });
 
   it("respects legacy route intent instead of dropping players into default mood", () => {
@@ -320,6 +359,14 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("Account progress");
     expect(source).not.toContain("RuneLite sync included quests, diaries, collection log and Slayer for this RSN.");
     expect(source).not.toContain("Bank context");
+  });
+
+  it("surfaces account mode as a player-facing decision signal", () => {
+    expect(source).toContain("accountMode={summary.accountMode}");
+    expect(source).toContain("summary.accountMode.badgeLabel");
+    expect(source).toContain("label: \"Account mode\"");
+    expect(source).toContain("accountMode.planningNote");
+    expect(source).toContain("accountMode.confidence === \"unknown\"");
   });
 
   it("lets players clear temporary bank handoff storage", () => {
@@ -546,5 +593,13 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("No ${config.suppliesLabel} found in this bank");
     expect(source).toContain("skillConfig.keywords");
     expect(source).toContain("${skillConfig.suppliesLabel} stack");
+  });
+
+  it("uses real Scapestack sync skills and bank items before falling back to empty context", () => {
+    expect(source).toContain("function syncedSkillsToHiscoreSkills");
+    expect(source).toContain("hiscores?.skills ?? syncedSkillsToHiscoreSkills(scapestackSync?.skills)");
+    expect(source).toContain("if (bank.length === 0 && scapestackSync?.bankItems?.length)");
+    expect(source).toContain('bankHandoffItemsFromBankItems(bank, "RuneLite bank sync")');
+    expect(source).toContain("ownedGear(asOrganizedItems(bank))");
   });
 });

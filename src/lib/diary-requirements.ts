@@ -1,0 +1,427 @@
+import type { PlannerAccountType } from "./account-type";
+import { isIronPlannerAccount, isUltimatePlannerAccount, plannerAccountTypeLabel } from "./account-type";
+import type { DiaryRecord, DiaryTier } from "./diary-db";
+import type { HiscoreSkill } from "./hiscores";
+import {
+  evaluateItemAvailability,
+  type ItemAvailability,
+  type ItemAvailabilityStatus,
+  type ItemSourceHint
+} from "./item-availability";
+import { normalizeQuestBankItems, type QuestBankItem } from "./quest-requirements";
+
+export type DiaryReadinessStatus =
+  | "ready"
+  | "partially-ready"
+  | "missing-skill-levels"
+  | "missing-quests"
+  | "missing-items"
+  | "completed";
+
+export interface DiaryItemAlternative {
+  name: string;
+  quantity: number;
+  note?: string;
+}
+
+export interface DiaryItemRequirement {
+  id: string;
+  name: string;
+  quantity: number;
+  note?: string;
+  alternatives: DiaryItemAlternative[];
+}
+
+export interface EvaluatedDiarySkillRequirement {
+  skill: string;
+  level: number;
+  currentLevel: number;
+  met: boolean;
+}
+
+export interface EvaluatedDiaryQuestRequirement {
+  name: string;
+  met: boolean;
+}
+
+export interface EvaluatedDiaryItemRequirement extends DiaryItemRequirement {
+  met: boolean;
+  ownedInBank: boolean;
+  ownedName: string | null;
+  ownedQuantity: number;
+  missingQuantity: number;
+  availability: ItemAvailability;
+  availabilityStatus: ItemAvailabilityStatus;
+  sourceHints: ItemSourceHint[];
+  availabilityCopy: string;
+}
+
+export interface DiaryRequirementEvaluation {
+  region: string;
+  tier: DiaryTier;
+  accountType: PlannerAccountType | null;
+  readinessStatus: DiaryReadinessStatus;
+  skillRequirements: EvaluatedDiarySkillRequirement[];
+  questRequirements: EvaluatedDiaryQuestRequirement[];
+  itemRequirements: EvaluatedDiaryItemRequirement[];
+  taskRequirements: string[];
+  activityRequirements: string[];
+  tierDependencies: Array<{ tier: DiaryTier; met: boolean }>;
+  completedRequirements: string[];
+  missingRequirements: string[];
+  tasksLeft: string[];
+  payoff: string;
+  stopPoint: string;
+  bank: {
+    checked: boolean;
+    notApplicable: boolean;
+    owned: EvaluatedDiaryItemRequirement[];
+    missing: EvaluatedDiaryItemRequirement[];
+  };
+  accountWarnings: string[];
+}
+
+export interface DiaryRequirementContext {
+  skills?: HiscoreSkill[];
+  completedQuests?: Iterable<string>;
+  completedDiaryTiers?: Iterable<string | { region: string; tier: DiaryTier | string }>;
+  bankItems?: QuestBankItem[];
+  accountType?: PlannerAccountType | null;
+}
+
+interface DiaryTierOverride {
+  questRequirements?: string[];
+  itemRequirements?: DiaryItemRequirement[];
+  taskRequirements?: string[];
+  activityRequirements?: string[];
+  payoff: string;
+  stopPoint: string;
+}
+
+const DIARY_TIERS_ORDER: DiaryTier[] = ["Easy", "Medium", "Hard", "Elite"];
+
+const DEFAULT_TIER_PAYOFF: Record<DiaryTier, string> = {
+  Easy: "First diary reward tier and a cleaner regional route.",
+  Medium: "Medium diary utility and progress toward the hard-tier unlock.",
+  Hard: "Hard diary perk with route and teleport value.",
+  Elite: "Top-tier diary reward and long-term account utility."
+};
+
+const DIARY_TIER_OVERRIDES: Record<string, DiaryTierOverride> = {
+  "Ardougne:Medium": {
+    questRequirements: ["Biohazard"],
+    itemRequirements: [
+      { id: "rope", name: "Rope", quantity: 1, alternatives: [] },
+      { id: "plank", name: "Plank", quantity: 2, alternatives: [] },
+      { id: "mith-grapple", name: "Mith grapple", quantity: 1, alternatives: [{ name: "Mith grapple tip", quantity: 1 }] }
+    ],
+    taskRequirements: ["Clear the Ardougne city, market and monastery task sweep."],
+    payoff: "Ardougne cloak teleport and a better pickpocket route.",
+    stopPoint: "Finish Biohazard or clear the closest item/skill blocker."
+  },
+  "Kandarin:Hard": {
+    itemRequirements: [
+      { id: "mith-grapple", name: "Mith grapple", quantity: 1, alternatives: [{ name: "Mith grapple tip", quantity: 1 }] },
+      { id: "rune-crossbow", name: "Rune crossbow", quantity: 1, alternatives: [] }
+    ],
+    taskRequirements: ["Clear the Seers, Catherby and Barbarian Outpost tasks in one route."],
+    activityRequirements: ["Barbarian Assault and regional travel tasks may still need manual task checks."],
+    payoff: "Kandarin headgear perks and stronger Seers' Village utility.",
+    stopPoint: "Train the closest missing skill or finish the grapple/crossbow task sweep."
+  },
+  "Falador:Medium": {
+    itemRequirements: [
+      { id: "mith-grapple", name: "Mith grapple", quantity: 1, alternatives: [{ name: "Mith grapple tip", quantity: 1 }] }
+    ],
+    taskRequirements: ["Route the Mining Guild, Falador farm and grapple tasks together."],
+    payoff: "Falador shield utility and a stronger Mole/prayer restore route.",
+    stopPoint: "Clear the grapple task or the closest skill blocker."
+  },
+  "Western Provinces:Hard": {
+    questRequirements: ["Regicide"],
+    itemRequirements: [
+      { id: "rune-crossbow", name: "Rune crossbow", quantity: 1, alternatives: [] },
+      { id: "mith-grapple", name: "Mith grapple", quantity: 1, alternatives: [{ name: "Mith grapple tip", quantity: 1 }] }
+    ],
+    activityRequirements: ["Pest Control, elf lands and regional combat tasks may still need manual task checks."],
+    payoff: "Western banner perks and stronger Elite Void route planning.",
+    stopPoint: "Finish Regicide or clear the closest skill/item blocker."
+  },
+  "Lumbridge & Draynor:Medium": {
+    questRequirements: ["Lost City"],
+    taskRequirements: ["Route Draynor, Lumbridge Swamp and Zanaris-adjacent tasks together."],
+    payoff: "Explorer's ring utility and better early account transport.",
+    stopPoint: "Finish Lost City or clear the closest skill blocker."
+  }
+};
+
+export function diaryTierKey(region: string, tier: DiaryTier | string): string {
+  return `${region}:${tier}`;
+}
+
+function cleanName(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/\([^)]*\)/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\b(?:a|an|the)\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function singular(value: string): string {
+  return value.replace(/\b([a-z]{3,})s\b/g, "$1");
+}
+
+function normalizedItemName(value: string): string {
+  return singular(cleanName(value));
+}
+
+function itemNamesMatch(requiredName: string, bankName: string): boolean {
+  const required = normalizedItemName(requiredName);
+  const owned = normalizedItemName(bankName);
+  if (!required || !owned) return false;
+  if (required === owned) return true;
+  if (owned.endsWith(` ${required}`)) return true;
+  if (required.length >= 5 && owned.includes(required)) return true;
+  return false;
+}
+
+function quantityFor(item: QuestBankItem): number {
+  return Math.max(1, Math.floor(item.quantity ?? 1));
+}
+
+function skillLevel(skills: HiscoreSkill[] | undefined, skill: string): number {
+  return skills?.find((row) => row.name.toLowerCase() === skill.toLowerCase())?.level ?? 1;
+}
+
+function completedQuestSet(completedQuests: Iterable<string> | undefined): Set<string> {
+  return new Set(Array.from(completedQuests ?? []).map((quest) => cleanName(quest)));
+}
+
+function completedDiarySet(completedDiaryTiers: DiaryRequirementContext["completedDiaryTiers"]): Set<string> {
+  const out = new Set<string>();
+  for (const entry of completedDiaryTiers ?? []) {
+    if (typeof entry === "string") {
+      out.add(entry);
+    } else {
+      out.add(diaryTierKey(entry.region, entry.tier));
+    }
+  }
+  return out;
+}
+
+function previousTiers(tier: DiaryTier): DiaryTier[] {
+  const index = DIARY_TIERS_ORDER.indexOf(tier);
+  return index <= 0 ? [] : DIARY_TIERS_ORDER.slice(0, index);
+}
+
+function requirementSummary(label: string, met: boolean, completed: string[], missing: string[]): void {
+  if (met) completed.push(label);
+  else missing.push(label);
+}
+
+function findOwnedItem(
+  req: Pick<DiaryItemRequirement, "name" | "quantity" | "alternatives">,
+  bankItems: QuestBankItem[]
+): { name: string; quantity: number; requiredQuantity: number } | null {
+  const candidates = [
+    { name: req.name, quantity: req.quantity },
+    ...req.alternatives.map((alt) => ({ name: alt.name, quantity: alt.quantity }))
+  ];
+  let partial: { name: string; quantity: number; requiredQuantity: number } | null = null;
+
+  for (const candidate of candidates) {
+    let quantity = 0;
+    let ownedName: string | null = null;
+    for (const item of bankItems) {
+      if (!itemNamesMatch(candidate.name, item.name)) continue;
+      quantity += quantityFor(item);
+      ownedName = ownedName ?? item.name;
+    }
+    if (quantity >= candidate.quantity && ownedName) {
+      return { name: ownedName, quantity, requiredQuantity: candidate.quantity };
+    }
+    if (quantity > 0 && ownedName && (!partial || quantity > partial.quantity)) {
+      partial = { name: ownedName, quantity, requiredQuantity: candidate.quantity };
+    }
+  }
+
+  return partial;
+}
+
+function evaluateItemRequirement(
+  req: DiaryItemRequirement,
+  bankItems: QuestBankItem[],
+  bankChecked: boolean,
+  accountType: PlannerAccountType | null,
+  completed: string[],
+  missing: string[]
+): EvaluatedDiaryItemRequirement {
+  const owned = bankChecked ? findOwnedItem(req, bankItems) : null;
+  const ownedQuantity = owned?.quantity ?? 0;
+  const requiredQuantity = owned?.requiredQuantity ?? req.quantity;
+  const met = bankChecked && ownedQuantity >= requiredQuantity;
+  const availability = evaluateItemAvailability({
+    name: req.name,
+    quantity: req.quantity,
+    ownedInBank: met,
+    ownedName: owned?.name ?? null,
+    ownedQuantity,
+    accountType
+  });
+  const evaluated: EvaluatedDiaryItemRequirement = {
+    ...req,
+    met,
+    ownedInBank: met,
+    ownedName: owned?.name ?? null,
+    ownedQuantity,
+    missingQuantity: Math.max(0, requiredQuantity - ownedQuantity),
+    availability,
+    availabilityStatus: availability.status,
+    sourceHints: availability.sourceHints,
+    availabilityCopy: availability.copy
+  };
+  const label = `${req.quantity > 1 ? `${req.quantity}x ` : ""}${req.name}`;
+  if (bankChecked) requirementSummary(label, met, completed, missing);
+  else missing.push(label);
+  return evaluated;
+}
+
+function readinessStatus(input: {
+  completed: boolean;
+  skills: EvaluatedDiarySkillRequirement[];
+  quests: EvaluatedDiaryQuestRequirement[];
+  items: EvaluatedDiaryItemRequirement[];
+  bankChecked: boolean;
+  bankNotApplicable: boolean;
+  tierDependencies: Array<{ tier: DiaryTier; met: boolean }>;
+}): DiaryReadinessStatus {
+  if (input.completed) return "completed";
+  if (input.skills.some((req) => !req.met)) return "missing-skill-levels";
+  if (input.tierDependencies.some((req) => !req.met) || input.quests.some((req) => !req.met)) return "missing-quests";
+  if (input.bankNotApplicable && input.items.length > 0) return "partially-ready";
+  if (!input.bankChecked && input.items.length > 0) return "partially-ready";
+  if (input.items.some((req) => !req.met)) return "missing-items";
+  return "ready";
+}
+
+function warningsFor(accountType: PlannerAccountType | null, hasItemRequirements: boolean): string[] {
+  if (!accountType) return [];
+  if (isUltimatePlannerAccount(accountType)) {
+    return ["Ultimate Ironman: use this as a staging checklist; normal bank-ready does not apply."];
+  }
+  if (accountType === "group" && hasItemRequirements) {
+    return ["Group Ironman: own bank is checked; group storage is not assumed."];
+  }
+  if (accountType === "hardcore") {
+    return ["Hardcore Ironman: route combat or Wilderness diary tasks conservatively unless the payoff is worth it."];
+  }
+  if (isIronPlannerAccount(accountType) && hasItemRequirements) {
+    return [`${plannerAccountTypeLabel(accountType)}: item blockers assume self-sourcing, not Grand Exchange buying.`];
+  }
+  return [];
+}
+
+export function diaryReadinessLabel(status: DiaryReadinessStatus): string {
+  switch (status) {
+    case "ready":
+      return "Ready";
+    case "missing-skill-levels":
+      return "Missing skills";
+    case "missing-quests":
+      return "Missing quests";
+    case "missing-items":
+      return "Missing items";
+    case "completed":
+      return "Completed";
+    case "partially-ready":
+    default:
+      return "Partially ready";
+  }
+}
+
+export function evaluateDiaryTier(
+  region: string,
+  tier: DiaryTier,
+  diary: DiaryRecord,
+  context: DiaryRequirementContext = {}
+): DiaryRequirementEvaluation {
+  const completedRequirements: string[] = [];
+  const missingRequirements: string[] = [];
+  const completedQuests = completedQuestSet(context.completedQuests);
+  const completedDiaries = completedDiarySet(context.completedDiaryTiers);
+  const bankItems = normalizeQuestBankItems(context.bankItems);
+  const bankChecked = bankItems.length > 0;
+  const accountType = context.accountType ?? null;
+  const bankNotApplicable = isUltimatePlannerAccount(accountType);
+  const override = DIARY_TIER_OVERRIDES[diaryTierKey(region, tier)];
+  const isCompleted = completedDiaries.has(diaryTierKey(region, tier));
+  const hasExactDiaryCompletionData = context.completedDiaryTiers !== undefined;
+
+  const skillRequirements = (diary.tiers[tier]?.skills ?? []).map((req) => {
+    const currentLevel = skillLevel(context.skills, req.skill);
+    const met = currentLevel >= req.level;
+    requirementSummary(`${req.skill} ${req.level}`, met, completedRequirements, missingRequirements);
+    return { ...req, currentLevel, met };
+  });
+
+  const tierDependencies = previousTiers(tier).map((previous) => {
+    const met = !hasExactDiaryCompletionData || completedDiaries.has(diaryTierKey(region, previous));
+    requirementSummary(`${region} ${previous} diary`, met, completedRequirements, missingRequirements);
+    return { tier: previous, met };
+  });
+
+  const questRequirements = (override?.questRequirements ?? []).map((name) => {
+    const met = completedQuests.has(cleanName(name));
+    requirementSummary(name, met, completedRequirements, missingRequirements);
+    return { name, met };
+  });
+
+  const itemRequirements = (override?.itemRequirements ?? []).map((req) =>
+    evaluateItemRequirement(req, bankItems, bankChecked, accountType, completedRequirements, missingRequirements)
+  );
+
+  const taskRequirements = override?.taskRequirements ?? [
+    `Run the ${region} ${tier} task checklist as a single regional sweep.`
+  ];
+  const activityRequirements = override?.activityRequirements ?? [];
+  const tasksLeft = isCompleted ? [] : [...taskRequirements, ...activityRequirements];
+  const payoff = override?.payoff ?? DEFAULT_TIER_PAYOFF[tier];
+  const stopPoint = override?.stopPoint ?? `Finish the closest ${region} ${tier} blocker or claim the diary reward.`;
+  const accountWarnings = warningsFor(accountType, itemRequirements.length > 0);
+  const status = readinessStatus({
+    completed: isCompleted,
+    skills: skillRequirements,
+    quests: questRequirements,
+    items: itemRequirements,
+    bankChecked,
+    bankNotApplicable,
+    tierDependencies
+  });
+
+  return {
+    region,
+    tier,
+    accountType,
+    readinessStatus: status,
+    skillRequirements,
+    questRequirements,
+    itemRequirements,
+    taskRequirements,
+    activityRequirements,
+    tierDependencies,
+    completedRequirements,
+    missingRequirements: isCompleted ? [] : missingRequirements,
+    tasksLeft,
+    payoff,
+    stopPoint,
+    bank: {
+      checked: bankChecked,
+      notApplicable: bankNotApplicable,
+      owned: itemRequirements.filter((req) => req.ownedInBank),
+      missing: itemRequirements.filter((req) => !req.ownedInBank)
+    },
+    accountWarnings
+  };
+}

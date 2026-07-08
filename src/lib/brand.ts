@@ -1,8 +1,8 @@
 export const BRAND_NAME = "Scapestack";
 export const BRAND_SHORT_NAME = "Scapestack";
-export const BRAND_TAGLINE = "Stop bankstanding. Pick the next trip.";
+export const BRAND_TAGLINE = "What can I do now in OSRS?";
 export const BRAND_SECONDARY_TAGLINE =
-  "Type your RSN. Get one trip, two backups and a stop point.";
+  "One main move, two backups, blockers, bank gaps and a stop point.";
 export const BRAND_URL = "https://www.scapestack.org";
 export const BRAND_THEME_COLOR = "#0B0F0D";
 export const BRAND_ACCENT_COLOR = "#C89A3D";
@@ -10,7 +10,7 @@ export const BRAND_BACKGROUND_COLOR = "#0B0F0D";
 export const BRAND_IMAGE_FONT_FAMILY = "Atkinson Hyperlegible, Avenir Next, Segoe UI, Arial, sans-serif";
 
 export const BRAND_DESCRIPTION =
-  "The OSRS anti-bankstanding session board: type your RSN and get one trip to do now, two backups and a clean stop point.";
+  "A premium OSRS session planner: type your RSN and get one main move, two backups, blockers, bank gaps and a clean stop point.";
 
 export const BRAND_KEYWORDS = [
   "OSRS",

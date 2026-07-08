@@ -57,6 +57,10 @@ const ROUTE_ACTIONS: Record<string, Omit<RecommendationPrimaryAction, "href">> =
 
 const CONTEXTABLE_ROUTES = new Set(["/next", "/dps", "/goals", "/slayer", "/plugin", "/bank", "/skills", "/gp", "/quests", "/diary"]);
 
+function isContextableRoute(pathname: string): boolean {
+  return CONTEXTABLE_ROUTES.has(pathname) || pathname.startsWith("/quests/");
+}
+
 function activeHrefForRoute(href: string): string {
   const url = new URL(href, "https://scapestack.local");
   const normalizedPath = url.pathname.replace(/\/$/, "") || "/";
@@ -75,7 +79,7 @@ export function recommendationHrefWithContext(
 
   const url = new URL(activeHrefForRoute(href), "https://scapestack.local");
   const normalizedPath = url.pathname.replace(/\/$/, "") || "/";
-  if (!CONTEXTABLE_ROUTES.has(normalizedPath)) return href;
+  if (!isContextableRoute(normalizedPath)) return href;
 
   const cleanRsn = (context.rsn ?? "").trim();
   if (cleanRsn && !url.searchParams.has("rsn")) url.searchParams.set("rsn", cleanRsn);
@@ -96,6 +100,13 @@ export function routeActionForHref(
   const action = ROUTE_ACTIONS[normalized];
   const contextualHref = recommendationHrefWithContext(href, context);
   if (action) return { ...action, href: contextualHref };
+  if (normalized.startsWith("/quests/")) {
+    return {
+      label: "Check quest requirements",
+      href: contextualHref,
+      helper: "See skills, prereq quests, required items and bank readiness before starting."
+    };
+  }
 
   return {
     label: "Open Scapestack route",

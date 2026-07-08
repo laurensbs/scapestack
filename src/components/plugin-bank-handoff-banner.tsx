@@ -61,7 +61,7 @@ export function PluginBankHandoffBanner() {
               {summary.label} is still available in this browser.
             </p>
             <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-[var(--color-text-muted)]">
-              The plugin never receives your bank, inventory, equipment, screenshots, clicks or account login.
+              This browser bank never goes back to RuneLite. Plugin bank sync is a separate opt-in for item IDs, names and quantities only.
             </p>
             {summary.topItems.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-1.5">

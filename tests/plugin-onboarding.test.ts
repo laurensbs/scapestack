@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { BANK_PLUGIN_ONBOARDING, bankPluginOnboardingActions } from "@/lib/plugin-onboarding";
-import { PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
 
 describe("bank plugin onboarding", () => {
   it("sends normal bank users to the sync checker before account coverage is trusted", () => {
@@ -43,11 +42,8 @@ describe("bank plugin onboarding", () => {
     });
   });
 
-  it("exposes the same local sync URL users must paste in RuneLite", () => {
-    expect(BANK_PLUGIN_ONBOARDING.copy).toEqual({
-      label: "Copy sync URL",
-      value: PUBLIC_SYNC_URL
-    });
+  it("does not expose endpoint copy in normal bank onboarding", () => {
+    expect("copy" in BANK_PLUGIN_ONBOARDING).toBe(false);
   });
 
   it("communicates finished-progress benefits rather than generic plugin marketing", () => {
@@ -117,7 +113,7 @@ describe("bank plugin onboarding", () => {
     expect(source).toContain("Use the plan now");
     expect(source).toContain("Check RuneLite later");
     expect(source).toContain("Use /plugin to check");
-    expect(source).toContain("CopyCommand");
+    expect(source).not.toContain("CopyCommand");
     expect(source).not.toContain("Open review checklist");
     expect(source).not.toContain("review-readiness");
     expect(source).not.toContain("Review handoff blocker");

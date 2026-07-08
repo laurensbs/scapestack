@@ -17,7 +17,7 @@
 // We treat WOM as best-effort enrichment: if a player isn't on WOM we
 // silently fall back to Hiscores-only data, no UI difference.
 
-export type WomAccountType = "regular" | "ironman" | "hardcore" | "ultimate" | "skiller" | "pure";
+export type WomAccountType = "regular" | "ironman" | "hardcore" | "ultimate" | "group" | "skiller" | "pure";
 
 export interface WomPlayer {
   displayName: string;
@@ -104,6 +104,7 @@ function normaliseAccountType(s: string): WomAccountType {
   const lower = s.toLowerCase();
   if (lower === "hardcore" || lower === "hardcore_ironman") return "hardcore";
   if (lower === "ultimate" || lower === "ultimate_ironman") return "ultimate";
+  if (lower === "group_ironman" || lower === "hardcore_group_ironman" || lower.includes("group")) return "group";
   if (lower.includes("ironman")) return "ironman";
   if (lower === "skiller" || lower === "level3" || lower === "lvl3_skiller") return "skiller";
   if (lower === "1_def_pure" || lower === "pure" || lower.includes("pure")) return "pure";
@@ -116,10 +117,11 @@ export function describeAccountType(type: WomAccountType): string {
     case "ironman":  return "Ironman";
     case "hardcore": return "Hardcore Ironman";
     case "ultimate": return "Ultimate Ironman";
+    case "group":    return "Group Ironman";
     case "skiller":  return "Level 3 Skiller";
     case "pure":     return "Pure";
     case "regular":
-    default:         return "Main";
+    default:         return "Normal";
   }
 }
 

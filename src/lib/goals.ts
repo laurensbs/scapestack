@@ -896,6 +896,7 @@ export function iconForGoal(goalId: string, state?: GoalState): number | undefin
 export interface CompletionItem {
   id: number;
   name: string;
+  quantity?: number;
 }
 
 export interface GoalState {

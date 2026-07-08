@@ -10,15 +10,19 @@ import {
   signalCoverageForSyncedPlayer
 } from "@/lib/plugin-sync-diagnostics";
 import { CURRENT_PLUGIN_VERSION } from "@/lib/plugin-sync";
-import { DB_INIT_COMMAND, PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
+import { DB_INIT_COMMAND } from "@/lib/plugin-sync-actions";
 
 function player(overrides: Partial<SyncedPlayer> = {}): SyncedPlayer {
-  return {
+  const base: SyncedPlayer = {
     rsn: "lynx titan",
     displayName: "Lynx Titan",
+    accountType: "normal",
+    skills: [{ name: "Agility", level: 35 }],
     questsCompleted: ["Cook's Assistant"],
     diariesCompleted: [{ region: "Lumbridge & Draynor", tier: "Easy" }],
     collectionLogItemIds: [4151],
+    bankItems: [{ id: 1511, name: "Logs", quantity: 6 }],
+    bankStatus: { enabled: true, itemCount: 1, capturedAt: "2026-06-03T11:30:00.000Z", unavailableReason: null },
     slayer: {
       points: 100,
       streak: 50,
@@ -27,8 +31,23 @@ function player(overrides: Partial<SyncedPlayer> = {}): SyncedPlayer {
       blocks: ["dust_devil"]
     },
     pluginVersion: CURRENT_PLUGIN_VERSION,
-    syncedAt: "2026-06-03T11:30:00.000Z",
-    ...overrides
+    syncedAt: "2026-06-03T11:30:00.000Z"
+  };
+  return {
+    ...base,
+    ...overrides,
+    skills: overrides.skills ?? base.skills,
+    bankItems: overrides.bankItems ?? base.bankItems,
+    bankStatus: overrides.bankStatus ?? (
+      overrides.bankItems
+        ? {
+            enabled: overrides.bankItems.length > 0,
+            itemCount: overrides.bankItems.length,
+            capturedAt: overrides.bankItems.length > 0 ? base.syncedAt : null,
+            unavailableReason: overrides.bankItems.length > 0 ? null : "opt-in-off"
+          }
+        : base.bankStatus
+    )
   };
 }
 
@@ -60,9 +79,11 @@ describe("plugin sync diagnostics", () => {
 
     const coverage = signalCoverageForSyncedPlayer(player());
     expect(coverage.map((signal) => [signal.label, signal.status])).toEqual([
+      ["Skills", "exact"],
       ["Quests", "exact"],
       ["Diaries", "exact"],
       ["Collection log", "exact"],
+      ["Bank", "exact"],
       ["Slayer", "exact"]
     ]);
 
@@ -78,7 +99,7 @@ describe("plugin sync diagnostics", () => {
     expect(queue.map((action) => action.title)).toEqual([
       "Open next plan",
       "Route the live Slayer task",
-      "Paste bank for gear and GP context"
+      "Use RuneLite bank for item checks"
     ]);
     expect(queue[0]).toMatchObject({
       tone: "good",
@@ -90,10 +111,34 @@ describe("plugin sync diagnostics", () => {
       href: "/slayer?rsn=Lynx+Titan&source=plugin-sync&bank=none"
     });
     expect(queue[2]).toMatchObject({
-      tone: "neutral",
-      href: "/bank?rsn=Lynx%20Titan&from=plugin"
+      tone: "good",
+      href: "/next?rsn=Lynx+Titan&source=plugin-sync&bank=none"
     });
-    expect(queue[2].proof).toContain("never goes back to RuneLite");
+    expect(queue[2].proof).toContain("Quest and diary readiness");
+
+    vi.useRealTimers();
+  });
+
+  it("does not treat a stale bank capture as exact item readiness", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-04T13:00:00.000Z"));
+
+    const staleBankPlayer = player({
+      syncedAt: "2026-06-04T12:30:00.000Z",
+      bankStatus: {
+        enabled: true,
+        itemCount: 1,
+        capturedAt: "2026-06-03T11:30:00.000Z",
+        unavailableReason: null
+      }
+    });
+
+    const coverage = signalCoverageForSyncedPlayer(staleBankPlayer);
+    expect(coverage.find((signal) => signal.label === "Bank")).toMatchObject({
+      status: "partial",
+      summary: "Bank sync is stale; open your bank in RuneLite, then sync again"
+    });
+    expect(actionQueueForSyncedPlayer(staleBankPlayer).map((action) => action.title)).toContain("Refresh RuneLite bank");
 
     vi.useRealTimers();
   });
@@ -111,12 +156,10 @@ describe("plugin sync diagnostics", () => {
       "Open Collection Log tabs in-game",
       "Refresh Slayer state",
       "Open /next without Slayer",
-      "Paste bank for gear and GP context"
+      "Use RuneLite bank for item checks"
     ]);
-    expect(queue[0]).toMatchObject({
-      copy: PUBLIC_SYNC_URL,
-      actionLabel: "Copy sync URL"
-    });
+    expect(queue[0].copy).toBeUndefined();
+    expect(queue[0].actionLabel).toBeUndefined();
     expect(queue[1]).toMatchObject({
       tone: "warning",
       actionLabel: "Open /next without Slayer"
@@ -136,9 +179,9 @@ describe("plugin sync diagnostics", () => {
     const diagnostic = diagnosticForSyncedPlayer(player());
     expect(diagnostic.tone).toBe("warning");
     expect(diagnostic.title).toContain("fresh press");
-    expect(diagnostic.primaryAction?.copy).toBe(PUBLIC_SYNC_URL);
-    expect(diagnosticForSyncedPlayer(player(), { origin: "http://127.0.0.1:4173/plugin" }).primaryAction?.copy)
-      .toBe(PUBLIC_SYNC_URL);
+    expect(diagnostic.primaryAction).toBeUndefined();
+    expect(diagnosticForSyncedPlayer(player(), { origin: "http://127.0.0.1:4173/plugin" }).primaryAction)
+      .toBeUndefined();
 
     const readiness = nextReadinessForSyncedPlayer(player());
     expect(readiness.tone).toBe("warning");
@@ -216,14 +259,14 @@ describe("plugin sync diagnostics", () => {
   it("gives concrete recovery steps for missing and unconfigured sync", () => {
     const missing = diagnosticForMissingSync("Lynx Titan");
     expect(missing.tone).toBe("warning");
-    expect(missing.primaryAction?.copy).toBe(PUBLIC_SYNC_URL);
-    expect(diagnosticForMissingSync("Lynx Titan", { origin: "http://127.0.0.1:4173" }).primaryAction?.copy)
-      .toBe(PUBLIC_SYNC_URL);
+    expect(missing.primaryAction).toBeUndefined();
+    expect(diagnosticForMissingSync("Lynx Titan", { origin: "http://127.0.0.1:4173" }).primaryAction)
+      .toBeUndefined();
     expect(missing.title).toBe("RuneLite not found for Lynx Titan");
     expect(missing.body).toContain("/next still works from your OSRS name");
     expect(missing.steps.join(" ")).toContain("Open RuneLite");
-    expect(missing.steps.join(" ")).toContain("https://www.scapestack.org/api/sync");
-    expect(missing.steps.join(" ")).toContain("Auto-sync on login");
+    expect(missing.steps.join(" ")).toContain("Press Sync now");
+    expect(missing.steps.join(" ")).toContain("Sync on login");
     expect(missing.steps.join(" ")).not.toContain("Install Scapestack Sync, then enable");
     expect(missing.steps.length).toBe(3);
 
@@ -233,6 +276,6 @@ describe("plugin sync diagnostics", () => {
     expect(unconfigured.primaryAction?.copy).toBe(DB_INIT_COMMAND);
     expect(unconfigured.steps.join(" ")).toContain("setup command");
     expect(unconfigured.steps.join(" ")).not.toContain("DATABASE_URL");
-    expect(unconfigured.steps.join(" ")).toContain("Auto-sync on login");
+    expect(unconfigured.steps.join(" ")).toContain("Sync on login");
   });
 });

@@ -1,4 +1,4 @@
-import { DB_INIT_COMMAND, syncUrlsForOrigin } from "./plugin-sync-actions";
+import { DB_INIT_COMMAND } from "./plugin-sync-actions";
 
 export type PluginSyncServiceTone = "good" | "warning" | "danger" | "neutral";
 
@@ -31,7 +31,7 @@ export interface PluginSyncServiceSummary {
 }
 
 export function summarizePluginSyncService(status: PluginSyncServiceStatus | null, origin?: string | null): PluginSyncServiceSummary {
-  const syncUrls = syncUrlsForOrigin(origin);
+  void origin;
 
   if (!status) {
     return {
@@ -48,8 +48,7 @@ export function summarizePluginSyncService(status: PluginSyncServiceStatus | nul
       label: "RuneLite needs setup",
       detail: "This install needs setup before RuneLite can help plans.",
       actions: [
-        { label: "Copy setup command", copy: DB_INIT_COMMAND },
-        { label: "Copy sync URL", copy: syncUrls.sync }
+        { label: "Copy setup command", copy: DB_INIT_COMMAND }
       ]
     };
   }
@@ -60,8 +59,7 @@ export function summarizePluginSyncService(status: PluginSyncServiceStatus | nul
       label: "RuneLite needs setup",
       detail: "This install needs setup before RuneLite can help plans.",
       actions: [
-        { label: "Copy setup command", copy: DB_INIT_COMMAND },
-        { label: "Copy sync URL", copy: syncUrls.sync }
+        { label: "Copy setup command", copy: DB_INIT_COMMAND }
       ]
     };
   }
@@ -70,8 +68,6 @@ export function summarizePluginSyncService(status: PluginSyncServiceStatus | nul
     tone: "good",
     label: "RuneLite ready",
     detail: `Scapestack Sync v${status.plugin?.currentVersion || "unknown"} is ready.`,
-    actions: [
-      { label: "Copy sync URL", copy: syncUrls.sync }
-    ]
+    actions: []
   };
 }

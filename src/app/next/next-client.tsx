@@ -26,7 +26,7 @@ import type { HoursToMaxSummary } from "@/lib/hours-to-max";
 import { getActiveAccount } from "@/lib/account-storage";
 import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
 import { track } from "@/lib/analytics";
-import type { Recommendation, RecKind, NextUpResult } from "@/lib/next-up";
+import type { Recommendation, RecKind, NextUpInput, NextUpResult, NextBestAction } from "@/lib/next-up";
 import { defaultActionHints } from "@/lib/rec-hints";
 import {
   pickForRoute,
@@ -52,12 +52,19 @@ import {
 } from "@/lib/recommendation-feedback";
 import { wikiSearchUrl } from "@/lib/wiki";
 import { pluginSyncHealth } from "@/lib/plugin-sync";
+import { pluginBankStatusLabel, pluginBankStatusTone, type PluginBankStatus } from "@/lib/plugin-bank-status";
 import { isPluginSyncSource, pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
 import { summarizeNextPluginSync, type NextPluginSyncSummary } from "@/lib/next-plugin-sync-summary";
 import { toolHandoffUrl } from "@/lib/bank-tool-routes";
 import { bankOrganizerHref } from "@/lib/bank-handoff-url";
 import { shouldReadNextBankHandoff, shouldReadNextHeroBank } from "@/lib/next-route-context";
 import { nextIntentFromSearch, type NextIntentPreset } from "@/lib/next-intent";
+import {
+  isUltimatePlannerAccount,
+  plannerAccountTypeLabel,
+  scapestackAccountTypeToPlannerType,
+  type PlannerAccountType
+} from "@/lib/account-type";
 import {
   bossBySlug,
   bossViabilityFromBankItems,
@@ -159,16 +166,29 @@ function sampleSkills(): HiscoreSkill[] {
   return [{ id: 0, name: "Overall", rank: 100_000, level: total, xp: 0 }, ...skills];
 }
 
-function asOrganizedItems(items: Array<{ id: number; name: string }>): OrganizedItem[] {
+function asOrganizedItems(items: Array<{ id: number; name: string; quantity?: number }>): OrganizedItem[] {
   return items.map((item) => ({
     ...item,
     subtab: "Demo",
     slot: null,
     weight: 0,
-    quantity: 1,
+    quantity: item.quantity ?? 1,
     unitPrice: 0,
     stackValue: 0
   }));
+}
+
+function syncedSkillsToHiscoreSkills(skills: Array<{ name: string; level: number }> | undefined): HiscoreSkill[] {
+  if (!skills?.length) return [];
+  const rows = skills.map((skill, index) => ({
+    id: index + 1,
+    name: skill.name,
+    rank: 0,
+    level: skill.level,
+    xp: 0
+  }));
+  const totalLevel = rows.reduce((sum, skill) => sum + skill.level, 0);
+  return [{ id: 0, name: "Overall", rank: 0, level: totalLevel, xp: 0 }, ...rows];
 }
 
 function savedBankForRun(primaryRsn: string, fallbackRsn = ""): SavedBank | null {
@@ -393,7 +413,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
       // empty. organizeAction is only called for the paste-string path.
       const handoffItems = opts.bankItems ?? [];
       let bankItemsForContext = handoffItems;
-      let bank: Array<{ id: number; name: string }> = nextUpBankFromHandoff(handoffItems);
+      let bank: Array<{ id: number; name: string; quantity?: number }> = nextUpBankFromHandoff(handoffItems);
       // ownedGear needs richer OrganizedItem-shaped entries. The /bank
       // handoff now carries quantity/value/subtab metadata, so boss detail
       // modals can use the gear immediately instead of looking bank-less.
@@ -407,9 +427,18 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
           return;
         }
         const flat = bankRes.result.tabs.flatMap((t) => t.items);
-        bank = flat.map((it) => ({ id: it.id, name: it.name }));
+        bank = flat.map((it) => ({ id: it.id, name: it.name, quantity: it.quantity }));
         gearItems = ownedGear(flat);
         bankItemsForContext = bankHandoffItemsFromTabs(bankRes.result.tabs);
+      }
+      if (bank.length === 0 && scapestackSync?.bankItems?.length) {
+        bank = scapestackSync.bankItems.map((item) => ({
+          id: item.id,
+          name: item.name,
+          quantity: item.quantity
+        }));
+        bankItemsForContext = bankHandoffItemsFromBankItems(bank, "RuneLite bank sync");
+        gearItems = ownedGear(asOrganizedItems(bank));
       }
       setOwnedGearItems(gearItems);
       setActiveBankItems(bankItemsForContext);
@@ -424,7 +453,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
       // Fold in 99-skill capes synthesised from the Hiscores so goal-
       // completion reflects what the player has *earned*, not just what
       // sits in their bank.
-      const skills: HiscoreSkill[] = hiscores?.skills ?? [];
+      const skills: HiscoreSkill[] = hiscores?.skills ?? syncedSkillsToHiscoreSkills(scapestackSync?.skills);
       const seenBankIds = new Set(bank.map((it) => it.id));
       const earnedItems = unlockedFromHiscores(skills)
         .filter((cape) => !seenBankIds.has(cape.id));
@@ -453,26 +482,32 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
         return;
       }
 
+      const accountMeta: NextUpInput["accountMeta"] = scapestackSync || wom ? {
+        displayName: wom?.displayName ?? scapestackSync?.displayName ?? rsn,
+        accountType: scapestackSync
+          ? scapestackAccountTypeToPlannerType(scapestackSync.accountType)
+          : wom!.accountType,
+        ehp: wom?.ehp ?? 0,
+        ehb: wom?.ehb ?? 0,
+        lastChangedAt: wom?.lastChangedAt ?? null
+      } : null;
+
       // Pass all four enrichments. Each is null when the player isn't
       // tracked on that service; the engine + path-progress fall back
       // to heuristics for whatever's missing.
       setResult(await nextUpAction({
         skills, bank, earnedItems, questPoints, bossKc,
         womBossKills: wom?.bossKills,
-        accountMeta: wom ? {
-          displayName: wom.displayName,
-          accountType: wom.accountType,
-          ehp: wom.ehp,
-          ehb: wom.ehb,
-          lastChangedAt: wom.lastChangedAt
-        } : null,
+        accountMeta,
         templeQuestsCompleted: temple?.questsCompleted,
         collectionLogOwnedItemIds: collectionLog?.ownedItemIds,
         scapestackSync: scapestackSync ? {
           displayName: scapestackSync.displayName,
+          accountType: scapestackSync.accountType,
           questsCompleted: scapestackSync.questsCompleted,
           diariesCompleted: scapestackSync.diariesCompleted,
           collectionLogItemIds: scapestackSync.collectionLogItemIds,
+          bankStatus: scapestackSync.bankStatus,
           slayer: scapestackSync.slayer
         } : undefined,
         syncedSources: {
@@ -486,7 +521,8 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
             clItems: scapestackSync.collectionLogItemIds.length,
             pluginVersion: scapestackSync.pluginVersion,
             slayerTaskRemaining: scapestackSync.slayer?.taskRemaining ?? null,
-            slayerBlocks: scapestackSync.slayer?.blocks.length ?? 0
+            slayerBlocks: scapestackSync.slayer?.blocks.length ?? 0,
+            bankStatus: scapestackSync.bankStatus
           } : null
         }
       }));
@@ -1264,6 +1300,8 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
           allRecs={allRecs}
           activeRsn={activeRsn}
           accountStage={summary.accountStage}
+          accountType={summary.accountType}
+          accountMode={summary.accountMode}
           maxEstimate={result.maxEstimate}
           hasBankContext={bankItems.length > 0}
           bankItems={bankItems}
@@ -1277,40 +1315,509 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
       </div>
 
       <div style={trackAnim(150)}>
-        <MakePlanSmarter
-          headline={headline}
-          summary={summary}
-          basisNote={basisNote}
-          bankItems={bankItems}
-          activeRsn={activeRsn}
-          pluginSyncState={pluginSyncState}
-          expectedPluginSync={expectedPluginSync}
-          onEdit={onEdit}
-          onClearStoredBankHandoff={onClearStoredBankHandoff}
-        />
+        <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-4 sm:p-5">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)] marker:hidden">
+            <span>More unlock moves and routes</span>
+            <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
+              Closest unlocks, route blockers and bank gaps
+            </span>
+          </summary>
+          <div className="mt-4 space-y-4">
+            <NextBestActionsPanel actions={result.nextBestActions} />
+            <RouteProgressBoard
+              allRecs={allRecs}
+              pathData={result.pathProgress}
+              bankItems={bankItems}
+              readiness={result.readiness}
+              accountType={summary.accountType}
+              accountMode={summary.accountMode}
+              actionContext={{ from: "next", hasBankContext: bankItems.length > 0, rsn: activeRsn }}
+              onBossOpen={onBossOpen}
+            />
+          </div>
+        </details>
       </div>
 
       <div style={trackAnim(300)}>
-        <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-4 sm:p-5">
+        <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-4 sm:p-5">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)] marker:hidden">
-            <span>Why is this recommended?</span>
+            <span>Why this plan?</span>
             <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
-              Only if you want the deeper read
+              Data sources, route evidence and optional bank checks
             </span>
           </summary>
           <div className="mt-4 space-y-6">
             <HeroStrip summary={summary} basisNote={basisNote} onEdit={onEdit} />
-            <WhereYouAre
+            <RouteBlockers
               pathData={result.pathProgress}
               maxEstimate={result.maxEstimate}
             />
             <BankProgressSection progress={result.readiness} />
+            <MakePlanSmarter
+              headline={headline}
+              summary={summary}
+              basisNote={basisNote}
+              bankItems={bankItems}
+              activeRsn={activeRsn}
+              pluginSyncState={pluginSyncState}
+              expectedPluginSync={expectedPluginSync}
+              onEdit={onEdit}
+              onClearStoredBankHandoff={onClearStoredBankHandoff}
+            />
           </div>
         </details>
       </div>
 
       <div className="pt-2" style={trackAnim(450)}>
         <SupportCard />
+      </div>
+    </div>
+  );
+}
+
+function NextBestActionsPanel({ actions }: { actions: NextBestAction[] }) {
+  if (actions.length === 0) return null;
+
+  return (
+    <section className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/78 p-4 sm:p-5">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">Closest unlocks</div>
+          <h2 className="mt-1 text-[18px] font-semibold leading-tight text-[var(--color-text)]">
+            More unlock moves
+          </h2>
+        </div>
+        <span className="scapestack-status-badge" data-tone="prep">
+          Skills · quests · bank · mode
+        </span>
+      </div>
+
+      <div className="mt-4 divide-y divide-[var(--color-border)]/70">
+        {actions.slice(0, 5).map((action) => {
+          const body = (
+            <div className="group grid gap-3 py-3 sm:grid-cols-[42px_minmax(0,1fr)_auto] sm:items-start">
+              <div className="flex size-10 items-center justify-center rounded-md border border-[var(--color-border)] bg-black/20">
+                {action.iconItemId ? (
+                  <ItemSprite id={action.iconItemId} alt="" className="pixelated max-h-8 max-w-8" />
+                ) : (
+                  <Target className="size-4 text-[var(--color-accent)]" />
+                )}
+              </div>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-[14px] font-semibold leading-snug text-[var(--color-text)]">{action.title}</h3>
+                  <span className="scapestack-status-badge" data-tone={action.kind === "do-quest" || action.kind === "do-diary" ? "ready" : "prep"}>
+                    {action.preparation} prep
+                  </span>
+                  <span className="scapestack-status-badge">
+                    Unlock {action.unlockValue}/100
+                  </span>
+                </div>
+                <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-muted)]">{action.reason}</p>
+                <div className="mt-2 grid gap-2 text-[11.5px] text-[var(--color-text-muted)] sm:grid-cols-2">
+                  <ActionSnippet
+                    label={action.missingRequirements.length > 0 ? "Missing" : "Blockers"}
+                    value={action.missingRequirements.length > 0 ? action.missingRequirements.slice(0, 3).join(", ") : "None visible"}
+                  />
+                  <ActionSnippet
+                    label="Items"
+                    value={action.requiredItems.length > 0 ? action.requiredItems.slice(0, 3).join(", ") : "No required items flagged"}
+                  />
+                </div>
+                {action.accountTypeNote && (
+                  <p className="mt-2 text-[11.5px] leading-relaxed text-[var(--color-accent)]">{action.accountTypeNote}</p>
+                )}
+              </div>
+              <div className="flex items-center gap-2 sm:justify-end">
+                <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">{action.relevantQuestOrUnlock}</span>
+                <ChevronRight className="size-4 text-[var(--color-text-muted)] transition-transform group-hover:translate-x-0.5" />
+              </div>
+            </div>
+          );
+
+          return action.link ? (
+            <Link key={action.id} href={action.link} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]">
+              {body}
+            </Link>
+          ) : (
+            <div key={action.id}>{body}</div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function ActionSnippet({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0 rounded-md border border-[var(--color-border)]/70 bg-black/10 px-3 py-2">
+      <div className="text-[9.5px] font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">{label}</div>
+      <div className="mt-0.5 truncate font-medium text-[var(--color-text)]" title={value}>{value}</div>
+    </div>
+  );
+}
+
+type RouteLaneId =
+  | "barrows-gloves"
+  | "fairy-rings"
+  | "piety"
+  | "avas-assembler"
+  | "dragon-defender"
+  | "quest-cape"
+  | "raids-prep"
+  | "slayer-unlocks";
+
+type RouteLaneDefinition = {
+  id: RouteLaneId;
+  title: string;
+  payoff: string;
+  iconItemId: number;
+  query: RegExp;
+  ownedItemIds?: number[];
+  fallback: string;
+};
+
+const SESSION_ROUTE_LANES: RouteLaneDefinition[] = [
+  {
+    id: "barrows-gloves",
+    title: "Barrows gloves route",
+    payoff: "Best mid-game glove slot and a major quest-account spine.",
+    iconItemId: 7462,
+    query: /barrows|recipe for disaster|gloves/i,
+    ownedItemIds: [7462],
+    fallback: "Open the quest route before committing to random skilling."
+  },
+  {
+    id: "fairy-rings",
+    title: "Fairy rings route",
+    payoff: "Cuts travel time for quests, clues, herb runs and Slayer.",
+    iconItemId: 772,
+    query: /fairy rings|fairytale|fairy/i,
+    fallback: "Check Fairytale I/II blockers, then unlock ring access."
+  },
+  {
+    id: "piety",
+    title: "Piety route",
+    payoff: "Permanent melee DPS upgrade for quests, Slayer and bossing.",
+    iconItemId: 2413,
+    query: /piety|prayer.*70|protection prayers|prayer/i,
+    fallback: "Check Prayer and Knight Waves blockers before a long combat grind."
+  },
+  {
+    id: "avas-assembler",
+    title: "Ava's assembler route",
+    payoff: "Cleaner ranged trips and less ammo waste.",
+    iconItemId: 22109,
+    query: /ava|animal magnetism|assembler|accumulator|vorkath/i,
+    ownedItemIds: [10499, 22109],
+    fallback: "Get Ava's device first; assembler comes after Vorkath's head."
+  },
+  {
+    id: "dragon-defender",
+    title: "Dragon defender route",
+    payoff: "Core melee off-hand for Slayer and early bossing.",
+    iconItemId: 12954,
+    query: /dragon defender|defender|warriors'? guild/i,
+    ownedItemIds: [12954],
+    fallback: "Get the defender before upgrading small melee pieces."
+  },
+  {
+    id: "quest-cape",
+    title: "Quest cape route",
+    payoff: "Unlocks large chunks of the account and cleans up route blockers.",
+    iconItemId: 9813,
+    query: /quest cape|quest|diary|unlock/i,
+    ownedItemIds: [9813],
+    fallback: "Pick the closest quest blocker, not another generic XP session."
+  },
+  {
+    id: "raids-prep",
+    title: "Raids prep route",
+    payoff: "Turns gear, prayers and quest unlocks into team-ready PvM.",
+    iconItemId: 20997,
+    query: /raid|cox|xeric|toa|tombs|chambers|olm|bowfa|trident|zulrah|vorkath|boss/i,
+    fallback: "Confirm prayers, gear and one boss-readiness step before raids."
+  },
+  {
+    id: "slayer-unlocks",
+    title: "Slayer unlock route",
+    payoff: "Tasks, points and unlocks that feed PvM progression.",
+    iconItemId: 11864,
+    query: /slayer|task|kurask|abyssal|kraken|hydra/i,
+    fallback: "Check task, points and next Slayer level before skipping."
+  }
+];
+
+function routeLaneAccountNote(id: RouteLaneId, accountType: PlannerAccountType | null): string | null {
+  if (!accountType) return null;
+  if (isUltimatePlannerAccount(accountType)) {
+    if (id === "barrows-gloves" || id === "fairy-rings" || id === "quest-cape") {
+      return "UIM: treat item prep as staging, not bank readiness.";
+    }
+    return "UIM: bank checks are not normal readiness.";
+  }
+  if (accountType === "ironman" || accountType === "hardcore" || accountType === "group") {
+    if (id === "piety" || id === "raids-prep") return "Iron route: source supplies and prayer/gear upgrades yourself.";
+    if (id === "fairy-rings") return "Iron route: travel unlocks beat buying convenience.";
+  }
+  return null;
+}
+
+function bankHasAnyItem(bankItems: BankHandoffItem[], ids: number[] | undefined): boolean {
+  if (!ids?.length) return false;
+  const owned = new Set(bankItems.map((item) => item.id));
+  return ids.some((id) => owned.has(id));
+}
+
+function routeLaneMatch(definition: RouteLaneDefinition, recs: Recommendation[]): Recommendation | null {
+  return recs.find((rec) => definition.query.test(`${rec.id} ${rec.title} ${rec.why} ${rec.payoff ?? ""}`)) ?? null;
+}
+
+function routeLaneStatus({
+  definition,
+  rec,
+  bankItems,
+  pathData
+}: {
+  definition: RouteLaneDefinition;
+  rec: Recommendation | null;
+  bankItems: BankHandoffItem[];
+  pathData: NextUpResult["pathProgress"];
+}): { label: string; detail: string; tone: "good" | "warn" | "neutral"; href?: string } {
+  if (bankHasAnyItem(bankItems, definition.ownedItemIds)) {
+    return {
+      label: "Bank-ready",
+      detail: "Key item is in the current bank context.",
+      tone: "good"
+    };
+  }
+
+  if (rec) {
+    return {
+      label: "Next action",
+      detail: rec.decisionReason || rec.why,
+      tone: "warn",
+      href: rec.link
+    };
+  }
+
+  if (definition.id === "quest-cape") {
+    const quests = pathData.paths.find((path) => path.kind === "quests");
+    if (quests && quests.percent >= 98) {
+      return {
+        label: "Nearly done",
+        detail: quests.nextSteps[0]?.title ?? "Finish the last visible quest blocker.",
+        tone: "good"
+      };
+    }
+    if (quests) {
+      return {
+        label: `${quests.percent}% route`,
+        detail: quests.nextSteps[0]?.title ?? definition.fallback,
+        tone: "neutral"
+      };
+    }
+  }
+
+  return {
+    label: "Check blockers",
+    detail: definition.fallback,
+    tone: "neutral"
+  };
+}
+
+function RouteProgressBoard({
+  allRecs,
+  pathData,
+  bankItems,
+  readiness,
+  accountType,
+  accountMode,
+  actionContext,
+  onBossOpen
+}: {
+  allRecs: Recommendation[];
+  pathData: NextUpResult["pathProgress"];
+  bankItems: BankHandoffItem[];
+  readiness: SetCompletion[];
+  accountType: PlannerAccountType | null;
+  accountMode: NextUpResult["summary"]["accountMode"];
+  actionContext: RecommendationActionContext;
+  onBossOpen: (slug: string) => void;
+}) {
+  const questRecs = allRecs.filter((rec) => rec.kind === "quest" || rec.kind === "diary").slice(0, 3);
+  const bankGaps = readiness.slice(0, 3);
+  return (
+    <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/60 p-4 sm:p-5">
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
+            Routes to inspect
+          </div>
+          <h2 className="mt-1 text-[21px] font-bold tracking-normal text-[var(--color-text)]">
+            Unlock blockers
+          </h2>
+          <p className="mt-1 max-w-2xl text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">
+            Barrows gloves, fairy rings, Piety, Ava&apos;s, defender, quest cape, raids prep and Slayer.
+          </p>
+        </div>
+        <span className="scapestack-status-badge w-fit" data-tone={accountMode.confidence === "detected" ? "ready" : "prep"}>
+          {accountMode.badgeLabel}
+        </span>
+      </div>
+
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        {SESSION_ROUTE_LANES.map((definition) => {
+          const rec = routeLaneMatch(definition, allRecs);
+          const status = routeLaneStatus({ definition, rec, bankItems, pathData });
+          const accountNote = routeLaneAccountNote(definition.id, accountType);
+          const href = status.href ? recommendationHrefWithContext(status.href, actionContext) : undefined;
+          return (
+            <article
+              key={definition.id}
+              className={cn(
+                "scapestack-route-row min-h-[150px] p-3",
+                status.tone === "good"
+                  ? "border-[var(--color-good)]/25"
+                  : status.tone === "warn"
+                    ? "border-[var(--color-warning)]/28"
+                    : "border-[var(--color-border)]"
+              )}
+            >
+              <div className="flex items-start gap-2.5">
+                <div className="grid size-10 shrink-0 place-items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45">
+                  <ItemSprite id={definition.iconItemId} alt="" size={26} />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <h3 className="text-[13px] font-bold leading-snug text-[var(--color-text)]">{definition.title}</h3>
+                    <span
+                      className="scapestack-status-badge"
+                      data-tone={status.tone === "good" ? "ready" : status.tone === "warn" ? "prep" : undefined}
+                    >
+                      {status.label}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[11px] leading-snug text-[var(--color-text-muted)]">{definition.payoff}</p>
+                </div>
+              </div>
+              <p className="mt-3 line-clamp-3 border-t border-[var(--color-border)] pt-2 text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+                {status.detail}
+              </p>
+              {accountNote && (
+                <p className="mt-1 text-[10.5px] leading-snug text-[var(--color-warning)]">{accountNote}</p>
+              )}
+              {href && (
+                <Link
+                  href={href}
+                  className="mt-2 inline-flex items-center gap-1.5 text-[11.5px] font-bold text-[var(--color-accent)] hover:underline"
+                >
+                  Open route
+                  <ArrowRight className="size-3" />
+                </Link>
+              )}
+            </article>
+          );
+        })}
+      </div>
+
+      {(questRecs.length > 0 || bankGaps.length > 0) && (
+        <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          <QuestReadySoonRail
+            recs={questRecs}
+            actionContext={actionContext}
+            onBossOpen={onBossOpen}
+          />
+          <BankGapsRail progress={bankGaps} />
+        </div>
+      )}
+    </section>
+  );
+}
+
+function QuestReadySoonRail({
+  recs,
+  actionContext
+}: {
+  recs: Recommendation[];
+  actionContext: RecommendationActionContext;
+  onBossOpen: (slug: string) => void;
+}) {
+  if (recs.length === 0) return (
+    <div className="scapestack-route-row p-3">
+      <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">Quests and diaries almost ready</div>
+      <p className="mt-2 text-[12px] leading-relaxed text-[var(--color-text-muted)]">
+        Add RSN or RuneLite sync to see which quest or diary unlock is nearly ready.
+      </p>
+    </div>
+  );
+
+  return (
+    <div className="scapestack-route-row p-3">
+      <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">Quests and diaries almost ready</div>
+      <div className="scapestack-session-list mt-2">
+        {recs.map((rec) => {
+          const action = primaryActionForRecommendation(rec, actionContext);
+          const href = recommendationHrefWithContext(action.href ?? rec.link ?? "/next", actionContext);
+          return (
+            <Link
+              key={rec.id}
+              href={href}
+              className="flex items-start gap-2 py-2 transition-colors hover:text-[var(--color-accent)]"
+            >
+              <KindGlyph kind={rec.kind} size={18} tone="accent" />
+              <span className="min-w-0 flex-1">
+                <span className="block text-[12px] font-bold leading-snug text-[var(--color-text)]">{rec.title}</span>
+                <span className="mt-0.5 block line-clamp-2 text-[11px] leading-snug text-[var(--color-text-muted)]">
+                  {rec.decisionReason || rec.why}
+                </span>
+              </span>
+              <ArrowRight className="mt-0.5 size-3.5 shrink-0 text-[var(--color-accent)]" />
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function BankGapsRail({ progress }: { progress: SetCompletion[] }) {
+  if (progress.length === 0) {
+    return (
+      <div className="scapestack-route-row p-3">
+        <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">Items missing</div>
+        <p className="mt-2 text-[12px] leading-relaxed text-[var(--color-text-muted)]">
+          Add bank context to see near-complete sets and missing pieces.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="scapestack-route-row p-3">
+      <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">Items missing</div>
+      <div className="scapestack-session-list mt-2">
+        {progress.map((completion) => {
+          const set = GOAL_SETS.find((candidate) => candidate.id === completion.setId);
+          if (!set) return null;
+          const norm = normaliseCompletion(completion, set);
+          const missing = set.goals.filter((goal) => !completion.perGoal[goal.id]?.satisfied);
+          return (
+            <div key={completion.setId} className="py-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[12px] font-bold text-[var(--color-text)]">{set.name}</span>
+                <span className="scapestack-status-badge" data-tone="prep">
+                  {norm.progress}/{norm.max}
+                </span>
+              </div>
+              <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-[var(--color-text-muted)]">
+                {missing.length > 0
+                  ? `Missing: ${missing.slice(0, 3).map((goal) => goal.name).join(", ")}`
+                  : "Looks complete in this bank context."}
+              </p>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -1664,6 +2171,7 @@ function HeroStrip({ summary, basisNote, onEdit }: {
             {summary.totalLevel !== null && (
               <HeroStat icon={<TrendingUp className="size-4 opacity-60" />} label="Total" value={summary.totalLevel} />
             )}
+            <HeroStat icon={<Shield className="size-4 opacity-60" />} label="Mode" value={summary.accountMode.badgeLabel} />
             {summary.goalPercent !== null && (
               <HeroStat
                 icon={<Target className="size-4" />}
@@ -1761,16 +2269,17 @@ function formatRuneLiteScanTime(syncedAt: string): string {
 
 function runeLitePlanNote(pluginSyncSummary: NextPluginSyncSummary | null): string | null {
   const pluginSyncState = pluginSyncSummary?.state ?? null;
+  const bank = pluginSyncSummary?.bankStatusLabel ? ` ${pluginSyncSummary.bankStatusLabel}.` : "";
   if (pluginSyncState === "live") {
     const syncedAt = pluginSyncSummary?.syncedAt
       ? `Last RuneLite scan: ${formatRuneLiteScanTime(pluginSyncSummary.syncedAt)}.`
       : "Last RuneLite scan is fresh.";
-    return `${syncedAt} Finished quests, diary steps, clog slots and Slayer mistakes are skipped.`;
+    return `${syncedAt} Finished quests, diary steps, clog slots and Slayer mistakes are skipped.${bank}`;
   }
   if (pluginSyncState === "stale") {
     return pluginSyncSummary?.syncedAt
-      ? `Last RuneLite scan: ${formatRuneLiteScanTime(pluginSyncSummary.syncedAt)}. Sync again before a long grind or GP spend.`
-      : "Last RuneLite scan: check again before a long grind or GP spend.";
+      ? `Last RuneLite scan: ${formatRuneLiteScanTime(pluginSyncSummary.syncedAt)}. Sync again before a long grind or GP spend.${bank}`
+      : `Last RuneLite scan: check again before a long grind or GP spend.${bank}`;
   }
   if (pluginSyncState === "outdated") {
     return pluginSyncSummary?.syncedAt
@@ -2079,13 +2588,27 @@ function buildNextReadyToLeave(
   rec: Recommendation,
   bankItems: BankHandoffItem[],
   hasBankContext: boolean,
-  maxEstimate: HoursToMaxSummary | null = null
+  maxEstimate: HoursToMaxSummary | null = null,
+  accountType: PlannerAccountType | null = null
 ): { status: ReadyToLeaveStatus; items: ReadyToLeaveItem[] } {
   const trip = buildRecommendationTrip(rec, bankItems, hasBankContext);
   const needsCombat = recommendationNeedsCombatSetup(rec);
   const needsItems = recommendationNeedsItemCheck(rec);
   const surface = recommendationPlanSurface(rec);
   const skillingSummary = skillingBankSummaryForRecommendation(rec, bankItems, maxEstimate);
+  const isUim = isUltimatePlannerAccount(accountType);
+
+  if (isUim && (needsItems || needsCombat || hasBankContext)) {
+    return {
+      status: "UIM setup",
+      items: [
+        { label: "Start", value: recommendationFirstStepValue(rec), tone: "good" },
+        { label: "Items", value: needsItems ? "Gather or stage quest items manually" : "Use carried items, looting bag or storage unlocks", tone: "warn" },
+        { label: "Bank", value: "Bank-ready is not applicable for UIM", tone: "warn" },
+        { label: "Stop", value: trip.stopPoint, tone: "neutral" }
+      ]
+    };
+  }
 
   if (skillingSummary) {
     const gapLine = skillingLevelGapLine(skillingSummary);
@@ -2375,6 +2898,127 @@ function recommendationAvoidance(rec: Recommendation): string {
     default:
       return "Keep it to one clear stop point, then choose again.";
   }
+}
+
+function sessionBoardBankSignal(
+  hasBankContext: boolean,
+  accountType: PlannerAccountType | null,
+  pluginBankStatus?: PluginBankStatus | null
+): { value: string; tone: "good" | "warn" | "neutral" } {
+  if (isUltimatePlannerAccount(accountType)) {
+    return {
+      value: "UIM: bank checks are staging only.",
+      tone: "warn"
+    };
+  }
+  if (pluginBankStatus) {
+    const tone = pluginBankStatusTone(pluginBankStatus);
+    return {
+      value: pluginBankStatusLabel(pluginBankStatus),
+      tone: tone === "muted" ? "neutral" : tone
+    };
+  }
+  return {
+    value: hasBankContext ? "Bank check is shaping this pick." : "No bank check yet.",
+    tone: hasBankContext ? "good" : "neutral"
+  };
+}
+
+function sessionBoardItems({
+  rec,
+  hasBankContext,
+  accountMode,
+  pluginBankStatus,
+  skipReason
+}: {
+  rec: Recommendation;
+  hasBankContext: boolean;
+  accountMode: NextUpResult["summary"]["accountMode"];
+  pluginBankStatus?: PluginBankStatus | null;
+  skipReason: string | null;
+}): Array<{ label: string; value: string; tone: "good" | "warn" | "neutral" }> {
+  const prep = rec.actionPlan?.prep?.trim() || rec.planSeed?.prep?.trim() || "Open the linked guide or tool first.";
+  const blocker = rec.needs?.find((need) => need.trim())?.trim();
+  const payoff = headlinePayoff(rec) || rec.payoff?.trim();
+  const bankSignal = sessionBoardBankSignal(hasBankContext, accountMode.type, pluginBankStatus);
+  return [
+    {
+      label: "Account mode",
+      value: accountMode.planningNote,
+      tone: accountMode.confidence === "unknown" ? "warn" : "neutral"
+    },
+    {
+      label: "Prep needed",
+      value: prep.length > 72 ? `${prep.slice(0, 69).trim()}...` : prep,
+      tone: "neutral"
+    },
+    {
+      label: "Missing blockers",
+      value: blocker ? (blocker.length > 72 ? `${blocker.slice(0, 69).trim()}...` : blocker) : "No hard blocker found.",
+      tone: blocker ? "warn" : "good"
+    },
+    {
+      label: "Bank-ready status",
+      value: bankSignal.value,
+      tone: bankSignal.tone
+    },
+    {
+      label: "Stop point",
+      value: rec.actionPlan?.timebox || payoff || "Stop after one clear completion.",
+      tone: "neutral"
+    },
+    {
+      label: "Skip reason",
+      value: skipReason ?? "No safer backup outranks this pick right now.",
+      tone: skipReason ? "warn" : "good"
+    }
+  ];
+}
+
+function SessionBoardStrip({
+  rec,
+  hasBankContext,
+  accountMode,
+  pluginBankStatus,
+  skipReason
+}: {
+  rec: Recommendation;
+  hasBankContext: boolean;
+  accountMode: NextUpResult["summary"]["accountMode"];
+  pluginBankStatus?: PluginBankStatus | null;
+  skipReason: string | null;
+}) {
+  return (
+    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      {sessionBoardItems({ rec, hasBankContext, accountMode, pluginBankStatus, skipReason }).map((item) => (
+        <div
+          key={item.label}
+          className={cn(
+            "min-h-[76px] rounded-lg border px-3 py-2",
+            item.tone === "good"
+              ? "border-[var(--color-good)]/25 bg-[var(--color-good)]/10"
+              : item.tone === "warn"
+                ? "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10"
+                : "border-[var(--color-border)] bg-[var(--color-bg)]/35"
+          )}
+        >
+          <div className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+            {item.label}
+          </div>
+          <p className={cn(
+            "mt-1 text-[11.5px] font-semibold leading-snug",
+            item.tone === "good"
+              ? "text-[var(--color-good)]"
+              : item.tone === "warn"
+                ? "text-[var(--color-warning)]"
+                : "text-[var(--color-text-dim)]"
+          )}>
+            {item.value}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function backupChoicePrompt(rec: Recommendation, headline: Recommendation): { label: string; helper: string } {
@@ -3053,8 +3697,11 @@ function HeadlineCard({
   hasBankContext,
   bankItems,
   accountStage,
+  accountType,
+  accountMode,
   maxEstimate,
-  pluginSyncState
+  pluginSyncState,
+  pluginBankStatus
 }: {
   rec: Recommendation;
   allRecs: Recommendation[];
@@ -3065,8 +3712,11 @@ function HeadlineCard({
   hasBankContext: boolean;
   bankItems: BankHandoffItem[];
   accountStage: NextUpResult["summary"]["accountStage"];
+  accountType: PlannerAccountType | null;
+  accountMode: NextUpResult["summary"]["accountMode"];
   maxEstimate: HoursToMaxSummary | null;
   pluginSyncState: "live" | "stale" | "outdated" | null;
+  pluginBankStatus?: PluginBankStatus | null;
 }) {
   // Boss/KC recs expose an explicit modal button. Other kinds expose an
   // explicit route button. The article itself is not a fake button because
@@ -3079,7 +3729,8 @@ function HeadlineCard({
   const choice = playerChoiceTag(rec);
   const oneLineReason = headlineOneLineReason(rec);
   const bossViability = bossViabilityForRecommendation(rec, bankItems, hasBankContext);
-  const readyToLeave = buildNextReadyToLeave(rec, bankItems, hasBankContext, maxEstimate);
+  const readyToLeave = buildNextReadyToLeave(rec, bankItems, hasBankContext, maxEstimate, accountType);
+  const skipReason = recommendationWhyNot({ headline: rec, allRecs, mood, hasBankContext, pluginSyncState });
   const card = (
     <article
       className={cn(
@@ -3143,6 +3794,13 @@ function HeadlineCard({
             <Sparkles className="mt-0.5 size-3.5 shrink-0 text-[var(--color-accent)]" />
             <span>{oneLineReason}</span>
           </p>
+          <SessionBoardStrip
+            rec={rec}
+            hasBankContext={hasBankContext}
+            accountMode={accountMode}
+            pluginBankStatus={pluginBankStatus}
+            skipReason={skipReason}
+          />
           <ReadyToLeave status={readyToLeave.status} items={readyToLeave.items} />
           {recommendationUsesTripBuilder(rec) && (
             <TripBuilder rec={rec} bankItems={bankItems} hasBankContext={hasBankContext} maxEstimate={maxEstimate} />
@@ -3555,6 +4213,8 @@ function WhatToDo({
   allRecs,
   activeRsn,
   accountStage,
+  accountType,
+  accountMode,
   maxEstimate,
   hasBankContext,
   bankItems,
@@ -3568,6 +4228,8 @@ function WhatToDo({
   allRecs: Recommendation[];
   activeRsn: string;
   accountStage: NextUpResult["summary"]["accountStage"];
+  accountType: PlannerAccountType | null;
+  accountMode: NextUpResult["summary"]["accountMode"];
   maxEstimate: HoursToMaxSummary | null;
   hasBankContext: boolean;
   bankItems: BankHandoffItem[];
@@ -3764,13 +4426,13 @@ function WhatToDo({
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-            What to do now
+            Session board
           </div>
           <h2 className="mt-1 text-[26px] font-bold tracking-normal text-[var(--color-text)]">
-            Do this first
+            Main move
           </h2>
           <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-dim)]">
-            One best move for this account. Two alternatives if you want a different kind of session.
+            One move, two backups, the prep, blockers, bank signal and stop point.
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
             <span
@@ -3921,18 +4583,21 @@ function WhatToDo({
               hasBankContext={hasBankContext}
               bankItems={bankItems}
               accountStage={accountStage}
+              accountType={accountType}
+              accountMode={accountMode}
               maxEstimate={maxEstimate}
               pluginSyncState={pluginSyncState}
+              pluginBankStatus={pluginSyncSummary?.bankStatus ?? null}
             />
             {pick.alternatives.length > 0 && (
               <div>
                 <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
                   <div>
                     <h3 className="text-[18px] font-bold tracking-normal text-[var(--color-text)]">
-                      Not feeling this?
+	                      Backup moves
                     </h3>
                     <p className="mt-1 text-[12px] text-[var(--color-text-muted)]">
-                      Pick a different kind of session.
+	                      Use these when the main move is blocked or not the session you want.
                     </p>
                   </div>
                   <button
@@ -3988,193 +4653,102 @@ function WhatToDo({
   );
 }
 
-// ── WhereYouAre (track 2) ──────────────────────────────────────────────────
-// Top-strip met de 3 belangrijkste account-metrics + de 4 Path-axes
-// gerenderd als één rij horizontale balken (geen losse ring-cards).
-// Vervangt het oude HoursToMaxSection + PathOverview.
+// ── RouteBlockers ───────────────────────────────────────────────────────────
+// Collapsed evidence layer for the Session Board. Every lane is framed as an
+// unlock planner: blocker, first action, prep and stop point.
 
-function WhereYouAre({
-  pathData,
-  maxEstimate
+function RouteBlockers({
+  pathData
 }: {
   pathData: NextUpResult["pathProgress"];
   maxEstimate: NextUpResult["maxEstimate"];
 }) {
-  const hasMaxData = maxEstimate.perSkill.length > 0;
-  const days = hasMaxData ? Math.round(maxEstimate.totalHours / 4) : null;
-  const overallPercent = pathData.overallPercent;
-
-  // Bar-fill choreography: balken starten op 0% en groeien naar target
-  // ná mount + na de stagger-delay van deze track (300ms). useEffect na
-  // requestAnimationFrame zodat browser de "vanaf 0%" frame echt rendert.
-  const [filled, setFilled] = useState(false);
-  useEffect(() => {
-    const raf = requestAnimationFrame(() => {
-      // Extra 50ms na de track-stagger zodat de balken de laatste zijn
-      // die "klikken" — sluit de animatie-sequentie netjes af.
-      const t = setTimeout(() => setFilled(true), 50);
-      return () => clearTimeout(t);
-    });
-    return () => cancelAnimationFrame(raf);
-  }, []);
+  const routes = pathData.unlockRoutes.slice(0, 9);
 
   return (
     <section>
-      <h3 className="eyebrow text-[var(--color-accent)] mb-3">Where you are</h3>
-      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-5 space-y-5">
-        {/* Top strip — drie cijfers naast elkaar */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pb-4 border-b border-[var(--color-border)]/60">
-          <Metric
-            label="Overall"
-            value={overallPercent}
-            suffix="%"
-            sub="to max account"
-            animate
-          />
-          {hasMaxData ? (
-            <Metric
-              label="Time to max"
-              value={Math.round(maxEstimate.totalHours)}
-              suffix="h"
-              sub={`≈ ${days} days @ 4h/day`}
-              animate
-            />
-          ) : (
-            <Metric label="Time to max" value="—" sub="add your RSN" />
-          )}
-          <Metric
-            label="Top grind"
-            value={maxEstimate.perSkill[0]?.skill ?? "—"}
-            sub={maxEstimate.perSkill[0]
-              ? `${COMPACT_NUMBER.format(Math.round(maxEstimate.perSkill[0].hours))}h to 99`
-              : ""}
-          />
+      <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h3 className="eyebrow text-[var(--color-accent)]">Routes to inspect</h3>
+          <p className="mt-1 text-[12px] text-[var(--color-text-muted)]">
+            Next blocker first. Completion stays secondary.
+          </p>
         </div>
-
-        {/* Vier paths als één rij van horizontale balken — bar-fill
-            animation via transform:scaleX van 0 → 1. De pad met laagste
-            % krijgt een 'focus here' marker + zachte continue glow op
-            de balk: dat is waar de meeste tijd-investering zit. */}
-        <div className="space-y-3.5">
-          {(() => {
-            const focusKind = pathData.paths.reduce((min, p) =>
-              p.percent < min.percent ? p : min, pathData.paths[0]
-            ).kind;
-            return pathData.paths.map((p) => {
-              const isFocus = p.kind === focusKind;
-              return (
-                <div key={p.kind} className="group/path">
-                  <div className="flex items-baseline justify-between gap-3 text-[12px] tabular-nums mb-1">
-                    <span className="flex items-center gap-2">
-                      <span className={cn(
-                        "font-semibold capitalize",
-                        isFocus ? "text-[var(--color-accent)]" : "text-[var(--color-text)]"
-                      )}>
-                        {p.kind}
-                      </span>
-                      {isFocus && (
-                        <span className="text-[9.5px] uppercase tracking-[0.18em] text-[var(--color-accent)] bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/30 px-1.5 py-0.5 rounded">
-                          focus
-                        </span>
-                      )}
-                    </span>
-                    <span className="text-[var(--color-text-dim)]">
-                      {p.done}/{p.total} · {p.percent}%
-                    </span>
-                  </div>
-                  <div
-                    className={cn(
-                      "h-2 rounded-full bg-[var(--color-bg-2)] overflow-hidden relative transition-all",
-                      "group-hover/path:bg-[var(--color-bg)]"
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "h-full rounded-full origin-left transition-all",
-                        isFocus
-                          ? "bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent)]/70"
-                          : "bg-[var(--color-accent)]/55"
-                      )}
-                      style={{
-                        width: `${p.percent}%`,
-                        transform: filled ? "scaleX(1)" : "scaleX(0)",
-                        transition: "transform 900ms cubic-bezier(0.22, 1, 0.36, 1)",
-                        boxShadow: isFocus ? "0 0 14px -2px rgba(200, 154, 61,0.55)" : undefined,
-                        animation: isFocus && filled ? "card-breath 3.2s ease-in-out infinite" : undefined,
-                      }}
-                    />
-                  </div>
-                  {p.nextSteps.length > 0 && (
-                    <p className="text-[10.5px] text-[var(--color-text-muted)] mt-1 truncate">
-                      next: {p.nextSteps.slice(0, 2).map((n) => n.title).join(" · ")}
-                    </p>
-                  )}
+        <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
+          {pathData.overallPercent}% long-term context
+        </span>
+      </div>
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {routes.map((route) => (
+          <article key={route.id} className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/82 p-4">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45">
+                {route.iconItemId ? (
+                  <ItemSprite id={route.iconItemId} alt={route.title} size={28} />
+                ) : (
+                  <MapIcon className="size-5 text-[var(--color-accent)]" />
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h4 className="text-[14px] font-bold leading-tight text-[var(--color-text)]">{route.title}</h4>
+                  <span className={cn(
+                    "rounded-full border px-2 py-0.5 text-[10px] font-bold",
+                    route.blockersLeft === 0
+                      ? "border-[var(--color-good)]/30 bg-[var(--color-good)]/10 text-[var(--color-good)]"
+                      : "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
+                  )}>
+                    {route.primaryLabel}
+                  </span>
                 </div>
-              );
-            });
-          })()}
-        </div>
+                <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">{route.why}</p>
+              </div>
+            </div>
+
+            <div className="mt-3 grid gap-2 text-[11.5px]">
+              <RoutePlanLine label="Blocker" value={route.nextBlocker} />
+              <RoutePlanLine label="First action" value={route.nextAction} strong />
+              <RoutePlanLine label="Prep" value={`${route.prepLevel} · ${route.blockersLeft} blocker${route.blockersLeft === 1 ? "" : "s"}`} />
+              <RoutePlanLine label="Stop" value={route.stopPoint} />
+            </div>
+
+            {route.blockers.length > 1 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {route.blockers.slice(1, 4).map((blocker) => (
+                  <span
+                    key={`${route.id}:${blocker.type}:${blocker.label}`}
+                    className="rounded border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1 text-[10px] font-semibold text-[var(--color-text-muted)]"
+                  >
+                    {blocker.label}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--color-border)]/60 pt-3 text-[10.5px] text-[var(--color-text-dim)]">
+              <span>{route.payoff}</span>
+              <span className="tabular-nums">{route.progressPercent}% context</span>
+            </div>
+            {route.accountTypeNote && (
+              <p className="mt-2 text-[10.5px] leading-relaxed text-[var(--color-text-muted)]">{route.accountTypeNote}</p>
+            )}
+          </article>
+        ))}
       </div>
     </section>
   );
 }
 
-function Metric({ label, value, suffix, sub, animate }: {
-  label: string;
-  value: string | number;
-  suffix?: string;
-  sub?: string;
-  /** Wanneer true en value een number is, telt het cijfer omhoog van
-   *  0 → target over 900ms. Gebruikt requestAnimationFrame met
-   *  ease-out cubic zodat het natuurlijk vertraagt aan het einde. */
-  animate?: boolean;
-}) {
-  const isNumeric = typeof value === "number";
-  const [display, setDisplay] = useState<number | string>(
-    isNumeric && animate ? 0 : value
-  );
-
-  useEffect(() => {
-    if (!isNumeric || !animate) return;
-    // Respect OS-level motion preference — skip de animatie maar laat
-    // de eindwaarde meteen zien zodat de UI niet "leeg" voelt.
-    const prefersReducedMotion =
-      typeof window !== "undefined" &&
-      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReducedMotion) {
-      setDisplay(value as number);
-      return;
-    }
-    const target = value as number;
-    const startedAt = performance.now();
-    const duration = 900;
-    let frame = 0;
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - startedAt) / duration);
-      // ease-out cubic: snel beginnen, traag uitkomen
-      const eased = 1 - Math.pow(1 - t, 3);
-      setDisplay(Math.round(target * eased));
-      if (t < 1) frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [value, animate, isNumeric]);
-
-  const text = isNumeric && typeof display === "number"
-    ? COMPACT_NUMBER.format(display) + (suffix ?? "")
-    : String(value);
-
+function RoutePlanLine({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
   return (
-    <div>
-      <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">{label}</div>
-      <div className="text-[18px] sm:text-[20px] font-bold text-[var(--color-text)] tabular-nums leading-tight mt-0.5">
-        {text}
-      </div>
-      {sub && (
-        <div className="text-[10.5px] text-[var(--color-text-dim)] tabular-nums">
-          {sub}
-        </div>
-      )}
+    <div className="grid grid-cols-[76px_minmax(0,1fr)] gap-2">
+      <span className="text-[10px] uppercase tracking-[0.16em] text-[var(--color-text-dim)]">{label}</span>
+      <span className={cn(
+        "min-w-0 leading-snug",
+        strong ? "font-semibold text-[var(--color-text)]" : "text-[var(--color-text-muted)]"
+      )}>
+        {value}
+      </span>
     </div>
   );
 }
@@ -4319,8 +4893,11 @@ function RecHeadlineExpandable({
   hasBankContext,
   bankItems,
   accountStage,
+  accountType,
+  accountMode,
   maxEstimate,
-  pluginSyncState
+  pluginSyncState,
+  pluginBankStatus
 }: {
   rec: Recommendation;
   allRecs: Recommendation[];
@@ -4335,8 +4912,11 @@ function RecHeadlineExpandable({
   hasBankContext: boolean;
   bankItems: BankHandoffItem[];
   accountStage: NextUpResult["summary"]["accountStage"];
+  accountType: PlannerAccountType | null;
+  accountMode: NextUpResult["summary"]["accountMode"];
   maxEstimate: HoursToMaxSummary | null;
   pluginSyncState: "live" | "stale" | "outdated" | null;
+  pluginBankStatus?: PluginBankStatus | null;
 }) {
   const [open, setOpen] = useState(false);
   const whyNot = recommendationWhyNot({ headline: rec, allRecs, mood, hasBankContext, pluginSyncState });
@@ -4352,8 +4932,11 @@ function RecHeadlineExpandable({
         hasBankContext={hasBankContext}
         bankItems={bankItems}
         accountStage={accountStage}
+        accountType={accountType}
+        accountMode={accountMode}
         maxEstimate={maxEstimate}
         pluginSyncState={pluginSyncState}
+        pluginBankStatus={pluginBankStatus}
       />
       {!cleanMode && (
         <details className="group mt-1.5 flex justify-end">

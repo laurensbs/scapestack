@@ -20,7 +20,11 @@ import type { HiscoreSkill } from "./hiscores";
 import { computeTotalLevel, computeCombatLevel } from "./hiscores";
 import type { QuestRecord } from "./quest-db";
 import type { DiaryRecord, DiaryTier } from "./diary-db";
+import { diaryTierKey, evaluateDiaryTier } from "./diary-requirements";
 import { skillCapeId } from "./skill-capes";
+import type { PlannerAccountType } from "./account-type";
+import { evaluateItemAvailability } from "./item-availability";
+import type { PluginBankStatus } from "./plugin-bank-status";
 
 export interface PathStep {
   /** Display title (e.g. "Push Slayer to 70" or "Karamja Diary — Hard"). */
@@ -49,6 +53,60 @@ export interface PathProgress {
   nextSteps: PathStep[];
   /** All steps for the drill-in modal — done + remaining. */
   allSteps: Array<PathStep & { status: "done" | "open" }>;
+}
+
+export type UnlockRouteId =
+  | "barrows-gloves"
+  | "fairy-rings"
+  | "piety"
+  | "avas-assembler"
+  | "dragon-defender"
+  | "quest-cape"
+  | "raids-prep"
+  | "slayer-unlocks"
+  | "diary-unlocks";
+
+export interface UnlockRouteBlocker {
+  type: "quest" | "skill" | "diary" | "item" | "activity" | "qp";
+  label: string;
+  detail: string;
+  nextAction: string;
+}
+
+export interface UnlockRoutePlan {
+  id: UnlockRouteId;
+  title: string;
+  payoff: string;
+  why: string;
+  iconItemId?: number;
+  primaryLabel: string;
+  nextAction: string;
+  nextBlocker: string;
+  prepLevel: "Low" | "Medium" | "High";
+  stopPoint: string;
+  blockersLeft: number;
+  progressPercent: number;
+  blockers: UnlockRouteBlocker[];
+  requiredQuests: string[];
+  requiredSkills: Array<{ skill: string; level: number; currentLevel: number; met: boolean }>;
+  requiredDiaryTiers: Array<{ region: string; tier: DiaryTier; met: boolean }>;
+  requiredItems: Array<{ name: string; quantity: number; availabilityCopy: string }>;
+  accountTypeNote?: string;
+}
+
+interface UnlockRouteDefinition {
+  id: Exclude<UnlockRouteId, "diary-unlocks">;
+  title: string;
+  payoff: string;
+  why: string;
+  iconItemId?: number;
+  requiredQuests?: string[];
+  requiredSkills?: Array<{ skill: string; level: number }>;
+  requiredDiaryTiers?: Array<{ region: string; tier: DiaryTier }>;
+  requiredItems?: Array<{ name: string; quantity: number }>;
+  activityRequirements?: string[];
+  minQuestPoints?: number;
+  stopPoint: string;
 }
 
 // ── Skills ──────────────────────────────────────────────────────────
@@ -87,7 +145,7 @@ function xpForLevel(level: number): number {
 
 function inferSkillerProgressMode(
   skills: HiscoreSkill[],
-  accountType?: "regular" | "ironman" | "hardcore" | "ultimate" | "skiller" | "pure"
+  accountType?: PlannerAccountType
 ): boolean {
   if (accountType === "skiller") return true;
   if (skills.length === 0) return false;
@@ -99,7 +157,7 @@ function inferSkillerProgressMode(
 
 function skillsPath(
   skills: HiscoreSkill[],
-  accountType?: "regular" | "ironman" | "hardcore" | "ultimate" | "skiller" | "pure"
+  accountType?: PlannerAccountType
 ): PathProgress {
   if (skills.length === 0) {
     return {
@@ -743,6 +801,455 @@ function bossesPath(
   };
 }
 
+// ── Unlock Route Planner ────────────────────────────────────────────
+
+const UNLOCK_ROUTE_DEFINITIONS: UnlockRouteDefinition[] = [
+  {
+    id: "barrows-gloves",
+    title: "Barrows gloves",
+    payoff: "Best-in-slot hybrid gloves and a clean midgame quest spine.",
+    why: "Recipe for Disaster pulls together the account routes that matter before serious PvM.",
+    iconItemId: 7462,
+    requiredQuests: ["Recipe for Disaster"],
+    requiredSkills: [
+      { skill: "Cooking", level: 70 },
+      { skill: "Agility", level: 48 },
+      { skill: "Herblore", level: 25 },
+      { skill: "Magic", level: 59 }
+    ],
+    requiredItems: [
+      { name: "Eye of newt", quantity: 1 },
+      { name: "Rope", quantity: 1 }
+    ],
+    stopPoint: "Finish the next RFD subquest or clear one prerequisite quest."
+  },
+  {
+    id: "fairy-rings",
+    title: "Fairy rings",
+    payoff: "Fast travel for quests, clues, Slayer and farming loops.",
+    why: "Fairy rings cut travel friction from almost every future session.",
+    iconItemId: 772,
+    requiredQuests: ["Priest in Peril", "Fairytale I - Growing Pains", "Fairytale II - Cure a Queen"],
+    requiredItems: [{ name: "Dramen staff", quantity: 1 }],
+    stopPoint: "Unlock fairy ring access, then re-sync before planning the next quest chain."
+  },
+  {
+    id: "piety",
+    title: "Piety",
+    payoff: "Major melee DPS and defence prayer for Slayer and bossing.",
+    why: "Piety changes combat efficiency more than another unfocused melee level.",
+    iconItemId: 2413,
+    requiredQuests: ["King's Ransom"],
+    requiredSkills: [
+      { skill: "Prayer", level: 70 },
+      { skill: "Defence", level: 65 }
+    ],
+    activityRequirements: ["Knight Waves training ground"],
+    stopPoint: "Finish King's Ransom, hit 70 Prayer, or complete Knight Waves."
+  },
+  {
+    id: "avas-assembler",
+    title: "Ava's assembler",
+    payoff: "Ranged cape-slot upgrade and better ranged trips.",
+    why: "Assembler prep turns ranged PvM sessions into cleaner supply loops.",
+    iconItemId: 22109,
+    requiredQuests: ["Animal Magnetism", "Dragon Slayer II"],
+    requiredSkills: [{ skill: "Ranged", level: 70 }],
+    requiredItems: [
+      { name: "Ava's accumulator", quantity: 1 },
+      { name: "Vorkath's head", quantity: 1 }
+    ],
+    stopPoint: "Kill Vorkath for the head or bank the assembler materials."
+  },
+  {
+    id: "dragon-defender",
+    title: "Dragon defender",
+    payoff: "Core melee offhand for Slayer, quests and boss entry.",
+    why: "The defender is a permanent melee upgrade with a bounded grind.",
+    iconItemId: 12954,
+    requiredSkills: [
+      { skill: "Attack", level: 60 },
+      { skill: "Strength", level: 60 }
+    ],
+    requiredItems: [{ name: "Warrior guild tokens", quantity: 100 }],
+    stopPoint: "Reach dragon defender or stop after one token stack is spent."
+  },
+  {
+    id: "quest-cape",
+    title: "Quest cape",
+    payoff: "All quest unlocks, teleports and a finished account spine.",
+    why: "Quest cape progress is the clearest long-term unlock route.",
+    iconItemId: 9813,
+    minQuestPoints: 290,
+    requiredSkills: [
+      { skill: "Agility", level: 70 },
+      { skill: "Herblore", level: 70 },
+      { skill: "Thieving", level: 70 },
+      { skill: "Magic", level: 75 }
+    ],
+    stopPoint: "Finish one high-value quest or clear the nearest quest-cape skill gate."
+  },
+  {
+    id: "raids-prep",
+    title: "Raids prep",
+    payoff: "Account becomes ready for CoX/ToA learning groups.",
+    why: "Raids prep bundles combat, prayer and potion gates into one practical route.",
+    iconItemId: 21012,
+    requiredQuests: ["A Kingdom Divided", "Beneath Cursed Sands"],
+    requiredSkills: [
+      { skill: "Attack", level: 85 },
+      { skill: "Strength", level: 85 },
+      { skill: "Defence", level: 80 },
+      { skill: "Ranged", level: 85 },
+      { skill: "Magic", level: 85 },
+      { skill: "Prayer", level: 70 },
+      { skill: "Herblore", level: 78 }
+    ],
+    requiredItems: [
+      { name: "Trident of the seas", quantity: 1 },
+      { name: "Blowpipe", quantity: 1 }
+    ],
+    stopPoint: "Clear the nearest combat/prayer gate or finish one raid unlock quest."
+  },
+  {
+    id: "slayer-unlocks",
+    title: "Slayer unlocks",
+    payoff: "Better tasks, bosses and long-term combat money routes.",
+    why: "Slayer unlocks decide what tasks are worth doing next.",
+    iconItemId: 11864,
+    requiredQuests: ["Smoking Kills"],
+    requiredSkills: [
+      { skill: "Slayer", level: 75 },
+      { skill: "Combat", level: 85 }
+    ],
+    activityRequirements: ["Useful block list and task unlocks reviewed"],
+    stopPoint: "Hit the next Slayer gate, unlock a task, or fix the block list."
+  }
+];
+
+function normalizeRouteName(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function skillLevelForRoute(skills: HiscoreSkill[], skill: string): number {
+  if (skill === "Combat") return skills.length > 0 ? computeCombatLevel(skills) : 0;
+  return skills.find((row) => row.name.toLowerCase() === skill.toLowerCase())?.level ?? 1;
+}
+
+function completedQuestNamesFromPath(path: PathProgress): Set<string> {
+  return new Set(path.allSteps
+    .filter((step) => step.status === "done")
+    .map((step) => normalizeRouteName(step.title)));
+}
+
+function questRecordByName(quests: Map<string, QuestRecord>, name: string): QuestRecord | null {
+  const direct = quests.get(name);
+  if (direct) return direct;
+  const normalized = normalizeRouteName(name);
+  return [...quests.values()].find((quest) => normalizeRouteName(quest.name) === normalized) ?? null;
+}
+
+function routePrepLevel(blockers: UnlockRouteBlocker[]): UnlockRoutePlan["prepLevel"] {
+  if (blockers.length >= 5) return "High";
+  if (blockers.length >= 2) return "Medium";
+  return "Low";
+}
+
+function routePrimaryLabel(blockers: UnlockRouteBlocker[]): string {
+  if (blockers.length === 0) return "Ready";
+  const first = blockers[0];
+  if (first.type === "skill") return first.nextAction;
+  if (first.type === "quest") return first.nextAction;
+  return `${blockers.length} blocker${blockers.length === 1 ? "" : "s"} left`;
+}
+
+function accountRouteNote(accountType: PlannerAccountType | null | undefined, hasItems: boolean): string | undefined {
+  if (!hasItems) return undefined;
+  if (accountType === "ultimate") return "UIM: item prep is staging/carrying, not bank-ready.";
+  if (accountType === "group") return "GIM: own bank counts; group storage is not assumed.";
+  if (accountType === "hardcore") return "HCIM: avoid risky item sources unless the payoff is worth it.";
+  if (accountType === "ironman") return "Ironman: item blockers assume self-sourcing, not GE buying.";
+  return undefined;
+}
+
+function buildStaticUnlockRoute(input: {
+  definition: UnlockRouteDefinition;
+  quests: Map<string, QuestRecord>;
+  skills: HiscoreSkill[];
+  questPath: PathProgress;
+  completedDiaryTiers: Set<string>;
+  questPoints: number;
+  accountType: PlannerAccountType | null | undefined;
+}): UnlockRoutePlan {
+  const def = input.definition;
+  const completedQuests = completedQuestNamesFromPath(input.questPath);
+  const blockers: UnlockRouteBlocker[] = [];
+
+  for (const questName of def.requiredQuests ?? []) {
+    const questDone = completedQuests.has(normalizeRouteName(questName));
+    if (questDone) continue;
+    const quest = questRecordByName(input.quests, questName);
+    const missingPrereq = quest?.questReqs.find((name) => !completedQuests.has(normalizeRouteName(name)));
+    if (missingPrereq) {
+      blockers.push({
+        type: "quest",
+        label: missingPrereq,
+        detail: `${questName} needs this prerequisite first.`,
+        nextAction: `Complete ${missingPrereq} for ${questName}`
+      });
+    }
+    blockers.push({
+      type: "quest",
+      label: questName,
+      detail: quest ? `${quest.difficulty}${quest.length ? ` · ${quest.length}` : ""}` : "Required quest",
+      nextAction: `Complete ${questName}`
+    });
+  }
+
+  const requiredSkills = (def.requiredSkills ?? []).map((req) => {
+    const currentLevel = skillLevelForRoute(input.skills, req.skill);
+    const met = currentLevel >= req.level;
+    if (!met) {
+      blockers.push({
+        type: "skill",
+        label: `${req.skill} ${currentLevel}/${req.level}`,
+        detail: `${req.level - currentLevel} level${req.level - currentLevel === 1 ? "" : "s"} short.`,
+        nextAction: `Train ${req.skill} to ${req.level}`
+      });
+    }
+    return { ...req, currentLevel, met };
+  });
+
+  const requiredDiaryTiers = (def.requiredDiaryTiers ?? []).map((req) => {
+    const met = input.completedDiaryTiers.has(diaryTierKey(req.region, req.tier));
+    if (!met) {
+      blockers.push({
+        type: "diary",
+        label: `${req.region} ${req.tier} diary`,
+        detail: "Diary tier is required for this route.",
+        nextAction: `Complete ${req.region} ${req.tier} diary`
+      });
+    }
+    return { ...req, met };
+  });
+
+  if (def.minQuestPoints && input.questPoints < def.minQuestPoints) {
+    blockers.push({
+      type: "qp",
+      label: `${input.questPoints}/${def.minQuestPoints} quest points`,
+      detail: `${def.minQuestPoints - input.questPoints} quest points short.`,
+      nextAction: `Earn ${def.minQuestPoints - input.questPoints} more quest points`
+    });
+  }
+
+  const requiredItems = (def.requiredItems ?? []).map((item) => {
+    const availability = evaluateItemAvailability({
+      name: item.name,
+      quantity: item.quantity,
+      ownedInBank: false,
+      accountType: input.accountType ?? null
+    });
+    return { ...item, availabilityCopy: availability.copy };
+  });
+
+  if (blockers.length === 0) {
+    for (const item of requiredItems.slice(0, 2)) {
+      blockers.push({
+        type: "item",
+        label: `${item.quantity}x ${item.name}`,
+        detail: item.availabilityCopy,
+        nextAction: item.availabilityCopy.replace(/\.$/, "")
+      });
+    }
+  }
+
+  if (blockers.length === 0) {
+    for (const activity of def.activityRequirements ?? []) {
+      blockers.push({
+        type: "activity",
+        label: activity,
+        detail: "Manual activity check; RuneLite cannot prove this yet.",
+        nextAction: activity
+      });
+    }
+  } else {
+    for (const activity of def.activityRequirements ?? []) {
+      blockers.push({
+        type: "activity",
+        label: activity,
+        detail: "Manual activity check after the quest/skill gates.",
+        nextAction: activity
+      });
+    }
+  }
+
+  const totalTrackable =
+    (def.requiredQuests?.length ?? 0)
+    + requiredSkills.length
+    + requiredDiaryTiers.length
+    + (def.minQuestPoints ? 1 : 0)
+    + (def.activityRequirements?.length ?? 0);
+  const completedTrackable =
+    (def.requiredQuests ?? []).filter((name) => completedQuests.has(normalizeRouteName(name))).length
+    + requiredSkills.filter((req) => req.met).length
+    + requiredDiaryTiers.filter((req) => req.met).length
+    + (def.minQuestPoints ? input.questPoints >= def.minQuestPoints ? 1 : 0 : 0);
+  const progressPercent = totalTrackable > 0
+    ? Math.round((completedTrackable / totalTrackable) * 100)
+    : blockers.length === 0 ? 100 : 0;
+
+  const first = blockers[0];
+  return {
+    id: def.id,
+    title: def.title,
+    payoff: def.payoff,
+    why: def.why,
+    iconItemId: def.iconItemId,
+    primaryLabel: routePrimaryLabel(blockers),
+    nextAction: first?.nextAction ?? `Start ${def.title}`,
+    nextBlocker: first?.label ?? "Ready",
+    prepLevel: routePrepLevel(blockers),
+    stopPoint: def.stopPoint,
+    blockersLeft: blockers.length,
+    progressPercent,
+    blockers,
+    requiredQuests: def.requiredQuests ?? [],
+    requiredSkills,
+    requiredDiaryTiers,
+    requiredItems,
+    accountTypeNote: accountRouteNote(input.accountType, requiredItems.length > 0)
+  };
+}
+
+function buildDiaryUnlockRoute(input: {
+  diaries: Map<string, DiaryRecord>;
+  skills: HiscoreSkill[];
+  questPath: PathProgress;
+  completedDiaryTiers: Set<string>;
+  accountType: PlannerAccountType | null | undefined;
+}): UnlockRoutePlan {
+  const completedQuests = [...completedQuestNamesFromPath(input.questPath)];
+  let best:
+    | { region: string; tier: DiaryTier; blockers: UnlockRouteBlocker[]; progressPercent: number; payoff: string; stopPoint: string; items: UnlockRoutePlan["requiredItems"] }
+    | null = null;
+
+  for (const [region, diary] of input.diaries) {
+    for (const tier of DIARY_TIERS_ORDER) {
+      if (input.completedDiaryTiers.has(diaryTierKey(region, tier))) continue;
+      const evaluation = evaluateDiaryTier(region, tier, diary, {
+        skills: input.skills,
+        completedQuests,
+        completedDiaryTiers: input.completedDiaryTiers,
+        accountType: input.accountType ?? null
+      });
+      if (evaluation.readinessStatus === "completed") continue;
+      const blockers: UnlockRouteBlocker[] = [
+        ...evaluation.skillRequirements.filter((req) => !req.met).map((req) => ({
+          type: "skill" as const,
+          label: `${req.skill} ${req.currentLevel}/${req.level}`,
+          detail: `${req.level - req.currentLevel} level${req.level - req.currentLevel === 1 ? "" : "s"} short.`,
+          nextAction: `Train ${req.skill} to ${req.level}`
+        })),
+        ...evaluation.questRequirements.filter((req) => !req.met).map((req) => ({
+          type: "quest" as const,
+          label: req.name,
+          detail: `${region} ${tier} diary needs this quest.`,
+          nextAction: `Complete ${req.name} for ${region} ${tier}`
+        })),
+        ...evaluation.tierDependencies.filter((req) => !req.met).map((req) => ({
+          type: "diary" as const,
+          label: `${region} ${req.tier} diary`,
+          detail: `${region} ${tier} needs the previous diary tier first.`,
+          nextAction: `Complete ${region} ${req.tier} diary`
+        })),
+        ...evaluation.itemRequirements.filter((req) => !req.ownedInBank).map((req) => ({
+          type: "item" as const,
+          label: `${req.quantity}x ${req.name}`,
+          detail: req.availabilityCopy,
+          nextAction: req.availability.shortCopy
+        })),
+        ...evaluation.tasksLeft.slice(0, 2).map((task) => ({
+          type: "activity" as const,
+          label: task,
+          detail: "Diary task still needs an in-game check.",
+          nextAction: task
+        }))
+      ];
+      const total = evaluation.skillRequirements.length + evaluation.questRequirements.length + evaluation.itemRequirements.length + evaluation.tasksLeft.length;
+      const done = evaluation.completedRequirements.length;
+      const progressPercent = total > 0 ? Math.min(99, Math.round((done / total) * 100)) : 0;
+      const candidate = {
+        region,
+        tier,
+        blockers,
+        progressPercent,
+        payoff: evaluation.payoff,
+        stopPoint: evaluation.stopPoint,
+        items: evaluation.itemRequirements.map((req) => ({
+          name: req.name,
+          quantity: req.quantity,
+          availabilityCopy: req.availabilityCopy
+        }))
+      };
+      if (!best || blockers.length < best.blockers.length || (blockers.length === best.blockers.length && progressPercent > best.progressPercent)) {
+        best = candidate;
+      }
+      break;
+    }
+  }
+
+  const blockers = best?.blockers ?? [];
+  const first = blockers[0];
+  return {
+    id: "diary-unlocks",
+    title: "Diary unlocks",
+    payoff: best?.payoff ?? "Diary teleports, quality-of-life perks and route shortcuts.",
+    why: best ? `${best.region} ${best.tier} is the closest visible diary tier.` : "Diary tiers turn scattered requirements into concrete regional unlocks.",
+    iconItemId: 11140,
+    primaryLabel: best ? routePrimaryLabel(blockers) : "Add diary data",
+    nextAction: first?.nextAction ?? "Open the closest diary tier",
+    nextBlocker: first?.label ?? "No diary route available",
+    prepLevel: routePrepLevel(blockers),
+    stopPoint: best?.stopPoint ?? "Clear one diary blocker, then re-sync.",
+    blockersLeft: blockers.length,
+    progressPercent: best?.progressPercent ?? 0,
+    blockers,
+    requiredQuests: [],
+    requiredSkills: [],
+    requiredDiaryTiers: best ? [{ region: best.region, tier: best.tier, met: false }] : [],
+    requiredItems: best?.items ?? [],
+    accountTypeNote: accountRouteNote(input.accountType, (best?.items.length ?? 0) > 0)
+  };
+}
+
+function buildUnlockRoutes(input: {
+  quests: Map<string, QuestRecord>;
+  diaries: Map<string, DiaryRecord>;
+  skills: HiscoreSkill[];
+  questPath: PathProgress;
+  completedDiaryTiers: Set<string>;
+  questPoints: number;
+  accountType: PlannerAccountType | null | undefined;
+}): UnlockRoutePlan[] {
+  const staticRoutes = UNLOCK_ROUTE_DEFINITIONS.map((definition) => buildStaticUnlockRoute({
+    definition,
+    quests: input.quests,
+    skills: input.skills,
+    questPath: input.questPath,
+    completedDiaryTiers: input.completedDiaryTiers,
+    questPoints: input.questPoints,
+    accountType: input.accountType
+  }));
+  return [
+    ...staticRoutes,
+    buildDiaryUnlockRoute(input)
+  ].sort((a, b) => {
+    const aReady = a.blockersLeft === 0 ? 20 : 0;
+    const bReady = b.blockersLeft === 0 ? 20 : 0;
+    return (bReady + b.progressPercent - b.blockersLeft * 4) - (aReady + a.progressPercent - a.blockersLeft * 4);
+  });
+}
+
 // ── Public API ──────────────────────────────────────────────────────
 
 /** Account-level metadata pulled from WOM (best-effort enrichment).
@@ -750,8 +1257,8 @@ function bossesPath(
  *  recommendations. Always null when the player isn't on WOM. */
 export interface AccountMeta {
   displayName: string;
-  /** WOM's normalised account type: regular / ironman / hardcore / ultimate / skiller / pure. */
-  accountType: "regular" | "ironman" | "hardcore" | "ultimate" | "skiller" | "pure";
+  /** Normalised account type from WOM or Scapestack Sync. */
+  accountType: PlannerAccountType;
   /** Efficient Hours Played — sum of optimal time invested. */
   ehp: number;
   /** Efficient Hours Bossed. */
@@ -762,6 +1269,9 @@ export interface AccountMeta {
 
 export interface PathOverview {
   paths: [PathProgress, PathProgress, PathProgress, PathProgress];
+  /** Player-facing unlock planners. Percent remains secondary; each
+   *  card leads with the blocker/action/stop-point instead. */
+  unlockRoutes: UnlockRoutePlan[];
   /** Overall % across all four paths, averaged. */
   overallPercent: number;
   /** Set when WOM had a player record; null otherwise. UI checks this
@@ -784,6 +1294,7 @@ export interface PathOverview {
       pluginVersion?: string;
       slayerTaskRemaining?: number | null;
       slayerBlocks?: number;
+      bankStatus?: PluginBankStatus;
     } | null;
   };
 }
@@ -828,6 +1339,7 @@ export interface ComputePathProgressInput {
       pluginVersion?: string;
       slayerTaskRemaining?: number | null;
       slayerBlocks?: number;
+      bankStatus?: PluginBankStatus;
     } | null;
   };
 }
@@ -853,11 +1365,21 @@ export function computePathProgress(input: ComputePathProgressInput): PathOvervi
     diariesPath(input.diaries, input.skills, input.scapestackSync?.diariesCompleted),
     bossesPath(input.bossKc, input.skills, input.womBossKills, effectiveClItems)
   ];
+  const unlockRoutes = buildUnlockRoutes({
+    quests: input.quests,
+    diaries: input.diaries,
+    skills: input.skills,
+    questPath: paths[1],
+    completedDiaryTiers: input.scapestackSync?.diariesCompleted ?? new Set(),
+    questPoints: input.questPoints,
+    accountType: input.accountMeta?.accountType ?? null
+  });
   const overallPercent = Math.round(
     paths.reduce((sum, p) => sum + p.percent, 0) / paths.length
   );
   return {
     paths,
+    unlockRoutes,
     overallPercent,
     accountMeta: input.accountMeta ?? null,
     syncedSources: input.syncedSources

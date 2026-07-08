@@ -7,7 +7,6 @@ import { pluginSyncStatusAction } from "@/app/actions";
 import { CopyCommand } from "@/components/copy-command";
 import { RuneliteOpenButton } from "@/components/runelite-open-button";
 import type { SyncedPlayer } from "@/lib/sync-repo";
-import { copyText } from "@/lib/clipboard";
 import { pluginSyncHealth } from "@/lib/plugin-sync";
 import { markRuneliteChecked } from "@/lib/account-storage";
 import {
@@ -16,7 +15,7 @@ import {
   type PluginSyncDiagnostic
 } from "@/lib/plugin-sync-diagnostics";
 import { PLUGIN_VERIFY_SYNC_HASH } from "@/lib/plugin-bank-bridge";
-import { DB_INIT_COMMAND, syncUrlsForOrigin } from "@/lib/plugin-sync-actions";
+import { DB_INIT_COMMAND } from "@/lib/plugin-sync-actions";
 import { cn } from "@/lib/utils";
 import {
   summarizePluginSyncService,
@@ -52,11 +51,9 @@ export function PluginSyncChecker() {
   const [serviceStatus, setServiceStatus] = useState<PluginSyncServiceStatus | null>(null);
   const [serviceError, setServiceError] = useState<string | null>(null);
   const [syncOrigin, setSyncOrigin] = useState<string | null>(null);
-  const [syncUrlCopyState, setSyncUrlCopyState] = useState<"idle" | "copied" | "error">("idle");
   const [pending, startTransition] = useTransition();
   const autoCheckStarted = useRef(false);
 
-  const syncUrls = useMemo(() => syncUrlsForOrigin(syncOrigin), [syncOrigin]);
   const normalized = rsn.trim();
   const rsnHelpId = "plugin-sync-rsn-help";
   const rsnStatusId = "plugin-sync-rsn-status";
@@ -160,16 +157,6 @@ export function PluginSyncChecker() {
     checkRsnValue(normalized);
   };
 
-  const copySyncUrl = async () => {
-    const result = await copyText(syncUrls.sync);
-    if (result !== "failed") {
-      setSyncUrlCopyState("copied");
-      window.setTimeout(() => setSyncUrlCopyState((current) => current === "copied" ? "idle" : current), 1600);
-    } else {
-      setSyncUrlCopyState("error");
-    }
-  };
-
   return (
     <section id={PLUGIN_VERIFY_SYNC_HASH} className="mt-6 scroll-mt-16 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/75 p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -267,25 +254,6 @@ export function PluginSyncChecker() {
                   <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
                     Open RuneLite, press Sync now, then check again.
                   </p>
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={copySyncUrl}
-                      className={cn(
-                        "inline-flex items-center justify-center gap-1.5 rounded-lg border bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-bold transition-colors",
-                        syncUrlCopyState === "copied"
-                          ? "border-[var(--color-good)]/35 text-[var(--color-good)]"
-                          : syncUrlCopyState === "error"
-                            ? "border-[var(--color-danger)]/35 text-[var(--color-danger)]"
-                            : "border-[var(--color-warning)]/35 text-[var(--color-warning)] hover:bg-[var(--color-warning)]/10"
-                      )}
-                    >
-                      {syncUrlCopyState === "copied" ? "Sync URL copied" : syncUrlCopyState === "error" ? "Copy failed" : "Copy scapestack.org sync URL"}
-                    </button>
-                    <span role="status" aria-live="polite" className="text-[11px] text-[var(--color-text-muted)]">
-                      {syncUrlCopyState === "error" ? syncUrls.sync : ""}
-                    </span>
-                  </div>
                 </div>
               </div>
               <div className="shrink-0">

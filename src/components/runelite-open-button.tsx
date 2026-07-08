@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { CheckCircle2, Copy, ExternalLink, PlugZap } from "lucide-react";
 import { copyText } from "@/lib/clipboard";
-import { PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
 import { cn } from "@/lib/utils";
 
 const PLUGIN_SEARCH = "Scapestack Sync";
@@ -29,12 +28,6 @@ export function RuneliteOpenButton({ className }: { className?: string }) {
     } catch {
       setState("error");
     }
-  };
-
-  const copySyncUrl = async () => {
-    const result = await copyText(PUBLIC_SYNC_URL);
-    setState(result === "failed" ? "error" : "copied");
-    window.setTimeout(() => setState("idle"), 2400);
   };
 
   return (
@@ -77,13 +70,6 @@ export function RuneliteOpenButton({ className }: { className?: string }) {
         >
           Plugin Hub page
         </a>
-        <button
-          type="button"
-          onClick={copySyncUrl}
-          className="font-semibold text-[var(--color-text-dim)] underline decoration-dotted underline-offset-4 transition-colors hover:text-[var(--color-accent)]"
-        >
-          Copy scapestack.org sync URL
-        </button>
       </div>
     </div>
   );

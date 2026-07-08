@@ -68,9 +68,13 @@ beforeEach(() => {
 const PLAYER_SYNC_COLUMNS = [
   "rsn",
   "display_name",
+  "account_type",
+  "skills",
   "quests_completed",
   "diaries_completed",
   "collection_log_item_ids",
+  "bank_items",
+  "bank_status",
   "slayer",
   "plugin_version",
   "synced_at"
@@ -119,7 +123,8 @@ describe("GET /api/sync", () => {
       maxBodyBytes: 1_000_000,
       quests: 500,
       diaries: 64,
-      collectionLogItems: 2000
+      collectionLogItems: 2000,
+      bankItems: 1200
     });
     expect(body.database).toMatchObject({
       configured: true,
@@ -153,12 +158,30 @@ describe("POST /api/sync", () => {
     const response = await POST(syncRequest({
       rsn: " Lynx Titan ",
       displayName: "LYNX TITAN",
+      accountType: "ultimate_ironman",
+      skills: [
+        { name: "Agility", level: 35.9 },
+        { name: "Prayer", level: 500 },
+        { name: "", level: 10 },
+        { name: "bad", level: "bad" }
+      ],
       questsCompleted: ["Cook's Assistant", 123, "A".repeat(120)],
       diariesCompleted: [
         { region: "Lumbridge & Draynor", tier: "Easy" },
         { region: "Invalid", tier: "Master" }
       ],
       collectionLogItemIds: [4151, 2.9, -1, 999999.8, 1_000_000],
+      bankItems: [
+        { id: 1511, name: "Logs", quantity: 6.9 },
+        { id: 2351, name: "Iron bar", quantity: 0 },
+        { id: -1, name: "Bad", quantity: 1 },
+        { id: 995, name: "", quantity: 1 }
+      ],
+      bankStatus: {
+        enabled: true,
+        itemCount: 4,
+        capturedAt: "2026-07-08T12:00:00.000Z"
+      },
       slayer: {
         points: 45.9,
         streak: 12,
@@ -176,9 +199,24 @@ describe("POST /api/sync", () => {
     expect(state.upserts[0]).toMatchObject({
       rsn: "Lynx Titan",
       displayName: "LYNX TITAN",
+      accountType: "ultimate_ironman",
+      skills: [
+        { name: "Agility", level: 35 },
+        { name: "Prayer", level: 126 }
+      ],
       questsCompleted: ["Cook's Assistant", "A".repeat(100)],
       diariesCompleted: [{ region: "Lumbridge & Draynor", tier: "Easy" }],
       collectionLogItemIds: [4151, 2, 999999],
+      bankItems: [
+        { id: 1511, name: "Logs", quantity: 6 },
+        { id: 2351, name: "Iron bar", quantity: 1 }
+      ],
+      bankStatus: {
+        enabled: true,
+        itemCount: 4,
+        capturedAt: "2026-07-08T12:00:00.000Z",
+        unavailableReason: null
+      },
       slayer: {
         points: 45,
         streak: 12,
@@ -193,15 +231,21 @@ describe("POST /api/sync", () => {
     expect(json).toMatchObject({
       ok: true,
       syncedAt: "2026-06-03T10:00:00.000Z",
-      player: { rsn: "lynx titan", displayName: "LYNX TITAN" },
+      player: { rsn: "lynx titan", displayName: "LYNX TITAN", accountType: "ultimate_ironman" },
       plugin: {
         version: "0.2.0",
-        slayer: { status: "accepted", currentTaskId: 1337, blocks: 2 }
+        slayer: { status: "accepted", currentTaskId: 1337, blocks: 2 },
+        bank: {
+          enabled: true,
+          itemCount: 4,
+          capturedAt: "2026-07-08T12:00:00.000Z",
+          unavailableReason: null
+        }
       },
-      counts: { quests: 2, diaries: 1, collectionLogItems: 3 },
+      counts: { skills: 2, quests: 2, diaries: 1, collectionLogItems: 3, bankItems: 2 },
       diagnostics: {
-        received: { quests: 3, diaries: 2, collectionLogItems: 5 },
-        truncated: { quests: false, diaries: false, collectionLogItems: false }
+        received: { skills: 4, quests: 3, diaries: 2, collectionLogItems: 5, bankItems: 4 },
+        truncated: { skills: false, quests: false, diaries: false, collectionLogItems: false, bankItems: false }
       }
     });
     expect(json.diagnostics.received.bytes).toBeGreaterThan(0);
@@ -221,6 +265,45 @@ describe("POST /api/sync", () => {
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(state.upserts).toHaveLength(0);
     await expect(response.json()).resolves.toMatchObject({ ok: false });
+  });
+
+  it("persists bank status when bank sync is off", async () => {
+    const { POST } = await loadRoute();
+    const response = await POST(syncRequest({
+      rsn: "Lynx Titan",
+      questsCompleted: [],
+      diariesCompleted: [],
+      collectionLogItemIds: [],
+      bankStatus: { enabled: false, itemCount: 0, unavailableReason: "opt-in-off" }
+    }));
+
+    expect(response.status).toBe(200);
+    expect(state.upserts[0]).toMatchObject({
+      bankItems: [],
+      bankStatus: { enabled: false, itemCount: 0, capturedAt: null, unavailableReason: "opt-in-off" }
+    });
+    await expect(response.json()).resolves.toMatchObject({
+      plugin: {
+        bank: { enabled: false, itemCount: 0, unavailableReason: "opt-in-off" }
+      }
+    });
+  });
+
+  it("persists bank status when sync is on but no items are captured", async () => {
+    const { POST } = await loadRoute();
+    const response = await POST(syncRequest({
+      rsn: "Lynx Titan",
+      questsCompleted: [],
+      diariesCompleted: [],
+      collectionLogItemIds: [],
+      bankStatus: { enabled: true, itemCount: 0, unavailableReason: "bank-not-opened-this-session" }
+    }));
+
+    expect(response.status).toBe(200);
+    expect(state.upserts[0]).toMatchObject({
+      bankItems: [],
+      bankStatus: { enabled: true, itemCount: 0, capturedAt: null, unavailableReason: "bank-not-opened-this-session" }
+    });
   });
 
   it("rejects malformed RSNs before claim verification", async () => {

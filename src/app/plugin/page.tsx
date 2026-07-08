@@ -28,20 +28,20 @@ const SYNC_STEPS = [
     title: "Install Scapestack Sync"
   },
   {
-    title: "Use the Scapestack link"
+    title: "Enable plugin"
   },
   {
-    title: "Sync from RuneLite"
+    title: "Sync now or sync-on-login"
   },
   {
-    title: "Check the same RSN"
+    title: "Open /next"
   }
 ];
 
 const TROUBLESHOOTING = [
-  "Sync URL: https://www.scapestack.org/api/sync",
   "Use the same display name as RuneLite.",
-  "Use Auto-sync on login or press Sync now."
+  "Use Sync on login or press Sync now.",
+  "Open your bank before syncing when you want item readiness."
 ];
 
 function firstSearchParam(searchParams: SearchParams, key: string): string {
@@ -126,11 +126,11 @@ export default function PluginPage() {
             <span className="block text-route-gradient">Skip done stuff.</span>
           </h1>
           <p className="mt-5 max-w-2xl text-[16px] leading-[1.55] text-[var(--color-text-dim)] sm:text-[18px]">
-            Type your RSN. If RuneLite shows up, Scapestack stops sending you to quests, diary steps, clog slots and Slayer calls you already handled.
+            Type your RSN. RuneLite lets Scapestack skip finished quests, diary tiers, clog slots and Slayer mistakes.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <PluginTrustPill label="No login" />
-            <PluginTrustPill label="No bank" />
+            <PluginTrustPill label="Bank opt-in" />
             <PluginTrustPill label="No screenshots" />
           </div>
           <div className="mt-5">
@@ -152,17 +152,14 @@ export default function PluginPage() {
         <div className="mt-4 space-y-4">
           <div className="rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-4 py-3">
             <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              Scapestack link
+              Normal setup
             </div>
-            <p className="mt-1 break-all text-[13px] font-semibold text-[var(--color-text)]">
-              {PUBLIC_SYNC_URL}
+            <p className="mt-1 text-[13px] font-semibold text-[var(--color-text)]">
+              Install the plugin, sync once, then check the same RSN here.
             </p>
             <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-dim)]">
-              This must be the scapestack.org link.
+              The public plugin connects to Scapestack automatically; there is no URL to paste for normal players.
             </p>
-            <div className="mt-3">
-              <CopyCommand value={PUBLIC_SYNC_URL} label="Copy sync URL" />
-            </div>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -186,6 +183,26 @@ export default function PluginPage() {
 
       <details className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/75 p-5 sm:p-6">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[14px] font-bold text-[var(--color-text)] marker:hidden">
+          <span>Developer/self-hosting endpoint</span>
+          <span className="rounded-full border border-[var(--color-border)] px-3 py-1.5 text-[11px] font-bold text-[var(--color-text-muted)]">
+            Advanced
+          </span>
+        </summary>
+        <div className="mt-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-4 py-3">
+          <p className="text-[12px] leading-relaxed text-[var(--color-text-dim)]">
+            Normal players do not need this. Use it only when testing a self-hosted backend or debugging plugin connectivity.
+          </p>
+          <p className="mt-2 break-all text-[13px] font-semibold text-[var(--color-text)]">
+            {PUBLIC_SYNC_URL}
+          </p>
+          <div className="mt-3">
+            <CopyCommand value={PUBLIC_SYNC_URL} label="Copy developer endpoint" />
+          </div>
+        </div>
+      </details>
+
+      <details className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/75 p-5 sm:p-6">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[14px] font-bold text-[var(--color-text)] marker:hidden">
           <span>Privacy and fixes</span>
           <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-3 py-1.5 text-[11px] font-bold text-[var(--color-good)]">
             <ShieldCheck className="size-3.5" />
@@ -193,8 +210,8 @@ export default function PluginPage() {
           </span>
         </summary>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <InfoTile title="RuneLite adds" body="Quests, diaries, clog and Slayer, only after you turn on Scapestack Sync." />
-          <InfoTile title="Never reads" body="RuneScape password, bank, inventory, chat or screenshots." />
+          <InfoTile title="RuneLite adds" body="Skills, quests, diaries, clog, Slayer and optional bank item readiness after opt-in." />
+          <InfoTile title="Never reads" body="RuneScape password, inventory, equipment, chat, screenshots or clicks." />
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-4">
             <h3 className="text-[13px] font-bold text-[var(--color-text)]">Nothing showing?</h3>
             <ul className="mt-2 grid gap-1.5 text-[12px] leading-relaxed text-[var(--color-text-dim)]">

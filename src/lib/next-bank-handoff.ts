@@ -20,6 +20,7 @@ export interface BankHandoffItem {
 export interface NextUpBankItem {
   id: number;
   name: string;
+  quantity?: number;
 }
 
 export interface BankHandoffPayload {
@@ -54,7 +55,7 @@ export function bankHandoffItemsFromBankItems(
   return items.map((item, index) => ({
     id: item.id,
     name: item.name,
-    quantity: 1,
+    quantity: item.quantity ?? 1,
     unitPrice: 0,
     stackValue: 0,
     subtab,
@@ -243,12 +244,17 @@ export function organizedItemsFromHandoff(items: BankHandoffItem[]): OrganizedIt
 }
 
 export function nextUpBankFromHandoff(items: BankHandoffItem[]): NextUpBankItem[] {
-  const seen = new Set<number>();
+  const seen = new Map<number, NextUpBankItem>();
   const out: NextUpBankItem[] = [];
   for (const item of items) {
-    if (seen.has(item.id)) continue;
-    seen.add(item.id);
-    out.push({ id: item.id, name: item.name });
+    const existing = seen.get(item.id);
+    if (existing) {
+      existing.quantity = (existing.quantity ?? 1) + item.quantity;
+      continue;
+    }
+    const nextItem = { id: item.id, name: item.name, quantity: item.quantity };
+    seen.set(item.id, nextItem);
+    out.push(nextItem);
   }
   return out;
 }

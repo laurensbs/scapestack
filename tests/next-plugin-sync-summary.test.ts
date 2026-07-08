@@ -7,6 +7,7 @@ const basePlugin = {
   quests: 12,
   diaries: 8,
   clItems: 44,
+  bankStatus: { enabled: true, itemCount: 612, capturedAt: "2026-06-03T11:30:00.000Z", unavailableReason: null },
   pluginVersion: CURRENT_PLUGIN_VERSION,
   slayerTaskRemaining: 47,
   slayerBlocks: 2
@@ -27,6 +28,7 @@ describe("next plugin sync summary", () => {
     expect(summary.signals.map((signal) => [signal.label, signal.status])).toEqual([
       ["Quests", "exact"],
       ["Diaries", "exact"],
+      ["Bank", "exact"],
       ["CL", "exact"],
       ["Slayer", "exact"]
     ]);
@@ -51,6 +53,7 @@ describe("next plugin sync summary", () => {
     expect(summary.body).not.toContain("payload");
     expect(summary.body).not.toContain("exact from RuneLite");
     expect(summary.signals.find((signal) => signal.label === "CL")?.status).toBe("partial");
+    expect(summary.signals.find((signal) => signal.label === "Bank")?.status).toBe("exact");
     expect(summary.signals.find((signal) => signal.label === "Slayer")?.status).toBe("missing");
 
     vi.useRealTimers();

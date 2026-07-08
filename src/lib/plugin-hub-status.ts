@@ -374,9 +374,11 @@ function reviewCopyIssuesFromBody(body: unknown): string[] {
   const normalized = body.toLowerCase().replace(/[‐‑‒–—]/g, "-");
   const issues: string[] = [];
 
-  if (normalized.includes("auto-sync defaults to on")
+  if (normalized.includes("sync on login defaults to on")
+    || normalized.includes("sync-on-login defaults to on")
+    || normalized.includes("auto-sync defaults to on")
     || (normalized.includes("auto") && normalized.includes("defaults to on"))) {
-    issues.push("auto-sync defaults");
+    issues.push("sync-on-login defaults");
   }
   if (normalized.includes("raw token never leaves")) {
     issues.push("token transport");
@@ -393,8 +395,12 @@ function reviewCopyIssuesFromBody(body: unknown): string[] {
     || normalized.includes("interrupts it")) {
     issues.push("shutdown thread interrupt");
   }
-  if (!normalized.includes("sync on quest complete defaults off")
-    || !normalized.includes("quest-complete sync is also gated behind auto-sync on login")) {
+  const questCompleteDefaultsOff = normalized.includes("refresh after quests defaults off")
+    || normalized.includes("sync on quest complete defaults off");
+  const questCompleteGated = normalized.includes("quest-complete refresh is also gated behind sync on login")
+    || normalized.includes("quest-complete sync is also gated behind sync on login")
+    || normalized.includes("quest-complete sync is also gated behind auto-sync on login");
+  if (!questCompleteDefaultsOff || !questCompleteGated) {
     issues.push("quest-complete opt-in gate");
   }
   if (!normalized.includes("slayer")) {

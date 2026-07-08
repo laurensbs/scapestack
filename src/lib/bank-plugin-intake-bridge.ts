@@ -32,16 +32,16 @@ export function buildBankPluginIntakeBridge(rsn?: string | null): BankPluginInta
 
   return {
     eyebrow: "Add gear",
-    title: "RuneLite knows progress. Bank paste knows gear.",
-    body: "Paste Bank Memory or Bank Tags when the plan needs gear, supplies, quantities or GP. /next can still work without a bank.",
-    safety: "Browser-only: this paste stays here and never goes back to RuneLite.",
+    title: "RuneLite knows progress. Bank paste or bank sync knows gear.",
+    body: "Paste Bank Memory/Bank Tags or enable RuneLite bank sync when the plan needs gear, supplies, quantities or GP. /next can still work without a bank.",
+    safety: "Browser paste stays here. RuneLite bank sync is a separate opt-in that sends item IDs, names and quantities only.",
     signals: [
       {
         label: "RuneLite helps",
-        value: "quests, diaries, clog and Slayer"
+        value: "skills, quests, diaries, clog, Slayer and optional bank readiness"
       },
       {
-        label: "Bank paste helps",
+        label: "Bank context helps",
         value: "gear, supplies, quantities and GP"
       },
       {

@@ -8,29 +8,38 @@ const source = [
 ].join("\n");
 
 describe("homepage first-impression copy", () => {
-  it("opens with the five-second OSRS planner promise", () => {
+  it("opens with the product session board instead of a marketing hero", () => {
     expect(source).not.toContain("BRAND_SECONDARY_TAGLINE");
-    expect(source).toContain("Stop bankstanding.");
-    expect(source).toContain("Pick the next trip.");
-    expect(source).toContain("Type your OSRS name. Get one trip, two backups and a stop point before you open another Wiki tab.");
+    expect(source).toContain("Session board");
+    expect(source).toContain("What can I do now?");
+    expect(source).toContain("Main move");
+    expect(source).toContain("Bank-aware");
+    expect(source).toContain("Quest readiness");
+    expect(source).toContain("Bank gaps");
+    expect(source).toContain("Stop point");
     expect(source).not.toContain("Get one best move, why it matters, how long it takes");
+    expect(source).not.toContain("Stop bankstanding.");
+    expect(source).not.toContain("Pick the next trip.");
     expect(source).not.toContain("HERO_LOOP_STEPS");
     expect(source).not.toContain("AI-powered");
     expect(source).not.toContain("generic SaaS");
     expect(source).not.toContain("bank standing");
   });
 
-  it("shows a boss-only visual instead of a dense product mock", () => {
-    expect(source).toContain("HeroBossTripPreview");
-    expect(source).toContain("HERO_BOSSES");
-    expect(source).toContain('aria-label="Rotating OSRS bosses"');
-    expect(source).toContain('src={`/sprites/bosses/${trip.boss}.png`}');
-    expect(source).toContain("Vardorvis");
-    expect(source).toContain("Vorkath");
-    expect(source).toContain("Zulrah");
-    expect(source).toContain("Alchemical Hydra");
-    expect(source).toContain("Nex");
-    expect(source).toContain('source: "hero-boss"');
+  it("uses OSRS route and item signals instead of a dense product mock", () => {
+    expect(source).toContain('import { ItemSprite } from "@/components/item-sprite";');
+    expect(source).toContain("Unlock board");
+    expect(source).toContain("Barrows gloves");
+    expect(source).toContain("Fairy rings");
+    expect(source).toContain("Piety");
+    expect(source).toContain("Ava's assembler");
+    expect(source).toContain("Slayer unlocks");
+    expect(source).toContain("Every panel must earn the click");
+    expect(source).toContain("Missing items with bank check.");
+    expect(source).toContain("Stop point before the trip drifts.");
+    expect(source).not.toContain("Progression lanes");
+    expect(source).not.toContain("Which item is missing, and is it already in the bank?");
+    expect(source).not.toContain("<HeroBossTripPreview />");
     expect(source).not.toContain("Live boss preview");
     expect(source).not.toContain("Push Vardorvis to 50 KC");
     expect(source).not.toContain("Run Vorkath for a clean trip");
@@ -41,7 +50,6 @@ describe("homepage first-impression copy", () => {
     expect(source).not.toContain("RuneLite can quietly avoid bosses, quests, diary steps and Slayer calls you already handled.");
     expect(source).not.toContain("Item ID 28307");
     expect(source).not.toContain("https://oldschool.runescape.wiki/w/Special:Lookup?type=item&id=28307");
-    expect(source).not.toContain('import { ItemSprite } from "@/components/item-sprite";');
     expect(source).not.toContain("HERO_PREVIEW_ITEMS");
     expect(source).not.toContain("Try this flow");
     expect(source).not.toContain("function PreviewRow");
@@ -49,14 +57,17 @@ describe("homepage first-impression copy", () => {
     expect(source).not.toContain("PreviewLine");
   });
 
-  it("keeps the first screen in one clean order: hero, input, boss", () => {
+  it("keeps the first screen in one clean order: board, input, route lanes", () => {
+    const boardIndex = source.indexOf("What can I do now?");
     const intakeIndex = source.indexOf("<HeroIntake />");
-    const bossIndex = source.indexOf("<HeroBossTripPreview />");
+    const routesIndex = source.indexOf("Unlock board");
 
-    expect(source).toContain("flex-col items-center");
+    expect(source).toContain("lg:grid-cols-[minmax(0,0.98fr)_minmax(340px,0.72fr)]");
+    expect(boardIndex).toBeGreaterThan(-1);
     expect(intakeIndex).toBeGreaterThan(-1);
-    expect(bossIndex).toBeGreaterThan(-1);
-    expect(intakeIndex).toBeLessThan(bossIndex);
+    expect(routesIndex).toBeGreaterThan(-1);
+    expect(boardIndex).toBeLessThan(intakeIndex);
+    expect(intakeIndex).toBeLessThan(routesIndex);
     expect(source).not.toContain("lg:grid-cols-[minmax(0,1fr)_520px]");
   });
 

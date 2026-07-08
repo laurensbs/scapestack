@@ -161,6 +161,102 @@ describe("next-up action plans", () => {
     expect(recs.some((rec) => rec?.kind === "money")).toBe(false);
   });
 
+  it("uses Scapestack sync account type when WOM account metadata is absent", async () => {
+    const result = await computeNextUp({
+      skills: skillsAt(99),
+      questPoints: 180,
+      scapestackSync: {
+        displayName: "Group Test",
+        accountType: "group_ironman",
+        questsCompleted: [],
+        diariesCompleted: [],
+        collectionLogItemIds: []
+      }
+    });
+    const recs = [result.headline, ...result.rest].filter(Boolean);
+
+    expect(result.summary.accountType).toBe("group");
+    expect(result.summary.accountMode).toMatchObject({
+      type: "group",
+      confidence: "detected",
+      source: "scapestack-sync",
+      badgeLabel: "Group Ironman detected"
+    });
+    expect(result.summary.accountMode.planningNote).toContain("group storage is not assumed");
+    expect(recs.some((rec) => rec?.kind === "money")).toBe(false);
+  });
+
+  it("lets RuneLite account type override WOM account type for planning", async () => {
+    const result = await computeNextUp({
+      skills: skillsAt(99),
+      questPoints: 180,
+      accountMeta: {
+        displayName: "WOM Main",
+        accountType: "regular",
+        ehp: 100,
+        ehb: 20,
+        lastChangedAt: null
+      },
+      scapestackSync: {
+        displayName: "Plugin Iron",
+        accountType: "ironman",
+        questsCompleted: [],
+        diariesCompleted: [],
+        collectionLogItemIds: []
+      }
+    });
+    const recs = [result.headline, ...result.rest].filter(Boolean);
+
+    expect(result.summary.accountType).toBe("ironman");
+    expect(result.summary.accountMode.badgeLabel).toBe("Ironman detected");
+    expect(result.summary.accountMode.planningNote).toContain("Self-source");
+    expect(recs.some((rec) => rec?.kind === "money")).toBe(false);
+  });
+
+  it("degrades safely when account mode is unknown", async () => {
+    const result = await computeNextUp({
+      skills: skillsFromLevels({ Attack: 40, Strength: 40, Defence: 40, Hitpoints: 40, Ranged: 30, Magic: 30 })
+    });
+
+    expect(result.summary.accountType).toBeNull();
+    expect(result.summary.accountMode).toMatchObject({
+      type: null,
+      confidence: "unknown",
+      source: "unknown",
+      badgeLabel: "Account mode unknown"
+    });
+    expect(result.summary.accountMode.planningNote).toContain("bank readiness only counts");
+  });
+
+  it("treats Ultimate Ironman from Scapestack sync as an iron route", async () => {
+    const result = await computeNextUp({
+      skills: skillsFromLevels({
+        Attack: 60, Strength: 60, Defence: 60, Hitpoints: 60, Ranged: 60,
+        Magic: 60, Prayer: 50, Slayer: 50,
+        Cooking: 60, Woodcutting: 60, Fletching: 60, Fishing: 60,
+        Firemaking: 60, Crafting: 60, Smithing: 60, Mining: 60,
+        Herblore: 45, Agility: 50, Thieving: 50, Farming: 62,
+        Runecraft: 45, Hunter: 55, Construction: 45
+      }),
+      questPoints: 95,
+      scapestackSync: {
+        displayName: "Uim Test",
+        accountType: "ultimate_ironman",
+        questsCompleted: [],
+        diariesCompleted: [],
+        collectionLogItemIds: []
+      }
+    });
+    const recs = [result.headline, ...result.rest].filter(Boolean);
+
+    expect(result.summary.accountType).toBe("ultimate");
+    expect(result.summary.accountMode.badgeLabel).toBe("Ultimate Ironman detected");
+    expect(result.summary.accountMode.planningNote).toContain("bank-ready is not normal readiness");
+    expect(result.summary.accountStage.id).toBe("iron-route");
+    expect(recs.some((rec) => rec?.id === "skill:iron-herb-birdhouse-loop")).toBe(true);
+    expect(recs.some((rec) => rec?.kind === "money")).toBe(false);
+  });
+
   it("does not show boss onboarding for bosses with established KC", async () => {
     const result = await computeNextUp({
       skills: skillsAt(99),

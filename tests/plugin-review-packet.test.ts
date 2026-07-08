@@ -22,8 +22,8 @@ const status: PluginHubStatus = {
   submittedCommit: "39931dc965e4e9f01bf549bdc192b85c4cd6c1fc",
   standaloneCommit: "39931dc965e4e9f01bf549bdc192b85c4cd6c1fc",
   pinSummary: "Plugin Hub pin matches standalone repo head 39931dc.",
-  reviewCopySummary: "Live PR body still needs review-copy fixes: auto-sync defaults, token transport.",
-  reviewCopyIssues: ["auto-sync defaults", "token transport"],
+  reviewCopySummary: "Live PR body still needs review-copy fixes: sync-on-login defaults, token transport.",
+  reviewCopyIssues: ["sync-on-login defaults", "token transport"],
   updatedAt: "2026-05-26T13:57:13Z",
   reviewCount: 0,
   reviewSummary: null,
@@ -43,28 +43,29 @@ describe("plugin reviewer packet", () => {
 
     expect(packet).toContain("Scapestack Sync v0.2.0");
     expect(packet).toContain("RuneLite Plugin Hub PR #12536");
-    expect(packet).toContain("Auto-sync on login defaults off");
-    expect(packet).toContain("Sync on quest complete defaults off");
-    expect(packet).toContain("quest-complete POST also defaults off and requires Auto-sync on login");
-    expect(packet).toContain("Quest-complete sync is also gated behind Auto-sync on login");
+    expect(packet).toContain("Sync on login defaults off");
+    expect(packet).toContain("Refresh after quests defaults off");
+    expect(packet).toContain("quest-complete POST also defaults off and requires Sync on login");
+    expect(packet).toContain("Quest-complete refresh is also gated behind Sync on login");
     expect(packet).toContain("enabling the quest-complete setting alone never sends a payload");
-    expect(packet).toContain("No progress POST happens until the player enables Auto-sync on login");
+    expect(packet).toContain("No progress POST happens until the player enables Sync on login");
     expect(packet).toContain("replace stale PR-body copy");
     expect(packet).toContain("PR body copy: Live PR body still needs review-copy fixes");
     expect(packet).toContain("Stale PR-body replacements");
-    expect(packet).toContain("Replace “Auto-sync defaults to on”");
+    expect(packet).toContain("Replace “Sync on login defaults to on”");
     expect(packet).toContain("requires explicit player opt-in");
     expect(packet).toContain("Replace “raw token never leaves the install”");
     expect(packet).toContain("raw token is sent only as an Authorization bearer");
     expect(packet).toContain("POSTs only after opt-in");
     expect(packet).toContain("Replace the old capture list with the current opt-in payload");
     expect(packet).toContain("Slayer task, points, streak and block-list state");
-    expect(packet).toContain("no bank, inventory, equipment, GE offers, screenshots, inputs or account login");
+    expect(packet).toContain("no inventory, equipment, GE offers, screenshots, inputs or account login");
+    expect(packet).toContain("bank sync is item IDs/names/quantities only after separate opt-in");
     expect(packet).toContain("Authorization on claim/sync requests");
     expect(packet).toContain("Quest and diary completion");
     expect(packet).toContain("Slayer task, points, streak and block-list state");
     expect(packet).toContain("RuneScape password or account login");
-    expect(packet).toContain("bank, inventory, equipment or GE offers");
+    expect(packet).toContain("inventory, equipment, GE offers or wealth");
     expect(packet).toContain("Game integrity");
     expect(packet).toContain("Read-only plugin");
     expect(packet).toContain("never clicks, types, swaps menus");
@@ -77,14 +78,15 @@ describe("plugin reviewer packet", () => {
     expect(packet).toContain("sha256(token)");
     expect(packet).toContain("raw token is sent only as Authorization on claim/sync requests");
     expect(packet).not.toContain("first-claim security");
-    expect(packet).toContain("labels quest, diary, collection-log and Slayer coverage as verified, partial or missing");
+    expect(packet).toContain("labels skill, quest, diary, collection-log, bank readiness and Slayer coverage as verified, partial or missing");
     expect(packet).not.toContain("/next uses exact quest, diary, collection-log and Slayer signals instead of inference");
-    expect(packet).toContain("Successful sync chat includes the verified /next URL");
+    expect(packet).toContain("Successful sync chat is URL-free");
+    expect(packet).not.toContain("Successful sync chat includes the verified /next URL");
     expect(packet).not.toContain("Successful sync chat includes the exact /next URL");
     expect(packet).toContain("source=plugin-sync&bank=none");
-    expect(packet).toContain("plugin never receives bank, inventory, equipment, screenshots, clicks or account login");
+    expect(packet).toContain("optional RuneLite bank sync sends item IDs, names and quantities only");
     expect(packet).toContain("Web-app merge contract");
-    expect(packet).toContain("account-progress verifier, not a bank uploader");
+    expect(packet).toContain("account-progress verifier with optional bank item readiness");
     expect(packet).toContain("prevents stale browser bank context from being silently reused");
     expect(packet).toContain("readiness rails");
   });
@@ -107,12 +109,12 @@ describe("plugin reviewer packet", () => {
 
     expect(output).toContain("Scapestack Sync v0.2.0");
     expect(output).toContain("Offline reviewer packet");
-    expect(output).toContain("Auto-sync on login defaults off");
-    expect(output).toContain("Quest-complete sync is also gated behind Auto-sync on login");
+    expect(output).toContain("Sync on login defaults off");
+    expect(output).toContain("Quest-complete refresh is also gated behind Sync on login");
     expect(output).toContain("enabling the quest-complete setting alone never sends a payload");
     expect(output).toContain("replace stale PR-body copy");
     expect(output).toContain("Stale PR-body replacements");
-    expect(output).toContain("Replace “Auto-sync defaults to on”");
+    expect(output).toContain("Replace “Sync on login defaults to on”");
     expect(output).toContain("Replace the old capture list with the current opt-in payload");
     expect(output).toContain("background Thread, not on RuneLite's client thread");
     expect(output).toContain("cancels the active OkHttp call");
@@ -134,9 +136,9 @@ describe("plugin reviewer packet", () => {
     expect(body).toContain("## Game integrity");
     expect(body).toContain("Read-only plugin");
     expect(body).toContain("No overlays, alerts or in-client recommendations");
-    expect(body).toContain("Auto-sync on login defaults off");
-    expect(body).toContain("Sync on quest complete defaults off");
-    expect(body).toContain("Quest-complete sync is also gated behind Auto-sync on login");
+    expect(body).toContain("Sync on login defaults off");
+    expect(body).toContain("Refresh after quests defaults off");
+    expect(body).toContain("Quest-complete refresh is also gated behind Sync on login");
     expect(body).toContain("enabling the quest-complete setting alone never sends a payload");
     expect(body).toContain("Authorization: Bearer <token>");
     expect(body).toContain("Scapestack stores `sha256(token)`");
@@ -146,12 +148,13 @@ describe("plugin reviewer packet", () => {
     expect(body).toContain("Shutdown cancels the active OkHttp call");
     expect(body).not.toContain("interrupt");
     expect(body).toContain("/next?rsn=...&source=plugin-sync&bank=none");
-    expect(body).toContain("Successful sync chat includes the verified `/next");
+    expect(body).toContain("Successful sync chat is URL-free");
+    expect(body).not.toContain("Successful sync chat includes the verified `/next");
     expect(body).not.toContain("Successful sync chat includes the exact `/next");
     expect(body).toContain("bank context is never sent to the plugin");
     expect(body).toContain("## Web-app merge contract");
-    expect(body).toContain("The plugin is an account-progress verifier, not a bank uploader.");
-    expect(body).toContain("Players who want gear-aware advice paste Bank Memory or Bank Tags");
+    expect(body).toContain("The plugin is an account-progress verifier with optional bank item readiness.");
+    expect(body).toContain("Players who want GP valuation or manual Bank Tags can still paste Bank Memory or Bank Tags");
     expect(body).toContain("/next, /slayer, /dps, /goals and player profiles all show readiness rails");
   });
 
@@ -162,8 +165,8 @@ describe("plugin reviewer packet", () => {
 
     expect(output).toContain("Adds Scapestack Sync v0.2.0");
     expect(output).toContain("Offline reviewer packet");
-    expect(output).toContain("Auto-sync on login defaults off");
-    expect(output).toContain("Quest-complete sync is also gated behind Auto-sync on login");
+    expect(output).toContain("Sync on login defaults off");
+    expect(output).toContain("Quest-complete refresh is also gated behind Sync on login");
     expect(output).toContain("Authorization: Bearer <token>");
     expect(output).toContain("bank context is never sent to the plugin");
     expect(output).toContain("Web-app merge contract");

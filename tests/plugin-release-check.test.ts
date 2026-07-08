@@ -153,13 +153,13 @@ describe("plugin release check", () => {
     };
 
     expect(helper.reviewCopyIssuesFromBody([
-      "Auto-sync defaults to on.",
+      "Sync on login defaults to on.",
       "The raw token never leaves the install.",
       "POST `https://www.scapestack.org/api/sync` on every login + on quest-complete chat messages.",
       "Shutdown interrupts the named daemon sync worker.",
       "No IP, no machine fingerprint, no chat-log content."
     ].join("\n"))).toEqual([
-      "auto-sync defaults",
+      "sync-on-login defaults",
       "token transport",
       "POST timing",
       "shutdown thread interrupt",
@@ -169,23 +169,23 @@ describe("plugin release check", () => {
     ]);
 
     expect(helper.reviewCopyIssuesFromBody([
-      "Auto-sync on login defaults off.",
-      "Sync on quest complete defaults off.",
-      "Quest-complete sync is also gated behind Auto-sync on login.",
+      "Sync on login defaults off.",
+      "Refresh after quests defaults off.",
+      "Quest-complete refresh is also gated behind Sync on login.",
       "The raw install token is sent only as an Authorization bearer; Scapestack stores sha256(token).",
       "Slayer task state is included after opt-in.",
       "Shutdown cancels the active OkHttp call while the background worker returns normally.",
-      "No bank, inventory or equipment data is sent."
+      "Bank sync sends item IDs/names/quantities only after separate opt-in. No inventory or equipment data is sent."
     ].join("\n"))).toEqual([]);
 
     expect(helper.reviewCopyIssuesFromBody([
       "Live PR body appears aligned with current consent, token, data and web-handoff wording.",
       "Shutdown interrupts the named daemon sync worker.",
-      "Auto-sync on login defaults off.",
-      "Sync on quest complete defaults off.",
-      "Quest-complete sync is also gated behind Auto-sync on login.",
+      "Sync on login defaults off.",
+      "Refresh after quests defaults off.",
+      "Quest-complete refresh is also gated behind Sync on login.",
       "Slayer task state is included after opt-in.",
-      "No bank, inventory or equipment data is sent."
+      "Bank sync sends item IDs/names/quantities only after separate opt-in. No inventory or equipment data is sent."
     ].join("\n"))).toContain("shutdown thread interrupt");
   });
 
@@ -219,7 +219,7 @@ describe("plugin release check", () => {
       <main>
         <h1>Add scapestack-sync#12536</h1>
         <span>Open</span>
-        <p>Auto-sync defaults to on.</p>
+        <p>Sync on login defaults to on.</p>
         <p>The raw token never leaves the install.</p>
         <p>POST https://www.scapestack.org/api/sync on every login + on quest-complete chat messages.</p>
         <p>Live PR body appears aligned with current consent, token, data and web-handoff wording.</p>
@@ -237,7 +237,7 @@ describe("plugin release check", () => {
       maintainerGate: true,
       submittedCommit: "39931dc965e4e9f01bf549bdc192b85c4cd6c1fc",
       reviewCopyIssues: [
-        "auto-sync defaults",
+        "sync-on-login defaults",
         "token transport",
         "POST timing",
         "shutdown thread interrupt",
@@ -283,8 +283,8 @@ describe("plugin release check", () => {
   it("keeps the standalone README template accurate for Plugin Hub review", () => {
     const extractScript = readFileSync("scripts/extract-plugin.sh", "utf8");
 
-    expect(extractScript).toContain("Auto-sync on login");
-    expect(extractScript).toContain("Sync on quest complete");
+    expect(extractScript).toContain("Sync on login");
+    expect(extractScript).toContain("Refresh after quests");
     expect(extractScript).toContain("source=plugin-sync&bank=none");
     expect(extractScript).toContain("localhost");
     expect(extractScript).toContain("Slayer state");
@@ -312,7 +312,7 @@ describe("plugin release check", () => {
 
       expect(output).toContain("Removed legacy");
       expect(existsSync(join(target, "README.md"))).toBe(true);
-      expect(readFileSync(join(target, "README.md"), "utf8")).toContain("Auto-sync on login");
+      expect(readFileSync(join(target, "README.md"), "utf8")).toContain("Sync on login");
       expect(existsSync(join(target, "README.md.published"))).toBe(false);
     } finally {
       rmSync(target, { force: true, recursive: true });

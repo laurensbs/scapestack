@@ -214,7 +214,7 @@ function checkReviewCopy() {
     "scripts/extract-plugin.sh",
     "src/app/plugin/page.tsx"
   ]) {
-    expectContains(path, "Auto-sync on login");
+    expectContains(path, "Sync on login");
   }
 
   for (const path of [
@@ -231,9 +231,9 @@ function checkReviewCopy() {
   expectContains("plugin/PUBLISHING.md", "npm run plugin:review-reply-command");
   expectContains("plugin/PUBLISHING.md", "npm run plugin:review-handoff-command");
   expectContains("plugin/PUBLISHING.md", "Replace stale PR-body copy");
-  expectContains("src/app/plugin/page.tsx", "only after you turn on Scapestack Sync");
+  expectContains("src/app/plugin/page.tsx", "after opt-in");
   expectContains("src/lib/plugin-review-packet.ts", "background Thread, not on RuneLite's client thread");
-  expectContains("src/lib/plugin-review-packet.ts", "No progress POST happens until the player enables Auto-sync on login");
+  expectContains("src/lib/plugin-review-packet.ts", "No progress POST happens until the player enables Sync on login");
   expectContains("src/lib/plugin-review-packet.ts", "replace stale PR-body copy");
   expectContains("scripts/print-plugin-review-packet.ts", "buildPluginReviewerPacket");
   expectContains("scripts/print-plugin-review-packet.ts", "buildPluginReviewerReplyCommand");
@@ -462,9 +462,10 @@ export function reviewCopyIssuesFromBody(body) {
   const normalized = body.toLowerCase().replace(/[‐‑‒–—]/g, "-");
   const issues = [];
 
-  if (normalized.includes("auto-sync defaults to on")
+  if (normalized.includes("sync on login defaults to on")
+    || normalized.includes("sync-on-login defaults to on")
     || (normalized.includes("auto") && normalized.includes("defaults to on"))) {
-    issues.push("auto-sync defaults");
+    issues.push("sync-on-login defaults");
   }
   if (normalized.includes("raw token never leaves")) {
     issues.push("token transport");
@@ -481,8 +482,12 @@ export function reviewCopyIssuesFromBody(body) {
     || normalized.includes("interrupts it")) {
     issues.push("shutdown thread interrupt");
   }
-  if (!normalized.includes("sync on quest complete defaults off")
-    || !normalized.includes("quest-complete sync is also gated behind auto-sync on login")) {
+  const questCompleteDefaultsOff = normalized.includes("refresh after quests defaults off")
+    || normalized.includes("sync on quest complete defaults off");
+  const questCompleteGated = normalized.includes("quest-complete refresh is also gated behind sync on login")
+    || normalized.includes("quest-complete sync is also gated behind sync on login")
+    || normalized.includes("quest-complete sync is also gated behind auto-sync on login");
+  if (!questCompleteDefaultsOff || !questCompleteGated) {
     issues.push("quest-complete opt-in gate");
   }
   if (!normalized.includes("slayer")) {

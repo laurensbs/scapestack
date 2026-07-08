@@ -708,6 +708,51 @@ body {
   border-top: 1px solid color-mix(in srgb, var(--color-border) 88%, var(--color-gold) 12%);
 }
 
+.scapestack-status-badge {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: rgba(11, 9, 6, 0.42);
+  padding: 0.22rem 0.55rem;
+  font-size: 10.5px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--color-text-dim);
+  white-space: nowrap;
+}
+
+.scapestack-status-badge[data-tone="ready"] {
+  border-color: color-mix(in srgb, var(--color-good) 42%, transparent);
+  background: color-mix(in srgb, var(--color-good) 12%, transparent);
+  color: var(--color-good);
+}
+
+.scapestack-status-badge[data-tone="blocked"] {
+  border-color: color-mix(in srgb, var(--color-danger) 46%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 13%, transparent);
+  color: #E0A08F;
+}
+
+.scapestack-status-badge[data-tone="prep"] {
+  border-color: color-mix(in srgb, var(--color-warning) 44%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 11%, transparent);
+  color: var(--color-warning);
+}
+
+.scapestack-route-row {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(36, 29, 20, 0.72), rgba(11, 9, 6, 0.46));
+}
+
+.scapestack-route-row:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 52%, var(--color-border));
+}
+
 /* ── Buttons ──────────────────────────────────────────────────────────── */
 
 .btn-primary {

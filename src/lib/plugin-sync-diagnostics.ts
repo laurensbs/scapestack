@@ -1,6 +1,7 @@
 import type { SyncedPlayer } from "./sync-repo";
 import { CURRENT_PLUGIN_VERSION, pluginSyncHealth, type PluginSyncHealth } from "./plugin-sync";
-import { DB_INIT_COMMAND, nextUrlForSyncedRsn, slayerUrlForSyncedRsn, syncUrlsForOrigin } from "./plugin-sync-actions";
+import { DB_INIT_COMMAND, nextUrlForSyncedRsn, slayerUrlForSyncedRsn } from "./plugin-sync-actions";
+import { isPluginBankStatusStale, pluginBankStatusLabel, pluginBankStatusTone } from "./plugin-bank-status";
 
 export type PluginSyncDiagnosticTone = "good" | "warning" | "danger" | "neutral";
 
@@ -66,6 +67,16 @@ export function signalCoverageForSyncedPlayer(player: SyncedPlayer): PluginSigna
 
   return [
     {
+      label: "Skills",
+      status: player.skills.length > 0 ? "exact" : "missing",
+      summary: player.skills.length > 0
+        ? `${player.skills.length.toLocaleString()} levels`
+        : "No levels",
+      detail: player.skills.length > 0
+        ? "RuneLite real levels can drive quest and route gates when Hiscores are missing."
+        : "Without skill levels, /next falls back to public Hiscores when available."
+    },
+    {
       label: "Quests",
       status: "exact",
       summary: `${player.questsCompleted.length.toLocaleString()} completed`,
@@ -88,6 +99,22 @@ export function signalCoverageForSyncedPlayer(player: SyncedPlayer): PluginSigna
         : "Open Collection Log categories in-game so RuneLite can read them."
     },
     {
+      label: "Bank",
+      status: player.bankStatus.itemCount > 0
+        ? isPluginBankStatusStale(player.bankStatus) ? "partial" : "exact"
+        : player.bankStatus.enabled ? "partial" : "missing",
+      summary: pluginBankStatusLabel(player.bankStatus),
+      detail: player.bankStatus.itemCount > 0
+        ? isPluginBankStatusStale(player.bankStatus)
+          ? "Open your bank in RuneLite and sync again before trusting quest or diary item readiness."
+          : "Quest and diary readiness can check required items directly from the RuneLite bank payload."
+        : player.bankStatus.unavailableReason === "bank-not-opened-this-session"
+          ? "Open your bank in RuneLite, then press Sync again before trusting item readiness."
+          : player.bankStatus.unavailableReason === "no-items-captured"
+            ? "Bank sync is on, but RuneLite did not capture item stacks yet."
+            : "Bank sync is off; item readiness uses only pasted or saved browser bank data."
+    },
+    {
       label: "Slayer",
       status: player.slayer ? "exact" : "missing",
       summary: player.slayer
@@ -101,12 +128,12 @@ export function signalCoverageForSyncedPlayer(player: SyncedPlayer): PluginSigna
 }
 
 export function actionQueueForSyncedPlayer(player: SyncedPlayer, context: PluginSyncDiagnosticContext = {}): PluginSyncActionQueueItem[] {
+  void context;
   const health = pluginSyncHealth({
     pluginVersion: player.pluginVersion,
     syncedAt: player.syncedAt
   });
   const displayName = player.displayName || player.rsn;
-  const syncUrls = syncUrlsForOrigin(context.origin);
 
   if (health === "outdated") {
     return [
@@ -114,17 +141,13 @@ export function actionQueueForSyncedPlayer(player: SyncedPlayer, context: Plugin
         title: "Update Scapestack Sync",
         body: `Sync came from v${player.pluginVersion || "unknown"}; update the RuneLite plugin before relying on new /next fields.`,
         proof: `Scapestack expects v${CURRENT_PLUGIN_VERSION}.`,
-        tone: "danger",
-        copy: syncUrls.sync,
-        actionLabel: "Copy sync URL"
+        tone: "danger"
       },
       {
         title: "Re-sync after RuneLite restarts",
-        body: "Log back into the target account with Auto-sync on login enabled, then re-run this checker.",
+        body: "Log back into the target account with Sync on login enabled, then re-run this checker.",
         proof: "Fresh sync should replace the old plugin version.",
-        tone: "warning",
-        copy: syncUrls.sync,
-        actionLabel: "Copy sync URL"
+        tone: "warning"
       },
       {
         title: "Open /next only as fallback",
@@ -143,9 +166,7 @@ export function actionQueueForSyncedPlayer(player: SyncedPlayer, context: Plugin
         title: "Press Sync in RuneLite first",
         body: "Log into the account and wait for the Scapestack chat line before planning tonight's route.",
         proof: "Old RuneLite help can miss newly completed quests, diaries, clog slots or Slayer task changes.",
-        tone: "warning",
-        copy: syncUrls.sync,
-        actionLabel: "Copy sync URL"
+        tone: "warning"
       },
       {
         title: "Open current /next if you must",
@@ -164,9 +185,7 @@ export function actionQueueForSyncedPlayer(player: SyncedPlayer, context: Plugin
       title: "Open Collection Log tabs in-game",
       body: "RuneLite only exposes collection-log widgets after they are loaded, so browse the relevant categories once and sync again.",
       proof: "This turns CL checks into item-backed suppression.",
-      tone: "warning",
-      copy: syncUrls.sync,
-      actionLabel: "Copy sync URL"
+      tone: "warning"
     });
   }
 
@@ -203,14 +222,30 @@ export function actionQueueForSyncedPlayer(player: SyncedPlayer, context: Plugin
     });
   }
 
-  queue.push({
-    title: "Paste bank for gear and GP context",
-    body: "RuneLite sync deliberately stays bankless; paste a bank in the browser when you want upgrade affordability and item actions.",
-    proof: "Browser-only gear never goes back to RuneLite.",
-    tone: "neutral",
-    href: `/bank?rsn=${encodeURIComponent(displayName)}&from=plugin`,
-    actionLabel: "Add gear"
-  });
+  if (player.bankStatus.itemCount > 0 && !isPluginBankStatusStale(player.bankStatus)) {
+    queue.push({
+      title: "Use RuneLite bank for item checks",
+      body: pluginBankStatusLabel(player.bankStatus),
+      proof: "Quest and diary readiness can use synced item IDs, names and quantities.",
+      tone: "good",
+      href: nextUrlForSyncedRsn(displayName),
+      actionLabel: "Open next plan"
+    });
+  } else {
+    const bankTone = pluginBankStatusTone(player.bankStatus);
+    queue.push({
+      title: player.bankStatus.enabled ? "Refresh RuneLite bank" : "Enable bank sync for item checks",
+      body: pluginBankStatusLabel(player.bankStatus),
+      proof: isPluginBankStatusStale(player.bankStatus)
+        ? "Bank readiness stays cautious until RuneLite captures a fresh bank snapshot."
+        : player.bankStatus.enabled
+          ? "Bank readiness stays unavailable until RuneLite captures item stacks."
+          : "Browser-only gear never goes back to RuneLite; pasted/saved bank remains a fallback.",
+      tone: bankTone === "warn" ? "warning" : "neutral",
+      href: `/bank?rsn=${encodeURIComponent(displayName)}&from=plugin`,
+      actionLabel: player.bankStatus.enabled ? "Open bank help" : "Add gear"
+    });
+  }
 
   return queue;
 }
@@ -220,7 +255,7 @@ function signalCoverageTemplate(
   summary: string,
   detail: string
 ): PluginSignalCoverage[] {
-  return ["Quests", "Diaries", "Collection log", "Slayer"].map((label) => ({
+  return ["Quests", "Diaries", "Bank", "Collection log", "Slayer"].map((label) => ({
     label,
     status,
     summary,
@@ -229,18 +264,17 @@ function signalCoverageTemplate(
 }
 
 export function diagnosticForMissingSync(rsn: string, context: PluginSyncDiagnosticContext = {}): PluginSyncDiagnostic {
+  void context;
   const displayRsn = rsn.trim() || "this RSN";
-  const syncUrls = syncUrlsForOrigin(context.origin);
   return {
     tone: "warning",
     title: `RuneLite not found for ${displayRsn}`,
     body: "/next still works from your OSRS name. Press Sync when you want quests, diaries, clog and Slayer included.",
     steps: [
       "Open RuneLite on this account.",
-      "Enable Scapestack Sync and Auto-sync on login.",
-      "Use https://www.scapestack.org/api/sync, then check this RSN again."
-    ],
-    primaryAction: { label: "Copy sync URL", copy: syncUrls.sync }
+      "Enable Scapestack Sync and Sync on login.",
+      "Press Sync now, then check this RSN again."
+    ]
   };
 }
 
@@ -253,7 +287,7 @@ export function diagnosticForUnconfiguredSync(): PluginSyncDiagnostic {
       "Finish the sync storage setup for this app.",
       "Run the setup command once.",
       "Restart the app so RuneLite checks can save progress.",
-      "Enable “Auto-sync on login” in RuneLite, then check the RSN again."
+      "Enable “Sync on login” in RuneLite, then check the RSN again."
     ],
     primaryAction: { label: "Copy setup command", copy: DB_INIT_COMMAND }
   };
@@ -340,20 +374,19 @@ function liveDiagnostic(player: SyncedPlayer): PluginSyncDiagnostic {
 }
 
 function staleDiagnostic(player: SyncedPlayer, hasSlayer: boolean, context: PluginSyncDiagnosticContext): PluginSyncDiagnostic {
-  const syncUrls = syncUrlsForOrigin(context.origin);
+  void context;
   return {
     tone: "warning",
     title: "RuneLite needs a fresh press",
     body: "The last RuneLite check is old enough that quests, diaries, clog or Slayer may no longer match the account.",
     steps: [
       "Log into RuneLite on the target account.",
-      "Make sure “Auto-sync on login” and chat feedback are enabled.",
+      "Make sure “Sync on login” and chat feedback are enabled.",
       hasSlayer
         ? "Wait for the success chat line, then re-check this page."
         : "Stand logged in long enough for Slayer state to be readable, then re-check.",
       "Use /next only after this page finds the fresh RuneLite check."
     ],
-    primaryAction: { label: "Copy sync URL", copy: syncUrls.sync },
     secondaryAction: {
       label: "Open current /next anyway",
       href: nextUrlForSyncedRsn(player.displayName || player.rsn)
@@ -372,7 +405,10 @@ function outdatedDiagnostic(player: SyncedPlayer): PluginSyncDiagnostic {
       "Toggle “Force claim retry” once if the next sync is rejected.",
       "Re-run this checker before relying on /next recommendations."
     ],
-    primaryAction: { label: "Copy sync URL", copy: "https://www.scapestack.org/api/sync" }
+    primaryAction: {
+      label: "Open plugin check",
+      href: "/plugin#verify-sync"
+    }
   };
 }
 

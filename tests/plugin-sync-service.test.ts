@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { summarizePluginSyncService } from "@/lib/plugin-sync-service";
-import { DB_INIT_COMMAND, PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
+import { DB_INIT_COMMAND } from "@/lib/plugin-sync-actions";
 
 describe("plugin sync service summary", () => {
   it("summarizes the loading state", () => {
@@ -25,13 +25,12 @@ describe("plugin sync service summary", () => {
       tone: "danger",
       label: "RuneLite needs setup",
       actions: [
-        { label: "Copy setup command", copy: DB_INIT_COMMAND },
-        { label: "Copy sync URL", copy: PUBLIC_SYNC_URL }
+        { label: "Copy setup command", copy: DB_INIT_COMMAND }
       ]
     });
   });
 
-  it("keeps local browser origins on the public sync URL", () => {
+  it("does not expose endpoint copy for local browser origins", () => {
     expect(summarizePluginSyncService({
       ready: false,
       database: {
@@ -42,8 +41,7 @@ describe("plugin sync service summary", () => {
       }
     }, "http://127.0.0.1:4173/plugin")).toMatchObject({
       actions: [
-        { label: "Copy setup command", copy: DB_INIT_COMMAND },
-        { label: "Copy sync URL", copy: PUBLIC_SYNC_URL }
+        { label: "Copy setup command", copy: DB_INIT_COMMAND }
       ]
     });
   });
@@ -66,7 +64,7 @@ describe("plugin sync service summary", () => {
     expect(summary.label).toBe("RuneLite needs setup");
     expect(summary.detail).toBe("This install needs setup before RuneLite can help plans.");
     expect(summary.detail).not.toContain("player_sync.slayer");
-    expect(summary.actions).toContainEqual({ label: "Copy setup command", copy: DB_INIT_COMMAND });
+    expect(summary.actions).toEqual([{ label: "Copy setup command", copy: DB_INIT_COMMAND }]);
   });
 
   it("summarizes a ready sync service", () => {
@@ -84,13 +82,11 @@ describe("plugin sync service summary", () => {
       tone: "good",
       label: "RuneLite ready",
       detail: "Scapestack Sync v0.2.0 is ready.",
-      actions: [
-        { label: "Copy sync URL", copy: PUBLIC_SYNC_URL }
-      ]
+      actions: []
     });
   });
 
-  it("keeps ready local services on the public sync URL", () => {
+  it("keeps ready local services free of copy endpoint actions", () => {
     expect(summarizePluginSyncService({
       ready: true,
       plugin: { currentVersion: "0.2.0" },
@@ -102,9 +98,7 @@ describe("plugin sync service summary", () => {
         missingColumns: { player_sync: [], player_claim: [] }
       }
     }, "http://127.0.0.1:4173")).toMatchObject({
-      actions: [
-        { label: "Copy sync URL", copy: PUBLIC_SYNC_URL }
-      ]
+      actions: []
     });
   });
 });

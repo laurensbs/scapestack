@@ -1,66 +1,71 @@
 import { BuyMeCoffee } from "@/components/buy-me-coffee";
-import { HeroBossTripPreview } from "@/components/hero-boss-trip-preview";
 import { HeroIntake } from "@/components/hero-intake";
+import { ItemSprite } from "@/components/item-sprite";
 
 export const revalidate = 300;
 
 export default function HomePage() {
   return (
-    <main className="relative z-10 mx-auto max-w-6xl px-5 pb-18 pt-10 sm:px-8 sm:pt-14">
-      <section className="relative flex min-h-[calc(100vh-6rem)] items-center">
-        <div className="mx-auto flex w-full max-w-5xl flex-col items-center gap-7 py-8 text-center">
-          <div className="w-full space-y-5">
-            <div
-              className="eyebrow"
-              style={{ animation: "hero-fade 0.55s cubic-bezier(0.22,1,0.36,1) 0.02s both" }}
-            >
-              OSRS session board
+    <main className="relative z-10 mx-auto max-w-6xl px-4 pb-16 pt-5 sm:px-6 sm:pt-7">
+      <section className="grid min-h-[calc(100vh-5rem)] items-start gap-4 lg:grid-cols-[minmax(0,0.98fr)_minmax(340px,0.72fr)] lg:items-center">
+        <div className="scapestack-plan-panel p-4 sm:p-5 lg:p-6">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-[var(--color-border)] pb-3">
+            <div>
+              <div className="eyebrow text-[var(--color-accent)]">Session board</div>
+              <h1 className="mt-1 text-[30px] font-semibold leading-tight text-[var(--color-text)] sm:text-[38px]">
+                What can I do now?
+              </h1>
             </div>
-            <h1
-              aria-label="Stop bankstanding. Pick the next trip."
-              className="mx-auto max-w-[860px] pb-1 text-[44px] font-semibold leading-[1.06] text-[var(--color-text)] sm:text-[62px] sm:leading-[1.02] lg:text-[80px] lg:leading-[1.02]"
-            >
-              <RevealLine
-                text="Stop bankstanding."
-                delay={100}
-                wordStaggerMs={70}
-                className="block text-[var(--color-text)]"
-              />
-              <RevealLine
-                text="Pick the next trip."
-                delay={350}
-                wordStaggerMs={80}
-                className="block text-route-gradient"
-                style={{
-                  animation: "route-shimmer 7s linear 1.8s infinite",
-                  backgroundSize: "200% 100%"
-                }}
-              />
-            </h1>
-
-            <p
-              className="mx-auto max-w-[610px] text-[16px] leading-[1.6] text-[var(--color-text-secondary)] sm:text-[18px]"
-              style={{
-                animation: "hero-mask-reveal 1s cubic-bezier(0.22,1,0.36,1) 0.85s both",
-                clipPath: "inset(0 0 100% 0)"
-              }}
-            >
-              Type your OSRS name. Get one trip, two backups and a stop point before you open another Wiki tab.
-            </p>
-
-            <div
-              className="mx-auto max-w-[720px]"
-              style={{ animation: "hero-scale-in 0.9s cubic-bezier(0.22,1,0.36,1) 0.95s both" }}
-            >
-              <HeroIntake />
+            <div className="flex flex-wrap gap-1.5">
+              <span className="scapestack-status-badge" data-tone="ready">Main move</span>
+              <span className="scapestack-status-badge" data-tone="prep">Bank-aware</span>
             </div>
           </div>
 
-          <div
-            className="relative mx-auto w-full max-w-[560px]"
-            style={{ animation: "hero-boss-in 1.1s cubic-bezier(0.22,1,0.36,1) 0.65s both" }}
-          >
-            <HeroBossTripPreview />
+          <HeroIntake />
+
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            <SessionSignal icon={9813} label="Quest readiness" value="Near-ready unlocks first" tone="ready" />
+            <SessionSignal icon={20594} label="Bank gaps" value="Items only when they change the route" tone="prep" />
+            <SessionSignal icon={8007} label="Stop point" value="End on a clean trip or unlock" tone="ready" />
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <div className="scapestack-board-panel p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <div className="eyebrow text-[var(--color-accent)]">Routes</div>
+                <h2 className="mt-1 text-[22px] font-semibold leading-tight text-[var(--color-text)]">
+                  Unlock board
+                </h2>
+              </div>
+              <span className="scapestack-status-badge" data-tone="prep">Blockers</span>
+            </div>
+            <div className="scapestack-session-list">
+              <RoutePreview icon={7462} title="Barrows gloves" detail="Next RFD/prereq blocker first." status="Quest" />
+              <RoutePreview icon={772} title="Fairy rings" detail="Priest in Peril + Fairytale gates." status="Travel" />
+              <RoutePreview icon={2413} title="Piety" detail="King's Ransom, Prayer, Knight Waves." status="Prayer" />
+              <RoutePreview icon={22109} title="Ava's assembler" detail="DS2, head drop and ranged prep." status="Gear" />
+              <RoutePreview icon={11864} title="Slayer unlocks" detail="Task, points and level gates." status="Task" />
+            </div>
+          </div>
+
+          <div className="scapestack-board-panel p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <div className="eyebrow text-[var(--color-accent)]">Planner rules</div>
+                <h2 className="mt-1 text-[20px] font-semibold leading-tight text-[var(--color-text)]">
+                  Every panel must earn the click
+                </h2>
+              </div>
+              <ItemSprite id={12954} alt="" size={34} />
+            </div>
+            <ul className="space-y-2 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+              <li className="flex gap-2"><span className="text-[var(--color-accent)]">•</span><span>Next blocker, not broad stats.</span></li>
+              <li className="flex gap-2"><span className="text-[var(--color-accent)]">•</span><span>Missing items with bank check.</span></li>
+              <li className="flex gap-2"><span className="text-[var(--color-accent)]">•</span><span>Stop point before the trip drifts.</span></li>
+            </ul>
           </div>
         </div>
       </section>
@@ -101,49 +106,56 @@ export default function HomePage() {
   );
 }
 
-// Word-by-word reveal helper voor de hero-titel. Splitst op spaties en
-// geeft elk woord een eigen `inline-block` met staggered animation-delay.
-// Werkt server-side; geen useEffect of state nodig. Inline-block per
-// woord zorgt dat de translate-Y per-woord werkt zonder de baseline te
-// breken; whitespace-pre op de container behoudt de spaties tussen woorden.
-function RevealLine({
-  text,
-  delay = 0,
-  wordStaggerMs = 60,
-  className,
-  style,
+function SessionSignal({
+  icon,
+  label,
+  value,
+  tone
 }: {
-  text: string;
-  delay?: number;
-  wordStaggerMs?: number;
-  className?: string;
-  style?: React.CSSProperties;
+  icon: number;
+  label: string;
+  value: string;
+  tone: "ready" | "prep";
 }) {
-  const words = text.split(" ");
   return (
-    <span className={className} style={style}>
-      {words.map((w, i) => (
-        <span
-          key={i}
-          // overflow-hidden + inline-block zorgt dat de child niet
-          // buiten de regel-baseline reikt. translate-Y(110%) zit in
-          // de keyframe; transform-origin onderaan zodat het woord
-          // "uit z'n shell" omhoog komt.
-          className="inline-block overflow-visible align-bottom"
-        >
-          <span
-            className="inline-block"
-            style={{
-              animation: `hero-word-up 0.85s cubic-bezier(0.22, 1, 0.36, 1) ${delay + i * wordStaggerMs}ms both`,
-            }}
-          >
-            {w}
-          </span>
-          {/* Behoud spatie tussen woorden zonder dat hij meedoet aan
-              de overflow-hidden (anders verdwijnt de spatie). */}
-          {i < words.length - 1 && <span>{" "}</span>}
-        </span>
-      ))}
-    </span>
+    <div className="scapestack-route-row min-h-[92px] p-3">
+      <div className="flex items-start gap-2.5">
+        <ItemSprite id={icon} alt="" size={28} />
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[12px] font-bold leading-snug text-[var(--color-text)]">{label}</span>
+            <span className="scapestack-status-badge" data-tone={tone}>{tone === "ready" ? "Ready" : "Prep"}</span>
+          </div>
+          <p className="mt-1 text-[11.5px] font-semibold leading-snug text-[var(--color-text-muted)]">{value}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RoutePreview({
+  icon,
+  title,
+  detail,
+  status
+}: {
+  icon: number;
+  title: string;
+  detail: string;
+  status: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 py-2.5">
+      <div className="grid size-9 shrink-0 place-items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45">
+        <ItemSprite id={icon} alt="" size={24} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <span className="text-[13px] font-bold leading-snug text-[var(--color-text)]">{title}</span>
+          <span className="scapestack-status-badge" data-tone="prep">{status}</span>
+        </div>
+        <p className="mt-0.5 line-clamp-2 text-[11.5px] font-semibold leading-snug text-[var(--color-text-muted)]">{detail}</p>
+      </div>
+    </div>
   );
 }

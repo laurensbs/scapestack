@@ -1,5 +1,6 @@
 import type { HiscoreSkill } from "./hiscores";
 import type { AccountMeta } from "./path-progress";
+import { isIronPlannerAccount } from "./account-type";
 
 export type AccountStageId =
   | "first-run"
@@ -112,18 +113,14 @@ function bossKcTotal(bossKc: Record<string, number> | undefined): number {
 }
 
 function isIronRoute(accountMeta: AccountMeta | null | undefined): boolean {
-  return (
-    accountMeta?.accountType === "ironman" ||
-    accountMeta?.accountType === "hardcore" ||
-    accountMeta?.accountType === "ultimate"
-  );
+  return isIronPlannerAccount(accountMeta?.accountType);
 }
 
 export function detectAccountStage(input: DetectAccountStageInput): AccountStage {
   const hasHiscores = input.skills.length > 0;
+  if (isIronRoute(input.accountMeta)) return STAGES["iron-route"];
   if (input.hasPluginSync) return STAGES["runelite-aware"];
   if (!hasHiscores) return input.hasBankContext ? STAGES["gear-first"] : STAGES["first-run"];
-  if (isIronRoute(input.accountMeta)) return STAGES["iron-route"];
   if (input.accountMeta?.accountType === "skiller") return STAGES.skiller;
 
   const combat = input.combatLevel ?? 0;

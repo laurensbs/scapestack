@@ -12,6 +12,7 @@ export type ReadyToLeaveStatus =
   | "Pick a teleport"
   | "Skip for now"
   | "Unlock first"
+  | "UIM setup"
   | "Check items";
 
 export type ReadyToLeaveTone = "good" | "warn" | "neutral";

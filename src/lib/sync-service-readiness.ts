@@ -5,15 +5,19 @@ export const SYNC_SERVICE_LIMITS = {
   maxBodyBytes: 1_000_000,
   quests: 500,
   diaries: 64,
-  collectionLogItems: 2000
+  collectionLogItems: 2000,
+  bankItems: 1200
 };
 
 export const REQUIRED_PLAYER_SYNC_COLUMNS = [
   "rsn",
   "display_name",
+  "account_type",
   "quests_completed",
   "diaries_completed",
   "collection_log_item_ids",
+  "bank_items",
+  "bank_status",
   "slayer",
   "plugin_version",
   "synced_at"
