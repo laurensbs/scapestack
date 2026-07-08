@@ -238,12 +238,12 @@ function BankPageContent() {
           aria-modal="true"
           aria-labelledby="bank-popup-title"
           data-testid="bank-save-popup"
-          className="mx-auto max-w-2xl overflow-hidden rounded-[18px] border-2 border-[var(--color-accent)]/55 bg-[#2b2418] shadow-[0_30px_120px_-45px_rgba(0,0,0,0.95)]"
+          className="scapestack-plan-panel mx-auto max-w-2xl overflow-hidden"
         >
-          <div className="flex items-start justify-between gap-4 border-b border-[var(--color-accent)]/35 px-5 py-4 sm:px-7">
+          <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-5 py-4 sm:px-6">
             <div>
               <p className="eyebrow text-[var(--color-accent)]">Bank setup</p>
-              <h1 id="bank-popup-title" className="mt-1 font-serif text-[28px] font-bold leading-none text-[var(--color-text)] sm:text-[34px]">
+              <h1 id="bank-popup-title" className="mt-1 text-[28px] font-semibold leading-none text-[var(--color-text)] sm:text-[34px]">
                 {savedBank && !replaceSavedBank ? "Bank is ready" : "Add bank"}
               </h1>
               <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-dim)]">
@@ -260,7 +260,7 @@ function BankPageContent() {
               <X className="size-5" />
             </Link>
           </div>
-          <div className="p-5 pb-24 sm:p-7">
+          <div className="p-5 pb-24 sm:p-6">
           {savedBank && !replaceSavedBank ? (
             <SavedBankChoice
               saved={savedBank}

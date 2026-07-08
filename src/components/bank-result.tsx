@@ -310,23 +310,23 @@ function BankDecisionHero({
   ];
 
   return (
-    <section className="mb-5 rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-panel)] px-4 py-4 shadow-[0_18px_55px_rgba(0,0,0,0.18)] sm:px-5 sm:py-5">
+    <section className="scapestack-board-panel mb-5 px-4 py-4 sm:px-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 flex-1">
           <div className="mb-3 flex flex-wrap items-center gap-2">
-            <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/55">
+            <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45">
               <ItemSprite id={decision.iconItemId} alt="" size={30} />
             </span>
             <div className="min-w-0">
-              <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-gold-soft)]">
+              <div className="eyebrow text-[var(--color-accent)]">
                 Can I leave the bank?
               </div>
-              <h2 className="mt-1 text-[21px] font-bold tracking-normal text-[var(--color-text)] sm:text-[25px]">
+              <h2 className="mt-1 text-[20px] font-semibold tracking-normal text-[var(--color-text)] sm:text-[23px]">
                 {decision.title}
               </h2>
             </div>
           </div>
-          <p className="max-w-3xl text-[13.5px] leading-relaxed text-[var(--color-text-dim)]">
+          <p className="max-w-3xl text-[13px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
             {decision.why}
           </p>
           <ReadyToLeave status={readiness.status} items={readiness.items} compact />
@@ -334,7 +334,8 @@ function BankDecisionHero({
             {chips.map((chip) => (
               <span
                 key={chip}
-                className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-text-dim)]"
+                className="scapestack-status-badge"
+                data-tone="prep"
               >
                 {chip}
               </span>
@@ -345,7 +346,7 @@ function BankDecisionHero({
           <button
             type="button"
             onClick={() => onPrimary(decision.primaryAction)}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-bold text-white transition-all hover:brightness-110"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-bold text-[#0b0906] transition-all hover:brightness-110"
           >
             {copied === "all" && decision.primaryAction === "copy" ? <CheckCheck className="size-3.5" /> : <ArrowRight className="size-3.5" />}
             {copied === "all" && decision.primaryAction === "copy" ? "Copied" : decision.primaryLabel}

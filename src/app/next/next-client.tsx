@@ -3561,43 +3561,32 @@ function HeadlineCard({
   const card = (
     <article
       className={cn(
-        // group/headline triggers the headline-shimmer-target::after sweep
-        // defined in globals.css — fires once on hover, doesn't loop.
-        "scapestack-plan-panel group/headline group relative overflow-hidden p-5 headline-shimmer-target sm:p-6",
-        (actionHref || isBossWithDetail) && "surface-interactive transition-transform duration-200 hover:-translate-y-0.5"
+        "scapestack-plan-panel relative overflow-hidden p-4 sm:p-5",
+        (actionHref || isBossWithDetail) && "transition-colors hover:border-[var(--color-accent)]/45"
       )}
     >
-      <div
-        className="absolute inset-x-0 top-0 h-px"
-        style={{ background: "linear-gradient(to right, transparent, rgba(200, 154, 61,0.55), transparent)" }}
-      />
-      <div className="grid gap-5 sm:grid-cols-[116px_minmax(0,1fr)] sm:items-start">
-        <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl border border-[var(--color-accent)]/24 bg-[var(--color-bg)]/48 text-[var(--color-accent)] shadow-[inset_0_1px_0_rgba(233,221,197,0.05),0_18px_48px_-36px_rgba(200,154,61,0.62)] sm:size-28">
+      <div className="grid gap-4 sm:grid-cols-[72px_minmax(0,1fr)] sm:items-start">
+        <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 text-[var(--color-accent)] sm:size-[68px]">
           {rec.kind === "kc" && rec.bossSlug ? (
-            // KC-rec gets a live boss portrait + pulsing halo on the
-            // headline (this IS the strongest pick). The portrait is
-            // the strongest emotional signal in /next — players know
-            // their boss by face faster than by name.
-            <KcPortrait rec={rec} size={92} prominent />
+            <KcPortrait rec={rec} size={56} />
           ) : rec.iconItemId ? (
             <ItemSprite
               id={rec.iconItemId}
               alt=""
               className="pixelated"
-              size={72}
+              size={46}
               style={{ imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
             />
           ) : (
-            // No per-rec sprite — fall back to the kind's signature sprite
-            // (Lucide is the third-tier fallback inside KindGlyph).
-            <KindGlyph kind={rec.kind} size={48} tone="accent" />
+            <KindGlyph kind={rec.kind} size={34} tone="accent" />
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="mb-1 flex flex-wrap items-center gap-2">
+          <div className="mb-2 flex flex-wrap items-center gap-1.5">
             <span className="eyebrow text-[var(--color-accent)]">Do this first</span>
             <span
-              className="rounded-full border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-2 py-0.5 text-[10.5px] font-bold text-[var(--color-accent)]"
+              className="scapestack-status-badge"
+              data-tone="prep"
               title={choice.helper}
             >
               {choice.label}
@@ -3617,8 +3606,8 @@ function HeadlineCard({
           <h3 className="text-[19px] font-bold text-[var(--color-text)] tracking-normal leading-tight">
             {rec.title}
           </h3>
-          <p className="mt-2 flex items-start gap-1.5 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-            <Sparkles className="mt-0.5 size-3.5 shrink-0 text-[var(--color-accent)]" />
+          <p className="mt-2 flex items-start gap-1.5 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+            <Sparkles className="mt-0.5 size-3.5 shrink-0 text-[var(--color-gold-soft)]" />
             <span>{oneLineReason}</span>
           </p>
           <SessionBoardStrip
