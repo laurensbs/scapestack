@@ -18,6 +18,11 @@ Scapestack endpoint automatically; normal players do not paste or configure a
 sync URL. Local development can override it with the hidden
 `-Dscapestack.syncUrl=http://127.0.0.1:4173/api/sync` JVM property.
 
+For collection-log accuracy, open the in-game Collection Log once and click the
+relevant tabs/categories before syncing. RuneLite only exposes collection-log
+item widgets after the game has loaded them, so the plugin now tells you whether
+the log was not opened, opened without item slots, or loaded correctly.
+
 ## Data contract
 
 Sent after opt-in: RSN, plugin version, account type, skill levels, quest and diary completion,
