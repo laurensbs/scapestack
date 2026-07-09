@@ -15,7 +15,11 @@ describe("DPS empty gear copy", () => {
     expect(source).toContain("<DpsMissingSetupState");
     expect(source).toContain("No bank yet");
     expect(source).toContain("Add bank for ${boss.name}");
+    expect(source).toContain("Add bank for ${boss.name} supplies");
     expect(source).toContain("Scapestack will pick your best owned setup for ${boss.name}.");
+    expect(source).toContain("isNonCombatBossActivity");
+    expect(source).toContain("Scapestack checks food, tools and activity gear for ${boss.name}. No combat DPS.");
+    expect(source).toContain("this activity check still needs your bank for supplies");
     expect(source).toContain('data-testid="dps-no-weapon-gate"');
     expect(source).toContain("Need a weapon first");
     expect(source).toContain("Paste combat gear before picking a boss");
@@ -33,7 +37,7 @@ describe("DPS empty gear copy", () => {
     expect(source).toContain("bankless={searchParams.get(\"bank\") === \"none\"}");
     expect(source).toContain("pluginSync={searchParams.get(\"source\") === \"plugin-sync\"}");
     expect(source).toContain("slayerTask={isSlayerTaskSource}");
-    expect(source).toContain("RuneLite skips finished account stuff, but boss checks still need your bank.");
+    expect(source).toContain("RuneLite skips finished account stuff, but this kill check still needs your bank.");
     expect(source).toContain("This boss came from Task Check. Add bank before buying supplies or trusting upgrades.");
     expect(source).toContain("Add bank before using boss checks, upgrades or setup links.");
     expect(source).toContain("Task picked. Add bank before trusting the first trip.");

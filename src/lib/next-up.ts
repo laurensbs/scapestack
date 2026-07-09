@@ -555,7 +555,7 @@ function goalRecs(completions: SetCompletion[]): Recommendation[] {
         steps: [
           `Open the ${set.name} goal set and confirm the missing ${missing === 1 ? "piece" : "pieces"}.`,
           missingGoals[0] ? `Target ${missingGoals[0]} first — it is the shortest visible path to progress.` : "Pick the missing piece with the lowest travel/setup cost.",
-          "Re-sync or paste your bank again after the drop/unlock so the set disappears from /next."
+          "Sync again after the drop or unlock so the set disappears from your plan."
         ]
       }
     });
@@ -655,7 +655,7 @@ function minigameRecs(skills: HiscoreSkill[]): Recommendation[] {
         steps: [
           `Set one ${mg.name} target before starting: one reward roll, outfit piece, or level bracket.`,
           "Bank stamina/teleports/supplies for just that target so the session stays bounded.",
-          "Stop at the target and re-run /next; minigame unlocks often change the best follow-up."
+          "Stop at the target and check your plan again; minigame unlocks often change the best follow-up."
         ]
       }
     });
@@ -1059,7 +1059,7 @@ function skillRecs(skills: HiscoreSkill[]): Recommendation[] {
           steps: [
             `Train ${skill} until level ${m.level}, then stop — the unlock is the point.`,
             "Buy or bank supplies for only the gap so you do not overcommit GP/time.",
-            "Re-run /next immediately; this level may unlock quests, diaries or bosses."
+            "Check your plan again immediately; this level may unlock quests, diaries or bosses."
           ]
         }
       });
@@ -1485,12 +1485,12 @@ function slayerTaskRecs(
       prep: `${taskLeftLabel} left. ${pointsHint}`,
       steps: [
         displayName
-          ? `Open synced /slayer for ${displayName} and confirm whether ${monster.name} is worth finishing, skipping or blocking.`
-          : `Open /slayer and confirm whether ${monster.name} is worth finishing, skipping or blocking.`,
+          ? `Open the synced Slayer task for ${displayName} and confirm whether ${monster.name} is worth finishing, skipping or blocking.`
+          : `Open the Slayer task check and confirm whether ${monster.name} is worth finishing, skipping or blocking.`,
         monster.cannonable
           ? "Bring cannon + balls if the location supports it; otherwise use the fastest safe setup."
           : "Bring the fastest safe setup; do not over-bank supplies for a short remainder.",
-        "Finish or intentionally skip the task, then re-sync so /next follows the new assignment."
+        "Finish or intentionally skip the task, then sync again so your plan follows the new assignment."
       ]
     }
   }];
@@ -1582,7 +1582,7 @@ function questRecs(
         steps: [
           `Check ${q.name} prereqs before grabbing supplies; stop if the chain is longer than tonight's session.`,
           q.skillReqs.length > 0 ? `Your skills meet the listed gates; bank teleports, stamina and combat supplies for a ${q.length ?? "variable"} quest.` : "Bank teleports, stamina and any quest items before starting the guide.",
-          `Clear ${q.name} or one blocking prereq, then re-run /next for newly unlocked bosses/diaries.`
+          `Clear ${q.name} or one blocking prereq, then check your plan for newly unlocked bosses or diaries.`
         ]
       }
     });
@@ -2369,7 +2369,7 @@ function diaryRecs(
       title,
       why,
       payoff: evaluation.payoff,
-      decisionReason: `${diaryReadinessLabel(evaluation.readinessStatus)}: ${blockersText}. Payoff: ${evaluation.payoff}. Stop when: ${evaluation.stopPoint}`,
+      decisionReason: `${diaryReadinessLabel(evaluation.readinessStatus)}: ${blockersText}. Payoff: ${evaluation.payoff}. Finish after: ${evaluation.stopPoint}`,
       needs: routeLines.slice(0, 5),
       score,
       iconItemId: DIARY_REWARD_ICONS[region],
@@ -2447,9 +2447,9 @@ function noHiscoresNudge(): Recommendation {
       timebox: "2 min",
       prep: "Bank added. Stats make the next move useful.",
       steps: [
-        "Enter your OSRS name on /next and keep this bank attached.",
+        "Enter your OSRS name and keep this bank attached.",
         "Use the first plan it gives you, then add bank or RuneLite only if the pick looks off.",
-        "Run Scapestack Sync later if /next suggests quests, diary tiers, collection-log slots or Slayer tasks you already finished."
+        "Run Scapestack Sync later if your plan suggests quests, diary tiers, collection-log slots or Slayer tasks you already finished."
       ]
     }
   };
@@ -2473,7 +2473,7 @@ function starterQuestRecs(hasHiscores: boolean, bank: CompletionItem[]): Recomme
         steps: [
           "Talk to the cook in Lumbridge Castle kitchen.",
           "Hand in the three ingredients in one trip.",
-          "Re-run /next after a few starter quests so Hiscores-based advice has real account signal."
+          "Check your plan again after a few starter quests so Hiscores-based advice has real account signal."
         ]
       }
     },
@@ -2573,7 +2573,7 @@ function accountRouteRecs(input: {
         steps: [
           "Talk to Kaqemeex north of Taverley, then Sanfew upstairs in the Herblore shop.",
           "Dip the four meats in the Cauldron of Thunder and hand them in.",
-          "Stop when Herblore unlocks; re-run /next because potions and quest chains now open."
+          "Finish after Herblore unlocks; check your plan again because potions and quest chains now open."
         ]
       }
     });
@@ -2608,7 +2608,7 @@ function accountRouteRecs(input: {
         steps: [
           "Use the fastest altar or ensouled-head method you can afford.",
           "Stop exactly at 43 Prayer; protection prayers are the unlock, not a random XP grind.",
-          "Re-run /next because quest, diary and PvM routes change immediately."
+          "Check your plan again because quest, diary and PvM routes change immediately."
         ]
       }
     });
@@ -2649,7 +2649,7 @@ function accountRouteRecs(input: {
         steps: [
           "Start with Ava in Draynor Manor and keep the quest guide open for item hand-ins.",
           "Finish the undead chicken/magnet pieces before doing extra training.",
-          "Equip Ava's and re-run /next; ranged bosses and Slayer tasks become cleaner."
+          "Equip Ava's and check your plan again; ranged bosses and Slayer tasks become cleaner."
         ]
       }
     });
@@ -2689,7 +2689,7 @@ function accountRouteRecs(input: {
         steps: [
           "Pick the highest rooftop course you can run comfortably.",
           "Do one clean mark/level block, not an endless agility session.",
-          "Stop when the level target or Graceful piece lands, then re-run /next."
+          "Finish after the level target or Graceful piece lands, then check your plan again."
         ]
       }
     });
@@ -2761,7 +2761,7 @@ function accountRouteRecs(input: {
           steps: [
             "Do a herb run first, then reset all four birdhouses.",
             "Bank seeds/nests immediately so the next loop is ready.",
-            "Stop after the loop; use the downtime for the main /next plan."
+            "Stop after the loop; use the downtime for the main plan."
           ]
         }
       });
@@ -2810,7 +2810,7 @@ function accountRouteRecs(input: {
         kind: "milestone",
         title: `Pick a maxing lane: ${near99.name}`,
         why: `${near99.name} ${near99.level}. Close enough to turn spare sessions into cape progress.`,
-        payoff: "A focused maxing lane stops /next from feeling like random chores.",
+        payoff: "A focused maxing lane stops your plan from feeling like random chores.",
         decisionReason: `${near99.name} is your cleanest visible maxing lane, so it is a better long arc than bouncing between unrelated grinds.`,
         score: near99.level >= 95 ? 73 : 64,
         link: "/goals",
@@ -2832,7 +2832,7 @@ function accountRouteRecs(input: {
           steps: [
             `Train ${near99.name} only for this block; do not mix in random chores mid-session.`,
             "Use AFK if you are low-energy, or a faster method if you are focused.",
-            "Re-run /next after the level; maxing routes should change as soon as the closest lane changes."
+            "Check your plan again after the level; maxing routes should change as soon as the closest lane changes."
           ]
         }
       });
@@ -2914,7 +2914,7 @@ function actionPlanFor(rec: Recommendation, ctx: ActionPlanContext): Recommendat
         steps: [
           "Check the first unmet prerequisite before you start the guide.",
           "Bank required teleports, stamina/energy, food and combat gear before leaving the GE.",
-          "Finish the quest or clear one prerequisite, then re-run /next for the unlocked follow-up."
+          "Finish the quest or clear one prerequisite, then check your plan for the unlocked follow-up."
         ]
       });
     case "diary":
@@ -2954,7 +2954,7 @@ function actionPlanFor(rec: Recommendation, ctx: ActionPlanContext): Recommendat
         steps: [
           "Check the world/activity requirements before gearing.",
           "Set a one-session target: one reward roll, one outfit piece, or one level bracket.",
-          "Stop after the target and let /next re-rank the account."
+          "Stop after the target and let your plan re-rank the account."
         ]
       });
     case "money":
@@ -2972,7 +2972,7 @@ function actionPlanFor(rec: Recommendation, ctx: ActionPlanContext): Recommendat
         timebox: "20-60 min",
         prep: "This is live client state: finish the assignment already in front of you before starting a new grind.",
         steps: [
-          "Open /slayer and verify the current task, blocks and best master.",
+          "Open the Slayer task view and verify the current task, blocks and best master.",
           "Bank the correct protection item, teleports and cannon/burst supplies if relevant.",
           "Finish or deliberately skip the task, then let the plugin sync the next assignment."
         ]
@@ -2984,7 +2984,7 @@ function actionPlanFor(rec: Recommendation, ctx: ActionPlanContext): Recommendat
         steps: [
           "Choose the fastest method you can tolerate for this session length.",
           "Bank or buy the supplies for exactly the levels needed to unlock the milestone.",
-          "Re-run /next once the level lands so quests/diaries/bosses unlock immediately."
+          "Check your plan again once the level lands so quests, diaries and bosses unlock immediately."
         ]
       });
     case "bank":
@@ -2992,9 +2992,9 @@ function actionPlanFor(rec: Recommendation, ctx: ActionPlanContext): Recommendat
         timebox: "10-20 min",
         prep: "Bank work pays off when it removes friction from every later trip.",
         steps: [
-          "Check gear and export the clean RuneLite tabs.",
+          "Run Smart Tidy and copy the clean RuneLite tabs.",
           "Decant potions, recharge jewellery and move obvious junk before the next PvM/skilling run.",
-          "Save the cleaned bank so future /next runs compare against the new baseline."
+          "Save the cleaned bank so future plans compare against the new baseline."
         ]
       });
     case "milestone":
@@ -3004,7 +3004,7 @@ function actionPlanFor(rec: Recommendation, ctx: ActionPlanContext): Recommendat
         steps: [
           "Open the path overview and identify the closest incomplete lane.",
           "Clear one blocker that unlocks multiple downstream tasks.",
-          "Pin the milestone mentally, but re-run /next after every major unlock."
+          "Pin the milestone mentally, but check your plan again after every major unlock."
         ]
       });
   }

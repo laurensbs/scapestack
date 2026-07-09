@@ -20,11 +20,11 @@ function rec(overrides: Partial<Recommendation>): Recommendation {
 describe("recommendation primary actions", () => {
   it("labels known Scapestack routes with concrete tool names", () => {
     expect(routeActionForHref("/dps").label).toBe("Open kill check");
-    expect(routeActionForHref("/goals").label).toBe("Choose unlock");
+    expect(routeActionForHref("/goals").label).toBe("Open unlocks");
     expect(routeActionForHref("/bank?sample=1").label).toBe("Check gear");
     expect(routeActionForHref("/slayer/").label).toBe("Check task");
-    expect(routeActionForHref("/gp").label).toBe("Open cash route in /next");
-    expect(routeActionForHref("/skills").label).toBe("Open skill route in /next");
+    expect(routeActionForHref("/gp").label).toBe("Open cash route");
+    expect(routeActionForHref("/skills").label).toBe("Open skill route");
     expect(routeActionForHref("/quests/animal-magnetism").label).toBe("Check quest requirements");
     expect(routeActionForHref("/slayer?rsn=Lynx+Titan&source=plugin-sync").href)
       .toBe("/slayer?rsn=Lynx+Titan&source=plugin-sync");
@@ -60,11 +60,11 @@ describe("recommendation primary actions", () => {
 
   it("sends retired tool routes straight to active /next intents", () => {
     expect(routeActionForHref("/gp", { from: "next", rsn: "Lynx Titan" })).toMatchObject({
-      label: "Open cash route in /next",
+      label: "Open cash route",
       href: "/next?intent=cash&time=30&rsn=Lynx+Titan&from=next"
     });
     expect(routeActionForHref("/skills", { from: "next", rsn: "Lynx Titan", hasBankContext: false })).toMatchObject({
-      label: "Open skill route in /next",
+      label: "Open skill route",
       href: "/next?intent=skill&time=60&rsn=Lynx+Titan&from=next&bank=none"
     });
     expect(routeActionForHref("/quests", { from: "next", rsn: "Lynx Titan" }).href)

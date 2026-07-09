@@ -228,7 +228,7 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("Pick a route");
     expect(source).not.toContain("Find unlock");
     expect(source).not.toContain("Nothing obvious");
-    expect(source).toContain("Choose unlock");
+    expect(source).toContain("Open unlocks");
     expect(source).toContain("Best now");
     expect(source).not.toContain("Another route");
     expect(source).not.toContain("Show ${nextRouteLabel.name}");
@@ -395,7 +395,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("const cameFromPlugin = useMemo");
     expect(source).toContain('params.get("from") === "plugin"');
     expect(source).toContain("cameFromPlugin={cameFromPlugin}");
-    expect(source).toContain("RuneLite is optional. If it finds this RSN, /next can avoid progress you already finished.");
+    expect(source).toContain("RuneLite is optional. If it finds this RSN, Scapestack can avoid progress you already finished.");
     expect(source).toContain("Your bank stays in this browser.");
     expect(source).toContain("Free. Your bank stays in this browser.");
   });

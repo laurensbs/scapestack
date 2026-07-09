@@ -8,7 +8,7 @@ import { Intake } from "@/components/intake";
 import { SupportCard } from "@/components/support-card";
 import { ItemSprite } from "@/components/item-sprite";
 import { organizeAction } from "@/app/actions";
-import { BOSSES, type Boss } from "@/lib/bosses";
+import { BOSSES, isNonCombatBossActivity, type Boss } from "@/lib/bosses";
 import { ownedGear, lookupGear, type GearItem } from "@/lib/gear";
 import { bestStyleAndSetup, type DpsBreakdown } from "@/lib/dps";
 import { cn, formatGp } from "@/lib/utils";
@@ -77,11 +77,16 @@ function DpsMissingSetupState({
   pluginSync: boolean;
   slayerTask: boolean;
 }) {
-  const title = boss ? `Add bank for ${boss.name}` : "Add bank";
+  const activityBoss = boss ? isNonCombatBossActivity(boss) : false;
+  const title = boss ? activityBoss ? `Add bank for ${boss.name} supplies` : `Add bank for ${boss.name}` : "Add bank";
   const body = pluginSync
-    ? "RuneLite skips finished account stuff, but this kill check still needs your bank."
+    ? activityBoss
+      ? "RuneLite knows the account, but this activity check still needs your bank for supplies."
+      : "RuneLite skips finished account stuff, but this kill check still needs your bank."
     : slayerTask && boss
     ? `${boss.name} came from Task Check. Add bank before buying supplies or trusting upgrades.`
+    : boss && activityBoss
+    ? `Scapestack checks food, tools and activity gear for ${boss.name}. No combat DPS.`
     : boss
     ? `Scapestack will pick your best owned setup for ${boss.name}.`
     : "Scapestack will pick the best boss setup from your bank.";

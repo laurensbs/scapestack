@@ -1263,7 +1263,7 @@ function NextIntake({
 
       <p className="mt-8 text-[11.5px] text-[var(--color-text-muted)] text-center leading-relaxed">
         {cameFromPlugin
-          ? "RuneLite is optional. If it finds this RSN, /next can avoid progress you already finished. Your bank stays in this browser."
+          ? "RuneLite is optional. If it finds this RSN, Scapestack can avoid progress you already finished. Your bank stays in this browser."
           : "Free. Your bank stays in this browser."}
       </p>
     </section>
@@ -1852,7 +1852,7 @@ function BankGapsRail({ progress }: { progress: SetCompletion[] }) {
               </div>
               <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-[var(--color-text-muted)]">
                 {missing.length > 0
-                  ? `Missing: ${missing.slice(0, 3).map((goal) => goal.name).join(", ")}`
+                  ? `Still missing: ${missing.slice(0, 3).map((goal) => goal.name).join(", ")}`
                   : "Looks complete in this bank context."}
               </p>
             </div>
@@ -2146,7 +2146,7 @@ function NextBankContextStrip({
             href={toolHandoffUrl("/goals", "next", activeRsn)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
           >
-            Choose unlock
+            Open unlocks
             <Target className="size-3.5" />
           </Link>
           <Link
@@ -2663,17 +2663,67 @@ function recommendationNeeds(rec: Recommendation): string[] {
 }
 
 function recommendationFirstStepValue(rec: Recommendation): string {
-  return rec.actionPlan?.steps[0] ?? rec.why;
+  return firstUsefulTripLine([
+    rec.actionPlan?.steps[0],
+    rec.actionPlan?.prep,
+    rec.why
+  ]) ?? fallbackRecommendationFirstStep(rec);
 }
 
 function recommendationStopPointValue(rec: Recommendation): string {
   const plan = rec.actionPlan;
-  return plan?.steps.at(-1) ?? "Finish after one clear trip.";
+  return firstUsefulTripLine([
+    plan?.steps.at(-1),
+    rec.payoff ? `Finish after ${rec.payoff}.` : null
+  ]) ?? fallbackRecommendationStopPoint(rec);
 }
 
 function recommendationBringValue(rec: Recommendation): string {
   const needs = recommendationNeeds(rec);
-  return needs[0] ?? rec.actionPlan?.prep ?? "Nothing special flagged.";
+  return firstUsefulTripLine([
+    needs[0],
+    rec.actionPlan?.prep
+  ], 92) ?? fallbackRecommendationBring(rec);
+}
+
+function firstUsefulTripLine(lines: Array<string | null | undefined>, max = 118): string | null {
+  for (const line of lines) {
+    if (!line?.trim()) continue;
+    const clean = trimTripLine(line, max);
+    if (clean && !isWeakRouteLine(clean)) return clean;
+  }
+  return null;
+}
+
+function fallbackRecommendationFirstStep(rec: Recommendation): string {
+  if (rec.kind === "bank") return "Open Smart Tidy and choose the bank layout you want.";
+  if (rec.kind === "boss" || rec.kind === "kc") return "Open the kill check and confirm your setup.";
+  if (rec.kind === "slayer") return "Check the task, grab supplies, then do one short task block.";
+  if (rec.kind === "diary") return "Open the diary tier and finish the closest missing task.";
+  if (rec.kind === "quest") return "Open the quest and check the missing requirements.";
+  if (rec.kind === "skill") return `Train ${recommendationSkillLabel(rec)} until the target level is done.`;
+  if (rec.kind === "money") return "Check the margin, gear once, then do one short run.";
+  if (rec.kind === "minigame") return "Open the activity and prepare one round.";
+  return "Start the shortest useful step for this account.";
+}
+
+function fallbackRecommendationStopPoint(rec: Recommendation): string {
+  if (rec.kind === "bank") return "Copy the cleaned tabs into RuneLite when the layout feels right.";
+  if (rec.kind === "boss" || rec.kind === "kc") return "Finish after one trip or one clean kill check.";
+  if (rec.kind === "slayer") return "Finish after one task block or when supplies run low.";
+  if (rec.kind === "diary") return "Finish after the diary tier is claimed or one blocker is removed.";
+  if (rec.kind === "quest") return "Finish after the quest step, reward or unlock is done.";
+  if (rec.kind === "skill") return "Finish after the level target or next unlock lands.";
+  return "Finish after one clear trip.";
+}
+
+function fallbackRecommendationBring(rec: Recommendation): string {
+  if (rec.kind === "bank") return "Pick a style, preview the tabs, then copy them to RuneLite.";
+  if (rec.kind === "boss" || rec.kind === "kc") return "Grab weapon, armour, food, potions and a teleport out.";
+  if (rec.kind === "slayer") return "Grab task gear, food, teleports and rune pouch if needed.";
+  if (rec.kind === "quest" || rec.kind === "diary") return "Grab required items and teleports from your bank.";
+  if (rec.kind === "skill") return "Grab method items or supplies before training.";
+  return "Bring only what this trip needs.";
 }
 
 function recommendationSkillLabel(rec: Recommendation): string {
@@ -2732,7 +2782,7 @@ function nextTripBeforeLines(rec: Recommendation): string[] {
 }
 
 function nextTripMissingLine(rec: Recommendation, trip: TripBuilderPlan): string | null {
-  const needs = recommendationNeeds(rec).map((need) => trimTripLine(need, 92)).filter((need) => !isWeakRouteLine(need));
+  const needs = (rec.needs ?? []).map((need) => trimTripLine(need, 92)).filter((need) => !isWeakRouteLine(need));
   const missing = trip.missing.map((item) => trimTripLine(item, 72)).filter((item) => !isWeakRouteLine(item));
   const joined = [...needs, ...missing]
     .filter(Boolean)
@@ -3356,11 +3406,11 @@ function routeStepPrep(
   if (rec.kind === "money") return "Check price first; only run it while the margin is still worth it.";
   if (rec.kind === "quest" || rec.kind === "diary") return "Check the prereq list, pull quest items, then do one clean unlock block.";
   if (rec.kind === "skill") return "Bank the method items first; if supplies are missing, switch to the gathering step.";
-  return "Do one bounded block, stop, then let /next adjust the route.";
+  return "Do one bounded block, stop, then check your plan again.";
 }
 
 function routeStepStart(rec: Recommendation): string {
-  return rec.actionPlan?.steps[0] ?? recommendationFirstStepValue(rec);
+  return recommendationFirstStepValue(rec);
 }
 
 function routeMissingValue(rec: Recommendation): string {
@@ -3439,7 +3489,9 @@ function routeChecklistLine(line: string): string {
 function isWeakRouteLine(line: string): boolean {
   const clean = line.replace(/\.$/, "").trim().toLowerCase();
   if (!clean) return true;
-  if (/^(find unlock|choose unlock|check gear|check setup|quest items check|check the missing piece|check quest\/diary items|no safer route flagged)$/.test(clean)) return true;
+  if (/^missing:/.test(clean)) return true;
+  if (/^(find unlock|choose unlock|check gear|check setup|check the setup|check items|check bank|quest items check|check the missing piece|check quest\/diary items|no safer route flagged)$/.test(clean)) return true;
+  if (/^(find route|find item|nothing special flagged|paste bank)$/.test(clean)) return true;
   if (/^nothing obvious/.test(clean)) return true;
   if (/^add bank before trusting gear/.test(clean)) return true;
   return false;

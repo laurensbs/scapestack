@@ -166,6 +166,46 @@ const SMART_TIDY_FRONT_CHOICES: Array<{ id: SmartTidyFront; label: string; helpe
   { id: "current", label: "Current grind", helper: "Keep this tab first" }
 ];
 
+type SmartTidyPrefs = {
+  playstyle: SmartTidyPlaystyle;
+  front: SmartTidyFront;
+};
+
+const SMART_TIDY_PREFS_KEY = "scapestack-bank:smart-tidy";
+const DEFAULT_SMART_TIDY_PREFS: SmartTidyPrefs = { playstyle: "pvm", front: "gear" };
+
+function isSmartTidyPlaystyle(value: unknown): value is SmartTidyPlaystyle {
+  return typeof value === "string" && SMART_TIDY_PRESETS.some((preset) => preset.id === value);
+}
+
+function isSmartTidyFront(value: unknown): value is SmartTidyFront {
+  return typeof value === "string" && SMART_TIDY_FRONT_CHOICES.some((choice) => choice.id === value);
+}
+
+function readSmartTidyPrefs(): SmartTidyPrefs {
+  if (typeof window === "undefined") return DEFAULT_SMART_TIDY_PREFS;
+  try {
+    const raw = window.localStorage.getItem(SMART_TIDY_PREFS_KEY);
+    if (!raw) return DEFAULT_SMART_TIDY_PREFS;
+    const parsed = JSON.parse(raw) as Partial<SmartTidyPrefs>;
+    return {
+      playstyle: isSmartTidyPlaystyle(parsed.playstyle) ? parsed.playstyle : DEFAULT_SMART_TIDY_PREFS.playstyle,
+      front: isSmartTidyFront(parsed.front) ? parsed.front : DEFAULT_SMART_TIDY_PREFS.front
+    };
+  } catch {
+    return DEFAULT_SMART_TIDY_PREFS;
+  }
+}
+
+function writeSmartTidyPrefs(prefs: SmartTidyPrefs): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(SMART_TIDY_PREFS_KEY, JSON.stringify(prefs));
+  } catch {
+    // localStorage can be unavailable in private windows; Smart Tidy still works.
+  }
+}
+
 function moveTabToFront(order: UseCaseTab[], tab: string | null | undefined): UseCaseTab[] {
   if (!tab || !USE_CASE_ORDER.includes(tab as UseCaseTab)) return order;
   const useCaseTab = tab as UseCaseTab;
@@ -301,7 +341,7 @@ function buildBankDecision({
       title: `Clean ${slotCopy} before your next trip`,
       why: `Scapestack found ${tipCount} quick bank cleanup move${tipCount === 1 ? "" : "s"} that can make gearing less annoying.`,
       firstStep: "Run Smart tidy, then copy the tabs back to RuneLite.",
-      stopPoint: "Stop when gear, supplies and teleports are easy to find.",
+      stopPoint: "Finish after gear, supplies and teleports are easy to find.",
       avoid: "Avoid dragging every item by hand.",
       primaryAction: "tidy",
       primaryLabel: "Smart tidy",
@@ -333,7 +373,7 @@ function buildBankDecision({
         ? `Gear, supplies and ${formatGp(totalValue)} GP are now part of the next recommendation.`
         : "Gear and supplies are now part of the next recommendation.",
       firstStep: "Open the next trip plan that fits tonight.",
-      stopPoint: "Stop when you have one trip, unlock or AFK goal picked.",
+      stopPoint: "Finish after you have one trip, unlock or AFK goal picked.",
       avoid: "Avoid comparing every tab before deciding what to do.",
       primaryAction: "next",
       primaryLabel: "Open next trip",
@@ -575,8 +615,9 @@ function SmartTidyWizard({
   onApply: (tabs: OrganizedTab[], playstyle: SmartTidyPlaystyle, front: SmartTidyFront) => void;
   onCopy: () => void;
 }) {
-  const [playstyle, setPlaystyle] = useState<SmartTidyPlaystyle>("pvm");
-  const [front, setFront] = useState<SmartTidyFront>("gear");
+  const [smartTidyPrefs, setSmartTidyPrefs] = useState<SmartTidyPrefs>(DEFAULT_SMART_TIDY_PREFS);
+  const playstyle = smartTidyPrefs.playstyle;
+  const front = smartTidyPrefs.front;
   const proposedTabs = useMemo(
     () => buildSmartTidyLayout(baseTabs, playstyle, front, currentTabName).slice(0, 8),
     [baseTabs, currentTabName, front, playstyle]
@@ -590,9 +631,22 @@ function SmartTidyWizard({
     ? `${selectedPreset.helper}.`
     : `${selectedPreset.helper}. ${selectedFront.helper}.`;
 
+  useEffect(() => {
+    setSmartTidyPrefs(readSmartTidyPrefs());
+  }, []);
+
+  const updateSmartTidyPrefs = (next: Partial<SmartTidyPrefs>) => {
+    setSmartTidyPrefs((current) => {
+      const merged = { ...current, ...next };
+      writeSmartTidyPrefs(merged);
+      return merged;
+    });
+  };
+
   if (stage === "closed") return null;
 
   const applyLayout = () => {
+    writeSmartTidyPrefs({ playstyle, front });
     setStage("applying");
     window.setTimeout(() => {
       onApply(proposedTabs, playstyle, front);
@@ -638,7 +692,7 @@ function SmartTidyWizard({
                 iconItemId: preset.id === "ironman" ? ACCOUNT_MODE_ICON_ITEM_IDS.ironman ?? 12810 : preset.id === "skilling" ? 6739 : preset.id === "questing" ? 1891 : preset.id === "minimal" ? 8007 : 4151
               }))}
               onChange={(value) => {
-                setPlaystyle(value as SmartTidyPlaystyle);
+                updateSmartTidyPrefs({ playstyle: value as SmartTidyPlaystyle });
                 setStage("preview");
               }}
             />
@@ -652,7 +706,7 @@ function SmartTidyWizard({
                 iconItemId: choice.id === "teleports" ? 8007 : choice.id === "supplies" ? 2434 : choice.id === "current" ? currentTabs[0]?.iconItemId ?? 995 : 4151
               }))}
               onChange={(value) => {
-                setFront(value as SmartTidyFront);
+                updateSmartTidyPrefs({ front: value as SmartTidyFront });
                 setStage("preview");
               }}
             />
@@ -664,6 +718,9 @@ function SmartTidyWizard({
                 <div className="text-[12px] font-bold text-[var(--color-text)]">Preview tabs</div>
                 <div className="mt-0.5 text-[11px] font-semibold text-[var(--color-text-muted)]">
                   {ironmanTone ? `${ironmanTone.itemCopy}. ${previewHelper}` : previewHelper}
+                </div>
+                <div className="mt-1 text-[10.5px] font-bold text-[var(--color-accent)]/85">
+                  Saved for next bank: {selectedPreset.label} · {selectedFront.label}
                 </div>
               </div>
               {ironmanTone && ACCOUNT_MODE_ICON_ITEM_IDS.ironman && (

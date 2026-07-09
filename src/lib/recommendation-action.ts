@@ -26,24 +26,24 @@ const ROUTE_ACTIONS: Record<string, Omit<RecommendationPrimaryAction, "href">> =
     helper: "Tune owned gear, boss weakness and kill setup before committing supplies."
   },
   "/goals": {
-    label: "Choose unlock",
+    label: "Open unlocks",
     helper: "Track missing set pieces, unlocks and long-term account progress."
   },
   "/gp": {
-    label: "Open cash route in /next",
-    helper: "Use the active /next planner intent for GP, tradeable upgrades and funding loops."
+    label: "Open cash route",
+    helper: "Use the active plan for GP, tradeable upgrades and funding loops."
   },
   "/skills": {
-    label: "Open skill route in /next",
-    helper: "Use the active /next planner intent for skilling sessions and level pushes."
+    label: "Open skill route",
+    helper: "Use the active plan for skilling sessions and level pushes."
   },
   "/quests": {
-    label: "Open quest route in /next",
-    helper: "Use the active /next planner intent for quests, diaries and unlock chains."
+    label: "Open quest route",
+    helper: "Use the active plan for quests, diaries and unlock chains."
   },
   "/diary": {
-    label: "Open diary route in /next",
-    helper: "Use the active /next planner intent for diaries and unlock chains."
+    label: "Open diary route",
+    helper: "Use the active plan for diaries and unlock chains."
   },
   "/slayer": {
     label: "Check task",

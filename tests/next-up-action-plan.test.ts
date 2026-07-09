@@ -54,7 +54,7 @@ describe("next-up action plans", () => {
     expect(text).toContain("Time:");
     expect(text).toContain("Gear/supplies:");
     expect(text).toMatch(/\n1\. /);
-    expect(text).toContain("Choose unlock");
+    expect(text).toContain("Open unlocks");
     expect(text).toContain("https://www.scapestack.org/");
     expect(text).toContain("rsn=Lynx+Titan");
     expect(text).toContain("from=next");
@@ -568,7 +568,7 @@ describe("next-up action plans", () => {
     expect(result.headline?.actionPlan?.confidence).toBe("exact");
     expect(result.headline?.actionPlan?.confidenceLabel).toBe("Synced");
     expect(result.headline?.actionPlan?.confidenceLabel).not.toBe("Exact sync");
-    expect(result.headline?.actionPlan?.steps.join(" ")).toContain("synced /slayer");
+    expect(result.headline?.actionPlan?.steps.join(" ")).toContain("synced Slayer task");
     expect(result.headline?.actionPlan?.steps.join(" ")).not.toContain("exact /slayer");
   });
 

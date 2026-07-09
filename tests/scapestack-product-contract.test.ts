@@ -45,7 +45,7 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).not.toContain("One move, two backups, the prep, blockers, bank signal and stop point.");
     expect(next).not.toContain("Find unlock");
     expect(next).not.toContain("Nothing obvious");
-    expect(next).toContain("Choose unlock");
+    expect(next).toContain("Open unlocks");
     expect(next).toContain("Choose another trip");
     expect(next).toContain("Open a card only if the first trip is not your mood.");
     expect(next).toContain("RouteCard");

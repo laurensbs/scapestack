@@ -59,6 +59,15 @@ describe("Smart Tidy wizard", () => {
     expect(source).toContain('setStage("applied")');
   });
 
+  it("remembers the player's Smart Tidy style for the next bank", () => {
+    expect(source).toContain('const SMART_TIDY_PREFS_KEY = "scapestack-bank:smart-tidy"');
+    expect(source).toContain("function readSmartTidyPrefs");
+    expect(source).toContain("function writeSmartTidyPrefs");
+    expect(source).toContain("const [smartTidyPrefs, setSmartTidyPrefs]");
+    expect(source).toContain("Saved for next bank:");
+    expect(source).toContain("writeSmartTidyPrefs({ playstyle, front })");
+  });
+
   it("opens Smart Tidy from the bank action instead of running a bare sort button", () => {
     expect(source).toContain('const [smartTidyStage, setSmartTidyStage] = useState<SmartTidyStage>("closed")');
     expect(source).toContain("const openSmartTidyWizard = useCallback");

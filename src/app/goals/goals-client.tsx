@@ -599,14 +599,14 @@ function unlockPlanSteps(set: GoalSetModel, completion: SetCompletion, missing: 
     return [
       { title: "Start", body: "Check normal Void first: top, robe, gloves and the helm you actually use." },
       { title: "Then", body: "Finish the Western Provinces diary gate before spending more Pest Control points." },
-      { title: "Stop", body: `Stop when ${target.name} is bought, then check whether the second elite piece is next.` }
+      { title: "Stop", body: `Finish after ${target.name} is bought, then check whether the second elite piece is next.` }
     ];
   }
   if (set.id === "void-knight") {
     return [
       { title: "Start", body: "Buy the body, robe and gloves before treating Void as a PvM setup." },
       { title: "Then", body: `Pick up ${target.name}; helms only matter for the style you plan to use.` },
-      { title: "Stop", body: "Stop after the missing piece and let /next decide whether Elite Void is worth it." }
+      { title: "Stop", body: "Finish after the missing piece and let your plan decide whether Elite Void is worth it." }
     ];
   }
   if (set.category === "barrows") {
@@ -627,7 +627,7 @@ function unlockPlanSteps(set: GoalSetModel, completion: SetCompletion, missing: 
     return [
       { title: "Start", body: `Chase ${target.name} first; it is the cleanest missing piece.` },
       { title: "Then", body: missing[1] ? `After that, check ${missing[1].name}.` : "After that, re-check the set." },
-      { title: "Stop", body: "Stop when the set changes so Scapestack can pick the next best unlock." }
+      { title: "Stop", body: "Finish after the set changes so Scapestack can pick the next best unlock." }
     ];
   }
   return [
