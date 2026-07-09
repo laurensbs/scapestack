@@ -30,7 +30,8 @@ describe("quest detail RuneLite sync contract", () => {
   it("keeps browser bank as an additive fallback instead of replacing synced bank", () => {
     expect(clientSource).toContain("const [browserBankItems, setBrowserBankItems] = useState<QuestBankItem[]>([]);");
     expect(clientSource).toContain("normalizeQuestBankItems([...syncedBankItems, ...browserBankItems])");
-    expect(clientSource).toContain("RuneLite + browser bank");
+    expect(clientSource).toContain('SourceBadge label="Browser bank"');
+    expect(clientSource).toContain("quest items found");
   });
 
   it("shows compact source and planning states on quest detail", () => {
@@ -38,6 +39,11 @@ describe("quest detail RuneLite sync contract", () => {
     expect(clientSource).toContain('SourceBadge label="Browser bank"');
     expect(clientSource).toContain('SourceBadge label="No bank check yet"');
     expect(clientSource).not.toContain('SourceBadge label="No bank context"');
+    expect(clientSource).toContain("questTripDecision(evaluation)");
+    expect(clientSource).toContain("Can I do this now?");
+    expect(clientSource).toContain("Before you go");
+    expect(clientSource).toContain("Still missing");
+    expect(clientSource).toContain("Finish after");
     expect(clientSource).toContain('Section title="Completed requirements"');
     expect(clientSource).toContain('Section title="Missing requirements"');
     expect(clientSource).toContain("UIM mode: this list is a staging checklist");

@@ -26,12 +26,21 @@ describe("Smart Tidy wizard", () => {
     expect(source).toContain('helper: "PvM gear first"');
     expect(source).toContain('helper: "Quest items kept together"');
     expect(source).toContain('helper: "Teleports, gear, supplies"');
-    expect(source).toContain("Before / after preview");
+    expect(source).toContain("Preview tabs");
+    expect(source).toContain("Suggested first tabs");
     expect(source).toContain("Current bank");
     expect(source).toContain("Proposed layout");
     expect(source).toContain("<SmartTidyTabPreview");
-    expect(source).toContain("tab.items.slice(0, 6).map");
+    expect(source).toContain("tab.items.slice(0, 8).map");
     expect(source).toContain("spriteIdForItem(item.id, item.quantity)");
+  });
+
+  it("keeps the presets tied to concrete RuneLite tab orders", () => {
+    expect(source).toContain('order: ["PvM Gear", "Teleports", "Potions", "Drops", "Skilling", "Quest", "Clue", "Cosmetic", "Misc"]');
+    expect(source).toContain('order: ["Teleports", "Quest", "Potions", "Skilling", "PvM Gear", "Drops", "Clue", "Cosmetic", "Misc"]');
+    expect(source).toContain('order: ["Quest", "Teleports", "Skilling", "Potions", "PvM Gear", "Drops", "Clue", "Cosmetic", "Misc"]');
+    expect(source).toContain('order: ["Skilling", "Teleports", "Potions", "Quest", "PvM Gear", "Drops", "Clue", "Cosmetic", "Misc"]');
+    expect(source).toContain('const tabPlan = smartTidyOrder(playstyle, front, currentTabName).slice(0, 6);');
   });
 
   it("applies through the existing smart reorganize path and leaves copy as the next step", () => {
@@ -46,9 +55,12 @@ describe("Smart Tidy wizard", () => {
     expect(source).toContain("Apply layout");
     expect(source).toContain("Try another setup");
     expect(source).toContain("Copy tabs to RuneLite");
+    expect(source).toContain('setStage("applying")');
+    expect(source).toContain('setStage("applied")');
   });
 
   it("opens Smart Tidy from the bank action instead of running a bare sort button", () => {
+    expect(source).toContain('const [smartTidyStage, setSmartTidyStage] = useState<SmartTidyStage>("closed")');
     expect(source).toContain("const openSmartTidyWizard = useCallback");
     expect(source).toContain('setSmartTidyStage((stage) => stage === "closed" ? "choosing" : stage)');
     expect(source).toContain("onTidy={openSmartTidyWizard}");
@@ -59,5 +71,8 @@ describe("Smart Tidy wizard", () => {
     expect(source).toContain("const shouldDensePackSparseLayout");
     expect(source).toContain("maxSlot + 1 > Math.max(GRID_ROWS_MIN * GRID_COLS, items.length * 4)");
     expect(source).toContain("? Object.fromEntries(items.map((item, index) => [index, item.id]))");
+    expect(source).toContain("compactSparseBankBody ? \"min-h-[220px]\" : \"min-h-[460px]\"");
+    expect(source).toContain("shouldDensePackSparseLayout");
+    expect(source).toContain("? Math.max(1, Math.ceil(items.length / GRID_COLS))");
   });
 });

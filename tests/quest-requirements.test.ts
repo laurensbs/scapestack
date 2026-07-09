@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evaluateQuestRequirements, normalizeQuestBankItems } from "@/lib/quest-requirements";
+import { evaluateQuestRequirements, normalizeQuestBankItems, questTripDecision } from "@/lib/quest-requirements";
 import type { QuestRecord } from "@/lib/quest-db";
 import type { HiscoreSkill } from "@/lib/hiscores";
 
@@ -109,6 +109,12 @@ describe("quest requirement matching", () => {
       ownedQuantity: 1,
       missingQuantity: 0
     });
+    expect(questTripDecision(result)).toMatchObject({
+      title: "Ready to start",
+      beforeYouGo: ["Egg is in bank"],
+      stillMissing: ["Nothing obvious missing."],
+      finishAfter: "Finish Cook's Assistant, claim the unlock, then sync again."
+    });
   });
 
   it("marks missing bank items when a required item is absent", () => {
@@ -129,6 +135,10 @@ describe("quest requirement matching", () => {
       ownedInBank: false,
       ownedQuantity: 0,
       missingQuantity: 1
+    });
+    expect(questTripDecision(result)).toMatchObject({
+      title: "Items missing",
+      stillMissing: ["Pot of flour missing"]
     });
   });
 
@@ -292,6 +302,11 @@ describe("quest requirement matching", () => {
     expect(result.readinessStatus).toBe("partially-ready");
     expect(result.bank.notApplicable).toBe(true);
     expect(result.bank.owned.map((req) => req.name)).toEqual(["Rope"]);
+    expect(questTripDecision(result)).toMatchObject({
+      title: "Stage for UIM",
+      beforeYouGo: ["Rope is in bank"],
+      stillMissing: ["Rope: stage this before starting"]
+    });
   });
 
   it("warns iron accounts that item availability is self-sourced", () => {

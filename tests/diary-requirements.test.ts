@@ -4,6 +4,7 @@ import {
   diaryCompletedRequirementLines,
   diaryMissingRequirementLines,
   diaryReadinessSummary,
+  diaryTripDecision,
   diaryTaskRequirementLines,
   evaluateDiaryTier
 } from "@/lib/diary-requirements";
@@ -76,6 +77,12 @@ describe("diary requirement matching", () => {
     expect(result.readinessStatus).toBe("ready");
     expect(result.bank.owned.map((req) => req.name)).toEqual(["Rope", "Plank", "Mith grapple"]);
     expect(result.missingRequirements).toEqual([]);
+    expect(diaryTripDecision(result)).toMatchObject({
+      title: "Ready to start",
+      beforeYouGo: ["Rope is in bank", "2x Plank is in bank", "Mith grapple is in bank"],
+      stillMissing: expect.arrayContaining(["Clear the Ardougne city, market and monastery task sweep."]),
+      finishAfter: "Finish Biohazard or train the closest missing skill."
+    });
   });
 
   it("reports missing skill levels", () => {
@@ -144,6 +151,11 @@ describe("diary requirement matching", () => {
       "2x Plank missing, 1 in bank",
       "Mith grapple missing"
     ]));
+    expect(diaryTripDecision(result)).toMatchObject({
+      title: "Items missing",
+      beforeYouGo: expect.arrayContaining(["Rope is in bank"]),
+      stillMissing: expect.arrayContaining(["2x Plank missing; 1 in bank", "Mith grapple missing"])
+    });
     expect(diaryCompletedRequirementLines(result)).toEqual(expect.arrayContaining([
       "Biohazard done",
       "Rope in bank"
@@ -208,6 +220,11 @@ describe("diary requirement matching", () => {
       "2x Plank: stage/carry before starting",
       "Mith grapple: stage/carry before starting"
     ]));
+    expect(diaryTripDecision(result)).toMatchObject({
+      title: "Stage for UIM",
+      beforeYouGo: expect.arrayContaining(["Rope is in bank"]),
+      stillMissing: expect.arrayContaining(["2x Plank: stage this before starting", "Mith grapple: stage this before starting"])
+    });
   });
 
   it("marks plugin-synced completed diary tiers as completed", () => {

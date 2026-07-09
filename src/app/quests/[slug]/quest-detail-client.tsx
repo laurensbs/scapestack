@@ -2,19 +2,20 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, Circle, PackageSearch, Shield } from "lucide-react";
-import { accountModeVisual, type PlannerAccountType } from "@/lib/account-type";
+import { accountModePlanningTone, accountModeVisual, type PlannerAccountType } from "@/lib/account-type";
 import { AccountModeBadge } from "@/components/account-mode-badge";
 import type { QuestRecord } from "@/lib/quest-db";
 import {
   evaluateQuestRequirements,
   normalizeQuestBankItems,
+  questTripDecision,
   questReadinessLabel,
   type EvaluatedItemRequirement,
   type QuestBankItem,
   type QuestRequirementEvaluation
 } from "@/lib/quest-requirements";
 import { readBankHandoffPayload, type BankHandoffItem } from "@/lib/next-bank-handoff";
-import { pluginBankStatusLabel, pluginBankStatusTone, type PluginBankStatus } from "@/lib/plugin-bank-status";
+import { pluginBankStatusLabel, type PluginBankStatus } from "@/lib/plugin-bank-status";
 import { cn } from "@/lib/utils";
 
 interface QuestDetailClientProps {
@@ -63,15 +64,23 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="border-t border-[var(--color-border)] py-5">
-      {eyebrow && (
-        <div className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-          {eyebrow}
-        </div>
-      )}
-      <h2 className="mb-3 text-[17px] font-bold tracking-normal text-[var(--color-text)]">{title}</h2>
-      {children}
-    </section>
+    <details className="group border-t border-[var(--color-border)] py-4">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden [&::-webkit-details-marker]:hidden">
+        <span>
+          {eyebrow && (
+            <span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
+              {eyebrow}
+            </span>
+          )}
+          <span className="text-[17px] font-bold tracking-normal text-[var(--color-text)]">{title}</span>
+        </span>
+        <span className="text-[11px] font-bold text-[var(--color-text-muted)] group-open:hidden">Show</span>
+        <span className="hidden text-[11px] font-bold text-[var(--color-text-muted)] group-open:inline">Hide</span>
+      </summary>
+      <div className="mt-3">
+        {children}
+      </div>
+    </details>
   );
 }
 
@@ -89,6 +98,39 @@ function SourceBadge({ label, tone = "muted" }: { label: string; tone?: "good" |
     )}>
       {label}
     </span>
+  );
+}
+
+function DecisionColumn({
+  title,
+  lines,
+  tone = "default"
+}: {
+  title: string;
+  lines: string[];
+  tone?: "default" | "good" | "warn";
+}) {
+  return (
+    <div className={cn(
+      "rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/30 p-3",
+      tone === "good" && "border-[var(--color-good)]/25 bg-[var(--color-good)]/8",
+      tone === "warn" && "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/8"
+    )}>
+      <div className={cn(
+        "text-[10.5px] font-black uppercase tracking-[0.16em] text-[var(--color-accent)]",
+        tone === "good" && "text-[var(--color-good)]",
+        tone === "warn" && "text-[var(--color-warning)]"
+      )}>
+        {title}
+      </div>
+      <ul className="mt-2 space-y-1.5">
+        {lines.slice(0, 4).map((line) => (
+          <li key={line} className="text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+            {line}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -156,9 +198,9 @@ export function QuestDetailClient({
     () => normalizeQuestBankItems([...syncedBankItems, ...browserBankItems]),
     [browserBankItems, syncedBankItems]
   );
-  const hasSyncedBank = syncedBankItems.length > 0;
   const hasBrowserBank = browserBankItems.length > 0;
   const hasBankContext = bankItems.length > 0;
+  const planningTone = accountModePlanningTone(accountType);
 
   const evaluation = useMemo(
     () => bankItems.length > 0
@@ -177,6 +219,12 @@ export function QuestDetailClient({
       : initialEvaluation,
     [accountType, bankItems, completedQuests, initialEvaluation, initialSkills, quest]
   );
+  const decision = useMemo(() => questTripDecision(evaluation), [evaluation]);
+  const decisionTone = decision.verdict === "Ready to start"
+    ? "good"
+    : decision.verdict === "Train first" || decision.verdict === "Items missing" || decision.verdict === "Stage for UIM"
+      ? "warn"
+      : "default";
 
   return (
     <div className="mx-auto max-w-5xl px-5 py-7 pb-20">
@@ -187,7 +235,7 @@ export function QuestDetailClient({
             {quest.name}
           </h1>
           <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-muted)]">
-            Skill gates, quest blockers, item prep and bank checks for this account.
+            See if you can leave for this quest, what to grab first, and what still blocks it.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {progressSource === "runelite" && <SourceBadge label="RuneLite synced" tone="good" />}
@@ -198,68 +246,61 @@ export function QuestDetailClient({
         </div>
         <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/65 px-3 py-2 text-[12px] text-[var(--color-text-dim)]">
           <AccountModeBadge accountType={accountType} confidence={accountType ? "detected" : "unknown"} compact showSourceCopy />
-          <div>{rsn ? `RSN: ${rsn}` : "Add ?rsn=Name for synced progress"}</div>
+          <div className="mt-1">{planningTone.itemCopy}</div>
+          <div>{rsn ? `RSN: ${rsn}` : "Add an OSRS name for synced progress"}</div>
         </div>
       </div>
 
-      {evaluation.accountWarnings.length > 0 && (
-        <div className="mb-4 rounded-xl border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 p-3 text-[12px] leading-relaxed text-[var(--color-warning)]">
-          <div className="mb-1 flex items-center gap-1.5 font-bold">
-            <Shield className="size-4" />
-            Accounttype notes
+      <section className={cn(
+        "mb-5 rounded-xl border bg-[var(--color-panel)]/82 p-4 sm:p-5",
+        decisionTone === "good" && "border-[var(--color-good)]/30",
+        decisionTone === "warn" && "border-[var(--color-warning)]/30",
+        decisionTone === "default" && "border-[var(--color-border)]"
+      )}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <div className={cn(
+              "eyebrow",
+              decisionTone === "good" ? "text-[var(--color-good)]" : decisionTone === "warn" ? "text-[var(--color-warning)]" : "text-[var(--color-accent)]"
+            )}>
+              Can I do this now?
+            </div>
+            <h2 className="mt-1 text-[26px] font-black leading-tight tracking-normal text-[var(--color-text)]">
+              {decision.title}
+            </h2>
+            <p className="mt-2 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+              {questReadinessLabel(evaluation.readinessStatus)} · {planningTone.bankCopy}
+            </p>
           </div>
-          <ul className="space-y-1">
-            {evaluation.accountWarnings.map((warning) => <li key={warning}>{warning}</li>)}
-          </ul>
-        </div>
-      )}
-
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3">
-          <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Readiness</div>
-          <div className={cn(
-            "mt-1 text-[18px] font-black leading-tight",
-            evaluation.readinessStatus === "ready-to-start" ? "text-[var(--color-good)]" : "text-[var(--color-warning)]"
-          )}>
-            {questReadinessLabel(evaluation.readinessStatus)}
-          </div>
-        </div>
-        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3">
-          <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Missing</div>
-          <div className="mt-1 text-[22px] font-black text-[var(--color-warning)]">{evaluation.missingRequirements.length}</div>
-        </div>
-        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3">
-          <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Bank</div>
-          <div className="mt-1 text-[13px] font-bold text-[var(--color-text)]">
+          <div className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
             {evaluation.bank.notApplicable
-              ? pluginBankStatusLabel(bankStatus, accountType)
+              ? accountModeVisual(accountType, accountType ? "detected" : "unknown").bankCopy
               : evaluation.bank.checked
-                ? `${evaluation.bank.owned.length}/${evaluation.itemRequirements.length} items ready`
+                ? `${evaluation.bank.owned.length}/${evaluation.itemRequirements.length} quest items found`
                 : bankStatus
                   ? pluginBankStatusLabel(bankStatus, accountType)
                   : "No bank check yet"}
           </div>
-          <div className="mt-1 text-[11px] font-semibold text-[var(--color-text-muted)]">
-            {evaluation.bank.notApplicable
-              ? accountModeVisual(accountType, accountType ? "detected" : "unknown").bankCopy
-              : hasBrowserBank
-                ? hasSyncedBank ? "RuneLite + browser bank" : "Browser bank"
-                : hasSyncedBank ? "RuneLite synced" : "No bank check yet"}
-          </div>
-          {bankStatus && (
-            <div className={cn(
-              "mt-1 text-[11px] font-semibold",
-              pluginBankStatusTone(bankStatus) === "good"
-                ? "text-[var(--color-good)]"
-                : pluginBankStatusTone(bankStatus) === "warn"
-                  ? "text-[var(--color-warning)]"
-                  : "text-[var(--color-text-muted)]"
-            )}>
-              RuneLite bank status
-            </div>
-          )}
         </div>
-      </div>
+
+        <div className="mt-4 grid gap-3 lg:grid-cols-3">
+          <DecisionColumn title="Before you go" lines={decision.beforeYouGo} tone="good" />
+          <DecisionColumn title="Still missing" lines={decision.stillMissing} tone={decision.stillMissing[0] === "Nothing obvious missing." ? "good" : "warn"} />
+          <DecisionColumn title="Finish after" lines={[decision.finishAfter]} />
+        </div>
+      </section>
+
+      {evaluation.accountWarnings.length > 0 && (
+        <details className="mb-4 rounded-xl border border-[var(--color-warning)]/25 bg-[var(--color-warning)]/8 p-3">
+          <summary className="flex cursor-pointer list-none items-center gap-1.5 text-[12px] font-bold text-[var(--color-warning)] marker:hidden [&::-webkit-details-marker]:hidden">
+            <Shield className="size-4" />
+            Accounttype notes
+          </summary>
+          <ul className="mt-2 space-y-1 text-[12px] leading-relaxed text-[var(--color-warning)]">
+            {evaluation.accountWarnings.map((warning) => <li key={warning}>{warning}</li>)}
+          </ul>
+        </details>
+      )}
 
       <Section title="Skill requirements" eyebrow="Can I start?">
         {evaluation.skillRequirements.length > 0 ? (

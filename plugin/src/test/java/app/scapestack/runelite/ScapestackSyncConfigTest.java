@@ -37,12 +37,11 @@ public class ScapestackSyncConfigTest {
             .getAnnotation(ConfigItem.class)
             .description();
 
-        assertTrue(syncNowDescription.contains("Update ScapeStack now"));
-        assertTrue(syncNowDescription.contains("Resets automatically"));
+        assertTrue(syncNowDescription.contains("Refresh your ScapeStack planner now"));
         assertTrue(autoSyncDescription.contains("account mode, skills, quests, diaries and Slayer task"));
         assertTrue(autoSyncDescription.contains("Bank checks stay separate"));
         assertTrue(bankSyncDescription.contains("quest and diary items are already in your bank"));
-        assertTrue(bankSyncDescription.contains("Never sends inventory, equipment, chat, screenshots or account login"));
+        assertTrue(bankSyncDescription.contains("Never sends inventory, equipment, chat, screenshots or login details"));
         assertTrue(questSyncDescription.contains("Requires Sync on login"));
 
         assertNoNormalUserTech(syncNowDescription);

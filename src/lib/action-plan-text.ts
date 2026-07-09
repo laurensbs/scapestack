@@ -67,7 +67,7 @@ export function formatRecommendationSessionPlan(
   const lines = [
     "Tonight:",
     context.rsn ? `RSN: ${context.rsn}` : null,
-    "Do the first step. Stop at the stop point.",
+    "Do the first trip. Finish after the listed unlock, task or run.",
     "",
     ...planned.flatMap((rec, index) => {
       const plan = rec.actionPlan;
@@ -75,7 +75,7 @@ export function formatRecommendationSessionPlan(
       const actionHref = primaryAction.href
         ? `${primaryAction.label}: ${shareableHref(primaryAction.href)}`
         : null;
-      const label = index === 0 ? "Do this first" : `Backup ${index}`;
+      const label = index === 0 ? "Do this first" : `If blocked ${index}`;
       const title = index === 0 ? rec.title : `${sessionChoiceLabel(rec)} - ${rec.title}`;
       const stopPoint = plan?.steps.at(-1);
 
@@ -85,8 +85,8 @@ export function formatRecommendationSessionPlan(
         `Why: ${rec.decisionReason ?? rec.why}`,
         plan ? `Time: ${plan.timebox}` : null,
         plan?.steps[0] ? `Start: ${plan.steps[0]}` : null,
-        plan ? `Bring: ${plan.prep}` : null,
-        stopPoint ? `Stop: ${stopPoint}` : null,
+        plan ? `Grab/check: ${plan.prep}` : null,
+        stopPoint ? `Finish after: ${stopPoint}` : null,
         actionHref ? `Link: ${actionHref}` : null,
         ""
       ].filter((line): line is string => line !== null);

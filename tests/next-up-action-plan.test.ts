@@ -54,7 +54,7 @@ describe("next-up action plans", () => {
     expect(text).toContain("Time:");
     expect(text).toContain("Gear/supplies:");
     expect(text).toMatch(/\n1\. /);
-    expect(text).toContain("Find unlock");
+    expect(text).toContain("Choose unlock");
     expect(text).toContain("https://www.scapestack.org/");
     expect(text).toContain("rsn=Lynx+Titan");
     expect(text).toContain("from=next");
@@ -74,16 +74,16 @@ describe("next-up action plans", () => {
     });
 
     expect(text).toContain("Tonight:");
-    expect(text).toContain("Do the first step. Stop at the stop point.");
+    expect(text).toContain("Do the first trip. Finish after the listed unlock, task or run.");
     expect(text).toContain("Do this first");
-    expect(text).toContain("Backup 1");
-    expect(text).toContain("Backup 2");
+    expect(text).toContain("If blocked 1");
+    expect(text).toContain("If blocked 2");
     expect(text).toMatch(/Goal: (GP|Bossing|Slayer|AFK|Chill|Unlock) - /);
     expect(text).toContain("Why:");
     expect(text).toContain("Time:");
-    expect(text).toContain("Bring:");
+    expect(text).toContain("Grab/check:");
     expect(text).toContain("Start:");
-    expect(text).toContain("Stop:");
+    expect(text).toContain("Finish after:");
     expect(text).toContain("https://www.scapestack.org/");
     expect(text).toContain("rsn=Lynx+Titan");
   });

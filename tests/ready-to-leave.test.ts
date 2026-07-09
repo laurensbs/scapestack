@@ -54,6 +54,6 @@ describe("ready to leave UX", () => {
     expect(read("src/components/bank-result.tsx")).toContain("Leave");
     expect(read("src/app/dps/dps-client.tsx")).not.toContain("ReadyToLeave");
     expect(read("src/app/dps/dps-client.tsx")).toContain("Pick a boss");
-    expect(read("src/app/dps/dps-client.tsx")).toContain("Search any boss. Click one to see your best gear, DPS, supplies and upgrades from this bank.");
+    expect(read("src/app/dps/dps-client.tsx")).toContain("Pick a category, then choose one boss to see the trip verdict, gear, supplies and upgrades from this bank.");
   });
 });

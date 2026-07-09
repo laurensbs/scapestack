@@ -10,10 +10,10 @@ const source = [
 describe("homepage first-impression copy", () => {
   it("opens with the product session board instead of a marketing hero", () => {
     expect(source).not.toContain("BRAND_SECONDARY_TAGLINE");
-    expect(source).toContain("Session board");
+    expect(source).toContain("Next trip");
     expect(source).toContain("What can I do now?");
-    expect(source).toContain("Main move");
-    expect(source).toContain("Bank-aware");
+    expect(source).toContain("Do first");
+    expect(source).toContain("Bank checked");
     expect(source).toContain("Quests almost ready");
     expect(source).toContain("See the quest you can start soon");
     expect(source).toContain("Items to grab");
@@ -44,7 +44,7 @@ describe("homepage first-impression copy", () => {
     expect(source).toContain("Slayer unlocks");
     expect(source).toContain("Before you go");
     expect(source).toContain("Know what to do next");
-    expect(source).toContain("What is blocking this quest or unlock?");
+    expect(source).toContain("Which level, quest or item is stopping me?");
     expect(source).toContain("Which items do I still need, and are they in my bank?");
     expect(source).toContain("What is a good place to stop this session?");
     expect(source).not.toContain("Every panel must earn the click");

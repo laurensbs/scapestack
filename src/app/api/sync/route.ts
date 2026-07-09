@@ -252,8 +252,9 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   let syncedAt: string;
+  let syncSummary: unknown = null;
   try {
-    syncedAt = await upsertSyncedPlayer({
+    const result = await upsertSyncedPlayer({
       rsn,
       displayName,
       accountType,
@@ -266,6 +267,8 @@ export async function POST(req: Request): Promise<Response> {
       slayer,
       pluginVersion
     });
+    syncedAt = result.syncedAt;
+    syncSummary = result.syncSummary;
   } catch (err) {
     console.error("upsertSyncedPlayer failed:", err);
     return json(
@@ -277,6 +280,7 @@ export async function POST(req: Request): Promise<Response> {
   return json({
     ok: true,
     syncedAt,
+    syncSummary,
     player: {
       rsn: normalizedRsn,
       displayName,

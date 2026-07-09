@@ -28,16 +28,15 @@ import {
 import { buildDpsBankContext } from "@/lib/dps-bank-context";
 
 type BossDpsResult = { boss: Boss; dps: DpsBreakdown };
-type BossFilter = "all" | "solo" | "slayer" | "wildy" | "raid" | "beginner" | "gp";
+type BossFilter = "beginner" | "slayer" | "gwd" | "raid" | "wildy" | "skilling";
 
 const BOSS_FILTERS: Array<{ key: BossFilter; label: string }> = [
-  { key: "all", label: "All bosses" },
-  { key: "solo", label: "Solo" },
-  { key: "slayer", label: "Slayer" },
-  { key: "wildy", label: "Wildy" },
-  { key: "raid", label: "Raid" },
   { key: "beginner", label: "Beginner" },
-  { key: "gp", label: "GP" }
+  { key: "slayer", label: "Slayer" },
+  { key: "gwd", label: "GWD" },
+  { key: "raid", label: "Raids" },
+  { key: "wildy", label: "Wildy" },
+  { key: "skilling", label: "Skilling/minigame" }
 ];
 
 function DpsIntakeHero() {
@@ -135,7 +134,8 @@ export function DpsClient() {
   //   ttk       → wie sterft het snelst per kill (XP/u proxy)
   type SortKey = "dps" | "accuracy" | "gpHour" | "ttk";
   const [sortBy, setSortBy] = useState<SortKey>("dps");
-  const [bossFilter, setBossFilter] = useState<BossFilter>("all");
+  const [bossFilter, setBossFilter] = useState<BossFilter>("beginner");
+  const [showAllBosses, setShowAllBosses] = useState(false);
   // Currently-open boss in the detail modal. Lifted here so deep-link
   // (?boss=<slug>) can open it on result-view mount, and so the Enter-
   // key search shortcut can open it too.
@@ -285,21 +285,20 @@ export function DpsClient() {
   const bossMatchesFilter = (entry: BossDpsResult) => {
     const { boss } = entry;
     switch (bossFilter) {
-      case "solo":
-        return boss.category !== "raid" && boss.slug !== "nex";
       case "slayer":
         return boss.category === "slayer";
       case "wildy":
         return boss.category === "wildy";
+      case "gwd":
+        return boss.category === "gwd";
       case "raid":
         return boss.category === "raid";
+      case "skilling":
+        return boss.category === "skilling" || boss.category === "minigame" || boss.slug === "hespori";
       case "beginner":
         return boss.hp > 0 && boss.hp <= 320 && boss.category !== "raid" && boss.category !== "dt2" && boss.category !== "gwd";
-      case "gp":
-        return Boolean(boss.avgLootGp);
-      case "all":
       default:
-        return true;
+        return false;
     }
   };
 
@@ -336,10 +335,15 @@ export function DpsClient() {
     }
     return sorted;
   }, [bossResults, bossFilter, search, sortBy]);
+  const visibleResults = useMemo(
+    () => search.trim() || showAllBosses ? filteredResults : filteredResults.slice(0, 12),
+    [filteredResults, search, showAllBosses]
+  );
   const weaponCount = useMemo(() => owned.filter((gear) => gear.slot === "weapon").length, [owned]);
   const clearBossFilter = () => {
     setSearch("");
     setFocusedBoss(null);
+    setShowAllBosses(false);
   };
   const editInput = () => {
     setView("intake");
@@ -431,17 +435,17 @@ export function DpsClient() {
               Pick a boss
             </h2>
             <p className="mt-1 max-w-2xl text-[12px] leading-relaxed text-[var(--color-text-muted)]">
-              Search any boss. Click one to see your best gear, DPS, supplies and upgrades from this bank.
+              Pick a category, then choose one boss to see the trip verdict, gear, supplies and upgrades from this bank.
             </p>
           </div>
           <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">
-            {bossResults.length} bosses checked
+            {visibleResults.length} shown · {bossResults.length} checked
           </span>
         </div>
         <div>
           <div className="mb-3">
             <h2 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)] mb-2">
-              All bosses
+              Boss category
             </h2>
             {/* Live search. Filters the rows below on every keystroke;
                 ESC clears. The dropdown BossPicker is gone — for a table
@@ -523,7 +527,10 @@ export function DpsClient() {
                   key={filter.key}
                   type="button"
                   aria-pressed={bossFilter === filter.key}
-                  onClick={() => setBossFilter(filter.key)}
+                  onClick={() => {
+                    setBossFilter(filter.key);
+                    setShowAllBosses(false);
+                  }}
                   className={cn(
                     "rounded-lg border px-3 py-2 text-[12px] font-bold transition-colors",
                     bossFilter === filter.key
@@ -531,10 +538,10 @@ export function DpsClient() {
                       : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/45 hover:text-[var(--color-text)]"
                   )}
                 >
-                  {filter.label}
-                </button>
-              ))}
-            </div>
+                {filter.label}
+              </button>
+            ))}
+          </div>
             {/* Sort selector — pill-style toggle group. Default kill speed is de
                 standaard waar mensen voor komen; de andere drie geven
                 dezelfde lijst maar door een andere bril ('wie raakt vaakst',
@@ -567,8 +574,19 @@ export function DpsClient() {
               ))}
             </div>
           </div>
+          {!search && filteredResults.length > visibleResults.length && (
+            <button
+              type="button"
+              onClick={() => setShowAllBosses((value) => !value)}
+              aria-expanded={showAllBosses}
+              className="mb-3 inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+            >
+              {showAllBosses ? "Show recommended bosses" : `Show all ${filteredResults.length} in this category`}
+            </button>
+          )}
+
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredResults.map(({ boss, dps }) => (
+            {visibleResults.map(({ boss, dps }) => (
               <BossCard
                 key={boss.slug}
                 boss={boss}
@@ -620,7 +638,7 @@ function BossCard({ boss, dps, isFocused, onOpen }: {
     usable && boss.avgLootGp && boss.killsPerHourCap
       ? Math.min(boss.killsPerHourCap, Math.floor(3600 / dps.ttk)) * boss.avgLootGp
       : null;
-  const status = !usable ? "Need weapon" : dps.hitChance >= 0.55 ? "Can kill" : "Test first";
+  const status = !usable ? "Gear missing" : boss.category === "wildy" ? "Risky trip" : dps.hitChance >= 0.55 ? "Try one trip" : "Test first";
 
   return (
     <button
@@ -641,7 +659,9 @@ function BossCard({ boss, dps, isFocused, onOpen }: {
           "rounded-full border px-2 py-1 text-[10px] font-bold",
           !usable
             ? "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
-            : dps.hitChance >= 0.55
+          : boss.category === "wildy"
+            ? "border-[var(--color-danger)]/35 bg-[var(--color-danger)]/10 text-[var(--color-danger)]"
+          : dps.hitChance >= 0.55
               ? "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
               : "border-[var(--color-border)] bg-[var(--color-bg)]/45 text-[var(--color-text-dim)]"
         )}>
@@ -660,8 +680,8 @@ function BossCard({ boss, dps, isFocused, onOpen }: {
       {usable ? (
         <div className="mt-3 space-y-1.5">
           <div className="flex items-center justify-between gap-2 text-[11px]">
-            <span className="text-[var(--color-text-muted)]">DPS</span>
-            <span className="font-mono font-bold text-[var(--color-accent)]">{dps.dps.toFixed(2)}</span>
+            <span className="text-[var(--color-text-muted)]">Verdict</span>
+            <span className="font-bold text-[var(--color-accent)]">{status}</span>
           </div>
           <div className="flex items-center justify-between gap-2 text-[11px]">
             <span className="text-[var(--color-text-muted)]">Style</span>
@@ -673,14 +693,14 @@ function BossCard({ boss, dps, isFocused, onOpen }: {
           </div>
           {gpPerHour && (
             <div className="flex items-center justify-between gap-2 text-[11px]">
-              <span className="text-[var(--color-text-muted)]">GP/hr</span>
+              <span className="text-[var(--color-text-muted)]">Loot pace</span>
               <span className="font-mono font-semibold text-[var(--color-text)]">{formatGp(gpPerHour)}</span>
             </div>
           )}
         </div>
       ) : (
         <p className="mt-3 text-[11px] leading-relaxed text-[var(--color-text-dim)]">
-          Add a weapon to see setup and upgrades.
+          Add a weapon to see the trip setup and missing upgrades.
         </p>
       )}
     </button>

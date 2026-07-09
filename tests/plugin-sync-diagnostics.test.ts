@@ -31,6 +31,7 @@ function player(overrides: Partial<SyncedPlayer> = {}): SyncedPlayer {
       blocks: ["dust_devil"]
     },
     pluginVersion: CURRENT_PLUGIN_VERSION,
+    lastSyncSummary: null,
     syncedAt: "2026-06-03T11:30:00.000Z"
   };
   return {

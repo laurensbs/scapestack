@@ -29,7 +29,7 @@ describe("DPS empty gear copy", () => {
     expect(source).toContain("const [hasKnownSetup, setHasKnownSetup] = useState(false);");
     expect(source).toContain("loadSavedBank(effectiveRsn)");
     expect(source).toContain("saveSavedBank(input, setupRsn)");
-    expect(source).toContain("Add a weapon to see setup and upgrades.");
+    expect(source).toContain("Add a weapon to see the trip setup and missing upgrades.");
     expect(source).toContain("bankless={searchParams.get(\"bank\") === \"none\"}");
     expect(source).toContain("pluginSync={searchParams.get(\"source\") === \"plugin-sync\"}");
     expect(source).toContain("slayerTask={isSlayerTaskSource}");

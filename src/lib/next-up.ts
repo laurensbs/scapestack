@@ -54,6 +54,7 @@ import {
   bossViabilityFromSimpleBank,
   bossViabilityScoreMultiplier
 } from "./boss-viability";
+import type { SyncDeltaSummary } from "./sync-repo";
 
 // Kind drives the icon + accent the hub renders, and groups the checklist.
 export type RecKind =
@@ -237,6 +238,7 @@ export interface NextUpInput {
     diariesCompleted: Array<{ region: string; tier: string }>;
     collectionLogItemIds: number[];
     bankStatus?: PluginBankStatus;
+    lastSyncSummary?: SyncDeltaSummary | null;
     slayer?: {
       points: number;
       streak: number;
@@ -284,6 +286,8 @@ export interface NextUpResult {
     accountMode: AccountModeAssessment;
     /** Coverage note — which inputs the advice is based on. */
     basis: "full" | "hiscores-only" | "bank-only" | "none";
+    /** What changed between the latest RuneLite sync and the previous one. */
+    lastSyncSummary: SyncDeltaSummary | null;
   };
   /** Path-to-Max progress across four axes (skills/quests/diaries/bosses).
    *  Drives the new path-card layout in the UI. Always present even when
@@ -411,23 +415,34 @@ function archetypeMultiplier(rec: Recommendation, accountStage: AccountStage, ac
   let multiplier = 1;
   const accountType = accountMeta?.accountType ?? null;
   const iron = isIronAccount(accountMeta);
+  const text = `${rec.id} ${rec.title} ${rec.why} ${rec.payoff ?? ""} ${rec.decisionReason ?? ""}`.toLowerCase();
+  const hasSourceHint = /shop|sawmill|skilling|craft|minigame|herb|birdhouse|seed|diary|quest|unlock/.test(text)
+    || hasRouteTag(rec, "unlock");
+  const shortAction = rec.actionPlan?.timebox
+    ? /5-10|10-15|10-20|15-30|30-60|min/.test(rec.actionPlan.timebox.toLowerCase())
+      && !/1-2 hr|2 hr|session/.test(rec.actionPlan.timebox.toLowerCase())
+    : false;
 
   if (iron) {
     if (hasRouteTag(rec, "iron") || hasRouteTag(rec, "unlock")) multiplier *= 1.2;
+    if (hasSourceHint && (rec.kind === "quest" || rec.kind === "diary" || rec.kind === "skill" || rec.kind === "minigame")) multiplier *= 1.08;
     if (rec.kind === "money") multiplier *= 0.45;
     if (rec.kind === "boss" || rec.kind === "kc") multiplier *= 0.9;
   }
 
   if (accountType === "hardcore") {
     if (isRiskyRecommendation(rec)) multiplier *= 0.62;
+    if (hasSourceHint && !isRiskyRecommendation(rec)) multiplier *= 1.08;
     if (hasRouteTag(rec, "unlock") || rec.kind === "quest" || rec.kind === "diary") multiplier *= 1.12;
   } else if (accountType === "ultimate") {
-    if (rec.kind === "bank") multiplier *= 0.55;
+    if (rec.kind === "bank") multiplier *= 0.35;
     if (rec.kind === "skill" || rec.kind === "quest" || rec.kind === "diary") multiplier *= 1.1;
-    if (rec.actionPlan?.timebox && /1-2 hr|120|min/i.test(rec.actionPlan.timebox)) multiplier *= 0.85;
+    if (shortAction) multiplier *= 1.12;
+    if (rec.actionPlan?.timebox && /1-2 hr|2 hr|90 min|120 min|session/i.test(rec.actionPlan.timebox)) multiplier *= 0.85;
   } else if (accountType === "group") {
     if (rec.kind === "money") multiplier *= 0.55;
     if (hasRouteTag(rec, "unlock") || rec.kind === "quest" || rec.kind === "diary") multiplier *= 1.08;
+    if (hasSourceHint) multiplier *= 1.04;
   }
 
   switch (accountStage.id) {
@@ -3289,7 +3304,16 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     headline: recs[0] ?? null,
     rest: recs.slice(1),
     nextBestActions: actionQueue,
-    summary: { combatLevel, totalLevel, goalPercent, accountStage, accountType: accountMeta?.accountType ?? null, accountMode, basis },
+    summary: {
+      combatLevel,
+      totalLevel,
+      goalPercent,
+      accountStage,
+      accountType: accountMeta?.accountType ?? null,
+      accountMode,
+      basis,
+      lastSyncSummary: input.scapestackSync?.lastSyncSummary ?? null
+    },
     pathProgress,
     readiness,
     maxEstimate

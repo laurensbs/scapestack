@@ -38,8 +38,8 @@ describe("Scapestack branding", () => {
 
   it("positions Scapestack as a tactical OSRS decision engine", () => {
     expect(BRAND_TAGLINE).toBe("What can I do now in OSRS?");
-    expect(BRAND_SECONDARY_TAGLINE).toBe("One main move, two backups, blockers, bank gaps and a stop point.");
-    expect(BRAND_DESCRIPTION).toContain("premium OSRS session planner");
+    expect(BRAND_SECONDARY_TAGLINE).toBe("One next trip, items to grab, what is missing and when to stop.");
+    expect(BRAND_DESCRIPTION).toContain("premium OSRS trip planner");
     expect(BRAND_POSITIONING.promise).toBe("From bankstanding to one trip worth doing now.");
     expect(BRAND_POSITIONING.feeling).toContain("Gielinor session board");
     expect(BRAND_POSITIONING.antiPattern).toContain("player-facing screens about choices");

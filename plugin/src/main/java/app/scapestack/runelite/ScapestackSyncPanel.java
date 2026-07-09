@@ -38,8 +38,10 @@ final class ScapestackSyncPanel extends PluginPanel {
     private final JLabel accountModeValue = valueLabel("Account mode unknown");
     private final JLabel playerValue = valueLabel("Log in to detect");
     private final JLabel bankValue = valueLabel("Bank checks off");
-    private final JLabel collectionLogValue = valueLabel("Open Collection Log once");
+    private final JLabel nextActionValue = valueLabel("Press Sync now");
+    private final JLabel collectionLogValue = valueLabel("");
     private final JButton bankToggle = primaryButton("Use bank checks");
+    private final JPanel collectionLogRow = row("Collection Log", collectionLogValue);
     private final JPanel troubleshootingBody = card();
 
     ScapestackSyncPanel(
@@ -106,7 +108,17 @@ final class ScapestackSyncPanel extends PluginPanel {
     }
 
     void setCollectionLogStatus(String collectionLogStatus) {
-        setLabel(collectionLogValue, collectionLogStatus);
+        SwingUtilities.invokeLater(() -> {
+            String text = collectionLogStatus == null ? "" : collectionLogStatus.trim();
+            collectionLogValue.setText(text.isBlank() ? "-" : text);
+            collectionLogRow.setVisible(shouldShowCollectionLogInstruction(text));
+            revalidate();
+            repaint();
+        });
+    }
+
+    void setNextAction(String nextAction) {
+        setLabel(nextActionValue, nextAction);
     }
 
     void refresh() {
@@ -120,7 +132,7 @@ final class ScapestackSyncPanel extends PluginPanel {
     private JPanel header() {
         JPanel panel = card();
         panel.add(title("ScapeStack Sync"));
-        panel.add(copy("Official planner sync for skills, quests, diaries and bank checks."));
+        panel.add(copy("Keeps your OSRS planner current from RuneLite."));
         return panel;
     }
 
@@ -141,8 +153,10 @@ final class ScapestackSyncPanel extends PluginPanel {
         panel.add(row("Player", playerValue));
         panel.add(row("Account mode", accountModeValue));
         panel.add(row("Last sync", lastSyncValue));
-        panel.add(row("Bank", bankValue));
-        panel.add(row("Collection Log", collectionLogValue));
+        panel.add(row("Bank checks", bankValue));
+        panel.add(row("Next action", nextActionValue));
+        collectionLogRow.setVisible(false);
+        panel.add(collectionLogRow);
         panel.add(Box.createVerticalStrut(8));
         panel.add(syncButton);
         panel.add(Box.createVerticalStrut(6));
@@ -152,9 +166,8 @@ final class ScapestackSyncPanel extends PluginPanel {
 
     private JPanel whatSyncsCard() {
         JPanel panel = card();
-        panel.add(sectionTitle("What syncs"));
+        panel.add(sectionTitle("Planner checks"));
         panel.add(copy("Skills, quests, diaries and Slayer task."));
-        panel.add(copy("Collection Log after you open it once."));
         panel.add(copy("Bank items only when bank checks are on."));
         return panel;
     }
@@ -163,7 +176,7 @@ final class ScapestackSyncPanel extends PluginPanel {
         JPanel wrapper = card();
         JButton toggle = secondaryButton("Troubleshooting");
         troubleshootingBody.add(copy("If bank checks are empty, open your bank once and sync again."));
-        troubleshootingBody.add(copy("If Collection Log is missing, open it and click a category."));
+        troubleshootingBody.add(copy("If Collection Log is missing, open it once, then sync again."));
         troubleshootingBody.add(copy("If sync is rejected, use Reconnect player, then Sync now."));
         troubleshootingBody.setVisible(false);
         toggle.addActionListener(e -> {
@@ -255,5 +268,11 @@ final class ScapestackSyncPanel extends PluginPanel {
 
     private static void setLabel(JLabel label, String text) {
         SwingUtilities.invokeLater(() -> label.setText(text == null || text.isBlank() ? "-" : text));
+    }
+
+    private static boolean shouldShowCollectionLogInstruction(String text) {
+        return text != null
+            && !text.isBlank()
+            && !"Collection Log synced.".equals(text);
     }
 }

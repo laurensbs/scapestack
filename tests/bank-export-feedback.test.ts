@@ -7,15 +7,16 @@ const source = readFileSync(join(process.cwd(), "src/components/bank-result.tsx"
 describe("bank export feedback", () => {
   it("starts the bank result with a clear setup board before technical details", () => {
     expect(source).toContain("function BankDecisionHero");
-    expect(source).toContain('aria-label="Bank Setup Board"');
-    expect(source).toContain("Bank Setup Board");
-    expect(source).toContain("Set up your bank");
+    expect(source).toContain('aria-label="RuneLite bank tab setup"');
+    expect(source).toContain("RuneLite tabs");
+    expect(source).toContain("Set up RuneLite bank tabs");
     expect(source).toContain("Bank loaded");
     expect(source).toContain("Bank needs a paste");
-    expect(source).toContain("Pick layout");
+    expect(source).toContain("Choose style");
+    expect(source).toContain("Preview tabs");
     expect(source).toContain("Smart tidy");
     expect(source).toContain("Copy to RuneLite");
-    expect(source).toContain("Bank view controls");
+    expect(source).toContain("More controls");
     expect(source).toContain("Open the kill check, lock a setup, then do one short trip.");
     expect(source).toContain("Check one boss trip before buying upgrades");
     expect(source).toContain("Use this bank for one clear trip");
@@ -33,10 +34,12 @@ describe("bank export feedback", () => {
     expect(source).toContain("Trip check");
     expect(source).toContain("First");
     expect(source).toContain("Leave");
+    expect(source).toContain('const [smartTidyStage, setSmartTidyStage] = useState<SmartTidyStage>("closed")');
     expect(source).not.toContain("<span>Organize tabs</span>");
     expect(source).toContain("<span>Saved banks</span>");
-    expect(source.indexOf("Set up your bank")).toBeLessThan(source.indexOf('id="bank-view-panel"'));
-    expect(source.indexOf("Bank view controls")).toBeLessThan(source.indexOf('id="bank-view-panel"'));
+    expect(source.indexOf("Set up RuneLite bank tabs")).toBeLessThan(source.indexOf('<div id="smart-tidy-setup">'));
+    expect(source.indexOf('<div id="smart-tidy-setup">')).toBeLessThan(source.indexOf('id="bank-view-panel"'));
+    expect(source.indexOf('id="bank-view-panel"')).toBeLessThan(source.indexOf("More controls"));
     expect(source.indexOf('id="bank-view-panel"')).toBeLessThan(source.indexOf("Import details"));
     expect(source.indexOf('id="bank-view-panel"')).toBeLessThan(source.indexOf("<span>Saved banks</span>"));
   });
@@ -117,7 +120,10 @@ describe("bank export feedback", () => {
     expect(source).toContain("Owned setup slots");
     expect(source).toContain("Missing upgrades");
     expect(source).toContain("Inventory prep");
-    expect(source).toContain("Copy RuneLite tag");
+    expect(source).toContain("Copy RuneLite tab");
+    expect(source).toContain("bossVerdict");
+    expect(source).toContain("Try one trip");
+    expect(source).not.toContain("${best.dps.toFixed(2)} DPS");
     expect(source).toContain('const [manualBossTag, setManualBossTag] = useState("")');
     expect(source).toContain('flash("boss-tag-error")');
     expect(source).toContain('copied === "boss-tag-error"');
@@ -132,7 +138,7 @@ describe("bank export feedback", () => {
     expect(source).toContain("Check kill");
     expect(source).toContain("aria-label={`Check ${boss.name} kill setup with this bank`}");
     expect(source).toContain("title={`/dps?boss=${boss.slug}`}");
-    expect(source).toContain("Copy the tab to RuneLite, then check the kill before buying upgrades.");
+    expect(source).toContain("Copy the tab to RuneLite, then test one trip before buying upgrades.");
   });
 
   it("keeps the post-bank action rail player-facing instead of slash-route heavy", () => {

@@ -20,7 +20,7 @@ function rec(overrides: Partial<Recommendation>): Recommendation {
 describe("recommendation primary actions", () => {
   it("labels known Scapestack routes with concrete tool names", () => {
     expect(routeActionForHref("/dps").label).toBe("Open kill check");
-    expect(routeActionForHref("/goals").label).toBe("Find unlock");
+    expect(routeActionForHref("/goals").label).toBe("Choose unlock");
     expect(routeActionForHref("/bank?sample=1").label).toBe("Check gear");
     expect(routeActionForHref("/slayer/").label).toBe("Check task");
     expect(routeActionForHref("/gp").label).toBe("Open cash route in /next");

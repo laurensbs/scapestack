@@ -8,7 +8,7 @@ import {
   type ItemAvailabilityStatus,
   type ItemSourceHint
 } from "./item-availability";
-import { normalizeQuestBankItems, type QuestBankItem } from "./quest-requirements";
+import { normalizeQuestBankItems, type QuestBankItem, type RequirementTripDecision } from "./quest-requirements";
 
 export type DiaryReadinessStatus =
   | "ready"
@@ -458,6 +458,79 @@ export function diaryReadinessSummary(evaluation: DiaryRequirementEvaluation): s
     return `${evaluation.region} ${evaluation.tier} is ready; run the task sweep and claim the reward.`;
   }
   return `${evaluation.region} ${evaluation.tier} is ${blockers} blocker${blockers === 1 ? "" : "s"} away.`;
+}
+
+function diaryOwnedItemLine(req: EvaluatedDiaryItemRequirement): string {
+  const name = req.ownedName ?? req.name;
+  if (req.ownedQuantity > 1) return `${req.ownedQuantity}x ${name} is in bank`;
+  return `${name} is in bank`;
+}
+
+function diaryMissingItemLine(req: EvaluatedDiaryItemRequirement, bankNotApplicable: boolean): string {
+  const label = itemRequirementLabel(req);
+  if (bankNotApplicable) return `${label}: stage this before starting`;
+  if (req.ownedQuantity > 0) return `${label} missing; ${req.ownedQuantity} in bank`;
+  return `${label} missing`;
+}
+
+export function diaryTripDecision(evaluation: DiaryRequirementEvaluation): RequirementTripDecision {
+  const skillGaps = evaluation.skillRequirements
+    .filter((req) => !req.met)
+    .map((req) => `Train ${req.skill} ${req.currentLevel} -> ${req.level}`);
+  const tierGaps = evaluation.tierDependencies
+    .filter((req) => !req.met)
+    .map((req) => `Claim ${evaluation.region} ${req.tier} first`);
+  const questGaps = evaluation.questRequirements
+    .filter((req) => !req.met)
+    .map((req) => `Finish ${req.name}`);
+  const itemGaps = (evaluation.bank.notApplicable ? evaluation.itemRequirements : evaluation.bank.missing)
+    .filter((req) => !req.ownedInBank || evaluation.bank.notApplicable)
+    .map((req) => diaryMissingItemLine(req, evaluation.bank.notApplicable));
+  const taskGaps = diaryTaskRequirementLines(evaluation).slice(0, 2);
+  const ownedItems = evaluation.itemRequirements
+    .filter((req) => req.ownedInBank)
+    .map(diaryOwnedItemLine);
+  const sourceLines = evaluation.itemRequirements
+    .filter((req) => !req.ownedInBank && req.availability.shortCopy)
+    .map((req) => req.availability.shortCopy);
+  const riskLines = evaluation.accountWarnings
+    .filter((warning) => /Hardcore|risky|risk|Wilderness/i.test(warning))
+    .slice(0, 1);
+  const missing = [...skillGaps, ...tierGaps, ...questGaps, ...itemGaps, ...taskGaps];
+  const blockerCount = diaryBlockerCount(evaluation);
+  const verdict: RequirementTripDecision["verdict"] = evaluation.readinessStatus === "completed"
+    ? "Completed"
+    : evaluation.bank.notApplicable && evaluation.itemRequirements.length > 0
+      ? "Stage for UIM"
+      : skillGaps.length > 0
+        ? "Train first"
+        : itemGaps.length > 0
+          ? "Items missing"
+          : evaluation.readinessStatus === "ready"
+            ? "Ready to start"
+            : "Need things first";
+
+  return {
+    verdict,
+    title: verdict === "Completed"
+      ? "Already complete"
+      : verdict === "Ready to start"
+        ? "Ready to start"
+        : verdict === "Train first"
+          ? "Train first"
+          : verdict === "Items missing"
+            ? "Items missing"
+            : verdict === "Stage for UIM"
+              ? "Stage for UIM"
+              : `Need ${blockerCount || missing.length} thing${(blockerCount || missing.length) === 1 ? "" : "s"} first`,
+    beforeYouGo: [...ownedItems, ...sourceLines, ...riskLines]
+      .filter((line, index, lines) => lines.indexOf(line) === index)
+      .slice(0, 5),
+    stillMissing: missing.length > 0 ? missing : ["Nothing obvious missing."],
+    finishAfter: evaluation.readinessStatus === "completed"
+      ? `${evaluation.region} ${evaluation.tier} is already claimed.`
+      : evaluation.stopPoint
+  };
 }
 
 export function evaluateDiaryTier(

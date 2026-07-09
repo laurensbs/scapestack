@@ -11,14 +11,14 @@ export default function HomePage() {
         <div className="scapestack-plan-panel p-4 sm:p-5 lg:p-6">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-[var(--color-border)] pb-3">
             <div>
-              <div className="eyebrow text-[var(--color-accent)]">Session board</div>
+              <div className="eyebrow text-[var(--color-accent)]">Next trip</div>
               <h1 className="mt-1 text-[30px] font-semibold leading-tight text-[var(--color-text)] sm:text-[38px]">
                 What can I do now?
               </h1>
             </div>
             <div className="flex flex-wrap gap-1.5">
-              <span className="scapestack-status-badge" data-tone="ready">Main move</span>
-              <span className="scapestack-status-badge" data-tone="prep">Bank-aware</span>
+              <span className="scapestack-status-badge" data-tone="ready">Do first</span>
+              <span className="scapestack-status-badge" data-tone="prep">Bank checked</span>
             </div>
           </div>
 
@@ -40,7 +40,7 @@ export default function HomePage() {
                   Unlock board
                 </h2>
               </div>
-              <span className="scapestack-status-badge" data-tone="prep">Blockers</span>
+              <span className="scapestack-status-badge" data-tone="prep">Needs first</span>
             </div>
             <div className="scapestack-session-list">
               <RoutePreview icon={7462} title="Barrows gloves" detail="Next RFD/prereq blocker first." status="Quest" />
@@ -62,7 +62,7 @@ export default function HomePage() {
               <ItemSprite id={12954} alt="" size={34} />
             </div>
             <ul className="space-y-2 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-              <li className="flex gap-2"><span className="text-[var(--color-accent)]">•</span><span>What is blocking this quest or unlock?</span></li>
+              <li className="flex gap-2"><span className="text-[var(--color-accent)]">•</span><span>Which level, quest or item is stopping me?</span></li>
               <li className="flex gap-2"><span className="text-[var(--color-accent)]">•</span><span>Which items do I still need, and are they in my bank?</span></li>
               <li className="flex gap-2"><span className="text-[var(--color-accent)]">•</span><span>What is a good place to stop this session?</span></li>
             </ul>

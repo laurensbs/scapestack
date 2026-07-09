@@ -57,7 +57,7 @@ describe("player-facing copy avoids dashboard language", () => {
     expect(source).toContain("Make the next trip smarter");
     expect(source).toContain("Paste check");
     expect(source).toContain("Pick a boss");
-    expect(source).toContain("Search any boss. Click one to see your best gear, DPS, supplies and upgrades from this bank.");
+    expect(source).toContain("Pick a category, then choose one boss to see the trip verdict, gear, supplies and upgrades from this bank.");
     expect(source).toContain("Need a weapon first");
     expect(source).toContain("Check RuneLite");
     expect(source).toContain("RuneLite can help later");

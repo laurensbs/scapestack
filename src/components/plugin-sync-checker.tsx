@@ -8,7 +8,7 @@ import { AccountModeBadge } from "@/components/account-mode-badge";
 import { CopyCommand } from "@/components/copy-command";
 import { RuneliteOpenButton } from "@/components/runelite-open-button";
 import type { SyncedPlayer } from "@/lib/sync-repo";
-import { normalizeScapestackAccountType, scapestackAccountTypeToPlannerType } from "@/lib/account-type";
+import { accountModePlanningTone, normalizeScapestackAccountType, scapestackAccountTypeToPlannerType } from "@/lib/account-type";
 import { pluginSyncHealth } from "@/lib/plugin-sync";
 import { markRuneliteChecked } from "@/lib/account-storage";
 import {
@@ -90,6 +90,7 @@ export function PluginSyncChecker() {
   const foundAccountType = state.kind === "found"
     ? scapestackAccountTypeToPlannerType(normalizeScapestackAccountType(state.player.accountType))
     : null;
+  const foundPlanningTone = foundAccountType ? accountModePlanningTone(foundAccountType) : null;
   const foundNextHref = foundDisplayName
     ? `/next?rsn=${encodeURIComponent(foundDisplayName)}&from=plugin&bank=none`
     : "/next?from=plugin&bank=none";
@@ -307,7 +308,9 @@ export function PluginSyncChecker() {
                   RuneLite is helping {foundDisplayName}
                 </div>
                 <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                  Open one plan that skips finished quests, diary steps, clog slots and wrong Slayer calls.
+                  {foundPlanningTone
+                    ? foundPlanningTone.tripCopy
+                    : "Open one plan that skips finished quests, diary steps, clog slots and wrong Slayer calls."}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-[var(--color-text-muted)]">
                   <AccountModeBadge accountType={foundAccountType} confidence="detected" compact showSourceCopy />

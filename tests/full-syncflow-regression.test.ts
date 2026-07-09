@@ -6,6 +6,7 @@ import { computeNextUp } from "@/lib/next-up";
 import { pluginBankStatusLabel } from "@/lib/plugin-bank-status";
 import type { QuestRecord } from "@/lib/quest-db";
 import { evaluateQuestRequirements } from "@/lib/quest-requirements";
+import { buildSyncDeltaSummary } from "@/lib/sync-repo";
 
 const SKILLS = [
   "Attack", "Defence", "Strength", "Hitpoints", "Ranged", "Prayer",
@@ -51,6 +52,55 @@ const questWithItems: QuestRecord = {
 };
 
 describe("end-to-end syncflow regression contracts", () => {
+  it("does not create a sync delta on first sync or when nothing changed", () => {
+    const next = {
+      accountType: "normal" as const,
+      questsCompleted: ["Cook's Assistant"],
+      diariesCompleted: [{ region: "Lumbridge & Draynor", tier: "Easy" as const }],
+      collectionLogItemIds: [4151],
+      bankItems: [{ id: 1511, name: "Logs", quantity: 6 }],
+      bankStatus: { enabled: true, itemCount: 1, capturedAt: "2026-07-08T12:00:00.000Z", unavailableReason: null },
+      syncedAt: "2026-07-08T12:00:00.000Z"
+    };
+
+    expect(buildSyncDeltaSummary(null, next)).toBeNull();
+    expect(buildSyncDeltaSummary({ ...next, syncedAt: "2026-07-08T11:00:00.000Z" }, next)).toBeNull();
+  });
+
+  it("summarizes quest, diary, bank and accounttype changes between syncs", () => {
+    const summary = buildSyncDeltaSummary({
+      accountType: "normal",
+      questsCompleted: ["Cook's Assistant"],
+      diariesCompleted: [{ region: "Lumbridge & Draynor", tier: "Easy" }],
+      collectionLogItemIds: [4151],
+      bankItems: [{ id: 1511, name: "Logs", quantity: 6 }],
+      bankStatus: { enabled: true, itemCount: 1, capturedAt: "2026-07-08T11:00:00.000Z", unavailableReason: null },
+      syncedAt: "2026-07-08T11:00:00.000Z"
+    }, {
+      accountType: "ironman",
+      questsCompleted: ["Cook's Assistant", "Biohazard"],
+      diariesCompleted: [
+        { region: "Lumbridge & Draynor", tier: "Easy" },
+        { region: "Ardougne", tier: "Medium" }
+      ],
+      collectionLogItemIds: [4151, 11840],
+      bankItems: [
+        { id: 1511, name: "Logs", quantity: 6 },
+        { id: 954, name: "Rope", quantity: 1 }
+      ],
+      bankStatus: { enabled: true, itemCount: 2, capturedAt: "2026-07-08T12:00:00.000Z", unavailableReason: null },
+      syncedAt: "2026-07-08T12:00:00.000Z"
+    });
+
+    expect(summary).toMatchObject({
+      questsCompleted: ["Biohazard"],
+      diariesCompleted: [{ region: "Ardougne", tier: "Medium" }],
+      collectionLogItemIds: [11840],
+      bank: { previousItemCount: 1, currentItemCount: 2, itemCountChanged: true },
+      accountType: { previous: "normal", current: "ironman", changed: true }
+    });
+  });
+
   it("uses RuneLite sync as the authoritative account mode and bank signal for /next", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-07-08T13:00:00.000Z"));
@@ -80,7 +130,15 @@ describe("end-to-end syncflow regression contracts", () => {
         questsCompleted: ["Biohazard"],
         diariesCompleted: [{ region: "Ardougne", tier: "Easy" }],
         collectionLogItemIds: [],
-        bankStatus
+        bankStatus,
+        lastSyncSummary: {
+          previousSyncedAt: "2026-07-08T12:40:00.000Z",
+          questsCompleted: ["Biohazard"],
+          diariesCompleted: [],
+          collectionLogItemIds: [],
+          bank: null,
+          accountType: { previous: "ironman", current: "ironman", changed: false }
+        }
       },
       syncedSources: {
         wom: true,
@@ -107,6 +165,7 @@ describe("end-to-end syncflow regression contracts", () => {
       enabled: true,
       itemCount: 2
     });
+    expect(result.summary.lastSyncSummary?.questsCompleted).toEqual(["Biohazard"]);
     expect(pluginBankStatusLabel(bankStatus, result.summary.accountType)).toBe("Bank synced: 2 item stacks");
 
     vi.useRealTimers();

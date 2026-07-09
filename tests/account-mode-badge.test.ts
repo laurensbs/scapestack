@@ -7,6 +7,7 @@ describe("account mode badge UI", () => {
   const nextSource = readFileSync(join(process.cwd(), "src/app/next/next-client.tsx"), "utf8");
   const questSource = readFileSync(join(process.cwd(), "src/app/quests/[slug]/quest-detail-client.tsx"), "utf8");
   const pluginSource = readFileSync(join(process.cwd(), "src/components/plugin-sync-checker.tsx"), "utf8");
+  const bankSource = readFileSync(join(process.cwd(), "src/components/bank-result.tsx"), "utf8");
 
   it("renders account mode through the shared visual helper and helmet sprites", () => {
     expect(source).toContain("accountModeVisual");
@@ -19,5 +20,13 @@ describe("account mode badge UI", () => {
     expect(nextSource).toContain("<AccountModeBadge accountMode={accountMode} compact showSourceCopy />");
     expect(questSource).toContain("<AccountModeBadge accountType={accountType}");
     expect(pluginSource).toContain("<AccountModeBadge accountType={foundAccountType}");
+  });
+
+  it("uses shared planning tone instead of account labels only", () => {
+    expect(nextSource).toContain("accountModePlanningTone");
+    expect(questSource).toContain("planningTone.itemCopy");
+    expect(pluginSource).toContain("foundPlanningTone.tripCopy");
+    expect(bankSource).toContain("ACCOUNT_MODE_ICON_ITEM_IDS.ironman");
+    expect(bankSource).toContain("accountModePlanningTone(\"ironman\")");
   });
 });

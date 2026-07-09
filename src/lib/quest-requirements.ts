@@ -74,6 +74,14 @@ export interface QuestRequirementContext {
   accountType?: PlannerAccountType | null;
 }
 
+export interface RequirementTripDecision {
+  verdict: "Ready to start" | "Need things first" | "Train first" | "Items missing" | "Stage for UIM" | "Completed";
+  title: string;
+  beforeYouGo: string[];
+  stillMissing: string[];
+  finishAfter: string;
+}
+
 function cleanName(value: string): string {
   return value
     .toLowerCase()
@@ -234,6 +242,86 @@ export function questReadinessLabel(status: QuestReadinessStatus): string {
     default:
       return "Partially ready";
   }
+}
+
+function itemRequirementText(req: EvaluatedItemRequirement): string {
+  return req.quantity > 1 ? `${req.quantity}x ${req.name}` : req.name;
+}
+
+function itemOwnedLine(req: EvaluatedItemRequirement): string {
+  const name = req.ownedName ?? req.name;
+  if (req.ownedQuantity > 1) return `${req.ownedQuantity}x ${name} is in bank`;
+  return `${name} is in bank`;
+}
+
+function itemMissingLine(req: EvaluatedItemRequirement, bankNotApplicable: boolean): string {
+  const label = itemRequirementText(req);
+  if (bankNotApplicable) return `${label}: stage this before starting`;
+  if (req.ownedQuantity > 0) return `${label} missing; ${req.ownedQuantity} in bank`;
+  return `${label} missing`;
+}
+
+function questBlockerCount(evaluation: QuestRequirementEvaluation): number {
+  return evaluation.skillRequirements.filter((req) => !req.met).length
+    + evaluation.questRequirements.filter((req) => !req.met).length
+    + evaluation.itemRequirements.filter((req) => !req.met || evaluation.bank.notApplicable).length;
+}
+
+export function questTripDecision(evaluation: QuestRequirementEvaluation): RequirementTripDecision {
+  const skillGaps = evaluation.skillRequirements
+    .filter((req) => !req.met)
+    .map((req) => `Train ${req.skill} ${req.currentLevel} -> ${req.level}`);
+  const questGaps = evaluation.questRequirements
+    .filter((req) => !req.met)
+    .map((req) => `Finish ${req.name}`);
+  const itemGaps = (evaluation.bank.notApplicable ? evaluation.itemRequirements : evaluation.bank.missing)
+    .filter((req) => !req.ownedInBank || evaluation.bank.notApplicable)
+    .map((req) => itemMissingLine(req, evaluation.bank.notApplicable));
+  const ownedItems = evaluation.itemRequirements
+    .filter((req) => req.ownedInBank)
+    .map(itemOwnedLine);
+  const sourceLines = evaluation.itemRequirements
+    .filter((req) => !req.ownedInBank && req.availability.shortCopy)
+    .map((req) => req.availability.shortCopy);
+  const riskLines = evaluation.accountWarnings
+    .filter((warning) => /Hardcore|risky|risk/i.test(warning))
+    .slice(0, 1);
+  const missing = [...skillGaps, ...questGaps, ...itemGaps];
+  const blockerCount = missing.length;
+  const beforeYouGo = [
+    ...ownedItems,
+    ...sourceLines,
+    ...riskLines
+  ].filter((line, index, lines) => lines.indexOf(line) === index).slice(0, 5);
+  const verdict: RequirementTripDecision["verdict"] = evaluation.bank.notApplicable && evaluation.itemRequirements.length > 0
+    ? "Stage for UIM"
+    : skillGaps.length > 0
+      ? "Train first"
+      : itemGaps.length > 0
+        ? "Items missing"
+        : evaluation.readinessStatus === "ready-to-start"
+          ? "Ready to start"
+          : "Need things first";
+
+  return {
+    verdict,
+    title: verdict === "Ready to start"
+      ? "Ready to start"
+      : verdict === "Train first"
+        ? "Train first"
+        : verdict === "Items missing"
+          ? "Items missing"
+          : verdict === "Stage for UIM"
+            ? "Stage for UIM"
+            : `Need ${blockerCount || questBlockerCount(evaluation)} thing${(blockerCount || questBlockerCount(evaluation)) === 1 ? "" : "s"} first`,
+    beforeYouGo: beforeYouGo.length > 0
+      ? beforeYouGo
+      : evaluation.itemRequirements.length > 0
+        ? ["Open your bank once so item checks can confirm the prep."]
+        : ["No item prep listed for this quest."],
+    stillMissing: missing.length > 0 ? missing : ["Nothing obvious missing."],
+    finishAfter: `Finish ${evaluation.questName}, claim the unlock, then sync again.`
+  };
 }
 
 export function evaluateQuestRequirements(

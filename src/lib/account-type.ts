@@ -34,6 +34,15 @@ export interface AccountModeVisual {
   planningNote: string;
 }
 
+export interface AccountModePlanningTone {
+  type: PlannerAccountType | null;
+  title: string;
+  tripCopy: string;
+  itemCopy: string;
+  bankCopy: string;
+  routeCopy: string;
+}
+
 // IDs verified against local data/items.json on 2026-07-08:
 // 12810 Ironman helm, 20792 Hardcore ironman helm,
 // 12813 Ultimate ironman helm, 26156 Group ironman helm.
@@ -172,6 +181,67 @@ export function accountModeBankCopy(type: PlannerAccountType | null | undefined)
       return "Bank checks and buyable prep can be treated normally.";
     default:
       return "Bank readiness only counts when real bank data exists.";
+  }
+}
+
+export function accountModePlanningTone(type: PlannerAccountType | null | undefined): AccountModePlanningTone {
+  switch (type) {
+    case "regular":
+    case "skiller":
+    case "pure":
+      return {
+        type: type ?? "regular",
+        title: "Normal route",
+        tripCopy: "Buyable items can be bought or grabbed from your bank.",
+        itemCopy: "Buy or grab",
+        bankCopy: "Bank-ready means the item is already in your bank.",
+        routeCopy: "Fast buyable prep can stay near the top."
+      };
+    case "ironman":
+      return {
+        type,
+        title: "Ironman route",
+        tripCopy: "Source items yourself; shop, skilling and minigame sources matter.",
+        itemCopy: "Source yourself",
+        bankCopy: "Bank items count, missing items need a source route.",
+        routeCopy: "Self-sourceable unlock chains score higher."
+      };
+    case "hardcore":
+      return {
+        type,
+        title: "Hardcore route",
+        tripCopy: "Source items yourself and avoid risky combat when a safer path exists.",
+        itemCopy: "Source safely",
+        bankCopy: "Bank items count, but risky sources stay conservative.",
+        routeCopy: "Wilderness and risky bossing score lower unless the payoff is clear."
+      };
+    case "ultimate":
+      return {
+        type,
+        title: "UIM route",
+        tripCopy: "Stage, carry or store items before starting; normal bank-ready does not apply.",
+        itemCopy: "Stage before starting",
+        bankCopy: "Use a staging checklist instead of normal bank-ready.",
+        routeCopy: "Short staging actions score higher than long bank-dependent plans."
+      };
+    case "group":
+      return {
+        type,
+        title: "Group Ironman route",
+        tripCopy: "Your own bank is checked; group storage is not assumed.",
+        itemCopy: "Check own bank",
+        bankCopy: "Own bank checked; group storage is not verified.",
+        routeCopy: "Missing items are not treated as group-available."
+      };
+    default:
+      return {
+        type: null,
+        title: "Account mode unknown",
+        tripCopy: "Item checks stay conservative until RuneLite confirms the account mode.",
+        itemCopy: "Verify item source",
+        bankCopy: "Bank readiness only counts when real bank data exists.",
+        routeCopy: "Recommendations avoid assuming GE access or group storage."
+      };
   }
 }
 

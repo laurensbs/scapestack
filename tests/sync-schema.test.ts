@@ -4,11 +4,16 @@ import { SCHEMA_SQL } from "@/lib/sync-repo";
 
 const REQUIRED_PLAYER_SYNC_ALTERS = [
   "display_name",
+  "account_type",
+  "skills",
   "quests_completed",
   "diaries_completed",
   "collection_log_item_ids",
+  "bank_items",
+  "bank_status",
   "slayer",
   "plugin_version",
+  "sync_summary",
   "synced_at"
 ];
 
@@ -37,5 +42,14 @@ describe("sync schema migrations", () => {
     for (const column of [...REQUIRED_PLAYER_SYNC_ALTERS, ...REQUIRED_PLAYER_CLAIM_ALTERS]) {
       expect(script).toContain(`ADD COLUMN IF NOT EXISTS ${column}`);
     }
+  });
+
+  it("runs schema repair before synced player reads and writes", () => {
+    const source = readFileSync("src/lib/sync-repo.ts", "utf8");
+
+    expect(source).toContain("export async function ensureSyncSchema()");
+    expect(source).toContain("await ensureSyncSchema();");
+    expect(source).toContain("SELECT rsn, display_name, skills");
+    expect(source).toContain("INSERT INTO player_sync (rsn, display_name, account_type, skills");
   });
 });

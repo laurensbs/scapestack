@@ -234,6 +234,24 @@ public class ScapestackSyncPluginTest {
     }
 
     @Test
+    public void successMessageCallsOutNewQuestProgressFromServer() {
+        GameStateReader.Snapshot snapshot = new GameStateReader.Snapshot();
+        snapshot.questsCompleted = Collections.singletonList("Biohazard");
+        snapshot.diariesCompleted = Collections.emptyList();
+        snapshot.collectionLogItemIds = Collections.emptyList();
+
+        String message = ScapestackSyncPlugin.buildSyncSuccessMessage(
+            "Lynx Titan",
+            snapshot,
+            "https://www.scapestack.org/api/sync",
+            "{\"ok\":true,\"syncSummary\":{\"questsCompleted\":[\"Biohazard\"],\"diariesCompleted\":[],\"collectionLogItemIds\":[]}}"
+        );
+
+        assertEquals("ScapeStack synced. New quest progress found.", message);
+        assertNoPlayerTech(message);
+    }
+
+    @Test
     public void successMessageCallsOutIronmanModeWithoutDebugCopy() {
         GameStateReader.Snapshot snapshot = new GameStateReader.Snapshot();
         snapshot.accountType = "ironman";
@@ -480,6 +498,42 @@ public class ScapestackSyncPluginTest {
     }
 
     @Test
+    public void panelNextActionUsesPlayerInstructions() {
+        assertEquals(
+            "Open your bank once, then sync again",
+            ScapestackSyncPlugin.panelNextAction(
+                new GameStateReader.BankStatus(true, 0, null, "bank-not-opened-this-session"),
+                new CollectionLogReader.Status(true, 1, 100, 0),
+                "Synced"
+            )
+        );
+        assertEquals(
+            "Open Collection Log once, then sync again",
+            ScapestackSyncPlugin.panelNextAction(
+                new GameStateReader.BankStatus(false, 0, null, "opt-in-off"),
+                CollectionLogReader.Status.notOpened(),
+                "Synced"
+            )
+        );
+        assertEquals(
+            "Click a Collection Log category, then sync again",
+            ScapestackSyncPlugin.panelNextAction(
+                new GameStateReader.BankStatus(false, 0, null, "opt-in-off"),
+                new CollectionLogReader.Status(true, 1, 0, 0),
+                "Synced"
+            )
+        );
+        assertEquals(
+            "Open ScapeStack planner",
+            ScapestackSyncPlugin.panelNextAction(
+                new GameStateReader.BankStatus(true, 42, "2026-07-09T10:00:00Z", null),
+                new CollectionLogReader.Status(true, 1, 100, 5),
+                "Synced"
+            )
+        );
+    }
+
+    @Test
     public void syncWorkerIsDaemonAndNamedForReviewability() {
         Thread thread = ScapestackSyncPlugin.newSyncThread(() -> {});
 
@@ -519,8 +573,10 @@ public class ScapestackSyncPluginTest {
     private static void assertNoPlayerTech(String message) {
         String lower = message.toLowerCase();
         assertFalse(lower.contains("http"));
+        assertFalse(lower.contains("url"));
         assertFalse(lower.contains("endpoint"));
         assertFalse(lower.contains("payload"));
+        assertFalse(lower.contains("status code"));
         assertFalse(lower.contains("cl "));
         assertFalse(lower.contains("/next"));
     }

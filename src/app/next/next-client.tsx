@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   ArrowRight, ChevronRight, Edit3, Target, Sword, TrendingUp, Layers,
   Sparkles, Trophy, Gamepad2, Coins, Scroll, Map as MapIcon, Dices, ExternalLink,
-  Copy, CheckCheck, CheckCircle2, Shield, Trash2, ClipboardPaste, X
+  CheckCheck, CheckCircle2, Shield, Trash2, ClipboardPaste, X
 } from "lucide-react";
 import { SupportCard } from "@/components/support-card";
 import { BankSetupSteps } from "@/components/bank-setup-steps";
@@ -60,7 +60,7 @@ import { bankOrganizerHref } from "@/lib/bank-handoff-url";
 import { shouldReadNextBankHandoff, shouldReadNextHeroBank } from "@/lib/next-route-context";
 import { nextIntentFromSearch, type NextIntentPreset } from "@/lib/next-intent";
 import {
-  accountModeBankCopy,
+  accountModePlanningTone,
   accountModeVisual,
   isUltimatePlannerAccount,
   plannerAccountTypeLabel,
@@ -79,7 +79,6 @@ import {
   type RecommendationActionContext
 } from "@/lib/recommendation-action";
 import { exportTag } from "@/lib/bank-tags";
-import { copyText } from "@/lib/clipboard";
 import { cn, formatGp } from "@/lib/utils";
 import {
   NEXT_BANK_HANDOFF_KEY,
@@ -524,6 +523,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
           diariesCompleted: scapestackSync.diariesCompleted,
           collectionLogItemIds: scapestackSync.collectionLogItemIds,
           bankStatus: scapestackSync.bankStatus,
+          lastSyncSummary: scapestackSync.lastSyncSummary,
           slayer: scapestackSync.slayer
         } : undefined,
         syncedSources: {
@@ -860,10 +860,10 @@ function NextIntake({
         <div className="mb-3 flex items-baseline justify-between gap-3">
           <div>
             <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              Pick a route
+              Pick today&apos;s trip
             </div>
             <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-muted)]">
-              Pick the session you want, or let Scapestack choose the cleanest route.
+              Pick the kind of OSRS session you want, or let Scapestack choose.
             </p>
           </div>
         </div>
@@ -1276,7 +1276,7 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
   activeRsn: string;
   onEdit: () => void;
   // Called when the user clicks a KC-rec to open the boss detail modal.
-  // /next threads this from NextClient down to HeadlineCard + RecRow.
+  // /next threads this from NextClient down to the trip card + compact rows.
   onBossOpen: (slug: string) => void;
   onClearStoredBankHandoff: () => void;
   expectedPluginSync: boolean;
@@ -1331,12 +1331,16 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
         />
       </div>
 
+      <div style={trackAnim(90)}>
+        <LastSyncSummaryCard result={result} />
+      </div>
+
       <div style={trackAnim(150)}>
         <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-4 sm:p-5">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)] marker:hidden">
-            <span>More unlock moves and routes</span>
+            <span>More unlocks</span>
             <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
-              Closest unlocks, route blockers and bank gaps
+              Quests, diaries and bank checks after this trip
             </span>
           </summary>
           <div className="mt-4 space-y-4">
@@ -2142,7 +2146,7 @@ function NextBankContextStrip({
             href={toolHandoffUrl("/goals", "next", activeRsn)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
           >
-            Find unlock
+            Choose unlock
             <Target className="size-3.5" />
           </Link>
           <Link
@@ -2358,12 +2362,17 @@ function RouteIdentityStrip({ rec, active = false }: { rec: Recommendation; acti
   return (
     <div
       className="mt-3 flex flex-wrap items-start gap-2"
-      aria-label={`OSRS item and boss IDs for ${rec.title}`}
+      aria-label={`OSRS route icons for ${rec.title}`}
       data-route-id-strip="true"
     >
       {sprites.map((sprite, index) => (
         <span
           key={sprite.type === "boss" ? `boss:${sprite.slug}` : `item:${sprite.itemId}`}
+          title={sprite.type === "boss"
+            ? `${sprite.label}${sprite.itemId ? ` · item ID ${sprite.itemId}` : ""}`
+            : `${sprite.label} · item ID ${sprite.itemId}`}
+          data-route-boss-slug={sprite.type === "boss" ? sprite.slug : undefined}
+          data-route-item-id={sprite.type === "boss" ? sprite.itemId : sprite.itemId}
           className={cn(
             "group/sprite inline-flex min-w-[52px] flex-col items-center gap-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1.5 transition-transform duration-200",
             "hover:-translate-y-0.5 focus-within:-translate-y-0.5",
@@ -2381,17 +2390,41 @@ function RouteIdentityStrip({ rec, active = false }: { rec: Recommendation; acti
               <ItemSprite id={sprite.itemId} alt={sprite.label} size={26} className="pixelated" />
             )}
           </span>
-          <span className="max-w-[86px] truncate rounded border border-[var(--color-border)] bg-[var(--color-bg)]/65 px-1.5 py-0.5 text-[9px] font-black text-[var(--color-text-muted)] tabular-nums">
-            {sprite.type === "boss" ? `boss:${sprite.slug}` : `id:${sprite.itemId}`}
+          <span className="max-w-[86px] truncate text-[9px] font-black text-[var(--color-text-muted)]">
+            {sprite.label}
           </span>
-          {sprite.type === "boss" && sprite.itemId ? (
-            <span className="rounded border border-[var(--color-border)]/80 bg-[var(--color-bg)]/45 px-1.5 py-0.5 text-[8.5px] font-bold text-[var(--color-text-muted)] tabular-nums">
-              id:{sprite.itemId}
-            </span>
-          ) : null}
         </span>
       ))}
     </div>
+  );
+}
+
+function RoutePrimarySprite({ rec, active = false }: { rec: Recommendation; active?: boolean }) {
+  const sprite = routeIdentityForRecommendation(rec)[0] ?? null;
+  return (
+    <span
+      className={cn(
+        "grid size-11 shrink-0 place-items-center overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45",
+        active && "border-[var(--color-accent)]/40 bg-[var(--color-accent)]/10"
+      )}
+      title={sprite
+        ? sprite.type === "boss"
+          ? `${sprite.label}${sprite.itemId ? ` · item ID ${sprite.itemId}` : ""}`
+          : `${sprite.label} · item ID ${sprite.itemId}`
+        : KIND_META[rec.kind].label}
+      data-route-boss-slug={sprite?.type === "boss" ? sprite.slug : undefined}
+      data-route-item-id={sprite?.type === "item" ? sprite.itemId : sprite?.itemId}
+    >
+      {sprite ? (
+        sprite.type === "boss" ? (
+          <BossSprite boss={sprite.boss} size={36} />
+        ) : (
+          <ItemSprite id={sprite.itemId} alt={sprite.label} size={32} className="pixelated" />
+        )
+      ) : (
+        <KindGlyph kind={rec.kind} size={28} tone="accent" />
+      )}
+    </span>
   );
 }
 
@@ -2624,10 +2657,6 @@ function recommendationNeedsItemCheck(rec: Recommendation): boolean {
   return rec.kind === "quest" || rec.kind === "diary" || rec.kind === "goal" || rec.kind === "milestone";
 }
 
-function recommendationUsesTripBuilder(rec: Recommendation): boolean {
-  return recommendationNeedsCombatSetup(rec) || recommendationNeedsItemCheck(rec) || Boolean(skillBankConfigForRecommendation(rec));
-}
-
 function recommendationNeeds(rec: Recommendation): string[] {
   const hints = defaultActionHints(rec.kind);
   return (rec.needs?.length ? rec.needs : hints.needs).slice(0, 3);
@@ -2639,7 +2668,7 @@ function recommendationFirstStepValue(rec: Recommendation): string {
 
 function recommendationStopPointValue(rec: Recommendation): string {
   const plan = rec.actionPlan;
-  return plan?.steps.at(-1) ?? "Stop when the trip starts dragging.";
+  return plan?.steps.at(-1) ?? "Finish after one clear trip.";
 }
 
 function recommendationBringValue(rec: Recommendation): string {
@@ -2672,6 +2701,118 @@ type TripBuilderPlan = {
   tagName: string;
   tag: string | null;
 };
+
+type NextTripLine = {
+  label: "Before you leave" | "Grab from bank" | "Stage for UIM" | "Still missing" | "Finish after" | "Account mode";
+  value: string;
+  tone?: "default" | "good" | "warn";
+};
+
+function trimTripLine(value: string, max = 118): string {
+  const clean = playerRouteLine(value).replace(/\s+/g, " ").trim();
+  return clean.length > max ? `${clean.slice(0, max - 3).trim()}...` : clean;
+}
+
+function nextTripBeforeLines(rec: Recommendation): string[] {
+  const candidates = [
+    rec.actionPlan?.prep,
+    recommendationFirstStepValue(rec)
+  ].filter((line): line is string => Boolean(line?.trim()));
+  const seen = new Set<string>();
+  return candidates
+    .map((line) => trimTripLine(line))
+    .filter((line) => line && !isWeakRouteLine(line))
+    .filter((line) => {
+      const key = line.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 2);
+}
+
+function nextTripMissingLine(rec: Recommendation, trip: TripBuilderPlan): string | null {
+  const needs = recommendationNeeds(rec).map((need) => trimTripLine(need, 92)).filter((need) => !isWeakRouteLine(need));
+  const missing = trip.missing.map((item) => trimTripLine(item, 72)).filter((item) => !isWeakRouteLine(item));
+  const joined = [...needs, ...missing]
+    .filter(Boolean)
+    .filter((line, index, arr) => arr.findIndex((candidate) => candidate.toLowerCase() === line.toLowerCase()) === index)
+    .slice(0, 3)
+    .join(" · ");
+  return joined || null;
+}
+
+function nextTripBankLine(
+  trip: TripBuilderPlan,
+  hasBankContext: boolean,
+  accountMode: NextUpResult["summary"]["accountMode"]
+): NextTripLine | null {
+  if (!hasBankContext || trip.bring.length === 0) return null;
+  const value = trip.bring
+    .map((item) => trimTripLine(item, 58))
+    .filter((item) => !isWeakRouteLine(item))
+    .slice(0, 4)
+    .join(", ");
+  if (!value) return null;
+  return {
+    label: accountMode.type === "ultimate" ? "Stage for UIM" : "Grab from bank",
+    value,
+    tone: "good"
+  };
+}
+
+function nextTripLines({
+  rec,
+  hasBankContext,
+  bankItems,
+  accountMode
+}: {
+  rec: Recommendation;
+  hasBankContext: boolean;
+  bankItems: BankHandoffItem[];
+  accountMode: NextUpResult["summary"]["accountMode"];
+}): NextTripLine[] {
+  const trip = buildRecommendationTrip(rec, bankItems, hasBankContext);
+  const before = nextTripBeforeLines(rec);
+  const lines: NextTripLine[] = [];
+
+  if (before.length > 0) {
+    lines.push({
+      label: "Before you leave",
+      value: before.join(" "),
+      tone: "default"
+    });
+  }
+
+  const bankLine = nextTripBankLine(trip, hasBankContext, accountMode);
+  if (bankLine) lines.push(bankLine);
+
+  const missing = nextTripMissingLine(rec, trip);
+  if (missing) {
+    lines.push({
+      label: "Still missing",
+      value: missing,
+      tone: "warn"
+    });
+  }
+
+  lines.push({
+    label: "Finish after",
+    value: trimTripLine(recommendationStopPointValue(rec), 118),
+    tone: "default"
+  });
+
+  if (accountMode.type !== "regular" || accountMode.confidence === "unknown") {
+    const tone = accountModePlanningTone(accountMode.confidence === "unknown" ? null : accountMode.type);
+    lines.push({
+      label: "Account mode",
+      value: tone.tripCopy,
+      tone: accountMode.confidence === "unknown" ? "warn" : "default"
+    });
+  }
+
+  return lines.slice(0, 5);
+}
 
 function tripItemMatches(item: BankHandoffItem, keywords: readonly string[]): boolean {
   const haystack = `${item.name} ${item.subtab}`.toLowerCase();
@@ -2819,6 +2960,22 @@ function compactActionLabel(rec: Recommendation, actionLabel: string): string {
     .trim() || "Open";
 }
 
+function nextTripCtaLabel(rec: Recommendation, actionLabel: string): string {
+  if (rec.kind === "boss" || rec.kind === "kc") return "Check kill";
+  if (rec.kind === "bank") return "Set up bank";
+  if (rec.kind === "quest") return "Open quest";
+  if (rec.kind === "diary") return "Open diary";
+  if (rec.kind === "slayer") return "Open task";
+  if (rec.kind === "skill") return "Start training";
+  if (rec.kind === "money") return "Open route";
+  return actionLabel || "Start this trip";
+}
+
+function nextTripContextLabel(rec: Recommendation): string {
+  if (rec.kind === "kc") return "Boss";
+  return KIND_META[rec.kind]?.label ?? "Trip";
+}
+
 function recommendationWhyNot({
   headline,
   allRecs,
@@ -2881,7 +3038,7 @@ function recommendationAvoidance(rec: Recommendation): string {
     case "boss":
       return "Do not buy upgrades before DPS proves the trip is worth it.";
     case "skill":
-      return "Stop at the unlock unless you actually want an AFK grind.";
+      return "Finish after the unlock unless you actually want an AFK grind.";
     case "quest":
     case "diary":
       return "Do not start if the prereq chain makes this a long session.";
@@ -2898,160 +3055,6 @@ function recommendationAvoidance(rec: Recommendation): string {
     default:
       return "Keep it to one clear stop point, then choose again.";
   }
-}
-
-function sessionBoardBankSignal(
-  hasBankContext: boolean,
-  accountType: PlannerAccountType | null,
-  pluginBankStatus?: PluginBankStatus | null
-): { value: string; tone: "good" | "warn" | "neutral" } {
-  if (isUltimatePlannerAccount(accountType)) {
-    return {
-      value: accountModeBankCopy(accountType),
-      tone: "warn"
-    };
-  }
-  if (accountType === "group" && hasBankContext) {
-    return {
-      value: accountModeBankCopy(accountType),
-      tone: "good"
-    };
-  }
-  if (pluginBankStatus) {
-    const tone = pluginBankStatusTone(pluginBankStatus);
-    return {
-      value: pluginBankStatusLabel(pluginBankStatus),
-      tone: tone === "muted" ? "neutral" : tone
-    };
-  }
-  return {
-    value: hasBankContext ? "Bank check is shaping this pick." : "No bank check yet.",
-    tone: hasBankContext ? "good" : "neutral"
-  };
-}
-
-function sessionBoardItems({
-  rec,
-  hasBankContext,
-  accountMode,
-  pluginBankStatus,
-  skipReason
-}: {
-  rec: Recommendation;
-  hasBankContext: boolean;
-  accountMode: NextUpResult["summary"]["accountMode"];
-  pluginBankStatus?: PluginBankStatus | null;
-  skipReason: string | null;
-}): Array<{ label: string; value: string; tone: "good" | "warn" | "neutral" }> {
-  const prep = rec.actionPlan?.prep?.trim() || rec.planSeed?.prep?.trim() || "Open the linked guide or tool first.";
-  const blocker = rec.needs?.find((need) => need.trim())?.trim();
-  const payoff = headlinePayoff(rec) || rec.payoff?.trim();
-  const bankSignal = sessionBoardBankSignal(hasBankContext, accountMode.type, pluginBankStatus);
-  const items: Array<{ label: string; value: string; tone: "good" | "warn" | "neutral" }> = [
-    {
-      label: "Start",
-      value: recommendationFirstStepValue(rec),
-      tone: "neutral"
-    },
-    {
-      label: "Check first",
-      value: prep.length > 72 ? `${prep.slice(0, 69).trim()}...` : prep,
-      tone: "neutral"
-    },
-    {
-      label: accountMode.type === "ultimate" ? "Carry" : "Bank",
-      value: bankSignal.value,
-      tone: bankSignal.tone
-    },
-    {
-      label: "Stop",
-      value: rec.actionPlan?.timebox || payoff || "Stop after one clear completion.",
-      tone: "neutral"
-    }
-  ];
-
-  if (blocker) {
-    items.push({
-      label: "Blocked by",
-      value: blocker.length > 72 ? `${blocker.slice(0, 69).trim()}...` : blocker,
-      tone: "warn"
-    });
-  } else if (skipReason) {
-    items.push({
-      label: "If not this",
-      value: skipReason.length > 72 ? `${skipReason.slice(0, 69).trim()}...` : skipReason,
-      tone: "neutral"
-    });
-  }
-
-  if (accountMode.confidence === "unknown" || accountMode.type !== "regular") {
-    const visual = accountModeVisual(accountMode.type, accountMode.confidence);
-    items.push({
-      label: "Account",
-      value: accountMode.type === "ultimate"
-        ? "UIM: treat items as a staging list, not a bank checklist."
-        : accountMode.confidence === "unknown"
-          ? "Mode unknown: item checks stay cautious."
-          : visual.sourceCopy.length > 72
-            ? `${visual.sourceCopy.slice(0, 69).trim()}...`
-            : visual.sourceCopy,
-      tone: accountMode.confidence === "unknown" ? "warn" : "neutral"
-    });
-  }
-
-  return items;
-}
-
-function SessionBoardStrip({
-  rec,
-  hasBankContext,
-  accountMode,
-  pluginBankStatus,
-  skipReason
-}: {
-  rec: Recommendation;
-  hasBankContext: boolean;
-  accountMode: NextUpResult["summary"]["accountMode"];
-  pluginBankStatus?: PluginBankStatus | null;
-  skipReason: string | null;
-}) {
-  return (
-    <div className="mt-4 rounded-lg border border-[var(--color-border)]/75 bg-[var(--color-bg)]/24 px-3.5 py-3">
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <p className="text-[12px] font-bold text-[var(--color-text)]">Start here</p>
-        <p className="text-[11px] font-semibold text-[var(--color-text-muted)]">One step, then re-check</p>
-      </div>
-      <dl className="divide-y divide-[var(--color-border)]/50">
-      {sessionBoardItems({ rec, hasBankContext, accountMode, pluginBankStatus, skipReason }).map((item) => (
-        <div
-          key={item.label}
-          className={cn(
-            "grid gap-1 py-2.5 sm:grid-cols-[92px_minmax(0,1fr)] sm:gap-3",
-            item.tone === "warn" && "text-[var(--color-warning)]"
-          )}
-        >
-          <dt className={cn(
-            "text-[11px] font-bold text-[var(--color-accent)]",
-            item.tone === "warn" && "text-[var(--color-warning)]",
-            item.tone === "good" && "text-[var(--color-good)]"
-          )}>
-            {item.label}
-          </dt>
-          <dd className={cn(
-            "text-[12.5px] font-semibold leading-relaxed",
-            item.tone === "good"
-              ? "text-[var(--color-good)]"
-              : item.tone === "warn"
-                ? "text-[var(--color-warning)]"
-                : "text-[var(--color-text-dim)]"
-          )}>
-            {item.value}
-          </dd>
-        </div>
-      ))}
-      </dl>
-    </div>
-  );
 }
 
 function backupChoicePrompt(rec: Recommendation, headline: Recommendation): { label: string; helper: string } {
@@ -3363,12 +3366,8 @@ function routeStepStart(rec: Recommendation): string {
 function routeMissingValue(rec: Recommendation): string {
   const hints = defaultActionHints(rec.kind);
   const needs = rec.needs ?? hints.needs;
-  if (needs.length === 0) return "Nothing obvious; check the setup before leaving.";
+  if (needs.length === 0) return "";
   return needs.slice(0, 3).join(" · ");
-}
-
-function routeWorthValue(rec: Recommendation): string {
-  return headlinePayoff(rec) ?? rec.payoff ?? rec.why;
 }
 
 function routeStepBring(
@@ -3387,11 +3386,80 @@ function routeStepBring(
   return recommendationBringValue(rec);
 }
 
-function routeCardPositionLabel(index: number): string {
-  if (index === 0) return "Best now";
-  if (index === 1) return "Backup";
-  if (index === 2) return "Another option";
-  return "Later option";
+function routeCardDetailLines(
+  rec: Recommendation,
+  bankItems: BankHandoffItem[],
+  accountStage: NextUpResult["summary"]["accountStage"],
+  maxEstimate: HoursToMaxSummary | null = null
+): string[] {
+  const candidates = [
+    routeStepStart(rec),
+    routeStepBring(rec, bankItems, accountStage, maxEstimate),
+    routeMissingValue(rec),
+    recommendationStopPointValue(rec)
+  ];
+  const seen = new Set<string>();
+  return candidates
+    .flatMap((line) => playerRouteLine(line).split(/\s+·\s+/))
+    .map(routeChecklistLine)
+    .filter((line) => line && !isWeakRouteLine(line))
+    .filter((line) => {
+      const key = line.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 3);
+}
+
+function playerRouteLine(line: string): string {
+  return line
+    .replace(/\/next/g, "your plan")
+    .replace(new RegExp("Stop\\s+" + "when:?\\s*", "gi"), "Finish after ")
+    .replace(/Payoff:\s*/gi, "")
+    .replace(/re-run your plan/gi, "check your plan again")
+    .replace(new RegExp("^Stop " + "when\\s+", "i"), "Finish after ")
+    .replace(/Re-sync or paste your bank again after the drop\/unlock so the set disappears from your plan\./i, "Sync again after the unlock so it disappears from your plan.")
+    .replace(/Copy the cleaned tabs into RuneLite when the layout feels usable\./i, "Copy the cleaned tabs into RuneLite when the layout feels right.")
+    .trim();
+}
+
+function routeChecklistLine(line: string): string {
+  const clean = line
+    .replace(/^(?:start|bring|check|missing|stop|do):\s*/i, "")
+    .replace(/^Open the (.+?) goal set and confirm the missing pieces?\.$/i, "Open $1 and check the missing piece.")
+    .replace(/^Missing:\s*/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!clean) return "";
+  return clean.endsWith(".") ? clean : `${clean}.`;
+}
+
+function isWeakRouteLine(line: string): boolean {
+  const clean = line.replace(/\.$/, "").trim().toLowerCase();
+  if (!clean) return true;
+  if (/^(find unlock|choose unlock|check gear|check setup|quest items check|check the missing piece|check quest\/diary items|no safer route flagged)$/.test(clean)) return true;
+  if (/^nothing obvious/.test(clean)) return true;
+  if (/^add bank before trusting gear/.test(clean)) return true;
+  return false;
+}
+
+function routeCardStatusLabel(rec: Recommendation, detailLines: string[]): string {
+  const combined = detailLines.join(" ");
+  const skillGap = combined.match(/\b([A-Z][A-Za-z ]{2,18})\s+(\d{1,2})\/(\d{1,2})\b/);
+  if (skillGap) return `Need ${skillGap[3]} ${skillGap[1].trim()}`;
+
+  const missingItem = combined.match(/\b(?:missing|buy or grab|source|stage)\s+(?:\d+\s+)?([a-z][a-z' -]{2,32}?)(?:[.;]|$)/i);
+  if (missingItem) return `Missing ${missingItem[1].trim()}`;
+
+  const levelGap = combined.match(/\b(\d+)\s+level(?:s)?\s+to\s+go\b/i);
+  if (levelGap) return `${levelGap[1]} level${levelGap[1] === "1" ? "" : "s"} left`;
+
+  if (detailLines.length === 0) return "Ready";
+  if (detailLines.length === 1) return "1 thing left";
+  if (rec.kind === "boss" || rec.kind === "kc") return "Gear check";
+  return `${detailLines.length} things left`;
 }
 
 function RouteCard({
@@ -3411,8 +3479,10 @@ function RouteCard({
   accountStage: NextUpResult["summary"]["accountStage"];
   maxEstimate: HoursToMaxSummary | null;
 }) {
-  const choice = playerChoiceTag(rec);
   const panelId = `next-route-card-${index}-${rec.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+  const detailLines = routeCardDetailLines(rec, bankItems, accountStage, maxEstimate);
+  const statusLabel = routeCardStatusLabel(rec, detailLines);
+  const checklistLines = detailLines.length ? detailLines : ["Ready to start."];
 
   return (
     <article
@@ -3431,27 +3501,26 @@ function RouteCard({
         onClick={onToggle}
         aria-expanded={expanded}
         aria-controls={panelId}
-        className="group flex w-full flex-col gap-3 px-3.5 py-3 text-left sm:flex-row sm:items-center"
+        className="group grid w-full grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3 px-3.5 py-3 text-left"
       >
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 text-[11px] font-black text-[var(--color-accent)] tabular-nums">
-          {index + 1}
-        </span>
+        <RoutePrimarySprite rec={rec} active={expanded} />
         <span className="min-w-0 flex-1">
-          <span className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-0.5 text-[9.5px] font-black uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
-              {routeCardPositionLabel(index)}
-            </span>
-            <span className="rounded-full border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-2 py-0.5 text-[9.5px] font-bold text-[var(--color-accent)]">
-              {choice.label}
-            </span>
-          </span>
-          <span className="mt-1.5 block text-[15px] font-black leading-tight text-[var(--color-text)] sm:text-[16px]">
+          <span className="block truncate text-[15px] font-black leading-tight text-[var(--color-text)] sm:text-[16px]">
             {rec.title}
           </span>
-          <RouteIdentityStrip rec={rec} active={expanded} />
+          <span
+            className={cn(
+              "mt-1 inline-flex max-w-full rounded-full border px-2 py-0.5 text-[10px] font-bold",
+              statusLabel === "Ready"
+                ? "border-[var(--color-good)]/30 bg-[var(--color-good)]/10 text-[var(--color-good)]"
+                : "border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
+            )}
+          >
+            <span className="truncate">{statusLabel}</span>
+          </span>
         </span>
-        <span className="inline-flex items-center gap-1 self-start rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)] transition-colors group-hover:border-[var(--color-accent)]/35 group-hover:text-[var(--color-accent)] sm:self-center">
-          {expanded ? "Hide" : "Open"}
+        <span className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)] transition-colors group-hover:border-[var(--color-accent)]/35 group-hover:text-[var(--color-accent)]">
+          Open
           <ChevronRight className={cn("size-3 transition-transform", expanded && "rotate-90")} />
         </span>
       </button>
@@ -3459,13 +3528,16 @@ function RouteCard({
       {expanded && (
         <div
           id={panelId}
-          className="grid gap-2 border-t border-[var(--color-border)] px-3.5 pb-3 pt-3 sm:grid-cols-2 xl:grid-cols-5"
+          className="border-t border-[var(--color-border)] px-3.5 pb-3 pt-3"
         >
-          <RouteStepBrief label="Do" value={routeStepStart(rec)} tone="accent" />
-          <RouteStepBrief label="Bring/check" value={routeStepBring(rec, bankItems, accountStage, maxEstimate)} />
-          <RouteStepBrief label="Missing" value={routeMissingValue(rec)} />
-          <RouteStepBrief label="Stop when" value={recommendationStopPointValue(rec)} />
-          <RouteStepBrief label="Worth it because" value={routeWorthValue(rec)} />
+          <ul className="space-y-2 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+            {checklistLines.map((line) => (
+              <li key={line} className="flex gap-2">
+                <span className="mt-[0.55em] size-1.5 shrink-0 rounded-full bg-[var(--color-accent)]" />
+                <span>{line}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </article>
@@ -3500,10 +3572,10 @@ function RouteChain({
     <>
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
         <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-          Pick a path
+          Choose another trip
         </span>
         <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">
-          Click an unlock, item or boss to see the exact trip.
+          Open a card only if the first trip is not your mood.
         </span>
       </div>
       <div className="space-y-2.5">
@@ -3623,120 +3695,6 @@ function RecommendationSessionSummary({
   );
 }
 
-function TripBuilder({
-  rec,
-  bankItems,
-  hasBankContext,
-  maxEstimate
-}: {
-  rec: Recommendation;
-  bankItems: BankHandoffItem[];
-  hasBankContext: boolean;
-  maxEstimate: HoursToMaxSummary | null;
-}) {
-  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
-  const trip = useMemo(
-    () => buildRecommendationTrip(rec, bankItems, hasBankContext),
-    [rec, bankItems, hasBankContext]
-  );
-  const skillingSummary = useMemo(
-    () => skillingBankSummaryForRecommendation(rec, bankItems, maxEstimate),
-    [rec, bankItems, maxEstimate]
-  );
-
-  const copyBankTag = async () => {
-    if (!trip.tag) return;
-    const ok = await copyText(trip.tag);
-    setCopyState(ok ? "copied" : "failed");
-    window.setTimeout(() => setCopyState("idle"), 1800);
-  };
-
-  return (
-    <details
-      className="group mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3"
-    >
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden [&::-webkit-details-marker]:hidden">
-        <span>
-          <span className="block text-[12px] font-bold text-[var(--color-text)]">
-            {skillingSummary ? "Show banked skilling stack" : "Show exact items"}
-          </span>
-          <span className="mt-0.5 block text-[11px] font-semibold text-[var(--color-text-muted)]">
-            {skillingSummary
-              ? skillingSummary.bankXp > 0
-                ? "Bank stack, XP left and when to stop."
-                : `No ${skillingSummary.suppliesLabel} found.`
-              : "Bring list, teleport and Bank Tag."}
-          </span>
-        </span>
-        <span className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)] transition-colors group-open:border-[var(--color-accent)]/35 group-open:text-[var(--color-accent)]">
-          <span className="group-open:hidden">Show</span>
-          <span className="hidden group-open:inline">Hide</span>
-        </span>
-      </summary>
-
-      {skillingSummary && (
-        <div className="mt-3 rounded-md border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 p-3">
-          <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">
-            {skillingSummary.skill} route
-          </div>
-          <div className="grid gap-2 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)] sm:grid-cols-2">
-            <p><span className="text-[var(--color-text)]">Need:</span> {skillingSummary.xpRemaining === null ? "Re-check Hiscores" : formatXp(skillingSummary.xpRemaining)}</p>
-            <p><span className="text-[var(--color-text)]">Bank:</span> {skillingSummary.bankItemsLabel}</p>
-            <p><span className="text-[var(--color-text)]">Use:</span> {skillingSummary.bankXp > 0 ? `~${formatXp(skillingSummary.bankXp)}` : `No ${skillingSummary.suppliesLabel} found`}</p>
-            <p><span className="text-[var(--color-text)]">Stop:</span> {skillingSummary.remainingAfterBank === null ? "Re-check level gap" : skillingSummary.remainingAfterBank === 0 ? "99 covered" : `${formatXp(skillingSummary.remainingAfterBank)} left`}</p>
-          </div>
-        </div>
-      )}
-
-      <div className="mt-3 grid gap-2 sm:grid-cols-3">
-        <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-2.5">
-          <div className="mb-1 text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-            Bring
-          </div>
-          <p className="text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-            {trip.bring.length ? trip.bring.join(", ") : "Check setup before leaving the bank."}
-          </p>
-        </div>
-        <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-2.5">
-          <div className="mb-1 text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-            Teleport
-          </div>
-          <p className="text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">{trip.teleport}</p>
-        </div>
-        <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-2.5">
-          <div className="mb-1 text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-            Missing
-          </div>
-          <p className="text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-            {trip.missing.length ? trip.missing.join(", ") : "Looks ready enough for one short run."}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-2.5 py-2">
-        <p className="min-w-0 text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
-          Stop: <span className="text-[var(--color-text-dim)]">{trip.stopPoint}</span>
-        </p>
-        {trip.tag ? (
-          <button
-            type="button"
-            onClick={copyBankTag}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-1.5 text-[11.5px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
-            aria-label={`Copy RuneLite Bank Tag for ${rec.title}`}
-          >
-            {copyState === "copied" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
-            {copyState === "copied" ? "Bank Tag copied" : copyState === "failed" ? "Try copy again" : "Copy Bank Tag"}
-          </button>
-        ) : (
-          <span className="shrink-0 rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
-            Add bank to build a Bank Tag.
-          </span>
-        )}
-      </div>
-    </details>
-  );
-}
-
 function ActionPlanBlock({ rec, compact = false }: { rec: Recommendation; compact?: boolean }) {
   const plan = rec.actionPlan;
   if (!plan) return null;
@@ -3793,152 +3751,247 @@ function ActionPlanBlock({ rec, compact = false }: { rec: Recommendation; compac
   );
 }
 
-// The headline — the one thing the hub most wants the player to do. Big,
-// route-accented, with the payoff and a direct link into the relevant tool.
-function HeadlineCard({
+function LastSyncSummaryCard({ result }: { result: NextUpResult }) {
+  const summary = result.summary.lastSyncSummary;
+  const lines = lastSyncSummaryLines(result);
+  if (!summary || lines.length === 0) return null;
+
+  return (
+    <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 px-4 py-3 sm:px-5" data-last-sync-summary="true">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <p className="eyebrow text-[var(--color-accent)]">Since last sync</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {lines.slice(0, 4).map((line) => (
+              <span
+                key={line}
+                className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1 text-[11.5px] font-bold text-[var(--color-text-dim)]"
+              >
+                {line}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div className="min-w-0 text-[12px] font-semibold leading-relaxed text-[var(--color-text-muted)] sm:max-w-[360px] sm:text-right">
+          {nextCleanTripLine(result)}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function lastSyncSummaryLines(result: NextUpResult): string[] {
+  const summary = result.summary.lastSyncSummary;
+  if (!summary) return [];
+  const lines: string[] = [];
+  const completed = [
+    ...summary.questsCompleted.slice(0, 2),
+    ...summary.diariesCompleted.slice(0, 2).map((diary) => `${diary.region} ${diary.tier}`)
+  ];
+  if (completed.length > 0) {
+    lines.push(`${completed.join(", ")} completed`);
+    const open = result.nextBestActions[0]?.relevantQuestOrUnlock || result.nextBestActions[0]?.title || result.headline?.title;
+    if (open) lines.push(`Now open: ${open}`);
+    lines.push("Completed unlocks are skipped now");
+  }
+  if (summary.collectionLogItemIds.length > 0) {
+    const count = summary.collectionLogItemIds.length;
+    lines.push(`${count} collection log item${count === 1 ? "" : "s"} added`);
+  }
+  if (summary.bank) {
+    if (summary.bank.currentItemCount > 0) {
+      lines.push(`Bank now has ${summary.bank.currentItemCount.toLocaleString()} item stacks`);
+    } else if (summary.bank.currentUnavailableReason === "bank-not-opened-this-session") {
+      lines.push("Open your bank once, then sync again");
+    } else if (summary.bank.currentUnavailableReason === "opt-in-off") {
+      lines.push("Bank checks are off");
+    }
+  }
+  if (summary.accountType.changed) {
+    lines.push(`${scapestackAccountTypeLabel(summary.accountType.current)} detected`);
+  }
+  return lines;
+}
+
+function nextCleanTripLine(result: NextUpResult): string | null {
+  const title = result.headline?.title || result.nextBestActions[0]?.title;
+  return title ? `Next clean trip: ${title}` : null;
+}
+
+function scapestackAccountTypeLabel(type: string): string {
+  if (type === "ironman") return "Ironman";
+  if (type === "hardcore_ironman") return "Hardcore Ironman";
+  if (type === "ultimate_ironman") return "Ultimate Ironman";
+  if (type === "group_ironman") return "Group Ironman";
+  return "Normal account";
+}
+
+function NextTripCard({
   rec,
   allRecs,
   actionContext,
   onBossOpen,
+  onSuppress,
+  onComplete,
+  onShowSteps,
+  stepsOpen,
   mood,
-  minutes,
   hasBankContext,
   bankItems,
-  accountStage,
-  accountType,
   accountMode,
-  maxEstimate,
-  pluginSyncState,
-  pluginBankStatus
+  pluginSyncState
 }: {
   rec: Recommendation;
   allRecs: Recommendation[];
   actionContext: RecommendationActionContext;
   onBossOpen: (slug: string) => void;
+  onSuppress: (rec: Recommendation) => void;
+  onComplete: (rec: Recommendation) => void;
+  onShowSteps: () => void;
+  stepsOpen: boolean;
   mood: Mood;
-  minutes: TimeBudget;
   hasBankContext: boolean;
   bankItems: BankHandoffItem[];
-  accountStage: NextUpResult["summary"]["accountStage"];
-  accountType: PlannerAccountType | null;
   accountMode: NextUpResult["summary"]["accountMode"];
-  maxEstimate: HoursToMaxSummary | null;
   pluginSyncState: "live" | "stale" | "outdated" | null;
-  pluginBankStatus?: PluginBankStatus | null;
 }) {
-  // Boss/KC recs expose an explicit modal button. Other kinds expose an
-  // explicit route button. The article itself is not a fake button because
-  // the card also contains Wiki/copy/detail controls.
   const isBossWithDetail = (rec.kind === "kc" || rec.kind === "boss") && !!rec.bossSlug;
   const primaryAction = primaryActionForRecommendation(rec, actionContext);
-  const actionLabel = isBossWithDetail ? "Check kill" : primaryAction.label;
-  const headlineCtaLabel = compactActionLabel(rec, actionLabel);
+  const actionLabel = nextTripCtaLabel(rec, isBossWithDetail ? "Check kill" : primaryAction.label);
   const actionHref = isBossWithDetail ? undefined : primaryAction.href;
-  const choice = playerChoiceTag(rec);
-  const oneLineReason = headlineOneLineReason(rec);
-  const bossViability = bossViabilityForRecommendation(rec, bankItems, hasBankContext);
-  const skipReason = recommendationWhyNot({ headline: rec, allRecs, mood, hasBankContext, pluginSyncState });
-  const card = (
-    <article
-      className={cn(
-        "scapestack-plan-panel relative overflow-hidden p-4 sm:p-5",
-        (actionHref || isBossWithDetail) && "transition-colors hover:border-[var(--color-accent)]/45"
-      )}
-    >
-      <div className="grid gap-4 sm:grid-cols-[72px_minmax(0,1fr)] sm:items-start">
-        <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 text-[var(--color-accent)] sm:size-[68px]">
+  const lines = nextTripLines({ rec, hasBankContext, bankItems, accountMode });
+  const reason = headlineOneLineReason(rec);
+  const whyNot = recommendationWhyNot({ headline: rec, allRecs, mood, hasBankContext, pluginSyncState });
+
+  const actionClass = "inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-[var(--color-accent)]/45 bg-[var(--color-accent)] px-4 py-2 text-[12.5px] font-black text-black transition-colors hover:bg-[var(--color-accent)]/90";
+
+  return (
+    <article className="scapestack-plan-panel relative overflow-hidden p-4 sm:p-5 lg:p-6" data-next-trip-card="true">
+      <div className="grid gap-4 sm:grid-cols-[76px_minmax(0,1fr)]">
+        <div className="grid size-[72px] shrink-0 place-items-center overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 text-[var(--color-accent)]">
           {rec.kind === "kc" && rec.bossSlug ? (
-            <KcPortrait rec={rec} size={56} />
+            <KcPortrait rec={rec} size={62} />
           ) : rec.iconItemId ? (
             <ItemSprite
               id={rec.iconItemId}
               alt=""
               className="pixelated"
-              size={46}
+              size={52}
               style={{ imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
             />
           ) : (
-            <KindGlyph kind={rec.kind} size={34} tone="accent" />
+            <KindGlyph kind={rec.kind} size={38} tone="accent" />
           )}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="mb-2 flex flex-wrap items-center gap-1.5">
-            <span className="eyebrow text-[var(--color-accent)]">Do this first</span>
-            <AccountModeBadge accountMode={accountMode} compact />
-            <span
-              className="scapestack-status-badge"
-              data-tone="prep"
-              title={choice.helper}
-            >
-              {choice.label}
+
+        <div className="min-w-0">
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <span className="eyebrow text-[var(--color-accent)]">Next trip</span>
+            <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/40 px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
+              {nextTripContextLabel(rec)}
             </span>
-            {bossViability && (
-              <span
-                className={cn(
-                  "rounded-full border px-2 py-0.5 text-[10.5px] font-bold",
-                  bossViabilityBadgeClass(bossViability)
-                )}
-                title={bossViability.summary}
-              >
-                {bossViabilityBadgeText(bossViability)}
-              </span>
-            )}
+            <AccountModeBadge accountMode={accountMode} compact />
           </div>
-          <h3 className="text-[19px] font-bold text-[var(--color-text)] tracking-normal leading-tight">
+
+          <h2 className="text-[24px] font-black leading-tight tracking-normal text-[var(--color-text)] sm:text-[30px]">
             {rec.title}
-          </h3>
-          <p className="mt-2 flex items-start gap-1.5 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
-            <Sparkles className="mt-0.5 size-3.5 shrink-0 text-[var(--color-gold-soft)]" />
-            <span>{oneLineReason}</span>
+          </h2>
+          <p className="mt-2 max-w-2xl text-[13px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+            {reason}
           </p>
-          <SessionBoardStrip
-            rec={rec}
-            hasBankContext={hasBankContext}
-            accountMode={accountMode}
-            pluginBankStatus={pluginBankStatus}
-            skipReason={skipReason}
-          />
-          {recommendationUsesTripBuilder(rec) && (
-            <TripBuilder rec={rec} bankItems={bankItems} hasBankContext={hasBankContext} maxEstimate={maxEstimate} />
-          )}
-          {isBossWithDetail && rec.bossSlug ? (
+
+          <dl className="mt-4 grid gap-2">
+            {lines.map((line) => (
+              <div
+                key={`${line.label}:${line.value}`}
+                className={cn(
+                  "grid gap-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/30 px-3 py-2.5 sm:grid-cols-[128px_minmax(0,1fr)] sm:gap-3",
+                  line.tone === "good" && "border-[var(--color-good)]/25 bg-[var(--color-good)]/8",
+                  line.tone === "warn" && "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/8"
+                )}
+              >
+                <dt className={cn(
+                  "text-[11px] font-black text-[var(--color-accent)]",
+                  line.tone === "good" && "text-[var(--color-good)]",
+                  line.tone === "warn" && "text-[var(--color-warning)]"
+                )}>
+                  {line.label}
+                </dt>
+                <dd className="text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+                  {line.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {isBossWithDetail && rec.bossSlug ? (
+              <button
+                type="button"
+                onClick={() => onBossOpen(rec.bossSlug!)}
+                className={actionClass}
+                aria-label={`${actionLabel}: ${rec.title}`}
+              >
+                {actionLabel} <ArrowRight className="size-4" />
+              </button>
+            ) : actionHref ? (
+              primaryAction.external ? (
+                <a
+                  href={actionHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={actionClass}
+                  aria-label={`${actionLabel}: ${rec.title}`}
+                >
+                  {actionLabel} <ExternalLink className="size-3.5" />
+                </a>
+              ) : (
+                <Link
+                  href={actionHref}
+                  className={actionClass}
+                  aria-label={`${actionLabel}: ${rec.title}`}
+                >
+                  {actionLabel} <ArrowRight className="size-4" />
+                </Link>
+              )
+            ) : null}
+
             <button
               type="button"
-              onClick={() => onBossOpen(rec.bossSlug!)}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[12.5px] font-semibold text-[var(--color-accent)] transition-all hover:bg-[var(--color-accent)]/15 hover:gap-2"
-              aria-label={`${actionLabel}: ${rec.title}`}
-              title={`${actionLabel}: ${rec.title}`}
+              onClick={() => onComplete(rec)}
+              className={recommendationFeedbackButtonClass("done", true)}
+              aria-label={`Done: mark ${rec.title} complete`}
             >
-              {headlineCtaLabel} <ArrowRight className="size-4" />
+              Done
+              <CheckCheck className="size-3" />
             </button>
-          ) : actionHref && (
-            primaryAction.external ? (
-              <a
-                href={actionHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`${actionLabel}: ${rec.title}`}
-                title={`${actionLabel}: ${rec.title}`}
-                className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-accent)] transition-all hover:bg-[var(--color-accent)]/15 hover:gap-2"
-              >
-                {headlineCtaLabel} <ExternalLink className="size-3.5" />
-              </a>
-            ) : (
-              <Link
-                href={actionHref}
-                aria-label={`${actionLabel}: ${rec.title}`}
-                title={`${actionLabel}: ${rec.title}`}
-                className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-accent)] transition-all hover:bg-[var(--color-accent)]/15 hover:gap-2"
-              >
-              {headlineCtaLabel} <ArrowRight className="size-4" />
-              </Link>
-            )
+            <button
+              type="button"
+              onClick={() => onSuppress(rec)}
+              className={recommendationFeedbackButtonClass("skip", true)}
+              aria-label={`Skip: hide ${rec.title}`}
+            >
+              Skip
+            </button>
+            <button
+              type="button"
+              onClick={onShowSteps}
+              className={recommendationFeedbackButtonClass("details", true)}
+            >
+              Trip details
+              <ChevronRight className={cn("size-3 transition-transform", stepsOpen && "rotate-90")} />
+            </button>
+          </div>
+
+          {whyNot && (
+            <p className="mt-3 text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+              {whyNot.replace(/^Not picked:\s*/i, "If not this: ")}
+            </p>
           )}
         </div>
       </div>
     </article>
   );
-  return card;
 }
 
 // One checklist row — compact, with explicit links/buttons.
@@ -4394,8 +4447,6 @@ function WhatToDo({
     () => ({ from: "next", hasBankContext, rsn: activeRsn }),
     [activeRsn, hasBankContext]
   );
-  const archetype = accountStage;
-  const runeLiteNote = runeLitePlanNote(pluginSyncSummary);
 
   // Reset shuffle wanneer mood/time veranderen — een nieuwe vibe begint
   // op de top-pick, anders blijven we stiekem op een oude alternative.
@@ -4522,57 +4573,11 @@ function WhatToDo({
     setShuffleIdx(0);
   };
   const routePreviewRecs = pick ? [pick.headline, ...pick.alternatives, ...visibleRecs].slice(0, 5) : [];
+  const fallbackRecs = pick ? pick.alternatives.slice(0, 2) : [];
 
   return (
     <section>
       <div>
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-            Session board
-          </div>
-          <h2 className="mt-1 text-[26px] font-bold tracking-normal text-[var(--color-text)]">
-            Main move
-          </h2>
-          <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-dim)]">
-            One move, two backups, the prep, blockers, bank signal and stop point.
-          </p>
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
-            <span
-              className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1 font-semibold text-[var(--color-text-dim)]"
-              title={archetype.helper}
-            >
-              {archetype.label}
-            </span>
-            {runeLiteNote && (
-              <span
-                className={cn(
-                  "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 font-semibold",
-                  pluginSyncState === "live"
-                    ? "border-[var(--color-good)]/25 bg-[var(--color-good)]/10 text-[var(--color-good)]"
-                    : pluginSyncState
-                      ? "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
-                      : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)]"
-                )}
-              >
-                {runeLiteNote}
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {routeIntent && (
-            <span
-              className="inline-flex items-center gap-1 rounded-full border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-2.5 py-1 text-[10.5px] font-semibold text-[var(--color-accent)]"
-              title={routeIntent.helper}
-            >
-              {routeIntent.label}
-            </span>
-          )}
-        </div>
-      </div>
-
       {lastSuppressed && (
         <div
           role="status"
@@ -4692,15 +4697,15 @@ function WhatToDo({
               pluginSyncState={pluginSyncState}
               pluginBankStatus={pluginSyncSummary?.bankStatus ?? null}
             />
-            {pick.alternatives.length > 0 && (
+            {fallbackRecs.length > 0 && (
               <div>
                 <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
                   <div>
-                    <h3 className="text-[18px] font-bold tracking-normal text-[var(--color-text)]">
-	                      Backup moves
+                    <h3 className="text-[16px] font-bold tracking-normal text-[var(--color-text)]">
+	                      Not this one?
                     </h3>
                     <p className="mt-1 text-[12px] text-[var(--color-text-muted)]">
-	                      Use these when the main move is blocked or not the session you want.
+	                      Pick one of these if the first trip is blocked or not what you feel like doing.
                     </p>
                   </div>
                   <button
@@ -4715,7 +4720,7 @@ function WhatToDo({
                   </button>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {pick.alternatives.map((r) => (
+                  {fallbackRecs.map((r) => (
                     <RecRowExpandable
                       key={r.id}
                       rec={r}
@@ -4741,7 +4746,15 @@ function WhatToDo({
                 Show hidden ({hiddenCount})
               </button>
             )}
-            <RouteChain recs={routePreviewRecs} bankItems={bankItems} accountStage={accountStage} maxEstimate={maxEstimate} />
+            <details className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-3">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[12px] font-bold text-[var(--color-text-muted)] marker:hidden [&::-webkit-details-marker]:hidden">
+                <span>More routes</span>
+                <ChevronRight className="size-3.5 transition-transform details-open:rotate-90" />
+              </summary>
+              <div className="mt-3">
+                <RouteChain recs={routePreviewRecs} bankItems={bankItems} accountStage={accountStage} maxEstimate={maxEstimate} />
+              </div>
+            </details>
           </>
         ) : (
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-8 text-center text-[var(--color-text-muted)] text-[13px]">
@@ -4858,7 +4871,7 @@ function RoutePlanLine({ label, value, strong = false }: { label: string; value:
 }
 
 // ── RecHeadlineExpandable + RecRowExpandable ───────────────────────────────
-// Wrappers rond HeadlineCard / RecRow die een details-paneel toevoegen.
+// Wrappers rond NextTripCard / RecRow die een details-paneel toevoegen.
 // Klik op de "Show details" toggle → expand inline (geen navigatie weg).
 // Details bevat: payoff, needs[], details-tekst, en de link-naar-tool.
 // Werkt voor zowel hero als alt-rows (zelfde details, andere
@@ -4884,7 +4897,7 @@ function DiaryReadinessDetail({ rec }: { rec: Recommendation }) {
       <RouteStepBrief label="Missing items" value={missing.filter((line) => /bank|stage|carry|x |rope|plank|grapple|crossbow|coins/i.test(line)).join(" · ") || "No item blocker visible."} />
       <RouteStepBrief label="Tasks left" value={tasksLeft.join(" · ") || "Run the diary tasks and claim the reward."} />
       <RouteStepBrief label="Payoff" value={headlinePayoff(rec) ?? rec.why} />
-      <RouteStepBrief label="Stop when" value={recommendationStopPointValue(rec)} />
+      <RouteStepBrief label="Finish after" value={recommendationStopPointValue(rec)} />
     </div>
   );
 }
@@ -5052,59 +5065,21 @@ function RecHeadlineExpandable({
   const whyNot = recommendationWhyNot({ headline: rec, allRecs, mood, hasBankContext, pluginSyncState });
   return (
     <div>
-      <HeadlineCard
+      <NextTripCard
         rec={rec}
         allRecs={allRecs}
         actionContext={actionContext}
         onBossOpen={onBossOpen}
+        onSuppress={onSuppress}
+        onComplete={onComplete}
+        onShowSteps={() => setOpen((v) => !v)}
+        stepsOpen={open}
         mood={mood}
-        minutes={minutes}
         hasBankContext={hasBankContext}
         bankItems={bankItems}
-        accountStage={accountStage}
-        accountType={accountType}
         accountMode={accountMode}
-        maxEstimate={maxEstimate}
         pluginSyncState={pluginSyncState}
-        pluginBankStatus={pluginBankStatus}
       />
-      {!cleanMode && (
-        <details className="group mt-1.5 flex justify-end">
-          <summary className="ml-auto inline-flex cursor-pointer list-none items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-panel)]/65 px-3 py-1.5 text-[11px] font-semibold text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)] marker:hidden [&::-webkit-details-marker]:hidden">
-            More
-            <ChevronRight className="size-3 transition-transform group-open:rotate-90" />
-          </summary>
-          <div className="mt-2 flex flex-wrap justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => onComplete(rec)}
-              aria-label={`Done: mark ${rec.title} complete`}
-              className={recommendationFeedbackButtonClass("done")}
-            >
-              Done
-              <CheckCheck className="size-3" />
-            </button>
-            <button
-              type="button"
-              onClick={() => onSuppress(rec)}
-              aria-label={`Skip: hide ${rec.title}`}
-              className={recommendationFeedbackButtonClass("skip")}
-            >
-              Skip
-            </button>
-            <button
-              type="button"
-              onClick={() => setOpen((v) => !v)}
-              className={recommendationFeedbackButtonClass("details")}
-            >
-              Steps
-              <ChevronRight
-                className={cn("size-3 transition-transform", open && "rotate-90")}
-              />
-            </button>
-          </div>
-        </details>
-      )}
       {open && <RecDetailPanel rec={rec} actionContext={actionContext} whyNot={whyNot} />}
     </div>
   );

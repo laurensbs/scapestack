@@ -19,7 +19,7 @@ export function defaultActionHints(kind: RecKind): ActionHints {
   switch (kind) {
     case "goal":
       return {
-        needs: ["Find unlock", "Check the missing piece"],
+        needs: ["Choose unlock", "Check the missing piece"],
         details: "Good when you want a visible unlock. Start with the closest missing item, tier or requirement."
       };
     case "quest":

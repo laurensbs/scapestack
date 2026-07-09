@@ -90,6 +90,7 @@ import {
 import { bankToolUrl } from "@/lib/bank-tool-routes";
 import { bankSearchQueryForItems, countBankSearchMatches, firstMatchingBankTabIndex, matchesBankSearch } from "@/lib/bank-search";
 import { wikiSearchUrl } from "@/lib/wiki";
+import { ACCOUNT_MODE_ICON_ITEM_IDS, accountModePlanningTone } from "@/lib/account-type";
 
 interface BankResultProps {
   initial: OrganizeResult;
@@ -391,14 +392,14 @@ function BankDecisionHero({
   ].filter((chip): chip is string => Boolean(chip));
   const setupSteps = [
     {
-      label: "Pick layout",
-      value: "Tabs are grouped by how you play. Change this only if you want item-type tabs.",
+      label: "Choose style",
+      value: "Pick PvM, Ironman, Questing, Skilling or Minimal.",
       state: "ready" as const,
       icon: Layers
     },
     {
-      label: "Smart tidy",
-      value: decision.primaryAction === "tidy" ? "Run this first, then review the first few tabs." : "Optional: tidy after you check the main setup.",
+      label: "Preview tabs",
+      value: "Check the tab names, item sprites and counts before applying.",
       state: decision.primaryAction === "tidy" ? "attention" as const : "ready" as const,
       icon: Wand2
     },
@@ -416,7 +417,7 @@ function BankDecisionHero({
   ];
 
   return (
-    <section className="scapestack-board-panel mb-4 px-4 py-4 sm:px-5" aria-label="Bank Setup Board">
+    <section className="scapestack-board-panel mb-4 px-4 py-4 sm:px-5" aria-label="RuneLite bank tab setup">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -424,9 +425,9 @@ function BankDecisionHero({
               <ItemSprite id={decision.iconItemId} alt="" size={30} />
             </span>
             <div>
-              <div className="eyebrow text-[var(--color-accent)]">Bank Setup Board</div>
+              <div className="eyebrow text-[var(--color-accent)]">RuneLite tabs</div>
               <h1 className="mt-1 text-[25px] font-semibold leading-none tracking-normal text-[var(--color-text)] sm:text-[31px]">
-                Set up your bank
+                Set up RuneLite bank tabs
               </h1>
             </div>
           </div>
@@ -490,7 +491,25 @@ function BankDecisionHero({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-2 md:grid-cols-3">
+      <div className="mt-4 flex gap-2 overflow-x-auto pb-1 sm:hidden" aria-label="RuneLite bank setup steps">
+        {setupSteps.map((step, index) => {
+          const Icon = step.icon;
+          return (
+            <span
+              key={step.label}
+              className="inline-flex min-w-max items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/28 px-3 py-2 text-[12px] font-bold text-[var(--color-text)]"
+            >
+              <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[10px] font-black text-[var(--color-accent)]">
+                {index + 1}
+              </span>
+              <Icon className="size-3.5 text-[var(--color-accent)]" />
+              {step.label}
+            </span>
+          );
+        })}
+      </div>
+
+      <div className="mt-4 hidden gap-2 sm:grid md:grid-cols-3">
         {setupSteps.map((step, index) => {
           const Icon = step.icon;
           return (
@@ -518,7 +537,7 @@ function BankDecisionHero({
         })}
       </div>
 
-      <details className="group mt-4 border-t border-[var(--color-border)] pt-3">
+      <details className="group mt-4 hidden border-t border-[var(--color-border)] pt-3 sm:block">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[12px] font-semibold text-[var(--color-text-muted)] marker:hidden [&::-webkit-details-marker]:hidden">
           <span>Trip check</span>
           <span className="inline-flex items-center gap-1 text-[11px] text-[var(--color-text-muted)]">
@@ -567,6 +586,8 @@ function SmartTidyWizard({
   const beforeTabs = currentTabs.slice(0, 4);
   const selectedPreset = SMART_TIDY_PRESETS.find((item) => item.id === playstyle) ?? SMART_TIDY_PRESETS[0];
   const selectedFront = SMART_TIDY_FRONT_CHOICES.find((item) => item.id === front) ?? SMART_TIDY_FRONT_CHOICES[0];
+  const tabPlan = smartTidyOrder(playstyle, front, currentTabName).slice(0, 6);
+  const ironmanTone = playstyle === "ironman" ? accountModePlanningTone("ironman") : null;
   const previewHelper = selectedPreset.helper === selectedFront.helper
     ? `${selectedPreset.helper}.`
     : `${selectedPreset.helper}. ${selectedFront.helper}.`;
@@ -578,7 +599,7 @@ function SmartTidyWizard({
     window.setTimeout(() => {
       onApply(proposedTabs, playstyle, front);
       setStage("applied");
-    }, 260);
+    }, 620);
   };
 
   return (
@@ -588,18 +609,18 @@ function SmartTidyWizard({
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <div className="eyebrow text-[var(--color-accent)]">Smart Tidy</div>
+          <div className="eyebrow text-[var(--color-accent)]">Choose style</div>
           <h2 className="mt-1 text-[19px] font-semibold leading-tight text-[var(--color-text)] sm:text-[22px]">
-            Build RuneLite tabs around how you play
+            Pick the bank setup you want
           </h2>
           <p className="mt-2 max-w-2xl text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-            Pick two quick preferences, preview the tabs, then copy the layout back to RuneLite.
+            Answer two quick choices, preview the tabs, then copy the layout back to RuneLite.
           </p>
         </div>
         <button
           type="button"
           onClick={() => setStage("closed")}
-          className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-lg border border-[var(--color-border)] px-3 py-2 text-[12px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]"
+          className="inline-flex min-h-9 shrink-0 self-start items-center justify-center rounded-lg border border-[var(--color-border)] px-3 py-2 text-[12px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)] sm:self-auto"
           aria-label="Close Smart Tidy setup"
         >
           Close
@@ -616,7 +637,7 @@ function SmartTidyWizard({
                 id: preset.id,
                 label: preset.label,
                 helper: preset.helper,
-                iconItemId: preset.id === "ironman" ? 12810 : preset.id === "skilling" ? 6739 : preset.id === "questing" ? 1891 : preset.id === "minimal" ? 8007 : 4151
+                iconItemId: preset.id === "ironman" ? ACCOUNT_MODE_ICON_ITEM_IDS.ironman ?? 12810 : preset.id === "skilling" ? 6739 : preset.id === "questing" ? 1891 : preset.id === "minimal" ? 8007 : 4151
               }))}
               onChange={(value) => {
                 setPlaystyle(value as SmartTidyPlaystyle);
@@ -642,12 +663,34 @@ function SmartTidyWizard({
           <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/28 p-3">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <div>
-                <div className="text-[12px] font-bold text-[var(--color-text)]">Before / after preview</div>
+                <div className="text-[12px] font-bold text-[var(--color-text)]">Preview tabs</div>
                 <div className="mt-0.5 text-[11px] font-semibold text-[var(--color-text-muted)]">
-                  {previewHelper}
+                  {ironmanTone ? `${ironmanTone.itemCopy}. ${previewHelper}` : previewHelper}
                 </div>
               </div>
+              {ironmanTone && ACCOUNT_MODE_ICON_ITEM_IDS.ironman && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#7a8796]/35 bg-[#7a8796]/12 px-2 py-1 text-[10.5px] font-bold text-[#c7d0dd]">
+                  <ItemSprite id={ACCOUNT_MODE_ICON_ITEM_IDS.ironman} alt="" size={16} className="pixelated" />
+                  Ironman bank
+                </span>
+              )}
               <span className="scapestack-status-badge" data-tone="ready">{proposedTabs.length} tabs</span>
+            </div>
+            <div className="mb-3 rounded-md border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-2.5 py-2">
+              <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
+                Suggested first tabs
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {tabPlan.map((tabName, index) => (
+                  <span
+                    key={`${tabName}-${index}`}
+                    className="inline-flex items-center gap-1 rounded-full border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-2 py-1 text-[10.5px] font-bold text-[var(--color-accent)]"
+                  >
+                    <span className="font-mono text-[9.5px] text-[var(--color-text-muted)]">{index + 1}</span>
+                    {tabName}
+                  </span>
+                ))}
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
               <SmartTidyTabPreview title="Current bank" tabs={beforeTabs} tone="muted" />
@@ -792,7 +835,7 @@ function SmartTidyTabPreview({ title, tabs, tone }: { title: string; tabs: Organ
               <span className="shrink-0 text-[10.5px] font-mono text-[var(--color-text-muted)]">{tab.items.length}</span>
             </div>
             <div className="flex min-h-7 flex-wrap gap-1">
-              {tab.items.slice(0, 6).map((item) => (
+              {tab.items.slice(0, 8).map((item) => (
                 <span key={`${String(tab.name)}-${item.id}`} className="inline-flex size-7 items-center justify-center rounded border border-[var(--color-border)] bg-[var(--color-bg)]">
                   <ItemSprite id={spriteIdForItem(item.id, item.quantity)} alt="" size={22} />
                 </span>
@@ -1919,40 +1962,6 @@ export function BankResult({
         />
       )}
 
-      <details className="group mb-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-3 py-2">
-        <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 marker:hidden [&::-webkit-details-marker]:hidden">
-          <span className="inline-flex items-center gap-2 text-[12px] font-bold text-[var(--color-text)]">
-            <SlidersHorizontal className="size-3.5 text-[var(--color-accent)]" />
-            Bank view controls
-          </span>
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--color-text-muted)]">
-            Layout, sort and density
-            <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" />
-          </span>
-        </summary>
-        <div className="mt-3">
-          <PreferencesBar
-            prefs={prefs}
-            setPrefs={setPrefs}
-            activeArchetype={activeArchetype}
-            onArchetypeChange={setArchetypeOverride}
-            inferredArchetype={inferredArchetype}
-          />
-        </div>
-      </details>
-
-      {inferredRsn && (
-        <div className="mb-3 flex justify-end">
-          <Link
-            href={`/u/${encodeURIComponent(rsnSlug(inferredRsn))}`}
-            className="text-[11px] font-semibold text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:underline"
-            title={`Open ${inferredRsn}'s Scapestack profile`}
-          >
-            Open {inferredRsn}&apos;s Scapestack profile
-          </Link>
-        </div>
-      )}
-
       {handoffBlockedHref && (
         <div
           id="bank-handoff-warning"
@@ -2186,6 +2195,39 @@ export function BankResult({
       </DndContext>
       </DropFlashContext.Provider>
       </PinContext.Provider>
+
+      <details className="group mt-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-3 py-2">
+        <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 marker:hidden [&::-webkit-details-marker]:hidden">
+          <span className="inline-flex items-center gap-2 text-[12px] font-bold text-[var(--color-text)]">
+            <SlidersHorizontal className="size-3.5 text-[var(--color-accent)]" />
+            More controls
+          </span>
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--color-text-muted)]">
+            Layout, sort and density
+            <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" />
+          </span>
+        </summary>
+        <div className="mt-3">
+          <PreferencesBar
+            prefs={prefs}
+            setPrefs={setPrefs}
+            activeArchetype={activeArchetype}
+            onArchetypeChange={setArchetypeOverride}
+            inferredArchetype={inferredArchetype}
+          />
+          {inferredRsn && (
+            <div className="mt-3 flex justify-end">
+              <Link
+                href={`/u/${encodeURIComponent(rsnSlug(inferredRsn))}`}
+                className="text-[11px] font-semibold text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:underline"
+                title={`Open ${inferredRsn}'s Scapestack profile`}
+              >
+                Open {inferredRsn}&apos;s Scapestack profile
+              </Link>
+            </div>
+          )}
+        </div>
+      </details>
 
       <BankActionLoopRail
         steps={bankActionLoop}
@@ -4263,12 +4305,14 @@ function BankBody({ tab, hasPrices, hasQty, sort, density, activeSubtab, matches
 
   const filteredValue = filtered.reduce((s, it) => s + it.stackValue, 0);
   const isFiltered = filtered.length !== tab.items.length;
+  const compactSparseBankBody = filtered.length > 0 && filtered.length <= 16;
 
   return (
     <div
       ref={setNodeRef}
       className={cn(
-        "rounded-md p-3 min-h-[460px] transition-all",
+        "rounded-md p-3 transition-all",
+        compactSparseBankBody ? "min-h-[220px]" : "min-h-[460px]",
         "bg-[var(--color-bg)]",
         "border border-[var(--color-border)]",
         draggingTo && "border-[var(--color-accent)]/40",
@@ -4349,7 +4393,9 @@ function BankGrid({ tab, items, hasPrices, hasQty, density, junkIds, staleIds, g
     : filteredLayout;
   const renderSlots = Object.keys(renderLayout).map(Number);
   const renderMaxSlot = renderSlots.length ? Math.max(...renderSlots) : items.length - 1;
-  const rowsNeeded = Math.max(GRID_ROWS_MIN, Math.ceil((renderMaxSlot + 1) / GRID_COLS));
+  const rowsNeeded = shouldDensePackSparseLayout
+    ? Math.max(1, Math.ceil(items.length / GRID_COLS))
+    : Math.max(GRID_ROWS_MIN, Math.ceil((renderMaxSlot + 1) / GRID_COLS));
   const totalSlots = rowsNeeded * GRID_COLS;
 
   return (
@@ -5494,6 +5540,15 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
   }, [activeFilter, ownedGearItems, query, showAllBosses]);
 
   const best = useMemo(() => (boss ? bestStyleAndSetup(ownedGearItems, boss) : null), [boss, ownedGearItems]);
+  const bossVerdict = best && boss
+    ? best.dps <= 0
+      ? "Gear missing"
+      : boss.category === "wildy"
+        ? "Risky trip"
+        : best.hitChance >= 0.55
+          ? "Try one trip"
+          : "Test first"
+    : "";
 
   const tagString = useMemo(() => {
     if (!boss || !best) return "";
@@ -5674,8 +5729,8 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
                         </span>
                       )}
                     </div>
-                    <div className="mt-1 text-[11px] font-mono tabular-nums text-[var(--color-text-dim)]">
-                      {best.dps > 0 ? `${best.dps.toFixed(2)} DPS · ${best.style}` : "No usable weapon found"}
+                    <div className="mt-1 text-[11px] font-semibold text-[var(--color-text-dim)]">
+                      {best.dps > 0 ? `${bossVerdict} · ${best.style}` : "No usable weapon found"}
                     </div>
                   </div>
                 </div>
@@ -5762,7 +5817,7 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
                   )}
                 >
                   {copied === "boss-tag" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
-                  {copied === "boss-tag" ? "RuneLite tag copied" : copied === "boss-tag-error" ? "Copy failed" : "Copy RuneLite tag"}
+                  {copied === "boss-tag" ? "RuneLite tab copied" : copied === "boss-tag-error" ? "Copy failed" : "Copy RuneLite tab"}
                 </button>
                 <button
                   type="button"
@@ -5777,7 +5832,7 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
               </div>
 
               <p className="mt-3 text-[10.5px] leading-relaxed text-[var(--color-text-muted)]">
-                Built from owned gear in this bank. Copy the tab to RuneLite, then check the kill before buying upgrades.
+                Built from owned gear in this bank. Copy the tab to RuneLite, then test one trip before buying upgrades.
               </p>
               {copied === "boss-tag-error" && manualBossTag && (
                 <div className="mt-3 rounded-lg border border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8 p-2" aria-live="polite">

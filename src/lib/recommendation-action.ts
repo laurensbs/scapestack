@@ -26,7 +26,7 @@ const ROUTE_ACTIONS: Record<string, Omit<RecommendationPrimaryAction, "href">> =
     helper: "Tune owned gear, boss weakness and kill setup before committing supplies."
   },
   "/goals": {
-    label: "Find unlock",
+    label: "Choose unlock",
     helper: "Track missing set pieces, unlocks and long-term account progress."
   },
   "/gp": {

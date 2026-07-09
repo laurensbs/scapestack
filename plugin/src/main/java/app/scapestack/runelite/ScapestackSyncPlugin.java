@@ -411,6 +411,7 @@ public class ScapestackSyncPlugin extends Plugin {
         clientToolbar.addNavigation(navigationButton);
         panel.setStatus("Ready");
         panel.setAccountMode(accountModeLabel(null));
+        panel.setNextAction("Press Sync now");
         panel.refresh();
     }
 
@@ -438,8 +439,11 @@ public class ScapestackSyncPlugin extends Plugin {
         panel.setStatus(status);
         panel.setPlayerName(rsn);
         panel.setAccountMode(accountModeLabel(snap.accountType));
-        panel.setBankStatus(panelBankStatus(effectiveBankStatus(snap)));
-        panel.setCollectionLogStatus(CollectionLogReader.playerInstruction(effectiveCollectionLogStatus(snap)));
+        GameStateReader.BankStatus bankStatus = effectiveBankStatus(snap);
+        CollectionLogReader.Status collectionLogStatus = effectiveCollectionLogStatus(snap);
+        panel.setBankStatus(panelBankStatus(bankStatus));
+        panel.setCollectionLogStatus(CollectionLogReader.playerInstruction(collectionLogStatus));
+        panel.setNextAction(panelNextAction(bankStatus, collectionLogStatus, status));
         if ("Synced".equals(status)) {
             panel.setLastSync("Just now");
         }
@@ -469,7 +473,13 @@ public class ScapestackSyncPlugin extends Plugin {
     }
 
     static String buildSyncSuccessMessage(String rsn, GameStateReader.Snapshot snap, String syncUrl, String responseBody) {
-        return buildSyncSuccessMessage(rsn, snap, syncUrl, ServerResponseSummary.acceptedCounts(responseBody));
+        return buildSyncSuccessMessage(
+            rsn,
+            snap,
+            syncUrl,
+            ServerResponseSummary.acceptedCounts(responseBody),
+            ServerResponseSummary.hasNewProgress(responseBody)
+        );
     }
 
     private static String buildSyncSuccessMessage(
@@ -478,6 +488,16 @@ public class ScapestackSyncPlugin extends Plugin {
         String syncUrl,
         ServerResponseSummary.AcceptedCounts acceptedCounts
     ) {
+        return buildSyncSuccessMessage(rsn, snap, syncUrl, acceptedCounts, false);
+    }
+
+    private static String buildSyncSuccessMessage(
+        String rsn,
+        GameStateReader.Snapshot snap,
+        String syncUrl,
+        ServerResponseSummary.AcceptedCounts acceptedCounts,
+        boolean hasNewProgress
+    ) {
         GameStateReader.BankStatus bankStatus = effectiveBankStatus(snap);
         if (acceptedCounts != null && acceptedCounts.bankItems != null && acceptedCounts.bankItems > 0 && bankStatus.itemCount != acceptedCounts.bankItems) {
             bankStatus = new GameStateReader.BankStatus(true, acceptedCounts.bankItems, bankStatus.capturedAt, null);
@@ -485,7 +505,9 @@ public class ScapestackSyncPlugin extends Plugin {
         CollectionLogReader.Status collectionLogStatus = effectiveCollectionLogStatus(snap);
 
         String message;
-        if (bankStatus.itemCount > 0) {
+        if (hasNewProgress) {
+            message = "ScapeStack synced. New quest progress found.";
+        } else if (bankStatus.itemCount > 0) {
             message = "ScapeStack synced your bank.";
         } else if (bankStatus.enabled
             && "bank-not-opened-this-session".equals(bankStatus.unavailableReason)) {
@@ -714,6 +736,28 @@ public class ScapestackSyncPlugin extends Plugin {
             return "No bank items captured";
         }
         return "Bank check unavailable";
+    }
+
+    static String panelNextAction(
+        GameStateReader.BankStatus bankStatus,
+        CollectionLogReader.Status collectionLogStatus,
+        String status
+    ) {
+        if (bankStatus.enabled
+            && bankStatus.itemCount == 0
+            && "bank-not-opened-this-session".equals(bankStatus.unavailableReason)) {
+            return "Open your bank once, then sync again";
+        }
+        if (collectionLogStatus == null || !collectionLogStatus.opened) {
+            return "Open Collection Log once, then sync again";
+        }
+        if (!collectionLogStatus.hasLoadedItemSlots()) {
+            return "Click a Collection Log category, then sync again";
+        }
+        if ("Synced".equals(status)) {
+            return "Open ScapeStack planner";
+        }
+        return "Wait for sync to finish";
     }
 
     static boolean shouldSyncAfterConfigChange(ConfigChanged event) {

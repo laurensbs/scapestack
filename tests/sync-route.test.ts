@@ -21,7 +21,7 @@ vi.mock("@/lib/sync-repo", () => ({
   upsertSyncedPlayer: async (payload: unknown) => {
     if (state.failUpsert) throw new Error("db down");
     state.upserts.push(payload);
-    return "2026-06-03T10:00:00.000Z";
+    return { syncedAt: "2026-06-03T10:00:00.000Z", syncSummary: null };
   }
 }));
 
@@ -77,6 +77,7 @@ const PLAYER_SYNC_COLUMNS = [
   "bank_status",
   "slayer",
   "plugin_version",
+  "sync_summary",
   "synced_at"
 ];
 const PLAYER_CLAIM_COLUMNS = ["rsn", "token_hash", "claimed_at", "last_used_at"];

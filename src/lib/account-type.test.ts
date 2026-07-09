@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   ACCOUNT_MODE_ICON_ITEM_IDS,
   accountModeImpactNote,
+  accountModePlanningTone,
   accountModeSourceCopy,
   accountModeVisual,
   isIronPlannerAccount,
@@ -126,5 +127,23 @@ describe("Scapestack account types", () => {
       iconItemId: null
     });
     expect(accountModeSourceCopy("ultimate")).toBe("Stage/carry before starting");
+  });
+
+  it("defines planning tone for each account mode", () => {
+    expect(accountModePlanningTone("regular")).toMatchObject({
+      itemCopy: "Buy or grab",
+      routeCopy: "Fast buyable prep can stay near the top."
+    });
+    expect(accountModePlanningTone("ironman")).toMatchObject({
+      title: "Ironman route",
+      itemCopy: "Source yourself"
+    });
+    expect(accountModePlanningTone("hardcore").tripCopy).toContain("avoid risky combat");
+    expect(accountModePlanningTone("ultimate")).toMatchObject({
+      itemCopy: "Stage before starting",
+      bankCopy: "Use a staging checklist instead of normal bank-ready."
+    });
+    expect(accountModePlanningTone("group").tripCopy).toContain("group storage is not assumed");
+    expect(accountModePlanningTone(null).routeCopy).toContain("avoid assuming GE access");
   });
 });

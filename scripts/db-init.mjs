@@ -37,23 +37,31 @@ if (!url) {
 // this script has zero TypeScript dep. Keep in sync manually.
 const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS player_sync (
-	  rsn TEXT PRIMARY KEY,
-	  display_name TEXT NOT NULL,
-	  account_type TEXT NOT NULL DEFAULT 'normal',
-	  quests_completed JSONB NOT NULL DEFAULT '[]'::jsonb,
+  rsn TEXT PRIMARY KEY,
+  display_name TEXT NOT NULL,
+  account_type TEXT NOT NULL DEFAULT 'normal',
+  skills JSONB NOT NULL DEFAULT '[]'::jsonb,
+  quests_completed JSONB NOT NULL DEFAULT '[]'::jsonb,
   diaries_completed JSONB NOT NULL DEFAULT '[]'::jsonb,
   collection_log_item_ids INTEGER[] NOT NULL DEFAULT ARRAY[]::INTEGER[],
+  bank_items JSONB NOT NULL DEFAULT '[]'::jsonb,
+  bank_status JSONB NOT NULL DEFAULT '{"enabled":false,"itemCount":0,"capturedAt":null,"unavailableReason":"opt-in-off"}'::jsonb,
   slayer JSONB,
   plugin_version TEXT NOT NULL DEFAULT 'unknown',
+  sync_summary JSONB,
   synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-	);
-	ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS display_name TEXT NOT NULL DEFAULT '';
-	ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS account_type TEXT NOT NULL DEFAULT 'normal';
-	ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS quests_completed JSONB NOT NULL DEFAULT '[]'::jsonb;
+);
+ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS display_name TEXT NOT NULL DEFAULT '';
+ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS account_type TEXT NOT NULL DEFAULT 'normal';
+ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS skills JSONB NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS quests_completed JSONB NOT NULL DEFAULT '[]'::jsonb;
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS diaries_completed JSONB NOT NULL DEFAULT '[]'::jsonb;
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS collection_log_item_ids INTEGER[] NOT NULL DEFAULT ARRAY[]::INTEGER[];
+ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS bank_items JSONB NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS bank_status JSONB NOT NULL DEFAULT '{"enabled":false,"itemCount":0,"capturedAt":null,"unavailableReason":"opt-in-off"}'::jsonb;
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS slayer JSONB;
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS plugin_version TEXT NOT NULL DEFAULT 'unknown';
+ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS sync_summary JSONB;
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 CREATE INDEX IF NOT EXISTS player_sync_synced_at_idx ON player_sync(synced_at DESC);
 
