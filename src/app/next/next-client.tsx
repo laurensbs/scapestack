@@ -12,6 +12,7 @@ import { BankSetupSteps } from "@/components/bank-setup-steps";
 import { SavedBankBanner } from "@/components/saved-bank-banner";
 import { BossSprite } from "@/components/boss-picker";
 import { ItemSprite } from "@/components/item-sprite";
+import { AccountModeBadge } from "@/components/account-mode-badge";
 import { KcProbabilityGraph } from "@/components/kc-probability-graph";
 import { XpDropLoader } from "@/components/xp-drop-loader";
 import { ShuffleLoader } from "@/components/shuffle-loader";
@@ -59,6 +60,8 @@ import { bankOrganizerHref } from "@/lib/bank-handoff-url";
 import { shouldReadNextBankHandoff, shouldReadNextHeroBank } from "@/lib/next-route-context";
 import { nextIntentFromSearch, type NextIntentPreset } from "@/lib/next-intent";
 import {
+  accountModeBankCopy,
+  accountModeVisual,
   isUltimatePlannerAccount,
   plannerAccountTypeLabel,
   scapestackAccountTypeToPlannerType,
@@ -124,6 +127,19 @@ function hasDropChanceGraph(rec: Recommendation): rec is Recommendation & { kcMe
 const SAMPLE_LABEL = "sample plan";
 const COMPACT_NUMBER = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 const RANDOMIZE_ROLL_IDS = [20594, 11140, 11772, 6737, 6739, 7462, 772, 11864, 995, 22109];
+const ROUTE_ITEM_IDS = {
+  bank: 20594,
+  karamjaGloves: 13103,
+  questCape: 9813,
+  fairyRing: 20636,
+  slayerHelmet: 11864,
+  berserkerRing: 6737,
+  seersRing: 6731,
+  archersRing: 6733,
+  dragonDefender: 12954,
+  avasAssembler: 22109,
+  pietyPrayer: 10976
+} as const;
 
 const SAMPLE_SKILL_NAMES = [
   "Attack", "Defence", "Strength", "Hitpoints", "Ranged", "Prayer",
@@ -1553,13 +1569,21 @@ function routeLaneAccountNote(id: RouteLaneId, accountType: PlannerAccountType |
   if (!accountType) return null;
   if (isUltimatePlannerAccount(accountType)) {
     if (id === "barrows-gloves" || id === "fairy-rings" || id === "quest-cape") {
-      return "UIM: treat item prep as staging, not bank readiness.";
+      return "UIM route: stage/carry items before starting; do not treat bank checks as ready.";
     }
-    return "UIM: bank checks are not normal readiness.";
+    return "UIM route: shorter staging actions beat long bank-dependent plans.";
   }
-  if (accountType === "ironman" || accountType === "hardcore" || accountType === "group") {
+  if (accountType === "hardcore") {
+    if (id === "raids-prep") return "HCIM route: risky PvM stays lower unless the payoff is worth it.";
+    return "HCIM route: source safely first; avoid risky blockers when a safer unlock is close.";
+  }
+  if (accountType === "group") {
+    return "GIM route: own bank is checked; group storage is not verified.";
+  }
+  if (accountType === "ironman") {
     if (id === "piety" || id === "raids-prep") return "Iron route: source supplies and prayer/gear upgrades yourself.";
     if (id === "fairy-rings") return "Iron route: travel unlocks beat buying convenience.";
+    return "Iron route: missing items need source hints, not GE assumptions.";
   }
   return null;
 }
@@ -1578,17 +1602,30 @@ function routeLaneStatus({
   definition,
   rec,
   bankItems,
-  pathData
+  pathData,
+  accountType
 }: {
   definition: RouteLaneDefinition;
   rec: Recommendation | null;
   bankItems: BankHandoffItem[];
   pathData: NextUpResult["pathProgress"];
+  accountType: PlannerAccountType | null;
 }): { label: string; detail: string; tone: "good" | "warn" | "neutral"; href?: string } {
   if (bankHasAnyItem(bankItems, definition.ownedItemIds)) {
+    if (isUltimatePlannerAccount(accountType)) {
+      return {
+        label: "Stage it",
+        detail: "Key item is owned; treat it as carry/storage prep, not normal bank-ready.",
+        tone: "good"
+      };
+    }
     return {
-      label: "Bank-ready",
-      detail: "Key item is in the current bank context.",
+      label: accountType === "group" ? "Own bank" : accountType === "ironman" || accountType === "hardcore" ? "Self-sourced" : "Bank-ready",
+      detail: accountType === "group"
+        ? "Key item is in your synced bank; group storage is not counted."
+        : accountType === "ironman" || accountType === "hardcore"
+          ? "Key item is already sourced in the current bank context."
+          : "Key item is in the current bank context.",
       tone: "good"
     };
   }
@@ -1662,15 +1699,13 @@ function RouteProgressBoard({
             Barrows gloves, fairy rings, Piety, Ava&apos;s, defender, quest cape, raids prep and Slayer.
           </p>
         </div>
-        <span className="scapestack-status-badge w-fit" data-tone={accountMode.confidence === "detected" ? "ready" : "prep"}>
-          {accountMode.badgeLabel}
-        </span>
+        <AccountModeBadge accountMode={accountMode} compact showSourceCopy />
       </div>
 
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {SESSION_ROUTE_LANES.map((definition) => {
           const rec = routeLaneMatch(definition, allRecs);
-          const status = routeLaneStatus({ definition, rec, bankItems, pathData });
+          const status = routeLaneStatus({ definition, rec, bankItems, pathData, accountType });
           const accountNote = routeLaneAccountNote(definition.id, accountType);
           const href = status.href ? recommendationHrefWithContext(status.href, actionContext) : undefined;
           return (
@@ -1706,7 +1741,7 @@ function RouteProgressBoard({
                 {status.detail}
               </p>
               {accountNote && (
-                <p className="mt-1 text-[10.5px] leading-snug text-[var(--color-warning)]">{accountNote}</p>
+                <p className="mt-2 rounded-md border border-[var(--color-border)]/70 bg-[var(--color-bg)]/25 px-2 py-1.5 text-[10.5px] font-semibold leading-snug text-[var(--color-warning)]">{accountNote}</p>
               )}
               {href && (
                 <Link
@@ -2172,7 +2207,11 @@ function HeroStrip({ summary, basisNote, onEdit }: {
             {summary.totalLevel !== null && (
               <HeroStat icon={<TrendingUp className="size-4 opacity-60" />} label="Total" value={summary.totalLevel} />
             )}
-            <HeroStat icon={<Shield className="size-4 opacity-60" />} label="Mode" value={summary.accountMode.badgeLabel} />
+            <HeroStat
+              icon={<Shield className="size-4 opacity-60" />}
+              label="Mode"
+              value={accountModeVisual(summary.accountMode.type, summary.accountMode.confidence).shortLabel}
+            />
             {summary.goalPercent !== null && (
               <HeroStat
                 icon={<Target className="size-4" />}
@@ -2248,26 +2287,110 @@ function KcPortrait({ rec, size, prominent = false }: {
   );
 }
 
-function RouteIdentityStrip({ rec }: { rec: Recommendation }) {
+type RouteIdentitySprite =
+  | { type: "boss"; boss: Boss; slug: string; itemId?: number; label: string }
+  | { type: "item"; itemId: number; label: string };
+
+function uniqueRouteSprites(items: RouteIdentitySprite[]): RouteIdentitySprite[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const key = item.type === "boss" ? `boss:${item.slug}` : `item:${item.itemId}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function routeIdentityForRecommendation(rec: Recommendation): RouteIdentitySprite[] {
   const boss = rec.bossSlug ? BOSSES.find((candidate) => candidate.slug === rec.bossSlug) : null;
-  const itemId = rec.iconItemId ?? boss?.iconItemId ?? KIND_META[rec.kind].iconItemId;
+  const title = rec.title.toLowerCase();
+  const id = rec.id.toLowerCase();
+  const sprites: RouteIdentitySprite[] = [];
+
+  if (boss) {
+    sprites.push({ type: "boss", boss, slug: boss.slug, itemId: boss.iconItemId, label: boss.name });
+    if (boss.iconItemId) sprites.push({ type: "item", itemId: boss.iconItemId, label: "Signature drop" });
+  }
+
+  if (rec.iconItemId) sprites.push({ type: "item", itemId: rec.iconItemId, label: "Unlock" });
+
+  if (rec.kind === "bank" || /tidy|bank|gear/.test(title)) {
+    sprites.push({ type: "item", itemId: ROUTE_ITEM_IDS.bank, label: "Bank" });
+  }
+  if (/karamja|diary|gloves/.test(title) || id.includes("karamja")) {
+    sprites.push({ type: "item", itemId: ROUTE_ITEM_IDS.karamjaGloves, label: "Karamja gloves" });
+  }
+  if (/fairy/.test(title) || id.includes("fairy")) {
+    sprites.push({ type: "item", itemId: ROUTE_ITEM_IDS.fairyRing, label: "Fairy ring" });
+  }
+  if (/slayer/.test(title) || rec.kind === "slayer") {
+    sprites.push({ type: "item", itemId: ROUTE_ITEM_IDS.slayerHelmet, label: "Slayer helmet" });
+  }
+  if (/dagannoth|dks|prime|rex|supreme/.test(title) || id.includes("dks")) {
+    sprites.push({ type: "item", itemId: ROUTE_ITEM_IDS.berserkerRing, label: "Berserker ring" });
+    sprites.push({ type: "item", itemId: ROUTE_ITEM_IDS.seersRing, label: "Seers ring" });
+    sprites.push({ type: "item", itemId: ROUTE_ITEM_IDS.archersRing, label: "Archers ring" });
+  }
+  if (/quest/.test(title) || rec.kind === "quest" || rec.kind === "milestone" || rec.kind === "goal") {
+    sprites.push({ type: "item", itemId: ROUTE_ITEM_IDS.questCape, label: "Quest unlock" });
+  }
+  if (/defender/.test(title)) {
+    sprites.push({ type: "item", itemId: ROUTE_ITEM_IDS.dragonDefender, label: "Dragon defender" });
+  }
+  if (/ava|assembler/.test(title)) {
+    sprites.push({ type: "item", itemId: ROUTE_ITEM_IDS.avasAssembler, label: "Ava's assembler" });
+  }
+  if (/piety|prayer/.test(title)) {
+    sprites.push({ type: "item", itemId: ROUTE_ITEM_IDS.pietyPrayer, label: "Prayer unlock" });
+  }
+
+  if (sprites.length === 0) {
+    const itemId = KIND_META[rec.kind].iconItemId;
+    if (itemId) sprites.push({ type: "item", itemId, label: KIND_META[rec.kind].label });
+  }
+
+  return uniqueRouteSprites(sprites).slice(0, 5);
+}
+
+function RouteIdentityStrip({ rec, active = false }: { rec: Recommendation; active?: boolean }) {
+  const sprites = routeIdentityForRecommendation(rec);
+  if (sprites.length === 0) return null;
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-1.5" aria-label={`OSRS IDs for ${rec.title}`}>
-      {boss ? (
-        <span className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-1.5 py-1 text-[10px] font-semibold text-[var(--color-text-muted)]">
-          <BossSprite boss={boss} size={18} />
-          boss:{boss.slug}
+    <div
+      className="mt-3 flex flex-wrap items-start gap-2"
+      aria-label={`OSRS item and boss IDs for ${rec.title}`}
+      data-route-id-strip="true"
+    >
+      {sprites.map((sprite, index) => (
+        <span
+          key={sprite.type === "boss" ? `boss:${sprite.slug}` : `item:${sprite.itemId}`}
+          className={cn(
+            "group/sprite inline-flex min-w-[52px] flex-col items-center gap-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1.5 transition-transform duration-200",
+            "hover:-translate-y-0.5 focus-within:-translate-y-0.5",
+            active && "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/8"
+          )}
+          style={active ? { animation: `pop-in 0.42s ease-out ${index * 70}ms both` } : undefined}
+        >
+          <span
+            className="flex size-8 items-center justify-center rounded-md border border-[var(--color-border)] bg-black/30"
+            title={sprite.label}
+          >
+            {sprite.type === "boss" ? (
+              <BossSprite boss={sprite.boss} size={30} />
+            ) : (
+              <ItemSprite id={sprite.itemId} alt={sprite.label} size={26} className="pixelated" />
+            )}
+          </span>
+          <span className="max-w-[86px] truncate rounded border border-[var(--color-border)] bg-[var(--color-bg)]/65 px-1.5 py-0.5 text-[9px] font-black text-[var(--color-text-muted)] tabular-nums">
+            {sprite.type === "boss" ? `boss:${sprite.slug}` : `id:${sprite.itemId}`}
+          </span>
+          {sprite.type === "boss" && sprite.itemId ? (
+            <span className="rounded border border-[var(--color-border)]/80 bg-[var(--color-bg)]/45 px-1.5 py-0.5 text-[8.5px] font-bold text-[var(--color-text-muted)] tabular-nums">
+              id:{sprite.itemId}
+            </span>
+          ) : null}
         </span>
-      ) : null}
-      {itemId ? (
-        <span className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-1.5 py-1 text-[10px] font-semibold text-[var(--color-text-muted)]">
-          <ItemSprite id={itemId} alt="" size={18} className="pixelated" />
-          id:{itemId}
-        </span>
-      ) : null}
-      <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-1.5 py-1 text-[10px] font-semibold text-[var(--color-text-muted)]">
-        {KIND_META[rec.kind].label}
-      </span>
+      ))}
     </div>
   );
 }
@@ -2299,14 +2422,21 @@ function RouteStepBrief({
 function RandomizeRoll({ active }: { active: boolean }) {
   if (!active) return null;
   return (
-    <span className="inline-flex items-center gap-1 rounded-md border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-2 py-1">
+    <span
+      className="inline-flex items-center gap-1 rounded-md border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-2 py-1"
+      data-randomize-roll-state="rolling"
+      aria-hidden="true"
+    >
       {RANDOMIZE_ROLL_IDS.slice(0, 5).map((id, index) => (
         <span
           key={`${id}:${index}`}
-          className="inline-flex size-5 items-center justify-center rounded border border-[var(--color-border)] bg-[var(--color-bg)]/65"
-          style={{ animation: `pop-in 0.45s ease-out ${index * 80}ms infinite alternate` }}
+          className="inline-flex min-w-[30px] flex-col items-center gap-0.5 rounded border border-[var(--color-border)] bg-[var(--color-bg)]/65 px-1 py-0.5"
+          style={{ animation: `pop-in 0.48s ease-out ${index * 85}ms infinite alternate` }}
         >
           <ItemSprite id={id} alt="" size={15} className="pixelated" />
+          <span className="text-[7.5px] font-black leading-none text-[var(--color-text-muted)] tabular-nums">
+            {id}
+          </span>
         </span>
       ))}
     </span>
@@ -2777,8 +2907,14 @@ function sessionBoardBankSignal(
 ): { value: string; tone: "good" | "warn" | "neutral" } {
   if (isUltimatePlannerAccount(accountType)) {
     return {
-      value: "UIM: bank checks are staging only.",
+      value: accountModeBankCopy(accountType),
       tone: "warn"
+    };
+  }
+  if (accountType === "group" && hasBankContext) {
+    return {
+      value: accountModeBankCopy(accountType),
+      tone: "good"
     };
   }
   if (pluginBankStatus) {
@@ -2849,15 +2985,16 @@ function sessionBoardItems({
   }
 
   if (accountMode.confidence === "unknown" || accountMode.type !== "regular") {
+    const visual = accountModeVisual(accountMode.type, accountMode.confidence);
     items.push({
       label: "Account",
       value: accountMode.type === "ultimate"
         ? "UIM: treat items as a staging list, not a bank checklist."
         : accountMode.confidence === "unknown"
           ? "Mode unknown: item checks stay cautious."
-          : accountMode.planningNote.length > 72
-            ? `${accountMode.planningNote.slice(0, 69).trim()}...`
-            : accountMode.planningNote,
+          : visual.sourceCopy.length > 72
+            ? `${visual.sourceCopy.slice(0, 69).trim()}...`
+            : visual.sourceCopy,
       tone: accountMode.confidence === "unknown" ? "warn" : "neutral"
     });
   }
@@ -2930,14 +3067,6 @@ function backupChoicePrompt(rec: Recommendation, headline: Recommendation): { la
     return { label: "Want action?", helper: "Use this when you would rather do a trip, task or KC block." };
   }
   return { label: "Prefer unlock?", helper: "Use this when account progress matters more than GP or KC." };
-}
-
-function routeStepLabel(index: number): string {
-  if (index === 0) return "First this";
-  if (index === 1) return "Then";
-  if (index === 2) return "After that";
-  if (index === 3) return "If you want more";
-  return "Later";
 }
 
 function bankQuantityMatching(bankItems: BankHandoffItem[], pattern: RegExp): number {
@@ -3231,6 +3360,17 @@ function routeStepStart(rec: Recommendation): string {
   return rec.actionPlan?.steps[0] ?? recommendationFirstStepValue(rec);
 }
 
+function routeMissingValue(rec: Recommendation): string {
+  const hints = defaultActionHints(rec.kind);
+  const needs = rec.needs ?? hints.needs;
+  if (needs.length === 0) return "Nothing obvious; check the setup before leaving.";
+  return needs.slice(0, 3).join(" · ");
+}
+
+function routeWorthValue(rec: Recommendation): string {
+  return headlinePayoff(rec) ?? rec.payoff ?? rec.why;
+}
+
 function routeStepBring(
   rec: Recommendation,
   bankItems: BankHandoffItem[],
@@ -3247,6 +3387,91 @@ function routeStepBring(
   return recommendationBringValue(rec);
 }
 
+function routeCardPositionLabel(index: number): string {
+  if (index === 0) return "Best now";
+  if (index === 1) return "Backup";
+  if (index === 2) return "Another option";
+  return "Later option";
+}
+
+function RouteCard({
+  rec,
+  index,
+  expanded,
+  onToggle,
+  bankItems,
+  accountStage,
+  maxEstimate
+}: {
+  rec: Recommendation;
+  index: number;
+  expanded: boolean;
+  onToggle: () => void;
+  bankItems: BankHandoffItem[];
+  accountStage: NextUpResult["summary"]["accountStage"];
+  maxEstimate: HoursToMaxSummary | null;
+}) {
+  const choice = playerChoiceTag(rec);
+  const panelId = `next-route-card-${index}-${rec.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+
+  return (
+    <article
+      className={cn(
+        "rounded-xl border bg-[var(--color-bg)]/35 transition-colors",
+        expanded
+          ? "border-[var(--color-accent)]/45 bg-[var(--color-bg)]/58 shadow-[0_18px_60px_-34px_rgba(200,154,61,0.55)]"
+          : "border-[var(--color-border)] hover:border-[var(--color-accent)]/28 hover:bg-[var(--color-bg)]/48"
+      )}
+      data-route-card="true"
+      data-route-card-expanded={expanded ? "true" : "false"}
+      data-boss-slug={rec.bossSlug ?? undefined}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={expanded}
+        aria-controls={panelId}
+        className="group flex w-full flex-col gap-3 px-3.5 py-3 text-left sm:flex-row sm:items-center"
+      >
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 text-[11px] font-black text-[var(--color-accent)] tabular-nums">
+          {index + 1}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-0.5 text-[9.5px] font-black uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
+              {routeCardPositionLabel(index)}
+            </span>
+            <span className="rounded-full border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-2 py-0.5 text-[9.5px] font-bold text-[var(--color-accent)]">
+              {choice.label}
+            </span>
+          </span>
+          <span className="mt-1.5 block text-[15px] font-black leading-tight text-[var(--color-text)] sm:text-[16px]">
+            {rec.title}
+          </span>
+          <RouteIdentityStrip rec={rec} active={expanded} />
+        </span>
+        <span className="inline-flex items-center gap-1 self-start rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)] transition-colors group-hover:border-[var(--color-accent)]/35 group-hover:text-[var(--color-accent)] sm:self-center">
+          {expanded ? "Hide" : "Open"}
+          <ChevronRight className={cn("size-3 transition-transform", expanded && "rotate-90")} />
+        </span>
+      </button>
+
+      {expanded && (
+        <div
+          id={panelId}
+          className="grid gap-2 border-t border-[var(--color-border)] px-3.5 pb-3 pt-3 sm:grid-cols-2 xl:grid-cols-5"
+        >
+          <RouteStepBrief label="Do" value={routeStepStart(rec)} tone="accent" />
+          <RouteStepBrief label="Bring/check" value={routeStepBring(rec, bankItems, accountStage, maxEstimate)} />
+          <RouteStepBrief label="Missing" value={routeMissingValue(rec)} />
+          <RouteStepBrief label="Stop when" value={recommendationStopPointValue(rec)} />
+          <RouteStepBrief label="Worth it because" value={routeWorthValue(rec)} />
+        </div>
+      )}
+    </article>
+  );
+}
+
 function RouteChain({
   recs,
   bankItems,
@@ -3258,54 +3483,42 @@ function RouteChain({
   accountStage: NextUpResult["summary"]["accountStage"];
   maxEstimate: HoursToMaxSummary | null;
 }) {
+  const routeIds = recs.map((rec) => rec.id).join("|");
+  const firstRouteId = recs[0]?.id ?? null;
+  const [expandedId, setExpandedId] = useState<string | null>(firstRouteId);
+
+  useEffect(() => {
+    setExpandedId((current) => {
+      if (current && routeIds.split("|").includes(current)) return current;
+      return firstRouteId;
+    });
+  }, [firstRouteId, routeIds]);
+
   if (recs.length === 0) return null;
 
   const content = (
     <>
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
         <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-          Route
+          Pick a path
         </span>
         <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">
-          First step, then what logically follows.
+          Click an unlock, item or boss to see the exact trip.
         </span>
       </div>
       <div className="space-y-2.5">
         {recs.slice(0, 5).map((rec, index) => {
-          const choice = playerChoiceTag(rec);
           return (
-            <details
+            <RouteCard
               key={`${rec.id}:route-step:${index}`}
-              className="group rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3 transition-colors open:border-[var(--color-accent)]/40 open:bg-[var(--color-bg)]/55"
-            >
-              <summary className="flex cursor-pointer list-none items-center gap-3 marker:hidden [&::-webkit-details-marker]:hidden">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-md border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 text-[11px] font-black text-[var(--color-accent)] tabular-nums">
-                  {index + 1}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="flex flex-wrap items-center gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-                      {routeStepLabel(index)}
-                    </span>
-                    <span className="rounded-full border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-2 py-0.5 text-[9.5px] font-bold text-[var(--color-accent)]">
-                      {choice.label}
-                    </span>
-                  </span>
-                  <span className="mt-1 block text-[13px] font-bold leading-snug text-[var(--color-text)]">
-                    {rec.title}
-                  </span>
-                  <RouteIdentityStrip rec={rec} />
-                </span>
-                <span className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)] transition-colors group-open:border-[var(--color-accent)]/35 group-open:text-[var(--color-accent)]">
-                  Plan
-                </span>
-              </summary>
-              <div className="mt-3 grid gap-2 border-t border-[var(--color-border)] pt-3 sm:grid-cols-3">
-                <RouteStepBrief label="Do" value={routeStepStart(rec)} tone="accent" />
-                <RouteStepBrief label="Bring/check" value={routeStepBring(rec, bankItems, accountStage, maxEstimate)} />
-                <RouteStepBrief label="Stop when" value={recommendationStopPointValue(rec)} />
-              </div>
-            </details>
+              rec={rec}
+              index={index}
+              expanded={expandedId === rec.id}
+              onToggle={() => setExpandedId((current) => current === rec.id ? null : rec.id)}
+              bankItems={bankItems}
+              accountStage={accountStage}
+              maxEstimate={maxEstimate}
+            />
           );
         })}
       </div>
@@ -3651,6 +3864,7 @@ function HeadlineCard({
         <div className="flex-1 min-w-0">
           <div className="mb-2 flex flex-wrap items-center gap-1.5">
             <span className="eyebrow text-[var(--color-accent)]">Do this first</span>
+            <AccountModeBadge accountMode={accountMode} compact />
             <span
               className="scapestack-status-badge"
               data-tone="prep"
@@ -4650,6 +4864,31 @@ function RoutePlanLine({ label, value, strong = false }: { label: string; value:
 // Werkt voor zowel hero als alt-rows (zelfde details, andere
 // presentation density).
 
+function DiaryReadinessDetail({ rec }: { rec: Recommendation }) {
+  if (rec.kind !== "diary") return null;
+  const missing = recommendationNeeds(rec);
+  const blockerLabel = missing.length === 0
+    ? "Ready"
+    : missing.length === 1
+      ? "1 blocker"
+      : `${missing.length} blockers`;
+  const tasksLeft = rec.actionPlan?.steps
+    .filter((step) => /task|sweep|claim|sync|clear/i.test(step))
+    .slice(0, 3) ?? [];
+
+  return (
+    <div className="grid gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3 sm:grid-cols-2">
+      <RouteStepBrief label={blockerLabel} value={missing.length ? missing.slice(0, 3).join(" · ") : "All visible requirements are handled."} tone={missing.length ? "default" : "accent"} />
+      <RouteStepBrief label="Missing skills" value={missing.filter((line) => /needed, you have/i.test(line)).join(" · ") || "No skill blocker visible."} />
+      <RouteStepBrief label="Missing quests" value={missing.filter((line) => /missing$/i.test(line) && !/x |rope|plank|grapple|crossbow|coins/i.test(line)).join(" · ") || "No quest blocker visible."} />
+      <RouteStepBrief label="Missing items" value={missing.filter((line) => /bank|stage|carry|x |rope|plank|grapple|crossbow|coins/i.test(line)).join(" · ") || "No item blocker visible."} />
+      <RouteStepBrief label="Tasks left" value={tasksLeft.join(" · ") || "Run the diary tasks and claim the reward."} />
+      <RouteStepBrief label="Payoff" value={headlinePayoff(rec) ?? rec.why} />
+      <RouteStepBrief label="Stop when" value={recommendationStopPointValue(rec)} />
+    </div>
+  );
+}
+
 function RecDetailPanel({
   rec,
   actionContext,
@@ -4669,6 +4908,7 @@ function RecDetailPanel({
   return (
     <div className="mt-2 px-4 py-3 rounded-lg bg-[var(--color-bg-2)]/40 border border-[var(--color-border)] animate-[fade-in_0.2s_ease-out] space-y-2.5">
       <ActionPlanBlock rec={rec} />
+      <DiaryReadinessDetail rec={rec} />
       <p className="text-[12.5px] text-[var(--color-text-dim)] leading-relaxed">
         {rec.why}
       </p>

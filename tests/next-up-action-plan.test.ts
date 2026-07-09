@@ -257,6 +257,31 @@ describe("next-up action plans", () => {
     expect(recs.some((rec) => rec?.kind === "money")).toBe(false);
   });
 
+  it("keeps Hardcore Ironman risky bossing conservative", async () => {
+    const result = await computeNextUp({
+      skills: skillsAt(99),
+      questPoints: 180,
+      scapestackSync: {
+        displayName: "Hardcore Test",
+        accountType: "hardcore_ironman",
+        questsCompleted: [],
+        diariesCompleted: [],
+        collectionLogItemIds: []
+      },
+      bossKc: {
+        Vorkath: 3
+      }
+    });
+    const recs = [result.headline, ...result.rest].filter(Boolean);
+
+    expect(result.summary.accountType).toBe("hardcore");
+    expect(result.summary.accountMode.badgeLabel).toBe("Hardcore Ironman detected");
+    expect(result.summary.accountMode.planningNote).toContain("Risky combat is weighted down");
+    const kcRec = recs.find((rec) => rec?.kind === "kc");
+    expect(kcRec).toBeTruthy();
+    expect(kcRec?.score ?? 0).toBeLessThan(70);
+  });
+
   it("does not show boss onboarding for bosses with established KC", async () => {
     const result = await computeNextUp({
       skills: skillsAt(99),

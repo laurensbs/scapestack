@@ -144,9 +144,9 @@ describe("end-to-end syncflow regression contracts", () => {
       ownedQuantity: 1,
       missingQuantity: 1,
       availabilityStatus: "missing-shop-source",
-      availabilityCopy: "Source 2 planks yourself; sawmill/Construction route."
+      availabilityCopy: "Source yourself: 2 planks via sawmill/Construction route."
     }));
-    expect(result.accountWarnings.join(" ")).toContain("self-sourcing");
+    expect(result.accountWarnings.join(" ")).toContain("Source yourself");
   });
 
   it("makes diary unlock blockers exact and skips completed plugin-synced tiers", () => {
@@ -169,7 +169,7 @@ describe("end-to-end syncflow regression contracts", () => {
       "Ardougne Easy diary",
       "Rope"
     ]));
-    expect(blocked.accountWarnings.join(" ")).toContain("group storage is not assumed");
+    expect(blocked.accountWarnings.join(" ")).toContain("group storage not verified");
 
     const completed = evaluateDiaryTier("Ardougne", "Medium", ardougneDiary, {
       completedDiaryTiers: [{ region: "Ardougne", tier: "Medium" }]

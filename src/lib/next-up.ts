@@ -21,7 +21,12 @@ import { getQuests, questSlug, type QuestRecord } from "./quest-db";
 import { evaluateQuestRequirements, type QuestBankItem, type QuestRequirementEvaluation } from "./quest-requirements";
 import { getDiaries, type DiaryRecord, type DiaryTier } from "./diary-db";
 import {
+  diaryBlockerCount,
+  diaryCompletedRequirementLines,
+  diaryMissingRequirementLines,
   diaryReadinessLabel,
+  diaryReadinessSummary,
+  diaryTaskRequirementLines,
   diaryTierKey,
   evaluateDiaryTier,
   type DiaryRequirementEvaluation
@@ -342,6 +347,14 @@ function hasRouteTag(rec: Recommendation, tag: RecommendationRouteTag): boolean 
   return rec.routeTags?.includes(tag) ?? false;
 }
 
+function isRiskyRecommendation(rec: Recommendation): boolean {
+  const text = `${rec.id} ${rec.title} ${rec.why} ${rec.payoff ?? ""} ${rec.decisionReason ?? ""}`.toLowerCase();
+  return rec.kind === "boss"
+    || rec.kind === "kc"
+    || rec.kind === "slayer"
+    || /wilderness|wildy|revs?|revenue cave|pker|risk|boss/.test(text);
+}
+
 function defaultQualityFor(rec: Recommendation, hasBank: boolean): RecommendationQuality {
   const text = `${rec.title} ${rec.why} ${rec.payoff ?? ""} ${rec.decisionReason ?? ""}`.toLowerCase();
   const longQuest = rec.kind === "quest" && /\(\+\d+ more\)|long prereq|very long|grandmaster/.test(text);
@@ -396,12 +409,25 @@ function gearRealityMultiplier(rec: Recommendation, hasBank: boolean): number {
 
 function archetypeMultiplier(rec: Recommendation, accountStage: AccountStage, accountMeta?: AccountMeta | null): number {
   let multiplier = 1;
+  const accountType = accountMeta?.accountType ?? null;
   const iron = isIronAccount(accountMeta);
 
   if (iron) {
     if (hasRouteTag(rec, "iron") || hasRouteTag(rec, "unlock")) multiplier *= 1.2;
     if (rec.kind === "money") multiplier *= 0.45;
     if (rec.kind === "boss" || rec.kind === "kc") multiplier *= 0.9;
+  }
+
+  if (accountType === "hardcore") {
+    if (isRiskyRecommendation(rec)) multiplier *= 0.62;
+    if (hasRouteTag(rec, "unlock") || rec.kind === "quest" || rec.kind === "diary") multiplier *= 1.12;
+  } else if (accountType === "ultimate") {
+    if (rec.kind === "bank") multiplier *= 0.55;
+    if (rec.kind === "skill" || rec.kind === "quest" || rec.kind === "diary") multiplier *= 1.1;
+    if (rec.actionPlan?.timebox && /1-2 hr|120|min/i.test(rec.actionPlan.timebox)) multiplier *= 0.85;
+  } else if (accountType === "group") {
+    if (rec.kind === "money") multiplier *= 0.55;
+    if (hasRouteTag(rec, "unlock") || rec.kind === "quest" || rec.kind === "diary") multiplier *= 1.08;
   }
 
   switch (accountStage.id) {
@@ -1812,30 +1838,6 @@ function diaryItemLabel(req: DiaryRequirementEvaluation["itemRequirements"][numb
   return `${req.quantity > 1 ? `${req.quantity}x ` : ""}${req.name}`;
 }
 
-function missingDiaryItemLabel(req: DiaryRequirementEvaluation["itemRequirements"][number]): string {
-  if (!req.ownedInBank && req.availability?.shortCopy && !req.availability.copy.includes("account mode is unknown")) {
-    return req.availability.shortCopy;
-  }
-  if (req.missingQuantity <= 0) return diaryItemLabel(req);
-  return `${req.missingQuantity > 1 ? `${req.missingQuantity}x ` : ""}${req.name}`;
-}
-
-function diaryBlockerPreview(evaluation: DiaryRequirementEvaluation, limit = 3): string[] {
-  const skills = evaluation.skillRequirements
-    .filter((req) => !req.met)
-    .map((req) => `${req.skill} ${req.currentLevel}/${req.level}`);
-  const tiers = evaluation.tierDependencies
-    .filter((req) => !req.met)
-    .map((req) => `${evaluation.region} ${req.tier} diary`);
-  const quests = evaluation.questRequirements
-    .filter((req) => !req.met)
-    .map((req) => req.name);
-  const items = evaluation.bank.notApplicable
-    ? evaluation.itemRequirements.map(missingDiaryItemLabel)
-    : evaluation.bank.missing.map(missingDiaryItemLabel);
-  return [...skills, ...tiers, ...quests, ...items, ...evaluation.tasksLeft].slice(0, limit);
-}
-
 function diaryPreparation(evaluation: DiaryRequirementEvaluation, kind: NextBestActionKind): NextBestActionPreparation {
   if (kind === "do-diary" && evaluation.tier !== "Elite") return "Low";
   if (evaluation.tier === "Elite" || evaluation.missingRequirements.length > 5 || kind === "train-diary-skill") return "High";
@@ -1859,9 +1861,9 @@ function buildDiaryAction(evaluation: DiaryRequirementEvaluation): NextBestActio
     return {
       id: `nba:diary:${evaluation.region}:${evaluation.tier}`,
       kind,
-      title: `Do ${unlockLabel}`,
-      reason: `${diaryReadinessLabel(evaluation.readinessStatus)}: ${evaluation.payoff}`,
-      missingRequirements: evaluation.bank.notApplicable ? evaluation.itemRequirements.map(missingDiaryItemLabel) : [],
+      title: evaluation.region === "Karamja" ? "Finish Karamja gloves" : `Do ${evaluation.region} ${evaluation.tier}`,
+      reason: `${diaryReadinessSummary(evaluation)} Payoff: ${evaluation.payoff}`,
+      missingRequirements: evaluation.bank.notApplicable ? diaryMissingRequirementLines(evaluation) : [],
       requiredItems,
       preparation: diaryPreparation(evaluation, kind),
       relevantQuestOrUnlock: evaluation.payoff,
@@ -1882,8 +1884,8 @@ function buildDiaryAction(evaluation: DiaryRequirementEvaluation): NextBestActio
         id: `nba:diary-skill:${evaluation.region}:${evaluation.tier}:${closest.skill}`,
         kind,
         title: `Train ${closest.skill} to ${closest.level} for ${unlockLabel}`,
-        reason: `${closest.skill} is ${closest.gap} level${closest.gap === 1 ? "" : "s"} short; that is the nearest diary blocker.`,
-        missingRequirements: missingSkills.map((req) => `${req.skill} ${req.currentLevel}/${req.level}`),
+        reason: `${closest.level} ${closest.skill} needed, you have ${closest.currentLevel}; that is the nearest diary blocker.`,
+        missingRequirements: diaryMissingRequirementLines(evaluation),
         requiredItems,
         preparation: diaryPreparation(evaluation, kind),
         relevantQuestOrUnlock: unlockLabel,
@@ -1901,7 +1903,7 @@ function buildDiaryAction(evaluation: DiaryRequirementEvaluation): NextBestActio
       kind,
       title: `Collect ${missingItems.length} item${missingItems.length === 1 ? "" : "s"} for ${unlockLabel}`,
       reason: `${unlockLabel} is blocked by bank prep; finishing the item list unlocks ${evaluation.payoff}`,
-      missingRequirements: missingItems.map(missingDiaryItemLabel),
+      missingRequirements: diaryMissingRequirementLines(evaluation),
       requiredItems,
       preparation: diaryPreparation(evaluation, kind),
       relevantQuestOrUnlock: unlockLabel,
@@ -1919,10 +1921,7 @@ function buildDiaryAction(evaluation: DiaryRequirementEvaluation): NextBestActio
       kind,
       title: `Complete ${nextBlocker} for ${unlockLabel}`,
       reason: `${unlockLabel} is close, but prerequisite progress blocks the payoff: ${evaluation.payoff}`,
-      missingRequirements: [
-        ...missingTiers.map((req) => `${evaluation.region} ${req.tier} diary`),
-        ...missingQuests.map((req) => req.name)
-      ],
+      missingRequirements: diaryMissingRequirementLines(evaluation),
       requiredItems,
       preparation: diaryPreparation(evaluation, kind),
       relevantQuestOrUnlock: unlockLabel,
@@ -2311,10 +2310,10 @@ function diaryRecs(
       if (!actionable) continue;
       const tierBoost = { Easy: 0, Medium: 6, Hard: 14, Elite: 22 }[tier];
       const readinessBoost =
-        evaluation.readinessStatus === "ready" ? 8
-        : evaluation.readinessStatus === "partially-ready" || evaluation.readinessStatus === "missing-items" ? 5
-        : evaluation.readinessStatus === "missing-quests" ? 3
-        : 2;
+        evaluation.readinessStatus === "ready" ? 14
+        : evaluation.readinessStatus === "partially-ready" || evaluation.readinessStatus === "missing-items" ? 9
+        : evaluation.readinessStatus === "missing-quests" ? 5
+        : 4;
       const freshness = Math.max(0, 8 - Math.max(0, maxMissingSkillGap));
       const score = 34 + tierBoost + readinessBoost + freshness - Math.max(0, blockerCount - 1) * 3;
       best = { tier, evaluation, nearestGap: Math.max(0, -nearestHeadroom), score };
@@ -2323,24 +2322,31 @@ function diaryRecs(
     if (!best) continue;
 
     const { tier, evaluation, score } = best;
-    const blockers = diaryBlockerPreview(evaluation, 4);
-    const blockersText = blockers.length > 0 ? blockers.join(", ") : "no visible blockers";
+    const blockers = diaryMissingRequirementLines(evaluation);
+    const tasks = diaryTaskRequirementLines(evaluation);
+    const completed = diaryCompletedRequirementLines(evaluation).slice(0, 4);
+    const routeLines = blockers.length > 0 ? blockers : tasks;
+    const blockersText = blockers.length > 0 ? blockers.join(", ") : "ready for task sweep";
+    const taskText = tasks.length > 0 ? tasks.join(" ") : `Run the ${region} ${tier} diary tasks.`;
     const skillBlocker = evaluation.skillRequirements
       .filter((req) => !req.met)
       .map((req) => ({ ...req, gap: req.level - req.currentLevel }))
       .sort((a, b) => a.gap - b.gap)[0];
     const missingQuest = evaluation.questRequirements.find((req) => !req.met);
     const missingItems = evaluation.bank.notApplicable ? [] : evaluation.bank.missing;
-    const title = skillBlocker
-      ? `Train ${skillBlocker.skill} to ${skillBlocker.level} for ${region} ${tier}`
+    const title = region === "Karamja"
+      ? "Finish Karamja gloves"
+      : skillBlocker
+        ? `Train ${skillBlocker.skill} for ${region} ${tier}`
       : missingQuest
-        ? `Complete ${missingQuest.name} for ${region} ${tier}`
+        ? `Finish ${missingQuest.name} for ${region} ${tier}`
         : missingItems.length > 0
-          ? `Collect ${missingItems.length} item${missingItems.length === 1 ? "" : "s"} for ${region} ${tier}`
-          : `Do ${region} ${tier} diary`;
-    const why = blockers.length > 0
-      ? `${region} ${tier} is ${blockers.length} blocker${blockers.length === 1 ? "" : "s"} away: ${blockersText}.`
-      : `${region} ${tier} has every visible requirement handled.`;
+          ? `Collect diary items for ${region} ${tier}`
+          : `Do ${region} ${tier}`;
+    const blockerCount = diaryBlockerCount(evaluation);
+    const why = blockerCount > 0
+      ? `${region} ${tier} is ${blockerCount} blocker${blockerCount === 1 ? "" : "s"} away: ${blockersText}.`
+      : `${region} ${tier} is ready: ${taskText}`;
 
     recs.push({
       id: `diary:${region}:${tier}`,
@@ -2348,8 +2354,8 @@ function diaryRecs(
       title,
       why,
       payoff: evaluation.payoff,
-      decisionReason: `${diaryReadinessLabel(evaluation.readinessStatus)}: ${blockersText}. Stop point: ${evaluation.stopPoint}`,
-      needs: blockers,
+      decisionReason: `${diaryReadinessLabel(evaluation.readinessStatus)}: ${blockersText}. Payoff: ${evaluation.payoff}. Stop when: ${evaluation.stopPoint}`,
+      needs: routeLines.slice(0, 5),
       score,
       iconItemId: DIARY_REWARD_ICONS[region],
       routeTags: ["unlock", "maxing", "returning"],
@@ -2371,8 +2377,9 @@ function diaryRecs(
             ? `${region} ${tier}: clear ${blockers[0]} first.`
             : `${region} ${tier}: every visible blocker is clear.`,
         steps: [
-          ...blockers.slice(0, 2).map((blocker) => `Clear blocker: ${blocker}.`),
-          `Run the ${region} ${tier} tasks as one regional sweep.`,
+          ...blockers.slice(0, 2).map((blocker) => `Clear ${blocker}.`),
+          ...(completed.length > 0 && blockers.length > 0 ? [`Already handled: ${completed.join(", ")}.`] : []),
+          tasks[0] ?? `Run the ${region} ${tier} tasks as one regional sweep.`,
           "Claim the diary reward and re-sync so completed diary nudges disappear."
         ].slice(0, 4),
         caveat: evaluation.accountWarnings[0]

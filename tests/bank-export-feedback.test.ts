@@ -5,13 +5,21 @@ import { describe, expect, it } from "vitest";
 const source = readFileSync(join(process.cwd(), "src/components/bank-result.tsx"), "utf8");
 
 describe("bank export feedback", () => {
-  it("starts the bank result with one useful next move before technical details", () => {
+  it("starts the bank result with a clear setup board before technical details", () => {
     expect(source).toContain("function BankDecisionHero");
-    expect(source).toContain("Can I leave the bank?");
-    expect(source).toContain("Kill check can build one owned-gear trip.");
-    expect(source).toContain("Use this bank for your next trip.");
+    expect(source).toContain('aria-label="Bank Setup Board"');
+    expect(source).toContain("Bank Setup Board");
+    expect(source).toContain("Set up your bank");
+    expect(source).toContain("Bank loaded");
+    expect(source).toContain("Bank needs a paste");
+    expect(source).toContain("Pick layout");
+    expect(source).toContain("Smart tidy");
+    expect(source).toContain("Copy to RuneLite");
+    expect(source).toContain("Bank view controls");
+    expect(source).toContain("Open the kill check, lock a setup, then do one short trip.");
     expect(source).toContain("Check one boss trip before buying upgrades");
     expect(source).toContain("Use this bank for one clear trip");
+    expect(source).toContain("Open the next trip plan that fits tonight.");
     expect(source).toContain("function buildBankReadyToLeave");
     expect(source).toContain("ReadyToLeaveStatus");
     expect(source).toContain('"Good first trip"');
@@ -22,11 +30,13 @@ describe("bank export feedback", () => {
     expect(source).toContain("readiness={bankReadiness}");
     expect(source).toContain('id="bank-view-panel"');
     expect(source).toContain("shouldDensePackSparseLayout");
-    expect(source).toContain("Do first");
+    expect(source).toContain("Trip check");
+    expect(source).toContain("First");
     expect(source).toContain("Leave");
     expect(source).not.toContain("<span>Organize tabs</span>");
     expect(source).toContain("<span>Saved banks</span>");
-    expect(source.indexOf("Can I leave the bank?")).toBeLessThan(source.indexOf('id="bank-view-panel"'));
+    expect(source.indexOf("Set up your bank")).toBeLessThan(source.indexOf('id="bank-view-panel"'));
+    expect(source.indexOf("Bank view controls")).toBeLessThan(source.indexOf('id="bank-view-panel"'));
     expect(source.indexOf('id="bank-view-panel"')).toBeLessThan(source.indexOf("Import details"));
     expect(source.indexOf('id="bank-view-panel"')).toBeLessThan(source.indexOf("<span>Saved banks</span>"));
   });
@@ -92,6 +102,22 @@ describe("bank export feedback", () => {
   it("shows a manual boss loadout tag when boss tag copy fails", () => {
     expect(source).toContain("<BossTagSection");
     expect(source).toContain('onOpenDps={(bossSlug) => openBankHandoffRoute(bankToolUrl("/dps", inferredRsn, { boss: bossSlug }))}');
+    expect(source).toContain("Pick a boss");
+    expect(source).toContain("ScapeStack builds a RuneLite tab from your bank.");
+    expect(source).toContain("BOSS_LOADOUT_FILTERS");
+    expect(source).toContain("Raids");
+    expect(source).toContain("Slayer");
+    expect(source).toContain("Wildy");
+    expect(source).toContain("GWD");
+    expect(source).toContain("Beginner");
+    expect(source).toContain("Skilling");
+    expect(source).toContain('data-testid="boss-quick-picks"');
+    expect(source).toContain("Show all bosses");
+    expect(source).toContain("showAllBosses || q ? 60 : 12");
+    expect(source).toContain("Owned setup slots");
+    expect(source).toContain("Missing upgrades");
+    expect(source).toContain("Inventory prep");
+    expect(source).toContain("Copy RuneLite tag");
     expect(source).toContain('const [manualBossTag, setManualBossTag] = useState("")');
     expect(source).toContain('flash("boss-tag-error")');
     expect(source).toContain('copied === "boss-tag-error"');
@@ -106,7 +132,7 @@ describe("bank export feedback", () => {
     expect(source).toContain("Check kill");
     expect(source).toContain("aria-label={`Check ${boss.name} kill setup with this bank`}");
     expect(source).toContain("title={`/dps?boss=${boss.slug}`}");
-    expect(source).toContain("opens kill check with this boss selected.");
+    expect(source).toContain("Copy the tab to RuneLite, then check the kill before buying upgrades.");
   });
 
   it("keeps the post-bank action rail player-facing instead of slash-route heavy", () => {

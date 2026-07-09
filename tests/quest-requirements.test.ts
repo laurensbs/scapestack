@@ -166,7 +166,7 @@ describe("quest requirement matching", () => {
 
     expect(result.itemRequirements[0]).toMatchObject({
       availabilityStatus: "missing-shop-source",
-      availabilityCopy: "Source 2 planks yourself; sawmill/Construction route."
+      availabilityCopy: "Source yourself: 2 planks via sawmill/Construction route."
     });
   });
 
@@ -204,7 +204,7 @@ describe("quest requirement matching", () => {
 
     expect(result.itemRequirements[0]).toMatchObject({
       availabilityStatus: "missing-shop-source",
-      availabilityCopy: "Check own bank; group storage not verified for 2 planks."
+      availabilityCopy: "Own bank checked; group storage not verified for 2 planks."
     });
   });
 
@@ -301,7 +301,7 @@ describe("quest requirement matching", () => {
     });
 
     expect(result.accountWarnings.join(" ")).toContain("Ironman");
-    expect(result.accountWarnings.join(" ")).toContain("self-sourcing");
+    expect(result.accountWarnings.join(" ")).toContain("Source yourself");
   });
 
   it("does not treat Group Ironman item availability as a normal account", () => {
@@ -311,7 +311,7 @@ describe("quest requirement matching", () => {
     });
 
     expect(result.accountWarnings.join(" ")).toContain("Group Ironman");
-    expect(result.accountWarnings.join(" ")).toContain("group storage is not assumed");
+    expect(result.accountWarnings.join(" ")).toContain("group storage not verified");
   });
 
   it("warns Hardcore Ironman about risky self-sourcing", () => {
@@ -321,6 +321,6 @@ describe("quest requirement matching", () => {
     });
 
     expect(result.accountWarnings.join(" ")).toContain("Hardcore Ironman");
-    expect(result.accountWarnings.join(" ")).toContain("avoid risky combat sources");
+    expect(result.accountWarnings.join(" ")).toContain("Avoid risky source unless payoff is worth it");
   });
 });

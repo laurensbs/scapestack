@@ -4,9 +4,11 @@ import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { AlertTriangle, ArrowRight, CheckCircle2, DatabaseZap, RefreshCw, Search, XCircle } from "lucide-react";
 import { pluginSyncStatusAction } from "@/app/actions";
+import { AccountModeBadge } from "@/components/account-mode-badge";
 import { CopyCommand } from "@/components/copy-command";
 import { RuneliteOpenButton } from "@/components/runelite-open-button";
 import type { SyncedPlayer } from "@/lib/sync-repo";
+import { normalizeScapestackAccountType, scapestackAccountTypeToPlannerType } from "@/lib/account-type";
 import { pluginSyncHealth } from "@/lib/plugin-sync";
 import { markRuneliteChecked } from "@/lib/account-storage";
 import {
@@ -85,6 +87,9 @@ export function PluginSyncChecker() {
     return null;
   }, [state]);
   const foundDisplayName = state.kind === "found" ? state.player.displayName || state.player.rsn : "";
+  const foundAccountType = state.kind === "found"
+    ? scapestackAccountTypeToPlannerType(normalizeScapestackAccountType(state.player.accountType))
+    : null;
   const foundNextHref = foundDisplayName
     ? `/next?rsn=${encodeURIComponent(foundDisplayName)}&from=plugin&bank=none`
     : "/next?from=plugin&bank=none";
@@ -305,6 +310,7 @@ export function PluginSyncChecker() {
                   Open one plan that skips finished quests, diary steps, clog slots and wrong Slayer calls.
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-[var(--color-text-muted)]">
+                  <AccountModeBadge accountType={foundAccountType} confidence="detected" compact showSourceCopy />
                   <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
                     Last press {syncAgeLabel(state.player.syncedAt)}
                   </span>

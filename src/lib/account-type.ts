@@ -21,6 +21,30 @@ export interface AccountModeAssessment {
   planningNote: string;
 }
 
+export type AccountModeTone = "neutral" | "iron" | "hardcore" | "ultimate" | "group" | "unknown";
+
+export interface AccountModeVisual {
+  label: string;
+  badgeLabel: string;
+  shortLabel: string;
+  iconItemId: number | null;
+  tone: AccountModeTone;
+  sourceCopy: string;
+  bankCopy: string;
+  planningNote: string;
+}
+
+// IDs verified against local data/items.json on 2026-07-08:
+// 12810 Ironman helm, 20792 Hardcore ironman helm,
+// 12813 Ultimate ironman helm, 26156 Group ironman helm.
+// Normal/unknown intentionally use no item sprite so the iron helmets stay meaningful.
+export const ACCOUNT_MODE_ICON_ITEM_IDS: Partial<Record<PlannerAccountType, number>> = {
+  ironman: 12810,
+  hardcore: 20792,
+  ultimate: 12813,
+  group: 26156
+};
+
 export function normalizeScapestackAccountType(value: unknown): ScapestackAccountType {
   return SCAPESTACK_ACCOUNT_TYPES.includes(value as ScapestackAccountType)
     ? value as ScapestackAccountType
@@ -111,6 +135,91 @@ export function accountModeImpactNote(type: PlannerAccountType | null | undefine
     default:
       return "Account mode unknown: item availability stays conservative and bank readiness only counts when real bank data exists.";
   }
+}
+
+export function accountModeSourceCopy(type: PlannerAccountType | null | undefined): string {
+  switch (type) {
+    case "regular":
+    case "skiller":
+    case "pure":
+      return "Buy or grab";
+    case "ironman":
+      return "Source yourself";
+    case "hardcore":
+      return "Avoid risky source unless payoff is worth it";
+    case "ultimate":
+      return "Stage/carry before starting";
+    case "group":
+      return "Own bank checked; group storage not verified";
+    default:
+      return "Account mode unknown";
+  }
+}
+
+export function accountModeBankCopy(type: PlannerAccountType | null | undefined): string {
+  switch (type) {
+    case "ultimate":
+      return "Staging checklist; normal bank-ready does not apply.";
+    case "group":
+      return "Own bank checked; group storage not verified.";
+    case "ironman":
+      return "Bank items count, missing items need self-sourcing.";
+    case "hardcore":
+      return "Bank items count, risky sources stay conservative.";
+    case "regular":
+    case "skiller":
+    case "pure":
+      return "Bank checks and buyable prep can be treated normally.";
+    default:
+      return "Bank readiness only counts when real bank data exists.";
+  }
+}
+
+export function accountModeTone(type: PlannerAccountType | null | undefined): AccountModeTone {
+  switch (type) {
+    case "ironman":
+      return "iron";
+    case "hardcore":
+      return "hardcore";
+    case "ultimate":
+      return "ultimate";
+    case "group":
+      return "group";
+    case "regular":
+    case "skiller":
+    case "pure":
+      return "neutral";
+    default:
+      return "unknown";
+  }
+}
+
+export function accountModeVisual(
+  type: PlannerAccountType | null | undefined,
+  confidence: AccountModeConfidence = type ? "inferred" : "unknown"
+): AccountModeVisual {
+  const resolvedType = confidence === "unknown" ? null : type ?? null;
+  const label = resolvedType ? plannerAccountTypeLabel(resolvedType) : "Unknown mode";
+  return {
+    label,
+    badgeLabel: accountModeBadgeLabel(resolvedType, confidence),
+    shortLabel: resolvedType === "hardcore"
+      ? "HCIM"
+      : resolvedType === "ultimate"
+        ? "UIM"
+        : resolvedType === "group"
+          ? "GIM"
+          : resolvedType === "ironman"
+            ? "Ironman"
+            : resolvedType === "regular"
+              ? "Normal"
+              : label,
+    iconItemId: resolvedType ? ACCOUNT_MODE_ICON_ITEM_IDS[resolvedType] ?? null : null,
+    tone: accountModeTone(resolvedType),
+    sourceCopy: accountModeSourceCopy(resolvedType),
+    bankCopy: accountModeBankCopy(resolvedType),
+    planningNote: accountModeImpactNote(resolvedType)
+  };
 }
 
 export function accountModeBadgeLabel(

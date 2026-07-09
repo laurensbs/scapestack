@@ -1,5 +1,5 @@
 import type { PlannerAccountType } from "./account-type";
-import { isIronPlannerAccount, isUltimatePlannerAccount, plannerAccountTypeLabel } from "./account-type";
+import { accountModeSourceCopy, isIronPlannerAccount, isUltimatePlannerAccount, plannerAccountTypeLabel } from "./account-type";
 import type { DiaryRecord, DiaryTier } from "./diary-db";
 import type { HiscoreSkill } from "./hiscores";
 import {
@@ -66,6 +66,8 @@ export interface DiaryRequirementEvaluation {
   itemRequirements: EvaluatedDiaryItemRequirement[];
   taskRequirements: string[];
   activityRequirements: string[];
+  combatRequirements: string[];
+  minigameRequirements: string[];
   tierDependencies: Array<{ tier: DiaryTier; met: boolean }>;
   completedRequirements: string[];
   missingRequirements: string[];
@@ -94,6 +96,8 @@ interface DiaryTierOverride {
   itemRequirements?: DiaryItemRequirement[];
   taskRequirements?: string[];
   activityRequirements?: string[];
+  combatRequirements?: string[];
+  minigameRequirements?: string[];
   payoff: string;
   stopPoint: string;
 }
@@ -116,8 +120,9 @@ const DIARY_TIER_OVERRIDES: Record<string, DiaryTierOverride> = {
       { id: "mith-grapple", name: "Mith grapple", quantity: 1, alternatives: [{ name: "Mith grapple tip", quantity: 1 }] }
     ],
     taskRequirements: ["Clear the Ardougne city, market and monastery task sweep."],
+    minigameRequirements: ["Castle Wars / Fishing Trawler style regional checks may need manual task confirmation."],
     payoff: "Ardougne cloak teleport and a better pickpocket route.",
-    stopPoint: "Finish Biohazard or clear the closest item/skill blocker."
+    stopPoint: "Finish Biohazard or train the closest missing skill."
   },
   "Kandarin:Hard": {
     itemRequirements: [
@@ -126,6 +131,7 @@ const DIARY_TIER_OVERRIDES: Record<string, DiaryTierOverride> = {
     ],
     taskRequirements: ["Clear the Seers, Catherby and Barbarian Outpost tasks in one route."],
     activityRequirements: ["Barbarian Assault and regional travel tasks may still need manual task checks."],
+    minigameRequirements: ["Barbarian Assault task access and Kandarin regional travel checks."],
     payoff: "Kandarin headgear perks and stronger Seers' Village utility.",
     stopPoint: "Train the closest missing skill or finish the grapple/crossbow task sweep."
   },
@@ -134,6 +140,7 @@ const DIARY_TIER_OVERRIDES: Record<string, DiaryTierOverride> = {
       { id: "mith-grapple", name: "Mith grapple", quantity: 1, alternatives: [{ name: "Mith grapple tip", quantity: 1 }] }
     ],
     taskRequirements: ["Route the Mining Guild, Falador farm and grapple tasks together."],
+    combatRequirements: ["Mole and shield utility checks become more valuable after this tier."],
     payoff: "Falador shield utility and a stronger Mole/prayer restore route.",
     stopPoint: "Clear the grapple task or the closest skill blocker."
   },
@@ -143,7 +150,10 @@ const DIARY_TIER_OVERRIDES: Record<string, DiaryTierOverride> = {
       { id: "rune-crossbow", name: "Rune crossbow", quantity: 1, alternatives: [] },
       { id: "mith-grapple", name: "Mith grapple", quantity: 1, alternatives: [{ name: "Mith grapple tip", quantity: 1 }] }
     ],
+    taskRequirements: ["Route Pest Control, elf lands and the Western hard task sweep together."],
     activityRequirements: ["Pest Control, elf lands and regional combat tasks may still need manual task checks."],
+    minigameRequirements: ["Pest Control and elf lands tasks are part of the tier route."],
+    combatRequirements: ["Chompy, elf and regional combat tasks should be checked before leaving."],
     payoff: "Western banner perks and stronger Elite Void route planning.",
     stopPoint: "Finish Regicide or clear the closest skill/item blocker."
   },
@@ -152,6 +162,41 @@ const DIARY_TIER_OVERRIDES: Record<string, DiaryTierOverride> = {
     taskRequirements: ["Route Draynor, Lumbridge Swamp and Zanaris-adjacent tasks together."],
     payoff: "Explorer's ring utility and better early account transport.",
     stopPoint: "Finish Lost City or clear the closest skill blocker."
+  },
+  "Karamja:Easy": {
+    taskRequirements: ["Finish the quick Karamja task sweep and claim Karamja gloves 1."],
+    payoff: "Karamja gloves start the diary reward chain.",
+    stopPoint: "Claim the gloves and re-sync the completed tier."
+  },
+  "Karamja:Medium": {
+    itemRequirements: [
+      { id: "rope", name: "Rope", quantity: 1, alternatives: [] },
+      { id: "coins", name: "Coins", quantity: 30, alternatives: [] }
+    ],
+    taskRequirements: ["Route Brimhaven, Musa Point and Karamja Volcano tasks together."],
+    minigameRequirements: ["Brimhaven Agility Arena checks may need manual task confirmation."],
+    payoff: "Karamja gloves 2 improve Karamja utility and move the gloves route forward.",
+    stopPoint: "Finish the Brimhaven/Karamja sweep or pull the missing travel item."
+  },
+  "Karamja:Hard": {
+    questRequirements: ["Shilo Village"],
+    itemRequirements: [
+      { id: "karamja-gloves", name: "Karamja gloves", quantity: 1, alternatives: [{ name: "Karamja gloves 2", quantity: 1 }] }
+    ],
+    taskRequirements: ["Clear Shilo, Brimhaven and Tai Bwo Wannai tasks as one gloves route."],
+    combatRequirements: ["Check any combat diary-style Karamja tasks before committing supplies."],
+    payoff: "Karamja gloves 3 unlock stronger Karamja teleports and shop utility.",
+    stopPoint: "Finish Shilo Village or claim the next gloves tier."
+  },
+  "Karamja:Elite": {
+    questRequirements: ["Tai Bwo Wannai Trio"],
+    itemRequirements: [
+      { id: "karamja-gloves-3", name: "Karamja gloves 3", quantity: 1, alternatives: [] }
+    ],
+    taskRequirements: ["Finish the final Karamja task sweep and claim Karamja gloves 4."],
+    combatRequirements: ["High-level Karamja combat/resource tasks should be checked before the trip."],
+    payoff: "Karamja gloves 4 completes the Karamja diary reward route.",
+    stopPoint: "Claim Karamja gloves 4 and re-sync so the route disappears from /next."
   }
 };
 
@@ -309,16 +354,16 @@ function readinessStatus(input: {
 function warningsFor(accountType: PlannerAccountType | null, hasItemRequirements: boolean): string[] {
   if (!accountType) return [];
   if (isUltimatePlannerAccount(accountType)) {
-    return ["Ultimate Ironman: use this as a staging checklist; normal bank-ready does not apply."];
+    return [`Ultimate Ironman: ${accountModeSourceCopy(accountType)}; normal bank-ready does not apply.`];
   }
   if (accountType === "group" && hasItemRequirements) {
-    return ["Group Ironman: own bank is checked; group storage is not assumed."];
+    return [`Group Ironman: ${accountModeSourceCopy(accountType)}.`];
   }
   if (accountType === "hardcore") {
-    return ["Hardcore Ironman: route combat or Wilderness diary tasks conservatively unless the payoff is worth it."];
+    return [`Hardcore Ironman: ${accountModeSourceCopy(accountType)}; route combat or Wilderness diary tasks conservatively.`];
   }
   if (isIronPlannerAccount(accountType) && hasItemRequirements) {
-    return [`${plannerAccountTypeLabel(accountType)}: item blockers assume self-sourcing, not Grand Exchange buying.`];
+    return [`${plannerAccountTypeLabel(accountType)}: ${accountModeSourceCopy(accountType)}; Grand Exchange buying is not assumed.`];
   }
   return [];
 }
@@ -339,6 +384,80 @@ export function diaryReadinessLabel(status: DiaryReadinessStatus): string {
     default:
       return "Partially ready";
   }
+}
+
+function itemRequirementLabel(req: EvaluatedDiaryItemRequirement): string {
+  return `${req.quantity > 1 ? `${req.quantity}x ` : ""}${req.name}`;
+}
+
+export function diaryCompletedRequirementLines(evaluation: DiaryRequirementEvaluation): string[] {
+  if (evaluation.readinessStatus === "completed") return [`${evaluation.region} ${evaluation.tier} completed`];
+
+  const skills = evaluation.skillRequirements
+    .filter((req) => req.met)
+    .map((req) => `${req.skill} ${req.level} met`);
+  const tiers = evaluation.tierDependencies
+    .filter((req) => req.met)
+    .map((req) => `${evaluation.region} ${req.tier} diary done`);
+  const quests = evaluation.questRequirements
+    .filter((req) => req.met)
+    .map((req) => `${req.name} done`);
+  const items = evaluation.itemRequirements
+    .filter((req) => req.ownedInBank)
+    .map((req) => req.ownedName && req.ownedName !== req.name
+      ? `${req.ownedName} in bank for ${req.name}`
+      : `${itemRequirementLabel(req)} in bank`);
+
+  return [...skills, ...tiers, ...quests, ...items];
+}
+
+export function diaryMissingRequirementLines(evaluation: DiaryRequirementEvaluation): string[] {
+  if (evaluation.readinessStatus === "completed") return [];
+
+  const skills = evaluation.skillRequirements
+    .filter((req) => !req.met)
+    .map((req) => `${req.level} ${req.skill} needed, you have ${req.currentLevel}`);
+  const tiers = evaluation.tierDependencies
+    .filter((req) => !req.met)
+    .map((req) => `${evaluation.region} ${req.tier} diary missing`);
+  const quests = evaluation.questRequirements
+    .filter((req) => !req.met)
+    .map((req) => `${req.name} missing`);
+  const items = (evaluation.bank.notApplicable ? evaluation.itemRequirements : evaluation.bank.missing)
+    .filter((req) => !req.ownedInBank || evaluation.bank.notApplicable)
+    .map((req) => {
+      const label = itemRequirementLabel(req);
+      if (evaluation.bank.notApplicable) return `${label}: stage/carry before starting`;
+      if (req.ownedQuantity > 0) return `${label} missing, ${req.ownedQuantity} in bank`;
+      return `${label} missing`;
+    });
+
+  return [...skills, ...tiers, ...quests, ...items];
+}
+
+export function diaryTaskRequirementLines(evaluation: DiaryRequirementEvaluation): string[] {
+  if (evaluation.readinessStatus === "completed") return [];
+  return [
+    ...evaluation.taskRequirements,
+    ...evaluation.activityRequirements,
+    ...evaluation.combatRequirements,
+    ...evaluation.minigameRequirements
+  ];
+}
+
+export function diaryBlockerCount(evaluation: DiaryRequirementEvaluation): number {
+  return diaryMissingRequirementLines(evaluation).length;
+}
+
+export function diaryReadinessSummary(evaluation: DiaryRequirementEvaluation): string {
+  if (evaluation.readinessStatus === "completed") {
+    return `${evaluation.region} ${evaluation.tier} is already complete.`;
+  }
+  const blockers = diaryBlockerCount(evaluation);
+  if (blockers === 0) {
+    return `${evaluation.region} ${evaluation.tier} is ready; run the task sweep and claim the reward.`;
+  }
+  return `${evaluation.region} ${evaluation.tier} is ${blockers} blocker${blockers === 1 ? "" : "s"} away.`;
 }
 
 export function evaluateDiaryTier(
@@ -386,7 +505,14 @@ export function evaluateDiaryTier(
     `Run the ${region} ${tier} task checklist as a single regional sweep.`
   ];
   const activityRequirements = override?.activityRequirements ?? [];
-  const tasksLeft = isCompleted ? [] : [...taskRequirements, ...activityRequirements];
+  const combatRequirements = override?.combatRequirements ?? [];
+  const minigameRequirements = override?.minigameRequirements ?? [];
+  const tasksLeft = isCompleted ? [] : [
+    ...taskRequirements,
+    ...activityRequirements,
+    ...combatRequirements,
+    ...minigameRequirements
+  ];
   const payoff = override?.payoff ?? DEFAULT_TIER_PAYOFF[tier];
   const stopPoint = override?.stopPoint ?? `Finish the closest ${region} ${tier} blocker or claim the diary reward.`;
   const accountWarnings = warningsFor(accountType, itemRequirements.length > 0);
@@ -410,6 +536,8 @@ export function evaluateDiaryTier(
     itemRequirements,
     taskRequirements,
     activityRequirements,
+    combatRequirements,
+    minigameRequirements,
     tierDependencies,
     completedRequirements,
     missingRequirements: isCompleted ? [] : missingRequirements,

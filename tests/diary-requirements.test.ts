@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { evaluateDiaryTier } from "@/lib/diary-requirements";
+import {
+  diaryBlockerCount,
+  diaryCompletedRequirementLines,
+  diaryMissingRequirementLines,
+  diaryReadinessSummary,
+  diaryTaskRequirementLines,
+  evaluateDiaryTier
+} from "@/lib/diary-requirements";
 import type { DiaryRecord } from "@/lib/diary-db";
 import type { HiscoreSkill } from "@/lib/hiscores";
 
@@ -73,7 +80,11 @@ describe("diary requirement matching", () => {
 
   it("reports missing skill levels", () => {
     const result = evaluateDiaryTier("Kandarin", "Hard", kandarinDiary, {
-      skills: skillsFromLevels({ Smithing: 75, Agility: 55 })
+      skills: skillsFromLevels({ Smithing: 75, Agility: 55 }),
+      bankItems: [
+        { name: "Mith grapple", quantity: 1 },
+        { name: "Rune crossbow", quantity: 1 }
+      ]
     });
 
     expect(result.readinessStatus).toBe("missing-skill-levels");
@@ -84,6 +95,8 @@ describe("diary requirement matching", () => {
       met: false
     }));
     expect(result.missingRequirements).toContain("Agility 60");
+    expect(diaryMissingRequirementLines(result)).toContain("60 Agility needed, you have 55");
+    expect(diaryReadinessSummary(result)).toBe("Kandarin Hard is 1 blocker away.");
   });
 
   it("reports missing prerequisite quests", () => {
@@ -101,6 +114,7 @@ describe("diary requirement matching", () => {
       name: "Biohazard",
       met: false
     }));
+    expect(diaryMissingRequirementLines(result)).toContain("Biohazard missing");
   });
 
   it("matches present, missing and too-low-quantity bank items", () => {
@@ -125,6 +139,14 @@ describe("diary requirement matching", () => {
         availabilityCopy: "Buy or grab 2 planks."
       }),
       expect.objectContaining({ name: "Mith grapple", ownedQuantity: 0, missingQuantity: 1 })
+    ]));
+    expect(diaryMissingRequirementLines(result)).toEqual(expect.arrayContaining([
+      "2x Plank missing, 1 in bank",
+      "Mith grapple missing"
+    ]));
+    expect(diaryCompletedRequirementLines(result)).toEqual(expect.arrayContaining([
+      "Biohazard done",
+      "Rope in bank"
     ]));
   });
 
@@ -161,7 +183,7 @@ describe("diary requirement matching", () => {
 
     expect(result.readinessStatus).toBe("partially-ready");
     expect(result.bank.notApplicable).toBe(true);
-    expect(result.accountWarnings.join(" ")).toContain("staging checklist");
+    expect(result.accountWarnings.join(" ")).toContain("Stage/carry before starting");
     expect(result.itemRequirements.find((req) => req.name === "Mith grapple")).toMatchObject({
       availabilityStatus: "owned"
     });
@@ -182,6 +204,10 @@ describe("diary requirement matching", () => {
       availabilityStatus: "uim-stage-manually",
       availabilityCopy: "Stage/carry 2 planks before starting."
     });
+    expect(diaryMissingRequirementLines(result)).toEqual(expect.arrayContaining([
+      "2x Plank: stage/carry before starting",
+      "Mith grapple: stage/carry before starting"
+    ]));
   });
 
   it("marks plugin-synced completed diary tiers as completed", () => {
@@ -193,5 +219,33 @@ describe("diary requirement matching", () => {
     expect(result.readinessStatus).toBe("completed");
     expect(result.missingRequirements).toEqual([]);
     expect(result.tasksLeft).toEqual([]);
+  });
+
+  it("keeps task, combat and minigame diary requirements structured", () => {
+    const result = evaluateDiaryTier("Western Provinces", "Hard", {
+      name: "Western Provinces",
+      tiers: {
+        Easy: { skills: [] },
+        Medium: { skills: [] },
+        Hard: { skills: [{ skill: "Ranged", level: 70 }] },
+        Elite: { skills: [] }
+      }
+    }, {
+      skills: skillsFromLevels({ Ranged: 70 }),
+      completedQuests: ["Regicide"],
+      completedDiaryTiers: ["Western Provinces:Easy", "Western Provinces:Medium"],
+      bankItems: [
+        { name: "Rune crossbow", quantity: 1 },
+        { name: "Mith grapple", quantity: 1 }
+      ]
+    });
+
+    expect(result.readinessStatus).toBe("ready");
+    expect(result.taskRequirements.join(" ")).toContain("Pest Control");
+    expect(result.combatRequirements.join(" ")).toContain("regional combat");
+    expect(result.minigameRequirements.join(" ")).toContain("Pest Control");
+    expect(diaryTaskRequirementLines(result).join(" ")).toContain("Pest Control");
+    expect(diaryBlockerCount(result)).toBe(0);
+    expect(diaryReadinessSummary(result)).toBe("Western Provinces Hard is ready; run the task sweep and claim the reward.");
   });
 });

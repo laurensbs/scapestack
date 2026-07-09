@@ -49,10 +49,10 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
     () => buildInventoryRows({ preset, bankItems, owned, dps }),
     [preset, bankItems, owned, dps]
   );
-  const nearbyBosses = useMemo(() => {
+  const bossRail = useMemo(() => {
     const sameCategory = BOSSES.filter((candidate) => candidate.category === boss.category && candidate.slug !== boss.slug);
     const rest = BOSSES.filter((candidate) => candidate.category !== boss.category && candidate.slug !== boss.slug);
-    return [...sameCategory, ...rest].slice(0, 12);
+    return [boss, ...sameCategory, ...rest].slice(0, 13);
   }, [boss]);
 
   // GP/hr is honest: cap kills/hour at the boss's killsPerHourCap. Skipped
@@ -123,15 +123,26 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
             >
               {boss.name}
             </h2>
-            <p id={descriptionId} className="mt-0.5 text-[12px] text-[var(--color-text-dim)]" style={{ textShadow: "0 1px 6px rgb(0 0 0 / 0.7)" }}>
-              {boss.hp} HP{boss.notes ? ` · ${boss.notes}` : ""}
-            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <p id={descriptionId} className="text-[12px] text-[var(--color-text-dim)]" style={{ textShadow: "0 1px 6px rgb(0 0 0 / 0.7)" }}>
+                {boss.hp} HP{boss.notes ? ` · ${boss.notes}` : ""}
+              </p>
+              {boss.iconItemId && (
+                <span className="inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-black/35 px-1.5 py-0.5 text-[9.5px] font-black text-[var(--color-text-muted)] tabular-nums">
+                  <ItemSprite id={boss.iconItemId} alt="" size={16} className="pixelated" />
+                  id:{boss.iconItemId}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Right column — gear, stats, upgrades, inventory. Scrolls
             internally so the modal as a whole stays in viewport. */}
-        <div className="relative min-h-0 max-h-[90vh] space-y-5 overflow-y-auto overscroll-contain p-5 pb-16 sm:p-6 sm:pb-16">
+        <div
+          className="relative min-h-0 max-h-[90vh] space-y-5 overflow-y-auto overscroll-contain p-5 pb-16 sm:p-6 sm:pb-16"
+          data-testid="boss-modal-scroll-panel"
+        >
           {/* Stats row — DPS, Max hit, Accuracy, plus GP/hr if available. */}
           <section id={statsId}>
             <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">Best style with your gear</h3>
@@ -171,25 +182,36 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
             )}
           </section>
 
-          {onSelectBoss && nearbyBosses.length > 0 && (
+          {onSelectBoss && bossRail.length > 0 && (
             <section>
               <div className="mb-2 flex items-center justify-between gap-2">
                 <h3 className="eyebrow text-[var(--color-text-muted)]">Try another boss</h3>
-                <span className="text-[10.5px] text-[var(--color-text-muted)]">{nearbyBosses.length} quick picks</span>
+                <span className="text-[10.5px] text-[var(--color-text-muted)]">{bossRail.length - 1} nearby picks</span>
               </div>
               <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
-                {nearbyBosses.map((candidate) => (
+                {bossRail.map((candidate) => {
+                  const active = candidate.slug === boss.slug;
+                  return (
                   <button
                     key={candidate.slug}
                     type="button"
-                    onClick={() => onSelectBoss(candidate)}
+                    onClick={() => {
+                      if (!active) onSelectBoss(candidate);
+                    }}
                     title={candidate.name}
-                    aria-label={`Switch boss setup to ${candidate.name}`}
-                    className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/50 transition-colors hover:border-[var(--color-accent)]/55 hover:bg-[var(--color-accent)]/10"
+                    aria-label={active ? `${candidate.name} is selected` : `Switch boss setup to ${candidate.name}`}
+                    aria-current={active ? "true" : undefined}
+                    className={cn(
+                      "inline-flex size-11 shrink-0 items-center justify-center rounded-lg border bg-[var(--color-bg)]/50 transition-colors",
+                      active
+                        ? "border-[var(--color-accent)] bg-[var(--color-accent)]/12 shadow-[0_0_0_2px_rgba(240,176,44,0.18)]"
+                        : "border-[var(--color-border)] hover:border-[var(--color-accent)]/55 hover:bg-[var(--color-accent)]/10"
+                    )}
                   >
                     <BossSprite boss={candidate} size={36} />
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </section>
           )}
@@ -277,7 +299,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
               then matched against the full pasted bank. Missing slots stay
               visible as buy/check chips so the player knows what to fix. */}
           {inventoryRows.length > 0 && (
-            <section>
+            <section data-testid="boss-inventory-setup">
               <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">
                 <Package className="size-3 inline-block mr-1" />Best inventory setup
               </h3>

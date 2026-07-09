@@ -23,7 +23,19 @@ describe("item availability", () => {
     });
 
     expect(result.status).toBe("missing-shop-source");
-    expect(result.copy).toBe("Source 2 planks yourself; sawmill/Construction route.");
+    expect(result.copy).toBe("Source yourself: 2 planks via sawmill/Construction route.");
+  });
+
+  it("warns Hardcore Ironman about risky item sources", () => {
+    const result = evaluateItemAvailability({
+      name: "Plank",
+      quantity: 2,
+      ownedInBank: false,
+      accountType: "hardcore"
+    });
+
+    expect(result.status).toBe("missing-shop-source");
+    expect(result.copy).toBe("Avoid risky source unless payoff is worth it; source 2 planks yourself via sawmill/Construction route.");
   });
 
   it("uses staging language for Ultimate Ironman", () => {
@@ -47,7 +59,7 @@ describe("item availability", () => {
     });
 
     expect(result.status).toBe("missing-shop-source");
-    expect(result.copy).toBe("Check own bank; group storage not verified for 2 planks.");
+    expect(result.copy).toBe("Own bank checked; group storage not verified for 2 planks.");
   });
 
   it("lets bank ownership win for every account type", () => {

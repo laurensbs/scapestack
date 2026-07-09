@@ -32,9 +32,13 @@ describe("boss detail modal affordance", () => {
     expect(source).toContain("Bright chips = in your bank");
     expect(source).toContain("Buy chips = missing");
     expect(source).toContain("Try another boss");
+    expect(source).toContain("bossRail");
+    expect(source).toContain('aria-current={active ? "true" : undefined}');
     expect(source).toContain("onSelectBoss?: (boss: Boss) => void");
     expect(source).toContain("max-h-[90vh]");
     expect(source).toContain("overflow-y-auto overscroll-contain");
+    expect(source).toContain('data-testid="boss-modal-scroll-panel"');
+    expect(source).toContain('data-testid="boss-inventory-setup"');
   });
 
   it("builds boss inventory from the pasted bank and marks missing buys", () => {

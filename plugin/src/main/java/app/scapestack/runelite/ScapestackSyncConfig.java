@@ -10,7 +10,7 @@ public interface ScapestackSyncConfig extends Config {
     @ConfigItem(
         keyName = "syncNow",
         name = "Sync now",
-        description = "Send a planner snapshot now. Resets automatically after the sync starts."
+        description = "Update ScapeStack now. Resets automatically after sync starts."
     )
     default boolean syncNow() {
         return false;
@@ -19,7 +19,7 @@ public interface ScapestackSyncConfig extends Config {
     @ConfigItem(
         keyName = "autoSync",
         name = "Sync on login",
-        description = "Updates your Scapestack session planner with account type, quests, skills, diaries, collection-log IDs and Slayer state. Bank readiness stays separate."
+        description = "Keeps your ScapeStack planner current with account mode, skills, quests, diaries and Slayer task. Bank checks stay separate."
     )
     default boolean autoSync() {
         return false;
@@ -28,7 +28,7 @@ public interface ScapestackSyncConfig extends Config {
     @ConfigItem(
         keyName = "syncBankItems",
         name = "Use bank for readiness",
-        description = "Adds bank item IDs, names and quantities so quests and diaries can show ready/missing item checks. Never sends inventory, equipment, chat, screenshots or account login."
+        description = "Lets ScapeStack check which quest and diary items are already in your bank. Never sends inventory, equipment, chat, screenshots or account login."
     )
     default boolean syncBankItems() {
         return false;
@@ -46,7 +46,7 @@ public interface ScapestackSyncConfig extends Config {
     @ConfigItem(
         keyName = "forceClaimOnNextSync",
         name = "Reconnect player",
-        description = "Forget the local claimed-RSN cache and reconnect this RuneLite install on the next sync. Use after changing RSN or fixing a rejected claim."
+        description = "Reconnect this RuneLite install to your current player on the next sync. Use this after changing RSN."
     )
     default boolean forceClaimOnNextSync() {
         return false;

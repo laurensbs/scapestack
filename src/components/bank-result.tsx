@@ -51,7 +51,7 @@ import { recordSnapshot, daysSinceChanged, type ItemHistory } from "@/lib/item-h
 import { matchGoals, summarizeGoalProgress, type GoalMatch } from "@/lib/goal-match";
 import { suggestUpgrades, ownedIdSet, type UpgradeSuggestion } from "@/lib/upgrades";
 import type { HiscoreSkill } from "@/lib/hiscores";
-import { BOSSES, BOSS_CATEGORIES, type Boss, type BossCategory } from "@/lib/bosses";
+import { BOSSES, type Boss } from "@/lib/bosses";
 import { BossSprite } from "./boss-picker";
 import { ownedGear } from "@/lib/gear";
 import { bestStyleAndSetup } from "@/lib/dps";
@@ -108,6 +108,99 @@ type TabMode = "type" | "useCase";
 const PREFS_KEY = "scapestack-bank:prefs";
 type BankPluginHubActionState = NonNullable<BankActionLoopInput["pluginHubState"]>;
 type BankDecisionAction = "next" | "dps" | "copy" | "tidy";
+type SmartTidyStage = "closed" | "choosing" | "preview" | "applying" | "applied";
+type SmartTidyPlaystyle = "pvm" | "ironman" | "skilling" | "questing" | "minimal";
+type SmartTidyFront = "gear" | "teleports" | "supplies" | "current";
+
+interface SmartTidyPreset {
+  id: SmartTidyPlaystyle;
+  label: string;
+  helper: string;
+  archetype: Archetype;
+  order: UseCaseTab[];
+}
+
+const SMART_TIDY_PRESETS: SmartTidyPreset[] = [
+  {
+    id: "pvm",
+    label: "PvM",
+    helper: "PvM gear first",
+    archetype: "pvm",
+    order: ["PvM Gear", "Teleports", "Potions", "Drops", "Skilling", "Quest", "Clue", "Cosmetic", "Misc"]
+  },
+  {
+    id: "ironman",
+    label: "Ironman",
+    helper: "Quest items kept together",
+    archetype: "ironman",
+    order: ["Teleports", "Quest", "Potions", "Skilling", "PvM Gear", "Drops", "Clue", "Cosmetic", "Misc"]
+  },
+  {
+    id: "skilling",
+    label: "Skilling",
+    helper: "Tools and supplies first",
+    archetype: "skiller",
+    order: ["Skilling", "Teleports", "Potions", "Quest", "PvM Gear", "Drops", "Clue", "Cosmetic", "Misc"]
+  },
+  {
+    id: "questing",
+    label: "Questing",
+    helper: "Quest and diary items first",
+    archetype: "main",
+    order: ["Quest", "Teleports", "Skilling", "Potions", "PvM Gear", "Drops", "Clue", "Cosmetic", "Misc"]
+  },
+  {
+    id: "minimal",
+    label: "Minimal",
+    helper: "Teleports, gear, supplies",
+    archetype: "unspecified",
+    order: ["Teleports", "PvM Gear", "Potions", "Quest", "Skilling", "Drops", "Clue", "Cosmetic", "Misc"]
+  }
+];
+
+const SMART_TIDY_FRONT_CHOICES: Array<{ id: SmartTidyFront; label: string; helper: string; tab?: UseCaseTab }> = [
+  { id: "gear", label: "Gear", helper: "PvM gear first", tab: "PvM Gear" },
+  { id: "teleports", label: "Teleports", helper: "Teleports near the top", tab: "Teleports" },
+  { id: "supplies", label: "Supplies", helper: "Potions and food close", tab: "Potions" },
+  { id: "current", label: "Current grind", helper: "Keep this tab first" }
+];
+
+function moveTabToFront(order: UseCaseTab[], tab: string | null | undefined): UseCaseTab[] {
+  if (!tab || !USE_CASE_ORDER.includes(tab as UseCaseTab)) return order;
+  const useCaseTab = tab as UseCaseTab;
+  return [useCaseTab, ...order.filter((name) => name !== useCaseTab)];
+}
+
+function smartTidyOrder(playstyle: SmartTidyPlaystyle, front: SmartTidyFront, currentTabName?: string | null): UseCaseTab[] {
+  const preset = SMART_TIDY_PRESETS.find((item) => item.id === playstyle) ?? SMART_TIDY_PRESETS[0];
+  const frontChoice = SMART_TIDY_FRONT_CHOICES.find((item) => item.id === front);
+  if (front === "current") return moveTabToFront(preset.order, currentTabName);
+  return moveTabToFront(preset.order, frontChoice?.tab);
+}
+
+function orderTabsForSmartTidy(tabs: OrganizedTab[], order: UseCaseTab[]): OrganizedTab[] {
+  const rank = new Map(order.map((name, index) => [name, index]));
+  return tabs
+    .map((tab, index) => ({ tab, index }))
+    .sort((a, b) => {
+      const ar = rank.has(String(a.tab.name) as UseCaseTab) ? rank.get(String(a.tab.name) as UseCaseTab)! : 999;
+      const br = rank.has(String(b.tab.name) as UseCaseTab) ? rank.get(String(b.tab.name) as UseCaseTab)! : 999;
+      if (ar !== br) return ar - br;
+      return a.index - b.index;
+    })
+    .map((entry) => entry.tab);
+}
+
+function buildSmartTidyLayout(tabs: OrganizedTab[], playstyle: SmartTidyPlaystyle, front: SmartTidyFront, currentTabName?: string | null): OrganizedTab[] {
+  const preset = SMART_TIDY_PRESETS.find((item) => item.id === playstyle) ?? SMART_TIDY_PRESETS[0];
+  const smartTabs = reorganizeTabs(tabs, "smart", preset.archetype);
+  const useCaseTabs = buildUseCaseTabs(smartTabs, preset.archetype);
+  return orderTabsForSmartTidy(useCaseTabs, smartTidyOrder(playstyle, front, currentTabName));
+}
+
+function smartTidyArchetype(playstyle: SmartTidyPlaystyle): Archetype {
+  return SMART_TIDY_PRESETS.find((item) => item.id === playstyle)?.archetype ?? "unspecified";
+}
 
 interface BankDecision {
   iconItemId: number;
@@ -289,91 +382,91 @@ function BankDecisionHero({
   onTidy: () => void;
   onEditInput: () => void;
 }) {
+  const statusLabel = totalItems > 0 ? "Bank loaded" : "Bank needs a paste";
   const chips = [
     `${totalItems} items`,
     weaponCount > 0 ? `${weaponCount} weapon${weaponCount === 1 ? "" : "s"}` : null,
     hasPrices && totalValue > 0 ? formatGp(totalValue) : null,
     tipCount > 0 ? `${tipCount} cleanup move${tipCount === 1 ? "" : "s"}` : null
   ].filter((chip): chip is string => Boolean(chip));
-  const outcomes = [
+  const setupSteps = [
     {
-      label: "Trip",
-      value: weaponCount > 0 ? "Kill check can build one owned-gear trip." : "Add combat gear for boss checks."
+      label: "Pick layout",
+      value: "Tabs are grouped by how you play. Change this only if you want item-type tabs.",
+      state: "ready" as const,
+      icon: Layers
     },
     {
-      label: "Upgrade",
-      value: hasPrices && totalValue > 0 ? "Use GP context before buying." : "Add prices for upgrade calls."
+      label: "Smart tidy",
+      value: decision.primaryAction === "tidy" ? "Run this first, then review the first few tabs." : "Optional: tidy after you check the main setup.",
+      state: decision.primaryAction === "tidy" ? "attention" as const : "ready" as const,
+      icon: Wand2
     },
     {
-      label: "Next trip",
-      value: tipCount > 0 ? "Clean a few slots, then pick a trip." : "Use this bank for your next trip."
+      label: "Copy to RuneLite",
+      value: "Use Bank Tags export when the tabs look right.",
+      state: "ready" as const,
+      icon: Copy
     }
   ];
-  const playerSteps = decision.primaryAction === "tidy"
-    ? [
-        { label: "Do first", value: "Press Smart tidy. Your bank tabs update on this page." },
-        { label: "Check", value: "Look at Teleports, PvM Gear and Supplies first." },
-        { label: "Leave", value: "Copy to RuneLite when the layout looks usable." }
-      ]
-    : [
-        { label: "Do first", value: decision.firstStep },
-        { label: "Check", value: readiness.status },
-        { label: "Leave", value: decision.stopPoint }
-      ];
+  const checkRows = [
+    { label: "First", value: decision.firstStep },
+    { label: "Check", value: readiness.status },
+    { label: "Leave", value: decision.stopPoint }
+  ];
 
   return (
-    <section className="scapestack-board-panel mb-5 px-4 py-4 sm:px-5">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="min-w-0 flex-1">
-          <div className="mb-3 flex flex-wrap items-center gap-2">
+    <section className="scapestack-board-panel mb-4 px-4 py-4 sm:px-5" aria-label="Bank Setup Board">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45">
               <ItemSprite id={decision.iconItemId} alt="" size={30} />
             </span>
-            <div className="min-w-0">
-              <div className="eyebrow text-[var(--color-accent)]">
-                Can I leave the bank?
-              </div>
-              <h2 className="mt-1 text-[20px] font-semibold tracking-normal text-[var(--color-text)] sm:text-[23px]">
-                {decision.title}
-              </h2>
+            <div>
+              <div className="eyebrow text-[var(--color-accent)]">Bank Setup Board</div>
+              <h1 className="mt-1 text-[25px] font-semibold leading-none tracking-normal text-[var(--color-text)] sm:text-[31px]">
+                Set up your bank
+              </h1>
             </div>
           </div>
-          <p className="max-w-3xl text-[13px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="scapestack-status-badge" data-tone={totalItems > 0 ? "ready" : "blocked"}>{statusLabel}</span>
+            <span className="scapestack-status-badge" data-tone="prep">{readiness.status}</span>
+            {chips.slice(0, 3).map((chip) => (
+              <span key={chip} className="scapestack-status-badge" data-tone="prep">{chip}</span>
+            ))}
+          </div>
+          <p className="mt-3 max-w-3xl text-[13px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
             {decision.why}
           </p>
-          <div className="mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/24 px-3 py-2.5">
-            <div className="mb-1.5 flex flex-wrap items-center gap-2">
-              <span className="scapestack-status-badge" data-tone="ready">{readiness.status}</span>
-              {chips.slice(0, 2).map((chip) => (
-                <span key={chip} className="scapestack-status-badge" data-tone="prep">{chip}</span>
-              ))}
-            </div>
-            <dl className="divide-y divide-[var(--color-border)]/50">
-              {playerSteps.map((step) => (
-                <div key={step.label} className="grid gap-1 py-2 sm:grid-cols-[72px_minmax(0,1fr)] sm:gap-3">
-                  <dt className="text-[11px] font-bold text-[var(--color-accent)]">{step.label}</dt>
-                  <dd className="text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">{step.value}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
         </div>
-        <div className="flex shrink-0 flex-wrap gap-2 lg:justify-end">
+
+        <div className="flex shrink-0 flex-wrap gap-2 xl:justify-end">
           <button
             type="button"
-            onClick={() => onPrimary(decision.primaryAction)}
-            aria-label={decision.primaryAction === "tidy" ? "Smart tidy this organized bank again" : `${decision.primaryLabel}: ${decision.title}`}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-bold text-[#0b0906] transition-all hover:brightness-110"
+            onClick={onTidy}
+            aria-label="Smart tidy this organized bank again"
+            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-bold text-[#0b0906] transition-all hover:brightness-110"
           >
-            {copied === "all" && decision.primaryAction === "copy" ? <CheckCheck className="size-3.5" /> : <ArrowRight className="size-3.5" />}
-            {copied === "all" && decision.primaryAction === "copy" ? "Copied" : decision.primaryLabel}
+            <Wand2 className="size-3.5" />
+            Smart tidy
+          </button>
+          <button
+            type="button"
+            onClick={() => onPrimary("copy")}
+            aria-label="Copy cleaned bank tabs to RuneLite"
+            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3.5 py-2 text-[12.5px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
+          >
+            {copied === "all" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
+            {copied === "all" ? "Copied" : "Copy to RuneLite"}
           </button>
           <details className="group relative">
-            <summary className="inline-flex cursor-pointer list-none items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-transparent px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)] marker:hidden [&::-webkit-details-marker]:hidden">
+            <summary className="inline-flex min-h-10 cursor-pointer list-none items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-transparent px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)] marker:hidden [&::-webkit-details-marker]:hidden">
               More
               <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" />
             </summary>
-            <div className="absolute right-0 z-20 mt-2 w-48 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-2 shadow-[0_18px_55px_rgba(0,0,0,0.28)]">
+            <div className="absolute right-0 z-20 mt-2 hidden w-52 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-2 shadow-[0_18px_55px_rgba(0,0,0,0.28)] group-open:block">
               <button
                 type="button"
                 onClick={() => onSecondary(decision.secondaryAction)}
@@ -385,59 +478,330 @@ function BankDecisionHero({
               </button>
               <button
                 type="button"
-                onClick={onTidy}
-                aria-label="Smart tidy this organized bank again"
-                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-accent)]"
-              >
-                <Wand2 className="size-3.5" />
-                Tidy
-              </button>
-              <button
-                type="button"
                 onClick={onEditInput}
                 aria-label="Edit pasted bank input"
                 className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-accent)]"
               >
                 <Edit3 className="size-3.5" />
-                Edit
+                Replace bank
               </button>
             </div>
           </details>
         </div>
       </div>
 
+      <div className="mt-4 grid gap-2 md:grid-cols-3">
+        {setupSteps.map((step, index) => {
+          const Icon = step.icon;
+          return (
+            <div
+              key={step.label}
+              className={cn(
+                "rounded-lg border px-3 py-3",
+                step.state === "attention"
+                  ? "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/8"
+                  : "border-[var(--color-border)] bg-[var(--color-bg)]/28"
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[11px] font-black text-[var(--color-accent)]">
+                  {index + 1}
+                </span>
+                <Icon className="size-3.5 text-[var(--color-accent)]" />
+                <h2 className="text-[13px] font-bold text-[var(--color-text)]">{step.label}</h2>
+              </div>
+              <p className="mt-2 hidden text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)] sm:block">
+                {step.value}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+
       <details className="group mt-4 border-t border-[var(--color-border)] pt-3">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[12px] font-semibold text-[var(--color-text-muted)] marker:hidden [&::-webkit-details-marker]:hidden">
-          <span>Why this bank helps</span>
+          <span>Trip check</span>
           <span className="inline-flex items-center gap-1 text-[11px] text-[var(--color-text-muted)]">
             Show
             <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" />
           </span>
         </summary>
-        <div className="mt-3 grid gap-3 sm:grid-cols-3">
-          {outcomes.map((outcome) => (
-            <div key={outcome.label} className="min-w-0">
-              <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">{outcome.label}</div>
-              <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{outcome.value}</p>
+        <div className="mt-3 grid gap-3 md:grid-cols-3">
+          {checkRows.map((row) => (
+            <div key={row.label}>
+              <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">{row.label}</div>
+              <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{row.value}</p>
             </div>
           ))}
         </div>
-        <div className="mt-4 grid gap-3 border-t border-[var(--color-border)] pt-4 md:grid-cols-3">
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">First step</div>
-            <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{decision.firstStep}</p>
-          </div>
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Stop point</div>
-            <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{decision.stopPoint}</p>
-          </div>
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Avoid</div>
-            <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{decision.avoid}</p>
-          </div>
-        </div>
       </details>
     </section>
+  );
+}
+
+function SmartTidyWizard({
+  stage,
+  setStage,
+  currentTabs,
+  baseTabs,
+  currentTabName,
+  copied,
+  onApply,
+  onCopy
+}: {
+  stage: SmartTidyStage;
+  setStage: (stage: SmartTidyStage) => void;
+  currentTabs: OrganizedTab[];
+  baseTabs: OrganizedTab[];
+  currentTabName?: string | null;
+  copied: string | null;
+  onApply: (tabs: OrganizedTab[], playstyle: SmartTidyPlaystyle, front: SmartTidyFront) => void;
+  onCopy: () => void;
+}) {
+  const [playstyle, setPlaystyle] = useState<SmartTidyPlaystyle>("pvm");
+  const [front, setFront] = useState<SmartTidyFront>("gear");
+  const proposedTabs = useMemo(
+    () => buildSmartTidyLayout(baseTabs, playstyle, front, currentTabName).slice(0, 8),
+    [baseTabs, currentTabName, front, playstyle]
+  );
+  const beforeTabs = currentTabs.slice(0, 4);
+  const selectedPreset = SMART_TIDY_PRESETS.find((item) => item.id === playstyle) ?? SMART_TIDY_PRESETS[0];
+  const selectedFront = SMART_TIDY_FRONT_CHOICES.find((item) => item.id === front) ?? SMART_TIDY_FRONT_CHOICES[0];
+  const previewHelper = selectedPreset.helper === selectedFront.helper
+    ? `${selectedPreset.helper}.`
+    : `${selectedPreset.helper}. ${selectedFront.helper}.`;
+
+  if (stage === "closed") return null;
+
+  const applyLayout = () => {
+    setStage("applying");
+    window.setTimeout(() => {
+      onApply(proposedTabs, playstyle, front);
+      setStage("applied");
+    }, 260);
+  };
+
+  return (
+    <section
+      className="mb-3 rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-panel)]/82 p-3 shadow-[0_24px_70px_-36px_rgba(0,0,0,0.75)] sm:p-4"
+      aria-label="Smart Tidy setup"
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="eyebrow text-[var(--color-accent)]">Smart Tidy</div>
+          <h2 className="mt-1 text-[19px] font-semibold leading-tight text-[var(--color-text)] sm:text-[22px]">
+            Build RuneLite tabs around how you play
+          </h2>
+          <p className="mt-2 max-w-2xl text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+            Pick two quick preferences, preview the tabs, then copy the layout back to RuneLite.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setStage("closed")}
+          className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-lg border border-[var(--color-border)] px-3 py-2 text-[12px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]"
+          aria-label="Close Smart Tidy setup"
+        >
+          Close
+        </button>
+      </div>
+
+      {(stage === "choosing" || stage === "preview") && (
+        <div className="mt-4 grid gap-3 lg:grid-cols-[0.92fr_1.08fr]">
+          <div className="space-y-3">
+            <SmartTidyChoiceGroup
+              label="How do you mostly play?"
+              value={playstyle}
+              choices={SMART_TIDY_PRESETS.map((preset) => ({
+                id: preset.id,
+                label: preset.label,
+                helper: preset.helper,
+                iconItemId: preset.id === "ironman" ? 12810 : preset.id === "skilling" ? 6739 : preset.id === "questing" ? 1891 : preset.id === "minimal" ? 8007 : 4151
+              }))}
+              onChange={(value) => {
+                setPlaystyle(value as SmartTidyPlaystyle);
+                setStage("preview");
+              }}
+            />
+            <SmartTidyChoiceGroup
+              label="What should be first?"
+              value={front}
+              choices={SMART_TIDY_FRONT_CHOICES.map((choice) => ({
+                id: choice.id,
+                label: choice.label,
+                helper: choice.helper,
+                iconItemId: choice.id === "teleports" ? 8007 : choice.id === "supplies" ? 2434 : choice.id === "current" ? currentTabs[0]?.iconItemId ?? 995 : 4151
+              }))}
+              onChange={(value) => {
+                setFront(value as SmartTidyFront);
+                setStage("preview");
+              }}
+            />
+          </div>
+
+          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/28 p-3">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div className="text-[12px] font-bold text-[var(--color-text)]">Before / after preview</div>
+                <div className="mt-0.5 text-[11px] font-semibold text-[var(--color-text-muted)]">
+                  {previewHelper}
+                </div>
+              </div>
+              <span className="scapestack-status-badge" data-tone="ready">{proposedTabs.length} tabs</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              <SmartTidyTabPreview title="Current bank" tabs={beforeTabs} tone="muted" />
+              <SmartTidyTabPreview title="Proposed layout" tabs={proposedTabs} tone="accent" />
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={applyLayout}
+                className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-black text-[#0b0906] transition-all hover:brightness-110"
+              >
+                <Sparkles className="size-3.5" />
+                Apply layout
+              </button>
+              <button
+                type="button"
+                onClick={() => setStage("choosing")}
+                className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-transparent px-3.5 py-2 text-[12.5px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]"
+              >
+                Try another setup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {stage === "applying" && (
+        <div className="mt-4 rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 p-4">
+          <div className="flex items-center gap-3">
+            <span className="inline-flex size-10 items-center justify-center rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10">
+              <Sparkles className="size-5 animate-pulse text-[var(--color-accent)]" />
+            </span>
+            <div>
+              <div className="text-[13px] font-bold text-[var(--color-text)]">Moving items into cleaner RuneLite tabs</div>
+              <div className="mt-1 text-[12px] font-semibold text-[var(--color-text-muted)]">
+                Gear, teleports, supplies and quest items are being grouped.
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-8 gap-1">
+            {proposedTabs.flatMap((tab) => tab.items.slice(0, 3)).slice(0, 16).map((item, index) => (
+              <span
+                key={`${item.id}-${index}`}
+                className="flex aspect-square items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] animate-[pop-in_0.2s_ease-out]"
+                style={{ animationDelay: `${index * 18}ms` }}
+              >
+                <ItemSprite id={spriteIdForItem(item.id, item.quantity)} alt="" size={24} />
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {stage === "applied" && (
+        <div className="mt-4 rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/8 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="text-[13px] font-bold text-[var(--color-text)]">Layout applied</div>
+              <p className="mt-1 text-[12px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+                Review the bank below, then copy the tabs to RuneLite.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onCopy}
+              className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-black text-[#0b0906] transition-all hover:brightness-110"
+            >
+              {copied === "all" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
+              {copied === "all" ? "Copied" : "Copy tabs to RuneLite"}
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function SmartTidyChoiceGroup<T extends string>({
+  label,
+  value,
+  choices,
+  onChange
+}: {
+  label: string;
+  value: T;
+  choices: Array<{ id: T; label: string; helper: string; iconItemId: number }>;
+  onChange: (value: T) => void;
+}) {
+  return (
+    <fieldset className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/24 p-3">
+      <legend className="px-1 text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
+        {label}
+      </legend>
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        {choices.map((choice) => {
+          const active = choice.id === value;
+          return (
+            <button
+              key={choice.id}
+              type="button"
+              onClick={() => onChange(choice.id)}
+              aria-pressed={active}
+              className={cn(
+                "flex min-h-12 items-center gap-2 rounded-lg border px-2 py-2 text-left transition-colors sm:px-2.5",
+                active
+                  ? "border-[var(--color-accent)] bg-[var(--color-accent)]/12 text-[var(--color-text)]"
+                  : "border-[var(--color-border)] bg-[var(--color-panel)]/45 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/40 hover:text-[var(--color-text)]"
+              )}
+            >
+              <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]">
+                <ItemSprite id={choice.iconItemId} alt="" size={24} />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[12px] font-black leading-tight sm:text-[12.5px]">{choice.label}</span>
+                <span className="mt-0.5 hidden text-[10.5px] font-semibold leading-snug text-[var(--color-text-muted)] sm:block">{choice.helper}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
+function SmartTidyTabPreview({ title, tabs, tone }: { title: string; tabs: OrganizedTab[]; tone: "muted" | "accent" }) {
+  return (
+    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-2.5">
+      <div className={cn(
+        "mb-2 text-[10.5px] font-bold uppercase tracking-[0.14em]",
+        tone === "accent" ? "text-[var(--color-accent)]" : "text-[var(--color-text-muted)]"
+      )}>
+        {title}
+      </div>
+      <div className="space-y-2">
+        {tabs.slice(0, 4).map((tab) => (
+          <div key={`${title}-${String(tab.name)}`} className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-2">
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <div className="flex min-w-0 items-center gap-1.5">
+                <ItemSprite id={tab.iconItemId} alt="" size={18} />
+                <span className="truncate text-[12px] font-bold text-[var(--color-text)]">{String(tab.name)}</span>
+              </div>
+              <span className="shrink-0 text-[10.5px] font-mono text-[var(--color-text-muted)]">{tab.items.length}</span>
+            </div>
+            <div className="flex min-h-7 flex-wrap gap-1">
+              {tab.items.slice(0, 6).map((item) => (
+                <span key={`${String(tab.name)}-${item.id}`} className="inline-flex size-7 items-center justify-center rounded border border-[var(--color-border)] bg-[var(--color-bg)]">
+                  <ItemSprite id={spriteIdForItem(item.id, item.quantity)} alt="" size={22} />
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -647,6 +1011,7 @@ export function BankResult({
   const [isNarrow, setIsNarrow] = useState(false);
   const [pluginHubState, setPluginHubState] = useState<BankPluginHubActionState>("pending");
   const [handoffBlockedHref, setHandoffBlockedHref] = useState<string | null>(null);
+  const [smartTidyStage, setSmartTidyStage] = useState<SmartTidyStage>("closed");
 
   // Auto-density: switch to compact when viewport is narrow.
   useEffect(() => {
@@ -1244,6 +1609,30 @@ export function BankResult({
     setTimeout(() => setReorgFlash((x) => (x === flashId ? null : x)), 2000);
   };
 
+  const applySmartTidyLayout = (next: OrganizedTab[], playstyle: SmartTidyPlaystyle, front: SmartTidyFront) => {
+    const tabOrder = smartTidyOrder(playstyle, front, activeTab?.name);
+    setTabs(next);
+    setArchetypeOverride(smartTidyArchetype(playstyle));
+    setViewSort("smart");
+    setUserBucketOverrides(new Map());
+    setPrefs((p) => ({
+      ...p,
+      tabMode: "useCase",
+      tabOrder,
+      sort: "default",
+      itemOrder: {}
+    }));
+    setActiveIdx(0);
+    setActivePreset(null);
+    setActiveSubtab(null);
+    setSearch("");
+    setActionSearch(null);
+    void refreshStrings(next);
+    const flashId = `Smart tidy #${Date.now() % 100000}`;
+    setReorgFlash(flashId);
+    setTimeout(() => setReorgFlash((x) => (x === flashId ? null : x)), 2000);
+  };
+
   const shareCurrentBank = async () => {
     // Build snapshot from the current tabs (after any DnD edits).
     const ids: number[] = [];
@@ -1467,6 +1856,10 @@ export function BankResult({
     () => returnBossSlug ? { boss: returnBossSlug } : undefined,
     [returnBossSlug]
   );
+  const openSmartTidyWizard = useCallback(() => {
+    setSmartTidyStage((stage) => stage === "closed" ? "choosing" : stage);
+    document.getElementById("smart-tidy-setup")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
   const runBankDecision = useCallback((action: BankDecisionAction) => {
     if (action === "dps") {
       openBankHandoffRoute(bankToolUrl("/dps", inferredRsn, dpsHandoffOptions));
@@ -1477,11 +1870,11 @@ export function BankResult({
       return;
     }
     if (action === "tidy") {
-      applyReorganize("smart", "Tidied");
+      openSmartTidyWizard();
       return;
     }
     void copyAll();
-  }, [copyAll, dpsHandoffOptions, inferredRsn, openBankHandoffRoute]);
+  }, [copyAll, dpsHandoffOptions, inferredRsn, openBankHandoffRoute, openSmartTidyWizard]);
 
   return (
     <div className="animate-[slide-up_0.35s_ease-out]">
@@ -1496,9 +1889,21 @@ export function BankResult({
         copied={copied}
         onPrimary={runBankDecision}
         onSecondary={runBankDecision}
-        onTidy={() => applyReorganize("smart", "Tidied")}
+        onTidy={openSmartTidyWizard}
         onEditInput={onEditInput}
       />
+      <div id="smart-tidy-setup">
+        <SmartTidyWizard
+          stage={smartTidyStage}
+          setStage={setSmartTidyStage}
+          currentTabs={visibleTabs}
+          baseTabs={tabs}
+          currentTabName={activeTab?.name}
+          copied={copied}
+          onApply={applySmartTidyLayout}
+          onCopy={copyAll}
+        />
+      </div>
       {layoutOpen && (
         <LayoutPopup
           tabNames={visibleTabs.map((t) => String(t.name))}
@@ -1514,15 +1919,27 @@ export function BankResult({
         />
       )}
 
-      {/* Preferences row — sits directly above the bank so the controls and
-          the thing they control are visually paired. */}
-      <PreferencesBar
-        prefs={prefs}
-        setPrefs={setPrefs}
-        activeArchetype={activeArchetype}
-        onArchetypeChange={setArchetypeOverride}
-        inferredArchetype={inferredArchetype}
-      />
+      <details className="group mb-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-3 py-2">
+        <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 marker:hidden [&::-webkit-details-marker]:hidden">
+          <span className="inline-flex items-center gap-2 text-[12px] font-bold text-[var(--color-text)]">
+            <SlidersHorizontal className="size-3.5 text-[var(--color-accent)]" />
+            Bank view controls
+          </span>
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--color-text-muted)]">
+            Layout, sort and density
+            <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" />
+          </span>
+        </summary>
+        <div className="mt-3">
+          <PreferencesBar
+            prefs={prefs}
+            setPrefs={setPrefs}
+            activeArchetype={activeArchetype}
+            onArchetypeChange={setArchetypeOverride}
+            inferredArchetype={inferredArchetype}
+          />
+        </div>
+      </details>
 
       {inferredRsn && (
         <div className="mb-3 flex justify-end">
@@ -3126,7 +3543,7 @@ function ArchetypeSelect({
           onChange(next === inferred ? null : next);
         }}
         className="text-[11px] bg-[var(--color-bg)] border border-[var(--color-border)] rounded px-1.5 py-0.5 cursor-pointer hover:border-[var(--color-text-muted)]"
-        title={inferred ? `Inferred from Hiscores: ${inferred}` : "Pick the profile that matches how you'd like the bank laid out"}
+        title={inferred ? `Inferred from Hiscores: ${inferred}` : "Pick how you want the bank laid out"}
       >
         {ARCHETYPES.map((a) => (
           // <option> can't host an <img>, so this dropdown is text-only —
@@ -3174,7 +3591,7 @@ function PreferencesBar({
 
   return (
     <div className="rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)]">
-      {/* Essential row — view / profile / sort / density, always visible. */}
+      {/* Essential row — tabs / playstyle / sort / density, always visible. */}
       <div className="flex flex-wrap items-center gap-3 px-3.5 py-2.5">
         <SlidersHorizontal className="size-3.5 text-[var(--color-text-muted)]" />
         <PrefGroup label="Tabs">
@@ -3182,14 +3599,14 @@ function PreferencesBar({
             value={prefs.tabMode}
             onChange={(v) => setPrefs({ ...prefs, tabMode: v as TabMode })}
             options={[
-              { value: "useCase", label: "Use-case", icon: Layers },
+              { value: "useCase", label: "Activity", icon: Layers },
               { value: "type", label: "Item type", icon: LayoutGrid }
             ]}
           />
         </PrefGroup>
 
         {prefs.tabMode === "useCase" && (
-          <PrefGroup label="Profile">
+          <PrefGroup label="Playstyle">
             <ArchetypeSelect
               value={activeArchetype}
               onChange={onArchetypeChange}
@@ -4986,6 +5403,66 @@ function QtyColorLegend() {
 
 // Pick a boss → pull the user's best gear from their bank → emit a Bank Tag
 // string they can import. Saves the player from manually building the tab.
+type BossLoadoutFilter = "raid" | "slayer" | "wildy" | "gwd" | "beginner" | "skilling";
+
+const BOSS_LOADOUT_FILTERS: Array<{ key: BossLoadoutFilter; label: string; hint: string }> = [
+  { key: "raid", label: "Raids", hint: "CoX, ToB and ToA prep" },
+  { key: "slayer", label: "Slayer", hint: "Task bosses and upgrades" },
+  { key: "wildy", label: "Wildy", hint: "Risk-aware quick checks" },
+  { key: "gwd", label: "GWD", hint: "God Wars trips" },
+  { key: "beginner", label: "Beginner", hint: "First boss trips" },
+  { key: "skilling", label: "Skilling", hint: "Wintertodt, Tempoross and utility" }
+];
+
+function bossMatchesLoadoutFilter(boss: Boss, filter: BossLoadoutFilter): boolean {
+  if (filter === "beginner") {
+    return boss.hp > 0 && boss.hp <= 320 && boss.category !== "raid" && boss.category !== "dt2" && boss.category !== "gwd";
+  }
+  if (filter === "skilling") return boss.category === "skilling" || boss.slug === "hespori";
+  return boss.category === filter;
+}
+
+function bossRelevanceScore(boss: Boss, ownedGearItems: ReturnType<typeof ownedGear>): number {
+  const dps = bestStyleAndSetup(ownedGearItems, boss);
+  const usableBoost = dps.dps > 0 ? 50 : 0;
+  const gpBoost = boss.avgLootGp ? Math.min(20, boss.avgLootGp / 20_000) : 0;
+  const beginnerBoost = boss.hp > 0 && boss.hp <= 320 ? 8 : 0;
+  return usableBoost + dps.dps * 6 + gpBoost + beginnerBoost;
+}
+
+function firstOrganizedItemMatch(items: OrganizedItem[], patterns: RegExp[]): OrganizedItem | null {
+  for (const pattern of patterns) {
+    pattern.lastIndex = 0;
+    const found = items.find((item) => {
+      pattern.lastIndex = 0;
+      return pattern.test(item.name);
+    });
+    if (found) return found;
+  }
+  return null;
+}
+
+function bossInventoryPrep(items: OrganizedItem[]) {
+  return [
+    {
+      label: "Food",
+      item: firstOrganizedItemMatch(items, [/^anglerfish$/i, /^manta ray$/i, /^shark$/i, /^cooked karambwan$/i, /^monkfish$/i])
+    },
+    {
+      label: "Prayer",
+      item: firstOrganizedItemMatch(items, [/^super restore\(4\)$/i, /^prayer potion\(4\)$/i, /^sanfew serum\(4\)$/i])
+    },
+    {
+      label: "Boost",
+      item: firstOrganizedItemMatch(items, [/^super combat potion\(4\)$/i, /^ranging potion\(4\)$/i, /^magic potion\(4\)$/i, /^bastion potion\(4\)$/i])
+    },
+    {
+      label: "Teleport",
+      item: firstOrganizedItemMatch(items, [/^royal seed pod$/i, /^teleport to house$/i, /^house teleport$/i, /^ring of dueling/i, /^games necklace/i, /^amulet of glory/i])
+    }
+  ];
+}
+
 function BossTagSection({ items, flash, copied, onOpenDps }: {
   items: OrganizedItem[];
   flash: (key: string) => void;
@@ -4997,10 +5474,12 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
   const [bossSlug, setBossSlug] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [manualBossTag, setManualBossTag] = useState("");
+  const [activeFilter, setActiveFilter] = useState<BossLoadoutFilter>("slayer");
+  const [showAllBosses, setShowAllBosses] = useState(false);
   const boss = useMemo(() => (bossSlug ? BOSSES.find((b) => b.slug === bossSlug) ?? null : null), [bossSlug]);
+  const ownedGearItems = useMemo(() => ownedGear(items), [items]);
 
-  // Group bosses by category for the icon grid. Filter by search query.
-  const grouped = useMemo(() => {
+  const visibleBosses = useMemo(() => {
     const q = query.trim().toLowerCase();
     const filtered = q
       ? BOSSES.filter((b) =>
@@ -5008,23 +5487,12 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
           b.slug.toLowerCase().includes(q) ||
           (b.notes ?? "").toLowerCase().includes(q)
         )
-      : BOSSES;
+      : BOSSES.filter((b) => bossMatchesLoadoutFilter(b, activeFilter));
+    return [...filtered]
+      .sort((a, b) => bossRelevanceScore(b, ownedGearItems) - bossRelevanceScore(a, ownedGearItems))
+      .slice(0, showAllBosses || q ? 60 : 12);
+  }, [activeFilter, ownedGearItems, query, showAllBosses]);
 
-    const byCat = new Map<BossCategory, Boss[]>();
-    for (const b of filtered) {
-      const cat = (b.category ?? "misc") as BossCategory;
-      if (!byCat.has(cat)) byCat.set(cat, []);
-      byCat.get(cat)!.push(b);
-    }
-    const order: BossCategory[] = [
-      "raid", "gwd", "dt2", "slayer", "wildy", "world", "minigame", "skilling", "quest", "misc"
-    ];
-    return order
-      .filter((c) => byCat.has(c))
-      .map((c) => ({ category: c, label: BOSS_CATEGORIES[c], items: byCat.get(c)! }));
-  }, [query]);
-
-  const ownedGearItems = useMemo(() => ownedGear(items), [items]);
   const best = useMemo(() => (boss ? bestStyleAndSetup(ownedGearItems, boss) : null), [boss, ownedGearItems]);
 
   const tagString = useMemo(() => {
@@ -5078,172 +5546,271 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
       ] as Array<{ key: string; item: { id: number; name: string } | undefined }>)
     : [];
   const haveGearCount = setupSlots.filter((s) => s.item).length;
+  const missingSlots = setupSlots.filter((s) => !s.item).slice(0, 4);
+  const inventoryPrep = useMemo(() => bossInventoryPrep(items), [items]);
 
   return (
-    <section className="mt-8 surface p-5">
-      <div className="flex items-baseline justify-between flex-wrap gap-3 mb-1">
-        <h3 className="text-[15px] font-semibold text-[var(--color-text)] tracking-normal">
-          Generate a boss loadout tag
-        </h3>
-        <span className="text-[11px] text-[var(--color-text-muted)]">
-          {boss ? `Selected: ${boss.name}` : `Click any boss · ${BOSSES.length} available`}
+    <section className="mt-8 surface p-4 sm:p-5" aria-label="Boss loadout builder">
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h3 className="text-[18px] font-bold tracking-normal text-[var(--color-text)]">
+            Pick a boss
+          </h3>
+          <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
+            ScapeStack builds a RuneLite tab from your bank.
+          </p>
+        </div>
+        <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">
+          {boss ? `${boss.name} selected` : `${visibleBosses.length} quick picks`}
         </span>
       </div>
-      <p className="text-[12.5px] text-[var(--color-text-dim)] leading-relaxed mb-4">
-        Click a boss icon — we pull the best loadout from your bank and emit a Bank Tag string for RuneLite.
-      </p>
 
-      {/* Search */}
-      <div className="relative mb-3 max-w-[280px]">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-[var(--color-text-muted)]" />
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search bosses…"
-          className="w-full pl-8 pr-7 py-1.5 rounded-md text-[12px] bg-[var(--color-bg-2)] border border-[var(--color-border)] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(134, 166, 217,0.12)]"
-        />
-        {query && (
-          <button
-            type="button"
-            onClick={() => setQuery("")}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--color-text-dim)] hover:text-[var(--color-text)]"
-            title="Clear"
-          >
-            <X className="size-3" />
-          </button>
-        )}
-      </div>
-
-      {/* Boss icon grid grouped by category */}
-      <div className="space-y-3 mb-4">
-        {grouped.length === 0 ? (
-          <div className="px-3 py-6 text-center text-[12px] text-[var(--color-text-muted)] border border-dashed border-[var(--color-border)] rounded-md">
-            No bosses match &ldquo;{query}&rdquo;
-          </div>
-        ) : grouped.map((g) => (
-          <div key={g.category}>
-            <div className="text-[9.5px] uppercase tracking-[0.16em] font-semibold text-[var(--color-text-muted)] mb-1.5 px-1">
-              {g.label} · {g.items.length}
-            </div>
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(44px,1fr))] gap-1.5">
-              {g.items.map((b) => {
-                const isSelected = b.slug === bossSlug;
-                return (
-                  <button
-                    key={b.slug}
-                    type="button"
-                    onClick={() => setBossSlug(isSelected ? null : b.slug)}
-                    aria-pressed={isSelected}
-                    title={b.name + (b.notes ? ` — ${b.notes}` : "")}
-                    className={cn(
-                      "aspect-square rounded-md flex items-center justify-center relative",
-                      "border transition-all",
-                      isSelected
-                        ? "border-[var(--color-accent)] bg-[var(--color-accent)]/12 shadow-[0_0_0_3px_rgba(134, 166, 217,0.18)] scale-[1.05] z-10"
-                        : "border-[var(--color-border)] bg-[var(--color-bg-2)] hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-panel-2)] hover:scale-[1.04]"
-                    )}
-                  >
-                    <BossSprite boss={b} size={36} />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Selected-boss loadout (collapsible — only renders when a boss is picked) */}
-      {boss && best && (
-        <div className="rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/5 p-4 animate-[pop-in_0.18s_ease-out]">
-          <div className="flex items-center gap-3 flex-wrap mb-3">
-            <div className="size-9 shrink-0 rounded-md bg-[var(--color-bg-2)] border border-[var(--color-border)] flex items-center justify-center overflow-hidden">
-              <BossSprite boss={boss} size={36} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-[14px] font-semibold text-[var(--color-text)] leading-tight">{boss.name}</div>
-              <div className="text-[11px] text-[var(--color-text-dim)] font-mono tabular-nums">
-                {best.dps > 0 ? `${best.dps.toFixed(2)} DPS · ${best.style}` : "No usable gear in your bank"}
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={onCopyBossTag}
-              disabled={!tagString}
-              className={cn(
-                "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium transition-all",
-                tagString
-                  ? "bg-[var(--color-accent)] text-[#0B1116] hover:brightness-110"
-                  : "bg-[var(--color-panel-2)] text-[var(--color-text-muted)] cursor-not-allowed"
-              )}
-            >
-              {copied === "boss-tag" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
-              {copied === "boss-tag" ? "Tag copied" : copied === "boss-tag-error" ? "Copy failed" : "Copy boss tag"}
-            </button>
-            <button
-              type="button"
-              onClick={() => onOpenDps(boss.slug)}
-              className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-bg-2)] px-3 py-1.5 text-[12px] font-semibold text-[var(--color-accent)] transition-all hover:border-[var(--color-accent)]/60 hover:bg-[var(--color-accent)]/10"
-              aria-label={`Check ${boss.name} kill setup with this bank`}
-              title={`/dps?boss=${boss.slug}`}
-            >
-              Check kill
-              <Sword className="size-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setBossSlug(null)}
-              className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] size-7 rounded flex items-center justify-center"
-              title="Close"
-            >
-              <X className="size-3.5" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-11 gap-1.5">
-            {setupSlots.map(({ key, item }) => (
-              <div
-                key={key}
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(340px,1.05fr)]">
+        <div className="min-w-0">
+          <div className="mb-3 flex flex-wrap gap-2" aria-label="Boss categories">
+            {BOSS_LOADOUT_FILTERS.map((filter) => (
+              <button
+                key={filter.key}
+                type="button"
+                aria-pressed={activeFilter === filter.key}
+                title={filter.hint}
+                onClick={() => {
+                  setActiveFilter(filter.key);
+                  setQuery("");
+                  setShowAllBosses(false);
+                }}
                 className={cn(
-                  "aspect-square rounded-md border flex items-center justify-center relative",
-                  item
-                    ? "border-[var(--color-border)] bg-[var(--color-bg-2)]"
-                    : "border-dashed border-[var(--color-border)] bg-[var(--color-bg)]/50"
+                  "rounded-lg border px-3 py-2 text-[12px] font-bold transition-colors",
+                  activeFilter === filter.key && !query
+                    ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-black"
+                    : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/45 hover:text-[var(--color-text)]"
                 )}
-                title={item ? item.name : `${key} — missing`}
               >
-                {item ? (
-                  <ItemSprite
-                    id={item.id}
-                    alt={item.name}
-                    className="pixelated"
-                    style={{ maxWidth: "78%", maxHeight: "78%" }}
-                  />
-                ) : (
-                  <span className="text-[8.5px] uppercase tracking-wider text-[var(--color-text-muted)]">{key}</span>
-                )}
-              </div>
+                {filter.label}
+              </button>
             ))}
           </div>
 
-          <p className="mt-3 text-[10.5px] text-[var(--color-text-muted)]">
-            {haveGearCount}/{setupSlots.length} slots filled from your bank · imports as a fresh tab in RuneLite Bank Tags · opens kill check with this boss selected.
-          </p>
-          {copied === "boss-tag-error" && manualBossTag && (
-            <div className="mt-3 rounded-lg border border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8 p-2" aria-live="polite">
-              <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-danger)]">
-                Clipboard failed — copy boss tag manually
-              </label>
-              <textarea
-                readOnly
-                value={manualBossTag}
-                onFocus={(event) => event.currentTarget.select()}
-                className="min-h-[86px] w-full resize-y rounded border border-[var(--color-border)] bg-[var(--color-bg)] p-2 font-mono text-[10.5px] leading-relaxed text-[var(--color-text)]"
-                aria-label={`Manual boss Bank Tags fallback for ${boss.name}`}
-              />
+          <div className="relative mb-3">
+            <label htmlFor="boss-loadout-search" className="sr-only">Search bosses</label>
+            <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-[var(--color-text-muted)]" />
+            <input
+              id="boss-loadout-search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search boss..."
+              className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)] py-2 pl-8 pr-8 text-[12.5px] text-[var(--color-text)] outline-none transition-all placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(134,166,217,0.12)]"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="absolute right-2 top-1/2 flex size-5 -translate-y-1/2 items-center justify-center rounded text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)] hover:text-[var(--color-text)]"
+                aria-label="Clear boss search"
+              >
+                <X className="size-3" />
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(54px,1fr))] gap-2" data-testid="boss-quick-picks">
+            {visibleBosses.length === 0 ? (
+              <div className="col-span-full rounded-md border border-dashed border-[var(--color-border)] px-3 py-6 text-center text-[12px] text-[var(--color-text-muted)]">
+                No bosses match &ldquo;{query}&rdquo;.
+              </div>
+            ) : visibleBosses.map((b) => {
+              const isSelected = b.slug === bossSlug;
+              return (
+                <button
+                  key={b.slug}
+                  type="button"
+                  onClick={() => setBossSlug(b.slug)}
+                  aria-pressed={isSelected}
+                  title={b.name + (b.notes ? ` - ${b.notes}` : "")}
+                  className={cn(
+                    "group flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-lg border px-1.5 py-2 text-center transition-all",
+                    isSelected
+                      ? "scale-[1.02] border-[var(--color-accent)] bg-[var(--color-accent)]/12 shadow-[0_0_0_3px_rgba(134,166,217,0.16)]"
+                      : "border-[var(--color-border)] bg-[var(--color-bg-2)] hover:-translate-y-0.5 hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-panel-2)]"
+                  )}
+                >
+                  <BossSprite boss={b} size={38} />
+                  <span className="max-w-full truncate text-[9.5px] font-bold text-[var(--color-text-muted)] group-hover:text-[var(--color-text)]">
+                    {b.name}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {!query && (
+            <button
+              type="button"
+              onClick={() => setShowAllBosses((value) => !value)}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+              aria-expanded={showAllBosses}
+            >
+              {showAllBosses ? "Show fewer bosses" : "Show all bosses"}
+              <ChevronDown className={cn("size-3.5 transition-transform", showAllBosses && "rotate-180")} />
+            </button>
+          )}
+        </div>
+
+        <div className="min-w-0 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/30 p-3 sm:p-4">
+          {boss && best ? (
+            <div className="animate-[pop-in_0.18s_ease-out]">
+              <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex min-w-0 gap-3">
+                  <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]">
+                    <BossSprite boss={boss} size={44} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="text-[15px] font-bold leading-tight text-[var(--color-text)]">{boss.name}</div>
+                      {boss.iconItemId && (
+                        <span className="inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-[var(--color-bg)]/55 px-1.5 py-0.5 text-[9.5px] font-black text-[var(--color-text-muted)] tabular-nums">
+                          <ItemSprite id={boss.iconItemId} alt="" size={16} className="pixelated" />
+                          id:{boss.iconItemId}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-1 text-[11px] font-mono tabular-nums text-[var(--color-text-dim)]">
+                      {best.dps > 0 ? `${best.dps.toFixed(2)} DPS · ${best.style}` : "No usable weapon found"}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setBossSlug(null)}
+                  className="hidden size-7 shrink-0 items-center justify-center rounded text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-bg-2)] hover:text-[var(--color-text)] sm:flex"
+                  title="Clear boss"
+                  aria-label="Clear selected boss"
+                >
+                  <X className="size-3.5" />
+                </button>
+              </div>
+
+              <div className="mb-3 grid grid-cols-4 gap-1.5 sm:grid-cols-6 xl:grid-cols-11">
+                {setupSlots.map(({ key, item }) => (
+                  <div
+                    key={key}
+                    className={cn(
+                      "aspect-square rounded-md border flex items-center justify-center relative",
+                      item
+                        ? "border-[var(--color-border)] bg-[var(--color-bg-2)]"
+                        : "border-dashed border-[var(--color-border)] bg-[var(--color-bg)]/50"
+                    )}
+                    title={item ? item.name : `${key} missing`}
+                  >
+                    {item ? (
+                      <ItemSprite
+                        id={item.id}
+                        alt={item.name}
+                        className="pixelated"
+                        style={{ maxWidth: "78%", maxHeight: "78%" }}
+                      />
+                    ) : (
+                      <span className="text-[8.5px] uppercase tracking-wider text-[var(--color-text-muted)]">{key}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid gap-2 sm:grid-cols-3">
+                <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-2.5">
+                  <div className="text-[9.5px] font-bold uppercase tracking-[0.15em] text-[var(--color-text-muted)]">Owned setup slots</div>
+                  <div className="mt-1 text-[13px] font-bold text-[var(--color-text)]">{haveGearCount}/{setupSlots.length}</div>
+                </div>
+                <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-2.5">
+                  <div className="text-[9.5px] font-bold uppercase tracking-[0.15em] text-[var(--color-text-muted)]">Missing upgrades</div>
+                  <div className="mt-1 text-[12px] font-semibold text-[var(--color-text)]">
+                    {missingSlots.length > 0 ? missingSlots.map((slot) => slot.key).join(", ") : "No empty gear slots"}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-2.5">
+                  <div className="text-[9.5px] font-bold uppercase tracking-[0.15em] text-[var(--color-text-muted)]">Inventory prep</div>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {inventoryPrep.map((slot) => (
+                      <span
+                        key={slot.label}
+                        title={slot.item ? slot.item.name : `${slot.label} missing`}
+                        className={cn(
+                          "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold",
+                          slot.item
+                            ? "border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 text-[var(--color-text)]"
+                            : "border-[var(--color-border)] bg-[var(--color-bg)]/45 text-[var(--color-text-muted)]"
+                        )}
+                      >
+                        {slot.item ? <ItemSprite id={slot.item.id} alt="" size={14} className="pixelated" /> : null}
+                        {slot.item ? slot.label : `${slot.label}?`}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={onCopyBossTag}
+                  disabled={!tagString}
+                  className={cn(
+                    "inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-[12.5px] font-bold transition-all",
+                    tagString
+                      ? "bg-[var(--color-accent)] text-[#0B1116] hover:brightness-110"
+                      : "cursor-not-allowed bg-[var(--color-panel-2)] text-[var(--color-text-muted)]"
+                  )}
+                >
+                  {copied === "boss-tag" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
+                  {copied === "boss-tag" ? "RuneLite tag copied" : copied === "boss-tag-error" ? "Copy failed" : "Copy RuneLite tag"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onOpenDps(boss.slug)}
+                  className="inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-bg-2)] px-3 py-2 text-[12.5px] font-bold text-[var(--color-accent)] transition-all hover:border-[var(--color-accent)]/60 hover:bg-[var(--color-accent)]/10"
+                  aria-label={`Check ${boss.name} kill setup with this bank`}
+                  title={`/dps?boss=${boss.slug}`}
+                >
+                  Check kill
+                  <Sword className="size-3.5" />
+                </button>
+              </div>
+
+              <p className="mt-3 text-[10.5px] leading-relaxed text-[var(--color-text-muted)]">
+                Built from owned gear in this bank. Copy the tab to RuneLite, then check the kill before buying upgrades.
+              </p>
+              {copied === "boss-tag-error" && manualBossTag && (
+                <div className="mt-3 rounded-lg border border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8 p-2" aria-live="polite">
+                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-danger)]">
+                    Clipboard failed — copy boss tag manually
+                  </label>
+                  <textarea
+                    readOnly
+                    value={manualBossTag}
+                    onFocus={(event) => event.currentTarget.select()}
+                    className="min-h-[86px] w-full resize-y rounded border border-[var(--color-border)] bg-[var(--color-bg)] p-2 font-mono text-[10.5px] leading-relaxed text-[var(--color-text)]"
+                    aria-label={`Manual boss Bank Tags fallback for ${boss.name}`}
+                  />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex min-h-[260px] flex-col items-center justify-center rounded-lg border border-dashed border-[var(--color-border)] bg-[var(--color-bg)]/25 px-4 py-8 text-center">
+              <div className="mb-3 flex -space-x-2">
+                {visibleBosses.slice(0, 4).map((candidate) => (
+                  <span key={candidate.slug} className="inline-flex size-10 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]">
+                    <BossSprite boss={candidate} size={34} />
+                  </span>
+                ))}
+              </div>
+              <div className="text-[14px] font-bold text-[var(--color-text)]">Choose a boss first</div>
+              <p className="mt-1 max-w-sm text-[12px] leading-relaxed text-[var(--color-text-dim)]">
+                ScapeStack will fill the gear slots it finds in your bank, flag missing prep, then give you one RuneLite tab to copy.
+              </p>
             </div>
           )}
         </div>
-      )}
+      </div>
     </section>
   );
 }

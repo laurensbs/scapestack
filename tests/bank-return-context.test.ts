@@ -39,7 +39,9 @@ describe("bank return context", () => {
     expect(source).toContain("Use saved bank");
     expect(source).toContain("Back to plan");
     expect(source).toContain("autoLoadedSavedBank");
+    expect(source).toContain("setSavedBank(loadSavedBank(initialRsn))");
     expect(source).toContain("onIntakeSubmit(savedBank.banktags, false, prefilledRsn)");
+    expect(source).toContain('sourceFromUrl() === "next"');
     expect(source).toContain("Replace");
     expect(source).toContain("Remove");
     expect(source).toContain("bankCloseHref");

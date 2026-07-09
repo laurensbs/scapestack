@@ -1,6 +1,6 @@
 import type { HiscoreSkill } from "./hiscores";
 import type { PlannerAccountType } from "./account-type";
-import { isIronPlannerAccount, isUltimatePlannerAccount, plannerAccountTypeLabel } from "./account-type";
+import { accountModeSourceCopy, isIronPlannerAccount, isUltimatePlannerAccount, plannerAccountTypeLabel } from "./account-type";
 import {
   evaluateItemAvailability,
   type ItemAvailability,
@@ -185,13 +185,13 @@ function accountWarningsFor(
   if (!accountType) return [];
   const warnings: string[] = [];
   if (isUltimatePlannerAccount(accountType)) {
-    warnings.push("Ultimate Ironman: bank-ready checks are informational only; stage carried items, looting bag or storage unlocks manually.");
+    warnings.push(`Ultimate Ironman: ${accountModeSourceCopy(accountType)}; bank-ready checks are informational only.`);
   } else if (accountType === "group" && hasItemRequirements) {
-    warnings.push("Group Ironman: item availability uses this synced bank only; group storage is not assumed.");
+    warnings.push(`Group Ironman: ${accountModeSourceCopy(accountType)}.`);
   } else if (accountType === "hardcore" && hasItemRequirements) {
-    warnings.push("Hardcore Ironman: self-source items and avoid risky combat sources unless the unlock is worth it.");
+    warnings.push(`Hardcore Ironman: ${accountModeSourceCopy(accountType)}; self-source items safely.`);
   } else if (isIronPlannerAccount(accountType) && hasItemRequirements) {
-    warnings.push(`${plannerAccountTypeLabel(accountType)}: item availability assumes self-sourcing, not Grand Exchange buying.`);
+    warnings.push(`${plannerAccountTypeLabel(accountType)}: ${accountModeSourceCopy(accountType)}; Grand Exchange buying is not assumed.`);
   }
   for (const note of quest.ironmanNotes.slice(0, 6)) {
     warnings.push(`Ironman note: ${note}`);

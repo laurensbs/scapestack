@@ -37,13 +37,18 @@ public class ScapestackSyncConfigTest {
             .getAnnotation(ConfigItem.class)
             .description();
 
-        assertTrue(syncNowDescription.contains("Send a planner snapshot now"));
+        assertTrue(syncNowDescription.contains("Update ScapeStack now"));
         assertTrue(syncNowDescription.contains("Resets automatically"));
-        assertTrue(autoSyncDescription.contains("account type, quests, skills, diaries, collection-log IDs and Slayer state"));
-        assertTrue(autoSyncDescription.contains("Bank readiness stays separate"));
-        assertTrue(bankSyncDescription.contains("bank item IDs, names and quantities"));
+        assertTrue(autoSyncDescription.contains("account mode, skills, quests, diaries and Slayer task"));
+        assertTrue(autoSyncDescription.contains("Bank checks stay separate"));
+        assertTrue(bankSyncDescription.contains("quest and diary items are already in your bank"));
         assertTrue(bankSyncDescription.contains("Never sends inventory, equipment, chat, screenshots or account login"));
         assertTrue(questSyncDescription.contains("Requires Sync on login"));
+
+        assertNoNormalUserTech(syncNowDescription);
+        assertNoNormalUserTech(autoSyncDescription);
+        assertNoNormalUserTech(bankSyncDescription);
+        assertNoNormalUserTech(questSyncDescription);
     }
 
     @Test
@@ -55,5 +60,13 @@ public class ScapestackSyncConfigTest {
             assertFalse(item.name().toLowerCase().contains("endpoint"));
             assertFalse(item.description().toLowerCase().contains("self-hosting"));
         }
+    }
+
+    private static void assertNoNormalUserTech(String copy) {
+        String lower = copy.toLowerCase();
+        assertFalse(lower.contains("url"));
+        assertFalse(lower.contains("endpoint"));
+        assertFalse(lower.contains("payload"));
+        assertFalse(lower.contains("http"));
     }
 }

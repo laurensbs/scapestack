@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  ACCOUNT_MODE_ICON_ITEM_IDS,
   accountModeImpactNote,
+  accountModeSourceCopy,
+  accountModeVisual,
   isIronPlannerAccount,
   isUltimatePlannerAccount,
   normalizeScapestackAccountType,
@@ -84,5 +87,44 @@ describe("Scapestack account types", () => {
     });
     expect(mode.planningNote).toContain("bank readiness only counts");
     expect(accountModeImpactNote("ultimate")).toContain("bank-ready is not normal readiness");
+  });
+
+  it("provides a central visual model for every supported player-facing mode", () => {
+    expect(ACCOUNT_MODE_ICON_ITEM_IDS).toMatchObject({
+      ironman: 12810,
+      hardcore: 20792,
+      ultimate: 12813,
+      group: 26156
+    });
+    expect(accountModeVisual("regular", "detected")).toMatchObject({
+      badgeLabel: "Normal account",
+      iconItemId: null,
+      sourceCopy: "Buy or grab"
+    });
+    expect(accountModeVisual("ironman", "detected")).toMatchObject({
+      badgeLabel: "Ironman detected",
+      iconItemId: 12810,
+      sourceCopy: "Source yourself"
+    });
+    expect(accountModeVisual("hardcore", "detected")).toMatchObject({
+      badgeLabel: "Hardcore Ironman detected",
+      iconItemId: 20792,
+      shortLabel: "HCIM"
+    });
+    expect(accountModeVisual("ultimate", "detected")).toMatchObject({
+      badgeLabel: "Ultimate Ironman detected",
+      iconItemId: 12813,
+      bankCopy: "Staging checklist; normal bank-ready does not apply."
+    });
+    expect(accountModeVisual("group", "detected")).toMatchObject({
+      badgeLabel: "Group Ironman detected",
+      iconItemId: 26156,
+      sourceCopy: "Own bank checked; group storage not verified"
+    });
+    expect(accountModeVisual(null, "unknown")).toMatchObject({
+      badgeLabel: "Account mode unknown",
+      iconItemId: null
+    });
+    expect(accountModeSourceCopy("ultimate")).toBe("Stage/carry before starting");
   });
 });

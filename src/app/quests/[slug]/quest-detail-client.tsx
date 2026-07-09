@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, Circle, PackageSearch, Shield } from "lucide-react";
-import { plannerAccountTypeLabel, type PlannerAccountType } from "@/lib/account-type";
+import { accountModeVisual, type PlannerAccountType } from "@/lib/account-type";
+import { AccountModeBadge } from "@/components/account-mode-badge";
 import type { QuestRecord } from "@/lib/quest-db";
 import {
   evaluateQuestRequirements,
@@ -196,7 +197,7 @@ export function QuestDetailClient({
           </div>
         </div>
         <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/65 px-3 py-2 text-[12px] text-[var(--color-text-dim)]">
-          <div className="font-bold text-[var(--color-text)]">{accountType ? plannerAccountTypeLabel(accountType) : "Unknown mode"}</div>
+          <AccountModeBadge accountType={accountType} confidence={accountType ? "detected" : "unknown"} compact showSourceCopy />
           <div>{rsn ? `RSN: ${rsn}` : "Add ?rsn=Name for synced progress"}</div>
         </div>
       </div>
@@ -240,7 +241,7 @@ export function QuestDetailClient({
           </div>
           <div className="mt-1 text-[11px] font-semibold text-[var(--color-text-muted)]">
             {evaluation.bank.notApplicable
-              ? "Staging checklist"
+              ? accountModeVisual(accountType, accountType ? "detected" : "unknown").bankCopy
               : hasBrowserBank
                 ? hasSyncedBank ? "RuneLite + browser bank" : "Browser bank"
                 : hasSyncedBank ? "RuneLite synced" : "No bank check yet"}

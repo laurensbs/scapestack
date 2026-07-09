@@ -41,6 +41,6 @@ describe("quest detail RuneLite sync contract", () => {
     expect(clientSource).toContain('Section title="Completed requirements"');
     expect(clientSource).toContain('Section title="Missing requirements"');
     expect(clientSource).toContain("UIM mode: this list is a staging checklist");
-    expect(clientSource).toContain("Staging checklist");
+    expect(clientSource).toContain("accountModeVisual(accountType");
   });
 });

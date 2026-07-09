@@ -140,14 +140,31 @@ describe("next best actions", () => {
 
     expect(action).toMatchObject({
       kind: "train-diary-skill",
-      missingRequirements: ["Agility 59/60"],
+      missingRequirements: ["60 Agility needed, you have 59"],
       relevantQuestOrUnlock: "Kandarin Hard diary"
     });
   });
 
   it("does not recommend a diary tier that RuneLite sync marks complete", async () => {
     const result = await computeNextUp({
-      skills: skillsFromLevels({}),
+      skills: skillsFromLevels({
+        Runecraft: 91,
+        Herblore: 87,
+        Farming: 72,
+        Fishing: 65,
+        Magic: 59,
+        Agility: 53,
+        Cooking: 53,
+        Mining: 52,
+        Strength: 50,
+        Thieving: 50,
+        Crafting: 50,
+        Woodcutting: 50,
+        Slayer: 50,
+        Ranged: 42,
+        Hunter: 41,
+        Smithing: 40
+      }),
       scapestackSync: {
         accountType: "normal",
         questsCompleted: [],
@@ -161,5 +178,61 @@ describe("next best actions", () => {
 
     expect(titles).not.toContain("Ardougne Medium diary");
     expect(recs.some((rec) => rec?.id === "diary:Ardougne:Medium")).toBe(false);
+  });
+
+  it("surfaces concrete diary route cards with exact blockers and stop point", async () => {
+    const result = await computeNextUp({
+      skills: skillsFromLevels({
+        Smithing: 75,
+        Defence: 70,
+        Fishing: 70,
+        Prayer: 70,
+        Fletching: 70,
+        Firemaking: 65,
+        Agility: 59
+      }),
+      bank: [
+        { id: 9419, name: "Mith grapple", quantity: 1 },
+        { id: 9185, name: "Rune crossbow", quantity: 1 }
+      ]
+    });
+
+    const recs = [result.headline, ...result.rest].filter(Boolean);
+    const diary = recs.find((rec) => rec?.id === "diary:Kandarin:Hard");
+
+    expect(diary).toMatchObject({
+      kind: "diary",
+      title: "Train Agility for Kandarin Hard",
+      needs: expect.arrayContaining(["60 Agility needed, you have 59"]),
+      decisionReason: expect.stringContaining("Stop when:")
+    });
+    expect(diary?.why).toContain("Kandarin Hard is 1 blocker away");
+    expect(diary?.payoff).toContain("Kandarin headgear");
+    expect(diary?.actionPlan?.steps.join(" ")).toContain("Clear 60 Agility needed, you have 59");
+  });
+
+  it("uses Karamja gloves language for Karamja diary routes", async () => {
+    const result = await computeNextUp({
+      skills: skillsFromLevels({}),
+      templeQuestsCompleted: ["Shilo Village", "Tai Bwo Wannai Trio"],
+      bank: [
+        { id: 954, name: "Rope", quantity: 1 },
+        { id: 995, name: "Coins", quantity: 1000 },
+        { id: 11140, name: "Karamja gloves 3", quantity: 1 }
+      ],
+      scapestackSync: {
+        accountType: "normal",
+        questsCompleted: ["Shilo Village", "Tai Bwo Wannai Trio"],
+        diariesCompleted: [
+          { region: "Karamja", tier: "Easy" },
+          { region: "Karamja", tier: "Medium" },
+          { region: "Karamja", tier: "Hard" }
+        ],
+        collectionLogItemIds: []
+      }
+    });
+
+    const visibleRoutes = [result.headline, ...result.rest].filter(Boolean);
+    expect(visibleRoutes.some((rec) => rec?.title === "Finish Karamja gloves")).toBe(true);
   });
 });

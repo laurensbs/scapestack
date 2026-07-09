@@ -1,5 +1,5 @@
 import type { PlannerAccountType } from "./account-type";
-import { isUltimatePlannerAccount } from "./account-type";
+import { accountModeSourceCopy, isUltimatePlannerAccount } from "./account-type";
 
 export type ItemAvailabilityStatus =
   | "owned"
@@ -196,32 +196,35 @@ export function evaluateItemAvailability(input: ItemAvailabilityInput): ItemAvai
   }
 
   if (accountType === "group") {
+    const sourceCopy = accountModeSourceCopy(accountType);
     return {
       status,
       sourceHints,
-      copy: `Check own bank; group storage not verified for ${stack}.`,
+      copy: `${sourceCopy} for ${stack}.`,
       shortCopy: `Own bank only: ${stack}`,
-      blockerCopy: `Check own bank; group storage not verified for ${stack}`
+      blockerCopy: `${sourceCopy} for ${stack}`
     };
   }
 
   if (accountType === "hardcore") {
+    const sourceCopy = accountModeSourceCopy(accountType);
     return {
       status,
       sourceHints,
-      copy: `Avoid risky source unless needed; source ${stack} yourself via ${route}.`,
+      copy: `${sourceCopy}; source ${stack} yourself via ${route}.`,
       shortCopy: `Source ${stack} safely`,
-      blockerCopy: `Avoid risky source unless needed for ${stack}`
+      blockerCopy: `${sourceCopy} for ${stack}`
     };
   }
 
   if (accountType === "ironman") {
+    const sourceCopy = accountModeSourceCopy(accountType);
     return {
       status,
       sourceHints,
-      copy: `Source ${stack} yourself; ${route}.`,
+      copy: `${sourceCopy}: ${stack} via ${route}.`,
       shortCopy: `Source ${stack}`,
-      blockerCopy: `Source ${stack} yourself`
+      blockerCopy: `${sourceCopy}: ${stack}`
     };
   }
 
@@ -238,7 +241,7 @@ export function evaluateItemAvailability(input: ItemAvailabilityInput): ItemAvai
   return {
     status,
     sourceHints,
-    copy: `Buy or grab ${stack}.`,
+    copy: `${accountModeSourceCopy(accountType)} ${stack}.`,
     shortCopy: `Buy or grab ${stack}`,
     blockerCopy: `Buy or grab ${stack}`
   };
