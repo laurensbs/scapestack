@@ -44,7 +44,7 @@ export default function HomePage() {
                 clipPath: "inset(0 0 100% 0)"
               }}
             >
-              Type your OSRS name. Get one trip, two backups and a clean place to stop.
+              Type your OSRS name. Scapestack opens one clean trip and tells you when to stop.
             </p>
 
           </div>
@@ -66,7 +66,7 @@ export default function HomePage() {
       </section>
 
       <footer className="mt-14 border-t border-[var(--color-parchment-edge)]/50 pt-10">
-        <div className="osrs-frame relative mx-auto max-w-3xl animate-[slide-up_0.5s_cubic-bezier(0.22,1,0.36,1)_0.2s_both]">
+        <div className="osrs-frame scapestack-lock-panel relative mx-auto max-w-3xl animate-[slide-up_0.5s_cubic-bezier(0.22,1,0.36,1)_0.2s_both]">
           <div
             className="absolute inset-x-0 top-0 h-px"
             style={{ background: "linear-gradient(to right, transparent, rgba(200, 154, 61,0.4), transparent)" }}

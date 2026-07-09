@@ -103,7 +103,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
       />
 
       <div
-        className="relative grid max-h-[90vh] min-h-0 w-full max-w-5xl overflow-hidden rounded-2xl border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-[0_30px_80px_-12px_rgb(0_0_0/0.85)] lg:grid-cols-[3fr_2fr]"
+        className="scapestack-lock-panel relative grid max-h-[90vh] min-h-0 w-full max-w-5xl lg:grid-cols-[3fr_2fr]"
         style={{ animation: "pop-in 0.28s cubic-bezier(0.22, 1, 0.36, 1)" }}
       >
         {/* Close — floats top-right over the portrait so it stays visible
@@ -149,9 +149,9 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
                 {activitySetup ? "Activity setup" : `${boss.hp} HP`}{boss.notes ? ` · ${boss.notes}` : ""}
               </p>
               {boss.iconItemId && (
-                <span className="inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-black/35 px-1.5 py-0.5 text-[9.5px] font-black text-[var(--color-text-muted)] tabular-nums">
+                <span className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-black/30 px-1.5 py-0.5 text-[9.5px] font-black text-[var(--color-text-muted)]">
                   <ItemSprite id={boss.iconItemId} alt="" size={16} className="pixelated" />
-                  id:{boss.iconItemId}
+                  Loadout
                 </span>
               )}
             </div>
@@ -164,10 +164,10 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
           className="relative min-h-0 max-h-[90vh] space-y-5 overflow-y-auto overscroll-contain p-5 pb-16 sm:p-6 sm:pb-16"
           data-testid="boss-modal-scroll-panel"
         >
-          <section className="rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-bg)]/35 p-3.5" data-testid="boss-trip-verdict">
+          <section className="scapestack-lock-card border-[var(--color-accent)]/30 bg-[var(--color-bg)]/30 p-3.5" data-testid="boss-trip-verdict">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
-                <h3 className="eyebrow text-[var(--color-accent)]">Trip verdict</h3>
+                <h3 className="eyebrow text-[var(--color-accent)]">Can I do this?</h3>
                 <div className="mt-1 text-[19px] font-black leading-tight text-[var(--color-text)]">
                   {verdict.title}
                 </div>
@@ -275,7 +275,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
           {/* Stats row — available after the verdict and inventory. */}
           <section id={statsId}>
             {activitySetup ? (
-              <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3.5">
+              <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/30 p-3.5">
                 <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">Activity setup</h3>
                 <p className="text-[13px] leading-relaxed text-[var(--color-text-dim)]">
                   This is not a combat DPS check. Use the inventory above for warm gear, tools and food from your bank.
@@ -283,16 +283,16 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
               </div>
             ) : (
               <>
-                <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">Kill numbers</h3>
+                <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">Kill speed</h3>
                 {dps.dps > 0 ? (
                   <>
                     <div className="text-[13px] text-[var(--color-text-dim)] mb-3">
-                      Recommended:{" "}
+                      Use{" "}
                       <span className="text-[var(--color-accent)] font-semibold uppercase tracking-wider">{dps.style}</span>
                       {" with "}
                       <span className="text-[var(--color-text)] font-semibold">{dps.weapon.name}</span>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                       <Stat label="DPS"      value={dps.dps.toFixed(1)} />
                       <Stat label="Max hit"  value={String(dps.maxHit)} />
                       <Stat label="Accuracy" value={`${Math.round(dps.hitChance * 100)}%`} />
@@ -362,7 +362,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
           {!activitySetup && (
             <section>
               <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">
-                <Sword className="size-3 inline-block mr-1" />Best setup
+                <Sword className="size-3 inline-block mr-1" />Gear from bank
               </h3>
               <GearSlotGrid setup={dps.setup} />
             </section>
@@ -374,7 +374,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
           {upgrades.length > 0 && (
             <section>
               <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">
-                <Target className="size-3 inline-block mr-1" />Upgrades you don&apos;t have
+                <Target className="size-3 inline-block mr-1" />Useful upgrades
               </h3>
               <div className="space-y-1.5">
                 {upgrades.map((u) => {

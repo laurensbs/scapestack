@@ -327,7 +327,7 @@ describe("Scapestack readiness rail", () => {
     const dpsSource = readFileSync(join(process.cwd(), "src/app/dps/dps-client.tsx"), "utf8");
     expect(dpsSource).not.toContain("ScapestackReadinessRail");
     expect(dpsSource).toContain("Pick a boss");
-    expect(dpsSource).toContain("Pick a category, then choose one boss to see the trip verdict, gear, supplies and upgrades from this bank.");
+    expect(dpsSource).toContain("Choose one boss. Scapestack builds gear, supplies and a RuneLite tab from this bank.");
 
     const nextSource = readFileSync(join(process.cwd(), "src/app/next/next-client.tsx"), "utf8");
     expect(nextSource).not.toContain("ScapestackReadinessRail");

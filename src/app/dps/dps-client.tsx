@@ -428,18 +428,18 @@ export function DpsClient() {
       )}
 
       {/* Boss list */}
-      <section className="mb-7 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-3 sm:p-4">
+      <section className="scapestack-lock-panel mb-7 p-3 sm:p-4">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
               Pick a boss
             </h2>
             <p className="mt-1 max-w-2xl text-[12px] leading-relaxed text-[var(--color-text-muted)]">
-              Pick a category, then choose one boss to see the trip verdict, gear, supplies and upgrades from this bank.
+              Choose one boss. Scapestack builds gear, supplies and a RuneLite tab from this bank.
             </p>
           </div>
           <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">
-            {visibleResults.length} shown · {bossResults.length} checked
+            {visibleResults.length} quick picks
           </span>
         </div>
         <div>
@@ -479,7 +479,7 @@ export function DpsClient() {
                 autoComplete="off"
                 spellCheck={false}
                 aria-describedby="dps-boss-search-help dps-boss-search-status"
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] focus:border-[var(--color-accent)]/50 focus:shadow-[0_0_0_3px_rgba(134, 166, 217,0.10)] text-[13.5px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none transition-all"
+                className="scapestack-lock-card w-full py-2.5 pl-10 pr-4 text-[13.5px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-accent)]/50 focus:shadow-[0_0_0_3px_rgba(214,166,58,0.10)]"
               />
               {search && (
                 <button
@@ -532,10 +532,10 @@ export function DpsClient() {
                     setShowAllBosses(false);
                   }}
                   className={cn(
-                    "rounded-lg border px-3 py-2 text-[12px] font-bold transition-colors",
+                    "scapestack-command-button px-3 py-2 text-[12px] font-bold",
                     bossFilter === filter.key
-                      ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-black"
-                      : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/45 hover:text-[var(--color-text)]"
+                      ? "scapestack-primary-action"
+                      : ""
                   )}
                 >
                 {filter.label}
@@ -563,10 +563,10 @@ export function DpsClient() {
                   aria-label={`Sort boss rows by ${opt.label}`}
                   onClick={() => setSortBy(opt.key)}
                   className={cn(
-                    "px-2.5 py-1 rounded-md text-[11px] border transition-colors",
+                    "scapestack-command-button min-h-0 px-2.5 py-1 text-[11px]",
                     sortBy === opt.key
                       ? "border-[var(--color-accent)]/50 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
-                      : "border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
+                      : ""
                   )}
                 >
                   {opt.label}
@@ -579,7 +579,7 @@ export function DpsClient() {
               type="button"
               onClick={() => setShowAllBosses((value) => !value)}
               aria-expanded={showAllBosses}
-              className="mb-3 inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+              className="scapestack-command-button mb-3 px-3 py-2 text-[12px] font-bold"
             >
               {showAllBosses ? "Show recommended bosses" : `Show all ${filteredResults.length} in this category`}
             </button>
@@ -648,9 +648,8 @@ function BossCard({ boss, dps, isFocused, onOpen }: {
       aria-label={`Open ${boss.name} kill setup details`}
       title={`Open ${boss.name} kill setup details`}
       className={cn(
-        "group min-h-[238px] w-full scroll-mt-24 rounded-xl border p-4 text-left transition-all",
-        "bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] border-[var(--color-border)]",
-        "hover:-translate-y-0.5 hover:border-[var(--color-accent)]/55 hover:shadow-[0_14px_34px_-24px_rgba(240,176,44,0.55)]",
+        "scapestack-lock-card group min-h-[218px] w-full scroll-mt-24 p-4 text-left transition-all",
+        "hover:-translate-y-0.5",
         isFocused && "border-[var(--color-accent)]/55 shadow-[0_0_0_1px_rgba(240,176,44,0.22)]"
       )}>
       <div className="flex items-start justify-between gap-2">
@@ -680,7 +679,7 @@ function BossCard({ boss, dps, isFocused, onOpen }: {
       {usable ? (
         <div className="mt-3 space-y-1.5">
           <div className="flex items-center justify-between gap-2 text-[11px]">
-            <span className="text-[var(--color-text-muted)]">Verdict</span>
+            <span className="text-[var(--color-text-muted)]">Can I do this?</span>
             <span className="font-bold text-[var(--color-accent)]">{status}</span>
           </div>
           <div className="flex items-center justify-between gap-2 text-[11px]">

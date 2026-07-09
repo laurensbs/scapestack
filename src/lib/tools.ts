@@ -34,7 +34,7 @@ export const TOOLS: Tool[] = [
     short: "Enter your OSRS name and get one clear next move",
     tagline: "Pick the next trip",
     description:
-      "Stop bankstanding: enter your OSRS name and get one useful move for this account, plus two backups. Add bank or RuneLite only when it changes the route.",
+      "Stop bankstanding: enter your OSRS name and get one useful trip for this account. Add bank or RuneLite only when it changes the route.",
     icon: Sparkles,
     iconItemId: 11865, // Slayer helmet (i) — "what to do next" / next-task icon
     status: "live",

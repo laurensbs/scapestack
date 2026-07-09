@@ -209,7 +209,7 @@ function BankPageContent() {
   const openingSavedBank = Boolean(savedBank && !replaceSavedBank && !isSampleMode());
 
   return (
-    <main className="relative z-10 mx-auto max-w-6xl px-5 py-7 pb-20">
+    <main className="relative z-10 mx-auto max-w-6xl overflow-x-hidden px-4 py-7 pb-20 sm:px-5">
       {view === "intake" && (
         <section
           role="dialog"

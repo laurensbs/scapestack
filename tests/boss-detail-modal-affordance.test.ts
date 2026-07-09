@@ -25,19 +25,19 @@ describe("boss detail modal affordance", () => {
   });
 
   it("keeps the boss modal grounded in owned-bank setup copy", () => {
-    expect(source).toContain("Trip verdict");
+    expect(source).toContain("Can I do this?");
     expect(source).toContain("Try one trip");
     expect(source).toContain("Gear missing");
     expect(source).toContain("Not worth yet");
     expect(source).toContain("Risky trip");
     expect(source).toContain("Copy RuneLite tab");
     expect(source).toContain("bossSetupTagString");
-    expect(source).toContain("Kill numbers");
-    expect(source).toContain("Best setup");
+    expect(source).toContain("Kill speed");
+    expect(source).toContain("Gear from bank");
     expect(source).toContain("Activity setup");
     expect(source).toContain("No combat DPS");
     expect(source).toContain("isNonCombatBossActivity");
-    expect(source).toContain("Upgrades you don&apos;t have");
+    expect(source).toContain("Useful upgrades");
     expect(source).toContain("Inventory setup");
     expect(source).toContain("Bright chips = in your bank");
     expect(source).toContain("Buy chips = missing");
@@ -49,8 +49,8 @@ describe("boss detail modal affordance", () => {
     expect(source).toContain("overflow-y-auto overscroll-contain");
     expect(source).toContain('data-testid="boss-modal-scroll-panel"');
     expect(source).toContain('data-testid="boss-inventory-setup"');
-    expect(source.indexOf("Trip verdict")).toBeLessThan(source.indexOf("Kill numbers"));
-    expect(source.indexOf("Inventory setup")).toBeLessThan(source.indexOf("Upgrades you don&apos;t have"));
+    expect(source.indexOf("Can I do this?")).toBeLessThan(source.indexOf("Kill speed"));
+    expect(source.indexOf("Inventory setup")).toBeLessThan(source.indexOf("Useful upgrades"));
   });
 
   it("treats Wintertodt-style skilling bosses as activity setup, not combat DPS", () => {

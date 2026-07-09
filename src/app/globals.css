@@ -676,28 +676,65 @@ body {
     linear-gradient(180deg, #3A2F20 0%, var(--color-parchment) 100%);
 }
 
-/* Scapestack product primitives — small, reusable surfaces for the
-   session-planner feel. Keep these quiet: the plan itself should carry
-   the page, not decorative chrome. */
-.scapestack-plan-panel {
-  border: 1px solid color-mix(in srgb, var(--color-parchment-edge) 78%, var(--color-gold) 22%);
-  border-radius: 14px;
+/* Scapestack style lock — a deliberate Linear/Cron/Sunsama-inspired product
+   system: dark command surfaces, one brass accent, thin dividers, restrained
+   elevation, compact rows. OSRS identity comes from sprites/copy, not noisy
+   decorative chrome. */
+.scapestack-lock-panel,
+.scapestack-plan-panel,
+.scapestack-board-panel,
+.osrs-frame {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--color-border) 80%, var(--color-accent) 20%);
+  border-radius: 10px;
   background:
-    linear-gradient(180deg, rgba(53, 43, 29, 0.96), rgba(24, 19, 13, 0.98)),
-    radial-gradient(circle at top left, rgba(214, 166, 58, 0.12), transparent 42%);
-  box-shadow:
-    inset 0 1px 0 rgba(245, 236, 221, 0.07),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.35),
-    0 28px 82px -56px rgba(0, 0, 0, 0.9);
-}
-
-.scapestack-board-panel {
-  border: 1px solid color-mix(in srgb, var(--color-parchment-edge) 86%, var(--color-gold) 14%);
-  border-radius: 12px;
-  background: linear-gradient(180deg, var(--color-parchment) 0%, var(--color-parchment-dark) 100%);
+    linear-gradient(180deg, rgba(28, 23, 16, 0.88), rgba(8, 7, 5, 0.94)),
+    radial-gradient(circle at 18% 0%, rgba(214, 166, 58, 0.08), transparent 36%);
   box-shadow:
     inset 0 1px 0 rgba(245, 236, 221, 0.05),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+    0 24px 68px -56px rgba(0, 0, 0, 0.94);
+}
+
+.scapestack-lock-panel::before,
+.scapestack-plan-panel::before,
+.scapestack-board-panel::before,
+.osrs-frame::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background:
+    linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent) 44%, transparent), transparent);
+  opacity: 0.82;
+  pointer-events: none;
+}
+
+.scapestack-lock-card {
+  border: 1px solid color-mix(in srgb, var(--color-border) 86%, transparent);
+  border-radius: 8px;
+  background: rgba(11, 9, 6, 0.34);
+  box-shadow: inset 0 1px 0 rgba(245, 236, 221, 0.026);
+}
+
+.scapestack-lock-card[data-interactive="true"]:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 44%, var(--color-border));
+  background: rgba(214, 166, 58, 0.06);
+}
+
+.scapestack-lock-list {
+  border-block: 1px solid color-mix(in srgb, var(--color-border) 78%, transparent);
+}
+
+.scapestack-lock-list > * + * {
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent);
+}
+
+.scapestack-lock-row {
+  display: grid;
+  gap: 0.25rem;
+  padding-block: 0.65rem;
 }
 
 .scapestack-session-list {
@@ -713,12 +750,12 @@ body {
   min-height: 24px;
   align-items: center;
   gap: 0.35rem;
-  border-radius: 999px;
+  border-radius: 9999px;
   border: 1px solid var(--color-border);
   background: rgba(11, 9, 6, 0.42);
   padding: 0.22rem 0.55rem;
   font-size: 10.5px;
-  font-weight: 800;
+  font-weight: 750;
   line-height: 1;
   color: var(--color-text-dim);
   white-space: nowrap;
@@ -749,6 +786,53 @@ body {
     linear-gradient(180deg, rgba(36, 29, 20, 0.72), rgba(11, 9, 6, 0.46));
 }
 
+.scapestack-decision-list {
+  border-block: 1px solid color-mix(in srgb, var(--color-border) 78%, transparent);
+}
+
+.scapestack-decision-list > * + * {
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent);
+}
+
+.scapestack-command-button {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--color-border) 76%, var(--color-accent) 24%);
+  background: rgba(11, 9, 6, 0.34);
+  padding: 0.5rem 0.9rem;
+  font-size: 12.5px;
+  font-weight: 750;
+  color: var(--color-text-dim);
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 120ms ease;
+}
+
+.scapestack-command-button:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 48%, var(--color-border));
+  background: rgba(214, 166, 58, 0.08);
+  color: var(--color-text);
+  transform: translateY(-1px);
+}
+
+.scapestack-command-button[data-variant="primary"],
+.scapestack-primary-action {
+  border-color: color-mix(in srgb, var(--color-gold-deep) 72%, black 28%);
+  background: var(--color-accent);
+  color: #0B0906;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 241, 168, 0.32),
+    0 12px 30px -24px rgba(214, 166, 58, 0.95);
+}
+
+.scapestack-command-button[data-variant="primary"]:hover,
+.scapestack-primary-action:hover {
+  background: var(--color-accent-soft);
+  color: #0B0906;
+}
+
 .scapestack-route-row:hover {
   border-color: color-mix(in srgb, var(--color-accent) 52%, var(--color-border));
 }
@@ -760,13 +844,13 @@ body {
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1rem;
-  border-radius: 0.55rem;
+  border-radius: 9999px;
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0;
   background: var(--color-accent);
   color: #0B0906;
-  border: 2px solid color-mix(in srgb, var(--color-gold-deep) 70%, black 30%);
+  border: 1px solid color-mix(in srgb, var(--color-gold-deep) 70%, black 30%);
   box-shadow:
     inset 0 1px 0 rgba(255, 241, 168, 0.38),
     inset 0 -2px 0 rgba(0, 0, 0, 0.26),
@@ -807,17 +891,6 @@ body {
 /* OSRS frame primitives. Use for dialogs, first-screen cards and other
    high-attention surfaces so the product reads as one oldschool app instead
    of a pile of unrelated dark panels. */
-.osrs-frame {
-  overflow: hidden;
-  border: 2px solid var(--color-parchment-edge);
-  border-radius: 8px;
-  background:
-    linear-gradient(180deg, var(--color-parchment-2) 0%, var(--color-parchment) 100%);
-  box-shadow:
-    inset 0 0 0 1px rgba(214, 166, 58, 0.16),
-    0 28px 80px -42px rgba(0, 0, 0, 0.92);
-}
-
 .osrs-title-bar {
   border-bottom: 1px solid var(--color-parchment-edge);
   background: linear-gradient(180deg, var(--color-parchment) 0%, var(--color-parchment-dark) 100%);

@@ -13,7 +13,7 @@ describe("homepage first-impression copy", () => {
     expect(source).toContain("OSRS trip picker");
     expect(source).toContain("Stop bankstanding.");
     expect(source).toContain("Pick the next trip.");
-    expect(source).toContain("Type your OSRS name. Get one trip, two backups and a clean place to stop.");
+    expect(source).toContain("Type your OSRS name. Scapestack opens one clean trip and tells you when to stop.");
     expect(source).toContain("<HeroBossTripPreview />");
     expect(source).toContain('aria-label="Rotating OSRS bosses"');
     expect(source).toContain('src={`/sprites/bosses/${trip.boss}.png`}');

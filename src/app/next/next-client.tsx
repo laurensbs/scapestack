@@ -1311,7 +1311,7 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
 
   return (
     <div className="space-y-6">
-      {/* The first screen is the product: one recommendation, two backups. */}
+      {/* The first screen is the product: one clean trip first, options later. */}
       <div style={trackAnim(0)}>
         <WhatToDo
           allRecs={allRecs}
@@ -3863,12 +3863,12 @@ function NextTripCard({
   const reason = headlineOneLineReason(rec);
   const whyNot = recommendationWhyNot({ headline: rec, allRecs, mood, hasBankContext, pluginSyncState });
 
-  const actionClass = "inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-[var(--color-accent)]/45 bg-[var(--color-accent)] px-4 py-2 text-[12.5px] font-black text-black transition-colors hover:bg-[var(--color-accent)]/90";
+  const actionClass = "scapestack-command-button scapestack-primary-action px-4 text-[12.5px] font-black";
 
   return (
-    <article className="scapestack-plan-panel relative overflow-hidden p-4 sm:p-5 lg:p-6" data-next-trip-card="true">
-      <div className="grid gap-4 sm:grid-cols-[76px_minmax(0,1fr)]">
-        <div className="grid size-[72px] shrink-0 place-items-center overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 text-[var(--color-accent)]">
+    <article className="scapestack-plan-panel scapestack-lock-panel p-4 sm:p-5 lg:p-6" data-next-trip-card="true">
+      <div className="grid gap-4 sm:grid-cols-[80px_minmax(0,1fr)]">
+        <div className="grid size-[76px] shrink-0 place-items-center overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/42 text-[var(--color-accent)]">
           {rec.kind === "kc" && rec.bossSlug ? (
             <KcPortrait rec={rec} size={62} />
           ) : rec.iconItemId ? (
@@ -3887,7 +3887,7 @@ function NextTripCard({
         <div className="min-w-0">
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <span className="eyebrow text-[var(--color-accent)]">Next trip</span>
-            <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/40 px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
+            <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/30 px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
               {nextTripContextLabel(rec)}
             </span>
             <AccountModeBadge accountMode={accountMode} compact />
@@ -3900,14 +3900,14 @@ function NextTripCard({
             {reason}
           </p>
 
-          <dl className="mt-4 grid gap-2">
+          <dl className="scapestack-lock-list scapestack-decision-list mt-4">
             {lines.map((line) => (
               <div
                 key={`${line.label}:${line.value}`}
                 className={cn(
-                  "grid gap-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/30 px-3 py-2.5 sm:grid-cols-[128px_minmax(0,1fr)] sm:gap-3",
-                  line.tone === "good" && "border-[var(--color-good)]/25 bg-[var(--color-good)]/8",
-                  line.tone === "warn" && "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/8"
+                  "scapestack-lock-row sm:grid-cols-[128px_minmax(0,1fr)] sm:gap-3",
+                  line.tone === "good" && "text-[var(--color-good)]",
+                  line.tone === "warn" && "text-[var(--color-warning)]"
                 )}
               >
                 <dt className={cn(

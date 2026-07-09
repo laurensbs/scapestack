@@ -12,7 +12,7 @@ describe("tool registry", () => {
       status: "live"
     });
     expect(next?.description).toContain("Stop bankstanding");
-    expect(next?.description).toContain("one useful move");
+    expect(next?.description).toContain("one useful trip");
     expect(next?.tagline).toBe("Pick the next trip");
   });
 

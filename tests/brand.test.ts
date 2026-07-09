@@ -141,7 +141,12 @@ describe("Scapestack branding", () => {
     expect(layoutSource).toContain("Made for Gielinor");
     expect(globalsSource).toContain('--font-sans: "Atkinson Hyperlegible"');
     expect(globalsSource).toContain('--font-display: "Iowan Old Style"');
-    expect(globalsSource).toContain("Scapestack product primitives");
+    expect(globalsSource).toContain("Scapestack style lock");
+    expect(globalsSource).toContain("Linear/Cron/Sunsama-inspired product");
+    expect(globalsSource).toContain(".scapestack-lock-panel");
+    expect(globalsSource).toContain(".scapestack-lock-card");
+    expect(globalsSource).toContain(".scapestack-lock-list");
+    expect(globalsSource).toContain(".scapestack-command-button");
     expect(globalsSource).toContain(".scapestack-plan-panel");
     expect(globalsSource).toContain(".scapestack-session-list");
     expect(globalsSource).toContain("oldschool black, parchment brown and OSRS gold");

@@ -27,7 +27,7 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("<button\n      type=\"button\"\n      id={`boss-${boss.slug}`}");
     expect(source).toContain("aria-label={`Open ${boss.name} kill setup details`}");
     expect(source).toContain("title={`Open ${boss.name} kill setup details`}");
-    expect(source).toContain("group min-h-[238px] w-full");
+    expect(source).toContain("group min-h-[218px] w-full");
     expect(source).toContain("{boss.slug}");
     expect(source).toContain("grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4");
     expect(source).not.toContain("Open details");
@@ -46,7 +46,7 @@ describe("DPS boss row affordance", () => {
     const modalSource = readFileSync(join(process.cwd(), "src/components/boss-detail-modal.tsx"), "utf8");
 
     expect(modalSource).toContain("() => activitySetup ? [] : suggestUpgradesForBoss(owned, boss, dps)");
-    expect(modalSource).toContain("Upgrades you don&apos;t have");
+    expect(modalSource).toContain("Useful upgrades");
     expect(modalSource).toContain("wikiSearchUrl(u.item.name)");
     expect(modalSource).toContain("wikiPriceUrl(u.item.id)");
     expect(modalSource).toContain("Open ${u.item.name} on the OSRS Wiki");
@@ -62,9 +62,9 @@ describe("DPS boss row affordance", () => {
     expect(source).not.toContain("function pickBestBossTrip");
     expect(source).toContain("window.scrollTo({ top: 0, behavior: \"instant\" });");
     expect(source).toContain("Pick a boss");
-    expect(source).toContain("Pick a category, then choose one boss to see the trip verdict, gear, supplies and upgrades from this bank.");
+    expect(source).toContain("Choose one boss. Scapestack builds gear, supplies and a RuneLite tab from this bank.");
     expect(source).toContain("Boss category");
-    expect(source).toContain("visibleResults.length} shown");
+    expect(source).toContain("visibleResults.length} quick picks");
     expect(source).toContain("filteredResults.slice(0, 12)");
     expect(source).toContain("Show recommended bosses");
     expect(source).toContain("Show all ${filteredResults.length} in this category");
@@ -87,7 +87,7 @@ describe("DPS boss row affordance", () => {
 
     expect(modalSource).toContain('import { wikiPriceUrl } from "@/lib/item-action";');
     expect(modalSource).toContain('import { wikiSearchUrl } from "@/lib/wiki";');
-    expect(modalSource).toContain("Upgrades you don&apos;t have");
+    expect(modalSource).toContain("Useful upgrades");
     expect(modalSource).toContain("href={wikiSearchUrl(u.item.name)}");
     expect(modalSource).toContain("href={wikiPriceUrl(u.item.id)}");
     expect(modalSource).toContain("Open ${u.item.name} on the OSRS Wiki");

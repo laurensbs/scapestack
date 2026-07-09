@@ -22,7 +22,7 @@ describe("DPS upgrade actions", () => {
     const source = readFileSync(join(process.cwd(), "src/components/boss-detail-modal.tsx"), "utf8");
 
     expect(source).toContain("() => activitySetup ? [] : suggestUpgradesForBoss(owned, boss, dps)");
-    expect(source).toContain("Upgrades you don&apos;t have");
+    expect(source).toContain("Useful upgrades");
     expect(source).toContain("{u.item.name}");
     expect(source).toContain("+{u.gain.toFixed(2)} DPS");
     expect(source).toContain("href={wikiSearchUrl(u.item.name)}");

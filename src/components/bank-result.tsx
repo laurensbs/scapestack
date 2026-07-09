@@ -314,7 +314,7 @@ function buildBankDecision({
     return {
       iconItemId: 4151,
       title: "Check one boss trip before buying upgrades",
-      why: `This bank has ${weaponCount} combat weapon${weaponCount === 1 ? "" : "s"}, so the kill check can use gear you actually own.`,
+      why: `${weaponCount} combat weapon${weaponCount === 1 ? "" : "s"} found. Kill checks can use gear you own.`,
       firstStep: "Open the kill check, lock a setup, then do one short trip.",
       stopPoint: "Stop after the first trip if kills feel slow or supplies burn too fast.",
       avoid: "Avoid buying upgrades before checking what your bank can already do.",
@@ -417,21 +417,21 @@ function BankDecisionHero({
   ];
 
   return (
-    <section className="scapestack-board-panel mb-4 px-4 py-4 sm:px-5" aria-label="RuneLite bank tab setup">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+    <section className="scapestack-board-panel scapestack-lock-panel mb-4 w-full max-w-full px-4 py-4 sm:px-5" aria-label="RuneLite bank tab setup">
+      <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex min-w-0 items-center gap-2">
             <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45">
               <ItemSprite id={decision.iconItemId} alt="" size={30} />
             </span>
-            <div>
+            <div className="min-w-0">
               <div className="eyebrow text-[var(--color-accent)]">RuneLite tabs</div>
-              <h1 className="mt-1 text-[25px] font-semibold leading-none tracking-normal text-[var(--color-text)] sm:text-[31px]">
+              <h1 className="mt-1 max-w-full text-[23px] font-semibold leading-[1.02] tracking-normal text-[var(--color-text)] sm:text-[31px]">
                 Set up RuneLite bank tabs
               </h1>
             </div>
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className="-mx-1 mt-3 flex max-w-full flex-nowrap items-center gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
             <span className="scapestack-status-badge" data-tone={totalItems > 0 ? "ready" : "blocked"}>{statusLabel}</span>
             <span className="scapestack-status-badge" data-tone="prep">{readiness.status}</span>
             {chips.slice(0, 3).map((chip) => (
@@ -443,27 +443,27 @@ function BankDecisionHero({
           </p>
         </div>
 
-        <div className="flex shrink-0 flex-wrap gap-2 xl:justify-end">
+        <div className="grid min-w-0 grid-cols-1 gap-2 sm:flex sm:flex-wrap xl:shrink-0 xl:justify-end">
           <button
             type="button"
             onClick={onTidy}
             aria-label="Smart tidy this organized bank again"
-            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-bold text-[#0b0906] transition-all hover:brightness-110"
+            className="scapestack-command-button scapestack-primary-action min-w-0 px-3 py-2 text-[12.5px] font-bold sm:px-3.5"
           >
             <Wand2 className="size-3.5" />
-            Smart tidy
+            <span className="truncate">Smart tidy</span>
           </button>
           <button
             type="button"
             onClick={() => onPrimary("copy")}
             aria-label="Copy cleaned bank tabs to RuneLite"
-            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3.5 py-2 text-[12.5px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
+            className="scapestack-command-button min-w-0 border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[12.5px] font-bold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 sm:px-3.5"
           >
             {copied === "all" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
-            {copied === "all" ? "Copied" : "Copy to RuneLite"}
+            <span className="truncate">{copied === "all" ? "Copied" : "Copy to RuneLite"}</span>
           </button>
-          <details className="group relative">
-            <summary className="inline-flex min-h-10 cursor-pointer list-none items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-transparent px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)] marker:hidden [&::-webkit-details-marker]:hidden">
+          <details className="group relative sm:col-span-1">
+            <summary className="scapestack-command-button w-full cursor-pointer list-none bg-transparent px-3 py-2 text-[12.5px] font-semibold marker:hidden sm:px-3.5 [&::-webkit-details-marker]:hidden">
               More
               <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" />
             </summary>
@@ -509,27 +509,25 @@ function BankDecisionHero({
         })}
       </div>
 
-      <div className="mt-4 hidden gap-2 sm:grid md:grid-cols-3">
+      <div className="scapestack-lock-list scapestack-decision-list mt-4 hidden sm:block" data-testid="bank-setup-steps">
         {setupSteps.map((step, index) => {
           const Icon = step.icon;
           return (
             <div
               key={step.label}
               className={cn(
-                "rounded-lg border px-3 py-3",
-                step.state === "attention"
-                  ? "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/8"
-                  : "border-[var(--color-border)] bg-[var(--color-bg)]/28"
+                "scapestack-lock-row md:grid-cols-[180px_minmax(0,1fr)] md:items-center",
+                step.state === "attention" && "text-[var(--color-warning)]"
               )}
             >
               <div className="flex items-center gap-2">
-                <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[11px] font-black text-[var(--color-accent)]">
+                <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[11px] font-black text-[var(--color-accent)]">
                   {index + 1}
                 </span>
                 <Icon className="size-3.5 text-[var(--color-accent)]" />
                 <h2 className="text-[13px] font-bold text-[var(--color-text)]">{step.label}</h2>
               </div>
-              <p className="mt-2 hidden text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)] sm:block">
+              <p className="text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
                 {step.value}
               </p>
             </div>
@@ -2009,7 +2007,7 @@ export function BankResult({
           id="bank-view-panel"
           key={reorgFlash ?? "stable"}
           className={cn(
-            "group/frame relative mt-3 rounded-lg overflow-hidden",
+            "group/frame relative mt-3 min-w-0 overflow-hidden rounded-lg",
             "transition-[border-color,box-shadow] duration-300 ease-out",
             "hover:border-[var(--color-accent)]/30 hover:shadow-[0_28px_70px_-28px_rgb(0_0_0/0.75),0_0_0_1px_rgba(134, 166, 217,0.18)]",
             reorgFlash && "animate-[reshuffle_0.55s_cubic-bezier(0.22,1,0.36,1),mint-sweep_0.7s_ease-out]"
@@ -2069,7 +2067,7 @@ export function BankResult({
               max-width of the body so slot sizes shrink together (8 cols × N px). */}
           <div
             className={cn(
-              "p-3",
+              "min-w-0 p-3",
               prefs.density === "ultra" && "max-w-[520px]",
               prefs.density === "compact" && "max-w-[680px]"
             )}
@@ -2143,21 +2141,23 @@ export function BankResult({
             )}
 
             {/* Bank body (also droppable so users can drop on the canvas) */}
-            <BankBody
-              tab={activeTab}
-              hasPrices={initial.stats.hasPrices}
-              hasQty={initial.stats.hasQuantities}
-              sort={prefs.sort}
-              density={isNarrow && prefs.density === "comfortable" ? "compact" : prefs.density}
-              activeSubtab={activeSubtab}
-              matchesSearch={matchesSearch}
-              hovered={!!activeTab && hoveredTab === `body:${activeTab.name}`}
-              draggingTo={dragging != null}
-              preset={activePreset}
-              junkIds={activeJunkIds}
-              staleIds={activeStaleIds}
-              goalMatches={goalMatches}
-            />
+            <div className="min-w-0 overflow-x-auto overscroll-x-contain">
+              <BankBody
+                tab={activeTab}
+                hasPrices={initial.stats.hasPrices}
+                hasQty={initial.stats.hasQuantities}
+                sort={prefs.sort}
+                density={isNarrow && prefs.density === "comfortable" ? "compact" : prefs.density}
+                activeSubtab={activeSubtab}
+                matchesSearch={matchesSearch}
+                hovered={!!activeTab && hoveredTab === `body:${activeTab.name}`}
+                draggingTo={dragging != null}
+                preset={activePreset}
+                junkIds={activeJunkIds}
+                staleIds={activeStaleIds}
+                goalMatches={goalMatches}
+              />
+            </div>
           </div>
         </div>
 
@@ -5725,7 +5725,7 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
                       {boss.iconItemId && (
                         <span className="inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-[var(--color-bg)]/55 px-1.5 py-0.5 text-[9.5px] font-black text-[var(--color-text-muted)] tabular-nums">
                           <ItemSprite id={boss.iconItemId} alt="" size={16} className="pixelated" />
-                          id:{boss.iconItemId}
+                          Loadout
                         </span>
                       )}
                     </div>
