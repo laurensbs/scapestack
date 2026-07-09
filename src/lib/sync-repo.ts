@@ -8,6 +8,7 @@
 import { sql, hasDatabase } from "./db";
 import { normalizeScapestackAccountType, type ScapestackAccountType } from "./account-type";
 import { defaultPluginBankStatus, normalizePluginBankStatus, type PluginBankStatus } from "./plugin-bank-status";
+import itemsJson from "../../data/items.json";
 
 export interface SyncedPlayer {
   rsn: string;             // canonical lowercased name
@@ -41,6 +42,7 @@ export interface SyncDeltaSummary {
   questsCompleted: string[];
   diariesCompleted: Array<{ region: string; tier: SyncedPlayer["diariesCompleted"][number]["tier"] }>;
   collectionLogItemIds: number[];
+  collectionLogItems: Array<{ id: number; name: string }>;
   bank: {
     previousItemCount: number;
     currentItemCount: number;
@@ -412,6 +414,21 @@ function diaryDelta(
   return next.filter((d) => !previousKeys.has(`${d.region.toLowerCase()}:${d.tier.toLowerCase()}`));
 }
 
+function collectionLogItemName(id: number): string {
+  const row = (itemsJson as Record<string, string | { name?: string }>)[String(Math.abs(id))];
+  const name = typeof row === "string" ? row : row?.name;
+  if (name && name.trim()) return id < 0 ? `${name.trim()} (variant)` : name.trim();
+  return `#${id}`;
+}
+
+function collectionLogItemDelta(previousIds: number[], nextIds: number[]): Array<{ id: number; name: string }> {
+  const previous = new Set(previousIds);
+  return nextIds
+    .filter((id) => !previous.has(id))
+    .slice(0, 24)
+    .map((id) => ({ id, name: collectionLogItemName(id) }));
+}
+
 export function buildSyncDeltaSummary(
   previous: SyncSnapshotForDiff | null,
   next: SyncSnapshotForDiff
@@ -424,6 +441,7 @@ export function buildSyncDeltaSummary(
   const collectionLogItemIds = next.collectionLogItemIds
     .filter((id) => !previousCollectionLog.has(id))
     .slice(0, 24);
+  const collectionLogItems = collectionLogItemDelta(previous.collectionLogItemIds, next.collectionLogItemIds);
   const accountType = {
     previous: previous.accountType,
     current: next.accountType,
@@ -451,6 +469,7 @@ export function buildSyncDeltaSummary(
     questsCompleted,
     diariesCompleted,
     collectionLogItemIds,
+    collectionLogItems,
     bank,
     accountType
   };
@@ -464,6 +483,7 @@ export function hasSyncDelta(summary: SyncDeltaSummary | null | undefined): bool
     && (summary.questsCompleted.length > 0
       || summary.diariesCompleted.length > 0
       || summary.collectionLogItemIds.length > 0
+      || summary.collectionLogItems.length > 0
       || summary.bank
       || summary.accountType.changed)
   );
@@ -479,6 +499,7 @@ function normalizeSyncDeltaSummary(summary: unknown): SyncDeltaSummary | null {
     questsCompleted: normalizeQuestNames(row.questsCompleted),
     diariesCompleted: normalizeDiariesCompleted(row.diariesCompleted),
     collectionLogItemIds: normalizeCollectionLogItemIds(row.collectionLogItemIds),
+    collectionLogItems: normalizeSyncDeltaCollectionLogItems(row.collectionLogItems, row.collectionLogItemIds),
     bank: normalizeSyncDeltaBank(row.bank),
     accountType: {
       previous: accountPrevious,
@@ -489,6 +510,30 @@ function normalizeSyncDeltaSummary(summary: unknown): SyncDeltaSummary | null {
     }
   };
   return hasSyncDelta(normalized) ? normalized : null;
+}
+
+function normalizeSyncDeltaCollectionLogItems(
+  items: unknown,
+  fallbackIds: unknown
+): SyncDeltaSummary["collectionLogItems"] {
+  if (Array.isArray(items)) {
+    const clean: SyncDeltaSummary["collectionLogItems"] = [];
+    const seen = new Set<number>();
+    for (const item of items) {
+      if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+      const row = item as { id?: unknown; name?: unknown };
+      const id = typeof row.id === "number" && Number.isFinite(row.id) ? Math.trunc(row.id) : null;
+      if (!id || id <= 0 || seen.has(id)) continue;
+      seen.add(id);
+      const name = typeof row.name === "string" && row.name.trim() ? row.name.trim().slice(0, 96) : collectionLogItemName(id);
+      clean.push({ id, name });
+      if (clean.length >= 24) break;
+    }
+    if (clean.length > 0) return clean;
+  }
+  return normalizeCollectionLogItemIds(fallbackIds)
+    .slice(0, 24)
+    .map((id) => ({ id, name: collectionLogItemName(id) }));
 }
 
 function normalizeSyncDeltaBank(bank: unknown): SyncDeltaSummary["bank"] {

@@ -96,6 +96,7 @@ describe("end-to-end syncflow regression contracts", () => {
       questsCompleted: ["Biohazard"],
       diariesCompleted: [{ region: "Ardougne", tier: "Medium" }],
       collectionLogItemIds: [11840],
+      collectionLogItems: [{ id: 11840, name: "Dragon boots" }],
       bank: { previousItemCount: 1, currentItemCount: 2, itemCountChanged: true },
       accountType: { previous: "normal", current: "ironman", changed: true }
     });
@@ -136,6 +137,7 @@ describe("end-to-end syncflow regression contracts", () => {
           questsCompleted: ["Biohazard"],
           diariesCompleted: [],
           collectionLogItemIds: [],
+          collectionLogItems: [],
           bank: null,
           accountType: { previous: "ironman", current: "ironman", changed: false }
         }

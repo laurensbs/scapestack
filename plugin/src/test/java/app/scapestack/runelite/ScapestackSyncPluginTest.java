@@ -524,9 +524,17 @@ public class ScapestackSyncPluginTest {
             )
         );
         assertEquals(
-            "Open ScapeStack planner",
+            "Open next trip in ScapeStack",
             ScapestackSyncPlugin.panelNextAction(
                 new GameStateReader.BankStatus(true, 42, "2026-07-09T10:00:00Z", null),
+                new CollectionLogReader.Status(true, 1, 100, 5),
+                "Synced"
+            )
+        );
+        assertEquals(
+            "Open your bank for item checks",
+            ScapestackSyncPlugin.panelNextAction(
+                new GameStateReader.BankStatus(true, 0, null, null),
                 new CollectionLogReader.Status(true, 1, 100, 5),
                 "Synced"
             )

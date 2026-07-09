@@ -30,6 +30,10 @@ describe("Smart Tidy wizard", () => {
     expect(source).toContain("Suggested first tabs");
     expect(source).toContain("Current bank");
     expect(source).toContain("Proposed layout");
+    expect(source).toContain("function RuneLiteTabStripPreview");
+    expect(source).toContain('data-testid="runelite-tab-strip-preview"');
+    expect(source).toContain("RuneLite tab order");
+    expect(source).toContain("copy this order");
     expect(source).toContain("<SmartTidyTabPreview");
     expect(source).toContain("tab.items.slice(0, 8).map");
     expect(source).toContain("spriteIdForItem(item.id, item.quantity)");

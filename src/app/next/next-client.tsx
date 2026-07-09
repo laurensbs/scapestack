@@ -3846,9 +3846,17 @@ function lastSyncSummaryLines(result: NextUpResult): string[] {
     if (open) lines.push(`Now open: ${open}`);
     lines.push("Finished stuff is skipped now");
   }
-  if (summary.collectionLogItemIds.length > 0) {
-    const count = summary.collectionLogItemIds.length;
-    lines.push(`${count} collection log item${count === 1 ? "" : "s"} added`);
+  if (summary.collectionLogItems.length > 0 || summary.collectionLogItemIds.length > 0) {
+    const namedItems = summary.collectionLogItems.slice(0, 2).map((item) => item.name);
+    if (namedItems.length > 0) {
+      const extra = summary.collectionLogItems.length > namedItems.length
+        ? ` +${summary.collectionLogItems.length - namedItems.length}`
+        : "";
+      lines.push(`CLog: ${namedItems.join(", ")}${extra}`);
+    } else {
+      const count = summary.collectionLogItemIds.length;
+      lines.push(`${count} collection log item${count === 1 ? "" : "s"} added`);
+    }
   }
   if (summary.bank) {
     if (summary.bank.currentItemCount > 0) {
@@ -4496,8 +4504,8 @@ function WhatToDo({
     [latestMemory, latestSkipped?.id, latestSkipped?.kind, recentMemoryCounts, sessionSkipped]
   );
   const actionContext = useMemo<RecommendationActionContext>(
-    () => ({ from: "next", hasBankContext, rsn: activeRsn }),
-    [activeRsn, hasBankContext]
+    () => ({ from: "next", hasBankContext, rsn: activeRsn, accountType: accountMode.type }),
+    [accountMode.type, activeRsn, hasBankContext]
   );
 
   // Reset shuffle wanneer mood/time veranderen — een nieuwe vibe begint

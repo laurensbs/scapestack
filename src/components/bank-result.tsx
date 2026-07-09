@@ -747,6 +747,7 @@ function SmartTidyWizard({
                 ))}
               </div>
             </div>
+            <RuneLiteTabStripPreview tabs={proposedTabs} />
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
               <SmartTidyTabPreview title="Current bank" tabs={beforeTabs} tone="muted" />
               <SmartTidyTabPreview title="Proposed layout" tabs={proposedTabs} tone="accent" />
@@ -820,6 +821,35 @@ function SmartTidyWizard({
         </div>
       )}
     </section>
+  );
+}
+
+function RuneLiteTabStripPreview({ tabs }: { tabs: OrganizedTab[] }) {
+  return (
+    <div className="mb-3 rounded-md border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/40 p-2" data-testid="runelite-tab-strip-preview">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-accent)]">
+          RuneLite tab order
+        </div>
+        <div className="text-[10px] font-semibold text-[var(--color-text-muted)]">
+          copy this order
+        </div>
+      </div>
+      <div className="flex gap-1.5 overflow-x-auto pb-1">
+        {tabs.slice(0, 8).map((tab, index) => (
+          <div
+            key={`runelite-strip-${String(tab.name)}-${index}`}
+            className="flex min-w-[82px] shrink-0 flex-col items-center gap-1 rounded-md border border-[var(--color-border)] bg-[var(--color-panel)]/70 px-2 py-2"
+            title={`${index + 1}. ${String(tab.name)} - ${tab.items.length} items`}
+          >
+            <span className="font-mono text-[9px] font-black text-[var(--color-text-muted)]">{index + 1}</span>
+            <ItemSprite id={tab.iconItemId} alt="" size={24} />
+            <span className="max-w-[70px] truncate text-[10.5px] font-bold text-[var(--color-text)]">{String(tab.name)}</span>
+            <span className="font-mono text-[9px] text-[var(--color-text-muted)]">{tab.items.length}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 

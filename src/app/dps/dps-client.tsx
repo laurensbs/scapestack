@@ -26,6 +26,11 @@ import {
   type BankHandoffSummary
 } from "@/lib/next-bank-handoff";
 import { buildDpsBankContext } from "@/lib/dps-bank-context";
+import {
+  normalizeScapestackAccountType,
+  scapestackAccountTypeToPlannerType,
+  type PlannerAccountType
+} from "@/lib/account-type";
 
 type BossDpsResult = { boss: Boss; dps: DpsBreakdown };
 type BossFilter = "best" | "beginner" | "slayer" | "gwd" | "raid" | "wildy" | "skilling";
@@ -39,6 +44,19 @@ const BOSS_FILTERS: Array<{ key: BossFilter; label: string }> = [
   { key: "wildy", label: "Wildy" },
   { key: "skilling", label: "Skilling/minigame" }
 ];
+
+function accountTypeFromDpsParams(searchParams: Pick<URLSearchParams, "get">): PlannerAccountType | null {
+  const raw = searchParams.get("accountType") || searchParams.get("mode");
+  return raw ? scapestackAccountTypeToPlannerType(normalizeScapestackAccountType(raw)) : null;
+}
+
+function bossRiskPenaltyForAccount(boss: Boss, accountType: PlannerAccountType | null): number {
+  if (accountType !== "hardcore") return 0;
+  if (boss.category === "wildy") return 95;
+  if (boss.category === "raid" || boss.category === "dt2") return 22;
+  if (boss.category === "gwd") return 14;
+  return 0;
+}
 
 function DpsIntakeHero() {
   return (
@@ -156,6 +174,7 @@ export function DpsClient() {
   // view (the player still needs to paste a bank first). We persist the
   // intent across the intake → result transition via a stashed slug.
   const searchParams = useSearchParams();
+  const plannerAccountType = useMemo(() => accountTypeFromDpsParams(searchParams), [searchParams]);
   const [accountRsn, setAccountRsn] = useState("");
   const [hasKnownSetup, setHasKnownSetup] = useState(false);
   const [pendingBossSlug, setPendingBossSlug] = useState<string | null>(null);
@@ -327,6 +346,7 @@ export function DpsClient() {
     if (boss.category === "wildy") score -= 35;
     if (boss.category === "raid") score -= 18;
     if (boss.category === "dt2") score -= 12;
+    score -= bossRiskPenaltyForAccount(boss, plannerAccountType);
     return score;
   };
 
@@ -359,7 +379,7 @@ export function DpsClient() {
       }); break;
     }
     return sorted;
-  }, [bossResults, bossFilter, search, sortBy]);
+  }, [bossResults, bossFilter, plannerAccountType, search, sortBy]);
   const visibleResults = useMemo(
     () => search.trim() || showAllBosses ? filteredResults : filteredResults.slice(0, 12),
     [filteredResults, search, showAllBosses]
@@ -616,6 +636,7 @@ export function DpsClient() {
                 key={boss.slug}
                 boss={boss}
                 dps={dps}
+                accountType={plannerAccountType}
                 isFocused={focusedBoss?.slug === boss.slug}
                 onOpen={() => setModalBoss(boss)}
               />
@@ -652,9 +673,10 @@ export function DpsClient() {
 
 // ── Boss card ──
 
-function BossCard({ boss, dps, isFocused, onOpen }: {
+function BossCard({ boss, dps, accountType, isFocused, onOpen }: {
   boss: Boss;
   dps: DpsBreakdown;
+  accountType: PlannerAccountType | null;
   isFocused: boolean;
   onOpen: () => void;
 }) {
@@ -663,7 +685,7 @@ function BossCard({ boss, dps, isFocused, onOpen }: {
     usable && boss.avgLootGp && boss.killsPerHourCap
       ? Math.min(boss.killsPerHourCap, Math.floor(3600 / dps.ttk)) * boss.avgLootGp
       : null;
-  const status = bossTripVerdict(boss, dps);
+  const status = bossTripVerdict(boss, dps, accountType);
 
   return (
     <button
@@ -731,8 +753,9 @@ function BossCard({ boss, dps, isFocused, onOpen }: {
   );
 }
 
-function bossTripVerdict(boss: Boss, dps: DpsBreakdown): string {
+function bossTripVerdict(boss: Boss, dps: DpsBreakdown, accountType: PlannerAccountType | null = null): string {
   if (dps.dps <= 0) return "Gear missing";
+  if (accountType === "hardcore" && boss.category === "wildy") return "HCIM risk";
   if (boss.category === "wildy") return "Risky trip";
   if (boss.hp <= 320 && dps.hitChance >= 0.5 && boss.category !== "raid" && boss.category !== "dt2") return "Good first trip";
   if (dps.hitChance >= 0.62) return "Good with bank";

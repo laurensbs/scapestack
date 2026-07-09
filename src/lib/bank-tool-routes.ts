@@ -6,6 +6,7 @@ export type ToolHandoffSource = "bank" | "profile" | "next" | "dps" | "goals" | 
 export interface ToolHandoffOptions {
   hasBankContext?: boolean;
   boss?: string | null;
+  accountType?: string | null;
 }
 
 export function bankToolUrl(path: BankToolPath, rsn?: string | null, options: ToolHandoffOptions = {}): string {
@@ -26,6 +27,8 @@ export function toolHandoffUrl(
   params.set("from", from);
   if (options.hasBankContext === false) params.set("bank", "none");
   if (path === "/dps") {
+    const cleanAccountType = (options.accountType ?? "").trim();
+    if (cleanAccountType) params.set("accountType", cleanAccountType);
     const cleanBoss = (options.boss ?? "").trim();
     if (cleanBoss) params.set("boss", cleanBoss);
   }

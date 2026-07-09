@@ -34,12 +34,13 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("Add a weapon to see the trip setup and missing upgrades.");
     expect(source).toContain('import { Edit3, Sword, Search, X, Sparkles, ExternalLink } from "lucide-react";');
     expect(source).toContain("function bossTripVerdict");
-    expect(source).toContain("const status = bossTripVerdict(boss, dps);");
+    expect(source).toContain("const status = bossTripVerdict(boss, dps, accountType);");
     expect(source).toContain('"Try one trip"');
     expect(source).toContain('"Good with bank"');
     expect(source).toContain('"Good first trip"');
     expect(source).toContain('"Not worth yet"');
     expect(source).toContain('"Risky trip"');
+    expect(source).toContain('"HCIM risk"');
     expect(source).toContain("Loot pace");
     expect(source).not.toContain('<span className="text-[var(--color-text-muted)]">DPS</span>');
     expect(source).not.toContain("role=\"button\"");
@@ -73,6 +74,9 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain('label: "Best with bank"');
     expect(source).toContain('useState<BossFilter>("best")');
     expect(source).toContain("const bossTripFitScore = (entry: BossDpsResult) =>");
+    expect(source).toContain("function accountTypeFromDpsParams");
+    expect(source).toContain("function bossRiskPenaltyForAccount");
+    expect(source).toContain("score -= bossRiskPenaltyForAccount(boss, plannerAccountType);");
     expect(source).toContain("Show recommended bosses");
     expect(source).toContain("Show all ${filteredResults.length} in this category");
     expect(source).toContain('label: "Skilling/minigame"');

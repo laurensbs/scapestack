@@ -83,8 +83,9 @@ describe("recommendation primary actions", () => {
     expect(recommendationHrefWithContext("/dps?boss=zulrah", {
       from: "next",
       hasBankContext: false,
-      rsn: "Lynx Titan"
-    })).toBe("/dps?boss=zulrah&rsn=Lynx+Titan&from=next&bank=none");
+      rsn: "Lynx Titan",
+      accountType: "hardcore_ironman"
+    })).toBe("/dps?boss=zulrah&rsn=Lynx+Titan&from=next&bank=none&accountType=hardcore_ironman");
   });
 
   it("preserves existing route context instead of overwriting it", () => {
@@ -94,14 +95,14 @@ describe("recommendation primary actions", () => {
       .toBe("/next?intent=cash&rsn=Old+Name&from=next");
   });
 
-  it("adds active RSN to boss DPS links from /next", () => {
+  it("adds active RSN and account mode to boss DPS links from /next", () => {
     const action = primaryActionForRecommendation(rec({
       kind: "kc",
       bossSlug: "vardorvis",
       link: "/dps"
-    }), { from: "next", rsn: "Lynx Titan" });
+    }), { from: "next", rsn: "Lynx Titan", accountType: "hardcore_ironman" });
 
-    expect(action.href).toBe("/dps?boss=vardorvis&from=next&rsn=Lynx+Titan");
+    expect(action.href).toBe("/dps?boss=vardorvis&from=next&rsn=Lynx+Titan&accountType=hardcore_ironman");
   });
 
   it("URL-encodes boss deep-link slugs defensively", () => {

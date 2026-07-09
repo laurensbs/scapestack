@@ -49,6 +49,8 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Now open:");
     expect(source).toContain("Next trip:");
     expect(source).toContain("Finished stuff is skipped now");
+    expect(source).toContain("summary.collectionLogItems.slice(0, 2).map");
+    expect(source).toContain("CLog:");
     expect(source).toContain("if (!summary || lines.length === 0) return null;");
     expect(source).not.toContain("raw diff");
     expect(source).not.toContain("sync payload");

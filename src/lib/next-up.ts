@@ -359,6 +359,17 @@ function isRiskyRecommendation(rec: Recommendation): boolean {
     || /wilderness|wildy|revs?|revenue cave|pker|risk|boss/.test(text);
 }
 
+function ironSourceChainMultiplier(rec: Recommendation): number {
+  const text = `${rec.id} ${rec.title} ${rec.why} ${rec.payoff ?? ""} ${rec.decisionReason ?? ""} ${rec.planSeed?.prep ?? ""}`.toLowerCase();
+  let multiplier = 1;
+  if (hasRouteTag(rec, "iron")) multiplier *= 1.16;
+  if (/herb|birdhouse|seed|nest|farming|hunter|supply loop/.test(text)) multiplier *= 1.14;
+  if (/shop|sawmill|minigame|skilling|craft|diary|quest reward|unlock/.test(text)) multiplier *= 1.08;
+  if (/teleport|fairy ring|travel|ava|herblore|protection prayer/.test(text)) multiplier *= 1.06;
+  if (/buy from ge|grand exchange|gp\/hr|average loot|money/.test(text)) multiplier *= 0.72;
+  return multiplier;
+}
+
 function defaultQualityFor(rec: Recommendation, hasBank: boolean): RecommendationQuality {
   const text = `${rec.title} ${rec.why} ${rec.payoff ?? ""} ${rec.decisionReason ?? ""}`.toLowerCase();
   const longQuest = rec.kind === "quest" && /\(\+\d+ more\)|long prereq|very long|grandmaster/.test(text);
@@ -426,12 +437,13 @@ function archetypeMultiplier(rec: Recommendation, accountStage: AccountStage, ac
   if (iron) {
     if (hasRouteTag(rec, "iron") || hasRouteTag(rec, "unlock")) multiplier *= 1.2;
     if (hasSourceHint && (rec.kind === "quest" || rec.kind === "diary" || rec.kind === "skill" || rec.kind === "minigame")) multiplier *= 1.08;
+    multiplier *= ironSourceChainMultiplier(rec);
     if (rec.kind === "money") multiplier *= 0.45;
     if (rec.kind === "boss" || rec.kind === "kc") multiplier *= 0.9;
   }
 
   if (accountType === "hardcore") {
-    if (isRiskyRecommendation(rec)) multiplier *= 0.62;
+    if (isRiskyRecommendation(rec)) multiplier *= 0.52;
     if (hasSourceHint && !isRiskyRecommendation(rec)) multiplier *= 1.08;
     if (hasRouteTag(rec, "unlock") || rec.kind === "quest" || rec.kind === "diary") multiplier *= 1.12;
   } else if (accountType === "ultimate") {

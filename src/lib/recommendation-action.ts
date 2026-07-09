@@ -6,6 +6,7 @@ export interface RecommendationActionContext {
   hasBankContext?: boolean;
   from?: "bank" | "next";
   rsn?: string | null;
+  accountType?: string | null;
 }
 
 export interface RecommendationPrimaryAction {
@@ -86,6 +87,10 @@ export function recommendationHrefWithContext(
   if (context.from && !url.searchParams.has("from")) url.searchParams.set("from", context.from);
   if (context.hasBankContext === false && !url.searchParams.has("bank")) {
     url.searchParams.set("bank", "none");
+  }
+  const cleanAccountType = (context.accountType ?? "").trim();
+  if (cleanAccountType && normalizedPath === "/dps" && !url.searchParams.has("accountType")) {
+    url.searchParams.set("accountType", cleanAccountType);
   }
   if (normalizedPath === "/plugin" && !url.hash) url.hash = "verify-sync";
 

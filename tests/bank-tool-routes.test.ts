@@ -15,6 +15,8 @@ describe("bank tool routes", () => {
   it("carries a selected bank boss into DPS handoff", () => {
     expect(bankToolUrl("/dps", " Lynx Titan ", { boss: "kalphite-queen" }))
       .toBe("/dps?rsn=Lynx+Titan&from=bank&boss=kalphite-queen");
+    expect(bankToolUrl("/dps", " Lynx Titan ", { boss: "callisto", accountType: "hardcore_ironman" }))
+      .toBe("/dps?rsn=Lynx+Titan&from=bank&accountType=hardcore_ironman&boss=callisto");
     expect(toolHandoffUrl("/dps", "bank", null, { boss: " Vardorvis " }))
       .toBe("/dps?from=bank&boss=Vardorvis");
     expect(toolHandoffUrl("/next", "bank", null, { boss: "vardorvis" }))

@@ -755,9 +755,15 @@ public class ScapestackSyncPlugin extends Plugin {
             return "Click a Collection Log category, then sync again";
         }
         if ("Synced".equals(status)) {
-            return "Open ScapeStack planner";
+            if (bankStatus.itemCount > 0) {
+                return "Open next trip in ScapeStack";
+            }
+            if (!bankStatus.enabled) {
+                return "Turn on bank checks when you want item prep";
+            }
+            return "Open your bank for item checks";
         }
-        return "Wait for sync to finish";
+        return "Press Sync now after login";
     }
 
     static boolean shouldSyncAfterConfigChange(ConfigChanged event) {

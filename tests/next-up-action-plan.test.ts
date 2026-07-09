@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { computeNextUp } from "@/lib/next-up";
 import { formatRecommendationActionPlan, formatRecommendationSessionPlan } from "@/lib/action-plan-text";
 import type { HiscoreSkill } from "@/lib/hiscores";
@@ -258,6 +260,11 @@ describe("next-up action plans", () => {
   });
 
   it("keeps Hardcore Ironman risky bossing conservative", async () => {
+    const nextUpSource = readFileSync(join(process.cwd(), "src/lib/next-up.ts"), "utf8");
+    expect(nextUpSource).toContain("function ironSourceChainMultiplier");
+    expect(nextUpSource).toContain('if (/herb|birdhouse|seed|nest|farming|hunter|supply loop/.test(text)) multiplier *= 1.14;');
+    expect(nextUpSource).toContain("if (isRiskyRecommendation(rec)) multiplier *= 0.52;");
+
     const result = await computeNextUp({
       skills: skillsAt(99),
       questPoints: 180,
