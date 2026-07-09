@@ -63,6 +63,10 @@ export type BossCategory =
   | "raid" | "gwd" | "wildy" | "slayer" | "skilling"
   | "quest" | "minigame" | "dt2" | "world" | "misc";
 
+export function isNonCombatBossActivity(boss: Boss): boolean {
+  return boss.hp <= 0 || boss.weaknesses.length === 0;
+}
+
 export const BOSSES: Boss[] = [
   // ── God Wars Dungeon ─────────────────────────────────────────────────────
   { slug: "graardor", name: "General Graardor", emoji: "👺", iconItemId: 11812, category: "gwd",

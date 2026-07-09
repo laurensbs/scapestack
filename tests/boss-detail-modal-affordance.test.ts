@@ -34,6 +34,9 @@ describe("boss detail modal affordance", () => {
     expect(source).toContain("bossSetupTagString");
     expect(source).toContain("Kill numbers");
     expect(source).toContain("Best setup");
+    expect(source).toContain("Activity setup");
+    expect(source).toContain("No combat DPS");
+    expect(source).toContain("isNonCombatBossActivity");
     expect(source).toContain("Upgrades you don&apos;t have");
     expect(source).toContain("Inventory setup");
     expect(source).toContain("Bright chips = in your bank");
@@ -48,6 +51,15 @@ describe("boss detail modal affordance", () => {
     expect(source).toContain('data-testid="boss-inventory-setup"');
     expect(source.indexOf("Trip verdict")).toBeLessThan(source.indexOf("Kill numbers"));
     expect(source.indexOf("Inventory setup")).toBeLessThan(source.indexOf("Upgrades you don&apos;t have"));
+  });
+
+  it("treats Wintertodt-style skilling bosses as activity setup, not combat DPS", () => {
+    expect(source).toContain("const activitySetup = isNonCombatBossActivity(boss);");
+    expect(source).toContain("() => activitySetup ? [] : suggestUpgradesForBoss(owned, boss, dps)");
+    expect(source).toContain("activitySetup ? \"Activity setup\" : `${boss.hp} HP`");
+    expect(source).toContain("This is not a combat DPS check.");
+    expect(source).toContain("!activitySetup && (");
+    expect(source).toContain("bossSetupTagString(boss, dps, activitySetup ? inventoryRows : undefined)");
   });
 
   it("builds boss inventory from the pasted bank and marks missing buys", () => {

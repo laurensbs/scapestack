@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, useCallback, useEffect } from "react";
-import { ArrowRight, Check, PencilLine, Trash2, X } from "lucide-react";
+import { Check, PencilLine, X } from "lucide-react";
 import { Intake } from "@/components/intake";
 import { BankResult } from "@/components/bank-result";
 import { DropCelebration } from "@/components/drop-celebration";
@@ -15,7 +15,6 @@ import { computeCombatLevel, computeTotalLevel, type HiscoreSkill } from "@/lib/
 import { hiscoresAction } from "@/app/actions";
 import {
   loadSavedBank,
-  clearSavedBank,
   describeSavedAt,
   saveSavedBank,
   saveSavedRsn,
@@ -62,10 +61,6 @@ function sourceFromUrl(): string | null {
   return new URLSearchParams(window.location.search).get("from");
 }
 
-function cameFromNext(): boolean {
-  return sourceFromUrl() === "next";
-}
-
 function bankCloseHref(rsn: string): string {
   const cleanRsn = rsn.trim();
   const source = sourceFromUrl();
@@ -95,10 +90,9 @@ function BankPageContent() {
   const [inferredRsn, setInferredRsn] = useState<string | null>(null);
   const [hiscoreSkills, setHiscoreSkills] = useState<HiscoreSkill[] | null>(null);
   const [prefilledRsn, setPrefilledRsn] = useState("");
-  // Welcome-back banner state. We populate this once on mount when a saved
-  // bank is found, then the user either reuses it ("Use saved bank") or
-  // dismisses it ("Start fresh" / "Don't save on this device"). Lives at
-  // the page level because the banner needs to drive a programmatic submit.
+  // Saved-bank state. When a bank is found, /bank opens the organiser
+  // directly; the intake only stays visible for a short loading state or
+  // when the player explicitly chooses to paste a different bank.
   const [savedBank, setSavedBank] = useState<SavedBank | null>(null);
   const [replaceSavedBank, setReplaceSavedBank] = useState(false);
   const [autoLoadedSavedBank, setAutoLoadedSavedBank] = useState(false);
@@ -206,28 +200,13 @@ function BankPageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoLoadedSavedBank, pending, prefilledRsn, replaceSavedBank, savedBank, view]);
 
-  const onUseSavedBank = useCallback((bank: SavedBank) => {
-    setSavedBank(null);
-    saveSavedBank(bank.banktags, prefilledRsn || null);
-    if (prefilledRsn) saveSavedRsn(prefilledRsn);
-    router.push(bankCloseHref(prefilledRsn));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prefilledRsn, router]);
-
-  const onRemoveSavedBank = useCallback(() => {
-    clearSavedBank(prefilledRsn || null);
-    if (!prefilledRsn) clearSavedBank();
-    clearLastBankPaste();
-    setSavedBank(null);
-    setReplaceSavedBank(true);
-  }, [prefilledRsn]);
-
   const onSaveBankOnly = useCallback((_input: string, rsn: string) => {
     const targetRsn = rsn.trim() || prefilledRsn;
     router.push(bankCloseHref(targetRsn));
   }, [prefilledRsn, router]);
 
   const closeHref = bankCloseHref(prefilledRsn);
+  const openingSavedBank = Boolean(savedBank && !replaceSavedBank && !isSampleMode());
 
   return (
     <main className="relative z-10 mx-auto max-w-6xl px-5 py-7 pb-20">
@@ -243,11 +222,11 @@ function BankPageContent() {
             <div>
               <p className="eyebrow text-[var(--color-accent)]">Bank setup</p>
               <h1 id="bank-popup-title" className="mt-1 text-[28px] font-semibold leading-none text-[var(--color-text)] sm:text-[34px]">
-                {savedBank && !replaceSavedBank ? "Bank is ready" : "Add bank"}
+                {openingSavedBank ? "Opening bank organizer" : "Add bank"}
               </h1>
               <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-dim)]">
-                {savedBank && !replaceSavedBank
-                  ? "Use the saved bank for the plan, or replace it if your tabs changed."
+                {openingSavedBank
+                  ? "Loading your saved bank straight into RuneLite tab setup."
                   : "Paste once. Save. Better trips everywhere."}
               </p>
             </div>
@@ -260,18 +239,15 @@ function BankPageContent() {
             </Link>
           </div>
           <div className="p-5 pb-24 sm:p-6">
-          {savedBank && !replaceSavedBank ? (
-            <SavedBankChoice
-              saved={savedBank}
+          {openingSavedBank ? (
+            <SavedBankOpeningState
+              saved={savedBank as SavedBank}
               loading={pending}
-              cameFromNext={cameFromNext()}
-              onKeep={() => onUseSavedBank(savedBank)}
               onReplace={() => {
                 clearLastBankPaste();
                 setSavedBank(null);
                 setReplaceSavedBank(true);
               }}
-              onRemove={onRemoveSavedBank}
             />
           ) : (
             <>
@@ -339,63 +315,41 @@ function BankPageContent() {
   );
 }
 
-function SavedBankChoice({
+function SavedBankOpeningState({
   saved,
   loading,
-  cameFromNext,
-  onKeep,
-  onReplace,
-  onRemove
+  onReplace
 }: {
   saved: SavedBank;
   loading: boolean;
-  cameFromNext: boolean;
-  onKeep: () => void;
   onReplace: () => void;
-  onRemove: () => void;
 }) {
   return (
-    <div className="rounded-xl border border-[var(--color-accent)]/40 bg-black/20 p-4 sm:p-5">
+    <div data-testid="saved-bank-auto-open" className="rounded-xl border border-[var(--color-accent)]/40 bg-black/20 p-4 sm:p-5">
       <div className="flex items-start gap-3">
         <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[var(--color-accent)]">
           <Check className="size-5" />
         </span>
         <div className="min-w-0 flex-1">
           <p className="font-serif text-[23px] font-bold leading-tight text-[var(--color-text)]">
-            {cameFromNext ? "Using saved bank" : "Bank saved"}
+            Setting up your RuneLite tabs
           </p>
           <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-dim)]">
-            {cameFromNext
-              ? `Updated ${describeSavedAt(saved.savedAt)}. Scapestack can use this for quest items, gear and supply checks.`
-              : `Updated ${describeSavedAt(saved.savedAt)}. Use it for gear, supplies and GP checks.`}
+            Saved bank from {describeSavedAt(saved.savedAt)} is opening in the organizer.
           </p>
         </div>
       </div>
-      <div className="mt-5 grid gap-2 sm:grid-cols-[1.25fr_1fr_1fr]">
-        <button
-          type="button"
-          onClick={onKeep}
-          disabled={loading}
-          className="btn-primary group min-h-12 justify-center disabled:opacity-55"
-        >
-          {cameFromNext ? "Back to plan" : "Use saved bank"}
-          <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-        </button>
+      <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <span className="text-[12px] font-semibold text-[var(--color-text-muted)]">
+          {loading ? "Loading bank grid..." : "Opening organizer..."}
+        </span>
         <button
           type="button"
           onClick={onReplace}
-          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] px-4 py-3 text-[13px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45"
+          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] px-3 py-2 text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45"
         >
           <PencilLine className="size-4" />
-          Replace
-        </button>
-        <button
-          type="button"
-          onClick={onRemove}
-          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-[var(--color-danger)]/35 bg-[var(--color-danger)]/10 px-4 py-3 text-[13px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-danger)]/65"
-        >
-          <Trash2 className="size-4" />
-          Remove
+          Paste different bank
         </button>
       </div>
     </div>

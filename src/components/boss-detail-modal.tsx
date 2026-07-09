@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, Sword, Target, TrendingUp, Package, ExternalLink, Copy, CheckCheck } from "lucide-react";
-import { BOSSES, type Boss } from "@/lib/bosses";
+import { BOSSES, isNonCombatBossActivity, type Boss } from "@/lib/bosses";
 import { bestStyleAndSetup, calcDps, autoSetup, type DpsBreakdown, type Setup } from "@/lib/dps";
 import { GEAR, type GearItem, type CombatStyle } from "@/lib/gear";
 import { PRESETS, type Preset } from "@/lib/presets";
@@ -46,17 +46,24 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
   }, [onClose]);
 
   const dps = useMemo(() => bestStyleAndSetup(owned, boss), [owned, boss]);
-  const upgrades = useMemo(() => suggestUpgradesForBoss(owned, boss, dps), [owned, boss, dps]);
+  const activitySetup = isNonCombatBossActivity(boss);
+  const upgrades = useMemo(
+    () => activitySetup ? [] : suggestUpgradesForBoss(owned, boss, dps),
+    [activitySetup, owned, boss, dps]
+  );
   const preset = useMemo(() => PRESETS.find((p) => p.slug === boss.slug), [boss]);
   const inventoryRows = useMemo(
     () => buildInventoryRows({ preset, bankItems, owned, dps }),
     [preset, bankItems, owned, dps]
   );
   const verdict = useMemo(
-    () => bossTripVerdict({ boss, dps, inventoryRows, upgrades }),
-    [boss, dps, inventoryRows, upgrades]
+    () => bossTripVerdict({ boss, dps, inventoryRows, upgrades, activitySetup }),
+    [boss, dps, inventoryRows, upgrades, activitySetup]
   );
-  const tagString = useMemo(() => bossSetupTagString(boss, dps), [boss, dps]);
+  const tagString = useMemo(
+    () => bossSetupTagString(boss, dps, activitySetup ? inventoryRows : undefined),
+    [boss, dps, activitySetup, inventoryRows]
+  );
   const bossRail = useMemo(() => {
     const sameCategory = BOSSES.filter((candidate) => candidate.category === boss.category && candidate.slug !== boss.slug);
     const rest = BOSSES.filter((candidate) => candidate.category !== boss.category && candidate.slug !== boss.slug);
@@ -139,7 +146,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
             </h2>
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <p id={descriptionId} className="text-[12px] text-[var(--color-text-dim)]" style={{ textShadow: "0 1px 6px rgb(0 0 0 / 0.7)" }}>
-                {boss.hp} HP{boss.notes ? ` · ${boss.notes}` : ""}
+                {activitySetup ? "Activity setup" : `${boss.hp} HP`}{boss.notes ? ` · ${boss.notes}` : ""}
               </p>
               {boss.iconItemId && (
                 <span className="inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-black/35 px-1.5 py-0.5 text-[9.5px] font-black text-[var(--color-text-muted)] tabular-nums">
@@ -267,40 +274,51 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
 
           {/* Stats row — available after the verdict and inventory. */}
           <section id={statsId}>
-            <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">Kill numbers</h3>
-            {dps.dps > 0 ? (
+            {activitySetup ? (
+              <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3.5">
+                <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">Activity setup</h3>
+                <p className="text-[13px] leading-relaxed text-[var(--color-text-dim)]">
+                  This is not a combat DPS check. Use the inventory above for warm gear, tools and food from your bank.
+                </p>
+              </div>
+            ) : (
               <>
-                <div className="text-[13px] text-[var(--color-text-dim)] mb-3">
-                  Recommended:{" "}
-                  <span className="text-[var(--color-accent)] font-semibold uppercase tracking-wider">{dps.style}</span>
-                  {" with "}
-                  <span className="text-[var(--color-text)] font-semibold">{dps.weapon.name}</span>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <Stat label="DPS"      value={dps.dps.toFixed(1)} />
-                  <Stat label="Max hit"  value={String(dps.maxHit)} />
-                  <Stat label="Accuracy" value={`${Math.round(dps.hitChance * 100)}%`} />
-                  {dps.ttk > 0 && (
-                    <Stat
-                      label="Kc/u"
-                      value={String(Math.min(boss.killsPerHourCap ?? Infinity, Math.floor(3600 / dps.ttk)))}
-                    />
-                  )}
-                </div>
-                {gpPerHour !== null && (
-                  <div className="mt-2 text-[12px] text-[var(--color-text-dim)] flex items-center gap-1.5">
-                    <TrendingUp className="size-3.5 text-[var(--color-accent)]" />
-                    Est. <span className="text-[var(--color-text)] font-mono tabular-nums">{formatGp(gpPerHour)}</span>/hr
-                    {boss.killsPerHourCap !== undefined && Math.floor(3600 / dps.ttk) > boss.killsPerHourCap && (
-                      <span className="text-[var(--color-text-muted)]"> (capped at {boss.killsPerHourCap} kills/hr)</span>
+                <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">Kill numbers</h3>
+                {dps.dps > 0 ? (
+                  <>
+                    <div className="text-[13px] text-[var(--color-text-dim)] mb-3">
+                      Recommended:{" "}
+                      <span className="text-[var(--color-accent)] font-semibold uppercase tracking-wider">{dps.style}</span>
+                      {" with "}
+                      <span className="text-[var(--color-text)] font-semibold">{dps.weapon.name}</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <Stat label="DPS"      value={dps.dps.toFixed(1)} />
+                      <Stat label="Max hit"  value={String(dps.maxHit)} />
+                      <Stat label="Accuracy" value={`${Math.round(dps.hitChance * 100)}%`} />
+                      {dps.ttk > 0 && (
+                        <Stat
+                          label="Kc/u"
+                          value={String(Math.min(boss.killsPerHourCap ?? Infinity, Math.floor(3600 / dps.ttk)))}
+                        />
+                      )}
+                    </div>
+                    {gpPerHour !== null && (
+                      <div className="mt-2 text-[12px] text-[var(--color-text-dim)] flex items-center gap-1.5">
+                        <TrendingUp className="size-3.5 text-[var(--color-accent)]" />
+                        Est. <span className="text-[var(--color-text)] font-mono tabular-nums">{formatGp(gpPerHour)}</span>/hr
+                        {boss.killsPerHourCap !== undefined && Math.floor(3600 / dps.ttk) > boss.killsPerHourCap && (
+                          <span className="text-[var(--color-text-muted)]"> (capped at {boss.killsPerHourCap} kills/hr)</span>
+                        )}
+                      </div>
                     )}
-                  </div>
+                  </>
+                ) : (
+                  <p className="text-[13px] text-[var(--color-warning)]">
+                    Your bank doesn&apos;t carry a weapon that works against this boss yet — check the upgrades below.
+                  </p>
                 )}
               </>
-            ) : (
-              <p className="text-[13px] text-[var(--color-warning)]">
-                Your bank doesn&apos;t carry a weapon that works against this boss yet — check the upgrades below.
-              </p>
             )}
           </section>
 
@@ -341,12 +359,14 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
           {/* Worn gear grid — 8 slots in the OSRS equipment-tab layout
               (best-fit since we don't model 11 slots; missing slots
               render as empty cells). */}
-          <section>
-            <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">
-              <Sword className="size-3 inline-block mr-1" />Best setup
-            </h3>
-            <GearSlotGrid setup={dps.setup} />
-          </section>
+          {!activitySetup && (
+            <section>
+              <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">
+                <Sword className="size-3 inline-block mr-1" />Best setup
+              </h3>
+              <GearSlotGrid setup={dps.setup} />
+            </section>
+          )}
 
           {/* Upgrades — top 3 items the player doesn't own that would
               raise DPS the most for THIS boss specifically (not the
@@ -417,9 +437,11 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
             </section>
           )}
 
-          <p className="text-[10.5px] text-[var(--color-text-muted)] italic pt-3 border-t border-[var(--color-border)]">
-            DPS at level 99 stats with full offensive prayer. Boss-specific mechanics not modelled.
-          </p>
+          {!activitySetup && (
+            <p className="text-[10.5px] text-[var(--color-text-muted)] italic pt-3 border-t border-[var(--color-border)]">
+              DPS at level 99 stats with full offensive prayer. Boss-specific mechanics not modelled.
+            </p>
+          )}
         </div>
       </div>
     </div>,
@@ -447,14 +469,26 @@ function bossTripVerdict({
   boss,
   dps,
   inventoryRows,
-  upgrades
+  upgrades,
+  activitySetup
 }: {
   boss: Boss;
   dps: DpsBreakdown;
   inventoryRows: InventoryRowPick[];
   upgrades: UpgradePick[];
+  activitySetup?: boolean;
 }): BossTripVerdict {
   const missingInventory = inventoryRows.flatMap((row) => row.slots).filter((slot) => !slot.item).length;
+  if (activitySetup) {
+    return {
+      title: "Prep the activity",
+      body: missingInventory > 0
+        ? `${missingInventory} activity items are not found in this bank. Fill those before starting.`
+        : "Your bank has the key activity items. Copy the tab, do one round, then adjust after the reward.",
+      badge: "No combat DPS",
+      tone: missingInventory > 0 ? "warn" : "good"
+    };
+  }
   if (boss.category === "wildy") {
     return {
       title: "Risky trip",
@@ -497,7 +531,19 @@ function bossTripVerdict({
   };
 }
 
-function bossSetupTagString(boss: Boss, dps: DpsBreakdown): string {
+function bossSetupTagString(boss: Boss, dps: DpsBreakdown, inventoryRows?: InventoryRowPick[]): string {
+  if (inventoryRows) {
+    const activityIds = inventoryRows
+      .flatMap((row) => row.slots.map((slot) => slot.item?.id))
+      .filter((id): id is number => typeof id === "number" && id > 0);
+    const uniqueIds = [...new Set(activityIds)];
+    if (uniqueIds.length === 0) return "";
+    return exportTag({
+      name: `${boss.slug}-activity`,
+      iconItemId: boss.iconItemId ?? uniqueIds[0],
+      items: uniqueIds.map((id) => ({ id }))
+    });
+  }
   if (dps.dps <= 0) return "";
   const setupIds = [
     dps.weapon?.id,

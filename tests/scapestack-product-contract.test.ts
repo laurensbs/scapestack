@@ -21,14 +21,14 @@ describe("Scapestack anti-bankstanding product contract", () => {
     const plugin = read("src/app/plugin/page.tsx");
     const direction = read("docs/scapestack-product-direction.md");
 
-    expect(homepage).toContain("What can I do now?");
-    expect(homepage).toContain("Quests almost ready");
-    expect(homepage).toContain("Items to grab");
+    expect(homepage).toContain("Stop bankstanding.");
+    expect(homepage).toContain("Pick the next trip.");
+    expect(homepage).toContain("HeroBossTripPreview");
     expect(homepage).not.toContain("Quest readiness");
     expect(homepage).not.toContain("Bank gaps");
-    expect(homepage).toContain("Unlock board");
-    expect(homepage).toContain("Know what to do next");
-    expect(homepage).toContain("Which level, quest or item is stopping me?");
+    expect(homepage).not.toContain("Unlock board");
+    expect(homepage).not.toContain("Know what to do next");
+    expect(homepage).not.toContain("Which level, quest or item is stopping me?");
     expect(homepage).not.toContain("Every panel must earn the click");
     expect(homepage).not.toContain("Progression lanes");
     expect(homepage).not.toContain("Every panel answers a player question");

@@ -45,7 +45,7 @@ describe("DPS boss row affordance", () => {
   it("keeps boss-specific upgrades inside the clicked boss modal", () => {
     const modalSource = readFileSync(join(process.cwd(), "src/components/boss-detail-modal.tsx"), "utf8");
 
-    expect(modalSource).toContain("const upgrades = useMemo(() => suggestUpgradesForBoss(owned, boss, dps)");
+    expect(modalSource).toContain("() => activitySetup ? [] : suggestUpgradesForBoss(owned, boss, dps)");
     expect(modalSource).toContain("Upgrades you don&apos;t have");
     expect(modalSource).toContain("wikiSearchUrl(u.item.name)");
     expect(modalSource).toContain("wikiPriceUrl(u.item.id)");
@@ -69,6 +69,7 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("Show recommended bosses");
     expect(source).toContain("Show all ${filteredResults.length} in this category");
     expect(source).toContain('label: "Skilling/minigame"');
+    expect(source).toContain("b.hp > 0 && b.weaknesses.length > 0");
     expect(source).not.toContain("All bosses");
     expect(source).not.toContain("bosses checked");
     expect(source).not.toContain("<DpsDecisionHero");

@@ -21,7 +21,7 @@ describe("DPS upgrade actions", () => {
   it("keeps DPS upgrade cards clickable and item-ID visible", () => {
     const source = readFileSync(join(process.cwd(), "src/components/boss-detail-modal.tsx"), "utf8");
 
-    expect(source).toContain("const upgrades = useMemo(() => suggestUpgradesForBoss(owned, boss, dps)");
+    expect(source).toContain("() => activitySetup ? [] : suggestUpgradesForBoss(owned, boss, dps)");
     expect(source).toContain("Upgrades you don&apos;t have");
     expect(source).toContain("{u.item.name}");
     expect(source).toContain("+{u.gain.toFixed(2)} DPS");

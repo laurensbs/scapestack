@@ -8,51 +8,51 @@ const source = [
 ].join("\n");
 
 describe("homepage first-impression copy", () => {
-  it("opens with the product session board instead of a marketing hero", () => {
+  it("opens with the simple boss-led trip picker", () => {
     expect(source).not.toContain("BRAND_SECONDARY_TAGLINE");
-    expect(source).toContain("Next trip");
-    expect(source).toContain("What can I do now?");
-    expect(source).toContain("Do first");
-    expect(source).toContain("Bank checked");
-    expect(source).toContain("Quests almost ready");
-    expect(source).toContain("See the quest you can start soon");
-    expect(source).toContain("Items to grab");
-    expect(source).toContain("Check what is already in your bank");
-    expect(source).toContain("Good stopping place");
-    expect(source).toContain("Finish the trip, quest step or unlock");
+    expect(source).toContain("OSRS trip picker");
+    expect(source).toContain("Stop bankstanding.");
+    expect(source).toContain("Pick the next trip.");
+    expect(source).toContain("Type your OSRS name. Get one trip, two backups and a clean place to stop.");
+    expect(source).toContain("<HeroBossTripPreview />");
+    expect(source).toContain('aria-label="Rotating OSRS bosses"');
+    expect(source).toContain('src={`/sprites/bosses/${trip.boss}.png`}');
     expect(source).not.toContain("Quest readiness");
     expect(source).not.toContain("Near-ready unlocks first");
     expect(source).not.toContain("Bank gaps");
     expect(source).not.toContain("Items only when they change the route");
     expect(source).not.toContain("End on a clean trip or unlock");
     expect(source).not.toContain("Get one best move, why it matters, how long it takes");
-    expect(source).not.toContain("Stop bankstanding.");
-    expect(source).not.toContain("Pick the next trip.");
     expect(source).not.toContain("HERO_LOOP_STEPS");
     expect(source).not.toContain("AI-powered");
     expect(source).not.toContain("generic SaaS");
     expect(source).not.toContain("bank standing");
   });
 
-  it("uses OSRS route and item signals instead of a dense product mock", () => {
-    expect(source).toContain('import { ItemSprite } from "@/components/item-sprite";');
-    expect(source).toContain("Unlock board");
-    expect(source).toContain("Barrows gloves");
-    expect(source).toContain("Fairy rings");
-    expect(source).toContain("Piety");
-    expect(source).toContain("Ava's assembler");
-    expect(source).toContain("Slayer unlocks");
-    expect(source).toContain("Before you go");
-    expect(source).toContain("Know what to do next");
-    expect(source).toContain("Which level, quest or item is stopping me?");
-    expect(source).toContain("Which items do I still need, and are they in my bank?");
-    expect(source).toContain("What is a good place to stop this session?");
+  it("uses a boss visual instead of a route dashboard", () => {
+    expect(source).toContain("HeroBossTripPreview");
+    expect(source).toContain("Vardorvis");
+    expect(source).toContain("Vorkath");
+    expect(source).toContain("Zulrah");
+    expect(source).toContain("Alchemical Hydra");
+    expect(source).toContain("Nex");
+    expect(source).not.toContain('import { ItemSprite } from "@/components/item-sprite";');
+    expect(source).not.toContain("Unlock board");
+    expect(source).not.toContain("Barrows gloves");
+    expect(source).not.toContain("Fairy rings");
+    expect(source).not.toContain("Piety");
+    expect(source).not.toContain("Ava's assembler");
+    expect(source).not.toContain("Slayer unlocks");
+    expect(source).not.toContain("Before you go");
+    expect(source).not.toContain("Know what to do next");
+    expect(source).not.toContain("Which level, quest or item is stopping me?");
+    expect(source).not.toContain("Which items do I still need, and are they in my bank?");
+    expect(source).not.toContain("What is a good place to stop this session?");
     expect(source).not.toContain("Every panel must earn the click");
     expect(source).not.toContain("Next blocker, not broad stats.");
     expect(source).not.toContain("Stop point before the trip drifts.");
     expect(source).not.toContain("Progression lanes");
     expect(source).not.toContain("Which item is missing, and is it already in the bank?");
-    expect(source).not.toContain("<HeroBossTripPreview />");
     expect(source).not.toContain("Live boss preview");
     expect(source).not.toContain("Push Vardorvis to 50 KC");
     expect(source).not.toContain("Run Vorkath for a clean trip");
@@ -70,18 +70,19 @@ describe("homepage first-impression copy", () => {
     expect(source).not.toContain("PreviewLine");
   });
 
-  it("keeps the first screen in one clean order: board, input, route lanes", () => {
-    const boardIndex = source.indexOf("What can I do now?");
+  it("keeps the first screen in one clean order: promise, boss, input", () => {
+    const boardIndex = source.indexOf("Pick the next trip.");
     const intakeIndex = source.indexOf("<HeroIntake />");
-    const routesIndex = source.indexOf("Unlock board");
+    const bossIndex = source.indexOf("<HeroBossTripPreview />");
 
-    expect(source).toContain("lg:grid-cols-[minmax(0,0.98fr)_minmax(340px,0.72fr)]");
+    expect(source).toContain("lg:grid-cols-[minmax(0,1fr)_440px]");
+    expect(source).toContain("lg:row-span-2");
     expect(boardIndex).toBeGreaterThan(-1);
     expect(intakeIndex).toBeGreaterThan(-1);
-    expect(routesIndex).toBeGreaterThan(-1);
-    expect(boardIndex).toBeLessThan(intakeIndex);
-    expect(intakeIndex).toBeLessThan(routesIndex);
-    expect(source).not.toContain("lg:grid-cols-[minmax(0,1fr)_520px]");
+    expect(bossIndex).toBeGreaterThan(-1);
+    expect(boardIndex).toBeLessThan(bossIndex);
+    expect(bossIndex).toBeLessThan(intakeIndex);
+    expect(source).not.toContain("lg:grid-cols-[minmax(0,0.98fr)_minmax(340px,0.72fr)]");
   });
 
   it("uses oldschool OSRS surfaces instead of generic black cards", () => {
