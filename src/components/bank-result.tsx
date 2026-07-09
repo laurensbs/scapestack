@@ -5506,9 +5506,10 @@ function QtyColorLegend() {
 
 // Pick a boss → pull the user's best gear from their bank → emit a Bank Tag
 // string they can import. Saves the player from manually building the tab.
-type BossLoadoutFilter = "raid" | "slayer" | "wildy" | "gwd" | "beginner" | "skilling";
+type BossLoadoutFilter = "best" | "raid" | "slayer" | "wildy" | "gwd" | "beginner" | "skilling";
 
 const BOSS_LOADOUT_FILTERS: Array<{ key: BossLoadoutFilter; label: string; hint: string }> = [
+  { key: "best", label: "Best with bank", hint: "Most useful trips with this bank" },
   { key: "raid", label: "Raids", hint: "CoX, ToB and ToA prep" },
   { key: "slayer", label: "Slayer", hint: "Task bosses and upgrades" },
   { key: "wildy", label: "Wildy", hint: "Risk-aware quick checks" },
@@ -5518,6 +5519,7 @@ const BOSS_LOADOUT_FILTERS: Array<{ key: BossLoadoutFilter; label: string; hint:
 ];
 
 function bossMatchesLoadoutFilter(boss: Boss, filter: BossLoadoutFilter): boolean {
+  if (filter === "best") return boss.hp > 0 && boss.weaknesses.length > 0;
   if (filter === "beginner") {
     return boss.hp > 0 && boss.hp <= 320 && boss.category !== "raid" && boss.category !== "dt2" && boss.category !== "gwd";
   }
@@ -5530,7 +5532,8 @@ function bossRelevanceScore(boss: Boss, ownedGearItems: ReturnType<typeof ownedG
   const usableBoost = dps.dps > 0 ? 50 : 0;
   const gpBoost = boss.avgLootGp ? Math.min(20, boss.avgLootGp / 20_000) : 0;
   const beginnerBoost = boss.hp > 0 && boss.hp <= 320 ? 8 : 0;
-  return usableBoost + dps.dps * 6 + gpBoost + beginnerBoost;
+  const riskPenalty = boss.category === "wildy" ? 22 : boss.category === "raid" ? 10 : 0;
+  return usableBoost + dps.dps * 6 + gpBoost + beginnerBoost - riskPenalty;
 }
 
 function firstOrganizedItemMatch(items: OrganizedItem[], patterns: RegExp[]): OrganizedItem | null {
@@ -5577,7 +5580,7 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
   const [bossSlug, setBossSlug] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [manualBossTag, setManualBossTag] = useState("");
-  const [activeFilter, setActiveFilter] = useState<BossLoadoutFilter>("slayer");
+  const [activeFilter, setActiveFilter] = useState<BossLoadoutFilter>("best");
   const [showAllBosses, setShowAllBosses] = useState(false);
   const boss = useMemo(() => (bossSlug ? BOSSES.find((b) => b.slug === bossSlug) ?? null : null), [bossSlug]);
   const ownedGearItems = useMemo(() => ownedGear(items), [items]);

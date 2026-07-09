@@ -31,8 +31,8 @@ export function summarizeNextPluginSync(plugin: PluginSource): NextPluginSyncSum
   if (health === "outdated") {
     return {
       state: "outdated",
-      title: "Update Scapestack Sync",
-      body: `Last sync used v${plugin.pluginVersion ?? "unknown"}. Update to v${CURRENT_PLUGIN_VERSION} so Slayer, diary and collection-log picks stay current.`,
+      title: "Update the RuneLite plugin",
+      body: `Your plugin is on v${plugin.pluginVersion ?? "unknown"}. Update to v${CURRENT_PLUGIN_VERSION} so Slayer, diary and collection-log picks stay current.`,
       syncedAt: plugin.syncedAt ?? null,
       bankStatus: plugin.bankStatus ?? null,
       bankStatusLabel: plugin.bankStatus ? pluginBankStatusLabel(plugin.bankStatus) : null,
@@ -43,7 +43,7 @@ export function summarizeNextPluginSync(plugin: PluginSource): NextPluginSyncSum
   if (health === "stale") {
     return {
       state: "stale",
-      title: "Refresh Scapestack Sync",
+      title: "Sync again in RuneLite",
       body: plugin.syncedAt
         ? `Last RuneLite scan: ${new Date(plugin.syncedAt).toLocaleString("en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}. Sync again before spending GP or starting a long grind.`
         : "Last RuneLite scan: check again before spending GP or starting a long grind.",
@@ -66,10 +66,10 @@ export function summarizeNextPluginSync(plugin: PluginSource): NextPluginSyncSum
 
   return {
     state: "live",
-    title: missing.length > 0 ? "RuneLite sync ready" : "RuneLite sync fresh",
+    title: missing.length > 0 ? "RuneLite is connected" : "RuneLite is up to date",
     body: missing.length > 0
-      ? `Quests and diaries are synced; ${missing.join(", ")}.`
-      : "Quests, diaries, collection log and Slayer are coming from your RuneLite client.",
+      ? `Your next trip can skip finished quests and diaries; ${missing.join(", ")}.`
+      : "Your next trip can use finished quests, diary tiers, collection log and Slayer from RuneLite.",
     syncedAt: plugin.syncedAt ?? null,
     bankStatus: plugin.bankStatus ?? null,
     bankStatusLabel: plugin.bankStatus ? pluginBankStatusLabel(plugin.bankStatus) : null,

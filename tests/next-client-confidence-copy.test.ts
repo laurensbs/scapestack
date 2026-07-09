@@ -45,10 +45,10 @@ describe("/next confidence UI copy", () => {
 
   it("shows return value after real RuneLite deltas without raw sync diagnostics", () => {
     expect(source).toContain("function LastSyncSummaryCard");
-    expect(source).toContain("Since last sync");
+    expect(source).toContain("Last RuneLite sync");
     expect(source).toContain("Now open:");
-    expect(source).toContain("Next clean trip:");
-    expect(source).toContain("Completed unlocks are skipped now");
+    expect(source).toContain("Next trip:");
+    expect(source).toContain("Finished stuff is skipped now");
     expect(source).toContain("if (!summary || lines.length === 0) return null;");
     expect(source).not.toContain("raw diff");
     expect(source).not.toContain("sync payload");

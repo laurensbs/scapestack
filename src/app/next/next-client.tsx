@@ -3812,7 +3812,7 @@ function LastSyncSummaryCard({ result }: { result: NextUpResult }) {
     <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 px-4 py-3 sm:px-5" data-last-sync-summary="true">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <p className="eyebrow text-[var(--color-accent)]">Since last sync</p>
+          <p className="eyebrow text-[var(--color-accent)]">Last RuneLite sync</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {lines.slice(0, 4).map((line) => (
               <span
@@ -3841,10 +3841,10 @@ function lastSyncSummaryLines(result: NextUpResult): string[] {
     ...summary.diariesCompleted.slice(0, 2).map((diary) => `${diary.region} ${diary.tier}`)
   ];
   if (completed.length > 0) {
-    lines.push(`${completed.join(", ")} completed`);
+    lines.push(`Finished: ${completed.join(", ")}`);
     const open = result.nextBestActions[0]?.relevantQuestOrUnlock || result.nextBestActions[0]?.title || result.headline?.title;
     if (open) lines.push(`Now open: ${open}`);
-    lines.push("Completed unlocks are skipped now");
+    lines.push("Finished stuff is skipped now");
   }
   if (summary.collectionLogItemIds.length > 0) {
     const count = summary.collectionLogItemIds.length;
@@ -3867,7 +3867,7 @@ function lastSyncSummaryLines(result: NextUpResult): string[] {
 
 function nextCleanTripLine(result: NextUpResult): string | null {
   const title = result.headline?.title || result.nextBestActions[0]?.title;
-  return title ? `Next clean trip: ${title}` : null;
+  return title ? `Next trip: ${title}` : null;
 }
 
 function scapestackAccountTypeLabel(type: string): string {

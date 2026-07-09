@@ -28,9 +28,10 @@ import {
 import { buildDpsBankContext } from "@/lib/dps-bank-context";
 
 type BossDpsResult = { boss: Boss; dps: DpsBreakdown };
-type BossFilter = "beginner" | "slayer" | "gwd" | "raid" | "wildy" | "skilling";
+type BossFilter = "best" | "beginner" | "slayer" | "gwd" | "raid" | "wildy" | "skilling";
 
 const BOSS_FILTERS: Array<{ key: BossFilter; label: string }> = [
+  { key: "best", label: "Best with bank" },
   { key: "beginner", label: "Beginner" },
   { key: "slayer", label: "Slayer" },
   { key: "gwd", label: "GWD" },
@@ -139,7 +140,7 @@ export function DpsClient() {
   //   ttk       → wie sterft het snelst per kill (XP/u proxy)
   type SortKey = "dps" | "accuracy" | "gpHour" | "ttk";
   const [sortBy, setSortBy] = useState<SortKey>("dps");
-  const [bossFilter, setBossFilter] = useState<BossFilter>("beginner");
+  const [bossFilter, setBossFilter] = useState<BossFilter>("best");
   const [showAllBosses, setShowAllBosses] = useState(false);
   // Currently-open boss in the detail modal. Lifted here so deep-link
   // (?boss=<slug>) can open it on result-view mount, and so the Enter-
@@ -290,6 +291,8 @@ export function DpsClient() {
   const bossMatchesFilter = (entry: BossDpsResult) => {
     const { boss } = entry;
     switch (bossFilter) {
+      case "best":
+        return entry.dps.dps > 0;
       case "slayer":
         return boss.category === "slayer";
       case "wildy":
@@ -314,6 +317,19 @@ export function DpsClient() {
     return Math.min(k, Math.floor(3600 / entry.dps.ttk)) * gp;
   };
 
+  const bossTripFitScore = (entry: BossDpsResult) => {
+    const { boss, dps } = entry;
+    if (dps.dps <= 0) return -1000;
+    let score = dps.dps * 12 + dps.hitChance * 42;
+    if (boss.category === "slayer") score += 18;
+    if (boss.category === "gwd") score += 10;
+    if (boss.hp <= 320 && boss.category !== "raid" && boss.category !== "dt2") score += 14;
+    if (boss.category === "wildy") score -= 35;
+    if (boss.category === "raid") score -= 18;
+    if (boss.category === "dt2") score -= 12;
+    return score;
+  };
+
   // Live-filtered + sorted boss list. Matches against boss.name
   // (lowercased substring) so 'gra' finds 'General Graardor'. Empty
   // query = full list. Sort runs AFTER filter zodat het aantal blijft
@@ -327,6 +343,10 @@ export function DpsClient() {
       : bossResults;
     const base = searched.filter(bossMatchesFilter);
     const sorted = [...base];
+    if (!q && bossFilter === "best") {
+      sorted.sort((a, b) => bossTripFitScore(b) - bossTripFitScore(a));
+      return sorted;
+    }
     switch (sortBy) {
       case "dps":      sorted.sort((a, b) => b.dps.dps - a.dps.dps); break;
       case "accuracy": sorted.sort((a, b) => b.dps.hitChance - a.dps.hitChance); break;
@@ -643,7 +663,7 @@ function BossCard({ boss, dps, isFocused, onOpen }: {
     usable && boss.avgLootGp && boss.killsPerHourCap
       ? Math.min(boss.killsPerHourCap, Math.floor(3600 / dps.ttk)) * boss.avgLootGp
       : null;
-  const status = !usable ? "Gear missing" : boss.category === "wildy" ? "Risky trip" : dps.hitChance >= 0.55 ? "Try one trip" : "Test first";
+  const status = bossTripVerdict(boss, dps);
 
   return (
     <button
@@ -709,6 +729,15 @@ function BossCard({ boss, dps, isFocused, onOpen }: {
       )}
     </button>
   );
+}
+
+function bossTripVerdict(boss: Boss, dps: DpsBreakdown): string {
+  if (dps.dps <= 0) return "Gear missing";
+  if (boss.category === "wildy") return "Risky trip";
+  if (boss.hp <= 320 && dps.hitChance >= 0.5 && boss.category !== "raid" && boss.category !== "dt2") return "Good first trip";
+  if (dps.hitChance >= 0.62) return "Good with bank";
+  if (dps.hitChance >= 0.45) return "Try one trip";
+  return "Not worth yet";
 }
 
 function DpsHandoffIntakeHint({

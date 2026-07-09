@@ -247,7 +247,7 @@ public class ScapestackSyncPluginTest {
             "{\"ok\":true,\"syncSummary\":{\"questsCompleted\":[\"Biohazard\"],\"diariesCompleted\":[],\"collectionLogItemIds\":[]}}"
         );
 
-        assertEquals("ScapeStack synced. New quest progress found.", message);
+        assertEquals("ScapeStack synced. Next trip updated.", message);
         assertNoPlayerTech(message);
     }
 

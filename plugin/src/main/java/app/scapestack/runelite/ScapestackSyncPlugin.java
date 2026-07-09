@@ -506,7 +506,7 @@ public class ScapestackSyncPlugin extends Plugin {
 
         String message;
         if (hasNewProgress) {
-            message = "ScapeStack synced. New quest progress found.";
+            message = "ScapeStack synced. Next trip updated.";
         } else if (bankStatus.itemCount > 0) {
             message = "ScapeStack synced your bank.";
         } else if (bankStatus.enabled

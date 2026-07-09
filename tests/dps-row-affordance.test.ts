@@ -33,8 +33,12 @@ describe("DPS boss row affordance", () => {
     expect(source).not.toContain("Open details");
     expect(source).toContain("Add a weapon to see the trip setup and missing upgrades.");
     expect(source).toContain('import { Edit3, Sword, Search, X, Sparkles, ExternalLink } from "lucide-react";');
-    expect(source).toContain('const status = !usable ? "Gear missing"');
+    expect(source).toContain("function bossTripVerdict");
+    expect(source).toContain("const status = bossTripVerdict(boss, dps);");
     expect(source).toContain('"Try one trip"');
+    expect(source).toContain('"Good with bank"');
+    expect(source).toContain('"Good first trip"');
+    expect(source).toContain('"Not worth yet"');
     expect(source).toContain('"Risky trip"');
     expect(source).toContain("Loot pace");
     expect(source).not.toContain('<span className="text-[var(--color-text-muted)]">DPS</span>');
@@ -66,6 +70,9 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("Boss category");
     expect(source).toContain("visibleResults.length} quick picks");
     expect(source).toContain("filteredResults.slice(0, 12)");
+    expect(source).toContain('label: "Best with bank"');
+    expect(source).toContain('useState<BossFilter>("best")');
+    expect(source).toContain("const bossTripFitScore = (entry: BossDpsResult) =>");
     expect(source).toContain("Show recommended bosses");
     expect(source).toContain("Show all ${filteredResults.length} in this category");
     expect(source).toContain('label: "Skilling/minigame"');

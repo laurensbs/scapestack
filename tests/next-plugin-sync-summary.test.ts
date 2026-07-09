@@ -21,8 +21,8 @@ describe("next plugin sync summary", () => {
     const summary = summarizeNextPluginSync(basePlugin);
 
     expect(summary.state).toBe("live");
-    expect(summary.title).toBe("RuneLite sync fresh");
-    expect(summary.body).toContain("Quests, diaries, collection log and Slayer");
+    expect(summary.title).toBe("RuneLite is up to date");
+    expect(summary.body).toContain("Your next trip can use finished quests, diary tiers, collection log and Slayer");
     expect(summary.body).not.toContain("payload");
     expect(summary.body).not.toContain("coverage");
     expect(summary.signals.map((signal) => [signal.label, signal.status])).toEqual([
@@ -47,8 +47,8 @@ describe("next plugin sync summary", () => {
       slayerBlocks: 0
     });
 
-    expect(summary.title).toBe("RuneLite sync ready");
-    expect(summary.body).toContain("Quests and diaries are synced");
+    expect(summary.title).toBe("RuneLite is connected");
+    expect(summary.body).toContain("Your next trip can skip finished quests and diaries");
     expect(summary.body).toContain("no live Slayer task yet");
     expect(summary.body).not.toContain("payload");
     expect(summary.body).not.toContain("exact from RuneLite");
