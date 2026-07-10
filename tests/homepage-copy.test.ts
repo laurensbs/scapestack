@@ -70,12 +70,14 @@ describe("homepage first-impression copy", () => {
     expect(source).not.toContain("PreviewLine");
   });
 
-  it("keeps the first screen in one clean order: promise, boss, input", () => {
+  it("keeps the first screen in one clean order with the intake before the visual on mobile", () => {
     const boardIndex = source.indexOf("Pick the next trip.");
     const intakeIndex = source.indexOf("<HeroIntake />");
     const bossIndex = source.indexOf("<HeroBossTripPreview />");
 
     expect(source).toContain("lg:grid-cols-[minmax(0,1fr)_440px]");
+    expect(source).toContain("className=\"relative order-3");
+    expect(source).toContain("className=\"order-2");
     expect(source).toContain("lg:row-span-2");
     expect(boardIndex).toBeGreaterThan(-1);
     expect(intakeIndex).toBeGreaterThan(-1);

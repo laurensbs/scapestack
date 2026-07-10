@@ -4,6 +4,7 @@ import {
   isRecommendationSuppressed,
   latestRecommendationFeedback,
   latestRecommendationMemory,
+  latestStartedRecommendationMemory,
   loadRecommendationFeedback,
   recommendationMemoryCounts,
   recordRecommendationMemory,
@@ -91,6 +92,42 @@ describe("recommendation feedback", () => {
     });
     expect(latestRecommendationMemory(loadRecommendationFeedback(), { rsn: "Lauky" })?.title)
       .toBe("Finish Monkey Madness II");
+  });
+
+  it("remembers started trips without hiding or downranking them", () => {
+    recordRecommendationMemory({
+      id: "quest:mm2",
+      kind: "quest",
+      title: "Finish Monkey Madness II",
+      action: "started",
+      mood: "unlock",
+      routeLens: "smart",
+      rsn: "Lauky"
+    });
+
+    expect(isRecommendationSuppressed("quest:mm2")).toBe(false);
+    expect(recommendationMemoryCounts(loadRecommendationFeedback(), { rsn: "lauky" })).toEqual({});
+    expect(latestRecommendationMemory(loadRecommendationFeedback(), { rsn: "Lauky" })?.action)
+      .toBe("started");
+    expect(latestStartedRecommendationMemory(loadRecommendationFeedback(), { rsn: "Lauky" })?.title)
+      .toBe("Finish Monkey Madness II");
+  });
+
+  it("keeps started-trip memory longer than short route-switch memory", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1_000);
+    recordRecommendationMemory({
+      id: "quest:mm2",
+      kind: "quest",
+      title: "Finish Monkey Madness II",
+      action: "started",
+      rsn: "Lauky"
+    });
+    vi.setSystemTime(2 * 24 * 60 * 60 * 1000);
+
+    expect(latestRecommendationMemory(loadRecommendationFeedback(), { rsn: "Lauky" })).toBeNull();
+    expect(latestStartedRecommendationMemory(loadRecommendationFeedback(), { rsn: "Lauky" })?.id)
+      .toBe("quest:mm2");
   });
 
   it("weights harder feedback more strongly than a light route skip", () => {

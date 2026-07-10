@@ -37,16 +37,22 @@ describe("quest detail RuneLite sync contract", () => {
   it("shows compact source and planning states on quest detail", () => {
     expect(clientSource).toContain('SourceBadge label="RuneLite synced"');
     expect(clientSource).toContain('SourceBadge label="Browser bank"');
-    expect(clientSource).toContain('SourceBadge label="No bank check yet"');
+    expect(clientSource).toContain('SourceBadge label="Bank not added"');
     expect(clientSource).not.toContain('SourceBadge label="No bank context"');
     expect(clientSource).toContain("questTripDecision(evaluation)");
-    expect(clientSource).toContain("Can I do this now?");
-    expect(clientSource).toContain("Before you go");
+    expect(clientSource).toContain("Quest trip");
+    expect(clientSource).toContain("Next quest trip");
+    expect(clientSource).toContain("Before you leave");
+    expect(clientSource).toContain("Bring");
+    expect(clientSource).toContain("Stage for UIM");
     expect(clientSource).toContain("Still missing");
     expect(clientSource).toContain("Finish after");
+    expect(clientSource).toContain("Sync after");
+    expect(clientSource).toContain("decision.bringItems.length > 0");
     expect(clientSource).toContain('Section title="Completed requirements"');
-    expect(clientSource).toContain('Section title="Missing requirements"');
+    expect(clientSource).toContain('Section title="Still missing"');
     expect(clientSource).toContain("UIM mode: this list is a staging checklist");
     expect(clientSource).toContain("accountModeVisual(accountType");
+    expect(clientSource).not.toContain("Open this quest from `/next`");
   });
 });

@@ -30,7 +30,7 @@ export const TOOLS: Tool[] = [
     slug: "next",
     href: "/next",
     name: "Do This First",
-    navLabel: "Plan",
+    navLabel: "Today",
     short: "Enter your OSRS name and get one clear next move",
     tagline: "Pick the next trip",
     description:
@@ -44,8 +44,8 @@ export const TOOLS: Tool[] = [
     slug: "bank",
     href: "/bank",
     name: "Can I leave?",
-    navLabel: "Bank",
-    short: "Add bank once, use it everywhere",
+    navLabel: "Setup",
+    short: "Add bank once for the next trip",
     tagline: "Bank in → leave the bank",
     description:
       "Paste Bank Memory or Bank Tags when gear, supplies or GP should change the route. Scapestack still gives one useful next move first, then keeps the clean tabs and copy-back tools below.",
@@ -98,8 +98,8 @@ export const TOOLS: Tool[] = [
     slug: "dps",
     href: "/dps",
     name: "Can I kill this?",
-    navLabel: "Check kill",
-    short: "Can this bank handle the trip?",
+    navLabel: "Boss",
+    short: "Check a boss trip from this setup",
     tagline: "Add bank → one boss verdict",
     description:
       "Picks a boss, setup, first trip, stop point and upgrade check from gear you already own. Numbers are still there, but the first answer is whether the trip makes sense.",

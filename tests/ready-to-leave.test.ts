@@ -49,11 +49,11 @@ describe("ready to leave UX", () => {
     expect(read("src/app/next/next-client.tsx")).not.toContain("<ReadyToLeave status={readyToLeave.status} items={readyToLeave.items}");
     expect(read("src/app/next/next-client.tsx")).toContain("Start here");
     expect(read("src/components/bank-result.tsx")).not.toContain("<ReadyToLeave status={readiness.status} items={readiness.items} compact");
-    expect(read("src/components/bank-result.tsx")).toContain("Trip check");
+    expect(read("src/components/bank-result.tsx")).toContain("RuneLite setup steps");
     expect(read("src/components/bank-result.tsx")).toContain("First");
     expect(read("src/components/bank-result.tsx")).toContain("Leave");
     expect(read("src/app/dps/dps-client.tsx")).not.toContain("ReadyToLeave");
-    expect(read("src/app/dps/dps-client.tsx")).toContain("Pick a boss");
-    expect(read("src/app/dps/dps-client.tsx")).toContain("Choose one boss. Scapestack builds gear, supplies and a RuneLite tab from this bank.");
+    expect(read("src/app/dps/dps-client.tsx")).toContain("Pick one boss trip");
+    expect(read("src/app/dps/dps-client.tsx")).toContain("Choose one boss. Scapestack shows the setup to check, what is missing, and when to leave.");
   });
 });

@@ -7,12 +7,12 @@ const source = readFileSync(join(process.cwd(), "src/components/bank-result.tsx"
 describe("bank export feedback", () => {
   it("starts the bank result with a clear setup board before technical details", () => {
     expect(source).toContain("function BankDecisionHero");
-    expect(source).toContain('aria-label="RuneLite bank tab setup"');
-    expect(source).toContain("RuneLite tabs");
-    expect(source).toContain("Set up RuneLite bank tabs");
+    expect(source).toContain('aria-label="Tonight\'s RuneLite bank setup"');
+    expect(source).toContain("Tonight&apos;s bank setup");
+    expect(source).toContain("{decision.title}");
     expect(source).toContain("Bank loaded");
     expect(source).toContain("Bank needs a paste");
-    expect(source).toContain("Choose style");
+    expect(source).toContain("Choose tab style");
     expect(source).toContain("Preview tabs");
     expect(source).toContain("Smart tidy");
     expect(source).toContain("Copy to RuneLite");
@@ -31,13 +31,17 @@ describe("bank export feedback", () => {
     expect(source).toContain("readiness={bankReadiness}");
     expect(source).toContain('id="bank-view-panel"');
     expect(source).toContain("shouldDensePackSparseLayout");
-    expect(source).toContain("Trip check");
+    expect(source).toContain('data-testid="bank-tonight-trip"');
+    expect(source).toContain("Before you leave");
+    expect(source).toContain("Grab from bank");
+    expect(source).toContain("Finish after");
+    expect(source).toContain("RuneLite setup steps");
     expect(source).toContain("First");
     expect(source).toContain("Leave");
     expect(source).toContain('const [smartTidyStage, setSmartTidyStage] = useState<SmartTidyStage>("closed")');
     expect(source).not.toContain("<span>Organize tabs</span>");
     expect(source).toContain("<span>Saved banks</span>");
-    expect(source.indexOf("Set up RuneLite bank tabs")).toBeLessThan(source.indexOf('<div id="smart-tidy-setup">'));
+    expect(source.indexOf("{decision.title}")).toBeLessThan(source.indexOf('<div id="smart-tidy-setup">'));
     expect(source.indexOf('<div id="smart-tidy-setup">')).toBeLessThan(source.indexOf('id="bank-view-panel"'));
     expect(source.indexOf('id="bank-view-panel"')).toBeLessThan(source.indexOf("More controls"));
     expect(source.indexOf('id="bank-view-panel"')).toBeLessThan(source.indexOf("Import details"));
@@ -105,8 +109,8 @@ describe("bank export feedback", () => {
   it("shows a manual boss loadout tag when boss tag copy fails", () => {
     expect(source).toContain("<BossTagSection");
     expect(source).toContain('onOpenDps={(bossSlug) => openBankHandoffRoute(bankToolUrl("/dps", inferredRsn, { boss: bossSlug }))}');
-    expect(source).toContain("Pick a boss");
-    expect(source).toContain("ScapeStack builds a RuneLite tab from your bank.");
+    expect(source).toContain("Pick one boss trip");
+    expect(source).toContain("Build one RuneLite tab from owned gear, supplies and the boss you want to try.");
     expect(source).toContain("BOSS_LOADOUT_FILTERS");
     expect(source).toContain("Raids");
     expect(source).toContain("Slayer");
@@ -143,7 +147,7 @@ describe("bank export feedback", () => {
 
   it("keeps the post-bank action rail player-facing instead of slash-route heavy", () => {
     expect(source).toContain("After tidy");
-    expect(source).toContain("Plan next trip");
+    expect(source).toContain("Open next trip");
     expect(source).toContain("RuneLite sync");
     expect(source).not.toContain("Use this bank in");
     expect(source).not.toContain("onGoals={() => openBankHandoffRoute");

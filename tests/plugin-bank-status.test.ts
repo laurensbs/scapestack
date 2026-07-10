@@ -16,7 +16,7 @@ describe("plugin bank status copy", () => {
     const status = defaultPluginBankStatus(0);
 
     expect(status).toMatchObject({ enabled: false, itemCount: 0, unavailableReason: "opt-in-off" });
-    expect(pluginBankStatusLabel(status)).toBe("Bank sync is off; item checks use only pasted/saved bank");
+    expect(pluginBankStatusLabel(status)).toBe("Bank not synced; pasted bank drives item checks");
     expect(pluginBankStatusTone(status)).toBe("muted");
   });
 
@@ -27,7 +27,7 @@ describe("plugin bank status copy", () => {
       unavailableReason: "bank-not-opened-this-session"
     });
 
-    expect(pluginBankStatusLabel(status)).toBe("Open your bank in RuneLite, then sync again");
+    expect(pluginBankStatusLabel(status)).toBe("Open bank in RuneLite, then sync again");
     expect(pluginBankStatusTone(status)).toBe("warn");
   });
 
@@ -38,7 +38,7 @@ describe("plugin bank status copy", () => {
       unavailableReason: "no-items-captured"
     });
 
-    expect(pluginBankStatusLabel(status)).toBe("Bank sync is on, but no items were captured");
+    expect(pluginBankStatusLabel(status)).toBe("Open bank in RuneLite, then sync again");
     expect(pluginBankStatusTone(status)).toBe("warn");
   });
 
@@ -51,7 +51,7 @@ describe("plugin bank status copy", () => {
       capturedAt: "2026-07-08T12:00:00.000Z"
     });
 
-    expect(pluginBankStatusLabel(status)).toBe("Bank synced: 612 item stacks");
+    expect(pluginBankStatusLabel(status)).toBe("Bank ready for gear checks: 612 stacks");
     expect(pluginBankStatusTone(status)).toBe("good");
   });
 
@@ -76,7 +76,7 @@ describe("plugin bank status copy", () => {
     const nowMs = new Date("2026-07-08T13:00:00.000Z").getTime();
 
     expect(isPluginBankStatusStale(status, nowMs)).toBe(true);
-    expect(pluginBankStatusLabel(status, null, nowMs)).toBe("Bank sync is stale; open your bank in RuneLite, then sync again");
+    expect(pluginBankStatusLabel(status, null, nowMs)).toBe("Open bank in RuneLite, then sync again");
     expect(pluginBankStatusTone(status, nowMs)).toBe("warn");
   });
 });

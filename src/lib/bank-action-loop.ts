@@ -72,7 +72,7 @@ export function buildBankActionLoop(input: BankActionLoopInput): BankActionLoopS
       body: input.hasPluginSyncHint
         ? "Use this cleaned bank for the next trip. RuneLite can refine quests, diaries and unlocks for the same RSN."
         : "Use this cleaned bank for the next trip. Add RuneLite later when quests, diaries, clog or Slayer matter.",
-      cta: "Plan next trip",
+      cta: "Open next trip",
       destination: "Next trip",
       proof: "Carries current bank gear into the next plan",
       state: "ready"

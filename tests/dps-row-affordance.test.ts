@@ -24,11 +24,12 @@ describe("DPS boss row affordance", () => {
 
   it("renders bosses as explicit clickable cards instead of dashboard rows", () => {
     expect(source).toContain("function BossCard");
-    expect(source).toContain("<button\n      type=\"button\"\n      id={`boss-${boss.slug}`}");
-    expect(source).toContain("aria-label={`Open ${boss.name} kill setup details`}");
-    expect(source).toContain("title={`Open ${boss.name} kill setup details`}");
+    expect(source).toContain("<article\n      id={`boss-${boss.slug}`}");
+    expect(source).toContain("<button\n        type=\"button\"\n        onClick={onOpen}");
+    expect(source).toContain("aria-label={`Open ${boss.name} ${activity ? \"activity setup\" : \"kill setup\"} details`}");
+    expect(source).toContain("title={`Open ${boss.name} ${activity ? \"activity setup\" : \"kill setup\"} details`}");
     expect(source).toContain("group min-h-[218px] w-full");
-    expect(source).toContain("{boss.slug}");
+    expect(source).not.toContain('<span className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">{boss.slug}</span>');
     expect(source).toContain("grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4");
     expect(source).not.toContain("Open details");
     expect(source).toContain("Add a weapon to see the trip setup and missing upgrades.");
@@ -41,6 +42,8 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain('"Not worth yet"');
     expect(source).toContain('"Risky trip"');
     expect(source).toContain('"HCIM risk"');
+    expect(source).toContain('"Activity setup"');
+    expect(source).toContain("More numbers");
     expect(source).toContain("Loot pace");
     expect(source).not.toContain('<span className="text-[var(--color-text-muted)]">DPS</span>');
     expect(source).not.toContain("role=\"button\"");
@@ -66,9 +69,12 @@ describe("DPS boss row affordance", () => {
     expect(source).not.toContain("function dpsDecisionScore");
     expect(source).not.toContain("function pickBestBossTrip");
     expect(source).toContain("window.scrollTo({ top: 0, behavior: \"instant\" });");
-    expect(source).toContain("Pick a boss");
-    expect(source).toContain("Choose one boss. Scapestack builds gear, supplies and a RuneLite tab from this bank.");
-    expect(source).toContain("Boss category");
+    expect(source).toContain("Pick one boss trip");
+    expect(source).toContain("Choose one boss. Scapestack shows the setup to check, what is missing, and when to leave.");
+    expect(source).toContain("Before you leave");
+    expect(source).toContain("Still missing");
+    expect(source).toContain("Finish after");
+    expect(source).not.toContain("Boss category");
     expect(source).toContain("visibleResults.length} quick picks");
     expect(source).toContain("filteredResults.slice(0, 12)");
     expect(source).toContain('label: "Best with bank"');
@@ -79,8 +85,11 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("score -= bossRiskPenaltyForAccount(boss, plannerAccountType);");
     expect(source).toContain("Show recommended bosses");
     expect(source).toContain("Show all ${filteredResults.length} in this category");
-    expect(source).toContain('label: "Skilling/minigame"');
-    expect(source).toContain("b.hp > 0 && b.weaknesses.length > 0");
+    expect(source).toContain('label: "Activities"');
+    expect(source).toContain("Wintertodt/Tempoross/GotR stay visible in Activities");
+    expect(source).toContain("isNonCombatBossActivity(boss)");
+    expect(source).toContain("function activityBeforeLeave");
+    expect(source).toContain("function activityMissingLine");
     expect(source).not.toContain("All bosses");
     expect(source).not.toContain("bosses checked");
     expect(source).not.toContain("<DpsDecisionHero");

@@ -432,7 +432,7 @@ function BankDecisionHero({
   ].filter((chip): chip is string => Boolean(chip));
   const setupSteps = [
     {
-      label: "Choose style",
+      label: "Choose tab style",
       value: "Pick PvM, Ironman, Questing, Skilling or Minimal.",
       state: "ready" as const,
       icon: Layers
@@ -451,13 +451,39 @@ function BankDecisionHero({
     }
   ];
   const checkRows = [
-    { label: "First", value: decision.firstStep },
-    { label: "Check", value: readiness.status },
-    { label: "Leave", value: decision.stopPoint }
+    { label: "Before you leave", value: decision.firstStep },
+    { label: "Grab from bank", value: readiness.items.filter((item) => item.tone === "good").map((item) => `${item.label}: ${item.value}`).slice(0, 2).join(" · ") || readiness.status },
+    { label: "Finish after", value: decision.stopPoint }
   ];
+  const PrimaryIcon = decision.primaryAction === "tidy"
+    ? Wand2
+    : decision.primaryAction === "copy"
+      ? Copy
+      : decision.primaryAction === "dps"
+        ? Sword
+        : ArrowRight;
+  const secondaryQuickAction: {
+    action: BankDecisionAction | "tidy";
+    label: string;
+    ariaLabel: string;
+    icon: typeof Copy;
+  } = decision.primaryAction === "copy"
+    ? {
+        action: "tidy",
+        label: "Smart tidy",
+        ariaLabel: "Smart tidy this organized bank again",
+        icon: Wand2
+      }
+    : {
+        action: "copy",
+        label: copied === "all" ? "Copied" : "Copy to RuneLite",
+        ariaLabel: "Copy cleaned bank tabs to RuneLite",
+        icon: Copy
+      };
+  const SecondaryIcon = secondaryQuickAction.icon;
 
   return (
-    <section className="scapestack-board-panel scapestack-lock-panel mb-4 w-full max-w-full px-4 py-4 sm:px-5" aria-label="RuneLite bank tab setup">
+    <section className="scapestack-board-panel scapestack-lock-panel mb-4 w-full max-w-full px-4 py-4 sm:px-5" aria-label="Tonight's RuneLite bank setup">
       <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
           <div className="flex min-w-0 items-center gap-2">
@@ -465,13 +491,13 @@ function BankDecisionHero({
               <ItemSprite id={decision.iconItemId} alt="" size={30} />
             </span>
             <div className="min-w-0">
-              <div className="eyebrow text-[var(--color-accent)]">RuneLite tabs</div>
+              <div className="eyebrow text-[var(--color-accent)]">Tonight&apos;s bank setup</div>
               <h1 className="mt-1 max-w-full text-[23px] font-semibold leading-[1.02] tracking-normal text-[var(--color-text)] sm:text-[31px]">
-                Set up RuneLite bank tabs
+                {decision.title}
               </h1>
             </div>
           </div>
-          <div className="-mx-1 mt-3 flex max-w-full flex-nowrap items-center gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
+          <div className="mt-3 flex max-w-full flex-wrap items-center gap-2">
             <span className="scapestack-status-badge" data-tone={totalItems > 0 ? "ready" : "blocked"}>{statusLabel}</span>
             <span className="scapestack-status-badge" data-tone="prep">{readiness.status}</span>
             {chips.slice(0, 3).map((chip) => (
@@ -486,21 +512,21 @@ function BankDecisionHero({
         <div className="grid min-w-0 grid-cols-1 gap-2 sm:flex sm:flex-wrap xl:shrink-0 xl:justify-end">
           <button
             type="button"
-            onClick={onTidy}
-            aria-label="Smart tidy this organized bank again"
+            onClick={() => onPrimary(decision.primaryAction)}
+            aria-label={`${decision.primaryLabel}: ${decision.title}`}
             className="scapestack-command-button scapestack-primary-action min-w-0 px-3 py-2 text-[12.5px] font-bold sm:px-3.5"
           >
-            <Wand2 className="size-3.5" />
-            <span className="truncate">Smart tidy</span>
+            {decision.primaryAction === "copy" && copied === "all" ? <CheckCheck className="size-3.5" /> : <PrimaryIcon className="size-3.5" />}
+            <span className="truncate">{decision.primaryAction === "copy" && copied === "all" ? "Copied" : decision.primaryLabel}</span>
           </button>
           <button
             type="button"
-            onClick={() => onPrimary("copy")}
-            aria-label="Copy cleaned bank tabs to RuneLite"
+            onClick={() => secondaryQuickAction.action === "tidy" ? onTidy() : onPrimary("copy")}
+            aria-label={secondaryQuickAction.ariaLabel}
             className="scapestack-command-button min-w-0 border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[12.5px] font-bold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 sm:px-3.5"
           >
-            {copied === "all" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
-            <span className="truncate">{copied === "all" ? "Copied" : "Copy to RuneLite"}</span>
+            {secondaryQuickAction.action === "copy" && copied === "all" ? <CheckCheck className="size-3.5" /> : <SecondaryIcon className="size-3.5" />}
+            <span className="truncate">{secondaryQuickAction.label}</span>
           </button>
           <details className="group relative sm:col-span-1">
             <summary className="scapestack-command-button w-full cursor-pointer list-none bg-transparent px-3 py-2 text-[12.5px] font-semibold marker:hidden sm:px-3.5 [&::-webkit-details-marker]:hidden">
@@ -531,13 +557,22 @@ function BankDecisionHero({
         </div>
       </div>
 
-      <div className="mt-4 flex gap-2 overflow-x-auto pb-1 sm:hidden" aria-label="RuneLite bank setup steps">
+      <div className="mt-4 grid gap-3 md:grid-cols-3" data-testid="bank-tonight-trip">
+        {checkRows.map((row) => (
+          <div key={row.label} className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/30 p-3">
+            <div className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--color-accent)]">{row.label}</div>
+            <p className="mt-1 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">{row.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 grid gap-2 sm:hidden" aria-label="RuneLite bank setup steps">
         {setupSteps.map((step, index) => {
           const Icon = step.icon;
           return (
             <span
               key={step.label}
-              className="inline-flex min-w-max items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/28 px-3 py-2 text-[12px] font-bold text-[var(--color-text)]"
+              className="inline-flex min-w-0 items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/28 px-3 py-2 text-[12px] font-bold text-[var(--color-text)]"
             >
               <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[10px] font-black text-[var(--color-accent)]">
                 {index + 1}
@@ -577,17 +612,17 @@ function BankDecisionHero({
 
       <details className="group mt-4 hidden border-t border-[var(--color-border)] pt-3 sm:block">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[12px] font-semibold text-[var(--color-text-muted)] marker:hidden [&::-webkit-details-marker]:hidden">
-          <span>Trip check</span>
+          <span>RuneLite setup steps</span>
           <span className="inline-flex items-center gap-1 text-[11px] text-[var(--color-text-muted)]">
             Show
             <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" />
           </span>
         </summary>
         <div className="mt-3 grid gap-3 md:grid-cols-3">
-          {checkRows.map((row) => (
-            <div key={row.label}>
-              <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">{row.label}</div>
-              <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{row.value}</p>
+          {setupSteps.map((step) => (
+            <div key={step.label}>
+              <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">{step.label}</div>
+              <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text)]">{step.value}</p>
             </div>
           ))}
         </div>
@@ -3625,7 +3660,7 @@ function BankActionLoopRail({
           onClick={onNext}
           className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
         >
-          Plan next trip
+          Open next trip
           <Sparkles className="size-3.5" />
         </button>
         <button
@@ -5534,7 +5569,7 @@ function QtyColorLegend() {
   );
 }
 
-// Pick a boss → pull the user's best gear from their bank → emit a Bank Tag
+// Pick one boss trip -> pull the user's best gear from their bank -> emit a Bank Tag
 // string they can import. Saves the player from manually building the tab.
 type BossLoadoutFilter = "best" | "raid" | "slayer" | "wildy" | "gwd" | "beginner" | "skilling";
 
@@ -5699,10 +5734,10 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h3 className="text-[18px] font-bold tracking-normal text-[var(--color-text)]">
-            Pick a boss
+            Pick one boss trip
           </h3>
           <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-            ScapeStack builds a RuneLite tab from your bank.
+            Build one RuneLite tab from owned gear, supplies and the boss you want to try.
           </p>
         </div>
         <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">

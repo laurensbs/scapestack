@@ -7,7 +7,7 @@ const source = readFileSync(join(process.cwd(), "src/components/header.tsx"), "u
 describe("global header navigation", () => {
   it("marks Scapestack brand and primary tools with explicit navigation labels", () => {
     expect(source).toContain('aria-label="Scapestack home"');
-    expect(source).toContain('aria-label="Primary Scapestack tools"');
+    expect(source).toContain('aria-label="Primary trip actions"');
     expect(source).toContain('aria-label={`${tool.navLabel ?? tool.name}: ${tool.short}`}');
     expect(source).toContain('aria-current={active ? "page" : undefined}');
     expect(source).toContain("AccountSwitcher");
@@ -32,15 +32,16 @@ describe("global header navigation", () => {
     expect(source).toContain("<Package");
     expect(source).toContain("<PlugZap");
     expect(source).toContain("CurrentRunBar");
+    expect(source).not.toContain('aria-label="Primary Scapestack tools"');
   });
 
-  it("surfaces the core Plan → Setup → Kill loop as clickable navigation", () => {
+  it("surfaces the core Today → Bank → Kill loop as clickable navigation", () => {
     expect(source).toContain("LOOP_STEPS");
-    expect(source).toContain('{ label: "Plan", href: "/next" }');
-    expect(source).toContain('{ label: "Bank", href: "/bank" }');
-    expect(source).toContain('{ label: "Kill", href: "/dps" }');
+    expect(source).toContain('{ label: "Trip", href: "/next" }');
+    expect(source).toContain('{ label: "Setup", href: "/bank" }');
+    expect(source).toContain('{ label: "Boss", href: "/dps" }');
     expect(source).toContain("Your account");
-    expect(source).toContain("Saved once. Used everywhere.");
+    expect(source).toContain("Saved once. Used for the next trip.");
     expect(source).toContain('aria-label={`${step.label} in Scapestack loop`}');
   });
 
@@ -48,7 +49,7 @@ describe("global header navigation", () => {
     expect(source).toContain('const mobileNavId = "scapestack-mobile-nav"');
     expect(source).toContain("aria-controls={mobileNavId}");
     expect(source).toContain("aria-expanded={mobileOpen}");
-    expect(source).toContain('aria-label="Mobile Scapestack tools"');
+    expect(source).toContain('aria-label="Mobile trip actions"');
     expect(source).toContain("id={mobileNavId}");
   });
 });

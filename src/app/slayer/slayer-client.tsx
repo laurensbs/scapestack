@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
-import { ChevronDown, ChevronRight, Shield, Skull, Star, Search } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronRight, Shield, Skull, Star, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { rankMasters, blockSuggestions, type PlayerState } from "@/lib/slayer/simulator";
 import type { MasterSimulation, TaskOption } from "@/lib/slayer/simulator";
@@ -163,9 +163,26 @@ export function SlayerClient() {
     hasBankContext: Boolean(bankContext),
     rsn
   }), [bankContext, rsn]);
+  const liveTaskMonster = useMemo(() => {
+    const slug = pluginSlayer ? TASK_ID_TO_MONSTER[pluginSlayer.currentTaskId] : null;
+    return slug ? MONSTERS_BY_ID.get(slug) ?? null : null;
+  }, [pluginSlayer]);
+  const topMaster = masters[0] ?? null;
+  const topTask = liveTaskMonster ? null : topMaster?.tasks[0] ?? null;
 
   return (
     <div className="space-y-6">
+      {(liveTaskMonster || (topMaster && topTask)) && (
+        <SlayerTripCard
+          monster={liveTaskMonster ?? topTask!.monster}
+          masterName={liveTaskMonster ? "Current task" : topMaster!.master.name}
+          bankContext={bankContext}
+          taskRemaining={liveTaskMonster ? pluginSlayer?.taskRemaining ?? null : null}
+          expectedQuantity={topTask?.expectedQuantity ?? null}
+          actions={buildSlayerTaskActions(liveTaskMonster ?? topTask!.monster, taskActionOptions)}
+        />
+      )}
+
       <ScapestackReadinessRail
         surface="slayer"
         hasBankContext={Boolean(bankContext)}
@@ -292,7 +309,6 @@ export function SlayerClient() {
         <section className="rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/5 p-4 space-y-3">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)] flex items-center gap-1.5">
-              <span className="text-[12px]">🔌</span>
               Plugin sync live
             </div>
             <div className="flex items-center gap-5 text-[13px] tabular-nums">
@@ -390,15 +406,15 @@ export function SlayerClient() {
       <section>
         <div className="flex items-baseline justify-between mb-3">
           <h2 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
-            Best master for you
+            More task routes
           </h2>
           <span className="text-[11px] text-[var(--color-text-muted)]">
-            Sorted op expected XP/uur
+            Master choices and blocks
           </span>
         </div>
         {masters.length === 0 ? (
           <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] p-6 text-center text-[12.5px] text-[var(--color-text-dim)]">
-            Geen master beschikbaar voor jouw combat/slayer combinatie. Probeer combat 20+ voor Mazchna.
+            No Slayer master is available for this combat and Slayer level. Try combat 20+ for Mazchna.
           </div>
         ) : (
           <div className="space-y-2.5">
@@ -418,9 +434,91 @@ export function SlayerClient() {
       </section>
 
       <p className="mt-2 text-[10.5px] text-center text-[var(--color-text-dim)] italic">
-        XP/uur estimates zijn gebaseerd op gemiddelde kill-rates per HP-bucket — gear, cannon en bursting maken in praktijk veel verschil.
-        Open <a href={pluginVerifyUrlForSyncedRsn(rsn, "slayer")} className="text-[var(--color-accent)] hover:underline">de RuneLite plugin guide</a> voor live task-data.
+        Slayer pace is a rough estimate. Gear, cannon and bursting change the trip a lot.
+        Open <a href={pluginVerifyUrlForSyncedRsn(rsn, "slayer")} className="text-[var(--color-accent)] hover:underline">RuneLite setup</a> for live task-data.
       </p>
+    </div>
+  );
+}
+
+function SlayerTripCard({
+  monster,
+  masterName,
+  bankContext,
+  taskRemaining,
+  expectedQuantity,
+  actions
+}: {
+  monster: TaskOption["monster"];
+  masterName: string;
+  bankContext: SlayerBankContext | null;
+  taskRemaining: number | null;
+  expectedQuantity: number | null;
+  actions: ReturnType<typeof buildSlayerTaskActions>;
+}) {
+  const quantity = taskRemaining ?? expectedQuantity ?? null;
+  const before = bankContext
+    ? "Check Slayer helm, prayer restore, food and teleport before leaving."
+    : "Add bank before buying supplies or trusting gear advice.";
+  const missing = bankContext?.missing.length
+    ? bankContext.missing.slice(0, 2).join(" · ")
+    : bankContext
+      ? null
+      : "Bank not added";
+  const finish = quantity
+    ? `Finish after ${Math.round(quantity)} ${monster.name}.`
+    : `Finish after one ${monster.name} task.`;
+  const primaryHref = actions.dpsHref ?? actions.wikiHref;
+  const primaryLabel = actions.dpsHref ? "Check this task" : "Open task guide";
+
+  return (
+    <section className="rounded-xl border border-[var(--color-accent)]/40 bg-[var(--color-panel)]/88 p-4 shadow-[0_20px_70px_-48px_rgba(0,0,0,0.95)] sm:p-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <div className="eyebrow text-[var(--color-accent)]">Next task trip</div>
+          <h2 className="mt-1 font-serif text-[28px] font-bold leading-tight text-[var(--color-text)] sm:text-[34px]">
+            Kill {quantity ? `${Math.round(quantity)} ` : ""}{monster.name}
+          </h2>
+          <p className="mt-2 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+            {masterName} · {monster.locations.slice(0, 2).join(" / ")}
+          </p>
+        </div>
+        <a
+          href={primaryHref}
+          className="inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-4 py-2.5 text-[13px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110"
+        >
+          {primaryLabel}
+          <ArrowRight className="size-3.5" />
+        </a>
+      </div>
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
+        <SlayerTripLine label="Before you leave" value={before} />
+        {missing && <SlayerTripLine label="Still missing" value={missing} tone="warn" />}
+        <SlayerTripLine label="Finish after" value={finish} />
+      </div>
+    </section>
+  );
+}
+
+function SlayerTripLine({
+  label,
+  value,
+  tone = "default"
+}: {
+  label: "Before you leave" | "Still missing" | "Finish after";
+  value: string;
+  tone?: "default" | "warn";
+}) {
+  return (
+    <div className={cn(
+      "rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/30 p-3",
+      tone === "warn" && "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/8"
+    )}>
+      <div className={cn(
+        "text-[10.5px] font-black uppercase tracking-[0.16em] text-[var(--color-accent)]",
+        tone === "warn" && "text-[var(--color-warning)]"
+      )}>{label}</div>
+      <p className="mt-1 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">{value}</p>
     </div>
   );
 }
@@ -485,7 +583,7 @@ function SlayerBankList({
             <span
               key={item.id}
               className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)] px-2 py-1 text-[11px] text-[var(--color-text-dim)]"
-              title={`${item.name} · item id ${item.id}`}
+              title={item.quantity > 1 ? `${item.name} ×${item.quantity.toLocaleString()}` : item.name}
             >
               <ItemSprite id={item.id} alt="" size={16} />
               <span>{item.name}</span>

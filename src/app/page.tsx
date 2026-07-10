@@ -50,14 +50,14 @@ export default function HomePage() {
           </div>
 
           <div
-            className="relative mx-auto -my-2 w-full max-w-[240px] sm:max-w-[390px] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mx-0 lg:max-w-[460px]"
+            className="relative order-3 mx-auto -my-2 w-full max-w-[240px] sm:max-w-[390px] lg:order-none lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mx-0 lg:max-w-[460px]"
             style={{ animation: "hero-boss-in 1.1s cubic-bezier(0.22,1,0.36,1) 0.65s both" }}
           >
             <HeroBossTripPreview />
           </div>
 
           <div
-            className="mx-auto w-full max-w-[720px] lg:col-start-1 lg:row-start-2 lg:mx-0"
+            className="order-2 mx-auto w-full max-w-[720px] lg:order-none lg:col-start-1 lg:row-start-2 lg:mx-0"
             style={{ animation: "hero-scale-in 0.9s cubic-bezier(0.22,1,0.36,1) 0.95s both" }}
           >
             <HeroIntake />

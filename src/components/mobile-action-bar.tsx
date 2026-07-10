@@ -58,14 +58,14 @@ export function MobileActionBar() {
   const actions = [
     {
       href: `/next${rsnQuery}`,
-      label: "Plan",
-      helper: rsn || "RSN",
+      label: "Trip",
+      helper: rsn || "Trip",
       icon: Sparkles,
-      active: true
+      active: pathname === "/next"
     },
     {
       href: bankHref,
-      label: hasBank ? "Bank" : "Add bank",
+      label: hasBank ? "Setup" : "Add bank",
       helper: hasBank ? "Added" : "Paste",
       icon: ClipboardPaste,
       active: hasBank
@@ -101,7 +101,7 @@ export function MobileActionBar() {
               )}
             >
               <Icon className="size-4" />
-              {action.active && action.label !== "Plan" && (
+              {action.active && action.label !== "Trip" && (
                 <CheckCircle2 className="absolute right-1.5 top-1.5 size-3 text-[var(--color-accent)]" />
               )}
               <span className="mt-1 max-w-full truncate text-[11px] font-bold leading-none">{action.label}</span>

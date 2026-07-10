@@ -76,7 +76,7 @@ export function summarizeNextPluginSync(plugin: PluginSource): NextPluginSyncSum
     signals: [
       { label: "Quests", status: "exact", value: `${plugin.quests.toLocaleString()} done` },
       { label: "Diaries", status: "exact", value: `${plugin.diaries.toLocaleString()} tiers` },
-      { label: "Bank", status: bankStatus, value: plugin.bankStatus ? pluginBankStatusLabel(plugin.bankStatus).replace(/^Bank synced: /, "") : "unknown" },
+      { label: "Bank", status: bankStatus, value: bankSignalValue(plugin.bankStatus) },
       { label: "CL", status: clStatus, value: plugin.clItems > 0 ? `${plugin.clItems.toLocaleString()} items` : "open CL" },
       { label: "Slayer", status: hasSlayer ? "exact" : "missing", value: hasSlayer ? `${plugin.slayerTaskRemaining} left` : "not synced" }
     ]
@@ -87,7 +87,7 @@ function baseSignals(plugin: PluginSource, status: Extract<NextPluginSignalStatu
   return [
     { label: "Quests", status, value: `${plugin.quests.toLocaleString()} done` },
     { label: "Diaries", status, value: `${plugin.diaries.toLocaleString()} tiers` },
-    { label: "Bank", status, value: plugin.bankStatus ? pluginBankStatusLabel(plugin.bankStatus).replace(/^Bank synced: /, "") : "unknown" },
+    { label: "Bank", status, value: bankSignalValue(plugin.bankStatus) },
     { label: "CL", status, value: `${plugin.clItems.toLocaleString()} items` },
     {
       label: "Slayer",
@@ -97,4 +97,9 @@ function baseSignals(plugin: PluginSource, status: Extract<NextPluginSignalStatu
         : "not synced"
     }
   ];
+}
+
+function bankSignalValue(bankStatus: PluginBankStatus | null | undefined): string {
+  if (!bankStatus) return "unknown";
+  return pluginBankStatusLabel(bankStatus).replace(/^Bank ready for gear checks: /, "");
 }

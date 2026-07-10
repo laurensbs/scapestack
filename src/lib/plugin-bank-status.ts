@@ -64,19 +64,19 @@ export function pluginBankStatusLabel(
   if (isUltimatePlannerAccount(accountType)) return "UIM: bank checks are staging only";
   if (!status) return "Bank status unknown";
   if (isPluginBankStatusStale(status, nowMs)) {
-    return "Bank sync is stale; open your bank in RuneLite, then sync again";
+    return "Open bank in RuneLite, then sync again";
   }
   if (status.enabled && status.itemCount > 0) {
-    return `Bank synced: ${status.itemCount.toLocaleString()} item stack${status.itemCount === 1 ? "" : "s"}`;
+    return `Bank ready for gear checks: ${status.itemCount.toLocaleString()} stack${status.itemCount === 1 ? "" : "s"}`;
   }
   if (!status.enabled || status.unavailableReason === "opt-in-off") {
-    return "Bank sync is off; item checks use only pasted/saved bank";
+    return "Bank not synced; pasted bank drives item checks";
   }
   if (status.unavailableReason === "bank-not-opened-this-session") {
-    return "Open your bank in RuneLite, then sync again";
+    return "Open bank in RuneLite, then sync again";
   }
   if (status.unavailableReason === "no-items-captured") {
-    return "Bank sync is on, but no items were captured";
+    return "Open bank in RuneLite, then sync again";
   }
   return "Bank status unknown";
 }

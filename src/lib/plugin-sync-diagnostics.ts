@@ -106,13 +106,13 @@ export function signalCoverageForSyncedPlayer(player: SyncedPlayer): PluginSigna
       summary: pluginBankStatusLabel(player.bankStatus),
       detail: player.bankStatus.itemCount > 0
         ? isPluginBankStatusStale(player.bankStatus)
-          ? "Open your bank in RuneLite and sync again before trusting quest or diary item readiness."
+          ? "Open bank in RuneLite and sync again before trusting quest or diary item readiness."
           : "Quest and diary readiness can check required items directly from the RuneLite bank payload."
         : player.bankStatus.unavailableReason === "bank-not-opened-this-session"
-          ? "Open your bank in RuneLite, then press Sync again before trusting item readiness."
+          ? "Open bank in RuneLite, then press Sync again before trusting item readiness."
           : player.bankStatus.unavailableReason === "no-items-captured"
-            ? "Bank sync is on, but RuneLite did not capture item stacks yet."
-            : "Bank sync is off; item readiness uses only pasted or saved browser bank data."
+            ? "Open bank in RuneLite, then press Sync again before trusting item readiness."
+            : "Paste a browser bank when you need item checks before the plugin captures bank items."
     },
     {
       label: "Slayer",

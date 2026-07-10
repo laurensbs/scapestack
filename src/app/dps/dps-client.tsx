@@ -42,7 +42,7 @@ const BOSS_FILTERS: Array<{ key: BossFilter; label: string }> = [
   { key: "gwd", label: "GWD" },
   { key: "raid", label: "Raids" },
   { key: "wildy", label: "Wildy" },
-  { key: "skilling", label: "Skilling/minigame" }
+  { key: "skilling", label: "Activities" }
 ];
 
 function accountTypeFromDpsParams(searchParams: Pick<URLSearchParams, "get">): PlannerAccountType | null {
@@ -293,16 +293,11 @@ export function DpsClient() {
     });
   }, [view]);
 
-  // For each boss, compute the best style/setup. We keep input order so the
-  // table groups visually by category; the live search field above handles
-  // discovery.
-  // Filter skilling-minigames eruit — Wintertodt/Tempoross/Zalcano/GotR
-  // hebben hp=0 en geen combat-style. Ze stonden op de DPS-page met
-  // valse ranged/melee suggesties. Hespori blijft (heeft echte combat
-  // stats al staat hij ook onder category 'skilling').
+  // For each boss/activity, compute the best combat setup when combat exists.
+  // Wintertodt/Tempoross/GotR stay visible in Activities, but their cards
+  // render activity prep instead of fake combat DPS.
   const bossResults = useMemo(
     () => BOSSES
-      .filter((b) => b.hp > 0 && b.weaknesses.length > 0)
       .map((boss) => ({ boss, dps: bestStyleAndSetup(owned, boss) })),
     [owned]
   );
@@ -311,7 +306,7 @@ export function DpsClient() {
     const { boss } = entry;
     switch (bossFilter) {
       case "best":
-        return entry.dps.dps > 0;
+        return !isNonCombatBossActivity(boss) && entry.dps.dps > 0;
       case "slayer":
         return boss.category === "slayer";
       case "wildy":
@@ -338,6 +333,7 @@ export function DpsClient() {
 
   const bossTripFitScore = (entry: BossDpsResult) => {
     const { boss, dps } = entry;
+    if (isNonCombatBossActivity(boss)) return bossFilter === "skilling" ? 12 : -1000;
     if (dps.dps <= 0) return -1000;
     let score = dps.dps * 12 + dps.hitChance * 42;
     if (boss.category === "slayer") score += 18;
@@ -477,10 +473,10 @@ export function DpsClient() {
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
-              Pick a boss
+              Pick one boss trip
             </h2>
             <p className="mt-1 max-w-2xl text-[12px] leading-relaxed text-[var(--color-text-muted)]">
-              Choose one boss. Scapestack builds gear, supplies and a RuneLite tab from this bank.
+              Choose one boss. Scapestack shows the setup to check, what is missing, and when to leave.
             </p>
           </div>
           <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">
@@ -490,7 +486,7 @@ export function DpsClient() {
         <div>
           <div className="mb-3">
             <h2 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)] mb-2">
-              Boss category
+              Find a boss
             </h2>
             {/* Live search. Filters the rows below on every keystroke;
                 ESC clears. The dropdown BossPicker is gone — for a table
@@ -587,37 +583,38 @@ export function DpsClient() {
               </button>
             ))}
           </div>
-            {/* Sort selector — pill-style toggle group. Default kill speed is de
-                standaard waar mensen voor komen; de andere drie geven
-                dezelfde lijst maar door een andere bril ('wie raakt vaakst',
-                'wie levert het meest GP', 'wie gaat snelst dood'). */}
-            <div className="mt-3 flex items-center gap-2 flex-wrap">
-              <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                Sort
-              </span>
-              {([
-                { key: "dps",      label: "Best kill speed" },
-                { key: "accuracy", label: "Most accurate" },
-                { key: "gpHour",   label: "Most GP/hour" },
-                { key: "ttk",      label: "Fastest kill" }
-              ] as const).map((opt) => (
-                <button
-                  key={opt.key}
-                  type="button"
-                  aria-pressed={sortBy === opt.key}
-                  aria-label={`Sort boss rows by ${opt.label}`}
-                  onClick={() => setSortBy(opt.key)}
-                  className={cn(
-                    "scapestack-command-button min-h-0 px-2.5 py-1 text-[11px]",
-                    sortBy === opt.key
-                      ? "border-[var(--color-accent)]/50 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
-                      : ""
-                  )}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
+            <details className="mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/25 px-3 py-2">
+              <summary className="cursor-pointer list-none text-[11px] font-bold text-[var(--color-text-muted)] marker:hidden [&::-webkit-details-marker]:hidden">
+                More numbers
+              </summary>
+              <div className="mt-3 flex items-center gap-2 flex-wrap">
+                <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                  Sort
+                </span>
+                {([
+                  { key: "dps",      label: "Best kill speed" },
+                  { key: "accuracy", label: "Most accurate" },
+                  { key: "gpHour",   label: "Most GP/hour" },
+                  { key: "ttk",      label: "Fastest kill" }
+                ] as const).map((opt) => (
+                  <button
+                    key={opt.key}
+                    type="button"
+                    aria-pressed={sortBy === opt.key}
+                    aria-label={`Sort boss rows by ${opt.label}`}
+                    onClick={() => setSortBy(opt.key)}
+                    className={cn(
+                      "scapestack-command-button min-h-0 px-2.5 py-1 text-[11px]",
+                      sortBy === opt.key
+                        ? "border-[var(--color-accent)]/50 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
+                        : ""
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </details>
           </div>
           {!search && filteredResults.length > visibleResults.length && (
             <button
@@ -680,80 +677,126 @@ function BossCard({ boss, dps, accountType, isFocused, onOpen }: {
   isFocused: boolean;
   onOpen: () => void;
 }) {
-  const usable = dps.dps > 0;
+  const activity = isNonCombatBossActivity(boss);
+  const usable = activity || dps.dps > 0;
   const gpPerHour =
-    usable && boss.avgLootGp && boss.killsPerHourCap
+    !activity && usable && boss.avgLootGp && boss.killsPerHourCap
       ? Math.min(boss.killsPerHourCap, Math.floor(3600 / dps.ttk)) * boss.avgLootGp
       : null;
   const status = bossTripVerdict(boss, dps, accountType);
+  const before = bossTripBeforeLeave(boss, dps);
+  const missing = bossTripMissing(boss, dps, accountType);
+  const finish = bossTripFinishAfter(boss, dps);
 
   return (
-    <button
-      type="button"
+    <article
       id={`boss-${boss.slug}`}
-      onClick={onOpen}
-      aria-label={`Open ${boss.name} kill setup details`}
-      title={`Open ${boss.name} kill setup details`}
       className={cn(
         "scapestack-lock-card group min-h-[218px] w-full scroll-mt-24 p-4 text-left transition-all",
         "hover:-translate-y-0.5",
         isFocused && "border-[var(--color-accent)]/55 shadow-[0_0_0_1px_rgba(240,176,44,0.22)]"
       )}>
-      <div className="flex items-start justify-between gap-2">
-        <BossThumb boss={boss} />
-        <span className={cn(
-          "rounded-full border px-2 py-1 text-[10px] font-bold",
-          !usable
-            ? "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
-          : boss.category === "wildy"
-            ? "border-[var(--color-danger)]/35 bg-[var(--color-danger)]/10 text-[var(--color-danger)]"
-          : dps.hitChance >= 0.55
-              ? "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
-              : "border-[var(--color-border)] bg-[var(--color-bg)]/45 text-[var(--color-text-dim)]"
-        )}>
-          {status}
-        </span>
-      </div>
-      <div className="mt-3 min-w-0">
-        <div className="truncate text-[15px] font-bold text-[var(--color-text)]">{boss.name}</div>
-        <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10.5px] text-[var(--color-text-dim)]">
-          <span>{boss.hp} hp</span>
-          <span className="rounded border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-1.5 py-0.5 font-mono text-[9.5px] uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
-            {boss.slug}
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={`Open ${boss.name} ${activity ? "activity setup" : "kill setup"} details`}
+        title={`Open ${boss.name} ${activity ? "activity setup" : "kill setup"} details`}
+        className="block w-full text-left"
+      >
+        <div className="flex items-start justify-between gap-2">
+          <BossThumb boss={boss} />
+          <span className={cn(
+            "rounded-full border px-2 py-1 text-[10px] font-bold",
+            !usable
+              ? "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
+            : boss.category === "wildy"
+              ? "border-[var(--color-danger)]/35 bg-[var(--color-danger)]/10 text-[var(--color-danger)]"
+            : activity || dps.hitChance >= 0.55
+                ? "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
+                : "border-[var(--color-border)] bg-[var(--color-bg)]/45 text-[var(--color-text-dim)]"
+          )}>
+            {status}
           </span>
         </div>
-      </div>
-      {usable ? (
-        <div className="mt-3 space-y-1.5">
-          <div className="flex items-center justify-between gap-2 text-[11px]">
-            <span className="text-[var(--color-text-muted)]">Can I do this?</span>
-            <span className="font-bold text-[var(--color-accent)]">{status}</span>
-          </div>
-          <div className="flex items-center justify-between gap-2 text-[11px]">
-            <span className="text-[var(--color-text-muted)]">Style</span>
-            <span className="font-bold uppercase text-[var(--color-text)]">{dps.style}</span>
-          </div>
-          <div className="flex items-center justify-between gap-2 text-[11px]">
-            <span className="text-[var(--color-text-muted)]">Weapon</span>
-            <span className="max-w-[105px] truncate font-semibold text-[var(--color-text)]">{dps.weapon.name}</span>
-          </div>
-          {gpPerHour && (
-            <div className="flex items-center justify-between gap-2 text-[11px]">
-              <span className="text-[var(--color-text-muted)]">Loot pace</span>
-              <span className="font-mono font-semibold text-[var(--color-text)]">{formatGp(gpPerHour)}</span>
-            </div>
-          )}
+        <div className="mt-3 min-w-0">
+          <div className="truncate text-[15px] font-bold text-[var(--color-text)]">{boss.name}</div>
         </div>
-      ) : (
-        <p className="mt-3 text-[11px] leading-relaxed text-[var(--color-text-dim)]">
-          Add a weapon to see the trip setup and missing upgrades.
-        </p>
+        {usable ? (
+          <div className="mt-3 space-y-2">
+            <BossTripLine label="Before you leave" value={before} />
+            {missing && <BossTripLine label="Still missing" value={missing} tone="warn" />}
+            <BossTripLine label="Finish after" value={finish} />
+          </div>
+        ) : (
+          <p className="mt-3 text-[11px] leading-relaxed text-[var(--color-text-dim)]">
+            Add a weapon to see the trip setup and missing upgrades.
+          </p>
+        )}
+      </button>
+
+      {!activity && usable && (
+        <details className="mt-3 border-t border-[var(--color-border)] pt-2">
+          <summary className="cursor-pointer list-none text-[10.5px] font-bold text-[var(--color-text-muted)] marker:hidden [&::-webkit-details-marker]:hidden">
+            More numbers
+          </summary>
+          <div className="mt-2 grid gap-1 text-[10.5px] font-semibold text-[var(--color-text-muted)]">
+            <span>{dps.weapon.name} · {dps.style.toUpperCase()}</span>
+            <span>Accuracy {Math.round(dps.hitChance * 100)}%</span>
+            {gpPerHour && <span>Loot pace {formatGp(gpPerHour)}</span>}
+          </div>
+        </details>
       )}
-    </button>
+    </article>
   );
 }
 
+function BossTripLine({
+  label,
+  value,
+  tone = "default"
+}: {
+  label: "Before you leave" | "Still missing" | "Finish after";
+  value: string;
+  tone?: "default" | "warn";
+}) {
+  return (
+    <div className="grid grid-cols-[86px_minmax(0,1fr)] gap-2 text-[11px]">
+      <span className={cn(
+        "font-black uppercase tracking-[0.12em] text-[var(--color-accent)]",
+        tone === "warn" && "text-[var(--color-warning)]"
+      )}>
+        {label}
+      </span>
+      <span className="min-w-0 font-semibold leading-relaxed text-[var(--color-text-dim)]">
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function bossTripBeforeLeave(boss: Boss, dps: DpsBreakdown): string {
+  if (isNonCombatBossActivity(boss)) return activityBeforeLeave(boss);
+  return `${dps.weapon.name}; ${dps.style.toUpperCase()} prayers and food.`;
+}
+
+function bossTripMissing(boss: Boss, dps: DpsBreakdown, accountType: PlannerAccountType | null): string | null {
+  if (isNonCombatBossActivity(boss)) return activityMissingLine(boss);
+  if (accountType === "hardcore" && boss.category === "wildy") return "HCIM: Wilderness death risk.";
+  if (boss.category === "wildy") return "Teleport plan and risk check.";
+  if (dps.hitChance < 0.45) return "Better accuracy or a safer boss.";
+  return null;
+}
+
+function bossTripFinishAfter(boss: Boss, dps: DpsBreakdown): string {
+  if (isNonCombatBossActivity(boss)) return "Finish after one crate, permit run or reward pull.";
+  if (boss.category === "raid") return "One scout or learner raid.";
+  if (boss.category === "gwd") return "One inventory or when supplies run low.";
+  if (dps.hitChance < 0.55) return "One test kill.";
+  return "One clean trip.";
+}
+
 function bossTripVerdict(boss: Boss, dps: DpsBreakdown, accountType: PlannerAccountType | null = null): string {
+  if (isNonCombatBossActivity(boss)) return "Activity setup";
   if (dps.dps <= 0) return "Gear missing";
   if (accountType === "hardcore" && boss.category === "wildy") return "HCIM risk";
   if (boss.category === "wildy") return "Risky trip";
@@ -761,6 +804,20 @@ function bossTripVerdict(boss: Boss, dps: DpsBreakdown, accountType: PlannerAcco
   if (dps.hitChance >= 0.62) return "Good with bank";
   if (dps.hitChance >= 0.45) return "Try one trip";
   return "Not worth yet";
+}
+
+function activityBeforeLeave(boss: Boss): string {
+  if (boss.slug === "wintertodt") return "Bring warm clothing, axe, tinderbox, knife and food.";
+  if (boss.slug === "tempoross") return "Bring harpoon, rope, buckets and fishing supplies.";
+  if (boss.slug === "guardians-of-the-rift") return "Bring rune pouches, essence access and a charged cell plan.";
+  return "Bring activity tools, teleports and enough food for one run.";
+}
+
+function activityMissingLine(boss: Boss): string | null {
+  if (boss.slug === "wintertodt") return "Firemaking access and warm gear.";
+  if (boss.slug === "tempoross") return "Fishing access and Tempoross tools.";
+  if (boss.slug === "guardians-of-the-rift") return "Temple of the Eye access.";
+  return null;
 }
 
 function DpsHandoffIntakeHint({

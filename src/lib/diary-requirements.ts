@@ -460,10 +460,9 @@ export function diaryReadinessSummary(evaluation: DiaryRequirementEvaluation): s
   return `${evaluation.region} ${evaluation.tier} is ${blockers} blocker${blockers === 1 ? "" : "s"} away.`;
 }
 
-function diaryOwnedItemLine(req: EvaluatedDiaryItemRequirement): string {
+function diaryBringItemLine(req: EvaluatedDiaryItemRequirement): string {
   const name = req.ownedName ?? req.name;
-  if (req.ownedQuantity > 1) return `${req.ownedQuantity}x ${name} is in bank`;
-  return `${name} is in bank`;
+  return req.quantity > 1 ? `${req.quantity}x ${name}` : name;
 }
 
 function diaryMissingItemLine(req: EvaluatedDiaryItemRequirement, bankNotApplicable: boolean): string {
@@ -471,6 +470,27 @@ function diaryMissingItemLine(req: EvaluatedDiaryItemRequirement, bankNotApplica
   if (bankNotApplicable) return `${label}: stage this before starting`;
   if (req.ownedQuantity > 0) return `${label} missing; ${req.ownedQuantity} in bank`;
   return `${label} missing`;
+}
+
+function diaryFirstStepLine({
+  evaluation,
+  skillGaps,
+  tierGaps,
+  questGaps,
+  itemGaps
+}: {
+  evaluation: DiaryRequirementEvaluation;
+  skillGaps: string[];
+  tierGaps: string[];
+  questGaps: string[];
+  itemGaps: string[];
+}): string {
+  if (evaluation.readinessStatus === "completed") return `${evaluation.region} ${evaluation.tier} is already claimed.`;
+  if (skillGaps.length > 0) return `${skillGaps[0]} before doing ${evaluation.region} ${evaluation.tier}.`;
+  if (tierGaps.length > 0) return `${tierGaps[0]} before this diary tier.`;
+  if (questGaps.length > 0) return `${questGaps[0]} before the ${evaluation.region} ${evaluation.tier} sweep.`;
+  if (itemGaps.length > 0) return `Clear the missing diary prep before starting ${evaluation.region} ${evaluation.tier}.`;
+  return `Open the ${evaluation.region} ${evaluation.tier} diary and run the task sweep.`;
 }
 
 export function diaryTripDecision(evaluation: DiaryRequirementEvaluation): RequirementTripDecision {
@@ -487,9 +507,9 @@ export function diaryTripDecision(evaluation: DiaryRequirementEvaluation): Requi
     .filter((req) => !req.ownedInBank || evaluation.bank.notApplicable)
     .map((req) => diaryMissingItemLine(req, evaluation.bank.notApplicable));
   const taskGaps = diaryTaskRequirementLines(evaluation).slice(0, 2);
-  const ownedItems = evaluation.itemRequirements
+  const bringItems = evaluation.itemRequirements
     .filter((req) => req.ownedInBank)
-    .map(diaryOwnedItemLine);
+    .map(diaryBringItemLine);
   const sourceLines = evaluation.itemRequirements
     .filter((req) => !req.ownedInBank && req.availability.shortCopy)
     .map((req) => req.availability.shortCopy);
@@ -498,6 +518,7 @@ export function diaryTripDecision(evaluation: DiaryRequirementEvaluation): Requi
     .slice(0, 1);
   const missing = [...skillGaps, ...tierGaps, ...questGaps, ...itemGaps, ...taskGaps];
   const blockerCount = diaryBlockerCount(evaluation);
+  const firstStep = diaryFirstStepLine({ evaluation, skillGaps, tierGaps, questGaps, itemGaps });
   const verdict: RequirementTripDecision["verdict"] = evaluation.readinessStatus === "completed"
     ? "Completed"
     : evaluation.bank.notApplicable && evaluation.itemRequirements.length > 0
@@ -523,13 +544,17 @@ export function diaryTripDecision(evaluation: DiaryRequirementEvaluation): Requi
             : verdict === "Stage for UIM"
               ? "Stage for UIM"
               : `Need ${blockerCount || missing.length} thing${(blockerCount || missing.length) === 1 ? "" : "s"} first`,
-    beforeYouGo: [...ownedItems, ...sourceLines, ...riskLines]
+    beforeYouGo: [firstStep, ...sourceLines, ...riskLines]
       .filter((line, index, lines) => lines.indexOf(line) === index)
       .slice(0, 5),
+    bringItems,
     stillMissing: missing.length > 0 ? missing : ["Nothing obvious missing."],
     finishAfter: evaluation.readinessStatus === "completed"
       ? `${evaluation.region} ${evaluation.tier} is already claimed.`
-      : evaluation.stopPoint
+      : evaluation.stopPoint,
+    syncAfter: evaluation.readinessStatus === "completed"
+      ? "No sync needed unless your local data is stale."
+      : `Sync RuneLite after ${evaluation.region} ${evaluation.tier} so the diary tier disappears from your next trip.`
   };
 }
 

@@ -12,7 +12,7 @@ export type RecommendationFeedbackReason =
   | "too_hard"
   | "too_boring";
 
-export type RecommendationMemoryAction = RecommendationFeedbackReason | "try_another";
+export type RecommendationMemoryAction = RecommendationFeedbackReason | "try_another" | "started";
 
 export interface RecommendationFeedback {
   version: 1;
@@ -147,6 +147,19 @@ export function latestRecommendationMemory(
     .sort((a, b) => b.savedAt - a.savedAt)[0] ?? null;
 }
 
+export function latestStartedRecommendationMemory(
+  feedback = loadRecommendationFeedback(),
+  options: { rsn?: string; maxAgeMs?: number } = {}
+): RecommendationMemoryEntry | null {
+  const rsnKey = normalizeRsnKey(options.rsn);
+  const cutoff = Date.now() - (options.maxAgeMs ?? 7 * 24 * 60 * 60 * 1000);
+  return feedback.recent
+    .filter((entry) => entry.action === "started")
+    .filter((entry) => entry.savedAt >= cutoff)
+    .filter((entry) => matchesRsnKey(entry, rsnKey))
+    .sort((a, b) => b.savedAt - a.savedAt)[0] ?? null;
+}
+
 export function recommendationMemoryCounts(
   feedback = loadRecommendationFeedback(),
   options: { rsn?: string; maxAgeMs?: number } = {}
@@ -157,6 +170,7 @@ export function recommendationMemoryCounts(
   for (const entry of feedback.recent) {
     if (entry.savedAt < cutoff || !matchesRsnKey(entry, rsnKey)) continue;
     const weight = memoryActionWeight(entry.action);
+    if (weight <= 0) continue;
     counts[entry.id] = Math.min(5, (counts[entry.id] ?? 0) + weight);
   }
   return counts;
@@ -212,6 +226,7 @@ function matchesRsnKey(entry: RecommendationMemoryEntry, rsnKey?: string): boole
 }
 
 function memoryActionWeight(action: RecommendationMemoryAction): number {
+  if (action === "started") return 0;
   if (action === "already_done") return 5;
   if (action === "too_hard" || action === "not_my_style") return 3;
   if (action === "not_today" || action === "too_boring") return 2;

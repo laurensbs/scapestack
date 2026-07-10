@@ -76,6 +76,18 @@ function formatRuneliteCheckedAt(value: number | null): string {
   return `RuneLite synced ${days}d ago`;
 }
 
+function formatSavedBankAt(value: number | null): string {
+  if (!value) return "Add bank if gear matters";
+  const ageMs = Math.max(0, Date.now() - value);
+  const minutes = Math.floor(ageMs / 60_000);
+  if (minutes < 1) return "Bank saved just now";
+  if (minutes < 60) return `Bank saved ${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `Bank saved ${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `Bank saved ${days}d ago`;
+}
+
 function runeliteNeedsRefresh(value: number | null): boolean {
   if (!value) return false;
   return Date.now() - value > 24 * 60 * 60 * 1000;
@@ -225,6 +237,7 @@ export function HeroIntake() {
     const runeliteStatusLabel = shouldRefreshRunelite
       ? "Refresh RuneLite"
       : formatRuneliteCheckedAt(rememberedRuneliteCheckedAt);
+    const bankStatusLabel = formatSavedBankAt(savedBankAt);
     const runeliteRefreshMessage = runeliteRefresh === "checking"
       ? "Checking RuneLite…"
       : runeliteRefresh === "found"
@@ -238,9 +251,18 @@ export function HeroIntake() {
       <div className="osrs-frame p-4 text-left sm:p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <h2 className="text-[26px] font-semibold leading-tight text-[var(--color-text)]">
-              Welcome back, {rememberedRsn}.
+            <div className="eyebrow text-[var(--color-accent)]">Welcome back</div>
+            <h2 className="mt-1 text-[26px] font-semibold leading-tight text-[var(--color-text)]">
+              Open today&apos;s trip for {rememberedRsn}.
             </h2>
+            <p className="mt-2 max-w-xl text-[13px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+              Scapestack will use the saved setup it can trust, then send you to one clear stop point.
+            </p>
+            <div className="mt-3 grid gap-1.5 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+              <ReturningSetupLine active={rememberedRuneliteChecked} text={runeliteStatusLabel} />
+              <ReturningSetupLine active={hasBankContext} text={bankStatusLabel} />
+              <ReturningSetupLine active={Boolean(returningMood)} text={returningMood ? `${returningMood.label} vibe saved` : "Best now vibe"} />
+            </div>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] font-semibold">
               <span className={cn(
                 "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1",
@@ -249,7 +271,7 @@ export function HeroIntake() {
                   : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-muted)]"
               )}>
                 {hasBankContext && <CheckCircle2 className="size-3.5" />}
-                {hasBankContext ? "Bank added" : "Add bank"}
+                {hasBankContext ? "Bank ready" : "Add bank"}
               </span>
               <span className={cn(
                 "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1",
@@ -263,7 +285,7 @@ export function HeroIntake() {
                 {runeliteStatusLabel}
               </span>
               <span className="inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1 text-[var(--color-text-muted)]">
-                {returningMood ? `Last vibe: ${returningMood.label}` : "Last vibe: Best now"}
+                {returningMood ? `Vibe: ${returningMood.label}` : "Vibe: Best now"}
               </span>
             </div>
             {runeliteRefreshMessage && (
@@ -293,7 +315,7 @@ export function HeroIntake() {
             href={planHref}
             className="btn-primary min-h-[62px] w-full justify-between px-4 py-4 text-[15px]"
           >
-            Plan next trip
+            Open today&apos;s trip
             <ArrowRight className="size-4" />
           </Link>
         </div>
@@ -305,14 +327,14 @@ export function HeroIntake() {
           >
             {hasBankContext && <CheckCircle2 className="absolute right-2 top-2 size-3.5 text-[var(--color-accent)]" />}
             <ClipboardPaste className="size-4" />
-            {hasBankContext ? "Bank" : "Add bank"}
+            {hasBankContext ? "Setup" : "Add bank"}
           </Link>
           <Link
             href={`/dps?rsn=${encodedRsn}&from=home`}
             className="flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2 py-3 text-center text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
           >
             <Sword className="size-4" />
-            Check kill
+            Boss
           </Link>
           {rememberedRuneliteChecked || runeliteRefresh === "missing" || runeliteRefresh === "error" ? (
             <button
@@ -783,5 +805,17 @@ export function HeroIntake() {
         </div>
       )}
     </form>
+  );
+}
+
+function ReturningSetupLine({ active, text }: { active: boolean; text: string }) {
+  return (
+    <div className="flex items-start gap-2">
+      <CheckCircle2 className={cn(
+        "mt-0.5 size-3.5 shrink-0",
+        active ? "text-[var(--color-accent)]" : "text-[var(--color-text-muted)]"
+      )} />
+      <span>{text}</span>
+    </div>
   );
 }

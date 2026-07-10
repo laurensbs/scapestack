@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import { CheckCircle2, PlugZap, ShieldCheck } from "lucide-react";
-import { CopyCommand } from "@/components/copy-command";
+import Link from "next/link";
+import { ArrowRight, CheckCircle2, PlugZap, ShieldCheck } from "lucide-react";
 import { PluginSyncChecker } from "@/components/plugin-sync-checker";
 import { RuneliteOpenButton } from "@/components/runelite-open-button";
 import { PLUGIN_VERIFY_SYNC_HASH } from "@/lib/plugin-bank-bridge";
-import { PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
 
 export const revalidate = 300;
 
@@ -34,7 +33,7 @@ const SYNC_STEPS = [
     title: "Sync now or sync-on-login"
   },
   {
-    title: "Open /next"
+    title: "Open one plan"
   }
 ];
 
@@ -42,6 +41,29 @@ const TROUBLESHOOTING = [
   "Use the same display name as RuneLite.",
   "Use Sync on login or press Sync now.",
   "Open your bank before syncing when you want item readiness."
+];
+
+const PLAYER_SYNC_CHOICES = [
+  {
+    label: "Required",
+    title: "Press Sync now once",
+    body: "Connects this RuneLite install to the RSN you are playing."
+  },
+  {
+    label: "Recommended",
+    title: "Turn on Sync on login",
+    body: "Keeps the next trip current without another browser step."
+  },
+  {
+    label: "Optional",
+    title: "Use bank for readiness",
+    body: "Only when quest, diary or gear checks should use bank items."
+  },
+  {
+    label: "Optional",
+    title: "Refresh after quests",
+    body: "Useful while questing so completed quests disappear from the next trip."
+  }
 ];
 
 function firstSearchParam(searchParams: SearchParams, key: string): string {
@@ -62,8 +84,8 @@ export function pluginContextFromSearchParams(searchParams: SearchParams) {
   if (from === "next") {
     params.set("from", "plugin");
     return {
-      title: "From /next",
-      body: "Check RuneLite, then return to your plan.",
+      title: "Back to your trip",
+      body: "Sync RuneLite, then reopen the plan so finished progress disappears.",
       cta: "Back to plan",
       href: `/next?${params.toString()}`
     };
@@ -74,18 +96,19 @@ export function pluginContextFromSearchParams(searchParams: SearchParams) {
     profileParams.set("from", "plugin");
     if (bank === "none") profileParams.set("bank", "none");
     return {
-      title: "From profile",
-      body: "Check RuneLite, then return.",
+      title: "Back to profile",
+      body: "Sync RuneLite, then return with finished progress removed.",
       cta: "Return to profile",
       href: rsn ? `/u/${encodeURIComponent(rsn)}?${profileParams.toString()}` : `/?${profileParams.toString()}`
     };
   }
 
   params.set("from", "plugin");
+  const title = pluginHandoffTitle(from);
   return {
-    title: `From /${from}`,
-    body: "Check RuneLite, then return.",
-    cta: `Return to /${from}`,
+    title: `Back to ${title}`,
+    body: "Sync RuneLite, then return with stale progress removed.",
+    cta: `Return to ${title}`,
     href: `/${from}?${params.toString()}`
   };
 }
@@ -140,6 +163,8 @@ export default function PluginPage() {
 
       </section>
 
+      <PostSyncActionPanel />
+
       <PluginSyncChecker />
 
       <details className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/75 p-5 sm:p-6">
@@ -162,6 +187,25 @@ export default function PluginPage() {
             </p>
           </div>
 
+          <div className="grid gap-2 sm:grid-cols-2">
+            {PLAYER_SYNC_CHOICES.map((choice) => (
+              <div
+                key={choice.title}
+                className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-4 py-3"
+              >
+                <div className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">
+                  {choice.label}
+                </div>
+                <div className="mt-1 text-[13px] font-bold text-[var(--color-text)]">
+                  {choice.title}
+                </div>
+                <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-dim)]">
+                  {choice.body}
+                </p>
+              </div>
+            ))}
+          </div>
+
           <div className="flex flex-wrap gap-2">
             <div className="inline-flex min-w-[220px] flex-1 items-center gap-2 rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3 py-2">
               <RuneliteOpenButton />
@@ -177,26 +221,6 @@ export default function PluginPage() {
                 <span>{step.title}</span>
               </div>
             ))}
-          </div>
-        </div>
-      </details>
-
-      <details className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/75 p-5 sm:p-6">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[14px] font-bold text-[var(--color-text)] marker:hidden">
-          <span>Developer/self-hosting endpoint</span>
-          <span className="rounded-full border border-[var(--color-border)] px-3 py-1.5 text-[11px] font-bold text-[var(--color-text-muted)]">
-            Advanced
-          </span>
-        </summary>
-        <div className="mt-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-4 py-3">
-          <p className="text-[12px] leading-relaxed text-[var(--color-text-dim)]">
-            Normal players do not need this. Use it only when testing a self-hosted backend or debugging plugin connectivity.
-          </p>
-          <p className="mt-2 break-all text-[13px] font-semibold text-[var(--color-text)]">
-            {PUBLIC_SYNC_URL}
-          </p>
-          <div className="mt-3">
-            <CopyCommand value={PUBLIC_SYNC_URL} label="Copy developer endpoint" />
           </div>
         </div>
       </details>
@@ -226,6 +250,65 @@ export default function PluginPage() {
         </div>
       </details>
     </main>
+  );
+}
+
+function pluginHandoffTitle(from: string): string {
+  if (from === "bank") return "bank setup";
+  if (from === "goals") return "goals";
+  if (from === "slayer") return "Slayer";
+  if (from === "dps") return "boss setup";
+  return "Scapestack";
+}
+
+function PostSyncActionPanel() {
+  const actions = pluginHeroActions();
+  const primaryAction = actions.find((action) => action.id === "verify") ?? actions[0];
+  const nextAction = actions.find((action) => action.id === "next") ?? actions[1];
+
+  return (
+    <section className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/75 p-5 sm:p-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="min-w-0">
+          <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
+            After Sync now
+          </div>
+          <h2 className="mt-1 text-[22px] font-bold tracking-normal text-[var(--color-text)]">
+            Open one plan that skips finished stuff.
+          </h2>
+          <div className="mt-3 grid gap-2 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
+            <ActionLine text="Press Sync now in RuneLite." />
+            <ActionLine text="Open one plan that skips finished quests, diaries, clog slots and Slayer." />
+            <ActionLine text="Open your bank before syncing when gear should change the trip." />
+          </div>
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <Link
+            href={primaryAction.href}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3 py-2 text-[12px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110"
+          >
+            {primaryAction.label}
+            <ArrowRight className="size-3.5" />
+          </Link>
+          <Link
+            href={nextAction.href}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+          >
+            {nextAction.label}
+            <ArrowRight className="size-3.5" />
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ActionLine({ text }: { text: string }) {
+  return (
+    <div className="flex gap-2">
+      <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-[var(--color-good)]" />
+      <span>{text}</span>
+    </div>
   );
 }
 

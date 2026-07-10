@@ -79,9 +79,11 @@ describe("diary requirement matching", () => {
     expect(result.missingRequirements).toEqual([]);
     expect(diaryTripDecision(result)).toMatchObject({
       title: "Ready to start",
-      beforeYouGo: ["Rope is in bank", "2x Plank is in bank", "Mith grapple is in bank"],
+      beforeYouGo: ["Open the Ardougne Medium diary and run the task sweep."],
+      bringItems: ["Rope", "2x Plank", "Mith grapple"],
       stillMissing: expect.arrayContaining(["Clear the Ardougne city, market and monastery task sweep."]),
-      finishAfter: "Finish Biohazard or train the closest missing skill."
+      finishAfter: "Finish Biohazard or train the closest missing skill.",
+      syncAfter: "Sync RuneLite after Ardougne Medium so the diary tier disappears from your next trip."
     });
   });
 
@@ -153,7 +155,8 @@ describe("diary requirement matching", () => {
     ]));
     expect(diaryTripDecision(result)).toMatchObject({
       title: "Items missing",
-      beforeYouGo: expect.arrayContaining(["Rope is in bank"]),
+      beforeYouGo: expect.arrayContaining(["Clear the missing diary prep before starting Ardougne Medium."]),
+      bringItems: ["Rope"],
       stillMissing: expect.arrayContaining(["2x Plank missing; 1 in bank", "Mith grapple missing"])
     });
     expect(diaryCompletedRequirementLines(result)).toEqual(expect.arrayContaining([
@@ -222,7 +225,8 @@ describe("diary requirement matching", () => {
     ]));
     expect(diaryTripDecision(result)).toMatchObject({
       title: "Stage for UIM",
-      beforeYouGo: expect.arrayContaining(["Rope is in bank"]),
+      beforeYouGo: expect.arrayContaining(["Clear the missing diary prep before starting Ardougne Medium."]),
+      bringItems: ["Rope"],
       stillMissing: expect.arrayContaining(["2x Plank: stage this before starting", "Mith grapple: stage this before starting"])
     });
   });

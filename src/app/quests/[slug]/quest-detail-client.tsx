@@ -230,18 +230,18 @@ export function QuestDetailClient({
     <div className="mx-auto max-w-5xl px-5 py-7 pb-20">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="eyebrow text-[var(--color-accent)]">Quest requirements</div>
+          <div className="eyebrow text-[var(--color-accent)]">Quest trip</div>
           <h1 className="mt-1 text-[28px] font-black leading-tight tracking-normal text-[var(--color-text)] sm:text-[36px]">
             {quest.name}
           </h1>
           <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-muted)]">
-            See if you can leave for this quest, what to grab first, and what still blocks it.
+            Check the first step, what to take, what is still missing, and when to stop.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {progressSource === "runelite" && <SourceBadge label="RuneLite synced" tone="good" />}
             {progressSource === "hiscores" && <SourceBadge label="Hiscores fallback" tone="accent" />}
             {hasBrowserBank && <SourceBadge label="Browser bank" tone="accent" />}
-            {!hasBankContext && <SourceBadge label="No bank check yet" />}
+            {!hasBankContext && <SourceBadge label="Bank not added" />}
           </div>
         </div>
         <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/65 px-3 py-2 text-[12px] text-[var(--color-text-dim)]">
@@ -263,7 +263,7 @@ export function QuestDetailClient({
               "eyebrow",
               decisionTone === "good" ? "text-[var(--color-good)]" : decisionTone === "warn" ? "text-[var(--color-warning)]" : "text-[var(--color-accent)]"
             )}>
-              Can I do this now?
+              Next quest trip
             </div>
             <h2 className="mt-1 text-[26px] font-black leading-tight tracking-normal text-[var(--color-text)]">
               {decision.title}
@@ -283,10 +283,16 @@ export function QuestDetailClient({
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 lg:grid-cols-3">
-          <DecisionColumn title="Before you go" lines={decision.beforeYouGo} tone="good" />
-          <DecisionColumn title="Still missing" lines={decision.stillMissing} tone={decision.stillMissing[0] === "Nothing obvious missing." ? "good" : "warn"} />
+        <div className="mt-4 grid gap-3 lg:grid-cols-4">
+          <DecisionColumn title="Before you leave" lines={decision.beforeYouGo} tone="good" />
+          {decision.bringItems.length > 0 && (
+            <DecisionColumn title={evaluation.bank.notApplicable ? "Stage for UIM" : "Bring"} lines={decision.bringItems} tone="good" />
+          )}
+          {decision.stillMissing[0] !== "Nothing obvious missing." && (
+            <DecisionColumn title="Still missing" lines={decision.stillMissing} tone="warn" />
+          )}
           <DecisionColumn title="Finish after" lines={[decision.finishAfter]} />
+          <DecisionColumn title="Sync after" lines={[decision.syncAfter]} />
         </div>
       </section>
 
@@ -336,7 +342,7 @@ export function QuestDetailClient({
             {!evaluation.bank.checked && (
               <div className="mb-3 flex items-start gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3 text-[12px] text-[var(--color-text-muted)]">
                 <PackageSearch className="mt-0.5 size-4 shrink-0 text-[var(--color-accent)]" />
-                Open this quest from `/next` or sync/open bank first to mark owned items.
+                Open this quest from your trip plan or sync/open bank first to mark owned items.
               </div>
             )}
             {evaluation.bank.notApplicable && (
@@ -366,7 +372,7 @@ export function QuestDetailClient({
         ) : <EmptyRequirement>No completed requirements in the current context yet.</EmptyRequirement>}
       </Section>
 
-      <Section title="Missing requirements" eyebrow="Next blockers">
+      <Section title="Still missing" eyebrow="Next gap">
         {evaluation.missingRequirements.length > 0 ? (
           <ul className="grid gap-2 sm:grid-cols-2">
             {evaluation.missingRequirements.slice(0, 24).map((item) => (

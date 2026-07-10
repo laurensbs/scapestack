@@ -30,7 +30,7 @@ const toolActions: Array<Omit<BankContextAction, "href"> & { id: BankContextTool
   {
     id: "next",
     path: "/next",
-    label: "Plan",
+    label: "Next trip",
     primary: true
   },
   {

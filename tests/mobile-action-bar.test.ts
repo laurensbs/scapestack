@@ -10,8 +10,10 @@ describe("mobile action bar", () => {
     expect(source).toContain('aria-label="Mobile quick actions"');
     expect(source).toContain('import { usePathname } from "next/navigation";');
     expect(source).toContain('if (pathname === "/") return null;');
-    expect(source).toContain("Plan");
+    expect(source).toContain("Trip");
+    expect(source).toContain('active: pathname === "/next"');
     expect(source).toContain("Add bank");
+    expect(source).toContain("Setup");
     expect(source).toContain("RuneLite");
     expect(source).toContain("Mood");
     expect(source).toContain("SessionMoodPicker");
@@ -21,6 +23,7 @@ describe("mobile action bar", () => {
     expect(source).toContain("SAVED_BANK_EVENT");
     expect(source).toContain("fixed inset-x-0 bottom-0");
     expect(layout).toContain('import { MobileActionBar } from "@/components/mobile-action-bar";');
+    expect(layout).toContain("pb-24 sm:pb-0");
     expect(layout).toContain("<MobileActionBar />");
   });
 });

@@ -91,7 +91,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             we add enough tools to warrant it again later. */}
         <div className="min-h-full flex flex-col">
           <Header />
-          <div className="flex-1 min-h-0">{children}</div>
+          <div className="flex-1 min-h-0 pb-24 sm:pb-0">{children}</div>
           <MobileActionBar />
           <footer className="shrink-0 border-t border-[var(--color-border)] py-4 px-6 text-center text-[11px] text-[var(--color-text-muted)] tracking-wide">
             <span className="font-semibold text-[var(--color-text-secondary)]">{BRAND_NAME}</span>

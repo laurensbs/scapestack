@@ -33,7 +33,7 @@ describe("bank action loop", () => {
     expect(steps[3].body).not.toContain("combine it with RuneLite sync for exact account-state recommendations");
     expect(steps[3].body).not.toContain("exact account-state recommendations");
     expect(steps[3]).toMatchObject({
-      cta: "Plan next trip",
+      cta: "Open next trip",
       destination: "Next trip",
       proof: "Carries current bank gear into the next plan"
     });

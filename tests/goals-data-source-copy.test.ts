@@ -34,17 +34,24 @@ describe("Goals data source copy", () => {
 
   it("opens with a companion-style next unlock instead of a status dashboard", () => {
     expect(source).toContain("function NextUnlockCompanion");
-    expect(source).toContain("Pick a reward");
-    expect(source).toContain("Start here");
-    expect(source).toContain("You have:");
-    expect(source).toContain("You need:");
+    expect(source).toContain("Next unlock trip");
+    expect(source).toContain("Before you leave");
+    expect(source).toContain("Still missing");
+    expect(source).toContain("Finish after");
+    expect(source).toContain("Open Wiki route");
+    expect(source).toContain("Why this unlock?");
     expect(source).toContain("Counts through");
-    expect(source).toContain("Tick off the missing bits");
+    expect(source).toContain("Tick off missing bits");
     expect(source).toContain("Saved on this device");
+    expect(source).toContain("md:grid-cols-[80px_minmax(0,1fr)]");
+    expect(source).not.toContain("md:grid-cols-[210px_minmax(0,1fr)]");
+    expect(source).not.toContain("min-h-[210px]");
     expect(source).toContain("GOAL_CHECK_STORAGE_KEY");
     expect(source).toContain("Higher-tier rewards already tick lower tiers.");
-    expect(source).toContain("Good rewards to chase");
+    expect(source).toContain("More unlock routes");
     expect(source).toContain("Make rewards smarter");
+    expect(source).not.toContain("Pick a reward");
+    expect(source).not.toContain("Good rewards to chase");
     expect(source).not.toContain("Make this unlock route sharper");
     expect(source).not.toContain("Closest to complete");
     expect(source).not.toContain("ScapestackReadinessRail");
@@ -54,9 +61,8 @@ describe("Goals data source copy", () => {
     expect(source).toContain("function whyThisUnlock");
     expect(source).toContain("function sourceHintForGoal");
     expect(source).toContain("function unlockPlanSteps");
-    expect(source).toContain("Do this next");
-    expect(source).toContain("Why this one:");
-    expect(source).toContain("Wiki");
+    expect(source).toContain("Open Wiki route");
+    expect(source).toContain("Why this unlock?");
     expect(source).toContain("Claim from the diary NPC");
     expect(source).toContain("Needs the Void pieces plus the Western Provinces diary gate.");
     expect(source).toContain("Open Check kill before chasing");

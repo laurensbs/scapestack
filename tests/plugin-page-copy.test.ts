@@ -1,14 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { PUBLIC_SYNC_URL } from "@/lib/plugin-sync-actions";
 import { pluginContextFromSearchParams, pluginHeroActions } from "@/app/plugin/page";
 
 describe("plugin page copy constants", () => {
   it("keeps the player sync flow focused on RSN, .org sync and next actions", () => {
     const pageSource = readFileSync(join(process.cwd(), "src/app/plugin/page.tsx"), "utf8");
 
-    expect(PUBLIC_SYNC_URL).toBe("https://www.scapestack.org/api/sync");
     expect(pageSource).toContain("Check RuneLite.");
     expect(pageSource).toContain("Skip done stuff.");
     expect(pageSource).toContain("No login");
@@ -20,16 +18,25 @@ describe("plugin page copy constants", () => {
     expect(pageSource).toContain("Setup help");
     expect(pageSource).toContain("Normal setup");
     expect(pageSource).toContain("The public plugin connects to Scapestack automatically; there is no URL to paste for normal players.");
-    expect(pageSource).toContain("Developer/self-hosting endpoint");
-    expect(pageSource).toContain("Copy developer endpoint");
-    expect(PUBLIC_SYNC_URL).toBe("https://www.scapestack.org/api/sync");
-    expect(pageSource).toContain("PUBLIC_SYNC_URL");
+    expect(pageSource).toContain("PLAYER_SYNC_CHOICES");
+    expect(pageSource).toContain("Press Sync now once");
+    expect(pageSource).toContain("Turn on Sync on login");
+    expect(pageSource).toContain("Use bank for readiness");
+    expect(pageSource).toContain("Refresh after quests");
+    expect(pageSource).not.toContain("Developer/self-hosting endpoint");
+    expect(pageSource).not.toContain("Copy developer endpoint");
+    expect(pageSource).not.toContain("PUBLIC_SYNC_URL");
+    expect(pageSource).not.toContain("https://www.scapestack.org/api/sync");
     expect(pageSource).not.toContain("Copy sync URL");
     expect(pageSource).not.toContain("Scapestack link");
     expect(pageSource).not.toContain("scapestack.app");
     expect(pageSource).toContain("PluginSyncChecker");
     expect(pageSource).toContain("RuneliteOpenButton");
     expect(pageSource).toContain("Open one plan");
+    expect(pageSource).toContain("After Sync now");
+    expect(pageSource).toContain("Open one plan that skips finished stuff.");
+    expect(pageSource).toContain("Press Sync now in RuneLite.");
+    expect(pageSource).toContain("Open your bank before syncing when gear should change the trip.");
     expect(pageSource).not.toContain("Sync found? Pick a route.");
     expect(pageSource).not.toContain("POST_SYNC_ACTIONS");
     expect(pageSource).toContain("Privacy and fixes");
@@ -97,8 +104,8 @@ describe("plugin page copy constants", () => {
     });
 
     expect(context).toEqual({
-      title: "From /next",
-      body: "Check RuneLite, then return to your plan.",
+      title: "Back to your trip",
+      body: "Sync RuneLite, then reopen the plan so finished progress disappears.",
       cta: "Back to plan",
       href: "/next?rsn=Lynx+Titan&bank=none&from=plugin"
     });
@@ -112,7 +119,12 @@ describe("plugin page copy constants", () => {
       bank: "none"
     });
 
-    expect(context?.href).toBe("/slayer?rsn=Lynx+Titan&bank=none&from=plugin");
+    expect(context).toMatchObject({
+      title: "Back to Slayer",
+      body: "Sync RuneLite, then return with stale progress removed.",
+      cta: "Return to Slayer",
+      href: "/slayer?rsn=Lynx+Titan&bank=none&from=plugin"
+    });
   });
 
   it("returns profile handoffs to the player profile route", () => {
@@ -123,8 +135,8 @@ describe("plugin page copy constants", () => {
     });
 
     expect(context).toEqual({
-      title: "From profile",
-      body: "Check RuneLite, then return.",
+      title: "Back to profile",
+      body: "Sync RuneLite, then return with finished progress removed.",
       cta: "Return to profile",
       href: "/u/Lynx%20Titan?from=plugin&bank=none"
     });

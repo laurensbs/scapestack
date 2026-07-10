@@ -168,7 +168,7 @@ describe("end-to-end syncflow regression contracts", () => {
       itemCount: 2
     });
     expect(result.summary.lastSyncSummary?.questsCompleted).toEqual(["Biohazard"]);
-    expect(pluginBankStatusLabel(bankStatus, result.summary.accountType)).toBe("Bank synced: 2 item stacks");
+    expect(pluginBankStatusLabel(bankStatus, result.summary.accountType)).toBe("Bank ready for gear checks: 2 stacks");
 
     vi.useRealTimers();
   });

@@ -137,7 +137,7 @@ describe("plugin sync diagnostics", () => {
     const coverage = signalCoverageForSyncedPlayer(staleBankPlayer);
     expect(coverage.find((signal) => signal.label === "Bank")).toMatchObject({
       status: "partial",
-      summary: "Bank sync is stale; open your bank in RuneLite, then sync again"
+      summary: "Open bank in RuneLite, then sync again"
     });
     expect(actionQueueForSyncedPlayer(staleBankPlayer).map((action) => action.title)).toContain("Refresh RuneLite bank");
 

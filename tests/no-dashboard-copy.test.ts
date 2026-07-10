@@ -56,8 +56,9 @@ describe("player-facing copy avoids dashboard language", () => {
   it("keeps the replacement copy concrete and OSRS-native", () => {
     expect(source).toContain("Make the next trip smarter");
     expect(source).toContain("Paste check");
-    expect(source).toContain("Pick a boss");
-    expect(source).toContain("Choose one boss. Scapestack builds gear, supplies and a RuneLite tab from this bank.");
+    expect(source).toContain("Pick one boss trip");
+    expect(source).toContain("Choose one boss. Scapestack shows the setup to check, what is missing, and when to leave.");
+    expect(source).toContain("Build one RuneLite tab from owned gear, supplies and the boss you want to try.");
     expect(source).toContain("Need a weapon first");
     expect(source).toContain("Check RuneLite");
     expect(source).toContain("RuneLite can help later");

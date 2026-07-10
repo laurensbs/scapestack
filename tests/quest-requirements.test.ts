@@ -111,9 +111,11 @@ describe("quest requirement matching", () => {
     });
     expect(questTripDecision(result)).toMatchObject({
       title: "Ready to start",
-      beforeYouGo: ["Egg is in bank"],
+      beforeYouGo: ["Start Cook's Assistant and follow the quest steps."],
+      bringItems: ["Egg"],
       stillMissing: ["Nothing obvious missing."],
-      finishAfter: "Finish Cook's Assistant, claim the unlock, then sync again."
+      finishAfter: "Finish Cook's Assistant and claim the unlock.",
+      syncAfter: "Sync RuneLite after Cook's Assistant so the quest disappears from your next trip."
     });
   });
 
@@ -304,7 +306,8 @@ describe("quest requirement matching", () => {
     expect(result.bank.owned.map((req) => req.name)).toEqual(["Rope"]);
     expect(questTripDecision(result)).toMatchObject({
       title: "Stage for UIM",
-      beforeYouGo: ["Rope is in bank"],
+      beforeYouGo: ["Clear the missing quest prep before starting Cook's Assistant."],
+      bringItems: ["Rope"],
       stillMissing: ["Rope: stage this before starting"]
     });
   });

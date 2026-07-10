@@ -243,10 +243,10 @@ export function GoalsClient() {
       <section className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="flex items-baseline gap-3">
-            <h2 className="font-serif text-[34px] font-bold leading-none text-[var(--color-text)]">Pick a reward</h2>
+            <h2 className="font-serif text-[34px] font-bold leading-none text-[var(--color-text)]">Next unlock trip</h2>
           </div>
           <p className="mt-2 max-w-xl text-[13.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-            Start with the closest useful unlock. Click any reward below to change the route.
+            Start with one useful unlock, then stop when the set changes.
           </p>
           <div className="mt-4 flex items-center gap-3">
             <div className="h-2 w-[180px] overflow-hidden rounded-full bg-[var(--color-slot)]">
@@ -294,9 +294,9 @@ export function GoalsClient() {
         <section className="mb-7 mt-6">
           <div className="mb-3 flex items-end justify-between gap-3">
             <div>
-              <h2 className="font-serif text-[24px] font-bold text-[var(--color-text)]">Good rewards to chase</h2>
+              <h2 className="font-serif text-[24px] font-bold text-[var(--color-text)]">More unlock routes</h2>
               <p className="mt-1 text-[12.5px] text-[var(--color-text-muted)]">
-                Close wins first. Pick a tile to see the route, missing pieces and what counts through upgrades.
+                Close wins first. Pick a tile only when this unlock is not the one.
               </p>
             </div>
           </div>
@@ -503,6 +503,29 @@ export function GoalsClient() {
 type GoalSetModel = typeof GOAL_SETS[0];
 type GoalModel = GoalSetModel["goals"][0];
 
+function TripCheckLine({
+  title,
+  body,
+  tone = "default"
+}: {
+  title: "Before you leave" | "Still missing" | "Finish after";
+  body: string;
+  tone?: "default" | "warn";
+}) {
+  return (
+    <div className={cn(
+      "rounded-lg border border-[var(--color-border)]/60 bg-black/15 p-3",
+      tone === "warn" && "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/8"
+    )}>
+      <p className={cn(
+        "text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]",
+        tone === "warn" && "text-[var(--color-warning)]"
+      )}>{title}</p>
+      <p className="mt-1 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">{body}</p>
+    </div>
+  );
+}
+
 function manualGoalKey(setId: string, goalId: string): string {
   return `${setId}:${goalId}`;
 }
@@ -664,30 +687,32 @@ function NextUnlockCompanion({
   });
   const planSteps = unlockPlanSteps(set, completion, missing);
   const guideTarget = missing[0]?.name ?? set.name;
+  const stopStep = planSteps.find((step) => step.title === "Stop" || step.title === "Done") ?? planSteps[planSteps.length - 1];
+  const beforeLine = planSteps[0]?.body ?? `Start with ${guideTarget}.`;
+  const missingLine = missing[0]
+    ? missing.slice(0, 2).map((goal) => goal.name).join(" · ")
+    : null;
+  const finishLine = stopStep?.body ?? "Stop after one clear progress block.";
 
   return (
-    <section className="rounded-[22px] border-2 border-[var(--color-accent)]/45 bg-[#2b2418]/90 p-4 shadow-[0_24px_90px_-55px_rgba(0,0,0,0.95)] sm:p-5">
-      <div className="grid gap-5 md:grid-cols-[210px_minmax(0,1fr)]">
-        <div className="flex min-h-[210px] items-center justify-center rounded-[20px] border border-[var(--color-accent)]/30 bg-black/25 p-5">
+    <section className="rounded-2xl border border-[var(--color-accent)]/45 bg-[#21190f]/95 p-4 shadow-[0_18px_70px_-48px_rgba(0,0,0,0.95)] sm:p-5">
+      <div className="grid gap-4 md:grid-cols-[80px_minmax(0,1fr)]">
+        <div className="flex size-16 items-center justify-center rounded-xl border border-[var(--color-accent)]/30 bg-black/25 sm:size-20">
           {rewardIconId ? (
-            <ItemSprite id={rewardIconId} alt="" size={132} className="pixelated" />
+            <ItemSprite id={rewardIconId} alt="" size={56} className="pixelated" />
           ) : (
-            <Target className="size-16 text-[var(--color-accent)]" />
+            <Target className="size-9 text-[var(--color-accent)]" />
           )}
         </div>
         <div className="min-w-0">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="eyebrow text-[var(--color-accent)]">Start here</p>
+              <p className="eyebrow text-[var(--color-accent)]">Next unlock trip</p>
               <h3 className="mt-1 font-serif text-[30px] font-bold leading-tight text-[var(--color-text)] sm:text-[36px]">
                 {set.name}
               </h3>
               <p className="mt-2 max-w-2xl text-[14px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
                 {unlockNudge(set, completion)}
-              </p>
-              <p className="mt-2 max-w-2xl text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">
-                <span className="font-bold text-[var(--color-accent)]">Why this one:</span>{" "}
-                {whyThisUnlock(set, completion)}
               </p>
             </div>
             <span className="inline-flex items-center rounded-full border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-1.5 text-[12px] font-bold text-[var(--color-accent)]">
@@ -695,51 +720,49 @@ function NextUnlockCompanion({
             </span>
           </div>
 
-          <div className="mt-4 space-y-2 rounded-2xl border border-[var(--color-accent)]/20 bg-black/15 p-3">
-            <p className="text-[13px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-              <span className="font-bold text-[var(--color-text)]">You have:</span>{" "}
-              {ownedGoalLabel(set, completion)}
-            </p>
-            <p className="text-[13px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-              <span className="font-bold text-[var(--color-text)]">You need:</span>{" "}
-              {missing[0]?.name ?? "Nothing missing"}
-            </p>
-            {completedViaUpgrade.length > 0 && (
-              <p className="text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">
-                <span className="font-bold text-[var(--color-accent)]">Counts through:</span>{" "}
-                {completedViaUpgrade.length} lower tier{completedViaUpgrade.length === 1 ? "" : "s"} already count because you own the better reward.
-              </p>
-            )}
-          </div>
-
           <div className="mt-4 rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 p-3">
-            <div className="mb-2 flex items-center justify-between gap-3">
-              <p className="text-[12px] font-bold text-[var(--color-text)]">Do this next</p>
-              <a
-                href={wikiSearchUrl(guideTarget)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/25 bg-black/15 px-2.5 py-1.5 text-[11px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/10"
-              >
-                Wiki
-                <ExternalLink className="size-3" />
-              </a>
-            </div>
             <div className="grid gap-2 sm:grid-cols-3">
-              {planSteps.map((step) => (
-                <div key={step.title} className="rounded-lg border border-[var(--color-border)]/60 bg-black/15 p-3">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">{step.title}</p>
-                  <p className="mt-1 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">{step.body}</p>
-                </div>
-              ))}
+              <TripCheckLine title="Before you leave" body={beforeLine} />
+              {missingLine && <TripCheckLine title="Still missing" body={missingLine} tone="warn" />}
+              <TripCheckLine title="Finish after" body={finishLine} />
             </div>
+            <a
+              href={wikiSearchUrl(guideTarget)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3 py-2 text-[12.5px] font-bold text-[#0B0F0D] transition-all hover:brightness-110 sm:w-auto"
+            >
+              Open Wiki route
+              <ExternalLink className="size-3.5" />
+            </a>
           </div>
 
-          <div className="mt-4 rounded-xl border border-[var(--color-border)] bg-black/15 p-3">
-            <div className="mb-2 flex items-center justify-between gap-3">
-              <p className="text-[12px] font-bold text-[var(--color-text)]">Tick off the missing bits</p>
-              <p className="text-[11px] text-[var(--color-text-muted)]">Saved on this device</p>
+          <details className="group mt-4 rounded-xl border border-[var(--color-border)] bg-black/15 p-3">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[12px] font-bold text-[var(--color-text)] marker:hidden [&::-webkit-details-marker]:hidden">
+              Why this unlock?
+              <ChevronDown className="size-3.5 text-[var(--color-text-muted)] transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="mt-3 space-y-2 text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">
+              <p>{whyThisUnlock(set, completion)}</p>
+              <p><span className="font-bold text-[var(--color-text)]">You have:</span> {ownedGoalLabel(set, completion)}</p>
+              {completedViaUpgrade.length > 0 && (
+                <p>
+                  <span className="font-bold text-[var(--color-accent)]">Counts through:</span>{" "}
+                  {completedViaUpgrade.length} lower tier{completedViaUpgrade.length === 1 ? "" : "s"} already count because you own the better reward.
+                </p>
+              )}
             </div>
+          </details>
+
+          <details className="group mt-4 rounded-xl border border-[var(--color-border)] bg-black/15 p-3">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold text-[var(--color-text)]">
+              <span>Tick off missing bits</span>
+              <span className="inline-flex items-center gap-2 text-[11px] font-semibold text-[var(--color-text-muted)]">
+                Saved on this device
+                <ChevronDown className="size-4 transition group-open:rotate-180" aria-hidden="true" />
+              </span>
+            </summary>
+            <div className="mt-3">
             {missing.length > 0 ? (
               <div className="grid gap-2 sm:grid-cols-2">
                 {missing.map((goal) => {
@@ -777,7 +800,8 @@ function NextUnlockCompanion({
                 Done. Pick another unlock.
               </div>
             )}
-          </div>
+            </div>
+          </details>
 
           {completedViaUpgrade.length > 0 && (
             <p className="mt-3 text-[12px] leading-relaxed text-[var(--color-text-muted)]">

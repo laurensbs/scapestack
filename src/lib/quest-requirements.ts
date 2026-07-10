@@ -78,8 +78,10 @@ export interface RequirementTripDecision {
   verdict: "Ready to start" | "Need things first" | "Train first" | "Items missing" | "Stage for UIM" | "Completed";
   title: string;
   beforeYouGo: string[];
+  bringItems: string[];
   stillMissing: string[];
   finishAfter: string;
+  syncAfter: string;
 }
 
 function cleanName(value: string): string {
@@ -248,10 +250,9 @@ function itemRequirementText(req: EvaluatedItemRequirement): string {
   return req.quantity > 1 ? `${req.quantity}x ${req.name}` : req.name;
 }
 
-function itemOwnedLine(req: EvaluatedItemRequirement): string {
+function itemBringLine(req: EvaluatedItemRequirement): string {
   const name = req.ownedName ?? req.name;
-  if (req.ownedQuantity > 1) return `${req.ownedQuantity}x ${name} is in bank`;
-  return `${name} is in bank`;
+  return req.quantity > 1 ? `${req.quantity}x ${name}` : name;
 }
 
 function itemMissingLine(req: EvaluatedItemRequirement, bankNotApplicable: boolean): string {
@@ -267,6 +268,23 @@ function questBlockerCount(evaluation: QuestRequirementEvaluation): number {
     + evaluation.itemRequirements.filter((req) => !req.met || evaluation.bank.notApplicable).length;
 }
 
+function questFirstStepLine({
+  evaluation,
+  skillGaps,
+  questGaps,
+  itemGaps
+}: {
+  evaluation: QuestRequirementEvaluation;
+  skillGaps: string[];
+  questGaps: string[];
+  itemGaps: string[];
+}): string {
+  if (skillGaps.length > 0) return `${skillGaps[0]} before starting ${evaluation.questName}.`;
+  if (questGaps.length > 0) return `${questGaps[0]} before opening ${evaluation.questName}.`;
+  if (itemGaps.length > 0) return `Clear the missing quest prep before starting ${evaluation.questName}.`;
+  return `Start ${evaluation.questName} and follow the quest steps.`;
+}
+
 export function questTripDecision(evaluation: QuestRequirementEvaluation): RequirementTripDecision {
   const skillGaps = evaluation.skillRequirements
     .filter((req) => !req.met)
@@ -277,9 +295,9 @@ export function questTripDecision(evaluation: QuestRequirementEvaluation): Requi
   const itemGaps = (evaluation.bank.notApplicable ? evaluation.itemRequirements : evaluation.bank.missing)
     .filter((req) => !req.ownedInBank || evaluation.bank.notApplicable)
     .map((req) => itemMissingLine(req, evaluation.bank.notApplicable));
-  const ownedItems = evaluation.itemRequirements
+  const bringItems = evaluation.itemRequirements
     .filter((req) => req.ownedInBank)
-    .map(itemOwnedLine);
+    .map(itemBringLine);
   const sourceLines = evaluation.itemRequirements
     .filter((req) => !req.ownedInBank && req.availability.shortCopy)
     .map((req) => req.availability.shortCopy);
@@ -288,8 +306,9 @@ export function questTripDecision(evaluation: QuestRequirementEvaluation): Requi
     .slice(0, 1);
   const missing = [...skillGaps, ...questGaps, ...itemGaps];
   const blockerCount = missing.length;
+  const firstStep = questFirstStepLine({ evaluation, skillGaps, questGaps, itemGaps });
   const beforeYouGo = [
-    ...ownedItems,
+    firstStep,
     ...sourceLines,
     ...riskLines
   ].filter((line, index, lines) => lines.indexOf(line) === index).slice(0, 5);
@@ -319,8 +338,10 @@ export function questTripDecision(evaluation: QuestRequirementEvaluation): Requi
       : evaluation.itemRequirements.length > 0
         ? ["Open your bank once so item checks can confirm the prep."]
         : ["No item prep listed for this quest."],
+    bringItems,
     stillMissing: missing.length > 0 ? missing : ["Nothing obvious missing."],
-    finishAfter: `Finish ${evaluation.questName}, claim the unlock, then sync again.`
+    finishAfter: `Finish ${evaluation.questName} and claim the unlock.`,
+    syncAfter: `Sync RuneLite after ${evaluation.questName} so the quest disappears from your next trip.`
   };
 }
 

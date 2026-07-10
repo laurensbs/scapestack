@@ -13,9 +13,9 @@ import { BuyMeCoffee } from "./buy-me-coffee";
 import { CurrentRunBar } from "./current-run-bar";
 
 const LOOP_STEPS = [
-  { label: "Plan", href: "/next" },
-  { label: "Bank", href: "/bank" },
-  { label: "Kill", href: "/dps" }
+  { label: "Trip", href: "/next" },
+  { label: "Setup", href: "/bank" },
+  { label: "Boss", href: "/dps" }
 ];
 
 export function Header() {
@@ -111,7 +111,7 @@ export function Header() {
             variant stays muted until hover so it doesn't compete with the
             page content, but is always one click away from anywhere in
             the app. */}
-        <nav className="hidden sm:flex items-center gap-1" aria-label="Primary Scapestack tools">
+        <nav className="hidden sm:flex items-center gap-1" aria-label="Primary trip actions">
           {navTools.map((tool, i) => {
             const Icon = tool.icon;
             const href = contextualNavHref(tool.href, pathname, contextQuery, activeRsn);
@@ -167,7 +167,7 @@ export function Header() {
           beneath the header bar; click anywhere inside to navigate. */}
       {mobileOpen && (
         <div className="fixed inset-x-0 top-14 z-40 border-t border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)] shadow-[0_22px_50px_-36px_rgba(0,0,0,0.82)] sm:hidden">
-          <nav id={mobileNavId} className="px-4 py-3 space-y-1" aria-label="Mobile Scapestack tools">
+          <nav id={mobileNavId} className="px-4 py-3 space-y-1" aria-label="Mobile trip actions">
             <div className="mb-3 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment)] p-3">
               <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-gold)]">
                 Your account
@@ -189,7 +189,7 @@ export function Header() {
                 ))}
               </div>
               <p className="mt-2 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
-                Saved once. Used everywhere.
+                Saved once. Used for the next trip.
               </p>
             </div>
             {navTools.map((tool) => {
