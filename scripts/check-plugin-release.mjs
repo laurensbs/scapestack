@@ -231,7 +231,7 @@ function checkReviewCopy() {
   expectContains("plugin/PUBLISHING.md", "npm run plugin:review-reply-command");
   expectContains("plugin/PUBLISHING.md", "npm run plugin:review-handoff-command");
   expectContains("plugin/PUBLISHING.md", "Replace stale PR-body copy");
-  expectContains("src/app/plugin/page.tsx", "after opt-in");
+  expectContains("src/app/plugin/page.tsx", "Bank checks can be turned off");
   expectContains("src/lib/plugin-review-packet.ts", "background Thread, not on RuneLite's client thread");
   expectContains("src/lib/plugin-review-packet.ts", "No progress POST happens until the player enables Sync on login");
   expectContains("src/lib/plugin-review-packet.ts", "replace stale PR-body copy");
@@ -496,6 +496,11 @@ export function reviewCopyIssuesFromBody(body) {
   if (!normalized.includes("bank") || !normalized.includes("inventory") || !normalized.includes("equipment")) {
     issues.push("bank/inventory/equipment exclusion");
   }
+  if (normalized.includes("no bank, inventory or equipment data")
+    || normalized.includes("no bank data is sent")
+    || (normalized.includes("never sent:") && normalized.includes("bank, inventory"))) {
+    issues.push("bank default copy");
+  }
 
   return issues;
 }
@@ -542,7 +547,7 @@ function printReleasePlan(version) {
   console.log("8. Run npm run plugin:review-packet and replace stale PR-body copy before asking maintainers to re-review.");
   console.log("9. Run npm run plugin:review-reply-command to prepare the reviewer packet PR comment.");
   console.log("10. Run npm run plugin:review-handoff-command when GitHub CLI is authenticated and you want body + comment together.");
-  console.log("11. Keep the PR body explicit: sync is opt-in, posted data is RSN + game-state only, HTTP runs off the client thread.");
+  console.log("11. Keep the PR body explicit: sync is opt-in, bank checks send item IDs/names/quantities only, HTTP runs off the client thread.");
 }
 
 async function main() {

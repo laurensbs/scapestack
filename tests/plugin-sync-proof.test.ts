@@ -99,7 +99,7 @@ describe("plugin sync proof", () => {
     expect(checklist).toContain("Collection log suppression is active with 3 synced item IDs.");
     expect(checklist).toContain("Bank ready for gear checks: 1 stack.");
     expect(checklist).toContain("http://127.0.0.1:4173/bank?rsn=Lynx%20Titan&from=plugin");
-    expect(checklist).toContain("RuneLite sync can include bank item IDs/names/quantities only when bank sync is enabled.");
+    expect(checklist).toContain("RuneLite sync can include bank item IDs/names/quantities when bank checks are on.");
     expect(checklist).toContain("It does not include inventory, equipment, chat, screenshots, clicks, keys, account login or install token.");
   });
 

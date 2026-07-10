@@ -4,19 +4,19 @@ import { describe, expect, it } from "vitest";
 import { buildBankPluginIntakeBridge } from "@/lib/bank-plugin-intake-bridge";
 
 describe("bank plugin intake bridge", () => {
-  it("explains browser paste vs opt-in RuneLite bank sync", () => {
+  it("explains browser paste vs RuneLite bank checks", () => {
     const bridge = buildBankPluginIntakeBridge(" Lynx Titan ");
 
     expect(bridge.title).toContain("RuneLite knows progress");
     expect(bridge.body).toContain("gear, supplies, quantities or GP");
-    expect(bridge.safety).toContain("separate opt-in");
+    expect(bridge.safety).toContain("can be turned off");
     expect(bridge.signals.map((signal) => signal.label)).toEqual([
       "RuneLite helps",
       "Bank context helps",
       "Best paste"
     ]);
     expect(bridge.signals.map((signal) => signal.value).join(" ")).toContain("Bank Memory");
-    expect(bridge.signals.map((signal) => signal.value).join(" ")).toContain("optional bank readiness");
+    expect(bridge.signals.map((signal) => signal.value).join(" ")).toContain("bank readiness");
     expect(bridge.body).not.toContain("account-state");
   });
 

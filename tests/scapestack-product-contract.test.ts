@@ -104,7 +104,7 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).not.toContain("Bossing stays backup while this route has the cleaner stop point.");
     expect(plugin).toContain("Skip done stuff.");
     expect(plugin).toContain("No login");
-    expect(plugin).toContain("Bank opt-in");
+    expect(plugin).toContain("Bank checks can be turned off");
     expect(plugin).toContain("No screenshots");
     expect(direction).toContain("anti-bankstanding");
     expect(direction).toContain("one thing to do first");

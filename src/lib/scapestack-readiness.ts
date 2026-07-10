@@ -171,8 +171,8 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
       status: hasExactPluginSync ? "exact" : hasPluginSync ? "ready" : "missing",
       sourceLabel: syncSourceLabel,
       detail: syncDetail,
-      adds: ["skills", "quests", "diaries", "collection log", "Slayer", "optional bank readiness"],
-      boundary: "Bank item IDs/names/quantities require the separate bank sync option; never includes inventory, equipment, chat, screenshots, clicks or account login.",
+      adds: ["skills", "quests", "diaries", "collection log", "Slayer", "bank readiness"],
+      boundary: "Bank item IDs/names/quantities are included when bank checks are on; never includes inventory, equipment, chat, screenshots, clicks or account login.",
       notice: syncNotice,
       action: hasPluginSync
         ? { label: "Check RuneLite", href: syncHref }

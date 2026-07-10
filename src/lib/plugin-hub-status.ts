@@ -409,6 +409,11 @@ function reviewCopyIssuesFromBody(body: unknown): string[] {
   if (!normalized.includes("bank") || !normalized.includes("inventory") || !normalized.includes("equipment")) {
     issues.push("bank/inventory/equipment exclusion");
   }
+  if (normalized.includes("no bank, inventory or equipment data")
+    || normalized.includes("no bank data is sent")
+    || (normalized.includes("never sent:") && normalized.includes("bank, inventory"))) {
+    issues.push("bank default copy");
+  }
 
   return issues;
 }

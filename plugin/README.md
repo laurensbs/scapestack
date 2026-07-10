@@ -1,14 +1,15 @@
 # Scapestack Sync (RuneLite plugin)
 
-Syncs your OSRS account type, skills, quest, diary, collection-log, Slayer state, and optional bank item readiness to
+Syncs your OSRS account type, skills, quest, diary, collection-log, Slayer state, and bank item readiness to
 [scapestack.org](https://www.scapestack.org) after you opt in via
 `Sync on login`, so Scapestack can label skill, quest, diary, collection-log,
 bank readiness and Slayer coverage from a verified RuneLite payload instead of only
 hiscores heuristics.
 
 The plugin does not POST progress by default. Enable `Sync on login`
-in RuneLite settings to send login snapshots; optionally enable
-`Use bank for readiness` for bank item IDs/names/quantities and
+in RuneLite settings to send login snapshots. Bank readiness is included by default
+with item IDs/names/quantities when your bank has been opened; turn off
+`Use bank for readiness` if you only want progress sync. Optionally enable
 `Refresh after quests` for immediate quest refreshes.
 Use `Sync now` when you want to refresh the planner on demand; the toggle
 resets automatically after the sync starts.
@@ -28,7 +29,7 @@ the log was not opened, opened without item slots, or loaded correctly.
 ## Data contract
 
 Sent after opt-in: RSN, plugin version, account type, skill levels, quest and diary completion,
-loaded collection-log item IDs, Slayer state, optional bank item IDs/names/quantities,
+loaded collection-log item IDs, Slayer state, bank item IDs/names/quantities when bank checks are on,
 and the local install token only as the Authorization bearer on claim/sync requests.
 
 Never sent: RuneScape password, inventory, equipment, GE offers, chat,
@@ -42,14 +43,14 @@ Claim and sync requests both carry the token as `Authorization: Bearer <token>`.
 
 ## Web app merge contract
 
-Scapestack Sync is an account-progress verifier with optional bank item readiness.
+Scapestack Sync is an account-progress verifier with bank item readiness included by default.
 After sync, the website can load the verified `/next?rsn=...&source=plugin-sync&bank=none`
 state without making the RuneLite chat message show a long URL.
 
 - `source=plugin-sync` tells Scapestack to load the verified RuneLite payload
-  for skill, quest, diary, collection-log, optional bank readiness and Slayer coverage labels.
+  for skill, quest, diary, collection-log, bank readiness and Slayer coverage labels.
 - `bank=none` prevents stale browser bank context from being silently reused
-  after a plugin sync; if `Use bank for readiness` is enabled, `/next` can still use
+  after a plugin sync; when bank checks are on, `/next` can still use
   the fresh RuneLite bank item payload for quest readiness.
 - Gear-aware prices and manual Bank Tags still use browser Bank Memory or Bank
   Tags; that browser-only bank context is never sent to the plugin.

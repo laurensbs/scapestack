@@ -48,7 +48,7 @@ describe("plugin release check", () => {
     expect(output).toContain("plugin:review-handoff-command");
     expect(output).toContain("replace stale PR-body copy");
     expect(output).toContain("sync is opt-in");
-    expect(output).toContain("posted data is RSN + game-state only");
+    expect(output).toContain("bank checks send item IDs/names/quantities only");
   });
 
   it("summarizes standalone repo status for handoff decisions", async () => {
@@ -175,7 +175,7 @@ describe("plugin release check", () => {
       "The raw install token is sent only as an Authorization bearer; Scapestack stores sha256(token).",
       "Slayer task state is included after opt-in.",
       "Shutdown cancels the active OkHttp call while the background worker returns normally.",
-      "Bank sync sends item IDs/names/quantities only after separate opt-in. No inventory or equipment data is sent."
+      "Bank checks default on after sync and send item IDs/names/quantities only. No inventory or equipment data is sent."
     ].join("\n"))).toEqual([]);
 
     expect(helper.reviewCopyIssuesFromBody([
@@ -185,7 +185,7 @@ describe("plugin release check", () => {
       "Refresh after quests defaults off.",
       "Quest-complete refresh is also gated behind Sync on login.",
       "Slayer task state is included after opt-in.",
-      "Bank sync sends item IDs/names/quantities only after separate opt-in. No inventory or equipment data is sent."
+      "Bank checks default on after sync and send item IDs/names/quantities only. No inventory or equipment data is sent."
     ].join("\n"))).toContain("shutdown thread interrupt");
   });
 
@@ -289,11 +289,13 @@ describe("plugin release check", () => {
     expect(extractScript).toContain("localhost");
     expect(extractScript).toContain("Slayer state");
     expect(extractScript).toContain("Data contract");
+    expect(extractScript).toContain("bank item IDs/names/quantities");
     expect(extractScript).toContain("RuneScape password");
-    expect(extractScript).toContain("bank, inventory, equipment");
+    expect(extractScript).toContain("inventory, equipment");
     expect(extractScript).toContain("Authorization: Bearer <token>");
     expect(extractScript).toContain("verified RuneLite payload");
-    expect(extractScript).toContain("only as the Authorization bearer on claim/sync requests");
+    expect(extractScript).toContain("only as the Authorization");
+    expect(extractScript).toContain("bearer on claim/sync requests");
     expect(extractScript).not.toContain("works from real data");
     expect(extractScript).not.toContain("first-claim security");
     expect(extractScript).toContain("Wrote $TARGET/README.md");

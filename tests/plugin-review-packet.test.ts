@@ -60,7 +60,7 @@ describe("plugin reviewer packet", () => {
     expect(packet).toContain("Replace the old capture list with the current opt-in payload");
     expect(packet).toContain("Slayer task, points, streak and block-list state");
     expect(packet).toContain("no inventory, equipment, GE offers, screenshots, inputs or account login");
-    expect(packet).toContain("bank sync is item IDs/names/quantities only after separate opt-in");
+    expect(packet).toContain("bank sync is item IDs/names/quantities only and can be turned off");
     expect(packet).toContain("Authorization on claim/sync requests");
     expect(packet).toContain("Quest and diary completion");
     expect(packet).toContain("Slayer task, points, streak and block-list state");
@@ -84,9 +84,9 @@ describe("plugin reviewer packet", () => {
     expect(packet).not.toContain("Successful sync chat includes the verified /next URL");
     expect(packet).not.toContain("Successful sync chat includes the exact /next URL");
     expect(packet).toContain("source=plugin-sync&bank=none");
-    expect(packet).toContain("optional RuneLite bank sync sends item IDs, names and quantities only");
+    expect(packet).toContain("RuneLite bank sync sends item IDs, names and quantities only when bank checks are on");
     expect(packet).toContain("Web-app merge contract");
-    expect(packet).toContain("account-progress verifier with optional bank item readiness");
+    expect(packet).toContain("account-progress verifier with bank item readiness included by default");
     expect(packet).toContain("prevents stale browser bank context from being silently reused");
     expect(packet).toContain("readiness rails");
   });
@@ -153,7 +153,7 @@ describe("plugin reviewer packet", () => {
     expect(body).not.toContain("Successful sync chat includes the exact `/next");
     expect(body).toContain("bank context is never sent to the plugin");
     expect(body).toContain("## Web-app merge contract");
-    expect(body).toContain("The plugin is an account-progress verifier with optional bank item readiness.");
+    expect(body).toContain("The plugin is an account-progress verifier with bank item readiness included by default.");
     expect(body).toContain("Players who want GP valuation or manual Bank Tags can still paste Bank Memory or Bank Tags");
     expect(body).toContain("/next, /slayer, /dps, /goals and player profiles all show readiness rails");
   });

@@ -19,7 +19,7 @@ public interface ScapestackSyncConfig extends Config {
     @ConfigItem(
         keyName = "autoSync",
         name = "Sync on login",
-        description = "Keeps your planner current with account mode, skills, quests, diaries and Slayer task. Bank checks stay separate."
+        description = "Keeps your planner current with account mode, skills, quests, diaries, Slayer task and bank readiness."
     )
     default boolean autoSync() {
         return false;
@@ -28,10 +28,10 @@ public interface ScapestackSyncConfig extends Config {
     @ConfigItem(
         keyName = "syncBankItems",
         name = "Use bank for readiness",
-        description = "Lets ScapeStack check which quest and diary items are already in your bank. Never sends inventory, equipment, chat, screenshots or login details."
+        description = "Includes bank item names, IDs and quantities for trip readiness. Turn off if you only want progress sync. Never sends inventory, equipment, chat, screenshots or login details."
     )
     default boolean syncBankItems() {
-        return false;
+        return true;
     }
 
     @ConfigItem(

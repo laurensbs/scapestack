@@ -69,7 +69,7 @@ export function formatPluginSyncSessionChecklist(
       : `4. ${pluginBankStatusLabel(player.bankStatus)}. Paste Bank Memory/Bank Tags in the browser when you need GP value, gear, item IDs or DPS affordability. ${bankUrl}`,
     "5. Re-check sync after quest completions, diary tiers, Collection Log browsing, or Slayer task changes.",
     "",
-    "Boundary: RuneLite sync can include bank item IDs/names/quantities only when bank sync is enabled. It does not include inventory, equipment, chat, screenshots, clicks, keys, account login or install token."
+    "Boundary: RuneLite sync can include bank item IDs/names/quantities when bank checks are on. It does not include inventory, equipment, chat, screenshots, clicks, keys, account login or install token."
   ].join("\n");
 }
 

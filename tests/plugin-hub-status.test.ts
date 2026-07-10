@@ -67,7 +67,7 @@ describe("plugin hub status", () => {
       draft: false,
       merged_at: null,
       updated_at: "2026-06-03T08:00:00Z",
-      body: "Sync on login defaults off. Refresh after quests defaults off. Quest-complete refresh is also gated behind Sync on login. The raw local install token is sent only as an Authorization bearer and Scapestack stores sha256(token). Slayer task state is included after opt-in. Shutdown cancels the active OkHttp call while the background worker returns normally. No bank, inventory or equipment data is sent.",
+      body: "Sync on login defaults off. Bank checks default on for new installs, but bank data only sends after the player syncs. Refresh after quests defaults off. Quest-complete refresh is also gated behind Sync on login. The raw local install token is sent only as an Authorization bearer and Scapestack stores sha256(token). Slayer task state is included after opt-in. Shutdown cancels the active OkHttp call while the background worker returns normally. Bank checks send item IDs/names/quantities only. No inventory or equipment data is sent.",
       html_url: "https://github.com/runelite/plugin-hub/pull/12536"
     }, [], []);
 
@@ -94,6 +94,7 @@ describe("plugin hub status", () => {
     }, [], []);
 
     expect(status.reviewCopyIssues).toContain("shutdown thread interrupt");
+    expect(status.reviewCopyIssues).toContain("bank default copy");
     expect(status.reviewCopySummary).toContain("Live PR body still needs review-copy fixes");
   });
 

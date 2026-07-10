@@ -123,7 +123,7 @@ final class ScapestackSyncPanel extends PluginPanel {
 
     void refresh() {
         SwingUtilities.invokeLater(() -> {
-            bankToggle.setText(config.syncBankItems() ? "Bank checks on" : "Use bank checks");
+            bankToggle.setText(config.syncBankItems() ? "Bank checks on" : "Bank checks off");
             revalidate();
             repaint();
         });
@@ -167,8 +167,8 @@ final class ScapestackSyncPanel extends PluginPanel {
     private JPanel whatSyncsCard() {
         JPanel panel = card();
         panel.add(sectionTitle("Planner checks"));
-        panel.add(copy("Skills, quests, diaries and Slayer task."));
-        panel.add(copy("Bank items only when bank checks are on."));
+        panel.add(copy("Skills, quests, diaries, Slayer task and bank readiness."));
+        panel.add(copy("Turn bank checks off if you only want progress sync."));
         return panel;
     }
 

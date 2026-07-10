@@ -25,7 +25,8 @@ public class ScapestackSyncPanelTest {
         assertTrue(source.contains("Last sync"));
         assertTrue(source.contains("Next action"));
         assertTrue(source.contains("Planner checks"));
-        assertTrue(source.contains("Bank items only when bank checks are on"));
+        assertTrue(source.contains("Skills, quests, diaries, Slayer task and bank readiness"));
+        assertTrue(source.contains("Turn bank checks off if you only want progress sync"));
         assertTrue(source.contains("Collection Log"));
         assertTrue(source.contains("Troubleshooting"));
         assertTrue(source.contains("shouldShowCollectionLogInstruction"));

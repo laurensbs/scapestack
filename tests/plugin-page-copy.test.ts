@@ -10,7 +10,7 @@ describe("plugin page copy constants", () => {
     expect(pageSource).toContain("Check RuneLite.");
     expect(pageSource).toContain("Skip done stuff.");
     expect(pageSource).toContain("No login");
-    expect(pageSource).toContain("Bank opt-in");
+    expect(pageSource).toContain("Bank checks can be turned off");
     expect(pageSource).toContain("No screenshots");
     expect(pageSource).toContain("PluginTrustPill");
     expect(pageSource).toContain("Check RuneLite");
@@ -21,7 +21,7 @@ describe("plugin page copy constants", () => {
     expect(pageSource).toContain("PLAYER_SYNC_CHOICES");
     expect(pageSource).toContain("Press Sync now once");
     expect(pageSource).toContain("Turn on Sync on login");
-    expect(pageSource).toContain("Use bank for readiness");
+    expect(pageSource).toContain("Bank readiness is on");
     expect(pageSource).toContain("Refresh after quests");
     expect(pageSource).not.toContain("Developer/self-hosting endpoint");
     expect(pageSource).not.toContain("Copy developer endpoint");
@@ -188,6 +188,6 @@ describe("plugin page copy constants", () => {
     expect(bannerSource).toContain("Bank added");
     expect(bannerSource).toContain("What sync can add");
     expect(bannerSource).toContain("This browser bank never goes back to RuneLite.");
-    expect(bannerSource).toContain("Plugin bank sync is a separate opt-in");
+    expect(bannerSource).toContain("Plugin bank checks send item IDs, names and quantities only");
   });
 });

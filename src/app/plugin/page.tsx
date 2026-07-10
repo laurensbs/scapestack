@@ -55,9 +55,9 @@ const PLAYER_SYNC_CHOICES = [
     body: "Keeps the next trip current without another browser step."
   },
   {
-    label: "Optional",
-    title: "Use bank for readiness",
-    body: "Only when quest, diary or gear checks should use bank items."
+    label: "Included",
+    title: "Bank readiness is on",
+    body: "Quest, diary and gear checks can use bank items after you open your bank."
   },
   {
     label: "Optional",
@@ -153,7 +153,7 @@ export default function PluginPage() {
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <PluginTrustPill label="No login" />
-            <PluginTrustPill label="Bank opt-in" />
+            <PluginTrustPill label="Bank checks can be turned off" />
             <PluginTrustPill label="No screenshots" />
           </div>
           <div className="mt-5">
@@ -234,7 +234,7 @@ export default function PluginPage() {
           </span>
         </summary>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <InfoTile title="RuneLite adds" body="Skills, quests, diaries, clog, Slayer and optional bank item readiness after opt-in." />
+          <InfoTile title="RuneLite adds" body="Skills, quests, diaries, clog, Slayer and bank item readiness after sync." />
           <InfoTile title="Never reads" body="RuneScape password, inventory, equipment, chat, screenshots or clicks." />
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-4">
             <h3 className="text-[13px] font-bold text-[var(--color-text)]">Nothing showing?</h3>

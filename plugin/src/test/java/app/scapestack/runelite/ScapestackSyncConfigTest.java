@@ -12,7 +12,7 @@ public class ScapestackSyncConfigTest {
     public void defaultsRequireExplicitSyncOptIn() {
         assertFalse(config.syncNow());
         assertFalse(config.autoSync());
-        assertFalse(config.syncBankItems());
+        assertTrue(config.syncBankItems());
         assertFalse(config.syncOnQuestComplete());
         assertFalse(config.forceClaimOnNextSync());
         assertTrue(config.chatFeedback());
@@ -38,9 +38,9 @@ public class ScapestackSyncConfigTest {
             .description();
 
         assertTrue(syncNowDescription.contains("Refresh your ScapeStack planner now"));
-        assertTrue(autoSyncDescription.contains("account mode, skills, quests, diaries and Slayer task"));
-        assertTrue(autoSyncDescription.contains("Bank checks stay separate"));
-        assertTrue(bankSyncDescription.contains("quest and diary items are already in your bank"));
+        assertTrue(autoSyncDescription.contains("account mode, skills, quests, diaries, Slayer task and bank readiness"));
+        assertTrue(bankSyncDescription.contains("Includes bank item names, IDs and quantities"));
+        assertTrue(bankSyncDescription.contains("Turn off if you only want progress sync"));
         assertTrue(bankSyncDescription.contains("Never sends inventory, equipment, chat, screenshots or login details"));
         assertTrue(questSyncDescription.contains("Requires Sync on login"));
 
