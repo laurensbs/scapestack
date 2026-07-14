@@ -3892,6 +3892,101 @@ function LastSyncSummaryCard({ result }: { result: NextUpResult }) {
   );
 }
 
+function ReturnLoopCard({
+  rec,
+  pluginSyncState,
+  hasBankContext,
+  lastSession
+}: {
+  rec: Recommendation;
+  pluginSyncState: "live" | "stale" | "outdated" | null;
+  hasBankContext: boolean;
+  lastSession: MoodSession | null;
+}) {
+  const lastRouteLine = lastSession?.lastHeadlineTitle
+    ? `Last route: ${lastSession.lastHeadlineTitle} (${relativeSince(lastSession.savedAt)}).`
+    : "One trip at a time. Come back after the stop point.";
+  const steps = [
+    {
+      label: "Finish",
+      value: recommendationStopPointValue(rec)
+    },
+    {
+      label: "Check back",
+      value: returnLoopCheckBackLine(pluginSyncState, hasBankContext)
+    },
+    {
+      label: "Next visit",
+      value: returnLoopNextVisitLine(pluginSyncState, hasBankContext)
+    }
+  ];
+
+  return (
+    <section
+      className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/46 px-3.5 py-3"
+      data-return-loop-card="true"
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--color-accent)]">
+            After this trip
+          </p>
+          <p className="mt-1 text-[12px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+            {lastRouteLine}
+          </p>
+        </div>
+        <div className="grid min-w-0 flex-1 gap-2 sm:max-w-[720px] sm:grid-cols-3">
+          {steps.map((step) => (
+            <div
+              key={step.label}
+              className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/38 px-3 py-2"
+            >
+              <div className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--color-accent)]">
+                {step.label}
+              </div>
+              <div className="mt-1 text-[11.5px] font-semibold leading-snug text-[var(--color-text-dim)]">
+                {step.value}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function returnLoopCheckBackLine(
+  pluginSyncState: "live" | "stale" | "outdated" | null,
+  hasBankContext: boolean
+): string {
+  if (pluginSyncState === "live") {
+    return "Mark done here, or press Sync in RuneLite after progress.";
+  }
+  if (pluginSyncState === "stale" || pluginSyncState === "outdated") {
+    return "Refresh RuneLite after the trip so finished stuff disappears.";
+  }
+  if (hasBankContext) {
+    return "Refresh bank only if gear, supplies or GP changed.";
+  }
+  return "Mark done here; add bank later only when gear matters.";
+}
+
+function returnLoopNextVisitLine(
+  pluginSyncState: "live" | "stale" | "outdated" | null,
+  hasBankContext: boolean
+): string {
+  if (pluginSyncState === "live") {
+    return "XP, quests, diary tiers, clog and Slayer can move the next pick.";
+  }
+  if (pluginSyncState === "stale" || pluginSyncState === "outdated") {
+    return "Fresh RuneLite progress can change the route instead of repeating it.";
+  }
+  if (hasBankContext) {
+    return "Bank changes can unlock better trips, gear or buy lists.";
+  }
+  return "Your skips and done picks still shape the next route.";
+}
+
 function lastSyncSummaryLines(result: NextUpResult): string[] {
   const summary = result.summary.lastSyncSummary;
   if (!summary) return [];
@@ -4776,6 +4871,12 @@ function WhatToDo({
               accountMode={accountMode}
             />
             <LastSyncSummaryCard result={syncResult} />
+            <ReturnLoopCard
+              rec={activePick.headline}
+              pluginSyncState={pluginSyncState}
+              hasBankContext={hasBankContext}
+              lastSession={lastSession}
+            />
             <RecHeadlineExpandable
               rec={activePick.headline}
               allRecs={allRecs}

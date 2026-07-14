@@ -57,6 +57,20 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("sync payload");
   });
 
+  it("turns /next into a return loop instead of a one-off answer", () => {
+    expect(source).toContain("function ReturnLoopCard");
+    expect(source).toContain('data-return-loop-card="true"');
+    expect(source).toContain("After this trip");
+    expect(source).toContain("One trip at a time. Come back after the stop point.");
+    expect(source).toContain("Mark done here, or press Sync in RuneLite after progress.");
+    expect(source).toContain("XP, quests, diary tiers, clog and Slayer can move the next pick.");
+    expect(source).toContain("Fresh RuneLite progress can change the route instead of repeating it.");
+    expect(source).toContain("Your skips and done picks still shape the next route.");
+    expect(source).toContain("<ReturnLoopCard");
+    expect(source).not.toContain("Retention metrics");
+    expect(source).not.toContain("Activity dashboard");
+  });
+
   it("keeps missing context out of the recommendation card chrome", () => {
     expect(source).toContain("function MakePlanSmarter");
     expect(source).toContain("Change input");
