@@ -697,6 +697,13 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("torstol");
     expect(source).toContain("pure essence");
     expect(source).toContain("magic seeds");
+    expect(source).toContain('skill: "Fishing"');
+    expect(source).toContain('skill: "Woodcutting"');
+    expect(source).toContain('skill: "Mining"');
+    expect(source).toContain('skill: "Hunter"');
+    expect(source).toContain("neededAfterBankLabel");
+    expect(source).toContain("Need about ${Math.ceil(remainingAfterBank / bestXpMethod.xp).toLocaleString()} more ${bestXpMethod.label}");
+    expect(source).toContain("Bank has ${summary.bankItemsLabel}. Use that method;");
     expect(source).not.toContain("{skillingSummary.skill} route");
     expect(source).not.toContain("Need:");
     expect(source).not.toContain("Use:");

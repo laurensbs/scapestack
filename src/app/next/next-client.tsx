@@ -3168,14 +3168,16 @@ type SkillingBankSummary = {
   xpRemaining: number | null;
   bankXp: number;
   bankItemsLabel: string;
+  hasBankMatch: boolean;
   suppliesLabel: string;
   actionVerb: string;
   bringHint: string;
   remainingAfterBank: number | null;
+  neededAfterBankLabel: string | null;
   bankCoversTarget: boolean;
 };
 
-type SkillBankSupply = { pattern: RegExp; label: string; xp: number };
+type SkillBankSupply = { pattern: RegExp; label: string; xp?: number };
 
 type SkillBankConfig = {
   skill: string;
@@ -3205,6 +3207,33 @@ const SKILL_BANK_XP: SkillBankConfig[] = [
       { pattern: /^raw tuna$/i, label: "raw tuna", xp: 100 },
       { pattern: /^raw salmon$/i, label: "raw salmon", xp: 90 },
       { pattern: /^raw trout$/i, label: "raw trout", xp: 70 }
+    ]
+  },
+  {
+    skill: "Fishing",
+    suppliesLabel: "fishing gear",
+    actionVerb: "Fish",
+    bringHint: "Rod/harpoon/net, bait if needed and the closest bank or drop spot",
+    keywords: ["rod", "harpoon", "lobster pot", "net", "bait", "feather", "fish barrel", "karambwan vessel"],
+    items: [
+      { pattern: /^feather$/i, label: "feathers" },
+      { pattern: /^fishing bait$/i, label: "fishing bait" },
+      { pattern: /karambwan vessel/i, label: "karambwan vessel" },
+      { pattern: /harpoon/i, label: "harpoon route" },
+      { pattern: /barbarian rod/i, label: "barbarian rod route" },
+      { pattern: /^fly fishing rod$/i, label: "fly fishing rod route" }
+    ]
+  },
+  {
+    skill: "Woodcutting",
+    suppliesLabel: "axe/log route",
+    actionVerb: "Chop",
+    bringHint: "Best axe you own and the tree/bank route you want to use",
+    keywords: ["axe", "logs", "log", "redwood", "yew", "magic"],
+    items: [
+      { pattern: /crystal axe/i, label: "crystal axe route" },
+      { pattern: /dragon axe/i, label: "dragon axe route" },
+      { pattern: /rune axe/i, label: "rune axe route" }
     ]
   },
   {
@@ -3301,6 +3330,18 @@ const SKILL_BANK_XP: SkillBankConfig[] = [
     ]
   },
   {
+    skill: "Mining",
+    suppliesLabel: "pickaxe/ore route",
+    actionVerb: "Mine",
+    bringHint: "Best pickaxe you own and the mine, amethyst or blast mine route",
+    keywords: ["pickaxe", "ore", "amethyst", "pay-dirt", "prospector"],
+    items: [
+      { pattern: /crystal pickaxe/i, label: "crystal pickaxe route" },
+      { pattern: /dragon pickaxe/i, label: "dragon pickaxe route" },
+      { pattern: /rune pickaxe/i, label: "rune pickaxe route" }
+    ]
+  },
+  {
     skill: "Herblore",
     suppliesLabel: "herbs/secondaries",
     actionVerb: "Mix",
@@ -3315,6 +3356,21 @@ const SKILL_BANK_XP: SkillBankConfig[] = [
       { pattern: /^snapdragon$/i, label: "snapdragon", xp: 142.5 },
       { pattern: /^toadflax$/i, label: "toadflax", xp: 63.3 },
       { pattern: /^ranarr weed$/i, label: "ranarr weed", xp: 87.5 }
+    ]
+  },
+  {
+    skill: "Hunter",
+    suppliesLabel: "traps/birdhouse supplies",
+    actionVerb: "Hunt",
+    bringHint: "Logs, clockworks, seeds and teleports for one clean birdhouse or trap loop",
+    keywords: ["box trap", "bird snare", "clockwork", "logs", "seed", "butterfly net", "impling jar"],
+    items: [
+      { pattern: /^redwood logs$/i, label: "redwood birdhouses", xp: 1200 },
+      { pattern: /^magic logs$/i, label: "magic birdhouses", xp: 1140 },
+      { pattern: /^yew logs$/i, label: "yew birdhouses", xp: 1020 },
+      { pattern: /^maple logs$/i, label: "maple birdhouses", xp: 820 },
+      { pattern: /^clockwork$/i, label: "clockworks", xp: 820 },
+      { pattern: /^box trap$/i, label: "box trap route", xp: 265 }
     ]
   },
   {
@@ -3369,25 +3425,31 @@ function skillingBankSummaryForRecommendation(
   const owned = config.items
     .map((method) => {
       const quantity = bankQuantityMatching(bankItems, method.pattern);
-      return { ...method, quantity, xpTotal: quantity * method.xp };
+      return { ...method, quantity, xpTotal: quantity * (method.xp ?? 0) };
     })
     .filter((item) => item.quantity > 0)
     .sort((a, b) => b.xpTotal - a.xpTotal);
   const bankXp = owned.reduce((sum, item) => sum + item.xpTotal, 0);
+  const bestXpMethod = owned.find((item) => item.xpTotal > 0) ?? config.items.find((item) => (item.xp ?? 0) > 0) ?? null;
   const bankItemsLabel = owned.length
     ? owned.slice(0, 3).map((item) => `${item.quantity.toLocaleString()} ${item.label}`).join(", ")
     : `No ${config.suppliesLabel} found in this bank`;
   const remainingAfterBank = xpRemaining === null ? null : Math.max(0, xpRemaining - bankXp);
+  const neededAfterBankLabel = remainingAfterBank && remainingAfterBank > 0 && bestXpMethod?.xp
+    ? `Need about ${Math.ceil(remainingAfterBank / bestXpMethod.xp).toLocaleString()} more ${bestXpMethod.label} if you keep this method.`
+    : null;
 
   return {
     skill: config.skill,
     xpRemaining,
     bankXp,
     bankItemsLabel,
+    hasBankMatch: owned.length > 0,
     suppliesLabel: config.suppliesLabel,
     actionVerb: config.actionVerb,
     bringHint: config.bringHint,
     remainingAfterBank,
+    neededAfterBankLabel,
     bankCoversTarget: xpRemaining !== null && bankXp >= xpRemaining && xpRemaining > 0
   };
 }
@@ -3423,7 +3485,14 @@ function routeStepPrep(
         : summary.remainingAfterBank === 0
           ? "enough for the 99 push"
           : `${formatXp(summary.remainingAfterBank)} still left after that`;
-      return `Bank has ${summary.bankItemsLabel} (~${formatXp(summary.bankXp)}). ${summary.actionVerb} those first; ${gap}.`;
+      const needed = summary.neededAfterBankLabel ? ` ${summary.neededAfterBankLabel}` : "";
+      return `Bank has ${summary.bankItemsLabel} (~${formatXp(summary.bankXp)}). ${summary.actionVerb} those first; ${gap}.${needed}`;
+    }
+    if (summary.hasBankMatch) {
+      const gap = summary.xpRemaining === null
+        ? "check the level gap after the route"
+        : `${formatXp(summary.xpRemaining)} left for 99`;
+      return `Bank has ${summary.bankItemsLabel}. Use that method; ${gap}.`;
     }
     return isIron
       ? `No ${summary.suppliesLabel} in the pasted bank. Gather your own supply first, then train the stack.`
@@ -3463,6 +3532,7 @@ function routeStepBring(
   const summary = skillingBankSummaryForRecommendation(rec, bankItems, maxEstimate);
   if (summary) {
     if (summary.bankXp > 0) return `${summary.bankItemsLabel}. ${summary.bringHint}.`;
+    if (summary.hasBankMatch) return `${summary.bankItemsLabel}. ${summary.bringHint}.`;
     return accountStage.id === "iron-route"
       ? `${summary.suppliesLabel} first, then train what you gather.`
       : `${summary.suppliesLabel} or GP for the method.`;
