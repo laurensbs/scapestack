@@ -4057,6 +4057,132 @@ function returnLoopNextVisitLine(
   return "Your skips and done picks still shape the next route.";
 }
 
+function routeTimelineItems({
+  headline,
+  recs,
+  pluginSyncState,
+  hasBankContext,
+  lastSession
+}: {
+  headline: Recommendation;
+  recs: Recommendation[];
+  pluginSyncState: "live" | "stale" | "outdated" | null;
+  hasBankContext: boolean;
+  lastSession: MoodSession | null;
+}): Array<{ label: string; title: string; helper: string; tone?: "accent" | "muted" }> {
+  const uniqueRecs = recs.filter((rec, index, list) => (
+    rec.id !== headline.id && list.findIndex((item) => item.id === rec.id) === index
+  ));
+  const afterPick = uniqueRecs.find((rec) => rec.kind !== headline.kind) ?? uniqueRecs[0] ?? null;
+  const shortPick = uniqueRecs.find((rec) => (
+    rec.kind === "skill" ||
+    rec.kind === "bank" ||
+    rec.kind === "minigame" ||
+    rec.routeTags?.includes("afk") ||
+    /herb|birdhouse|farm|agility|cooking|fish|woodcut|mine/i.test(rec.title)
+  )) ?? afterPick;
+  const nextLoginTitle = pluginSyncState === "live"
+    ? "Sync after progress"
+    : pluginSyncState === "stale" || pluginSyncState === "outdated"
+      ? "Fresh RuneLite check"
+      : hasBankContext
+        ? "Refresh bank if it changed"
+        : "Come back after the stop point";
+  const nextLoginHelper = pluginSyncState === "live"
+    ? "Finished quests, diary steps, clog slots and Slayer can move the next pick."
+    : pluginSyncState === "stale" || pluginSyncState === "outdated"
+      ? "Press Sync in RuneLite before a longer grind so finished stuff disappears."
+      : hasBankContext
+        ? "Only update the bank when gear, supplies or GP changed."
+        : "Your done picks and skips keep shaping the route.";
+  const lastRoute = lastSession?.lastHeadlineTitle
+    ? `Last route was ${lastSession.lastHeadlineTitle}; this keeps the chain moving.`
+    : recommendationStopPointValue(headline);
+
+  return [
+    {
+      label: "Now",
+      title: headline.title,
+      helper: recommendationFirstStepValue(headline),
+      tone: "accent"
+    },
+    {
+      label: "After",
+      title: afterPick?.title ?? "Re-check the route",
+      helper: afterPick ? backupChoicePrompt(afterPick, headline).helper : lastRoute
+    },
+    {
+      label: "Short login",
+      title: shortPick?.title ?? "Bank reset or quick prep",
+      helper: shortPick
+        ? "Use this if you only have a few minutes."
+        : "Use the stop point, then leave the bigger grind for later."
+    },
+    {
+      label: "Next login",
+      title: nextLoginTitle,
+      helper: nextLoginHelper
+    }
+  ];
+}
+
+function SessionRouteTimeline({
+  headline,
+  recs,
+  pluginSyncState,
+  hasBankContext,
+  lastSession
+}: {
+  headline: Recommendation;
+  recs: Recommendation[];
+  pluginSyncState: "live" | "stale" | "outdated" | null;
+  hasBankContext: boolean;
+  lastSession: MoodSession | null;
+}) {
+  const items = routeTimelineItems({
+    headline,
+    recs,
+    pluginSyncState,
+    hasBankContext,
+    lastSession
+  });
+
+  return (
+    <section
+      className="rounded-xl border border-[var(--color-border)]/85 bg-[var(--color-panel)]/34 p-3"
+      data-session-route-timeline="true"
+    >
+      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+        <p className="text-[12px] font-black text-[var(--color-text)]">Route after this</p>
+        <p className="text-[11px] font-semibold text-[var(--color-text-muted)]">One chain, not a pile of chores.</p>
+      </div>
+      <div className="grid gap-2 md:grid-cols-4">
+        {items.map((item) => (
+          <div
+            key={`${item.label}:${item.title}`}
+            className={cn(
+              "rounded-lg border px-3 py-3",
+              item.tone === "accent"
+                ? "border-[var(--color-accent)]/45 bg-[var(--color-accent)]/10"
+                : "border-[var(--color-border)] bg-[var(--color-bg)]/34"
+            )}
+          >
+            <div className="text-[10px] font-black uppercase tracking-[0.15em] text-[var(--color-accent)]">
+              {item.label}
+            </div>
+            <div className="mt-1.5 text-[13px] font-black leading-tight text-[var(--color-text)]">
+              {item.title}
+            </div>
+            <div className="mt-1.5 line-clamp-2 text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+              {item.helper}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function lastSyncSummaryLines(result: NextUpResult): string[] {
   const summary = result.summary.lastSyncSummary;
   if (!summary) return [];
@@ -4941,12 +5067,6 @@ function WhatToDo({
               accountMode={accountMode}
             />
             <LastSyncSummaryCard result={syncResult} />
-            <ReturnLoopCard
-              rec={activePick.headline}
-              pluginSyncState={pluginSyncState}
-              hasBankContext={hasBankContext}
-              lastSession={lastSession}
-            />
             <RecHeadlineExpandable
               rec={activePick.headline}
               allRecs={allRecs}
@@ -4967,6 +5087,13 @@ function WhatToDo({
               maxEstimate={maxEstimate}
               pluginSyncState={pluginSyncState}
               pluginBankStatus={pluginSyncSummary?.bankStatus ?? null}
+            />
+            <SessionRouteTimeline
+              headline={activePick.headline}
+              recs={routePreviewRecs}
+              pluginSyncState={pluginSyncState}
+              hasBankContext={hasBankContext}
+              lastSession={lastSession}
             />
             {fallbackRecs.length > 0 && (
               <details className="group rounded-lg border border-transparent">

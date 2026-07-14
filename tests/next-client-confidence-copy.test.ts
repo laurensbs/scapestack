@@ -60,13 +60,25 @@ describe("/next confidence UI copy", () => {
   it("turns /next into a return loop instead of a one-off answer", () => {
     expect(source).toContain("function ReturnLoopCard");
     expect(source).toContain('data-return-loop-card="true"');
+    expect(source).toContain("function SessionRouteTimeline");
+    expect(source).toContain("function routeTimelineItems");
+    expect(source).toContain('data-session-route-timeline="true"');
+    expect(source).toContain("Route after this");
+    expect(source).toContain("One chain, not a pile of chores.");
+    expect(source).toContain('label: "Now"');
+    expect(source).toContain('label: "After"');
+    expect(source).toContain('label: "Short login"');
+    expect(source).toContain('label: "Next login"');
+    expect(source).toContain("<SessionRouteTimeline");
     expect(source).toContain("After this trip");
     expect(source).toContain("One trip at a time. Come back after the stop point.");
     expect(source).toContain("Mark done here, or press Sync in RuneLite after progress.");
     expect(source).toContain("XP, quests, diary tiers, clog and Slayer can move the next pick.");
     expect(source).toContain("Fresh RuneLite progress can change the route instead of repeating it.");
     expect(source).toContain("Your skips and done picks still shape the next route.");
-    expect(source).toContain("<ReturnLoopCard");
+    expect(source).not.toContain("<ReturnLoopCard");
+    expect(source).not.toContain("Session timeline");
+    expect(source).not.toContain("Timeline dashboard");
     expect(source).not.toContain("Retention metrics");
     expect(source).not.toContain("Activity dashboard");
   });
