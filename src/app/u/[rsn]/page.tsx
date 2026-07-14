@@ -1,16 +1,16 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, DatabaseZap, PlugZap, Shield, Sparkles, Target, Trophy } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, DatabaseZap, PlugZap, Shield, Sparkles, Sword, Trophy } from "lucide-react";
 import {
   fetchHiscores, computeCombatLevel, computeTotalLevel, totalXp,
   topSkills, formatXp, normalizeRsn
 } from "@/lib/hiscores";
 import { LocalBankSummary } from "./local-bank-summary";
-import { ProfileReadinessRail } from "./profile-readiness-rail";
 import { cn } from "@/lib/utils";
 import { skillSpriteUrl } from "@/lib/sprites";
 import { pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
 import { bankOrganizerHref } from "@/lib/bank-handoff-url";
+import { getSyncedPlayer, type SyncedPlayer, type SyncDeltaSummary } from "@/lib/sync-repo";
 
 interface Props {
   params: Promise<{ rsn: string }>;
@@ -55,6 +55,7 @@ export default async function PlayerProfile({ params }: Props) {
   const profileNextHref = nextUrlForProfile(hi.name);
   const pluginHref = pluginVerifyUrlForSyncedRsn(hi.name, "profile");
   const bankHref = bankOrganizerHref(hi.name, "profile");
+  const synced = await getSyncedPlayer(hi.name);
 
   return (
     <main className="relative z-10 mx-auto max-w-5xl px-5 py-8 pb-20">
@@ -121,9 +122,13 @@ export default async function PlayerProfile({ params }: Props) {
         </div>
       </section>
 
-      <ProfileActionRail rsn={hi.name} profileNextHref={profileNextHref} pluginHref={pluginHref} bankHref={bankHref} />
-
-      <ProfileReadinessRail rsn={hi.name} />
+      <AccountHomeBoard
+        rsn={hi.name}
+        profileNextHref={profileNextHref}
+        pluginHref={pluginHref}
+        bankHref={bankHref}
+        synced={synced}
+      />
 
       {/* Bank summary if locally available */}
       <LocalBankSummary rsn={hi.name} />
@@ -162,46 +167,168 @@ export default async function PlayerProfile({ params }: Props) {
   );
 }
 
-function ProfileActionRail({
+function AccountHomeBoard({
   rsn,
   profileNextHref,
   pluginHref,
-  bankHref
+  bankHref,
+  synced
 }: {
   rsn: string;
   profileNextHref: string;
   pluginHref: string;
   bankHref: string;
+  synced: SyncedPlayer | null;
 }) {
+  const runeliteLine = synced
+    ? `RuneLite last checked ${formatProfileScanTime(synced.syncedAt)}`
+    : "Add RuneLite when finished quests, diaries, clog or Slayer matter.";
+  const bankLine = synced?.bankItems.length
+    ? `${synced.bankItems.length.toLocaleString()} bank stacks from RuneLite`
+    : "Paste Bank Memory or Bank Tags when gear, supplies or GP should change the route.";
+  const changedLines = profileWhatChangedLines(synced?.lastSyncSummary ?? null);
+
   return (
-    <section className="mb-6 grid gap-3 md:grid-cols-3">
-      <ProfileActionCard
-        icon={Target}
-        href={profileNextHref}
-        eyebrow="Best next move"
-        title="Plan from profile"
-        body={`Uses ${rsn}'s Hiscores as the starting point. RuneLite and gear can sharpen it when finished stuff or supplies matter.`}
-        cta="Open plan"
-        strong
-      />
-      <ProfileActionCard
-        icon={PlugZap}
-        href={pluginHref}
-        eyebrow="Live state"
-        title="Sync RuneLite"
-        body="Verify the plugin setup so tasks, account context and later bank data stay connected instead of becoming separate flows."
-        cta="Verify sync"
-      />
-      <ProfileActionCard
-        icon={DatabaseZap}
-        href={bankHref}
-        eyebrow="Gear-aware"
-        title="Upload bank"
-        body="Paste Bank Memory or Bank Tags so recommendations account for gear, supplies and unlocks."
-        cta="Add bank"
-      />
+    <section
+      className={cn(
+        "mb-6 rounded-2xl border border-[var(--color-gold)]/45 p-4 sm:p-5",
+        "bg-gradient-to-br from-[var(--color-osrs-wood)] to-[var(--color-bg)]",
+        "shadow-[0_24px_70px_-45px_oklch(0.74_0.13_75/0.8)]"
+      )}
+      data-account-home-board="true"
+    >
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="min-w-0">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[var(--color-gold)]/35 bg-black/20 px-3 py-1 text-[11px] font-bold text-[var(--color-gold)]">
+            <CheckCircle2 className="size-3.5" />
+            Account home
+          </div>
+          <h2 className="text-2xl font-black leading-tight text-[var(--color-text)] sm:text-4xl">
+            Welcome back, {rsn}.
+          </h2>
+          <p className="mt-2 max-w-2xl text-[13px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+            Start here every login. Scapestack keeps the account, bank and RuneLite context together so the next trip does not feel random.
+          </p>
+
+          <Link
+            href={profileNextHref}
+            className={cn(
+              "mt-5 inline-flex w-full items-center justify-between gap-3 rounded-xl px-4 py-4 text-[15px] font-black sm:max-w-md",
+              "bg-gradient-to-b from-[oklch(0.92_0.14_85)] to-[oklch(0.62_0.16_65)]",
+              "text-[oklch(0.15_0.02_50)] border border-[oklch(0.46_0.13_60)]",
+              "shadow-[0_4px_0_oklch(0_0_0/0.55),inset_0_1px_0_oklch(1_0_0/0.35)]",
+              "hover:brightness-110 hover:-translate-y-px transition-all"
+            )}
+          >
+            Plan next trip <ArrowRight className="size-5" />
+          </Link>
+
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            <ProfileQuickAction icon={DatabaseZap} href={bankHref} title={synced?.bankItems.length ? "Bank added" : "Add bank"} body={`${bankLine} Scapestack can account for gear, supplies and unlocks.`} />
+            <ProfileQuickAction icon={Sword} href={`/dps?rsn=${encodeURIComponent(rsn)}&from=profile`} title="Check kill" body="Pick a boss and see gear, supplies and upgrades from your bank." />
+            <ProfileQuickAction icon={PlugZap} href={pluginHref} title={synced ? "Refresh RuneLite" : "Add RuneLite"} body={runeliteLine} />
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-[var(--color-border)] bg-black/18 p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h3 className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--color-gold)]">
+              What changed
+            </h3>
+            {synced?.syncedAt && (
+              <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">
+                {formatProfileScanTime(synced.syncedAt)}
+              </span>
+            )}
+          </div>
+          <div className="space-y-2">
+            {changedLines.length > 0 ? (
+              changedLines.map((line) => (
+                <div
+                  key={line}
+                  className="rounded-lg border border-[var(--color-gold)]/20 bg-[var(--color-gold)]/8 px-3 py-2 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]"
+                >
+                  {line}
+                </div>
+              ))
+            ) : (
+              <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-3 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+                {synced
+                  ? "No new RuneLite changes yet. Do a trip, press Sync, then this page should show what moved."
+                  : "No RuneLite scan yet. Add RuneLite once and this page can show XP, quests, diaries, clog and Slayer changes."}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </section>
   );
+}
+
+function ProfileQuickAction({
+  icon: Icon,
+  href,
+  title,
+  body
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  href: string;
+  title: string;
+  body: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group rounded-xl border border-[var(--color-border)] bg-black/16 p-3 transition-colors hover:border-[var(--color-gold)]/55 hover:bg-[var(--color-gold)]/8"
+    >
+      <div className="mb-2 flex items-center gap-2">
+        <Icon className="size-4 text-[var(--color-gold)]" />
+        <span className="text-[13px] font-black text-[var(--color-text)]">{title}</span>
+      </div>
+      <p className="text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">{body}</p>
+    </Link>
+  );
+}
+
+function formatProfileScanTime(iso: string): string {
+  const date = new Date(iso);
+  if (!Number.isFinite(date.getTime())) return "scan time unknown";
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(date);
+}
+
+function profileWhatChangedLines(summary: SyncDeltaSummary | null): string[] {
+  if (!summary) return [];
+  const lines: string[] = [];
+  for (const skill of summary.skills.slice(0, 3)) {
+    const level = skill.currentLevel > skill.previousLevel
+      ? `${skill.name} ${skill.previousLevel}->${skill.currentLevel}`
+      : skill.name;
+    const xp = skill.xpGained > 0 ? ` +${formatXp(skill.xpGained)}` : "";
+    lines.push(`${level}${xp}`);
+  }
+  if (summary.questsCompleted.length > 0) {
+    lines.push(`Finished quest: ${summary.questsCompleted.slice(0, 2).join(", ")}`);
+  }
+  if (summary.diariesCompleted.length > 0) {
+    lines.push(`Diary done: ${summary.diariesCompleted.slice(0, 2).map((diary) => `${diary.region} ${diary.tier}`).join(", ")}`);
+  }
+  if (summary.collectionLogItems.length > 0) {
+    lines.push(`New clog: ${summary.collectionLogItems.slice(0, 2).map((item) => item.name).join(", ")}`);
+  } else if (summary.collectionLogItemIds.length > 0) {
+    lines.push(`${summary.collectionLogItemIds.length.toLocaleString()} new clog item${summary.collectionLogItemIds.length === 1 ? "" : "s"}`);
+  }
+  if (summary.bank?.itemCountChanged) {
+    lines.push(`Bank moved from ${summary.bank.previousItemCount.toLocaleString()} to ${summary.bank.currentItemCount.toLocaleString()} stacks`);
+  }
+  if (summary.accountType.changed) {
+    lines.push("Account type changed; routes can shift.");
+  }
+  return lines.slice(0, 5);
 }
 
 function nextUrlForProfile(rsn: string): string {
@@ -210,52 +337,6 @@ function nextUrlForProfile(rsn: string): string {
   if (cleanRsn) params.set("rsn", cleanRsn);
   params.set("from", "profile");
   return `/next?${params.toString()}`;
-}
-
-function ProfileActionCard({
-  icon: Icon,
-  href,
-  eyebrow,
-  title,
-  body,
-  cta,
-  strong = false
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  href: string;
-  eyebrow: string;
-  title: string;
-  body: string;
-  cta: string;
-  strong?: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        "group rounded-2xl border p-4 transition-all",
-        "bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)]",
-        strong
-          ? "border-[var(--color-gold)]/55 shadow-[0_16px_40px_-24px_oklch(0.74_0.13_75/0.75)] hover:border-[var(--color-gold)]"
-          : "border-[var(--color-border)] hover:border-[var(--color-gold)]/55",
-        "hover:-translate-y-0.5 hover:shadow-[0_18px_42px_-28px_rgb(0_0_0/0.85)]"
-      )}
-    >
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <span className="inline-flex size-9 items-center justify-center rounded-xl border border-[var(--color-border)] bg-black/20 text-[var(--color-gold)]">
-          <Icon className="size-4" />
-        </span>
-        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-gold-soft)]">
-          {eyebrow}
-        </span>
-      </div>
-      <h2 className="text-lg font-black text-[var(--color-text)]">{title}</h2>
-      <p className="mt-1 min-h-12 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">{body}</p>
-      <span className="mt-4 inline-flex items-center gap-1.5 text-[12px] font-bold text-[var(--color-gold)]">
-        {cta} <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
-      </span>
-    </Link>
-  );
 }
 
 function Stat({ icon: Icon, label, value }: { icon?: React.ComponentType<{ className?: string }>; label: string; value: string }) {
