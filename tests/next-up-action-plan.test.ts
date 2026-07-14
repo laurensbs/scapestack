@@ -227,7 +227,7 @@ describe("next-up action plans", () => {
       source: "unknown",
       badgeLabel: "Account mode unknown"
     });
-    expect(result.summary.accountMode.planningNote).toContain("bank readiness only counts");
+    expect(result.summary.accountMode.planningNote).toContain("real bank is added");
   });
 
   it("treats Ultimate Ironman from Scapestack sync as an iron route", async () => {
@@ -253,7 +253,7 @@ describe("next-up action plans", () => {
 
     expect(result.summary.accountType).toBe("ultimate");
     expect(result.summary.accountMode.badgeLabel).toBe("Ultimate Ironman detected");
-    expect(result.summary.accountMode.planningNote).toContain("bank-ready is not normal readiness");
+    expect(result.summary.accountMode.planningNote).toContain("normal bank planning does not apply");
     expect(result.summary.accountStage.id).toBe("iron-route");
     expect(recs.some((rec) => rec?.id === "skill:iron-herb-birdhouse-loop")).toBe(true);
     expect(recs.some((rec) => rec?.kind === "money")).toBe(false);

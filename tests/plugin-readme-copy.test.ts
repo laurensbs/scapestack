@@ -5,13 +5,13 @@ import { describe, expect, it } from "vitest";
 const readme = readFileSync(join(process.cwd(), "plugin/README.md"), "utf8");
 
 describe("plugin README copy", () => {
-  it("explains plugin /next links and included bank readiness", () => {
+  it("explains plugin /next links and included bank items", () => {
     expect(readme).toContain("## Web app merge contract");
-    expect(readme).toContain("account-progress verifier with bank item readiness included by default");
+    expect(readme).toContain("account-progress helper with bank items included by default");
     expect(readme).toContain("/next?rsn=...&source=plugin-sync&bank=none");
     expect(readme).toContain("bank=none");
     expect(readme).toContain("prevents stale browser bank context from being silently reused");
-    expect(readme).toContain("Use bank for readiness");
+    expect(readme).toContain("Use bank for trips");
     expect(readme).toContain("turn off");
     expect(readme).toContain("fresh RuneLite bank");
     expect(readme).toContain("normal players do not paste or configure a");
@@ -34,9 +34,9 @@ describe("plugin README copy", () => {
   it("uses verified coverage language instead of overclaiming recommendations", () => {
     const manifest = readFileSync(join(process.cwd(), "plugin/runelite-plugin.properties"), "utf8");
 
-    expect(readme).toContain("coverage from a verified RuneLite payload");
+    expect(readme).toContain("coverage from RuneLite");
     expect(manifest).toContain("OSRS session planner");
-    expect(manifest).toContain("bank readiness");
+    expect(manifest).toContain("bank items");
     expect(manifest).not.toContain("accurate recommendations");
   });
 });

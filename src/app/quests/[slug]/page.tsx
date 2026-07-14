@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<PageParams>
   if (!quest) return { title: "Quest requirements" };
   return {
     title: `${quest.name} requirements`,
-    description: `Skill, quest, item and bank readiness requirements for ${quest.name}.`
+    description: `Skill, quest, item and bank checks for ${quest.name}.`
   };
 }
 

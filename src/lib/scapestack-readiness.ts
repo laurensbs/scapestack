@@ -171,7 +171,7 @@ export function buildScapestackReadiness(input: ScapestackReadinessInput): Scape
       status: hasExactPluginSync ? "exact" : hasPluginSync ? "ready" : "missing",
       sourceLabel: syncSourceLabel,
       detail: syncDetail,
-      adds: ["skills", "quests", "diaries", "collection log", "Slayer", "bank readiness"],
+      adds: ["skills", "XP", "quests", "diaries", "collection log", "Slayer", "bank items"],
       boundary: "Bank item IDs/names/quantities are included when bank checks are on; never includes inventory, equipment, chat, screenshots, clicks or account login.",
       notice: syncNotice,
       action: hasPluginSync

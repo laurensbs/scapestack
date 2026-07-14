@@ -38,7 +38,7 @@ export function buildBankPluginIntakeBridge(rsn?: string | null): BankPluginInta
     signals: [
       {
         label: "RuneLite helps",
-        value: "skills, quests, diaries, clog, Slayer and bank readiness"
+        value: "skills, XP, quests, diaries, clog, Slayer and bank items"
       },
       {
         label: "Bank context helps",

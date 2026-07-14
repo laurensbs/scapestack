@@ -10,7 +10,7 @@ describe("plugin page copy constants", () => {
     expect(pageSource).toContain("Check RuneLite.");
     expect(pageSource).toContain("Skip done stuff.");
     expect(pageSource).toContain("No login");
-    expect(pageSource).toContain("Bank checks can be turned off");
+    expect(pageSource).toContain("Bank can be turned off");
     expect(pageSource).toContain("No screenshots");
     expect(pageSource).toContain("PluginTrustPill");
     expect(pageSource).toContain("Check RuneLite");

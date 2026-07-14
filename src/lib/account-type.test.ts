@@ -86,8 +86,8 @@ describe("Scapestack account types", () => {
       source: "unknown",
       badgeLabel: "Account mode unknown"
     });
-    expect(mode.planningNote).toContain("bank readiness only counts");
-    expect(accountModeImpactNote("ultimate")).toContain("bank-ready is not normal readiness");
+    expect(mode.planningNote).toContain("real bank is added");
+    expect(accountModeImpactNote("ultimate")).toContain("normal bank planning does not apply");
   });
 
   it("provides a central visual model for every supported player-facing mode", () => {
@@ -115,7 +115,7 @@ describe("Scapestack account types", () => {
     expect(accountModeVisual("ultimate", "detected")).toMatchObject({
       badgeLabel: "Ultimate Ironman detected",
       iconItemId: 12813,
-      bankCopy: "Staging checklist; normal bank-ready does not apply."
+      bankCopy: "Staging checklist; normal bank planning does not apply."
     });
     expect(accountModeVisual("group", "detected")).toMatchObject({
       badgeLabel: "Group Ironman detected",

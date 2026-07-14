@@ -55,6 +55,7 @@ describe("end-to-end syncflow regression contracts", () => {
   it("does not create a sync delta on first sync or when nothing changed", () => {
     const next = {
       accountType: "normal" as const,
+      skills: [],
       questsCompleted: ["Cook's Assistant"],
       diariesCompleted: [{ region: "Lumbridge & Draynor", tier: "Easy" as const }],
       collectionLogItemIds: [4151],
@@ -70,6 +71,7 @@ describe("end-to-end syncflow regression contracts", () => {
   it("summarizes quest, diary, bank and accounttype changes between syncs", () => {
     const summary = buildSyncDeltaSummary({
       accountType: "normal",
+      skills: [{ name: "Cooking", level: 80, xp: 1_986_068 }],
       questsCompleted: ["Cook's Assistant"],
       diariesCompleted: [{ region: "Lumbridge & Draynor", tier: "Easy" }],
       collectionLogItemIds: [4151],
@@ -78,6 +80,7 @@ describe("end-to-end syncflow regression contracts", () => {
       syncedAt: "2026-07-08T11:00:00.000Z"
     }, {
       accountType: "ironman",
+      skills: [{ name: "Cooking", level: 81, xp: 2_100_000 }],
       questsCompleted: ["Cook's Assistant", "Biohazard"],
       diariesCompleted: [
         { region: "Lumbridge & Draynor", tier: "Easy" },
@@ -97,6 +100,7 @@ describe("end-to-end syncflow regression contracts", () => {
       diariesCompleted: [{ region: "Ardougne", tier: "Medium" }],
       collectionLogItemIds: [11840],
       collectionLogItems: [{ id: 11840, name: "Dragon boots" }],
+      skills: [{ name: "Cooking", previousLevel: 80, currentLevel: 81, xpGained: 113_932 }],
       bank: { previousItemCount: 1, currentItemCount: 2, itemCountChanged: true },
       accountType: { previous: "normal", current: "ironman", changed: true }
     });
@@ -138,6 +142,7 @@ describe("end-to-end syncflow regression contracts", () => {
           diariesCompleted: [],
           collectionLogItemIds: [],
           collectionLogItems: [],
+          skills: [],
           bank: null,
           accountType: { previous: "ironman", current: "ironman", changed: false }
         }
@@ -183,7 +188,7 @@ describe("end-to-end syncflow regression contracts", () => {
       confidence: "unknown",
       badgeLabel: "Account mode unknown"
     });
-    expect(result.summary.accountMode.planningNote).toContain("bank readiness only counts when real bank data exists");
+    expect(result.summary.accountMode.planningNote).toContain("real bank is added");
     expect(pluginBankStatusLabel(null, result.summary.accountType)).toBe("Bank status unknown");
   });
 

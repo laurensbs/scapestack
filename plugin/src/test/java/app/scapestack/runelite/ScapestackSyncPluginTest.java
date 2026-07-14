@@ -28,8 +28,8 @@ public class ScapestackSyncPluginTest {
         GameStateReader.Snapshot snapshot = new GameStateReader.Snapshot();
         snapshot.questsCompleted = Arrays.asList("Cook's Assistant", "Dragon Slayer I");
         snapshot.skills = Arrays.asList(
-            new GameStateReader.SkillLevel("Agility", 35),
-            new GameStateReader.SkillLevel("Ranged", 70)
+            new GameStateReader.SkillLevel("Agility", 35, 22406),
+            new GameStateReader.SkillLevel("Ranged", 70, 737627)
         );
         snapshot.diariesCompleted = Collections.singletonList(
             new GameStateReader.DiaryCompletion("Karamja", "Easy")
@@ -87,6 +87,7 @@ public class ScapestackSyncPluginTest {
         assertEquals(2, payload.getAsJsonArray("skills").size());
         assertEquals("Agility", payload.getAsJsonArray("skills").get(0).getAsJsonObject().get("name").getAsString());
         assertEquals(35, payload.getAsJsonArray("skills").get(0).getAsJsonObject().get("level").getAsInt());
+        assertEquals(22406, payload.getAsJsonArray("skills").get(0).getAsJsonObject().get("xp").getAsInt());
         assertEquals(2, payload.getAsJsonArray("bankItems").size());
         assertEquals(1511, payload.getAsJsonArray("bankItems").get(0).getAsJsonObject().get("id").getAsInt());
         assertEquals(6, payload.getAsJsonArray("bankItems").get(0).getAsJsonObject().get("quantity").getAsInt());

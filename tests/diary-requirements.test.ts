@@ -105,7 +105,7 @@ describe("diary requirement matching", () => {
     }));
     expect(result.missingRequirements).toContain("Agility 60");
     expect(diaryMissingRequirementLines(result)).toContain("60 Agility needed, you have 55");
-    expect(diaryReadinessSummary(result)).toBe("Kandarin Hard is 1 blocker away.");
+    expect(diaryReadinessSummary(result)).toBe("Kandarin Hard is 1 step away.");
   });
 
   it("reports missing prerequisite quests", () => {

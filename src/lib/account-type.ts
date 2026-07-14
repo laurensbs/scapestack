@@ -128,11 +128,11 @@ export function isUltimatePlannerAccount(type: PlannerAccountType | null | undef
 export function accountModeImpactNote(type: PlannerAccountType | null | undefined): string {
   switch (type) {
     case "ironman":
-      return "Self-source item blockers; Grand Exchange buying is not assumed.";
+      return "Self-source missing items; Grand Exchange buying is not assumed.";
     case "hardcore":
       return "Risky combat is weighted down unless the unlock payoff is strong.";
     case "ultimate":
-      return "Use staging, carried items and storage unlocks; bank-ready is not normal readiness.";
+      return "Use staging, carried items and storage unlocks; normal bank planning does not apply.";
     case "group":
       return "Own bank is checked; group storage is not assumed unless it is explicitly synced.";
     case "regular":
@@ -142,7 +142,7 @@ export function accountModeImpactNote(type: PlannerAccountType | null | undefine
     case "pure":
       return "Pure mode: defence-sensitive routes stay conservative.";
     default:
-      return "Account mode unknown: item availability stays conservative and bank readiness only counts when real bank data exists.";
+      return "Account mode unknown: item availability stays conservative until a real bank is added.";
   }
 }
 
@@ -168,7 +168,7 @@ export function accountModeSourceCopy(type: PlannerAccountType | null | undefine
 export function accountModeBankCopy(type: PlannerAccountType | null | undefined): string {
   switch (type) {
     case "ultimate":
-      return "Staging checklist; normal bank-ready does not apply.";
+      return "Staging checklist; normal bank planning does not apply.";
     case "group":
       return "Own bank checked; group storage not verified.";
     case "ironman":
@@ -178,9 +178,9 @@ export function accountModeBankCopy(type: PlannerAccountType | null | undefined)
     case "regular":
     case "skiller":
     case "pure":
-      return "Bank checks and buyable prep can be treated normally.";
+      return "Bank items and buyable prep can be treated normally.";
     default:
-      return "Bank readiness only counts when real bank data exists.";
+      return "Bank items only count when real bank data exists.";
   }
 }
 

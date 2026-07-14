@@ -1746,7 +1746,7 @@ function buildQuestAction(
         id: `nba:skill:${questSlug(quest.name)}:${closest.skill}`,
         kind: "train-skill",
         title: `Train ${closest.skill} to ${closest.level} for ${quest.name}`,
-        reason: `${closest.skill} is ${closest.gap} level${closest.gap === 1 ? "" : "s"} short; that is the cleanest blocker before ${unlock.label}.`,
+        reason: `${closest.skill} is ${closest.gap} level${closest.gap === 1 ? "" : "s"} short; that is the cleanest step before ${unlock.label}.`,
         missingRequirements: missingSkills.map((req) => `${req.skill} ${req.currentLevel}/${req.level}`),
         requiredItems,
         preparation: preparationForQuest(quest, evaluation, "train-skill"),
@@ -1911,7 +1911,7 @@ function buildDiaryAction(evaluation: DiaryRequirementEvaluation): NextBestActio
         id: `nba:diary-skill:${evaluation.region}:${evaluation.tier}:${closest.skill}`,
         kind,
         title: `Train ${closest.skill} to ${closest.level} for ${unlockLabel}`,
-        reason: `${closest.level} ${closest.skill} needed, you have ${closest.currentLevel}; that is the nearest diary blocker.`,
+        reason: `${closest.level} ${closest.skill} needed, you have ${closest.currentLevel}; that is the nearest diary step.`,
         missingRequirements: diaryMissingRequirementLines(evaluation),
         requiredItems,
         preparation: diaryPreparation(evaluation, kind),
@@ -2372,7 +2372,7 @@ function diaryRecs(
           : `Do ${region} ${tier}`;
     const blockerCount = diaryBlockerCount(evaluation);
     const why = blockerCount > 0
-      ? `${region} ${tier} is ${blockerCount} blocker${blockerCount === 1 ? "" : "s"} away: ${blockersText}.`
+      ? `${region} ${tier} is ${blockerCount} step${blockerCount === 1 ? "" : "s"} away: ${blockersText}.`
       : `${region} ${tier} is ready: ${taskText}`;
 
     recs.push({
@@ -2402,7 +2402,7 @@ function diaryRecs(
           ? `${region} ${tier}: use staging/carry/storage planning instead of bank-ready.`
           : blockers.length > 0
             ? `${region} ${tier}: clear ${blockers[0]} first.`
-            : `${region} ${tier}: every visible blocker is clear.`,
+            : `${region} ${tier}: every visible step is clear.`,
         steps: [
           ...blockers.slice(0, 2).map((blocker) => `Clear ${blocker}.`),
           ...(completed.length > 0 && blockers.length > 0 ? [`Already handled: ${completed.join(", ")}.`] : []),
@@ -3012,10 +3012,10 @@ function actionPlanFor(rec: Recommendation, ctx: ActionPlanContext): Recommendat
     case "milestone":
       return mergePlanSeed(rec, ctx, {
         timebox: "Long-term",
-        prep: "Treat this as the account arc; tonight's job is only the next blocker.",
+        prep: "Treat this as the account arc; tonight's job is only the next step.",
         steps: [
           "Open the path overview and identify the closest incomplete lane.",
-          "Clear one blocker that unlocks multiple downstream tasks.",
+          "Clear one step that unlocks multiple downstream tasks.",
           "Pin the milestone mentally, but check your plan again after every major unlock."
         ]
       });

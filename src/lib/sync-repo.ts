@@ -14,7 +14,7 @@ export interface SyncedPlayer {
   rsn: string;             // canonical lowercased name
   displayName: string;     // as the plugin reported it
   accountType: ScapestackAccountType;
-  skills: Array<{ name: string; level: number }>;
+  skills: Array<{ name: string; level: number; xp?: number }>;
   questsCompleted: string[];
   diariesCompleted: Array<{ region: string; tier: "Easy" | "Medium" | "Hard" | "Elite" }>;
   collectionLogItemIds: number[];
@@ -43,6 +43,7 @@ export interface SyncDeltaSummary {
   diariesCompleted: Array<{ region: string; tier: SyncedPlayer["diariesCompleted"][number]["tier"] }>;
   collectionLogItemIds: number[];
   collectionLogItems: Array<{ id: number; name: string }>;
+  skills: Array<{ name: string; previousLevel: number; currentLevel: number; xpGained: number }>;
   bank: {
     previousItemCount: number;
     currentItemCount: number;
@@ -66,6 +67,7 @@ export interface SyncSnapshotForDiff {
   collectionLogItemIds: number[];
   bankItems: SyncedPlayer["bankItems"];
   bankStatus: PluginBankStatus;
+  skills: SyncedPlayer["skills"];
   syncedAt: string | Date | null;
 }
 
@@ -160,7 +162,7 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
       rsn: string;
       display_name: string;
       account_type: string | null;
-      skills: Array<{ name?: unknown; level?: unknown }> | null;
+      skills: Array<{ name?: unknown; level?: unknown; xp?: unknown }> | null;
       quests_completed: string[];
       diaries_completed: Array<{ region: string; tier: SyncedPlayer["diariesCompleted"][number]["tier"] }>;
       collection_log_item_ids: number[];
@@ -223,12 +225,13 @@ export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt" | "las
   const bankItems = normalizeBankItems(p.bankItems);
   const bankStatus = normalizePluginBankStatus(p.bankStatus ?? defaultPluginBankStatus(bankItems.length), bankItems.length);
   const previousRows = await sql()`
-    SELECT account_type, quests_completed, diaries_completed, collection_log_item_ids, bank_items, bank_status, synced_at
+    SELECT account_type, skills, quests_completed, diaries_completed, collection_log_item_ids, bank_items, bank_status, synced_at
     FROM player_sync
     WHERE rsn = ${norm}
     LIMIT 1
   ` as Array<{
     account_type: string | null;
+    skills: unknown;
     quests_completed: unknown;
     diaries_completed: unknown;
     collection_log_item_ids: unknown;
@@ -243,6 +246,7 @@ export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt" | "las
   const accountType = normalizeScapestackAccountType(p.accountType);
   const syncSummary = buildSyncDeltaSummary(previousSnapshot, {
     accountType,
+    skills: normalizeSkills(p.skills),
     questsCompleted,
     diariesCompleted,
     collectionLogItemIds,
@@ -311,7 +315,7 @@ function normalizeBankItems(items: unknown): SyncedPlayer["bankItems"] {
 function normalizeSkills(skills: unknown): SyncedPlayer["skills"] {
   if (!Array.isArray(skills)) return [];
   return skills
-    .filter((skill): skill is { name: unknown; level: unknown } =>
+    .filter((skill): skill is { name: unknown; level: unknown; xp?: unknown } =>
       skill !== null
       && typeof skill === "object"
       && typeof (skill as { name?: unknown }).name === "string"
@@ -319,7 +323,10 @@ function normalizeSkills(skills: unknown): SyncedPlayer["skills"] {
       && Number.isFinite((skill as { level: number }).level))
     .map((skill) => ({
       name: (skill.name as string).trim().slice(0, 32),
-      level: Math.max(1, Math.min(126, Math.floor(skill.level as number)))
+      level: Math.max(1, Math.min(126, Math.floor(skill.level as number))),
+      xp: typeof skill.xp === "number" && Number.isFinite(skill.xp)
+        ? Math.max(0, Math.min(200_000_000, Math.floor(skill.xp)))
+        : undefined
     }))
     .filter((skill) => skill.name.length > 0)
     .slice(0, 32);
@@ -378,6 +385,7 @@ function normalizeDiariesCompleted(diaries: unknown): SyncedPlayer["diariesCompl
 
 function snapshotFromRow(row: {
   account_type: string | null;
+  skills: unknown;
   quests_completed: unknown;
   diaries_completed: unknown;
   collection_log_item_ids: unknown;
@@ -388,6 +396,7 @@ function snapshotFromRow(row: {
   const bankItems = normalizeBankItems(row.bank_items);
   return {
     accountType: normalizeScapestackAccountType(row.account_type),
+    skills: normalizeSkills(row.skills),
     questsCompleted: normalizeQuestNames(row.quests_completed),
     diariesCompleted: normalizeDiariesCompleted(row.diaries_completed),
     collectionLogItemIds: normalizeCollectionLogItemIds(row.collection_log_item_ids),
@@ -395,6 +404,32 @@ function snapshotFromRow(row: {
     bankStatus: normalizePluginBankStatus(row.bank_status, bankItems.length),
     syncedAt: row.synced_at
   };
+}
+
+function skillDelta(
+  previous: SyncedPlayer["skills"],
+  next: SyncedPlayer["skills"]
+): SyncDeltaSummary["skills"] {
+  const previousByName = new Map(previous.map((skill) => [skill.name.toLowerCase(), skill]));
+  return next
+    .map((current) => {
+      const before = previousByName.get(current.name.toLowerCase());
+      if (!before) return null;
+      const xpGained = typeof current.xp === "number" && typeof before.xp === "number"
+        ? Math.max(0, current.xp - before.xp)
+        : 0;
+      const levelGained = current.level > before.level;
+      if (!levelGained && xpGained <= 0) return null;
+      return {
+        name: current.name,
+        previousLevel: before.level,
+        currentLevel: current.level,
+        xpGained
+      };
+    })
+    .filter((skill): skill is SyncDeltaSummary["skills"][number] => Boolean(skill))
+    .sort((a, b) => (b.xpGained - a.xpGained) || (b.currentLevel - b.previousLevel) - (a.currentLevel - a.previousLevel))
+    .slice(0, 8);
 }
 
 function isoFromSyncDate(value: string | Date | null): string {
@@ -463,6 +498,7 @@ export function buildSyncDeltaSummary(
       }
     : null;
   const diariesCompleted = diaryDelta(previous.diariesCompleted, next.diariesCompleted);
+  const skills = skillDelta(previous.skills, next.skills);
 
   const summary: SyncDeltaSummary = {
     previousSyncedAt: isoFromSyncDate(previous.syncedAt),
@@ -470,6 +506,7 @@ export function buildSyncDeltaSummary(
     diariesCompleted,
     collectionLogItemIds,
     collectionLogItems,
+    skills,
     bank,
     accountType
   };
@@ -482,6 +519,7 @@ export function hasSyncDelta(summary: SyncDeltaSummary | null | undefined): bool
     summary
     && (summary.questsCompleted.length > 0
       || summary.diariesCompleted.length > 0
+      || summary.skills.length > 0
       || summary.collectionLogItemIds.length > 0
       || summary.collectionLogItems.length > 0
       || summary.bank
@@ -500,6 +538,7 @@ function normalizeSyncDeltaSummary(summary: unknown): SyncDeltaSummary | null {
     diariesCompleted: normalizeDiariesCompleted(row.diariesCompleted),
     collectionLogItemIds: normalizeCollectionLogItemIds(row.collectionLogItemIds),
     collectionLogItems: normalizeSyncDeltaCollectionLogItems(row.collectionLogItems, row.collectionLogItemIds),
+    skills: normalizeSyncDeltaSkills(row.skills),
     bank: normalizeSyncDeltaBank(row.bank),
     accountType: {
       previous: accountPrevious,
@@ -534,6 +573,31 @@ function normalizeSyncDeltaCollectionLogItems(
   return normalizeCollectionLogItemIds(fallbackIds)
     .slice(0, 24)
     .map((id) => ({ id, name: collectionLogItemName(id) }));
+}
+
+function normalizeSyncDeltaSkills(skills: unknown): SyncDeltaSummary["skills"] {
+  if (!Array.isArray(skills)) return [];
+  const clean: SyncDeltaSummary["skills"] = [];
+  const seen = new Set<string>();
+  for (const skill of skills) {
+    if (!skill || typeof skill !== "object" || Array.isArray(skill)) continue;
+    const row = skill as { name?: unknown; previousLevel?: unknown; currentLevel?: unknown; xpGained?: unknown };
+    if (typeof row.name !== "string" || typeof row.previousLevel !== "number" || typeof row.currentLevel !== "number") continue;
+    const name = row.name.trim().slice(0, 32);
+    const key = name.toLowerCase();
+    if (!name || seen.has(key)) continue;
+    seen.add(key);
+    clean.push({
+      name,
+      previousLevel: Math.max(1, Math.min(126, Math.floor(row.previousLevel))),
+      currentLevel: Math.max(1, Math.min(126, Math.floor(row.currentLevel))),
+      xpGained: typeof row.xpGained === "number" && Number.isFinite(row.xpGained)
+        ? Math.max(0, Math.min(200_000_000, Math.floor(row.xpGained)))
+        : 0
+    });
+    if (clean.length >= 8) break;
+  }
+  return clean;
 }
 
 function normalizeSyncDeltaBank(bank: unknown): SyncDeltaSummary["bank"] {

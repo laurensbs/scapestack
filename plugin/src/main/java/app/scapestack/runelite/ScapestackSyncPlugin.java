@@ -663,6 +663,7 @@ public class ScapestackSyncPlugin extends Plugin {
             JsonObject row = new JsonObject();
             row.addProperty("name", s.name);
             row.addProperty("level", s.level);
+            row.addProperty("xp", s.xp);
             skills.add(row);
         }
         body.add("skills", skills);
@@ -782,7 +783,7 @@ public class ScapestackSyncPlugin extends Plugin {
             return "Bank synced: " + formatCount(status.itemCount, "item stack", "item stacks");
         }
         if (!status.enabled) {
-            return "Bank checks off";
+            return "Bank off";
         }
         if ("bank-not-opened-this-session".equals(status.unavailableReason)) {
             return "Open your bank once";

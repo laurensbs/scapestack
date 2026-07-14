@@ -1373,7 +1373,7 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
               />
             )}
             <HeroStrip summary={summary} basisNote={basisNote} onEdit={onEdit} />
-            <RouteBlockers
+            <RouteNeeds
               pathData={result.pathProgress}
               maxEstimate={result.maxEstimate}
             />
@@ -3872,7 +3872,7 @@ function LastSyncSummaryCard({ result }: { result: NextUpResult }) {
     <section className="rounded-lg border border-[var(--color-good)]/25 bg-[var(--color-good)]/8 px-3 py-2" data-last-sync-summary="true">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <p className="text-[10.5px] font-black uppercase tracking-[0.16em] text-[var(--color-good)]">Since last sync</p>
+          <p className="text-[10.5px] font-black uppercase tracking-[0.16em] text-[var(--color-good)]">Since last check</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {lines.slice(0, 3).map((line) => (
               <span
@@ -3904,7 +3904,16 @@ function lastSyncSummaryLines(result: NextUpResult): string[] {
     lines.push(`Finished: ${completed.join(", ")}`);
     const open = result.nextBestActions[0]?.relevantQuestOrUnlock || result.nextBestActions[0]?.title || result.headline?.title;
     if (open) lines.push(`Now open: ${open}`);
-    lines.push("Finished stuff is skipped now");
+    lines.push("Done steps are skipped now");
+  }
+  if (summary.skills.length > 0) {
+    for (const skill of summary.skills.slice(0, 2)) {
+      const levels = skill.currentLevel > skill.previousLevel
+        ? `${skill.name} ${skill.previousLevel}->${skill.currentLevel}`
+        : skill.name;
+      const xp = skill.xpGained > 0 ? ` +${formatXp(skill.xpGained)}` : "";
+      lines.push(`${levels}${xp}`);
+    }
   }
   if (summary.collectionLogItems.length > 0 || summary.collectionLogItemIds.length > 0) {
     const namedItems = summary.collectionLogItems.slice(0, 2).map((item) => item.name);
@@ -3920,11 +3929,11 @@ function lastSyncSummaryLines(result: NextUpResult): string[] {
   }
   if (summary.bank) {
     if (summary.bank.currentItemCount > 0) {
-      lines.push(`Bank now has ${summary.bank.currentItemCount.toLocaleString()} item stacks`);
+      lines.push(`Bank: ${summary.bank.currentItemCount.toLocaleString()} stacks now`);
     } else if (summary.bank.currentUnavailableReason === "bank-not-opened-this-session") {
       lines.push("Open your bank once, then sync again");
     } else if (summary.bank.currentUnavailableReason === "opt-in-off") {
-      lines.push("Bank checks are off");
+      lines.push("Bank is off");
     }
   }
   if (summary.accountType.changed) {
@@ -4863,11 +4872,11 @@ function WhatToDo({
   );
 }
 
-// ── RouteBlockers ───────────────────────────────────────────────────────────
+// ── RouteNeeds ──────────────────────────────────────────────────────────────
 // Collapsed evidence layer for the Session Board. Every lane is framed as an
-// unlock planner: blocker, first action, prep and stop point.
+// unlock planner: missing step, first action, prep and stop point.
 
-function RouteBlockers({
+function RouteNeeds({
   pathData
 }: {
   pathData: NextUpResult["pathProgress"];
@@ -4916,9 +4925,9 @@ function RouteBlockers({
             </div>
 
             <div className="mt-3 grid gap-2 text-[11.5px]">
-              <RoutePlanLine label="Missing" value={route.nextBlocker} />
+              <RoutePlanLine label="Need first" value={route.nextBlocker} />
               <RoutePlanLine label="First action" value={route.nextAction} strong />
-              <RoutePlanLine label="Prep" value={`${route.prepLevel} · ${route.blockersLeft} gap${route.blockersLeft === 1 ? "" : "s"}`} />
+              <RoutePlanLine label="Prep" value={`${route.prepLevel} · ${route.blockersLeft} step${route.blockersLeft === 1 ? "" : "s"}`} />
               <RoutePlanLine label="Stop" value={route.stopPoint} />
             </div>
 

@@ -109,7 +109,7 @@ export function routeActionForHref(
     return {
       label: "Check quest requirements",
       href: contextualHref,
-      helper: "See skills, prereq quests, required items and bank readiness before starting."
+      helper: "See skills, prereq quests, required items and bank items before starting."
     };
   }
 

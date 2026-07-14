@@ -47,7 +47,7 @@ export function buildBankActionLoop(input: BankActionLoopInput): BankActionLoopS
       title: input.tipCount > 0 ? "Execute cleanup tips" : "Bank looks tidy",
       body: input.tipCount > 0
         ? `${input.tipCount} actionable tip${input.tipCount === 1 ? "" : "s"} found. Copy a checklist, decant/merge in-game, then rerun the organizer.`
-        : "No bank-tip blockers detected. Use smart suggestions if you want more optimisation.",
+        : "No obvious bank tips found. Use smart suggestions if you want more optimisation.",
       cta: input.tipCount > 0 ? "Open tips" : "Review insights",
       destination: input.tipCount > 0 ? "Tips checklist" : "Insights panel",
       proof: input.tipCount > 0

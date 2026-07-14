@@ -142,7 +142,7 @@ const DIARY_TIER_OVERRIDES: Record<string, DiaryTierOverride> = {
     taskRequirements: ["Route the Mining Guild, Falador farm and grapple tasks together."],
     combatRequirements: ["Mole and shield utility checks become more valuable after this tier."],
     payoff: "Falador shield utility and a stronger Mole/prayer restore route.",
-    stopPoint: "Clear the grapple task or the closest skill blocker."
+    stopPoint: "Clear the grapple task or the closest skill gap."
   },
   "Western Provinces:Hard": {
     questRequirements: ["Regicide"],
@@ -155,13 +155,13 @@ const DIARY_TIER_OVERRIDES: Record<string, DiaryTierOverride> = {
     minigameRequirements: ["Pest Control and elf lands tasks are part of the tier route."],
     combatRequirements: ["Chompy, elf and regional combat tasks should be checked before leaving."],
     payoff: "Western banner perks and stronger Elite Void route planning.",
-    stopPoint: "Finish Regicide or clear the closest skill/item blocker."
+    stopPoint: "Finish Regicide or clear the closest skill/item gap."
   },
   "Lumbridge & Draynor:Medium": {
     questRequirements: ["Lost City"],
     taskRequirements: ["Route Draynor, Lumbridge Swamp and Zanaris-adjacent tasks together."],
     payoff: "Explorer's ring utility and better early account transport.",
-    stopPoint: "Finish Lost City or clear the closest skill blocker."
+    stopPoint: "Finish Lost City or clear the closest skill gap."
   },
   "Karamja:Easy": {
     taskRequirements: ["Finish the quick Karamja task sweep and claim Karamja gloves 1."],
@@ -457,7 +457,7 @@ export function diaryReadinessSummary(evaluation: DiaryRequirementEvaluation): s
   if (blockers === 0) {
     return `${evaluation.region} ${evaluation.tier} is ready; run the task sweep and claim the reward.`;
   }
-  return `${evaluation.region} ${evaluation.tier} is ${blockers} blocker${blockers === 1 ? "" : "s"} away.`;
+  return `${evaluation.region} ${evaluation.tier} is ${blockers} step${blockers === 1 ? "" : "s"} away.`;
 }
 
 function diaryBringItemLine(req: EvaluatedDiaryItemRequirement): string {
@@ -612,7 +612,7 @@ export function evaluateDiaryTier(
     ...minigameRequirements
   ];
   const payoff = override?.payoff ?? DEFAULT_TIER_PAYOFF[tier];
-  const stopPoint = override?.stopPoint ?? `Finish the closest ${region} ${tier} blocker or claim the diary reward.`;
+  const stopPoint = override?.stopPoint ?? `Finish the closest ${region} ${tier} step or claim the diary reward.`;
   const accountWarnings = warningsFor(accountType, itemRequirements.length > 0);
   const status = readinessStatus({
     completed: isCompleted,

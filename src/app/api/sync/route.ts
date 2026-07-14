@@ -147,14 +147,17 @@ export async function POST(req: Request): Promise<Response> {
   const skillsReceived = Array.isArray(body.skills) ? body.skills.length : 0;
   const skills = Array.isArray(body.skills)
     ? body.skills
-        .filter((x): x is { name: string; level: number } =>
+        .filter((x): x is { name: string; level: number; xp?: number } =>
           typeof x === "object" && x !== null &&
           typeof (x as { name?: unknown }).name === "string" &&
           typeof (x as { level?: unknown }).level === "number" &&
           Number.isFinite((x as { level: number }).level))
         .map((x) => ({
           name: x.name.trim().slice(0, 32),
-          level: Math.max(1, Math.min(126, Math.floor(x.level)))
+          level: Math.max(1, Math.min(126, Math.floor(x.level))),
+          xp: typeof x.xp === "number" && Number.isFinite(x.xp)
+            ? Math.max(0, Math.min(200_000_000, Math.floor(x.xp)))
+            : undefined
         }))
         .filter((x) => x.name.length > 0)
         .slice(0, 32)

@@ -16,7 +16,7 @@ describe("bank plugin intake bridge", () => {
       "Best paste"
     ]);
     expect(bridge.signals.map((signal) => signal.value).join(" ")).toContain("Bank Memory");
-    expect(bridge.signals.map((signal) => signal.value).join(" ")).toContain("bank readiness");
+    expect(bridge.signals.map((signal) => signal.value).join(" ")).toContain("bank items");
     expect(bridge.body).not.toContain("account-state");
   });
 

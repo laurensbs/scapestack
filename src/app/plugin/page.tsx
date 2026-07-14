@@ -153,7 +153,7 @@ export default function PluginPage() {
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <PluginTrustPill label="No login" />
-            <PluginTrustPill label="Bank checks can be turned off" />
+            <PluginTrustPill label="Bank can be turned off" />
             <PluginTrustPill label="No screenshots" />
           </div>
           <div className="mt-5">

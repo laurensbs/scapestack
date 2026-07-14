@@ -960,7 +960,7 @@ function routePrimaryLabel(blockers: UnlockRouteBlocker[]): string {
   const first = blockers[0];
   if (first.type === "skill") return first.nextAction;
   if (first.type === "quest") return first.nextAction;
-  return `${blockers.length} blocker${blockers.length === 1 ? "" : "s"} left`;
+  return `${blockers.length} step${blockers.length === 1 ? "" : "s"} left`;
 }
 
 function accountRouteNote(accountType: PlannerAccountType | null | undefined, hasItems: boolean): string | undefined {
@@ -968,7 +968,7 @@ function accountRouteNote(accountType: PlannerAccountType | null | undefined, ha
   if (accountType === "ultimate") return "UIM: item prep is staging/carrying, not bank-ready.";
   if (accountType === "group") return "GIM: own bank counts; group storage is not assumed.";
   if (accountType === "hardcore") return "HCIM: avoid risky item sources unless the payoff is worth it.";
-  if (accountType === "ironman") return "Ironman: item blockers assume self-sourcing, not GE buying.";
+  if (accountType === "ironman") return "Ironman: missing items assume self-sourcing, not GE buying.";
   return undefined;
 }
 
@@ -1210,7 +1210,7 @@ function buildDiaryUnlockRoute(input: {
     nextAction: first?.nextAction ?? "Open the closest diary tier",
     nextBlocker: first?.label ?? "No diary route available",
     prepLevel: routePrepLevel(blockers),
-    stopPoint: best?.stopPoint ?? "Clear one diary blocker, then re-sync.",
+    stopPoint: best?.stopPoint ?? "Clear one diary step, then re-sync.",
     blockersLeft: blockers.length,
     progressPercent: best?.progressPercent ?? 0,
     blockers,
@@ -1270,7 +1270,7 @@ export interface AccountMeta {
 export interface PathOverview {
   paths: [PathProgress, PathProgress, PathProgress, PathProgress];
   /** Player-facing unlock planners. Percent remains secondary; each
-   *  card leads with the blocker/action/stop-point instead. */
+   *  card leads with the missing step/action/stop-point instead. */
   unlockRoutes: UnlockRoutePlan[];
   /** Overall % across all four paths, averaged. */
   overallPercent: number;

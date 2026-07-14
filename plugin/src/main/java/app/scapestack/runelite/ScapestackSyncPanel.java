@@ -38,10 +38,10 @@ final class ScapestackSyncPanel extends PluginPanel {
     private final JLabel autoRefreshValue = valueLabel("Off");
     private final JLabel accountModeValue = valueLabel("Account mode unknown");
     private final JLabel playerValue = valueLabel("Log in to detect");
-    private final JLabel bankValue = valueLabel("Bank checks off");
+    private final JLabel bankValue = valueLabel("Bank off");
     private final JLabel nextActionValue = valueLabel("Press Sync now");
     private final JLabel collectionLogValue = valueLabel("");
-    private final JButton bankToggle = primaryButton("Use bank checks");
+    private final JButton bankToggle = primaryButton("Use bank");
     private final JPanel collectionLogRow = row("Collection Log", collectionLogValue);
     private final JPanel troubleshootingBody = card();
 
@@ -124,7 +124,7 @@ final class ScapestackSyncPanel extends PluginPanel {
 
     void refresh() {
         SwingUtilities.invokeLater(() -> {
-            bankToggle.setText(config.syncBankItems() ? "Bank checks on" : "Bank checks off");
+            bankToggle.setText(config.syncBankItems() ? "Bank on" : "Bank off");
             autoRefreshValue.setText(config.autoSync()
                 ? "Every " + ScapestackSyncPlugin.normalizedAutoSyncIntervalMinutes(config.autoSyncIntervalMinutes()) + " min"
                 : "Off");
@@ -181,9 +181,9 @@ final class ScapestackSyncPanel extends PluginPanel {
         panel.add(row("Status", statusValue));
         panel.add(row("Player", playerValue));
         panel.add(row("Account mode", accountModeValue));
-        panel.add(row("Last sync", lastSyncValue));
-        panel.add(row("Auto refresh", autoRefreshValue));
-        panel.add(row("Bank checks", bankValue));
+        panel.add(row("Last update", lastSyncValue));
+        panel.add(row("Auto update", autoRefreshValue));
+        panel.add(row("Bank", bankValue));
         panel.add(row("Next action", nextActionValue));
         collectionLogRow.setVisible(false);
         panel.add(collectionLogRow);
@@ -198,10 +198,10 @@ final class ScapestackSyncPanel extends PluginPanel {
 
     private JPanel whatSyncsCard() {
         JPanel panel = card();
-        panel.add(sectionTitle("Planner checks"));
-        panel.add(copy("Skills, quests, diaries, Slayer task and bank readiness."));
-        panel.add(copy("Recommended sync refreshes after login and then every 15 minutes while you play."));
-        panel.add(copy("Turn bank checks off if you only want progress sync."));
+        panel.add(sectionTitle("Planner fuel"));
+        panel.add(copy("Skills, XP, quests, diaries, Slayer task and bank items."));
+        panel.add(copy("Auto update refreshes after login and then every 15 minutes while you play."));
+        panel.add(copy("Turn bank off if you only want finished-progress checks."));
         return panel;
     }
 

@@ -206,7 +206,7 @@ describe("next best actions", () => {
       needs: expect.arrayContaining(["60 Agility needed, you have 59"]),
       decisionReason: expect.stringContaining("Finish after:")
     });
-    expect(diary?.why).toContain("Kandarin Hard is 1 blocker away");
+    expect(diary?.why).toContain("Kandarin Hard is 1 step away");
     expect(diary?.payoff).toContain("Kandarin headgear");
     expect(diary?.actionPlan?.steps.join(" ")).toContain("Clear 60 Agility needed, you have 59");
   });

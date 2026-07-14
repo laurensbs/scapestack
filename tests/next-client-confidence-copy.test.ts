@@ -45,10 +45,11 @@ describe("/next confidence UI copy", () => {
 
   it("shows return value after real RuneLite deltas without raw sync diagnostics", () => {
     expect(source).toContain("function LastSyncSummaryCard");
-    expect(source).toContain("Since last sync");
+    expect(source).toContain("Since last check");
     expect(source).toContain("Now open:");
     expect(source).toContain("Next trip:");
-    expect(source).toContain("Finished stuff is skipped now");
+    expect(source).toContain("Done steps are skipped now");
+    expect(source).toContain("skill.xpGained");
     expect(source).toContain("summary.collectionLogItems.slice(0, 2).map");
     expect(source).toContain("CLog:");
     expect(source).toContain("if (!summary || lines.length === 0) return null;");

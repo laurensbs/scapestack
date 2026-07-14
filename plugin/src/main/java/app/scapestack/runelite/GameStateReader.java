@@ -94,9 +94,14 @@ public class GameStateReader {
     public static class SkillLevel {
         public final String name;
         public final int level;
+        public final int xp;
         public SkillLevel(String name, int level) {
+            this(name, level, 0);
+        }
+        public SkillLevel(String name, int level, int xp) {
             this.name = name;
             this.level = level;
+            this.xp = xp;
         }
     }
 
@@ -248,7 +253,11 @@ public class GameStateReader {
         for (Skill skill : Skill.values()) {
             if (skill == Skill.OVERALL) continue;
             try {
-                out.add(new SkillLevel(skill.getName(), client.getRealSkillLevel(skill)));
+                out.add(new SkillLevel(
+                    skill.getName(),
+                    client.getRealSkillLevel(skill),
+                    Math.max(0, client.getSkillExperience(skill))
+                ));
             } catch (Exception ex) {
                 log.debug("Skill level read failed for {}", skill, ex);
             }
