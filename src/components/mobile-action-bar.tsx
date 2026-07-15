@@ -4,42 +4,19 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CheckCircle2, ClipboardPaste, PlugZap, RefreshCw, Sparkles } from "lucide-react";
-import { ACCOUNT_EVENT, accountHasBankContext, getActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
-import { loadMood } from "@/lib/mood-storage";
-import { loadSavedBank, loadSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
+import { ACCOUNT_EVENT } from "@/lib/account-storage";
+import { loadAccountSnapshot, type AccountSnapshot } from "@/lib/account-context";
+import { SAVED_BANK_EVENT } from "@/lib/saved-bank";
 import { cn } from "@/lib/utils";
 import { SessionMoodPicker } from "./session-mood-picker";
 
-function moodLabel(mood?: string): string {
-  switch (mood) {
-    case "chill": return "Chill";
-    case "cash": return "GP";
-    case "bossing": return "Boss";
-    case "unlock":
-    case "quest": return "Unlock";
-    case "afk": return "AFK";
-    case "short": return "Short";
-    default: return "Mood";
-  }
-}
-
 export function MobileActionBar() {
   const pathname = usePathname();
-  const [account, setAccount] = useState<ScapestackAccount | null>(null);
-  const [rsn, setRsn] = useState("");
-  const [hasBank, setHasBank] = useState(false);
-  const [mood, setMood] = useState("Mood");
+  const [snapshot, setSnapshot] = useState<AccountSnapshot | null>(null);
 
   useEffect(() => {
     const refresh = () => {
-      const active = getActiveAccount();
-      const nextRsn = active?.rsn ?? loadSavedRsn() ?? "";
-      const savedBank = loadSavedBank(nextRsn);
-      const savedMood = loadMood(nextRsn);
-      setAccount(active);
-      setRsn(nextRsn);
-      setHasBank(accountHasBankContext(active, savedBank));
-      setMood(moodLabel(savedMood?.mood));
+      setSnapshot(loadAccountSnapshot());
     };
     refresh();
     window.addEventListener(ACCOUNT_EVENT, refresh);
@@ -52,12 +29,15 @@ export function MobileActionBar() {
     };
   }, []);
 
-  const rsnQuery = rsn ? `?rsn=${encodeURIComponent(rsn)}` : "";
+  const rsn = snapshot?.rsn ?? "";
+  const hasBank = Boolean(snapshot?.hasBankContext);
+  const hasRunelite = Boolean(snapshot?.hasRunelite);
+  const nextHref = snapshot?.planHref ?? (rsn ? `/next?rsn=${encodeURIComponent(rsn)}` : "/next");
   const bankHref = rsn ? `/bank?rsn=${encodeURIComponent(rsn)}&from=mobile` : "/bank?from=mobile";
   const pluginHref = rsn ? `/plugin?rsn=${encodeURIComponent(rsn)}&from=mobile#verify-sync` : "/plugin?from=mobile#verify-sync";
   const actions = [
     {
-      href: `/next${rsnQuery}`,
+      href: nextHref,
       label: "Trip",
       helper: rsn || "Trip",
       icon: Sparkles,
@@ -73,9 +53,9 @@ export function MobileActionBar() {
     {
       href: pluginHref,
       label: "RuneLite",
-      helper: account?.runeliteCheckedAt ? "Synced" : "Later",
-      icon: account?.runeliteCheckedAt ? RefreshCw : PlugZap,
-      active: Boolean(account?.runeliteCheckedAt)
+      helper: hasRunelite ? "Synced" : "Later",
+      icon: hasRunelite ? RefreshCw : PlugZap,
+      active: hasRunelite
     }
   ];
 
@@ -109,7 +89,7 @@ export function MobileActionBar() {
             </Link>
           );
         })}
-        <SessionMoodPicker rsn={rsn} label={mood} mobileTile />
+        <SessionMoodPicker rsn={rsn} label={snapshot?.moodLabel ?? "Mood"} mobileTile />
       </div>
     </nav>
   );

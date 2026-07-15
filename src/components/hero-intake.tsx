@@ -8,11 +8,12 @@ import { pluginSyncStatusAction } from "@/app/actions";
 import { AddBankModal } from "@/components/add-bank-modal";
 import { RuneliteOpenButton } from "@/components/runelite-open-button";
 import { SessionMoodPicker } from "@/components/session-mood-picker";
-import { ACCOUNT_EVENT, clearRuneliteChecked, getActiveAccount, hasAccountFirstSetupSeen, markAccountFirstSetupSeen, markAccountPluginBankStatus, markRuneliteChecked } from "@/lib/account-storage";
+import { loadAccountSnapshot, type AccountSnapshot } from "@/lib/account-context";
+import { ACCOUNT_EVENT, clearRuneliteChecked, hasAccountFirstSetupSeen, markAccountFirstSetupSeen, markAccountPluginBankStatus, markRuneliteChecked } from "@/lib/account-storage";
 import { MOOD_LABEL, type Mood, type TimeBudget } from "@/lib/mood";
 import { loadMood, saveMood, relativeSince } from "@/lib/mood-storage";
 import { latestRecommendationMemory, latestStartedRecommendationMemory } from "@/lib/recommendation-feedback";
-import { loadSavedBank, loadSavedRsn, saveSavedBank, saveSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
+import { saveSavedBank, saveSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
 import { cn } from "@/lib/utils";
 
 // Homepage hero intake — kleine zus van /next's NextIntake. Eén RSN
@@ -51,40 +52,6 @@ function markFirstSetupSeen(rsn: string): void {
   markAccountFirstSetupSeen(rsn);
 }
 
-function formatRuneliteCheckedAt(value: number | null): string {
-  if (!value) return "RuneLite later";
-  const ageMs = Math.max(0, Date.now() - value);
-  const minutes = Math.floor(ageMs / 60_000);
-  if (minutes < 1) return "Last scan just now";
-  if (minutes < 60) return `Last scan ${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `Last scan ${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `Last scan ${days}d ago`;
-}
-
-function formatSavedBankAt(value: number | null): string {
-  if (!value) return "Add bank if gear matters";
-  const ageMs = Math.max(0, Date.now() - value);
-  const minutes = Math.floor(ageMs / 60_000);
-  if (minutes < 1) return "Bank saved just now";
-  if (minutes < 60) return `Bank saved ${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `Bank saved ${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `Bank saved ${days}d ago`;
-}
-
-function bankSetupLabel(hasBankContext: boolean, hasRuneLite: boolean): string {
-  if (hasBankContext) return "Bank ready";
-  return hasRuneLite ? "Open bank in RuneLite" : "Add bank";
-}
-
-function runeliteNeedsRefresh(value: number | null): boolean {
-  if (!value) return false;
-  return Date.now() - value > 24 * 60 * 60 * 1000;
-}
-
 export function HeroIntake() {
   const router = useRouter();
   const [rsn, setRsn] = useState("");
@@ -98,22 +65,25 @@ export function HeroIntake() {
   const [runeliteRefresh, setRuneliteRefresh] = useState<"idle" | "checking" | "found" | "missing" | "error">("idle");
   const [returningMood, setReturningMood] = useState<{ mood: Mood; minutes: TimeBudget; label: string } | null>(null);
   const [returningChangeLines, setReturningChangeLines] = useState<string[]>([]);
+  const [accountSnapshot, setAccountSnapshot] = useState<AccountSnapshot | null>(null);
   const [selectedFirstSetupIntent, setSelectedFirstSetupIntent] = useState<FirstSetupIntent>("surprise");
   const [firstSetupRunelite, setFirstSetupRunelite] = useState(false);
   const [bank, setBank] = useState("");
   const [savedBankAt, setSavedBankAt] = useState<number | null>(null);
   const hasBankPaste = Boolean(bank.trim());
-  const hasBankContext = hasBankPaste || Boolean(savedBankAt) || rememberedPluginBankItems > 0;
+  const hasBankContext = hasBankPaste || Boolean(accountSnapshot?.hasBankContext) || Boolean(savedBankAt) || rememberedPluginBankItems > 0;
   const canSubmit = Boolean(rsn.trim() || hasBankPaste);
   const cleanRsn = rsn.trim();
   const isRememberedRun = Boolean(rememberedRsn && cleanRsn === rememberedRsn);
-  const rememberedRuneliteChecked = Boolean(rememberedRuneliteCheckedAt);
-  const shouldRefreshRunelite = runeliteNeedsRefresh(rememberedRuneliteCheckedAt);
+  const rememberedRuneliteChecked = accountSnapshot?.hasRunelite ?? Boolean(rememberedRuneliteCheckedAt);
+  const shouldRefreshRunelite = accountSnapshot?.runeliteNeedsRefresh ?? false;
 
   useEffect(() => {
     const refreshRememberedAccount = () => {
-      const active = getActiveAccount();
-      const remembered = active?.rsn ?? loadSavedRsn() ?? "";
+      const snapshot = loadAccountSnapshot();
+      setAccountSnapshot(snapshot);
+      const active = snapshot.account;
+      const remembered = snapshot.rsn;
       if (!remembered) {
         setRsn("");
         setRememberedRsn("");
@@ -128,8 +98,8 @@ export function HeroIntake() {
 
       setRsn(remembered);
       setRememberedRsn(remembered);
-      setRememberedRuneliteCheckedAt(active?.runeliteCheckedAt ?? null);
-      setRememberedPluginBankItems(active?.pluginBankItemCount ?? 0);
+      setRememberedRuneliteCheckedAt(snapshot.runeliteCheckedAt);
+      setRememberedPluginBankItems(snapshot.pluginBankItemCount);
       setEditingAccount(false);
       const savedMood = loadMood(remembered);
       setReturningMood(savedMood?.mood
@@ -166,9 +136,10 @@ export function HeroIntake() {
 
   useEffect(() => {
     const refreshSavedBank = () => {
-      const saved = cleanRsn ? loadSavedBank(cleanRsn) : loadSavedBank();
-      setSavedBankAt(saved?.savedAt ?? null);
-      setRememberedPluginBankItems(getActiveAccount()?.pluginBankItemCount ?? 0);
+      const snapshot = loadAccountSnapshot(cleanRsn || rememberedRsn);
+      setAccountSnapshot(snapshot);
+      setSavedBankAt(snapshot.bankSavedAt);
+      setRememberedPluginBankItems(snapshot.pluginBankItemCount);
     };
     refreshSavedBank();
     window.addEventListener(SAVED_BANK_EVENT, refreshSavedBank);
@@ -249,17 +220,14 @@ export function HeroIntake() {
 
   if (isRememberedRun && !editingAccount) {
     const encodedRsn = encodeURIComponent(rememberedRsn);
-    const planHref = returningMood
+    const planHref = accountSnapshot?.planHref ?? (returningMood
       ? `/next?rsn=${encodedRsn}&intent=${encodeURIComponent(returningMood.mood)}&time=${returningMood.minutes}`
-      : `/next?rsn=${encodedRsn}`;
+      : `/next?rsn=${encodedRsn}`);
     const runeliteStatusLabel = shouldRefreshRunelite
       ? "Refresh RuneLite"
-      : formatRuneliteCheckedAt(rememberedRuneliteCheckedAt);
-    const bankStatusLabel = savedBankAt
-      ? formatSavedBankAt(savedBankAt)
-      : rememberedPluginBankItems > 0
-        ? `RuneLite bank: ${rememberedPluginBankItems.toLocaleString()} stacks`
-        : bankSetupLabel(false, rememberedRuneliteChecked);
+      : accountSnapshot?.runeliteDetail ?? "RuneLite later";
+    const bankStatusLabel = accountSnapshot?.bankDetail ?? "Add bank if gear matters";
+    const bankButtonLabel = accountSnapshot?.bankLabel ?? (hasBankContext ? "Bank added" : "Add bank");
     const runeliteRefreshMessage = runeliteRefresh === "checking"
       ? "Checking RuneLite…"
       : runeliteRefresh === "found"
@@ -283,7 +251,7 @@ export function HeroIntake() {
             <div className="mt-3 grid gap-1.5 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
               <ReturningSetupLine active={rememberedRuneliteChecked} text={runeliteStatusLabel} />
               <ReturningSetupLine active={hasBankContext} text={bankStatusLabel} />
-              <ReturningSetupLine active={Boolean(returningMood)} text={returningMood ? `${returningMood.label} vibe saved` : "Best now vibe"} />
+              <ReturningSetupLine active={Boolean(returningMood)} text={`${accountSnapshot?.moodLabel ?? returningMood?.label ?? "Best now"} vibe`} />
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] font-semibold">
               <span className={cn(
@@ -293,7 +261,7 @@ export function HeroIntake() {
                   : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-muted)]"
               )}>
                 {hasBankContext && <CheckCircle2 className="size-3.5" />}
-                {bankSetupLabel(hasBankContext, rememberedRuneliteChecked)}
+                {bankButtonLabel}
               </span>
               <span className={cn(
                 "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1",
@@ -307,7 +275,7 @@ export function HeroIntake() {
                 {runeliteStatusLabel}
               </span>
               <span className="inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1 text-[var(--color-text-muted)]">
-                {returningMood ? `Vibe: ${returningMood.label}` : "Vibe: Best now"}
+                {`Vibe: ${accountSnapshot?.moodLabel ?? returningMood?.label ?? "Best now"}`}
               </span>
             </div>
             {runeliteRefreshMessage && (
@@ -362,10 +330,10 @@ export function HeroIntake() {
           >
             {hasBankContext && <CheckCircle2 className="absolute right-2 top-2 size-3.5 text-[var(--color-accent)]" />}
             <ClipboardPaste className="size-4" />
-            {bankSetupLabel(hasBankContext, rememberedRuneliteChecked)}
+            {bankButtonLabel}
           </button>
           <Link
-            href={`/dps?rsn=${encodedRsn}&from=home`}
+            href={accountSnapshot?.dpsHref ?? `/dps?rsn=${encodedRsn}&from=home`}
             className="flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2 py-3 text-center text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
           >
             <Sword className="size-4" />
@@ -385,7 +353,7 @@ export function HeroIntake() {
             </button>
           ) : (
             <Link
-              href={`/plugin?rsn=${encodedRsn}&from=home#verify-sync`}
+              href={accountSnapshot?.pluginHref ?? `/plugin?rsn=${encodedRsn}&from=home#verify-sync`}
               className="flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2 py-3 text-center text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
             >
               <PlugZap className="size-4" />
@@ -478,8 +446,8 @@ export function HeroIntake() {
         {rsn.trim()
           ? hasBankPaste
             ? "Bank added. Scapestack can check gear, supplies and GP."
-            : savedBankAt
-            ? "Bank saved for this account. Scapestack can use it when gear matters."
+            : accountSnapshot?.hasBankContext
+            ? `${accountSnapshot.bankLabel}. Scapestack can use it when gear matters.`
             : "One name is enough to plan your next trip."
           : hasBankPaste
             ? "Bank added. Add a name for stats and KC."

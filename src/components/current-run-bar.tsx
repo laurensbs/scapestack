@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CheckCircle2, Package, PlugZap, RefreshCw, UserRound } from "lucide-react";
-import { ACCOUNT_EVENT, accountHasBankContext, getActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
-import { loadMood } from "@/lib/mood-storage";
-import { describeSavedAt, loadSavedBank, loadSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
+import { ACCOUNT_EVENT } from "@/lib/account-storage";
+import { loadAccountSnapshot, type AccountSnapshot } from "@/lib/account-context";
+import { SAVED_BANK_EVENT } from "@/lib/saved-bank";
 import { cn } from "@/lib/utils";
 import { AddBankModal } from "./add-bank-modal";
 import { SessionMoodPicker } from "./session-mood-picker";
@@ -16,26 +16,12 @@ interface CurrentRunBarProps {
 }
 
 export function CurrentRunBar({ className, compact = false }: CurrentRunBarProps) {
-  const [account, setAccount] = useState<ScapestackAccount | null>(null);
-  const [fallbackRsn, setFallbackRsn] = useState("");
-  const [hasSetup, setHasSetup] = useState(false);
-  const [bankSavedAt, setBankSavedAt] = useState<number | null>(null);
-  const [pluginBankItemCount, setPluginBankItemCount] = useState(0);
-  const [vibe, setVibe] = useState("Best now");
+  const [snapshot, setSnapshot] = useState<AccountSnapshot | null>(null);
   const [bankModalOpen, setBankModalOpen] = useState(false);
 
   useEffect(() => {
     const refresh = () => {
-      const active = getActiveAccount();
-      const savedRsn = active?.rsn ?? loadSavedRsn() ?? "";
-      const savedMood = loadMood(savedRsn);
-      const savedBank = loadSavedBank(savedRsn);
-      setAccount(active);
-      setFallbackRsn(savedRsn);
-      setHasSetup(accountHasBankContext(active, savedBank));
-      setBankSavedAt(active?.bankSavedAt ?? savedBank?.savedAt ?? null);
-      setPluginBankItemCount(active?.pluginBankItemCount ?? 0);
-      setVibe(savedMood?.mood ? labelForMood(savedMood.mood) : "Best now");
+      setSnapshot(loadAccountSnapshot());
     };
     refresh();
     window.addEventListener(ACCOUNT_EVENT, refresh);
@@ -48,17 +34,15 @@ export function CurrentRunBar({ className, compact = false }: CurrentRunBarProps
     };
   }, []);
 
-  const rsn = account?.rsn ?? fallbackRsn;
-  const pluginHref = rsn ? `/plugin?rsn=${encodeURIComponent(rsn)}#verify-sync` : "/plugin#verify-sync";
-  const nextHref = rsn ? `/next?rsn=${encodeURIComponent(rsn)}` : "/next";
-  const runeliteReady = Boolean(account?.runeliteCheckedAt);
-  const bankLabel = hasSetup ? "Bank added" : runeliteReady ? "Open bank" : "Add bank";
-  const bankTitle = bankSavedAt
-    ? `Bank saved ${describeSavedAt(bankSavedAt)}`
-    : pluginBankItemCount > 0
-      ? `RuneLite bank: ${pluginBankItemCount.toLocaleString()} stacks`
-      : bankLabel;
-  const runeliteLabel = runeliteReady ? "Refresh RuneLite" : "Add RuneLite";
+  const rsn = snapshot?.rsn ?? "";
+  const pluginHref = snapshot?.pluginHref ?? (rsn ? `/plugin?rsn=${encodeURIComponent(rsn)}#verify-sync` : "/plugin#verify-sync");
+  const nextHref = snapshot?.planHref ?? (rsn ? `/next?rsn=${encodeURIComponent(rsn)}` : "/next");
+  const hasSetup = Boolean(snapshot?.hasBankContext);
+  const runeliteReady = Boolean(snapshot?.hasRunelite);
+  const bankLabel = snapshot?.bankLabel ?? "Add bank";
+  const bankTitle = snapshot?.bankDetail ?? bankLabel;
+  const runeliteLabel = snapshot?.runeliteLabel ?? "Add RuneLite";
+  const vibe = snapshot?.moodLabel ?? "Best now";
 
   return (
     <>
@@ -111,17 +95,4 @@ export function CurrentRunBar({ className, compact = false }: CurrentRunBarProps
       />
     </>
   );
-}
-
-function labelForMood(mood: string): string {
-  switch (mood) {
-    case "chill": return "Chill";
-    case "cash": return "GP";
-    case "bossing": return "Bossing";
-    case "unlock":
-    case "quest": return "Unlock";
-    case "afk": return "AFK";
-    case "short": return "Short";
-    default: return "Best now";
-  }
 }

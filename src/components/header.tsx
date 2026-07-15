@@ -4,9 +4,10 @@ import Link from "next/link";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { CheckCircle2, ChevronDown, Menu, Package, PlugZap, Plus, RefreshCw, UserRound, X } from "lucide-react";
-import { ACCOUNT_EVENT, accountHasBankContext, getActiveAccount, loadAccountStore, removeAccount, setActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
+import { ACCOUNT_EVENT, getActiveAccount, loadAccountStore, removeAccount, setActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
+import { loadAccountSnapshot } from "@/lib/account-context";
 import { contextualNavHref } from "@/lib/nav-context";
-import { clearSavedRsn, describeSavedAt, loadSavedBank, loadSavedRsn, saveSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
+import { clearSavedRsn, loadSavedRsn, saveSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
 import { getPrimaryNavTools } from "@/lib/tools";
 import { cn } from "@/lib/utils";
 import { AddBankModal } from "./add-bank-modal";
@@ -34,13 +35,10 @@ export function Header() {
 
   useEffect(() => {
     const syncAccount = () => {
-      const active = getActiveAccount();
-      const legacy = loadSavedRsn();
-      if (active?.rsn) {
-        setActiveRsn(active.rsn);
-      } else if (legacy) {
-        saveSavedRsn(legacy);
-        setActiveRsn(legacy);
+      const snapshot = loadAccountSnapshot();
+      if (snapshot.rsn) {
+        if (!snapshot.account) saveSavedRsn(snapshot.rsn);
+        setActiveRsn(snapshot.rsn);
       } else {
         setActiveRsn("");
       }
@@ -235,22 +233,22 @@ function AccountSwitcher({
   const [accounts, setAccounts] = useState<ScapestackAccount[]>([]);
   const [draft, setDraft] = useState(activeRsn);
   const [hasSavedSetup, setHasSavedSetup] = useState(false);
-  const [bankSavedAt, setBankSavedAt] = useState<number | null>(null);
-  const [pluginBankItemCount, setPluginBankItemCount] = useState(0);
+  const [bankDetail, setBankDetail] = useState("Add bank");
+  const [runeliteDetail, setRuneliteDetail] = useState("RuneLite later");
   const [bankModalOpen, setBankModalOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const refresh = () => {
     const store = loadAccountStore();
     setAccounts(store.accounts);
-    const active = getActiveAccount();
-    const nextRsn = active?.rsn ?? loadSavedRsn() ?? "";
-    const savedBank = loadSavedBank(nextRsn);
+    const snapshot = loadAccountSnapshot();
+    const active = snapshot.account;
+    const nextRsn = snapshot.rsn;
     onActiveRsnChange(nextRsn);
     setDraft(nextRsn);
-    setHasSavedSetup(accountHasBankContext(active, savedBank));
-    setBankSavedAt(active?.bankSavedAt ?? savedBank?.savedAt ?? null);
-    setPluginBankItemCount(active?.pluginBankItemCount ?? 0);
+    setHasSavedSetup(snapshot.hasBankContext);
+    setBankDetail(snapshot.bankDetail);
+    setRuneliteDetail(snapshot.runeliteDetail);
   };
 
   useEffect(() => {
@@ -314,11 +312,7 @@ function AccountSwitcher({
   const activeAccount = accounts.find((account) => account.rsn === activeRsn);
   const runeliteReady = Boolean(activeAccount?.runeliteCheckedAt);
   const bankStatusLabel = hasSavedSetup ? "Bank added" : runeliteReady ? "Open bank" : "Add bank";
-  const bankFreshness = bankSavedAt
-    ? `Bank saved ${describeSavedAt(bankSavedAt)}`
-    : pluginBankItemCount > 0
-      ? `RuneLite bank: ${pluginBankItemCount.toLocaleString()} stacks`
-      : bankStatusLabel;
+  const bankFreshness = bankDetail;
   const runeliteLabel = runeliteReady ? "Refresh RuneLite" : "Add RuneLite";
 
   return (
@@ -407,7 +401,7 @@ function AccountSwitcher({
               <span className="mx-1.5 text-[var(--color-border-strong)]">·</span>
               <span className="inline-flex items-center gap-1">
                 {runeliteReady && <CheckCircle2 className="size-3 text-[var(--color-accent)]" />}
-                {runeliteLabel}
+                <span title={runeliteDetail}>{runeliteLabel}</span>
               </span>
             </div>
           )}
@@ -443,7 +437,7 @@ function AccountSwitcher({
               {runeliteReady ? <RefreshCw className="mb-1 size-5" /> : <PlugZap className="mb-1 size-5" />}
               <span className="inline-flex items-center gap-1">
                 {runeliteReady && <CheckCircle2 className="size-3 text-[var(--color-accent)]" />}
-                {runeliteLabel}
+                <span title={runeliteDetail}>{runeliteLabel}</span>
               </span>
             </Link>
           </div>
