@@ -28,22 +28,22 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("<button\n        type=\"button\"\n        onClick={onOpen}");
     expect(source).toContain("aria-label={`Open ${boss.name} ${activity ? \"activity setup\" : \"kill setup\"} details`}");
     expect(source).toContain("title={`Open ${boss.name} ${activity ? \"activity setup\" : \"kill setup\"} details`}");
-    expect(source).toContain("group min-h-[218px] w-full");
+    expect(source).toContain("group min-h-[260px] w-full");
     expect(source).not.toContain('<span className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">{boss.slug}</span>');
-    expect(source).toContain("grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4");
+    expect(source).toContain("grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3");
     expect(source).not.toContain("Open details");
     expect(source).toContain("Add a weapon to see the trip setup and missing upgrades.");
     expect(source).toContain('import { Edit3, Sword, Search, X, Sparkles, ExternalLink } from "lucide-react";');
     expect(source).toContain("function bossTripVerdict");
     expect(source).toContain("const status = bossTripVerdict(boss, dps, accountType);");
-    expect(source).toContain('"Try one trip"');
+    expect(source).toContain('"Do one trip"');
     expect(source).toContain('"Good with bank"');
     expect(source).toContain('"Good first trip"');
     expect(source).toContain('"Not worth yet"');
     expect(source).toContain('"Risky trip"');
     expect(source).toContain('"HCIM risk"');
     expect(source).toContain('"Activity setup"');
-    expect(source).toContain("More numbers");
+    expect(source).toContain("Kill pace");
     expect(source).toContain("Loot pace");
     expect(source).not.toContain('<span className="text-[var(--color-text-muted)]">DPS</span>');
     expect(source).not.toContain("role=\"button\"");
@@ -54,13 +54,12 @@ describe("DPS boss row affordance", () => {
     const modalSource = readFileSync(join(process.cwd(), "src/components/boss-detail-modal.tsx"), "utf8");
 
     expect(modalSource).toContain("() => activitySetup ? [] : suggestUpgradesForBoss(owned, boss, dps)");
-    expect(modalSource).toContain("Useful upgrades");
+    expect(modalSource).toContain("Upgrade before camping");
     expect(modalSource).toContain("wikiSearchUrl(u.item.name)");
     expect(modalSource).toContain("wikiPriceUrl(u.item.id)");
     expect(modalSource).toContain("Open ${u.item.name} on the OSRS Wiki");
     expect(modalSource).toContain("Open ${u.item.name} GE price");
     expect(source).not.toContain("function suggestUpgradesForBoss(owned: GearItem[], boss: Boss): UpgradeSuggestion[]");
-    expect(source).not.toContain("Upgrade before camping");
   });
 
   it("starts DPS as a boss browser instead of a dashboard verdict", () => {
@@ -69,24 +68,26 @@ describe("DPS boss row affordance", () => {
     expect(source).not.toContain("function dpsDecisionScore");
     expect(source).not.toContain("function pickBestBossTrip");
     expect(source).toContain("window.scrollTo({ top: 0, behavior: \"instant\" });");
-    expect(source).toContain("Pick one boss trip");
-    expect(source).toContain("Choose one boss. Scapestack shows the setup to check, what is missing, and when to leave.");
+    expect(source).toContain("Pick a boss");
+    expect(source).toContain("Search any boss. Click a tile for gear, supplies, upgrades and a first trip.");
     expect(source).toContain("Before you leave");
     expect(source).toContain("Still missing");
     expect(source).toContain("Finish after");
     expect(source).not.toContain("Boss category");
-    expect(source).toContain("visibleResults.length} quick picks");
-    expect(source).toContain("filteredResults.slice(0, 12)");
-    expect(source).toContain('label: "Best with bank"');
-    expect(source).toContain('useState<BossFilter>("best")');
+    expect(source).toContain("visibleResults.length} bosses");
+    expect(source).toContain("const visibleResults = filteredResults;");
+    expect(source).toContain('label: "All"');
+    expect(source).toContain('label: "GP"');
+    expect(source).toContain('label: "Solo"');
+    expect(source).toContain('useState<BossFilter>("all")');
     expect(source).toContain("const bossTripFitScore = (entry: BossDpsResult) =>");
     expect(source).toContain("function accountTypeFromDpsParams");
     expect(source).toContain("function bossRiskPenaltyForAccount");
     expect(source).toContain("score -= bossRiskPenaltyForAccount(boss, plannerAccountType);");
-    expect(source).toContain("Show recommended bosses");
-    expect(source).toContain("Show all ${filteredResults.length} in this category");
-    expect(source).toContain('label: "Activities"');
-    expect(source).toContain("Wintertodt/Tempoross/GotR stay visible in Activities");
+    expect(source).not.toContain("Show recommended bosses");
+    expect(source).not.toContain("Show all ${filteredResults.length} in this category");
+    expect(source).not.toContain('label: "Activities"');
+    expect(source).toContain("Wintertodt/Tempoross/GotR stay visible");
     expect(source).toContain("isNonCombatBossActivity(boss)");
     expect(source).toContain("function activityBeforeLeave");
     expect(source).toContain("function activityMissingLine");
@@ -107,7 +108,7 @@ describe("DPS boss row affordance", () => {
 
     expect(modalSource).toContain('import { wikiPriceUrl } from "@/lib/item-action";');
     expect(modalSource).toContain('import { wikiSearchUrl } from "@/lib/wiki";');
-    expect(modalSource).toContain("Useful upgrades");
+    expect(modalSource).toContain("Upgrade before camping");
     expect(modalSource).toContain("href={wikiSearchUrl(u.item.name)}");
     expect(modalSource).toContain("href={wikiPriceUrl(u.item.id)}");
     expect(modalSource).toContain("Open ${u.item.name} on the OSRS Wiki");

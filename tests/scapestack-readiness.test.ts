@@ -327,8 +327,8 @@ describe("Scapestack readiness rail", () => {
 
     const dpsSource = readFileSync(join(process.cwd(), "src/app/dps/dps-client.tsx"), "utf8");
     expect(dpsSource).not.toContain("ScapestackReadinessRail");
-    expect(dpsSource).toContain("Pick one boss trip");
-    expect(dpsSource).toContain("Choose one boss. Scapestack shows the setup to check, what is missing, and when to leave.");
+    expect(dpsSource).toContain("Pick a boss");
+    expect(dpsSource).toContain("Search any boss. Click a tile for gear, supplies, upgrades and a first trip.");
     expect(dpsSource).toContain("Before you leave");
     expect(dpsSource).toContain("Finish after");
 

@@ -33,16 +33,16 @@ import {
 } from "@/lib/account-type";
 
 type BossDpsResult = { boss: Boss; dps: DpsBreakdown };
-type BossFilter = "best" | "beginner" | "slayer" | "gwd" | "raid" | "wildy" | "skilling";
+type BossFilter = "all" | "gp" | "slayer" | "wildy" | "raid" | "beginner" | "solo";
 
 const BOSS_FILTERS: Array<{ key: BossFilter; label: string }> = [
-  { key: "best", label: "Best with bank" },
-  { key: "beginner", label: "Beginner" },
+  { key: "all", label: "All" },
+  { key: "gp", label: "GP" },
   { key: "slayer", label: "Slayer" },
-  { key: "gwd", label: "GWD" },
-  { key: "raid", label: "Raids" },
   { key: "wildy", label: "Wildy" },
-  { key: "skilling", label: "Activities" }
+  { key: "raid", label: "Raid" },
+  { key: "beginner", label: "Beginner" },
+  { key: "solo", label: "Solo" }
 ];
 
 function accountTypeFromDpsParams(searchParams: Pick<URLSearchParams, "get">): PlannerAccountType | null {
@@ -158,8 +158,7 @@ export function DpsClient() {
   //   ttk       → wie sterft het snelst per kill (XP/u proxy)
   type SortKey = "dps" | "accuracy" | "gpHour" | "ttk";
   const [sortBy, setSortBy] = useState<SortKey>("dps");
-  const [bossFilter, setBossFilter] = useState<BossFilter>("best");
-  const [showAllBosses, setShowAllBosses] = useState(false);
+  const [bossFilter, setBossFilter] = useState<BossFilter>("all");
   // Currently-open boss in the detail modal. Lifted here so deep-link
   // (?boss=<slug>) can open it on result-view mount, and so the Enter-
   // key search shortcut can open it too.
@@ -305,20 +304,20 @@ export function DpsClient() {
   const bossMatchesFilter = (entry: BossDpsResult) => {
     const { boss } = entry;
     switch (bossFilter) {
-      case "best":
-        return !isNonCombatBossActivity(boss) && entry.dps.dps > 0;
+      case "all":
+        return true;
+      case "gp":
+        return !isNonCombatBossActivity(boss) && Boolean(boss.avgLootGp) && entry.dps.dps > 0;
       case "slayer":
         return boss.category === "slayer";
       case "wildy":
         return boss.category === "wildy";
-      case "gwd":
-        return boss.category === "gwd";
       case "raid":
         return boss.category === "raid";
-      case "skilling":
-        return boss.category === "skilling" || boss.category === "minigame" || boss.slug === "hespori";
       case "beginner":
         return boss.hp > 0 && boss.hp <= 320 && boss.category !== "raid" && boss.category !== "dt2" && boss.category !== "gwd";
+      case "solo":
+        return boss.category !== "raid" && !isNonCombatBossActivity(boss);
       default:
         return false;
     }
@@ -333,7 +332,7 @@ export function DpsClient() {
 
   const bossTripFitScore = (entry: BossDpsResult) => {
     const { boss, dps } = entry;
-    if (isNonCombatBossActivity(boss)) return bossFilter === "skilling" ? 12 : -1000;
+    if (isNonCombatBossActivity(boss)) return bossFilter === "all" ? 8 : -1000;
     if (dps.dps <= 0) return -1000;
     let score = dps.dps * 12 + dps.hitChance * 42;
     if (boss.category === "slayer") score += 18;
@@ -359,8 +358,12 @@ export function DpsClient() {
       : bossResults;
     const base = searched.filter(bossMatchesFilter);
     const sorted = [...base];
-    if (!q && bossFilter === "best") {
+    if (!q && bossFilter === "all") {
       sorted.sort((a, b) => bossTripFitScore(b) - bossTripFitScore(a));
+      return sorted;
+    }
+    if (!q && bossFilter === "gp") {
+      sorted.sort((a, b) => gpHourForBoss(b) - gpHourForBoss(a));
       return sorted;
     }
     switch (sortBy) {
@@ -376,15 +379,11 @@ export function DpsClient() {
     }
     return sorted;
   }, [bossResults, bossFilter, plannerAccountType, search, sortBy]);
-  const visibleResults = useMemo(
-    () => search.trim() || showAllBosses ? filteredResults : filteredResults.slice(0, 12),
-    [filteredResults, search, showAllBosses]
-  );
+  const visibleResults = filteredResults;
   const weaponCount = useMemo(() => owned.filter((gear) => gear.slot === "weapon").length, [owned]);
   const clearBossFilter = () => {
     setSearch("");
     setFocusedBoss(null);
-    setShowAllBosses(false);
   };
   const editInput = () => {
     setView("intake");
@@ -469,18 +468,18 @@ export function DpsClient() {
       )}
 
       {/* Boss list */}
-      <section className="scapestack-lock-panel mb-7 p-3 sm:p-4">
+      <section className="scapestack-lock-panel mb-7 p-3 sm:p-5">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
-              Pick one boss trip
+              Pick a boss
             </h2>
             <p className="mt-1 max-w-2xl text-[12px] leading-relaxed text-[var(--color-text-muted)]">
-              Choose one boss. Scapestack shows the setup to check, what is missing, and when to leave.
+              Search any boss. Click a tile for gear, supplies, upgrades and a first trip.
             </p>
           </div>
           <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">
-            {visibleResults.length} quick picks
+            {visibleResults.length} bosses
           </span>
         </div>
         <div>
@@ -516,7 +515,7 @@ export function DpsClient() {
                     setModalBoss(filteredResults[0].boss);
                   }
                 }}
-                placeholder="Search bosses — type to filter, Enter to jump"
+                placeholder="Search bosses"
                 autoComplete="off"
                 spellCheck={false}
                 aria-describedby="dps-boss-search-help dps-boss-search-status"
@@ -534,7 +533,7 @@ export function DpsClient() {
               )}
             </div>
             <p id="dps-boss-search-help" className="mt-1.5 text-[11px] text-[var(--color-text-muted)]">
-              Type a boss name, press Enter to open the first match, or Esc to clear the filter.
+              Type a boss name, press Enter to open the first match, or Esc to clear.
             </p>
             {focusedBoss && search.trim().toLowerCase() === focusedBoss.name.toLowerCase() && (
               <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3 py-2">
@@ -570,7 +569,6 @@ export function DpsClient() {
                   aria-pressed={bossFilter === filter.key}
                   onClick={() => {
                     setBossFilter(filter.key);
-                    setShowAllBosses(false);
                   }}
                   className={cn(
                     "scapestack-command-button px-3 py-2 text-[12px] font-bold",
@@ -585,7 +583,7 @@ export function DpsClient() {
           </div>
             <details className="mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/25 px-3 py-2">
               <summary className="cursor-pointer list-none text-[11px] font-bold text-[var(--color-text-muted)] marker:hidden [&::-webkit-details-marker]:hidden">
-                More numbers
+                Sort list
               </summary>
               <div className="mt-3 flex items-center gap-2 flex-wrap">
                 <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
@@ -616,18 +614,8 @@ export function DpsClient() {
               </div>
             </details>
           </div>
-          {!search && filteredResults.length > visibleResults.length && (
-            <button
-              type="button"
-              onClick={() => setShowAllBosses((value) => !value)}
-              aria-expanded={showAllBosses}
-              className="scapestack-command-button mb-3 px-3 py-2 text-[12px] font-bold"
-            >
-              {showAllBosses ? "Show recommended bosses" : `Show all ${filteredResults.length} in this category`}
-            </button>
-          )}
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {visibleResults.map(({ boss, dps }) => (
               <BossCard
                 key={boss.slug}
@@ -692,7 +680,7 @@ function BossCard({ boss, dps, accountType, isFocused, onOpen }: {
     <article
       id={`boss-${boss.slug}`}
       className={cn(
-        "scapestack-lock-card group min-h-[218px] w-full scroll-mt-24 p-4 text-left transition-all",
+        "scapestack-lock-card group min-h-[260px] w-full scroll-mt-24 p-0 text-left transition-all",
         "hover:-translate-y-0.5",
         isFocused && "border-[var(--color-accent)]/55 shadow-[0_0_0_1px_rgba(240,176,44,0.22)]"
       )}>
@@ -701,7 +689,7 @@ function BossCard({ boss, dps, accountType, isFocused, onOpen }: {
         onClick={onOpen}
         aria-label={`Open ${boss.name} ${activity ? "activity setup" : "kill setup"} details`}
         title={`Open ${boss.name} ${activity ? "activity setup" : "kill setup"} details`}
-        className="block w-full text-left"
+        className="block h-full w-full p-4 text-left"
       >
         <div className="flex items-start justify-between gap-2">
           <BossThumb boss={boss} />
@@ -737,7 +725,7 @@ function BossCard({ boss, dps, accountType, isFocused, onOpen }: {
       {!activity && usable && (
         <details className="mt-3 border-t border-[var(--color-border)] pt-2">
           <summary className="cursor-pointer list-none text-[10.5px] font-bold text-[var(--color-text-muted)] marker:hidden [&::-webkit-details-marker]:hidden">
-            More numbers
+            Kill pace
           </summary>
           <div className="mt-2 grid gap-1 text-[10.5px] font-semibold text-[var(--color-text-muted)]">
             <span>{dps.weapon.name} · {dps.style.toUpperCase()}</span>
@@ -802,7 +790,7 @@ function bossTripVerdict(boss: Boss, dps: DpsBreakdown, accountType: PlannerAcco
   if (boss.category === "wildy") return "Risky trip";
   if (boss.hp <= 320 && dps.hitChance >= 0.5 && boss.category !== "raid" && boss.category !== "dt2") return "Good first trip";
   if (dps.hitChance >= 0.62) return "Good with bank";
-  if (dps.hitChance >= 0.45) return "Try one trip";
+  if (dps.hitChance >= 0.45) return "Do one trip";
   return "Not worth yet";
 }
 

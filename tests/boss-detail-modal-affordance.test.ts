@@ -26,7 +26,7 @@ describe("boss detail modal affordance", () => {
 
   it("keeps the boss modal grounded in owned-bank setup copy", () => {
     expect(source).toContain("Can I do this?");
-    expect(source).toContain("Try one trip");
+    expect(source).toContain("Do one trip");
     expect(source).toContain("Gear missing");
     expect(source).toContain("Not worth yet");
     expect(source).toContain("Risky trip");
@@ -37,10 +37,10 @@ describe("boss detail modal affordance", () => {
     expect(source).toContain("Activity setup");
     expect(source).toContain("No combat DPS");
     expect(source).toContain("isNonCombatBossActivity");
-    expect(source).toContain("Useful upgrades");
+    expect(source).toContain("Upgrade before camping");
     expect(source).toContain("Inventory setup");
     expect(source).toContain("Bright chips = in your bank");
-    expect(source).toContain("Buy chips = missing");
+    expect(source).toContain("Buy/gather chips are missing");
     expect(source).toContain("Try another boss");
     expect(source).toContain("bossRail");
     expect(source).toContain('aria-current={active ? "true" : undefined}');
@@ -50,7 +50,7 @@ describe("boss detail modal affordance", () => {
     expect(source).toContain('data-testid="boss-modal-scroll-panel"');
     expect(source).toContain('data-testid="boss-inventory-setup"');
     expect(source.indexOf("Can I do this?")).toBeLessThan(source.indexOf("Kill speed"));
-    expect(source.indexOf("Inventory setup")).toBeLessThan(source.indexOf("Useful upgrades"));
+    expect(source.indexOf("Inventory setup")).toBeLessThan(source.indexOf("Upgrade before camping"));
   });
 
   it("treats Wintertodt-style skilling bosses as activity setup, not combat DPS", () => {
@@ -70,7 +70,7 @@ describe("boss detail modal affordance", () => {
     expect(source).toContain("function bankItemFromGear");
     expect(source).toContain("Extra supplies");
     expect(source).toContain("slot.item ? wikiSearchUrl(slot.item.name) : wikiSearchUrl(slot.label)");
-    expect(source).toContain("Buy");
+    expect(source).toContain("Buy/gather");
     expect(source).toContain("x{slot.item.quantity.toLocaleString()}");
   });
 });

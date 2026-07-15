@@ -554,6 +554,12 @@ Verifieer, commit, push. Stop daarna.
 - Check kill voelt als OSRS boss picker.
 - Boss detail is een trip setup, geen spreadsheet.
 
+Status 2026-07-15: uitgevoerd in fase 4. `/dps` toont nu alle bosses als grote
+klikbare tiles met All/GP/Slayer/Wildy/Raid/Beginner/Solo filters, geen
+"Open details" link, een boss-detail modal met inventory setup, buy/gather
+chips en "Upgrade before camping", plus bijgewerkte copy/tests. De modal-first
+Add Bank flow blijft bewust onderdeel van fase 5.
+
 ---
 
 # Fase 5 - Bank Organizer Als Popup + RuneLite Setup Tool
@@ -900,4 +906,3 @@ Start met Fase 0 uit `docs/SCAPESTACK-RETENTION-REFERO-PROMPTPLAN-2026-07-15.md`
 Voer alleen die fase uit. Gebruik Refero zoals beschreven. Commit en push.
 Stop daarna en wacht op "ga door".
 ```
-

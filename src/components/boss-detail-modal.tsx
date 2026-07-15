@@ -250,7 +250,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
                               />
                             ) : (
                               <span className="rounded bg-[var(--color-bg)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-[var(--color-accent)]">
-                                Buy
+                                Buy/gather
                               </span>
                             )}
                             <span className="truncate max-w-[155px]">{slot.item?.name ?? slot.label}</span>
@@ -267,7 +267,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
                 ))}
               </div>
               <p className="mt-2 text-[10.5px] text-[var(--color-text-muted)] italic">
-                Bright chips = in your bank. Buy chips = missing or too specific to detect from this paste.
+                Bright chips = in your bank. Buy/gather chips are missing or too specific to detect from this paste.
               </p>
             </section>
           )}
@@ -374,7 +374,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
           {upgrades.length > 0 && (
             <section>
               <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">
-                <Target className="size-3 inline-block mr-1" />Useful upgrades
+                <Target className="size-3 inline-block mr-1" />Upgrade before camping
               </h3>
               <div className="space-y-1.5">
                 {upgrades.map((u) => {
@@ -524,7 +524,7 @@ function bossTripVerdict({
     };
   }
   return {
-    title: "Try one trip",
+    title: "Do one trip",
     body: `${dps.weapon.name} is your best banked weapon here. Copy the tab, do one short trip, then decide if it is worth camping.`,
     badge: "Bank can start",
     tone: "good"
