@@ -19,6 +19,9 @@ describe("global header navigation", () => {
     expect(source).toContain("Bank saved ${describeSavedAt(bankSavedAt)}");
     expect(source).toContain("Bank added");
     expect(source).toContain("Add bank");
+    expect(source).toContain("AddBankModal");
+    expect(source).toContain("setBankModalOpen(true)");
+    expect(source).toContain('source="header"');
     expect(source).toContain("Refresh RuneLite");
     expect(source).toContain("Add RuneLite");
     expect(source).toContain("runeliteReady");

@@ -16,6 +16,9 @@ describe("current run bar", () => {
     expect(source).toContain("loadMood(savedRsn)");
     expect(source).toContain("Bank added");
     expect(source).toContain("Add bank");
+    expect(source).toContain("AddBankModal");
+    expect(source).toContain("setBankModalOpen(true)");
+    expect(source).toContain('source="run-bar"');
     expect(source).toContain("Add RuneLite");
     expect(source).toContain("Refresh RuneLite");
     expect(source).toContain("runeliteReady");

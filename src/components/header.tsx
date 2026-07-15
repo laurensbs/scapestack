@@ -9,6 +9,7 @@ import { contextualNavHref } from "@/lib/nav-context";
 import { clearSavedRsn, describeSavedAt, loadSavedBank, loadSavedRsn, saveSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
 import { getPrimaryNavTools } from "@/lib/tools";
 import { cn } from "@/lib/utils";
+import { AddBankModal } from "./add-bank-modal";
 import { BuyMeCoffee } from "./buy-me-coffee";
 
 const LOOP_STEPS = [
@@ -235,6 +236,7 @@ function AccountSwitcher({
   const [draft, setDraft] = useState(activeRsn);
   const [hasSavedSetup, setHasSavedSetup] = useState(false);
   const [bankSavedAt, setBankSavedAt] = useState<number | null>(null);
+  const [bankModalOpen, setBankModalOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const refresh = () => {
@@ -306,7 +308,6 @@ function AccountSwitcher({
   };
 
   const accountLabel = activeRsn || "Add RSN";
-  const bankHref = activeRsn ? `/bank?rsn=${encodeURIComponent(activeRsn)}&from=next` : "/bank";
   const pluginHref = activeRsn ? `/plugin?rsn=${encodeURIComponent(activeRsn)}#verify-sync` : "/plugin#verify-sync";
   const bankStatusLabel = hasSavedSetup ? "Bank added" : "Add bank";
   const bankFreshness = bankSavedAt ? `Bank saved ${describeSavedAt(bankSavedAt)}` : bankStatusLabel;
@@ -414,9 +415,12 @@ function AccountSwitcher({
               <UserRound className="mb-1 size-5" />
               RSN
             </button>
-            <Link
-              href={bankHref}
-              onClick={() => setOpen(false)}
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                setBankModalOpen(true);
+              }}
               className="grid min-h-[76px] place-items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
             >
               <Package className="mb-1 size-5" />
@@ -424,7 +428,7 @@ function AccountSwitcher({
                 {hasSavedSetup && <CheckCircle2 className="size-3 text-[var(--color-accent)]" />}
                 {bankStatusLabel}
               </span>
-            </Link>
+            </button>
             <Link
               href={pluginHref}
               onClick={() => setOpen(false)}
@@ -439,6 +443,12 @@ function AccountSwitcher({
           </div>
         </div>
       )}
+      <AddBankModal
+        open={bankModalOpen}
+        onClose={() => setBankModalOpen(false)}
+        rsn={activeRsn}
+        source="header"
+      />
     </div>
   );
 }

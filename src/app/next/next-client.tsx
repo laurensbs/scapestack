@@ -8,7 +8,7 @@ import {
   CheckCheck, CheckCircle2, Shield, Trash2, ClipboardPaste, X
 } from "lucide-react";
 import { SupportCard } from "@/components/support-card";
-import { BankSetupSteps } from "@/components/bank-setup-steps";
+import { AddBankModal } from "@/components/add-bank-modal";
 import { SavedBankBanner } from "@/components/saved-bank-banner";
 import { BossSprite } from "@/components/boss-picker";
 import { ItemSprite } from "@/components/item-sprite";
@@ -1179,76 +1179,14 @@ function NextIntake({
         </div>
       )}
 
-      {showBankField && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="next-bank-popup-title"
-          className="fixed inset-0 z-[100] overflow-y-auto bg-black/72 px-4 pb-8 pt-20 backdrop-blur-sm sm:grid sm:place-items-center sm:py-8"
-          onClick={() => setShowBankField(false)}
-        >
-          <div
-            className="w-full max-w-xl overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[#090909] text-left shadow-[0_32px_120px_-42px_rgba(0,0,0,0.92)]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-5 py-4 sm:px-6">
-              <div>
-                <p className="eyebrow text-[var(--color-accent)]">Add bank</p>
-                <h2 id="next-bank-popup-title" className="mt-1 text-[22px] font-semibold leading-tight text-[var(--color-text)]">
-                  Paste bank when gear matters.
-                </h2>
-                <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
-                  Optional. Use Bank Memory or Bank Tags when supplies, GP or boss gear should change the plan.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowBankField(false)}
-                aria-label="Close bank popup"
-                className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-
-            <div className="p-5 sm:p-6">
-              <label className="block">
-                <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                  Bank Memory or Bank Tags
-                </span>
-                <textarea
-                  value={bank}
-                  onChange={(e) => setBank(e.target.value)}
-                  placeholder="Paste your bank here..."
-                  rows={7}
-                  spellCheck={false}
-                  autoFocus
-                  className="mt-2 w-full resize-y rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-3 font-mono text-[12px] text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)]"
-                />
-              </label>
-              <BankSetupSteps className="mt-3" compact />
-            </div>
-
-            <div className="flex flex-col gap-2 border-t border-[var(--color-border)] px-5 pb-5 sm:flex-row sm:px-6 sm:pb-6">
-              <button
-                type="button"
-                onClick={() => setShowBankField(false)}
-                className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--color-accent)] px-4 text-[14px] font-bold text-[#0B0F0D] transition-colors hover:bg-[var(--color-accent-soft)]"
-              >
-                Use this bank
-                <ArrowRight className="size-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => { setBank(""); setShowBankField(false); }}
-                className="inline-flex h-11 items-center justify-center rounded-lg border border-[var(--color-border)] px-4 text-[13px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-danger)]/45 hover:text-[var(--color-danger)]"
-              >
-                Skip bank
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AddBankModal
+        open={showBankField}
+        onClose={() => setShowBankField(false)}
+        rsn={rsn}
+        initialBank={bank}
+        source="next"
+        onSaved={(savedBank) => setBank(savedBank)}
+      />
 
       {/* Tertiary: sample run, no input needed */}
       <div className="mt-4 text-center">

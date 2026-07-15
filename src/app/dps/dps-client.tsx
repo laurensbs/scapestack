@@ -13,6 +13,7 @@ import { ownedGear, lookupGear, type GearItem } from "@/lib/gear";
 import { bestStyleAndSetup, type DpsBreakdown } from "@/lib/dps";
 import { cn, formatGp } from "@/lib/utils";
 import { BossDetailModal } from "@/components/boss-detail-modal";
+import { AddBankModal } from "@/components/add-bank-modal";
 import { BossSprite } from "@/components/boss-picker";
 import { bossFromDpsParam } from "@/lib/dps-route";
 import { bankOrganizerHref } from "@/lib/bank-handoff-url";
@@ -87,15 +88,18 @@ function DpsIntakeHero() {
 
 function DpsMissingSetupState({
   boss,
-  setupHref,
   pluginSync,
-  slayerTask
+  slayerTask,
+  rsn,
+  onBankSaved
 }: {
   boss: Boss | null;
-  setupHref: string;
   pluginSync: boolean;
   slayerTask: boolean;
+  rsn: string;
+  onBankSaved: () => void;
 }) {
+  const [bankModalOpen, setBankModalOpen] = useState(false);
   const activityBoss = boss ? isNonCombatBossActivity(boss) : false;
   const title = boss ? activityBoss ? `Add bank for ${boss.name} supplies` : `Add bank for ${boss.name}` : "Add bank";
   const body = pluginSync
@@ -129,14 +133,22 @@ function DpsMissingSetupState({
             </p>
           </div>
         </div>
-        <Link
-          href={setupHref}
+        <button
+          type="button"
+          onClick={() => setBankModalOpen(true)}
           className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-4 py-3 text-[13px] font-bold text-white transition-all hover:brightness-110 sm:w-auto"
         >
           Add bank
           <ExternalLink className="size-3.5" />
-        </Link>
+        </button>
       </div>
+      <AddBankModal
+        open={bankModalOpen}
+        onClose={() => setBankModalOpen(false)}
+        rsn={rsn}
+        source="dps"
+        onSaved={onBankSaved}
+      />
     </section>
   );
 }
@@ -167,6 +179,7 @@ export function DpsClient() {
   const [bankSummary, setBankSummary] = useState<BankHandoffSummary | null>(null);
   const [loadedFromHandoff, setLoadedFromHandoff] = useState(false);
   const [skipHandoff, setSkipHandoff] = useState(false);
+  const [savedBankRefreshKey, setSavedBankRefreshKey] = useState(0);
 
   // Deep-link: /dps?boss=<slug> pre-selects a boss from the home page's
   // boss-showcase. The actual focus + scroll happens once we have a result
@@ -243,7 +256,7 @@ export function DpsClient() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effectiveRsn, searchParams, skipHandoff, view]);
+  }, [effectiveRsn, savedBankRefreshKey, searchParams, skipHandoff, view]);
 
   const run = (input: string, _junk: boolean, _rsn: string) => {
     setError(null);
@@ -413,9 +426,14 @@ export function DpsClient() {
       return (
         <DpsMissingSetupState
           boss={deepLinkedBoss}
-          setupHref={setupBankHref}
           pluginSync={searchParams.get("source") === "plugin-sync"}
           slayerTask={isSlayerTaskSource}
+          rsn={effectiveRsn}
+          onBankSaved={() => {
+            setHasKnownSetup(true);
+            setSkipHandoff(false);
+            setSavedBankRefreshKey((value) => value + 1);
+          }}
         />
       );
     }

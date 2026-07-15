@@ -629,6 +629,13 @@ Verifieer, commit, push. Stop daarna.
 - Add bank is geen overweldigende pagina meer.
 - Full bank organizer blijft krachtig.
 
+Status 2026-07-15: uitgevoerd in fase 5. Er is een centrale `AddBankModal`
+toegevoegd met Bank Memory screenshot, paste, save en "Open full organizer".
+Header/accountmenu, CurrentRunBar, homepage, `/next` intake en de `/dps`
+missing-bank state gebruiken nu deze modal-first flow. De save koppelt aan de
+actieve RSN zonder extra RSN-input en triggert bestaande saved-bank events,
+terwijl `/bank` de volledige organizer blijft.
+
 ---
 
 # Fase 6 - RuneLite Plugin Als Silent Memory Engine

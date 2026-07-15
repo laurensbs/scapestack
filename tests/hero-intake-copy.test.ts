@@ -115,7 +115,7 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain('params.set("time", String(intentPreset.minutes));');
     expect(source).toContain("openPlan({ markSetup: true, includeSetupIntent: true })");
     expect(source).toContain("saveSavedBank(bank, trimmed)");
-    expect(source).toContain("Saved for this account and used for the first plan.");
+    expect(source).toContain("AddBankModal");
     expect(source).not.toContain("RuneLite is connected");
     expect(source).not.toContain("Make {cleanRsn || \"this account\"} smarter?");
   });
@@ -140,26 +140,20 @@ describe("hero intake copy and routing", () => {
   });
 
   it("treats optional bank paste as an explicit setup-context control", () => {
-    expect(source).toContain('const HERO_BANK_TEXTAREA_ID = "hero-bank-paste";');
-    expect(source).toContain('const HERO_BANK_HELP_ID = "hero-bank-paste-help";');
+    expect(source).toContain('import { AddBankModal } from "@/components/add-bank-modal";');
     expect(source).toContain("loadSavedBank");
     expect(source).toContain("SAVED_BANK_EVENT");
     expect(source).toContain("const hasBankContext = hasBankPaste || Boolean(savedBankAt);");
     expect(source).toContain("aria-expanded={showBankGuide}");
     expect(source).toContain('aria-label={hasBankContext ? "Edit bank paste for Scapestack" : "Add bank to Scapestack"}');
     expect(source).toContain('aria-label="Remove pasted bank from this plan"');
-    expect(source).toContain('aria-labelledby="hero-bank-guide-title"');
-    expect(source).toContain('name="bank"');
-    expect(source).toContain("aria-labelledby={`${HERO_BANK_TEXTAREA_ID}-label`}");
-    expect(source).toContain("aria-describedby={HERO_BANK_HELP_ID}");
-    expect(source).toContain("Bank added. Gear, supplies and GP can shape the trip.");
+    expect(source).toContain("<AddBankModal");
+    expect(source).toContain("open={showBankGuide}");
+    expect(source).toContain('source="home"');
+    expect(source).toContain("onSaved={(savedBank, savedRsn) =>");
+    expect(source).toContain("setBank(savedBank);");
+    expect(source).toContain("setSavedBankAt(Date.now());");
     expect(source).toContain("Bank saved for this account. Scapestack can use it when gear matters.");
-    expect(source).toContain("Optional. Add this only when gear, supplies or GP should change the answer.");
-    expect(source).toContain('role="dialog"');
-    expect(source).toContain("Paste your bank once.");
-    expect(source).toContain("Use this bank");
-    expect(source).toContain("Skip bank");
-    expect(source).toContain("BankSetupSteps");
     expect(source).toContain('aria-labelledby="hero-runelite-guide-title"');
     expect(source).toContain("Let Scapestack skip finished stuff.");
     expect(source).toContain("Search Plugin Hub for Scapestack Sync.");

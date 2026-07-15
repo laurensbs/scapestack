@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CheckCircle2, ClipboardPaste, PlugZap, RefreshCw, Sword, X } from "lucide-react";
 import { pluginSyncStatusAction } from "@/app/actions";
-import { BankSetupSteps } from "@/components/bank-setup-steps";
+import { AddBankModal } from "@/components/add-bank-modal";
 import { RuneliteOpenButton } from "@/components/runelite-open-button";
 import { SessionMoodPicker } from "@/components/session-mood-picker";
 import { ACCOUNT_EVENT, clearRuneliteChecked, getActiveAccount, markRuneliteChecked } from "@/lib/account-storage";
@@ -26,10 +26,6 @@ import { cn } from "@/lib/utils";
 
 const HERO_BANK_KEY = "scapestack:hero:bank";
 const HERO_FIRST_SETUP_KEY = "scapestack:first-setup:v1";
-const HERO_BANK_TEXTAREA_ID = "hero-bank-paste";
-const HERO_BANK_HELP_ID = "hero-bank-paste-help";
-const HERO_FIRST_SETUP_BANK_ID = "hero-first-setup-bank";
-const HERO_FIRST_SETUP_BANK_HELP_ID = "hero-first-setup-bank-help";
 
 type FirstSetupIntent = "surprise" | "chill" | "cash" | "bossing" | "unlock" | "afk" | "short";
 
@@ -107,7 +103,6 @@ export function HeroIntake() {
   const [returningMood, setReturningMood] = useState<{ mood: Mood; minutes: TimeBudget; label: string } | null>(null);
   const [returningChangeLines, setReturningChangeLines] = useState<string[]>([]);
   const [selectedFirstSetupIntent, setSelectedFirstSetupIntent] = useState<FirstSetupIntent>("surprise");
-  const [showFirstSetupBank, setShowFirstSetupBank] = useState(false);
   const [firstSetupRunelite, setFirstSetupRunelite] = useState(false);
   const [bank, setBank] = useState("");
   const [savedBankAt, setSavedBankAt] = useState<number | null>(null);
@@ -351,14 +346,15 @@ export function HeroIntake() {
         </div>
 
         <div className="mt-3 grid grid-cols-3 gap-2">
-          <Link
-            href={`/bank?rsn=${encodedRsn}&from=home`}
+          <button
+            type="button"
+            onClick={() => setShowBankGuide(true)}
             className="relative flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2 py-3 text-center text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
           >
             {hasBankContext && <CheckCircle2 className="absolute right-2 top-2 size-3.5 text-[var(--color-accent)]" />}
             <ClipboardPaste className="size-4" />
             {hasBankContext ? "Setup" : "Add bank"}
-          </Link>
+          </button>
           <Link
             href={`/dps?rsn=${encodedRsn}&from=home`}
             className="flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2 py-3 text-center text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
@@ -580,9 +576,8 @@ export function HeroIntake() {
             <div className="osrs-body grid gap-3 p-5 sm:grid-cols-2 sm:p-6">
               <button
                 type="button"
-                onClick={() => setShowFirstSetupBank((value) => !value)}
-                aria-expanded={showFirstSetupBank}
-                aria-controls={HERO_FIRST_SETUP_BANK_ID}
+                onClick={() => setShowBankGuide(true)}
+                aria-haspopup="dialog"
                 className={cn(
                   "rounded-lg border p-4 text-left transition-colors",
                   hasBankContext
@@ -632,35 +627,6 @@ export function HeroIntake() {
               </div>
             </div>
 
-            {showFirstSetupBank && (
-              <div id={HERO_FIRST_SETUP_BANK_ID} className="osrs-body border-t border-[var(--color-parchment-edge)] px-5 py-5 sm:px-6">
-                <label className="block">
-                  <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                    Bank Memory or Bank Tags
-                  </span>
-                  <textarea
-                    value={bank}
-                    onChange={(event) => setBank(event.target.value)}
-                    placeholder="Paste your bank here..."
-                    rows={6}
-                    spellCheck={false}
-                    aria-describedby={HERO_FIRST_SETUP_BANK_HELP_ID}
-                    className="mt-2 w-full resize-y rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-3 font-mono text-[12px] text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)]"
-                  />
-                </label>
-                <span
-                  id={HERO_FIRST_SETUP_BANK_HELP_ID}
-                  role="status"
-                  aria-live="polite"
-                  className="mt-2 block text-[12px] leading-relaxed text-[var(--color-text-muted)]"
-                >
-                {hasBankPaste
-                  ? "Saved for this account and used for the first plan."
-                    : "Optional. Paste only if gear, supplies or GP should change the route."}
-                </span>
-              </div>
-            )}
-
             <div className="osrs-body flex flex-col gap-2 border-t border-[var(--color-parchment-edge)] px-5 pb-5 sm:flex-row sm:px-6 sm:pb-6">
               <button
                 type="button"
@@ -685,93 +651,18 @@ export function HeroIntake() {
         </div>
       )}
 
-      {showBankGuide && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="hero-bank-guide-title"
-          className="fixed inset-0 z-[100] overflow-y-auto bg-black/72 px-4 pb-8 pt-20 backdrop-blur-sm sm:grid sm:place-items-center sm:py-8"
-          onClick={() => setShowBankGuide(false)}
-        >
-          <div
-            className="osrs-frame w-full max-w-3xl text-left"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="osrs-title-bar flex items-start justify-between gap-4 px-5 py-4 sm:px-6">
-              <div>
-                <p className="eyebrow text-[var(--color-accent)]">Add bank</p>
-                <h2 id="hero-bank-guide-title" className="mt-1 text-[22px] font-semibold leading-tight text-[var(--color-text)]">
-                  Paste your bank once.
-                </h2>
-                <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
-                  Use Bank Memory or Bank Tags from RuneLite. Scapestack uses it for gear, supplies and GP.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowBankGuide(false)}
-                aria-label="Close bank guide"
-                className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-
-            <BankSetupSteps className="p-5 sm:p-6" />
-
-            <div className="osrs-body border-t border-[var(--color-parchment-edge)] px-5 py-5 sm:px-6">
-              <label className="block">
-                <span
-                  id={`${HERO_BANK_TEXTAREA_ID}-label`}
-                  className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]"
-                >
-                  Bank Memory or Bank Tags
-                </span>
-                <textarea
-                  id={HERO_BANK_TEXTAREA_ID}
-                  name="bank"
-                  value={bank}
-                  onChange={(e) => setBank(e.target.value)}
-                  placeholder="Paste your bank here..."
-                  rows={7}
-                  spellCheck={false}
-                  aria-labelledby={`${HERO_BANK_TEXTAREA_ID}-label`}
-                  aria-describedby={HERO_BANK_HELP_ID}
-                  className="mt-2 w-full resize-y rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-3 font-mono text-[12px] text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)]"
-                />
-              </label>
-              <span
-                id={HERO_BANK_HELP_ID}
-                role="status"
-                aria-live="polite"
-                className="mt-2 block text-[12px] leading-relaxed text-[var(--color-text-muted)]"
-              >
-                {bank.trim()
-                  ? "Bank added. Gear, supplies and GP can shape the trip."
-                  : "Optional. Add this only when gear, supplies or GP should change the answer."}
-              </span>
-            </div>
-
-            <div className="osrs-body flex flex-col gap-2 border-t border-[var(--color-parchment-edge)] px-5 pb-5 sm:flex-row sm:px-6 sm:pb-6">
-              <button
-                type="button"
-                onClick={() => setShowBankGuide(false)}
-                className="btn-primary h-11 flex-1 justify-center px-4 text-[14px]"
-              >
-                <ClipboardPaste className="size-4" />
-                Use this bank
-              </button>
-              <button
-                type="button"
-                onClick={() => { setBank(""); setShowBankGuide(false); }}
-                className="btn-ghost h-11 justify-center px-4 text-[13px] font-bold hover:border-[var(--color-danger)]/45 hover:text-[var(--color-danger)]"
-              >
-                Skip bank
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AddBankModal
+        open={showBankGuide}
+        onClose={() => setShowBankGuide(false)}
+        rsn={cleanRsn || rememberedRsn}
+        initialBank={bank}
+        source="home"
+        onSaved={(savedBank, savedRsn) => {
+          setBank(savedBank);
+          setSavedBankAt(Date.now());
+          if (savedRsn) setRsn(savedRsn);
+        }}
+      />
 
       {showRuneliteGuide && (
         <div
