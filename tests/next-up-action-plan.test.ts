@@ -472,6 +472,107 @@ describe("next-up action plans", () => {
     expect(visible.some((rec) => rec?.kind === "quest")).toBe(true);
   });
 
+  it("does not headline generic boss onboarding for a returning casual account with no boss history", async () => {
+    const result = await computeNextUp({
+      skills: skillsFromLevels({
+        Attack: 70, Strength: 75, Defence: 70, Hitpoints: 75, Ranged: 70,
+        Magic: 70, Prayer: 52, Slayer: 50,
+        Cooking: 70, Woodcutting: 65, Fletching: 65, Fishing: 65,
+        Firemaking: 60, Crafting: 60, Smithing: 60, Mining: 65,
+        Herblore: 55, Agility: 60, Thieving: 60, Farming: 55,
+        Runecraft: 50, Hunter: 60, Construction: 50
+      }),
+      questPoints: 105,
+      bank: [
+        { id: 4151, name: "Abyssal whip" },
+        { id: 1127, name: "Rune platebody" },
+        { id: 1079, name: "Rune platelegs" },
+        { id: 2503, name: "Black d'hide body" },
+        { id: 4091, name: "Mystic robe top" },
+        { id: 385, name: "Shark" }
+      ],
+      bossKc: {}
+    });
+    const visible = [result.headline, ...result.rest.slice(0, 7)].filter(Boolean);
+
+    expect(result.headline?.kind).not.toBe("boss");
+    expect(result.headline?.id).not.toBe("boss:king-black-dragon");
+    expect(visible.some((rec) => rec?.kind === "boss")).toBe(true);
+  });
+
+  it("gives maxed irons completion or KC routes instead of supply loops", async () => {
+    const result = await computeNextUp({
+      skills: skillsAt(99),
+      questPoints: 300,
+      accountMeta: {
+        displayName: "Maxed Iron",
+        accountType: "ironman",
+        ehp: 3500,
+        ehb: 900,
+        lastChangedAt: null
+      },
+      bank: [
+        { id: 20997, name: "Twisted bow" },
+        { id: 22325, name: "Scythe of vitur" },
+        { id: 27275, name: "Tumeken's shadow" },
+        { id: 25865, name: "Bow of faerdhinen (c)" },
+        { id: 26384, name: "Torva platebody" },
+        { id: 28997, name: "Soulreaper axe" },
+        { id: 13342, name: "Max cape" },
+        { id: 9813, name: "Quest point cape" },
+        { id: 26219, name: "Osmumten's fang" }
+      ],
+      bossKc: {
+        Vorkath: 1500,
+        Zulrah: 800,
+        "Chambers of Xeric": 250,
+        "Theatre of Blood": 80,
+        "Tombs of Amascut": 400,
+        "Alchemical Hydra": 600,
+        Vardorvis: 350,
+        "Duke Sucellus": 320
+      }
+    });
+
+    expect(result.headline?.title).not.toBe("Run herbs + birdhouses");
+    expect(["goal", "kc"]).toContain(result.headline?.kind);
+  });
+
+  it("keeps a started DT2 boss route above generic PvM when the account has proof KC", async () => {
+    const result = await computeNextUp({
+      skills: skillsFromLevels({
+        Attack: 90, Strength: 90, Defence: 80, Hitpoints: 85, Ranged: 92,
+        Magic: 85, Prayer: 74, Slayer: 80,
+        Cooking: 80, Woodcutting: 70, Fletching: 80, Fishing: 70,
+        Firemaking: 70, Crafting: 75, Smithing: 70, Mining: 72,
+        Herblore: 78, Agility: 70, Thieving: 80, Farming: 75,
+        Runecraft: 70, Hunter: 70, Construction: 75
+      }),
+      questPoints: 180,
+      bossKc: {
+        Vorkath: 250,
+        Zulrah: 180,
+        Vardorvis: 15,
+        "Alchemical Hydra": 30
+      },
+      bank: [
+        { id: 4151, name: "Abyssal whip" },
+        { id: 28688, name: "Blazing blowpipe" },
+        { id: 11804, name: "Bandos godsword" },
+        { id: 11832, name: "Bandos chestplate" },
+        { id: 11834, name: "Bandos tassets" },
+        { id: 19553, name: "Amulet of torture" },
+        { id: 21295, name: "Infernal cape" },
+        { id: 21907, name: "Vorkath's head" },
+        { id: 12921, name: "Magic fang" }
+      ]
+    });
+
+    expect(result.headline?.id).toBe("kc:Vardorvis:first-50");
+    expect(result.headline?.decisionReason).toContain("50 KC is a clean stop point");
+    expect(result.headline?.decisionReason).toContain("check the kill setup");
+  });
+
   it("adds practical account routes beyond generic boss and diary picks", async () => {
     const result = await computeNextUp({
       skills: skillsFromLevels({

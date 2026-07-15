@@ -118,8 +118,6 @@ function isIronRoute(accountMeta: AccountMeta | null | undefined): boolean {
 
 export function detectAccountStage(input: DetectAccountStageInput): AccountStage {
   const hasHiscores = input.skills.length > 0;
-  if (isIronRoute(input.accountMeta)) return STAGES["iron-route"];
-  if (input.hasPluginSync) return STAGES["runelite-aware"];
   if (!hasHiscores) return input.hasBankContext ? STAGES["gear-first"] : STAGES["first-run"];
   if (input.accountMeta?.accountType === "skiller") return STAGES.skiller;
 
@@ -131,6 +129,8 @@ export function detectAccountStage(input: DetectAccountStageInput): AccountStage
 
   if (combat < 50 && nonCombat >= 800) return STAGES.skiller;
   if (total >= 2200 || (total >= 2000 && bossTotal >= 1000)) return STAGES["maxed-grinder"];
+  if (isIronRoute(input.accountMeta)) return STAGES["iron-route"];
+  if (input.hasPluginSync) return STAGES["runelite-aware"];
   if (bossTotal >= 50 || (combat >= 110 && total >= 1500)) return STAGES["pvm-ready"];
   if (total < 750 || combat < 60 || qp < 40) return STAGES["new-account"];
   if (total < 1400 || qp < 120) return STAGES["early-main"];

@@ -3914,26 +3914,37 @@ function LastSyncSummaryCard({ result }: { result: NextUpResult }) {
   const summary = result.summary.lastSyncSummary;
   const lines = lastSyncSummaryLines(result);
   if (!summary || lines.length === 0) return null;
+  const title = lastSyncReturnTitle(result);
+  const lead = lastSyncReturnLead(result);
+  const nextLine = nextCleanTripLine(result);
 
   return (
-    <section className="rounded-lg border border-[var(--color-good)]/25 bg-[var(--color-good)]/8 px-3 py-2" data-last-sync-summary="true">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <section className="rounded-xl border border-[var(--color-accent)]/35 bg-[linear-gradient(135deg,rgba(214,170,72,0.16),rgba(27,22,15,0.78))] px-4 py-3 shadow-[0_18px_60px_rgba(0,0,0,0.28)]" data-last-sync-summary="true">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
-          <p className="text-[10.5px] font-black uppercase tracking-[0.16em] text-[var(--color-good)]">Since last check</p>
-          <div className="mt-2 flex flex-wrap gap-2">
+          <p className="text-[10.5px] font-black uppercase tracking-[0.16em] text-[var(--color-accent)]">Since last trip</p>
+          <h2 className="mt-1 text-[18px] font-black leading-tight text-[var(--color-text)] sm:text-[21px]">
+            {title}
+          </h2>
+          <p className="mt-1 max-w-[720px] text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+            {lead}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
             {lines.slice(0, 3).map((line) => (
               <span
                 key={line}
-                className="rounded-full border border-[var(--color-good)]/24 bg-[var(--color-bg)]/35 px-2.5 py-1 text-[11px] font-bold text-[var(--color-text-dim)]"
+                className="rounded-full border border-[var(--color-accent)]/24 bg-[var(--color-bg)]/45 px-2.5 py-1 text-[11px] font-bold text-[var(--color-text-dim)]"
               >
                 {line}
               </span>
             ))}
           </div>
         </div>
-        <div className="min-w-0 text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-muted)] sm:max-w-[300px] sm:text-right">
-          {nextCleanTripLine(result)}
-        </div>
+        {nextLine && (
+          <div className="min-w-0 rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/42 px-3 py-2 text-[12px] font-bold leading-relaxed text-[var(--color-text)] lg:max-w-[310px]">
+            {nextLine}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -4216,6 +4227,56 @@ function lastSyncSummaryLines(result: NextUpResult): string[] {
     lines.push(`${scapestackAccountTypeLabel(summary.accountType.current)} detected`);
   }
   return lines;
+}
+
+function lastSyncReturnTitle(result: NextUpResult): string {
+  const summary = result.summary.lastSyncSummary;
+  if (!summary) return "RuneLite changed the route";
+  const xp = summary.skills.reduce((sum, skill) => sum + Math.max(0, skill.xpGained), 0);
+  if (summary.questsCompleted.length > 0 || summary.diariesCompleted.length > 0) {
+    return "Finished steps are gone from the route";
+  }
+  if (summary.collectionLogItems.length > 0 || summary.collectionLogItemIds.length > 0) {
+    return "New clog progress changed the route";
+  }
+  if (xp > 0) {
+    return `${formatXp(xp)} gained since the last scan`;
+  }
+  if (summary.bank?.currentItemCount) {
+    return "RuneLite bank is shaping this trip";
+  }
+  if (summary.accountType.changed) {
+    return "Account mode changed the route";
+  }
+  return "RuneLite changed the route";
+}
+
+function lastSyncReturnLead(result: NextUpResult): string {
+  const summary = result.summary.lastSyncSummary;
+  const next = result.headline?.title || result.nextBestActions[0]?.title;
+  if (!summary) return next ? `${next} is now the cleanest stop point.` : "Open one plan, do the stop point, then sync again.";
+  if (summary.questsCompleted.length > 0 || summary.diariesCompleted.length > 0) {
+    return next
+      ? `${next} moved up because completed quests and diary tiers are no longer wasting a slot.`
+      : "Completed quests and diary tiers are no longer wasting a slot.";
+  }
+  if (summary.collectionLogItems.length > 0 || summary.collectionLogItemIds.length > 0) {
+    return next
+      ? `${next} is now cleaner because new collection-log progress is already counted.`
+      : "New collection-log progress is counted, so the route should not repeat it.";
+  }
+  const skill = summary.skills.find((entry) => entry.xpGained > 0);
+  if (skill) {
+    return next
+      ? `${skill.name} moved, so ${next} is checked against the latest levels.`
+      : `${skill.name} moved, so the next route is checked against the latest levels.`;
+  }
+  if (summary.bank?.currentItemCount) {
+    return next
+      ? `${next} is using the bank RuneLite just sent.`
+      : "This route is using the bank RuneLite just sent.";
+  }
+  return next ? `${next} is the next clean stop point.` : "Open one plan, do the stop point, then sync again.";
 }
 
 function nextCleanTripLine(result: NextUpResult): string | null {

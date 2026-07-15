@@ -430,6 +430,7 @@ function archetypeMultiplier(rec: Recommendation, accountStage: AccountStage, ac
   const text = `${rec.id} ${rec.title} ${rec.why} ${rec.payoff ?? ""} ${rec.decisionReason ?? ""}`.toLowerCase();
   const hasSourceHint = /shop|sawmill|skilling|craft|minigame|herb|birdhouse|seed|diary|quest|unlock/.test(text)
     || hasRouteTag(rec, "unlock");
+  const isSupplyLoop = /herb|birdhouse|seed|nest|supply loop/.test(text);
   const shortAction = rec.actionPlan?.timebox
     ? /5-10|10-15|10-20|15-30|30-60|min/.test(rec.actionPlan.timebox.toLowerCase())
       && !/1-2 hr|2 hr|session/.test(rec.actionPlan.timebox.toLowerCase())
@@ -483,7 +484,9 @@ function archetypeMultiplier(rec: Recommendation, accountStage: AccountStage, ac
       if ((rec.kind === "boss" || rec.kind === "kc") && rec.gearConfidence === "unknown") multiplier *= 0.78;
       break;
     case "maxed-grinder":
-      if (hasRouteTag(rec, "maxing") || rec.kind === "kc" || rec.kind === "goal") multiplier *= 1.16;
+      if (hasRouteTag(rec, "maxing") || rec.kind === "kc" || rec.kind === "goal") multiplier *= 1.28;
+      if (rec.kind === "skill" && isSupplyLoop) multiplier *= 0.38;
+      if (rec.kind === "bank" || rec.kind === "money") multiplier *= 0.6;
       if (rec.kind === "quest" || rec.kind === "diary") multiplier *= 0.82;
       break;
     case "runelite-aware":
@@ -791,6 +794,30 @@ function hasBossExperience(boss: Boss, bank: CompletionItem[], bossKc: Record<st
   return signatureIds.some((id) => ownedIds.has(id));
 }
 
+function genericBossIntroScore(baseScore: number, input: {
+  bossCategory: Boss["category"];
+  totalKnownBossKc: number;
+  hasBank: boolean;
+}): number {
+  let score = Math.max(40, baseScore);
+
+  // A boss tile is a useful backup, but if the account has no boss history it
+  // should not beat clear quests, diaries or foundation skill unlocks.
+  if (input.totalKnownBossKc === 0) {
+    score = Math.min(score, input.hasBank ? 58 : 52);
+  } else if (input.totalKnownBossKc < 25) {
+    score = Math.min(score, input.hasBank ? 64 : 58);
+  } else if (input.totalKnownBossKc < 1_000) {
+    score = Math.min(score, input.hasBank ? 54 : 48);
+  }
+
+  if (input.bossCategory === "wildy") {
+    score -= input.hasBank ? 6 : 12;
+  }
+
+  return Math.max(34, Math.round(score));
+}
+
 function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSkill[], bossKc: Record<string, number>): Recommendation[] {
   const totalKnownBossKc = Object.values(bossKc).reduce((sum, kc) => sum + Math.max(0, kc), 0);
   if (totalKnownBossKc >= 1_000) return [];
@@ -827,7 +854,11 @@ function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSk
     if (group) {
       if (seenGroups.has(group.id)) continue;
       seenGroups.add(group.id);
-      const score = 70 - (combatLevel - gate);
+      const score = genericBossIntroScore(70 - (combatLevel - gate), {
+        bossCategory: "slayer",
+        totalKnownBossKc,
+        hasBank: bank.length > 0
+      });
       recs.push({
         id: group.id,
         kind: "boss",
@@ -837,7 +868,7 @@ function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSk
         decisionReason: match.item
           ? `${displayMatchedGear(match.item)} makes this a realistic short PvM trip.`
           : "Combat level fits, but gear is not verified; treat this as a short scouting trip.",
-        score: Math.max(40, score),
+        score,
         link: "/dps",
         iconItemId: group.iconItemId,
         routeTags: ["pvm", "fun"],
@@ -864,7 +895,11 @@ function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSk
       continue;
     }
 
-    const score = 70 - (combatLevel - gate); // freshly-unlocked scores higher
+    const score = genericBossIntroScore(70 - (combatLevel - gate), {
+      bossCategory: boss.category,
+      totalKnownBossKc,
+      hasBank: bank.length > 0
+    }); // freshly-unlocked scores higher, but no-history bosses stay backups.
     recs.push({
       id: `boss:${boss.slug}`,
       kind: "boss",
@@ -876,7 +911,7 @@ function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSk
         : boss.category === "wildy"
           ? "Wilderness trips need gear and risk context, so this stays a cautious test."
           : "Combat level fits, but no bank was pasted, so the first trip should stay cheap.",
-      score: Math.max(40, score - (boss.category === "wildy" && bank.length === 0 ? 12 : 0)),
+      score,
       link: "/dps",
       iconItemId: boss.iconItemId,
       bossSlug: boss.slug,
@@ -947,21 +982,36 @@ function applyBossViability(recs: Recommendation[], bank: CompletionItem[]): Rec
     if (!viability) return rec;
 
     const blocked = viability.tone === "blocked";
-    const multiplier = bossViabilityScoreMultiplier(viability);
-    const activeKcMomentum = rec.kind === "kc" && (rec.kcMeta?.kc ?? 0) >= 10 && !blocked
-      ? 1.35
+    const activeKcMomentum = rec.kind === "kc" && (rec.kcMeta?.kc ?? 0) >= 10
+      ? (blocked ? 1.25 : 1.35)
       : 1;
+    const activeKcProof = rec.kind === "kc" && (rec.kcMeta?.kc ?? 0) >= 10;
+    const treatAsBlocked = blocked && !activeKcProof;
+    const multiplier = blocked && activeKcProof
+      ? 0.9
+      : bossViabilityScoreMultiplier(viability);
     const existingQuality = rec.quality ?? defaultQualityFor(rec, true);
     const existingSteps = rec.planSeed?.steps ?? [];
-    const prepPrefix = blocked
+    const prepPrefix = treatAsBlocked
       ? viability.summary
+      : blocked && activeKcProof
+        ? `${viability.summary} You already have KC here, so make it a short setup check instead of a blind grind.`
       : `${viability.summary} ${viability.firstTrip}`;
-    const steps = blocked
+    const steps = treatAsBlocked
       ? [
           `Do not make ${boss.name} the main plan from this bank.`,
           "Check the kill setup if you want to inspect the gap.",
           "Pick a backup that your current gear supports tonight."
         ]
+      : blocked && activeKcProof
+        ? mergeUniqueShort(
+            [
+              `Open ${boss.name} in Check kill and confirm the best owned setup.`,
+              "Run a small KC block only if the trip feels stable."
+            ],
+            existingSteps,
+            4
+          )
       : mergeUniqueShort(
           [
             `Check ${boss.name} and lock ${viability.weaponName ?? "the best owned setup"}.`,
@@ -973,27 +1023,29 @@ function applyBossViability(recs: Recommendation[], bank: CompletionItem[]): Rec
 
     return {
       ...rec,
-      score: Math.max(blocked ? 4 : 20, Math.round(rec.score * multiplier * activeKcMomentum)),
-      why: blocked
+      score: Math.max(activeKcProof ? 72 : treatAsBlocked ? 4 : 20, Math.round(rec.score * multiplier * activeKcMomentum)),
+      why: treatAsBlocked
         ? `${boss.name} is not the move from this bank yet.`
         : rec.why,
-      decisionReason: blocked
+      decisionReason: treatAsBlocked
         ? bossViabilityDecisionLine(viability)
-        : rec.decisionReason ?? bossViabilityDecisionLine(viability),
-      gearConfidence: blocked
+        : blocked && activeKcProof
+          ? `${rec.decisionReason ?? `${boss.name} has enough KC history to deserve a short block.`} Bank says the setup is weak, so check the kill setup before camping it.`
+          : rec.decisionReason ?? bossViabilityDecisionLine(viability),
+      gearConfidence: treatAsBlocked
         ? "unknown"
         : viability.tone === "ready"
           ? "confirmed"
           : "likely",
       quality: {
         ...existingQuality,
-        actionability: blocked ? 0.18 : viability.tone === "ready" ? Math.max(existingQuality.actionability, 0.86) : Math.min(existingQuality.actionability, 0.66),
-        gearConfidence: blocked ? 0.12 : viability.tone === "ready" ? 0.96 : 0.72,
-        fun: blocked ? Math.min(existingQuality.fun, 0.36) : existingQuality.fun,
-        friction: blocked ? Math.max(existingQuality.friction, 0.88) : viability.tone === "test" ? Math.max(existingQuality.friction, 0.52) : Math.min(existingQuality.friction, 0.34)
+        actionability: treatAsBlocked ? 0.18 : blocked && activeKcProof ? Math.max(existingQuality.actionability, 0.72) : viability.tone === "ready" ? Math.max(existingQuality.actionability, 0.86) : Math.min(existingQuality.actionability, 0.66),
+        gearConfidence: treatAsBlocked ? 0.12 : blocked && activeKcProof ? 0.62 : viability.tone === "ready" ? 0.96 : 0.72,
+        fun: treatAsBlocked ? Math.min(existingQuality.fun, 0.36) : existingQuality.fun,
+        friction: treatAsBlocked ? Math.max(existingQuality.friction, 0.88) : blocked && activeKcProof ? Math.max(existingQuality.friction, 0.48) : viability.tone === "test" ? Math.max(existingQuality.friction, 0.52) : Math.min(existingQuality.friction, 0.34)
       },
       needs: mergeUniqueShort(
-        blocked
+        treatAsBlocked
           ? viability.missing
           : [`${viability.weaponName ?? "Best owned setup"} setup`, `${viability.dps.toFixed(viability.dps >= 10 ? 0 : 1)} DPS check`],
         rec.needs ?? [],
@@ -1005,7 +1057,7 @@ function applyBossViability(recs: Recommendation[], bank: CompletionItem[]): Rec
           ? `${prepPrefix} ${rec.planSeed.prep}`
           : prepPrefix,
         steps,
-        caveat: blocked
+        caveat: treatAsBlocked
           ? "Use a backup unless you add better gear or supplies."
           : rec.planSeed?.caveat
       }
@@ -2745,7 +2797,8 @@ function accountRouteRecs(input: {
     });
   }
 
-  if (farming >= 32 && hunter >= 5) {
+  const shouldSuggestSupplyLoop = farming >= 32 && hunter >= 5 && accountStage.id !== "maxed-grinder";
+  if (shouldSuggestSupplyLoop) {
     if (iron) {
       recs.push({
         id: "skill:iron-herb-birdhouse-loop",
