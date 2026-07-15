@@ -36,6 +36,8 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain('import { Edit3, Sword, Search, X, Sparkles, ExternalLink } from "lucide-react";');
     expect(source).toContain("function bossTripVerdict");
     expect(source).toContain("const status = bossTripVerdict(boss, dps, accountType);");
+    expect(source).toContain("buildBossInventoryPlan({ boss, bankItems, owned, dps })");
+    expect(source).toContain('className="block h-full min-h-[236px] w-full p-5 text-left"');
     expect(source).toContain('"Do one trip"');
     expect(source).toContain('"Good with bank"');
     expect(source).toContain('"Good first trip"');
@@ -43,8 +45,8 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain('"Risky trip"');
     expect(source).toContain('"HCIM risk"');
     expect(source).toContain('"Activity setup"');
-    expect(source).toContain("Kill pace");
-    expect(source).toContain("Loot pace");
+    expect(source).toContain("killPace");
+    expect(source).toContain("{formatGp(gpPerHour)}/hr");
     expect(source).not.toContain('<span className="text-[var(--color-text-muted)]">DPS</span>');
     expect(source).not.toContain("role=\"button\"");
     expect(source).not.toContain("tabIndex={0}");
@@ -70,9 +72,12 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("window.scrollTo({ top: 0, behavior: \"instant\" });");
     expect(source).toContain("Pick a boss");
     expect(source).toContain("Search any boss. Click a tile for gear, supplies, upgrades and a first trip.");
-    expect(source).toContain("Before you leave");
-    expect(source).toContain("Still missing");
-    expect(source).toContain("Finish after");
+    expect(source).toContain('label: "Bring" | "Missing" | "Try first"');
+    expect(source).toContain('<BossTripLine label="Bring" value={before} />');
+    expect(source).toContain('<BossTripLine label="Try first" value={finish} />');
+    expect(source).not.toContain("Before you leave");
+    expect(source).not.toContain("Still missing");
+    expect(source).not.toContain("Finish after");
     expect(source).not.toContain("Boss category");
     expect(source).toContain("visibleResults.length} bosses");
     expect(source).toContain("const visibleResults = filteredResults;");

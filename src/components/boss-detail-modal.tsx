@@ -6,7 +6,7 @@ import { X, Sword, Target, TrendingUp, Package, ExternalLink, Copy, CheckCheck }
 import { BOSSES, isNonCombatBossActivity, type Boss } from "@/lib/bosses";
 import { bestStyleAndSetup, calcDps, autoSetup, type DpsBreakdown, type Setup } from "@/lib/dps";
 import { GEAR, type GearItem, type CombatStyle } from "@/lib/gear";
-import { PRESETS, type Preset } from "@/lib/presets";
+import { PRESETS } from "@/lib/presets";
 import { formatGp, cn } from "@/lib/utils";
 import { ItemSprite } from "@/components/item-sprite";
 import { BossSprite } from "@/components/boss-picker";
@@ -15,6 +15,7 @@ import { wikiSearchUrl } from "@/lib/wiki";
 import type { BankHandoffItem } from "@/lib/next-bank-handoff";
 import { exportTag } from "@/lib/bank-tags";
 import { copyText } from "@/lib/clipboard";
+import { buildBossInventoryPlan, type InventoryRowPick } from "@/lib/boss-trip-loadout";
 
 interface Props {
   boss: Boss;
@@ -52,17 +53,19 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
     [activitySetup, owned, boss, dps]
   );
   const preset = useMemo(() => PRESETS.find((p) => p.slug === boss.slug), [boss]);
-  const inventoryRows = useMemo(
-    () => buildInventoryRows({ preset, bankItems, owned, dps }),
-    [preset, bankItems, owned, dps]
+  const inventoryPlan = useMemo(
+    () => buildBossInventoryPlan({ boss, preset, bankItems, owned, dps }),
+    [boss, preset, bankItems, owned, dps]
   );
+  const inventoryRows = inventoryPlan.rows;
+  const inventoryTagRows = activitySetup ? inventoryRows : undefined;
   const verdict = useMemo(
-    () => bossTripVerdict({ boss, dps, inventoryRows, upgrades, activitySetup }),
-    [boss, dps, inventoryRows, upgrades, activitySetup]
+    () => bossTripVerdict({ boss, dps, inventoryPlan, upgrades, activitySetup }),
+    [boss, dps, inventoryPlan, upgrades, activitySetup]
   );
   const tagString = useMemo(
-    () => bossSetupTagString(boss, dps, activitySetup ? inventoryRows : undefined),
-    [boss, dps, activitySetup, inventoryRows]
+    () => bossSetupTagString(boss, dps, inventoryTagRows),
+    [boss, dps, inventoryTagRows]
   );
   const bossRail = useMemo(() => {
     const sameCategory = BOSSES.filter((candidate) => candidate.category === boss.category && candidate.slug !== boss.slug);
@@ -217,8 +220,11 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
           {inventoryRows.length > 0 && (
             <section data-testid="boss-inventory-setup">
               <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">
-                <Package className="size-3 inline-block mr-1" />Inventory setup
+                <Package className="size-3 inline-block mr-1" />Leave with this
               </h3>
+              <p className="mb-2 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+                {inventoryPlan.leaveWith}
+              </p>
               <div className="space-y-2.5">
                 {inventoryRows.map((row) => (
                   <div key={row.label}>
@@ -254,6 +260,11 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
                               </span>
                             )}
                             <span className="truncate max-w-[155px]">{slot.item?.name ?? slot.label}</span>
+                            {slot.note && (
+                              <span className="text-[10px] text-[var(--color-text-muted)]">
+                                {slot.note}
+                              </span>
+                            )}
                             {slot.item && slot.item.quantity > 1 && (
                               <span className="font-mono text-[10px] text-[var(--color-text-muted)]">
                                 x{slot.item.quantity.toLocaleString()}
@@ -267,8 +278,14 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
                 ))}
               </div>
               <p className="mt-2 text-[10.5px] text-[var(--color-text-muted)] italic">
-                Bright chips = in your bank. Buy/gather chips are missing or too specific to detect from this paste.
+                Gold chips are in your bank. Buy/gather chips are missing or too specific to detect from this paste.
               </p>
+              <div className="mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2">
+                <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--color-accent)]">Try first</div>
+                <p className="mt-1 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text)]">
+                  {inventoryPlan.firstTrip}
+                </p>
+              </div>
             </section>
           )}
 
@@ -468,22 +485,22 @@ interface BossTripVerdict {
 function bossTripVerdict({
   boss,
   dps,
-  inventoryRows,
+  inventoryPlan,
   upgrades,
   activitySetup
 }: {
   boss: Boss;
   dps: DpsBreakdown;
-  inventoryRows: InventoryRowPick[];
+  inventoryPlan: ReturnType<typeof buildBossInventoryPlan>;
   upgrades: UpgradePick[];
   activitySetup?: boolean;
 }): BossTripVerdict {
-  const missingInventory = inventoryRows.flatMap((row) => row.slots).filter((slot) => !slot.item).length;
+  const missingInventory = inventoryPlan.missingCount;
   if (activitySetup) {
     return {
       title: "Prep the activity",
       body: missingInventory > 0
-        ? `${missingInventory} activity items are not found in this bank. Fill those before starting.`
+        ? `${missingInventory} activity items are missing. Fill those before starting.`
         : "Your bank has the key activity items. Copy the tab, do one round, then adjust after the reward.",
       badge: "No combat DPS",
       tone: missingInventory > 0 ? "warn" : "good"
@@ -518,14 +535,14 @@ function bossTripVerdict({
   if (missingInventory > 2) {
     return {
       title: "Prep missing",
-      body: `${dps.weapon.name} works, but ${missingInventory} inventory checks are missing. Fill those before the trip.`,
+      body: `${dps.weapon.name} works, but ${inventoryPlan.missingLine ?? "some supplies"} are missing. Fill those before the trip.`,
       badge: "Prep first",
       tone: "warn"
     };
   }
   return {
     title: "Do one trip",
-    body: `${dps.weapon.name} is your best banked weapon here. Copy the tab, do one short trip, then decide if it is worth camping.`,
+    body: `${dps.weapon.name} is your best banked weapon here. ${inventoryPlan.firstTrip}`,
     badge: "Bank can start",
     tone: "good"
   };
@@ -624,157 +641,6 @@ interface UpgradePick {
   newTtk: number;
 }
 
-interface InventorySlotPick {
-  label: string;
-  item: BankHandoffItem | null;
-}
-
-interface InventoryRowPick {
-  label: string;
-  slots: InventorySlotPick[];
-}
-
-const FOOD_PATTERNS = [
-  /^anglerfish$/i,
-  /^manta ray$/i,
-  /^shark$/i,
-  /^cooked karambwan$/i,
-  /^monkfish$/i,
-  /^karambwan$/i
-] as const;
-
-const PRAYER_PATTERNS = [
-  /^super restore\(4\)$/i,
-  /^prayer potion\(4\)$/i,
-  /^sanfew serum\(4\)$/i
-] as const;
-
-const TELEPORT_PATTERNS = [
-  /^royal seed pod$/i,
-  /^teleport to house$/i,
-  /^house teleport$/i,
-  /^varrock teleport$/i,
-  /^falador teleport$/i,
-  /^camelot teleport$/i,
-  /^ardougne teleport$/i,
-  /^ring of dueling/i,
-  /^games necklace/i,
-  /^amulet of glory/i
-] as const;
-
-const STYLE_BOOSTS: Record<CombatStyle, { label: string; patterns: readonly RegExp[] }> = {
-  stab: {
-    label: "Super combat potion(4)",
-    patterns: [/^super combat potion\(4\)$/i, /^super attack\(4\)$/i]
-  },
-  slash: {
-    label: "Super combat potion(4)",
-    patterns: [/^super combat potion\(4\)$/i, /^super strength\(4\)$/i, /^super attack\(4\)$/i]
-  },
-  crush: {
-    label: "Super combat potion(4)",
-    patterns: [/^super combat potion\(4\)$/i, /^super strength\(4\)$/i, /^super attack\(4\)$/i]
-  },
-  ranged: {
-    label: "Ranging potion(4)",
-    patterns: [/^ranging potion\(4\)$/i, /^bastion potion\(4\)$/i]
-  },
-  magic: {
-    label: "Magic potion(4)",
-    patterns: [/^magic potion\(4\)$/i, /^forgotten brew\(4\)$/i, /^imbued heart$/i]
-  }
-};
-
-function buildInventoryRows({
-  preset,
-  bankItems,
-  owned,
-  dps
-}: {
-  preset: Preset | undefined;
-  bankItems: BankHandoffItem[];
-  owned: GearItem[];
-  dps: DpsBreakdown;
-}): InventoryRowPick[] {
-  if (preset) {
-    const rows = preset.rows.map((row) => ({
-      label: row.label,
-      slots: row.patterns.map((pattern) => ({
-        label: describePattern(pattern),
-        item: findBankItemByPattern(pattern, bankItems, owned)
-      }))
-    }));
-    const extras = fallbackInventorySlots(bankItems, owned, dps)
-      .filter((slot) => slot.label === "Food" || slot.label === "Teleport out")
-      .filter((slot) => !inventoryRowsContain(rows, slot));
-    return extras.length > 0 ? [...rows, { label: "Extra supplies", slots: extras }] : rows;
-  }
-
-  return [{ label: "Inventory", slots: fallbackInventorySlots(bankItems, owned, dps) }];
-}
-
-function fallbackInventorySlots(
-  bankItems: BankHandoffItem[],
-  owned: GearItem[],
-  dps: DpsBreakdown
-): InventorySlotPick[] {
-  const styleBoost = STYLE_BOOSTS[dps.style];
-  return [
-    {
-      label: dps.dps > 0 ? dps.weapon.name : "Usable weapon",
-      item: dps.dps > 0 ? bankItemFromGear(dps.weapon, bankItems) : null
-    },
-    { label: styleBoost.label, item: firstBankMatch(styleBoost.patterns, bankItems) },
-    { label: "Prayer restore", item: firstBankMatch(PRAYER_PATTERNS, bankItems) },
-    { label: "Food", item: firstBankMatch(FOOD_PATTERNS, bankItems) },
-    { label: "Teleport out", item: firstBankMatch(TELEPORT_PATTERNS, bankItems) }
-  ].filter((slot) => slot.item || slot.label !== "Usable weapon" || owned.length === 0);
-}
-
-function inventoryRowsContain(rows: InventoryRowPick[], slot: InventorySlotPick): boolean {
-  const needle = (slot.item?.name ?? slot.label).toLowerCase();
-  return rows.some((row) =>
-    row.slots.some((existing) => (existing.item?.name ?? existing.label).toLowerCase() === needle)
-  );
-}
-
-function firstBankMatch(patterns: readonly RegExp[], bankItems: BankHandoffItem[]): BankHandoffItem | null {
-  for (const pattern of patterns) {
-    const item = bankItems.find((candidate) => patternMatches(pattern, candidate.name));
-    if (item) return item;
-  }
-  return null;
-}
-
-function findBankItemByPattern(
-  pattern: RegExp,
-  bankItems: BankHandoffItem[],
-  owned: GearItem[]
-): BankHandoffItem | null {
-  const bankMatch = bankItems.find((item) => patternMatches(pattern, item.name));
-  if (bankMatch) return bankMatch;
-  const gearMatch = owned.find((item) => patternMatches(pattern, item.name));
-  return gearMatch ? bankItemFromGear(gearMatch, bankItems) : null;
-}
-
-function patternMatches(pattern: RegExp, value: string): boolean {
-  pattern.lastIndex = 0;
-  return pattern.test(value);
-}
-
-function bankItemFromGear(gear: GearItem, bankItems: BankHandoffItem[]): BankHandoffItem {
-  return bankItems.find((item) => item.id === gear.id || item.name.toLowerCase() === gear.name.toLowerCase()) ?? {
-    id: gear.id,
-    name: gear.name,
-    quantity: 1,
-    unitPrice: 0,
-    stackValue: 0,
-    subtab: "Gear",
-    slot: gear.slot,
-    weight: 0
-  };
-}
-
 // Per-boss upgrade picker. Tries each unowned gear item against the
 // boss's best style; keeps the three with the biggest DPS gain. This
 // is cheaper than the global suggester because we only test one
@@ -798,18 +664,4 @@ function suggestUpgradesForBoss(owned: GearItem[], boss: Boss, current: DpsBreak
     }
   }
   return candidates.sort((a, b) => b.gain - a.gain).slice(0, 3);
-}
-
-// Pretty-print a preset pattern so the chip reads as 'Twisted bow' rather
-// than '/^twisted bow|^toxic blowpipe/i'. Best-effort — picks the first
-// alternative in the pattern source.
-function describePattern(re: RegExp): string {
-  const src = re.source;
-  // Strip ^ / $ / (?i) and leading slashes, take first | alternative.
-  const first = src.replace(/^\^|\$$/g, "").split("|")[0]
-    .replace(/\\\^|\\\$/g, "")
-    .replace(/[()]/g, "")
-    .trim();
-  // Title-case for display
-  return first.replace(/\b\w/g, (c) => c.toUpperCase());
 }

@@ -38,8 +38,9 @@ describe("boss detail modal affordance", () => {
     expect(source).toContain("No combat DPS");
     expect(source).toContain("isNonCombatBossActivity");
     expect(source).toContain("Upgrade before camping");
-    expect(source).toContain("Inventory setup");
-    expect(source).toContain("Bright chips = in your bank");
+    expect(source).toContain("Leave with this");
+    expect(source).toContain("Try first");
+    expect(source).toContain("Gold chips are in your bank");
     expect(source).toContain("Buy/gather chips are missing");
     expect(source).toContain("Try another boss");
     expect(source).toContain("bossRail");
@@ -50,7 +51,7 @@ describe("boss detail modal affordance", () => {
     expect(source).toContain('data-testid="boss-modal-scroll-panel"');
     expect(source).toContain('data-testid="boss-inventory-setup"');
     expect(source.indexOf("Can I do this?")).toBeLessThan(source.indexOf("Kill speed"));
-    expect(source.indexOf("Inventory setup")).toBeLessThan(source.indexOf("Upgrade before camping"));
+    expect(source.indexOf("Leave with this")).toBeLessThan(source.indexOf("Upgrade before camping"));
   });
 
   it("treats Wintertodt-style skilling bosses as activity setup, not combat DPS", () => {
@@ -59,16 +60,15 @@ describe("boss detail modal affordance", () => {
     expect(source).toContain("activitySetup ? \"Activity setup\" : `${boss.hp} HP`");
     expect(source).toContain("This is not a combat DPS check.");
     expect(source).toContain("!activitySetup && (");
-    expect(source).toContain("bossSetupTagString(boss, dps, activitySetup ? inventoryRows : undefined)");
+    expect(source).toContain("const inventoryTagRows = activitySetup ? inventoryRows : undefined;");
+    expect(source).toContain("bossSetupTagString(boss, dps, inventoryTagRows)");
   });
 
   it("builds boss inventory from the pasted bank and marks missing buys", () => {
     expect(source).toContain("bankItems?: BankHandoffItem[]");
-    expect(source).toContain("buildInventoryRows({ preset, bankItems, owned, dps })");
-    expect(source).toContain("function buildInventoryRows");
-    expect(source).toContain("function findBankItemByPattern");
-    expect(source).toContain("function bankItemFromGear");
-    expect(source).toContain("Extra supplies");
+    expect(source).toContain("buildBossInventoryPlan({ boss, preset, bankItems, owned, dps })");
+    expect(source).toContain("inventoryPlan.leaveWith");
+    expect(source).toContain("inventoryPlan.firstTrip");
     expect(source).toContain("slot.item ? wikiSearchUrl(slot.item.name) : wikiSearchUrl(slot.label)");
     expect(source).toContain("Buy/gather");
     expect(source).toContain("x{slot.item.quantity.toLocaleString()}");
