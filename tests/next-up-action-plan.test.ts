@@ -787,6 +787,83 @@ describe("next-up action plans", () => {
     expect(recs.some((rec) => rec?.kind === "slayer")).toBe(false);
   });
 
+  it("builds a return plan from RuneLite progress instead of a one-off answer", async () => {
+    const result = await computeNextUp({
+      skills: skillsFromLevels({
+        Attack: 85,
+        Strength: 85,
+        Defence: 85,
+        Hitpoints: 85,
+        Ranged: 90,
+        Magic: 90,
+        Cooking: 98,
+        Slayer: 80
+      }),
+      bank: [
+        { id: 995, name: "Coins", quantity: 3_000_000 },
+        { id: 377, name: "Raw lobster", quantity: 1400 }
+      ],
+      scapestackSync: {
+        displayName: "Lauky",
+        accountType: "ironman",
+        questsCompleted: ["Dragon Slayer II"],
+        diariesCompleted: [{ region: "Karamja", tier: "Hard" }],
+        collectionLogItemIds: [11286],
+        bankStatus: {
+          enabled: true,
+          itemCount: 2,
+          capturedAt: "2026-07-15T11:00:00.000Z",
+          unavailableReason: null
+        },
+        lastSyncSummary: {
+          previousSyncedAt: "2026-07-15T10:10:00.000Z",
+          questsCompleted: ["Dragon Slayer II"],
+          diariesCompleted: [{ region: "Karamja", tier: "Hard" }],
+          collectionLogItemIds: [11286],
+          collectionLogItems: [{ id: 11286, name: "Draconic visage" }],
+          skills: [{ name: "Cooking", previousLevel: 97, currentLevel: 98, xpGained: 450_000 }],
+          bank: {
+            previousItemCount: 1,
+            currentItemCount: 2,
+            previousUnavailableReason: null,
+            currentUnavailableReason: null,
+            enabledChanged: false,
+            itemCountChanged: true,
+            statusChanged: false
+          },
+          accountType: { previous: "ironman", current: "ironman", changed: false }
+        }
+      },
+      syncedSources: {
+        wom: false,
+        temple: false,
+        collectionLog: false,
+        scapestack: {
+          syncedAt: "2026-07-15T11:00:00.000Z",
+          quests: 1,
+          diaries: 1,
+          clItems: 1,
+          pluginVersion: "0.2.0",
+          bankStatus: {
+            enabled: true,
+            itemCount: 2,
+            capturedAt: "2026-07-15T11:00:00.000Z",
+            unavailableReason: null
+          }
+        }
+      }
+    });
+
+    expect(result.returnPlan.title).toBe("Finished steps are gone next time");
+    expect(result.returnPlan.lead).toContain("moved up because quests or diary tiers");
+    expect(result.returnPlan.sinceLastTrip).toContain("Cooking 97->98: +450k XP");
+    expect(result.returnPlan.sinceLastTrip).toContain("Dragon Slayer II finished");
+    expect(result.returnPlan.sinceLastTrip).toContain("Karamja Hard finished");
+    expect(result.returnPlan.checkBack).toBe("Press Sync in RuneLite after the stop point.");
+    expect(result.returnPlan.nextLogin).toBe("Scapestack will skip finished stuff and pick the next clean block.");
+    expect(result.returnPlan.hasProgress).toBe(true);
+  });
+
   it("does not push low-combat skillers into grandmaster combat quests", async () => {
     const result = await computeNextUp({
       skills: skillsFromLevels({

@@ -4013,6 +4013,61 @@ function ReturnLoopCard({
   );
 }
 
+function ReturnPlanCard({ result, rec }: { result: NextUpResult; rec: Recommendation }) {
+  const plan = result.returnPlan;
+  const changed = plan.sinceLastTrip.slice(0, 3);
+  return (
+    <section
+      className="rounded-xl border border-[var(--color-accent)]/28 bg-[linear-gradient(135deg,rgba(214,170,72,0.10),rgba(17,13,8,0.64))] px-4 py-3"
+      data-return-plan-card="true"
+    >
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <p className="text-[10.5px] font-black uppercase tracking-[0.16em] text-[var(--color-accent)]">
+            Come back after
+          </p>
+          <h3 className="mt-1 text-[17px] font-black leading-tight text-[var(--color-text)]">
+            {plan.title}
+          </h3>
+          <p className="mt-1 max-w-[720px] text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+            {plan.lead}
+          </p>
+        </div>
+        <div className="rounded-lg border border-[var(--color-accent)]/22 bg-black/20 px-3 py-2 text-[12px] font-bold leading-relaxed text-[var(--color-text)] lg:max-w-[300px]">
+          Finish after: {recommendationStopPointValue(rec)}
+        </div>
+      </div>
+
+      <div className="mt-3 grid gap-2 md:grid-cols-3">
+        <div className="rounded-lg border border-[var(--color-border)] bg-black/18 px-3 py-2">
+          <div className="text-[10px] font-black uppercase tracking-[0.15em] text-[var(--color-accent)]">
+            Changed
+          </div>
+          <div className="mt-1 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+            {changed.join(" · ")}
+          </div>
+        </div>
+        <div className="rounded-lg border border-[var(--color-border)] bg-black/18 px-3 py-2">
+          <div className="text-[10px] font-black uppercase tracking-[0.15em] text-[var(--color-accent)]">
+            Check back
+          </div>
+          <div className="mt-1 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+            {plan.checkBack}
+          </div>
+        </div>
+        <div className="rounded-lg border border-[var(--color-border)] bg-black/18 px-3 py-2">
+          <div className="text-[10px] font-black uppercase tracking-[0.15em] text-[var(--color-accent)]">
+            Next login
+          </div>
+          <div className="mt-1 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+            {plan.nextLogin}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function returnLoopCheckBackLine(
   pluginSyncState: "live" | "stale" | "outdated" | null,
   hasBankContext: boolean
@@ -5251,6 +5306,7 @@ function WhatToDo({
               pluginSyncState={pluginSyncState}
               pluginBankStatus={pluginSyncSummary?.bankStatus ?? null}
             />
+            <ReturnPlanCard result={syncResult} rec={activePick.headline} />
             <SessionRouteTimeline
               headline={activePick.headline}
               recs={routePreviewRecs}

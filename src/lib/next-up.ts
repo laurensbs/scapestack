@@ -173,6 +173,21 @@ export interface Recommendation {
   };
 }
 
+export interface ReturnPlan {
+  /** One-line return hook: why opening Scapestack again is worth it. */
+  title: string;
+  /** Short player-facing explanation, no sync jargon. */
+  lead: string;
+  /** Compact visible changes from the last RuneLite scan. */
+  sinceLastTrip: string[];
+  /** What to do after the current stop point. */
+  checkBack: string;
+  /** What Scapestack should do differently on the next visit. */
+  nextLogin: string;
+  /** Whether there was real progress since the previous scan. */
+  hasProgress: boolean;
+}
+
 export type NextBestActionKind =
   | "do-quest"
   | "collect-items"
@@ -300,6 +315,8 @@ export interface NextUpResult {
   /** Hours-to-max samenvatting: totaal + per-skill. Bron: hours-to-max.ts
    *  met community-XP-rate tabel. Lege summary zonder Hiscores. */
   maxEstimate: import("./hours-to-max").HoursToMaxSummary;
+  /** Return-loop copy for /next: what changed, when to come back, and why. */
+  returnPlan: ReturnPlan;
 }
 
 // Skill milestones worth nudging a player toward — levels that unlock
@@ -3175,6 +3192,109 @@ function accountMetaFromScapestackSync(sync: NextUpInput["scapestackSync"]): Acc
   };
 }
 
+function compactXp(value: number): string {
+  if (value >= 1_000_000) {
+    const m = value / 1_000_000;
+    return `${m >= 10 ? Math.round(m) : Math.round(m * 10) / 10}M`;
+  }
+  if (value >= 1_000) return `${Math.round(value / 1_000)}k`;
+  return value.toLocaleString();
+}
+
+function topSyncSkill(summary: SyncDeltaSummary | null | undefined): SyncDeltaSummary["skills"][number] | null {
+  if (!summary?.skills.length) return null;
+  return [...summary.skills].sort((a, b) => b.xpGained - a.xpGained)[0] ?? null;
+}
+
+function buildReturnPlan(input: {
+  headline: Recommendation | null;
+  nextBestActions: NextBestAction[];
+  summary: SyncDeltaSummary | null | undefined;
+  hasBank: boolean;
+  hasPluginSync: boolean;
+  pluginSyncState: "live" | "stale" | "outdated" | null;
+}): ReturnPlan {
+  const { headline, nextBestActions, summary, hasBank, hasPluginSync, pluginSyncState } = input;
+  const nextTitle = headline?.title || nextBestActions[0]?.title || "the next trip";
+  const xpGained = summary?.skills.reduce((sum, skill) => sum + Math.max(0, skill.xpGained), 0) ?? 0;
+  const topSkill = topSyncSkill(summary);
+  const hasFinishedSteps = Boolean(summary && (summary.questsCompleted.length > 0 || summary.diariesCompleted.length > 0));
+  const hasClog = Boolean(summary && (summary.collectionLogItems.length > 0 || summary.collectionLogItemIds.length > 0));
+  const hasBankDelta = Boolean(summary?.bank?.currentItemCount);
+  const hasProgress = Boolean(summary && (hasFinishedSteps || hasClog || xpGained > 0 || hasBankDelta || summary.accountType.changed));
+
+  let title = "Come back after the stop point";
+  let lead = `${nextTitle} is the current answer. Finish the stop point, then let the next route move.`;
+  if (hasFinishedSteps) {
+    title = "Finished steps are gone next time";
+    lead = `${nextTitle} moved up because quests or diary tiers stopped taking a slot.`;
+  } else if (hasClog) {
+    title = "New clog progress changes the next route";
+    lead = `${nextTitle} is checked after your latest collection-log progress.`;
+  } else if (xpGained > 0 && topSkill) {
+    title = `${compactXp(xpGained)} XP since last scan`;
+    lead = `${topSkill.name} moved, so ${nextTitle} is checked against the latest levels.`;
+  } else if (hasBankDelta) {
+    title = "Your bank can change the next trip";
+    lead = `${nextTitle} is using the bank RuneLite just sent.`;
+  } else if (hasPluginSync) {
+    title = "Sync after progress";
+    lead = "RuneLite can remove finished quests, diary steps, clog slots and Slayer mistakes from the next pick.";
+  } else if (hasBank) {
+    title = "Refresh bank only when it matters";
+    lead = "If gear, supplies or GP changed, update the bank before the next trip.";
+  }
+
+  const sinceLastTrip: string[] = [];
+  if (topSkill && topSkill.xpGained > 0) {
+    const level = topSkill.currentLevel > topSkill.previousLevel
+      ? ` ${topSkill.previousLevel}->${topSkill.currentLevel}`
+      : "";
+    sinceLastTrip.push(`${topSkill.name}${level}: +${compactXp(topSkill.xpGained)} XP`);
+  }
+  if (summary?.questsCompleted.length) {
+    sinceLastTrip.push(`${summary.questsCompleted[0]} finished`);
+  }
+  if (summary?.diariesCompleted.length) {
+    const diary = summary.diariesCompleted[0];
+    sinceLastTrip.push(`${diary.region} ${diary.tier} finished`);
+  }
+  if (summary?.collectionLogItems.length) {
+    sinceLastTrip.push(`${summary.collectionLogItems[0].name} added`);
+  } else if (summary?.collectionLogItemIds.length) {
+    sinceLastTrip.push(`${summary.collectionLogItemIds.length} clog slot${summary.collectionLogItemIds.length === 1 ? "" : "s"} added`);
+  }
+  if (summary?.bank?.currentItemCount) {
+    sinceLastTrip.push(`Bank: ${summary.bank.currentItemCount.toLocaleString()} stacks`);
+  }
+  if (sinceLastTrip.length === 0) {
+    sinceLastTrip.push(headline?.actionPlan?.timebox ? `Current trip: ${headline.actionPlan.timebox}` : "Do the stop point first");
+    sinceLastTrip.push(`Next pick: ${nextTitle}`);
+  }
+
+  const checkBack = pluginSyncState === "live"
+    ? "Press Sync in RuneLite after the stop point."
+    : pluginSyncState === "stale" || pluginSyncState === "outdated"
+      ? "Refresh RuneLite before a longer grind."
+      : hasBank
+        ? "Update bank if gear, supplies or GP changed."
+        : "Mark done or pick another route after the stop point.";
+  const nextLogin = pluginSyncState === "live"
+    ? "Scapestack will skip finished stuff and pick the next clean block."
+    : hasBank
+      ? "The next plan can use fresh gear and supplies."
+      : "Your skips and done picks still shape the next route.";
+
+  return {
+    title,
+    lead,
+    sinceLastTrip: sinceLastTrip.slice(0, 4),
+    checkBack,
+    nextLogin,
+    hasProgress
+  };
+}
+
 // ── Engine ──────────────────────────────────────────────────────────────────
 
 export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
@@ -3365,6 +3485,14 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     completedQuestNames,
     completedDiaryTiers: completedDiaryTierKeys
   });
+  const returnPlan = buildReturnPlan({
+    headline: recs[0] ?? null,
+    nextBestActions: actionQueue,
+    summary: input.scapestackSync?.lastSyncSummary ?? null,
+    hasBank,
+    hasPluginSync,
+    pluginSyncState
+  });
 
   return {
     headline: recs[0] ?? null,
@@ -3382,6 +3510,7 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     },
     pathProgress,
     readiness,
-    maxEstimate
+    maxEstimate,
+    returnPlan
   };
 }

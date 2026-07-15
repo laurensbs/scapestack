@@ -65,9 +65,14 @@ describe("/next confidence UI copy", () => {
   it("turns /next into a return loop instead of a one-off answer", () => {
     expect(source).toContain("function ReturnLoopCard");
     expect(source).toContain('data-return-loop-card="true"');
+    expect(source).toContain("function ReturnPlanCard");
+    expect(source).toContain('data-return-plan-card="true"');
+    expect(source).toContain("const plan = result.returnPlan;");
     expect(source).toContain("function SessionRouteTimeline");
     expect(source).toContain("function routeTimelineItems");
     expect(source).toContain('data-session-route-timeline="true"');
+    expect(source).toContain("Come back after");
+    expect(source).toContain("Check back");
     expect(source).toContain("Trip chain");
     expect(source).toContain("One route you can follow after the first stop.");
     expect(source).toContain('label: "Now"');
@@ -82,6 +87,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("XP, quests, diary tiers, clog and Slayer can move the next pick.");
     expect(source).toContain("Fresh RuneLite progress can change the route instead of repeating it.");
     expect(source).toContain("Your skips and done picks still shape the next route.");
+    expect(source).toContain("<ReturnPlanCard result={syncResult} rec={activePick.headline} />");
     expect(source).not.toContain("<ReturnLoopCard");
     expect(source).not.toContain("Session timeline");
     expect(source).not.toContain("Timeline dashboard");
