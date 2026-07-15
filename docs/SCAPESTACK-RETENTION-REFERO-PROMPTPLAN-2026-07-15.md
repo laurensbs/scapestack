@@ -925,6 +925,15 @@ Taken:
 Verifieer, commit, push. Stop daarna.
 ```
 
+Status 2026-07-15: uitgevoerd. Toegevoegd:
+`docs/REDDIT-LAUNCH-CHECK-2026-07-15.md` met eerste-screenshot
+advies, Reddit title/body, objections en privacy/RuneLite/bank antwoorden.
+High-impact polish: de vaste Support-pill is uit toolheaders gehaald,
+header/support accenten zijn naar goud getrokken, homepage hero is mobiel
+kleiner en `/next` heeft extra mobile wrap/overflow guards voor mood cards,
+tripregels en routekaarten. Browser screenshots staan in
+`/tmp/scapestack-phase9-shots`.
+
 ## Acceptatie
 
 - Eerste screenshot bewijst anti-bankstanding.

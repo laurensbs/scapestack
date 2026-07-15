@@ -6,10 +6,10 @@ export const revalidate = 300;
 
 export default function HomePage() {
   return (
-    <main className="relative z-10 mx-auto max-w-6xl px-5 pb-18 pt-10 sm:px-8 sm:pt-14">
-      <section className="relative flex min-h-[calc(100vh-6rem)] items-center">
-        <div className="mx-auto grid w-full items-center gap-8 py-8 lg:grid-cols-[minmax(0,1fr)_440px] lg:gap-x-12 lg:gap-y-5">
-          <div className="space-y-5 text-center lg:col-start-1 lg:row-start-1 lg:text-left">
+    <main className="relative z-10 mx-auto max-w-6xl overflow-x-hidden px-5 pb-18 pt-10 sm:px-8 sm:pt-14">
+      <section className="relative flex min-h-[calc(100vh-6rem)] min-w-0 items-center overflow-hidden">
+        <div className="mx-auto grid w-full min-w-0 items-center gap-8 py-8 lg:grid-cols-[minmax(0,1fr)_440px] lg:gap-x-12 lg:gap-y-5">
+          <div className="min-w-0 space-y-5 text-center lg:col-start-1 lg:row-start-1 lg:text-left">
             <div
               className="eyebrow"
               style={{ animation: "hero-fade 0.55s cubic-bezier(0.22,1,0.36,1) 0.02s both" }}
@@ -18,7 +18,7 @@ export default function HomePage() {
             </div>
             <h1
               aria-label="Stop bankstanding. Pick the next trip."
-              className="mx-auto max-w-[820px] text-[44px] font-semibold leading-[0.95] text-[var(--color-text)] sm:text-[62px] lg:mx-0 lg:text-[76px]"
+              className="mx-auto max-w-[320px] break-words text-[30px] font-semibold leading-[0.98] text-[var(--color-text)] sm:max-w-[820px] sm:text-[62px] lg:mx-0 lg:text-[76px]"
             >
               <span
                 className="block text-[var(--color-text)]"

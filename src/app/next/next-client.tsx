@@ -2386,7 +2386,7 @@ function RouteStepBrief({
       )}
     >
       <div className="text-[9.5px] font-black uppercase tracking-[0.16em] text-[var(--color-text-muted)]">{label}</div>
-      <div className="mt-1 text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">{value}</div>
+      <div className="mt-1 min-w-0 break-words text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-dim)] [overflow-wrap:anywhere]">{value}</div>
     </div>
   );
 }
@@ -3601,7 +3601,7 @@ function RouteCard({
         onClick={onToggle}
         aria-expanded={expanded}
         aria-controls={panelId}
-        className="group grid w-full grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3 px-3.5 py-3 text-left"
+        className="group grid w-full min-w-0 grid-cols-[44px_minmax(0,1fr)] items-center gap-3 px-3.5 py-3 text-left sm:grid-cols-[44px_minmax(0,1fr)_auto]"
       >
         <RoutePrimarySprite rec={rec} active={expanded} />
         <span className="min-w-0 flex-1">
@@ -3619,7 +3619,7 @@ function RouteCard({
             <span className="truncate">{statusLabel}</span>
           </span>
         </span>
-        <span className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)] transition-colors group-hover:border-[var(--color-accent)]/35 group-hover:text-[var(--color-accent)]">
+        <span className="col-start-2 mt-1 inline-flex w-fit items-center gap-1 rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)] transition-colors group-hover:border-[var(--color-accent)]/35 group-hover:text-[var(--color-accent)] sm:col-auto sm:mt-0">
           Open
           <ChevronRight className={cn("size-3 transition-transform", expanded && "rotate-90")} />
         </span>
@@ -3634,7 +3634,7 @@ function RouteCard({
             {checklistLines.map((line) => (
               <li key={line} className="flex gap-2">
                 <span className="mt-[0.55em] size-1.5 shrink-0 rounded-full bg-[var(--color-accent)]" />
-                <span>{line}</span>
+                <span className="min-w-0 break-words [overflow-wrap:anywhere]">{line}</span>
               </li>
             ))}
           </ul>
@@ -4222,8 +4222,8 @@ function NextTripCard({
   const actionClass = "scapestack-command-button scapestack-primary-action px-4 text-[12.5px] font-black";
 
   return (
-    <article className="scapestack-plan-panel scapestack-lock-panel p-4 sm:p-5 lg:p-6" data-next-trip-card="true">
-      <div className="grid gap-4 sm:grid-cols-[80px_minmax(0,1fr)]">
+    <article className="scapestack-plan-panel scapestack-lock-panel min-w-0 max-w-full p-4 sm:p-5 lg:p-6" data-next-trip-card="true">
+      <div className="grid min-w-0 gap-4 sm:grid-cols-[80px_minmax(0,1fr)]">
         <div className="grid size-[76px] shrink-0 place-items-center overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/42 text-[var(--color-accent)]">
           {rec.kind === "kc" && rec.bossSlug ? (
             <KcPortrait rec={rec} size={62} />
@@ -4249,7 +4249,7 @@ function NextTripCard({
             <AccountModeBadge accountMode={accountMode} compact />
           </div>
 
-          <h2 className="text-[24px] font-black leading-tight tracking-normal text-[var(--color-text)] sm:text-[30px]">
+          <h2 className="min-w-0 break-words text-[24px] font-black leading-tight tracking-normal text-[var(--color-text)] sm:text-[30px]">
             {rec.title}
           </h2>
 
@@ -4270,7 +4270,7 @@ function NextTripCard({
                 )}>
                   {line.label}
                 </dt>
-                <dd className="text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+                <dd className="min-w-0 break-words text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)] [overflow-wrap:anywhere]">
                   {line.value}
                 </dd>
               </div>
@@ -4707,15 +4707,15 @@ function SessionMoodGrid({
 
   return (
     <section
-      className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-3"
+      className="min-w-0 max-w-full overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-3"
       data-session-mood-grid="true"
       aria-label="Pick a session mood"
     >
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[12px] font-black text-[var(--color-text)]">What are you in the mood for?</p>
-        <p className="text-[11px] font-semibold text-[var(--color-text-muted)]">Tap one. Random stays inside it.</p>
+      <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
+        <p className="min-w-0 text-[12px] font-black text-[var(--color-text)]">What are you in the mood for?</p>
+        <p className="min-w-0 max-w-full text-[11px] font-semibold leading-snug text-[var(--color-text-muted)]">Tap one. Random stays inside it.</p>
       </div>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+      <div className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
         {SESSION_MOOD_GRID_CHOICES.map((choice) => {
           const active = choice.mood ? visibleMood(choice.mood) === activeMood : false;
           return (
@@ -4731,7 +4731,7 @@ function SessionMoodGrid({
                 onPick(choice.mood!, choice.minutes);
               }}
               className={cn(
-                "min-h-[72px] rounded-lg border px-3 py-2.5 text-left transition-colors",
+                "min-h-[72px] min-w-0 rounded-lg border px-3 py-2.5 text-left transition-colors",
                 active
                   ? "border-[var(--color-accent)] bg-[var(--color-accent)]/16 text-[var(--color-text)] shadow-[0_0_0_1px_var(--color-accent)]"
                   : choice.id === "surprise"
@@ -4739,8 +4739,8 @@ function SessionMoodGrid({
                     : "border-[var(--color-border)] bg-[var(--color-bg)]/34 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/55 hover:text-[var(--color-text)]"
               )}
             >
-              <span className="block text-[13px] font-black">{choice.label}</span>
-              <span className="mt-1 block text-[10.5px] font-semibold leading-snug text-[var(--color-text-muted)]">
+              <span className="block min-w-0 break-words text-[13px] font-black">{choice.label}</span>
+              <span className="mt-1 block min-w-0 break-words text-[10.5px] font-semibold leading-snug text-[var(--color-text-muted)]">
                 {choice.helper}
               </span>
             </button>
@@ -5044,8 +5044,8 @@ function WhatToDo({
   const fallbackRecs = activePick ? activePick.alternatives.slice(0, 2) : [];
 
   return (
-    <section>
-      <div>
+    <section className="min-w-0 max-w-full overflow-x-hidden">
+      <div className="min-w-0 max-w-full">
       {lastSuppressed && (
         <div
           role="status"
@@ -5123,7 +5123,7 @@ function WhatToDo({
         </div>
       )}
 
-      <div className="space-y-3">
+      <div className="min-w-0 max-w-full space-y-3">
         {activePick ? (
           <>
             <NextTripContextLine
