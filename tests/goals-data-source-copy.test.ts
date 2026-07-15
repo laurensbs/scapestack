@@ -68,10 +68,17 @@ describe("Goals data source copy", () => {
     expect(source).toContain("function whyThisUnlock");
     expect(source).toContain("function sourceHintForGoal");
     expect(source).toContain("function unlockPlanSteps");
+    expect(source).toContain("function unlockIntel");
+    expect(source).toContain("function voidPrereqLine");
+    expect(source).toContain("Do next");
+    expect(source).toContain("Reward");
+    expect(source).toContain("Watch out");
     expect(source).toContain("Open Wiki route");
     expect(source).toContain("Why this unlock?");
     expect(source).toContain("Claim from the diary NPC");
     expect(source).toContain("Needs the Void pieces plus the Western Provinces diary gate.");
+    expect(source).toContain("Normal Void first");
+    expect(source).toContain("Elite Void upgrades the ranged and magic body pieces");
     expect(source).toContain("Open Check kill before chasing");
     expect(source).toContain("Higher diary rewards count the lower tiers automatically.");
   });

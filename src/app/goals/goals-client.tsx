@@ -293,6 +293,7 @@ export function GoalsClient() {
         <NextUnlockCompanion
           set={selectedCompletion.set}
           completion={selectedCompletion.completion}
+          allCompletions={completions}
           onOpenSteps={() => setOpenUnlockSetId(selectedCompletion.set.id)}
         />
       )}
@@ -489,6 +490,7 @@ export function GoalsClient() {
         <GoalUnlockModal
           set={openUnlockCompletion.set}
           completion={openUnlockCompletion.completion}
+          allCompletions={completions}
           manualChecks={manualChecks}
           onToggleManualCheck={toggleManualCheck}
           onClose={() => setOpenUnlockSetId(null)}
@@ -521,6 +523,15 @@ function TripCheckLine({
         "text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]",
         tone === "warn" && "text-[var(--color-warning)]"
       )}>{title}</p>
+      <p className="mt-1 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">{body}</p>
+    </div>
+  );
+}
+
+function UnlockIntelLine({ title, body }: { title: "Do next" | "Reward" | "Watch out"; body: string }) {
+  return (
+    <div className="rounded-lg border border-[var(--color-accent)]/25 bg-black/20 p-3">
+      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">{title}</p>
       <p className="mt-1 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">{body}</p>
     </div>
   );
@@ -660,13 +671,119 @@ function unlockPlanSteps(set: GoalSetModel, completion: SetCompletion, missing: 
   ];
 }
 
+type UnlockIntel = {
+  doNext: string;
+  reward: string;
+  watchOut: string;
+  routeChips: string[];
+};
+
+function setCompletionById(allCompletions: SetCompletion[], setId: string) {
+  const set = GOAL_SETS.find((candidate) => candidate.id === setId);
+  const completion = allCompletions.find((candidate) => candidate.setId === setId);
+  if (!set || !completion) return null;
+  return { set, completion, norm: normaliseCompletion(completion, set) };
+}
+
+function voidPrereqLine(allCompletions: SetCompletion[]): string {
+  const voidRoute = setCompletionById(allCompletions, "void-knight");
+  if (!voidRoute) return "Check normal Void first: top, robe, gloves and the helm you actually use.";
+  if (voidRoute.norm.complete) return "Normal Void is done. Elite pieces are the real upgrade now.";
+  const missing = nextMissingGoals(voidRoute.set, voidRoute.completion)
+    .slice(0, 3)
+    .map((goal) => goal.name);
+  return `Normal Void first: ${missing.join(", ")} still missing.`;
+}
+
+function diaryRewardLine(set: GoalSetModel, target?: GoalModel): string {
+  if (set.id === "karamja-diary") {
+    return target?.id === "karamja-4"
+      ? "Karamja gloves 4 finishes the route and makes Duradel/gem-mine travel cleaner."
+      : "Karamja gloves are useful because every higher tier keeps the lower tier perks.";
+  }
+  if (set.id === "ardougne-diary") return "Ardougne cloak is one of the best everyday teleport and pickpocket rewards.";
+  if (set.id === "morytania-diary") return "Morytania legs improve Barrows, slime and region travel.";
+  if (set.id === "falador-diary") return "Falador shield gives daily Prayer restore and region utility.";
+  return "Diary rewards are permanent account utility, not one-off loot.";
+}
+
+function unlockIntel(set: GoalSetModel, completion: SetCompletion, allCompletions: SetCompletion[]): UnlockIntel {
+  const norm = normaliseCompletion(completion, set);
+  const missing = nextMissingGoals(set, completion);
+  const target = missing[0];
+  if (!target || norm.complete) {
+    return {
+      doNext: "Pick another unlock or run /next for a fresh trip.",
+      reward: "This reward path is already finished.",
+      watchOut: "Do not keep chasing a completed set unless you want collection log padding.",
+      routeChips: ["Done", "Re-check plan", "Pick new lane"]
+    };
+  }
+  if (set.id === "elite-void") {
+    return {
+      doNext: voidPrereqLine(allCompletions),
+      reward: "Elite Void upgrades the ranged and magic body pieces for real PvM setups.",
+      watchOut: "Do not spend more Pest Control points until the normal Void pieces and Western Provinces gate make sense.",
+      routeChips: ["Normal Void", "Western diary", "Pest Control"]
+    };
+  }
+  if (set.id === "void-knight") {
+    return {
+      doNext: "Buy body, robe and gloves before chasing every helm.",
+      reward: "Normal Void becomes a usable setup once the core pieces are together.",
+      watchOut: "Helms only matter for the style you are actually using.",
+      routeChips: ["Core pieces", "Pick helm", "Then elite"]
+    };
+  }
+  if (set.category === "diary") {
+    return {
+      doNext: `Open the diary tab and finish the tasks for ${target.name}.`,
+      reward: diaryRewardLine(set, target),
+      watchOut: "Claim the reward after the tier; RuneLite can then stop suggesting the lower steps.",
+      routeChips: ["Diary tab", "Claim reward", "Sync after"]
+    };
+  }
+  if (set.category === "barrows") {
+    return {
+      doNext: `Run Barrows for ${target.name}; stop when the missing piece lands.`,
+      reward: "The set only gets interesting when the full effect is active.",
+      watchOut: "Do not camp it forever if the plan was meant to be a short session.",
+      routeChips: ["One set", "Chest loop", "Stop on piece"]
+    };
+  }
+  if (set.category === "gwd" || set.category === "raid-uniques" || set.category === "wildy-bosses") {
+    return {
+      doNext: `Check whether your bank supports ${target.name} before committing a long grind.`,
+      reward: "This is a real PvM chase, so gear and supplies decide whether it belongs today.",
+      watchOut: "If Check kill says the setup is weak, unlock or upgrade first.",
+      routeChips: ["Check kill", "One block", "Upgrade first"]
+    };
+  }
+  if (set.category === "skill-outfits" || set.category === "graceful") {
+    return {
+      doNext: `Start the activity that buys ${target.name}.`,
+      reward: "Outfit pieces compound over long skilling sessions.",
+      watchOut: "Stop after the next piece; the best route can change quickly.",
+      routeChips: ["Activity", "Currency", "Next piece"]
+    };
+  }
+  return {
+    doNext: `Go for ${target.name} first.`,
+    reward: "This is the closest visible reward path from your current account state.",
+    watchOut: "Keep it to one unlock lane so this does not become a collection-log browse.",
+    routeChips: ["One lane", "One reward", "Re-check"]
+  };
+}
+
 function NextUnlockCompanion({
   set,
   completion,
+  allCompletions,
   onOpenSteps
 }: {
   set: GoalSetModel;
   completion: SetCompletion;
+  allCompletions: SetCompletion[];
   onOpenSteps: () => void;
 }) {
   const norm = normaliseCompletion(completion, set);
@@ -691,6 +808,7 @@ function NextUnlockCompanion({
     ? missing.slice(0, 2).map((goal) => goal.name).join(" · ")
     : null;
   const finishLine = stopStep?.body ?? "Stop after one clear progress block.";
+  const intel = unlockIntel(set, completion, allCompletions);
 
   return (
     <section className="rounded-2xl border border-[var(--color-accent)]/45 bg-[#21190f]/95 p-4 shadow-[0_18px_70px_-48px_rgba(0,0,0,0.95)] sm:p-5">
@@ -719,6 +837,18 @@ function NextUnlockCompanion({
           </div>
 
           <div className="mt-4 rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 p-3">
+            <div className="mb-3 grid gap-2 sm:grid-cols-3">
+              <UnlockIntelLine title="Do next" body={intel.doNext} />
+              <UnlockIntelLine title="Reward" body={intel.reward} />
+              <UnlockIntelLine title="Watch out" body={intel.watchOut} />
+            </div>
+            <div className="mb-3 flex flex-wrap gap-1.5">
+              {intel.routeChips.map((chip) => (
+                <span key={chip} className="rounded-full border border-[var(--color-accent)]/30 bg-black/20 px-2.5 py-1 text-[11px] font-bold text-[var(--color-accent)]">
+                  {chip}
+                </span>
+              ))}
+            </div>
             <div className="grid gap-2 sm:grid-cols-3">
               <TripCheckLine title="Before you leave" body={beforeLine} />
               {missingLine && <TripCheckLine title="Still missing" body={missingLine} tone="warn" />}
@@ -765,12 +895,14 @@ function NextUnlockCompanion({
 function GoalUnlockModal({
   set,
   completion,
+  allCompletions,
   manualChecks,
   onToggleManualCheck,
   onClose
 }: {
   set: GoalSetModel;
   completion: SetCompletion;
+  allCompletions: SetCompletion[];
   manualChecks: Set<string>;
   onToggleManualCheck: (key: string) => void;
   onClose: () => void;
@@ -800,6 +932,7 @@ function GoalUnlockModal({
     return state?.satisfied && !state.owned && state.satisfiedBy;
   });
   const planSteps = unlockPlanSteps(set, completion, missing);
+  const intel = unlockIntel(set, completion, allCompletions);
 
   return createPortal(
     <div
@@ -847,6 +980,12 @@ function GoalUnlockModal({
         </header>
 
         <div className="osrs-body space-y-4 p-5 sm:p-6">
+          <div className="grid gap-2 sm:grid-cols-3">
+            <UnlockIntelLine title="Do next" body={intel.doNext} />
+            <UnlockIntelLine title="Reward" body={intel.reward} />
+            <UnlockIntelLine title="Watch out" body={intel.watchOut} />
+          </div>
+
           <div className="grid gap-2 sm:grid-cols-3">
             {planSteps.map((step) => (
               <TripCheckLine
