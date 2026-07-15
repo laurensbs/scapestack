@@ -234,7 +234,7 @@ Evidence:
 
 ## Phase 01 - Define The Decision Funnel
 
-Status: IN PROGRESS
+Status: DONE
 Depends on: Phase 00  
 Improves: product analytics, retention diagnosis
 
@@ -281,6 +281,31 @@ Acceptance:
 - duplicate rerenders do not emit duplicate impressions;
 - tests prove the complete first-run and returning-user funnel.
 ```
+
+Evidence:
+- Completed: 2026-07-15
+- Commit: `ff0d7f2`
+- Files: `src/lib/analytics.ts`, `src/lib/sync-trip-completion.ts`,
+  `src/app/next/next-client.tsx`, `src/components/hero-intake.tsx`,
+  `src/components/plugin-sync-checker.tsx`,
+  `src/components/add-bank-modal.tsx`,
+  `src/components/boss-detail-modal.tsx`, `src/app/u/[rsn]/weekly-recap.tsx`,
+  `docs/ANALYTICS-EVENTS.md`
+- Tests added: 12 tests across the typed event contract, privacy filtering,
+  transport failure isolation, impression deduplication, first-run funnel,
+  returning funnel, source-level instrumentation and conservative RuneLite
+  completion evidence
+- Commands: `npx vitest run tests/analytics.test.ts
+  tests/analytics-instrumentation.test.ts tests/sync-trip-completion.test.ts`,
+  `npm run ci:check`, `git diff --check`
+- Browser evidence: not applicable; this phase added no player-facing layout
+  or copy
+- Metric change: 5 loosely typed Plausible events -> 18 canonical lifecycle
+  events plus 5 migration-safe legacy events, all behind runtime property
+  allow-lists and an injectable transport
+- Known residual risk: exact sync completion currently covers proven quest,
+  diary, skill-target and named clog outcomes; boss-KC and Slayer stop-point
+  completion stay unclaimed until the plugin delta exposes matching evidence
 
 ## Phase 02 - Design Immutable Account History
 
