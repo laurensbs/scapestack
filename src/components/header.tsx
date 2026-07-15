@@ -4,7 +4,7 @@ import Link from "next/link";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { CheckCircle2, ChevronDown, Menu, Package, PlugZap, Plus, RefreshCw, UserRound, X } from "lucide-react";
-import { ACCOUNT_EVENT, getActiveAccount, loadAccountStore, removeAccount, setActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
+import { ACCOUNT_EVENT, accountHasBankContext, getActiveAccount, loadAccountStore, removeAccount, setActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
 import { contextualNavHref } from "@/lib/nav-context";
 import { clearSavedRsn, describeSavedAt, loadSavedBank, loadSavedRsn, saveSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
 import { getPrimaryNavTools } from "@/lib/tools";
@@ -236,6 +236,7 @@ function AccountSwitcher({
   const [draft, setDraft] = useState(activeRsn);
   const [hasSavedSetup, setHasSavedSetup] = useState(false);
   const [bankSavedAt, setBankSavedAt] = useState<number | null>(null);
+  const [pluginBankItemCount, setPluginBankItemCount] = useState(0);
   const [bankModalOpen, setBankModalOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -247,8 +248,9 @@ function AccountSwitcher({
     const savedBank = loadSavedBank(nextRsn);
     onActiveRsnChange(nextRsn);
     setDraft(nextRsn);
-    setHasSavedSetup(Boolean(active?.bankSavedAt || savedBank));
+    setHasSavedSetup(accountHasBankContext(active, savedBank));
     setBankSavedAt(active?.bankSavedAt ?? savedBank?.savedAt ?? null);
+    setPluginBankItemCount(active?.pluginBankItemCount ?? 0);
   };
 
   useEffect(() => {
@@ -312,7 +314,11 @@ function AccountSwitcher({
   const activeAccount = accounts.find((account) => account.rsn === activeRsn);
   const runeliteReady = Boolean(activeAccount?.runeliteCheckedAt);
   const bankStatusLabel = hasSavedSetup ? "Bank added" : runeliteReady ? "Open bank" : "Add bank";
-  const bankFreshness = bankSavedAt ? `Bank saved ${describeSavedAt(bankSavedAt)}` : bankStatusLabel;
+  const bankFreshness = bankSavedAt
+    ? `Bank saved ${describeSavedAt(bankSavedAt)}`
+    : pluginBankItemCount > 0
+      ? `RuneLite bank: ${pluginBankItemCount.toLocaleString()} stacks`
+      : bankStatusLabel;
   const runeliteLabel = runeliteReady ? "Refresh RuneLite" : "Add RuneLite";
 
   return (

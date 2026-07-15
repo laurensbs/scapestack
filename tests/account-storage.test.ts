@@ -77,17 +77,20 @@ describe("account storage", () => {
   });
 
   it("records bank and runelite status on the active account", async () => {
-    const { clearRuneliteChecked, getActiveAccount, loadAccountStore, markAccountBankSaved, markAccountMood, markActiveAccountBankSaved, markRuneliteChecked, upsertAccount } = await import("@/lib/account-storage");
+    const { clearRuneliteChecked, getActiveAccount, loadAccountStore, markAccountBankSaved, markAccountMood, markAccountPluginBankStatus, markActiveAccountBankSaved, markRuneliteChecked, upsertAccount } = await import("@/lib/account-storage");
 
     upsertAccount("Lynx Titan");
     markActiveAccountBankSaved(1_780_000_000_000);
     markAccountBankSaved("Iron Guy", 1_780_000_005_000);
+    markAccountPluginBankStatus("Lynx Titan", { enabled: true, itemCount: 612, capturedAt: "2026-07-15T09:00:00.000Z", unavailableReason: null });
     markRuneliteChecked("Lynx Titan", 1_780_000_010_000);
     markAccountMood("Lynx Titan", "afk", 30);
 
     expect(getActiveAccount()).toMatchObject({
       rsn: "Lynx Titan",
       bankSavedAt: 1_780_000_000_000,
+      pluginBankItemCount: 612,
+      pluginBankCapturedAt: "2026-07-15T09:00:00.000Z",
       runeliteCheckedAt: 1_780_000_010_000,
       preferredMood: "afk",
       preferredMinutes: 30
@@ -99,6 +102,19 @@ describe("account storage", () => {
     clearRuneliteChecked("Lynx Titan");
 
     expect(getActiveAccount()?.runeliteCheckedAt).toBeUndefined();
+  });
+
+  it("treats plugin bank status as account bank context", async () => {
+    const { accountHasBankContext, getActiveAccount, markAccountPluginBankStatus, upsertAccount } = await import("@/lib/account-storage");
+
+    upsertAccount("Bank Sync");
+    expect(accountHasBankContext(getActiveAccount())).toBe(false);
+
+    markAccountPluginBankStatus("Bank Sync", { enabled: true, itemCount: 778, capturedAt: null, unavailableReason: null });
+    expect(accountHasBankContext(getActiveAccount())).toBe(true);
+
+    markAccountPluginBankStatus("Bank Sync", { enabled: false, itemCount: 0, capturedAt: null, unavailableReason: "opt-in-off" });
+    expect(accountHasBankContext(getActiveAccount())).toBe(false);
   });
 
   it("keeps first setup completion attached to the RSN", async () => {

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CheckCircle2, ClipboardPaste, PlugZap, RefreshCw, Sparkles } from "lucide-react";
-import { ACCOUNT_EVENT, getActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
+import { ACCOUNT_EVENT, accountHasBankContext, getActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
 import { loadMood } from "@/lib/mood-storage";
 import { loadSavedBank, loadSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
 import { cn } from "@/lib/utils";
@@ -38,7 +38,7 @@ export function MobileActionBar() {
       const savedMood = loadMood(nextRsn);
       setAccount(active);
       setRsn(nextRsn);
-      setHasBank(Boolean(active?.bankSavedAt || savedBank));
+      setHasBank(accountHasBankContext(active, savedBank));
       setMood(moodLabel(savedMood?.mood));
     };
     refresh();

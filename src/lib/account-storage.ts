@@ -1,5 +1,6 @@
 import { rsnSlug } from "./hiscores";
 import type { Mood, TimeBudget } from "./mood";
+import type { PluginBankStatus } from "./plugin-bank-status";
 
 export const ACCOUNT_STORE_KEY = "scapestack:accounts:v1";
 export const ACCOUNT_EVENT = "scapestack:account-change";
@@ -12,6 +13,8 @@ export interface ScapestackAccount {
   createdAt: number;
   lastUsedAt: number;
   bankSavedAt?: number;
+  pluginBankItemCount?: number;
+  pluginBankCapturedAt?: string;
   runeliteCheckedAt?: number;
   preferredMood?: Mood;
   preferredMinutes?: TimeBudget;
@@ -104,6 +107,8 @@ export function upsertAccount(rsn: string, patch: Partial<Omit<ScapestackAccount
     createdAt: existing?.createdAt ?? timestamp,
     lastUsedAt: timestamp,
     bankSavedAt: existing?.bankSavedAt,
+    pluginBankItemCount: existing?.pluginBankItemCount,
+    pluginBankCapturedAt: existing?.pluginBankCapturedAt,
     runeliteCheckedAt: existing?.runeliteCheckedAt,
     preferredMood: existing?.preferredMood,
     preferredMinutes: existing?.preferredMinutes,
@@ -155,6 +160,24 @@ export function markAccountBankSaved(rsn: string, savedAt: number = now()): void
 
 export function clearAccountBankSaved(rsn: string): void {
   upsertAccount(rsn, { bankSavedAt: undefined });
+}
+
+export function accountHasBankContext(account: ScapestackAccount | null | undefined, savedBank?: unknown): boolean {
+  return Boolean(account?.bankSavedAt || (account?.pluginBankItemCount ?? 0) > 0 || savedBank);
+}
+
+export function markAccountPluginBankStatus(rsn: string, status: PluginBankStatus | null | undefined): void {
+  if (status?.enabled && status.itemCount > 0) {
+    upsertAccount(rsn, {
+      pluginBankItemCount: status.itemCount,
+      pluginBankCapturedAt: status.capturedAt ?? new Date().toISOString()
+    });
+    return;
+  }
+  upsertAccount(rsn, {
+    pluginBankItemCount: undefined,
+    pluginBankCapturedAt: undefined
+  });
 }
 
 export function markRuneliteChecked(rsn: string, checkedAt: number = now()): void {

@@ -10,7 +10,7 @@ import { RuneliteOpenButton } from "@/components/runelite-open-button";
 import type { SyncedPlayer } from "@/lib/sync-repo";
 import { accountModePlanningTone, normalizeScapestackAccountType, scapestackAccountTypeToPlannerType } from "@/lib/account-type";
 import { pluginSyncHealth } from "@/lib/plugin-sync";
-import { markRuneliteChecked } from "@/lib/account-storage";
+import { markAccountPluginBankStatus, markRuneliteChecked } from "@/lib/account-storage";
 import { pluginBankStatusLabel } from "@/lib/plugin-bank-status";
 import {
   diagnosticForUnconfiguredSync,
@@ -88,13 +88,14 @@ export function PluginSyncChecker() {
     return null;
   }, [state]);
   const foundDisplayName = state.kind === "found" ? state.player.displayName || state.player.rsn : "";
+  const foundPluginBankReady = state.kind === "found" && state.player.bankStatus.enabled && state.player.bankStatus.itemCount > 0;
   const foundAccountType = state.kind === "found"
     ? scapestackAccountTypeToPlannerType(normalizeScapestackAccountType(state.player.accountType))
     : null;
   const foundPlanningTone = foundAccountType ? accountModePlanningTone(foundAccountType) : null;
   const foundNextHref = foundDisplayName
-    ? `/next?rsn=${encodeURIComponent(foundDisplayName)}&from=plugin&bank=none`
-    : "/next?from=plugin&bank=none";
+    ? `/next?rsn=${encodeURIComponent(foundDisplayName)}&from=plugin${foundPluginBankReady ? "" : "&bank=none"}`
+    : `/next?from=plugin${foundPluginBankReady ? "" : "&bank=none"}`;
   const foundMemoryLines = state.kind === "found" ? syncMemoryLines(state.player.lastSyncSummary) : [];
 
   useEffect(() => {
@@ -129,7 +130,13 @@ export function PluginSyncChecker() {
         setState(next);
         if (next.kind !== "unconfigured") {
           saveSavedRsn(clean);
-          markRuneliteChecked(clean);
+          if (next.kind === "found") {
+            const syncedAt = new Date(next.player.syncedAt).getTime();
+            markRuneliteChecked(clean, Number.isFinite(syncedAt) ? syncedAt : Date.now());
+            markAccountPluginBankStatus(clean, next.player.bankStatus);
+          } else {
+            markRuneliteChecked(clean);
+          }
         }
       } catch (err) {
         setState({

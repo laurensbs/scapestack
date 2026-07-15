@@ -8,7 +8,7 @@ import { pluginSyncStatusAction } from "@/app/actions";
 import { AddBankModal } from "@/components/add-bank-modal";
 import { RuneliteOpenButton } from "@/components/runelite-open-button";
 import { SessionMoodPicker } from "@/components/session-mood-picker";
-import { ACCOUNT_EVENT, clearRuneliteChecked, getActiveAccount, hasAccountFirstSetupSeen, markAccountFirstSetupSeen, markRuneliteChecked } from "@/lib/account-storage";
+import { ACCOUNT_EVENT, clearRuneliteChecked, getActiveAccount, hasAccountFirstSetupSeen, markAccountFirstSetupSeen, markAccountPluginBankStatus, markRuneliteChecked } from "@/lib/account-storage";
 import { MOOD_LABEL, type Mood, type TimeBudget } from "@/lib/mood";
 import { loadMood, saveMood, relativeSince } from "@/lib/mood-storage";
 import { latestRecommendationMemory, latestStartedRecommendationMemory } from "@/lib/recommendation-feedback";
@@ -94,6 +94,7 @@ export function HeroIntake() {
   const [showRuneliteGuide, setShowRuneliteGuide] = useState(false);
   const [editingAccount, setEditingAccount] = useState(false);
   const [rememberedRuneliteCheckedAt, setRememberedRuneliteCheckedAt] = useState<number | null>(null);
+  const [rememberedPluginBankItems, setRememberedPluginBankItems] = useState(0);
   const [runeliteRefresh, setRuneliteRefresh] = useState<"idle" | "checking" | "found" | "missing" | "error">("idle");
   const [returningMood, setReturningMood] = useState<{ mood: Mood; minutes: TimeBudget; label: string } | null>(null);
   const [returningChangeLines, setReturningChangeLines] = useState<string[]>([]);
@@ -102,7 +103,7 @@ export function HeroIntake() {
   const [bank, setBank] = useState("");
   const [savedBankAt, setSavedBankAt] = useState<number | null>(null);
   const hasBankPaste = Boolean(bank.trim());
-  const hasBankContext = hasBankPaste || Boolean(savedBankAt);
+  const hasBankContext = hasBankPaste || Boolean(savedBankAt) || rememberedPluginBankItems > 0;
   const canSubmit = Boolean(rsn.trim() || hasBankPaste);
   const cleanRsn = rsn.trim();
   const isRememberedRun = Boolean(rememberedRsn && cleanRsn === rememberedRsn);
@@ -117,6 +118,7 @@ export function HeroIntake() {
         setRsn("");
         setRememberedRsn("");
         setRememberedRuneliteCheckedAt(null);
+        setRememberedPluginBankItems(0);
         setRuneliteRefresh("idle");
         setReturningMood(null);
         setReturningChangeLines([]);
@@ -127,6 +129,7 @@ export function HeroIntake() {
       setRsn(remembered);
       setRememberedRsn(remembered);
       setRememberedRuneliteCheckedAt(active?.runeliteCheckedAt ?? null);
+      setRememberedPluginBankItems(active?.pluginBankItemCount ?? 0);
       setEditingAccount(false);
       const savedMood = loadMood(remembered);
       setReturningMood(savedMood?.mood
@@ -165,6 +168,7 @@ export function HeroIntake() {
     const refreshSavedBank = () => {
       const saved = cleanRsn ? loadSavedBank(cleanRsn) : loadSavedBank();
       setSavedBankAt(saved?.savedAt ?? null);
+      setRememberedPluginBankItems(getActiveAccount()?.pluginBankItemCount ?? 0);
     };
     refreshSavedBank();
     window.addEventListener(SAVED_BANK_EVENT, refreshSavedBank);
@@ -213,7 +217,9 @@ export function HeroIntake() {
         const syncedAt = new Date(next.player.syncedAt).getTime();
         const checkedAt = Number.isFinite(syncedAt) ? syncedAt : Date.now();
         markRuneliteChecked(target, checkedAt);
+        markAccountPluginBankStatus(target, next.player.bankStatus);
         setRememberedRuneliteCheckedAt(checkedAt);
+        setRememberedPluginBankItems(next.player.bankStatus.enabled ? next.player.bankStatus.itemCount : 0);
         setRuneliteRefresh("found");
       } else {
         clearRuneliteChecked(target);
@@ -249,9 +255,11 @@ export function HeroIntake() {
     const runeliteStatusLabel = shouldRefreshRunelite
       ? "Refresh RuneLite"
       : formatRuneliteCheckedAt(rememberedRuneliteCheckedAt);
-    const bankStatusLabel = hasBankContext
+    const bankStatusLabel = savedBankAt
       ? formatSavedBankAt(savedBankAt)
-      : bankSetupLabel(false, rememberedRuneliteChecked);
+      : rememberedPluginBankItems > 0
+        ? `RuneLite bank: ${rememberedPluginBankItems.toLocaleString()} stacks`
+        : bankSetupLabel(false, rememberedRuneliteChecked);
     const runeliteRefreshMessage = runeliteRefresh === "checking"
       ? "Checking RuneLite…"
       : runeliteRefresh === "found"

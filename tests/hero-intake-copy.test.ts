@@ -36,6 +36,7 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("setEditingAccount(false);");
     expect(source).toContain("const [editingAccount, setEditingAccount] = useState(false);");
     expect(source).toContain("const [rememberedRuneliteCheckedAt, setRememberedRuneliteCheckedAt] = useState<number | null>(null);");
+    expect(source).toContain("const [rememberedPluginBankItems, setRememberedPluginBankItems] = useState(0);");
     expect(source).toContain("const [runeliteRefresh, setRuneliteRefresh] = useState<\"idle\" | \"checking\" | \"found\" | \"missing\" | \"error\">(\"idle\");");
     expect(source).toContain("const [returningMood, setReturningMood] = useState<{ mood: Mood; minutes: TimeBudget; label: string } | null>(null);");
     expect(source).toContain("const [returningChangeLines, setReturningChangeLines] = useState<string[]>([]);");
@@ -49,6 +50,8 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("formatRuneliteCheckedAt(rememberedRuneliteCheckedAt)");
     expect(source).toContain("pluginSyncStatusAction(target)");
     expect(source).toContain("markRuneliteChecked(target, checkedAt)");
+    expect(source).toContain("markAccountPluginBankStatus(target, next.player.bankStatus)");
+    expect(source).toContain("RuneLite bank: ${rememberedPluginBankItems.toLocaleString()} stacks");
     expect(source).toContain("clearRuneliteChecked(target)");
     expect(source).toContain("function formatSavedBankAt(value: number | null): string");
     expect(source).toContain("Bank saved just now");
@@ -66,7 +69,7 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("Last scan: ${relativeSince(active.runeliteCheckedAt)}.");
     expect(source).toContain("Last vibe: ${MOOD_LABEL[savedMood.mood].name}.");
     expect(source).toContain("ReturningSetupLine");
-    expect(source).toContain("const bankStatusLabel = hasBankContext");
+    expect(source).toContain("const bankStatusLabel = savedBankAt");
     expect(source).toContain('text={bankStatusLabel}');
     expect(source).toContain('text={returningMood ? `${returningMood.label} vibe saved` : "Best now vibe"}');
     expect(source).not.toContain("UserRound");
@@ -143,7 +146,7 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain('import { AddBankModal } from "@/components/add-bank-modal";');
     expect(source).toContain("loadSavedBank");
     expect(source).toContain("SAVED_BANK_EVENT");
-    expect(source).toContain("const hasBankContext = hasBankPaste || Boolean(savedBankAt);");
+    expect(source).toContain("const hasBankContext = hasBankPaste || Boolean(savedBankAt) || rememberedPluginBankItems > 0;");
     expect(source).toContain("aria-expanded={showBankGuide}");
     expect(source).toContain('aria-label={hasBankContext ? "Edit bank paste for Scapestack" : "Add bank to Scapestack"}');
     expect(source).toContain('aria-label="Remove pasted bank from this plan"');

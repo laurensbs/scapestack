@@ -35,6 +35,9 @@ describe("plugin sync checker affordance", () => {
     expect(source).toContain("Open one plan that skips finished quests");
     expect(source).toContain("Open one plan");
     expect(source).toContain("Check again");
+    expect(source).toContain("markAccountPluginBankStatus(clean, next.player.bankStatus)");
+    expect(source).toContain("const foundPluginBankReady = state.kind === \"found\" && state.player.bankStatus.enabled && state.player.bankStatus.itemCount > 0;");
+    expect(source).toContain('${foundPluginBankReady ? "" : "&bank=none"}');
     expect(source).not.toContain("formatPluginSyncSessionChecklist");
     expect(source).not.toContain("Copy checklist");
     expect(source).not.toContain("Copy proof");
