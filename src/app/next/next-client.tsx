@@ -23,7 +23,7 @@ import { organizeAction, nextUpAction, hiscoresAction, womAction, collectionLogA
 import { type HiscoreSkill } from "@/lib/hiscores";
 import { unlockedFromHiscores, GOAL_SETS, normaliseCompletion, type SetCompletion } from "@/lib/goals";
 import type { HoursToMaxSummary } from "@/lib/hours-to-max";
-import { getActiveAccount, markAccountPluginBankStatus, markAccountRuneliteProgress } from "@/lib/account-storage";
+import { getActiveAccount, markAccountPluginBankStatus, markAccountRuneliteProgress, markAccountTrip } from "@/lib/account-storage";
 import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
 import { track } from "@/lib/analytics";
 import type { Recommendation, RecKind, NextUpInput, NextUpResult, NextBestAction } from "@/lib/next-up";
@@ -51,7 +51,7 @@ import {
   type RecommendationMemoryEntry,
   type RecommendationFeedback
 } from "@/lib/recommendation-feedback";
-import { recordTripEvent } from "@/lib/trip-timeline";
+import { loadTripTimeline, recordTripEvent, tripTimelineRecap, type TripTimelineAction, type TripTimelineRecap } from "@/lib/trip-timeline";
 import { formatShareableTripCard, shareableTripFromRecommendation } from "@/lib/shareable-trip";
 import { wikiSearchUrl } from "@/lib/wiki";
 import { pluginSyncHealth } from "@/lib/plugin-sync";
@@ -3997,6 +3997,63 @@ function LastSyncSummaryCard({ result }: { result: NextUpResult }) {
   );
 }
 
+function JourneyRecapCard({ recap }: { recap: TripTimelineRecap }) {
+  if (recap.events.length === 0) return null;
+  const latest = recap.latestEvent;
+  const chips = [
+    recap.done > 0 ? `${recap.done} finished` : null,
+    recap.started > 0 ? `${recap.started} started` : null,
+    recap.skipped > 0 ? `${recap.skipped} swapped` : null
+  ].filter(Boolean);
+  const latestLine = latest
+    ? `${journeyActionLabel(latest.action)} ${latest.title}`
+    : "Keep one route moving, then come back after the stop point.";
+  const stopLine = latest?.stopPoint
+    ? `Finish when ${latest.stopPoint.toLowerCase()}`
+    : "Scapestack keeps this week focused on your latest routes.";
+
+  return (
+    <section
+      className="rounded-xl border border-[var(--color-border)] bg-[linear-gradient(135deg,rgba(32,25,16,0.78),rgba(8,7,5,0.46))] px-4 py-3"
+      data-account-journey-recap="true"
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-[10.5px] font-black uppercase tracking-[0.16em] text-[var(--color-accent)]">
+            This week in Gielinor
+          </p>
+          <p className="mt-1 truncate text-[13px] font-bold text-[var(--color-text)]">
+            {latestLine}
+          </p>
+          <p className="mt-1 text-[12px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+            {stopLine}
+          </p>
+        </div>
+        {chips.length > 0 && (
+          <div className="flex shrink-0 flex-wrap gap-2">
+            {chips.slice(0, 3).map((chip) => (
+              <span
+                key={chip}
+                className="rounded-full border border-[var(--color-accent)]/24 bg-[var(--color-accent)]/9 px-2.5 py-1 text-[11px] font-black text-[var(--color-accent)]"
+              >
+                {chip}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function journeyActionLabel(action: TripTimelineAction): string {
+  if (action === "done") return "Finished";
+  if (action === "started") return "Started";
+  if (action === "skipped") return "Swapped away from";
+  if (action === "shared") return "Shared";
+  return "Planned";
+}
+
 function ReturnLoopCard({
   rec,
   pluginSyncState,
@@ -5023,6 +5080,7 @@ function WhatToDo({
   const [lastStarted, setLastStarted] = useState<{ id: string; title: string } | null>(null);
   const [lastSuppressed, setLastSuppressed] = useState<{ id: string; kind: RecKind; title: string } | null>(null);
   const [lastCompleted, setLastCompleted] = useState<{ id: string; title: string } | null>(null);
+  const [tripEvents, setTripEvents] = useState(() => loadTripTimeline());
   const [feedback, setFeedback] = useState<RecommendationFeedback>(() => ({
     version: 1,
     suppressed: {},
@@ -5044,6 +5102,7 @@ function WhatToDo({
       }
     }
     setFeedback(loadRecommendationFeedback());
+    setTripEvents(loadTripTimeline());
   }, [routeIntent, initialRouteChoice]);
 
   const hiddenCount = allRecs.filter((rec) => feedback.suppressed[rec.id]).length;
@@ -5073,6 +5132,28 @@ function WhatToDo({
     () => ({ from: "next", hasBankContext, rsn: activeRsn, accountType: accountMode.type }),
     [accountMode.type, activeRsn, hasBankContext]
   );
+  const tripRecap = useMemo(
+    () => tripTimelineRecap(tripEvents, { rsn: activeRsn }),
+    [activeRsn, tripEvents]
+  );
+
+  const rememberTrip = (rec: Recommendation, action: TripTimelineAction, nextRouteLens: RouteLens = routeLens) => {
+    const event = {
+      id: rec.id,
+      kind: rec.kind,
+      title: rec.title,
+      action,
+      mood,
+      routeLens: nextRouteLens,
+      rsn: activeRsn,
+      stopPoint: recommendationStopPointValue(rec)
+    };
+    const events = recordTripEvent(event);
+    setTripEvents(events);
+    if (activeRsn && (action === "started" || action === "done" || action === "skipped")) {
+      markAccountTrip(activeRsn, { ...event, action });
+    }
+  };
 
   // Reset shuffle wanneer mood/time veranderen — een nieuwe vibe begint
   // op de top-pick, anders blijven we stiekem op een oude alternative.
@@ -5146,48 +5227,21 @@ function WhatToDo({
       routeLens,
       rsn: activeRsn
     }));
-    recordTripEvent({
-      id: rec.id,
-      kind: rec.kind,
-      title: rec.title,
-      action: "started",
-      mood,
-      routeLens,
-      rsn: activeRsn,
-      stopPoint: recommendationStopPointValue(rec)
-    });
+    rememberTrip(rec, "started");
     setLastStarted({ id: rec.id, title: rec.title });
     setLastCompleted(null);
     setLastSuppressed(null);
   };
   const hideRecommendation = (rec: Recommendation) => {
     setFeedback(suppressRecommendation({ id: rec.id, kind: rec.kind, title: rec.title, reason: "not_today" }));
-    recordTripEvent({
-      id: rec.id,
-      kind: rec.kind,
-      title: rec.title,
-      action: "skipped",
-      mood,
-      routeLens,
-      rsn: activeRsn,
-      stopPoint: recommendationStopPointValue(rec)
-    });
+    rememberTrip(rec, "skipped");
     setLastSuppressed({ id: rec.id, kind: rec.kind, title: rec.title });
     setLastStarted(null);
     setLastCompleted(null);
   };
   const completeRecommendation = (rec: Recommendation) => {
     setFeedback(suppressRecommendation({ id: rec.id, kind: rec.kind, title: rec.title, reason: "already_done" }));
-    recordTripEvent({
-      id: rec.id,
-      kind: rec.kind,
-      title: rec.title,
-      action: "done",
-      mood,
-      routeLens,
-      rsn: activeRsn,
-      stopPoint: recommendationStopPointValue(rec)
-    });
+    rememberTrip(rec, "done");
     setLastCompleted({ id: rec.id, title: rec.title });
     setLastStarted(null);
     setLastSuppressed(null);
@@ -5233,16 +5287,7 @@ function WhatToDo({
         routeLens: randomLens,
         rsn: activeRsn
       }));
-      recordTripEvent({
-        id: activePick.headline.id,
-        kind: activePick.headline.kind,
-        title: activePick.headline.title,
-        action: "skipped",
-        mood,
-        routeLens: randomLens,
-        rsn: activeRsn,
-        stopPoint: recommendationStopPointValue(activePick.headline)
-      });
+      rememberTrip(activePick.headline, "skipped", randomLens);
       setRouteSwitchNote(routeSwitchCopy(randomLens, activePick.headline));
     }
     if (randomLens === "smart") {
@@ -5360,6 +5405,7 @@ function WhatToDo({
               accountMode={accountMode}
             />
             <LastSyncSummaryCard result={syncResult} />
+            <JourneyRecapCard recap={tripRecap} />
             <SessionMoodGrid
               mood={mood}
               onPick={applySessionIntent}

@@ -77,7 +77,7 @@ describe("account storage", () => {
   });
 
   it("records bank and runelite status on the active account", async () => {
-    const { clearRuneliteChecked, getActiveAccount, loadAccountStore, markAccountBankSaved, markAccountMood, markAccountPluginBankStatus, markAccountRuneliteProgress, markActiveAccountBankSaved, markRuneliteChecked, upsertAccount } = await import("@/lib/account-storage");
+    const { clearRuneliteChecked, getActiveAccount, loadAccountStore, markAccountBankSaved, markAccountMood, markAccountPluginBankStatus, markAccountRuneliteProgress, markAccountTrip, markActiveAccountBankSaved, markRuneliteChecked, upsertAccount } = await import("@/lib/account-storage");
 
     upsertAccount("Lynx Titan");
     markActiveAccountBankSaved(1_780_000_000_000);
@@ -96,6 +96,16 @@ describe("account storage", () => {
       syncedAt: "2026-07-15T11:00:00.000Z",
       savedAt: 1_780_000_013_000
     });
+    markAccountTrip("Lynx Titan", {
+      id: "skill:cooking",
+      kind: "skill",
+      title: "Pick a maxing lane: Cooking",
+      action: "started",
+      mood: "afk",
+      routeLens: "maxing",
+      stopPoint: "Stop after the level",
+      savedAt: 1_780_000_014_000
+    });
 
     expect(getActiveAccount()).toMatchObject({
       rsn: "Lynx Titan",
@@ -112,7 +122,17 @@ describe("account storage", () => {
       runeliteProgressLead: "Pick a maxing lane: Cooking is checked against the latest scan.",
       runeliteProgressLines: ["Cooking 97->98: +450k XP", "Karamja Hard finished"],
       runeliteProgressSyncedAt: "2026-07-15T11:00:00.000Z",
-      runeliteProgressSavedAt: 1_780_000_013_000
+      runeliteProgressSavedAt: 1_780_000_013_000,
+      recentTrips: [{
+        id: "skill:cooking",
+        kind: "skill",
+        title: "Pick a maxing lane: Cooking",
+        action: "started",
+        mood: "afk",
+        routeLens: "maxing",
+        stopPoint: "Stop after the level",
+        savedAt: 1_780_000_014_000
+      }]
     });
     expect(loadAccountStore().accounts.find((account) => account.rsn === "Iron Guy")).toMatchObject({
       bankSavedAt: 1_780_000_005_000

@@ -76,6 +76,12 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function SessionRouteTimeline");
     expect(source).toContain("function routeTimelineItems");
     expect(source).toContain('data-session-route-timeline="true"');
+    expect(source).toContain("function JourneyRecapCard");
+    expect(source).toContain('data-account-journey-recap="true"');
+    expect(source).toContain("This week in Gielinor");
+    expect(source).toContain("tripTimelineRecap(tripEvents, { rsn: activeRsn })");
+    expect(source).toContain("markAccountTrip(activeRsn, { ...event, action })");
+    expect(source).toContain("<JourneyRecapCard recap={tripRecap} />");
     expect(source).toContain("Come back after");
     expect(source).toContain("Check back");
     expect(source).toContain("Trip chain");
@@ -98,6 +104,7 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("Timeline dashboard");
     expect(source).not.toContain("Retention metrics");
     expect(source).not.toContain("Activity dashboard");
+    expect(source).not.toContain("Journey dashboard");
   });
 
   it("keeps missing context out of the recommendation card chrome", () => {

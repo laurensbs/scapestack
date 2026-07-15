@@ -27,7 +27,21 @@ export interface ScapestackAccount {
   runeliteProgressLines?: string[];
   runeliteProgressSyncedAt?: string | null;
   runeliteProgressSavedAt?: number;
+  recentTrips?: AccountTripMemory[];
   firstSetupCompletedAt?: number;
+}
+
+export type AccountTripAction = "started" | "done" | "skipped";
+
+export interface AccountTripMemory {
+  id: string;
+  kind: string;
+  title: string;
+  action: AccountTripAction;
+  savedAt: number;
+  mood?: string;
+  routeLens?: string;
+  stopPoint?: string;
 }
 
 type AccountPatch = Partial<Omit<ScapestackAccount, "id" | "rsn" | "createdAt">>;
@@ -70,6 +84,16 @@ function isAccount(value: unknown): value is ScapestackAccount {
     && typeof account.id === "string"
     && typeof account.createdAt === "number"
     && typeof account.lastUsedAt === "number";
+}
+
+function isAccountTripMemory(value: unknown): value is AccountTripMemory {
+  if (!value || typeof value !== "object") return false;
+  const trip = value as Partial<AccountTripMemory>;
+  return typeof trip.id === "string"
+    && typeof trip.kind === "string"
+    && typeof trip.title === "string"
+    && (trip.action === "started" || trip.action === "done" || trip.action === "skipped")
+    && typeof trip.savedAt === "number";
 }
 
 export function loadAccountStore(): ScapestackAccountStore {
@@ -131,6 +155,7 @@ export function upsertAccount(rsn: string, patch: AccountPatch = {}): Scapestack
     runeliteProgressLines: existing?.runeliteProgressLines,
     runeliteProgressSyncedAt: existing?.runeliteProgressSyncedAt,
     runeliteProgressSavedAt: existing?.runeliteProgressSavedAt,
+    recentTrips: existing?.recentTrips?.filter(isAccountTripMemory).slice(-6),
     firstSetupCompletedAt: existing?.firstSetupCompletedAt,
     ...patch
   };
@@ -216,6 +241,23 @@ export function markAccountRuneliteProgress(rsn: string, progress: RuneliteProgr
     runeliteProgressSyncedAt: progress.syncedAt,
     runeliteProgressSavedAt: progress.savedAt
   });
+}
+
+export function markAccountTrip(
+  rsn: string,
+  trip: Omit<AccountTripMemory, "savedAt"> & { savedAt?: number }
+): void {
+  const id = accountIdForRsn(rsn);
+  const account = loadAccountStore().accounts.find((entry) => entry.id === id);
+  const nextTrip: AccountTripMemory = {
+    ...trip,
+    savedAt: trip.savedAt ?? now()
+  };
+  const recentTrips = [
+    ...(account?.recentTrips?.filter(isAccountTripMemory) ?? []),
+    nextTrip
+  ].slice(-6);
+  upsertAccount(rsn, { recentTrips });
 }
 
 export function markAccountMood(
