@@ -1,6 +1,7 @@
 import { BuyMeCoffee } from "@/components/buy-me-coffee";
 import { HeroBossTripPreview } from "@/components/hero-boss-trip-preview";
 import { HeroIntake } from "@/components/hero-intake";
+import { AccountTimeline } from "@/components/account-timeline";
 
 export const revalidate = 300;
 
@@ -64,6 +65,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <AccountTimeline className="mx-auto mt-2 max-w-3xl" />
 
       <footer className="mt-14 border-t border-[var(--color-parchment-edge)]/50 pt-10">
         <div className="osrs-frame scapestack-lock-panel relative mx-auto max-w-3xl animate-[slide-up_0.5s_cubic-bezier(0.22,1,0.36,1)_0.2s_both]">

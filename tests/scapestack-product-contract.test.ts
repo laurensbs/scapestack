@@ -47,8 +47,8 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).not.toContain("Nothing obvious");
     expect(next).toContain("Open unlocks");
     expect(next).toContain("function NextTripContextLine");
-    expect(next).toContain("Since last trip");
-    expect(next).toContain("function lastSyncReturnTitle");
+    expect(next).toContain("<AccountTimeline expectedRsn={activeRsn}");
+    expect(next).not.toContain("function lastSyncReturnTitle");
     expect(next).toContain("RouteCard");
     expect(next).toContain("data-route-card");
     expect(next).toContain("RoutePrimarySprite");

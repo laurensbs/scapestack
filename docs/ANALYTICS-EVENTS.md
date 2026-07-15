@@ -33,7 +33,7 @@ an analytics vendor.
 
 - `bank:attached`, `bank:refreshed`
 - `runelite:sync_success`, `runelite:sync_failure`
-- `return:visit`, `recap:viewed`
+- `return:visit`, `timeline:viewed`
 - `boss:opened`, `boss:loadout_used`
 
 Recommendation lifecycle events include the stable recommendation ID, content

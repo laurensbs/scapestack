@@ -1,6 +1,7 @@
 const KEY = "scapestack:trip-timeline:v1";
 const MAX_EVENTS = 80;
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+export const TRIP_TIMELINE_CHANGE_EVENT = "scapestack:trip-timeline-change";
 
 export type TripTimelineAction = "planned" | "started" | "done" | "skipped" | "shared";
 
@@ -68,6 +69,9 @@ export function recordTripEvent(input: {
     }
   ].filter(isTripTimelineEvent).slice(-MAX_EVENTS);
   try { localStorage.setItem(KEY, JSON.stringify(next)); } catch {}
+  if (typeof window.dispatchEvent === "function" && typeof Event === "function") {
+    window.dispatchEvent(new Event(TRIP_TIMELINE_CHANGE_EVENT));
+  }
   return next;
 }
 

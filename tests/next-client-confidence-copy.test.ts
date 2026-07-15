@@ -44,20 +44,9 @@ describe("/next confidence UI copy", () => {
   });
 
   it("shows return value after real RuneLite deltas without raw sync diagnostics", () => {
-    expect(source).toContain("function LastSyncSummaryCard");
-    expect(source).toContain("Since last trip");
-    expect(source).toContain("function lastSyncReturnTitle");
-    expect(source).toContain("function lastSyncReturnLead");
-    expect(source).toContain("Finished steps are gone from the route");
-    expect(source).toContain("RuneLite bank is shaping this trip");
-    expect(source).toContain("Now open:");
-    expect(source).toContain("Next trip:");
-    expect(source).toContain("Done steps are skipped now");
-    expect(source).toContain("skill.xpGained");
-    expect(source).toContain("moved, so");
-    expect(source).toContain("summary.collectionLogItems.slice(0, 2).map");
-    expect(source).toContain("CLog:");
-    expect(source).toContain("if (!summary || lines.length === 0) return null;");
+    expect(source).not.toContain("function LastSyncSummaryCard");
+    expect(source).not.toContain("function lastSyncReturnTitle");
+    expect(source).toContain("<AccountTimeline expectedRsn={activeRsn}");
     expect(source).not.toContain("raw diff");
     expect(source).not.toContain("sync payload");
   });
@@ -76,12 +65,9 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function SessionRouteTimeline");
     expect(source).toContain("function routeTimelineItems");
     expect(source).toContain('data-session-route-timeline="true"');
-    expect(source).toContain("function JourneyRecapCard");
-    expect(source).toContain('data-account-journey-recap="true"');
-    expect(source).toContain("This week in Gielinor");
-    expect(source).toContain("tripTimelineRecap(tripEvents, { rsn: activeRsn })");
+    expect(source).toContain('import { AccountTimeline } from "@/components/account-timeline"');
     expect(source).toContain("markAccountTrip(activeRsn, { ...event, action })");
-    expect(source).toContain("<JourneyRecapCard recap={tripRecap} />");
+    expect(source).toContain("<AccountTimeline expectedRsn={activeRsn}");
     expect(source).toContain("Come back after");
     expect(source).toContain("Check back");
     expect(source).toContain("Trip chain");
@@ -261,7 +247,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('data-next-trip-card="true"');
     expect(source).toContain("function NextTripContextLine");
     expect(source).toContain("RSN <span");
-    expect(source).toContain("<LastSyncSummaryCard result={syncResult} />");
+    expect(source).not.toContain("<LastSyncSummaryCard result={syncResult} />");
     expect(source).toContain("nextTripLines({ rec, hasBankContext, bankItems, accountMode })");
     expect(source).not.toContain("Session board");
     expect(source).not.toContain("Main move");

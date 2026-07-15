@@ -65,11 +65,11 @@ export interface AnalyticsEventMap {
     hasRunelite: boolean;
     hasTripHistory: boolean;
   };
-  "recap:viewed": {
+  "timeline:viewed": {
     hasProgress: boolean;
     hasBankUpdate: boolean;
     hasRuneliteProgress: boolean;
-    period: "week";
+    momentCount: number;
   };
   "boss:opened": {
     bossSlug: string;
@@ -126,7 +126,7 @@ const EVENT_KEYS = {
   "bank:attached": ["source", "linkedToAccount"],
   "bank:refreshed": ["source", "linkedToAccount"],
   "return:visit": ["hasBank", "hasRunelite", "hasTripHistory"],
-  "recap:viewed": ["hasProgress", "hasBankUpdate", "hasRuneliteProgress", "period"],
+  "timeline:viewed": ["hasProgress", "hasBankUpdate", "hasRuneliteProgress", "momentCount"],
   "boss:opened": ["bossSlug", "source", "hasBank"],
   "boss:loadout_used": ["bossSlug", "source", "hasBank", "action"],
   "next:submit": ["hasRsn", "hasBank"],
@@ -152,7 +152,7 @@ const REQUIRED_KEYS: { [E in AnalyticsEvent]: readonly (keyof AnalyticsEventMap[
   "bank:attached": EVENT_KEYS["bank:attached"],
   "bank:refreshed": EVENT_KEYS["bank:refreshed"],
   "return:visit": EVENT_KEYS["return:visit"],
-  "recap:viewed": EVENT_KEYS["recap:viewed"],
+  "timeline:viewed": EVENT_KEYS["timeline:viewed"],
   "boss:opened": EVENT_KEYS["boss:opened"],
   "boss:loadout_used": EVENT_KEYS["boss:loadout_used"],
   "next:submit": [],
@@ -177,7 +177,6 @@ const ENUM_VALUES: Partial<Record<AnalyticsEvent, Record<string, readonly Primit
   },
   "bank:attached": { source: ["home", "next", "header", "run-bar", "dps", "goals", "slayer", "bank", "unknown"] },
   "bank:refreshed": { source: ["home", "next", "header", "run-bar", "dps", "goals", "slayer", "bank", "unknown"] },
-  "recap:viewed": { period: ["week"] },
   "boss:opened": { source: ["next", "check_kill"] },
   "boss:loadout_used": { source: ["next", "check_kill"], action: ["copy_runelite_tab"] }
 };

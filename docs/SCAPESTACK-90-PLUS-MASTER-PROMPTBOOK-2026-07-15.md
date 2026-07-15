@@ -547,7 +547,7 @@ Evidence:
 
 ## Phase 05 - Create A Stable Account Timeline API
 
-Status: TODO  
+Status: DONE (2026-07-16)
 Depends on: Phases 03 and 04  
 Improves: return value, profile, retention
 
@@ -574,6 +574,42 @@ Acceptance:
 - no empty cards are rendered when there is no progress;
 - API tests cover unauthorized, empty, partial and returning states.
 ```
+
+### Phase 05 Evidence
+
+- Added one authenticated, account-scoped timeline API at
+  `/api/account/timeline`, backed by changed RuneLite snapshots, trip lifecycle
+  events and recommendation changes. The response exposes concise player
+  moments and opaque IDs/cursors; database provenance stays internal.
+- Added ordered cursor pagination, strict account UUID scoping and an
+  idempotent legacy browser-history import. Legacy events are accepted only
+  when their normalized RSN exactly matches the connected RuneLite account.
+- Extended immutable trip history with optional player-facing titles and a
+  unique legacy import key. Existing rows remain valid and duplicate imports
+  are ignored by PostgreSQL.
+- Replaced the separate weekly recap, profile change panel and `/next` sync
+  summary with one quiet `AccountTimeline` component on homepage, profile and
+  `/next`. Empty history renders nothing; public profiles cannot display the
+  connected browser's history for a different RSN.
+- Migrated analytics from the obsolete `recap:viewed` event to
+  `timeline:viewed`, while retaining privacy-safe return-visit measurement.
+- API and model coverage includes unauthorized, empty, partial, returning,
+  cursor validation, account scoping, deduplication, malformed legacy input and
+  safe import-failure responses.
+- Real integration proof: a Neon-backed RuneLite claim paired a browser,
+  created an HttpOnly session, imported a legacy Dragon Slayer II completion
+  and returned `Finished Dragon Slayer II` from the protected timeline API.
+- Browser proof: homepage, `/next` and `/u/Lynx Titan` were checked at
+  1440x1000 and 390x844. The shared timeline rendered consistently, had no
+  horizontal overflow or browser errors, and no duplicate progress panel.
+  Screenshots are in `/tmp/scapestack-phase-05/`.
+- Verification: `npm run ci:check` passed with 178 files and 1,139 tests,
+  smoke, zero hard recommendation failures, offline plugin release checks and
+  a 214-page production build. `./gradlew test` passed the full plugin suite,
+  including the live Neon-backed end-to-end flow. `git diff --check` passed.
+- Residual risk: the timeline can only reconstruct moments recorded after
+  server history or exact-RSN legacy trip history exists. Older unrecorded
+  browser activity cannot be inferred safely.
 
 ---
 

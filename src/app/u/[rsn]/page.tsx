@@ -10,8 +10,8 @@ import { cn } from "@/lib/utils";
 import { skillSpriteUrl } from "@/lib/sprites";
 import { pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
 import { bankOrganizerHref } from "@/lib/bank-handoff-url";
-import { getSyncedPlayer, type SyncedPlayer, type SyncDeltaSummary } from "@/lib/sync-repo";
-import { WeeklyRecap } from "./weekly-recap";
+import { getSyncedPlayer, type SyncedPlayer } from "@/lib/sync-repo";
+import { AccountTimeline } from "@/components/account-timeline";
 
 interface Props {
   params: Promise<{ rsn: string }>;
@@ -131,11 +131,7 @@ export default async function PlayerProfile({ params }: Props) {
         synced={synced}
       />
 
-      <WeeklyRecap
-        rsn={hi.name}
-        nextHref={profileNextHref}
-        syncXpLine={profileSyncXpLine(synced?.lastSyncSummary ?? null)}
-      />
+      <AccountTimeline expectedRsn={hi.name} className="mb-6" limit={8} />
 
       {/* Bank summary if locally available */}
       <LocalBankSummary rsn={hi.name} />
@@ -193,8 +189,6 @@ function AccountHomeBoard({
   const bankLine = synced?.bankItems.length
     ? `${synced.bankItems.length.toLocaleString()} bank stacks from RuneLite`
     : "Paste Bank Memory or Bank Tags when gear, supplies or GP should change the route.";
-  const changedLines = profileWhatChangedLines(synced?.lastSyncSummary ?? null);
-
   return (
     <section
       className={cn(
@@ -205,8 +199,7 @@ function AccountHomeBoard({
       )}
       data-account-home-board="true"
     >
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="min-w-0">
+      <div className="min-w-0">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[var(--color-gold)]/35 bg-black/20 px-3 py-1 text-[11px] font-bold text-[var(--color-gold)]">
             <CheckCircle2 className="size-3.5" />
             Account home
@@ -236,38 +229,6 @@ function AccountHomeBoard({
             <ProfileQuickAction icon={Sword} href={`/dps?rsn=${encodeURIComponent(rsn)}&from=profile`} title="Check kill" body="Pick a boss and see gear, supplies and upgrades from your bank." />
             <ProfileQuickAction icon={PlugZap} href={pluginHref} title={synced ? "Refresh RuneLite" : "Add RuneLite"} body={runeliteLine} />
           </div>
-        </div>
-
-        <div className="rounded-xl border border-[var(--color-border)] bg-black/18 p-4">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--color-gold)]">
-              What changed
-            </h3>
-            {synced?.syncedAt && (
-              <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">
-                {formatProfileScanTime(synced.syncedAt)}
-              </span>
-            )}
-          </div>
-          <div className="space-y-2">
-            {changedLines.length > 0 ? (
-              changedLines.map((line) => (
-                <div
-                  key={line}
-                  className="rounded-lg border border-[var(--color-gold)]/20 bg-[var(--color-gold)]/8 px-3 py-2 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]"
-                >
-                  {line}
-                </div>
-              ))
-            ) : (
-              <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-3 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-                {synced
-                  ? "No new RuneLite changes yet. Do a trip, press Sync, then this page should show what moved."
-                  : "No RuneLite scan yet. Add RuneLite once and this page can show XP, quests, diaries, clog and Slayer changes."}
-              </div>
-            )}
-          </div>
-        </div>
       </div>
     </section>
   );
@@ -307,48 +268,6 @@ function formatProfileScanTime(iso: string): string {
     hour: "2-digit",
     minute: "2-digit"
   }).format(date);
-}
-
-function profileWhatChangedLines(summary: SyncDeltaSummary | null): string[] {
-  if (!summary) return [];
-  const lines: string[] = [];
-  for (const skill of summary.skills.slice(0, 3)) {
-    const level = skill.currentLevel > skill.previousLevel
-      ? `${skill.name} ${skill.previousLevel}->${skill.currentLevel}`
-      : skill.name;
-    const xp = skill.xpGained > 0 ? ` +${formatXp(skill.xpGained)}` : "";
-    lines.push(`${level}${xp}`);
-  }
-  if (summary.questsCompleted.length > 0) {
-    lines.push(`Finished quest: ${summary.questsCompleted.slice(0, 2).join(", ")}`);
-  }
-  if (summary.diariesCompleted.length > 0) {
-    lines.push(`Diary done: ${summary.diariesCompleted.slice(0, 2).map((diary) => `${diary.region} ${diary.tier}`).join(", ")}`);
-  }
-  if (summary.collectionLogItems.length > 0) {
-    lines.push(`New clog: ${summary.collectionLogItems.slice(0, 2).map((item) => item.name).join(", ")}`);
-  } else if (summary.collectionLogItemIds.length > 0) {
-    lines.push(`${summary.collectionLogItemIds.length.toLocaleString()} new clog item${summary.collectionLogItemIds.length === 1 ? "" : "s"}`);
-  }
-  if (summary.bank?.itemCountChanged) {
-    lines.push(`Bank moved from ${summary.bank.previousItemCount.toLocaleString()} to ${summary.bank.currentItemCount.toLocaleString()} stacks`);
-  }
-  if (summary.accountType.changed) {
-    lines.push("Account type changed; routes can shift.");
-  }
-  return lines.slice(0, 5);
-}
-
-function profileSyncXpLine(summary: SyncDeltaSummary | null): string | null {
-  if (!summary) return null;
-  const xpGained = summary.skills.reduce((sum, skill) => sum + Math.max(0, skill.xpGained), 0);
-  if (xpGained <= 0) return null;
-  const topSkill = summary.skills
-    .filter((skill) => skill.xpGained > 0)
-    .sort((a, b) => b.xpGained - a.xpGained)[0];
-  return topSkill
-    ? `${formatXp(xpGained)} XP since last scan; biggest move was ${topSkill.name}.`
-    : `${formatXp(xpGained)} XP since last scan.`;
 }
 
 function nextUrlForProfile(rsn: string): string {

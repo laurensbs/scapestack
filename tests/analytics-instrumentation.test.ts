@@ -22,14 +22,14 @@ describe("decision funnel instrumentation", () => {
     }
   });
 
-  it("wires bank, RuneLite, return, recap and boss context actions", () => {
+  it("wires bank, RuneLite, return, timeline and boss context actions", () => {
     expect(read("src/components/add-bank-modal.tsx")).toMatch(/hadBankBeforeSave\s*\?\s*"bank:refreshed"\s*:\s*"bank:attached"/);
     const plugin = read("src/components/plugin-sync-checker.tsx");
     expect(plugin).toContain("runelite:sync_success");
     expect(plugin).toContain("runelite:sync_failure");
-    const recap = read("src/app/u/[rsn]/weekly-recap.tsx");
-    expect(recap).toContain("return:visit");
-    expect(recap).toContain("recap:viewed");
+    const timeline = read("src/components/account-timeline.tsx");
+    expect(timeline).toContain("return:visit");
+    expect(timeline).toContain("timeline:viewed");
     const boss = read("src/components/boss-detail-modal.tsx");
     expect(boss).toContain("boss:opened");
     expect(boss).toContain("boss:loadout_used");
@@ -53,7 +53,7 @@ describe("decision funnel instrumentation", () => {
       "bank:attached",
       "bank:refreshed",
       "return:visit",
-      "recap:viewed",
+      "timeline:viewed",
       "boss:opened",
       "boss:loadout_used"
     ]) {

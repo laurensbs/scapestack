@@ -159,9 +159,14 @@ CREATE TABLE IF NOT EXISTS trip_lifecycle_event (
   route_family TEXT,
   mood TEXT,
   stop_point TEXT,
+  title TEXT,
+  legacy_event_id CHAR(64),
   occurred_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+ALTER TABLE trip_lifecycle_event ADD COLUMN IF NOT EXISTS title TEXT;
+ALTER TABLE trip_lifecycle_event ADD COLUMN IF NOT EXISTS legacy_event_id CHAR(64);
 CREATE INDEX IF NOT EXISTS trip_lifecycle_event_account_idx ON trip_lifecycle_event(account_id, occurred_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS trip_lifecycle_event_legacy_idx ON trip_lifecycle_event(account_id, legacy_event_id) WHERE legacy_event_id IS NOT NULL;
 DROP RULE IF EXISTS trip_lifecycle_event_no_update ON trip_lifecycle_event;
 DROP TRIGGER IF EXISTS trip_lifecycle_event_no_update ON trip_lifecycle_event;
 CREATE TRIGGER trip_lifecycle_event_no_update BEFORE UPDATE ON trip_lifecycle_event FOR EACH ROW EXECUTE FUNCTION prevent_immutable_history_update();

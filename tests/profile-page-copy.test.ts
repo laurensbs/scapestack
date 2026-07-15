@@ -15,14 +15,13 @@ describe("RSN profile handoffs", () => {
     expect(source).toContain("getSyncedPlayer(hi.name)");
     expect(source).toContain("AccountHomeBoard");
     expect(source).toContain('data-account-home-board="true"');
-    expect(source).toContain("WeeklyRecap");
-    expect(source).toContain("profileSyncXpLine");
+    expect(source).toContain("AccountTimeline");
+    expect(source).toContain("<AccountTimeline expectedRsn={hi.name}");
     expect(source).toContain("Welcome back, {rsn}.");
     expect(source).toContain("Start here every login.");
     expect(source).toContain("Plan next trip");
-    expect(source).toContain("What changed");
-    expect(source).toContain("profileWhatChangedLines");
-    expect(source).toContain("XP, quests, diaries, clog and Slayer changes");
+    expect(source).not.toContain("profileWhatChangedLines");
+    expect(source).not.toContain("No new RuneLite changes yet");
     expect(source).not.toContain("ProfileActionRail");
     expect(source).not.toContain("ProfileActionCard");
     expect(source).not.toContain("<ProfileReadinessRail rsn={hi.name} />");
@@ -37,15 +36,14 @@ describe("RSN profile handoffs", () => {
     expect(source).toContain("account for gear, supplies and unlocks");
   });
 
-  it("keeps the weekly recap local and trip-shaped", () => {
-    const source = readFileSync(join(process.cwd(), "src/app/u/[rsn]/weekly-recap.tsx"), "utf8");
+  it("uses the connected account timeline and hides it when history is empty", () => {
+    const source = readFileSync(join(process.cwd(), "src/components/account-timeline.tsx"), "utf8");
 
     expect(source).toContain('"use client"');
-    expect(source).toContain("tripTimelineRecap(loadTripTimeline(), { rsn })");
-    expect(source).toContain('data-weekly-recap="true"');
-    expect(source).toContain("This week");
-    expect(source).toContain("Next clean trip");
-    expect(source).toContain("Trips you touched on this device");
+    expect(source).toContain("/api/account/timeline");
+    expect(source).toContain('data-account-timeline="true"');
+    expect(source).toContain("Since last time");
+    expect(source).toContain("if (visible.length === 0) return null");
     expect(source).not.toContain("dashboard");
     expect(source).not.toMatch(/>\s*Analytics\s*</i);
   });

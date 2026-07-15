@@ -13,6 +13,7 @@ import { SavedBankBanner } from "@/components/saved-bank-banner";
 import { BossSprite } from "@/components/boss-picker";
 import { ItemSprite } from "@/components/item-sprite";
 import { AccountModeBadge } from "@/components/account-mode-badge";
+import { AccountTimeline } from "@/components/account-timeline";
 import { KcProbabilityGraph } from "@/components/kc-probability-graph";
 import { XpDropLoader } from "@/components/xp-drop-loader";
 import { ShuffleLoader } from "@/components/shuffle-loader";
@@ -51,7 +52,7 @@ import {
   type RecommendationMemoryEntry,
   type RecommendationFeedback
 } from "@/lib/recommendation-feedback";
-import { loadTripTimeline, recordTripEvent, tripTimelineRecap, type TripTimelineAction, type TripTimelineRecap } from "@/lib/trip-timeline";
+import { loadTripTimeline, recordTripEvent, type TripTimelineAction } from "@/lib/trip-timeline";
 import { formatShareableTripCard, shareableTripFromRecommendation } from "@/lib/shareable-trip";
 import { wikiSearchUrl } from "@/lib/wiki";
 import { pluginSyncHealth } from "@/lib/plugin-sync";
@@ -4029,103 +4030,6 @@ function NextTripContextLine({
   );
 }
 
-function LastSyncSummaryCard({ result }: { result: NextUpResult }) {
-  const summary = result.summary.lastSyncSummary;
-  const lines = lastSyncSummaryLines(result);
-  if (!summary || lines.length === 0) return null;
-  const title = lastSyncReturnTitle(result);
-  const lead = lastSyncReturnLead(result);
-  const nextLine = nextCleanTripLine(result);
-
-  return (
-    <section className="rounded-xl border border-[var(--color-accent)]/35 bg-[linear-gradient(135deg,rgba(214,170,72,0.16),rgba(27,22,15,0.78))] px-4 py-3 shadow-[0_18px_60px_rgba(0,0,0,0.28)]" data-last-sync-summary="true">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-        <div className="min-w-0">
-          <p className="text-[10.5px] font-black uppercase tracking-[0.16em] text-[var(--color-accent)]">Since last trip</p>
-          <h2 className="mt-1 text-[18px] font-black leading-tight text-[var(--color-text)] sm:text-[21px]">
-            {title}
-          </h2>
-          <p className="mt-1 max-w-[720px] text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-            {lead}
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {lines.slice(0, 3).map((line) => (
-              <span
-                key={line}
-                className="rounded-full border border-[var(--color-accent)]/24 bg-[var(--color-bg)]/45 px-2.5 py-1 text-[11px] font-bold text-[var(--color-text-dim)]"
-              >
-                {line}
-              </span>
-            ))}
-          </div>
-        </div>
-        {nextLine && (
-          <div className="min-w-0 rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/42 px-3 py-2 text-[12px] font-bold leading-relaxed text-[var(--color-text)] lg:max-w-[310px]">
-            {nextLine}
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function JourneyRecapCard({ recap }: { recap: TripTimelineRecap }) {
-  if (recap.events.length === 0) return null;
-  const latest = recap.latestEvent;
-  const chips = [
-    recap.done > 0 ? `${recap.done} finished` : null,
-    recap.started > 0 ? `${recap.started} started` : null,
-    recap.skipped > 0 ? `${recap.skipped} swapped` : null
-  ].filter(Boolean);
-  const latestLine = latest
-    ? `${journeyActionLabel(latest.action)} ${latest.title}`
-    : "Keep one route moving, then come back after the stop point.";
-  const stopLine = latest?.stopPoint
-    ? `Finish when ${latest.stopPoint.toLowerCase()}`
-    : "Scapestack keeps this week focused on your latest routes.";
-
-  return (
-    <section
-      className="rounded-xl border border-[var(--color-border)] bg-[linear-gradient(135deg,rgba(32,25,16,0.78),rgba(8,7,5,0.46))] px-4 py-3"
-      data-account-journey-recap="true"
-    >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <p className="text-[10.5px] font-black uppercase tracking-[0.16em] text-[var(--color-accent)]">
-            This week in Gielinor
-          </p>
-          <p className="mt-1 truncate text-[13px] font-bold text-[var(--color-text)]">
-            {latestLine}
-          </p>
-          <p className="mt-1 text-[12px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
-            {stopLine}
-          </p>
-        </div>
-        {chips.length > 0 && (
-          <div className="flex shrink-0 flex-wrap gap-2">
-            {chips.slice(0, 3).map((chip) => (
-              <span
-                key={chip}
-                className="rounded-full border border-[var(--color-accent)]/24 bg-[var(--color-accent)]/9 px-2.5 py-1 text-[11px] font-black text-[var(--color-accent)]"
-              >
-                {chip}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function journeyActionLabel(action: TripTimelineAction): string {
-  if (action === "done") return "Finished";
-  if (action === "started") return "Started";
-  if (action === "skipped") return "Swapped away from";
-  if (action === "shared") return "Shared";
-  return "Planned";
-}
-
 function ReturnLoopCard({
   rec,
   pluginSyncState,
@@ -4408,119 +4312,6 @@ function SessionRouteTimeline({
       </div>
     </section>
   );
-}
-
-function lastSyncSummaryLines(result: NextUpResult): string[] {
-  const summary = result.summary.lastSyncSummary;
-  if (!summary) return [];
-  const lines: string[] = [];
-  const completed = [
-    ...summary.questsCompleted.slice(0, 2),
-    ...summary.diariesCompleted.slice(0, 2).map((diary) => `${diary.region} ${diary.tier}`)
-  ];
-  if (completed.length > 0) {
-    lines.push(`Finished: ${completed.join(", ")}`);
-    const open = result.nextBestActions[0]?.relevantQuestOrUnlock || result.nextBestActions[0]?.title || result.headline?.title;
-    if (open) lines.push(`Now open: ${open}`);
-    lines.push("Done steps are skipped now");
-  }
-  if (summary.skills.length > 0) {
-    for (const skill of summary.skills.slice(0, 2)) {
-      const levels = skill.currentLevel > skill.previousLevel
-        ? `${skill.name} ${skill.previousLevel}->${skill.currentLevel}`
-        : skill.name;
-      const xp = skill.xpGained > 0 ? ` +${formatXp(skill.xpGained)}` : "";
-      lines.push(`${levels}${xp}`);
-    }
-  }
-  if (summary.collectionLogItems.length > 0 || summary.collectionLogItemIds.length > 0) {
-    const namedItems = summary.collectionLogItems.slice(0, 2).map((item) => item.name);
-    if (namedItems.length > 0) {
-      const extra = summary.collectionLogItems.length > namedItems.length
-        ? ` +${summary.collectionLogItems.length - namedItems.length}`
-        : "";
-      lines.push(`CLog: ${namedItems.join(", ")}${extra}`);
-    } else {
-      const count = summary.collectionLogItemIds.length;
-      lines.push(`${count} collection log item${count === 1 ? "" : "s"} added`);
-    }
-  }
-  if (summary.bank) {
-    if (summary.bank.currentItemCount > 0) {
-      lines.push(`Bank: ${summary.bank.currentItemCount.toLocaleString()} stacks now`);
-    } else if (summary.bank.currentUnavailableReason === "bank-not-opened-this-session") {
-      lines.push("Open your bank once, then sync again");
-    } else if (summary.bank.currentUnavailableReason === "opt-in-off") {
-      lines.push("Bank is off");
-    }
-  }
-  if (summary.accountType.changed) {
-    lines.push(`${scapestackAccountTypeLabel(summary.accountType.current)} detected`);
-  }
-  return lines;
-}
-
-function lastSyncReturnTitle(result: NextUpResult): string {
-  const summary = result.summary.lastSyncSummary;
-  if (!summary) return "RuneLite changed the route";
-  const xp = summary.skills.reduce((sum, skill) => sum + Math.max(0, skill.xpGained), 0);
-  if (summary.questsCompleted.length > 0 || summary.diariesCompleted.length > 0) {
-    return "Finished steps are gone from the route";
-  }
-  if (summary.collectionLogItems.length > 0 || summary.collectionLogItemIds.length > 0) {
-    return "New clog progress changed the route";
-  }
-  if (xp > 0) {
-    return `${formatXp(xp)} gained since the last scan`;
-  }
-  if (summary.bank?.currentItemCount) {
-    return "RuneLite bank is shaping this trip";
-  }
-  if (summary.accountType.changed) {
-    return "Account mode changed the route";
-  }
-  return "RuneLite changed the route";
-}
-
-function lastSyncReturnLead(result: NextUpResult): string {
-  const summary = result.summary.lastSyncSummary;
-  const next = result.headline?.title || result.nextBestActions[0]?.title;
-  if (!summary) return next ? `${next} is now the cleanest stop point.` : "Open one plan, do the stop point, then sync again.";
-  if (summary.questsCompleted.length > 0 || summary.diariesCompleted.length > 0) {
-    return next
-      ? `${next} moved up because completed quests and diary tiers are no longer wasting a slot.`
-      : "Completed quests and diary tiers are no longer wasting a slot.";
-  }
-  if (summary.collectionLogItems.length > 0 || summary.collectionLogItemIds.length > 0) {
-    return next
-      ? `${next} is now cleaner because new collection-log progress is already counted.`
-      : "New collection-log progress is counted, so the route should not repeat it.";
-  }
-  const skill = summary.skills.find((entry) => entry.xpGained > 0);
-  if (skill) {
-    return next
-      ? `${skill.name} moved, so ${next} is checked against the latest levels.`
-      : `${skill.name} moved, so the next route is checked against the latest levels.`;
-  }
-  if (summary.bank?.currentItemCount) {
-    return next
-      ? `${next} is using the bank RuneLite just sent.`
-      : "This route is using the bank RuneLite just sent.";
-  }
-  return next ? `${next} is the next clean stop point.` : "Open one plan, do the stop point, then sync again.";
-}
-
-function nextCleanTripLine(result: NextUpResult): string | null {
-  const title = result.headline?.title || result.nextBestActions[0]?.title;
-  return title ? `Next trip: ${title}` : null;
-}
-
-function scapestackAccountTypeLabel(type: string): string {
-  if (type === "ironman") return "Ironman";
-  if (type === "hardcore_ironman") return "Hardcore Ironman";
-  if (type === "ultimate_ironman") return "Ultimate Ironman";
-  if (type === "group_ironman") return "Group Ironman";
-  return "Normal account";
 }
 
 function NextTripCard({
@@ -5156,7 +4947,6 @@ function WhatToDo({
   const [lastStarted, setLastStarted] = useState<{ id: string; title: string } | null>(null);
   const [lastSuppressed, setLastSuppressed] = useState<{ id: string; kind: RecKind; title: string } | null>(null);
   const [lastCompleted, setLastCompleted] = useState<{ id: string; title: string } | null>(null);
-  const [tripEvents, setTripEvents] = useState(() => loadTripTimeline());
   const [feedback, setFeedback] = useState<RecommendationFeedback>(() => ({
     version: 1,
     suppressed: {},
@@ -5178,7 +4968,6 @@ function WhatToDo({
       }
     }
     setFeedback(loadRecommendationFeedback());
-    setTripEvents(loadTripTimeline());
   }, [routeIntent, initialRouteChoice]);
 
   const hiddenCount = allRecs.filter((rec) => feedback.suppressed[rec.id]).length;
@@ -5207,10 +4996,6 @@ function WhatToDo({
   const actionContext = useMemo<RecommendationActionContext>(
     () => ({ from: "next", hasBankContext, rsn: activeRsn, accountType: accountMode.type }),
     [accountMode.type, activeRsn, hasBankContext]
-  );
-  const tripRecap = useMemo(
-    () => tripTimelineRecap(tripEvents, { rsn: activeRsn }),
-    [activeRsn, tripEvents]
   );
   const analyticsContext: AnalyticsContext = bankSource === "sample"
     ? "sample"
@@ -5247,8 +5032,7 @@ function WhatToDo({
       rsn: activeRsn,
       stopPoint: recommendationStopPointValue(rec)
     };
-    const events = recordTripEvent(event);
-    setTripEvents(events);
+    recordTripEvent(event);
     if (activeRsn && (action === "started" || action === "done" || action === "skipped")) {
       markAccountTrip(activeRsn, { ...event, action });
     }
@@ -5555,8 +5339,7 @@ function WhatToDo({
               activeRsn={activeRsn}
               accountMode={accountMode}
             />
-            <LastSyncSummaryCard result={syncResult} />
-            <JourneyRecapCard recap={tripRecap} />
+            <AccountTimeline expectedRsn={activeRsn} limit={5} />
             <SessionMoodGrid
               mood={mood}
               onPick={applySessionIntent}

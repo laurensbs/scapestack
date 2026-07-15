@@ -290,19 +290,20 @@ export async function recordTripLifecycleEvent(input: {
   routeFamily?: string;
   mood?: string;
   stopPoint?: string;
+  title?: string;
 }): Promise<number | null> {
   const normalizedRsn = normalizeRsn(input.rsn);
   if (!normalizedRsn) return null;
   const rows = await client().query<{ event_id: number | string }>(`
     INSERT INTO trip_lifecycle_event (
       account_id, snapshot_id, recommendation_id, event_type,
-      route_family, mood, stop_point
+      route_family, mood, stop_point, title
     )
-    SELECT account_id, $2, $3, $4, $5, $6, $7
+    SELECT account_id, $2, $3, $4, $5, $6, $7, $8
     FROM account_identity WHERE rsn = $1
     RETURNING event_id
   `, [normalizedRsn, input.snapshotId ?? null, input.recommendationId, input.eventType,
-    input.routeFamily ?? null, input.mood ?? null, input.stopPoint ?? null]);
+    input.routeFamily ?? null, input.mood ?? null, input.stopPoint ?? null, input.title ?? null]);
   return rows[0] ? Number(rows[0].event_id) : null;
 }
 

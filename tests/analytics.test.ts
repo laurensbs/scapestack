@@ -89,13 +89,13 @@ describe("privacy-safe analytics contract", () => {
     expect(JSON.stringify(events)).not.toMatch(/Lauky|claimToken|bankRows|payload/);
   });
 
-  it("captures a returning RuneLite and recap funnel", () => {
+  it("captures a returning RuneLite and timeline funnel", () => {
     const events: AnalyticsEnvelope[] = [];
     setAnalyticsTransport((event) => events.push(event));
     const recommendation = recommendationProps({ context: "bank_runelite" });
 
     track("return:visit", { hasBank: true, hasRunelite: true, hasTripHistory: true });
-    track("recap:viewed", { hasProgress: true, hasBankUpdate: true, hasRuneliteProgress: true, period: "week" });
+    track("timeline:viewed", { hasProgress: true, hasBankUpdate: true, hasRuneliteProgress: true, momentCount: 4 });
     track("runelite:sync_success", { result: "found", fresh: true, bankReady: true, source: "saved" });
     track("recommendation:another", { ...recommendation, nextRouteFamily: "unlock" });
     track("recommendation:skipped", { ...recommendation, reason: "another_plan" });
