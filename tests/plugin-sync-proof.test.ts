@@ -63,7 +63,7 @@ describe("plugin sync proof", () => {
     expect(proof).toContain("Quests completed: 2");
     expect(proof).toContain("Diary tiers completed: 1");
     expect(proof).toContain("Collection-log item IDs: 3");
-    expect(proof).toContain("Bank: Bank ready for gear checks: 1 stack");
+    expect(proof).toContain("Bank: Bank ready: 1 stack");
     expect(proof).toContain("Task ID: 1337");
     expect(proof).toContain("Remaining: 42");
     expect(proof).toContain("Blocks: 2");
@@ -97,7 +97,7 @@ describe("plugin sync proof", () => {
     expect(checklist).toContain("Route live Slayer: task ID 1337, 42 left, 420 points, 69 streak.");
     expect(checklist).toContain("http://127.0.0.1:4173/slayer?rsn=Lynx+Titan&source=plugin-sync&bank=none");
     expect(checklist).toContain("Collection log suppression is active with 3 synced item IDs.");
-    expect(checklist).toContain("Bank ready for gear checks: 1 stack.");
+    expect(checklist).toContain("Bank ready: 1 stack.");
     expect(checklist).toContain("http://127.0.0.1:4173/bank?rsn=Lynx%20Titan&from=plugin");
     expect(checklist).toContain("RuneLite sync can include bank item IDs/names/quantities when bank checks are on.");
     expect(checklist).toContain("It does not include inventory, equipment, chat, screenshots, clicks, keys, account login or install token.");
@@ -112,6 +112,6 @@ describe("plugin sync proof", () => {
 
     expect(checklist).toContain("Refresh Slayer state in RuneLite before trusting task routing.");
     expect(checklist).toContain("Open Collection Log categories in RuneLite, sync again");
-    expect(checklist).toContain("Bank not synced; pasted bank drives item checks");
+    expect(checklist).toContain("RuneLite bank off; manual bank is fallback");
   });
 });

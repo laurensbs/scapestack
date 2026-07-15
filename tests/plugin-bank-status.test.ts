@@ -16,7 +16,7 @@ describe("plugin bank status copy", () => {
     const status = defaultPluginBankStatus(0);
 
     expect(status).toMatchObject({ enabled: false, itemCount: 0, unavailableReason: "opt-in-off" });
-    expect(pluginBankStatusLabel(status)).toBe("Bank not synced; pasted bank drives item checks");
+    expect(pluginBankStatusLabel(status)).toBe("RuneLite bank off; manual bank is fallback");
     expect(pluginBankStatusTone(status)).toBe("muted");
   });
 
@@ -51,7 +51,7 @@ describe("plugin bank status copy", () => {
       capturedAt: "2026-07-08T12:00:00.000Z"
     });
 
-    expect(pluginBankStatusLabel(status)).toBe("Bank ready for gear checks: 612 stacks");
+    expect(pluginBankStatusLabel(status)).toBe("Bank ready: 612 stacks");
     expect(pluginBankStatusTone(status)).toBe("good");
   });
 

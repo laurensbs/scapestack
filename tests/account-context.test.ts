@@ -68,8 +68,8 @@ describe("account context", () => {
 
     expect(snapshot.rsn).toBe("Lauky");
     expect(snapshot.hasBankContext).toBe(true);
-    expect(snapshot.bankLabel).toBe("Bank added");
-    expect(snapshot.bankDetail).toBe("Bank saved just now");
+    expect(snapshot.bankLabel).toBe("Bank ready");
+    expect(snapshot.bankDetail).toBe("RuneLite bank: 778 stacks");
     expect(snapshot.hasRunelite).toBe(true);
     expect(snapshot.runeliteLabel).toBe("Refresh RuneLite");
     expect(snapshot.runeliteDetail).toBe("Last scan 2h ago");

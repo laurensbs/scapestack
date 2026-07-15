@@ -772,7 +772,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function syncedSkillsToHiscoreSkills");
     expect(source).toContain("hiscores?.skills ?? syncedSkillsToHiscoreSkills(scapestackSync?.skills)");
     expect(source).toContain("markAccountPluginBankStatus(rsn, scapestackSync.bankStatus)");
-    expect(source).toContain("if (bank.length === 0 && scapestackSync?.bankItems?.length)");
+    expect(source).toContain("if (scapestackSync?.bankItems?.length)");
     expect(source).toContain('bankHandoffItemsFromBankItems(bank, "RuneLite bank sync")');
     expect(source).toContain("ownedGear(asOrganizedItems(bank))");
     expect(source).toContain('bankSource = "plugin";');

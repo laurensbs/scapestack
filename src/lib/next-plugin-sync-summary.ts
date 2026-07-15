@@ -162,5 +162,5 @@ function baseSignals(plugin: PluginSource, status: Extract<NextPluginSignalStatu
 
 function bankSignalValue(bankStatus: PluginBankStatus | null | undefined): string {
   if (!bankStatus) return "unknown";
-  return pluginBankStatusLabel(bankStatus).replace(/^Bank ready for gear checks: /, "");
+  return pluginBankStatusLabel(bankStatus).replace(/^Bank ready: /, "");
 }

@@ -67,10 +67,10 @@ export function pluginBankStatusLabel(
     return "Open bank in RuneLite, then sync again";
   }
   if (status.enabled && status.itemCount > 0) {
-    return `Bank ready for gear checks: ${status.itemCount.toLocaleString()} stack${status.itemCount === 1 ? "" : "s"}`;
+    return `Bank ready: ${status.itemCount.toLocaleString()} stack${status.itemCount === 1 ? "" : "s"}`;
   }
   if (!status.enabled || status.unavailableReason === "opt-in-off") {
-    return "Bank not synced; pasted bank drives item checks";
+    return "RuneLite bank off; manual bank is fallback";
   }
   if (status.unavailableReason === "bank-not-opened-this-session") {
     return "Open bank in RuneLite, then sync again";

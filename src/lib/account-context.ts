@@ -70,6 +70,7 @@ function bankLabelFor(snapshot: {
   hasRunelite: boolean;
   pluginBankItemCount: number;
 }): string {
+  if (snapshot.pluginBankItemCount > 0) return "Bank ready";
   if (snapshot.hasBankContext) return "Bank added";
   return snapshot.hasRunelite ? "Open bank" : "Add bank";
 }
@@ -79,8 +80,8 @@ function bankDetailFor(input: {
   pluginBankItemCount: number;
   bankLabel: string;
 }): string {
-  if (input.bankSavedAt) return `Bank saved ${describeSavedAt(input.bankSavedAt)}`;
   if (input.pluginBankItemCount > 0) return `RuneLite bank: ${input.pluginBankItemCount.toLocaleString()} stacks`;
+  if (input.bankSavedAt) return `Bank saved ${describeSavedAt(input.bankSavedAt)}`;
   return input.bankLabel;
 }
 

@@ -432,8 +432,8 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
           ])
         : [null, null, null, null, null];
 
-      // Three ways to fill `bank`: pre-parsed handoff, paste-string, or
-      // empty. organizeAction is only called for the paste-string path.
+      // RuneLite bank is the primary source when present. Browser handoff
+      // and manual paste stay as fallbacks for players without plugin bank.
       const handoffItems = opts.bankItems ?? [];
       let bankItemsForContext = handoffItems;
       let bankSource: NextBankSource = handoffItems.length > 0 ? "handoff" : "none";
@@ -459,7 +459,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
       if (rsn && scapestackSync) {
         markAccountPluginBankStatus(rsn, scapestackSync.bankStatus);
       }
-      if (bank.length === 0 && scapestackSync?.bankItems?.length) {
+      if (scapestackSync?.bankItems?.length) {
         bank = scapestackSync.bankItems.map((item) => ({
           id: item.id,
           name: item.name,
@@ -2015,7 +2015,7 @@ function NextBankContextStrip({
   const hasPluginSync = pluginSyncState !== null;
   const isPluginBank = bankSource === "plugin";
   const bankLabel = isPluginBank
-    ? "RuneLite bank"
+    ? "Bank ready"
     : hasPluginSync
       ? "Bank + RuneLite"
       : "Bank added";
