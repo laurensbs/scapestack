@@ -110,8 +110,12 @@ function loadSavedBankFromKey(key: string): SavedBank | null {
 
 function shouldUseLegacyBankFallback(rsn: string): boolean {
   const store = loadAccountStore();
-  if (store.accounts.length <= 1) return true;
-  return store.accounts.some((account) => account.rsn === rsn && account.bankSavedAt);
+  if (store.accounts.length === 0) return true;
+  const requestedId = accountIdForRsn(rsn);
+  const requested = store.accounts.find((account) => account.id === requestedId);
+  if (!requested) return false;
+  if (store.accounts.length === 1) return true;
+  return Boolean(requested.bankSavedAt);
 }
 
 /** Save the bank. No-op when the user has disabled saving for this

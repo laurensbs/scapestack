@@ -170,4 +170,26 @@ describe("account storage", () => {
       firstSetupCompletedAt: 1_725_000_000_000
     });
   });
+
+  it("reuses one connected account across casing and display-name changes", async () => {
+    const { getActiveAccount, linkServerAccount, loadAccountStore, upsertAccount } = await import("@/lib/account-storage");
+    const { loadSavedBank, saveSavedBank } = await import("@/lib/saved-bank");
+
+    upsertAccount("Lynx Titan", { preferredMood: "chill" });
+    saveSavedBank("Item id\tItem name\tItem quantity\n383\tRaw shark\t312", "Lynx Titan");
+    linkServerAccount({ accountId: "server-account-1", rsn: "lynx titan", displayName: "LYNX TITAN" }, "Lynx Titan", 1_780_000_000_000);
+    expect(loadAccountStore().accounts).toHaveLength(1);
+    expect(getActiveAccount()).toMatchObject({
+      id: "lynx_titan",
+      rsn: "LYNX TITAN",
+      serverAccountId: "server-account-1",
+      preferredMood: "chill"
+    });
+
+    linkServerAccount({ accountId: "server-account-1", rsn: "new titan", displayName: "New Titan" }, "LYNX TITAN", 1_780_000_001_000);
+    expect(loadAccountStore().accounts).toHaveLength(1);
+    expect(getActiveAccount()).toMatchObject({ id: "new_titan", rsn: "New Titan", serverAccountId: "server-account-1" });
+    expect(loadSavedBank("New Titan")?.banktags).toContain("Raw shark");
+    expect(loadSavedBank("Lynx Titan")).toBeNull();
+  });
 });

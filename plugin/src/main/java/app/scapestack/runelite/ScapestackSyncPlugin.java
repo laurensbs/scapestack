@@ -101,6 +101,7 @@ public class ScapestackSyncPlugin extends Plugin {
     private static final String DEV_SYNC_URL_PROPERTY = "scapestack.syncUrl";
 
     private ClaimClient claimClient;
+    private PairingClient pairingClient;
     private SyncServiceReadiness syncServiceReadiness;
     private final SyncGate syncGate = new SyncGate();
     private boolean optInHintShown;
@@ -125,6 +126,7 @@ public class ScapestackSyncPlugin extends Plugin {
         // Wire up the claim-helper here (rather than as a final field)
         // because Guice fills @Inject fields after construction.
         claimClient = new ClaimClient(http);
+        pairingClient = new PairingClient(http);
         syncServiceReadiness = new SyncServiceReadiness(http);
         running = true;
         migrateLegacySyncUrl();
@@ -415,7 +417,8 @@ public class ScapestackSyncPlugin extends Plugin {
         panel = new ScapestackSyncPanel(
             config,
             configManager,
-            this::requestPanelSync
+            this::requestPanelSync,
+            this::requestBrowserPairing
         );
         navigationButton = NavigationButton.builder()
             .tooltip("ScapeStack Sync")
@@ -442,6 +445,38 @@ public class ScapestackSyncPlugin extends Plugin {
     private void requestPanelSync() {
         configManager.setConfiguration(CONFIG_GROUP, KEY_SYNC_NOW, true);
         updatePanelStatus("Sync requested");
+    }
+
+    private void requestBrowserPairing(String code) {
+        String rsn = client.getLocalPlayer() != null ? client.getLocalPlayer().getName() : null;
+        if (rsn == null || rsn.isBlank() || client.getGameState() != GameState.LOGGED_IN) {
+            updatePanelStatus("Log in to connect");
+            notifyChat("Log in, then connect this browser again.");
+            return;
+        }
+        updatePanelStatus("Connecting browser");
+        Thread thread = newSyncThread(() -> {
+            String syncUrl = configuredSyncUrl();
+            String token = InstallToken.getOrCreate(configManager);
+            String claimedRsn = InstallToken.claimedRsn(configManager);
+            if (claimedRsn == null || !claimedRsn.equalsIgnoreCase(rsn)) {
+                String claimUrl = ClaimClient.claimUrlFromSyncUrl(syncUrl);
+                if (!claimClient.claim(claimUrl, rsn, token, USER_AGENT)) {
+                    updatePanelStatus("Sync player first");
+                    notifyChat("Sync this player once, then connect the browser again.");
+                    return;
+                }
+                InstallToken.rememberClaimedRsn(configManager, rsn);
+            }
+            if (pairingClient.approve(syncUrl, rsn, code, token, USER_AGENT)) {
+                updatePanelStatus("Browser connected");
+                notifyChat("ScapeStack connected this browser to " + rsn + ".");
+            } else {
+                updatePanelStatus("Code expired");
+                notifyChat("That connection code expired. Create a new one on Scapestack.");
+            }
+        });
+        thread.start();
     }
 
     private void updatePanelStatus(String status) {

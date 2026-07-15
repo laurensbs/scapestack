@@ -78,6 +78,33 @@ FROM account_identity identity
 WHERE claim.rsn = identity.rsn AND claim.account_id IS NULL;
 CREATE INDEX IF NOT EXISTS player_claim_account_id_idx ON player_claim(account_id);
 
+CREATE TABLE IF NOT EXISTS account_pairing (
+  pairing_id UUID PRIMARY KEY,
+  account_id UUID NOT NULL REFERENCES account_identity(account_id) ON DELETE CASCADE,
+  rsn TEXT NOT NULL,
+  code_hash CHAR(64) NOT NULL,
+  browser_secret_hash CHAR(64) NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'consumed', 'expired')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  expires_at TIMESTAMPTZ NOT NULL,
+  approved_at TIMESTAMPTZ,
+  consumed_at TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS account_pairing_lookup_idx ON account_pairing(pairing_id, expires_at);
+CREATE INDEX IF NOT EXISTS account_pairing_code_idx ON account_pairing(code_hash, status, expires_at);
+
+CREATE TABLE IF NOT EXISTS account_browser_session (
+  session_id UUID PRIMARY KEY,
+  account_id UUID NOT NULL REFERENCES account_identity(account_id) ON DELETE CASCADE,
+  token_hash CHAR(64) NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_used_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  expires_at TIMESTAMPTZ NOT NULL,
+  revoked_at TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS account_browser_session_account_idx ON account_browser_session(account_id, last_used_at DESC);
+CREATE INDEX IF NOT EXISTS account_browser_session_token_idx ON account_browser_session(token_hash) WHERE revoked_at IS NULL;
+
 CREATE TABLE IF NOT EXISTS sync_snapshot (
   snapshot_id BIGSERIAL PRIMARY KEY,
   account_id UUID NOT NULL REFERENCES account_identity(account_id) ON DELETE CASCADE,

@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { CheckCircle2, ChevronDown, Menu, Package, PlugZap, Plus, RefreshCw, UserRound, X } from "lucide-react";
+import { CheckCircle2, ChevronDown, Link2, Menu, Package, PlugZap, Plus, RefreshCw, UserRound, X } from "lucide-react";
+import { disconnectConnectedAccount, hydrateConnectedAccount } from "@/lib/account-connection";
 import { ACCOUNT_EVENT, getActiveAccount, loadAccountStore, removeAccount, setActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
 import { loadAccountSnapshot } from "@/lib/account-context";
 import { contextualNavHref } from "@/lib/nav-context";
@@ -12,6 +13,7 @@ import { getPrimaryNavTools } from "@/lib/tools";
 import { cn } from "@/lib/utils";
 import { AddBankModal } from "./add-bank-modal";
 import { BuyMeCoffee } from "./buy-me-coffee";
+import { ConnectBrowserModal } from "./connect-browser-modal";
 
 const LOOP_STEPS = [
   { label: "Trip", href: "/next" },
@@ -52,6 +54,10 @@ export function Header() {
       window.removeEventListener(SAVED_BANK_EVENT, syncAccount);
       window.removeEventListener("storage", syncAccount);
     };
+  }, []);
+
+  useEffect(() => {
+    void hydrateConnectedAccount().catch(() => null);
   }, []);
 
   const navTools = getPrimaryNavTools();
@@ -236,9 +242,10 @@ function AccountSwitcher({
   const [bankDetail, setBankDetail] = useState("Add bank");
   const [runeliteDetail, setRuneliteDetail] = useState("RuneLite later");
   const [bankModalOpen, setBankModalOpen] = useState(false);
+  const [connectModalOpen, setConnectModalOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const refresh = () => {
+  const refresh = useCallback(() => {
     const store = loadAccountStore();
     setAccounts(store.accounts);
     const snapshot = loadAccountSnapshot();
@@ -249,7 +256,7 @@ function AccountSwitcher({
     setHasSavedSetup(snapshot.hasBankContext);
     setBankDetail(snapshot.bankDetail);
     setRuneliteDetail(snapshot.runeliteDetail);
-  };
+  }, [onActiveRsnChange]);
 
   useEffect(() => {
     refresh();
@@ -261,8 +268,7 @@ function AccountSwitcher({
       window.removeEventListener(SAVED_BANK_EVENT, refresh);
       window.removeEventListener("storage", refresh);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [refresh]);
 
   useEffect(() => {
     setDraft(activeRsn);
@@ -287,11 +293,13 @@ function AccountSwitcher({
     setOpen(false);
   };
 
-  const removeSavedAccount = (rsn: string) => {
+  const removeSavedAccount = async (rsn: string) => {
     const confirmed = window.confirm(`Remove ${rsn} from Scapestack on this device?`);
     if (!confirmed) return;
     const removingActive = rsn === activeRsn;
     const removingLegacy = loadSavedRsn()?.trim().toLowerCase() === rsn.trim().toLowerCase();
+    const connected = accounts.find((account) => account.rsn === rsn)?.serverAccountId;
+    if (connected) await disconnectConnectedAccount(rsn);
     if (removingActive || removingLegacy) clearSavedRsn();
     removeAccount(rsn);
     const nextActive = getActiveAccount();
@@ -378,7 +386,7 @@ function AccountSwitcher({
                   </button>
                   <button
                     type="button"
-                    onClick={() => removeSavedAccount(account.rsn)}
+                    onClick={() => void removeSavedAccount(account.rsn)}
                     className="mr-1 inline-flex size-7 shrink-0 items-center justify-center rounded-md text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-danger)]/10 hover:text-[var(--color-danger)]"
                     aria-label={`Remove ${account.rsn}`}
                     title="Remove account"
@@ -441,6 +449,25 @@ function AccountSwitcher({
               </span>
             </Link>
           </div>
+          {activeRsn && !activeAccount?.serverAccountId && (
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                setConnectModalOpen(true);
+              }}
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2.5 text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+            >
+              <Link2 className="size-4" />
+              Connect this browser
+            </button>
+          )}
+          {activeRsn && activeAccount?.serverAccountId && (
+            <div className="mt-2 flex items-center justify-center gap-2 rounded-lg border border-[var(--color-gold)]/35 bg-[var(--color-gold)]/5 px-3 py-2.5 text-[12px] font-semibold text-[var(--color-text-secondary)]">
+              <CheckCircle2 className="size-4 text-[var(--color-gold)]" />
+              Connected on this browser
+            </div>
+          )}
         </div>
       )}
       <AddBankModal
@@ -448,6 +475,12 @@ function AccountSwitcher({
         onClose={() => setBankModalOpen(false)}
         rsn={activeRsn}
         source="header"
+      />
+      <ConnectBrowserModal
+        open={connectModalOpen}
+        rsn={activeRsn}
+        onClose={() => setConnectModalOpen(false)}
+        onConnected={refresh}
       />
     </div>
   );

@@ -73,10 +73,56 @@ export async function recordClaim(rsn: string, token: string): Promise<ClaimResu
   if (!norm) return { ok: false, reason: "Invalid RSN" };
   const hash = hashToken(token);
 
-  // Atomic insert-or-noop: pg's ON CONFLICT DO NOTHING returns no rows
-  // when the row already existed. We then SELECT to check whether the
-  // existing row's hash matches ours.
   try {
+    const targetRows = await sql()`
+      SELECT token_hash FROM player_claim WHERE rsn = ${norm} LIMIT 1
+    ` as Array<{ token_hash: string }>;
+    const targetHash = targetRows[0]?.token_hash;
+    if (targetHash) {
+      return targetHash === hash
+        ? { ok: true }
+        : { ok: false, reason: "RSN already claimed by another install", existingTokenHash: targetHash };
+    }
+
+    // The install token is the stable proof across an in-game name change.
+    // Move the existing identity instead of creating disconnected history.
+    const installRows = await sql()`
+      SELECT rsn, token_hash FROM player_claim WHERE token_hash = ${hash} LIMIT 1
+    ` as Array<{ rsn?: string; token_hash: string }>;
+    const previousRsn = installRows[0]?.rsn;
+    if (previousRsn && previousRsn !== norm) {
+      const migrated = await sql()`
+        WITH source_claim AS (
+          SELECT rsn, account_id FROM player_claim
+          WHERE token_hash = ${hash} AND rsn = ${previousRsn}
+          LIMIT 1
+        ), target_conflict AS (
+          SELECT account_id FROM account_identity WHERE rsn = ${norm}
+        ), removed_latest AS (
+          DELETE FROM player_sync
+          WHERE rsn = ${previousRsn} AND NOT EXISTS (SELECT 1 FROM target_conflict)
+          RETURNING rsn
+        ), moved_identity AS (
+          UPDATE account_identity
+          SET rsn = ${norm}, last_seen_at = NOW()
+          WHERE account_id = (SELECT account_id FROM source_claim)
+            AND NOT EXISTS (SELECT 1 FROM target_conflict)
+          RETURNING account_id
+        ), moved_claim AS (
+          UPDATE player_claim
+          SET rsn = ${norm}, last_used_at = NOW()
+          WHERE token_hash = ${hash} AND rsn = ${previousRsn}
+            AND EXISTS (SELECT 1 FROM moved_identity)
+          RETURNING rsn
+        )
+        SELECT EXISTS(SELECT 1 FROM moved_claim) AS migrated
+      ` as Array<{ migrated: boolean }>;
+      if (migrated[0]?.migrated) return { ok: true };
+      return { ok: false, reason: "New RSN is already connected to another account" };
+    }
+
+    // Atomic insert-or-noop. A concurrent first claim is resolved by the
+    // final hash comparison below.
     await sql()`
       INSERT INTO player_claim (rsn, token_hash, last_used_at)
       VALUES (${norm}, ${hash}, NOW())

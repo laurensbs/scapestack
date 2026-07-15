@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 // The module under test (`src/lib/sync-auth.ts`) imports `sql` and
 // `hasDatabase` from `@/lib/db`. We replace both with controllable stubs.
 
-interface FakeRow { token_hash: string }
+interface FakeRow { token_hash: string; rsn?: string }
 
 const dbState: {
   hasDb: boolean;
@@ -18,18 +18,32 @@ const dbState: {
   insertedHashes: string[];         // captured by ON CONFLICT inserts
   updatedRsns: string[];            // captured by UPDATE last_used_at
   conflictOnInsert: boolean;        // simulate "row already existed"
+  tokenBindingRsn: string | null;
+  migrated: boolean;
 } = {
   hasDb: true,
   rows: [],
   insertedHashes: [],
   updatedRsns: [],
   conflictOnInsert: false,
+  tokenBindingRsn: null,
+  migrated: false,
 };
 
 // Build a tagged-template stub that pattern-matches on the first SQL
 // fragment to decide which behaviour to apply.
 function sqlTag(strings: TemplateStringsArray, ...vals: unknown[]): unknown {
   const head = strings[0] ?? "";
+  const query = strings.join(" ");
+  if (/WITH source_claim/i.test(head)) {
+    dbState.migrated = true;
+    return Promise.resolve([{ migrated: true }]);
+  }
+  if (/SELECT rsn, token_hash FROM player_claim WHERE token_hash/i.test(query)) {
+    return Promise.resolve(dbState.tokenBindingRsn
+      ? [{ rsn: dbState.tokenBindingRsn, token_hash: String(vals[0]) }]
+      : []);
+  }
   if (/INSERT INTO player_claim/i.test(head)) {
     // values = [rsn, hash]; only record the hash if no conflict.
     if (!dbState.conflictOnInsert) {
@@ -59,6 +73,8 @@ beforeEach(() => {
   dbState.insertedHashes = [];
   dbState.updatedRsns = [];
   dbState.conflictOnInsert = false;
+  dbState.tokenBindingRsn = null;
+  dbState.migrated = false;
 });
 
 // Lazy-import after the mock is registered.
@@ -205,6 +221,18 @@ describe("recordClaim", () => {
     dbState.rows = [{ token_hash: __test.hashToken(token) }];
     const r = await recordClaim("lynx titan", token);
     expect(r.ok).toBe(true);
+  });
+
+  it("moves the existing account identity when the same install changes RSN", async () => {
+    const { recordClaim } = await loadAuth();
+    dbState.rows = [];
+    dbState.tokenBindingRsn = "old titan";
+
+    const result = await recordClaim("New Titan", "11111111-2222-3333-4444-555555555555");
+
+    expect(result.ok).toBe(true);
+    expect(dbState.migrated).toBe(true);
+    expect(dbState.insertedHashes).toEqual([]);
   });
 });
 

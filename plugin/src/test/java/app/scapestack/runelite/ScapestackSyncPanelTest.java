@@ -32,6 +32,8 @@ public class ScapestackSyncPanelTest {
         assertTrue(source.contains("Turn bank off if you only want finished-progress checks"));
         assertTrue(source.contains("Collection Log"));
         assertTrue(source.contains("Troubleshooting"));
+        assertTrue(source.contains("Connect this browser"));
+        assertTrue(source.contains("Get a code on Scapestack"));
         assertTrue(source.contains("shouldShowCollectionLogInstruction"));
 
         String lower = source.toLowerCase();

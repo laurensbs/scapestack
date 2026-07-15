@@ -11,6 +11,8 @@ const accountBankKeyForId = (id: string) => `scapestack:saved-bank:${id}:v1`;
 export interface ScapestackAccount {
   rsn: string;
   id: string;
+  serverAccountId?: string;
+  connectedAt?: number;
   createdAt: number;
   lastUsedAt: number;
   bankSavedAt?: number;
@@ -139,6 +141,8 @@ export function upsertAccount(rsn: string, patch: AccountPatch = {}): Scapestack
   const nextAccount: ScapestackAccount = {
     id,
     rsn: clean,
+    serverAccountId: existing?.serverAccountId,
+    connectedAt: existing?.connectedAt,
     createdAt: existing?.createdAt ?? timestamp,
     lastUsedAt: timestamp,
     bankSavedAt: existing?.bankSavedAt,
@@ -190,6 +194,81 @@ export function removeAccount(rsn: string): void {
     }
   }
   saveAccountStore({ version: 1, activeId, accounts });
+}
+
+export interface ServerAccountLink {
+  accountId: string;
+  rsn: string;
+  displayName: string;
+}
+
+/**
+ * Upgrades an existing RSN-first browser profile after RuneLite proves control.
+ * The stable server ID lets a renamed display name reuse the same local mood,
+ * trip history and bank attachment instead of creating a duplicate profile.
+ */
+export function linkServerAccount(
+  link: ServerAccountLink,
+  previousRsn?: string | null,
+  connectedAt: number = now()
+): ScapestackAccount | null {
+  const displayName = normalizeRsn(link.displayName || link.rsn);
+  if (!displayName || !link.accountId) return null;
+  const store = loadAccountStore();
+  const destinationId = accountIdForRsn(displayName);
+  const previousId = previousRsn ? accountIdForRsn(previousRsn) : null;
+  const source = store.accounts.find((account) => account.serverAccountId === link.accountId)
+    ?? (previousId ? store.accounts.find((account) => account.id === previousId) : null)
+    ?? store.accounts.find((account) => account.id === store.activeId)
+    ?? null;
+  const destination = store.accounts.find((account) => account.id === destinationId) ?? null;
+  const merged: ScapestackAccount = {
+    ...(source ?? destination ?? {
+      id: destinationId,
+      rsn: displayName,
+      createdAt: connectedAt,
+      lastUsedAt: connectedAt
+    }),
+    ...(destination ?? {}),
+    id: destinationId,
+    rsn: displayName,
+    serverAccountId: link.accountId,
+    connectedAt,
+    lastUsedAt: connectedAt
+  };
+
+  if (canUseStorage() && source && source.id !== destinationId) {
+    try {
+      const sourceKey = accountBankKeyForId(source.id);
+      const destinationKey = accountBankKeyForId(destinationId);
+      const saved = localStorage.getItem(sourceKey);
+      if (saved && !localStorage.getItem(destinationKey)) localStorage.setItem(destinationKey, saved);
+      localStorage.removeItem(sourceKey);
+    } catch {
+    }
+  }
+
+  const replacedIds = new Set([destinationId, source?.id].filter((value): value is string => Boolean(value)));
+  saveAccountStore({
+    version: 1,
+    activeId: destinationId,
+    accounts: [merged, ...store.accounts.filter((account) => !replacedIds.has(account.id))].slice(0, 8)
+  });
+  return merged;
+}
+
+export function unlinkServerAccount(rsn: string): void {
+  const id = accountIdForRsn(rsn);
+  const store = loadAccountStore();
+  const account = store.accounts.find((entry) => entry.id === id);
+  if (!account) return;
+  const next = { ...account };
+  delete next.serverAccountId;
+  delete next.connectedAt;
+  saveAccountStore({
+    ...store,
+    accounts: store.accounts.map((entry) => entry.id === id ? next : entry)
+  });
 }
 
 export function markActiveAccountBankSaved(savedAt: number = now()): void {

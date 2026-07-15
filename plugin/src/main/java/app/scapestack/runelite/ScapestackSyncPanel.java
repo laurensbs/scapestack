@@ -9,6 +9,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
@@ -20,6 +21,7 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.util.function.Consumer;
 
 final class ScapestackSyncPanel extends PluginPanel {
     private static final Color BG = new Color(31, 25, 16);
@@ -32,6 +34,7 @@ final class ScapestackSyncPanel extends PluginPanel {
     private final ScapestackSyncConfig config;
     private final ConfigManager configManager;
     private final Runnable syncNow;
+    private final Consumer<String> connectBrowser;
 
     private final JLabel statusValue = valueLabel("Ready");
     private final JLabel lastSyncValue = valueLabel("Not synced yet");
@@ -48,11 +51,13 @@ final class ScapestackSyncPanel extends PluginPanel {
     ScapestackSyncPanel(
         ScapestackSyncConfig config,
         ConfigManager configManager,
-        Runnable syncNow
+        Runnable syncNow,
+        Consumer<String> connectBrowser
     ) {
         this.config = config;
         this.configManager = configManager;
         this.syncNow = syncNow;
+        this.connectBrowser = connectBrowser;
 
         setLayout(new BorderLayout());
         setBackground(BG);
@@ -65,6 +70,8 @@ final class ScapestackSyncPanel extends PluginPanel {
         content.add(header());
         content.add(Box.createVerticalStrut(10));
         content.add(syncCard());
+        content.add(Box.createVerticalStrut(10));
+        content.add(connectBrowserCard());
         content.add(Box.createVerticalStrut(10));
         content.add(whatSyncsCard());
         content.add(Box.createVerticalStrut(10));
@@ -202,6 +209,36 @@ final class ScapestackSyncPanel extends PluginPanel {
         panel.add(copy("Skills, XP, quests, diaries, Slayer task and bank items."));
         panel.add(copy("Auto update refreshes after login and then every 15 minutes while you play."));
         panel.add(copy("Turn bank off if you only want finished-progress checks."));
+        return panel;
+    }
+
+    private JPanel connectBrowserCard() {
+        JPanel panel = card();
+        panel.add(sectionTitle("Connect this browser"));
+        panel.add(copy("Get a code on Scapestack, enter it here, then continue on that browser."));
+        panel.add(Box.createVerticalStrut(6));
+        JTextField code = new JTextField();
+        code.setToolTipText("Scapestack connection code");
+        code.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
+        code.setBackground(BG);
+        code.setForeground(TEXT);
+        code.setCaretColor(GOLD);
+        code.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER),
+            new EmptyBorder(6, 8, 6, 8)
+        ));
+        panel.add(code);
+        panel.add(Box.createVerticalStrut(6));
+        JButton approve = primaryButton("Connect browser");
+        approve.addActionListener(e -> {
+            String value = code.getText();
+            if (PairingClient.normalizeCode(value).length() != 8) {
+                setStatus("Enter the 8-character code");
+                return;
+            }
+            connectBrowser.accept(value);
+        });
+        panel.add(approve);
         return panel;
     }
 

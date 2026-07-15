@@ -32,7 +32,9 @@ const HISTORY_TABLES = [
   "trip_lifecycle_event",
   "outcome_match",
   "account_preference_event",
-  "account_retention"
+  "account_retention",
+  "account_pairing",
+  "account_browser_session"
 ];
 
 describe("sync schema migrations", () => {
