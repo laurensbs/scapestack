@@ -13,9 +13,12 @@ the recommendation. A new sync replaces this row. It is not an activity log.
 `sync_snapshot` appends a row only when the normalized account state changes.
 Identical retries use the same SHA-256 checksum and do not create progress.
 Snapshots contain skills, completed quests and diaries, collection-log item
-IDs, Slayer state and a compact bank summary. They never contain bank item
-names, item IDs or quantities. The bank summary contains only availability,
-item count and an irreversible checksum.
+IDs, optional boss KC, Slayer state and a compact bank summary. They never
+contain a complete historical bank. The bank summary contains only
+availability, item count and an irreversible checksum. When two available
+banks differ, the snapshot delta may retain up to 100 changed rows (item ID,
+name and before/after quantity) so Scapestack can explain a restock, drop or
+supply burn without retaining either full bank.
 
 Recommendation decisions, trip events, outcome matches and preference choices
 are separate append-only tables. They contain stable product identifiers and

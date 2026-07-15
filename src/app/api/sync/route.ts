@@ -35,6 +35,7 @@ interface SyncBody {
   questsCompleted?: unknown;
   diariesCompleted?: unknown;
   collectionLogItemIds?: unknown;
+  bossKc?: unknown;
   bankItems?: unknown;
   bankStatus?: unknown;
   slayer?: unknown;
@@ -194,6 +195,15 @@ export async function POST(req: Request): Promise<Response> {
     .map((x) => Math.floor(x))
     .slice(0, 2000);
 
+  // Optional forward-compatible boss KC map. Current plugin versions may omit
+  // it; omission remains unknown rather than being treated as zero KC.
+  const bossKc = body.bossKc && typeof body.bossKc === "object" && !Array.isArray(body.bossKc)
+    ? Object.fromEntries(Object.entries(body.bossKc as Record<string, unknown>)
+        .filter(([name, kc]) => name.trim().length > 0 && typeof kc === "number" && Number.isFinite(kc) && kc >= 0)
+        .slice(0, 128)
+        .map(([name, kc]) => [name.trim().slice(0, 80), Math.max(0, Math.min(2_147_483_647, Math.floor(kc as number)))]))
+    : null;
+
   // Bank items — optional opt-in RuneLite payload. Only item identity and
   // quantity are accepted; no inventory/equipment/chat/client metadata.
   const bankItemsReceived = Array.isArray(body.bankItems) ? body.bankItems.length : 0;
@@ -265,10 +275,22 @@ export async function POST(req: Request): Promise<Response> {
       questsCompleted,
       diariesCompleted,
       collectionLogItemIds,
+      bossKc,
       bankItems,
       bankStatus,
       slayer,
-      pluginVersion
+      pluginVersion,
+      availability: {
+        skills: skills.length > 0 ? "available" : "unknown",
+        quests: "available",
+        diaries: "available",
+        collectionLog: "available",
+        bossKc: bossKc ? "available" : "unknown",
+        slayer: slayerStatus === "accepted" ? "available" : "unknown",
+        bank: bankStatus.enabled && bankStatus.unavailableReason === null
+          ? "available"
+          : bankStatus.unavailableReason ? "unavailable" : "unknown"
+      }
     });
     syncedAt = result.syncedAt;
     syncSummary = result.syncSummary;

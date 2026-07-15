@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS player_sync (
   quests_completed JSONB NOT NULL DEFAULT '[]'::jsonb,
   diaries_completed JSONB NOT NULL DEFAULT '[]'::jsonb,
   collection_log_item_ids INTEGER[] NOT NULL DEFAULT ARRAY[]::INTEGER[],
+  boss_kc JSONB,
   bank_items JSONB NOT NULL DEFAULT '[]'::jsonb,
   bank_status JSONB NOT NULL DEFAULT '{"enabled":false,"itemCount":0,"capturedAt":null,"unavailableReason":"opt-in-off"}'::jsonb,
   slayer JSONB,
@@ -26,6 +27,7 @@ ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS skills JSONB NOT NULL DEFAULT '
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS quests_completed JSONB NOT NULL DEFAULT '[]'::jsonb;
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS diaries_completed JSONB NOT NULL DEFAULT '[]'::jsonb;
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS collection_log_item_ids INTEGER[] NOT NULL DEFAULT ARRAY[]::INTEGER[];
+ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS boss_kc JSONB;
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS bank_items JSONB NOT NULL DEFAULT '[]'::jsonb;
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS bank_status JSONB NOT NULL DEFAULT '{"enabled":false,"itemCount":0,"capturedAt":null,"unavailableReason":"opt-in-off"}'::jsonb;
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS slayer JSONB;
@@ -86,12 +88,18 @@ CREATE TABLE IF NOT EXISTS sync_snapshot (
   quests_completed JSONB NOT NULL,
   diaries_completed JSONB NOT NULL,
   collection_log_item_ids INTEGER[] NOT NULL,
+  boss_kc JSONB,
   bank_summary JSONB NOT NULL,
+  availability JSONB NOT NULL DEFAULT '{}'::jsonb,
+  delta JSONB NOT NULL DEFAULT '{}'::jsonb,
   slayer JSONB,
   plugin_version TEXT NOT NULL,
   captured_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(account_id, checksum)
 );
+ALTER TABLE sync_snapshot ADD COLUMN IF NOT EXISTS boss_kc JSONB;
+ALTER TABLE sync_snapshot ADD COLUMN IF NOT EXISTS availability JSONB NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE sync_snapshot ADD COLUMN IF NOT EXISTS delta JSONB NOT NULL DEFAULT '{}'::jsonb;
 CREATE INDEX IF NOT EXISTS sync_snapshot_latest_idx ON sync_snapshot(account_id, captured_at DESC, snapshot_id DESC);
 CREATE OR REPLACE RULE sync_snapshot_no_update AS ON UPDATE TO sync_snapshot DO INSTEAD NOTHING;
 

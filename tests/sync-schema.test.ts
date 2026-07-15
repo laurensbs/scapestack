@@ -9,6 +9,7 @@ const REQUIRED_PLAYER_SYNC_ALTERS = [
   "quests_completed",
   "diaries_completed",
   "collection_log_item_ids",
+  "boss_kc",
   "bank_items",
   "bank_status",
   "slayer",
@@ -62,6 +63,9 @@ describe("sync schema migrations", () => {
     expect(SCHEMA_SQL).toContain("UNIQUE(account_id, checksum)");
     expect(SCHEMA_SQL).toContain("sync_snapshot_latest_idx");
     expect(SCHEMA_SQL).toContain("sync_snapshot_no_update");
+    expect(SCHEMA_SQL).toContain("ALTER TABLE sync_snapshot ADD COLUMN IF NOT EXISTS boss_kc");
+    expect(SCHEMA_SQL).toContain("ALTER TABLE sync_snapshot ADD COLUMN IF NOT EXISTS availability");
+    expect(SCHEMA_SQL).toContain("ALTER TABLE sync_snapshot ADD COLUMN IF NOT EXISTS delta");
     expect(SCHEMA_SQL).not.toContain("sync_snapshot (\n  snapshot_id BIGSERIAL PRIMARY KEY,\n  bank_items");
   });
 
@@ -75,5 +79,6 @@ describe("sync schema migrations", () => {
     const repositorySource = readFileSync("src/lib/account-history-repo.ts", "utf8");
     expect(repositorySource).toContain("INSERT INTO player_sync (");
     expect(repositorySource).toContain("INSERT INTO sync_snapshot (");
+    expect(repositorySource).toContain("export async function getLatestAccountDelta");
   });
 });

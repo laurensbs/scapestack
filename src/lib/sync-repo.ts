@@ -8,6 +8,8 @@ import { normalizeScapestackAccountType, type ScapestackAccountType } from "./ac
 import { defaultPluginBankStatus, normalizePluginBankStatus, type PluginBankStatus } from "./plugin-bank-status";
 import { persistSyncAndSnapshot } from "./account-history-repo";
 import { syncSchemaStatements } from "./sync-schema";
+import type { SnapshotAvailability } from "./account-snapshot-delta";
+import type { AccountSnapshotDelta } from "./account-snapshot-delta";
 import itemsJson from "../../data/items.json";
 
 export { SCHEMA_SQL } from "./sync-schema";
@@ -20,6 +22,7 @@ export interface SyncedPlayer {
   questsCompleted: string[];
   diariesCompleted: Array<{ region: string; tier: "Easy" | "Medium" | "Hard" | "Elite" }>;
   collectionLogItemIds: number[];
+  bossKc?: Record<string, number> | null;
   bankItems: Array<{ id: number; name: string; quantity: number }>;
   bankStatus: PluginBankStatus;
   /** Slayer-state from the plugin's VarPlayer reads. Null when the
@@ -35,6 +38,7 @@ export interface SyncedPlayer {
     blocks: string[];
   } | null;
   pluginVersion: string;
+  availability?: Partial<SnapshotAvailability>;
   lastSyncSummary: SyncDeltaSummary | null;
   syncedAt: string;        // ISO timestamp
 }
@@ -78,6 +82,7 @@ export interface UpsertSyncedPlayerResult {
   syncSummary: SyncDeltaSummary | null;
   snapshotId: number | null;
   snapshotCreated: boolean;
+  accountDelta: AccountSnapshotDelta;
 }
 
 let schemaReady: Promise<void> | null = null;
@@ -104,7 +109,7 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
     await ensureSyncSchema();
     const rows = await sql()`
       SELECT rsn, display_name, skills, quests_completed, diaries_completed,
-             account_type, collection_log_item_ids, bank_items, bank_status, slayer, plugin_version, sync_summary, synced_at
+             account_type, collection_log_item_ids, boss_kc, bank_items, bank_status, slayer, plugin_version, sync_summary, synced_at
       FROM player_sync
       WHERE rsn = ${norm}
       LIMIT 1
@@ -116,6 +121,7 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
       quests_completed: string[];
       diaries_completed: Array<{ region: string; tier: SyncedPlayer["diariesCompleted"][number]["tier"] }>;
       collection_log_item_ids: number[];
+      boss_kc: unknown;
       bank_items: Array<{ id?: unknown; name?: unknown; quantity?: unknown }> | null;
       bank_status: unknown;
       slayer: {
@@ -140,20 +146,13 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
       questsCompleted: normalizeQuestNames(row.quests_completed),
       diariesCompleted: normalizeDiariesCompleted(row.diaries_completed),
       collectionLogItemIds: normalizeCollectionLogItemIds(row.collection_log_item_ids),
+      bossKc: normalizeBossKc(row.boss_kc),
       bankItems,
       bankStatus: normalizePluginBankStatus(row.bank_status, bankItems.length),
       // Pre-3.3 rijen in de DB hebben mogelijk geen currentTaskId/blocks
       // velden in hun JSONB blob — defaulten naar 0 / [] zodat de UI
       // consistent kan switchen zonder runtime crash.
-      slayer: row.slayer
-        ? {
-            points: row.slayer.points,
-            streak: row.slayer.streak,
-            taskRemaining: row.slayer.taskRemaining,
-            currentTaskId: row.slayer.currentTaskId ?? 0,
-            blocks: row.slayer.blocks ?? []
-          }
-        : null,
+      slayer: normalizeSlayer(row.slayer),
       pluginVersion: row.plugin_version,
       lastSyncSummary: normalizeSyncDeltaSummary(row.sync_summary),
       syncedAt: typeof row.synced_at === "string" ? row.synced_at : new Date(row.synced_at).toISOString()
@@ -174,9 +173,23 @@ export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt" | "las
   const bankItems = normalizeBankItems(p.bankItems);
   const bankStatus = normalizePluginBankStatus(p.bankStatus ?? defaultPluginBankStatus(bankItems.length), bankItems.length);
   const previousRows = await sql()`
-    SELECT account_type, skills, quests_completed, diaries_completed, collection_log_item_ids, bank_items, bank_status, synced_at
-    FROM player_sync
-    WHERE rsn = ${norm}
+    SELECT current.account_type, current.skills, current.quests_completed,
+           current.diaries_completed, current.collection_log_item_ids,
+           current.boss_kc, current.bank_items, current.bank_status,
+           current.slayer, current.synced_at,
+           history.checksum AS snapshot_checksum,
+           history.captured_at AS snapshot_captured_at,
+           history.availability AS snapshot_availability
+    FROM player_sync current
+    LEFT JOIN account_identity identity ON identity.rsn = current.rsn
+    LEFT JOIN LATERAL (
+      SELECT checksum, captured_at, availability
+      FROM sync_snapshot
+      WHERE account_id = identity.account_id
+      ORDER BY captured_at DESC, snapshot_id DESC
+      LIMIT 1
+    ) history ON TRUE
+    WHERE current.rsn = ${norm}
     LIMIT 1
   ` as Array<{
     account_type: string | null;
@@ -184,16 +197,23 @@ export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt" | "las
     quests_completed: unknown;
     diaries_completed: unknown;
     collection_log_item_ids: unknown;
+    boss_kc: unknown;
     bank_items: unknown;
     bank_status: unknown;
+    slayer: unknown;
     synced_at: string | Date | null;
+    snapshot_checksum: string | null;
+    snapshot_captured_at: string | Date | null;
+    snapshot_availability: unknown;
   }>;
-  const previousSnapshot = previousRows[0] ? snapshotFromRow(previousRows[0]) : null;
+  const previousRow = previousRows[0];
+  const previousSnapshot = previousRow ? snapshotFromRow(previousRow) : null;
   const questsCompleted = normalizeQuestNames(p.questsCompleted);
   const diariesCompleted = normalizeDiariesCompleted(p.diariesCompleted);
   const collectionLogItemIds = normalizeCollectionLogItemIds(p.collectionLogItemIds);
   const accountType = normalizeScapestackAccountType(p.accountType);
   const skills = normalizeSkills(p.skills);
+  const bossKc = normalizeBossKc(p.bossKc);
   const nextSnapshot: SyncSnapshotForDiff = {
     accountType,
     skills,
@@ -205,6 +225,24 @@ export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt" | "las
     syncedAt: null
   };
   const syncSummary = buildSyncDeltaSummary(previousSnapshot, nextSnapshot);
+  const previousComparable = previousRow?.snapshot_checksum && previousRow.snapshot_captured_at
+    ? {
+        checksum: previousRow.snapshot_checksum,
+        capturedAt: isoFromSyncDate(previousRow.snapshot_captured_at),
+        state: {
+          accountType: normalizeScapestackAccountType(previousRow.account_type),
+          skills: normalizeSkills(previousRow.skills),
+          questsCompleted: normalizeQuestNames(previousRow.quests_completed),
+          diariesCompleted: normalizeDiariesCompleted(previousRow.diaries_completed),
+          collectionLogItemIds: normalizeCollectionLogItemIds(previousRow.collection_log_item_ids),
+          bossKc: normalizeBossKc(previousRow.boss_kc),
+          bankItems: normalizeBankItems(previousRow.bank_items),
+          bankStatus: normalizePluginBankStatus(previousRow.bank_status, normalizeBankItems(previousRow.bank_items).length),
+          slayer: normalizeSlayer(previousRow.slayer),
+          availability: normalizeSnapshotAvailability(previousRow.snapshot_availability)
+        }
+      }
+    : null;
   const persisted = await persistSyncAndSnapshot({
     rsn: norm,
     displayName: p.displayName,
@@ -216,10 +254,13 @@ export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt" | "las
       questsCompleted,
       diariesCompleted,
       collectionLogItemIds,
+      bossKc,
       bankItems,
       bankStatus,
-      slayer: p.slayer
-    }
+      slayer: normalizeSlayer(p.slayer),
+      availability: p.availability
+    },
+    previousSnapshot: previousComparable
   });
   const syncedAt = persisted.syncedAt;
   const syncedAtIso = syncedAt instanceof Date
@@ -231,7 +272,8 @@ export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt" | "las
     syncedAt: syncedAtIso,
     syncSummary,
     snapshotId: persisted.snapshotId,
-    snapshotCreated: persisted.snapshotCreated
+    snapshotCreated: persisted.snapshotCreated,
+    accountDelta: persisted.accountDelta
   };
 }
 
@@ -304,6 +346,47 @@ function normalizeCollectionLogItemIds(ids: unknown): number[] {
     if (clean.length >= 2000) break;
   }
   return clean;
+}
+
+function normalizeBossKc(value: unknown): Record<string, number> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const entries: Array<[string, number]> = [];
+  for (const [rawName, rawKc] of Object.entries(value)) {
+    const name = rawName.trim().slice(0, 80);
+    if (!name || typeof rawKc !== "number" || !Number.isFinite(rawKc)) continue;
+    entries.push([name, Math.max(0, Math.min(2_147_483_647, Math.floor(rawKc)))]);
+    if (entries.length >= 128) break;
+  }
+  return entries.length > 0 ? Object.fromEntries(entries) : {};
+}
+
+function normalizeSlayer(value: unknown): SyncedPlayer["slayer"] {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const row = value as Partial<NonNullable<SyncedPlayer["slayer"]>>;
+  const integer = (entry: unknown, maximum: number) => typeof entry === "number" && Number.isFinite(entry)
+    ? Math.max(0, Math.min(maximum, Math.floor(entry)))
+    : 0;
+  return {
+    points: integer(row.points, 1_000_000),
+    streak: integer(row.streak, 100_000),
+    taskRemaining: integer(row.taskRemaining, 100_000),
+    currentTaskId: integer(row.currentTaskId, 1_000_000),
+    blocks: Array.isArray(row.blocks)
+      ? row.blocks.filter((entry): entry is string => typeof entry === "string").map((entry) => entry.slice(0, 80)).slice(0, 6)
+      : []
+  };
+}
+
+function normalizeSnapshotAvailability(value: unknown): Partial<SnapshotAvailability> | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const allowed = new Set(["available", "unavailable", "unknown"]);
+  const row = value as Record<string, unknown>;
+  const keys: Array<keyof SnapshotAvailability> = ["skills", "quests", "diaries", "collectionLog", "bossKc", "slayer", "bank"];
+  const result: Partial<SnapshotAvailability> = {};
+  for (const key of keys) if (typeof row[key] === "string" && allowed.has(row[key])) {
+    result[key] = row[key] as SnapshotAvailability[typeof key];
+  }
+  return Object.keys(result).length > 0 ? result : undefined;
 }
 
 function normalizeDiariesCompleted(diaries: unknown): SyncedPlayer["diariesCompleted"] {

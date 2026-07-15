@@ -8,7 +8,7 @@ const database = vi.hoisted(() => ({
   query: vi.fn(async (query: string, params: unknown[] = []) => {
     database.queries.push({ query, params });
     if (query.includes("WITH identity AS")) {
-      const checksum = String(params[12]);
+      const checksum = String(params[13]);
       const existing = database.checksums.get(checksum);
       const snapshotId = existing ?? database.nextSnapshotId++;
       if (!existing) database.checksums.set(checksum, snapshotId);
@@ -108,6 +108,41 @@ describe("immutable account snapshots", () => {
       ]
     }));
     expect(reordered).toBe(first);
+  });
+
+  it("persists the typed delta beside a changed snapshot", async () => {
+    const previousState = state({
+      availability: {
+        skills: "available", quests: "available", diaries: "available",
+        collectionLog: "available", bossKc: "unknown", slayer: "unknown", bank: "available"
+      }
+    });
+    const previousChecksum = buildSnapshotChecksum(previousState);
+    const result = await persistSyncAndSnapshot({
+      rsn: "lauky",
+      displayName: "Lauky",
+      state: state({
+        skills: [{ name: "Cooking", level: 81, xp: 2_250_000 }],
+        availability: previousState.availability
+      }),
+      pluginVersion: "4.1.0",
+      syncSummary: null,
+      capturedAt: "2026-07-15T12:00:00.000Z",
+      previousSnapshot: {
+        checksum: previousChecksum,
+        capturedAt: "2026-07-15T10:00:00.000Z",
+        state: previousState
+      }
+    });
+
+    expect(result.accountDelta).toMatchObject({
+      kind: "changed",
+      elapsedSeconds: 7200,
+      totalXp: { status: "changed", movement: { delta: 250_000 } }
+    });
+    const storedDelta = JSON.parse(String(database.queries[0]?.params[17]));
+    expect(storedDelta.deltaId).toBe(result.accountDelta.deltaId);
+    expect(storedDelta.facts).toContainEqual(expect.objectContaining({ kind: "xp", key: "Cooking", amount: 250_000 }));
   });
 });
 

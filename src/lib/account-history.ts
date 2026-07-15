@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import type { ScapestackAccountType } from "./account-type";
 import type { PluginBankStatus } from "./plugin-bank-status";
+import type { SnapshotAvailability } from "./account-snapshot-delta";
 
 export interface ImmutableSnapshotState {
   accountType: ScapestackAccountType;
@@ -8,6 +9,7 @@ export interface ImmutableSnapshotState {
   questsCompleted: string[];
   diariesCompleted: Array<{ region: string; tier: "Easy" | "Medium" | "Hard" | "Elite" }>;
   collectionLogItemIds: number[];
+  bossKc?: Record<string, number> | null;
   bankItems: Array<{ id: number; name: string; quantity: number }>;
   bankStatus: PluginBankStatus;
   slayer: {
@@ -17,6 +19,7 @@ export interface ImmutableSnapshotState {
     currentTaskId: number;
     blocks: string[];
   } | null;
+  availability?: Partial<SnapshotAvailability>;
 }
 
 export interface SnapshotSummary {
@@ -25,6 +28,7 @@ export interface SnapshotSummary {
   questsCompleted: number;
   diariesCompleted: number;
   collectionLogItems: number;
+  bossesTracked: number | null;
   bankItems: number;
   bankAvailable: boolean;
   slayerTaskRemaining: number | null;
@@ -62,6 +66,9 @@ function canonicalState(state: ImmutableSnapshotState) {
     questsCompleted: sortedStrings(state.questsCompleted.map((quest) => quest.toLowerCase())),
     diariesCompleted: diaries,
     collectionLogItemIds: [...state.collectionLogItemIds].sort((a, b) => a - b),
+    bossKc: state.bossKc
+      ? Object.fromEntries(Object.entries(state.bossKc).sort(([a], [b]) => a.localeCompare(b)))
+      : null,
     bank,
     bankStatus: {
       enabled: state.bankStatus.enabled,
@@ -76,6 +83,17 @@ function canonicalState(state: ImmutableSnapshotState) {
           currentTaskId: state.slayer.currentTaskId,
           blocks: sortedStrings(state.slayer.blocks)
         }
+      : null,
+    availability: state.availability
+      ? {
+          skills: state.availability.skills ?? null,
+          quests: state.availability.quests ?? null,
+          diaries: state.availability.diaries ?? null,
+          collectionLog: state.availability.collectionLog ?? null,
+          bossKc: state.availability.bossKc ?? null,
+          slayer: state.availability.slayer ?? null,
+          bank: state.availability.bank ?? null
+        }
       : null
   };
 }
@@ -87,6 +105,7 @@ export function buildSnapshotSummary(state: ImmutableSnapshotState): SnapshotSum
     questsCompleted: state.questsCompleted.length,
     diariesCompleted: state.diariesCompleted.length,
     collectionLogItems: state.collectionLogItemIds.length,
+    bossesTracked: state.bossKc ? Object.keys(state.bossKc).length : null,
     bankItems: state.bankStatus.itemCount,
     bankAvailable: state.bankStatus.enabled && state.bankStatus.unavailableReason === null,
     slayerTaskRemaining: state.slayer?.taskRemaining ?? null

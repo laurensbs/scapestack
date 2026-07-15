@@ -6,6 +6,13 @@ import {
   type ImmutableSnapshotState,
   type SnapshotSummary
 } from "./account-history";
+import {
+  compareAccountSnapshots,
+  resolveSnapshotAvailability,
+  snapshotDeltaFreshness,
+  type AccountSnapshotDelta,
+  type ComparableAccountSnapshot
+} from "./account-snapshot-delta";
 
 interface QueryClient {
   query<T extends Record<string, unknown> = Record<string, unknown>>(query: string, params?: unknown[]): Promise<T[]>;
@@ -21,6 +28,8 @@ export interface PersistSyncInput {
   state: ImmutableSnapshotState;
   pluginVersion: string;
   syncSummary: unknown;
+  previousSnapshot?: ComparableAccountSnapshot | null;
+  capturedAt?: string;
 }
 
 export interface PersistSyncResult {
@@ -28,15 +37,16 @@ export interface PersistSyncResult {
   snapshotId: number | null;
   snapshotCreated: boolean;
   snapshotChecksum: string;
+  accountDelta: AccountSnapshotDelta;
 }
 
 export const PERSIST_SYNC_SQL = `
 WITH identity AS (
   INSERT INTO account_identity (rsn, display_name, last_seen_at)
-  VALUES ($1, $2, NOW())
+  VALUES ($1, $2, $19::timestamptz)
   ON CONFLICT (rsn) DO UPDATE SET
     display_name = EXCLUDED.display_name,
-    last_seen_at = NOW()
+    last_seen_at = $19::timestamptz
   RETURNING account_id
 ), claim_link AS (
   UPDATE player_claim
@@ -45,21 +55,24 @@ WITH identity AS (
 ), inserted_snapshot AS (
   INSERT INTO sync_snapshot (
     account_id, checksum, summary, account_type, skills, quests_completed,
-    diaries_completed, collection_log_item_ids, bank_summary, slayer, plugin_version
+    diaries_completed, collection_log_item_ids, boss_kc, bank_summary,
+    availability, delta, slayer, plugin_version, captured_at
   )
-  SELECT account_id, $13, $14::jsonb, $3, $4::jsonb, $5::jsonb,
-         $6::jsonb, $7::integer[], $15::jsonb, $10::jsonb, $11
+  SELECT account_id, $14, $15::jsonb, $3, $4::jsonb, $5::jsonb,
+         $6::jsonb, $7::integer[], $8::jsonb, $16::jsonb, $17::jsonb,
+         $18::jsonb, $11::jsonb, $12, $19::timestamptz
   FROM identity
   ON CONFLICT (account_id, checksum) DO NOTHING
   RETURNING snapshot_id
 ), latest AS (
   INSERT INTO player_sync (
     rsn, display_name, account_type, skills, quests_completed, diaries_completed,
-    collection_log_item_ids, bank_items, bank_status, slayer, plugin_version,
+    collection_log_item_ids, boss_kc, bank_items, bank_status, slayer, plugin_version,
     sync_summary, synced_at
   )
   VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6::jsonb, $7::integer[],
-          $8::jsonb, $9::jsonb, $10::jsonb, $11, $12::jsonb, NOW())
+          $8::jsonb, $9::jsonb, $10::jsonb, $11::jsonb, $12, $13::jsonb,
+          $19::timestamptz)
   ON CONFLICT (rsn) DO UPDATE SET
     display_name = EXCLUDED.display_name,
     account_type = EXCLUDED.account_type,
@@ -67,12 +80,13 @@ WITH identity AS (
     quests_completed = EXCLUDED.quests_completed,
     diaries_completed = EXCLUDED.diaries_completed,
     collection_log_item_ids = EXCLUDED.collection_log_item_ids,
+    boss_kc = EXCLUDED.boss_kc,
     bank_items = EXCLUDED.bank_items,
     bank_status = EXCLUDED.bank_status,
     slayer = EXCLUDED.slayer,
     plugin_version = EXCLUDED.plugin_version,
     sync_summary = EXCLUDED.sync_summary,
-    synced_at = NOW()
+    synced_at = EXCLUDED.synced_at
   RETURNING synced_at
 )
 SELECT
@@ -80,15 +94,22 @@ SELECT
   COALESCE(
     (SELECT snapshot_id FROM inserted_snapshot),
     (SELECT snapshot_id FROM sync_snapshot
-     WHERE account_id = (SELECT account_id FROM identity) AND checksum = $13)
+     WHERE account_id = (SELECT account_id FROM identity) AND checksum = $14)
   ) AS snapshot_id,
   EXISTS(SELECT 1 FROM inserted_snapshot) AS snapshot_created
 `;
 
 export async function persistSyncAndSnapshot(input: PersistSyncInput): Promise<PersistSyncResult> {
+  const capturedAt = input.capturedAt ?? new Date().toISOString();
   const checksum = buildSnapshotChecksum(input.state);
   const summary = buildSnapshotSummary(input.state);
   const bankSummary = buildHistoricalBankSummary(input.state);
+  const availability = resolveSnapshotAvailability(input.state);
+  const accountDelta = compareAccountSnapshots(input.previousSnapshot ?? null, {
+    checksum,
+    capturedAt,
+    state: input.state
+  }, { now: new Date(capturedAt).getTime() });
   const rows = await client().query<{
     synced_at: string | Date;
     snapshot_id: number | string | null;
@@ -101,6 +122,7 @@ export async function persistSyncAndSnapshot(input: PersistSyncInput): Promise<P
     JSON.stringify(input.state.questsCompleted),
     JSON.stringify(input.state.diariesCompleted),
     input.state.collectionLogItemIds,
+    input.state.bossKc ? JSON.stringify(input.state.bossKc) : null,
     JSON.stringify(input.state.bankItems),
     JSON.stringify(input.state.bankStatus),
     input.state.slayer ? JSON.stringify(input.state.slayer) : null,
@@ -108,7 +130,10 @@ export async function persistSyncAndSnapshot(input: PersistSyncInput): Promise<P
     JSON.stringify(input.syncSummary),
     checksum,
     JSON.stringify(summary),
-    JSON.stringify(bankSummary)
+    JSON.stringify(bankSummary),
+    JSON.stringify(availability),
+    JSON.stringify(accountDelta),
+    capturedAt
   ]);
   const row = rows[0];
   if (!row?.synced_at) throw new Error("Sync persistence returned no timestamp");
@@ -116,7 +141,8 @@ export async function persistSyncAndSnapshot(input: PersistSyncInput): Promise<P
     syncedAt: row.synced_at,
     snapshotId: row.snapshot_id === null ? null : Number(row.snapshot_id),
     snapshotCreated: row.snapshot_created,
-    snapshotChecksum: checksum
+    snapshotChecksum: checksum,
+    accountDelta
   };
 }
 
@@ -126,6 +152,7 @@ export interface AccountSnapshotRecord {
   summary: SnapshotSummary;
   pluginVersion: string;
   capturedAt: string;
+  delta: AccountSnapshotDelta | null;
 }
 
 function normalizeRsn(rsn: string): string {
@@ -141,9 +168,10 @@ export async function getAccountSnapshotHistory(rsn: string, limit = 50): Promis
     summary: SnapshotSummary;
     plugin_version: string;
     captured_at: string;
+    delta: AccountSnapshotDelta | null;
   }>(`
     SELECT snapshot.snapshot_id, snapshot.checksum, snapshot.summary,
-           snapshot.plugin_version, snapshot.captured_at
+           snapshot.plugin_version, snapshot.captured_at, snapshot.delta
     FROM sync_snapshot snapshot
     JOIN account_identity identity ON identity.account_id = snapshot.account_id
     WHERE identity.rsn = $1
@@ -155,8 +183,28 @@ export async function getAccountSnapshotHistory(rsn: string, limit = 50): Promis
     checksum: row.checksum,
     summary: row.summary,
     pluginVersion: row.plugin_version,
-    capturedAt: new Date(row.captured_at).toISOString()
+    capturedAt: new Date(row.captured_at).toISOString(),
+    delta: row.delta && Object.keys(row.delta).length > 0
+      ? { ...row.delta, freshness: snapshotDeltaFreshness(row.captured_at) }
+      : null
   }));
+}
+
+export async function getLatestAccountDelta(rsn: string): Promise<AccountSnapshotDelta | null> {
+  const normalizedRsn = normalizeRsn(rsn);
+  if (!normalizedRsn) return null;
+  const rows = await client().query<{ delta: AccountSnapshotDelta | null }>(`
+    SELECT snapshot.delta
+    FROM sync_snapshot snapshot
+    JOIN account_identity identity ON identity.account_id = snapshot.account_id
+    WHERE identity.rsn = $1
+    ORDER BY snapshot.captured_at DESC, snapshot.snapshot_id DESC
+    LIMIT 1
+  `, [normalizedRsn]);
+  const delta = rows[0]?.delta;
+  return delta && Object.keys(delta).length > 0
+    ? { ...delta, freshness: snapshotDeltaFreshness(delta.capturedAt) }
+    : null;
 }
 
 export async function requestAccountDeletion(rsn: string, delayHours = 0): Promise<boolean> {

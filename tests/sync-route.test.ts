@@ -172,6 +172,7 @@ describe("POST /api/sync", () => {
         { region: "Invalid", tier: "Master" }
       ],
       collectionLogItemIds: [4151, 2.9, -1, 999999.8, 1_000_000],
+      bossKc: { Vorkath: 48.9, Invalid: -1, Broken: "12" },
       bankItems: [
         { id: 1511, name: "Logs", quantity: 6.9 },
         { id: 2351, name: "Iron bar", quantity: 0 },
@@ -208,6 +209,7 @@ describe("POST /api/sync", () => {
       questsCompleted: ["Cook's Assistant", "A".repeat(100)],
       diariesCompleted: [{ region: "Lumbridge & Draynor", tier: "Easy" }],
       collectionLogItemIds: [4151, 2, 999999],
+      bossKc: { Vorkath: 48 },
       bankItems: [
         { id: 1511, name: "Logs", quantity: 6 },
         { id: 2351, name: "Iron bar", quantity: 1 }
@@ -226,6 +228,17 @@ describe("POST /api/sync", () => {
         blocks: ["mapped-1", "mapped-2"]
       },
       pluginVersion: "0.2.0"
+    });
+    expect(state.upserts[0]).toMatchObject({
+      availability: {
+        skills: "available",
+        quests: "available",
+        diaries: "available",
+        collectionLog: "available",
+        bossKc: "available",
+        slayer: "available",
+        bank: "available"
+      }
     });
 
     const json = await response.json();
@@ -281,7 +294,8 @@ describe("POST /api/sync", () => {
     expect(response.status).toBe(200);
     expect(state.upserts[0]).toMatchObject({
       bankItems: [],
-      bankStatus: { enabled: false, itemCount: 0, capturedAt: null, unavailableReason: "opt-in-off" }
+      bankStatus: { enabled: false, itemCount: 0, capturedAt: null, unavailableReason: "opt-in-off" },
+      availability: { skills: "unknown", bossKc: "unknown", slayer: "unknown", bank: "unavailable" }
     });
     await expect(response.json()).resolves.toMatchObject({
       plugin: {
