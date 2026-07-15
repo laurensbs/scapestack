@@ -77,7 +77,7 @@ describe("account storage", () => {
   });
 
   it("records bank and runelite status on the active account", async () => {
-    const { clearRuneliteChecked, getActiveAccount, loadAccountStore, markAccountBankSaved, markAccountMood, markAccountPluginBankStatus, markActiveAccountBankSaved, markRuneliteChecked, upsertAccount } = await import("@/lib/account-storage");
+    const { clearRuneliteChecked, getActiveAccount, loadAccountStore, markAccountBankSaved, markAccountMood, markAccountPluginBankStatus, markAccountRuneliteProgress, markActiveAccountBankSaved, markRuneliteChecked, upsertAccount } = await import("@/lib/account-storage");
 
     upsertAccount("Lynx Titan");
     markActiveAccountBankSaved(1_780_000_000_000);
@@ -88,6 +88,13 @@ describe("account storage", () => {
       lastHeadlineId: "skill:farming",
       lastHeadlineTitle: "Run herbs + birdhouses",
       savedAt: 1_780_000_012_000
+    });
+    markAccountRuneliteProgress("Lynx Titan", {
+      title: "Finished steps are gone",
+      lead: "Pick a maxing lane: Cooking is checked against the latest scan.",
+      lines: ["Cooking 97->98: +450k XP", "Karamja Hard finished"],
+      syncedAt: "2026-07-15T11:00:00.000Z",
+      savedAt: 1_780_000_013_000
     });
 
     expect(getActiveAccount()).toMatchObject({
@@ -100,7 +107,12 @@ describe("account storage", () => {
       preferredMinutes: 30,
       lastHeadlineId: "skill:farming",
       lastHeadlineTitle: "Run herbs + birdhouses",
-      lastHeadlineSavedAt: 1_780_000_012_000
+      lastHeadlineSavedAt: 1_780_000_012_000,
+      runeliteProgressTitle: "Finished steps are gone",
+      runeliteProgressLead: "Pick a maxing lane: Cooking is checked against the latest scan.",
+      runeliteProgressLines: ["Cooking 97->98: +450k XP", "Karamja Hard finished"],
+      runeliteProgressSyncedAt: "2026-07-15T11:00:00.000Z",
+      runeliteProgressSavedAt: 1_780_000_013_000
     });
     expect(loadAccountStore().accounts.find((account) => account.rsn === "Iron Guy")).toMatchObject({
       bankSavedAt: 1_780_000_005_000

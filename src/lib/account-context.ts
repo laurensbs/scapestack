@@ -30,6 +30,11 @@ export interface AccountSnapshot {
   lastHeadlineId: string | null;
   lastHeadlineTitle: string | null;
   lastHeadlineSavedAt: number | null;
+  runeliteProgressTitle: string | null;
+  runeliteProgressLead: string | null;
+  runeliteProgressLines: string[];
+  runeliteProgressSyncedAt: string | null;
+  runeliteProgressSavedAt: number | null;
   planHref: string;
   bankHref: string;
   pluginHref: string;
@@ -127,6 +132,11 @@ export function loadAccountSnapshot(rsn?: string | null): AccountSnapshot {
     lastHeadlineId: moodSession?.lastHeadlineId ?? null,
     lastHeadlineTitle: moodSession?.lastHeadlineTitle ?? null,
     lastHeadlineSavedAt: moodSession?.lastHeadlineTitle ? moodSession.savedAt : null,
+    runeliteProgressTitle: resolvedAccount?.runeliteProgressTitle ?? null,
+    runeliteProgressLead: resolvedAccount?.runeliteProgressLead ?? null,
+    runeliteProgressLines: resolvedAccount?.runeliteProgressLines ?? [],
+    runeliteProgressSyncedAt: resolvedAccount?.runeliteProgressSyncedAt ?? null,
+    runeliteProgressSavedAt: resolvedAccount?.runeliteProgressSavedAt ?? null,
     planHref: withRsn("/next", resolvedRsn, mood && minutes ? { intent: mood, time: String(minutes) } : undefined),
     bankHref: withRsn("/bank", resolvedRsn, { from: encodedFrom }),
     pluginHref: `${withRsn("/plugin", resolvedRsn, { from: encodedFrom })}#verify-sync`,

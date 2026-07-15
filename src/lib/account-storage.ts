@@ -1,6 +1,7 @@
 import { rsnSlug } from "./hiscores";
 import type { Mood, TimeBudget } from "./mood";
 import type { PluginBankStatus } from "./plugin-bank-status";
+import type { RuneliteProgressMemory } from "./runelite-progress-memory";
 
 export const ACCOUNT_STORE_KEY = "scapestack:accounts:v1";
 export const ACCOUNT_EVENT = "scapestack:account-change";
@@ -21,6 +22,11 @@ export interface ScapestackAccount {
   lastHeadlineId?: string;
   lastHeadlineTitle?: string;
   lastHeadlineSavedAt?: number;
+  runeliteProgressTitle?: string;
+  runeliteProgressLead?: string;
+  runeliteProgressLines?: string[];
+  runeliteProgressSyncedAt?: string | null;
+  runeliteProgressSavedAt?: number;
   firstSetupCompletedAt?: number;
 }
 
@@ -120,6 +126,11 @@ export function upsertAccount(rsn: string, patch: AccountPatch = {}): Scapestack
     lastHeadlineId: existing?.lastHeadlineId,
     lastHeadlineTitle: existing?.lastHeadlineTitle,
     lastHeadlineSavedAt: existing?.lastHeadlineSavedAt,
+    runeliteProgressTitle: existing?.runeliteProgressTitle,
+    runeliteProgressLead: existing?.runeliteProgressLead,
+    runeliteProgressLines: existing?.runeliteProgressLines,
+    runeliteProgressSyncedAt: existing?.runeliteProgressSyncedAt,
+    runeliteProgressSavedAt: existing?.runeliteProgressSavedAt,
     firstSetupCompletedAt: existing?.firstSetupCompletedAt,
     ...patch
   };
@@ -194,6 +205,17 @@ export function markRuneliteChecked(rsn: string, checkedAt: number = now()): voi
 
 export function clearRuneliteChecked(rsn: string): void {
   upsertAccount(rsn, { runeliteCheckedAt: undefined });
+}
+
+export function markAccountRuneliteProgress(rsn: string, progress: RuneliteProgressMemory | null | undefined): void {
+  if (!progress || progress.lines.length === 0) return;
+  upsertAccount(rsn, {
+    runeliteProgressTitle: progress.title,
+    runeliteProgressLead: progress.lead,
+    runeliteProgressLines: progress.lines,
+    runeliteProgressSyncedAt: progress.syncedAt,
+    runeliteProgressSavedAt: progress.savedAt
+  });
 }
 
 export function markAccountMood(

@@ -71,6 +71,8 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function ContinueRouteBanner");
     expect(source).toContain('data-continue-route-memory="true"');
     expect(source).toContain("Continue route");
+    expect(source).toContain("markAccountRuneliteProgress(rsn, runeliteProgressFromSyncSummary(");
+    expect(source).toContain("headlineTitle: nextResult.headline?.title");
     expect(source).toContain("function SessionRouteTimeline");
     expect(source).toContain("function routeTimelineItems");
     expect(source).toContain('data-session-route-timeline="true"');

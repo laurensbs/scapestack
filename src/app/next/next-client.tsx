@@ -23,7 +23,7 @@ import { organizeAction, nextUpAction, hiscoresAction, womAction, collectionLogA
 import { type HiscoreSkill } from "@/lib/hiscores";
 import { unlockedFromHiscores, GOAL_SETS, normaliseCompletion, type SetCompletion } from "@/lib/goals";
 import type { HoursToMaxSummary } from "@/lib/hours-to-max";
-import { getActiveAccount, markAccountPluginBankStatus } from "@/lib/account-storage";
+import { getActiveAccount, markAccountPluginBankStatus, markAccountRuneliteProgress } from "@/lib/account-storage";
 import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
 import { track } from "@/lib/analytics";
 import type { Recommendation, RecKind, NextUpInput, NextUpResult, NextBestAction } from "@/lib/next-up";
@@ -58,6 +58,7 @@ import { pluginSyncHealth } from "@/lib/plugin-sync";
 import { pluginBankStatusLabel, pluginBankStatusTone, type PluginBankStatus } from "@/lib/plugin-bank-status";
 import { isPluginSyncSource, pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
 import { summarizeNextPluginSync, type NextPluginSyncSummary } from "@/lib/next-plugin-sync-summary";
+import { runeliteProgressFromSyncSummary } from "@/lib/runelite-progress-memory";
 import { toolHandoffUrl } from "@/lib/bank-tool-routes";
 import { bankOrganizerHref } from "@/lib/bank-handoff-url";
 import { shouldReadNextBankHandoff, shouldReadNextHeroBank } from "@/lib/next-route-context";
@@ -524,7 +525,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
       // Pass all four enrichments. Each is null when the player isn't
       // tracked on that service; the engine + path-progress fall back
       // to heuristics for whatever's missing.
-      setResult(await nextUpAction({
+      const nextResult = await nextUpAction({
         skills, bank, earnedItems, questPoints, bossKc,
         womBossKills: wom?.bossKills,
         accountMeta,
@@ -556,7 +557,17 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
             lastSyncSummary: scapestackSync.lastSyncSummary
           } : null
         }
-      }));
+      });
+      setResult(nextResult);
+      if (rsn && scapestackSync?.lastSyncSummary) {
+        markAccountRuneliteProgress(rsn, runeliteProgressFromSyncSummary(
+          scapestackSync.lastSyncSummary,
+          {
+            syncedAt: scapestackSync.syncedAt,
+            headlineTitle: nextResult.headline?.title ?? nextResult.nextBestActions[0]?.title ?? null
+          }
+        ));
+      }
 
       // Wacht uit tot we de minimum loader-tijd hebben gehaald voordat
       // we naar het result-view flippen. Bij gecachede requests (data

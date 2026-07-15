@@ -9,10 +9,11 @@ import { AddBankModal } from "@/components/add-bank-modal";
 import { RuneliteOpenButton } from "@/components/runelite-open-button";
 import { SessionMoodPicker } from "@/components/session-mood-picker";
 import { loadAccountSnapshot, type AccountSnapshot } from "@/lib/account-context";
-import { ACCOUNT_EVENT, clearRuneliteChecked, hasAccountFirstSetupSeen, markAccountFirstSetupSeen, markAccountPluginBankStatus, markRuneliteChecked } from "@/lib/account-storage";
+import { ACCOUNT_EVENT, clearRuneliteChecked, hasAccountFirstSetupSeen, markAccountFirstSetupSeen, markAccountPluginBankStatus, markAccountRuneliteProgress, markRuneliteChecked } from "@/lib/account-storage";
 import { MOOD_LABEL, type Mood, type TimeBudget } from "@/lib/mood";
 import { loadMood, saveMood, relativeSince } from "@/lib/mood-storage";
 import { latestRecommendationMemory, latestStartedRecommendationMemory } from "@/lib/recommendation-feedback";
+import { runeliteProgressFromSyncSummary } from "@/lib/runelite-progress-memory";
 import { saveSavedBank, saveSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
 import { cn } from "@/lib/utils";
 
@@ -111,7 +112,7 @@ export function HeroIntake() {
         : null);
       const started = latestStartedRecommendationMemory(undefined, { rsn: remembered });
       const latest = latestRecommendationMemory(undefined, { rsn: remembered });
-      const lines: string[] = [];
+      const lines: string[] = [...snapshot.runeliteProgressLines];
       if (started?.title) {
         lines.push(`Last trip started: ${started.title}.`);
       } else if (latest?.title) {
@@ -189,8 +190,15 @@ export function HeroIntake() {
         const checkedAt = Number.isFinite(syncedAt) ? syncedAt : Date.now();
         markRuneliteChecked(target, checkedAt);
         markAccountPluginBankStatus(target, next.player.bankStatus);
+        markAccountRuneliteProgress(target, runeliteProgressFromSyncSummary(
+          next.player.lastSyncSummary,
+          { syncedAt: next.player.syncedAt }
+        ));
+        const snapshot = loadAccountSnapshot(target);
+        setAccountSnapshot(snapshot);
         setRememberedRuneliteCheckedAt(checkedAt);
         setRememberedPluginBankItems(next.player.bankStatus.enabled ? next.player.bankStatus.itemCount : 0);
+        setReturningChangeLines(snapshot.runeliteProgressLines.slice(0, 3));
         setRuneliteRefresh("found");
       } else {
         clearRuneliteChecked(target);

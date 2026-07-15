@@ -59,6 +59,8 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("pluginSyncStatusAction(target)");
     expect(source).toContain("markRuneliteChecked(target, checkedAt)");
     expect(source).toContain("markAccountPluginBankStatus(target, next.player.bankStatus)");
+    expect(source).toContain("markAccountRuneliteProgress(target, runeliteProgressFromSyncSummary(");
+    expect(source).toContain("next.player.lastSyncSummary");
     expect(source).toContain("clearRuneliteChecked(target)");
     expect(source).toContain("Add bank if gear matters");
     expect(source).toContain("RuneLite refreshed.");
@@ -69,6 +71,7 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("Open today&apos;s trip for {rememberedRsn}.");
     expect(source).toContain("Scapestack will use the saved setup it can trust, then send you to one clear stop point.");
     expect(source).toContain("What changed since last time");
+    expect(source).toContain("const lines: string[] = [...snapshot.runeliteProgressLines];");
     expect(source).toContain("Last trip started: ${started.title}.");
     expect(source).toContain("Last scan: ${relativeSince(active.runeliteCheckedAt)}.");
     expect(source).toContain("Last vibe: ${MOOD_LABEL[savedMood.mood].name}.");

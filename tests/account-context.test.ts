@@ -38,7 +38,7 @@ afterEach(() => {
 
 describe("account context", () => {
   it("builds one account snapshot for RSN, bank, RuneLite and mood", async () => {
-    const { markAccountMood, markAccountPluginBankStatus, markRuneliteChecked, upsertAccount } = await import("@/lib/account-storage");
+    const { markAccountMood, markAccountPluginBankStatus, markAccountRuneliteProgress, markRuneliteChecked, upsertAccount } = await import("@/lib/account-storage");
     const { saveSavedBank } = await import("@/lib/saved-bank");
     const { loadAccountSnapshot } = await import("@/lib/account-context");
 
@@ -54,6 +54,13 @@ describe("account context", () => {
       lastHeadlineId: "skill:farming",
       lastHeadlineTitle: "Run herbs + birdhouses",
       savedAt: Date.now() - 12 * 60 * 1000
+    });
+    markAccountRuneliteProgress("Lauky", {
+      title: "Finished steps are gone",
+      lead: "Run herbs + birdhouses is checked against the latest scan.",
+      lines: ["Cooking 97->98: +450k XP", "Karamja Hard finished"],
+      syncedAt: "2026-07-15T11:00:00.000Z",
+      savedAt: Date.now() - 10 * 60 * 1000
     });
     saveSavedBank("Item id\tItem name\tItem quantity\n377\tRaw lobster\t1400", "Lauky");
 
@@ -72,6 +79,11 @@ describe("account context", () => {
     expect(snapshot.lastHeadlineId).toBe("skill:farming");
     expect(snapshot.lastHeadlineTitle).toBe("Run herbs + birdhouses");
     expect(snapshot.lastHeadlineSavedAt).toBe(Date.now() - 12 * 60 * 1000);
+    expect(snapshot.runeliteProgressTitle).toBe("Finished steps are gone");
+    expect(snapshot.runeliteProgressLead).toBe("Run herbs + birdhouses is checked against the latest scan.");
+    expect(snapshot.runeliteProgressLines).toEqual(["Cooking 97->98: +450k XP", "Karamja Hard finished"]);
+    expect(snapshot.runeliteProgressSyncedAt).toBe("2026-07-15T11:00:00.000Z");
+    expect(snapshot.runeliteProgressSavedAt).toBe(Date.now() - 10 * 60 * 1000);
     expect(snapshot.planHref).toBe("/next?rsn=Lauky&intent=afk&time=30");
     expect(snapshot.bankHref).toBe("/bank?rsn=Lauky&from=account");
     expect(snapshot.pluginHref).toBe("/plugin?rsn=Lauky&from=account#verify-sync");
