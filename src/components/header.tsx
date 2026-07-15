@@ -10,7 +10,6 @@ import { clearSavedRsn, describeSavedAt, loadSavedBank, loadSavedRsn, saveSavedR
 import { getPrimaryNavTools } from "@/lib/tools";
 import { cn } from "@/lib/utils";
 import { BuyMeCoffee } from "./buy-me-coffee";
-import { CurrentRunBar } from "./current-run-bar";
 
 const LOOP_STEPS = [
   { label: "Trip", href: "/next" },
@@ -173,7 +172,7 @@ export function Header() {
                 Your account
               </div>
               <div className="mt-2">
-                <CurrentRunBar compact />
+                <AccountSwitcher activeRsn={activeRsn} onActiveRsnChange={setActiveRsn} compact />
               </div>
               <div className="mt-2 grid grid-cols-3 gap-1.5">
                 {LOOP_STEPS.map((step) => (
@@ -215,9 +214,6 @@ export function Header() {
                 </Link>
               );
             })}
-            <div className="pt-2">
-              <AccountSwitcher activeRsn={activeRsn} onActiveRsnChange={setActiveRsn} compact />
-            </div>
           </nav>
         </div>
       )}

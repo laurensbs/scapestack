@@ -3,6 +3,8 @@ import type { Mood, TimeBudget } from "./mood";
 
 export const ACCOUNT_STORE_KEY = "scapestack:accounts:v1";
 export const ACCOUNT_EVENT = "scapestack:account-change";
+const LEGACY_BANK_KEY = "scapestack:saved-bank:v1";
+const accountBankKeyForId = (id: string) => `scapestack:saved-bank:${id}:v1`;
 
 export interface ScapestackAccount {
   rsn: string;
@@ -126,8 +128,16 @@ export function clearActiveAccount(): void {
 export function removeAccount(rsn: string): void {
   const id = accountIdForRsn(rsn);
   const store = loadAccountStore();
+  const removingActive = store.activeId === id;
   const accounts = store.accounts.filter((account) => account.id !== id);
-  const activeId = store.activeId === id ? null : store.activeId;
+  const activeId = removingActive ? null : store.activeId;
+  if (canUseStorage()) {
+    try {
+      localStorage.removeItem(accountBankKeyForId(id));
+      if (removingActive) localStorage.removeItem(LEGACY_BANK_KEY);
+    } catch {
+    }
+  }
   saveAccountStore({ version: 1, activeId, accounts });
 }
 

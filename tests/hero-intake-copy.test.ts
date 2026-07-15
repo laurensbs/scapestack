@@ -38,7 +38,11 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("const [rememberedRuneliteCheckedAt, setRememberedRuneliteCheckedAt] = useState<number | null>(null);");
     expect(source).toContain("const [runeliteRefresh, setRuneliteRefresh] = useState<\"idle\" | \"checking\" | \"found\" | \"missing\" | \"error\">(\"idle\");");
     expect(source).toContain("const [returningMood, setReturningMood] = useState<{ mood: Mood; minutes: TimeBudget; label: string } | null>(null);");
+    expect(source).toContain("const [returningChangeLines, setReturningChangeLines] = useState<string[]>([]);");
     expect(source).toContain("if (isRememberedRun && !editingAccount)");
+    expect(source).toContain("latestStartedRecommendationMemory(undefined, { rsn: remembered })");
+    expect(source).toContain("latestRecommendationMemory(undefined, { rsn: remembered })");
+    expect(source).toContain("setReturningChangeLines(lines.slice(0, 3));");
     expect(source).toContain("const planHref = returningMood");
     expect(source).toContain('`/next?rsn=${encodedRsn}&intent=${encodeURIComponent(returningMood.mood)}&time=${returningMood.minutes}`');
     expect(source).toContain("const runeliteStatusLabel = shouldRefreshRunelite");
@@ -56,6 +60,10 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("Welcome back");
     expect(source).toContain("Open today&apos;s trip for {rememberedRsn}.");
     expect(source).toContain("Scapestack will use the saved setup it can trust, then send you to one clear stop point.");
+    expect(source).toContain("What changed since last time");
+    expect(source).toContain("Last trip started: ${started.title}.");
+    expect(source).toContain("Last RuneLite scan: ${relativeSince(active.runeliteCheckedAt)}.");
+    expect(source).toContain("Last vibe: ${MOOD_LABEL[savedMood.mood].name}.");
     expect(source).toContain("ReturningSetupLine");
     expect(source).toContain("const bankStatusLabel = formatSavedBankAt(savedBankAt);");
     expect(source).toContain('text={bankStatusLabel}');

@@ -10,7 +10,8 @@ import { RuneliteOpenButton } from "@/components/runelite-open-button";
 import { SessionMoodPicker } from "@/components/session-mood-picker";
 import { ACCOUNT_EVENT, clearRuneliteChecked, getActiveAccount, markRuneliteChecked } from "@/lib/account-storage";
 import { MOOD_LABEL, type Mood, type TimeBudget } from "@/lib/mood";
-import { loadMood, saveMood } from "@/lib/mood-storage";
+import { loadMood, saveMood, relativeSince } from "@/lib/mood-storage";
+import { latestRecommendationMemory, latestStartedRecommendationMemory } from "@/lib/recommendation-feedback";
 import { loadSavedBank, loadSavedRsn, saveSavedBank, saveSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
 import { cn } from "@/lib/utils";
 
@@ -104,6 +105,7 @@ export function HeroIntake() {
   const [rememberedRuneliteCheckedAt, setRememberedRuneliteCheckedAt] = useState<number | null>(null);
   const [runeliteRefresh, setRuneliteRefresh] = useState<"idle" | "checking" | "found" | "missing" | "error">("idle");
   const [returningMood, setReturningMood] = useState<{ mood: Mood; minutes: TimeBudget; label: string } | null>(null);
+  const [returningChangeLines, setReturningChangeLines] = useState<string[]>([]);
   const [selectedFirstSetupIntent, setSelectedFirstSetupIntent] = useState<FirstSetupIntent>("surprise");
   const [showFirstSetupBank, setShowFirstSetupBank] = useState(false);
   const [firstSetupRunelite, setFirstSetupRunelite] = useState(false);
@@ -127,6 +129,7 @@ export function HeroIntake() {
         setRememberedRuneliteCheckedAt(null);
         setRuneliteRefresh("idle");
         setReturningMood(null);
+        setReturningChangeLines([]);
         setEditingAccount(false);
         return;
       }
@@ -143,6 +146,21 @@ export function HeroIntake() {
             label: MOOD_LABEL[savedMood.mood].name
           }
         : null);
+      const started = latestStartedRecommendationMemory(undefined, { rsn: remembered });
+      const latest = latestRecommendationMemory(undefined, { rsn: remembered });
+      const lines: string[] = [];
+      if (started?.title) {
+        lines.push(`Last trip started: ${started.title}.`);
+      } else if (latest?.title) {
+        lines.push(`Last pick: ${latest.title}.`);
+      }
+      if (active?.runeliteCheckedAt) {
+        lines.push(`Last RuneLite scan: ${relativeSince(active.runeliteCheckedAt)}.`);
+      }
+      if (savedMood?.mood) {
+        lines.push(`Last vibe: ${MOOD_LABEL[savedMood.mood].name}.`);
+      }
+      setReturningChangeLines(lines.slice(0, 3));
     };
     refreshRememberedAccount();
     window.addEventListener(ACCOUNT_EVENT, refreshRememberedAccount);
@@ -299,6 +317,18 @@ export function HeroIntake() {
               >
                 {runeliteRefreshMessage}
               </p>
+            )}
+            {returningChangeLines.length > 0 && (
+              <div className="mt-4 rounded-xl border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 p-3">
+                <p className="eyebrow text-[var(--color-accent)]">What changed since last time</p>
+                <div className="mt-2 grid gap-1.5">
+                  {returningChangeLines.map((line) => (
+                    <p key={line} className="text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+                      {line}
+                    </p>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
           <button

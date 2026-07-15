@@ -31,7 +31,7 @@ describe("global header navigation", () => {
     expect(source).toContain("removeAccount(rsn);");
     expect(source).toContain("<Package");
     expect(source).toContain("<PlugZap");
-    expect(source).toContain("CurrentRunBar");
+    expect(source).not.toContain("CurrentRunBar");
     expect(source).not.toContain('aria-label="Primary Scapestack tools"');
   });
 
@@ -41,6 +41,7 @@ describe("global header navigation", () => {
     expect(source).toContain('{ label: "Setup", href: "/bank" }');
     expect(source).toContain('{ label: "Boss", href: "/dps" }');
     expect(source).toContain("Your account");
+    expect(source).toContain("<AccountSwitcher activeRsn={activeRsn} onActiveRsnChange={setActiveRsn} compact />");
     expect(source).toContain("Saved once. Used for the next trip.");
     expect(source).toContain('aria-label={`${step.label} in Scapestack loop`}');
   });

@@ -59,6 +59,23 @@ describe("account storage", () => {
     expect(getActiveAccount()?.rsn).toBe("Iron Guy");
   });
 
+  it("removes the account bank link when an account is deleted", async () => {
+    const { getActiveAccount, removeAccount, upsertAccount } = await import("@/lib/account-storage");
+    const { loadSavedBank, saveSavedBank } = await import("@/lib/saved-bank");
+
+    upsertAccount("Main Guy");
+    saveSavedBank("Item id\tItem name\tItem quantity\n383\tRaw shark\t312", "Main Guy");
+
+    expect(loadSavedBank("Main Guy")?.banktags).toContain("Raw shark");
+    expect(loadSavedBank()?.banktags).toContain("Raw shark");
+
+    removeAccount("Main Guy");
+
+    expect(getActiveAccount()).toBeNull();
+    expect(loadSavedBank("Main Guy")).toBeNull();
+    expect(loadSavedBank()).toBeNull();
+  });
+
   it("records bank and runelite status on the active account", async () => {
     const { clearRuneliteChecked, getActiveAccount, loadAccountStore, markAccountBankSaved, markAccountMood, markActiveAccountBankSaved, markRuneliteChecked, upsertAccount } = await import("@/lib/account-storage");
 
