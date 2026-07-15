@@ -461,7 +461,7 @@ Evidence:
 
 ## Phase 04 - Make Accounts Durable Across Devices
 
-Status: TODO  
+Status: DONE
 Depends on: Phase 02  
 Improves: cross-device continuity, onboarding
 
@@ -491,6 +491,59 @@ Acceptance:
 - removing the local account stops Welcome Back immediately;
 - tests cover casing and renamed display names.
 ```
+
+Evidence:
+- Completed: 2026-07-15
+- Commits: `1f511e5`, `69b63b9`
+- Files: `src/lib/account-pairing.ts`, `src/lib/account-session-cookie.ts`,
+  `src/lib/account-connection.ts`, `src/lib/account-storage.ts`,
+  `src/lib/saved-bank.ts`, `src/lib/sync-auth.ts`, `src/lib/sync-schema.ts`,
+  `src/app/api/account`, `src/components/connect-browser-modal.tsx`,
+  `src/components/header.tsx`, `plugin/src/main/java/app/scapestack/runelite/PairingClient.java`,
+  `plugin/src/main/java/app/scapestack/runelite/ScapestackSyncPanel.java`,
+  `plugin/src/main/java/app/scapestack/runelite/ScapestackSyncPlugin.java`,
+  `docs/account-pairing.md`
+- Flow: an RSN remains an anonymous local profile. A browser starts a
+  short-lived code, the already claimed RuneLite install approves it, and the
+  browser exchanges its one-time secret for a 30-day HttpOnly, SameSite=Lax
+  session. A second device can repeat this explicit flow without email or a
+  password
+- Identity behavior: linking upgrades the existing local profile with a stable
+  server account ID. Casing changes do not fork an account; when the same
+  RuneLite install reports a real display-name change, the stable server
+  identity, local preferences and account-scoped bank attachment migrate
+  together
+- Conflict and removal behavior: a different plugin token cannot take over an
+  existing claim. Removing a connected local profile revokes only that browser
+  session and immediately clears local Welcome Back state; immutable server
+  history is retained
+- Security and privacy: plugin, pairing and browser secrets are stored only as
+  SHA-256 hashes; codes expire after ten minutes; browser sessions expire after
+  30 days; pairing starts are capped at five per minute. Manual bank exports
+  remain browser-local and scoped to the normalized account name
+- Persistence fix: legacy append-only PostgreSQL rules were migrated to
+  update-blocking triggers. History stays immutable while idempotent
+  `INSERT ... ON CONFLICT DO NOTHING` snapshots work in the real Neon-backed
+  RuneLite flow
+- Tests added: pairing crypto and lifecycle, repository persistence, route
+  authorization/cookies/rate limiting, browser connection UI, plugin pairing
+  client and panel coverage, plus regressions for account casing, display-name
+  migration, bank migration and claim conflicts
+- Commands: targeted pairing Vitest coverage; `npm run ci:check`;
+  `./gradlew test` in `plugin`; `git diff --check`
+- Full verification: 174 test files and 1,123 tests passed; typecheck, smoke,
+  recommendation audit, offline plugin release check and the 213-page
+  production build passed. The recommendation audit retained one pre-existing
+  editorial note and reported zero hard failures
+- Browser evidence: desktop and 390x844 mobile pairing states were verified at
+  `/tmp/scapestack-phase04-desktop-fixed.png`,
+  `/tmp/scapestack-phase04-mobile.png` and
+  `/tmp/scapestack-phase04-mobile-code.png`; the modal is portalled outside the
+  sticky header, remains scrollable and had no browser errors or overlap
+- Known residual risk: reconnect currently requires access to an already
+  claimed RuneLite install; there is no email recovery fallback. A first-mover
+  claim conflict still needs a future explicit support/reclaim policy instead
+  of an unsafe automatic takeover
 
 ## Phase 05 - Create A Stable Account Timeline API
 
