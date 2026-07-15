@@ -4081,14 +4081,17 @@ function routeTimelineItems({
     rec.routeTags?.includes("afk") ||
     /herb|birdhouse|farm|agility|cooking|fish|woodcut|mine/i.test(rec.title)
   )) ?? afterPick;
-  const nextLoginTitle = pluginSyncState === "live"
+  const boredPick = shortPick && shortPick.id !== afterPick?.id
+    ? shortPick
+    : uniqueRecs.find((rec) => rec.id !== afterPick?.id) ?? shortPick ?? afterPick;
+  const syncTitle = pluginSyncState === "live"
     ? "Sync after progress"
     : pluginSyncState === "stale" || pluginSyncState === "outdated"
       ? "Fresh RuneLite check"
       : hasBankContext
         ? "Refresh bank if it changed"
         : "Come back after the stop point";
-  const nextLoginHelper = pluginSyncState === "live"
+  const syncHelper = pluginSyncState === "live"
     ? "Finished quests, diary steps, clog slots and Slayer can move the next pick."
     : pluginSyncState === "stale" || pluginSyncState === "outdated"
       ? "Press Sync in RuneLite before a longer grind so finished stuff disappears."
@@ -4112,16 +4115,21 @@ function routeTimelineItems({
       helper: afterPick ? backupChoicePrompt(afterPick, headline).helper : lastRoute
     },
     {
-      label: "Short login",
-      title: shortPick?.title ?? "Bank reset or quick prep",
-      helper: shortPick
-        ? "Use this if you only have a few minutes."
+      label: "If you get bored",
+      title: boredPick?.title ?? "Bank reset or quick prep",
+      helper: boredPick
+        ? "Switch here without losing the account route."
         : "Use the stop point, then leave the bigger grind for later."
     },
     {
       label: "Next login",
-      title: nextLoginTitle,
-      helper: nextLoginHelper
+      title: lastSession?.lastHeadlineTitle ? "Keep the chain moving" : "Open a fresh route",
+      helper: lastRoute
+    },
+    {
+      label: "Sync after progress",
+      title: syncTitle,
+      helper: syncHelper
     }
   ];
 }
@@ -4153,10 +4161,10 @@ function SessionRouteTimeline({
       data-session-route-timeline="true"
     >
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <p className="text-[12px] font-black text-[var(--color-text)]">Route after this</p>
-        <p className="text-[11px] font-semibold text-[var(--color-text-muted)]">One chain, not a pile of chores.</p>
+        <p className="text-[12px] font-black text-[var(--color-text)]">Trip chain</p>
+        <p className="text-[11px] font-semibold text-[var(--color-text-muted)]">One route you can follow after the first stop.</p>
       </div>
-      <div className="grid gap-2 md:grid-cols-4">
+      <div className="grid gap-2 md:grid-cols-5">
         {items.map((item) => (
           <div
             key={`${item.label}:${item.title}`}
@@ -4483,6 +4491,21 @@ const TIME_OPTIONS: { value: TimeBudget; label: string }[] = [
   { value: 60,  label: "1 hour" },
   { value: 120, label: "2 hours" },
 ];
+const SESSION_MOOD_GRID_CHOICES: Array<{
+  id: Mood | "surprise";
+  label: string;
+  helper: string;
+  mood?: Mood;
+  minutes?: TimeBudget;
+}> = [
+  { id: "chill", label: "Chill", helper: "Easy progress, no sweaty trip.", mood: "chill", minutes: 30 },
+  { id: "cash", label: "GP", helper: "Money or supplies for the next upgrade.", mood: "cash", minutes: 60 },
+  { id: "bossing", label: "Bossing", helper: "KC, drops or a real PvM trip.", mood: "bossing", minutes: 120 },
+  { id: "unlock", label: "Unlock", helper: "Quest, diary or account gate.", mood: "unlock", minutes: 120 },
+  { id: "afk", label: "AFK", helper: "Progress while doing something else.", mood: "afk", minutes: 60 },
+  { id: "short", label: "Short", helper: "One clean stop point.", mood: "short", minutes: 15 },
+  { id: "surprise", label: "Surprise me", helper: "Same vibe, different route." }
+];
 
 function moodForRouteLens(lens: RouteLens, currentMood: Mood): Mood {
   switch (lens) {
@@ -4725,6 +4748,63 @@ function visibleMood(mood: Mood): Mood {
   if (mood === "focused") return "bossing";
   if (mood === "quest") return "unlock";
   return MOODS.includes(mood) ? mood : DEFAULT_MOOD;
+}
+
+function SessionMoodGrid({
+  mood,
+  onPick,
+  onSurprise
+}: {
+  mood: Mood;
+  onPick: (mood: Mood, minutes?: TimeBudget) => void;
+  onSurprise: () => void;
+}) {
+  const activeMood = visibleMood(mood);
+
+  return (
+    <section
+      className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-3"
+      data-session-mood-grid="true"
+      aria-label="Pick a session mood"
+    >
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-[12px] font-black text-[var(--color-text)]">What are you in the mood for?</p>
+        <p className="text-[11px] font-semibold text-[var(--color-text-muted)]">Tap one. Random stays inside it.</p>
+      </div>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+        {SESSION_MOOD_GRID_CHOICES.map((choice) => {
+          const active = choice.mood ? visibleMood(choice.mood) === activeMood : false;
+          return (
+            <button
+              key={choice.id}
+              type="button"
+              aria-pressed={choice.id === "surprise" ? undefined : active}
+              onClick={() => {
+                if (choice.id === "surprise") {
+                  onSurprise();
+                  return;
+                }
+                onPick(choice.mood!, choice.minutes);
+              }}
+              className={cn(
+                "min-h-[72px] rounded-lg border px-3 py-2.5 text-left transition-colors",
+                active
+                  ? "border-[var(--color-accent)] bg-[var(--color-accent)]/16 text-[var(--color-text)] shadow-[0_0_0_1px_var(--color-accent)]"
+                  : choice.id === "surprise"
+                    ? "border-[var(--color-accent)]/45 bg-[var(--color-accent)]/10 text-[var(--color-text)] hover:bg-[var(--color-accent)]/16"
+                    : "border-[var(--color-border)] bg-[var(--color-bg)]/34 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/55 hover:text-[var(--color-text)]"
+              )}
+            >
+              <span className="block text-[13px] font-black">{choice.label}</span>
+              <span className="mt-1 block text-[10.5px] font-semibold leading-snug text-[var(--color-text-muted)]">
+                {choice.helper}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
 }
 
 function WhatToDo({
@@ -5067,6 +5147,11 @@ function WhatToDo({
               accountMode={accountMode}
             />
             <LastSyncSummaryCard result={syncResult} />
+            <SessionMoodGrid
+              mood={mood}
+              onPick={applySessionIntent}
+              onSurprise={moveToAnotherPlan}
+            />
             <RecHeadlineExpandable
               rec={activePick.headline}
               allRecs={allRecs}
