@@ -178,7 +178,7 @@ while addressing these gaps.
 
 ## Phase 00 - Make Product Quality Machine-Checkable
 
-Status: IN PROGRESS  
+Status: DONE
 Depends on: none  
 Improves: engineering quality, recommendation relevance, trust
 
@@ -215,6 +215,22 @@ Acceptance:
 - existing good scenarios pass;
 - CI now rejects semantic recommendation regressions.
 ```
+
+Evidence:
+- Completed: 2026-07-15
+- Commit: `29b6663`
+- Files: `scripts/audit-next.ts`, `scripts/next-audit-rules.ts`,
+  `scripts/next-audit-scenarios.ts`, `tests/next-audit.test.ts`, `.gitignore`
+- Tests added: six recommendation quality-gate tests covering the passing
+  baseline, deliberate hard failure, editorial note, invalid Chill boss,
+  1-KC scout headline and CI/artifact wiring
+- Commands: `npx vitest run tests/next-audit.test.ts`, `npm run audit:next`,
+  `npm run ci:check`, `git diff --check`
+- Browser evidence: not applicable; this phase changed no player-facing UI
+- Metric change: advisory 5-scenario printout -> 13 typed scenarios, 73
+  evaluated rules, zero hard failures and a machine-readable JSON artifact
+- Known residual risk: the Callisto scout is correctly demoted but falls
+  outside the first eight visible choices; retained as one editorial note
 
 ## Phase 01 - Define The Decision Funnel
 
