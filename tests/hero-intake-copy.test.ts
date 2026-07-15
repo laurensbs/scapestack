@@ -49,7 +49,9 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("if (isRememberedRun && !editingAccount)");
     expect(source).toContain("latestStartedRecommendationMemory(undefined, { rsn: remembered })");
     expect(source).toContain("latestRecommendationMemory(undefined, { rsn: remembered })");
-    expect(source).toContain("setReturningChangeLines(lines.slice(0, 3));");
+    expect(source).toContain("snapshot.runeliteProgressTitle");
+    expect(source).toContain("snapshot.runeliteProgressLead");
+    expect(source).toContain("setReturningChangeLines([...new Set(lines)].slice(0, 4));");
     expect(source).toContain("const planHref = accountSnapshot?.planHref");
     expect(source).toContain('`/next?rsn=${encodedRsn}&intent=${encodeURIComponent(returningMood.mood)}&time=${returningMood.minutes}`');
     expect(source).toContain("const runeliteStatusLabel = shouldRefreshRunelite");
@@ -70,8 +72,10 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("Welcome back");
     expect(source).toContain("Open today&apos;s trip for {rememberedRsn}.");
     expect(source).toContain("Scapestack will use the saved setup it can trust, then send you to one clear stop point.");
-    expect(source).toContain("What changed since last time");
-    expect(source).toContain("const lines: string[] = [...snapshot.runeliteProgressLines];");
+    expect(source).toContain("Since last scan");
+    expect(source).toContain("Plan from this");
+    expect(source).toContain("const progressLines = [");
+    expect(source).toContain("const lines: string[] = [...progressLines];");
     expect(source).toContain("Last trip started: ${started.title}.");
     expect(source).toContain("Last scan: ${relativeSince(active.runeliteCheckedAt)}.");
     expect(source).toContain("Last vibe: ${MOOD_LABEL[savedMood.mood].name}.");

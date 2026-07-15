@@ -27,8 +27,8 @@ describe("RuneLite progress memory", () => {
     });
 
     expect(progress).toMatchObject({
-      title: "Finished steps are gone",
-      lead: "Pick a maxing lane: Cooking is checked against the latest scan.",
+      title: "Since last scan: 1 quest, 1 diary, 1 clog slot",
+      lead: "Pick a maxing lane: Cooking now uses this progress.",
       syncedAt: "2026-07-15T11:00:00.000Z",
       savedAt: 1_780_000_000_000
     });

@@ -112,19 +112,24 @@ export function HeroIntake() {
         : null);
       const started = latestStartedRecommendationMemory(undefined, { rsn: remembered });
       const latest = latestRecommendationMemory(undefined, { rsn: remembered });
-      const lines: string[] = [...snapshot.runeliteProgressLines];
-      if (started?.title) {
+      const progressLines = [
+        snapshot.runeliteProgressTitle,
+        ...snapshot.runeliteProgressLines,
+        snapshot.runeliteProgressLead
+      ].filter((line): line is string => Boolean(line));
+      const lines: string[] = [...progressLines];
+      if (lines.length === 0 && started?.title) {
         lines.push(`Last trip started: ${started.title}.`);
-      } else if (latest?.title) {
+      } else if (lines.length === 0 && latest?.title) {
         lines.push(`Last pick: ${latest.title}.`);
       }
-      if (active?.runeliteCheckedAt) {
+      if (lines.length < 3 && active?.runeliteCheckedAt) {
         lines.push(`Last scan: ${relativeSince(active.runeliteCheckedAt)}.`);
       }
-      if (savedMood?.mood) {
+      if (lines.length < 3 && savedMood?.mood) {
         lines.push(`Last vibe: ${MOOD_LABEL[savedMood.mood].name}.`);
       }
-      setReturningChangeLines(lines.slice(0, 3));
+      setReturningChangeLines([...new Set(lines)].slice(0, 4));
     };
     refreshRememberedAccount();
     window.addEventListener(ACCOUNT_EVENT, refreshRememberedAccount);
@@ -198,7 +203,11 @@ export function HeroIntake() {
         setAccountSnapshot(snapshot);
         setRememberedRuneliteCheckedAt(checkedAt);
         setRememberedPluginBankItems(next.player.bankStatus.enabled ? next.player.bankStatus.itemCount : 0);
-        setReturningChangeLines(snapshot.runeliteProgressLines.slice(0, 3));
+        setReturningChangeLines([
+          snapshot.runeliteProgressTitle,
+          ...snapshot.runeliteProgressLines,
+          snapshot.runeliteProgressLead
+        ].filter((line): line is string => Boolean(line)).slice(0, 4));
         setRuneliteRefresh("found");
       } else {
         clearRuneliteChecked(target);
@@ -300,12 +309,29 @@ export function HeroIntake() {
             )}
             {returningChangeLines.length > 0 && (
               <div className="mt-4 rounded-xl border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 p-3">
-                <p className="eyebrow text-[var(--color-accent)]">What changed since last time</p>
-                <div className="mt-2 grid gap-1.5">
-                  {returningChangeLines.map((line) => (
-                    <p key={line} className="text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-                      {line}
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="eyebrow text-[var(--color-accent)]">Since last scan</p>
+                    <p className="mt-1 text-[14px] font-bold leading-tight text-[var(--color-text)]">
+                      {returningChangeLines[0]}
                     </p>
+                  </div>
+                  <Link
+                    href={planHref}
+                    className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/12 px-3 py-1.5 text-[12px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)] hover:text-[#0b0906]"
+                  >
+                    Plan from this
+                    <ArrowRight className="size-3.5" />
+                  </Link>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {returningChangeLines.slice(1).map((line) => (
+                    <span
+                      key={line}
+                      className="rounded-full border border-[var(--color-parchment-edge)]/65 bg-black/20 px-2.5 py-1 text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]"
+                    >
+                      {line}
+                    </span>
                   ))}
                 </div>
               </div>

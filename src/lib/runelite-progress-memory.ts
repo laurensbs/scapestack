@@ -18,8 +18,22 @@ function topSkill(summary: SyncDeltaSummary): SyncDeltaSummary["skills"][number]
   return [...summary.skills].sort((a, b) => b.xpGained - a.xpGained)[0] ?? null;
 }
 
-function hasFinishedStep(summary: SyncDeltaSummary): boolean {
-  return summary.questsCompleted.length > 0 || summary.diariesCompleted.length > 0;
+function countLabel(count: number, singular: string, plural = `${singular}s`): string | null {
+  if (count <= 0) return null;
+  return `${count.toLocaleString()} ${count === 1 ? singular : plural}`;
+}
+
+function movementTitle(summary: SyncDeltaSummary, xp: number): string {
+  const parts = [
+    countLabel(summary.questsCompleted.length, "quest"),
+    countLabel(summary.diariesCompleted.length, "diary", "diaries"),
+    countLabel(summary.collectionLogItems.length || summary.collectionLogItemIds.length, "clog slot")
+  ].filter(Boolean);
+  if (parts.length > 0) return `Since last scan: ${parts.join(", ")}`;
+  if (xp > 0) return `Since last scan: +${compactXp(xp)} XP`;
+  if (summary.bank?.currentItemCount) return "Since last scan: bank refreshed";
+  if (summary.accountType.changed) return "Since last scan: account mode updated";
+  return "Since last scan: route updated";
 }
 
 export function runeliteProgressFromSyncSummary(
@@ -29,9 +43,10 @@ export function runeliteProgressFromSyncSummary(
   if (!summary) return null;
   const skill = topSkill(summary);
   const xp = summary.skills.reduce((sum, entry) => sum + Math.max(0, entry.xpGained), 0);
+  const hasFinished = summary.questsCompleted.length > 0 || summary.diariesCompleted.length > 0;
   const hasClog = summary.collectionLogItems.length > 0 || summary.collectionLogItemIds.length > 0;
   const hasBank = Boolean(summary.bank?.currentItemCount);
-  const changed = hasFinishedStep(summary) || xp > 0 || hasClog || hasBank || summary.accountType.changed;
+  const changed = hasFinished || xp > 0 || hasClog || hasBank || summary.accountType.changed;
   if (!changed) return null;
 
   const lines: string[] = [];
@@ -41,35 +56,37 @@ export function runeliteProgressFromSyncSummary(
       : "";
     lines.push(`${skill.name}${level}: +${compactXp(skill.xpGained)} XP`);
   }
-  if (summary.questsCompleted[0]) lines.push(`${summary.questsCompleted[0]} finished`);
+  if (summary.questsCompleted.length > 1) {
+    lines.push(`${summary.questsCompleted.length} quests finished: ${summary.questsCompleted.slice(0, 2).join(", ")}`);
+  } else if (summary.questsCompleted[0]) {
+    lines.push(`${summary.questsCompleted[0]} finished`);
+  }
   if (summary.diariesCompleted[0]) {
     const diary = summary.diariesCompleted[0];
-    lines.push(`${diary.region} ${diary.tier} finished`);
+    const extra = summary.diariesCompleted.length > 1
+      ? ` +${summary.diariesCompleted.length - 1} more`
+      : "";
+    lines.push(`${diary.region} ${diary.tier} finished${extra}`);
   }
   if (summary.collectionLogItems[0]) {
-    lines.push(`${summary.collectionLogItems[0].name} added`);
+    const extra = summary.collectionLogItems.length > 1
+      ? ` +${summary.collectionLogItems.length - 1} more`
+      : "";
+    lines.push(`${summary.collectionLogItems[0].name} added${extra}`);
   } else if (summary.collectionLogItemIds.length > 0) {
     lines.push(`${summary.collectionLogItemIds.length} clog slot${summary.collectionLogItemIds.length === 1 ? "" : "s"} added`);
   }
   if (summary.bank?.currentItemCount) {
-    lines.push(`Bank: ${summary.bank.currentItemCount.toLocaleString()} stacks`);
+    lines.push(`Bank ready: ${summary.bank.currentItemCount.toLocaleString()} stacks`);
   }
   if (summary.accountType.changed) {
     lines.push("Account mode updated");
   }
 
-  const title = hasFinishedStep(summary)
-    ? "Finished steps are gone"
-    : xp > 0
-      ? `+${compactXp(xp)} XP since last scan`
-      : hasClog
-        ? "New clog progress counted"
-        : hasBank
-          ? "RuneLite bank updated"
-          : "RuneLite changed the route";
+  const title = movementTitle(summary, xp);
   const lead = options.headlineTitle
-    ? `${options.headlineTitle} is checked against the latest scan.`
-    : "Open the next trip to use the latest scan.";
+    ? `${options.headlineTitle} now uses this progress.`
+    : "Plan from this scan, then sync again after the stop point.";
 
   return {
     title,
