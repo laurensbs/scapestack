@@ -388,7 +388,7 @@ Evidence:
 
 ## Phase 03 - Build Snapshot Diff Intelligence
 
-Status: TODO  
+Status: DONE
 Depends on: Phase 02  
 Improves: trust, return value
 
@@ -425,6 +425,39 @@ Acceptance:
 - impossible negative deltas are represented honestly;
 - UI consumers receive short facts, not prewritten dashboard copy.
 ```
+
+Evidence:
+- Completed: 2026-07-15
+- Commit: `7e46324`
+- Files: `src/lib/account-snapshot-delta.ts`,
+  `src/lib/account-history.ts`, `src/lib/account-history-repo.ts`,
+  `src/lib/sync-repo.ts`, `src/lib/sync-schema.ts`,
+  `src/app/api/sync/route.ts`, `docs/account-snapshot-deltas.md`,
+  `docs/account-history-retention.md`
+- Tests added: six comparison-engine fixtures covering first sync, identical
+  sync, partial legacy payload, changed sync, stale/regressed sync and capped
+  bank movement; one persistence test proves the stable delta ID and typed
+  facts are stored beside the immutable snapshot
+- Commands: targeted Vitest coverage for snapshot deltas, history, schema and
+  sync route; `npm run ci:check`; `git diff --check`
+- Full verification: 170 test files and 1,108 tests passed; typecheck, smoke,
+  recommendation audit, plugin release check and production build passed. The
+  recommendation audit retained one pre-existing editorial note and reported
+  zero hard failures
+- Browser evidence: not applicable; this phase changed no player-facing UI or
+  layout
+- Metric change: consecutive immutable snapshots now produce one deterministic,
+  typed delta with elapsed time, read-time freshness and short structured facts
+  for XP, levels, quests, diaries, clog, boss KC, Slayer and bank movement
+- Correctness change: unavailable, unknown and unchanged are distinct states;
+  missing data never becomes zero, while impossible negative monotonic progress
+  is retained as a source regression instead of being silently discarded
+- Privacy change: full bank rows remain only in the latest projection. Historical
+  deltas retain at most the 100 largest item movements while preserving the
+  total number of changed rows and a truncation flag
+- Known residual risk: boss KC remains unknown until the plugin or another
+  trusted upstream source sends it. Snapshots created before Phase 02 cannot be
+  reconstructed or diffed retroactively
 
 ## Phase 04 - Make Accounts Durable Across Devices
 
