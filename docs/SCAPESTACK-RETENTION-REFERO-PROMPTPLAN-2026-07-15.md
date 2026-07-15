@@ -870,6 +870,17 @@ Verifieer, commit, push. Stop daarna.
 - Scapestack heeft een reden om terug te keren.
 - Recap is OSRS progress, geen analytics dashboard.
 
+Status 2026-07-15: uitgevoerd in fase 8. Er is een lokale
+`trip-timeline` toegevoegd voor planned/started/done/skipped/shared events per
+RSN, `/next` schrijft bestaande start/done/skip/share-acties door naar die
+timeline en `Mark done` blijft de volgende pick verplaatsen via de bestaande
+feedback-memory. `/u/[rsn]` toont nu een compacte `This week` recap met lokale
+trips, RuneLite XP sinds de laatste scan en bank-refresh context zonder
+dashboardtaal. Shareable trip cards bevatten alleen titel, type, RSN, reden,
+sprite/boss en stop point; bank items/quantities worden niet gedeeld.
+Geverifieerd met screenshots in `/tmp/scapestack-phase8-shots`, volledige
+`npm test`, `npm run typecheck` en `npm run build`.
+
 ---
 
 # Fase 9 - Final Reddit Fit Pass

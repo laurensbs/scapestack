@@ -51,6 +51,8 @@ import {
   type RecommendationMemoryEntry,
   type RecommendationFeedback
 } from "@/lib/recommendation-feedback";
+import { recordTripEvent } from "@/lib/trip-timeline";
+import { formatShareableTripCard, shareableTripFromRecommendation } from "@/lib/shareable-trip";
 import { wikiSearchUrl } from "@/lib/wiki";
 import { pluginSyncHealth } from "@/lib/plugin-sync";
 import { pluginBankStatusLabel, pluginBankStatusTone, type PluginBankStatus } from "@/lib/plugin-bank-status";
@@ -4918,18 +4920,48 @@ function WhatToDo({
       routeLens,
       rsn: activeRsn
     }));
+    recordTripEvent({
+      id: rec.id,
+      kind: rec.kind,
+      title: rec.title,
+      action: "started",
+      mood,
+      routeLens,
+      rsn: activeRsn,
+      stopPoint: recommendationStopPointValue(rec)
+    });
     setLastStarted({ id: rec.id, title: rec.title });
     setLastCompleted(null);
     setLastSuppressed(null);
   };
   const hideRecommendation = (rec: Recommendation) => {
     setFeedback(suppressRecommendation({ id: rec.id, kind: rec.kind, title: rec.title, reason: "not_today" }));
+    recordTripEvent({
+      id: rec.id,
+      kind: rec.kind,
+      title: rec.title,
+      action: "skipped",
+      mood,
+      routeLens,
+      rsn: activeRsn,
+      stopPoint: recommendationStopPointValue(rec)
+    });
     setLastSuppressed({ id: rec.id, kind: rec.kind, title: rec.title });
     setLastStarted(null);
     setLastCompleted(null);
   };
   const completeRecommendation = (rec: Recommendation) => {
     setFeedback(suppressRecommendation({ id: rec.id, kind: rec.kind, title: rec.title, reason: "already_done" }));
+    recordTripEvent({
+      id: rec.id,
+      kind: rec.kind,
+      title: rec.title,
+      action: "done",
+      mood,
+      routeLens,
+      rsn: activeRsn,
+      stopPoint: recommendationStopPointValue(rec)
+    });
     setLastCompleted({ id: rec.id, title: rec.title });
     setLastStarted(null);
     setLastSuppressed(null);
@@ -4975,6 +5007,16 @@ function WhatToDo({
         routeLens: randomLens,
         rsn: activeRsn
       }));
+      recordTripEvent({
+        id: activePick.headline.id,
+        kind: activePick.headline.kind,
+        title: activePick.headline.title,
+        action: "skipped",
+        mood,
+        routeLens: randomLens,
+        rsn: activeRsn,
+        stopPoint: recommendationStopPointValue(activePick.headline)
+      });
       setRouteSwitchNote(routeSwitchCopy(randomLens, activePick.headline));
     }
     if (randomLens === "smart") {
@@ -5493,7 +5535,33 @@ function RecHeadlineExpandable({
   pluginBankStatus?: PluginBankStatus | null;
 }) {
   const [open, setOpen] = useState(false);
+  const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "failed">("idle");
   const whyNot = recommendationWhyNot({ headline: rec, allRecs, mood, hasBankContext, pluginSyncState });
+  const shareRsn = actionContext.rsn ?? undefined;
+  const shareTrip = async () => {
+    const card = shareableTripFromRecommendation(rec, {
+      rsn: shareRsn,
+      stopPoint: recommendationStopPointValue(rec)
+    });
+    try {
+      await navigator.clipboard.writeText(formatShareableTripCard(card));
+      recordTripEvent({
+        id: rec.id,
+        kind: rec.kind,
+        title: rec.title,
+        action: "shared",
+        mood,
+        routeLens: undefined,
+        rsn: shareRsn,
+        stopPoint: card.stopPoint
+      });
+      setShareStatus("copied");
+      window.setTimeout(() => setShareStatus("idle"), 1600);
+    } catch {
+      setShareStatus("failed");
+      window.setTimeout(() => setShareStatus("idle"), 1600);
+    }
+  };
   return (
     <div>
       <NextTripCard
@@ -5529,6 +5597,14 @@ function RecHeadlineExpandable({
           aria-expanded={open}
         >
           More notes
+        </button>
+        <button
+          type="button"
+          onClick={shareTrip}
+          className={recommendationFeedbackButtonClass("details", true)}
+          aria-label={`Share a safe trip card for ${rec.title}`}
+        >
+          {shareStatus === "copied" ? "Trip copied" : shareStatus === "failed" ? "Copy failed" : "Share trip"}
         </button>
       </div>
       {open && <RecDetailPanel rec={rec} actionContext={actionContext} whyNot={whyNot} />}

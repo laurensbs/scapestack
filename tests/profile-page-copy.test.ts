@@ -15,6 +15,8 @@ describe("RSN profile handoffs", () => {
     expect(source).toContain("getSyncedPlayer(hi.name)");
     expect(source).toContain("AccountHomeBoard");
     expect(source).toContain('data-account-home-board="true"');
+    expect(source).toContain("WeeklyRecap");
+    expect(source).toContain("profileSyncXpLine");
     expect(source).toContain("Welcome back, {rsn}.");
     expect(source).toContain("Start here every login.");
     expect(source).toContain("Plan next trip");
@@ -33,6 +35,19 @@ describe("RSN profile handoffs", () => {
     expect(source).toContain("Bank Memory");
     expect(source).toContain("Bank Tags");
     expect(source).toContain("account for gear, supplies and unlocks");
+  });
+
+  it("keeps the weekly recap local and trip-shaped", () => {
+    const source = readFileSync(join(process.cwd(), "src/app/u/[rsn]/weekly-recap.tsx"), "utf8");
+
+    expect(source).toContain('"use client"');
+    expect(source).toContain("tripTimelineRecap(loadTripTimeline(), { rsn })");
+    expect(source).toContain('data-weekly-recap="true"');
+    expect(source).toContain("This week");
+    expect(source).toContain("Next clean trip");
+    expect(source).toContain("Trips you touched on this device");
+    expect(source).not.toContain("dashboard");
+    expect(source).not.toContain("analytics");
   });
 
   it("mounts the shared readiness rail on player profiles with local bank detection", () => {

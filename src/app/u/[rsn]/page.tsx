@@ -11,6 +11,7 @@ import { skillSpriteUrl } from "@/lib/sprites";
 import { pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
 import { bankOrganizerHref } from "@/lib/bank-handoff-url";
 import { getSyncedPlayer, type SyncedPlayer, type SyncDeltaSummary } from "@/lib/sync-repo";
+import { WeeklyRecap } from "./weekly-recap";
 
 interface Props {
   params: Promise<{ rsn: string }>;
@@ -58,9 +59,9 @@ export default async function PlayerProfile({ params }: Props) {
   const synced = await getSyncedPlayer(hi.name);
 
   return (
-    <main className="relative z-10 mx-auto max-w-5xl px-5 py-8 pb-20">
+    <main className="relative z-10 mx-auto w-full max-w-5xl overflow-x-hidden px-4 py-8 pb-20 sm:px-5">
       {/* Hero card */}
-      <section className="relative overflow-hidden rounded-2xl p-6 mb-6 animate-[slide-up_0.35s_ease-out]"
+      <section className="relative mb-6 max-w-full overflow-hidden rounded-2xl p-5 animate-[slide-up_0.35s_ease-out] sm:p-6"
         style={{
           background: "linear-gradient(135deg, var(--color-osrs-wood) 0%, var(--color-osrs-wood-dark) 100%)",
           border: "2px solid var(--color-osrs-wood-edge)",
@@ -74,7 +75,7 @@ export default async function PlayerProfile({ params }: Props) {
         <div className="absolute inset-0 pointer-events-none opacity-[0.04]"
           style={{ backgroundImage: "repeating-linear-gradient(0deg, #fff 0 1px, transparent 1px 4px)" }} />
 
-        <div className="relative flex flex-col sm:flex-row items-start sm:items-end gap-6">
+        <div className="relative flex min-w-0 flex-col items-start gap-6 sm:flex-row sm:items-end">
           <div className="flex-1 min-w-0">
             <div className="text-[10px] uppercase tracking-[0.25em] font-bold text-[var(--color-gold-soft)] mb-1">
               Old School RuneScape
@@ -86,7 +87,7 @@ export default async function PlayerProfile({ params }: Props) {
               }}>
               {hi.name}
             </h1>
-            <div className="flex flex-wrap gap-3 text-[12.5px]">
+            <div className="flex min-w-0 flex-wrap gap-3 text-[12.5px]">
               <Stat icon={Shield} label="Combat" value={String(cb)} />
               <Stat icon={Trophy} label="Total" value={total.toLocaleString()} />
               <Stat icon={Sparkles} label="XP" value={formatXp(xp)} />
@@ -95,11 +96,11 @@ export default async function PlayerProfile({ params }: Props) {
               )}
             </div>
           </div>
-          <div className="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
+          <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto sm:shrink-0 sm:justify-end">
             <Link
               href={profileNextHref}
               className={cn(
-                "inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[13px] font-bold",
+                "inline-flex min-w-0 items-center gap-1.5 rounded-xl px-4 py-2 text-[13px] font-bold",
                 "bg-gradient-to-b from-[oklch(0.92_0.14_85)] to-[oklch(0.62_0.16_65)]",
                 "text-[oklch(0.15_0.02_50)] border border-[oklch(0.46_0.13_60)]",
                 "shadow-[0_3px_0_oklch(0_0_0/0.5),inset_0_1px_0_oklch(1_0_0/0.3)]",
@@ -111,7 +112,7 @@ export default async function PlayerProfile({ params }: Props) {
             <Link
               href={pluginHref}
               className={cn(
-                "inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[13px] font-bold",
+                "inline-flex min-w-0 items-center gap-1.5 rounded-xl px-4 py-2 text-[13px] font-bold",
                 "border border-[var(--color-border)] bg-[var(--color-panel)]/80 text-[var(--color-text)]",
                 "hover:border-[var(--color-gold)]/60 hover:text-[var(--color-gold)] transition-colors"
               )}
@@ -128,6 +129,12 @@ export default async function PlayerProfile({ params }: Props) {
         pluginHref={pluginHref}
         bankHref={bankHref}
         synced={synced}
+      />
+
+      <WeeklyRecap
+        rsn={hi.name}
+        nextHref={profileNextHref}
+        syncXpLine={profileSyncXpLine(synced?.lastSyncSummary ?? null)}
       />
 
       {/* Bank summary if locally available */}
@@ -192,6 +199,7 @@ function AccountHomeBoard({
     <section
       className={cn(
         "mb-6 rounded-2xl border border-[var(--color-gold)]/45 p-4 sm:p-5",
+        "max-w-full overflow-hidden",
         "bg-gradient-to-br from-[var(--color-osrs-wood)] to-[var(--color-bg)]",
         "shadow-[0_24px_70px_-45px_oklch(0.74_0.13_75/0.8)]"
       )}
@@ -279,7 +287,7 @@ function ProfileQuickAction({
   return (
     <Link
       href={href}
-      className="group rounded-xl border border-[var(--color-border)] bg-black/16 p-3 transition-colors hover:border-[var(--color-gold)]/55 hover:bg-[var(--color-gold)]/8"
+      className="group min-w-0 rounded-xl border border-[var(--color-border)] bg-black/16 p-3 transition-colors hover:border-[var(--color-gold)]/55 hover:bg-[var(--color-gold)]/8"
     >
       <div className="mb-2 flex items-center gap-2">
         <Icon className="size-4 text-[var(--color-gold)]" />
@@ -331,6 +339,18 @@ function profileWhatChangedLines(summary: SyncDeltaSummary | null): string[] {
   return lines.slice(0, 5);
 }
 
+function profileSyncXpLine(summary: SyncDeltaSummary | null): string | null {
+  if (!summary) return null;
+  const xpGained = summary.skills.reduce((sum, skill) => sum + Math.max(0, skill.xpGained), 0);
+  if (xpGained <= 0) return null;
+  const topSkill = summary.skills
+    .filter((skill) => skill.xpGained > 0)
+    .sort((a, b) => b.xpGained - a.xpGained)[0];
+  return topSkill
+    ? `${formatXp(xpGained)} XP since last scan; biggest move was ${topSkill.name}.`
+    : `${formatXp(xpGained)} XP since last scan.`;
+}
+
 function nextUrlForProfile(rsn: string): string {
   const params = new URLSearchParams();
   const cleanRsn = rsn.trim();
@@ -341,10 +361,10 @@ function nextUrlForProfile(rsn: string): string {
 
 function Stat({ icon: Icon, label, value }: { icon?: React.ComponentType<{ className?: string }>; label: string; value: string }) {
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex min-w-0 items-center gap-1.5">
       {Icon && <Icon className="size-3.5 text-[var(--color-gold-soft)]" />}
-      <span className="text-[var(--color-text-dim)]/80">{label}</span>
-      <span className="font-mono font-bold text-[var(--color-text)]">{value}</span>
+      <span className="shrink-0 text-[var(--color-text-dim)]/80">{label}</span>
+      <span className="min-w-0 truncate font-mono font-bold text-[var(--color-text)]">{value}</span>
     </div>
   );
 }
