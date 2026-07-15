@@ -294,8 +294,10 @@ export async function POST(req: Request): Promise<Response> {
     });
     syncedAt = result.syncedAt;
     syncSummary = result.syncSummary;
-  } catch {
-    console.error("upsertSyncedPlayer failed");
+  } catch (error) {
+    console.error("upsertSyncedPlayer failed", error instanceof Error
+      ? { name: error.name, message: error.message }
+      : { error: String(error) });
     return json(
       { ok: false, error: "Sync failed — try again later" },
       { status: 500 }

@@ -64,7 +64,10 @@ describe("sync schema migrations", () => {
     }
     expect(SCHEMA_SQL).toContain("UNIQUE(account_id, checksum)");
     expect(SCHEMA_SQL).toContain("sync_snapshot_latest_idx");
-    expect(SCHEMA_SQL).toContain("sync_snapshot_no_update");
+    expect(SCHEMA_SQL).toContain("CREATE OR REPLACE FUNCTION prevent_immutable_history_update()");
+    expect(SCHEMA_SQL).toContain("DROP RULE IF EXISTS sync_snapshot_no_update ON sync_snapshot");
+    expect(SCHEMA_SQL).toContain("CREATE TRIGGER sync_snapshot_no_update BEFORE UPDATE ON sync_snapshot");
+    expect(SCHEMA_SQL).not.toContain("CREATE OR REPLACE RULE");
     expect(SCHEMA_SQL).toContain("ALTER TABLE sync_snapshot ADD COLUMN IF NOT EXISTS boss_kc");
     expect(SCHEMA_SQL).toContain("ALTER TABLE sync_snapshot ADD COLUMN IF NOT EXISTS availability");
     expect(SCHEMA_SQL).toContain("ALTER TABLE sync_snapshot ADD COLUMN IF NOT EXISTS delta");

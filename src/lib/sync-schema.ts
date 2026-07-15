@@ -128,7 +128,10 @@ ALTER TABLE sync_snapshot ADD COLUMN IF NOT EXISTS boss_kc JSONB;
 ALTER TABLE sync_snapshot ADD COLUMN IF NOT EXISTS availability JSONB NOT NULL DEFAULT '{}'::jsonb;
 ALTER TABLE sync_snapshot ADD COLUMN IF NOT EXISTS delta JSONB NOT NULL DEFAULT '{}'::jsonb;
 CREATE INDEX IF NOT EXISTS sync_snapshot_latest_idx ON sync_snapshot(account_id, captured_at DESC, snapshot_id DESC);
-CREATE OR REPLACE RULE sync_snapshot_no_update AS ON UPDATE TO sync_snapshot DO INSTEAD NOTHING;
+CREATE OR REPLACE FUNCTION prevent_immutable_history_update() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'immutable history rows cannot be updated'; RETURN OLD; END; $$;
+DROP RULE IF EXISTS sync_snapshot_no_update ON sync_snapshot;
+DROP TRIGGER IF EXISTS sync_snapshot_no_update ON sync_snapshot;
+CREATE TRIGGER sync_snapshot_no_update BEFORE UPDATE ON sync_snapshot FOR EACH ROW EXECUTE FUNCTION prevent_immutable_history_update();
 
 CREATE TABLE IF NOT EXISTS recommendation_decision (
   decision_id BIGSERIAL PRIMARY KEY,
@@ -143,7 +146,9 @@ CREATE TABLE IF NOT EXISTS recommendation_decision (
   decided_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS recommendation_decision_account_idx ON recommendation_decision(account_id, decided_at DESC);
-CREATE OR REPLACE RULE recommendation_decision_no_update AS ON UPDATE TO recommendation_decision DO INSTEAD NOTHING;
+DROP RULE IF EXISTS recommendation_decision_no_update ON recommendation_decision;
+DROP TRIGGER IF EXISTS recommendation_decision_no_update ON recommendation_decision;
+CREATE TRIGGER recommendation_decision_no_update BEFORE UPDATE ON recommendation_decision FOR EACH ROW EXECUTE FUNCTION prevent_immutable_history_update();
 
 CREATE TABLE IF NOT EXISTS trip_lifecycle_event (
   event_id BIGSERIAL PRIMARY KEY,
@@ -157,7 +162,9 @@ CREATE TABLE IF NOT EXISTS trip_lifecycle_event (
   occurred_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS trip_lifecycle_event_account_idx ON trip_lifecycle_event(account_id, occurred_at DESC);
-CREATE OR REPLACE RULE trip_lifecycle_event_no_update AS ON UPDATE TO trip_lifecycle_event DO INSTEAD NOTHING;
+DROP RULE IF EXISTS trip_lifecycle_event_no_update ON trip_lifecycle_event;
+DROP TRIGGER IF EXISTS trip_lifecycle_event_no_update ON trip_lifecycle_event;
+CREATE TRIGGER trip_lifecycle_event_no_update BEFORE UPDATE ON trip_lifecycle_event FOR EACH ROW EXECUTE FUNCTION prevent_immutable_history_update();
 
 CREATE TABLE IF NOT EXISTS outcome_match (
   outcome_id BIGSERIAL PRIMARY KEY,
@@ -170,7 +177,9 @@ CREATE TABLE IF NOT EXISTS outcome_match (
   UNIQUE(snapshot_id, recommendation_id, evidence_type)
 );
 CREATE INDEX IF NOT EXISTS outcome_match_account_idx ON outcome_match(account_id, matched_at DESC);
-CREATE OR REPLACE RULE outcome_match_no_update AS ON UPDATE TO outcome_match DO INSTEAD NOTHING;
+DROP RULE IF EXISTS outcome_match_no_update ON outcome_match;
+DROP TRIGGER IF EXISTS outcome_match_no_update ON outcome_match;
+CREATE TRIGGER outcome_match_no_update BEFORE UPDATE ON outcome_match FOR EACH ROW EXECUTE FUNCTION prevent_immutable_history_update();
 
 CREATE TABLE IF NOT EXISTS account_preference_event (
   preference_event_id BIGSERIAL PRIMARY KEY,
@@ -182,7 +191,9 @@ CREATE TABLE IF NOT EXISTS account_preference_event (
   chosen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS account_preference_event_account_idx ON account_preference_event(account_id, chosen_at DESC);
-CREATE OR REPLACE RULE account_preference_event_no_update AS ON UPDATE TO account_preference_event DO INSTEAD NOTHING;
+DROP RULE IF EXISTS account_preference_event_no_update ON account_preference_event;
+DROP TRIGGER IF EXISTS account_preference_event_no_update ON account_preference_event;
+CREATE TRIGGER account_preference_event_no_update BEFORE UPDATE ON account_preference_event FOR EACH ROW EXECUTE FUNCTION prevent_immutable_history_update();
 
 CREATE TABLE IF NOT EXISTS account_retention (
   account_id UUID PRIMARY KEY REFERENCES account_identity(account_id) ON DELETE CASCADE,
