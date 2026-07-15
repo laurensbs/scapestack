@@ -178,11 +178,15 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("Bring food");
     expect(source).not.toContain("Pick a teleport");
     expect(source).toContain("function NextTripCard");
+    expect(source).toContain("function RouteChainScroll");
+    expect(source).toContain('data-route-chain-scroll="true"');
+    expect(source).toContain("<RouteChainScroll rec={rec} />");
+    expect(source).toContain("rec.routeChain?.steps");
     expect(source).toContain("tripBankItems");
     expect(source).not.toContain("Copy Bank Tag");
     expect(source).not.toContain("Add bank to build a Bank Tag.");
     expect(source).toContain("Best teleport near the first step");
-    expect(source).not.toContain("Do this first");
+    expect(source).toContain("{step.label}");
     expect(source).not.toContain("Why this pick:");
     expect(source).toContain("function headlineOneLineReason");
     expect(source).not.toContain("const reason = headlineOneLineReason(rec);");

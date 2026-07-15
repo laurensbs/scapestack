@@ -4473,6 +4473,8 @@ function NextTripCard({
             ))}
           </dl>
 
+          <RouteChainScroll rec={rec} />
+
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {isBossWithDetail && rec.bossSlug ? (
               <button
@@ -4508,6 +4510,34 @@ function NextTripCard({
         </div>
       </div>
     </article>
+  );
+}
+
+function RouteChainScroll({ rec }: { rec: Recommendation }) {
+  const steps = rec.routeChain?.steps ?? [];
+  if (steps.length === 0) return null;
+
+  return (
+    <section
+      className="mt-4 rounded-lg border border-[var(--color-accent)]/24 bg-[linear-gradient(135deg,rgba(214,170,72,0.10),rgba(0,0,0,0.16))] px-3 py-3"
+      data-route-chain-scroll="true"
+    >
+      <ol className="grid gap-2 sm:grid-cols-4">
+        {steps.slice(0, 4).map((step, index) => (
+          <li key={`${rec.id}:route-chain:${step.label}`} className="min-w-0">
+            <div className="mb-1 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.13em] text-[var(--color-accent)]">
+              <span className="grid size-5 shrink-0 place-items-center rounded-full border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[10px]">
+                {index + 1}
+              </span>
+              <span className="truncate">{step.label}</span>
+            </div>
+            <p className="text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+              {step.text}
+            </p>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 

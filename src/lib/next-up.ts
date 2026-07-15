@@ -125,6 +125,17 @@ export interface RecommendationActionPlan {
   caveat?: string;
 }
 
+export type RecommendationRouteChainLabel = "Do this first" | "After that" | "If blocked" | "Next login";
+
+export interface RecommendationRouteChainStep {
+  label: RecommendationRouteChainLabel;
+  text: string;
+}
+
+export interface RecommendationRouteChain {
+  steps: RecommendationRouteChainStep[];
+}
+
 export interface Recommendation {
   id: string;             // stable key
   kind: RecKind;
@@ -150,6 +161,8 @@ export interface Recommendation {
    *  render on every rec kind, but concrete enough that /next feels like an
    *  OSRS decision engine instead of a list of vague tips. */
   actionPlan?: RecommendationActionPlan;
+  /** Short session chain shown as one flow, not as a dashboard. */
+  routeChain?: RecommendationRouteChain;
   /** Internal engine seed for data-specific plans. Stripped after enrichment
    *  so the UI only sees the normalized actionPlan shape. */
   planSeed?: RecommendationPlanSeed;
@@ -3093,6 +3106,89 @@ function actionPlanFor(rec: Recommendation, ctx: ActionPlanContext): Recommendat
   }
 }
 
+function cleanRouteChainLine(value: string | null | undefined, fallback: string): string {
+  const clean = (value ?? "").replace(/\s+/g, " ").trim();
+  return clean || fallback;
+}
+
+function routeChainAfterThat(rec: Recommendation): string {
+  switch (rec.kind) {
+    case "skill":
+      return "Stop when the level or unlock lands; the next route should change after that.";
+    case "boss":
+      return "If the first trip feels clean, turn it into a small KC block.";
+    case "kc":
+      return "Finish the KC block you chose before chasing another drop.";
+    case "diary":
+      return "Claim the reward, then let completed diary steps disappear from the plan.";
+    case "quest":
+      return "Take the reward and check which diary, boss or travel unlock opened.";
+    case "slayer":
+      return "Finish the task block, then let the next assignment change the route.";
+    case "money":
+      return "Bank the profit and spend it only if it unlocks the next trip.";
+    case "bank":
+      return "Copy the cleaned tabs into RuneLite, then plan the next trip from that bank.";
+    case "goal":
+      return "When the missing piece is done, move to the next closest set.";
+    case "minigame":
+      return "Stop after the reward target, not after an endless queue.";
+    case "milestone":
+      return "Clear one blocker, then re-rank the account arc.";
+  }
+}
+
+function routeChainIfBlocked(rec: Recommendation, ctx: ActionPlanContext, plan: RecommendationActionPlan): string {
+  if (!ctx.hasBank && (rec.kind === "boss" || rec.kind === "kc" || rec.kind === "slayer")) {
+    return "Add bank before buying upgrades or committing to a longer trip.";
+  }
+  if (!ctx.hasPluginSync && (rec.kind === "quest" || rec.kind === "diary" || rec.kind === "slayer")) {
+    return "Use RuneLite later if finished quests, diary tiers or Slayer state might change this.";
+  }
+  if (ctx.hasPluginSync && !ctx.hasExactPluginSync && (rec.kind === "quest" || rec.kind === "diary" || rec.kind === "slayer")) {
+    return "Refresh RuneLite before relying on finished quests, diary tiers, clog or Slayer.";
+  }
+  if (
+    plan.caveat &&
+    !/payload|signals|readiness|data source|Plugin Hub|PR|exact account state|Scapestack Sync has this RSN/i.test(plan.caveat)
+  ) {
+    return plan.caveat;
+  }
+  if (rec.kind === "skill") return "If supplies run out, switch to a backup and keep the stop point.";
+  if (rec.kind === "money") return "If prices moved, pick a safer GP backup instead of forcing it.";
+  if (rec.kind === "bank") return "If the layout feels wrong, save nothing and keep the old bank.";
+  return "If this feels wrong, pick a backup without resetting the whole account route.";
+}
+
+function routeChainNextLogin(ctx: ActionPlanContext): string {
+  if (ctx.hasExactPluginSync) {
+    return "Press Sync in RuneLite; Scapestack will skip finished stuff next login.";
+  }
+  if (ctx.hasPluginSync) {
+    return "Refresh RuneLite before a long grind so the next pick does not repeat finished work.";
+  }
+  if (ctx.hasBank) {
+    return "Open Scapestack again after the stop point; update bank only if gear or supplies changed.";
+  }
+  return "Open Scapestack again after the stop point; your skips and done picks shape the next route.";
+}
+
+function routeChainFor(
+  rec: Recommendation,
+  plan: RecommendationActionPlan,
+  ctx: ActionPlanContext
+): RecommendationRouteChain {
+  const first = cleanRouteChainLine(plan.steps[0] ?? plan.prep, "Start the first useful step for this account.");
+  return {
+    steps: [
+      { label: "Do this first", text: first },
+      { label: "After that", text: routeChainAfterThat(rec) },
+      { label: "If blocked", text: routeChainIfBlocked(rec, ctx, plan) },
+      { label: "Next login", text: routeChainNextLogin(ctx) }
+    ]
+  };
+}
+
 function decisionReasonFor(rec: Recommendation, ctx: ActionPlanContext): string {
   if (rec.decisionReason) return rec.decisionReason;
   if (ctx.hasExactPluginSync && (rec.kind === "quest" || rec.kind === "diary" || rec.kind === "kc" || rec.kind === "slayer")) {
@@ -3113,9 +3209,11 @@ function withActionPlans(recs: Recommendation[], ctx: ActionPlanContext): Recomm
       gearConfidence: _gearConfidence,
       ...clean
     } = rec;
+    const actionPlan = actionPlanFor(rec, ctx);
     return {
       ...clean,
-      actionPlan: actionPlanFor(rec, ctx),
+      actionPlan,
+      routeChain: routeChainFor(clean, actionPlan, ctx),
       decisionReason: decisionReasonFor(clean, ctx)
     };
   });

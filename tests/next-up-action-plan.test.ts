@@ -39,6 +39,13 @@ describe("next-up action plans", () => {
     expect(result.headline?.actionPlan).toBeTruthy();
     expect(result.headline?.actionPlan?.steps.length).toBeGreaterThanOrEqual(2);
     expect(result.headline?.actionPlan?.timebox).toBeTruthy();
+    expect(result.headline?.routeChain?.steps.map((step) => step.label)).toEqual([
+      "Do this first",
+      "After that",
+      "If blocked",
+      "Next login"
+    ]);
+    expect(result.headline?.routeChain?.steps[0].text).toBeTruthy();
     expect("planSeed" in result.headline!).toBe(false);
   });
 
@@ -61,6 +68,43 @@ describe("next-up action plans", () => {
     expect(text).toContain("rsn=Lynx+Titan");
     expect(text).toContain("from=next");
     expect(text).toContain("Optional:");
+  });
+
+  it("builds a short route chain that uses RuneLite as quiet context", async () => {
+    const result = await computeNextUp({
+      skills: skillsFromLevels({ Attack: 85, Strength: 85, Defence: 85, Hitpoints: 85, Ranged: 90, Magic: 90, Slayer: 80 }),
+      questPoints: 180,
+      scapestackSync: {
+        displayName: "Lauky",
+        accountType: "normal",
+        questsCompleted: ["Dragon Slayer II"],
+        diariesCompleted: [{ region: "Karamja", tier: "Hard" }],
+        collectionLogItemIds: [],
+        bankStatus: { enabled: false, itemCount: 0, capturedAt: null, unavailableReason: "opt-in-off" },
+        lastSyncSummary: null,
+        slayer: null
+      },
+      syncedSources: {
+        wom: false,
+        temple: false,
+        collectionLog: false,
+        scapestack: {
+          syncedAt: new Date().toISOString(),
+          quests: 1,
+          diaries: 1,
+          clItems: 0,
+          pluginVersion: "0.2.0",
+          bankStatus: { enabled: false, itemCount: 0, capturedAt: null, unavailableReason: "opt-in-off" },
+          lastSyncSummary: null
+        }
+      }
+    });
+
+    const chain = result.headline?.routeChain?.steps ?? [];
+    expect(chain).toHaveLength(4);
+    expect(chain[3].label).toBe("Next login");
+    expect(chain[3].text).toContain("Press Sync in RuneLite");
+    expect(chain.map((step) => step.text).join(" ")).not.toMatch(/payload|signals|readiness|data source/i);
   });
 
   it("formats the top recommendations as one copyable session plan", async () => {
