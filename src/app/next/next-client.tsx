@@ -23,7 +23,7 @@ import { organizeAction, nextUpAction, hiscoresAction, womAction, collectionLogA
 import { type HiscoreSkill } from "@/lib/hiscores";
 import { unlockedFromHiscores, GOAL_SETS, normaliseCompletion, type SetCompletion } from "@/lib/goals";
 import type { HoursToMaxSummary } from "@/lib/hours-to-max";
-import { getActiveAccount } from "@/lib/account-storage";
+import { getActiveAccount, markAccountPluginBankStatus } from "@/lib/account-storage";
 import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
 import { track } from "@/lib/analytics";
 import type { Recommendation, RecKind, NextUpInput, NextUpResult, NextBestAction } from "@/lib/next-up";
@@ -225,6 +225,8 @@ type NextRunOptions = {
   minutes?: TimeBudget;
 };
 
+type NextBankSource = "none" | "browser" | "handoff" | "plugin";
+
 type InitialRouteChoice = {
   routeLens: RouteLens;
   mood: Mood;
@@ -325,6 +327,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
   const [savedBank, setSavedBank] = useState<SavedBank | null>(null);
   const [savedRsn, setSavedRsn] = useState<string | null>(null);
   const [activeBankItems, setActiveBankItems] = useState<BankHandoffItem[]>([]);
+  const [activeBankSource, setActiveBankSource] = useState<NextBankSource>("none");
   const [activeRsn, setActiveRsn] = useState("");
   const [initialRouteChoice, setInitialRouteChoice] = useState<InitialRouteChoice | null>(null);
   const routeIntent = useMemo(
@@ -345,6 +348,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
   const run = (opts: NextRunOptions) => {
     setError(null);
     setActiveBankItems([]);
+    setActiveBankSource("none");
     // Fire the funnel event *before* the async work — Plausible is
     // fire-and-forget; we don't want the await chain in front of it.
     track("next:submit", {
@@ -431,6 +435,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
       // empty. organizeAction is only called for the paste-string path.
       const handoffItems = opts.bankItems ?? [];
       let bankItemsForContext = handoffItems;
+      let bankSource: NextBankSource = handoffItems.length > 0 ? "handoff" : "none";
       let bank: Array<{ id: number; name: string; quantity?: number }> = nextUpBankFromHandoff(handoffItems);
       // ownedGear needs richer OrganizedItem-shaped entries. The /bank
       // handoff now carries quantity/value/subtab metadata, so boss detail
@@ -448,6 +453,10 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
         bank = flat.map((it) => ({ id: it.id, name: it.name, quantity: it.quantity }));
         gearItems = ownedGear(flat);
         bankItemsForContext = bankHandoffItemsFromTabs(bankRes.result.tabs);
+        bankSource = "browser";
+      }
+      if (rsn && scapestackSync) {
+        markAccountPluginBankStatus(rsn, scapestackSync.bankStatus);
       }
       if (bank.length === 0 && scapestackSync?.bankItems?.length) {
         bank = scapestackSync.bankItems.map((item) => ({
@@ -457,9 +466,11 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
         }));
         bankItemsForContext = bankHandoffItemsFromBankItems(bank, "RuneLite bank sync");
         gearItems = ownedGear(asOrganizedItems(bank));
+        bankSource = "plugin";
       }
       setOwnedGearItems(gearItems);
       setActiveBankItems(bankItemsForContext);
+      setActiveBankSource(bankSource);
       if (bankItemsForContext.length > 0 && typeof window !== "undefined") {
         try {
           persistBankHandoffPayloadFromItems(bankItemsForContext, window);
@@ -693,6 +704,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
       <ResultView
         result={result}
         bankItems={activeBankItems}
+        bankSource={activeBankSource}
         activeRsn={activeRsn}
         onEdit={() => setView("intake")}
         onClearStoredBankHandoff={clearStoredBankHandoff}
@@ -1212,9 +1224,10 @@ function NextIntake({
   );
 }
 
-function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearStoredBankHandoff, expectedPluginSync, routeIntent, initialRouteChoice }: {
+function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOpen, onClearStoredBankHandoff, expectedPluginSync, routeIntent, initialRouteChoice }: {
   result: NextUpResult;
   bankItems: BankHandoffItem[];
+  bankSource: NextBankSource;
   activeRsn: string;
   onEdit: () => void;
   // Called when the user clicks a KC-rec to open the boss detail modal.
@@ -1324,6 +1337,7 @@ function ResultView({ result, bankItems, activeRsn, onEdit, onBossOpen, onClearS
               summary={summary}
               basisNote={basisNote}
               bankItems={bankItems}
+              bankSource={bankSource}
               activeRsn={activeRsn}
               pluginSyncState={pluginSyncState}
               expectedPluginSync={expectedPluginSync}
@@ -1813,6 +1827,7 @@ function MakePlanSmarter({
   summary,
   basisNote,
   bankItems,
+  bankSource,
   activeRsn,
   pluginSyncState,
   expectedPluginSync,
@@ -1823,6 +1838,7 @@ function MakePlanSmarter({
   summary: NextUpResult["summary"];
   basisNote: string;
   bankItems: BankHandoffItem[];
+  bankSource: NextBankSource;
   activeRsn: string;
   pluginSyncState: "live" | "stale" | "outdated" | null;
   expectedPluginSync: boolean;
@@ -1920,6 +1936,7 @@ function MakePlanSmarter({
         )}
         <NextBankContextStrip
           bankItems={bankItems}
+          bankSource={bankSource}
           basis={summary.basis}
           activeRsn={activeRsn}
           pluginSyncState={pluginSyncState}
@@ -1966,12 +1983,14 @@ function PlanInputTile({
 
 function NextBankContextStrip({
   bankItems,
+  bankSource,
   basis,
   activeRsn,
   pluginSyncState,
   onClearStoredBankHandoff
 }: {
   bankItems: BankHandoffItem[];
+  bankSource: NextBankSource;
   basis: NextUpResult["summary"]["basis"];
   activeRsn: string;
   pluginSyncState: "live" | "stale" | "outdated" | null;
@@ -1983,8 +2002,18 @@ function NextBankContextStrip({
 
   const hasLivePluginSync = pluginSyncState === "live";
   const hasPluginSync = pluginSyncState !== null;
+  const isPluginBank = bankSource === "plugin";
+  const bankLabel = isPluginBank
+    ? "RuneLite bank"
+    : hasPluginSync
+      ? "Bank + RuneLite"
+      : "Bank added";
   const basisCopy =
-    hasLivePluginSync && bankItems.length > 0
+    isPluginBank && hasLivePluginSync
+      ? "RuneLite bank is shaping gear, supplies and GP for this plan."
+      : isPluginBank
+        ? "RuneLite bank is loaded. Refresh RuneLite if your bank changed."
+        : hasLivePluginSync && bankItems.length > 0
       ? "Bank and finished progress are both shaping this pick."
       : pluginSyncState === "stale"
         ? "Last scan needs a refresh before a long grind or GP spend."
@@ -2014,7 +2043,7 @@ function NextBankContextStrip({
           </span>
           <div className="min-w-0">
             <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              {hasPluginSync ? "Bank + RuneLite" : "Bank added"}
+              {bankLabel}
             </div>
             {hasPluginSync && (
               <div className={cn(
@@ -2033,8 +2062,10 @@ function NextBankContextStrip({
               {basisCopy}
             </p>
             <p className="mt-1 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
-              This bank stays in this browser. Clear it when you want Scapestack to ignore this bank.
-              {handoffCleared ? " Stored bank cleared; this current result keeps the plan it already made until you rerun." : ""}
+              {isPluginBank
+                ? "RuneLite sent your bank items and quantities. Press Sync again when your bank changes."
+                : "This bank stays in this browser and expires automatically. Clear it when you want Scapestack to ignore this bank."}
+              {!isPluginBank && handoffCleared ? " Stored bank cleared; this current result keeps the plan it already made until you rerun." : ""}
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               {context.summary.topItems.map((item) => (
@@ -2069,17 +2100,19 @@ function NextBankContextStrip({
             Review bank
             <ArrowRight className="size-3.5" />
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              onClearStoredBankHandoff();
-              setHandoffCleared(true);
-            }}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-danger)]/45 hover:text-[var(--color-danger)]"
-          >
-            Clear bank
-            <Trash2 className="size-3.5" />
-          </button>
+          {!isPluginBank && (
+            <button
+              type="button"
+              onClick={() => {
+                onClearStoredBankHandoff();
+                setHandoffCleared(true);
+              }}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-danger)]/45 hover:text-[var(--color-danger)]"
+            >
+              Clear bank
+              <Trash2 className="size-3.5" />
+            </button>
+          )}
           <Link
             href={toolHandoffUrl("/dps", "next", activeRsn)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"

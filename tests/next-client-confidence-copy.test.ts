@@ -669,14 +669,20 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("const pluginSyncState = pluginSyncSummary?.state ?? null;");
     expect(source).toContain("pluginSyncState={pluginSyncState}");
     expect(source).toContain("pluginSyncSummary={pluginSyncSummary}");
+    expect(source).toContain("bankSource={bankSource}");
+    expect(source).toContain("bankSource: NextBankSource");
     expect(source).toContain('pluginSyncState: "live" | "stale" | "outdated" | null;');
     expect(source).toContain("pluginSyncSummary: NextPluginSyncSummary | null;");
     expect(source).toContain("const hasLivePluginSync = pluginSyncState === \"live\";");
-    expect(source).toContain("hasLivePluginSync && bankItems.length > 0");
+    expect(source).toContain("const isPluginBank = bankSource === \"plugin\";");
+    expect(source).toContain("const bankLabel = isPluginBank");
+    expect(source).toContain("RuneLite bank");
+    expect(source).toContain("RuneLite bank is shaping gear, supplies and GP for this plan.");
+    expect(source).toContain("RuneLite sent your bank items and quantities. Press Sync again when your bank changes.");
     expect(source).toContain("Bank and finished progress are both shaping this pick.");
     expect(source).not.toContain("verified RuneLite account payload");
     expect(source).toContain("RuneLite is connected, but update it before trusting newer details.");
-    expect(source).toContain("{hasPluginSync ? \"Bank + RuneLite\" : \"Bank added\"}");
+    expect(source).toContain("{bankLabel}");
     expect(source).toContain("Bank + RuneLite");
     expect(source).not.toContain("Exact fusion");
     expect(source).toContain("Update RuneLite");
@@ -738,8 +744,11 @@ describe("/next confidence UI copy", () => {
   it("uses real Scapestack sync skills and bank items before falling back to empty context", () => {
     expect(source).toContain("function syncedSkillsToHiscoreSkills");
     expect(source).toContain("hiscores?.skills ?? syncedSkillsToHiscoreSkills(scapestackSync?.skills)");
+    expect(source).toContain("markAccountPluginBankStatus(rsn, scapestackSync.bankStatus)");
     expect(source).toContain("if (bank.length === 0 && scapestackSync?.bankItems?.length)");
     expect(source).toContain('bankHandoffItemsFromBankItems(bank, "RuneLite bank sync")');
     expect(source).toContain("ownedGear(asOrganizedItems(bank))");
+    expect(source).toContain('bankSource = "plugin";');
+    expect(source).toContain("setActiveBankSource(bankSource)");
   });
 });
