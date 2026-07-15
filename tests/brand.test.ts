@@ -45,6 +45,7 @@ describe("Scapestack branding", () => {
     expect(BRAND_POSITIONING.antiPattern).toContain("player-facing screens about choices");
     expect(BRAND_VOICE_RULES.join(" ")).toContain("practical OSRS player language");
     expect(BRAND_VOICE_RULES.join(" ")).not.toContain("AI-powered");
+    expect(BRAND_THEME_COLOR).toBe("#030201");
   });
 
   it("defines player-facing routes and prompt chips", () => {
@@ -142,14 +143,19 @@ describe("Scapestack branding", () => {
     expect(globalsSource).toContain('--font-sans: "Atkinson Hyperlegible"');
     expect(globalsSource).toContain('--font-display: "Iowan Old Style"');
     expect(globalsSource).toContain("Scapestack style lock");
-    expect(globalsSource).toContain("Linear/Cron/Sunsama-inspired product");
+    expect(globalsSource).toContain("black/gold OSRS companion system");
+    expect(globalsSource).toContain("Chantlings/Wayfinder black canvas");
     expect(globalsSource).toContain(".scapestack-lock-panel");
     expect(globalsSource).toContain(".scapestack-lock-card");
     expect(globalsSource).toContain(".scapestack-lock-list");
     expect(globalsSource).toContain(".scapestack-command-button");
     expect(globalsSource).toContain(".scapestack-plan-panel");
     expect(globalsSource).toContain(".scapestack-session-list");
-    expect(globalsSource).toContain("oldschool black, parchment brown and OSRS gold");
+    expect(globalsSource).toContain("moonlit black, warm gold and parchment focus surfaces");
+    expect(globalsSource).toContain(".scapestack-modal");
+    expect(globalsSource).toContain(".scapestack-route-card");
+    expect(globalsSource).toContain(".scapestack-boss-tile");
+    expect(globalsSource).toContain(".scapestack-account-pill");
     expect(globalsSource).toContain("--color-parchment:");
     expect(globalsSource).toContain("--color-parchment-edge:");
     expect(globalsSource).toContain(".osrs-frame");

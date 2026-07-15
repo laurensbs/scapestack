@@ -48,8 +48,25 @@ describe("theme token regressions", () => {
   });
 
   it("keeps the canonical warning token on the gold brand palette", () => {
-    expect(globalsCss).toContain("--color-warning: #D6A63A;");
+    expect(globalsCss).toContain("--color-warning: #E0AE37;");
     expect(globalsCss).not.toContain("--color-warn:");
+  });
+
+  it("keeps the visual system on black, cream and gold instead of green success branding", () => {
+    expect(globalsCss).toContain("--color-bg: #030201;");
+    expect(globalsCss).toContain("--color-text: #F7EFE1;");
+    expect(globalsCss).toContain("--color-accent: #E0AE37;");
+    expect(globalsCss).toContain("--color-good: #E0AE37;");
+    expect(globalsCss).not.toContain("#00E29A");
+    expect(globalsCss).not.toMatch(/--color-good:\s*#(?:10|16|22|34|59|00)/i);
+  });
+
+  it("defines the shared visual primitives for the reset", () => {
+    expect(globalsCss).toContain(".scapestack-modal");
+    expect(globalsCss).toContain(".scapestack-route-card");
+    expect(globalsCss).toContain(".scapestack-boss-tile");
+    expect(globalsCss).toContain(".scapestack-account-pill");
+    expect(globalsCss).toContain(".scapestack-ghost-action");
   });
 
   it("defines every color token used by core UI surfaces", () => {

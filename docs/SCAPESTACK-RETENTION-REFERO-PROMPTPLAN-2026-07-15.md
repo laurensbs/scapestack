@@ -799,6 +799,16 @@ Verifieer, commit, push. Stop daarna.
 - Geen goedkope green SaaS look.
 - Mobile voelt primary, niet aangepast achteraf.
 
+Status 2026-07-15: uitgevoerd in fase 7. De globale theme tokens zijn
+verplaatst naar moonlit black, cream text en warm gold; green success styling is
+uit de brandkleur gehaald. `globals.css` bevat nu gedeelde primitives voor
+modal, route card, boss tile, account pill en ghost action. Header-account UI,
+boss tiles, bank/plugin/goals styling en sprite placeholders volgen dezelfde
+black/gold lock. De mobiele loader gebruikt nu 2x2 stappen en de app blokkeert
+horizontale overflow. Geverifieerd met homepage, /next, /dps, /bank, /goals en
+/plugin screenshots in `/tmp/scapestack-visual-reset-shots`, volledige
+`npm test`, `npm run typecheck` en `npm run build`.
+
 ---
 
 # Fase 8 - Retention Features: Weekly Recap + Shareable Trip

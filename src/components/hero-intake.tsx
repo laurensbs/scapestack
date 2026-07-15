@@ -453,7 +453,7 @@ export function HeroIntake() {
           disabled={!canSubmit}
           className={cn(
             "inline-flex h-13 w-full shrink-0 items-center justify-center gap-2 rounded-lg px-4",
-            "bg-[var(--color-accent)] text-[#0B0F0D] text-[14px] font-bold",
+            "bg-[var(--color-accent)] text-[#0B0906] text-[14px] font-bold",
             "shadow-[inset_0_1px_0_rgba(238,231,218,0.18),0_12px_24px_-18px_rgba(200, 154, 61,0.68)]",
             "transition-all duration-200 hover:bg-[var(--color-accent-soft)] hover:shadow-[inset_0_1px_0_rgba(238,231,218,0.2),0_16px_28px_-20px_rgba(200, 154, 61,0.78)] active:translate-y-px",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]",

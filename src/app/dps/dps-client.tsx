@@ -136,7 +136,7 @@ function DpsMissingSetupState({
         <button
           type="button"
           onClick={() => setBankModalOpen(true)}
-          className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-4 py-3 text-[13px] font-bold text-white transition-all hover:brightness-110 sm:w-auto"
+          className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-4 py-3 text-[13px] font-bold text-[#0B0906] transition-all hover:brightness-110 sm:w-auto"
         >
           Add bank
           <ExternalLink className="size-3.5" />
@@ -460,7 +460,7 @@ export function DpsClient() {
             </div>
             <Link
               href={setupBankHref}
-              className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-bold text-white transition-all hover:brightness-110 sm:w-auto"
+              className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-bold text-[#0B0906] transition-all hover:brightness-110 sm:w-auto"
             >
               Add bank
               <ExternalLink className="size-3.5" />
@@ -698,7 +698,7 @@ function BossCard({ boss, dps, accountType, isFocused, onOpen }: {
     <article
       id={`boss-${boss.slug}`}
       className={cn(
-        "scapestack-lock-card group min-h-[260px] w-full scroll-mt-24 p-0 text-left transition-all",
+        "scapestack-boss-tile group w-full scroll-mt-24 p-0 text-left",
         "hover:-translate-y-0.5",
         isFocused && "border-[var(--color-accent)]/55 shadow-[0_0_0_1px_rgba(240,176,44,0.22)]"
       )}>

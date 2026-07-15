@@ -727,7 +727,7 @@ function NextUnlockCompanion({
             <button
               type="button"
               onClick={onOpenSteps}
-              className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3 py-2 text-[12.5px] font-bold text-[#0B0F0D] transition-all hover:brightness-110 sm:w-auto"
+              className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3 py-2 text-[12.5px] font-bold text-[#0B0906] transition-all hover:brightness-110 sm:w-auto"
             >
               Open steps
               <ArrowRight className="size-3.5" />

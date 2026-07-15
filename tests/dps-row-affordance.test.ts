@@ -28,7 +28,7 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("<button\n        type=\"button\"\n        onClick={onOpen}");
     expect(source).toContain("aria-label={`Open ${boss.name} ${activity ? \"activity setup\" : \"kill setup\"} details`}");
     expect(source).toContain("title={`Open ${boss.name} ${activity ? \"activity setup\" : \"kill setup\"} details`}");
-    expect(source).toContain("group min-h-[260px] w-full");
+    expect(source).toContain("scapestack-boss-tile group w-full");
     expect(source).not.toContain('<span className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">{boss.slug}</span>');
     expect(source).toContain("grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3");
     expect(source).not.toContain("Open details");

@@ -4,9 +4,9 @@ export const BRAND_TAGLINE = "What can I do now in OSRS?";
 export const BRAND_SECONDARY_TAGLINE =
   "One next trip, items to grab, what is missing and when to stop.";
 export const BRAND_URL = "https://www.scapestack.org";
-export const BRAND_THEME_COLOR = "#0B0F0D";
-export const BRAND_ACCENT_COLOR = "#C89A3D";
-export const BRAND_BACKGROUND_COLOR = "#0B0F0D";
+export const BRAND_THEME_COLOR = "#030201";
+export const BRAND_ACCENT_COLOR = "#E0AE37";
+export const BRAND_BACKGROUND_COLOR = "#030201";
 export const BRAND_IMAGE_FONT_FAMILY = "Atkinson Hyperlegible, Avenir Next, Segoe UI, Arial, sans-serif";
 
 export const BRAND_DESCRIPTION =

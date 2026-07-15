@@ -58,11 +58,11 @@ export function ShuffleLoader({ label = "Building your next trip…" }: ShuffleL
         </div>
       </div>
 
-      <div className="mt-4 grid w-full grid-cols-4 gap-1.5">
+      <div className="mt-4 grid w-full grid-cols-2 gap-1.5 sm:grid-cols-4">
         {LOADER_STEPS.map((step, stepIdx) => (
           <div
             key={step}
-            className="rounded-full border border-[var(--color-border)] bg-[var(--color-panel)] px-2 py-2 text-[11px] font-bold text-[var(--color-text-dim)]"
+            className="min-w-0 rounded-full border border-[var(--color-border)] bg-[var(--color-panel)] px-2 py-2 text-[11px] font-bold text-[var(--color-text-dim)]"
           >
             <span className={stepIdx <= idx % LOADER_STEPS.length ? "text-[var(--color-accent)]" : ""}>
               {step}

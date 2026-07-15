@@ -309,7 +309,7 @@ function PasteBox() {
       <line x1="22" y1="36" x2="218" y2="36" stroke="#DED2BE" strokeWidth="0.5" />
       <text x="22" y="48" fontSize="7" fontFamily="ui-monospace, monospace" fill="#17211E">4151     Abyssal whip      1</text>
       <text x="22" y="60" fontSize="7" fontFamily="ui-monospace, monospace" fill="#17211E">11802    Armadyl godsword  1</text>
-      <text x="22" y="72" fontSize="7" fontFamily="ui-monospace, monospace" fill="#17211E">995      Coins        <tspan fill="#00E29A">12,345k</tspan></text>
+      <text x="22" y="72" fontSize="7" fontFamily="ui-monospace, monospace" fill="#17211E">995      Coins        <tspan fill="#E0AE37">12,345k</tspan></text>
       <text x="22" y="84" fontSize="7" fontFamily="ui-monospace, monospace" fill="#17211E">560      Death rune     5000</text>
       <text x="22" y="96" fontSize="7" fontFamily="ui-monospace, monospace" fill="#17211E">385      Shark           250</text>
       <text x="22" y="108" fontSize="7" fontFamily="ui-monospace, monospace" fill="#91A09A">…</text>

@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
-/*  Scapestack — oldschool black, parchment brown and OSRS gold.
-    The app should feel like an in-game choice window: dark outside, warm
-    wood/parchment panels, gold borders and obvious yellow actions.
+/*  Scapestack — moonlit black, warm gold and parchment focus surfaces.
+    The app should feel like an OSRS companion: black canvas, cream text,
+    quiet near-black app chrome, and gold only where the player can act.
 
     Critical implementation note: every accent-aware animation in the
     keyframes below uses literal rgba(...) calls, not CSS variables.
@@ -11,35 +11,35 @@
     the keyframe rgba values still match. */
 
 @theme {
-  /* Surfaces — black app chrome with OSRS parchment panels */
-  --color-bg: #050403;
-  --color-bg-2: #0B0906;
-  --color-panel: #1B1711;
-  --color-panel-2: #241D14;
-  --color-surface: #201910;
-  --color-border: #4B3F2A;
-  --color-border-strong: #8A7348;
-  --color-parchment: #2B2418;
-  --color-parchment-2: #352B1D;
-  --color-parchment-dark: #18130D;
-  --color-parchment-edge: #8A7348;
+  /* Surfaces — black app chrome, parchment reserved for focused dialogs */
+  --color-bg: #030201;
+  --color-bg-2: #070604;
+  --color-panel: #0E0B07;
+  --color-panel-2: #151008;
+  --color-surface: #120E09;
+  --color-border: #342918;
+  --color-border-strong: #7E6538;
+  --color-parchment: #2A2115;
+  --color-parchment-2: #372B1B;
+  --color-parchment-dark: #151008;
+  --color-parchment-edge: #8A7142;
 
   /* Text */
-  --color-text: #F5ECDD;
-  --color-text-secondary: #D9CEBA;
-  --color-text-dim: #AFA491;
-  --color-text-muted: #857B6A;
+  --color-text: #F7EFE1;
+  --color-text-secondary: #DDCFB8;
+  --color-text-dim: #B4A58D;
+  --color-text-muted: #8A7D69;
 
-  /* Brass is identity and primary action; blue is reserved for small RuneLite hints. */
-  --color-gold: #D6A63A;
-  --color-gold-soft: #F0CC72;
-  --color-gold-deep: #8A641C;
-  --color-accent: #D6A63A;
-  --color-accent-soft: #F0CC72;
-  --color-rune: #D6A63A;
+  /* Brass is identity and primary action. No green success theme. */
+  --color-gold: #E0AE37;
+  --color-gold-soft: #F3D27A;
+  --color-gold-deep: #8D641A;
+  --color-accent: #E0AE37;
+  --color-accent-soft: #F3D27A;
+  --color-rune: #E0AE37;
 
-  --color-good: #D6A63A;
-  --color-warning: #D6A63A;
+  --color-good: #E0AE37;
+  --color-warning: #E0AE37;
   --color-danger: #B76A57;
   --color-bad: #B76A57;
 
@@ -49,22 +49,22 @@
 
   /* Bank skeumorphic vars — tuned dark so bank/DPS stop feeling like
      separate products. */
-  --color-osrs-wood-dark: #18130D;
-  --color-osrs-wood: #2B2418;
-  --color-osrs-wood-light: #352B1D;
-  --color-osrs-wood-edge: #8A7348;
-  --color-osrs-bank-bg: #0B0906;
-  --color-osrs-bank-inner: #050403;
+  --color-osrs-wood-dark: #151008;
+  --color-osrs-wood: #2A2115;
+  --color-osrs-wood-light: #372B1B;
+  --color-osrs-wood-edge: #8A7142;
+  --color-osrs-bank-bg: #070604;
+  --color-osrs-bank-inner: #030201;
   --color-osrs-slot: #121212;
   --color-osrs-slot-edge: #464646;
   --color-osrs-slot-empty: #080808;
-  --color-osrs-slot-hover: #D6A63A;
+  --color-osrs-slot-hover: #E0AE37;
   --color-osrs-tab-active: #1B1B1B;
   --color-osrs-tab-inactive: #101010;
-  --color-osrs-title: #D6A63A;
-  --color-osrs-qty-yellow: #F0CC72;
+  --color-osrs-title: #E0AE37;
+  --color-osrs-qty-yellow: #F3D27A;
   --color-osrs-qty-white: #F5F1E8;
-  --color-osrs-qty-green: #D6A63A;
+  --color-osrs-qty-green: #E0AE37;
   --color-osrs-btn-red: #EF6A3A;
 
   /* Fonts — mature app typography with a restrained OSRS-adjacent serif accent. */
@@ -74,7 +74,7 @@
   --font-rs-small: "RuneScape Small", "Trebuchet MS", ui-sans-serif, system-ui, sans-serif;
 
   /* Shadows */
-  --shadow-glow: 0 18px 48px -32px rgba(200, 154, 61, 0.38);
+  --shadow-glow: 0 18px 48px -32px rgba(224, 174, 55, 0.38);
   --shadow-deep: 0 24px 70px -42px rgba(0, 0, 0, 0.78);
 
   /* Animations */
@@ -547,6 +547,8 @@
 
 html, body {
   height: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
@@ -589,13 +591,15 @@ code, pre, .font-mono {
 }
 
 body {
-  /* Oldschool game-window base: black edges, warm parchment glow in the middle. */
+  /* Oldschool companion base: black edges, one warm glow where the decision lives. */
   background:
-    radial-gradient(circle at 50% 18%, rgba(82, 63, 35, 0.20), transparent 38%),
-    linear-gradient(180deg, #080706 0%, #050403 48%, #0D0A06 100%),
+    radial-gradient(circle at 50% 14%, rgba(128, 95, 44, 0.15), transparent 34%),
+    radial-gradient(circle at 50% 88%, rgba(52, 41, 24, 0.14), transparent 42%),
+    linear-gradient(180deg, #050403 0%, #030201 52%, #070503 100%),
     var(--color-bg);
   background-attachment: fixed;
   min-height: 100dvh;
+  width: 100%;
 }
 
 /* Pixelated images for OSRS sprites */
@@ -659,8 +663,8 @@ body {
 
 .surface {
   background:
-    linear-gradient(180deg, var(--color-parchment-2) 0%, var(--color-parchment) 100%);
-  border: 1px solid color-mix(in srgb, var(--color-parchment-edge) 78%, black 22%);
+    linear-gradient(180deg, color-mix(in srgb, var(--color-panel-2) 84%, var(--color-parchment) 16%) 0%, var(--color-panel) 100%);
+  border: 1px solid color-mix(in srgb, var(--color-border) 84%, var(--color-accent) 16%);
   border-radius: 10px;
   box-shadow:
     inset 0 1px 0 rgba(245, 236, 221, 0.06),
@@ -673,24 +677,25 @@ body {
 .surface-interactive:hover {
   border-color: var(--color-accent);
   background:
-    linear-gradient(180deg, #3A2F20 0%, var(--color-parchment) 100%);
+    linear-gradient(180deg, color-mix(in srgb, var(--color-panel-2) 84%, var(--color-accent) 16%) 0%, var(--color-panel) 100%);
 }
 
-/* Scapestack style lock — a deliberate Linear/Cron/Sunsama-inspired product
-   system: dark command surfaces, one brass accent, thin dividers, restrained
-   elevation, compact rows. OSRS identity comes from sprites/copy, not noisy
-   decorative chrome. */
+/* Scapestack style lock — black/gold OSRS companion system.
+   Reference synthesis: Chantlings/Wayfinder black canvas and immersive
+   negative space, Krea restraint, Inngest amber discipline. OSRS identity
+   comes from sprites, player copy and deliberate parchment modals, not noisy
+   dashboard chrome. */
 .scapestack-lock-panel,
 .scapestack-plan-panel,
 .scapestack-board-panel,
 .osrs-frame {
   position: relative;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--color-border) 80%, var(--color-accent) 20%);
+  border: 1px solid color-mix(in srgb, var(--color-border) 86%, var(--color-accent) 14%);
   border-radius: 10px;
   background:
-    linear-gradient(180deg, rgba(28, 23, 16, 0.88), rgba(8, 7, 5, 0.94)),
-    radial-gradient(circle at 18% 0%, rgba(214, 166, 58, 0.08), transparent 36%);
+    linear-gradient(180deg, rgba(16, 12, 8, 0.92), rgba(5, 4, 3, 0.96)),
+    radial-gradient(circle at 18% 0%, rgba(224, 174, 55, 0.07), transparent 36%);
   box-shadow:
     inset 0 1px 0 rgba(245, 236, 221, 0.05),
     0 24px 68px -56px rgba(0, 0, 0, 0.94);
@@ -712,15 +717,15 @@ body {
 }
 
 .scapestack-lock-card {
-  border: 1px solid color-mix(in srgb, var(--color-border) 86%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-border) 88%, transparent);
   border-radius: 8px;
-  background: rgba(11, 9, 6, 0.34);
+  background: rgba(7, 6, 4, 0.5);
   box-shadow: inset 0 1px 0 rgba(245, 236, 221, 0.026);
 }
 
 .scapestack-lock-card[data-interactive="true"]:hover {
   border-color: color-mix(in srgb, var(--color-accent) 44%, var(--color-border));
-  background: rgba(214, 166, 58, 0.06);
+  background: rgba(224, 174, 55, 0.06);
 }
 
 .scapestack-lock-list {
@@ -752,7 +757,7 @@ body {
   gap: 0.35rem;
   border-radius: 9999px;
   border: 1px solid var(--color-border);
-  background: rgba(11, 9, 6, 0.42);
+  background: rgba(7, 6, 4, 0.56);
   padding: 0.22rem 0.55rem;
   font-size: 10.5px;
   font-weight: 750;
@@ -783,7 +788,7 @@ body {
   border: 1px solid var(--color-border);
   border-radius: 8px;
   background:
-    linear-gradient(180deg, rgba(36, 29, 20, 0.72), rgba(11, 9, 6, 0.46));
+    linear-gradient(180deg, rgba(21, 16, 8, 0.82), rgba(7, 6, 4, 0.58));
 }
 
 .scapestack-decision-list {
@@ -802,7 +807,7 @@ body {
   gap: 0.375rem;
   border-radius: 9999px;
   border: 1px solid color-mix(in srgb, var(--color-border) 76%, var(--color-accent) 24%);
-  background: rgba(11, 9, 6, 0.34);
+  background: rgba(7, 6, 4, 0.5);
   padding: 0.5rem 0.9rem;
   font-size: 12.5px;
   font-weight: 750;
@@ -812,7 +817,7 @@ body {
 
 .scapestack-command-button:hover {
   border-color: color-mix(in srgb, var(--color-accent) 48%, var(--color-border));
-  background: rgba(214, 166, 58, 0.08);
+  background: rgba(224, 174, 55, 0.08);
   color: var(--color-text);
   transform: translateY(-1px);
 }
@@ -835,6 +840,72 @@ body {
 
 .scapestack-route-row:hover {
   border-color: color-mix(in srgb, var(--color-accent) 52%, var(--color-border));
+}
+
+.scapestack-modal {
+  border: 2px solid var(--color-parchment-edge);
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at top left, rgba(224, 174, 55, 0.1), transparent 44%),
+    linear-gradient(180deg, var(--color-parchment-2), var(--color-parchment));
+  box-shadow:
+    inset 0 1px 0 rgba(247, 239, 225, 0.08),
+    0 40px 120px -58px rgba(0, 0, 0, 0.95);
+}
+
+.scapestack-route-card {
+  border: 1px solid color-mix(in srgb, var(--color-border) 74%, var(--color-accent) 26%);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(224, 174, 55, 0.12), transparent 42%),
+    linear-gradient(180deg, rgba(42, 33, 21, 0.78), rgba(7, 6, 4, 0.88));
+  box-shadow:
+    inset 0 1px 0 rgba(247, 239, 225, 0.055),
+    0 28px 80px -58px rgba(0, 0, 0, 0.96);
+}
+
+.scapestack-boss-tile {
+  min-height: 172px;
+  border: 1px solid color-mix(in srgb, var(--color-border) 84%, transparent);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(21, 16, 8, 0.86), rgba(7, 6, 4, 0.86));
+  box-shadow: inset 0 1px 0 rgba(247, 239, 225, 0.04);
+  transition: border-color 160ms ease, background 160ms ease, transform 120ms ease;
+}
+
+.scapestack-boss-tile:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 48%, var(--color-border));
+  background:
+    linear-gradient(180deg, rgba(42, 33, 21, 0.9), rgba(9, 7, 5, 0.92));
+  transform: translateY(-1px);
+}
+
+.scapestack-account-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 38%, var(--color-border));
+  background: rgba(7, 6, 4, 0.66);
+  color: var(--color-text);
+  box-shadow: inset 0 1px 0 rgba(247, 239, 225, 0.045);
+}
+
+.scapestack-ghost-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: rgba(7, 6, 4, 0.46);
+  color: var(--color-text-dim);
+}
+
+.scapestack-ghost-action:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 44%, var(--color-border));
+  color: var(--color-text);
 }
 
 /* ── Buttons ──────────────────────────────────────────────────────────── */

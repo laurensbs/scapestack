@@ -321,7 +321,7 @@ function AccountSwitcher({
         type="button"
         onClick={() => setOpen((value) => !value)}
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-md border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2.5 py-1.5 text-[12px] font-semibold transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]",
+          "scapestack-account-pill px-2.5 py-1.5 text-[12px] font-semibold transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]",
           activeRsn ? "text-[var(--color-text)]" : "text-[var(--color-text-dim)]",
           compact && "w-full justify-between px-3 py-2"
         )}
@@ -337,7 +337,7 @@ function AccountSwitcher({
 
       {open && (
         <div className={cn(
-          "osrs-frame z-40 mt-2 p-3",
+          "scapestack-modal z-40 mt-2 p-3",
           compact ? "w-full" : "absolute right-0 w-[340px]"
         )}>
           <form onSubmit={saveAccount} className="space-y-2">
