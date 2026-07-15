@@ -309,7 +309,7 @@ Evidence:
 
 ## Phase 02 - Design Immutable Account History
 
-Status: TODO  
+Status: DONE
 Depends on: Phase 01  
 Improves: cross-device continuity, return value, RuneLite product value
 
@@ -356,6 +356,35 @@ Acceptance:
 - an account can delete all stored history;
 - no current sync route regression.
 ```
+
+Evidence:
+- Completed: 2026-07-15
+- Commit: `4a16cb7`
+- Files: `src/lib/sync-schema.ts`, `src/lib/account-history.ts`,
+  `src/lib/account-history-repo.ts`, `src/lib/sync-repo.ts`,
+  `src/lib/sync-auth.ts`, `src/lib/db.ts`, `src/app/api/sync/route.ts`,
+  `scripts/db-init.mjs`, `docs/account-history-retention.md`
+- Tests added: five account-history tests covering identical-sync
+  deduplication, changed-state append, atomic latest/history persistence,
+  privacy-minimized bank summaries, deterministic checksums and cascading
+  account deletion; migration coverage now includes all seven history tables,
+  append-only rules and latest-read indexes
+- Commands: `npx vitest run tests/account-history.test.ts
+  tests/sync-schema.test.ts tests/sync-route.test.ts
+  tests/full-syncflow-regression.test.ts tests/sync-auth.test.ts`,
+  `npm run ci:check`, `git diff --check`
+- Browser evidence: not applicable; this phase changed no player-facing UI or
+  copy
+- Metric change: latest-only overwrite -> one fast latest projection plus one
+  immutable snapshot per distinct normalized account state; identical retries
+  reuse the prior checksum and snapshot ID
+- Privacy change: historical snapshots never store raw bank item rows; only
+  availability, item count and an irreversible bank checksum are retained.
+  Explicit account deletion cascades through snapshots, decisions, trips,
+  outcomes, preferences and retention metadata
+- Known residual risk: existing production accounts begin accruing immutable
+  snapshots with their next successful sync; pre-migration historical states
+  cannot be reconstructed from the former latest-only table
 
 ## Phase 03 - Build Snapshot Diff Intelligence
 
