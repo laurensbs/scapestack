@@ -264,6 +264,7 @@ export interface NextUpInput {
       slayerTaskRemaining?: number | null;
       slayerBlocks?: number;
       bankStatus?: PluginBankStatus;
+      lastSyncSummary?: SyncDeltaSummary | null;
     } | null;
   };
 }

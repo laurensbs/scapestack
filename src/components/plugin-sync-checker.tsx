@@ -11,11 +11,13 @@ import type { SyncedPlayer } from "@/lib/sync-repo";
 import { accountModePlanningTone, normalizeScapestackAccountType, scapestackAccountTypeToPlannerType } from "@/lib/account-type";
 import { pluginSyncHealth } from "@/lib/plugin-sync";
 import { markRuneliteChecked } from "@/lib/account-storage";
+import { pluginBankStatusLabel } from "@/lib/plugin-bank-status";
 import {
   diagnosticForUnconfiguredSync,
   healthLabel,
   type PluginSyncDiagnostic
 } from "@/lib/plugin-sync-diagnostics";
+import { syncMemoryLines } from "@/lib/next-plugin-sync-summary";
 import { PLUGIN_VERIFY_SYNC_HASH } from "@/lib/plugin-bank-bridge";
 import { DB_INIT_COMMAND } from "@/lib/plugin-sync-actions";
 import { cn } from "@/lib/utils";
@@ -33,17 +35,16 @@ type CheckState =
   | { kind: "unconfigured" }
   | { kind: "error"; message: string };
 
-function syncAgeLabel(iso: string): string {
-  const then = new Date(iso).getTime();
-  if (!Number.isFinite(then)) return "recently";
-  const seconds = Math.max(0, Math.floor((Date.now() - then) / 1000));
-  if (seconds < 60) return "just now";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+function syncScanLabel(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "Last scan: unknown";
+  const value = new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(date);
+  return `Last scan: ${value}`;
 }
 
 export function PluginSyncChecker() {
@@ -94,6 +95,7 @@ export function PluginSyncChecker() {
   const foundNextHref = foundDisplayName
     ? `/next?rsn=${encodeURIComponent(foundDisplayName)}&from=plugin&bank=none`
     : "/next?from=plugin&bank=none";
+  const foundMemoryLines = state.kind === "found" ? syncMemoryLines(state.player.lastSyncSummary) : [];
 
   useEffect(() => {
     setSyncOrigin(window.location.origin);
@@ -167,14 +169,12 @@ export function PluginSyncChecker() {
     <section id={PLUGIN_VERIFY_SYNC_HASH} className="mt-6 scroll-mt-16 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/75 p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
-            RuneLite check
-          </div>
+          <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">RuneLite memory</div>
           <h2 className="mt-1 text-[22px] font-bold tracking-normal text-[var(--color-text)]">
-            Check your RSN
+            Check RuneLite
           </h2>
           <p className="mt-2 max-w-2xl text-[13.5px] leading-relaxed text-[var(--color-text-dim)]">
-            Same RSN as RuneLite. Found it? Open one plan.
+            Same RSN as RuneLite. Found it? Open one cleaner trip.
           </p>
           <div className="mt-3">
             <RuneliteOpenButton />
@@ -246,7 +246,7 @@ export function PluginSyncChecker() {
       <div className="mt-4">
         {state.kind === "idle" && (
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-4 py-3 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-            RuneLite helps Scapestack skip stuff you already finished.
+            RuneLite can remember finished quests, diary tiers, clog slots, Slayer and your bank after you sync.
           </div>
         )}
 
@@ -256,9 +256,9 @@ export function PluginSyncChecker() {
               <div className="flex min-w-0 items-start gap-2">
                 <XCircle className="mt-0.5 size-4 shrink-0 text-[var(--color-warning)]" />
                 <div className="min-w-0">
-                  <div className="text-[13px] font-bold text-[var(--color-warning)]">RuneLite not found for {state.rsn}</div>
+                  <div className="text-[13px] font-bold text-[var(--color-warning)]">Press Sync now, then check again</div>
                   <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                    Open RuneLite, press Sync now, then check again.
+                    No RuneLite scan found for {state.rsn}.
                   </p>
                 </div>
               </div>
@@ -305,7 +305,7 @@ export function PluginSyncChecker() {
               <div className="min-w-0">
                 <div className="flex items-center gap-2 text-[14px] font-bold text-[var(--color-good)]">
                   <CheckCircle2 className="size-4 shrink-0" />
-                  RuneLite is helping {foundDisplayName}
+                  RuneLite is helping your next trip
                 </div>
                 <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
                   {foundPlanningTone
@@ -315,7 +315,17 @@ export function PluginSyncChecker() {
                 <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-[var(--color-text-muted)]">
                   <AccountModeBadge accountType={foundAccountType} confidence="detected" compact showSourceCopy />
                   <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
-                    Last press {syncAgeLabel(state.player.syncedAt)}
+                    {syncScanLabel(state.player.syncedAt)}
+                  </span>
+                  {foundMemoryLines.slice(0, 2).map((line) => (
+                    <span key={line} className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
+                      {line}
+                    </span>
+                  ))}
+                  <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
+                    {state.player.bankStatus.itemCount > 0
+                      ? `Bank synced: ${state.player.bankStatus.itemCount.toLocaleString()} stacks`
+                      : pluginBankStatusLabel(state.player.bankStatus)}
                   </span>
                   {state.player.slayer && (
                     <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">

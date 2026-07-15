@@ -31,7 +31,7 @@ describe("plugin sync checker affordance", () => {
   });
 
   it("keeps found-sync actions to open next or check again", () => {
-    expect(source).toContain("RuneLite is helping {foundDisplayName}");
+    expect(source).toContain("RuneLite is helping your next trip");
     expect(source).toContain("Open one plan that skips finished quests");
     expect(source).toContain("Open one plan");
     expect(source).toContain("Check again");
@@ -42,7 +42,8 @@ describe("plugin sync checker affordance", () => {
   });
 
   it("shows only the sync status chips players need", () => {
-    expect(source).toContain("Last press {syncAgeLabel(state.player.syncedAt)}");
+    expect(source).toContain("{syncScanLabel(state.player.syncedAt)}");
+    expect(source).toContain("Bank synced:");
     expect(source).not.toContain("{state.player.questsCompleted.length} quests");
     expect(source).not.toContain("{state.player.diariesCompleted.length} diary tiers");
     expect(source).not.toContain("{state.player.collectionLogItemIds.length.toLocaleString()} log items");
@@ -59,7 +60,7 @@ describe("plugin sync checker affordance", () => {
     expect(source).not.toContain("Open plugin review status");
     expect(source).not.toContain("canShowMissingSetup");
     expect(source).not.toContain("review-readiness");
-    expect(source).toContain("Open RuneLite, press Sync now, then check again.");
+    expect(source).toContain("Press Sync now, then check again");
     expect(source).not.toContain("Copy scapestack.org sync URL");
     expect(source).not.toContain("Sync URL copied");
     expect(source).not.toContain("Copy claim URL");

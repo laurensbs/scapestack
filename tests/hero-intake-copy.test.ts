@@ -53,6 +53,7 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("function formatSavedBankAt(value: number | null): string");
     expect(source).toContain("Bank saved just now");
     expect(source).toContain("Add bank if gear matters");
+    expect(source).toContain("Open bank in RuneLite");
     expect(source).toContain("RuneLite refreshed.");
     expect(source).toContain("No fresh sync yet. Open RuneLite, press Sync now, then refresh.");
     expect(source).toContain("Refresh RuneLite");
@@ -62,16 +63,15 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("Scapestack will use the saved setup it can trust, then send you to one clear stop point.");
     expect(source).toContain("What changed since last time");
     expect(source).toContain("Last trip started: ${started.title}.");
-    expect(source).toContain("Last RuneLite scan: ${relativeSince(active.runeliteCheckedAt)}.");
+    expect(source).toContain("Last scan: ${relativeSince(active.runeliteCheckedAt)}.");
     expect(source).toContain("Last vibe: ${MOOD_LABEL[savedMood.mood].name}.");
     expect(source).toContain("ReturningSetupLine");
-    expect(source).toContain("const bankStatusLabel = formatSavedBankAt(savedBankAt);");
+    expect(source).toContain("const bankStatusLabel = hasBankContext");
     expect(source).toContain('text={bankStatusLabel}');
     expect(source).toContain('text={returningMood ? `${returningMood.label} vibe saved` : "Best now vibe"}');
     expect(source).not.toContain("UserRound");
     expect(source).toContain("Open today&apos;s trip");
-    expect(source).toContain('{hasBankContext ? "Bank ready" : "Add bank"}');
-    expect(source).toContain('{hasBankContext ? "Setup" : "Add bank"}');
+    expect(source).toContain("bankSetupLabel(hasBankContext, rememberedRuneliteChecked)");
     expect(source).toContain("Boss");
     expect(source).toContain("RuneLite");
     expect(source).toContain("Change RSN");

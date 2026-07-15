@@ -65,12 +65,12 @@ function formatRuneliteCheckedAt(value: number | null): string {
   if (!value) return "RuneLite later";
   const ageMs = Math.max(0, Date.now() - value);
   const minutes = Math.floor(ageMs / 60_000);
-  if (minutes < 1) return "RuneLite synced just now";
-  if (minutes < 60) return `RuneLite synced ${minutes}m ago`;
+  if (minutes < 1) return "Last scan just now";
+  if (minutes < 60) return `Last scan ${minutes}m ago`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `RuneLite synced ${hours}h ago`;
+  if (hours < 24) return `Last scan ${hours}h ago`;
   const days = Math.floor(hours / 24);
-  return `RuneLite synced ${days}d ago`;
+  return `Last scan ${days}d ago`;
 }
 
 function formatSavedBankAt(value: number | null): string {
@@ -83,6 +83,11 @@ function formatSavedBankAt(value: number | null): string {
   if (hours < 24) return `Bank saved ${hours}h ago`;
   const days = Math.floor(hours / 24);
   return `Bank saved ${days}d ago`;
+}
+
+function bankSetupLabel(hasBankContext: boolean, hasRuneLite: boolean): string {
+  if (hasBankContext) return "Bank ready";
+  return hasRuneLite ? "Open bank in RuneLite" : "Add bank";
 }
 
 function runeliteNeedsRefresh(value: number | null): boolean {
@@ -150,7 +155,7 @@ export function HeroIntake() {
         lines.push(`Last pick: ${latest.title}.`);
       }
       if (active?.runeliteCheckedAt) {
-        lines.push(`Last RuneLite scan: ${relativeSince(active.runeliteCheckedAt)}.`);
+        lines.push(`Last scan: ${relativeSince(active.runeliteCheckedAt)}.`);
       }
       if (savedMood?.mood) {
         lines.push(`Last vibe: ${MOOD_LABEL[savedMood.mood].name}.`);
@@ -250,7 +255,9 @@ export function HeroIntake() {
     const runeliteStatusLabel = shouldRefreshRunelite
       ? "Refresh RuneLite"
       : formatRuneliteCheckedAt(rememberedRuneliteCheckedAt);
-    const bankStatusLabel = formatSavedBankAt(savedBankAt);
+    const bankStatusLabel = hasBankContext
+      ? formatSavedBankAt(savedBankAt)
+      : bankSetupLabel(false, rememberedRuneliteChecked);
     const runeliteRefreshMessage = runeliteRefresh === "checking"
       ? "Checking RuneLite…"
       : runeliteRefresh === "found"
@@ -284,7 +291,7 @@ export function HeroIntake() {
                   : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-muted)]"
               )}>
                 {hasBankContext && <CheckCircle2 className="size-3.5" />}
-                {hasBankContext ? "Bank ready" : "Add bank"}
+                {bankSetupLabel(hasBankContext, rememberedRuneliteChecked)}
               </span>
               <span className={cn(
                 "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1",
@@ -353,7 +360,7 @@ export function HeroIntake() {
           >
             {hasBankContext && <CheckCircle2 className="absolute right-2 top-2 size-3.5 text-[var(--color-accent)]" />}
             <ClipboardPaste className="size-4" />
-            {hasBankContext ? "Setup" : "Add bank"}
+            {bankSetupLabel(hasBankContext, rememberedRuneliteChecked)}
           </button>
           <Link
             href={`/dps?rsn=${encodedRsn}&from=home`}

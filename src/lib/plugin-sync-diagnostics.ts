@@ -431,7 +431,7 @@ function missingSlayerDiagnostic(player: SyncedPlayer): PluginSyncDiagnostic {
 }
 
 export function healthLabel(health: PluginSyncHealth): string {
-  if (health === "live") return "RuneLite is helping";
+  if (health === "live") return "RuneLite is helping your next trip";
   if (health === "stale") return "Refresh RuneLite";
   return "Update RuneLite";
 }

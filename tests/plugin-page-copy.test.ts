@@ -8,7 +8,7 @@ describe("plugin page copy constants", () => {
     const pageSource = readFileSync(join(process.cwd(), "src/app/plugin/page.tsx"), "utf8");
 
     expect(pageSource).toContain("Check RuneLite.");
-    expect(pageSource).toContain("Skip done stuff.");
+    expect(pageSource).toContain("Open a cleaner trip.");
     expect(pageSource).toContain("No login");
     expect(pageSource).toContain("Bank can be turned off");
     expect(pageSource).toContain("No screenshots");
@@ -17,11 +17,11 @@ describe("plugin page copy constants", () => {
     expect(pageSource).toContain("Open one plan");
     expect(pageSource).toContain("Setup help");
     expect(pageSource).toContain("Normal setup");
-    expect(pageSource).toContain("The public plugin connects to Scapestack automatically; there is no URL to paste for normal players.");
+    expect(pageSource).toContain("The plugin connects to Scapestack automatically; open your bank once when you want item checks included.");
     expect(pageSource).toContain("PLAYER_SYNC_CHOICES");
     expect(pageSource).toContain("Press Sync now once");
     expect(pageSource).toContain("Turn on Sync on login");
-    expect(pageSource).toContain("Bank readiness is on");
+    expect(pageSource).toContain("Open bank once");
     expect(pageSource).toContain("Refresh after quests");
     expect(pageSource).not.toContain("Developer/self-hosting endpoint");
     expect(pageSource).not.toContain("Copy developer endpoint");
@@ -150,8 +150,8 @@ describe("plugin page copy constants", () => {
     expect(checkerSource).not.toContain("if this finds your RSN, /next can use exact account state");
     expect(diagnosticsSource).not.toContain("Scapestack Sync enabled.");
     expect(diagnosticsSource).toContain("Enable “Sync on login”");
-    expect(checkerSource).toContain("RuneLite helps Scapestack skip stuff you already finished.");
-    expect(checkerSource).toContain("RuneLite is helping {foundDisplayName}");
+    expect(checkerSource).toContain("RuneLite can remember finished quests");
+    expect(checkerSource).toContain("RuneLite is helping your next trip");
     expect(checkerSource).toContain("Open one plan that skips finished quests");
     expect(checkerSource).toContain("Slayer task ready");
     expect(checkerSource).not.toContain("Sync details");
@@ -170,7 +170,8 @@ describe("plugin page copy constants", () => {
 
     expect(checkerSource).toContain("Open one plan");
     expect(checkerSource).toContain("Check again");
-    expect(checkerSource).toContain("Last press {syncAgeLabel(state.player.syncedAt)}");
+    expect(checkerSource).toContain("{syncScanLabel(state.player.syncedAt)}");
+    expect(checkerSource).toContain("Bank synced:");
     expect(checkerSource).not.toContain("formatPluginSyncProof");
     expect(checkerSource).not.toContain("Copy proof");
     expect(checkerSource).not.toContain("Proof copied");

@@ -25,6 +25,7 @@ import { skillCapeId } from "./skill-capes";
 import type { PlannerAccountType } from "./account-type";
 import { evaluateItemAvailability } from "./item-availability";
 import type { PluginBankStatus } from "./plugin-bank-status";
+import type { SyncDeltaSummary } from "./sync-repo";
 
 export interface PathStep {
   /** Display title (e.g. "Push Slayer to 70" or "Karamja Diary — Hard"). */
@@ -1295,6 +1296,7 @@ export interface PathOverview {
       slayerTaskRemaining?: number | null;
       slayerBlocks?: number;
       bankStatus?: PluginBankStatus;
+      lastSyncSummary?: SyncDeltaSummary | null;
     } | null;
   };
 }
@@ -1340,6 +1342,7 @@ export interface ComputePathProgressInput {
       slayerTaskRemaining?: number | null;
       slayerBlocks?: number;
       bankStatus?: PluginBankStatus;
+      lastSyncSummary?: SyncDeltaSummary | null;
     } | null;
   };
 }

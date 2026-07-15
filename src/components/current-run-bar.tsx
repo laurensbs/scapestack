@@ -49,9 +49,9 @@ export function CurrentRunBar({ className, compact = false }: CurrentRunBarProps
   const rsn = account?.rsn ?? fallbackRsn;
   const pluginHref = rsn ? `/plugin?rsn=${encodeURIComponent(rsn)}#verify-sync` : "/plugin#verify-sync";
   const nextHref = rsn ? `/next?rsn=${encodeURIComponent(rsn)}` : "/next";
-  const bankLabel = hasSetup ? "Bank added" : "Add bank";
-  const bankTitle = bankSavedAt ? `Bank saved ${describeSavedAt(bankSavedAt)}` : bankLabel;
   const runeliteReady = Boolean(account?.runeliteCheckedAt);
+  const bankLabel = hasSetup ? "Bank added" : runeliteReady ? "Open bank" : "Add bank";
+  const bankTitle = bankSavedAt ? `Bank saved ${describeSavedAt(bankSavedAt)}` : bankLabel;
   const runeliteLabel = runeliteReady ? "Refresh RuneLite" : "Add RuneLite";
 
   return (

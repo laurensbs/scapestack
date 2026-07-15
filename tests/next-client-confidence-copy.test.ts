@@ -585,7 +585,7 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain('label: "For you"');
     expect(source).not.toContain("RuneLite already helps skip finished stuff. Trust the stop point, then sync again after progress.");
     expect(source).toContain("accountStage={summary.accountStage}");
-    expect(source).toContain("Last RuneLite scan:");
+    expect(source).toContain("Last scan:");
     expect(source).toContain("Finished quests, diary steps, clog slots and Slayer mistakes are skipped.");
     expect(source).not.toContain("RuneLite is old. Refresh before a long grind or GP spend.");
     expect(source).toContain("RuneLite can improve picks later.");

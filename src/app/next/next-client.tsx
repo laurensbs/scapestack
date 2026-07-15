@@ -539,7 +539,8 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
             pluginVersion: scapestackSync.pluginVersion,
             slayerTaskRemaining: scapestackSync.slayer?.taskRemaining ?? null,
             slayerBlocks: scapestackSync.slayer?.blocks.length ?? 0,
-            bankStatus: scapestackSync.bankStatus
+            bankStatus: scapestackSync.bankStatus,
+            lastSyncSummary: scapestackSync.lastSyncSummary
           } : null
         }
       }));
@@ -1984,7 +1985,7 @@ function NextBankContextStrip({
     hasLivePluginSync && bankItems.length > 0
       ? "Bank and finished progress are both shaping this pick."
       : pluginSyncState === "stale"
-        ? "RuneLite is connected, but refresh before a long grind or GP spend."
+        ? "Last scan needs a refresh before a long grind or GP spend."
         : pluginSyncState === "outdated"
           ? "RuneLite is connected, but update it before trusting newer details."
             : basis === "full"
@@ -2435,21 +2436,24 @@ function formatRuneLiteScanTime(syncedAt: string): string {
 function runeLitePlanNote(pluginSyncSummary: NextPluginSyncSummary | null): string | null {
   const pluginSyncState = pluginSyncSummary?.state ?? null;
   const bank = pluginSyncSummary?.bankStatusLabel ? ` ${pluginSyncSummary.bankStatusLabel}.` : "";
+  const memory = pluginSyncSummary?.memoryLines.length
+    ? ` ${pluginSyncSummary.memoryLines.slice(0, 2).join(" · ")}.`
+    : "";
   if (pluginSyncState === "live") {
     const syncedAt = pluginSyncSummary?.syncedAt
-      ? `Last RuneLite scan: ${formatRuneLiteScanTime(pluginSyncSummary.syncedAt)}.`
-      : "Last RuneLite scan is fresh.";
-    return `${syncedAt} Finished quests, diary steps, clog slots and Slayer mistakes are skipped.${bank}`;
+      ? `Last scan: ${formatRuneLiteScanTime(pluginSyncSummary.syncedAt)}.`
+      : "Last scan is fresh.";
+    return `${syncedAt}${memory} Finished quests, diary steps, clog slots and Slayer mistakes are skipped.${bank}`;
   }
   if (pluginSyncState === "stale") {
     return pluginSyncSummary?.syncedAt
-      ? `Last RuneLite scan: ${formatRuneLiteScanTime(pluginSyncSummary.syncedAt)}. Sync again before a long grind or GP spend.${bank}`
-      : `Last RuneLite scan: check again before a long grind or GP spend.${bank}`;
+      ? `Last scan: ${formatRuneLiteScanTime(pluginSyncSummary.syncedAt)}. Press Sync now before a long grind or GP spend.${memory}${bank}`
+      : `Last scan: check again before a long grind or GP spend.${bank}`;
   }
   if (pluginSyncState === "outdated") {
     return pluginSyncSummary?.syncedAt
-      ? `Last RuneLite scan: ${formatRuneLiteScanTime(pluginSyncSummary.syncedAt)}. Update the plugin before trusting newer Slayer or clog details.`
-      : "Last RuneLite scan: update the plugin before trusting newer Slayer or clog details.";
+      ? `Last scan: ${formatRuneLiteScanTime(pluginSyncSummary.syncedAt)}. Update the plugin before trusting newer Slayer or clog details.`
+      : "Last scan: update the plugin before trusting newer Slayer or clog details.";
   }
   return "RuneLite can improve picks later.";
 }

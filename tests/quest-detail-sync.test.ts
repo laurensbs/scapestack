@@ -35,7 +35,7 @@ describe("quest detail RuneLite sync contract", () => {
   });
 
   it("shows compact source and planning states on quest detail", () => {
-    expect(clientSource).toContain('SourceBadge label="RuneLite synced"');
+    expect(clientSource).toContain('SourceBadge label="RuneLite checked"');
     expect(clientSource).toContain('SourceBadge label="Browser bank"');
     expect(clientSource).toContain('SourceBadge label="Bank not added"');
     expect(clientSource).not.toContain('SourceBadge label="No bank context"');

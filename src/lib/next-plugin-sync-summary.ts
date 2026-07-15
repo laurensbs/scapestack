@@ -1,6 +1,7 @@
 import { CURRENT_PLUGIN_VERSION, pluginSyncHealth } from "./plugin-sync";
 import type { PathOverview } from "./path-progress";
 import { isPluginBankStatusStale, pluginBankStatusLabel, type PluginBankStatus } from "./plugin-bank-status";
+import type { SyncDeltaSummary } from "./sync-repo";
 
 export type NextPluginSignalStatus = "exact" | "partial" | "missing" | "refresh" | "update";
 
@@ -17,6 +18,8 @@ export interface NextPluginSyncSummary {
   syncedAt: string | null;
   bankStatus: PluginBankStatus | null;
   bankStatusLabel: string | null;
+  memoryLines: string[];
+  xpGainedLabel: string | null;
   signals: NextPluginSignalSummary[];
 }
 
@@ -36,6 +39,8 @@ export function summarizeNextPluginSync(plugin: PluginSource): NextPluginSyncSum
       syncedAt: plugin.syncedAt ?? null,
       bankStatus: plugin.bankStatus ?? null,
       bankStatusLabel: plugin.bankStatus ? pluginBankStatusLabel(plugin.bankStatus) : null,
+      memoryLines: syncMemoryLines(plugin.lastSyncSummary),
+      xpGainedLabel: syncXpGainedLabel(plugin.lastSyncSummary),
       signals: baseSignals(plugin, "update")
     };
   }
@@ -45,11 +50,13 @@ export function summarizeNextPluginSync(plugin: PluginSource): NextPluginSyncSum
       state: "stale",
       title: "Sync again in RuneLite",
       body: plugin.syncedAt
-        ? `Last RuneLite scan: ${new Date(plugin.syncedAt).toLocaleString("en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}. Sync again before spending GP or starting a long grind.`
-        : "Last RuneLite scan: check again before spending GP or starting a long grind.",
+        ? `Last scan: ${formatScanTime(plugin.syncedAt)}. Press Sync now before spending GP or starting a long grind.`
+        : "Last scan: unknown. Press Sync now before spending GP or starting a long grind.",
       syncedAt: plugin.syncedAt ?? null,
       bankStatus: plugin.bankStatus ?? null,
       bankStatusLabel: plugin.bankStatus ? pluginBankStatusLabel(plugin.bankStatus) : null,
+      memoryLines: syncMemoryLines(plugin.lastSyncSummary),
+      xpGainedLabel: syncXpGainedLabel(plugin.lastSyncSummary),
       signals: baseSignals(plugin, "refresh")
     };
   }
@@ -66,13 +73,15 @@ export function summarizeNextPluginSync(plugin: PluginSource): NextPluginSyncSum
 
   return {
     state: "live",
-    title: missing.length > 0 ? "RuneLite is connected" : "RuneLite is up to date",
+    title: missing.length > 0 ? "RuneLite is helping your next trip" : "RuneLite is helping your next trip",
     body: missing.length > 0
-      ? `Your next trip can skip finished quests and diaries; ${missing.join(", ")}.`
-      : "Your next trip can use finished quests, diary tiers, collection log and Slayer from RuneLite.",
+      ? `Last scan: ${plugin.syncedAt ? formatScanTime(plugin.syncedAt) : "fresh"}. Skips finished quests and diaries; ${missing.join(", ")}.`
+      : `Last scan: ${plugin.syncedAt ? formatScanTime(plugin.syncedAt) : "fresh"}. Skips finished quests, diary tiers, clog slots and Slayer mistakes.`,
     syncedAt: plugin.syncedAt ?? null,
     bankStatus: plugin.bankStatus ?? null,
     bankStatusLabel: plugin.bankStatus ? pluginBankStatusLabel(plugin.bankStatus) : null,
+    memoryLines: syncMemoryLines(plugin.lastSyncSummary),
+    xpGainedLabel: syncXpGainedLabel(plugin.lastSyncSummary),
     signals: [
       { label: "Quests", status: "exact", value: `${plugin.quests.toLocaleString()} done` },
       { label: "Diaries", status: "exact", value: `${plugin.diaries.toLocaleString()} tiers` },
@@ -81,6 +90,58 @@ export function summarizeNextPluginSync(plugin: PluginSource): NextPluginSyncSum
       { label: "Slayer", status: hasSlayer ? "exact" : "missing", value: hasSlayer ? `${plugin.slayerTaskRemaining} left` : "not synced" }
     ]
   };
+}
+
+function formatScanTime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "unknown";
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(date);
+}
+
+function formatXp(value: number): string {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(value >= 10_000_000 ? 0 : 1)}M XP`;
+  if (value >= 1_000) return `${Math.round(value / 1_000).toLocaleString()}k XP`;
+  return `${value.toLocaleString()} XP`;
+}
+
+export function syncXpGainedLabel(summary: SyncDeltaSummary | null | undefined): string | null {
+  const xp = summary?.skills.reduce((sum, skill) => sum + Math.max(0, skill.xpGained), 0) ?? 0;
+  return xp > 0 ? `+${formatXp(xp)} since last scan` : null;
+}
+
+export function syncMemoryLines(summary: SyncDeltaSummary | null | undefined): string[] {
+  if (!summary) return [];
+  const lines: string[] = [];
+  const xp = syncXpGainedLabel(summary);
+  if (xp) lines.push(xp);
+  if (summary.questsCompleted.length > 0) {
+    lines.push(`${summary.questsCompleted.length} quest${summary.questsCompleted.length === 1 ? "" : "s"} finished`);
+  }
+  if (summary.diariesCompleted.length > 0) {
+    lines.push(`${summary.diariesCompleted.length} diary tier${summary.diariesCompleted.length === 1 ? "" : "s"} finished`);
+  }
+  const clogCount = summary.collectionLogItems.length || summary.collectionLogItemIds.length;
+  if (clogCount > 0) {
+    lines.push(`${clogCount} clog slot${clogCount === 1 ? "" : "s"} added`);
+  }
+  if (summary.bank) {
+    if (summary.bank.currentItemCount > 0) {
+      lines.push(`Bank snapshot: ${summary.bank.currentItemCount.toLocaleString()} stacks`);
+    } else if (summary.bank.currentUnavailableReason === "bank-not-opened-this-session") {
+      lines.push("Open bank in RuneLite, then sync again");
+    } else if (summary.bank.currentUnavailableReason === "opt-in-off") {
+      lines.push("RuneLite bank is off");
+    }
+  }
+  if (summary.accountType.changed) {
+    lines.push("Account mode updated");
+  }
+  return lines.slice(0, 4);
 }
 
 function baseSignals(plugin: PluginSource, status: Extract<NextPluginSignalStatus, "refresh" | "update">): NextPluginSignalSummary[] {

@@ -54,7 +54,7 @@ function player(overrides: Partial<SyncedPlayer> = {}): SyncedPlayer {
 
 describe("plugin sync diagnostics", () => {
   it("labels plugin health states for checker badges", () => {
-    expect(healthLabel("live")).toBe("RuneLite is helping");
+    expect(healthLabel("live")).toBe("RuneLite is helping your next trip");
     expect(healthLabel("stale")).toBe("Refresh RuneLite");
     expect(healthLabel("outdated")).toBe("Update RuneLite");
   });

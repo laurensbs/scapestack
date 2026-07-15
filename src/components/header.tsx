@@ -309,10 +309,10 @@ function AccountSwitcher({
 
   const accountLabel = activeRsn || "Add RSN";
   const pluginHref = activeRsn ? `/plugin?rsn=${encodeURIComponent(activeRsn)}#verify-sync` : "/plugin#verify-sync";
-  const bankStatusLabel = hasSavedSetup ? "Bank added" : "Add bank";
-  const bankFreshness = bankSavedAt ? `Bank saved ${describeSavedAt(bankSavedAt)}` : bankStatusLabel;
   const activeAccount = accounts.find((account) => account.rsn === activeRsn);
   const runeliteReady = Boolean(activeAccount?.runeliteCheckedAt);
+  const bankStatusLabel = hasSavedSetup ? "Bank added" : runeliteReady ? "Open bank" : "Add bank";
+  const bankFreshness = bankSavedAt ? `Bank saved ${describeSavedAt(bankSavedAt)}` : bankStatusLabel;
   const runeliteLabel = runeliteReady ? "Refresh RuneLite" : "Add RuneLite";
 
   return (

@@ -708,6 +708,14 @@ Verifieer web en plugin, commit, push. Stop daarna.
 - RuneLite voelt nuttig maar stil.
 - Sync wordt account memory.
 
+Status 2026-07-15: uitgevoerd in fase 6. RuneLite sync gebruikt nu
+`Last scan`, compacte memory-lines voor XP/quests/diaries/clog/bank changes,
+en de plugin checker zegt `RuneLite is helping your next trip` of `Press Sync
+now, then check again`. Plugin-bank wordt behandeld als primaire bankbron als
+de RuneLite snapshot aanwezig is; handmatig bank plakken blijft fallback.
+Geverifieerd met gerichte tests, `npm run typecheck`, `npm run build` en
+volledige `npm test` (158 files / 1054 tests).
+
 ---
 
 # Fase 7 - Visual System Reset

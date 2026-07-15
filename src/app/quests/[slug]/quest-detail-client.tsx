@@ -238,7 +238,7 @@ export function QuestDetailClient({
             Check the first step, what to take, what is still missing, and when to stop.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {progressSource === "runelite" && <SourceBadge label="RuneLite synced" tone="good" />}
+            {progressSource === "runelite" && <SourceBadge label="RuneLite checked" tone="good" />}
             {progressSource === "hiscores" && <SourceBadge label="Hiscores fallback" tone="accent" />}
             {hasBrowserBank && <SourceBadge label="Browser bank" tone="accent" />}
             {!hasBankContext && <SourceBadge label="Bank not added" />}

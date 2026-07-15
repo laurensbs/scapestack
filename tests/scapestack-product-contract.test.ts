@@ -97,12 +97,12 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).not.toContain("Safer backup");
     expect(next).not.toContain("Screenshot mode");
     expect(next).not.toContain("Copy plan");
-    expect(next).toContain("Last RuneLite scan:");
+    expect(next).toContain("Last scan:");
     expect(next).toContain("Next trip");
     expect(next).toContain("Chill now");
     expect(next).toContain("accountStage={summary.accountStage}");
     expect(next).not.toContain("Bossing stays backup while this route has the cleaner stop point.");
-    expect(plugin).toContain("Skip done stuff.");
+    expect(plugin).toContain("Open a cleaner trip.");
     expect(plugin).toContain("No login");
     expect(plugin).toContain("Bank can be turned off");
     expect(plugin).toContain("No screenshots");
@@ -143,10 +143,10 @@ describe("Scapestack anti-bankstanding product contract", () => {
   });
 
   it("keeps RuneLite as quiet intelligence instead of the main task", () => {
-    expect(playerFacingSources).toContain("RuneLite helps Scapestack skip stuff you already finished.");
+    expect(playerFacingSources).toContain("RuneLite can remember finished quests");
     expect(playerFacingSources).toContain("Skips finished quests, diaries, clog slots and Slayer mistakes.");
     expect(playerFacingSources).toContain("Finished quests, diary steps, clog slots and Slayer mistakes are skipped.");
-    expect(playerFacingSources).toContain("Last RuneLite scan:");
+    expect(playerFacingSources).toContain("Last scan:");
     expect(playerFacingSources).toContain("RuneLite can improve picks later.");
     expect(playerFacingSources).toContain("Check RuneLite");
     expect(playerFacingSources).not.toContain("Open synced /next");

@@ -8,8 +8,8 @@ import { PLUGIN_VERIFY_SYNC_HASH } from "@/lib/plugin-bank-bridge";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "Scapestack Sync",
-  description: "Check RuneLite for one cleaner OSRS plan."
+  title: "Check RuneLite",
+  description: "Let RuneLite help Scapestack skip finished OSRS progress."
 };
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -56,8 +56,8 @@ const PLAYER_SYNC_CHOICES = [
   },
   {
     label: "Included",
-    title: "Bank readiness is on",
-    body: "Quest, diary and gear checks can use bank items after you open your bank."
+    title: "Open bank once",
+    body: "Lets RuneLite send item stacks for gear, supplies and diary checks."
   },
   {
     label: "Optional",
@@ -137,19 +137,19 @@ export default function PluginPage() {
       <section className="space-y-6">
         <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">
           <PlugZap className="size-3.5" />
-          RuneLite helper
+          RuneLite memory
         </div>
 
         <div>
           <h1
-            aria-label="Check RuneLite. Skip done stuff."
+            aria-label="Check RuneLite. Open a cleaner trip."
             className="max-w-4xl text-[clamp(42px,7vw,74px)] font-bold leading-[0.96] tracking-normal text-[var(--color-text)]"
           >
             Check RuneLite.
-            <span className="block text-route-gradient">Skip done stuff.</span>
+            <span className="block text-route-gradient">Open a cleaner trip.</span>
           </h1>
           <p className="mt-5 max-w-2xl text-[16px] leading-[1.55] text-[var(--color-text-dim)] sm:text-[18px]">
-            Type your RSN. RuneLite lets Scapestack skip finished quests, diary tiers, clog slots and Slayer mistakes.
+            Type your RSN. RuneLite remembers finished quests, diary tiers, clog slots, Slayer and bank items after you sync.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <PluginTrustPill label="No login" />
@@ -183,7 +183,7 @@ export default function PluginPage() {
               Install the plugin, sync once, then check the same RSN here.
             </p>
             <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-dim)]">
-              The public plugin connects to Scapestack automatically; there is no URL to paste for normal players.
+              The plugin connects to Scapestack automatically; open your bank once when you want item checks included.
             </p>
           </div>
 
@@ -234,7 +234,7 @@ export default function PluginPage() {
           </span>
         </summary>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <InfoTile title="RuneLite adds" body="Skills, quests, diaries, clog, Slayer and bank item readiness after sync." />
+          <InfoTile title="RuneLite adds" body="Skills, XP, quests, diaries, clog, Slayer and bank items after sync." />
           <InfoTile title="Never reads" body="RuneScape password, inventory, equipment, chat, screenshots or clicks." />
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-4">
             <h3 className="text-[13px] font-bold text-[var(--color-text)]">Nothing showing?</h3>
