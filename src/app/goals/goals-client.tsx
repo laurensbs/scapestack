@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   Edit3, Check, Search, Target, Trophy, Filter, ChevronDown, ArrowRight, CheckCircle2, Circle, ExternalLink
 } from "lucide-react";
@@ -46,6 +47,7 @@ export function GoalsClient() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<GoalCategory | "all">("all");
   const [selectedSetId, setSelectedSetId] = useState<string | null>(null);
+  const [openUnlockSetId, setOpenUnlockSetId] = useState<string | null>(null);
   const [manualChecks, setManualChecks] = useState<Set<string>>(() => new Set());
   // Archetype is read from localStorage (set by the bank page on first visit).
   // It only affects category *display order* on this page, not which goals
@@ -161,6 +163,12 @@ export function GoalsClient() {
     const completion = completions.find((c) => c.setId === targetSetId);
     return set && completion ? { set, completion } : null;
   }, [completions, selectedSetId, spotlight]);
+  const openUnlockCompletion = useMemo(() => {
+    if (!openUnlockSetId) return null;
+    const set = GOAL_SETS.find((s) => s.id === openUnlockSetId);
+    const completion = completions.find((c) => c.setId === openUnlockSetId);
+    return set && completion ? { set, completion } : null;
+  }, [completions, openUnlockSetId]);
 
   const toggleManualCheck = (key: string) => {
     setManualChecks((current) => {
@@ -285,8 +293,7 @@ export function GoalsClient() {
         <NextUnlockCompanion
           set={selectedCompletion.set}
           completion={selectedCompletion.completion}
-          manualChecks={manualChecks}
-          onToggleManualCheck={toggleManualCheck}
+          onOpenSteps={() => setOpenUnlockSetId(selectedCompletion.set.id)}
         />
       )}
 
@@ -322,7 +329,10 @@ export function GoalsClient() {
                 <button
                   key={c.setId}
                   type="button"
-                  onClick={() => setSelectedSetId(c.setId)}
+                  onClick={() => {
+                    setSelectedSetId(c.setId);
+                    setOpenUnlockSetId(c.setId);
+                  }}
                   aria-pressed={selected}
                   className={cn(
                     "group min-h-[150px] rounded-2xl border p-4 text-left transition-colors",
@@ -385,32 +395,12 @@ export function GoalsClient() {
         </section>
       )}
 
-      <details className="mb-6 rounded-2xl border border-[var(--color-border)] bg-[#15120c]/75 p-4">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)] marker:hidden">
-          <span>Make rewards smarter</span>
+      <details className="mb-6 rounded-xl border border-[var(--color-border)] bg-[#15120c]/55 p-3">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[12px] font-bold text-[var(--color-text)] marker:hidden">
+          <span>Add more context</span>
           <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">Bank, RSN, RuneLite</span>
         </summary>
         <div className="mt-4 space-y-4">
-          <div className="grid gap-3 md:grid-cols-3">
-            <div className="rounded-xl border border-[var(--color-border)] bg-black/15 p-3">
-              <p className="text-[12px] font-bold text-[var(--color-text)]">Bank</p>
-              <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
-                Checks capes, outfits, Void, Barrows pieces and other bank-owned rewards.
-              </p>
-            </div>
-            <div className="rounded-xl border border-[var(--color-border)] bg-black/15 p-3">
-              <p className="text-[12px] font-bold text-[var(--color-text)]">RSN</p>
-              <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
-                Adds public Hiscores, so earned 99s count even when the cape is not in your bank.
-              </p>
-            </div>
-            <div className="rounded-xl border border-[var(--color-border)] bg-black/15 p-3">
-              <p className="text-[12px] font-bold text-[var(--color-text)]">RuneLite</p>
-              <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
-                Later it can skip finished diary, quest and clog steps without showing account tables.
-              </p>
-            </div>
-          </div>
           {bankSummary && (
             <GoalsBankContextBanner
               rsn={activeRsn}
@@ -494,6 +484,16 @@ export function GoalsClient() {
       </section>
 
       <SupportCard context="Found your next untradeable goal?" />
+
+      {openUnlockCompletion && (
+        <GoalUnlockModal
+          set={openUnlockCompletion.set}
+          completion={openUnlockCompletion.completion}
+          manualChecks={manualChecks}
+          onToggleManualCheck={toggleManualCheck}
+          onClose={() => setOpenUnlockSetId(null)}
+        />
+      )}
     </div>
   );
 }
@@ -663,13 +663,11 @@ function unlockPlanSteps(set: GoalSetModel, completion: SetCompletion, missing: 
 function NextUnlockCompanion({
   set,
   completion,
-  manualChecks,
-  onToggleManualCheck
+  onOpenSteps
 }: {
   set: GoalSetModel;
   completion: SetCompletion;
-  manualChecks: Set<string>;
-  onToggleManualCheck: (key: string) => void;
+  onOpenSteps: () => void;
 }) {
   const norm = normaliseCompletion(completion, set);
   const missing = nextMissingGoals(set, completion);
@@ -726,15 +724,14 @@ function NextUnlockCompanion({
               {missingLine && <TripCheckLine title="Still missing" body={missingLine} tone="warn" />}
               <TripCheckLine title="Finish after" body={finishLine} />
             </div>
-            <a
-              href={wikiSearchUrl(guideTarget)}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={onOpenSteps}
               className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3 py-2 text-[12.5px] font-bold text-[#0B0F0D] transition-all hover:brightness-110 sm:w-auto"
             >
-              Open Wiki route
-              <ExternalLink className="size-3.5" />
-            </a>
+              Open steps
+              <ArrowRight className="size-3.5" />
+            </button>
           </div>
 
           <details className="group mt-4 rounded-xl border border-[var(--color-border)] bg-black/15 p-3">
@@ -754,55 +751,6 @@ function NextUnlockCompanion({
             </div>
           </details>
 
-          <details className="group mt-4 rounded-xl border border-[var(--color-border)] bg-black/15 p-3">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold text-[var(--color-text)]">
-              <span>Tick off missing bits</span>
-              <span className="inline-flex items-center gap-2 text-[11px] font-semibold text-[var(--color-text-muted)]">
-                Saved on this device
-                <ChevronDown className="size-4 transition group-open:rotate-180" aria-hidden="true" />
-              </span>
-            </summary>
-            <div className="mt-3">
-            {missing.length > 0 ? (
-              <div className="grid gap-2 sm:grid-cols-2">
-                {missing.map((goal) => {
-                  const key = manualGoalKey(set.id, goal.id);
-                  const checked = manualChecks.has(key);
-                  const iconId = iconForGoal(goal.id, completion.perGoal[goal.id]) ?? set.iconItemId;
-                  return (
-                    <button
-                      key={goal.id}
-                      type="button"
-                      onClick={() => onToggleManualCheck(key)}
-                      aria-pressed={checked}
-                      className={cn(
-                        "flex min-h-14 items-center gap-3 rounded-xl border px-3 py-2 text-left transition-colors",
-                        checked
-                          ? "border-[var(--color-accent)]/45 bg-[var(--color-accent)]/12 text-[var(--color-text)]"
-                          : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35"
-                      )}
-                    >
-                      {checked ? <CheckCircle2 className="size-5 shrink-0 text-[var(--color-accent)]" /> : <Circle className="size-5 shrink-0" />}
-                      {iconId && <ItemSprite id={iconId} alt="" size={28} className="pixelated shrink-0" />}
-                      <span className="min-w-0">
-                        <span className="block truncate text-[13px] font-bold">{goal.name}</span>
-                        <span className="mt-0.5 block truncate text-[11px] opacity-75">
-                          {sourceHintForGoal(set, goal)}
-                        </span>
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-3 py-3 text-[13px] font-bold text-[var(--color-text)]">
-                <CheckCircle2 className="size-5 text-[var(--color-accent)]" />
-                Done. Pick another unlock.
-              </div>
-            )}
-            </div>
-          </details>
-
           {completedViaUpgrade.length > 0 && (
             <p className="mt-3 text-[12px] leading-relaxed text-[var(--color-text-muted)]">
               Higher-tier rewards already tick lower tiers. Example: Karamja gloves 4 counts gloves 1, 2 and 3.
@@ -811,6 +759,204 @@ function NextUnlockCompanion({
         </div>
       </div>
     </section>
+  );
+}
+
+function GoalUnlockModal({
+  set,
+  completion,
+  manualChecks,
+  onToggleManualCheck,
+  onClose
+}: {
+  set: GoalSetModel;
+  completion: SetCompletion;
+  manualChecks: Set<string>;
+  onToggleManualCheck: (key: string) => void;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previous;
+    };
+  }, [onClose]);
+
+  if (typeof document === "undefined") return null;
+
+  const norm = normaliseCompletion(completion, set);
+  const missing = nextMissingGoals(set, completion);
+  const target = missing[0] ?? set.goals[set.goals.length - 1];
+  const rewardIconId = iconForGoal(target.id, completion.perGoal[target.id]) ?? set.iconItemId;
+  const found = set.goals.filter((goal) => completion.perGoal[goal.id]?.satisfied);
+  const completedViaUpgrade = set.goals.filter((goal) => {
+    const state = completion.perGoal[goal.id];
+    return state?.satisfied && !state.owned && state.satisfiedBy;
+  });
+  const planSteps = unlockPlanSteps(set, completion, missing);
+
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="goal-unlock-modal-title"
+      className="fixed inset-0 z-[220] overflow-y-auto bg-black/78 px-3 py-5 backdrop-blur-sm sm:grid sm:place-items-center sm:px-5"
+    >
+      <button
+        type="button"
+        aria-label={`Close ${set.name} unlock steps`}
+        aria-hidden="true"
+        tabIndex={-1}
+        onClick={onClose}
+        className="fixed inset-0 cursor-default"
+      />
+      <section className="osrs-frame relative mx-auto w-full max-w-3xl overflow-hidden text-left shadow-[0_32px_90px_-22px_rgba(0,0,0,0.95)]">
+        <header className="osrs-title-bar flex items-start justify-between gap-4 px-5 py-4 sm:px-6">
+          <div className="flex min-w-0 gap-4">
+            <span className="grid size-20 shrink-0 place-items-center rounded-xl border border-[var(--color-accent)]/35 bg-black/35">
+              {rewardIconId ? (
+                <ItemSprite id={rewardIconId} alt="" size={58} className="pixelated" />
+              ) : (
+                <Target className="size-10 text-[var(--color-accent)]" />
+              )}
+            </span>
+            <div className="min-w-0">
+              <p className="eyebrow text-[var(--color-accent)]">Closest unlock</p>
+              <h2 id="goal-unlock-modal-title" className="mt-1 font-serif text-[28px] font-bold leading-tight text-[var(--color-text)] sm:text-[36px]">
+                {target?.name ?? set.name}
+              </h2>
+              <p className="mt-1 text-[13px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+                {set.name} · {norm.progress}/{norm.max} found
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={`Close ${set.name} unlock steps`}
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+          >
+            <span className="text-xl leading-none">×</span>
+          </button>
+        </header>
+
+        <div className="osrs-body space-y-4 p-5 sm:p-6">
+          <div className="grid gap-2 sm:grid-cols-3">
+            {planSteps.map((step) => (
+              <TripCheckLine
+                key={`${step.title}:${step.body}`}
+                title={step.title === "Stop" || step.title === "Done" ? "Finish after" : step.title === "Start" ? "Before you leave" : "Still missing"}
+                body={step.body}
+                tone={step.title === "Then" ? "warn" : "default"}
+              />
+            ))}
+          </div>
+
+          <div className="rounded-xl border border-[var(--color-border)] bg-black/18 p-3">
+            <p className="text-[12px] font-bold text-[var(--color-text)]">Already checked</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {found.length > 0 ? found.slice(0, 8).map((goal) => {
+                const state = completion.perGoal[goal.id];
+                const iconId = iconForGoal(goal.id, state) ?? set.iconItemId;
+                return (
+                  <span
+                    key={goal.id}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-black/20 px-2 py-1 text-[11px] font-semibold text-[var(--color-text-dim)]"
+                  >
+                    {iconId && <ItemSprite id={iconId} alt="" size={16} className="pixelated" />}
+                    {goal.name}
+                  </span>
+                );
+              }) : (
+                <span className="text-[12px] font-semibold text-[var(--color-text-muted)]">Nothing from bank or Hiscores yet.</span>
+              )}
+              {found.length > 8 && (
+                <span className="rounded-lg border border-[var(--color-border)] bg-black/20 px-2 py-1 text-[11px] font-semibold text-[var(--color-text-muted)]">
+                  +{found.length - 8} more
+                </span>
+              )}
+            </div>
+            {completedViaUpgrade.length > 0 && (
+              <p className="mt-2 text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+                Higher-tier rewards count lower tiers automatically.
+              </p>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-[var(--color-border)] bg-black/18 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-[12px] font-bold text-[var(--color-text)]">Tick off missing bits</p>
+              <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">Saved on this device</span>
+            </div>
+            <div className="mt-3">
+              {missing.length > 0 ? (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {missing.map((goal) => {
+                    const key = manualGoalKey(set.id, goal.id);
+                    const checked = manualChecks.has(key);
+                    const iconId = iconForGoal(goal.id, completion.perGoal[goal.id]) ?? set.iconItemId;
+                    return (
+                      <button
+                        key={goal.id}
+                        type="button"
+                        onClick={() => onToggleManualCheck(key)}
+                        aria-pressed={checked}
+                        className={cn(
+                          "flex min-h-14 items-center gap-3 rounded-xl border px-3 py-2 text-left transition-colors",
+                          checked
+                            ? "border-[var(--color-accent)]/45 bg-[var(--color-accent)]/12 text-[var(--color-text)]"
+                            : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35"
+                        )}
+                      >
+                        {checked ? <CheckCircle2 className="size-5 shrink-0 text-[var(--color-accent)]" /> : <Circle className="size-5 shrink-0" />}
+                        {iconId && <ItemSprite id={iconId} alt="" size={28} className="pixelated shrink-0" />}
+                        <span className="min-w-0">
+                          <span className="block truncate text-[13px] font-bold">{goal.name}</span>
+                          <span className="mt-0.5 block truncate text-[11px] opacity-75">
+                            {sourceHintForGoal(set, goal)}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-3 py-3 text-[13px] font-bold text-[var(--color-text)]">
+                  <CheckCircle2 className="size-5 text-[var(--color-accent)]" />
+                  Done. Pick another unlock.
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <a
+              href={wikiSearchUrl(target?.name ?? set.name)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary min-h-11 flex-1 justify-center px-4 text-[13px]"
+            >
+              Open Wiki route
+              <ExternalLink className="size-3.5" />
+            </a>
+            <button
+              type="button"
+              onClick={onClose}
+              className="min-h-11 flex-1 rounded-lg border border-[var(--color-border)] px-4 text-[13px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-text)]"
+            >
+              Back to unlocks
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>,
+    document.body
   );
 }
 
