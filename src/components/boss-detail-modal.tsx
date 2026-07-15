@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, Sword, Target, TrendingUp, Package, ExternalLink, Copy, CheckCheck } from "lucide-react";
 import { BOSSES, isNonCombatBossActivity, type Boss } from "@/lib/bosses";
@@ -16,6 +16,7 @@ import type { BankHandoffItem } from "@/lib/next-bank-handoff";
 import { exportTag } from "@/lib/bank-tags";
 import { copyText } from "@/lib/clipboard";
 import { buildBossInventoryPlan, type InventoryRowPick } from "@/lib/boss-trip-loadout";
+import { track } from "@/lib/analytics";
 
 interface Props {
   boss: Boss;
@@ -23,17 +24,28 @@ interface Props {
   bankItems?: BankHandoffItem[];
   onClose: () => void;
   onSelectBoss?: (boss: Boss) => void;
+  analyticsSource?: "next" | "check_kill";
 }
 
 // Full-bleed boss profile modal. Triggered from /dps (row click) and
 // /next (KC-rec portrait click). Layout is side-by-side on desktop —
 // big portrait left 60%, gear+stats+upgrades+inventory right — and
 // stacks on mobile.
-export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelectBoss }: Props) {
+export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelectBoss, analyticsSource = "check_kill" }: Props) {
   const titleId = "boss-modal-title";
   const descriptionId = "boss-modal-description";
   const statsId = "boss-modal-stats";
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
+  const lastTrackedBoss = useRef<string | null>(null);
+  useEffect(() => {
+    if (lastTrackedBoss.current === boss.slug) return;
+    lastTrackedBoss.current = boss.slug;
+    track("boss:opened", {
+      bossSlug: boss.slug,
+      source: analyticsSource,
+      hasBank: bankItems.length > 0
+    });
+  }, [analyticsSource, bankItems.length, boss.slug]);
   // a11y: Esc closes, body scroll locked while open.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -82,6 +94,14 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
     if (!tagString) return;
     const result = await copyText(tagString);
     setCopyState(result === "failed" ? "failed" : "copied");
+    if (result !== "failed") {
+      track("boss:loadout_used", {
+        bossSlug: boss.slug,
+        source: analyticsSource,
+        hasBank: bankItems.length > 0,
+        action: "copy_runelite_tab"
+      });
+    }
     window.setTimeout(() => setCopyState("idle"), 1800);
   };
 

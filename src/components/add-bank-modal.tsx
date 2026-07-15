@@ -5,8 +5,9 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, CheckCircle2, ClipboardPaste, ExternalLink, X } from "lucide-react";
 import { BankSetupSteps } from "@/components/bank-setup-steps";
 import { getActiveAccount } from "@/lib/account-storage";
-import { loadSavedRsn, saveSavedBank, saveSavedRsn } from "@/lib/saved-bank";
+import { loadSavedBank, loadSavedRsn, saveSavedBank, saveSavedRsn } from "@/lib/saved-bank";
 import { cn } from "@/lib/utils";
+import { track } from "@/lib/analytics";
 
 interface AddBankModalProps {
   open: boolean;
@@ -18,6 +19,7 @@ interface AddBankModalProps {
 }
 
 type PasteState = "idle" | "pasted" | "empty" | "blocked" | "saved";
+const ANALYTICS_BANK_SOURCES = new Set(["home", "next", "header", "run-bar", "dps", "goals", "slayer", "bank"]);
 
 export function AddBankModal({
   open,
@@ -75,8 +77,16 @@ export function AddBankModal({
       setPasteState("empty");
       return;
     }
+    const hadBankBeforeSave = Boolean(initialBank.trim() || loadSavedBank(effectiveRsn || null)?.banktags.trim());
     saveSavedBank(trimmed, effectiveRsn || null);
     if (effectiveRsn) saveSavedRsn(effectiveRsn);
+    const analyticsSource = ANALYTICS_BANK_SOURCES.has(source)
+      ? source as "home" | "next" | "header" | "run-bar" | "dps" | "goals" | "slayer" | "bank"
+      : "unknown";
+    track(hadBankBeforeSave ? "bank:refreshed" : "bank:attached", {
+      source: analyticsSource,
+      linkedToAccount: Boolean(effectiveRsn)
+    });
     setPasteState("saved");
     onSaved?.(trimmed, effectiveRsn);
     window.setTimeout(onClose, 260);

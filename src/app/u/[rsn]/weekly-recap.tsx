@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, Clock3, Sparkles } from "lucide-react";
 import { latestSnapshot } from "@/lib/snapshot-history";
 import { loadTripTimeline, tripTimelineRecap, type TripTimelineRecap } from "@/lib/trip-timeline";
+import { track } from "@/lib/analytics";
 
 interface WeeklyRecapProps {
   rsn: string;
@@ -17,9 +18,22 @@ export function WeeklyRecap({ rsn, nextHref, syncXpLine }: WeeklyRecapProps) {
   const [bankUpdatedAt, setBankUpdatedAt] = useState<number | null>(null);
 
   useEffect(() => {
-    setRecap(tripTimelineRecap(loadTripTimeline(), { rsn }));
-    setBankUpdatedAt(latestSnapshot(rsn)?.ts ?? null);
-  }, [rsn]);
+    const nextRecap = tripTimelineRecap(loadTripTimeline(), { rsn });
+    const nextBankUpdatedAt = latestSnapshot(rsn)?.ts ?? null;
+    setRecap(nextRecap);
+    setBankUpdatedAt(nextBankUpdatedAt);
+    track("return:visit", {
+      hasBank: Boolean(nextBankUpdatedAt),
+      hasRunelite: Boolean(syncXpLine),
+      hasTripHistory: nextRecap.events.length > 0
+    }, { dedupeKey: "profile-return-visit" });
+    track("recap:viewed", {
+      hasProgress: nextRecap.events.length > 0,
+      hasBankUpdate: Boolean(nextBankUpdatedAt),
+      hasRuneliteProgress: Boolean(syncXpLine),
+      period: "week"
+    }, { dedupeKey: "weekly-recap-viewed" });
+  }, [rsn, syncXpLine]);
 
   const lines = useMemo(() => weeklyLines({
     recap,

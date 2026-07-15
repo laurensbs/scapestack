@@ -25,7 +25,7 @@ import { unlockedFromHiscores, GOAL_SETS, normaliseCompletion, type SetCompletio
 import type { HoursToMaxSummary } from "@/lib/hours-to-max";
 import { getActiveAccount, markAccountPluginBankStatus, markAccountRuneliteProgress, markAccountTrip } from "@/lib/account-storage";
 import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
-import { track } from "@/lib/analytics";
+import { track, type AnalyticsContext } from "@/lib/analytics";
 import type { Recommendation, RecKind, NextUpInput, NextUpResult, NextBestAction } from "@/lib/next-up";
 import { defaultActionHints } from "@/lib/rec-hints";
 import {
@@ -59,6 +59,7 @@ import { pluginBankStatusLabel, pluginBankStatusTone, type PluginBankStatus } fr
 import { isPluginSyncSource, pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
 import { summarizeNextPluginSync, type NextPluginSyncSummary } from "@/lib/next-plugin-sync-summary";
 import { runeliteProgressFromSyncSummary } from "@/lib/runelite-progress-memory";
+import { syncCompletesStartedRecommendation } from "@/lib/sync-trip-completion";
 import { toolHandoffUrl } from "@/lib/bank-tool-routes";
 import { bankOrganizerHref } from "@/lib/bank-handoff-url";
 import { shouldReadNextBankHandoff, shouldReadNextHeroBank } from "@/lib/next-route-context";
@@ -226,7 +227,7 @@ type NextRunOptions = {
   minutes?: TimeBudget;
 };
 
-type NextBankSource = "none" | "browser" | "handoff" | "plugin";
+type NextBankSource = "none" | "browser" | "handoff" | "plugin" | "sample";
 
 type InitialRouteChoice = {
   routeLens: RouteLens;
@@ -330,6 +331,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
   const [activeBankItems, setActiveBankItems] = useState<BankHandoffItem[]>([]);
   const [activeBankSource, setActiveBankSource] = useState<NextBankSource>("none");
   const [activeRsn, setActiveRsn] = useState("");
+  const [planRequestedAt, setPlanRequestedAt] = useState<number | null>(null);
   const [initialRouteChoice, setInitialRouteChoice] = useState<InitialRouteChoice | null>(null);
   const routeIntent = useMemo(
     () => nextIntentFromSearch(initialQueryString),
@@ -339,6 +341,10 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
     const params = new URLSearchParams(initialQueryString.replace(/^\?/, ""));
     return params.get("from") === "plugin";
   }, [initialQueryString]);
+  const cameFromHome = useMemo(() => {
+    const params = new URLSearchParams(initialQueryString.replace(/^\?/, ""));
+    return params.get("from") === "home";
+  }, [initialQueryString]);
 
   // Three intake paths feed the same engine: RSN-only (no bank),
   // RSN + bank (full data), or sample data (demo). A fourth, hidden
@@ -347,15 +353,36 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
   // round-trip entirely. Each path builds the same engine input shape;
   // we branch at the edges, not in the engine.
   const run = (opts: NextRunOptions) => {
+    const requestedAt = Date.now();
+    const hasSubmittedBank = Boolean((opts.input ?? "").trim() || (opts.bankItems && opts.bankItems.length > 0));
+    const submitSource = opts.sample
+      ? "sample"
+      : cameFromPlugin
+        ? "plugin"
+        : cameFromHome
+          ? "homepage"
+        : opts.bankItems?.length
+          ? "bank_handoff"
+          : "next";
+    const hasSubmittedRsn = Boolean((opts.rsn ?? "").trim());
     setError(null);
+    setPlanRequestedAt(requestedAt);
     setActiveBankItems([]);
     setActiveBankSource("none");
     // Fire the funnel event *before* the async work — Plausible is
     // fire-and-forget; we don't want the await chain in front of it.
     track("next:submit", {
-      hasRsn: Boolean((opts.rsn ?? "").trim()),
-      hasBank: Boolean((opts.input ?? "").trim() || (opts.bankItems && opts.bankItems.length > 0))
+      hasRsn: hasSubmittedRsn,
+      hasBank: hasSubmittedBank
     });
+    if (hasSubmittedRsn) {
+      track("rsn:submitted", {
+        source: submitSource,
+        context: hasSubmittedBank ? "bank" : "public_stats",
+        hasBank: hasSubmittedBank,
+        sample: false
+      });
+    }
     startTransition(async () => {
       // Minimum loader-tijd: zelfs als data binnen 50ms binnen is
       // (cached request) houden we de ShuffleLoader minimaal 2s op
@@ -373,6 +400,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
 
       if (opts.sample) {
         setActiveRsn("");
+        setActiveBankSource("sample");
         const bank = SAMPLE_BANK.map((item) => ({ ...item }));
         const sampleHandoffItems = bankHandoffItemsFromBankItems(bank, "Demo PvM sample");
         setActiveBankItems(sampleHandoffItems);
@@ -567,6 +595,44 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
             headlineTitle: nextResult.headline?.title ?? nextResult.nextBestActions[0]?.title ?? null
           }
         ));
+        const started = latestStartedRecommendationMemory(loadRecommendationFeedback(), { rsn });
+        const alreadyCompleted = started
+          ? loadTripTimeline().some((event) => event.id === started.id && event.action === "done" && event.savedAt >= started.savedAt)
+          : false;
+        if (started && !alreadyCompleted && syncCompletesStartedRecommendation(started, scapestackSync.lastSyncSummary, scapestackSync.syncedAt)) {
+          const completionMood = loadMood(rsn);
+          const completionProps = {
+            recommendationId: started.id,
+            recommendationKind: started.kind,
+            routeFamily: started.routeLens ?? "smart",
+            mood: started.mood ?? completionMood?.mood ?? "focused",
+            accountStage: nextResult.summary.accountStage.id,
+            context: (bankItemsForContext.length > 0 ? "bank_runelite" : "runelite") as AnalyticsContext,
+            sessionMinutes: completionMood?.minutes ?? 60,
+            elapsedMs: Math.max(0, new Date(scapestackSync.syncedAt).getTime() - started.savedAt),
+            evidence: "runelite_progress" as const
+          };
+          track("trip:completed_sync", completionProps, {
+            dedupeKey: `sync-complete:${started.id}:${scapestackSync.syncedAt}`
+          });
+          recordTripEvent({
+            id: started.id,
+            kind: started.kind,
+            title: started.title ?? "Started trip",
+            action: "done",
+            mood: started.mood,
+            routeLens: started.routeLens,
+            rsn
+          });
+          markAccountTrip(rsn, {
+            id: started.id,
+            kind: started.kind,
+            title: started.title ?? "Started trip",
+            action: "done",
+            mood: started.mood,
+            routeLens: started.routeLens
+          });
+        }
       }
 
       // Wacht uit tot we de minimum loader-tijd hebben gehaald voordat
@@ -722,6 +788,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
         expectedPluginSync={expectedPluginSync}
         routeIntent={routeIntent}
         initialRouteChoice={initialRouteChoice}
+        planRequestedAt={planRequestedAt}
         onBossOpen={(slug) => {
           const target = BOSSES.find((b) => b.slug === slug);
           if (target) setModalBoss(target);
@@ -731,6 +798,8 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
         <BossDetailModal
           boss={modalBoss}
           owned={ownedGearItems}
+          bankItems={activeBankItems}
+          analyticsSource="next"
           onSelectBoss={(nextBoss) => setModalBoss(nextBoss)}
           onClose={() => setModalBoss(null)}
         />
@@ -1235,7 +1304,7 @@ function NextIntake({
   );
 }
 
-function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOpen, onClearStoredBankHandoff, expectedPluginSync, routeIntent, initialRouteChoice }: {
+function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOpen, onClearStoredBankHandoff, expectedPluginSync, routeIntent, initialRouteChoice, planRequestedAt }: {
   result: NextUpResult;
   bankItems: BankHandoffItem[];
   bankSource: NextBankSource;
@@ -1248,6 +1317,7 @@ function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOp
   expectedPluginSync: boolean;
   routeIntent: NextIntentPreset | null;
   initialRouteChoice: InitialRouteChoice | null;
+  planRequestedAt: number | null;
 }) {
   const { headline, rest, summary } = result;
 
@@ -1295,6 +1365,8 @@ function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOp
           pluginSyncState={pluginSyncState}
           pluginSyncSummary={pluginSyncSummary}
           syncResult={result}
+          bankSource={bankSource}
+          planRequestedAt={planRequestedAt}
         />
       </div>
 
@@ -5049,7 +5121,9 @@ function WhatToDo({
   initialRouteChoice,
   pluginSyncState,
   pluginSyncSummary,
-  syncResult
+  syncResult,
+  bankSource,
+  planRequestedAt
 }: {
   allRecs: Recommendation[];
   activeRsn: string;
@@ -5066,6 +5140,8 @@ function WhatToDo({
   pluginSyncState: "live" | "stale" | "outdated" | null;
   pluginSyncSummary: NextPluginSyncSummary | null;
   syncResult: NextUpResult;
+  bankSource: NextBankSource;
+  planRequestedAt: number | null;
 }) {
   const [mood, setMood] = useState<Mood>(
     routeIntent ? visibleMood(routeIntent.mood) : initialRouteChoice?.mood ?? DEFAULT_MOOD
@@ -5136,6 +5212,29 @@ function WhatToDo({
     () => tripTimelineRecap(tripEvents, { rsn: activeRsn }),
     [activeRsn, tripEvents]
   );
+  const analyticsContext: AnalyticsContext = bankSource === "sample"
+    ? "sample"
+    : pluginSyncState && hasBankContext
+      ? "bank_runelite"
+      : pluginSyncState
+        ? "runelite"
+        : hasBankContext
+          ? "bank"
+          : "public_stats";
+
+  const recommendationAnalytics = (
+    rec: Recommendation,
+    nextRouteLens: RouteLens = routeLens
+  ) => ({
+    recommendationId: rec.id,
+    recommendationKind: rec.kind,
+    routeFamily: nextRouteLens,
+    mood,
+    accountStage: accountStage.id,
+    context: analyticsContext,
+    sessionMinutes: minutes,
+    elapsedMs: planRequestedAt ? Math.max(0, Date.now() - planRequestedAt) : 0
+  });
 
   const rememberTrip = (rec: Recommendation, action: TripTimelineAction, nextRouteLens: RouteLens = routeLens) => {
     const event = {
@@ -5196,11 +5295,40 @@ function WhatToDo({
     }, activeRsn || undefined);
   }, [activeRsn, mood, minutes, activePick]);
 
+  useEffect(() => {
+    if (!activePick) return;
+    const props = recommendationAnalytics(activePick.headline);
+    track("plan:first_rendered", props, {
+      dedupeKey: `plan:${planRequestedAt ?? "unknown"}:${activePick.headline.id}`
+    });
+    track("recommendation:impression", props, {
+      dedupeKey: `impression:${activePick.headline.id}:${routeLens}:${mood}:${minutes}:${shuffleIdx}`
+    });
+  }, [activePick?.headline.id, analyticsContext, accountStage.id, minutes, mood, planRequestedAt, routeLens, shuffleIdx]);
+
+  useEffect(() => {
+    if (!routeIntent && !initialRouteChoice) return;
+    track("mood:changed", {
+      mood,
+      sessionMinutes: minutes,
+      source: "onboarding"
+    }, { dedupeKey: `onboarding-mood:${planRequestedAt ?? "unknown"}` });
+  }, [initialRouteChoice, minutes, mood, planRequestedAt, routeIntent]);
+
   if (allRecs.length === 0) return null;
-  const applySessionIntent = (nextMood: Mood, nextMinutes?: TimeBudget) => {
+  const applySessionIntent = (
+    nextMood: Mood,
+    nextMinutes?: TimeBudget,
+    source: "picker" | "feedback" | "completion" | "onboarding" = "picker"
+  ) => {
     setMood(nextMood);
     const defaultTime = nextMinutes ?? defaultTimeForMood(nextMood);
     if (defaultTime) setMinutes(defaultTime);
+    track("mood:changed", {
+      mood: nextMood,
+      sessionMinutes: defaultTime ?? minutes,
+      source
+    });
     setShuffleIdx(0);
     setRouteSwitchNote(null);
     setLastSuppressed(null);
@@ -5218,6 +5346,9 @@ function WhatToDo({
     setLastCompleted(null);
   };
   const startRecommendation = (rec: Recommendation) => {
+    const analytics = recommendationAnalytics(rec);
+    track("recommendation:accepted", analytics);
+    track("trip:started", analytics);
     setFeedback(recordRecommendationMemory({
       id: rec.id,
       kind: rec.kind,
@@ -5233,6 +5364,10 @@ function WhatToDo({
     setLastSuppressed(null);
   };
   const hideRecommendation = (rec: Recommendation) => {
+    track("recommendation:skipped", {
+      ...recommendationAnalytics(rec),
+      reason: "not_today"
+    });
     setFeedback(suppressRecommendation({ id: rec.id, kind: rec.kind, title: rec.title, reason: "not_today" }));
     rememberTrip(rec, "skipped");
     setLastSuppressed({ id: rec.id, kind: rec.kind, title: rec.title });
@@ -5240,6 +5375,7 @@ function WhatToDo({
     setLastCompleted(null);
   };
   const completeRecommendation = (rec: Recommendation) => {
+    track("trip:completed_manual", recommendationAnalytics(rec));
     setFeedback(suppressRecommendation({ id: rec.id, kind: rec.kind, title: rec.title, reason: "already_done" }));
     rememberTrip(rec, "done");
     setLastCompleted({ id: rec.id, title: rec.title });
@@ -5260,7 +5396,14 @@ function WhatToDo({
       title: lastSuppressed.title,
       reason: "too_hard"
     }));
-    applySessionIntent("chill", 30);
+    const suppressedRec = allRecs.find((rec) => rec.id === lastSuppressed.id);
+    if (suppressedRec) {
+      track("recommendation:skipped", {
+        ...recommendationAnalytics(suppressedRec),
+        reason: "too_hard"
+      });
+    }
+    applySessionIntent("chill", 30, "feedback");
   };
   const restoreLastCompleted = () => {
     if (!lastCompleted) return;
@@ -5277,6 +5420,14 @@ function WhatToDo({
     setLastCompleted(null);
     setLastSuppressed(null);
     if (activePick?.headline) {
+      track("recommendation:another", {
+        ...recommendationAnalytics(activePick.headline),
+        nextRouteFamily: randomLens
+      });
+      track("recommendation:skipped", {
+        ...recommendationAnalytics(activePick.headline),
+        reason: "another_plan"
+      });
       setSessionSkipped((current) => recordSessionSkip(current, activePick.headline));
       setFeedback(recordRecommendationMemory({
         id: activePick.headline.id,
@@ -5303,7 +5454,7 @@ function WhatToDo({
     setLastCompleted(null);
   };
   const moveToChillPlan = () => {
-    applySessionIntent("chill", 30);
+    applySessionIntent("chill", 30, "completion");
   };
   const restoreHidden = () => {
     setFeedback(clearRecommendationFeedback());

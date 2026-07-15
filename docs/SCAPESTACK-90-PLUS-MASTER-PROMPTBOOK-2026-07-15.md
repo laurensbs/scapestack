@@ -234,7 +234,7 @@ Evidence:
 
 ## Phase 01 - Define The Decision Funnel
 
-Status: TODO  
+Status: IN PROGRESS
 Depends on: Phase 00  
 Improves: product analytics, retention diagnosis
 

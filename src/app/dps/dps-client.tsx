@@ -665,6 +665,7 @@ export function DpsClient() {
           boss={modalBoss}
           owned={owned}
           bankItems={bankItems}
+          analyticsSource="check_kill"
           onSelectBoss={(nextBoss) => {
             setFocusedBoss(nextBoss);
             setModalBoss(nextBoss);

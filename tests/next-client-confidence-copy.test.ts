@@ -571,7 +571,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Next trip");
     expect(source).not.toContain("Another trip");
     expect(source).toContain("Chill now");
-    expect(source).toContain('applySessionIntent("chill", 30)');
+    expect(source).toContain('applySessionIntent("chill", 30, "completion")');
     expect(source).toContain("Undo done");
     expect(source).toContain("const moveToAnotherPlan = () =>");
     expect(source).toContain("const moveToChillPlan = () =>");

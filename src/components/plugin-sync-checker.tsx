@@ -27,6 +27,7 @@ import {
   type PluginSyncServiceSummary
 } from "@/lib/plugin-sync-service";
 import { loadSavedRsn, saveSavedRsn } from "@/lib/saved-bank";
+import { track } from "@/lib/analytics";
 
 type CheckState =
   | { kind: "idle" }
@@ -112,6 +113,10 @@ export function PluginSyncChecker() {
       } catch (error) {
         if (!cancelled) {
           setServiceError(error instanceof Error ? error.message : "Unable to check sync service");
+          track("runelite:sync_failure", {
+            reason: "service_error",
+            source: "service_probe"
+          }, { dedupeKey: "runelite-service-probe-failure" });
         }
       }
     }
@@ -121,13 +126,29 @@ export function PluginSyncChecker() {
     };
   }, []);
 
-  const checkRsnValue = useCallback((value: string) => {
+  const checkRsnValue = useCallback((
+    value: string,
+    source: "manual" | "url" | "saved" = "manual"
+  ) => {
     const clean = value.trim();
     if (!clean) return;
     startTransition(async () => {
       try {
         const next = await pluginSyncStatusAction(clean);
         setState(next);
+        if (next.kind === "unconfigured") {
+          track("runelite:sync_failure", { reason: "unconfigured", source });
+        } else if (next.kind === "missing") {
+          track("runelite:sync_failure", { reason: "not_found", source });
+        } else {
+          const health = pluginSyncHealth({ pluginVersion: next.player.pluginVersion, syncedAt: next.player.syncedAt });
+          track("runelite:sync_success", {
+            result: "found",
+            fresh: health === "live",
+            bankReady: next.player.bankStatus.enabled && next.player.bankStatus.itemCount > 0,
+            source
+          });
+        }
         if (next.kind !== "unconfigured") {
           saveSavedRsn(clean);
           if (next.kind === "found") {
@@ -139,6 +160,7 @@ export function PluginSyncChecker() {
           }
         }
       } catch (err) {
+        track("runelite:sync_failure", { reason: "request_error", source });
         setState({
           kind: "error",
           message: err instanceof Error ? err.message : "RuneLite check failed"
@@ -159,7 +181,7 @@ export function PluginSyncChecker() {
     setPrefillSource(rsnFromUrl ? "url" : "saved");
     if (rsnFromUrl) {
       autoCheckStarted.current = true;
-      checkRsnValue(rsnFromUrl);
+      checkRsnValue(rsnFromUrl, "url");
     }
   }, [checkRsnValue]);
 
@@ -169,7 +191,7 @@ export function PluginSyncChecker() {
   };
 
   const checkCurrentRsn = () => {
-    checkRsnValue(normalized);
+    checkRsnValue(normalized, prefillSource === "saved" ? "saved" : prefillSource === "url" ? "url" : "manual");
   };
 
   return (

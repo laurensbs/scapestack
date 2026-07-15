@@ -47,7 +47,7 @@ describe("RSN profile handoffs", () => {
     expect(source).toContain("Next clean trip");
     expect(source).toContain("Trips you touched on this device");
     expect(source).not.toContain("dashboard");
-    expect(source).not.toContain("analytics");
+    expect(source).not.toMatch(/>\s*Analytics\s*</i);
   });
 
   it("mounts the shared readiness rail on player profiles with local bank detection", () => {

@@ -175,6 +175,7 @@ export function HeroIntake() {
       catch { /* private mode → silently skip; /next valt terug op stat-only */ }
     }
     const params = new URLSearchParams();
+    params.set("from", "home");
     if (trimmed) params.set("rsn", trimmed);
     if (!hasBankContext) params.set("bank", "none");
     if (options.includeSetupIntent && selectedFirstSetupIntent !== "surprise") {
