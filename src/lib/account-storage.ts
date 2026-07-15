@@ -15,6 +15,7 @@ export interface ScapestackAccount {
   runeliteCheckedAt?: number;
   preferredMood?: Mood;
   preferredMinutes?: TimeBudget;
+  firstSetupCompletedAt?: number;
 }
 
 export interface ScapestackAccountStore {
@@ -106,6 +107,7 @@ export function upsertAccount(rsn: string, patch: Partial<Omit<ScapestackAccount
     runeliteCheckedAt: existing?.runeliteCheckedAt,
     preferredMood: existing?.preferredMood,
     preferredMinutes: existing?.preferredMinutes,
+    firstSetupCompletedAt: existing?.firstSetupCompletedAt,
     ...patch
   };
   const accounts = [
@@ -171,4 +173,14 @@ export function markActiveAccountMood(mood: Mood, minutes: TimeBudget): void {
   const active = getActiveAccount();
   if (!active) return;
   markAccountMood(active.rsn, mood, minutes);
+}
+
+export function markAccountFirstSetupSeen(rsn: string, seenAt: number = now()): void {
+  upsertAccount(rsn, { firstSetupCompletedAt: seenAt });
+}
+
+export function hasAccountFirstSetupSeen(rsn: string): boolean {
+  const id = accountIdForRsn(rsn);
+  const store = loadAccountStore();
+  return Boolean(store.accounts.find((account) => account.id === id)?.firstSetupCompletedAt);
 }

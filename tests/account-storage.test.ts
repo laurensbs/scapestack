@@ -100,4 +100,19 @@ describe("account storage", () => {
 
     expect(getActiveAccount()?.runeliteCheckedAt).toBeUndefined();
   });
+
+  it("keeps first setup completion attached to the RSN", async () => {
+    const { hasAccountFirstSetupSeen, loadAccountStore, markAccountFirstSetupSeen, upsertAccount } = await import("@/lib/account-storage");
+
+    upsertAccount("Lauky");
+    expect(hasAccountFirstSetupSeen("Lauky")).toBe(false);
+
+    markAccountFirstSetupSeen("Lauky", 1_725_000_000_000);
+
+    expect(hasAccountFirstSetupSeen("Lauky")).toBe(true);
+    expect(loadAccountStore().accounts[0]).toMatchObject({
+      rsn: "Lauky",
+      firstSetupCompletedAt: 1_725_000_000_000
+    });
+  });
 });

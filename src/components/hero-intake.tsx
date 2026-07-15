@@ -8,7 +8,7 @@ import { pluginSyncStatusAction } from "@/app/actions";
 import { AddBankModal } from "@/components/add-bank-modal";
 import { RuneliteOpenButton } from "@/components/runelite-open-button";
 import { SessionMoodPicker } from "@/components/session-mood-picker";
-import { ACCOUNT_EVENT, clearRuneliteChecked, getActiveAccount, markRuneliteChecked } from "@/lib/account-storage";
+import { ACCOUNT_EVENT, clearRuneliteChecked, getActiveAccount, hasAccountFirstSetupSeen, markAccountFirstSetupSeen, markRuneliteChecked } from "@/lib/account-storage";
 import { MOOD_LABEL, type Mood, type TimeBudget } from "@/lib/mood";
 import { loadMood, saveMood, relativeSince } from "@/lib/mood-storage";
 import { latestRecommendationMemory, latestStartedRecommendationMemory } from "@/lib/recommendation-feedback";
@@ -25,8 +25,6 @@ import { cn } from "@/lib/utils";
 // minder willekeurig voelt.
 
 const HERO_BANK_KEY = "scapestack:hero:bank";
-const HERO_FIRST_SETUP_KEY = "scapestack:first-setup:v1";
-
 type FirstSetupIntent = "surprise" | "chill" | "cash" | "bossing" | "unlock" | "afk" | "short";
 
 const FIRST_SETUP_INTENTS: Array<{
@@ -49,16 +47,8 @@ function firstSetupIntentPreset(intent: FirstSetupIntent) {
   return FIRST_SETUP_INTENTS.find((preset) => preset.intent === intent) ?? FIRST_SETUP_INTENTS[0];
 }
 
-function setupKeyForRsn(rsn: string): string {
-  return `${HERO_FIRST_SETUP_KEY}:${rsn.trim().toLowerCase().replace(/\s+/g, "-")}`;
-}
-
 function markFirstSetupSeen(rsn: string): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(setupKeyForRsn(rsn), "1");
-  } catch {
-  }
+  markAccountFirstSetupSeen(rsn);
 }
 
 function formatRuneliteCheckedAt(value: number | null): string {
@@ -241,7 +231,11 @@ export function HeroIntake() {
     if (!canSubmit) return;
     if (trimmed) saveSavedRsn(trimmed);
     if (trimmed) {
-      setShowFirstSetup(true);
+      if (!hasAccountFirstSetupSeen(trimmed)) {
+        setShowFirstSetup(true);
+        return;
+      }
+      openPlan();
       return;
     }
     openPlan();

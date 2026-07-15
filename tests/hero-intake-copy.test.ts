@@ -10,7 +10,7 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("const canSubmit = Boolean(rsn.trim() || hasBankPaste)");
     expect(source).toContain("if (trimmed) {");
     expect(source).toContain("setShowFirstSetup(true);");
-    expect(source).not.toContain("hasSeenFirstSetup");
+    expect(source).toContain("hasAccountFirstSetupSeen(trimmed)");
     expect(source).toContain('if (!hasBankContext) params.set("bank", "none");');
     expect(source).toContain("router.push(`/next?${params.toString()}`)");
   });
@@ -83,7 +83,6 @@ describe("hero intake copy and routing", () => {
   });
 
   it("shows first-time setup before the first /next plan", () => {
-    expect(source).toContain('const HERO_FIRST_SETUP_KEY = "scapestack:first-setup:v1";');
     expect(source).toContain('type FirstSetupIntent = "surprise" | "chill" | "cash" | "bossing" | "unlock" | "afk" | "short";');
     expect(source).toContain("const FIRST_SETUP_INTENTS:");
     expect(source).toContain('label: "Chill"');
@@ -92,8 +91,9 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain('label: "Unlock"');
     expect(source).toContain('label: "AFK"');
     expect(source).toContain('label: "Short"');
-    expect(source).toContain("function setupKeyForRsn(rsn: string): string");
     expect(source).toContain("function markFirstSetupSeen(rsn: string): void");
+    expect(source).toContain("markAccountFirstSetupSeen(rsn);");
+    expect(source).toContain("if (!hasAccountFirstSetupSeen(trimmed))");
     expect(source).toContain("const [showFirstSetup, setShowFirstSetup] = useState(false);");
     expect(source).toContain('const [selectedFirstSetupIntent, setSelectedFirstSetupIntent] = useState<FirstSetupIntent>("surprise");');
     expect(source).toContain('aria-labelledby="hero-first-setup-title"');
