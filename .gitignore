@@ -16,3 +16,4 @@ _legacy/
 _rebuild/
 _rebuild_dup/
 .vercel
+.artifacts/
