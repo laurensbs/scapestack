@@ -6,9 +6,9 @@
 //   2. timestamp + headline-id → "welkom terug; vorige sessie raadden
 //      we X" banner
 //
-// Geen account-binding, geen server — pure client-side. Wanneer een
-// gebruiker zijn cache wipet bestaat de geschiedenis niet meer, dat is
-// een feature niet een bug (geen lock-in).
+// Account-binding blijft client-side: geen server, geen login. Wanneer
+// een gebruiker zijn cache wipet bestaat de geschiedenis niet meer; dat
+// is bewust geen lock-in.
 
 import type { Mood, TimeBudget } from "./mood";
 import { accountIdForRsn, getActiveAccount, loadAccountStore, markAccountMood } from "./account-storage";
@@ -35,7 +35,13 @@ export function saveMood(session: Omit<MoodSession, "version" | "savedAt">, rsn?
     const payload: MoodSession = { version: 1, ...session, savedAt: Date.now() };
     localStorage.setItem(KEY, JSON.stringify(payload));
     const accountRsn = (rsn ?? getActiveAccount()?.rsn ?? "").trim();
-    if (accountRsn) markAccountMood(accountRsn, session.mood, session.minutes);
+    if (accountRsn) {
+      markAccountMood(accountRsn, session.mood, session.minutes, {
+        lastHeadlineId: session.lastHeadlineId,
+        lastHeadlineTitle: session.lastHeadlineTitle,
+        savedAt: payload.savedAt
+      });
+    }
   } catch {
     // Quota / disabled storage → silently skip
   }
@@ -66,7 +72,9 @@ function loadAccountMood(rsn?: string | null): MoodSession | null {
     version: 1,
     mood: account.preferredMood,
     minutes: account.preferredMinutes,
-    savedAt: account.lastUsedAt
+    lastHeadlineId: account.lastHeadlineId,
+    lastHeadlineTitle: account.lastHeadlineTitle,
+    savedAt: account.lastHeadlineSavedAt ?? account.lastUsedAt
   };
 }
 

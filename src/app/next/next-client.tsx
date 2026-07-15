@@ -3793,6 +3793,42 @@ function sessionMemoryNote({
   return `Welcome back — last pick was ${lastSession.lastHeadlineTitle}. This is the next move.`;
 }
 
+function ContinueRouteBanner({
+  note,
+  lastSession
+}: {
+  note: string;
+  lastSession: MoodSession | null;
+}) {
+  const title = lastSession?.lastHeadlineTitle ?? "Your last route";
+  const age = lastSession?.savedAt ? relativeSince(lastSession.savedAt) : null;
+
+  return (
+    <section
+      role="status"
+      aria-live="polite"
+      className="rounded-xl border border-[var(--color-accent)]/30 bg-[linear-gradient(135deg,rgba(214,170,72,0.13),rgba(20,15,9,0.68))] px-4 py-3 shadow-[0_16px_48px_rgba(0,0,0,0.22)]"
+      data-continue-route-memory="true"
+    >
+      <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="flex items-center gap-1.5 text-[10.5px] font-black uppercase tracking-[0.16em] text-[var(--color-accent)]">
+            <Sparkles className="size-3.5" />
+            Continue route
+          </p>
+          <p className="mt-1 text-[13px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+            {note}
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2 rounded-full border border-[var(--color-accent)]/24 bg-[var(--color-bg)]/45 px-3 py-1.5 text-[11px] font-bold text-[var(--color-text)]">
+          <span className="max-w-[220px] truncate">{title}</span>
+          {age && <span className="text-[var(--color-text-muted)]">{age}</span>}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function RecommendationSessionSummary({
   rec,
   compact = false
@@ -5275,6 +5311,9 @@ function WhatToDo({
       <div className="min-w-0 max-w-full space-y-3">
         {activePick ? (
           <>
+            {memoryNote && !routeSwitchNote && !lastStarted && !lastSuppressed && !lastCompleted && (
+              <ContinueRouteBanner note={memoryNote} lastSession={lastSession} />
+            )}
             <NextTripContextLine
               activeRsn={activeRsn}
               accountMode={accountMode}
@@ -5345,15 +5384,6 @@ function WhatToDo({
                 className="rounded-xl border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 px-3.5 py-2.5 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]"
               >
                 Started: <span className="font-semibold text-[var(--color-text)]">{lastStarted.title}</span>. Mark it done when the finish condition is true.
-              </div>
-            )}
-            {memoryNote && !routeSwitchNote && !lastStarted && !lastSuppressed && !lastCompleted && (
-              <div
-                role="status"
-                aria-live="polite"
-                className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 px-3.5 py-2.5 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]"
-              >
-                {memoryNote}
               </div>
             )}
             {routeSwitchNote && !lastSuppressed && !lastCompleted && (

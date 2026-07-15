@@ -68,6 +68,9 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function ReturnPlanCard");
     expect(source).toContain('data-return-plan-card="true"');
     expect(source).toContain("const plan = result.returnPlan;");
+    expect(source).toContain("function ContinueRouteBanner");
+    expect(source).toContain('data-continue-route-memory="true"');
+    expect(source).toContain("Continue route");
     expect(source).toContain("function SessionRouteTimeline");
     expect(source).toContain("function routeTimelineItems");
     expect(source).toContain('data-session-route-timeline="true"');

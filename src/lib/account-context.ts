@@ -27,6 +27,9 @@ export interface AccountSnapshot {
   mood: Mood | null;
   minutes: TimeBudget | null;
   moodLabel: string;
+  lastHeadlineId: string | null;
+  lastHeadlineTitle: string | null;
+  lastHeadlineSavedAt: number | null;
   planHref: string;
   bankHref: string;
   pluginHref: string;
@@ -121,6 +124,9 @@ export function loadAccountSnapshot(rsn?: string | null): AccountSnapshot {
     mood,
     minutes,
     moodLabel: mood ? MOOD_LABEL[mood].name : "Best now",
+    lastHeadlineId: moodSession?.lastHeadlineId ?? null,
+    lastHeadlineTitle: moodSession?.lastHeadlineTitle ?? null,
+    lastHeadlineSavedAt: moodSession?.lastHeadlineTitle ? moodSession.savedAt : null,
     planHref: withRsn("/next", resolvedRsn, mood && minutes ? { intent: mood, time: String(minutes) } : undefined),
     bankHref: withRsn("/bank", resolvedRsn, { from: encodedFrom }),
     pluginHref: `${withRsn("/plugin", resolvedRsn, { from: encodedFrom })}#verify-sync`,

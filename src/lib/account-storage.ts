@@ -18,8 +18,13 @@ export interface ScapestackAccount {
   runeliteCheckedAt?: number;
   preferredMood?: Mood;
   preferredMinutes?: TimeBudget;
+  lastHeadlineId?: string;
+  lastHeadlineTitle?: string;
+  lastHeadlineSavedAt?: number;
   firstSetupCompletedAt?: number;
 }
+
+type AccountPatch = Partial<Omit<ScapestackAccount, "id" | "rsn" | "createdAt">>;
 
 export interface ScapestackAccountStore {
   version: 1;
@@ -94,7 +99,7 @@ export function getActiveAccount(): ScapestackAccount | null {
   return store.accounts.find((account) => account.id === store.activeId) ?? null;
 }
 
-export function upsertAccount(rsn: string, patch: Partial<Omit<ScapestackAccount, "id" | "rsn" | "createdAt">> = {}): ScapestackAccount | null {
+export function upsertAccount(rsn: string, patch: AccountPatch = {}): ScapestackAccount | null {
   const clean = normalizeRsn(rsn);
   if (!clean) return null;
   const id = accountIdForRsn(clean);
@@ -112,6 +117,9 @@ export function upsertAccount(rsn: string, patch: Partial<Omit<ScapestackAccount
     runeliteCheckedAt: existing?.runeliteCheckedAt,
     preferredMood: existing?.preferredMood,
     preferredMinutes: existing?.preferredMinutes,
+    lastHeadlineId: existing?.lastHeadlineId,
+    lastHeadlineTitle: existing?.lastHeadlineTitle,
+    lastHeadlineSavedAt: existing?.lastHeadlineSavedAt,
     firstSetupCompletedAt: existing?.firstSetupCompletedAt,
     ...patch
   };
@@ -188,8 +196,19 @@ export function clearRuneliteChecked(rsn: string): void {
   upsertAccount(rsn, { runeliteCheckedAt: undefined });
 }
 
-export function markAccountMood(rsn: string, mood: Mood, minutes: TimeBudget): void {
-  upsertAccount(rsn, { preferredMood: mood, preferredMinutes: minutes });
+export function markAccountMood(
+  rsn: string,
+  mood: Mood,
+  minutes: TimeBudget,
+  route?: { lastHeadlineId?: string; lastHeadlineTitle?: string; savedAt?: number }
+): void {
+  const patch: AccountPatch = { preferredMood: mood, preferredMinutes: minutes };
+  if (route?.lastHeadlineId || route?.lastHeadlineTitle) {
+    patch.lastHeadlineId = route.lastHeadlineId;
+    patch.lastHeadlineTitle = route.lastHeadlineTitle;
+    patch.lastHeadlineSavedAt = route.savedAt ?? now();
+  }
+  upsertAccount(rsn, patch);
 }
 
 export function markActiveAccountMood(mood: Mood, minutes: TimeBudget): void {

@@ -50,7 +50,11 @@ describe("account context", () => {
       capturedAt: "2026-07-15T11:00:00.000Z",
       unavailableReason: null
     });
-    markAccountMood("Lauky", "afk", 30);
+    markAccountMood("Lauky", "afk", 30, {
+      lastHeadlineId: "skill:farming",
+      lastHeadlineTitle: "Run herbs + birdhouses",
+      savedAt: Date.now() - 12 * 60 * 1000
+    });
     saveSavedBank("Item id\tItem name\tItem quantity\n377\tRaw lobster\t1400", "Lauky");
 
     const snapshot = loadAccountSnapshot("Lauky");
@@ -65,6 +69,9 @@ describe("account context", () => {
     expect(snapshot.runeliteNeedsRefresh).toBe(false);
     expect(snapshot.pluginBankItemCount).toBe(778);
     expect(snapshot.moodLabel).toBe("AFK");
+    expect(snapshot.lastHeadlineId).toBe("skill:farming");
+    expect(snapshot.lastHeadlineTitle).toBe("Run herbs + birdhouses");
+    expect(snapshot.lastHeadlineSavedAt).toBe(Date.now() - 12 * 60 * 1000);
     expect(snapshot.planHref).toBe("/next?rsn=Lauky&intent=afk&time=30");
     expect(snapshot.bankHref).toBe("/bank?rsn=Lauky&from=account");
     expect(snapshot.pluginHref).toBe("/plugin?rsn=Lauky&from=account#verify-sync");

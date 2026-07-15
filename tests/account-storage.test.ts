@@ -84,7 +84,11 @@ describe("account storage", () => {
     markAccountBankSaved("Iron Guy", 1_780_000_005_000);
     markAccountPluginBankStatus("Lynx Titan", { enabled: true, itemCount: 612, capturedAt: "2026-07-15T09:00:00.000Z", unavailableReason: null });
     markRuneliteChecked("Lynx Titan", 1_780_000_010_000);
-    markAccountMood("Lynx Titan", "afk", 30);
+    markAccountMood("Lynx Titan", "afk", 30, {
+      lastHeadlineId: "skill:farming",
+      lastHeadlineTitle: "Run herbs + birdhouses",
+      savedAt: 1_780_000_012_000
+    });
 
     expect(getActiveAccount()).toMatchObject({
       rsn: "Lynx Titan",
@@ -93,7 +97,10 @@ describe("account storage", () => {
       pluginBankCapturedAt: "2026-07-15T09:00:00.000Z",
       runeliteCheckedAt: 1_780_000_010_000,
       preferredMood: "afk",
-      preferredMinutes: 30
+      preferredMinutes: 30,
+      lastHeadlineId: "skill:farming",
+      lastHeadlineTitle: "Run herbs + birdhouses",
+      lastHeadlineSavedAt: 1_780_000_012_000
     });
     expect(loadAccountStore().accounts.find((account) => account.rsn === "Iron Guy")).toMatchObject({
       bankSavedAt: 1_780_000_005_000

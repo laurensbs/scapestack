@@ -68,6 +68,26 @@ describe("mood-storage", () => {
     });
   });
 
+  it("keeps the last route attached to the account mood", async () => {
+    const { upsertAccount } = await import("@/lib/account-storage");
+    const { loadMood, saveMood } = await import("@/lib/mood-storage");
+
+    upsertAccount("Lynx Titan");
+    saveMood({
+      mood: "bossing",
+      minutes: 60,
+      lastHeadlineId: "boss:vorkath",
+      lastHeadlineTitle: "Push Vorkath to 50 KC"
+    }, "Lynx Titan");
+
+    expect(loadMood("Lynx Titan")).toMatchObject({
+      mood: "bossing",
+      minutes: 60,
+      lastHeadlineId: "boss:vorkath",
+      lastHeadlineTitle: "Push Vorkath to 50 KC"
+    });
+  });
+
   it("oude versie (v0) wordt genegeerd", async () => {
     const { loadMood } = await import("@/lib/mood-storage");
     localStorage.setItem(
