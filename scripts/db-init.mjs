@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // One-shot schema creator. Reads DATABASE_URL from .env.local (or env)
-// and runs the SCHEMA_SQL block from src/lib/sync-repo.ts.
+// and executes the canonical schema from src/lib/sync-schema.ts.
 //
 // Idempotent — CREATE TABLE IF NOT EXISTS, so safe to re-run.
 //
@@ -33,48 +33,13 @@ if (!url) {
   process.exit(1);
 }
 
-// Same schema as src/lib/sync-repo.ts SCHEMA_SQL — duplicated here so
-// this script has zero TypeScript dep. Keep in sync manually.
-const SCHEMA_SQL = `
-CREATE TABLE IF NOT EXISTS player_sync (
-  rsn TEXT PRIMARY KEY,
-  display_name TEXT NOT NULL,
-  account_type TEXT NOT NULL DEFAULT 'normal',
-  skills JSONB NOT NULL DEFAULT '[]'::jsonb,
-  quests_completed JSONB NOT NULL DEFAULT '[]'::jsonb,
-  diaries_completed JSONB NOT NULL DEFAULT '[]'::jsonb,
-  collection_log_item_ids INTEGER[] NOT NULL DEFAULT ARRAY[]::INTEGER[],
-  bank_items JSONB NOT NULL DEFAULT '[]'::jsonb,
-  bank_status JSONB NOT NULL DEFAULT '{"enabled":false,"itemCount":0,"capturedAt":null,"unavailableReason":"opt-in-off"}'::jsonb,
-  slayer JSONB,
-  plugin_version TEXT NOT NULL DEFAULT 'unknown',
-  sync_summary JSONB,
-  synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS display_name TEXT NOT NULL DEFAULT '';
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS account_type TEXT NOT NULL DEFAULT 'normal';
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS skills JSONB NOT NULL DEFAULT '[]'::jsonb;
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS quests_completed JSONB NOT NULL DEFAULT '[]'::jsonb;
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS diaries_completed JSONB NOT NULL DEFAULT '[]'::jsonb;
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS collection_log_item_ids INTEGER[] NOT NULL DEFAULT ARRAY[]::INTEGER[];
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS bank_items JSONB NOT NULL DEFAULT '[]'::jsonb;
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS bank_status JSONB NOT NULL DEFAULT '{"enabled":false,"itemCount":0,"capturedAt":null,"unavailableReason":"opt-in-off"}'::jsonb;
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS slayer JSONB;
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS plugin_version TEXT NOT NULL DEFAULT 'unknown';
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS sync_summary JSONB;
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
-CREATE INDEX IF NOT EXISTS player_sync_synced_at_idx ON player_sync(synced_at DESC);
-
-CREATE TABLE IF NOT EXISTS player_claim (
-  rsn TEXT PRIMARY KEY,
-  token_hash TEXT NOT NULL,
-  claimed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  last_used_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-ALTER TABLE player_claim ADD COLUMN IF NOT EXISTS token_hash TEXT NOT NULL DEFAULT '';
-ALTER TABLE player_claim ADD COLUMN IF NOT EXISTS claimed_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
-ALTER TABLE player_claim ADD COLUMN IF NOT EXISTS last_used_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
-`;
+const schemaSource = await readFile("src/lib/sync-schema.ts", "utf8");
+const schemaMatch = schemaSource.match(/export const SCHEMA_SQL = `([\s\S]*?)`;\s*\n/);
+if (!schemaMatch) {
+  console.error("Could not read SCHEMA_SQL from src/lib/sync-schema.ts");
+  process.exit(1);
+}
+const SCHEMA_SQL = schemaMatch[1];
 
 const sql = neon(url);
 // Neon's serverless driver requires either the tagged-template form

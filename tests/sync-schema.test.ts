@@ -20,7 +20,18 @@ const REQUIRED_PLAYER_SYNC_ALTERS = [
 const REQUIRED_PLAYER_CLAIM_ALTERS = [
   "token_hash",
   "claimed_at",
-  "last_used_at"
+  "last_used_at",
+  "account_id"
+];
+
+const HISTORY_TABLES = [
+  "account_identity",
+  "sync_snapshot",
+  "recommendation_decision",
+  "trip_lifecycle_event",
+  "outcome_match",
+  "account_preference_event",
+  "account_retention"
 ];
 
 describe("sync schema migrations", () => {
@@ -39,9 +50,19 @@ describe("sync schema migrations", () => {
   it("keeps db-init script schema in sync with runtime schema", () => {
     const script = readFileSync("scripts/db-init.mjs", "utf8");
 
-    for (const column of [...REQUIRED_PLAYER_SYNC_ALTERS, ...REQUIRED_PLAYER_CLAIM_ALTERS]) {
-      expect(script).toContain(`ADD COLUMN IF NOT EXISTS ${column}`);
+    expect(script).toContain('readFile("src/lib/sync-schema.ts"');
+    expect(script).toContain("export const SCHEMA_SQL");
+    expect(script).not.toContain("Keep in sync manually");
+  });
+
+  it("creates the immutable account-history ledger and latest-read indexes", () => {
+    for (const table of HISTORY_TABLES) {
+      expect(SCHEMA_SQL).toContain(`CREATE TABLE IF NOT EXISTS ${table}`);
     }
+    expect(SCHEMA_SQL).toContain("UNIQUE(account_id, checksum)");
+    expect(SCHEMA_SQL).toContain("sync_snapshot_latest_idx");
+    expect(SCHEMA_SQL).toContain("sync_snapshot_no_update");
+    expect(SCHEMA_SQL).not.toContain("sync_snapshot (\n  snapshot_id BIGSERIAL PRIMARY KEY,\n  bank_items");
   });
 
   it("runs schema repair before synced player reads and writes", () => {
@@ -50,6 +71,9 @@ describe("sync schema migrations", () => {
     expect(source).toContain("export async function ensureSyncSchema()");
     expect(source).toContain("await ensureSyncSchema();");
     expect(source).toContain("SELECT rsn, display_name, skills");
-    expect(source).toContain("INSERT INTO player_sync (rsn, display_name, account_type, skills");
+    expect(source).toContain("persistSyncAndSnapshot({");
+    const repositorySource = readFileSync("src/lib/account-history-repo.ts", "utf8");
+    expect(repositorySource).toContain("INSERT INTO player_sync (");
+    expect(repositorySource).toContain("INSERT INTO sync_snapshot (");
   });
 });

@@ -1,9 +1,8 @@
 // Neon Postgres client.
 //
-// Single tagged-template `sql` function for the whole app. Each route /
-// action that needs the DB calls sql`SELECT ...` directly — no ORM, no
-// migrations framework yet. The schema is tiny (one sync table) so the
-// extra layers aren't worth it.
+// Single lazy Neon client for server-side repositories. UI modules never issue
+// SQL directly. `npm run db:init` and the sync repository both apply the same
+// idempotent schema before sync reads or writes.
 //
 // Required env: DATABASE_URL — Neon connection string from neon.tech.
 // In dev: put it in .env.local. In Vercel: project settings.

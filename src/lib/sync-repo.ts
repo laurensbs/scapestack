@@ -1,14 +1,16 @@
 // Plugin-sync persistence layer.
 //
-// One row per (player-name) holding the latest sync from the
-// scapestack RuneLite plugin. We don't keep history yet — overwrite on
-// every sync — because the path-progress reads 'current state.' If we
-// later want activity-graphs we add a sync_history table.
+// `player_sync` is the fast latest-state projection. Every distinct state is
+// also appended to the privacy-minimized account history ledger.
 
 import { sql, hasDatabase } from "./db";
 import { normalizeScapestackAccountType, type ScapestackAccountType } from "./account-type";
 import { defaultPluginBankStatus, normalizePluginBankStatus, type PluginBankStatus } from "./plugin-bank-status";
+import { persistSyncAndSnapshot } from "./account-history-repo";
+import { syncSchemaStatements } from "./sync-schema";
 import itemsJson from "../../data/items.json";
+
+export { SCHEMA_SQL } from "./sync-schema";
 
 export interface SyncedPlayer {
   rsn: string;             // canonical lowercased name
@@ -74,68 +76,16 @@ export interface SyncSnapshotForDiff {
 export interface UpsertSyncedPlayerResult {
   syncedAt: string;
   syncSummary: SyncDeltaSummary | null;
+  snapshotId: number | null;
+  snapshotCreated: boolean;
 }
-
-/** SQL to initialise the schema. Run once via `npm run db:init`. */
-export const SCHEMA_SQL = `
-CREATE TABLE IF NOT EXISTS player_sync (
-  rsn TEXT PRIMARY KEY,
-  display_name TEXT NOT NULL,
-  account_type TEXT NOT NULL DEFAULT 'normal',
-  skills JSONB NOT NULL DEFAULT '[]'::jsonb,
-  quests_completed JSONB NOT NULL DEFAULT '[]'::jsonb,
-  diaries_completed JSONB NOT NULL DEFAULT '[]'::jsonb,
-  collection_log_item_ids INTEGER[] NOT NULL DEFAULT ARRAY[]::INTEGER[],
-  bank_items JSONB NOT NULL DEFAULT '[]'::jsonb,
-  bank_status JSONB NOT NULL DEFAULT '{"enabled":false,"itemCount":0,"capturedAt":null,"unavailableReason":"opt-in-off"}'::jsonb,
-  slayer JSONB,
-  plugin_version TEXT NOT NULL DEFAULT 'unknown',
-  sync_summary JSONB,
-  synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
--- Existing player_sync tables get every post-v1 column added idempotently.
--- This keeps production safe when the RuneLite plugin starts sending new
--- fields before a fresh CREATE TABLE has run.
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS display_name TEXT NOT NULL DEFAULT '';
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS account_type TEXT NOT NULL DEFAULT 'normal';
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS skills JSONB NOT NULL DEFAULT '[]'::jsonb;
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS quests_completed JSONB NOT NULL DEFAULT '[]'::jsonb;
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS diaries_completed JSONB NOT NULL DEFAULT '[]'::jsonb;
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS collection_log_item_ids INTEGER[] NOT NULL DEFAULT ARRAY[]::INTEGER[];
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS bank_items JSONB NOT NULL DEFAULT '[]'::jsonb;
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS bank_status JSONB NOT NULL DEFAULT '{"enabled":false,"itemCount":0,"capturedAt":null,"unavailableReason":"opt-in-off"}'::jsonb;
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS slayer JSONB;
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS plugin_version TEXT NOT NULL DEFAULT 'unknown';
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS sync_summary JSONB;
-ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
-CREATE INDEX IF NOT EXISTS player_sync_synced_at_idx ON player_sync(synced_at DESC);
-
--- First-claim-wins auth: each RSN binds to the first plugin token that
--- claimed it. Subsequent syncs must match the bound token.
-CREATE TABLE IF NOT EXISTS player_claim (
-  rsn TEXT PRIMARY KEY,
-  token_hash TEXT NOT NULL,
-  claimed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  last_used_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-ALTER TABLE player_claim ADD COLUMN IF NOT EXISTS token_hash TEXT NOT NULL DEFAULT '';
-ALTER TABLE player_claim ADD COLUMN IF NOT EXISTS claimed_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
-ALTER TABLE player_claim ADD COLUMN IF NOT EXISTS last_used_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
-`;
 
 let schemaReady: Promise<void> | null = null;
-
-function schemaStatements(): string[] {
-  return SCHEMA_SQL
-    .split(/;\s*$/m)
-    .map((statement) => statement.trim())
-    .filter(Boolean);
-}
 
 export async function ensureSyncSchema(): Promise<void> {
   if (!hasDatabase()) return;
   schemaReady ??= (async () => {
-    for (const statement of schemaStatements()) {
+    for (const statement of syncSchemaStatements()) {
       await sql().query(statement);
     }
   })();
@@ -208,8 +158,8 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
       lastSyncSummary: normalizeSyncDeltaSummary(row.sync_summary),
       syncedAt: typeof row.synced_at === "string" ? row.synced_at : new Date(row.synced_at).toISOString()
     };
-  } catch (err) {
-    console.error("getSyncedPlayer failed:", err);
+  } catch {
+    console.error("getSyncedPlayer failed");
     return null;
   }
 }
@@ -221,7 +171,6 @@ export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt" | "las
   const norm = normalize(p.rsn);
   if (!norm) throw new Error("Invalid RSN");
   await ensureSyncSchema();
-  const slayerJson = p.slayer ? JSON.stringify(p.slayer) : null;
   const bankItems = normalizeBankItems(p.bankItems);
   const bankStatus = normalizePluginBankStatus(p.bankStatus ?? defaultPluginBankStatus(bankItems.length), bankItems.length);
   const previousRows = await sql()`
@@ -244,52 +193,46 @@ export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt" | "las
   const diariesCompleted = normalizeDiariesCompleted(p.diariesCompleted);
   const collectionLogItemIds = normalizeCollectionLogItemIds(p.collectionLogItemIds);
   const accountType = normalizeScapestackAccountType(p.accountType);
-  const syncSummary = buildSyncDeltaSummary(previousSnapshot, {
+  const skills = normalizeSkills(p.skills);
+  const nextSnapshot: SyncSnapshotForDiff = {
     accountType,
-    skills: normalizeSkills(p.skills),
+    skills,
     questsCompleted,
     diariesCompleted,
     collectionLogItemIds,
     bankItems,
     bankStatus,
     syncedAt: null
+  };
+  const syncSummary = buildSyncDeltaSummary(previousSnapshot, nextSnapshot);
+  const persisted = await persistSyncAndSnapshot({
+    rsn: norm,
+    displayName: p.displayName,
+    pluginVersion: p.pluginVersion,
+    syncSummary,
+    state: {
+      accountType,
+      skills,
+      questsCompleted,
+      diariesCompleted,
+      collectionLogItemIds,
+      bankItems,
+      bankStatus,
+      slayer: p.slayer
+    }
   });
-  const rows = await sql()`
-    INSERT INTO player_sync (rsn, display_name, account_type, skills, quests_completed, diaries_completed,
-                              collection_log_item_ids, bank_items, bank_status, slayer, plugin_version, sync_summary, synced_at)
-    VALUES (${norm}, ${p.displayName}, ${accountType},
-            ${JSON.stringify(normalizeSkills(p.skills))}::jsonb,
-            ${JSON.stringify(questsCompleted)}::jsonb,
-            ${JSON.stringify(diariesCompleted)}::jsonb,
-            ${collectionLogItemIds},
-            ${JSON.stringify(bankItems)}::jsonb,
-            ${JSON.stringify(bankStatus)}::jsonb,
-            ${slayerJson}::jsonb,
-            ${p.pluginVersion},
-            ${JSON.stringify(syncSummary)}::jsonb,
-            NOW())
-    ON CONFLICT (rsn) DO UPDATE SET
-      display_name = EXCLUDED.display_name,
-      account_type = EXCLUDED.account_type,
-      skills = EXCLUDED.skills,
-      quests_completed = EXCLUDED.quests_completed,
-      diaries_completed = EXCLUDED.diaries_completed,
-      collection_log_item_ids = EXCLUDED.collection_log_item_ids,
-      bank_items = EXCLUDED.bank_items,
-      bank_status = EXCLUDED.bank_status,
-      slayer = EXCLUDED.slayer,
-      plugin_version = EXCLUDED.plugin_version,
-      sync_summary = EXCLUDED.sync_summary,
-      synced_at = NOW()
-    RETURNING synced_at
-  ` as Array<{ synced_at: string | Date }>;
-  const syncedAt = rows[0]?.synced_at;
+  const syncedAt = persisted.syncedAt;
   const syncedAtIso = syncedAt instanceof Date
     ? syncedAt.toISOString()
     : typeof syncedAt === "string"
       ? new Date(syncedAt).toISOString()
       : new Date().toISOString();
-  return { syncedAt: syncedAtIso, syncSummary };
+  return {
+    syncedAt: syncedAtIso,
+    syncSummary,
+    snapshotId: persisted.snapshotId,
+    snapshotCreated: persisted.snapshotCreated
+  };
 }
 
 function normalizeBankItems(items: unknown): SyncedPlayer["bankItems"] {

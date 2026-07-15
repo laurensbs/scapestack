@@ -59,8 +59,8 @@ export async function hasExistingClaim(rsn: string): Promise<boolean> {
       SELECT token_hash FROM player_claim WHERE rsn = ${norm} LIMIT 1
     ` as Array<{ token_hash: string }>;
     return Boolean(rows[0]?.token_hash);
-  } catch (err) {
-    console.error("hasExistingClaim failed:", err);
+  } catch {
+    console.error("hasExistingClaim failed");
     return false;
   }
 }
@@ -89,8 +89,8 @@ export async function recordClaim(rsn: string, token: string): Promise<ClaimResu
     if (!stored) return { ok: false, reason: "Claim row missing after insert" };
     if (stored === hash) return { ok: true };
     return { ok: false, reason: "RSN already claimed by another install", existingTokenHash: stored };
-  } catch (err) {
-    console.error("recordClaim failed:", err);
+  } catch {
+    console.error("recordClaim failed");
     return { ok: false, reason: "Database error" };
   }
 }
@@ -115,8 +115,8 @@ export async function verifyClaim(rsn: string, token: string): Promise<boolean> 
       UPDATE player_claim SET last_used_at = NOW() WHERE rsn = ${norm}
     `;
     return true;
-  } catch (err) {
-    console.error("verifyClaim failed:", err);
+  } catch {
+    console.error("verifyClaim failed");
     return false;
   }
 }

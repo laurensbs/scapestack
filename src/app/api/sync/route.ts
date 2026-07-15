@@ -272,8 +272,8 @@ export async function POST(req: Request): Promise<Response> {
     });
     syncedAt = result.syncedAt;
     syncSummary = result.syncSummary;
-  } catch (err) {
-    console.error("upsertSyncedPlayer failed:", err);
+  } catch {
+    console.error("upsertSyncedPlayer failed");
     return json(
       { ok: false, error: "Sync failed — try again later" },
       { status: 500 }
