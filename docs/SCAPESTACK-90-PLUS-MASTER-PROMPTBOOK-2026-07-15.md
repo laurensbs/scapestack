@@ -739,7 +739,7 @@ Acceptance:
 
 ## Phase 08 - Make Randomize Diverse Without Becoming Random
 
-Status: TODO  
+Status: DONE (2026-07-16)
 Depends on: Phase 07  
 Improves: mood integrity, perceived intelligence
 
@@ -766,6 +766,36 @@ Acceptance:
 - repeated randomize never promotes a known impossible route;
 - refresh does not reset rejection memory accidentally.
 ```
+
+### Evidence
+
+- Completed on 2026-07-16.
+- Replaced route-lens roulette and `Math.random()` with a deterministic,
+  account-seeded selector. Account fit remains dominant; the seed only breaks
+  near-score ties.
+- `Surprise me` now keeps the chosen mood, timebox and account constraints,
+  excludes current and recently rejected identities, and uses a shared route
+  family taxonomy to avoid same-family repetition until the valid pool is
+  exhausted.
+- Rejection memory persists in the existing versioned local store and is
+  scoped by RSN and mood. A more recent rejection also prevents an older
+  `started` memory from forcing that trip back after refresh.
+- Added deterministic regression coverage for ten valid Chill rolls, three
+  distinct early families, account-fit priority, impossible setup exclusion,
+  RSN/mood scoping and reload persistence.
+- Browser proof: four successive Chill rolls produced different valid routes;
+  AFK alternated only between its two eligible routes before repeating. A page
+  refresh retained earlier rejections. Desktop and 390x844 mobile had no
+  browser errors or horizontal overflow. Screenshots are in
+  `/tmp/scapestack-phase-08/desktop-final.png` and `mobile-final.png`.
+- Verification: `npm run ci:check` passed with 185 files and 1,172 tests,
+  smoke, zero hard recommendation-audit failures, offline plugin release checks
+  and a 215-page production build. `./gradlew test` passed the full plugin
+  suite. `git diff --check` passed.
+- Implementation commit: `5678886`.
+- Residual risk: very narrow moods such as AFK can legitimately have only two
+  eligible routes. Repetition is then expected after the valid pool is
+  exhausted rather than filling the screen with an invalid activity.
 
 ## Phase 09 - Reconcile Plans With New RuneLite Progress
 
