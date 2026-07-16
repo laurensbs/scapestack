@@ -618,7 +618,7 @@ Acceptance:
 
 ## Phase 06 - Define A Recommendation Decision Contract
 
-Status: TODO  
+Status: DONE (2026-07-16)
 Depends on: Phase 00  
 Improves: trust, relevance, engineering quality
 
@@ -651,6 +651,31 @@ Acceptance:
 - unknown data cannot be presented as confirmed;
 - current UI can adopt the contract incrementally.
 ```
+
+### Evidence
+
+- Completed on 2026-07-16.
+- Added a versioned `RecommendationDecision` contract with a stable identity,
+  route and account constraints, provenance facts, explicit unknowns,
+  alternatives, completion evidence and a typed fallback.
+- The primary `/next` trip now renders its title, reason, first step and stop
+  point from boundary copy generated from the contract. Bank-specific setup is
+  included only when the saved bank proves it.
+- Connected accounts persist the exact validated decision through
+  `/api/account/decision`; repeated renders reuse the same row for five minutes
+  and link the latest account snapshot. A live Neon proof created one row,
+  reused it on the second write and confirmed the snapshot link.
+- Browser proof covered 1440x1000 and 390x844: no horizontal overflow, browser
+  errors, failed responses or Next.js error overlay. Screenshots are in
+  `/tmp/scapestack-phase-06/`.
+- Verification: `npm run ci:check` passed with 182 files and 1,151 tests,
+  smoke, zero hard recommendation failures, offline plugin release checks and
+  a 215-page production build. `./gradlew test` passed the full plugin suite.
+  `git diff --check` passed.
+- Implementation commit: `d9a5866`.
+- Residual risk: older recommendation generators still expose their legacy
+  shape internally. The headline boundary is migrated now; later ranking
+  phases can move each generator onto the contract without a UI rewrite.
 
 ## Phase 07 - Make Mood A Hard Constraint
 
