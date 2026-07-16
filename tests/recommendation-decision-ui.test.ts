@@ -6,6 +6,9 @@ const source = readFileSync("src/app/next/next-client.tsx", "utf8");
 describe("/next RecommendationDecision adoption", () => {
   it("builds the contract after mood routing and renders boundary copy in the headline", () => {
     expect(source.indexOf("pickForRoute(visibleRecs")).toBeLessThan(source.indexOf("buildRecommendationDecision({"));
+    expect(source).toContain("recommendationMoodEligibility(rec, mood, minutes).eligible");
+    expect(source).toContain("moodEligibleRecs.find((rec) => rec.id === startedId)");
+    expect(source).toContain("...moodEligibleRecs].slice(0, 5)");
     expect(source).toContain("const decisionCopy = recommendationDecisionCopy(decision)");
     expect(source).toContain('{ label: "Why this pick", value: decisionCopy.why }');
     expect(source).toContain('{ label: "Start", value: decisionCopy.firstStep }');

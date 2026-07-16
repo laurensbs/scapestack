@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { computeNextUp } from "@/lib/next-up";
 import { formatRecommendationActionPlan, formatRecommendationSessionPlan } from "@/lib/action-plan-text";
 import type { HiscoreSkill } from "@/lib/hiscores";
+import { recommendationMoodEligibility } from "@/lib/mood";
 
 const SKILLS = [
   "Attack", "Defence", "Strength", "Hitpoints", "Ranged", "Prayer",
@@ -49,6 +50,14 @@ describe("next-up action plans", () => {
     ]);
     expect(result.headline?.routeChain?.steps[0].text).toBeTruthy();
     expect("planSeed" in result.headline!).toBe(false);
+    expect(result.headline?.sessionProfile).toMatchObject({
+      intensity: expect.any(String),
+      attention: expect.any(String),
+      minimumMinutes: expect.any(Number),
+      setupMinutes: expect.any(Number),
+      wilderness: expect.any(Boolean),
+      raid: expect.any(Boolean)
+    });
   });
 
   it("formats action plans as copyable session checklists", async () => {
@@ -929,5 +938,29 @@ describe("next-up action plans", () => {
 
     expect(recs.some((rec) => rec?.id === "quest:The Blood Moon Rises")).toBe(false);
     expect(recs.some((rec) => rec?.id === "quest:Song of the Elves")).toBe(false);
+  });
+
+  it("keeps a proven AFK method available for high-combat accounts", async () => {
+    const result = await computeNextUp({
+      skills: skillsAt(90),
+      questPoints: 220,
+      accountMeta: {
+        displayName: "High combat main",
+        accountType: "regular",
+        ehp: 0,
+        ehb: 0,
+        lastChangedAt: null
+      }
+    });
+    const recs = [result.headline, ...result.rest].filter((rec): rec is NonNullable<typeof rec> => Boolean(rec));
+    const birdhouses = recs.find((rec) => rec.id === "money:birdhouses");
+
+    expect(birdhouses).toBeTruthy();
+    expect(recommendationMoodEligibility(birdhouses!, "afk", 60)).toMatchObject({ eligible: true });
+    expect(birdhouses?.sessionProfile).toMatchObject({
+      attention: "afk",
+      intensity: "low",
+      idleWindowSeconds: 600
+    });
   });
 });

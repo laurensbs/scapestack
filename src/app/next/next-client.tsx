@@ -36,6 +36,7 @@ import {
 import { defaultActionHints } from "@/lib/rec-hints";
 import {
   pickForRoute,
+  recommendationMoodEligibility,
   MOOD_LABEL,
   ROUTE_LENS_LABEL,
   ROUTE_LENS_ORDER,
@@ -5065,16 +5066,20 @@ function WhatToDo({
     () => pickForRoute(visibleRecs, mood, minutes, routeLens, shuffleIdx, routePickOptions),
     [visibleRecs, mood, minutes, routeLens, shuffleIdx, routePickOptions]
   );
+  const moodEligibleRecs = useMemo(
+    () => visibleRecs.filter((rec) => recommendationMoodEligibility(rec, mood, minutes).eligible),
+    [minutes, mood, visibleRecs]
+  );
   const activePick = useMemo(() => {
     if (!pick) return null;
     const startedId = lastStarted?.id ?? latestStartedMemory?.id ?? null;
-    const startedRec = startedId ? visibleRecs.find((rec) => rec.id === startedId) : null;
+    const startedRec = startedId ? moodEligibleRecs.find((rec) => rec.id === startedId) : null;
     if (!startedRec || startedRec.id === pick.headline.id) return pick;
     const alternatives = [pick.headline, ...pick.alternatives]
       .filter((rec, index, list) => rec.id !== startedRec.id && list.findIndex((candidate) => candidate.id === rec.id) === index)
       .slice(0, 2);
     return { ...pick, headline: startedRec, alternatives };
-  }, [lastStarted?.id, latestStartedMemory?.id, pick, visibleRecs]);
+  }, [lastStarted?.id, latestStartedMemory?.id, moodEligibleRecs, pick]);
   const activeDecision = useMemo(() => activePick
     ? buildRecommendationDecision({
         winner: activePick.headline,
@@ -5306,7 +5311,7 @@ function WhatToDo({
     setLastCompleted(null);
     setShuffleIdx(0);
   };
-  const routePreviewRecs = activePick ? [activePick.headline, ...activePick.alternatives, ...visibleRecs].slice(0, 5) : [];
+  const routePreviewRecs = activePick ? [activePick.headline, ...activePick.alternatives, ...moodEligibleRecs].slice(0, 5) : [];
   const fallbackRecs = activePick ? activePick.alternatives.slice(0, 2) : [];
 
   return (

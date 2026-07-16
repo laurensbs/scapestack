@@ -19,6 +19,10 @@
 // dingen (Inferno) of korte-makkelijke dingen (clue scroll) aanraden.
 
 import type { Recommendation, RecommendationRouteTag, RecKind } from "./next-up";
+import {
+  recommendationSessionProfile,
+  type RecommendationSessionProfile
+} from "./recommendation-session";
 
 export type Mood = "chill" | "focused" | "cash" | "quest" | "bossing" | "unlock" | "afk" | "short";
 
@@ -308,6 +312,94 @@ function accountFitMultiplier(rec: Recommendation, mood: Mood): number {
   return 0.2;
 }
 
+export type MoodConstraintViolation =
+  | "attention"
+  | "death-cost"
+  | "intensity"
+  | "long-prerequisites"
+  | "no-profit-proof"
+  | "not-afk"
+  | "not-bossing"
+  | "not-an-unlock"
+  | "raid"
+  | "reset-cost"
+  | "setup"
+  | "timebox"
+  | "wilderness";
+
+export interface MoodEligibility {
+  eligible: boolean;
+  violations: MoodConstraintViolation[];
+  profile: RecommendationSessionProfile;
+}
+
+function contractMood(mood: Mood): Exclude<Mood, "focused" | "quest"> {
+  if (mood === "focused") return "bossing";
+  if (mood === "quest") return "unlock";
+  return mood;
+}
+
+/** Hard eligibility gate. Invalid candidates never reach scores or backups. */
+export function recommendationMoodEligibility(
+  rec: Recommendation,
+  mood: Mood,
+  minutes: TimeBudget
+): MoodEligibility {
+  const profile = recommendationSessionProfile(rec);
+  const violations: MoodConstraintViolation[] = [];
+  const activeMood = contractMood(mood);
+
+  if (activeMood === "chill") {
+    if (profile.raid) violations.push("raid");
+    if (profile.wilderness) violations.push("wilderness");
+    if (profile.intensity === "high" || profile.intensity === "extreme") violations.push("intensity");
+    if (profile.attention === "focused") violations.push("attention");
+    if (profile.resetCost === "high") violations.push("reset-cost");
+    if (profile.deathCost === "high") violations.push("death-cost");
+  }
+
+  if (activeMood === "afk") {
+    if (profile.attention !== "afk" || profile.idleWindowSeconds < 20) violations.push("not-afk");
+    if (profile.intensity !== "low") violations.push("intensity");
+    if (profile.raid) violations.push("raid");
+    if (profile.wilderness) violations.push("wilderness");
+    if (profile.deathCost === "high") violations.push("death-cost");
+  }
+
+  if (activeMood === "cash") {
+    if (profile.expectedProfit !== "positive" || profile.profitEvidence === "none") violations.push("no-profit-proof");
+    if ((rec.kind === "boss" || rec.kind === "kc") && profile.setupConfidence === "unknown") violations.push("setup");
+    if (profile.wilderness && profile.setupConfidence !== "verified") violations.push("wilderness");
+  }
+
+  if (activeMood === "bossing") {
+    const isPvmTask = rec.kind === "slayer" && (rec.routeTags?.includes("pvm") ?? false);
+    if (rec.kind !== "boss" && rec.kind !== "kc" && !isPvmTask) violations.push("not-bossing");
+    if (profile.setupConfidence === "unknown") violations.push("setup");
+    if (profile.wilderness && profile.setupConfidence !== "verified") violations.push("wilderness");
+  }
+
+  if (activeMood === "unlock") {
+    const unlockFamily = rec.kind === "quest"
+      || rec.kind === "diary"
+      || rec.kind === "goal"
+      || rec.kind === "milestone"
+      || rec.routeTags?.includes("unlock")
+      || rec.routeTags?.includes("maxing");
+    if (!unlockFamily || profile.unlockValue < 0.65) violations.push("not-an-unlock");
+  }
+
+  if (activeMood === "short") {
+    if (profile.minimumMinutes > minutes || profile.setupMinutes >= minutes) violations.push("timebox");
+    if (profile.prerequisiteDepth === "long") violations.push("long-prerequisites");
+    if (profile.raid) violations.push("raid");
+    if (profile.wilderness) violations.push("wilderness");
+    if (profile.resetCost === "high") violations.push("reset-cost");
+  }
+
+  return { eligible: violations.length === 0, violations: [...new Set(violations)], profile };
+}
+
 function routeLensMultiplier(rec: Recommendation, lens: RouteLens): number {
   const base = ROUTE_LENS_KIND_WEIGHTS[lens][rec.kind] ?? 1;
   if (lens === "smart") return base;
@@ -430,15 +522,6 @@ function sessionNoveltyMultiplier(rec: Recommendation, options: RoutePickOptions
   return multiplier;
 }
 
-function canHeadlineForMood(rec: Recommendation, mood: Mood, routeLens: RouteLens): boolean {
-  if (routeLens === "boss-log" || mood === "bossing" || mood === "focused") return true;
-  if (mood === "cash") return (rec.kind !== "boss" && rec.kind !== "kc") || routeLens === "gp-upgrade";
-  if (mood === "chill" || mood === "afk" || mood === "short") {
-    return rec.kind !== "boss" && rec.kind !== "kc";
-  }
-  return true;
-}
-
 /** Hoofdfunctie: ranked recs in, mood + tijd erbij, één hoofdpick +
  *  twee alternatieven uit. Wanneer er minder dan 3 recs zijn, vult
  *  alternatives met wat er overblijft.
@@ -456,11 +539,8 @@ export function pickForMood(
   return pickForRoute(recs, mood, minutes, "smart", shuffleIndex);
 }
 
-/** Route-aware planner picker. A route lens is intentionally stronger than
- *  mood because it answers a different user request: "show me a maxing
- *  route" should actually beat the default unlock/chill bias. Mood still
- *  matters as a pacing/timing guard, but it no longer traps the route changer in
- *  the same visible six labels. */
+/** Route-aware planner picker. Route lenses tune valid candidates, but can
+ *  never override the selected mood's attention, risk or time contract. */
 export function pickForRoute(
   recs: Recommendation[],
   mood: Mood,
@@ -472,8 +552,10 @@ export function pickForRoute(
   if (recs.length === 0) return null;
   const weights = MOOD_KIND_WEIGHTS[mood];
   const route = ROUTE_LENS_LABEL[routeLens];
+  const eligibleRecs = recs.filter((rec) => recommendationMoodEligibility(rec, mood, minutes).eligible);
+  if (eligibleRecs.length === 0) return null;
 
-  const scored = recs.map((rec) => {
+  const scored = eligibleRecs.map((rec) => {
     const moodMult = weights[rec.kind] ?? 1.0;
     const kindMult = routeLens === "smart"
       ? moodMult
@@ -484,8 +566,7 @@ export function pickForRoute(
     return { rec, adjScore: rec.score * kindMult * timeMult * accountMult * noveltyMult };
   });
   scored.sort((a, b) => b.adjScore - a.adjScore);
-  const headlineScored = scored.filter((s) => canHeadlineForMood(s.rec, mood, routeLens));
-  const headlinePool = headlineScored.length ? headlineScored : scored;
+  const headlinePool = scored;
 
   // Shuffle: bouw een lijst van "hero-kandidaten" waar elke
   // opeenvolgende een ander kind heeft dan z'n voorganger. Dat

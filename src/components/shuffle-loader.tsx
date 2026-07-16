@@ -44,7 +44,7 @@ export function ShuffleLoader({ label = "Building your next trip…" }: ShuffleL
             alt=""
             width={420}
             height={420}
-            priority={bossIdx === 0}
+            loading="eager"
             className="absolute max-h-[86%] w-auto object-contain transition-all duration-500"
             style={{
               opacity: bossIdx === idx ? 1 : 0,

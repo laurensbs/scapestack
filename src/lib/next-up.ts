@@ -55,6 +55,10 @@ import {
   bossViabilityScoreMultiplier
 } from "./boss-viability";
 import type { SyncDeltaSummary } from "./sync-repo";
+import {
+  recommendationSessionProfile,
+  type RecommendationSessionProfile
+} from "./recommendation-session";
 
 // Kind drives the icon + accent the hub renders, and groups the checklist.
 export type RecKind =
@@ -170,6 +174,8 @@ export interface Recommendation {
   routeTags?: RecommendationRouteTag[];
   /** Internal quality profile for ranking. Stripped before UI. */
   quality?: RecommendationQuality;
+  /** Typed session constraints used before mood ranking. Never rendered. */
+  sessionProfile?: Partial<RecommendationSessionProfile>;
   /** Internal gear confidence for boss/KC ranking. Stripped before UI. */
   gearConfidence?: RecommendationGearConfidence;
   /** Optional boss slug — when set, the hub renders a wiki NPC portrait
@@ -684,7 +690,12 @@ function minigameRecs(skills: HiscoreSkill[]): Recommendation[] {
       score: 55 + freshness * 2,
       link: undefined, // no dedicated tool page yet
       iconItemId: mg.iconItemId,
-      routeTags: ["fun", "afk", "skiller", ...(mg.slug === "barbarian-assault" || mg.slug === "soul-wars" ? ["unlock" as const] : [])],
+      routeTags: [
+        "fun",
+        "skiller",
+        ...(mg.slug === "motherlode" ? ["afk" as const] : []),
+        ...(mg.slug === "barbarian-assault" || mg.slug === "soul-wars" ? ["unlock" as const] : [])
+      ],
       gearConfidence: "not-needed",
       quality: {
         accountFit: 0.8,
@@ -1095,6 +1106,8 @@ function applyBossViability(recs: Recommendation[], bank: CompletionItem[]): Rec
   });
 }
 
+const LOW_ATTENTION_MILESTONE_SKILLS = new Set(["Fishing", "Mining", "Woodcutting"]);
+
 // Skills sitting just short of a milestone level — a clear, finite push.
 function skillRecs(skills: HiscoreSkill[]): Recommendation[] {
   const recs: Recommendation[] = [];
@@ -1134,8 +1147,8 @@ function skillRecs(skills: HiscoreSkill[]): Recommendation[] {
         // generic Attack cape stand-in that was shipping before.
         iconItemId: skillCapeId(skill),
         routeTags: [
-          "afk",
           "maxing",
+          ...(LOW_ATTENTION_MILESTONE_SKILLS.has(skill) ? ["afk" as const] : []),
           ...(skill === "Slayer" ? ["slayer" as const, "pvm" as const] : []),
           ...(skill === "Agility" || skill === "Farming" || skill === "Mining" ? ["skiller" as const] : [])
         ],
@@ -1489,7 +1502,11 @@ function moneyRecs(skills: HiscoreSkill[], accountMeta?: AccountMeta | null): Re
     // still sees the lower-tier money-makers.
     const cl = computeCombatLevel(skills);
     const minGpHr = cl >= 110 ? 800_000 : cl >= 80 ? 200_000 : 50_000;
-    if (m.gpHr < minGpHr) continue;
+    // Profit relevance and session fit are separate decisions. A high-combat
+    // account can still deliberately ask for AFK progress, so keep proven
+    // low-attention methods in the candidate pool even when their gp/hr would
+    // be noise on the GP route. The mood contract decides whether to show it.
+    if (m.gpHr < minGpHr && m.intensity !== "afk") continue;
     recs.push({
       id: `money:${m.slug}`,
       kind: "money",
@@ -2767,7 +2784,7 @@ function accountRouteRecs(input: {
       score: target === 40 ? 56 : 60,
       link: "/goals",
       iconItemId: 11850,
-      routeTags: ["afk", "skiller", "returning", "unlock"],
+      routeTags: ["skiller", "returning", "unlock"],
       gearConfidence: "not-needed",
       quality: {
         accountFit: 0.82,
@@ -2911,7 +2928,7 @@ function accountRouteRecs(input: {
         score: near99.level >= 95 ? 73 : 64,
         link: "/goals",
         iconItemId: skillCapeId(near99.name),
-        routeTags: ["maxing", "afk", "skiller"],
+        routeTags: ["maxing", "skiller"],
         gearConfidence: "not-needed",
         quality: {
           accountFit: 0.82,
@@ -3213,6 +3230,7 @@ function withActionPlans(recs: Recommendation[], ctx: ActionPlanContext): Recomm
     return {
       ...clean,
       actionPlan,
+      sessionProfile: recommendationSessionProfile({ ...rec, actionPlan }),
       routeChain: routeChainFor(clean, actionPlan, ctx),
       decisionReason: decisionReasonFor(clean, ctx)
     };
