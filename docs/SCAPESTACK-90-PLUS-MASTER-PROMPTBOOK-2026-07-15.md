@@ -799,7 +799,7 @@ Acceptance:
 
 ## Phase 09 - Reconcile Plans With New RuneLite Progress
 
-Status: TODO  
+Status: DONE
 Depends on: Phases 03 and 06  
 Improves: RuneLite product value, retention
 
@@ -828,6 +828,32 @@ Acceptance:
 - duplicate sync does not duplicate completion;
 - result becomes a timeline moment and analytics event.
 ```
+
+### Phase 09 Evidence
+
+- Added explicit completion targets for KC, levels, quests, diaries,
+  collection-log items, Slayer tasks and bank quantities. The persisted
+  recommendation contract now carries the exact evidence required to prove
+  the stop point.
+- Clicking `I started`, `Mark done` or skip stores an idempotent lifecycle
+  event linked to the exact server-side decision. A sync only reconciles the
+  latest lifecycle state when it is still `started`.
+- Added the typed Outcome Engine with `completed`, `progressed`, `unchanged`,
+  `contradicted` and `unknown` states. Relevant skill XP and partial KC,
+  Slayer or bank progress update the next stop point; unrelated XP and
+  unavailable sources cannot complete a plan.
+- Outcomes are immutable and unique per snapshot plus decision. Duplicate
+  syncs cannot duplicate completion, while progressed plans remain active for
+  a later snapshot.
+- Meaningful outcomes appear in `Since last time`. Confirmed completion hides
+  the finished recommendation locally, manual `Mark done` remains available,
+  and `outcome:viewed` records only status plus evidence type.
+- Verification: 187 test files and 1,187 tests passed, including new pure
+  engine, repository, route, timeline, schema and analytics coverage.
+  `npm run ci:check` passed typecheck, smoke, recommendation audit, offline
+  plugin release checks and the 215-page production build. `./gradlew test`
+  passed the full RuneLite plugin suite. Desktop and 390x844 browser checks
+  had content, no Next.js error overlay and no mobile horizontal overflow.
 
 ## Phase 10 - Learn From Accept, Skip And Completion
 
