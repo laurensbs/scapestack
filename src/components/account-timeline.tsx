@@ -43,6 +43,10 @@ function scopedLegacyEvents(events: TripTimelineEvent[], rsn: string): TripTimel
 }
 
 async function loadPage(cursor: string | null, limit: number): Promise<TimelineResponse | null> {
+  const accountResponse = await fetch("/api/account/me", { cache: "no-store" });
+  if (!accountResponse.ok) return null;
+  const session = await accountResponse.json() as { connected?: boolean };
+  if (!session.connected) return null;
   const params = new URLSearchParams({ limit: String(limit) });
   if (cursor) params.set("cursor", cursor);
   const response = await fetch(`/api/account/timeline?${params}`, { cache: "no-store" });

@@ -21,8 +21,10 @@ name and before/after quantity) so Scapestack can explain a restock, drop or
 supply burn without retaining either full bank.
 
 Recommendation decisions, trip events, outcome matches and preference choices
-are separate append-only tables. They contain stable product identifiers and
-small decision fields, not authentication tokens or raw plugin payloads.
+are separate append-only tables. Recommendation rows include the validated
+typed decision contract: its provenance facts, unknowns, applied preferences,
+completion evidence and compact boundary copy. They contain no authentication
+tokens, raw plugin payloads or full bank contents.
 
 ## Retention and deletion
 

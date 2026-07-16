@@ -73,6 +73,10 @@ describe("sync schema migrations", () => {
     expect(SCHEMA_SQL).toContain("ALTER TABLE sync_snapshot ADD COLUMN IF NOT EXISTS boss_kc");
     expect(SCHEMA_SQL).toContain("ALTER TABLE sync_snapshot ADD COLUMN IF NOT EXISTS availability");
     expect(SCHEMA_SQL).toContain("ALTER TABLE sync_snapshot ADD COLUMN IF NOT EXISTS delta");
+    expect(SCHEMA_SQL).toContain("ALTER TABLE recommendation_decision ADD COLUMN IF NOT EXISTS decision_key");
+    expect(SCHEMA_SQL).toContain("ALTER TABLE recommendation_decision ADD COLUMN IF NOT EXISTS contract_version");
+    expect(SCHEMA_SQL).toContain("ALTER TABLE recommendation_decision ADD COLUMN IF NOT EXISTS decision");
+    expect(SCHEMA_SQL).toContain("recommendation_decision_key_idx");
     expect(SCHEMA_SQL).not.toContain("sync_snapshot (\n  snapshot_id BIGSERIAL PRIMARY KEY,\n  bank_items");
   });
 

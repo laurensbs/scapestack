@@ -28,6 +28,11 @@ import { getActiveAccount, markAccountPluginBankStatus, markAccountRuneliteProgr
 import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
 import { track, type AnalyticsContext } from "@/lib/analytics";
 import type { Recommendation, RecKind, NextUpInput, NextUpResult, NextBestAction } from "@/lib/next-up";
+import {
+  buildRecommendationDecision,
+  recommendationDecisionCopy,
+  type RecommendationDecision
+} from "@/lib/recommendation-decision";
 import { defaultActionHints } from "@/lib/rec-hints";
 import {
   pickForRoute,
@@ -2812,7 +2817,7 @@ type TripBuilderPlan = {
 };
 
 type NextTripLine = {
-  label: "Before you leave" | "Grab from bank" | "Stage for UIM" | "Still missing" | "Finish after";
+  label: "Why this pick" | "Start" | "Before you leave" | "Grab from bank" | "Stage for UIM" | "Still missing" | "Finish after";
   value: string;
   tone?: "default" | "good" | "warn";
 };
@@ -4316,6 +4321,7 @@ function SessionRouteTimeline({
 
 function NextTripCard({
   rec,
+  decision,
   actionContext,
   onBossOpen,
   hasBankContext,
@@ -4323,6 +4329,7 @@ function NextTripCard({
   accountMode
 }: {
   rec: Recommendation;
+  decision: RecommendationDecision;
   actionContext: RecommendationActionContext;
   onBossOpen: (slug: string) => void;
   hasBankContext: boolean;
@@ -4333,7 +4340,17 @@ function NextTripCard({
   const primaryAction = primaryActionForRecommendation(rec, actionContext);
   const actionLabel = nextTripCtaLabel(rec, isBossWithDetail ? "Check kill" : primaryAction.label);
   const actionHref = isBossWithDetail ? undefined : primaryAction.href;
-  const lines = nextTripLines({ rec, hasBankContext, bankItems, accountMode });
+  const decisionCopy = recommendationDecisionCopy(decision);
+  const bankLines = nextTripLines({ rec, hasBankContext, bankItems, accountMode })
+    .filter((line) => line.label === "Grab from bank" || line.label === "Stage for UIM" || line.label === "Still missing")
+    .slice(0, 1);
+  const decisionLines: NextTripLine[] = [
+    { label: "Why this pick", value: decisionCopy.why },
+    { label: "Start", value: decisionCopy.firstStep },
+    ...bankLines
+  ];
+  decisionLines.push({ label: "Finish after", value: decisionCopy.stopPoint });
+  const lines = decisionLines.slice(0, 5);
 
   const actionClass = "scapestack-command-button scapestack-primary-action px-4 text-[12.5px] font-black";
 
@@ -4366,7 +4383,7 @@ function NextTripCard({
           </div>
 
           <h2 className="min-w-0 break-words text-[24px] font-black leading-tight tracking-normal text-[var(--color-text)] sm:text-[30px]">
-            {rec.title}
+            {decisionCopy.title}
           </h2>
 
           <dl className="scapestack-lock-list scapestack-decision-list mt-4">
@@ -5058,6 +5075,30 @@ function WhatToDo({
       .slice(0, 2);
     return { ...pick, headline: startedRec, alternatives };
   }, [lastStarted?.id, latestStartedMemory?.id, pick, visibleRecs]);
+  const activeDecision = useMemo(() => activePick
+    ? buildRecommendationDecision({
+        winner: activePick.headline,
+        alternatives: activePick.alternatives,
+        mood,
+        routeFamily: routeLens,
+        minutes,
+        accountStage: accountStage.id,
+        accountType,
+        hasPublicStats: syncResult.summary.basis === "full" || syncResult.summary.basis === "hiscores-only",
+        hasBank: hasBankContext,
+        hasRuneLite: pluginSyncState !== null
+      })
+    : null, [
+      accountStage.id,
+      accountType,
+      activePick,
+      hasBankContext,
+      minutes,
+      mood,
+      pluginSyncState,
+      routeLens,
+      syncResult.summary.basis
+    ]);
   const memoryNote = useMemo(
     () => sessionMemoryNote({
       feedback,
@@ -5078,6 +5119,25 @@ function WhatToDo({
       lastHeadlineTitle: activePick.headline.title
     }, activeRsn || undefined);
   }, [activeRsn, mood, minutes, activePick]);
+
+  useEffect(() => {
+    if (!activeDecision || pluginSyncState === null) return;
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      void fetch("/api/account/decision", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ decision: activeDecision }),
+        credentials: "same-origin",
+        keepalive: true,
+        signal: controller.signal
+      }).catch(() => undefined);
+    }, 250);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [activeDecision, pluginSyncState]);
 
   useEffect(() => {
     if (!activePick) return;
@@ -5347,6 +5407,7 @@ function WhatToDo({
             />
             <RecHeadlineExpandable
               rec={activePick.headline}
+              decision={activeDecision!}
               allRecs={allRecs}
               actionContext={actionContext}
               onBossOpen={onBossOpen}
@@ -5694,6 +5755,7 @@ function recommendationFeedbackButtonClass(
 
 function RecHeadlineExpandable({
   rec,
+  decision,
   allRecs,
   actionContext,
   onBossOpen,
@@ -5715,6 +5777,7 @@ function RecHeadlineExpandable({
   pluginBankStatus
 }: {
   rec: Recommendation;
+  decision: RecommendationDecision;
   allRecs: Recommendation[];
   actionContext: RecommendationActionContext;
   onBossOpen: (slug: string) => void;
@@ -5767,6 +5830,7 @@ function RecHeadlineExpandable({
     <div>
       <NextTripCard
         rec={rec}
+        decision={decision}
         actionContext={actionContext}
         onBossOpen={onBossOpen}
         hasBankContext={hasBankContext}

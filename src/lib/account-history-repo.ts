@@ -13,6 +13,7 @@ import {
   type AccountSnapshotDelta,
   type ComparableAccountSnapshot
 } from "./account-snapshot-delta";
+import { recommendationDecisionCopy, type RecommendationDecision } from "./recommendation-decision";
 
 interface QueryClient {
   query<T extends Record<string, unknown> = Record<string, unknown>>(query: string, params?: unknown[]): Promise<T[]>;
@@ -278,6 +279,67 @@ export async function recordRecommendationDecision(input: RecommendationDecision
   `, [normalizedRsn, input.snapshotId ?? null, input.recommendationId, input.action,
     input.reason, input.routeFamily ?? null, input.mood ?? null, input.timeboxMinutes ?? null]);
   return rows[0] ? Number(rows[0].decision_id) : null;
+}
+
+export interface RecordedRecommendationDecision {
+  decisionId: number;
+  created: boolean;
+}
+
+/** Stores the exact decision shown to a connected account. */
+export async function recordRecommendationDecisionForAccount(
+  accountId: string,
+  decision: RecommendationDecision
+): Promise<RecordedRecommendationDecision | null> {
+  const copy = recommendationDecisionCopy(decision);
+  const rows = await client().query<{
+    decision_id: number | string;
+    created: boolean;
+  }>(`
+    WITH recent AS (
+      SELECT decision_id
+      FROM recommendation_decision
+      WHERE account_id = $1::uuid
+        AND decision_key = $2
+        AND decided_at > NOW() - INTERVAL '5 minutes'
+      ORDER BY decided_at DESC, decision_id DESC
+      LIMIT 1
+    ), latest_snapshot AS (
+      SELECT snapshot_id
+      FROM sync_snapshot
+      WHERE account_id = $1::uuid
+      ORDER BY captured_at DESC, snapshot_id DESC
+      LIMIT 1
+    ), inserted AS (
+      INSERT INTO recommendation_decision (
+        account_id, snapshot_id, recommendation_id, decision_key,
+        contract_version, decision, action, reason, route_family, mood,
+        timebox_minutes
+      )
+      SELECT $1::uuid, (SELECT snapshot_id FROM latest_snapshot), $3, $2,
+             $4, $5::jsonb, $6, $7, $8, $9, $10
+      WHERE NOT EXISTS (SELECT 1 FROM recent)
+      RETURNING decision_id
+    )
+    SELECT decision_id, TRUE AS created FROM inserted
+    UNION ALL
+    SELECT decision_id, FALSE AS created FROM recent
+    LIMIT 1
+  `, [
+    accountId,
+    decision.id,
+    decision.recommendationId,
+    decision.version,
+    JSON.stringify(decision),
+    copy.title,
+    copy.why,
+    decision.routeFamily,
+    decision.constraints.mood,
+    decision.timebox.minutes
+  ]);
+  return rows[0]
+    ? { decisionId: Number(rows[0].decision_id), created: rows[0].created }
+    : null;
 }
 
 export type TripLifecycleEventType = "planned" | "started" | "done" | "skipped" | "shared";

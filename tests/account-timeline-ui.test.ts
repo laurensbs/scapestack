@@ -20,4 +20,10 @@ describe("shared account timeline UI", () => {
     expect(source).toContain("Since last time");
     expect(source).not.toMatch(/>[^<{]*(payload|signals|data source|reconciliation)[^<{]*</i);
   });
+
+  it("checks the connected account before requesting private history", () => {
+    const source = readFileSync("src/components/account-timeline.tsx", "utf8");
+    expect(source.indexOf('fetch("/api/account/me"')).toBeLessThan(source.indexOf('fetch(`/api/account/timeline?'));
+    expect(source).toContain("if (!session.connected) return null");
+  });
 });

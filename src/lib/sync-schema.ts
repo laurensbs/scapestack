@@ -138,6 +138,9 @@ CREATE TABLE IF NOT EXISTS recommendation_decision (
   account_id UUID NOT NULL REFERENCES account_identity(account_id) ON DELETE CASCADE,
   snapshot_id BIGINT REFERENCES sync_snapshot(snapshot_id) ON DELETE SET NULL,
   recommendation_id TEXT NOT NULL,
+  decision_key TEXT,
+  contract_version INTEGER NOT NULL DEFAULT 1,
+  decision JSONB NOT NULL DEFAULT '{}'::jsonb,
   action TEXT NOT NULL,
   reason TEXT NOT NULL,
   route_family TEXT,
@@ -145,7 +148,11 @@ CREATE TABLE IF NOT EXISTS recommendation_decision (
   timebox_minutes INTEGER,
   decided_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+ALTER TABLE recommendation_decision ADD COLUMN IF NOT EXISTS decision_key TEXT;
+ALTER TABLE recommendation_decision ADD COLUMN IF NOT EXISTS contract_version INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE recommendation_decision ADD COLUMN IF NOT EXISTS decision JSONB NOT NULL DEFAULT '{}'::jsonb;
 CREATE INDEX IF NOT EXISTS recommendation_decision_account_idx ON recommendation_decision(account_id, decided_at DESC);
+CREATE INDEX IF NOT EXISTS recommendation_decision_key_idx ON recommendation_decision(account_id, decision_key, decided_at DESC) WHERE decision_key IS NOT NULL;
 DROP RULE IF EXISTS recommendation_decision_no_update ON recommendation_decision;
 DROP TRIGGER IF EXISTS recommendation_decision_no_update ON recommendation_decision;
 CREATE TRIGGER recommendation_decision_no_update BEFORE UPDATE ON recommendation_decision FOR EACH ROW EXECUTE FUNCTION prevent_immutable_history_update();

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { computeNextUp } from "@/lib/next-up";
@@ -11,6 +11,8 @@ const SKILLS = [
   "Crafting", "Smithing", "Mining", "Herblore", "Agility", "Thieving",
   "Slayer", "Farming", "Runecraft", "Hunter", "Construction", "Sailing"
 ];
+
+afterEach(() => vi.useRealTimers());
 
 function skillsAt(level: number): HiscoreSkill[] {
   return [
@@ -832,6 +834,8 @@ describe("next-up action plans", () => {
   });
 
   it("builds a return plan from RuneLite progress instead of a one-off answer", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-15T11:05:00.000Z"));
     const result = await computeNextUp({
       skills: skillsFromLevels({
         Attack: 85,
@@ -906,6 +910,7 @@ describe("next-up action plans", () => {
     expect(result.returnPlan.checkBack).toBe("Press Sync in RuneLite after the stop point.");
     expect(result.returnPlan.nextLogin).toBe("Scapestack will skip finished stuff and pick the next clean block.");
     expect(result.returnPlan.hasProgress).toBe(true);
+    vi.useRealTimers();
   });
 
   it("does not push low-combat skillers into grandmaster combat quests", async () => {
