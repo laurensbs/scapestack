@@ -911,7 +911,7 @@ Acceptance:
 
 ## Phase 11 - Add Recommendation Honesty Levels
 
-Status: TODO  
+Status: DONE
 Depends on: Phase 06  
 Improves: trust
 
@@ -941,6 +941,29 @@ Acceptance:
 - uncertain plans lose against equally useful verified plans;
 - copy tests prevent technical status language.
 ```
+
+### Evidence
+
+- Added one shared internal honesty assessment with `verified`, `supported`,
+  `estimated` and `insufficient` levels. These levels only affect ranking and
+  safe actions; they are never rendered as badges or dashboard panels.
+- Plans whose progress, completion state or setup could be invalidated are
+  demoted. An equally useful route supported by known facts now beats a
+  supply-dependent estimate, while hard mood contracts remain authoritative.
+- No-bank boss and KC plans no longer expose exact inventory claims. They
+  start by checking gear, food and teleport coverage for one short trip.
+- Quest, diary and Slayer completion is only treated as current when RuneLite
+  can prove it. Unscanned diary requirements become a first check instead of
+  a confirmed blocker, and public KC remains sufficient for public KC goals.
+- `Add bank` is offered only when current gear, supplies or banked materials
+  can materially change feasibility or method. Generic Agility and minigame
+  routes do not ask for it.
+- Verification: all 189 test files and 1,202 tests passed. `npm run ci:check`
+  passed typecheck, smoke, recommendation audit, offline plugin release checks
+  and the 215-page production build. `./gradlew test` passed the full RuneLite
+  plugin suite. Clean desktop and 390x844 browser checks showed no technical
+  panels, no unsupported `Still missing` claim, no error overlay and no mobile
+  horizontal overflow.
 
 ---
 

@@ -27,6 +27,10 @@ import {
   recommendationPreferenceMultiplier,
   type RecommendationPreferenceProfile
 } from "./recommendation-preferences";
+import {
+  recommendationHonestyMultiplier,
+  type RecommendationHonestyContext
+} from "./recommendation-honesty";
 
 export type Mood = "chill" | "focused" | "cash" | "quest" | "bossing" | "unlock" | "afk" | "short";
 
@@ -531,6 +535,8 @@ export interface RoutePickOptions {
   seed?: string | number;
   /** Small decaying taste adjustment learned from explicit player outcomes. */
   preferenceProfile?: RecommendationPreferenceProfile;
+  /** Available account facts used to demote plans that could be invalidated. */
+  honestyContext?: RecommendationHonestyContext;
 }
 
 function skippedCount(skippedIds: RoutePickOptions["skippedIds"], id: string): number {
@@ -635,7 +641,8 @@ export function pickForRoute(
     const accountMult = accountFitMultiplier(rec, mood);
     const noveltyMult = sessionNoveltyMultiplier(rec, options);
     const preferenceMult = recommendationPreferenceMultiplier(options?.preferenceProfile, rec, minutes);
-    return { rec, adjScore: rec.score * kindMult * timeMult * accountMult * noveltyMult * preferenceMult };
+    const honestyMult = recommendationHonestyMultiplier(rec, options?.honestyContext);
+    return { rec, adjScore: rec.score * kindMult * timeMult * accountMult * noveltyMult * preferenceMult * honestyMult };
   });
   scored.sort((a, b) => compareScored(a, b, options?.seed));
   const headlinePool = constrainedHeadlinePool(scored, options);

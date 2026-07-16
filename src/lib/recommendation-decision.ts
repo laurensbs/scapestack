@@ -2,6 +2,11 @@ import type { AccountStageId } from "./account-stage";
 import type { PlannerAccountType } from "./account-type";
 import type { Mood, RouteLens, TimeBudget } from "./mood";
 import type { Recommendation, RecKind } from "./next-up";
+import {
+  assessRecommendationHonesty,
+  recommendationBankWouldChangePlan,
+  recommendationNeedsRuneLiteCompletion
+} from "./recommendation-honesty";
 
 export const RECOMMENDATION_DECISION_VERSION = 1 as const;
 
@@ -119,8 +124,7 @@ export interface RecommendationDecisionCopy {
   requiredSetup: string[];
 }
 
-const EXACT_RUNELITE_KINDS = new Set<RecKind>(["quest", "diary", "slayer", "kc"]);
-const BANK_RELEVANT_KINDS = new Set<RecKind>(["boss", "kc", "slayer", "money", "skill", "minigame"]);
+const RUNELITE_RELEVANT_KINDS = new Set<RecKind>(["quest", "diary", "slayer", "kc"]);
 const TEXT_LIMIT = 500;
 
 function cleanText(value: unknown, fallback: string, limit = TEXT_LIMIT): string {
@@ -247,14 +251,15 @@ function stableDecisionId(input: BuildRecommendationDecisionInput): string {
 
 export function buildRecommendationDecision(input: BuildRecommendationDecisionInput): RecommendationDecision {
   const winner = input.winner;
-  const firstStep = firstStepFor(winner);
+  const honesty = assessRecommendationHonesty(winner, input);
+  const firstStep = honesty.firstCheck ?? firstStepFor(winner);
   const stopPoint = stopPointFor(winner);
   const unknowns: RecommendationDecisionUnknown[] = [];
   if (!input.hasPublicStats) unknowns.push({ code: "public_progress", subject: "levels and KC", impact: "ranking" });
-  if (!input.hasBank && BANK_RELEVANT_KINDS.has(winner.kind)) {
+  if (!input.hasBank && honesty.bankWouldChangePlan) {
     unknowns.push({ code: "bank_setup", subject: "gear and supplies", impact: "setup" });
   }
-  if (!input.hasRuneLite && EXACT_RUNELITE_KINDS.has(winner.kind)) {
+  if (!input.hasRuneLite && recommendationNeedsRuneLiteCompletion(winner)) {
     unknowns.push({ code: "runelite_completion", subject: "finished account steps", impact: "completion" });
   }
 
@@ -264,30 +269,27 @@ export function buildRecommendationDecision(input: BuildRecommendationDecisionIn
   } else if (input.hasPublicStats) {
     reasons.push({ code: "visible_progress_fit", provenance: "public_stats", subject: winner.kind });
   }
-  if (input.hasBank && BANK_RELEVANT_KINDS.has(winner.kind)) {
+  if (input.hasBank && honesty.bankWouldChangePlan) {
     reasons.push({ code: "bank_context_used", provenance: "bank", subject: winner.kind });
   }
-  if (input.hasRuneLite && EXACT_RUNELITE_KINDS.has(winner.kind)) {
+  if (input.hasRuneLite && RUNELITE_RELEVANT_KINDS.has(winner.kind)) {
     reasons.push({ code: "runelite_filtered_finished", provenance: "runelite", subject: winner.kind });
   }
   reasons.push({ code: "session_preference_fit", provenance: "preference", subject: input.mood, value: input.minutes });
 
-  const requiredProvenance: RecommendationFactProvenance | null = input.hasBank
-    ? "bank"
-    : input.hasRuneLite && EXACT_RUNELITE_KINDS.has(winner.kind)
-      ? "runelite"
-      : input.hasPublicStats
-        ? "public_stats"
-        : null;
-  const required = requiredProvenance
+  const setupClaimsAreOwnedItems = honesty.canUseSetupClaims
+    && recommendationBankWouldChangePlan(winner)
+    && winner.gearConfidence === "confirmed"
+    && (winner.kind === "boss" || winner.kind === "kc" || winner.kind === "slayer" || winner.kind === "money");
+  const required = setupClaimsAreOwnedItems
     ? (winner.needs ?? []).slice(0, 4).map((item) => ({
         item: cleanText(item, "Check the activity requirement", 180),
-        provenance: requiredProvenance
+        provenance: "bank" as const
       }))
     : [];
   const optional: RecommendationDecision["setup"]["optional"] = [];
-  if (!input.hasBank && BANK_RELEVANT_KINDS.has(winner.kind)) optional.push({ item: "Add bank for exact gear and supplies", provenance: "preference" });
-  if (!input.hasRuneLite && EXACT_RUNELITE_KINDS.has(winner.kind)) optional.push({ item: "Connect RuneLite to skip finished work", provenance: "preference" });
+  if (!input.hasBank && honesty.bankWouldChangePlan) optional.push({ item: "Add bank to choose gear and supplies", provenance: "preference" });
+  if (!input.hasRuneLite && recommendationNeedsRuneLiteCompletion(winner)) optional.push({ item: "Connect RuneLite to skip finished work", provenance: "preference" });
 
   const completion = completionEvidence(winner, stopPoint, input);
   const assumptions: RecommendationDecisionAssumption[] = [];

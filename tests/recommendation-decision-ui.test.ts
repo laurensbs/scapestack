@@ -21,4 +21,10 @@ describe("/next RecommendationDecision adoption", () => {
     expect(source).toContain("body: JSON.stringify({ decision: activeDecision })");
     expect(source).not.toContain("body: JSON.stringify({ decision: activeDecision, rsn:");
   });
+
+  it("only renders bank claims when bank and completion facts support them", () => {
+    expect(source).toContain("const bankLines = (hasBankContext ? nextTripLines");
+    expect(source).toContain('line.label === "Still missing" && !completionIsUnknown');
+    expect(source).toContain('unknown.code === "runelite_completion"');
+  });
 });

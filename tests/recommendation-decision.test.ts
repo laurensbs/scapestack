@@ -81,9 +81,68 @@ describe("RecommendationDecision contract", () => {
       expect.objectContaining({ code: "session_preference_fit", provenance: "preference" })
     ]);
     expect(decision.setup.required).toEqual([]);
-    expect(decision.unknowns.map((unknown) => unknown.code)).toEqual(["public_progress", "runelite_completion"]);
+    expect(decision.unknowns.map((unknown) => unknown.code)).toEqual(["public_progress", "bank_setup", "runelite_completion"]);
     expect(decision.completion.mode).toBe("manual");
-    expect(decision.fallback).toMatchObject({ used: true, missing: ["public_progress", "runelite_completion"] });
+    expect(decision.fallback).toMatchObject({ used: true, missing: ["public_progress", "bank_setup", "runelite_completion"] });
+  });
+
+  it("does not present exact inventory claims without a bank", () => {
+    const decision = build({ hasBank: false, hasRuneLite: false });
+    const copy = recommendationDecisionCopy(decision);
+
+    expect(decision.setup.required).toEqual([]);
+    expect(copy.requiredSetup).toEqual([]);
+    expect(JSON.stringify(copy)).not.toContain("12 sharks");
+    expect(copy.firstStep).toContain("Check your gear, food and teleport first");
+    expect(decision.setup.optional).toContainEqual({
+      item: "Add bank to choose gear and supplies",
+      provenance: "preference"
+    });
+  });
+
+  it("keeps an unscanned diary requirement as a check instead of a confirmed blocker", () => {
+    const decision = build({
+      winner: recommendation({
+        id: "diary:karamja:hard",
+        kind: "diary",
+        title: "Finish Karamja Hard",
+        bossSlug: undefined,
+        kcMeta: undefined,
+        needs: ["Complete the final diary task"]
+      }),
+      hasRuneLite: false
+    });
+
+    expect(decision.setup.required).toEqual([]);
+    expect(decision.firstStep.label).toBe("Check the next unfinished requirement first, then complete one step.");
+    expect(recommendationDecisionCopy(decision).requiredSetup).toEqual([]);
+  });
+
+  it("does not offer a bank for a route whose method is unchanged by it", () => {
+    const decision = build({
+      winner: recommendation({
+        id: "skill:agility",
+        kind: "skill",
+        title: "Run one Agility level",
+        bossSlug: undefined,
+        kcMeta: undefined,
+        needs: undefined
+      }),
+      hasBank: false,
+      hasRuneLite: false
+    });
+
+    expect(decision.unknowns.map((unknown) => unknown.code)).not.toContain("bank_setup");
+    expect(decision.setup.optional.map((item) => item.item)).not.toContain("Add bank to choose gear and supplies");
+  });
+
+  it("keeps internal honesty terminology out of player copy", () => {
+    const playerCopy = JSON.stringify(recommendationDecisionCopy(build())).toLowerCase();
+
+    expect(playerCopy).not.toContain("confidence");
+    expect(playerCopy).not.toContain("data quality");
+    expect(playerCopy).not.toContain("honesty level");
+    expect(playerCopy).not.toContain("payload");
   });
 
   it("records why alternatives lost and generates concise copy only at the boundary", () => {

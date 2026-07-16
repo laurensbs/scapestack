@@ -4311,8 +4311,13 @@ function NextTripCard({
   const actionLabel = nextTripCtaLabel(rec, isBossWithDetail ? "Check kill" : primaryAction.label);
   const actionHref = isBossWithDetail ? undefined : primaryAction.href;
   const decisionCopy = recommendationDecisionCopy(decision);
-  const bankLines = nextTripLines({ rec, hasBankContext, bankItems, accountMode })
-    .filter((line) => line.label === "Grab from bank" || line.label === "Stage for UIM" || line.label === "Still missing")
+  const completionIsUnknown = decision.unknowns.some((unknown) => unknown.code === "runelite_completion");
+  const bankLines = (hasBankContext ? nextTripLines({ rec, hasBankContext, bankItems, accountMode }) : [])
+    .filter((line) =>
+      line.label === "Grab from bank"
+      || line.label === "Stage for UIM"
+      || (line.label === "Still missing" && !completionIsUnknown)
+    )
     .slice(0, 1);
   const decisionLines: NextTripLine[] = [
     { label: "Why this pick", value: decisionCopy.why },
@@ -4951,10 +4956,15 @@ function WhatToDo({
         excludedIds: [...new Set([...Object.keys(sessionSkipped), ...recentRejectedMemory.map((entry) => entry.id)])],
         recentFamilies: [...new Set(recentFamilies)],
         seed: `${activeRsn || bankSource}:${mood}:${minutes}:${shuffleIdx}`,
-        preferenceProfile
+        preferenceProfile,
+        honestyContext: {
+          hasPublicStats: syncResult.summary.basis === "full" || syncResult.summary.basis === "hiscores-only",
+          hasBank: hasBankContext,
+          hasRuneLite: pluginSyncState !== null
+        }
       };
     },
-    [activeRsn, allRecs, bankSource, latestMemory, latestSkipped?.id, latestSkipped?.kind, minutes, mood, preferenceProfile, recentMemoryCounts, recentRejectedMemory, sessionSkipped, shuffleIdx]
+    [activeRsn, allRecs, bankSource, hasBankContext, latestMemory, latestSkipped?.id, latestSkipped?.kind, minutes, mood, pluginSyncState, preferenceProfile, recentMemoryCounts, recentRejectedMemory, sessionSkipped, shuffleIdx, syncResult.summary.basis]
   );
   const actionContext = useMemo<RecommendationActionContext>(
     () => ({ from: "next", hasBankContext, rsn: activeRsn, accountType: accountMode.type }),
