@@ -679,7 +679,7 @@ Acceptance:
 
 ## Phase 07 - Make Mood A Hard Constraint
 
-Status: TODO  
+Status: DONE (2026-07-16)
 Depends on: Phase 06  
 Improves: mood integrity, trust
 
@@ -706,6 +706,36 @@ Acceptance:
 - Short cannot produce a multi-hour prerequisite chain;
 - tests enumerate every candidate family against every mood.
 ```
+
+### Evidence
+
+- Completed on 2026-07-16.
+- Added a typed internal session profile for every recommendation: intensity,
+  attention, setup and minimum time, idle window, reset and death cost,
+  wilderness/raid risk, setup confidence, profit evidence, unlock value and
+  prerequisite depth.
+- Mood eligibility now removes invalid candidates before scoring, backups,
+  remembered-trip restoration and route previews. A route lens or random roll
+  can no longer override the selected mood contract.
+- Removed blanket AFK classification from minigames, generic skill milestones
+  and maxing routes. High-combat accounts retain a real low-attention method;
+  the verified sample selects `Birdhouse run` and randomizes to `Run herbs +
+  birdhouses`, while Prayer, Chambers of Xeric and Vardorvis remain excluded.
+- Added an 11 recommendation-family by 8 mood contract matrix plus named
+  regressions for Chill/Chambers of Xeric, AFK/Vardorvis and Short/long
+  prerequisite chains.
+- Browser proof covered 1440x1000 and 390x844. Chill, AFK, Short and Bossing
+  produced contract-valid headlines; AFK `Surprise me` stayed inside AFK; no
+  horizontal overflow or browser errors remained. Screenshots are in
+  `/tmp/scapestack-phase-07/desktop-final.png` and `mobile-final.png`.
+- Verification: `npm run ci:check` passed with 184 files and 1,167 tests,
+  smoke, zero hard recommendation-audit failures, offline plugin release checks
+  and a 215-page production build. `./gradlew test` passed the full plugin
+  suite. `git diff --check` passed.
+- Implementation commit: `913279e`.
+- Residual risk: session profiles are deterministic curated facts. New route
+  generators must supply or infer the same dimensions, and Phase 08 still has
+  to make repeated randomization diverse across all eligible families.
 
 ## Phase 08 - Make Randomize Diverse Without Becoming Random
 
