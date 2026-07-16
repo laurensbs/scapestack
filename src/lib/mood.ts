@@ -23,6 +23,10 @@ import {
   recommendationSessionProfile,
   type RecommendationSessionProfile
 } from "./recommendation-session";
+import {
+  recommendationPreferenceMultiplier,
+  type RecommendationPreferenceProfile
+} from "./recommendation-preferences";
 
 export type Mood = "chill" | "focused" | "cash" | "quest" | "bossing" | "unlock" | "afk" | "short";
 
@@ -525,6 +529,8 @@ export interface RoutePickOptions {
   recentFamilies?: RecommendationDiversityFamily[];
   /** Stable seed used only as a near-score tie-breaker. */
   seed?: string | number;
+  /** Small decaying taste adjustment learned from explicit player outcomes. */
+  preferenceProfile?: RecommendationPreferenceProfile;
 }
 
 function skippedCount(skippedIds: RoutePickOptions["skippedIds"], id: string): number {
@@ -628,7 +634,8 @@ export function pickForRoute(
     const timeMult = timeBudgetFit(rec, minutes);
     const accountMult = accountFitMultiplier(rec, mood);
     const noveltyMult = sessionNoveltyMultiplier(rec, options);
-    return { rec, adjScore: rec.score * kindMult * timeMult * accountMult * noveltyMult };
+    const preferenceMult = recommendationPreferenceMultiplier(options?.preferenceProfile, rec, minutes);
+    return { rec, adjScore: rec.score * kindMult * timeMult * accountMult * noveltyMult * preferenceMult };
   });
   scored.sort((a, b) => compareScored(a, b, options?.seed));
   const headlinePool = constrainedHeadlinePool(scored, options);

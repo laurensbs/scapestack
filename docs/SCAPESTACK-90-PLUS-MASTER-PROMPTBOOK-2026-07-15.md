@@ -857,7 +857,7 @@ Acceptance:
 
 ## Phase 10 - Learn From Accept, Skip And Completion
 
-Status: TODO  
+Status: DONE
 Depends on: Phases 01 and 09  
 Improves: personalization, retention
 
@@ -889,6 +889,25 @@ Acceptance:
 - hard mood constraints always beat learned preferences;
 - tests prove preference reset.
 ```
+
+### Evidence
+
+- Added a local, RSN-scoped preference model that learns from started trips,
+  manual completions, RuneLite-confirmed completions and explicit skips.
+- Preference evidence decays over time and is bounded to a 0.8-1.2 ranking
+  multiplier, so account fit and the selected mood remain authoritative.
+- One route change has only a minor effect. `Less like this` moves away for the
+  current session and records decaying taste evidence instead of permanently
+  hiding an activity.
+- RuneLite outcomes retain the original mood, route and timebox so observed
+  completions can improve later picks without exposing a player-facing profile.
+- `Reset learned choices` removes learned taste and reversible hides while
+  preserving activities already marked complete.
+- Verification: all 188 test files and 1,193 tests passed after the final
+  interaction refinement. The production build, recommendation audit,
+  offline plugin release checks and full RuneLite Gradle suite passed. Desktop
+  and 390x844 browser flows confirmed Less-like, Undo and reset behavior with no
+  horizontal overflow or Next.js error overlay.
 
 ## Phase 11 - Add Recommendation Honesty Levels
 

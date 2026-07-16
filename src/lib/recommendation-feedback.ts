@@ -13,7 +13,12 @@ export type RecommendationFeedbackReason =
   | "too_hard"
   | "too_boring";
 
-export type RecommendationMemoryAction = RecommendationFeedbackReason | "try_another" | "started";
+export type RecommendationMemoryAction =
+  | RecommendationFeedbackReason
+  | "try_another"
+  | "started"
+  | "completed_manual"
+  | "completed_runelite";
 
 export interface RecommendationFeedback {
   version: 1;
@@ -38,6 +43,9 @@ export interface RecommendationMemoryEntry {
   mood?: string;
   routeLens?: string;
   rsnKey?: string;
+  minutes?: number;
+  attention?: "afk" | "low" | "active" | "focused";
+  wilderness?: boolean;
 }
 
 const EMPTY: RecommendationFeedback = { version: 1, suppressed: {}, recent: [] };
@@ -60,6 +68,12 @@ export function suppressRecommendation(input: {
   kind: string;
   title?: string;
   reason: RecommendationFeedbackReason;
+  mood?: string;
+  routeLens?: string;
+  rsn?: string;
+  minutes?: number;
+  attention?: RecommendationMemoryEntry["attention"];
+  wilderness?: boolean;
 }): RecommendationFeedback {
   const current = loadRecommendationFeedback();
   const savedAt = Date.now();
@@ -67,11 +81,25 @@ export function suppressRecommendation(input: {
     version: 1,
     suppressed: {
       ...current.suppressed,
-      [input.id]: { ...input, savedAt }
+      [input.id]: {
+        id: input.id,
+        kind: input.kind,
+        title: input.title,
+        reason: input.reason,
+        savedAt
+      }
     },
     recent: appendRecommendationMemory(current.recent, {
-      ...input,
+      id: input.id,
+      kind: input.kind,
+      title: input.title,
       action: input.reason,
+      mood: input.mood,
+      routeLens: input.routeLens,
+      rsnKey: normalizeRsnKey(input.rsn),
+      minutes: input.minutes,
+      attention: input.attention,
+      wilderness: input.wilderness,
       savedAt
     })
   };
@@ -97,6 +125,22 @@ export function clearRecommendationFeedback(): RecommendationFeedback {
   return EMPTY;
 }
 
+/** Resets taste learning while keeping activities RuneLite or the player
+ * already marked complete out of future plans. */
+export function clearLearnedRecommendationPreferences(): RecommendationFeedback {
+  const current = loadRecommendationFeedback();
+  const suppressed = Object.fromEntries(
+    Object.entries(current.suppressed).filter(([, entry]) => entry.reason === "already_done")
+  );
+  const next: RecommendationFeedback = {
+    version: 1,
+    suppressed,
+    recent: current.recent.filter((entry) => entry.action === "already_done")
+  };
+  saveRecommendationFeedback(next);
+  return next;
+}
+
 export function recordRecommendationMemory(input: {
   id: string;
   kind: string;
@@ -105,6 +149,9 @@ export function recordRecommendationMemory(input: {
   mood?: string;
   routeLens?: string;
   rsn?: string;
+  minutes?: number;
+  attention?: RecommendationMemoryEntry["attention"];
+  wilderness?: boolean;
 }): RecommendationFeedback {
   const current = loadRecommendationFeedback();
   const next: RecommendationFeedback = {
@@ -118,6 +165,9 @@ export function recordRecommendationMemory(input: {
       mood: input.mood,
       routeLens: input.routeLens,
       rsnKey: normalizeRsnKey(input.rsn),
+      minutes: input.minutes,
+      attention: input.attention,
+      wilderness: input.wilderness,
       savedAt: Date.now()
     })
   };
@@ -127,6 +177,13 @@ export function recordRecommendationMemory(input: {
 
 export function isRecommendationSuppressed(id: string, feedback = loadRecommendationFeedback()): boolean {
   return Boolean(feedback.suppressed[id]);
+}
+
+export function recommendationSuppressionReason(
+  id: string,
+  feedback = loadRecommendationFeedback()
+): RecommendationFeedbackReason | null {
+  return feedback.suppressed[id]?.reason ?? null;
 }
 
 export function latestRecommendationFeedback(
@@ -168,7 +225,7 @@ export function recentRejectedRecommendationMemories(
   const rsnKey = normalizeRsnKey(options.rsn);
   const cutoff = Date.now() - (options.maxAgeMs ?? RECENT_MEMORY_WINDOW_MS);
   return feedback.recent
-    .filter((entry) => entry.action !== "started")
+    .filter((entry) => isRejectedMemoryAction(entry.action))
     .filter((entry) => entry.savedAt >= cutoff)
     .filter((entry) => matchesRsnKey(entry, rsnKey))
     .filter((entry) => !options.mood || !entry.mood || entry.mood === options.mood)
@@ -244,9 +301,17 @@ function matchesRsnKey(entry: RecommendationMemoryEntry, rsnKey?: string): boole
 }
 
 function memoryActionWeight(action: RecommendationMemoryAction): number {
-  if (action === "started") return 0;
+  if (action === "started" || action === "completed_manual" || action === "completed_runelite") return 0;
   if (action === "already_done") return 5;
   if (action === "too_hard" || action === "not_my_style") return 3;
   if (action === "not_today" || action === "too_boring") return 2;
   return 1;
+}
+
+function isRejectedMemoryAction(action: RecommendationMemoryAction): boolean {
+  return action === "not_today"
+    || action === "not_my_style"
+    || action === "too_hard"
+    || action === "too_boring"
+    || action === "try_another";
 }

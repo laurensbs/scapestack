@@ -23,6 +23,9 @@ export interface AccountTimelineMoment {
   count?: number;
   recommendationId?: string;
   recommendationKind?: string;
+  mood?: string;
+  routeLens?: string;
+  minutes?: number;
   outcomeStatus?: "completed" | "progressed" | "contradicted";
   evidenceType?: string;
 }
@@ -185,6 +188,9 @@ function outcomeMoment(record: AccountTimelineRecord): AccountTimelineMoment | n
     detail: playerDetail(value.detail) ?? undefined,
     recommendationId,
     recommendationKind,
+    mood: text(value.mood) ?? undefined,
+    routeLens: text(value.routeLens) ?? undefined,
+    minutes: typeof value.minutes === "number" ? value.minutes : undefined,
     outcomeStatus: status,
     evidenceType
   };

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  clearLearnedRecommendationPreferences,
   clearRecommendationFeedback,
   isRecommendationSuppressed,
   latestRecommendationFeedback,
@@ -8,6 +9,7 @@ import {
   loadRecommendationFeedback,
   recentRejectedRecommendationMemories,
   recommendationMemoryCounts,
+  recommendationSuppressionReason,
   recordRecommendationMemory,
   restoreRecommendation,
   suppressRecommendation
@@ -53,6 +55,7 @@ describe("recommendation feedback", () => {
     expect(feedback.suppressed["quest:dragon-slayer"]?.reason).toBe("already_done");
     expect(feedback.suppressed["quest:dragon-slayer"]?.title).toBe("Dragon Slayer");
     expect(isRecommendationSuppressed("quest:dragon-slayer")).toBe(true);
+    expect(recommendationSuppressionReason("quest:dragon-slayer")).toBe("already_done");
   });
 
   it("returns the most recent feedback entry for welcome-back copy", () => {
@@ -74,6 +77,52 @@ describe("recommendation feedback", () => {
 
     expect(loadRecommendationFeedback().suppressed).toEqual({});
     expect(loadRecommendationFeedback().recent).toEqual([]);
+  });
+
+  it("resets learned choices but keeps completed activities hidden", () => {
+    suppressRecommendation({
+      id: "boss:vorkath",
+      kind: "boss",
+      reason: "not_my_style",
+      rsn: "Lauky"
+    });
+    suppressRecommendation({
+      id: "quest:dragon-slayer",
+      kind: "quest",
+      reason: "already_done",
+      rsn: "Lauky"
+    });
+    recordRecommendationMemory({
+      id: "skill:fishing",
+      kind: "skill",
+      action: "completed_manual",
+      rsn: "Lauky"
+    });
+
+    const reset = clearLearnedRecommendationPreferences();
+
+    expect(reset.suppressed["boss:vorkath"]).toBeUndefined();
+    expect(reset.suppressed["quest:dragon-slayer"]?.reason).toBe("already_done");
+    expect(reset.recent.map((entry) => entry.action)).toEqual(["already_done"]);
+  });
+
+  it("stores session context with explicit feedback", () => {
+    recordRecommendationMemory({
+      id: "skill:redwoods",
+      kind: "skill",
+      action: "started",
+      rsn: "Lauky",
+      minutes: 120,
+      attention: "afk",
+      wilderness: false
+    });
+
+    expect(loadRecommendationFeedback().recent[0]).toMatchObject({
+      rsnKey: "lauky",
+      minutes: 120,
+      attention: "afk",
+      wilderness: false
+    });
   });
 
   it("records try-another memory without hiding the recommendation", () => {

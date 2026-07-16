@@ -19,7 +19,8 @@ import {
 } from "@/lib/trip-timeline";
 import { track } from "@/lib/analytics";
 import {
-  isRecommendationSuppressed,
+  recommendationSuppressionReason,
+  recordRecommendationMemory,
   suppressRecommendation
 } from "@/lib/recommendation-feedback";
 import { cn } from "@/lib/utils";
@@ -149,16 +150,31 @@ export function AccountTimeline({ expectedRsn, className, limit = 6 }: AccountTi
         evidenceType: moment.evidenceType
       }, { dedupeKey: `outcome-viewed:${moment.id}` });
       if (moment.outcomeStatus === "completed" && moment.recommendationId
-          && moment.recommendationKind && !isRecommendationSuppressed(moment.recommendationId)) {
+          && moment.recommendationKind && accountRsn
+          && recommendationSuppressionReason(moment.recommendationId) !== "already_done") {
+        recordRecommendationMemory({
+          id: moment.recommendationId,
+          kind: moment.recommendationKind,
+          title: moment.title.replace(/^Finished\s+/i, ""),
+          action: "completed_runelite",
+          mood: moment.mood,
+          routeLens: moment.routeLens,
+          minutes: moment.minutes,
+          rsn: accountRsn
+        });
         suppressRecommendation({
           id: moment.recommendationId,
           kind: moment.recommendationKind,
           title: moment.title.replace(/^Finished\s+/i, ""),
-          reason: "already_done"
+          reason: "already_done",
+          mood: moment.mood,
+          routeLens: moment.routeLens,
+          minutes: moment.minutes,
+          rsn: accountRsn
         });
       }
     }
-  }, [moments]);
+  }, [accountRsn, moments]);
 
   const visible = useMemo(() => moments.slice(0, 18), [moments]);
   if (visible.length === 0) return null;

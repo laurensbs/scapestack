@@ -96,6 +96,7 @@ describe("recommendation outcome engine", () => {
       delta: delta({ bossKc: [{ boss: "Vorkath", status: "changed", movement: movement(48, 50) }] })
     });
     expect(result).toMatchObject({ status: "completed", terminal: true, progress: { before: 48, after: 50, remaining: 0 } });
+    expect(result).toMatchObject({ mood: "focused", routeLens: "smart", minutes: 60 });
   });
 
   it("keeps partial KC progress active and changes the next stop point", () => {

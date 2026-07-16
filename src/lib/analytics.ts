@@ -43,7 +43,7 @@ export interface AnalyticsEventMap {
   "recommendation:accepted": RecommendationEventProps;
   "recommendation:another": RecommendationEventProps & { nextRouteFamily: string };
   "recommendation:skipped": RecommendationEventProps & {
-    reason: "not_today" | "too_hard" | "already_done" | "another_plan";
+    reason: "not_today" | "not_my_style" | "too_hard" | "already_done" | "another_plan";
   };
   "trip:started": RecommendationEventProps;
   "trip:completed_manual": RecommendationEventProps;

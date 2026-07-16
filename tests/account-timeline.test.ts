@@ -113,7 +113,10 @@ describe("player-facing account timeline", () => {
         detail: "50/50 KC. Target reached.",
         recommendationId: "boss:vorkath:50",
         recommendationKind: "kc",
-        evidenceType: "boss_kc_at_least"
+        evidenceType: "boss_kc_at_least",
+        mood: "bossing",
+        routeLens: "boss-log",
+        minutes: 60
       } }
     }));
     const unchanged = accountTimelineMoment(record({
@@ -126,7 +129,10 @@ describe("player-facing account timeline", () => {
       kind: "outcome",
       outcomeStatus: "completed",
       recommendationId: "boss:vorkath:50",
-      evidenceType: "boss_kc_at_least"
+      evidenceType: "boss_kc_at_least",
+      mood: "bossing",
+      routeLens: "boss-log",
+      minutes: 60
     });
     expect(unchanged).toBeNull();
   });

@@ -25,6 +25,9 @@ export interface RecommendationOutcome {
   decisionId: string;
   recommendationId: string;
   recommendationKind: RecommendationDecision["activity"]["kind"];
+  mood: RecommendationDecision["constraints"]["mood"];
+  routeLens: RecommendationDecision["constraints"]["routeFamily"];
+  minutes: RecommendationDecision["constraints"]["timeboxMinutes"];
   activity: string;
   status: RecommendationOutcomeStatus;
   evidenceType: RecommendationCompletionEvidence["kind"];
@@ -83,6 +86,9 @@ function outcome(
     decisionId: decision.id,
     recommendationId: decision.recommendationId,
     recommendationKind: decision.activity.kind,
+    mood: decision.constraints.mood,
+    routeLens: decision.constraints.routeFamily,
+    minutes: decision.constraints.timeboxMinutes,
     activity,
     status,
     evidenceType: decision.completion.evidence.kind,

@@ -48,7 +48,7 @@ import {
 } from "@/lib/mood";
 import { saveMood, loadMood, relativeSince, type MoodSession } from "@/lib/mood-storage";
 import {
-  clearRecommendationFeedback,
+  clearLearnedRecommendationPreferences,
   latestRecommendationFeedback,
   latestStartedRecommendationMemory,
   latestRecommendationMemory,
@@ -62,6 +62,10 @@ import {
   type RecommendationMemoryEntry,
   type RecommendationFeedback
 } from "@/lib/recommendation-feedback";
+import {
+  buildRecommendationPreferenceProfile,
+  recommendationPreferenceContext
+} from "@/lib/recommendation-preferences";
 import { recordTripEvent, type TripTimelineAction } from "@/lib/trip-timeline";
 import { formatShareableTripCard, shareableTripFromRecommendation } from "@/lib/shareable-trip";
 import { wikiSearchUrl } from "@/lib/wiki";
@@ -4906,6 +4910,10 @@ function WhatToDo({
   }, []);
 
   const hiddenCount = allRecs.filter((rec) => feedback.suppressed[rec.id]).length;
+  const choiceHiddenCount = allRecs.filter((rec) => {
+    const entry = feedback.suppressed[rec.id];
+    return entry && entry.reason !== "already_done";
+  }).length;
   const visibleRecs = allRecs.filter((rec) => !feedback.suppressed[rec.id]);
   const latestSkipped = useMemo(() => latestSessionSkip(sessionSkipped), [sessionSkipped]);
   const recentMemoryCounts = useMemo(
@@ -4924,6 +4932,10 @@ function WhatToDo({
     () => latestStartedRecommendationMemory(feedback, { rsn: activeRsn }),
     [activeRsn, feedback]
   );
+  const preferenceProfile = useMemo(
+    () => buildRecommendationPreferenceProfile(feedback, { rsn: activeRsn }),
+    [activeRsn, feedback]
+  );
   const routePickOptions = useMemo(
     () => {
       const recentFamilies = recentRejectedMemory.map((entry) => {
@@ -4938,10 +4950,11 @@ function WhatToDo({
         previousId: latestSkipped?.id ?? latestMemory?.id ?? null,
         excludedIds: [...new Set([...Object.keys(sessionSkipped), ...recentRejectedMemory.map((entry) => entry.id)])],
         recentFamilies: [...new Set(recentFamilies)],
-        seed: `${activeRsn || bankSource}:${mood}:${minutes}:${shuffleIdx}`
+        seed: `${activeRsn || bankSource}:${mood}:${minutes}:${shuffleIdx}`,
+        preferenceProfile
       };
     },
-    [activeRsn, allRecs, bankSource, latestMemory, latestSkipped?.id, latestSkipped?.kind, minutes, mood, recentMemoryCounts, recentRejectedMemory, sessionSkipped, shuffleIdx]
+    [activeRsn, allRecs, bankSource, latestMemory, latestSkipped?.id, latestSkipped?.kind, minutes, mood, preferenceProfile, recentMemoryCounts, recentRejectedMemory, sessionSkipped, shuffleIdx]
   );
   const actionContext = useMemo<RecommendationActionContext>(
     () => ({ from: "next", hasBankContext, rsn: activeRsn, accountType: accountMode.type }),
@@ -5157,7 +5170,8 @@ function WhatToDo({
       action: "started",
       mood,
       routeLens,
-      rsn: activeRsn
+      rsn: activeRsn,
+      ...recommendationPreferenceContext(rec, minutes)
     }));
     rememberTrip(rec, "started");
     persistDecisionLifecycle(rec, "started");
@@ -5168,9 +5182,19 @@ function WhatToDo({
   const hideRecommendation = (rec: Recommendation) => {
     track("recommendation:skipped", {
       ...recommendationAnalytics(rec),
-      reason: "not_today"
+      reason: "not_my_style"
     });
-    setFeedback(suppressRecommendation({ id: rec.id, kind: rec.kind, title: rec.title, reason: "not_today" }));
+    setFeedback(recordRecommendationMemory({
+      id: rec.id,
+      kind: rec.kind,
+      title: rec.title,
+      action: "not_my_style",
+      mood,
+      routeLens,
+      rsn: activeRsn,
+      ...recommendationPreferenceContext(rec, minutes)
+    }));
+    setSessionSkipped((current) => recordSessionSkip(current, rec));
     rememberTrip(rec, "skipped");
     persistDecisionLifecycle(rec, "skipped");
     setLastSuppressed({ id: rec.id, kind: rec.kind, title: rec.title });
@@ -5179,7 +5203,26 @@ function WhatToDo({
   };
   const completeRecommendation = (rec: Recommendation) => {
     track("trip:completed_manual", recommendationAnalytics(rec));
-    setFeedback(suppressRecommendation({ id: rec.id, kind: rec.kind, title: rec.title, reason: "already_done" }));
+    recordRecommendationMemory({
+      id: rec.id,
+      kind: rec.kind,
+      title: rec.title,
+      action: "completed_manual",
+      mood,
+      routeLens,
+      rsn: activeRsn,
+      ...recommendationPreferenceContext(rec, minutes)
+    });
+    setFeedback(suppressRecommendation({
+      id: rec.id,
+      kind: rec.kind,
+      title: rec.title,
+      reason: "already_done",
+      mood,
+      routeLens,
+      rsn: activeRsn,
+      ...recommendationPreferenceContext(rec, minutes)
+    }));
     rememberTrip(rec, "done");
     persistDecisionLifecycle(rec, "done");
     setLastCompleted({ id: rec.id, title: rec.title });
@@ -5189,18 +5232,27 @@ function WhatToDo({
   const restoreLastSuppressed = () => {
     if (!lastSuppressed) return;
     setFeedback(restoreRecommendation(lastSuppressed.id));
+    setSessionSkipped((current) => {
+      const next = { ...current };
+      delete next[lastSuppressed.id];
+      return next;
+    });
     setLastSuppressed(null);
     setShuffleIdx(0);
   };
   const markLastSuppressedTooHard = () => {
     if (!lastSuppressed) return;
+    const suppressedRec = allRecs.find((rec) => rec.id === lastSuppressed.id);
     setFeedback(suppressRecommendation({
       id: lastSuppressed.id,
       kind: lastSuppressed.kind,
       title: lastSuppressed.title,
-      reason: "too_hard"
+      reason: "too_hard",
+      mood,
+      routeLens,
+      rsn: activeRsn,
+      ...(suppressedRec ? recommendationPreferenceContext(suppressedRec, minutes) : {})
     }));
-    const suppressedRec = allRecs.find((rec) => rec.id === lastSuppressed.id);
     if (suppressedRec) {
       track("recommendation:skipped", {
         ...recommendationAnalytics(suppressedRec),
@@ -5237,7 +5289,8 @@ function WhatToDo({
         action: "try_another",
         mood,
         routeLens,
-        rsn: activeRsn
+        rsn: activeRsn,
+        ...recommendationPreferenceContext(activePick.headline, minutes)
       }));
       rememberTrip(activePick.headline, "skipped", routeLens);
     }
@@ -5246,8 +5299,9 @@ function WhatToDo({
   const moveToChillPlan = () => {
     applySessionIntent("chill", 30, "completion");
   };
-  const restoreHidden = () => {
-    setFeedback(clearRecommendationFeedback());
+  const resetLearnedChoices = () => {
+    setFeedback(clearLearnedRecommendationPreferences());
+    setSessionSkipped({});
     setLastSuppressed(null);
     setLastCompleted(null);
     setShuffleIdx(0);
@@ -5414,13 +5468,13 @@ function WhatToDo({
                 Started: <span className="font-semibold text-[var(--color-text)]">{lastStarted.title}</span>. Mark it done when the finish condition is true.
               </div>
             )}
-            {hiddenCount > 0 && (
+            {(choiceHiddenCount > 0 || preferenceProfile.evidenceCount > 0) && (
               <button
                 type="button"
-                onClick={restoreHidden}
+                onClick={resetLearnedChoices}
                 className="text-[11px] font-semibold text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-accent)]"
               >
-                Show hidden ({hiddenCount})
+                Reset learned choices{choiceHiddenCount > 0 ? ` (${choiceHiddenCount} hidden)` : ""}
               </button>
             )}
           </>
@@ -5791,6 +5845,14 @@ function RecHeadlineExpandable({
           aria-label={`Mark ${rec.title} done`}
         >
           Mark done
+        </button>
+        <button
+          type="button"
+          onClick={() => onSuppress(rec)}
+          className={recommendationFeedbackButtonClass("details", true)}
+          aria-label={`Show fewer plans like ${rec.title}`}
+        >
+          Less like this
         </button>
         <button
           type="button"
