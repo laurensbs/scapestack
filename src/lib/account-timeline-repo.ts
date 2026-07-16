@@ -77,6 +77,11 @@ export async function getAccountTimeline(
              jsonb_build_object('delta', delta) AS data
       FROM sync_snapshot
       WHERE account_id = $1::uuid AND delta->>'kind' = 'changed'
+        AND NOT EXISTS (
+          SELECT 1 FROM outcome_match matched
+          WHERE matched.snapshot_id = sync_snapshot.snapshot_id
+            AND matched.status IN ('completed', 'progressed', 'contradicted')
+        )
       UNION ALL
       SELECT 'trip'::text,
              'trip:' || trip.event_id::text,
@@ -101,6 +106,14 @@ export async function getAccountTimeline(
              jsonb_build_object('action', action, 'reason', reason)
       FROM decision_history
       WHERE previous_action IS NOT NULL AND previous_action <> action
+      UNION ALL
+      SELECT 'outcome'::text,
+             'outcome:' || outcome.outcome_id::text,
+             outcome.matched_at,
+             jsonb_build_object('outcome', outcome.evidence)
+      FROM outcome_match outcome
+      WHERE outcome.account_id = $1::uuid
+        AND outcome.status IN ('completed', 'progressed', 'contradicted')
     )
     SELECT source_kind, source_key, occurred_at, data
     FROM timeline_rows

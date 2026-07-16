@@ -18,6 +18,7 @@ import { mapBlockTaskIds } from "@/lib/slayer/task-ids";
 import { getSyncServiceStatus, SYNC_SERVICE_LIMITS } from "@/lib/sync-service-readiness";
 import { normalizeScapestackAccountType } from "@/lib/account-type";
 import { normalizePluginBankStatus } from "@/lib/plugin-bank-status";
+import { reconcileActiveRecommendationOutcomes } from "@/lib/recommendation-outcome-repo";
 
 const MAX_BODY_BYTES = SYNC_SERVICE_LIMITS.maxBodyBytes;
 const ALLOWED_DIARY_TIERS = new Set(["Easy", "Medium", "Hard", "Elite"]);
@@ -266,6 +267,7 @@ export async function POST(req: Request): Promise<Response> {
 
   let syncedAt: string;
   let syncSummary: unknown = null;
+  let newOutcomes: Array<{ status: string; title: string; detail: string }> = [];
   try {
     const result = await upsertSyncedPlayer({
       rsn,
@@ -294,6 +296,24 @@ export async function POST(req: Request): Promise<Response> {
     });
     syncedAt = result.syncedAt;
     syncSummary = result.syncSummary;
+    if (result.snapshotId) {
+      try {
+        const outcomes = await reconcileActiveRecommendationOutcomes({
+          rsn,
+          snapshotId: result.snapshotId,
+          delta: result.accountDelta,
+          syncSummary: result.syncSummary,
+          capturedAt: result.syncedAt
+        });
+        newOutcomes = outcomes
+          .filter(({ outcome }) => ["completed", "progressed", "contradicted"].includes(outcome.status))
+          .map(({ outcome }) => ({ status: outcome.status, title: outcome.title, detail: outcome.detail }));
+      } catch (error) {
+        console.error("Recommendation outcome reconciliation failed", {
+          name: error instanceof Error ? error.name : "UnknownError"
+        });
+      }
+    }
   } catch (error) {
     console.error("upsertSyncedPlayer failed", error instanceof Error
       ? { name: error.name, message: error.message }
@@ -308,6 +328,7 @@ export async function POST(req: Request): Promise<Response> {
     ok: true,
     syncedAt,
     syncSummary,
+    outcomes: newOutcomes,
     player: {
       rsn: normalizedRsn,
       displayName,

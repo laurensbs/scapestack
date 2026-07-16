@@ -140,6 +140,16 @@ export interface RecommendationRouteChain {
   steps: RecommendationRouteChainStep[];
 }
 
+export type RecommendationCompletionTarget =
+  | { kind: "boss_kc_at_least"; boss: string; target: number }
+  | { kind: "skill_level_at_least"; skill: string; target: number }
+  | { kind: "quest_completed"; quest: string }
+  | { kind: "diary_completed"; region: string; tier: string }
+  | { kind: "collection_log_item_obtained"; item: string; itemId?: number }
+  | { kind: "slayer_task_finished"; taskId: number; taskName: string; startingRemaining: number }
+  | { kind: "bank_quantity_at_least"; item: string; itemId?: number; target: number }
+  | { kind: "bank_changed" };
+
 export interface Recommendation {
   id: string;             // stable key
   kind: RecKind;
@@ -190,6 +200,9 @@ export interface Recommendation {
     denom: number;
     dropName: string;
   };
+  /** Structured finish condition consumed by the persisted decision contract.
+   *  Player-facing copy must never be reverse-engineered to prove outcomes. */
+  completionTarget?: RecommendationCompletionTarget;
 }
 
 export interface ReturnPlan {
@@ -1146,6 +1159,7 @@ function skillRecs(skills: HiscoreSkill[]): Recommendation[] {
         // Per-skill cape sprite — Slayer cape for 'Push Slayer', not the
         // generic Attack cape stand-in that was shipping before.
         iconItemId: skillCapeId(skill),
+        completionTarget: { kind: "skill_level_at_least", skill, target: m.level },
         routeTags: [
           "maxing",
           ...(LOW_ATTENTION_MILESTONE_SKILLS.has(skill) ? ["afk" as const] : []),
@@ -1575,6 +1589,12 @@ function slayerTaskRecs(
     score: slayer.taskRemaining >= 10 ? 94 : 68,
     link: displayName ? slayerUrlForSyncedRsn(displayName) : "/slayer",
     iconItemId: 11864,
+    completionTarget: {
+      kind: "slayer_task_finished",
+      taskId: slayer.currentTaskId,
+      taskName: monster.name,
+      startingRemaining: slayer.taskRemaining
+    },
     routeTags: ["slayer", "pvm", "unlock"],
     gearConfidence: "likely",
     quality: {
@@ -1675,6 +1695,7 @@ function questRecs(
           : `${q.name} fits your stats and is short enough to be a real unlock target.`,
       score,
       link: `/quests/${questSlug(q.name)}`,
+      completionTarget: { kind: "quest_completed", quest: q.name },
       routeTags: ["unlock", ...(q.questReqs.length <= 4 ? ["returning" as const] : []), ...(q.difficulty === "Grandmaster" ? ["fun" as const] : [])],
       gearConfidence: q.difficulty === "Grandmaster" ? "unknown" : "likely",
       quality: {
@@ -2235,6 +2256,7 @@ function activeBossKcRecs(bossKc: Record<string, number>, bank: CompletionItem[]
       iconItemId: boss.iconItemId,
       bossSlug: boss.slug,
       kcMeta: { kc, denom: 50, dropName: "first 50 KC" },
+      completionTarget: { kind: "boss_kc_at_least", boss: boss.slug, target: 50 },
       routeTags: ["pvm", "fun", ...(boss.avgLootGp ? ["gp" as const] : [])],
       gearConfidence,
       quality: {
@@ -2354,6 +2376,7 @@ function kcRecs(
       iconItemId: boss?.iconItemId,
       bossSlug: boss?.slug,
       kcMeta: { kc, denom: headline.denom, dropName: headline.name },
+      completionTarget: { kind: "collection_log_item_obtained", item: headline.name },
       routeTags: ["pvm", "fun", "maxing"],
       gearConfidence: bank.length > 0 ? "likely" : "unknown",
       quality: {
@@ -2485,6 +2508,7 @@ function diaryRecs(
       needs: routeLines.slice(0, 5),
       score,
       iconItemId: DIARY_REWARD_ICONS[region],
+      completionTarget: { kind: "diary_completed", region, tier },
       routeTags: ["unlock", "maxing", "returning"],
       gearConfidence: "likely",
       quality: {
@@ -2579,6 +2603,7 @@ function starterQuestRecs(hasHiscores: boolean, bank: CompletionItem[]): Recomme
       decisionReason: "This is a quick first quest that moves the account without gear checks.",
       score: 42,
       link: `/quests/${questSlug("Cook's Assistant")}`,
+      completionTarget: { kind: "quest_completed", quest: "Cook's Assistant" },
       planSeed: {
         timebox: "5-10 min",
         prep: "Grab an egg, bucket of milk and pot of flour before entering Lumbridge Castle.",
@@ -2598,6 +2623,7 @@ function starterQuestRecs(hasHiscores: boolean, bank: CompletionItem[]): Recomme
       decisionReason: "A fast skilling loop is useful when the account has almost no visible stats yet.",
       score: 41,
       link: `/quests/${questSlug("Sheep Shearer")}`,
+      completionTarget: { kind: "quest_completed", quest: "Sheep Shearer" },
       planSeed: {
         timebox: "5-10 min",
         prep: "Bring shears or buy them from a general store before going to Fred's farm.",
@@ -2617,6 +2643,7 @@ function starterQuestRecs(hasHiscores: boolean, bank: CompletionItem[]): Recomme
       decisionReason: "Five quick quest points is a better starter move than a vague grind.",
       score: 40,
       link: `/quests/${questSlug("Romeo & Juliet")}`,
+      completionTarget: { kind: "quest_completed", quest: "Romeo & Juliet" },
       planSeed: {
         timebox: "10-15 min",
         prep: "Start in Varrock and bank a cadava berry to avoid extra walking.",
@@ -2668,6 +2695,7 @@ function accountRouteRecs(input: {
       score: accountStage.id === "new-account" || iron ? 76 : 66,
       link: `/quests/${questSlug("Druidic Ritual")}`,
       iconItemId: 255,
+      completionTarget: { kind: "quest_completed", quest: "Druidic Ritual" },
       routeTags: ["beginner", "unlock", "iron", "returning"],
       gearConfidence: "not-needed",
       quality: {
@@ -2703,6 +2731,7 @@ function accountRouteRecs(input: {
       score: 80 - gap * 3,
       link: "/goals",
       iconItemId: 2412,
+      completionTarget: { kind: "skill_level_at_least", skill: "Prayer", target: 43 },
       routeTags: ["beginner", "returning", "unlock", "pvm"],
       gearConfidence: "not-needed",
       quality: {
@@ -2744,6 +2773,7 @@ function accountRouteRecs(input: {
       score: 60,
       link: `/quests/${questSlug("Animal Magnetism")}`,
       iconItemId: 10499,
+      completionTarget: { kind: "quest_completed", quest: "Animal Magnetism" },
       routeTags: ["unlock", "pvm", "returning", "iron"],
       gearConfidence: "not-needed",
       quality: {
@@ -2928,6 +2958,7 @@ function accountRouteRecs(input: {
         score: near99.level >= 95 ? 73 : 64,
         link: "/goals",
         iconItemId: skillCapeId(near99.name),
+        completionTarget: { kind: "skill_level_at_least", skill: near99.name, target: 99 },
         routeTags: ["maxing", "skiller"],
         gearConfidence: "not-needed",
         quality: {

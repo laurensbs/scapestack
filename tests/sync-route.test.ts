@@ -6,7 +6,15 @@ const state = vi.hoisted(() => ({
   failUpsert: false,
   dbConfigured: false,
   dbRows: [] as Array<{ table_name: string; column_name: string }>,
-  dbError: null as Error | null
+  dbError: null as Error | null,
+  upsertResult: {
+    syncedAt: "2026-06-03T10:00:00.000Z",
+    syncSummary: null,
+    snapshotId: null,
+    accountDelta: null
+  } as Record<string, unknown>,
+  reconciled: [] as unknown[],
+  outcomeResult: [] as unknown[]
 }));
 
 vi.mock("@/lib/sync-auth", () => ({
@@ -21,7 +29,14 @@ vi.mock("@/lib/sync-repo", () => ({
   upsertSyncedPlayer: async (payload: unknown) => {
     if (state.failUpsert) throw new Error("db down");
     state.upserts.push(payload);
-    return { syncedAt: "2026-06-03T10:00:00.000Z", syncSummary: null };
+    return state.upsertResult;
+  }
+}));
+
+vi.mock("@/lib/recommendation-outcome-repo", () => ({
+  reconcileActiveRecommendationOutcomes: async (input: unknown) => {
+    state.reconciled.push(input);
+    return state.outcomeResult;
   }
 }));
 
@@ -62,6 +77,14 @@ beforeEach(() => {
   state.dbConfigured = false;
   state.dbRows = [];
   state.dbError = null;
+  state.upsertResult = {
+    syncedAt: "2026-06-03T10:00:00.000Z",
+    syncSummary: null,
+    snapshotId: null,
+    accountDelta: null
+  };
+  state.reconciled = [];
+  state.outcomeResult = [];
   vi.resetModules();
 });
 
@@ -154,6 +177,41 @@ describe("GET /api/sync", () => {
 });
 
 describe("POST /api/sync", () => {
+  it("reconciles exact started plans and returns only meaningful new outcomes", async () => {
+    state.upsertResult = {
+      syncedAt: "2026-07-16T12:00:00.000Z",
+      syncSummary: null,
+      snapshotId: 17,
+      accountDelta: { deltaId: "delta-17", kind: "changed" }
+    };
+    state.outcomeResult = [{
+      outcomeId: 8,
+      decisionId: 3,
+      outcome: {
+        status: "completed",
+        title: "Finished Push Vorkath to 50 KC",
+        detail: "50/50 KC. Target reached."
+      }
+    }];
+    const { POST } = await loadRoute();
+    const response = await POST(syncRequest({
+      rsn: "Lauky",
+      questsCompleted: [],
+      diariesCompleted: [],
+      collectionLogItemIds: [],
+      pluginVersion: "0.2.0"
+    }));
+    const body = await response.json();
+
+    expect(state.reconciled).toEqual([expect.objectContaining({ rsn: "Lauky", snapshotId: 17, capturedAt: "2026-07-16T12:00:00.000Z" })]);
+    expect(body.outcomes).toEqual([{
+      status: "completed",
+      title: "Finished Push Vorkath to 50 KC",
+      detail: "50/50 KC. Target reached."
+    }]);
+    expect(JSON.stringify(body.outcomes)).not.toMatch(/decisionId|outcomeId|payload|signal/i);
+  });
+
   it("persists normalized sync data and returns plugin diagnostics", async () => {
     const { POST } = await loadRoute();
     const response = await POST(syncRequest({

@@ -172,8 +172,11 @@ CREATE TABLE IF NOT EXISTS trip_lifecycle_event (
 );
 ALTER TABLE trip_lifecycle_event ADD COLUMN IF NOT EXISTS title TEXT;
 ALTER TABLE trip_lifecycle_event ADD COLUMN IF NOT EXISTS legacy_event_id CHAR(64);
+ALTER TABLE trip_lifecycle_event ADD COLUMN IF NOT EXISTS decision_id BIGINT REFERENCES recommendation_decision(decision_id) ON DELETE SET NULL;
 CREATE INDEX IF NOT EXISTS trip_lifecycle_event_account_idx ON trip_lifecycle_event(account_id, occurred_at DESC);
 CREATE UNIQUE INDEX IF NOT EXISTS trip_lifecycle_event_legacy_idx ON trip_lifecycle_event(account_id, legacy_event_id) WHERE legacy_event_id IS NOT NULL;
+DROP INDEX IF EXISTS trip_lifecycle_event_decision_type_idx;
+CREATE INDEX IF NOT EXISTS trip_lifecycle_event_decision_type_idx ON trip_lifecycle_event(account_id, decision_id, event_type, occurred_at DESC) WHERE decision_id IS NOT NULL;
 DROP RULE IF EXISTS trip_lifecycle_event_no_update ON trip_lifecycle_event;
 DROP TRIGGER IF EXISTS trip_lifecycle_event_no_update ON trip_lifecycle_event;
 CREATE TRIGGER trip_lifecycle_event_no_update BEFORE UPDATE ON trip_lifecycle_event FOR EACH ROW EXECUTE FUNCTION prevent_immutable_history_update();
@@ -188,7 +191,11 @@ CREATE TABLE IF NOT EXISTS outcome_match (
   matched_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(snapshot_id, recommendation_id, evidence_type)
 );
+ALTER TABLE outcome_match ADD COLUMN IF NOT EXISTS decision_id BIGINT REFERENCES recommendation_decision(decision_id) ON DELETE SET NULL;
+ALTER TABLE outcome_match ADD COLUMN IF NOT EXISTS status TEXT;
+ALTER TABLE outcome_match ADD COLUMN IF NOT EXISTS outcome_key TEXT;
 CREATE INDEX IF NOT EXISTS outcome_match_account_idx ON outcome_match(account_id, matched_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS outcome_match_snapshot_decision_idx ON outcome_match(snapshot_id, decision_id) WHERE decision_id IS NOT NULL;
 DROP RULE IF EXISTS outcome_match_no_update ON outcome_match;
 DROP TRIGGER IF EXISTS outcome_match_no_update ON outcome_match;
 CREATE TRIGGER outcome_match_no_update BEFORE UPDATE ON outcome_match FOR EACH ROW EXECUTE FUNCTION prevent_immutable_history_update();

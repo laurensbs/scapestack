@@ -46,9 +46,12 @@ export interface RecommendationDecisionAlternative {
 
 export type RecommendationCompletionEvidence =
   | { kind: "boss_kc_at_least"; boss: string; target: number; provenance: "public_stats" | "runelite" }
+  | { kind: "skill_level_at_least"; skill: string; target: number; provenance: "runelite" }
   | { kind: "quest_completed"; quest: string; provenance: "runelite" }
-  | { kind: "diary_completed"; diary: string; provenance: "runelite" }
-  | { kind: "slayer_task_finished"; provenance: "runelite" }
+  | { kind: "diary_completed"; region: string; tier: string; provenance: "runelite" }
+  | { kind: "collection_log_item_obtained"; item: string; itemId?: number; provenance: "runelite" }
+  | { kind: "slayer_task_finished"; taskId?: number; taskName?: string; startingRemaining?: number; provenance: "runelite" }
+  | { kind: "bank_quantity_at_least"; item: string; itemId?: number; target: number; provenance: "bank" }
   | { kind: "bank_changed"; provenance: "bank" }
   | { kind: "manual_confirmation"; label: string; provenance: "preference" };
 
@@ -161,6 +164,31 @@ function completionEvidence(
   stopPoint: string,
   input: Pick<BuildRecommendationDecisionInput, "hasRuneLite" | "hasPublicStats" | "hasBank">
 ): RecommendationDecision["completion"] {
+  const target = rec.completionTarget;
+  if (target?.kind === "boss_kc_at_least" && (input.hasRuneLite || input.hasPublicStats)) {
+    return { mode: "automatic", evidence: { ...target, provenance: input.hasRuneLite ? "runelite" : "public_stats" } };
+  }
+  if (target?.kind === "skill_level_at_least" && input.hasRuneLite) {
+    return { mode: "automatic", evidence: { ...target, provenance: "runelite" } };
+  }
+  if (target?.kind === "quest_completed" && input.hasRuneLite) {
+    return { mode: "automatic", evidence: { ...target, provenance: "runelite" } };
+  }
+  if (target?.kind === "diary_completed" && input.hasRuneLite) {
+    return { mode: "automatic", evidence: { ...target, provenance: "runelite" } };
+  }
+  if (target?.kind === "collection_log_item_obtained" && input.hasRuneLite) {
+    return { mode: "automatic", evidence: { ...target, provenance: "runelite" } };
+  }
+  if (target?.kind === "slayer_task_finished" && input.hasRuneLite) {
+    return { mode: "automatic", evidence: { ...target, provenance: "runelite" } };
+  }
+  if (target?.kind === "bank_quantity_at_least" && input.hasBank) {
+    return { mode: "automatic", evidence: { ...target, provenance: "bank" } };
+  }
+  if (target?.kind === "bank_changed" && input.hasBank) {
+    return { mode: "automatic", evidence: { kind: "bank_changed", provenance: "bank" } };
+  }
   const kcTarget = rec.title.match(/(?:to|at least)\s+(\d[\d,]*)\s*KC\b/i)?.[1];
   if (rec.kind === "kc" && rec.bossSlug && kcTarget && (input.hasRuneLite || input.hasPublicStats)) {
     return {
@@ -177,7 +205,8 @@ function completionEvidence(
     return { mode: "automatic", evidence: { kind: "quest_completed", quest: rec.title, provenance: "runelite" } };
   }
   if (rec.kind === "diary" && input.hasRuneLite) {
-    return { mode: "automatic", evidence: { kind: "diary_completed", diary: rec.title, provenance: "runelite" } };
+    const [, region = rec.title, tier = ""] = rec.id.split(":");
+    return { mode: "automatic", evidence: { kind: "diary_completed", region, tier, provenance: "runelite" } };
   }
   if (rec.kind === "slayer" && input.hasRuneLite) {
     return { mode: "automatic", evidence: { kind: "slayer_task_finished", provenance: "runelite" } };
@@ -368,9 +397,30 @@ function validCompletion(value: RecommendationDecision["completion"] | undefined
     return boundedText(evidence.boss, 100) && Number.isInteger(evidence.target) && evidence.target > 0
       && ["public_stats", "runelite"].includes(evidence.provenance);
   }
+  if (evidence.kind === "skill_level_at_least") {
+    return boundedText(evidence.skill, 32) && Number.isInteger(evidence.target) && evidence.target > 1
+      && evidence.target <= 126 && evidence.provenance === "runelite";
+  }
   if (evidence.kind === "quest_completed") return boundedText(evidence.quest, 300) && evidence.provenance === "runelite";
-  if (evidence.kind === "diary_completed") return boundedText(evidence.diary, 300) && evidence.provenance === "runelite";
-  if (evidence.kind === "slayer_task_finished") return evidence.provenance === "runelite";
+  if (evidence.kind === "diary_completed") {
+    return boundedText(evidence.region, 64) && boundedText(evidence.tier, 16) && evidence.provenance === "runelite";
+  }
+  if (evidence.kind === "collection_log_item_obtained") {
+    return boundedText(evidence.item, 120)
+      && (evidence.itemId === undefined || (Number.isInteger(evidence.itemId) && evidence.itemId > 0))
+      && evidence.provenance === "runelite";
+  }
+  if (evidence.kind === "slayer_task_finished") {
+    return (evidence.taskId === undefined || (Number.isInteger(evidence.taskId) && evidence.taskId >= 0))
+      && (evidence.startingRemaining === undefined || (Number.isInteger(evidence.startingRemaining) && evidence.startingRemaining >= 0))
+      && (evidence.taskName === undefined || boundedText(evidence.taskName, 120))
+      && evidence.provenance === "runelite";
+  }
+  if (evidence.kind === "bank_quantity_at_least") {
+    return boundedText(evidence.item, 120)
+      && (evidence.itemId === undefined || (Number.isInteger(evidence.itemId) && evidence.itemId > 0))
+      && Number.isInteger(evidence.target) && evidence.target > 0 && evidence.provenance === "bank";
+  }
   if (evidence.kind === "bank_changed") return evidence.provenance === "bank";
   return evidence.kind === "manual_confirmation" && boundedText(evidence.label, TEXT_LIMIT) && evidence.provenance === "preference";
 }

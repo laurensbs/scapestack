@@ -48,6 +48,9 @@ describe("account timeline repository", () => {
     expect(database.calls[0].params[0]).toBe("11111111-2222-4333-8444-555555555555");
     expect(database.calls[0].query).toContain("WHERE account_id = $1::uuid");
     expect(database.calls[0].query).not.toContain("WHERE identity.rsn");
+    expect(database.calls[0].query).toContain("FROM outcome_match outcome");
+    expect(database.calls[0].query).toContain("outcome.status IN ('completed', 'progressed', 'contradicted')");
+    expect(database.calls[0].query).toContain("matched.snapshot_id = sync_snapshot.snapshot_id");
   });
 
   it("rejects malformed cursors instead of silently changing pages", () => {

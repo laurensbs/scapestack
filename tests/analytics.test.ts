@@ -99,7 +99,7 @@ describe("privacy-safe analytics contract", () => {
     track("runelite:sync_success", { result: "found", fresh: true, bankReady: true, source: "saved" });
     track("recommendation:another", { ...recommendation, nextRouteFamily: "unlock" });
     track("recommendation:skipped", { ...recommendation, reason: "another_plan" });
-    track("trip:completed_sync", { ...recommendation, evidence: "runelite_progress" });
+    track("outcome:viewed", { status: "completed", evidenceType: "boss_kc_at_least" });
     track("boss:opened", { bossSlug: "vorkath", source: "next", hasBank: true });
     track("boss:loadout_used", { bossSlug: "vorkath", source: "next", hasBank: true, action: "copy_runelite_tab" });
 

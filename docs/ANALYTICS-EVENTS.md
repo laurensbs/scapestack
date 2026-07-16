@@ -25,7 +25,7 @@ an analytics vendor.
 | Choose | `recommendation:accepted` | The player accepted the recommendation. |
 | Start | `trip:started` | The player explicitly started it. |
 | Finish | `trip:completed_manual` | The player marked it done. |
-| Confirm | `trip:completed_sync` | Later RuneLite evidence confirmed progress. |
+| Confirm | `outcome:viewed` | The player saw a reconciled completed, progressed or contradicted plan outcome. |
 | Reject | `recommendation:skipped` | The player rejected it with a structured reason. |
 | Explore | `recommendation:another` | The player requested a different route. |
 
@@ -34,6 +34,7 @@ an analytics vendor.
 - `bank:attached`, `bank:refreshed`
 - `runelite:sync_success`, `runelite:sync_failure`
 - `return:visit`, `timeline:viewed`
+- `outcome:viewed` with status and evidence type, never raw account values
 - `boss:opened`, `boss:loadout_used`
 
 Recommendation lifecycle events include the stable recommendation ID, content
@@ -41,4 +42,5 @@ kind, route family, mood, account stage, available context, session length and
 render timing. `context` is one of `public_stats`, `bank`, `runelite`,
 `bank_runelite` or `sample`.
 
-Legacy Plausible event names remain in the contract during dashboard migration.
+`trip:completed_sync` remains in the contract for old clients, but new RuneLite
+completion is reconciled server-side and observed through `outcome:viewed`.

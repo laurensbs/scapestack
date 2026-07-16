@@ -3,14 +3,19 @@ import { buildRecommendationDecision } from "@/lib/recommendation-decision";
 import type { Recommendation } from "@/lib/next-up";
 
 const database = vi.hoisted(() => ({
-  query: vi.fn(async () => [{ decision_id: 44, created: false }])
+  query: vi.fn(async (query: string) => query.includes("trip_lifecycle_event")
+    ? [{ event_id: 45, created: true }]
+    : [{ decision_id: 44, created: false }])
 }));
 
 vi.mock("@/lib/db", () => ({
   sql: () => ({ query: database.query })
 }));
 
-import { recordRecommendationDecisionForAccount } from "@/lib/account-history-repo";
+import {
+  recordRecommendationDecisionForAccount,
+  recordRecommendationLifecycleForAccount
+} from "@/lib/account-history-repo";
 
 describe("RecommendationDecision repository", () => {
   it("persists the typed contract, links the latest snapshot and deduplicates render retries", async () => {
@@ -25,6 +30,21 @@ describe("RecommendationDecision repository", () => {
     expect(params[0]).toBe("account-1");
     expect(params[1]).toMatch(/^decision:v1:/);
     expect(JSON.parse(String(params[4]))).toMatchObject({ version: 1, recommendationId: "skill:cooking:90" });
+  });
+
+  it("deduplicates only repeated adjacent actions and preserves real lifecycle transitions", async () => {
+    const exactDecision = decision();
+    const result = await recordRecommendationLifecycleForAccount({
+      accountId: "account-1",
+      decisionId: 44,
+      decision: exactDecision,
+      eventType: "started"
+    });
+    expect(result).toEqual({ eventId: 45, created: true });
+    const [query] = database.query.mock.calls.at(-1) as unknown as [string, unknown[]];
+    expect(query).toContain("ORDER BY occurred_at DESC, event_id DESC");
+    expect(query).toContain("event_type = $4 AND occurred_at > NOW() - INTERVAL '5 seconds'");
+    expect(query).not.toContain("ON CONFLICT (account_id, decision_id, event_type)");
   });
 });
 

@@ -71,6 +71,10 @@ export interface AnalyticsEventMap {
     hasRuneliteProgress: boolean;
     momentCount: number;
   };
+  "outcome:viewed": {
+    status: "completed" | "progressed" | "contradicted";
+    evidenceType: string;
+  };
   "boss:opened": {
     bossSlug: string;
     source: "next" | "check_kill";
@@ -127,6 +131,7 @@ const EVENT_KEYS = {
   "bank:refreshed": ["source", "linkedToAccount"],
   "return:visit": ["hasBank", "hasRunelite", "hasTripHistory"],
   "timeline:viewed": ["hasProgress", "hasBankUpdate", "hasRuneliteProgress", "momentCount"],
+  "outcome:viewed": ["status", "evidenceType"],
   "boss:opened": ["bossSlug", "source", "hasBank"],
   "boss:loadout_used": ["bossSlug", "source", "hasBank", "action"],
   "next:submit": ["hasRsn", "hasBank"],
@@ -153,6 +158,7 @@ const REQUIRED_KEYS: { [E in AnalyticsEvent]: readonly (keyof AnalyticsEventMap[
   "bank:refreshed": EVENT_KEYS["bank:refreshed"],
   "return:visit": EVENT_KEYS["return:visit"],
   "timeline:viewed": EVENT_KEYS["timeline:viewed"],
+  "outcome:viewed": EVENT_KEYS["outcome:viewed"],
   "boss:opened": EVENT_KEYS["boss:opened"],
   "boss:loadout_used": EVENT_KEYS["boss:loadout_used"],
   "next:submit": [],
@@ -177,6 +183,7 @@ const ENUM_VALUES: Partial<Record<AnalyticsEvent, Record<string, readonly Primit
   },
   "bank:attached": { source: ["home", "next", "header", "run-bar", "dps", "goals", "slayer", "bank", "unknown"] },
   "bank:refreshed": { source: ["home", "next", "header", "run-bar", "dps", "goals", "slayer", "bank", "unknown"] },
+  "outcome:viewed": { status: ["completed", "progressed", "contradicted"] },
   "boss:opened": { source: ["next", "check_kill"] },
   "boss:loadout_used": { source: ["next", "check_kill"], action: ["copy_runelite_tab"] }
 };

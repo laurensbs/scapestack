@@ -56,12 +56,13 @@ import {
   recentRejectedRecommendationMemories,
   recommendationMemoryCounts,
   recordRecommendationMemory,
+  RECOMMENDATION_FEEDBACK_CHANGE_EVENT,
   restoreRecommendation,
   suppressRecommendation,
   type RecommendationMemoryEntry,
   type RecommendationFeedback
 } from "@/lib/recommendation-feedback";
-import { loadTripTimeline, recordTripEvent, type TripTimelineAction } from "@/lib/trip-timeline";
+import { recordTripEvent, type TripTimelineAction } from "@/lib/trip-timeline";
 import { formatShareableTripCard, shareableTripFromRecommendation } from "@/lib/shareable-trip";
 import { wikiSearchUrl } from "@/lib/wiki";
 import { pluginSyncHealth } from "@/lib/plugin-sync";
@@ -69,7 +70,6 @@ import { pluginBankStatusLabel, pluginBankStatusTone, type PluginBankStatus } fr
 import { isPluginSyncSource, pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
 import { summarizeNextPluginSync, type NextPluginSyncSummary } from "@/lib/next-plugin-sync-summary";
 import { runeliteProgressFromSyncSummary } from "@/lib/runelite-progress-memory";
-import { syncCompletesStartedRecommendation } from "@/lib/sync-trip-completion";
 import { toolHandoffUrl } from "@/lib/bank-tool-routes";
 import { bankOrganizerHref } from "@/lib/bank-handoff-url";
 import { shouldReadNextBankHandoff, shouldReadNextHeroBank } from "@/lib/next-route-context";
@@ -605,44 +605,6 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
             headlineTitle: nextResult.headline?.title ?? nextResult.nextBestActions[0]?.title ?? null
           }
         ));
-        const started = latestStartedRecommendationMemory(loadRecommendationFeedback(), { rsn });
-        const alreadyCompleted = started
-          ? loadTripTimeline().some((event) => event.id === started.id && event.action === "done" && event.savedAt >= started.savedAt)
-          : false;
-        if (started && !alreadyCompleted && syncCompletesStartedRecommendation(started, scapestackSync.lastSyncSummary, scapestackSync.syncedAt)) {
-          const completionMood = loadMood(rsn);
-          const completionProps = {
-            recommendationId: started.id,
-            recommendationKind: started.kind,
-            routeFamily: started.routeLens ?? "smart",
-            mood: started.mood ?? completionMood?.mood ?? "focused",
-            accountStage: nextResult.summary.accountStage.id,
-            context: (bankItemsForContext.length > 0 ? "bank_runelite" : "runelite") as AnalyticsContext,
-            sessionMinutes: completionMood?.minutes ?? 60,
-            elapsedMs: Math.max(0, new Date(scapestackSync.syncedAt).getTime() - started.savedAt),
-            evidence: "runelite_progress" as const
-          };
-          track("trip:completed_sync", completionProps, {
-            dedupeKey: `sync-complete:${started.id}:${scapestackSync.syncedAt}`
-          });
-          recordTripEvent({
-            id: started.id,
-            kind: started.kind,
-            title: started.title ?? "Started trip",
-            action: "done",
-            mood: started.mood,
-            routeLens: started.routeLens,
-            rsn
-          });
-          markAccountTrip(rsn, {
-            id: started.id,
-            kind: started.kind,
-            title: started.title ?? "Started trip",
-            action: "done",
-            mood: started.mood,
-            routeLens: started.routeLens
-          });
-        }
       }
 
       // Wacht uit tot we de minimum loader-tijd hebben gehaald voordat
@@ -4937,6 +4899,11 @@ function WhatToDo({
     }
     setFeedback(loadRecommendationFeedback());
   }, [routeIntent, initialRouteChoice]);
+  useEffect(() => {
+    const refreshFeedback = () => setFeedback(loadRecommendationFeedback());
+    window.addEventListener(RECOMMENDATION_FEEDBACK_CHANGE_EVENT, refreshFeedback);
+    return () => window.removeEventListener(RECOMMENDATION_FEEDBACK_CHANGE_EVENT, refreshFeedback);
+  }, []);
 
   const hiddenCount = allRecs.filter((rec) => feedback.suppressed[rec.id]).length;
   const visibleRecs = allRecs.filter((rec) => !feedback.suppressed[rec.id]);
@@ -5113,6 +5080,34 @@ function WhatToDo({
     };
   }, [activeDecision, pluginSyncState]);
 
+  const persistDecisionLifecycle = (
+    rec: Recommendation,
+    eventType: "started" | "done" | "skipped"
+  ) => {
+    if (pluginSyncState === null) return;
+    const decision = activeDecision?.recommendationId === rec.id
+      ? activeDecision
+      : buildRecommendationDecision({
+          winner: rec,
+          alternatives: activePick?.alternatives ?? [],
+          mood,
+          routeFamily: routeLens,
+          minutes,
+          accountStage: accountStage.id,
+          accountType,
+          hasPublicStats: syncResult.summary.basis === "full" || syncResult.summary.basis === "hiscores-only",
+          hasBank: hasBankContext,
+          hasRuneLite: true
+        });
+    void fetch("/api/account/decision", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ decision, eventType }),
+      credentials: "same-origin",
+      keepalive: true
+    }).catch(() => undefined);
+  };
+
   useEffect(() => {
     if (!activePick) return;
     const props = recommendationAnalytics(activePick.headline);
@@ -5165,6 +5160,7 @@ function WhatToDo({
       rsn: activeRsn
     }));
     rememberTrip(rec, "started");
+    persistDecisionLifecycle(rec, "started");
     setLastStarted({ id: rec.id, title: rec.title });
     setLastCompleted(null);
     setLastSuppressed(null);
@@ -5176,6 +5172,7 @@ function WhatToDo({
     });
     setFeedback(suppressRecommendation({ id: rec.id, kind: rec.kind, title: rec.title, reason: "not_today" }));
     rememberTrip(rec, "skipped");
+    persistDecisionLifecycle(rec, "skipped");
     setLastSuppressed({ id: rec.id, kind: rec.kind, title: rec.title });
     setLastStarted(null);
     setLastCompleted(null);
@@ -5184,6 +5181,7 @@ function WhatToDo({
     track("trip:completed_manual", recommendationAnalytics(rec));
     setFeedback(suppressRecommendation({ id: rec.id, kind: rec.kind, title: rec.title, reason: "already_done" }));
     rememberTrip(rec, "done");
+    persistDecisionLifecycle(rec, "done");
     setLastCompleted({ id: rec.id, title: rec.title });
     setLastStarted(null);
     setLastSuppressed(null);

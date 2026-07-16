@@ -102,6 +102,34 @@ describe("player-facing account timeline", () => {
     expect(technicalDecision?.detail).toBeUndefined();
     expect(JSON.stringify([oldTrip, technicalDecision])).not.toMatch(/boss:vorkath|payload|signal|data source|reconciliation/i);
   });
+
+  it("shows only meaningful plan outcomes with correction metadata", () => {
+    const completed = accountTimelineMoment(record({
+      sourceKind: "outcome",
+      sourceKey: "outcome:9",
+      data: { outcome: {
+        status: "completed",
+        title: "Finished Push Vorkath to 50 KC",
+        detail: "50/50 KC. Target reached.",
+        recommendationId: "boss:vorkath:50",
+        recommendationKind: "kc",
+        evidenceType: "boss_kc_at_least"
+      } }
+    }));
+    const unchanged = accountTimelineMoment(record({
+      sourceKind: "outcome",
+      sourceKey: "outcome:10",
+      data: { outcome: { status: "unchanged", title: "Still working on Vorkath" } }
+    }));
+
+    expect(completed).toMatchObject({
+      kind: "outcome",
+      outcomeStatus: "completed",
+      recommendationId: "boss:vorkath:50",
+      evidenceType: "boss_kc_at_least"
+    });
+    expect(unchanged).toBeNull();
+  });
 });
 
 function changedDelta(overrides: Record<string, unknown>) {

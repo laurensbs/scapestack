@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { getConnectedAccount } from "@/lib/account-pairing";
-import { recordRecommendationDecisionForAccount } from "@/lib/account-history-repo";
+import {
+  recordRecommendationDecisionForAccount,
+  recordRecommendationLifecycleForAccount
+} from "@/lib/account-history-repo";
 import { readAccountSessionToken } from "@/lib/account-session-cookie";
 import { parseRecommendationDecision } from "@/lib/recommendation-decision";
 
@@ -24,14 +27,34 @@ export async function POST(request: Request): Promise<Response> {
   } catch {
     return json({ ok: false, error: "Could not read that plan" }, 400);
   }
-  const body = input && typeof input === "object" ? input as { decision?: unknown } : {};
+  const body = input && typeof input === "object"
+    ? input as { decision?: unknown; eventType?: unknown }
+    : {};
   const decision = parseRecommendationDecision(body.decision);
   if (!decision) return json({ ok: false, error: "That plan is incomplete" }, 400);
+  const eventType = body.eventType;
+  if (eventType !== undefined && !["started", "done", "skipped"].includes(String(eventType))) {
+    return json({ ok: false, error: "That plan action is not supported" }, 400);
+  }
 
   try {
     const stored = await recordRecommendationDecisionForAccount(account.accountId, decision);
     if (!stored) return json({ ok: false, error: "Could not save that plan" }, 500);
-    return json({ ok: true, created: stored.created, decisionId: stored.decisionId });
+    const lifecycle = eventType
+      ? await recordRecommendationLifecycleForAccount({
+          accountId: account.accountId,
+          decisionId: stored.decisionId,
+          decision,
+          eventType: eventType as "started" | "done" | "skipped"
+        })
+      : null;
+    if (eventType && !lifecycle) return json({ ok: false, error: "Could not save that plan action" }, 500);
+    return json({
+      ok: true,
+      created: stored.created,
+      decisionId: stored.decisionId,
+      ...(lifecycle ? { eventId: lifecycle.eventId, eventCreated: lifecycle.created } : {})
+    });
   } catch (error) {
     console.error("Recommendation decision save failed", {
       name: error instanceof Error ? error.name : "UnknownError",

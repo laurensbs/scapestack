@@ -15,8 +15,7 @@ describe("decision funnel instrumentation", () => {
       "recommendation:another",
       "recommendation:skipped",
       "trip:started",
-      "trip:completed_manual",
-      "trip:completed_sync"
+      "trip:completed_manual"
     ]) {
       expect(source, `${event} should be wired in /next`).toContain(`track(\"${event}\"`);
     }
@@ -30,6 +29,7 @@ describe("decision funnel instrumentation", () => {
     const timeline = read("src/components/account-timeline.tsx");
     expect(timeline).toContain("return:visit");
     expect(timeline).toContain("timeline:viewed");
+    expect(timeline).toContain("outcome:viewed");
     const boss = read("src/components/boss-detail-modal.tsx");
     expect(boss).toContain("boss:opened");
     expect(boss).toContain("boss:loadout_used");
@@ -48,6 +48,7 @@ describe("decision funnel instrumentation", () => {
       "trip:started",
       "trip:completed_manual",
       "trip:completed_sync",
+      "outcome:viewed",
       "runelite:sync_success",
       "runelite:sync_failure",
       "bank:attached",

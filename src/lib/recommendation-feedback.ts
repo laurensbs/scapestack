@@ -4,6 +4,7 @@
 const KEY = "scapestack:recommendation-feedback:v1";
 const MAX_RECENT_MEMORY = 40;
 const RECENT_MEMORY_WINDOW_MS = 6 * 60 * 60 * 1000;
+export const RECOMMENDATION_FEEDBACK_CHANGE_EVENT = "scapestack:recommendation-feedback-change";
 
 export type RecommendationFeedbackReason =
   | "not_today"
@@ -192,7 +193,10 @@ export function recommendationMemoryCounts(
 
 function saveRecommendationFeedback(feedback: RecommendationFeedback): void {
   if (typeof window === "undefined") return;
-  try { localStorage.setItem(KEY, JSON.stringify(feedback)); } catch {}
+  try {
+    localStorage.setItem(KEY, JSON.stringify(feedback));
+    window.dispatchEvent(new CustomEvent(RECOMMENDATION_FEEDBACK_CHANGE_EVENT));
+  } catch {}
 }
 
 function isValidFeedback(value: unknown): value is Partial<RecommendationFeedback> {

@@ -11,7 +11,8 @@ export type AccountTimelineMomentKind =
   | "slayer"
   | "bank"
   | "trip"
-  | "plan";
+  | "plan"
+  | "outcome";
 
 export interface AccountTimelineMoment {
   id: string;
@@ -20,6 +21,10 @@ export interface AccountTimelineMoment {
   title: string;
   detail?: string;
   count?: number;
+  recommendationId?: string;
+  recommendationKind?: string;
+  outcomeStatus?: "completed" | "progressed" | "contradicted";
+  evidenceType?: string;
 }
 
 export interface AccountTimelinePage {
@@ -28,7 +33,7 @@ export interface AccountTimelinePage {
 }
 
 export interface AccountTimelineRecord {
-  sourceKind: "snapshot" | "trip" | "decision";
+  sourceKind: "snapshot" | "trip" | "decision" | "outcome";
   sourceKey: string;
   occurredAt: string;
   data: Record<string, unknown>;
@@ -162,9 +167,33 @@ function decisionMoment(record: AccountTimelineRecord): AccountTimelineMoment | 
   };
 }
 
+function outcomeMoment(record: AccountTimelineRecord): AccountTimelineMoment | null {
+  const value = object(record.data.outcome);
+  if (!value) return null;
+  const status = text(value.status);
+  if (status !== "completed" && status !== "progressed" && status !== "contradicted") return null;
+  const title = playerDetail(value.title);
+  const recommendationId = text(value.recommendationId);
+  const recommendationKind = text(value.recommendationKind);
+  const evidenceType = text(value.evidenceType);
+  if (!title || !recommendationId || !recommendationKind || !evidenceType) return null;
+  return {
+    id: momentId(record.sourceKey),
+    kind: "outcome",
+    occurredAt: record.occurredAt,
+    title,
+    detail: playerDetail(value.detail) ?? undefined,
+    recommendationId,
+    recommendationKind,
+    outcomeStatus: status,
+    evidenceType
+  };
+}
+
 export function accountTimelineMoment(record: AccountTimelineRecord): AccountTimelineMoment | null {
   if (record.sourceKind === "snapshot") return snapshotMoment(record);
   if (record.sourceKind === "trip") return tripMoment(record);
+  if (record.sourceKind === "outcome") return outcomeMoment(record);
   return decisionMoment(record);
 }
 

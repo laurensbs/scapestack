@@ -18,6 +18,10 @@ import {
   type TripTimelineEvent
 } from "@/lib/trip-timeline";
 import { track } from "@/lib/analytics";
+import {
+  isRecommendationSuppressed,
+  suppressRecommendation
+} from "@/lib/recommendation-feedback";
 import { cn } from "@/lib/utils";
 
 interface TimelineResponse {
@@ -60,6 +64,7 @@ function momentIcon(kind: AccountTimelineMomentKind) {
   if (kind === "boss" || kind === "slayer") return Sword;
   if (kind === "bank") return Coins;
   if (kind === "trip") return CheckCircle2;
+  if (kind === "outcome") return CheckCircle2;
   if (kind === "level" || kind === "collection-log") return Trophy;
   if (kind === "plan") return Shield;
   return Sparkles;
@@ -137,6 +142,22 @@ export function AccountTimeline({ expectedRsn, className, limit = 6 }: AccountTi
       hasRuneliteProgress: hasRunelite,
       momentCount: Math.min(50, moments.length)
     }, { dedupeKey: "account-timeline-viewed" });
+    for (const moment of moments) {
+      if (moment.kind !== "outcome" || !moment.outcomeStatus || !moment.evidenceType) continue;
+      track("outcome:viewed", {
+        status: moment.outcomeStatus,
+        evidenceType: moment.evidenceType
+      }, { dedupeKey: `outcome-viewed:${moment.id}` });
+      if (moment.outcomeStatus === "completed" && moment.recommendationId
+          && moment.recommendationKind && !isRecommendationSuppressed(moment.recommendationId)) {
+        suppressRecommendation({
+          id: moment.recommendationId,
+          kind: moment.recommendationKind,
+          title: moment.title.replace(/^Finished\s+/i, ""),
+          reason: "already_done"
+        });
+      }
+    }
   }, [moments]);
 
   const visible = useMemo(() => moments.slice(0, 18), [moments]);

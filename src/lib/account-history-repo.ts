@@ -344,6 +344,57 @@ export async function recordRecommendationDecisionForAccount(
 
 export type TripLifecycleEventType = "planned" | "started" | "done" | "skipped" | "shared";
 
+export interface RecordedTripLifecycleEvent {
+  eventId: number;
+  created: boolean;
+}
+
+/** Links a player action to the exact persisted decision shown in the UI. */
+export async function recordRecommendationLifecycleForAccount(input: {
+  accountId: string;
+  decisionId: number;
+  decision: RecommendationDecision;
+  eventType: Extract<TripLifecycleEventType, "started" | "done" | "skipped">;
+}): Promise<RecordedTripLifecycleEvent | null> {
+  const rows = await client().query<{ event_id: number | string; created: boolean }>(`
+    WITH latest AS (
+      SELECT event_id, event_type, occurred_at
+      FROM trip_lifecycle_event
+      WHERE account_id = $1::uuid AND decision_id = $2
+      ORDER BY occurred_at DESC, event_id DESC
+      LIMIT 1
+    ), inserted AS (
+      INSERT INTO trip_lifecycle_event (
+        account_id, decision_id, recommendation_id, event_type,
+        route_family, mood, stop_point, title
+      )
+      SELECT $1::uuid, $2, $3, $4, $5, $6, $7, $8
+      WHERE NOT EXISTS (
+        SELECT 1 FROM latest
+        WHERE event_type = $4 AND occurred_at > NOW() - INTERVAL '5 seconds'
+      )
+      RETURNING event_id
+    )
+    SELECT event_id, TRUE AS created FROM inserted
+    UNION ALL
+    SELECT event_id, FALSE AS created FROM latest
+    WHERE event_type = $4 AND NOT EXISTS (SELECT 1 FROM inserted)
+    LIMIT 1
+  `, [
+    input.accountId,
+    input.decisionId,
+    input.decision.recommendationId,
+    input.eventType,
+    input.decision.routeFamily,
+    input.decision.constraints.mood,
+    input.decision.stopPoint.label,
+    input.decision.activity.title
+  ]);
+  return rows[0]
+    ? { eventId: Number(rows[0].event_id), created: rows[0].created }
+    : null;
+}
+
 export async function recordTripLifecycleEvent(input: {
   rsn: string;
   recommendationId: string;
@@ -394,18 +445,23 @@ export async function recordOutcomeMatch(input: {
   recommendationId: string;
   evidenceType: string;
   evidence: Record<string, string | number | boolean | null>;
+  decisionId?: number;
+  status?: string;
+  outcomeKey?: string;
 }): Promise<number | null> {
   const normalizedRsn = normalizeRsn(input.rsn);
   if (!normalizedRsn) return null;
   const rows = await client().query<{ outcome_id: number | string }>(`
     INSERT INTO outcome_match (
-      account_id, snapshot_id, recommendation_id, evidence_type, evidence
+      account_id, snapshot_id, decision_id, recommendation_id,
+      evidence_type, status, outcome_key, evidence
     )
-    SELECT account_id, $2, $3, $4, $5::jsonb
+    SELECT account_id, $2, $6, $3, $4, $7, $8, $5::jsonb
     FROM account_identity WHERE rsn = $1
-    ON CONFLICT (snapshot_id, recommendation_id, evidence_type) DO NOTHING
+    ON CONFLICT DO NOTHING
     RETURNING outcome_id
   `, [normalizedRsn, input.snapshotId, input.recommendationId,
-    input.evidenceType, JSON.stringify(input.evidence)]);
+    input.evidenceType, JSON.stringify(input.evidence), input.decisionId ?? null,
+    input.status ?? null, input.outcomeKey ?? null]);
   return rows[0] ? Number(rows[0].outcome_id) : null;
 }
