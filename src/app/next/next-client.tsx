@@ -36,6 +36,8 @@ import {
 import { defaultActionHints } from "@/lib/rec-hints";
 import {
   pickForRoute,
+  recommendationDiversityFamily,
+  recommendationDiversityFamilyForKind,
   recommendationMoodEligibility,
   MOOD_LABEL,
   ROUTE_LENS_LABEL,
@@ -51,6 +53,7 @@ import {
   latestStartedRecommendationMemory,
   latestRecommendationMemory,
   loadRecommendationFeedback,
+  recentRejectedRecommendationMemories,
   recommendationMemoryCounts,
   recordRecommendationMemory,
   restoreRecommendation,
@@ -4700,57 +4703,6 @@ function memoryKind(memory: RecommendationMemoryEntry | null): RecKind | null {
   return memory ? (memory.kind as RecKind) : null;
 }
 
-function routeSwitchCopy(nextLens: RouteLens, skipped: Recommendation): string {
-  const label = ROUTE_LENS_LABEL[nextLens];
-  switch (nextLens) {
-    case "maxing":
-      return `${label.name}: cape, diary and total-level progress instead of ${skipped.title}.`;
-    case "fun":
-      return `${label.name}: rewards, KC or minigames instead of another chore.`;
-    case "unlock-chain":
-      return `${label.name}: a cleaner account unlock instead of ${skipped.title}.`;
-    case "gp-upgrade":
-      return `${label.name}: funding the next upgrade instead of ${skipped.title}.`;
-    case "boss-log":
-      return `${label.name}: a trip, KC block or clog angle instead of ${skipped.title}.`;
-    case "afk-progress":
-      return `${label.name}: lower-pressure progress instead of ${skipped.title}.`;
-    case "short-login":
-      return `${label.name}: a clean stop point instead of ${skipped.title}.`;
-    case "smart":
-      return `Fresh pick: ${skipped.title} is lowered for this session.`;
-  }
-}
-
-function randomRouteLens(currentLens: RouteLens, previousLens: RouteLens | null = null, mood: Mood = "unlock"): RouteLens {
-  const allowed = randomRouteLensCandidatesForMood(mood);
-  const candidates = allowed.filter((lens) => lens !== currentLens && lens !== previousLens);
-  if (candidates.length === 0) {
-    const fallback = allowed.filter((lens) => lens !== currentLens);
-    return fallback[Math.floor(Math.random() * fallback.length)] ?? "smart";
-  }
-  return candidates[Math.floor(Math.random() * candidates.length)] ?? "smart";
-}
-
-function randomRouteLensCandidatesForMood(mood: Mood): RouteLens[] {
-  switch (mood) {
-    case "chill":
-      return ["smart", "afk-progress", "short-login", "maxing"];
-    case "afk":
-      return ["afk-progress", "smart", "short-login", "maxing"];
-    case "short":
-      return ["short-login", "smart", "afk-progress"];
-    case "cash":
-      return ["gp-upgrade", "smart", "short-login"];
-    case "bossing":
-    case "focused":
-      return ["boss-log", "fun", "gp-upgrade", "smart"];
-    case "unlock":
-    case "quest":
-      return ["unlock-chain", "maxing", "smart", "short-login"];
-  }
-}
-
 function defaultTimeForMood(mood: Mood): TimeBudget | null {
   if (mood === "short") return 15;
   if (mood === "chill") return 30;
@@ -4956,12 +4908,10 @@ function WhatToDo({
     routeIntent ? visibleMood(routeIntent.mood) : initialRouteChoice?.mood ?? DEFAULT_MOOD
   );
   const [minutes, setMinutes] = useState<TimeBudget>(routeIntent?.minutes ?? initialRouteChoice?.minutes ?? DEFAULT_TIME);
-  const [routeLens, setRouteLens] = useState<RouteLens>(initialRouteChoice?.routeLens ?? "smart");
+  const [routeLens] = useState<RouteLens>(initialRouteChoice?.routeLens ?? "smart");
   const [shuffleIdx, setShuffleIdx] = useState(0);
-  const [lastRandomLens, setLastRandomLens] = useState<RouteLens | null>(null);
   const [isRandomizing, setIsRandomizing] = useState(false);
   const [sessionSkipped, setSessionSkipped] = useState<Record<string, SessionSkippedPick>>({});
-  const [routeSwitchNote, setRouteSwitchNote] = useState<string | null>(null);
   const [lastStarted, setLastStarted] = useState<{ id: string; title: string } | null>(null);
   const [lastSuppressed, setLastSuppressed] = useState<{ id: string; kind: RecKind; title: string } | null>(null);
   const [lastCompleted, setLastCompleted] = useState<{ id: string; title: string } | null>(null);
@@ -4999,17 +4949,32 @@ function WhatToDo({
     () => latestRecommendationMemory(feedback, { rsn: activeRsn }),
     [activeRsn, feedback]
   );
+  const recentRejectedMemory = useMemo(
+    () => recentRejectedRecommendationMemories(feedback, { rsn: activeRsn, mood }).slice(0, 12),
+    [activeRsn, feedback, mood]
+  );
   const latestStartedMemory = useMemo(
     () => latestStartedRecommendationMemory(feedback, { rsn: activeRsn }),
     [activeRsn, feedback]
   );
   const routePickOptions = useMemo(
-    () => ({
-      skippedIds: mergedSkipCounts(sessionSkippedCounts(sessionSkipped), recentMemoryCounts),
-      previousKind: latestSkipped?.kind ?? memoryKind(latestMemory),
-      previousId: latestSkipped?.id ?? latestMemory?.id ?? null
-    }),
-    [latestMemory, latestSkipped?.id, latestSkipped?.kind, recentMemoryCounts, sessionSkipped]
+    () => {
+      const recentFamilies = recentRejectedMemory.map((entry) => {
+        const rec = allRecs.find((candidate) => candidate.id === entry.id);
+        return rec
+          ? recommendationDiversityFamily(rec)
+          : recommendationDiversityFamilyForKind(entry.kind as RecKind);
+      });
+      return {
+        skippedIds: mergedSkipCounts(sessionSkippedCounts(sessionSkipped), recentMemoryCounts),
+        previousKind: latestSkipped?.kind ?? memoryKind(latestMemory),
+        previousId: latestSkipped?.id ?? latestMemory?.id ?? null,
+        excludedIds: [...new Set([...Object.keys(sessionSkipped), ...recentRejectedMemory.map((entry) => entry.id)])],
+        recentFamilies: [...new Set(recentFamilies)],
+        seed: `${activeRsn || bankSource}:${mood}:${minutes}:${shuffleIdx}`
+      };
+    },
+    [activeRsn, allRecs, bankSource, latestMemory, latestSkipped?.id, latestSkipped?.kind, minutes, mood, recentMemoryCounts, recentRejectedMemory, sessionSkipped, shuffleIdx]
   );
   const actionContext = useMemo<RecommendationActionContext>(
     () => ({ from: "next", hasBankContext, rsn: activeRsn, accountType: accountMode.type }),
@@ -5063,7 +5028,7 @@ function WhatToDo({
   }, [mood, minutes, routeLens]);
 
   const pick = useMemo(
-    () => pickForRoute(visibleRecs, mood, minutes, routeLens, shuffleIdx, routePickOptions),
+    () => pickForRoute(visibleRecs, mood, minutes, routeLens, 0, routePickOptions),
     [visibleRecs, mood, minutes, routeLens, shuffleIdx, routePickOptions]
   );
   const moodEligibleRecs = useMemo(
@@ -5072,14 +5037,18 @@ function WhatToDo({
   );
   const activePick = useMemo(() => {
     if (!pick) return null;
-    const startedId = lastStarted?.id ?? latestStartedMemory?.id ?? null;
+    const rememberedStartedId = lastStarted?.id ?? latestStartedMemory?.id ?? null;
+    const startedId = rememberedStartedId
+      && !recentRejectedMemory.some((entry) => entry.id === rememberedStartedId)
+      ? rememberedStartedId
+      : null;
     const startedRec = startedId ? moodEligibleRecs.find((rec) => rec.id === startedId) : null;
     if (!startedRec || startedRec.id === pick.headline.id) return pick;
     const alternatives = [pick.headline, ...pick.alternatives]
       .filter((rec, index, list) => rec.id !== startedRec.id && list.findIndex((candidate) => candidate.id === rec.id) === index)
       .slice(0, 2);
     return { ...pick, headline: startedRec, alternatives };
-  }, [lastStarted?.id, latestStartedMemory?.id, moodEligibleRecs, pick]);
+  }, [lastStarted?.id, latestStartedMemory?.id, moodEligibleRecs, pick, recentRejectedMemory]);
   const activeDecision = useMemo(() => activePick
     ? buildRecommendationDecision({
         winner: activePick.headline,
@@ -5179,18 +5148,6 @@ function WhatToDo({
       source
     });
     setShuffleIdx(0);
-    setRouteSwitchNote(null);
-    setLastSuppressed(null);
-    setLastCompleted(null);
-  };
-  const applyRouteLens = (nextLens: RouteLens, options: { keepRouteSwitchNote?: boolean } = {}) => {
-    const routeDefaultTime = defaultTimeForRouteLens(nextLens);
-    setRouteLens(nextLens);
-    setMood((currentMood) => moodForRouteLens(nextLens, currentMood));
-    if (routeDefaultTime) setMinutes(routeDefaultTime);
-    setShuffleIdx(0);
-    if (!options.keepRouteSwitchNote) setRouteSwitchNote(null);
-    setLastStarted(null);
     setLastSuppressed(null);
     setLastCompleted(null);
   };
@@ -5262,16 +5219,13 @@ function WhatToDo({
   };
   const moveToAnotherPlan = () => {
     setIsRandomizing(true);
-    const randomLens = randomRouteLens(routeLens, lastRandomLens, mood);
-    const randomShuffle = 1 + Math.floor(Math.random() * Math.max(3, visibleRecs.length));
-    setLastRandomLens(randomLens);
     setLastStarted(null);
     setLastCompleted(null);
     setLastSuppressed(null);
     if (activePick?.headline) {
       track("recommendation:another", {
         ...recommendationAnalytics(activePick.headline),
-        nextRouteFamily: randomLens
+        nextRouteFamily: routeLens
       });
       track("recommendation:skipped", {
         ...recommendationAnalytics(activePick.headline),
@@ -5284,23 +5238,12 @@ function WhatToDo({
         title: activePick.headline.title,
         action: "try_another",
         mood,
-        routeLens: randomLens,
+        routeLens,
         rsn: activeRsn
       }));
-      rememberTrip(activePick.headline, "skipped", randomLens);
-      setRouteSwitchNote(routeSwitchCopy(randomLens, activePick.headline));
+      rememberTrip(activePick.headline, "skipped", routeLens);
     }
-    if (randomLens === "smart") {
-      setRouteLens("smart");
-      setShuffleIdx((i) => i + randomShuffle);
-      return;
-    }
-    const routeDefaultTime = defaultTimeForRouteLens(randomLens);
-    setRouteLens(randomLens);
-    if (routeDefaultTime && mood !== "chill" && mood !== "afk" && mood !== "short") setMinutes(routeDefaultTime);
-    setShuffleIdx(randomShuffle);
-    setLastSuppressed(null);
-    setLastCompleted(null);
+    setShuffleIdx((roll) => roll + 1);
   };
   const moveToChillPlan = () => {
     applySessionIntent("chill", 30, "completion");
@@ -5397,7 +5340,7 @@ function WhatToDo({
       <div className="min-w-0 max-w-full space-y-3">
         {activePick ? (
           <>
-            {memoryNote && !routeSwitchNote && !lastStarted && !lastSuppressed && !lastCompleted && (
+            {memoryNote && !lastStarted && !lastSuppressed && !lastCompleted && (
               <ContinueRouteBanner note={memoryNote} lastSession={lastSession} />
             )}
             <NextTripContextLine
@@ -5464,22 +5407,13 @@ function WhatToDo({
                 </div>
               </details>
             )}
-            {lastStarted && !routeSwitchNote && !lastSuppressed && !lastCompleted && (
+            {lastStarted && !lastSuppressed && !lastCompleted && (
               <div
                 role="status"
                 aria-live="polite"
                 className="rounded-xl border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 px-3.5 py-2.5 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]"
               >
                 Started: <span className="font-semibold text-[var(--color-text)]">{lastStarted.title}</span>. Mark it done when the finish condition is true.
-              </div>
-            )}
-            {routeSwitchNote && !lastSuppressed && !lastCompleted && (
-              <div
-                role="status"
-                aria-live="polite"
-                className="rounded-xl border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 px-3.5 py-2.5 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]"
-              >
-                {routeSwitchNote}
               </div>
             )}
             {hiddenCount > 0 && (

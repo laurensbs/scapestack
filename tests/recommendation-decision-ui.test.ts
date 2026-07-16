@@ -8,6 +8,7 @@ describe("/next RecommendationDecision adoption", () => {
     expect(source.indexOf("pickForRoute(visibleRecs")).toBeLessThan(source.indexOf("buildRecommendationDecision({"));
     expect(source).toContain("recommendationMoodEligibility(rec, mood, minutes).eligible");
     expect(source).toContain("moodEligibleRecs.find((rec) => rec.id === startedId)");
+    expect(source).toContain("!recentRejectedMemory.some((entry) => entry.id === rememberedStartedId)");
     expect(source).toContain("...moodEligibleRecs].slice(0, 5)");
     expect(source).toContain("const decisionCopy = recommendationDecisionCopy(decision)");
     expect(source).toContain('{ label: "Why this pick", value: decisionCopy.why }');

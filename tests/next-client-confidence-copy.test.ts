@@ -352,14 +352,15 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("loadMood(activeRsn)");
     expect(source).toContain("}, activeRsn || undefined);");
     expect(source).toContain("mergedSkipCounts(sessionSkippedCounts(sessionSkipped), recentMemoryCounts)");
-    expect(source).toContain("function randomRouteLens(currentLens: RouteLens, previousLens: RouteLens | null = null, mood: Mood = \"unlock\")");
-    expect(source).toContain("function randomRouteLensCandidatesForMood");
-    expect(source).toContain("Math.random()");
-    expect(source).toContain("const randomLens = randomRouteLens(routeLens, lastRandomLens, mood);");
-    expect(source).toContain("const randomShuffle = 1 + Math.floor(Math.random()");
-    expect(source).toContain("setLastRandomLens(randomLens)");
-    expect(source).toContain("routeSwitchCopy(randomLens, activePick.headline)");
-    expect(source).toContain("routeLens: randomLens");
+    expect(source).toContain("recentRejectedRecommendationMemories(feedback, { rsn: activeRsn, mood })");
+    expect(source).toContain("excludedIds: [...new Set(");
+    expect(source).toContain("recommendationDiversityFamily(rec)");
+    expect(source).toContain("seed: `${activeRsn || bankSource}:${mood}:${minutes}:${shuffleIdx}`");
+    expect(source).not.toContain("Math.random()");
+    expect(source).not.toContain("randomRouteLens");
+    expect(source).not.toContain("routeSwitchCopy");
+    expect(source).toContain("setShuffleIdx((roll) => roll + 1)");
+    expect(source).toContain("routeLens,");
     expect(source).toContain("function SessionMoodGrid");
     expect(source).toContain('data-session-mood-grid="true"');
     expect(source).toContain("SESSION_MOOD_GRID_CHOICES");
@@ -369,12 +370,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Same vibe, different route.");
     expect(source).toContain("onSurprise={moveToAnotherPlan}");
     expect(source).toContain("onPick={applySessionIntent}");
-    expect(source).toContain('case "chill":');
-    expect(source).toContain('return ["smart", "afk-progress", "short-login", "maxing"];');
-    expect(source).toContain('case "afk":');
-    expect(source).toContain('return ["afk-progress", "smart", "short-login", "maxing"];');
-    expect(source).not.toContain("setMood((currentMood) => moodForRouteLens(randomLens, currentMood));");
-    expect(source).toContain("pickForRoute(visibleRecs, mood, minutes, routeLens, shuffleIdx, routePickOptions)");
+    expect(source).toContain("pickForRoute(visibleRecs, mood, minutes, routeLens, 0, routePickOptions)");
     expect(source).not.toContain("Change time or pace");
     expect(source).toContain("Not this one?");
     expect(source).toContain("<summary className=\"inline-flex cursor-pointer list-none items-center gap-1.5");
@@ -535,7 +531,8 @@ describe("/next confidence UI copy", () => {
   it("lets players mark recommendations done without calling them irrelevant", () => {
     expect(source).toContain("lastStarted");
     expect(source).toContain("const activePick = useMemo(() =>");
-    expect(source).toContain("const startedId = lastStarted?.id ?? latestStartedMemory?.id ?? null;");
+    expect(source).toContain("const rememberedStartedId = lastStarted?.id ?? latestStartedMemory?.id ?? null;");
+    expect(source).toContain("!recentRejectedMemory.some((entry) => entry.id === rememberedStartedId)");
     expect(source).toContain("return { ...pick, headline: startedRec, alternatives };");
     expect(source).toContain("rec={activePick.headline}");
     expect(source).toContain("latestStartedRecommendationMemory(feedback, { rsn: activeRsn })");

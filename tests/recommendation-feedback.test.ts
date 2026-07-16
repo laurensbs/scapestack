@@ -6,6 +6,7 @@ import {
   latestRecommendationMemory,
   latestStartedRecommendationMemory,
   loadRecommendationFeedback,
+  recentRejectedRecommendationMemories,
   recommendationMemoryCounts,
   recordRecommendationMemory,
   restoreRecommendation,
@@ -92,6 +93,31 @@ describe("recommendation feedback", () => {
     });
     expect(latestRecommendationMemory(loadRecommendationFeedback(), { rsn: "Lauky" })?.title)
       .toBe("Finish Monkey Madness II");
+  });
+
+  it("restores recent rejection memory after a page reload and scopes it by mood", () => {
+    recordRecommendationMemory({
+      id: "skill:redwoods",
+      kind: "skill",
+      title: "Cut redwoods",
+      action: "try_another",
+      mood: "chill",
+      rsn: "Lauky"
+    });
+    recordRecommendationMemory({
+      id: "boss:vardorvis",
+      kind: "boss",
+      title: "Push Vardorvis to 50 KC",
+      action: "try_another",
+      mood: "bossing",
+      rsn: "Lauky"
+    });
+
+    const reloaded = loadRecommendationFeedback();
+
+    expect(recentRejectedRecommendationMemories(reloaded, { rsn: "lauky", mood: "chill" })
+      .map((entry) => entry.id)).toEqual(["skill:redwoods"]);
+    expect(recentRejectedRecommendationMemories(reloaded, { rsn: "other", mood: "chill" })).toEqual([]);
   });
 
   it("remembers started trips without hiding or downranking them", () => {

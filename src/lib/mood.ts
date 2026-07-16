@@ -489,6 +489,26 @@ export interface MoodPick {
   routeHelper: string;
 }
 
+export type RecommendationDiversityFamily =
+  | "bank"
+  | "bossing"
+  | "minigame"
+  | "money"
+  | "skilling"
+  | "slayer"
+  | "unlock";
+
+export function recommendationDiversityFamilyForKind(kind: RecKind): RecommendationDiversityFamily {
+  if (kind === "boss" || kind === "kc") return "bossing";
+  if (kind === "goal" || kind === "quest" || kind === "diary" || kind === "milestone") return "unlock";
+  if (kind === "skill") return "skilling";
+  return kind;
+}
+
+export function recommendationDiversityFamily(rec: Recommendation): RecommendationDiversityFamily {
+  return recommendationDiversityFamilyForKind(rec.kind);
+}
+
 export interface RoutePickOptions {
   /** Session-only skips from the route changer. Values are skip counts; a card
    *  clicked away twice gets demoted harder than a card skipped once. */
@@ -498,6 +518,13 @@ export interface RoutePickOptions {
   previousKind?: RecKind | null;
   /** The last headline id the player moved away from. Stronger than kind. */
   previousId?: string | null;
+  /** Current and recently rejected identities. They remain out until the
+   *  eligible pool is exhausted, so randomize cannot immediately repeat. */
+  excludedIds?: string[];
+  /** Recently shown families. A new family wins while one remains available. */
+  recentFamilies?: RecommendationDiversityFamily[];
+  /** Stable seed used only as a near-score tie-breaker. */
+  seed?: string | number;
 }
 
 function skippedCount(skippedIds: RoutePickOptions["skippedIds"], id: string): number {
@@ -520,6 +547,44 @@ function sessionNoveltyMultiplier(rec: Recommendation, options: RoutePickOptions
     multiplier *= 0.35;
   }
   return multiplier;
+}
+
+function seededRank(seed: RoutePickOptions["seed"], id: string): number {
+  const input = `${seed ?? "scapestack"}:${id}`;
+  let hash = 2166136261;
+  for (let index = 0; index < input.length; index += 1) {
+    hash ^= input.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+type ScoredRecommendation = { rec: Recommendation; adjScore: number };
+
+function compareScored(
+  left: ScoredRecommendation,
+  right: ScoredRecommendation,
+  seed: RoutePickOptions["seed"]
+): number {
+  const scoreGap = right.adjScore - left.adjScore;
+  const materialGap = Math.max(left.adjScore, right.adjScore) * 0.03;
+  if (Math.abs(scoreGap) > materialGap) return scoreGap;
+  const seededGap = seededRank(seed, left.rec.id) - seededRank(seed, right.rec.id);
+  return seededGap || scoreGap || left.rec.id.localeCompare(right.rec.id);
+}
+
+function constrainedHeadlinePool(
+  scored: ScoredRecommendation[],
+  options: RoutePickOptions | undefined
+): ScoredRecommendation[] {
+  if (!options) return scored;
+
+  const excluded = new Set(options.excludedIds ?? []);
+  const withoutRejected = scored.filter(({ rec }) => !excluded.has(rec.id));
+  const identityPool = withoutRejected.length > 0 ? withoutRejected : scored;
+  const recentFamilies = new Set(options.recentFamilies ?? []);
+  const unseenFamilyPool = identityPool.filter(({ rec }) => !recentFamilies.has(recommendationDiversityFamily(rec)));
+  return unseenFamilyPool.length > 0 ? unseenFamilyPool : identityPool;
 }
 
 /** Hoofdfunctie: ranked recs in, mood + tijd erbij, één hoofdpick +
@@ -555,7 +620,7 @@ export function pickForRoute(
   const eligibleRecs = recs.filter((rec) => recommendationMoodEligibility(rec, mood, minutes).eligible);
   if (eligibleRecs.length === 0) return null;
 
-  const scored = eligibleRecs.map((rec) => {
+  const scored: ScoredRecommendation[] = eligibleRecs.map((rec) => {
     const moodMult = weights[rec.kind] ?? 1.0;
     const kindMult = routeLens === "smart"
       ? moodMult
@@ -565,19 +630,20 @@ export function pickForRoute(
     const noveltyMult = sessionNoveltyMultiplier(rec, options);
     return { rec, adjScore: rec.score * kindMult * timeMult * accountMult * noveltyMult };
   });
-  scored.sort((a, b) => b.adjScore - a.adjScore);
-  const headlinePool = scored;
+  scored.sort((a, b) => compareScored(a, b, options?.seed));
+  const headlinePool = constrainedHeadlinePool(scored, options);
 
   // Shuffle: bouw een lijst van "hero-kandidaten" waar elke
   // opeenvolgende een ander kind heeft dan z'n voorganger. Dat
   // voorkomt "boss → boss → boss" als de speler op de shuffle-knop
   // ramt.
   const heroCandidates: Recommendation[] = [];
-  const usedKinds = new Set<RecKind>();
+  const usedFamilies = new Set<RecommendationDiversityFamily>();
   for (const s of headlinePool) {
-    if (!usedKinds.has(s.rec.kind)) {
+    const family = recommendationDiversityFamily(s.rec);
+    if (!usedFamilies.has(family)) {
       heroCandidates.push(s.rec);
-      usedKinds.add(s.rec.kind);
+      usedFamilies.add(family);
     }
   }
   // Als de speler verder shuffled dan we kinds hebben → cycle terug
@@ -586,7 +652,7 @@ export function pickForRoute(
   const headline =
     heroCandidates[shuffleIndex % Math.max(1, heroCandidates.length)]
     ?? fallbackList[shuffleIndex % fallbackList.length]
-    ?? scored[0].rec;
+    ?? headlinePool[0].rec;
 
   // Alternatieven: kies bewust een andere sessie-beloning/intensiteit.
   // Dit voorkomt dat backups voelen als "de rest van de sortering".
@@ -596,7 +662,7 @@ export function pickForRoute(
   const bucketOrder = backupBucketOrder(headline);
   for (const bucket of bucketOrder) {
     if (alts.length === 2) break;
-    const next = scored.find((s) => !seenIds.has(s.rec.id)
+    const next = headlinePool.find((s) => !seenIds.has(s.rec.id)
       && backupBucket(s.rec) === bucket
       && !seenBuckets.has(bucket))?.rec;
     if (!next) continue;

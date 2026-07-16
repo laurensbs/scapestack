@@ -160,6 +160,20 @@ export function latestStartedRecommendationMemory(
     .sort((a, b) => b.savedAt - a.savedAt)[0] ?? null;
 }
 
+export function recentRejectedRecommendationMemories(
+  feedback = loadRecommendationFeedback(),
+  options: { rsn?: string; mood?: string; maxAgeMs?: number } = {}
+): RecommendationMemoryEntry[] {
+  const rsnKey = normalizeRsnKey(options.rsn);
+  const cutoff = Date.now() - (options.maxAgeMs ?? RECENT_MEMORY_WINDOW_MS);
+  return feedback.recent
+    .filter((entry) => entry.action !== "started")
+    .filter((entry) => entry.savedAt >= cutoff)
+    .filter((entry) => matchesRsnKey(entry, rsnKey))
+    .filter((entry) => !options.mood || !entry.mood || entry.mood === options.mood)
+    .sort((a, b) => b.savedAt - a.savedAt);
+}
+
 export function recommendationMemoryCounts(
   feedback = loadRecommendationFeedback(),
   options: { rsn?: string; maxAgeMs?: number } = {}
