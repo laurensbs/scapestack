@@ -10,6 +10,10 @@ import {
 } from "./banked-xp";
 import { FISHING_METHODS } from "./skill-methods/fishing";
 import { XP_TABLE } from "./skill-methods/types";
+import {
+  buildIronmanSupplyRoute,
+  type IronmanSupplyRoute
+} from "./ironman-supply-routes";
 
 export const ROUTABLE_SKILLS = [
   "Attack", "Strength", "Defence", "Hitpoints", "Ranged", "Magic", "Prayer",
@@ -78,6 +82,7 @@ export interface SkillRoute {
   unlock: string;
   sourcing: SkillSupplyState[];
   bankedXpEstimate: BankedXpEstimate;
+  supplyRoute: IronmanSupplyRoute | null;
 }
 
 const DEFAULT_METHODS: Record<RoutableSkill, Omit<SkillRouteMethod, "skill">> = {
@@ -227,6 +232,7 @@ export function buildSkillRoute(input: {
   targetLevel: number;
   bank?: CompletionItem[];
   accountType?: PlannerAccountType | null;
+  skills?: HiscoreSkill[];
   sessionMinutes?: number;
   unlock?: string;
 }): SkillRoute | null {
@@ -258,6 +264,17 @@ export function buildSkillRoute(input: {
   const endXp = currentXp + sessionXp;
   const endLevel = levelForXp(endXp);
   const sourcing = [...new Set((recommended?.supplies ?? []).map((entry) => entry.state))];
+  const supplyRoute = buildIronmanSupplyRoute({
+    skill,
+    currentLevel,
+    targetLevel,
+    sessionXp,
+    sessionMinutes: minutes,
+    bank: input.bank,
+    bankedXpEstimate,
+    skills: input.skills,
+    accountType: input.accountType
+  });
 
   return {
     skill,
@@ -279,33 +296,45 @@ export function buildSkillRoute(input: {
     },
     unlock: input.unlock ?? (targetLevel === 99 ? `${skill} cape` : `${skill} ${targetLevel}`),
     sourcing,
-    bankedXpEstimate
+    bankedXpEstimate,
+    supplyRoute
   };
 }
 
 export function skillRouteNeeds(route: SkillRoute): string[] {
   const bankedLine = bankedXpMaterialLine(route.bankedXpEstimate);
+  const sourceLine = route.supplyRoute
+    ? `${route.supplyRoute.sourceActivity}: ${route.supplyRoute.amountTargetLow.toLocaleString("en-US")}-${route.supplyRoute.amountTargetHigh.toLocaleString("en-US")} ${route.supplyRoute.material} at ${route.supplyRoute.rateLow.toLocaleString("en-US")}-${route.supplyRoute.rateHigh.toLocaleString("en-US")}/hr`
+    : null;
   const supplyLines = (route.recommended?.supplies ?? []).flatMap((supplyValue) => {
     if (bankedLine && supplyValue.state === "banked") return [];
+    if (sourceLine && supplyValue.state === "source-yourself") return [];
     if (supplyValue.state === "banked") return `${supplyValue.name} in bank`;
     if (supplyValue.state === "buyable") return `Buy ${supplyValue.name.toLowerCase()} if needed`;
     if (supplyValue.state === "source-yourself") return `Source ${supplyValue.name.toLowerCase()}`;
     return `Check ${supplyValue.name.toLowerCase()}`;
   });
-  return [...(bankedLine ? [bankedLine] : []), ...supplyLines].slice(0, 3);
+  return [...(bankedLine ? [bankedLine] : []), ...(sourceLine ? [sourceLine] : []), ...supplyLines].slice(0, 3);
 }
 
-export function skillRoutePlanSeed(route: SkillRoute): { timebox: string; prep: string; steps: string[] } {
+export function skillRoutePlanSeed(route: SkillRoute): { timebox: string; prep: string; steps: string[]; flow?: "supply" } {
   const methodValue = route.recommended?.method;
   const needs = skillRouteNeeds(route);
-  const steps = [
-    methodValue ? `Start ${methodValue.name.toLowerCase()}${methodValue.location ? ` at ${methodValue.location}` : ""}.` : `Choose one ${route.skill} method.`,
-    ...(needs.length > 0 ? [needs.slice(0, 2).join("; ") + "."] : []),
-    `${route.shortSession.label}, then stop and check the next route.`
-  ];
+  const steps = route.supplyRoute
+    ? route.supplyRoute.steps.map((step) => step.text)
+    : [
+        methodValue ? `Start ${methodValue.name.toLowerCase()}${methodValue.location ? ` at ${methodValue.location}` : ""}.` : `Choose one ${route.skill} method.`,
+        ...(needs.length > 0 ? [needs.slice(0, 2).join("; ") + "."] : []),
+        `${route.shortSession.label}, then stop and check the next route.`
+      ];
   return {
-    timebox: `${route.shortSession.minutes} min`,
-    prep: `${route.skill} ${route.currentLevel} -> ${route.targetLevel}: ${formatXp(route.xpRemaining)} XP for ${route.unlock}.`,
+    ...(route.supplyRoute ? { flow: "supply" as const } : {}),
+    timebox: route.supplyRoute
+      ? `${route.supplyRoute.estimatedMinutesLow}-${route.supplyRoute.estimatedMinutesHigh} min source + ${route.shortSession.minutes} min process`
+      : `${route.shortSession.minutes} min`,
+    prep: route.supplyRoute
+      ? `${route.supplyRoute.reason} ${route.skill} ${route.currentLevel} -> ${route.targetLevel}: ${formatXp(route.xpRemaining)} XP for ${route.unlock}.`
+      : `${route.skill} ${route.currentLevel} -> ${route.targetLevel}: ${formatXp(route.xpRemaining)} XP for ${route.unlock}.`,
     steps
   };
 }

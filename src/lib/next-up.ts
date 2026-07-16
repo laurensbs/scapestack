@@ -80,6 +80,7 @@ export interface RecommendationPlanSeed {
   prep?: string;
   steps?: string[];
   caveat?: string;
+  flow?: "supply";
 }
 
 export type RecommendationRouteTag =
@@ -130,7 +131,7 @@ export interface RecommendationActionPlan {
   caveat?: string;
 }
 
-export type RecommendationRouteChainLabel = "Do this first" | "After that" | "If blocked" | "Next login";
+export type RecommendationRouteChainLabel = "Do this first" | "After that" | "If blocked" | "Next login" | "Source" | "Process" | "Stop";
 
 export interface RecommendationRouteChainStep {
   label: RecommendationRouteChainLabel;
@@ -1150,6 +1151,7 @@ function skillRecs(
             targetLevel: m.level,
             bank: bank.length > 0 ? bank : undefined,
             accountType,
+            skills,
             unlock: m.unlock
           })
         : null;
@@ -2749,6 +2751,7 @@ function accountRouteRecs(input: {
           targetLevel: 43,
           bank: bank.length > 0 ? bank : undefined,
           accountType: accountMeta?.accountType ?? null,
+          skills,
           unlock: "protection prayers"
         })
       : null;
@@ -2843,6 +2846,7 @@ function accountRouteRecs(input: {
           targetLevel: target,
           bank: bank.length > 0 ? bank : undefined,
           accountType: accountMeta?.accountType ?? null,
+          skills,
           unlock: target === 40 ? "the next Graceful route" : "a stronger rooftop route"
         })
       : null;
@@ -2996,6 +3000,7 @@ function accountRouteRecs(input: {
         targetLevel: 99,
         bank: bank.length > 0 ? bank : undefined,
         accountType: accountMeta?.accountType ?? null,
+        skills,
         unlock: `${near99.name} cape`
       });
       recs.push({
@@ -3080,7 +3085,7 @@ function mergePlanSeed(
   fallback: Omit<RecommendationActionPlan, "confidence" | "confidenceLabel">
 ): RecommendationActionPlan {
   const confidence = confidenceFor(rec, ctx);
-  const seeded = rec.planSeed ?? {};
+  const { flow: _flow, ...seeded } = rec.planSeed ?? {};
   return {
     ...fallback,
     ...seeded,
@@ -3281,6 +3286,16 @@ function routeChainFor(
   plan: RecommendationActionPlan,
   ctx: ActionPlanContext
 ): RecommendationRouteChain {
+  if (rec.planSeed?.flow === "supply") {
+    return {
+      steps: [
+        { label: "Source", text: cleanRouteChainLine(plan.steps[0], "Source one small supply block.") },
+        { label: "Process", text: cleanRouteChainLine(plan.steps[1], "Process the sourced stack.") },
+        { label: "Stop", text: cleanRouteChainLine(plan.steps[2], "Stop at the selected XP or level target.") },
+        { label: "Next login", text: routeChainNextLogin(ctx) }
+      ]
+    };
+  }
   const first = cleanRouteChainLine(plan.steps[0] ?? plan.prep, "Start the first useful step for this account.");
   return {
     steps: [
@@ -3317,7 +3332,7 @@ function withActionPlans(recs: Recommendation[], ctx: ActionPlanContext): Recomm
       ...clean,
       actionPlan,
       sessionProfile: recommendationSessionProfile({ ...rec, actionPlan }),
-      routeChain: routeChainFor(clean, actionPlan, ctx),
+      routeChain: routeChainFor(rec, actionPlan, ctx),
       decisionReason: decisionReasonFor(clean, ctx)
     };
   });

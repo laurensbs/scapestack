@@ -1094,7 +1094,7 @@ Acceptance:
 
 ## Phase 14 - Build Ironman Supply Routes
 
-Status: TODO  
+Status: DONE (2026-07-16)
 Depends on: Phase 13  
 Improves: ironman relevance
 
@@ -1124,6 +1124,38 @@ Acceptance:
 - uncertain rates are ranges, not fake precision;
 - tests cover main versus ironman behavior.
 ```
+
+### Evidence
+
+- Added one typed ironman supply-route catalogue on top of the shared
+  banked-XP engine. Routes model source activity, requirements, conservative
+  acquisition-rate ranges, the amount needed for the selected session,
+  source time, banked alternatives and a smaller bounded target.
+- `SkillRoute` now emits a real `source -> process -> stop` chain for supported
+  ironman shortages. The normalized `/next` route preserves those three steps
+  instead of flattening them back into the generic recommendation flow.
+- A usable bank stack always wins first. Full session coverage suppresses
+  sourcing entirely; partial coverage is consumed before only the remaining
+  gap is sourced. Missing bank context remains unknown and cannot invent a
+  raw-food or secondary shortage.
+- Account rules keep mains on buyable prep, use carry/stage wording for UIMs,
+  keep hardcores off Wilderness-tagged sources and do not assume group storage.
+  Cooking, Herblore and Construction have contextual routes, with additional
+  conservative routes for Prayer, Crafting, Smithing, Fletching, Firemaking,
+  Farming, Magic and Runecraft.
+- Regression tests cover main versus iron, a complete lower-tier bank
+  alternative, a partial raw-shark stack, bounded long grinds, ranarr/snape
+  grass matching, owned-log sawmill conversion, UIM copy, unknown bank data
+  and the final `/next` source/process/stop labels.
+- Verification: all 192 test files and 1,229 tests passed. `npm run ci:check`
+  passed typecheck, smoke, recommendation audit, offline plugin release checks
+  and the 215-page production build. `./gradlew test` passed the full RuneLite
+  suite. Desktop 1440x1000 and mobile 390x844 browser checks had content, no
+  error overlay and no horizontal overflow; a repeat network check had no
+  failed responses. Screenshots are in `/tmp/scapestack-phase-14/`.
+- Residual risk: collection rates are deliberately broad curated ranges, not
+  live efficiency claims. Unknown quest/access requirements remain visible for
+  the player to confirm until exact RuneLite progress can prove them.
 
 ## Phase 15 - Build Exact Diary Task Progress
 
