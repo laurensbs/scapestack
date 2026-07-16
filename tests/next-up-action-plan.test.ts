@@ -35,6 +35,42 @@ function skillsFromLevels(levels: Partial<Record<string, number>>): HiscoreSkill
 }
 
 describe("next-up action plans", () => {
+  it("builds milestone copy from current XP, method and bank context", async () => {
+    const skills = skillsFromLevels({ Mining: 84 });
+    const mining = skills.find((entry) => entry.name === "Mining")!;
+    mining.xp = 3_000_000;
+    const result = await computeNextUp({
+      skills,
+      bank: [{ id: 1275, name: "Rune pickaxe", quantity: 1 }]
+    });
+    const recs = [result.headline, ...result.rest].filter(Boolean);
+    const route = recs.find((rec) => rec?.id === "skill:Mining:85");
+
+    expect(route?.why).toMatch(/XP to Amethyst/);
+    expect(route?.needs).toContain("Pickaxe in bank");
+    expect(route?.actionPlan?.prep).toContain("Mining 84");
+    expect(route?.actionPlan?.steps.join(" ")).not.toMatch(/food|teleport|quest items/i);
+  });
+
+  it("uses a Cooking maxing lane with real remaining XP and raw-food bank context", async () => {
+    const skills = skillsAt(70);
+    const cooking = skills.find((entry) => entry.name === "Cooking")!;
+    cooking.level = 98;
+    cooking.xp = 12_500_000;
+    skills[0]!.level = skills.filter((entry) => entry.name !== "Overall").reduce((sum, entry) => sum + entry.level, 0);
+    const result = await computeNextUp({
+      skills,
+      bank: [{ id: 383, name: "Raw shark", quantity: 2_000 }]
+    });
+    const recs = [result.headline, ...result.rest].filter(Boolean);
+    const route = recs.find((rec) => rec?.id === "milestone:maxing-lane:Cooking");
+
+    expect(route?.why).toContain("534,431 XP left");
+    expect(route?.needs).toContain("Raw food in bank");
+    expect(route?.actionPlan?.steps[0]).toContain("cook the best raw food already available");
+    expect(route?.actionPlan?.steps.join(" ")).not.toMatch(/gear|teleport|quest items/i);
+  });
+
   it("adds an executable session plan to recommendations", async () => {
     const result = await computeNextUp({ bank: [{ id: 995, name: "Coins" }] });
 

@@ -971,7 +971,7 @@ Acceptance:
 
 ## Phase 12 - Build A Shared Skill Progress Model
 
-Status: TODO  
+Status: DONE
 Depends on: Phase 06  
 Improves: recommendation depth, goals
 
@@ -1001,6 +1001,32 @@ Acceptance:
 - output distinguishes banked, buyable, source-yourself and unknown;
 - tests cover low, mid, near-99 and maxed states.
 ```
+
+### Evidence
+
+- Added one reusable `SkillRoute` contract for current level and XP, target,
+  XP remaining, method options, session stop, requirements, bank coverage,
+  sourcing, cost/profit when known and the unlock at the target.
+- Every current Hiscores skill has a safe fallback, including Sailing. Fishing
+  keeps its richer verified method catalogue while the other skills use a
+  conservative method until deeper modules replace it.
+- Requirements are method-specific. Agility no longer receives generic gear,
+  food or teleport advice; Cooking asks for raw food, Mining for a pickaxe and
+  Runecraft for essence plus its actual access tool.
+- Supply context is typed as `banked`, `buyable`, `source-yourself` or
+  `unknown`. Unknown item-to-XP conversion stays unknown instead of inventing
+  precision ahead of the Phase 13 banked-XP calculators.
+- Milestone pushes, protection prayers, Graceful routes and maxing lanes now
+  use the shared model. Their copy includes actual XP remaining, a realistic
+  method and a bounded 45-minute stop instead of generic level-only advice.
+- Tests cover every skill plus low, mid, near-99 and maxed accounts, invalid
+  Hiscores fixture XP, banked raw food, regular versus iron sourcing and
+  non-negative XP/quantity invariants.
+- Verification: all 190 test files and 1,209 tests passed. `npm run ci:check`
+  passed typecheck, smoke, recommendation audit, release checks and the
+  215-page production build. `./gradlew test` passed the RuneLite suite.
+  Desktop and 390x844 browser checks had content, no error overlay and no
+  horizontal overflow.
 
 ## Phase 13 - Make Banked XP Correct Across Skills
 

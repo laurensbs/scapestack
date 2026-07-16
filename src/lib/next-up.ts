@@ -35,6 +35,7 @@ import { getDropRates, type BossDropTable } from "./drop-rates-db";
 import { computePathProgress, type AccountMeta, type PathOverview } from "./path-progress";
 import { detectAccountStage, type AccountStage } from "./account-stage";
 import { skillCapeId } from "./skill-capes";
+import { buildSkillRoute, ROUTABLE_SKILLS, skillRouteNeeds, skillRoutePlanSeed } from "./skill-routes";
 import { TASK_ID_TO_MONSTER } from "./slayer/task-ids";
 import { MONSTERS_BY_ID } from "./slayer/monsters";
 import { slayerUrlForSyncedRsn } from "./plugin-sync-actions";
@@ -1122,7 +1123,11 @@ function applyBossViability(recs: Recommendation[], bank: CompletionItem[]): Rec
 const LOW_ATTENTION_MILESTONE_SKILLS = new Set(["Fishing", "Mining", "Woodcutting"]);
 
 // Skills sitting just short of a milestone level — a clear, finite push.
-function skillRecs(skills: HiscoreSkill[]): Recommendation[] {
+function skillRecs(
+  skills: HiscoreSkill[],
+  bank: CompletionItem[],
+  accountType: PlannerAccountType | null
+): Recommendation[] {
   const recs: Recommendation[] = [];
   const combatLevel = computeCombatLevel(skills);
   for (const [skill, milestones] of Object.entries(SKILL_MILESTONES)) {
@@ -1138,15 +1143,29 @@ function skillRecs(skills: HiscoreSkill[]): Recommendation[] {
         && level < 70
         && combatLevel !== null
         && combatLevel >= 75;
+      const skillState = skills.find((entry) => entry.name === skill);
+      const route = skillState
+        ? buildSkillRoute({
+            skill: skillState,
+            targetLevel: m.level,
+            bank: bank.length > 0 ? bank : undefined,
+            accountType,
+            unlock: m.unlock
+          })
+        : null;
       recs.push({
         id: `skill:${skill}:${m.level}`,
         kind: "skill",
         title: `Push ${skill} to ${m.level}`,
-        why: `You're ${gap} level${gap === 1 ? "" : "s"} away.`,
+        why: route
+          ? `${gap} level${gap === 1 ? "" : "s"} away · ${route.xpRemaining.toLocaleString()} XP to ${m.unlock}.`
+          : `You're ${gap} level${gap === 1 ? "" : "s"} away.`,
         payoff: `Unlocks: ${m.unlock}`,
-        decisionReason: gap <= 2
-          ? `${skill} ${m.level} is within ${gap} level${gap === 1 ? "" : "s"}; stop as soon as the unlock lands.`
-          : `${skill} ${m.level} is close enough to be a clean AFK or focused backup.`,
+        decisionReason: route?.recommended
+          ? `${route.recommended.method.name} gives this ${skill} push a clear ${route.shortSession.minutes}-minute stop point.`
+          : gap <= 2
+            ? `${skill} ${m.level} is within ${gap} level${gap === 1 ? "" : "s"}; stop as soon as the unlock lands.`
+            : `${skill} ${m.level} is close enough to be a clean AFK or focused backup.`,
         // Close milestones can compete with diaries. Longer foundation
         // pushes (Slayer 50→70, Prayer 52→70) stay visible but do not
         // outrank immediately actionable unlocks.
@@ -1159,6 +1178,7 @@ function skillRecs(skills: HiscoreSkill[]): Recommendation[] {
         // Per-skill cape sprite — Slayer cape for 'Push Slayer', not the
         // generic Attack cape stand-in that was shipping before.
         iconItemId: skillCapeId(skill),
+        needs: route ? skillRouteNeeds(route) : undefined,
         completionTarget: { kind: "skill_level_at_least", skill, target: m.level },
         routeTags: [
           "maxing",
@@ -1175,7 +1195,7 @@ function skillRecs(skills: HiscoreSkill[]): Recommendation[] {
           fun: skill === "Slayer" ? 0.72 : 0.58,
           friction: nearMilestone ? 0.18 : 0.3
         },
-        planSeed: {
+        planSeed: route ? skillRoutePlanSeed(route) : {
           timebox: gap <= 2 ? "30-60 min" : "1-2 sessions",
           prep: `${skill} ${level} → ${m.level}: only ${gap} level${gap === 1 ? "" : "s"} for ${m.unlock}.`,
           steps: [
@@ -2659,12 +2679,13 @@ function starterQuestRecs(hasHiscores: boolean, bank: CompletionItem[]): Recomme
 
 function accountRouteRecs(input: {
   skills: HiscoreSkill[];
+  bank: CompletionItem[];
   questPoints: number;
   accountStage: AccountStage;
   accountMeta?: AccountMeta | null;
   completedQuestNames?: Set<string>;
 }): Recommendation[] {
-  const { skills, questPoints, accountStage, accountMeta, completedQuestNames } = input;
+  const { skills, bank, questPoints, accountStage, accountMeta, completedQuestNames } = input;
   if (skills.length === 0) return [];
 
   const recs: Recommendation[] = [];
@@ -2721,6 +2742,16 @@ function accountRouteRecs(input: {
 
   if (combatLevel >= 35 && prayer >= 37 && prayer < 43) {
     const gap = 43 - prayer;
+    const prayerState = skills.find((entry) => entry.name === "Prayer");
+    const prayerRoute = prayerState
+      ? buildSkillRoute({
+          skill: prayerState,
+          targetLevel: 43,
+          bank: bank.length > 0 ? bank : undefined,
+          accountType: accountMeta?.accountType ?? null,
+          unlock: "protection prayers"
+        })
+      : null;
     recs.push({
       id: "skill:Prayer:43-protection",
       kind: "skill",
@@ -2731,6 +2762,7 @@ function accountRouteRecs(input: {
       score: 80 - gap * 3,
       link: "/goals",
       iconItemId: 2412,
+      needs: prayerRoute ? skillRouteNeeds(prayerRoute) : undefined,
       completionTarget: { kind: "skill_level_at_least", skill: "Prayer", target: 43 },
       routeTags: ["beginner", "returning", "unlock", "pvm"],
       gearConfidence: "not-needed",
@@ -2743,7 +2775,7 @@ function accountRouteRecs(input: {
         fun: 0.58,
         friction: 0.16
       },
-      planSeed: {
+      planSeed: prayerRoute ? skillRoutePlanSeed(prayerRoute) : {
         timebox: gap <= 2 ? "20-45 min" : "45-90 min",
         prep: `Prayer ${prayer} -> 43. Buy only enough bones/ensouled heads for the gap.`,
         steps: [
@@ -2804,6 +2836,16 @@ function accountRouteRecs(input: {
     && agility < 60
   ) {
     const target = agility < 40 ? 40 : 60;
+    const agilityState = skills.find((entry) => entry.name === "Agility");
+    const agilityRoute = agilityState
+      ? buildSkillRoute({
+          skill: agilityState,
+          targetLevel: target,
+          bank: bank.length > 0 ? bank : undefined,
+          accountType: accountMeta?.accountType ?? null,
+          unlock: target === 40 ? "the next Graceful route" : "a stronger rooftop route"
+        })
+      : null;
     recs.push({
       id: "skill:Agility:graceful-route",
       kind: "skill",
@@ -2814,6 +2856,7 @@ function accountRouteRecs(input: {
       score: target === 40 ? 56 : 60,
       link: "/goals",
       iconItemId: 11850,
+      needs: agilityRoute ? skillRouteNeeds(agilityRoute) : undefined,
       routeTags: ["skiller", "returning", "unlock"],
       gearConfidence: "not-needed",
       quality: {
@@ -2825,7 +2868,7 @@ function accountRouteRecs(input: {
         fun: 0.48,
         friction: 0.24
       },
-      planSeed: {
+      planSeed: agilityRoute ? skillRoutePlanSeed(agilityRoute) : {
         timebox: "45-90 min",
         prep: `Run rooftops toward Agility ${target}; marks of grace are the real reward.`,
         steps: [
@@ -2943,21 +2986,33 @@ function accountRouteRecs(input: {
     }
   }
 
-  if (totalLevel >= 1700 && totalLevel < 2277) {
+  if (totalLevel >= 1700 && totalLevel < ROUTABLE_SKILLS.length * 99) {
     const near99 = skills
       .filter((skill) => skill.name !== "Overall" && skill.level >= 90 && skill.level < 99)
       .sort((a, b) => b.level - a.level)[0];
     if (near99) {
+      const route = buildSkillRoute({
+        skill: near99,
+        targetLevel: 99,
+        bank: bank.length > 0 ? bank : undefined,
+        accountType: accountMeta?.accountType ?? null,
+        unlock: `${near99.name} cape`
+      });
       recs.push({
         id: `milestone:maxing-lane:${near99.name}`,
         kind: "milestone",
         title: `Pick a maxing lane: ${near99.name}`,
-        why: `${near99.name} ${near99.level}. Close enough to turn spare sessions into cape progress.`,
+        why: route
+          ? `${near99.name} ${near99.level} · ${route.xpRemaining.toLocaleString()} XP left for the cape.`
+          : `${near99.name} ${near99.level}. Close enough to turn spare sessions into cape progress.`,
         payoff: "A focused maxing lane stops your plan from feeling like random chores.",
-        decisionReason: `${near99.name} is your cleanest visible maxing lane, so it is a better long arc than bouncing between unrelated grinds.`,
+        decisionReason: route?.recommended
+          ? `${route.recommended.method.name} is the cleanest visible ${near99.name} lane for this account.`
+          : `${near99.name} is your cleanest visible maxing lane, so it is a better long arc than bouncing between unrelated grinds.`,
         score: near99.level >= 95 ? 73 : 64,
         link: "/goals",
         iconItemId: skillCapeId(near99.name),
+        needs: route ? skillRouteNeeds(route) : undefined,
         completionTarget: { kind: "skill_level_at_least", skill: near99.name, target: 99 },
         routeTags: ["maxing", "skiller"],
         gearConfidence: "not-needed",
@@ -2970,7 +3025,7 @@ function accountRouteRecs(input: {
           fun: 0.56,
           friction: near99.level >= 95 ? 0.24 : 0.42
         },
-        planSeed: {
+        planSeed: route ? skillRoutePlanSeed(route) : {
           timebox: "1-2 sessions",
           prep: `Choose one ${near99.name} method and stop at a level, XP chunk or cape prep milestone.`,
           steps: [
@@ -3554,9 +3609,10 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     ...kcRecs(dropTables, mergedBossKc, bank, clOwned),
     ...minigameRecs(skills),
     ...moneyRecs(skills, accountMeta),
-    ...skillRecs(skills),
+    ...skillRecs(skills, bank, accountMeta?.accountType ?? null),
     ...accountRouteRecs({
       skills,
+      bank,
       questPoints: qp,
       accountStage,
       accountMeta,
