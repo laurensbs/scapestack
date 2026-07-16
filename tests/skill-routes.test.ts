@@ -47,6 +47,7 @@ describe("shared skill routes", () => {
     expect(route.maxed).toBe(true);
     expect(route.xpRemaining).toBe(0);
     expect(route.shortSession.xp).toBe(0);
+    expect(route.recommended).toBeNull();
   });
 
   it("distinguishes banked, buyable, source-yourself and unknown requirements", () => {
@@ -61,8 +62,9 @@ describe("shared skill routes", () => {
     const unknown = buildSkillRoute({ skill: skill("Slayer", 70), targetLevel: 71, accountType: "regular" })!;
 
     expect(banked.recommended?.supplies[0]).toMatchObject({ state: "banked", bankedQuantity: 250 });
-    expect(banked.recommended?.bankedXp).toBeNull();
-    expect(skillRouteNeeds(banked)).toContain("Raw food in bank");
+    expect(banked.recommended?.bankedXp).toBeGreaterThan(0);
+    expect(banked.bankedXpEstimate.materials[0]).toMatchObject({ name: "raw shark", quantity: 250 });
+    expect(skillRouteNeeds(banked).join(" ")).toMatch(/250 raw shark.*Cooking XP/);
     expect(buyable.recommended?.supplies[0]?.state).toBe("buyable");
     expect(iron.recommended?.supplies[0]?.state).toBe("source-yourself");
     expect(unknown.recommended?.supplies[0]?.state).toBe("unknown");
@@ -80,5 +82,12 @@ describe("shared skill routes", () => {
         expect(method.bankedXp ?? 0, name).toBeGreaterThanOrEqual(0);
       }
     }
+  });
+
+  it("does not invent a raw-food shortage when bank context is missing", () => {
+    const route = buildSkillRoute({ skill: skill("Cooking", 80), targetLevel: 81 })!;
+
+    expect(route.bankedXpEstimate.status).toBe("unknown");
+    expect(skillRouteNeeds(route).join(" ")).not.toMatch(/no raw fish/i);
   });
 });

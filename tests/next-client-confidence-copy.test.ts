@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const source = readFileSync(join(process.cwd(), "src/app/next/next-client.tsx"), "utf8");
+const bankedXpSource = readFileSync(join(process.cwd(), "src/lib/banked-xp.ts"), "utf8");
 
 describe("/next confidence UI copy", () => {
   it("keeps internal confidence labels out of recommendation cards", () => {
@@ -329,8 +330,8 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('label="Finish after"');
     expect(source).not.toContain('label="Stop when"');
     expect(source).not.toContain('label="Worth it because"');
-    expect(source).toContain("Gather your own supply first");
-    expect(source).toContain("Buy or gather a clean stack before committing.");
+    expect(source).toContain("Gather one usable stack first");
+    expect(source).toContain("Buy or gather one usable stack before committing.");
     expect(source).toContain("INTAKE_ROUTE_LENSES.map");
     expect(source).toContain("INTAKE_SESSION_CHOICES");
     expect(source).toContain("What do you feel like doing?");
@@ -727,26 +728,28 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function savedBankForRun");
     expect(source).toContain("heroBank = savedBankForRun(heroRsn.trim(), activeAccountRsn)?.banktags;");
     expect(source).toContain("input: savedBankForRun(activeAccountRsn)?.banktags");
-    expect(source).toContain("raw shark");
-    expect(source).toContain("dragon bones");
-    expect(source).toContain("mahogany planks");
-    expect(source).toContain("broad arrowheads");
-    expect(source).toContain("gold ore");
-    expect(source).toContain("torstol");
-    expect(source).toContain("pure essence");
-    expect(source).toContain("magic seeds");
-    expect(source).toContain('skill: "Fishing"');
-    expect(source).toContain('skill: "Woodcutting"');
-    expect(source).toContain('skill: "Mining"');
-    expect(source).toContain('skill: "Hunter"');
+    expect(bankedXpSource).toContain("raw shark");
+    expect(bankedXpSource).toContain("dragon bones");
+    expect(bankedXpSource).toContain("mahogany plank");
+    expect(bankedXpSource).toContain("broad arrowheads");
+    expect(bankedXpSource).toContain("gold ore");
+    expect(bankedXpSource).toContain("ranarr potion (unf)");
+    expect(bankedXpSource).toContain("pure essence");
+    expect(bankedXpSource).toContain("magic seed");
+    expect(bankedXpSource).toContain('skill: "Fishing"');
+    expect(bankedXpSource).toContain('skill: "Woodcutting"');
+    expect(bankedXpSource).toContain('skill: "Mining"');
+    expect(bankedXpSource).toContain('skill: "Hunter"');
     expect(source).toContain("neededAfterBankLabel");
-    expect(source).toContain("Need about ${Math.ceil(remainingAfterBank / bestXpMethod.xp).toLocaleString()} more ${bestXpMethod.label}");
+    expect(source).toContain("estimateBankedXp({");
+    expect(source).toContain("Need about ${Math.ceil(remainingAfterBank / xpPerBestMaterial).toLocaleString()} more ${bestMaterial.name}");
     expect(source).toContain("Bank has ${summary.bankItemsLabel}. Use that method;");
     expect(source).not.toContain("{skillingSummary.skill} route");
     expect(source).not.toContain("Need:");
     expect(source).not.toContain("Use:");
     expect(source).not.toContain("Stop:");
-    expect(source).toContain("No ${config.suppliesLabel} found in this bank");
+    expect(source).not.toContain("No ${config.suppliesLabel} found in this bank");
+    expect(source).toContain("This bank does not cover the chosen skilling method yet");
     expect(source).toContain("skillConfig.keywords");
     expect(source).not.toContain("${skillConfig.suppliesLabel} stack");
   });

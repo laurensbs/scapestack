@@ -113,6 +113,12 @@ import {
 } from "@/lib/next-bank-handoff";
 import { buildNextBankContext } from "@/lib/next-bank-context";
 import type { OrganizedItem } from "@/lib/organizer";
+import {
+  BANKED_XP_SKILL_DESCRIPTORS,
+  estimateBankedXp,
+  formatXpRange,
+  type BankedXpSkillDescriptor
+} from "@/lib/banked-xp";
 
 // Per-kind visual identity — Lucide fallback + an OSRS sprite. Recs that
 // already carry their own `iconItemId` keep theirs; everything else falls
@@ -3192,13 +3198,6 @@ function backupChoicePrompt(rec: Recommendation, headline: Recommendation): { la
   return { label: "Prefer unlock?", helper: "Use this when account progress matters more than GP or KC." };
 }
 
-function bankQuantityMatching(bankItems: BankHandoffItem[], pattern: RegExp): number {
-  return bankItems.reduce((sum, item) => {
-    pattern.lastIndex = 0;
-    return pattern.test(item.name.toLowerCase()) ? sum + item.quantity : sum;
-  }, 0);
-}
-
 type SkillingBankSummary = {
   skill: string;
   xpRemaining: number | null;
@@ -3213,231 +3212,7 @@ type SkillingBankSummary = {
   bankCoversTarget: boolean;
 };
 
-type SkillBankSupply = { pattern: RegExp; label: string; xp?: number };
-
-type SkillBankConfig = {
-  skill: string;
-  suppliesLabel: string;
-  actionVerb: string;
-  bringHint: string;
-  keywords: readonly string[];
-  items: SkillBankSupply[];
-};
-
-const SKILL_BANK_XP: SkillBankConfig[] = [
-  {
-    skill: "Cooking",
-    suppliesLabel: "raw fish",
-    actionVerb: "Cook",
-    bringHint: "Cooking gauntlets if useful, then use the closest range/bank",
-    keywords: ["raw karambwan", "raw shark", "raw monkfish", "raw anglerfish", "raw manta", "raw sea turtle", "raw lobster", "raw swordfish", "raw tuna", "raw salmon", "raw trout", "raw"],
-    items: [
-      { pattern: /^raw karambwan$/i, label: "raw karambwan", xp: 190 },
-      { pattern: /^raw shark$/i, label: "raw shark", xp: 210 },
-      { pattern: /^raw monkfish$/i, label: "raw monkfish", xp: 150 },
-      { pattern: /^raw anglerfish$/i, label: "raw anglerfish", xp: 230 },
-      { pattern: /^raw manta ray$/i, label: "raw manta ray", xp: 216.3 },
-      { pattern: /^raw sea turtle$/i, label: "raw sea turtle", xp: 211.3 },
-      { pattern: /^raw lobster$/i, label: "raw lobster", xp: 120 },
-      { pattern: /^raw swordfish$/i, label: "raw swordfish", xp: 140 },
-      { pattern: /^raw tuna$/i, label: "raw tuna", xp: 100 },
-      { pattern: /^raw salmon$/i, label: "raw salmon", xp: 90 },
-      { pattern: /^raw trout$/i, label: "raw trout", xp: 70 }
-    ]
-  },
-  {
-    skill: "Fishing",
-    suppliesLabel: "fishing gear",
-    actionVerb: "Fish",
-    bringHint: "Rod/harpoon/net, bait if needed and the closest bank or drop spot",
-    keywords: ["rod", "harpoon", "lobster pot", "net", "bait", "feather", "fish barrel", "karambwan vessel"],
-    items: [
-      { pattern: /^feather$/i, label: "feathers" },
-      { pattern: /^fishing bait$/i, label: "fishing bait" },
-      { pattern: /karambwan vessel/i, label: "karambwan vessel" },
-      { pattern: /harpoon/i, label: "harpoon route" },
-      { pattern: /barbarian rod/i, label: "barbarian rod route" },
-      { pattern: /^fly fishing rod$/i, label: "fly fishing rod route" }
-    ]
-  },
-  {
-    skill: "Woodcutting",
-    suppliesLabel: "axe/log route",
-    actionVerb: "Chop",
-    bringHint: "Best axe you own and the tree/bank route you want to use",
-    keywords: ["axe", "logs", "log", "redwood", "yew", "magic"],
-    items: [
-      { pattern: /crystal axe/i, label: "crystal axe route" },
-      { pattern: /dragon axe/i, label: "dragon axe route" },
-      { pattern: /rune axe/i, label: "rune axe route" }
-    ]
-  },
-  {
-    skill: "Prayer",
-    suppliesLabel: "bones/ashes",
-    actionVerb: "Offer",
-    bringHint: "Use your best altar method and bank the noted stacks",
-    keywords: ["bone", "bones", "ashes", "ensouled"],
-    items: [
-      { pattern: /^superior dragon bones$/i, label: "superior dragon bones", xp: 525 },
-      { pattern: /^dragon bones$/i, label: "dragon bones", xp: 252 },
-      { pattern: /^dagannoth bones$/i, label: "dagannoth bones", xp: 437.5 },
-      { pattern: /^wyvern bones$/i, label: "wyvern bones", xp: 72 },
-      { pattern: /^lava dragon bones$/i, label: "lava dragon bones", xp: 340 },
-      { pattern: /^big bones$/i, label: "big bones", xp: 52.5 },
-      { pattern: /^infernal ashes$/i, label: "infernal ashes", xp: 330 },
-      { pattern: /^abyssal ashes$/i, label: "abyssal ashes", xp: 255 }
-    ]
-  },
-  {
-    skill: "Construction",
-    suppliesLabel: "planks",
-    actionVerb: "Build",
-    bringHint: "House tabs, saw, hammer and the best servant route you use",
-    keywords: ["plank", "saw", "hammer", "house tab", "teleport to house"],
-    items: [
-      { pattern: /^mahogany plank$/i, label: "mahogany planks", xp: 140 },
-      { pattern: /^teak plank$/i, label: "teak planks", xp: 90 },
-      { pattern: /^oak plank$/i, label: "oak planks", xp: 60 },
-      { pattern: /^plank$/i, label: "planks", xp: 29 }
-    ]
-  },
-  {
-    skill: "Fletching",
-    suppliesLabel: "logs/arrow supplies",
-    actionVerb: "Fletch",
-    bringHint: "Knife, logs, bowstrings or arrow supplies depending on the method",
-    keywords: ["log", "bow string", "arrow", "dart tip", "knife"],
-    items: [
-      { pattern: /^redwood logs$/i, label: "redwood logs", xp: 380 },
-      { pattern: /^magic logs$/i, label: "magic logs", xp: 250 },
-      { pattern: /^yew logs$/i, label: "yew logs", xp: 175 },
-      { pattern: /^maple logs$/i, label: "maple logs", xp: 58.3 },
-      { pattern: /^willow logs$/i, label: "willow logs", xp: 33.3 },
-      { pattern: /^broad arrowheads$/i, label: "broad arrowheads", xp: 15 },
-      { pattern: /^headless arrows$/i, label: "headless arrows", xp: 15 }
-    ]
-  },
-  {
-    skill: "Firemaking",
-    suppliesLabel: "logs",
-    actionVerb: "Burn",
-    bringHint: "Tinderbox and the log stack; use Wintertodt instead if that is the route",
-    keywords: ["log", "tinderbox", "bruma"],
-    items: [
-      { pattern: /^redwood logs$/i, label: "redwood logs", xp: 350 },
-      { pattern: /^magic logs$/i, label: "magic logs", xp: 303.8 },
-      { pattern: /^yew logs$/i, label: "yew logs", xp: 202.5 },
-      { pattern: /^maple logs$/i, label: "maple logs", xp: 135 },
-      { pattern: /^willow logs$/i, label: "willow logs", xp: 90 },
-      { pattern: /^oak logs$/i, label: "oak logs", xp: 60 }
-    ]
-  },
-  {
-    skill: "Crafting",
-    suppliesLabel: "glass/gems/leather",
-    actionVerb: "Craft",
-    bringHint: "Moulds, thread or jewellery tools if the stack needs them",
-    keywords: ["molten glass", "uncut", "battlestaff", "dragon leather", "hide", "orb", "mould"],
-    items: [
-      { pattern: /^molten glass$/i, label: "molten glass", xp: 55 },
-      { pattern: /^battlestaff$/i, label: "battlestaves", xp: 137.5 },
-      { pattern: /^uncut dragonstone$/i, label: "uncut dragonstones", xp: 137.5 },
-      { pattern: /^uncut diamond$/i, label: "uncut diamonds", xp: 107.5 },
-      { pattern: /^uncut ruby$/i, label: "uncut rubies", xp: 85 },
-      { pattern: /^uncut emerald$/i, label: "uncut emeralds", xp: 67.5 },
-      { pattern: /^uncut sapphire$/i, label: "uncut sapphires", xp: 50 },
-      { pattern: /dragon leather$/i, label: "dragon leather", xp: 62 }
-    ]
-  },
-  {
-    skill: "Smithing",
-    suppliesLabel: "ores/bars",
-    actionVerb: "Smith",
-    bringHint: "Goldsmith gauntlets, coal bag or moulds if the method needs them",
-    keywords: ["ore", "bar", "coal", "gauntlets", "mould"],
-    items: [
-      { pattern: /^gold ore$/i, label: "gold ore", xp: 56.2 },
-      { pattern: /^runite bar$/i, label: "runite bars", xp: 75 },
-      { pattern: /^adamantite bar$/i, label: "adamantite bars", xp: 62.5 },
-      { pattern: /^mithril bar$/i, label: "mithril bars", xp: 50 },
-      { pattern: /^steel bar$/i, label: "steel bars", xp: 37.5 },
-      { pattern: /^iron bar$/i, label: "iron bars", xp: 25 }
-    ]
-  },
-  {
-    skill: "Mining",
-    suppliesLabel: "pickaxe/ore route",
-    actionVerb: "Mine",
-    bringHint: "Best pickaxe you own and the mine, amethyst or blast mine route",
-    keywords: ["pickaxe", "ore", "amethyst", "pay-dirt", "prospector"],
-    items: [
-      { pattern: /crystal pickaxe/i, label: "crystal pickaxe route" },
-      { pattern: /dragon pickaxe/i, label: "dragon pickaxe route" },
-      { pattern: /rune pickaxe/i, label: "rune pickaxe route" }
-    ]
-  },
-  {
-    skill: "Herblore",
-    suppliesLabel: "herbs/secondaries",
-    actionVerb: "Mix",
-    bringHint: "Vials, herbs and secondaries; keep the stack to one potion type",
-    keywords: ["herb", "weed", "leaf", "root", "scale", "nest", "vial", "unf potion", "potion"],
-    items: [
-      { pattern: /^torstol$/i, label: "torstol", xp: 175 },
-      { pattern: /^dwarf weed$/i, label: "dwarf weed", xp: 162.5 },
-      { pattern: /^lantadyme$/i, label: "lantadyme", xp: 160 },
-      { pattern: /^cadantine$/i, label: "cadantine", xp: 150 },
-      { pattern: /^kwuarm$/i, label: "kwuarm", xp: 125 },
-      { pattern: /^snapdragon$/i, label: "snapdragon", xp: 142.5 },
-      { pattern: /^toadflax$/i, label: "toadflax", xp: 63.3 },
-      { pattern: /^ranarr weed$/i, label: "ranarr weed", xp: 87.5 }
-    ]
-  },
-  {
-    skill: "Hunter",
-    suppliesLabel: "traps/birdhouse supplies",
-    actionVerb: "Hunt",
-    bringHint: "Logs, clockworks, seeds and teleports for one clean birdhouse or trap loop",
-    keywords: ["box trap", "bird snare", "clockwork", "logs", "seed", "butterfly net", "impling jar"],
-    items: [
-      { pattern: /^redwood logs$/i, label: "redwood birdhouses", xp: 1200 },
-      { pattern: /^magic logs$/i, label: "magic birdhouses", xp: 1140 },
-      { pattern: /^yew logs$/i, label: "yew birdhouses", xp: 1020 },
-      { pattern: /^maple logs$/i, label: "maple birdhouses", xp: 820 },
-      { pattern: /^clockwork$/i, label: "clockworks", xp: 820 },
-      { pattern: /^box trap$/i, label: "box trap route", xp: 265 }
-    ]
-  },
-  {
-    skill: "Runecraft",
-    suppliesLabel: "essence",
-    actionVerb: "Runecraft",
-    bringHint: "Pouches, essence and the altar teleport route",
-    keywords: ["essence", "pouch", "tiara", "talisman"],
-    items: [
-      { pattern: /^pure essence$/i, label: "pure essence", xp: 8 },
-      { pattern: /^daeyalt essence$/i, label: "daeyalt essence", xp: 12 },
-      { pattern: /^rune essence$/i, label: "rune essence", xp: 5 }
-    ]
-  },
-  {
-    skill: "Farming",
-    suppliesLabel: "seeds/saplings",
-    actionVerb: "Plant",
-    bringHint: "Seeds, saplings, compost and teleports for one clean run",
-    keywords: ["seed", "sapling", "compost", "secateurs", "spade"],
-    items: [
-      { pattern: /^magic seed$/i, label: "magic seeds", xp: 13768 },
-      { pattern: /^palm tree seed$/i, label: "palm tree seeds", xp: 10150 },
-      { pattern: /^yew seed$/i, label: "yew seeds", xp: 7069 },
-      { pattern: /^papaya tree seed$/i, label: "papaya seeds", xp: 6146 },
-      { pattern: /^maple seed$/i, label: "maple seeds", xp: 3403 },
-      { pattern: /^ranarr seed$/i, label: "ranarr seeds", xp: 39 },
-      { pattern: /^snapdragon seed$/i, label: "snapdragon seeds", xp: 98.5 }
-    ]
-  }
-];
+const SKILL_BANK_XP = BANKED_XP_SKILL_DESCRIPTORS;
 
 function formatXp(value: number): string {
   return `${Math.round(value).toLocaleString()} XP`;
@@ -3455,24 +3230,33 @@ function skillingBankSummaryForRecommendation(
   const skill = skillNameForRecommendation(rec);
   const config = skillBankConfigForSkill(skill);
   if (!config) return null;
+  if (bankItems.length === 0) return null;
 
-  const estimate = maxEstimate?.perSkill.find((entry) => entry.skill.toLowerCase() === config.skill.toLowerCase()) ?? null;
-  const xpRemaining = estimate?.xpRemaining ?? null;
-  const owned = config.items
-    .map((method) => {
-      const quantity = bankQuantityMatching(bankItems, method.pattern);
-      return { ...method, quantity, xpTotal: quantity * (method.xp ?? 0) };
-    })
-    .filter((item) => item.quantity > 0)
-    .sort((a, b) => b.xpTotal - a.xpTotal);
-  const bankXp = owned.reduce((sum, item) => sum + item.xpTotal, 0);
-  const bestXpMethod = owned.find((item) => item.xpTotal > 0) ?? config.items.find((item) => (item.xp ?? 0) > 0) ?? null;
-  const bankItemsLabel = owned.length
-    ? owned.slice(0, 3).map((item) => `${item.quantity.toLocaleString()} ${item.label}`).join(", ")
-    : `No ${config.suppliesLabel} found in this bank`;
-  const remainingAfterBank = xpRemaining === null ? null : Math.max(0, xpRemaining - bankXp);
-  const neededAfterBankLabel = remainingAfterBank && remainingAfterBank > 0 && bestXpMethod?.xp
-    ? `Need about ${Math.ceil(remainingAfterBank / bestXpMethod.xp).toLocaleString()} more ${bestXpMethod.label} if you keep this method.`
+  const skillEstimate = maxEstimate?.perSkill.find((entry) => entry.skill.toLowerCase() === config.skill.toLowerCase()) ?? null;
+  const xpRemaining = skillEstimate?.xpRemaining ?? null;
+  const bankEstimate = estimateBankedXp({
+    skill: config.skill,
+    bank: bankItems.length > 0 ? bankItems : undefined,
+    currentLevel: skillEstimate?.currentLevel,
+    xpRemaining
+  });
+  const bankXp = bankEstimate.coveredXpHigh;
+  const bestMaterial = bankEstimate.materials[0] ?? null;
+  const supportingItems = bankItems
+    .filter((item) => config.keywords.some((keyword) => item.name.toLowerCase().includes(keyword.toLowerCase())))
+    .sort((a, b) => b.quantity - a.quantity)
+    .slice(0, 3);
+  const bankItemsLabel = bankEstimate.materials.length
+    ? bankEstimate.materials.map((item) => `${item.quantity.toLocaleString()} ${item.name}`).join(", ")
+    : supportingItems.length
+      ? supportingItems.map((item) => `${item.quantity.toLocaleString()} ${item.name.toLowerCase()}`).join(", ")
+      : "This bank does not cover the chosen skilling method yet";
+  const remainingAfterBank = bankEstimate.remainingXpHigh;
+  const xpPerBestMaterial = bestMaterial && bestMaterial.quantity > 0
+    ? bestMaterial.xpHigh / bestMaterial.quantity
+    : null;
+  const neededAfterBankLabel = remainingAfterBank && remainingAfterBank > 0 && xpPerBestMaterial
+    ? `Need about ${Math.ceil(remainingAfterBank / xpPerBestMaterial).toLocaleString()} more ${bestMaterial.name} if you keep this method.`
     : null;
 
   return {
@@ -3480,21 +3264,21 @@ function skillingBankSummaryForRecommendation(
     xpRemaining,
     bankXp,
     bankItemsLabel,
-    hasBankMatch: owned.length > 0,
+    hasBankMatch: bankEstimate.status === "estimated" || supportingItems.length > 0,
     suppliesLabel: config.suppliesLabel,
     actionVerb: config.actionVerb,
     bringHint: config.bringHint,
     remainingAfterBank,
     neededAfterBankLabel,
-    bankCoversTarget: xpRemaining !== null && bankXp >= xpRemaining && xpRemaining > 0
+    bankCoversTarget: xpRemaining !== null && bankEstimate.coveredXpLow >= xpRemaining && xpRemaining > 0
   };
 }
 
-function skillBankConfigForSkill(skill: string): SkillBankConfig | null {
+function skillBankConfigForSkill(skill: string): BankedXpSkillDescriptor | null {
   return SKILL_BANK_XP.find((config) => config.skill.toLowerCase() === skill.toLowerCase()) ?? null;
 }
 
-function skillBankConfigForRecommendation(rec: Recommendation): SkillBankConfig | null {
+function skillBankConfigForRecommendation(rec: Recommendation): BankedXpSkillDescriptor | null {
   return skillBankConfigForSkill(skillNameForRecommendation(rec));
 }
 
@@ -3522,7 +3306,12 @@ function routeStepPrep(
           ? "enough for the 99 push"
           : `${formatXp(summary.remainingAfterBank)} still left after that`;
       const needed = summary.neededAfterBankLabel ? ` ${summary.neededAfterBankLabel}` : "";
-      return `Bank has ${summary.bankItemsLabel} (~${formatXp(summary.bankXp)}). ${summary.actionVerb} those first; ${gap}.${needed}`;
+      const bankEstimate = estimateBankedXp({
+        skill: summary.skill,
+        bank: bankItems,
+        xpRemaining: summary.xpRemaining
+      });
+      return `Bank has ${summary.bankItemsLabel} (${formatXpRange(bankEstimate.coveredXpLow, bankEstimate.coveredXpHigh)} XP). ${summary.actionVerb} those first; ${gap}.${needed}`;
     }
     if (summary.hasBankMatch) {
       const gap = summary.xpRemaining === null
@@ -3531,8 +3320,8 @@ function routeStepPrep(
       return `Bank has ${summary.bankItemsLabel}. Use that method; ${gap}.`;
     }
     return isIron
-      ? `No ${summary.suppliesLabel} in the pasted bank. Gather your own supply first, then train the stack.`
-      : `No ${summary.suppliesLabel} in the pasted bank. Buy or gather a clean stack before committing.`;
+      ? `This bank does not cover the route yet. Gather one usable stack first.`
+      : `This bank does not cover the route yet. Buy or gather one usable stack before committing.`;
   }
 
   if (rec.kind === "kc" || rec.kind === "boss") {

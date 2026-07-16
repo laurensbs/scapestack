@@ -1030,7 +1030,7 @@ Acceptance:
 
 ## Phase 13 - Make Banked XP Correct Across Skills
 
-Status: TODO  
+Status: DONE (2026-07-16)
 Depends on: Phase 12  
 Improves: bank intelligence, recommendation trust
 
@@ -1060,6 +1060,37 @@ Acceptance:
 - maxed skills do not recommend a 99 push;
 - property tests prevent negative quantities and XP.
 ```
+
+### Evidence
+
+- Added one shared, pure banked-XP engine for Cooking, Prayer, Herblore,
+  Fletching, Crafting, Smithing, Construction, Firemaking, Farming, Magic and
+  Runecraft. `/next` and `SkillRoute` now use the same recipes instead of
+  maintaining different client-side XP tables.
+- Item variants and noted labels collapse into one canonical stack. Quantities
+  and XP are finite and non-negative, and only the three most relevant stacks
+  are player-facing while totals still include every usable material.
+- Cooking counts raw food only and exposes a burn-sensitive XP range. Cooked
+  fish cannot become future Cooking XP. Prayer supports bury, gilded altar,
+  Chaos Altar and Ectofuntus assumptions without multiplying ashes.
+- Herblore allocates unfinished potions, herbs, vials and shared secondaries
+  once; finished potion doses are excluded. Fletching likewise allocates
+  feathers and bow strings once. Crafting battlestaves require charged orbs,
+  Smithing coal is allocated once, and finished Smithing products are not
+  counted again.
+- A missing bank is explicitly `unknown`, an inspected bank without a usable
+  method is `known-empty`, and neither state invents a "no raw fish" claim.
+  Maxed routes no longer retain a recommended training method.
+- Regression coverage includes a Lauky-like 2,000 raw-shark Cooking route,
+  noted variants, raw versus cooked food, Prayer methods, potion chains,
+  shared Fletching parts, Crafting and Smithing chains, planks, logs, seeds,
+  selected Magic casts and hostile numeric inputs.
+- Verification: all 191 test files and 1,219 tests passed. `npm run ci:check`
+  passed typecheck, smoke, recommendation audit, release checks and the
+  215-page production build. `./gradlew test` passed the RuneLite suite.
+  Desktop and 390x844 browser checks had content, no error overlay, no browser
+  errors and no horizontal overflow. Screenshots are in
+  `/tmp/scapestack-phase-13/`.
 
 ## Phase 14 - Build Ironman Supply Routes
 

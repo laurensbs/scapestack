@@ -3,6 +3,11 @@ import { isIronPlannerAccount } from "./account-type";
 import type { CompletionItem } from "./goals";
 import type { HiscoreSkill } from "./hiscores";
 import { formatXp } from "./hiscores";
+import {
+  bankedXpMaterialLine,
+  estimateBankedXp,
+  type BankedXpEstimate
+} from "./banked-xp";
 import { FISHING_METHODS } from "./skill-methods/fishing";
 import { XP_TABLE } from "./skill-methods/types";
 
@@ -72,6 +77,7 @@ export interface SkillRoute {
   };
   unlock: string;
   sourcing: SkillSupplyState[];
+  bankedXpEstimate: BankedXpEstimate;
 }
 
 const DEFAULT_METHODS: Record<RoutableSkill, Omit<SkillRouteMethod, "skill">> = {
@@ -181,7 +187,8 @@ function planMethod(
   methodValue: SkillRouteMethod,
   xpRemaining: number,
   bank: CompletionItem[] | undefined,
-  accountType: PlannerAccountType | null
+  accountType: PlannerAccountType | null,
+  bankedXpEstimate: BankedXpEstimate
 ): SkillRouteMethodPlan {
   const supplies = methodValue.requirements.map((requirement) => {
     const bankedQuantity = requirementQuantity(requirement, bank);
@@ -195,15 +202,21 @@ function planMethod(
     ? supplies.reduce((total, entry) => total + (entry.bankedQuantity ?? 0), 0)
     : null;
   const quantityRequired = methodValue.xpPerAction ? Math.ceil(xpRemaining / methodValue.xpPerAction) : null;
+  const calculatedBankedQuantity = bankedXpEstimate.status === "estimated"
+    ? bankedXpEstimate.totalQuantity
+    : null;
+  const calculatedBankedXp = bankedXpEstimate.status === "estimated"
+    ? Math.round((bankedXpEstimate.coveredXpLow + bankedXpEstimate.coveredXpHigh) / 2)
+    : null;
   return {
     method: methodValue,
     xpRemaining,
     hours: methodValue.xpPerHour > 0 ? xpRemaining / methodValue.xpPerHour : 0,
     quantityRequired,
-    bankedQuantity,
-    bankedXp: methodValue.xpPerAction && bankedQuantity !== null
+    bankedQuantity: calculatedBankedQuantity ?? bankedQuantity,
+    bankedXp: calculatedBankedXp ?? (methodValue.xpPerAction && bankedQuantity !== null
       ? Math.min(xpRemaining, bankedQuantity * methodValue.xpPerAction)
-      : null,
+      : null),
     netGp: methodValue.gpPerHour === null ? null : Math.round((xpRemaining / methodValue.xpPerHour) * methodValue.gpPerHour),
     supplies
   };
@@ -227,10 +240,16 @@ export function buildSkillRoute(input: {
   const targetLevel = Math.max(currentLevel, Math.min(99, Math.floor(input.targetLevel)));
   const targetXp = XP_TABLE[targetLevel];
   const xpRemaining = Math.max(0, targetXp - currentXp);
+  const bankedXpEstimate = estimateBankedXp({
+    skill,
+    bank: input.bank,
+    currentLevel,
+    xpRemaining
+  });
   const methods = skillMethods(skill)
     .filter((entry) => entry.levelReq <= currentLevel)
-    .map((entry) => planMethod(entry, xpRemaining, input.bank, input.accountType ?? null));
-  const recommended = [...methods].sort((a, b) => {
+    .map((entry) => planMethod(entry, xpRemaining, input.bank, input.accountType ?? null, bankedXpEstimate));
+  const recommended = xpRemaining <= 0 ? null : [...methods].sort((a, b) => {
     const attentionPenalty = (plan: SkillRouteMethodPlan) => plan.method.attention === "focused" ? 0.7 : 1;
     return b.method.xpPerHour * attentionPenalty(b) - a.method.xpPerHour * attentionPenalty(a);
   })[0] ?? null;
@@ -259,17 +278,21 @@ export function buildSkillRoute(input: {
         : `Earn about ${formatXp(sessionXp)} ${skill} XP${endLevel > currentLevel ? ` and reach ${endLevel}` : ""}`
     },
     unlock: input.unlock ?? (targetLevel === 99 ? `${skill} cape` : `${skill} ${targetLevel}`),
-    sourcing
+    sourcing,
+    bankedXpEstimate
   };
 }
 
 export function skillRouteNeeds(route: SkillRoute): string[] {
-  return (route.recommended?.supplies ?? []).map((supplyValue) => {
+  const bankedLine = bankedXpMaterialLine(route.bankedXpEstimate);
+  const supplyLines = (route.recommended?.supplies ?? []).flatMap((supplyValue) => {
+    if (bankedLine && supplyValue.state === "banked") return [];
     if (supplyValue.state === "banked") return `${supplyValue.name} in bank`;
     if (supplyValue.state === "buyable") return `Buy ${supplyValue.name.toLowerCase()} if needed`;
     if (supplyValue.state === "source-yourself") return `Source ${supplyValue.name.toLowerCase()}`;
     return `Check ${supplyValue.name.toLowerCase()}`;
   });
+  return [...(bankedLine ? [bankedLine] : []), ...supplyLines].slice(0, 3);
 }
 
 export function skillRoutePlanSeed(route: SkillRoute): { timebox: string; prep: string; steps: string[] } {

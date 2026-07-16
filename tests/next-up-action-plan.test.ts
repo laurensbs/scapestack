@@ -66,7 +66,7 @@ describe("next-up action plans", () => {
     const route = recs.find((rec) => rec?.id === "milestone:maxing-lane:Cooking");
 
     expect(route?.why).toContain("534,431 XP left");
-    expect(route?.needs).toContain("Raw food in bank");
+    expect(route?.needs?.join(" ")).toMatch(/2,000 raw shark.*Cooking XP/);
     expect(route?.actionPlan?.steps[0]).toContain("cook the best raw food already available");
     expect(route?.actionPlan?.steps.join(" ")).not.toMatch(/gear|teleport|quest items/i);
   });
