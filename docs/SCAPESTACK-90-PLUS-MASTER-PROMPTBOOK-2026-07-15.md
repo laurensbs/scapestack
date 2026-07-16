@@ -607,6 +607,7 @@ Acceptance:
   smoke, zero hard recommendation failures, offline plugin release checks and
   a 214-page production build. `./gradlew test` passed the full plugin suite,
   including the live Neon-backed end-to-end flow. `git diff --check` passed.
+- Implementation commit: `f372c7d`.
 - Residual risk: the timeline can only reconstruct moments recorded after
   server history or exact-RSN legacy trip history exists. Older unrecorded
   browser activity cannot be inferred safely.
