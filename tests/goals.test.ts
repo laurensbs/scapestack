@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { goalCategoryOrder, GOAL_CATEGORIES, unlockedFromHiscores } from "@/lib/goals";
+import {
+  checkCompletion,
+  goalCategoryOrder,
+  GOAL_CATEGORIES,
+  GOAL_SETS,
+  normaliseCompletion,
+  unlockedFromHiscores
+} from "@/lib/goals";
 
 describe("unlockedFromHiscores — synthetic skill capes from Hiscores", () => {
   it("emits a Woodcutting cape for a player at 99 Woodcutting", () => {
@@ -73,5 +80,33 @@ describe("goalCategoryOrder — archetype-aware category display", () => {
       expect(order.length).toBe(all.length);
       expect([...order].sort()).toEqual(all);
     }
+  });
+});
+
+describe("goal reward inference", () => {
+  it("lets an elite diary reward cover every lower tier", () => {
+    const completion = checkCompletion([{ id: 13103, name: "Karamja gloves 4" }])
+      .find((set) => set.setId === "karamja-diary")!;
+    const definition = GOAL_SETS.find((set) => set.id === "karamja-diary")!;
+
+    expect(normaliseCompletion(completion, definition).complete).toBe(true);
+    expect(completion.perGoal["karamja-1"]).toMatchObject({ satisfied: true, satisfiedBy: "karamja-4" });
+    expect(completion.perGoal["karamja-3"]).toMatchObject({ satisfied: true, satisfiedBy: "karamja-4" });
+  });
+
+  it("applies Elite Void upgrades to the normal Void pieces across sets", () => {
+    const completions = checkCompletion([{ id: 13072, name: "Elite void top" }]);
+    const normalVoid = completions.find((set) => set.setId === "void-knight")!;
+    const eliteVoid = completions.find((set) => set.setId === "elite-void")!;
+    const eliteDefinition = GOAL_SETS.find((set) => set.id === "elite-void")!;
+
+    expect(normalVoid.perGoal["void-top"]).toMatchObject({ satisfied: true, satisfiedBy: "elite-void-top" });
+    expect(normalVoid.perGoal["void-robe"].satisfied).toBe(false);
+    expect(normaliseCompletion(eliteVoid, eliteDefinition)).toMatchObject({
+      isTiered: false,
+      progress: 1,
+      max: 2,
+      complete: false
+    });
   });
 });

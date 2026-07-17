@@ -321,9 +321,9 @@ describe("Scapestack readiness rail", () => {
 
     const goalsSource = readFileSync(join(process.cwd(), "src/app/goals/goals-client.tsx"), "utf8");
     expect(goalsSource).not.toContain("ScapestackReadinessRail");
-    expect(goalsSource).toContain("Add more context");
+    expect(goalsSource).toContain("Browse other unlocks");
     expect(goalsSource).not.toContain("Make rewards smarter");
-    expect(goalsSource).toContain("Bank rewards are ticked from the items you pasted");
+    expect(goalsSource).not.toContain("Bank rewards are ticked from the items you pasted");
 
     const dpsSource = readFileSync(join(process.cwd(), "src/app/dps/dps-client.tsx"), "utf8");
     expect(dpsSource).not.toContain("ScapestackReadinessRail");

@@ -265,6 +265,53 @@ type InitialRouteChoice = {
   minutes: TimeBudget;
 };
 
+type GoalRouteFocus = {
+  setId: string;
+  targetName: string;
+};
+
+function goalRouteFocusFromSearch(search: string): GoalRouteFocus | null {
+  const params = new URLSearchParams(search.replace(/^\?/, ""));
+  const setId = params.get("unlock")?.trim() ?? "";
+  const targetName = params.get("target")?.trim() ?? "";
+  if (!setId || !targetName || params.get("from") !== "goals") return null;
+  return { setId, targetName };
+}
+
+function recommendationForGoalRoute(focus: GoalRouteFocus, rsn: string): Recommendation {
+  const params = new URLSearchParams({ from: "next" });
+  if (rsn.trim()) params.set("rsn", rsn.trim());
+  return {
+    id: `active-unlock:${focus.setId}:${focus.targetName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+    kind: "goal",
+    title: `Unlock ${focus.targetName}`,
+    why: "You chose this reward in Unlocks, so it stays ahead of unrelated trips.",
+    payoff: "Finish one clear reward step, then re-open Unlocks for the next target.",
+    decisionReason: "This is your active unlock route.",
+    score: 10_000,
+    link: `/goals?${params.toString()}`,
+    routeTags: ["unlock"],
+    actionPlan: {
+      timebox: "One reward step",
+      confidence: "guided",
+      confidenceLabel: "Chosen route",
+      prep: "Open the saved unlock steps before leaving the bank.",
+      steps: [
+        `Open the route for ${focus.targetName}.`,
+        "Finish the first unchecked step.",
+        "Stop when the reward path changes."
+      ],
+      caveat: "Unknown quest or diary steps stay unconfirmed until RuneLite or you tick them."
+    },
+    routeChain: {
+      steps: [
+        { label: "Do this first", text: `Work on ${focus.targetName}.` },
+        { label: "Stop", text: "Stop after the first unchecked reward step is complete." }
+      ]
+    }
+  };
+}
+
 const INTAKE_SESSION_CHOICES: Array<{
   id: string;
   label: string;
@@ -364,6 +411,10 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
   const [initialRouteChoice, setInitialRouteChoice] = useState<InitialRouteChoice | null>(null);
   const routeIntent = useMemo(
     () => nextIntentFromSearch(initialQueryString),
+    [initialQueryString]
+  );
+  const goalRouteFocus = useMemo(
+    () => goalRouteFocusFromSearch(initialQueryString),
     [initialQueryString]
   );
   const cameFromPlugin = useMemo(() => {
@@ -788,6 +839,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
         onClearStoredBankHandoff={clearStoredBankHandoff}
         expectedPluginSync={expectedPluginSync}
         routeIntent={routeIntent}
+        goalRouteFocus={goalRouteFocus}
         initialRouteChoice={initialRouteChoice}
         planRequestedAt={planRequestedAt}
         isFirstRun={isFirstRun}
@@ -1271,7 +1323,7 @@ function NextIntake({
   );
 }
 
-function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOpen, onClearStoredBankHandoff, expectedPluginSync, routeIntent, initialRouteChoice, planRequestedAt, isFirstRun }: {
+function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOpen, onClearStoredBankHandoff, expectedPluginSync, routeIntent, goalRouteFocus, initialRouteChoice, planRequestedAt, isFirstRun }: {
   result: NextUpResult;
   bankItems: BankHandoffItem[];
   bankSource: NextBankSource;
@@ -1283,6 +1335,7 @@ function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOp
   onClearStoredBankHandoff: () => void;
   expectedPluginSync: boolean;
   routeIntent: NextIntentPreset | null;
+  goalRouteFocus: GoalRouteFocus | null;
   initialRouteChoice: InitialRouteChoice | null;
   planRequestedAt: number | null;
   isFirstRun: boolean;
@@ -1298,7 +1351,10 @@ function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOp
   // Alle recommendations voor de What-to-do track. Mood-laag herrangschikt
   // ze; "Also worth knowing" is verdwenen — niet-getoonde recs blijven
   // beschikbaar via de drill-in cards in Where-you-are.
-  const allRecs = headline ? [headline, ...rest] : rest;
+  const focusedUnlock = goalRouteFocus ? recommendationForGoalRoute(goalRouteFocus, activeRsn) : null;
+  const allRecs = focusedUnlock
+    ? [focusedUnlock, ...(headline ? [headline, ...rest] : rest).filter((rec) => rec.id !== focusedUnlock.id)]
+    : headline ? [headline, ...rest] : rest;
 
   // Track-stagger: elke sectie fade'd binnen met 150ms verschil zodat
   // de pagina vouwt-open ipv pop-in. Gebruikt CSS animation-delay

@@ -1937,7 +1937,7 @@ Acceptance:
 
 ## Phase 28 - Make Goals An Unlock Companion
 
-Status: TODO  
+Status: DONE (2026-07-17)
 Depends on: Phases 15 and 16  
 Improves: goals UX and depth
 
@@ -1974,6 +1974,36 @@ Acceptance:
 - selected checklist persists;
 - one click turns an unlock into the current route.
 ```
+
+### Evidence
+
+- Replaced the goals dashboard with one account-specific reward first. The
+  default view now shows the reward sprite, why it matters, the first action,
+  a stop point and one `See the route` action. Counts, readiness rails and the
+  Bank/RSN/RuneLite status grid are gone from the player path.
+- Other goals live behind `Browse other unlocks`. Opening it reveals searchable
+  large reward tiles; selecting one immediately opens its focused route rather
+  than adding another dashboard panel.
+- The focused route is a scrollable mobile-first sheet with play-order steps,
+  requirements, inferred ownership and manual checks only for progress the app
+  cannot confirm. Manual checks and the selected unlock persist per RSN.
+- Elite Void pieces now satisfy their matching normal Void pieces without one
+  elite piece falsely completing both body slots. Higher diary tiers continue
+  to cover lower tiers, and unknown progress is phrased as unconfirmed instead
+  of blocked.
+- `Make this my route` stores the active unlock and opens `/next` with the exact
+  goal. `/next` gives that selected reward priority over unrelated trips, so the
+  handoff remains one continuous route.
+- Fixed the global mobile scroll root uncovered by the long unlock checklist:
+  pages now use one document scroll instead of a fixed-height nested body. At
+  390x844 the browser and final modal action are reachable with zero horizontal
+  overflow; 1440x1000 is also clean and both viewports produced no browser or
+  console errors. Screenshots: `/tmp/scapestack-goals-phase28-mobile-final.png`,
+  `/tmp/scapestack-goals-phase28-mobile-modal-final.png` and
+  `/tmp/scapestack-goals-phase28-desktop-final.png`.
+- Verification: 206 test files / 1,303 tests passed. `npm run ci:check` passed
+  typecheck, smoke, recommendation audit, plugin release checks and the
+  216-page production build. `./gradlew test` passed the RuneLite suite.
 
 ## Phase 29 - Make RuneLite Setup Nearly Invisible
 

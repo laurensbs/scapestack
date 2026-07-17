@@ -77,8 +77,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="h-full">
-      <body className="h-full subpixel-antialiased font-sans">
+    <html lang="en" className="min-h-full">
+      <body className="min-h-full subpixel-antialiased font-sans">
         {process.env.NODE_ENV === "production" && (
           <Script
             defer

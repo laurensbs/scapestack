@@ -282,7 +282,7 @@ export const GOAL_SETS: GoalSet[] = [
     name: "Karamja gloves",
     category: "diary",
     emoji: "🌴",
-    iconItemId: 11772, // Karamja gloves 4
+    iconItemId: 13103, // Karamja gloves 4
     description: "4 tiers — easy, medium, hard, elite.",
     goals: [
       { id: "karamja-1", name: "Karamja gloves 1", namePattern: /^karamja gloves 1$/i, tier: 1 },
@@ -932,7 +932,7 @@ export function checkCompletion(
   const itemNames = items.map((it) => ({ id: it.id, lower: it.name.toLowerCase() }));
   const itemIds = new Set(items.map((it) => it.id));
 
-  return sets.map((set) => {
+  const completions = sets.map((set) => {
     // Step 1: identify which goals are physically owned + capture matched id.
     const owned: Record<string, { hit: boolean; matchedId?: number }> = {};
     for (const goal of set.goals) {
@@ -994,6 +994,34 @@ export function checkCompletion(
       maxTier
     };
   });
+
+  // A later reward can supersede a goal in another set. Elite Void is the
+  // important example: owning an elite top proves the normal Void top even
+  // though those rewards live in separate browse groups. Apply those links
+  // after every set has been matched, then recompute the affected totals.
+  const ownedGoals = sets.flatMap((set, setIndex) =>
+    set.goals
+      .filter((goal) => completions[setIndex]?.perGoal[goal.id]?.owned)
+      .map((goal) => goal)
+  );
+  for (const ownedGoal of ownedGoals) {
+    for (const earlierId of ownedGoal.supersedes ?? []) {
+      for (const completion of completions) {
+        const earlier = completion.perGoal[earlierId];
+        if (!earlier || earlier.satisfied) continue;
+        completion.perGoal[earlierId] = {
+          ...earlier,
+          satisfied: true,
+          satisfiedBy: ownedGoal.id
+        };
+      }
+    }
+  }
+  for (const completion of completions) {
+    completion.completed = Object.values(completion.perGoal).filter((state) => state.satisfied).length;
+  }
+
+  return completions;
 }
 
 /**
@@ -1019,7 +1047,8 @@ export function normaliseCompletion(c: SetCompletion, set: GoalSet): NormalisedS
   // A set is "purely tiered" if EVERY goal has a tier AND the tiers form a
   // single chain (e.g. diary trinket 1/2/3/4, fire→infernal).
   const allTiered = set.goals.every((g) => g.tier !== undefined);
-  const isTiered = allTiered && c.maxTier !== undefined;
+  const uniqueTiers = new Set(set.goals.map((goal) => goal.tier));
+  const isTiered = allTiered && uniqueTiers.size === set.goals.length && c.maxTier !== undefined;
 
   if (isTiered) {
     const tier = c.highestTier ?? 0;

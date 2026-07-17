@@ -3,49 +3,44 @@
 import { useState, useTransition, useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 import {
-  Edit3, Check, Search, Target, Trophy, Filter, ChevronDown, ArrowRight, CheckCircle2, Circle, ExternalLink
+  Edit3, Search, Target, ChevronDown, ArrowRight, CheckCircle2, Circle, ExternalLink, Compass
 } from "lucide-react";
 import { Intake } from "@/components/intake";
 import { ItemSprite } from "@/components/item-sprite";
-import { BankContextActions } from "@/components/bank-context-actions";
-import { SupportCard } from "@/components/support-card";
 import { organizeAction } from "@/app/actions";
 import {
-  GOAL_SETS, GOAL_CATEGORIES, checkCompletion, goalCategoryOrder,
-  closestToComplete, overallStats, normaliseCompletion, iconForGoal,
+  GOAL_SETS, GOAL_CATEGORIES, checkCompletion,
+  goalCategoryOrder, normaliseCompletion, iconForGoal,
   type SetCompletion, type GoalCategory
 } from "@/lib/goals";
 import { loadArchetype, type Archetype } from "@/lib/archetype";
 import { hiscoresAction } from "@/app/actions";
-import { cn, formatGp } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { wikiSearchUrl } from "@/lib/wiki";
 import { goalItemsWithHiscoreUnlocks } from "@/lib/goal-handoff";
 import {
-  bankHandoffItemsFromTabs,
+  goalManualChecksStorageKey,
+  goalRouteHref,
+  goalSelectionStorageKey,
+  persistActiveGoalRoute
+} from "@/lib/goal-companion";
+import {
   nextUpBankFromHandoff,
   persistBankHandoffPayload,
-  readBankHandoffPayload,
-  summarizeBankHandoff,
-  type BankHandoffSummary
+  readBankHandoffPayload
 } from "@/lib/next-bank-handoff";
-
-type CompletionFilter = "all" | "complete" | "incomplete";
-const GOAL_CHECK_STORAGE_KEY = "scapestack:goals:manual-checks:v1";
 
 export function GoalsClient() {
   const [view, setView] = useState<"intake" | "result">("intake");
   const [items, setItems] = useState<Array<{ id: number; name: string }>>([]);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const [bankSummary, setBankSummary] = useState<BankHandoffSummary | null>(null);
-  const [loadedFromHandoff, setLoadedFromHandoff] = useState(false);
-  const [loadedFromHiscoresOnly, setLoadedFromHiscoresOnly] = useState(false);
   const [activeRsn, setActiveRsn] = useState("");
   const [skipHandoff, setSkipHandoff] = useState(false);
 
-  const [filter, setFilter] = useState<CompletionFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<GoalCategory | "all">("all");
+  const [browserOpen, setBrowserOpen] = useState(false);
   const [selectedSetId, setSelectedSetId] = useState<string | null>(null);
   const [openUnlockSetId, setOpenUnlockSetId] = useState<string | null>(null);
   const [manualChecks, setManualChecks] = useState<Set<string>>(() => new Set());
@@ -57,14 +52,20 @@ export function GoalsClient() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      const raw = window.localStorage.getItem(GOAL_CHECK_STORAGE_KEY);
-      const parsed = raw ? JSON.parse(raw) : [];
-      if (Array.isArray(parsed)) {
-        setManualChecks(new Set(parsed.filter((item): item is string => typeof item === "string")));
-      }
+      const rawChecks = window.localStorage.getItem(goalManualChecksStorageKey(activeRsn));
+      const parsedChecks = rawChecks ? JSON.parse(rawChecks) : [];
+      setManualChecks(new Set(
+        Array.isArray(parsedChecks)
+          ? parsedChecks.filter((item): item is string => typeof item === "string")
+          : []
+      ));
+      const savedSelection = window.localStorage.getItem(goalSelectionStorageKey(activeRsn));
+      setSelectedSetId(savedSelection && GOAL_SETS.some((set) => set.id === savedSelection) ? savedSelection : null);
     } catch {
+      setManualChecks(new Set());
+      setSelectedSetId(null);
     }
-  }, []);
+  }, [activeRsn]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -84,17 +85,11 @@ export function GoalsClient() {
             return;
           }
           setItems(goalItemsWithHiscoreUnlocks([], hiscores.skills));
-          setBankSummary(null);
-          setLoadedFromHandoff(false);
-          setLoadedFromHiscoresOnly(true);
           setView("result");
         });
         return;
       }
 
-      setBankSummary(summarizeBankHandoff(handoffItems));
-      setLoadedFromHandoff(true);
-      setLoadedFromHiscoresOnly(false);
       if (paramRsn) {
         startTransition(async () => {
           const hiscores = await hiscoresAction(paramRsn);
@@ -136,9 +131,6 @@ export function GoalsClient() {
       } catch {
         // Cross-tool handoff is best-effort; goals still has local state.
       }
-      setBankSummary(summarizeBankHandoff(bankHandoffItemsFromTabs(bankRes.result.tabs)));
-      setLoadedFromHandoff(false);
-      setLoadedFromHiscoresOnly(false);
       // Merge in any skills at level 99 from hiscores as virtual cape items.
       // Dedupe by id so a player who has BOTH the cape and the 99 doesn't
       // double-count.
@@ -148,16 +140,20 @@ export function GoalsClient() {
   };
 
   const completions = useMemo(() => checkCompletion(items), [items]);
-  const closest = useMemo(() => closestToComplete(completions), [completions]);
-  const stats = useMemo(() => overallStats(completions), [completions]);
+  const rankedUnlocks = useMemo(
+    () => rankMeaningfulUnlocks(completions, archetype),
+    [archetype, completions]
+  );
   const spotlight = useMemo(() => {
-    return closest.find((c) => {
-      const set = GOAL_SETS.find((s) => s.id === c.setId);
-      return set ? !normaliseCompletion(c, set).complete : false;
-    }) ?? closest[0] ?? null;
-  }, [closest]);
+    return rankedUnlocks[0] ?? null;
+  }, [rankedUnlocks]);
   const selectedCompletion = useMemo(() => {
-    const targetSetId = selectedSetId ?? spotlight?.setId ?? null;
+    const savedSet = selectedSetId ? GOAL_SETS.find((set) => set.id === selectedSetId) : null;
+    const savedCompletion = selectedSetId ? completions.find((completion) => completion.setId === selectedSetId) : null;
+    const savedStillOpen = savedSet && savedCompletion
+      ? !normaliseCompletion(savedCompletion, savedSet).complete
+      : false;
+    const targetSetId = savedStillOpen ? selectedSetId : spotlight?.setId ?? null;
     if (!targetSetId) return null;
     const set = GOAL_SETS.find((s) => s.id === targetSetId);
     const completion = completions.find((c) => c.setId === targetSetId);
@@ -177,7 +173,7 @@ export function GoalsClient() {
       else next.add(key);
       if (typeof window !== "undefined") {
         try {
-          window.localStorage.setItem(GOAL_CHECK_STORAGE_KEY, JSON.stringify([...next]));
+          window.localStorage.setItem(goalManualChecksStorageKey(activeRsn), JSON.stringify([...next]));
         } catch {
         }
       }
@@ -198,11 +194,6 @@ export function GoalsClient() {
     if (categoryFilter !== "all") {
       list = list.filter(({ set }) => set.category === categoryFilter);
     }
-    if (filter === "complete") {
-      list = list.filter(({ set, completion }) => normaliseCompletion(completion, set).complete);
-    } else if (filter === "incomplete") {
-      list = list.filter(({ set, completion }) => !normaliseCompletion(completion, set).complete);
-    }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter(({ set }) =>
@@ -210,66 +201,52 @@ export function GoalsClient() {
         set.goals.some((g) => g.name.toLowerCase().includes(q))
       );
     }
-    return list;
-  }, [setsWithCompletion, categoryFilter, filter, searchQuery]);
+    return list.sort((a, b) => {
+      const aRank = rankedUnlocks.findIndex((completion) => completion.setId === a.set.id);
+      const bRank = rankedUnlocks.findIndex((completion) => completion.setId === b.set.id);
+      return (aRank < 0 ? 999 : aRank) - (bRank < 0 ? 999 : bRank);
+    });
+  }, [setsWithCompletion, categoryFilter, searchQuery, rankedUnlocks]);
 
-  // Category counts for chip badges
-  const categoryCounts = useMemo(() => {
-    const counts = new Map<GoalCategory, { done: number; total: number }>();
-    for (const { set, completion } of setsWithCompletion) {
-      const c = counts.get(set.category) || { done: 0, total: 0 };
-      c.done += completion.completed;
-      c.total += completion.total;
-      counts.set(set.category, c);
+  const chooseUnlock = (setId: string, open = false) => {
+    setSelectedSetId(setId);
+    if (open) setOpenUnlockSetId(setId);
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.setItem(goalSelectionStorageKey(activeRsn), setId);
+      } catch {
+      }
     }
-    return counts;
-  }, [setsWithCompletion]);
+  };
 
   // ── Intake view ──
   if (view === "intake") {
     return (
-      <>
-        <div className="mb-6 grid sm:grid-cols-3 gap-3">
-          <FeatureCard icon={Target}
-            title={`${GOAL_SETS.length} goal sets`}
-            body="Capes, Barrows, GWD, raids, diary rewards, skilling outfits — all the untradeables that mark progress." />
-          <FeatureCard icon={Trophy}
-            title="Auto-checked"
-            body="Paste your bank — we tick every item we recognize. No manual checklist." />
-          <FeatureCard icon={Search}
-            title="Close-to-complete"
-            body="Surfaces sets where you're 1-2 items away, so you know exactly what to chase next." />
+      <section className="mx-auto max-w-3xl">
+        <div className="mb-5">
+          <p className="eyebrow text-[var(--color-accent)]">Unlock companion</p>
+          <h1 className="mt-2 font-serif text-[34px] font-bold leading-tight text-[var(--color-text)] sm:text-[46px]">
+            What should you unlock next?
+          </h1>
+          <p className="mt-2 max-w-xl text-[14px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+            Add your account once. Scapestack finds one useful reward and the next step toward it.
+          </p>
         </div>
         <Intake onSubmit={run} loading={pending} error={error} askRsn />
-      </>
+      </section>
     );
   }
 
   // ── Result view ──
   return (
     <div className="animate-[slide-up_0.35s_ease-out]">
-      <section className="mb-5 flex flex-wrap items-end justify-between gap-4">
+      <section className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="flex items-baseline gap-3">
-            <h2 className="font-serif text-[34px] font-bold leading-none text-[var(--color-text)]">Next unlock trip</h2>
-          </div>
+          <p className="eyebrow text-[var(--color-accent)]">For {activeRsn || "this account"}</p>
+          <h2 className="mt-1 font-serif text-[34px] font-bold leading-none text-[var(--color-text)]">Unlock this next</h2>
           <p className="mt-2 max-w-xl text-[13.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-            Start with one useful unlock, then stop when the set changes.
+            One reward worth chasing now. Open it for the exact next step.
           </p>
-          <div className="mt-4 flex items-center gap-3">
-            <div className="h-2 w-[180px] overflow-hidden rounded-full bg-[var(--color-slot)]">
-              <div
-                className="h-full rounded-full transition-all"
-                style={{
-                  width: `${stats.percent}%`,
-                  background: "linear-gradient(90deg, oklch(0.56 0.13 65), oklch(0.84 0.16 80))"
-                }}
-              />
-            </div>
-            <span className="text-[12px] font-bold text-[var(--color-text-muted)]">
-              {stats.done}/{stats.total} rewards found
-            </span>
-          </div>
         </div>
         <button
           type="button"
@@ -277,7 +254,6 @@ export function GoalsClient() {
             setView("intake");
             setError(null);
             setSkipHandoff(true);
-            setLoadedFromHiscoresOnly(false);
           }}
           className={cn(
             "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px]",
@@ -294,197 +270,82 @@ export function GoalsClient() {
           set={selectedCompletion.set}
           completion={selectedCompletion.completion}
           allCompletions={completions}
+          manualChecks={manualChecks}
           onOpenSteps={() => setOpenUnlockSetId(selectedCompletion.set.id)}
         />
       )}
 
-      {closest.length > 0 && (
-        <section className="mb-7 mt-6">
-          <div className="mb-3 flex items-end justify-between gap-3">
-            <div>
-              <h2 className="font-serif text-[24px] font-bold text-[var(--color-text)]">More unlock routes</h2>
-              <p className="mt-1 text-[12.5px] text-[var(--color-text-muted)]">
-                Close wins first. Pick a tile only when this unlock is not the one.
-              </p>
+      <section className="mt-6 border-t border-[var(--color-border)] pt-5">
+        <button
+          type="button"
+          onClick={() => setBrowserOpen((open) => !open)}
+          aria-expanded={browserOpen}
+          className="group flex min-h-14 w-full items-center justify-between gap-4 text-left"
+        >
+          <span>
+            <span className="block font-serif text-[24px] font-bold text-[var(--color-text)]">Browse other unlocks</span>
+            <span className="mt-0.5 block text-[12.5px] font-semibold text-[var(--color-text-muted)]">
+              Quests, diaries, capes, outfits and useful grinds.
+            </span>
+          </span>
+          <ChevronDown className={cn("size-5 shrink-0 text-[var(--color-accent)] transition-transform", browserOpen && "rotate-180")} />
+        </button>
+
+        {browserOpen && (
+          <div className="mt-4 animate-[slide-up_0.25s_ease-out]">
+            <div className="mb-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_220px]">
+              <div className="relative">
+                <label htmlFor="goals-search" className="sr-only">Search unlocks</label>
+                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--color-text-muted)]" />
+                <input
+                  id="goals-search"
+                  name="goal"
+                  type="search"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Search a reward or activity"
+                  autoComplete="off"
+                  spellCheck={false}
+                  aria-describedby="goals-search-status"
+                  className="min-h-12 w-full rounded-xl border border-[var(--color-border)] bg-[#15120c] pl-10 pr-3 text-[13px] font-semibold text-[var(--color-text)] outline-none transition-colors placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)]"
+                />
+              </div>
+              <label className="sr-only" htmlFor="goal-category">Unlock type</label>
+              <select
+                id="goal-category"
+                value={categoryFilter}
+                onChange={(event) => setCategoryFilter(event.target.value as GoalCategory | "all")}
+                className="min-h-12 rounded-xl border border-[var(--color-border)] bg-[#15120c] px-3 text-[13px] font-bold text-[var(--color-text)] outline-none focus:border-[var(--color-accent)]"
+              >
+                <option value="all">Every unlock type</option>
+                {Object.entries(GOAL_CATEGORIES)
+                  .sort(([, a], [, b]) => a.order - b.order)
+                  .map(([category, info]) => <option key={category} value={category}>{info.label}</option>)}
+              </select>
             </div>
-          </div>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {closest.map((c) => {
-              const set = GOAL_SETS.find((s) => s.id === c.setId)!;
-              const norm = normaliseCompletion(c, set);
-              const missingGoals = set.goals.filter((g) => !c.perGoal[g.id].satisfied);
-              // For tiered sets, "next" = the very next tier up only.
-              const nextGoals = norm.isTiered
-                ? missingGoals.filter((g) => (g.tier ?? 0) === norm.progress + 1)
-                : missingGoals.slice(0, 4);
-              // Set-header icon: prefer the highest tier the user owns,
-              // else fall back to a canonical icon for the set.
-              const ownedTop = set.goals
-                .filter((g) => c.perGoal[g.id]?.owned)
-                .sort((a, b) => (b.tier ?? 0) - (a.tier ?? 0))[0];
-              const headerIconId = ownedTop
-                ? iconForGoal(ownedTop.id, c.perGoal[ownedTop.id])
-                : set.iconItemId ?? iconForGoal(set.goals[set.goals.length - 1].id);
-              const selected = (selectedSetId ?? spotlight?.setId) === c.setId;
-              return (
-                <button
-                  key={c.setId}
-                  type="button"
-                  onClick={() => {
-                    setSelectedSetId(c.setId);
-                    setOpenUnlockSetId(c.setId);
-                  }}
-                  aria-pressed={selected}
-                  className={cn(
-                    "group min-h-[150px] rounded-2xl border p-4 text-left transition-colors",
-                    selected
-                      ? "border-[var(--color-accent)] bg-[#3a2b17]"
-                      : "border-[var(--color-border)] bg-[#17130c]/85 hover:border-[var(--color-accent)]/55"
-                  )}
-                >
-                  <div className="flex h-full gap-4">
-                    {headerIconId ? (
-                      <span className="flex size-16 shrink-0 items-center justify-center rounded-2xl border border-[var(--color-accent)]/25 bg-black/25">
-                        <ItemSprite id={headerIconId} alt="" size={48} className="pixelated shrink-0" />
-                      </span>
-                    ) : (
-                      <span aria-hidden="true" className="mt-2 size-3 rounded-full bg-[var(--color-text-muted)] inline-block" />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <span className="block truncate font-serif text-[20px] font-bold leading-tight text-[var(--color-text)]">{set.name}</span>
-                          <span className="mt-1 block text-[12px] font-bold text-[var(--color-accent)]">
-                            {rewardTileLine(set, c)}
-                          </span>
-                        </div>
-                        <ArrowRight className="mt-1 size-4 shrink-0 text-[var(--color-text-muted)] transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--color-accent)]" />
-                      </div>
-                      <div className="mt-3 flex flex-wrap gap-1.5">
-                      {nextGoals.map((g) => {
-                        const iconId = iconForGoal(g.id, c.perGoal[g.id]);
-                        return (
-                          <span
-                            key={g.id}
-                            className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-black/20 px-2 py-1 text-[11px] font-semibold text-[var(--color-text-dim)]"
-                            title={g.name}
-                          >
-                            {iconId && (
-                              <ItemSprite
-                                id={iconId}
-                                alt=""
-                                size={16}
-                                className="pixelated shrink-0 opacity-70"
-                              />
-                            )}
-                            <span className="truncate">{g.name}</span>
-                          </span>
-                        );
-                      })}
-                      {missingGoals.length > nextGoals.length && (
-                        <span className="inline-flex items-center rounded-lg border border-[var(--color-border)] bg-black/15 px-2 py-1 text-[11px] font-semibold text-[var(--color-text-muted)]">
-                          +{missingGoals.length - nextGoals.length} later
-                        </span>
-                      )}
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      )}
+            <p id="goals-search-status" role="status" aria-live="polite" className="sr-only">
+              {filteredSets.length} unlocks shown.
+            </p>
 
-      <details className="mb-6 rounded-xl border border-[var(--color-border)] bg-[#15120c]/55 p-3">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[12px] font-bold text-[var(--color-text)] marker:hidden">
-          <span>Add more context</span>
-          <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">Bank, RSN, RuneLite</span>
-        </summary>
-        <div className="mt-4 space-y-4">
-          {bankSummary && (
-            <GoalsBankContextBanner
-              rsn={activeRsn}
-              summary={bankSummary}
-              loadedFromHandoff={loadedFromHandoff}
-            />
-          )}
-          {loadedFromHiscoresOnly && activeRsn && (
-            <GoalsHiscoreContextBanner rsn={activeRsn} />
-          )}
-          <BankContextActions source="goals" rsn={activeRsn} hasBankContext={items.length > 0 && !loadedFromHiscoresOnly} />
-        </div>
-      </details>
-
-      {/* Filters */}
-      <section className="mb-5 flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 max-w-[280px] min-w-[180px]">
-          <label htmlFor="goals-search" className="sr-only">
-            Search goals by item, set or category
-          </label>
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-[var(--color-text-dim)]" />
-          <input
-            id="goals-search"
-            name="goal"
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search rewards…"
-            autoComplete="off"
-            spellCheck={false}
-            aria-describedby="goals-search-help goals-search-status"
-            className={cn(
-              "w-full pl-8 pr-8 py-1.5 rounded-md text-[12px]",
-              "bg-[var(--color-slot)] border border-[var(--color-border)]",
-              "text-[var(--color-text)] placeholder:text-[var(--color-text-dim)]/60",
-              "focus:outline-none focus:border-[var(--color-gold-soft)]"
-            )}
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery("")}
-              aria-label="Clear goals search"
-              className="absolute right-2 top-1/2 flex size-5 -translate-y-1/2 items-center justify-center rounded text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-panel)] hover:text-[var(--color-text)]"
-            >
-              ×
-            </button>
-          )}
-        </div>
-        <p id="goals-search-help" className="sr-only">
-          Type a set, item or activity name to filter goal cards.
-        </p>
-        <p id="goals-search-status" role="status" aria-live="polite" className="sr-only">
-          {searchQuery
-            ? `${filteredSets.length} reward path${filteredSets.length === 1 ? "" : "s"} match ${searchQuery}.`
-            : `${GOAL_SETS.length} reward paths available.`}
-        </p>
-        <CompletionFilterChips active={filter} onChange={setFilter} stats={stats} />
-        <CategoryFilter active={categoryFilter} onChange={setCategoryFilter} counts={categoryCounts} />
-      </section>
-
-      {/* Goal sets grouped by category */}
-      <section className="space-y-7">
-        {GROUPS_BY_CATEGORY(filteredSets, archetype).map(({ category, sets }) => (
-          <div key={category}>
-            <h2 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-gold-soft)] mb-3">
-              {GOAL_CATEGORIES[category].label}
-            </h2>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {sets.map(({ set, completion }) => (
-                <GoalSetCard key={set.id} set={set} completion={completion} />
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredSets.map(({ set, completion }) => (
+                <UnlockBrowserTile
+                  key={set.id}
+                  set={set}
+                  completion={completion}
+                  selected={(selectedSetId ?? spotlight?.setId) === set.id}
+                  onSelect={() => chooseUnlock(set.id, true)}
+                />
               ))}
             </div>
-          </div>
-        ))}
-        {filteredSets.length === 0 && (
-          <div className="rounded-xl p-12 text-center text-[var(--color-text-dim)] bg-[var(--color-panel)]/40 border border-[var(--color-border)]">
-            No reward paths match this filter.
+            {filteredSets.length === 0 && (
+              <p className="py-10 text-center text-[13px] font-semibold text-[var(--color-text-muted)]">
+                No unlock matches that search.
+              </p>
+            )}
           </div>
         )}
       </section>
-
-      <SupportCard context="Found your next untradeable goal?" />
 
       {openUnlockCompletion && (
         <GoalUnlockModal
@@ -493,6 +354,7 @@ export function GoalsClient() {
           allCompletions={completions}
           manualChecks={manualChecks}
           onToggleManualCheck={toggleManualCheck}
+          activeRsn={activeRsn}
           onClose={() => setOpenUnlockSetId(null)}
         />
       )}
@@ -505,45 +367,39 @@ export function GoalsClient() {
 type GoalSetModel = typeof GOAL_SETS[0];
 type GoalModel = GoalSetModel["goals"][0];
 
-function TripCheckLine({
-  title,
-  body,
-  tone = "default"
-}: {
-  title: "Before you leave" | "Still missing" | "Finish after";
-  body: string;
-  tone?: "default" | "warn";
-}) {
-  return (
-    <div className={cn(
-      "rounded-lg border border-[var(--color-border)]/60 bg-black/15 p-3",
-      tone === "warn" && "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/8"
-    )}>
-      <p className={cn(
-        "text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]",
-        tone === "warn" && "text-[var(--color-warning)]"
-      )}>{title}</p>
-      <p className="mt-1 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">{body}</p>
-    </div>
-  );
-}
-
-function UnlockIntelLine({ title, body }: { title: "Do next" | "Reward" | "Watch out"; body: string }) {
-  return (
-    <div className="rounded-lg border border-[var(--color-accent)]/25 bg-black/20 p-3">
-      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">{title}</p>
-      <p className="mt-1 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">{body}</p>
-    </div>
-  );
-}
-
 function manualGoalKey(setId: string, goalId: string): string {
   return `${setId}:${goalId}`;
 }
 
-function nextMissingGoals(set: GoalSetModel, completion: SetCompletion): GoalModel[] {
+function rankMeaningfulUnlocks(completions: SetCompletion[], archetype: Archetype | null): SetCompletion[] {
+  const categoryRank = new Map(goalCategoryOrder(archetype).map((category, index) => [category, index]));
+  return completions
+    .map((completion) => {
+      const set = GOAL_SETS.find((candidate) => candidate.id === completion.setId)!;
+      const norm = normaliseCompletion(completion, set);
+      return { completion, set, norm, missing: norm.max - norm.progress };
+    })
+    .filter(({ norm }) => !norm.complete)
+    .sort((a, b) => {
+      const aStarted = a.norm.progress > 0 ? 0 : 1;
+      const bStarted = b.norm.progress > 0 ? 0 : 1;
+      return aStarted - bStarted
+        || a.missing - b.missing
+        || (categoryRank.get(a.set.category) ?? 999) - (categoryRank.get(b.set.category) ?? 999)
+        || a.set.name.localeCompare(b.set.name);
+    })
+    .map(({ completion }) => completion);
+}
+
+function nextMissingGoals(
+  set: GoalSetModel,
+  completion: SetCompletion,
+  manualChecks: Set<string> = new Set()
+): GoalModel[] {
   const norm = normaliseCompletion(completion, set);
-  const missing = set.goals.filter((goal) => !completion.perGoal[goal.id]?.satisfied);
+  const missing = set.goals.filter((goal) =>
+    !completion.perGoal[goal.id]?.satisfied && !manualChecks.has(manualGoalKey(set.id, goal.id))
+  );
   if (!norm.isTiered) return missing.slice(0, 6);
   const nextTier = missing.filter((goal) => (goal.tier ?? 0) === norm.progress + 1);
   return (nextTier.length ? nextTier : missing).slice(0, 4);
@@ -562,28 +418,6 @@ function ownedGoalLabel(set: GoalSetModel, completion: SetCompletion): string {
     .map((goal) => goal.name);
   if (owned.length > 0) return `You have ${owned.join(", ")}`;
   return "Nothing checked yet";
-}
-
-function rewardTileLine(set: GoalSetModel, completion: SetCompletion): string {
-  const norm = normaliseCompletion(completion, set);
-  const missing = nextMissingGoals(set, completion);
-  if (norm.complete) return "Finished";
-  if (missing[0]) return `Need ${missing[0].name}`;
-  return `${norm.progress}/${norm.max} found`;
-}
-
-function unlockNudge(set: GoalSetModel, completion: SetCompletion): string {
-  const norm = normaliseCompletion(completion, set);
-  const missing = nextMissingGoals(set, completion);
-  if (norm.complete) return "This one is done. Pick another unlock.";
-  if (norm.isTiered && norm.progress > 0 && missing[0]) {
-    return `Go for ${missing[0].name}. Higher diary rewards count the lower tiers automatically.`;
-  }
-  if (set.id === "elite-void") {
-    return "Elite Void upgrades the robe and top; normal Void pieces still matter for the full setup.";
-  }
-  if (missing.length === 1) return `${missing[0].name} is the clean next target.`;
-  return "Work through the closest missing pieces first.";
 }
 
 function whyThisUnlock(set: GoalSetModel, completion: SetCompletion): string {
@@ -612,6 +446,18 @@ function sourceHintForGoal(set: GoalSetModel, goal: GoalModel): string {
   if (set.category === "skill-outfits" || name.includes("graceful")) return "Earn with the activity currency, then re-check the set.";
   if (set.category === "capes") return goal.notes ?? "Earn the requirement, then claim or buy the cape.";
   return goal.notes ?? "Check the OSRS Wiki route before committing.";
+}
+
+function unlockRequirementLine(set: GoalSetModel, target: GoalModel): string {
+  if (set.category === "diary") return `Open the ${target.name} task list for the exact skills, quests and items. Unknown tasks stay unticked until you confirm them.`;
+  if (set.id === "elite-void") return "Bring the normal Void core and finish the Western Provinces diary requirement before buying the elite pieces.";
+  if (set.id === "void-knight") return "Pest Control points buy the core pieces. Choose only the combat helm you plan to use first.";
+  if (set.category === "barrows") return "Use your Barrows combat setup, prayer restore and chest route; the target is the missing set piece.";
+  if (set.category === "gwd" || set.category === "raid-uniques" || set.category === "wildy-bosses") {
+    return "Open Check kill before the grind. Your bank should decide gear, food and supplies for the first trip.";
+  }
+  if (set.category === "skill-outfits" || set.category === "graceful") return "Use the activity that awards this piece and stop when you can buy the next reward.";
+  return sourceHintForGoal(set, target);
 }
 
 function unlockPlanSteps(set: GoalSetModel, completion: SetCompletion, missing: GoalModel[]): Array<{ title: string; body: string }> {
@@ -779,15 +625,16 @@ function NextUnlockCompanion({
   set,
   completion,
   allCompletions,
+  manualChecks,
   onOpenSteps
 }: {
   set: GoalSetModel;
   completion: SetCompletion;
   allCompletions: SetCompletion[];
+  manualChecks: Set<string>;
   onOpenSteps: () => void;
 }) {
-  const norm = normaliseCompletion(completion, set);
-  const missing = nextMissingGoals(set, completion);
+  const missing = nextMissingGoals(set, completion, manualChecks);
   const ownedTop = set.goals
     .filter((goal) => completion.perGoal[goal.id]?.owned)
     .sort((a, b) => (b.tier ?? 0) - (a.tier ?? 0))[0];
@@ -804,67 +651,50 @@ function NextUnlockCompanion({
   const guideTarget = missing[0]?.name ?? set.name;
   const stopStep = planSteps.find((step) => step.title === "Stop" || step.title === "Done") ?? planSteps[planSteps.length - 1];
   const beforeLine = planSteps[0]?.body ?? `Start with ${guideTarget}.`;
-  const missingLine = missing[0]
-    ? missing.slice(0, 2).map((goal) => goal.name).join(" · ")
-    : null;
   const finishLine = stopStep?.body ?? "Stop after one clear progress block.";
   const intel = unlockIntel(set, completion, allCompletions);
 
   return (
-    <section className="rounded-2xl border border-[var(--color-accent)]/45 bg-[#21190f]/95 p-4 shadow-[0_18px_70px_-48px_rgba(0,0,0,0.95)] sm:p-5">
-      <div className="grid gap-4 md:grid-cols-[80px_minmax(0,1fr)]">
-        <div className="flex size-16 items-center justify-center rounded-xl border border-[var(--color-accent)]/30 bg-black/25 sm:size-20">
+    <section className="overflow-hidden rounded-2xl border border-[var(--color-accent)]/50 bg-[#21190f]/95 shadow-[0_18px_70px_-48px_rgba(0,0,0,0.95)]">
+      <div className="grid gap-5 p-4 sm:p-6 md:grid-cols-[112px_minmax(0,1fr)]">
+        <div className="flex size-24 items-center justify-center self-start rounded-2xl border border-[var(--color-accent)]/30 bg-black/30 sm:size-28">
           {rewardIconId ? (
-            <ItemSprite id={rewardIconId} alt="" size={56} className="pixelated" />
+            <ItemSprite id={rewardIconId} alt="" size={76} loading="eager" className="pixelated" />
           ) : (
             <Target className="size-9 text-[var(--color-accent)]" />
           )}
         </div>
         <div className="min-w-0">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p className="eyebrow text-[var(--color-accent)]">Next unlock trip</p>
-              <h3 className="mt-1 font-serif text-[30px] font-bold leading-tight text-[var(--color-text)] sm:text-[36px]">
-                {set.name}
-              </h3>
-              <p className="mt-2 max-w-2xl text-[14px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-                {unlockNudge(set, completion)}
-              </p>
-            </div>
-            <span className="inline-flex items-center rounded-full border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-1.5 text-[12px] font-bold text-[var(--color-accent)]">
-              {norm.progress}/{norm.max} found
-            </span>
-          </div>
+          <p className="eyebrow text-[var(--color-accent)]">Best next unlock</p>
+          <h3 className="mt-1 font-serif text-[30px] font-bold leading-tight text-[var(--color-text)] sm:text-[38px]">
+            {guideTarget}
+          </h3>
+          <p className="mt-1 text-[12px] font-bold text-[var(--color-accent)]">{set.name}</p>
+          <p className="mt-3 max-w-3xl text-[15px] font-semibold leading-relaxed text-[var(--color-text)]">
+            {intel.doNext}
+          </p>
+          <p className="mt-2 max-w-3xl text-[13px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+            {intel.reward}
+          </p>
 
-          <div className="mt-4 rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 p-3">
-            <div className="mb-3 grid gap-2 sm:grid-cols-3">
-              <UnlockIntelLine title="Do next" body={intel.doNext} />
-              <UnlockIntelLine title="Reward" body={intel.reward} />
-              <UnlockIntelLine title="Watch out" body={intel.watchOut} />
-            </div>
-            <div className="mb-3 flex flex-wrap gap-1.5">
-              {intel.routeChips.map((chip) => (
-                <span key={chip} className="rounded-full border border-[var(--color-accent)]/30 bg-black/20 px-2.5 py-1 text-[11px] font-bold text-[var(--color-accent)]">
-                  {chip}
-                </span>
-              ))}
-            </div>
-            <div className="grid gap-2 sm:grid-cols-3">
-              <TripCheckLine title="Before you leave" body={beforeLine} />
-              {missingLine && <TripCheckLine title="Still missing" body={missingLine} tone="warn" />}
-              <TripCheckLine title="Finish after" body={finishLine} />
-            </div>
+          <div className="mt-4 border-t border-[var(--color-border)] pt-4">
+            <p className="text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+              <span className="font-bold text-[var(--color-text)]">Start:</span> {beforeLine}
+            </p>
+            <p className="mt-1 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+              <span className="font-bold text-[var(--color-text)]">Stop:</span> {finishLine}
+            </p>
             <button
               type="button"
               onClick={onOpenSteps}
-              className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3 py-2 text-[12.5px] font-bold text-[#0B0906] transition-all hover:brightness-110 sm:w-auto"
+              className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-4 py-2 text-[13px] font-bold text-[#0B0906] transition-all hover:brightness-110 sm:w-auto"
             >
-              Open steps
+              See the route
               <ArrowRight className="size-3.5" />
             </button>
           </div>
 
-          <details className="group mt-4 rounded-xl border border-[var(--color-border)] bg-black/15 p-3">
+          <details className="group mt-4 border-t border-[var(--color-border)] pt-3">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[12px] font-bold text-[var(--color-text)] marker:hidden [&::-webkit-details-marker]:hidden">
               Why this unlock?
               <ChevronDown className="size-3.5 text-[var(--color-text-muted)] transition-transform group-open:rotate-180" />
@@ -880,12 +710,6 @@ function NextUnlockCompanion({
               )}
             </div>
           </details>
-
-          {completedViaUpgrade.length > 0 && (
-            <p className="mt-3 text-[12px] leading-relaxed text-[var(--color-text-muted)]">
-              Higher-tier rewards already tick lower tiers. Example: Karamja gloves 4 counts gloves 1, 2 and 3.
-            </p>
-          )}
         </div>
       </div>
     </section>
@@ -898,6 +722,7 @@ function GoalUnlockModal({
   allCompletions,
   manualChecks,
   onToggleManualCheck,
+  activeRsn,
   onClose
 }: {
   set: GoalSetModel;
@@ -905,6 +730,7 @@ function GoalUnlockModal({
   allCompletions: SetCompletion[];
   manualChecks: Set<string>;
   onToggleManualCheck: (key: string) => void;
+  activeRsn: string;
   onClose: () => void;
 }) {
   useEffect(() => {
@@ -922,17 +748,27 @@ function GoalUnlockModal({
 
   if (typeof document === "undefined") return null;
 
-  const norm = normaliseCompletion(completion, set);
-  const missing = nextMissingGoals(set, completion);
+  const missing = nextMissingGoals(set, completion, manualChecks);
   const target = missing[0] ?? set.goals[set.goals.length - 1];
   const rewardIconId = iconForGoal(target.id, completion.perGoal[target.id]) ?? set.iconItemId;
-  const found = set.goals.filter((goal) => completion.perGoal[goal.id]?.satisfied);
   const completedViaUpgrade = set.goals.filter((goal) => {
     const state = completion.perGoal[goal.id];
     return state?.satisfied && !state.owned && state.satisfiedBy;
   });
   const planSteps = unlockPlanSteps(set, completion, missing);
   const intel = unlockIntel(set, completion, allCompletions);
+  const routeHref = goalRouteHref({ rsn: activeRsn, setId: set.id, targetName: target.name });
+
+  const chooseAsRoute = () => {
+    try {
+      persistActiveGoalRoute(window.localStorage, activeRsn, {
+        setId: set.id,
+        setName: set.name,
+        targetName: target.name
+      });
+    } catch {
+    }
+  };
 
   return createPortal(
     <div
@@ -949,23 +785,23 @@ function GoalUnlockModal({
         onClick={onClose}
         className="fixed inset-0 cursor-default"
       />
-      <section className="osrs-frame relative mx-auto w-full max-w-3xl overflow-hidden text-left shadow-[0_32px_90px_-22px_rgba(0,0,0,0.95)]">
+      <section className="osrs-frame relative mx-auto w-full max-w-2xl overflow-hidden text-left shadow-[0_32px_90px_-22px_rgba(0,0,0,0.95)]">
         <header className="osrs-title-bar flex items-start justify-between gap-4 px-5 py-4 sm:px-6">
           <div className="flex min-w-0 gap-4">
             <span className="grid size-20 shrink-0 place-items-center rounded-xl border border-[var(--color-accent)]/35 bg-black/35">
               {rewardIconId ? (
-                <ItemSprite id={rewardIconId} alt="" size={58} className="pixelated" />
+                <ItemSprite id={rewardIconId} alt="" size={58} loading="eager" className="pixelated" />
               ) : (
                 <Target className="size-10 text-[var(--color-accent)]" />
               )}
             </span>
             <div className="min-w-0">
-              <p className="eyebrow text-[var(--color-accent)]">Closest unlock</p>
+              <p className="eyebrow text-[var(--color-accent)]">Your next unlock</p>
               <h2 id="goal-unlock-modal-title" className="mt-1 font-serif text-[28px] font-bold leading-tight text-[var(--color-text)] sm:text-[36px]">
                 {target?.name ?? set.name}
               </h2>
               <p className="mt-1 text-[13px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
-                {set.name} · {norm.progress}/{norm.max} found
+                {set.name}
               </p>
             </div>
           </div>
@@ -979,118 +815,105 @@ function GoalUnlockModal({
           </button>
         </header>
 
-        <div className="osrs-body space-y-4 p-5 sm:p-6">
-          <div className="grid gap-2 sm:grid-cols-3">
-            <UnlockIntelLine title="Do next" body={intel.doNext} />
-            <UnlockIntelLine title="Reward" body={intel.reward} />
-            <UnlockIntelLine title="Watch out" body={intel.watchOut} />
-          </div>
+        <div className="osrs-body space-y-5 p-5 sm:p-6">
+          <section>
+            <p className="eyebrow text-[var(--color-accent)]">Why it matters</p>
+            <p className="mt-2 text-[14px] font-semibold leading-relaxed text-[var(--color-text)]">{intel.reward}</p>
+            <p className="mt-1 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">{intel.watchOut}</p>
+          </section>
 
-          <div className="grid gap-2 sm:grid-cols-3">
-            {planSteps.map((step) => (
-              <TripCheckLine
-                key={`${step.title}:${step.body}`}
-                title={step.title === "Stop" || step.title === "Done" ? "Finish after" : step.title === "Start" ? "Before you leave" : "Still missing"}
-                body={step.body}
-                tone={step.title === "Then" ? "warn" : "default"}
-              />
-            ))}
-          </div>
+          <section className="border-y border-[var(--color-border)] py-4">
+            <p className="eyebrow text-[var(--color-accent)]">Do this</p>
+            <ol className="mt-3 space-y-3">
+              {planSteps.map((step, index) => (
+                <li key={`${step.title}:${step.body}`} className="grid grid-cols-[28px_minmax(0,1fr)] gap-3">
+                  <span className="flex size-7 items-center justify-center rounded-full border border-[var(--color-accent)]/40 bg-black/25 text-[11px] font-bold text-[var(--color-accent)]">{index + 1}</span>
+                  <div>
+                    <p className="text-[12px] font-bold text-[var(--color-text)]">{step.title}</p>
+                    <p className="mt-0.5 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">{step.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-4 text-[12px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+              <span className="font-bold text-[var(--color-text)]">Before you start:</span> {unlockRequirementLine(set, target)}
+            </p>
+          </section>
 
-          <div className="rounded-xl border border-[var(--color-border)] bg-black/18 p-3">
-            <p className="text-[12px] font-bold text-[var(--color-text)]">Already checked</p>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {found.length > 0 ? found.slice(0, 8).map((goal) => {
+          <section>
+            <div className="flex flex-wrap items-end justify-between gap-2">
+              <div>
+                <p className="eyebrow text-[var(--color-accent)]">Reward path</p>
+                <p className="mt-1 text-[12px] font-semibold text-[var(--color-text-muted)]">Tap only steps Scapestack cannot confirm yet. Saved for {activeRsn || "this device"}.</p>
+              </div>
+            </div>
+            <div className="mt-3 space-y-2">
+              {set.goals.map((goal) => {
                 const state = completion.perGoal[goal.id];
+                const key = manualGoalKey(set.id, goal.id);
+                const manuallyChecked = manualChecks.has(key);
+                const confirmed = state?.satisfied || manuallyChecked;
                 const iconId = iconForGoal(goal.id, state) ?? set.iconItemId;
+                const coveredBy = state?.satisfiedBy
+                  ? set.goals.find((candidate) => candidate.id === state.satisfiedBy)?.name
+                  : null;
                 return (
-                  <span
+                  <button
                     key={goal.id}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-black/20 px-2 py-1 text-[11px] font-semibold text-[var(--color-text-dim)]"
+                    type="button"
+                    disabled={Boolean(state?.satisfied)}
+                    onClick={() => onToggleManualCheck(key)}
+                    aria-pressed={confirmed}
+                    className={cn(
+                      "flex min-h-14 w-full items-center gap-3 rounded-xl border px-3 py-2 text-left transition-colors",
+                      confirmed
+                        ? "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[var(--color-text)]"
+                        : "border-[var(--color-border)] bg-black/15 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35"
+                    )}
                   >
-                    {iconId && <ItemSprite id={iconId} alt="" size={16} className="pixelated" />}
-                    {goal.name}
-                  </span>
+                    {confirmed ? <CheckCircle2 className="size-5 shrink-0 text-[var(--color-accent)]" /> : <Circle className="size-5 shrink-0" />}
+                    {iconId && <ItemSprite id={iconId} alt="" size={30} className="pixelated shrink-0" />}
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[13px] font-bold">{goal.name}</span>
+                      <span className="mt-0.5 block text-[11px] font-semibold leading-snug text-[var(--color-text-muted)]">
+                        {state?.owned
+                          ? "Found on this account"
+                          : coveredBy
+                            ? `Covered by ${coveredBy}`
+                            : manuallyChecked
+                              ? "Marked done by you"
+                              : "Not confirmed yet — tap when done"}
+                      </span>
+                    </span>
+                  </button>
                 );
-              }) : (
-                <span className="text-[12px] font-semibold text-[var(--color-text-muted)]">Nothing from bank or Hiscores yet.</span>
-              )}
-              {found.length > 8 && (
-                <span className="rounded-lg border border-[var(--color-border)] bg-black/20 px-2 py-1 text-[11px] font-semibold text-[var(--color-text-muted)]">
-                  +{found.length - 8} more
-                </span>
-              )}
+              })}
             </div>
             {completedViaUpgrade.length > 0 && (
               <p className="mt-2 text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
-                Higher-tier rewards count lower tiers automatically.
+                A higher-tier reward already covers the lower tiers.
               </p>
             )}
-          </div>
-
-          <div className="rounded-xl border border-[var(--color-border)] bg-black/18 p-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-[12px] font-bold text-[var(--color-text)]">Tick off missing bits</p>
-              <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">Saved on this device</span>
-            </div>
-            <div className="mt-3">
-              {missing.length > 0 ? (
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {missing.map((goal) => {
-                    const key = manualGoalKey(set.id, goal.id);
-                    const checked = manualChecks.has(key);
-                    const iconId = iconForGoal(goal.id, completion.perGoal[goal.id]) ?? set.iconItemId;
-                    return (
-                      <button
-                        key={goal.id}
-                        type="button"
-                        onClick={() => onToggleManualCheck(key)}
-                        aria-pressed={checked}
-                        className={cn(
-                          "flex min-h-14 items-center gap-3 rounded-xl border px-3 py-2 text-left transition-colors",
-                          checked
-                            ? "border-[var(--color-accent)]/45 bg-[var(--color-accent)]/12 text-[var(--color-text)]"
-                            : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35"
-                        )}
-                      >
-                        {checked ? <CheckCircle2 className="size-5 shrink-0 text-[var(--color-accent)]" /> : <Circle className="size-5 shrink-0" />}
-                        {iconId && <ItemSprite id={iconId} alt="" size={28} className="pixelated shrink-0" />}
-                        <span className="min-w-0">
-                          <span className="block truncate text-[13px] font-bold">{goal.name}</span>
-                          <span className="mt-0.5 block truncate text-[11px] opacity-75">
-                            {sourceHintForGoal(set, goal)}
-                          </span>
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-3 py-3 text-[13px] font-bold text-[var(--color-text)]">
-                  <CheckCircle2 className="size-5 text-[var(--color-accent)]" />
-                  Done. Pick another unlock.
-                </div>
-              )}
-            </div>
-          </div>
+          </section>
 
           <div className="flex flex-col gap-2 sm:flex-row">
+            <a
+              href={routeHref}
+              onClick={chooseAsRoute}
+              className="btn-primary min-h-12 flex-1 justify-center px-4 text-[13px]"
+            >
+              Make this my route
+              <ArrowRight className="size-3.5" />
+            </a>
             <a
               href={wikiSearchUrl(target?.name ?? set.name)}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-primary min-h-11 flex-1 justify-center px-4 text-[13px]"
+              className="inline-flex min-h-12 flex-1 items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] px-4 text-[13px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-text)]"
             >
-              Open Wiki route
+              Open Wiki
               <ExternalLink className="size-3.5" />
             </a>
-            <button
-              type="button"
-              onClick={onClose}
-              className="min-h-11 flex-1 rounded-lg border border-[var(--color-border)] px-4 text-[13px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-text)]"
-            >
-              Back to unlocks
-            </button>
           </div>
         </div>
       </section>
@@ -1099,375 +922,56 @@ function GoalUnlockModal({
   );
 }
 
-function FeatureCard({ icon: Icon, title, body }: { icon: React.ComponentType<{ className?: string }>; title: string; body: string }) {
-  return (
-    <div className={cn(
-      "rounded-xl p-3.5 bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)]",
-      "border border-[var(--color-border)]"
-    )}>
-      <Icon className="size-4 text-[var(--color-gold-soft)] mb-2" />
-      <div className="text-[12.5px] font-semibold text-[var(--color-text)] mb-1">{title}</div>
-      <p className="text-[11.5px] text-[var(--color-text-dim)] leading-relaxed">{body}</p>
-    </div>
-  );
-}
-
-function CompletionFilterChips({ active, onChange, stats }: {
-  active: CompletionFilter;
-  onChange: (f: CompletionFilter) => void;
-  stats: { done: number; total: number };
-}) {
-  const options: Array<{ id: CompletionFilter; label: string; count: number }> = [
-    { id: "all", label: "All", count: stats.total },
-    { id: "complete", label: "Got", count: stats.done },
-    { id: "incomplete", label: "Missing", count: stats.total - stats.done }
-  ];
-  return (
-    <div className="flex items-center gap-1">
-      {options.map((opt) => (
-        <button
-          key={opt.id}
-          type="button"
-          aria-pressed={active === opt.id}
-          aria-label={`Show ${opt.label.toLowerCase()} goal sets (${opt.count})`}
-          onClick={() => onChange(opt.id)}
-          className={cn(
-            "px-2.5 py-1.5 rounded-md text-[11.5px] font-medium transition-all border",
-            active === opt.id
-              ? "bg-gradient-to-b from-[oklch(0.4_0.06_60)] to-[oklch(0.28_0.04_55)] text-[var(--color-gold)] border-[var(--color-gold-deep)]/40"
-              : "bg-[var(--color-slot)] text-[var(--color-text-dim)] border-[var(--color-border)] hover:text-[var(--color-text)]"
-          )}
-        >
-          {opt.label}
-          <span className="ml-1 opacity-60">{opt.count}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function CategoryFilter({ active, onChange, counts }: {
-  active: GoalCategory | "all";
-  onChange: (c: GoalCategory | "all") => void;
-  counts: Map<GoalCategory, { done: number; total: number }>;
-}) {
-  const [open, setOpen] = useState(false);
-  const cats = Object.entries(GOAL_CATEGORIES)
-    .sort(([, a], [, b]) => a.order - b.order) as Array<[GoalCategory, typeof GOAL_CATEGORIES[GoalCategory]]>;
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-haspopup="menu"
-        aria-label="Filter goals by category"
-        onClick={() => setOpen((v) => !v)}
-        className={cn(
-          "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11.5px] font-medium",
-          "bg-[var(--color-slot)] border border-[var(--color-border)]",
-          "text-[var(--color-text-dim)] hover:text-[var(--color-text)]"
-        )}
-      >
-        <Filter className="size-3" />
-        {active === "all" ? "All categories" : GOAL_CATEGORIES[active].label}
-        <ChevronDown className={cn("size-3 transition-transform", open && "rotate-180")} />
-      </button>
-      {open && (
-        <div role="menu" className="absolute right-0 top-full mt-1 w-56 max-h-[60vh] overflow-y-auto rounded-lg bg-[var(--color-bg-2)] border border-[var(--color-border)] shadow-xl z-30 py-1 animate-[pop-in_0.15s_ease-out]">
-          <button
-            type="button"
-            role="menuitemradio"
-            aria-checked={active === "all"}
-            onClick={() => { onChange("all"); setOpen(false); }}
-            className={cn(
-              "w-full text-left px-3 py-1.5 text-[12px] hover:bg-[var(--color-panel)]",
-              active === "all" && "text-[var(--color-gold)]"
-            )}
-          >
-            All categories
-          </button>
-          {cats.map(([cat, info]) => {
-            const c = counts.get(cat) || { done: 0, total: 0 };
-            return (
-              <button
-                key={cat}
-                type="button"
-                role="menuitemradio"
-                aria-checked={active === cat}
-                onClick={() => { onChange(cat); setOpen(false); }}
-                className={cn(
-                  "w-full flex items-center justify-between px-3 py-1.5 text-[12px] hover:bg-[var(--color-panel)]",
-                  active === cat && "text-[var(--color-gold)]"
-                )}
-              >
-                <span>{info.label}</span>
-                <span className="text-[10px] text-[var(--color-text-dim)] tabular-nums">
-                  {c.done}/{c.total}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function GoalSetCard({ set, completion }: { set: typeof GOAL_SETS[0]; completion: SetCompletion }) {
-  const [expanded, setExpanded] = useState(false);
-  const norm = normaliseCompletion(completion, set);
-  const percent = Math.round((norm.progress / norm.max) * 100);
-  const isComplete = norm.complete;
-  // For tiered sets, find the highest-owned goal so we can use its icon.
-  const highestOwnedGoal = norm.isTiered
-    ? set.goals
-        .filter((g) => completion.perGoal[g.id]?.owned)
-        .sort((a, b) => (b.tier ?? 0) - (a.tier ?? 0))[0]
-    : null;
-  // Header icon priority:
-  //   1. The actual item we matched in the player's bank (real ownership).
-  //   2. Otherwise: the set's curated iconItemId (defined per set — chosen to
-  //      represent the whole goal set rather than its alphabetically-last goal).
-  //   3. Final fallback: the GOAL_ICON_IDS lookup for the last goal.
-  const matchedGoal = set.goals.find((g) => completion.perGoal[g.id]?.matchedItemId);
-  const headerIconId = highestOwnedGoal
-    ? iconForGoal(highestOwnedGoal.id, completion.perGoal[highestOwnedGoal.id])
-    : matchedGoal
-      ? completion.perGoal[matchedGoal.id].matchedItemId
-      : set.iconItemId ?? iconForGoal(set.goals[set.goals.length - 1].id);
-  const panelId = `goal-set-panel-${set.id}`;
-
-  return (
-    <div className={cn(
-      "rounded-xl border transition-colors",
-      isComplete
-        ? "bg-gradient-to-br from-[oklch(0.24_0.05_65/0.16)] to-[var(--color-bg-2)] border-[var(--color-good)]/40"
-        : "bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] border-[var(--color-border)] hover:border-[var(--color-border-strong)]"
-    )}>
-      <button
-        type="button"
-        aria-expanded={expanded}
-        aria-controls={panelId}
-        aria-label={`${expanded ? "Hide" : "Show"} ${set.name} goal details`}
-        onClick={() => setExpanded((v) => !v)}
-        className="w-full text-left p-3.5 flex items-start gap-3"
-      >
-        <div className="size-8 shrink-0 flex items-center justify-center bg-[var(--color-bg-2)] border border-[var(--color-border)] rounded-md">
-          {headerIconId ? (
-            <ItemSprite
-              id={headerIconId}
-              alt=""
-              loading="lazy"
-              className="pixelated pointer-events-none"
-              style={{
-                maxWidth: "24px",
-                maxHeight: "24px",
-                width: "auto",
-                height: "auto"
-              }}
-            />
-          ) : (
-            <span aria-hidden="true" className="size-4 rounded-full bg-[var(--color-text-muted)] inline-block" />
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="text-[13px] font-semibold text-[var(--color-text)]">{set.name}</h3>
-            {norm.isTiered && norm.earnedAny && !isComplete && (
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9.5px] font-bold uppercase tracking-wider bg-[oklch(0.32_0.05_65/0.3)] text-[var(--color-gold)]">
-                Tier {norm.progress}/{norm.max}
-              </span>
-            )}
-            {isComplete && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-[oklch(0.32_0.05_65/0.3)] text-[var(--color-good)]">
-                <Check className="size-2.5" /> Complete
-              </span>
-            )}
-          </div>
-          {set.description && (
-            <p className="text-[11px] text-[var(--color-text-dim)] mt-0.5">{set.description}</p>
-          )}
-          <div className="mt-2 flex items-center gap-2">
-            <div className="flex-1 h-1.5 rounded-full bg-[var(--color-slot)] overflow-hidden">
-              <div
-                className="h-full rounded-full"
-                style={{
-                  width: `${percent}%`,
-                  background: isComplete
-                    ? "var(--color-good)"
-                    : "linear-gradient(90deg, oklch(0.56 0.13 65), oklch(0.84 0.16 80))"
-                }}
-              />
-            </div>
-            <span className="text-[11px] font-mono font-bold text-[var(--color-text)] tabular-nums">
-              {norm.progress}/{norm.max}
-            </span>
-          </div>
-        </div>
-        <ChevronDown className={cn(
-          "size-4 text-[var(--color-text-dim)] shrink-0 mt-1 transition-transform",
-          expanded && "rotate-180"
-        )} />
-      </button>
-      {expanded && (
-        <div id={panelId} className="px-3.5 pb-3 grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-1.5 border-t border-[var(--color-border)]/40 pt-3">
-          {set.goals.map((g) => {
-            const state = completion.perGoal[g.id];
-            const iconId = iconForGoal(g.id, state);
-            const got = state.satisfied;
-            const direct = state.owned;
-            const supersededLabel = state.satisfiedBy
-              ? set.goals.find((x) => x.id === state.satisfiedBy)?.name
-              : undefined;
-            return (
-              <div
-                key={g.id}
-                title={
-                  supersededLabel
-                    ? `${g.name} — earned via ${supersededLabel}`
-                    : g.notes || g.name
-                }
-                className={cn(
-                  "relative flex flex-col items-center gap-1 p-1.5 rounded-md border",
-                  direct && "bg-[oklch(0.32_0.05_65/0.10)] border-[var(--color-good)]/40",
-                  !direct && got && "bg-[oklch(0.32_0.05_65/0.10)] border-[var(--color-gold-soft)]/30",
-                  !got && "bg-[var(--color-slot)]/40 border-[var(--color-border)]/40"
-                )}
-              >
-                {(iconId ?? set.iconItemId) ? (
-                  <ItemSprite
-                    id={(iconId ?? set.iconItemId)!}
-                    alt={g.name}
-                    loading="lazy"
-                    className={cn(
-                      "pixelated pointer-events-none",
-                      !got && "opacity-30 grayscale"
-                    )}
-                    style={{
-                      maxWidth: "32px",
-                      maxHeight: "32px",
-                      width: "auto",
-                      height: "auto"
-                    }}
-                  />
-                ) : (
-                  <span aria-hidden="true" className={cn("size-4 rounded-full bg-[var(--color-text-muted)] inline-block", !got && "opacity-30")} />
-                )}
-                <span className={cn(
-                  "text-[10px] text-center leading-tight truncate w-full px-0.5",
-                  got ? "text-[var(--color-text)]" : "text-[var(--color-text-dim)]/70"
-                )}>
-                  {g.name}
-                </span>
-                {direct && (
-                  <Check className="absolute top-0.5 right-0.5 size-3 text-[var(--color-good)] drop-shadow-[1px_1px_0_rgb(0_0_0)]" />
-                )}
-                {!direct && got && (
-                  <span className="absolute top-0.5 right-0.5 size-3 rounded-full bg-[var(--color-gold-soft)] text-[8px] text-[oklch(0.15_0.02_50)] font-bold flex items-center justify-center" title={supersededLabel ? `via ${supersededLabel}` : "via upgrade"}>
-                    ⤴
-                  </span>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function GoalsBankContextBanner({
-  rsn,
-  summary,
-  loadedFromHandoff
+function UnlockBrowserTile({
+  set,
+  completion,
+  selected,
+  onSelect
 }: {
-  rsn?: string | null;
-  summary: BankHandoffSummary;
-  loadedFromHandoff: boolean;
+  set: GoalSetModel;
+  completion: SetCompletion;
+  selected: boolean;
+  onSelect: () => void;
 }) {
-  return (
-    <section className="mb-6 rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/8 px-4 py-3">
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div className="flex min-w-0 gap-3">
-          <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/40">
-            <ItemSprite id={9813} alt="" size={25} />
-          </span>
-          <div className="min-w-0">
-            <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              {loadedFromHandoff ? "Bank added" : "Bank checked"}
-            </div>
-            <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-              <span className="font-semibold text-[var(--color-text)]">{summary.label}</span>
-              {" · "}
-              Bank rewards are ticked from the items you pasted; earned 99 capes can come from Hiscores when an RSN is attached.
-            </p>
-            <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
-              RuneLite can skip finished diary rewards, quest rewards and clog-only steps later.
-            </p>
-            {summary.topItems.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {summary.topItems.map((item) => (
-                  <span
-                    key={item.id}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1 text-[11px] text-[var(--color-text-dim)]"
-                    title={`${item.name}: ${item.stackValue.toLocaleString()} gp`}
-                  >
-                    <ItemSprite id={item.id} alt="" size={15} />
-                    <span className="max-w-[130px] truncate">{item.name}</span>
-                    <span className="font-mono text-[var(--color-text-muted)]">{formatGp(item.stackValue)}</span>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-        <BankContextActions source="goals" rsn={rsn} />
-      </div>
-    </section>
-  );
-}
+  const norm = normaliseCompletion(completion, set);
+  const missing = nextMissingGoals(set, completion);
+  const target = missing[0] ?? set.goals[set.goals.length - 1];
+  const ownedTop = set.goals
+    .filter((goal) => completion.perGoal[goal.id]?.owned)
+    .sort((a, b) => (b.tier ?? 0) - (a.tier ?? 0))[0];
+  const iconId = ownedTop
+    ? iconForGoal(ownedTop.id, completion.perGoal[ownedTop.id])
+    : iconForGoal(target.id, completion.perGoal[target.id]) ?? set.iconItemId;
 
-function GoalsHiscoreContextBanner({ rsn }: { rsn: string }) {
   return (
-    <section className="mb-6 rounded-xl border border-[var(--color-good)]/30 bg-[var(--color-good)]/8 px-4 py-3">
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div className="flex min-w-0 gap-3">
-          <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-[var(--color-good)]/25 bg-[var(--color-bg)]/40">
-            <ItemSprite id={9811} alt="" size={25} />
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={selected}
+      className={cn(
+        "group min-h-[164px] rounded-2xl border p-4 text-left transition-colors",
+        selected
+          ? "border-[var(--color-accent)] bg-[#342613]"
+          : "border-[var(--color-border)] bg-[#17130c]/80 hover:border-[var(--color-accent)]/55"
+      )}
+    >
+      <span className="flex h-full gap-4">
+        <span className="flex size-20 shrink-0 items-center justify-center rounded-2xl border border-[var(--color-accent)]/25 bg-black/25">
+          {iconId ? <ItemSprite id={iconId} alt="" size={56} className="pixelated" /> : <Compass className="size-8 text-[var(--color-accent)]" />}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="flex items-start justify-between gap-2">
+            <span className="font-serif text-[20px] font-bold leading-tight text-[var(--color-text)]">{set.name}</span>
+            <ArrowRight className="mt-1 size-4 shrink-0 text-[var(--color-text-muted)] transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--color-accent)]" />
           </span>
-          <div className="min-w-0">
-            <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-good)]">
-              RSN found
-            </div>
-            <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-              <span className="font-semibold text-[var(--color-text)]">{rsn}</span>
-              {" · "}
-              Public Hiscores can tick earned 99 capes. Add a bank or RuneLite later for diary rewards, quest rewards and bank-owned gear.
-            </p>
-          </div>
-        </div>
-        <BankContextActions source="goals" rsn={rsn} hasBankContext={false} />
-      </div>
-    </section>
+          <span className="mt-2 block text-[12px] font-bold leading-snug text-[var(--color-accent)]">
+            {norm.complete ? "Finished on this account" : `Next: ${target.name}`}
+          </span>
+          <span className="mt-2 line-clamp-2 block text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+            {norm.complete ? "Open it to review what already counts." : sourceHintForGoal(set, target)}
+          </span>
+        </span>
+      </span>
+    </button>
   );
-}
-
-// Group sets by category. Order is archetype-aware: a PvMer sees raid+GWD
-// uniques up top; a skiller sees skill-outfits + capes first. Falls back to
-// the default order from GOAL_CATEGORIES when archetype is null.
-function GROUPS_BY_CATEGORY(
-  list: Array<{ set: typeof GOAL_SETS[0]; completion: SetCompletion }>,
-  archetype: Archetype | null
-) {
-  const groups = new Map<GoalCategory, typeof list>();
-  for (const item of list) {
-    if (!groups.has(item.set.category)) groups.set(item.set.category, []);
-    groups.get(item.set.category)!.push(item);
-  }
-  const order = goalCategoryOrder(archetype);
-  const rank: Record<string, number> = {};
-  order.forEach((c, i) => { rank[c] = i; });
-  return Array.from(groups.entries())
-    .sort(([a], [b]) => (rank[a] ?? 999) - (rank[b] ?? 999))
-    .map(([category, sets]) => ({ category, sets }));
 }

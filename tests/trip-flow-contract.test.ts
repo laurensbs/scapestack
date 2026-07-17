@@ -8,8 +8,14 @@ describe("trip flow contract", () => {
   it("keeps mobile content clear of the fixed action bar", () => {
     const layout = read("src/app/layout.tsx");
     const mobileBar = read("src/components/mobile-action-bar.tsx");
+    const globals = read("src/app/globals.css");
 
     expect(layout).toContain("pb-24 sm:pb-0");
+    expect(layout).toContain('<html lang="en" className="min-h-full">');
+    expect(layout).toContain('<body className="min-h-full');
+    expect(layout).not.toContain('<body className="h-full');
+    expect(globals).toContain("overflow-x: clip;");
+    expect(globals).toContain("height: auto;");
     expect(mobileBar).toContain('label: "Trip"');
     expect(mobileBar).toContain('helper: rsn || "Trip"');
     expect(mobileBar).toContain('active: pathname === "/next"');
@@ -19,15 +25,25 @@ describe("trip flow contract", () => {
   it("makes Goals start from one unlock trip before showing more routes", () => {
     const goals = read("src/app/goals/goals-client.tsx");
 
-    expect(goals).toContain("Next unlock trip");
-    expect(goals).toContain("Before you leave");
-    expect(goals).toContain("Still missing");
-    expect(goals).toContain("Finish after");
-    expect(goals).toContain("Open Wiki route");
+    expect(goals).toContain("Unlock this next");
+    expect(goals).toContain("Best next unlock");
+    expect(goals).toContain("Start:");
+    expect(goals).toContain("Stop:");
+    expect(goals).toContain("Make this my route");
     expect(goals).toContain("Why this unlock?");
-    expect(goals).toContain("More unlock routes");
-    expect(goals).not.toContain("Pick a reward");
-    expect(goals).not.toContain("Good rewards to chase");
+    expect(goals).toContain("Browse other unlocks");
+    expect(goals).not.toContain("rewards found");
+    expect(goals.indexOf("<NextUnlockCompanion")).toBeLessThan(goals.indexOf("Browse other unlocks"));
+  });
+
+  it("keeps a chosen unlock ahead of unrelated /next trips", () => {
+    const next = read("src/app/next/next-client.tsx");
+
+    expect(next).toContain("function goalRouteFocusFromSearch");
+    expect(next).toContain("function recommendationForGoalRoute");
+    expect(next).toContain("You chose this reward in Unlocks");
+    expect(next).toContain("score: 10_000");
+    expect(next).toContain('routeTags: ["unlock"]');
   });
 
   it("makes Slayer start from one task trip before the master evidence", () => {
