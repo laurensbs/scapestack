@@ -42,6 +42,103 @@ describe("boss trip loadout", () => {
     expect(plan.missingLine).toContain("Salve amulet(ei)");
     expect(plan.rows[0].slots.map((slot) => slot.item?.name ?? slot.label)).toContain("Extended super antifire(4)");
     expect(plan.rows[0].slots.map((slot) => slot.item?.name ?? slot.label)).toContain("Anti-venom+(4)");
+    expect(plan.canStart).toBe(false);
+    expect(plan.mandatoryMissing).toContain("Chaos runes");
+    expect(plan.inventory).toHaveLength(28);
+  });
+
+  it("blocks Vorkath until anti-dragon protection and Crumble Undead runes are banked", () => {
+    const vorkath = BOSSES.find((boss) => boss.slug === "vorkath")!;
+    const plan = buildBossInventoryPlan({
+      boss: vorkath,
+      bankItems: normalizeBankHandoffItems([
+        { id: 12017, name: "Salve amulet(ei)", quantity: 1 },
+        { id: 21975, name: "Extended super antifire(4)", quantity: 4 },
+        { id: 562, name: "Chaos rune", quantity: 500 },
+        { id: 4696, name: "Dust rune", quantity: 500 },
+        { id: 385, name: "Shark", quantity: 50 }
+      ]),
+      owned: [blowpipe],
+      dps: dps()
+    });
+
+    expect(plan.canStart).toBe(false);
+    expect(plan.mandatoryMissing).toEqual(["Anti-dragon shield"]);
+    expect(plan.rows[0].slots.find((slot) => slot.label === "Salve amulet(ei)")?.item?.name).toBe("Salve amulet(ei)");
+  });
+
+  it("builds a compatible worn Vorkath setup when a one-handed weapon is available", () => {
+    const vorkath = BOSSES.find((boss) => boss.slug === "vorkath")!;
+    const runeCrossbow = GEAR.find((gear) => gear.name === "Rune crossbow")!;
+    const plan = buildBossInventoryPlan({
+      boss: vorkath,
+      bankItems: normalizeBankHandoffItems([
+        { id: runeCrossbow.id, name: runeCrossbow.name, quantity: 1 },
+        { id: 22002, name: "Dragonfire ward", quantity: 1 },
+        { id: 19547, name: "Salve amulet(ei)", quantity: 1 },
+        { id: 21975, name: "Extended super antifire(4)", quantity: 4 },
+        { id: 562, name: "Chaos rune", quantity: 500 },
+        { id: 4696, name: "Dust rune", quantity: 500 },
+        { id: 385, name: "Shark", quantity: 50 }
+      ]),
+      owned: [runeCrossbow],
+      dps: { ...dps(), weapon: runeCrossbow, setup: { weapon: runeCrossbow } }
+    });
+
+    expect(plan.canStart).toBe(true);
+    expect(plan.wornSetup.weapon?.name).toBe("Rune crossbow");
+    expect(plan.wornSetup.shield?.name).toBe("Dragonfire ward");
+    expect(plan.wornSetup.neck?.name).toBe("Salve amulet(ei)");
+    expect(plan.inventory.some((slot) => slot.item?.name === "Dragonfire ward")).toBe(false);
+  });
+
+  it("builds a viable Zulrah switch and supply inventory", () => {
+    const zulrah = BOSSES.find((boss) => boss.slug === "zulrah")!;
+    const trident = GEAR.find((gear) => gear.name === "Trident of the seas")!;
+    const plan = buildBossInventoryPlan({
+      boss: zulrah,
+      bankItems: normalizeBankHandoffItems([
+        { id: blowpipe.id, name: blowpipe.name, quantity: 1 },
+        { id: trident.id, name: trident.name, quantity: 1 },
+        { id: 12913, name: "Anti-venom+(4)", quantity: 4 },
+        { id: 3024, name: "Super restore(4)", quantity: 10 },
+        { id: 385, name: "Shark", quantity: 50 },
+        { id: 12938, name: "Zul-andra teleport", quantity: 5 }
+      ]),
+      owned: [blowpipe, trident],
+      dps: dps()
+    });
+
+    expect(plan.canStart).toBe(true);
+    expect(plan.mandatoryMissing).toEqual([]);
+    expect(plan.rows[0].slots.filter((slot) => slot.kind === "gear").map((slot) => slot.item?.name)).toEqual([
+      "Trident of the seas",
+      "Toxic blowpipe"
+    ]);
+    expect(plan.inventory.filter((slot) => slot.kind === "food" && slot.item)).toHaveLength(14);
+  });
+
+  it("keeps Barrows to a concrete one-chest inventory instead of raid switches", () => {
+    const barrows = BOSSES.find((boss) => boss.slug === "barrows")!;
+    const trident = GEAR.find((gear) => gear.name === "Trident of the seas")!;
+    const plan = buildBossInventoryPlan({
+      boss: barrows,
+      bankItems: normalizeBankHandoffItems([
+        { id: 952, name: "Spade", quantity: 1 },
+        { id: trident.id, name: trident.name, quantity: 1 },
+        { id: 2434, name: "Prayer potion(4)", quantity: 8 },
+        { id: 385, name: "Shark", quantity: 30 },
+        { id: 19627, name: "Barrows teleport", quantity: 5 }
+      ]),
+      owned: [trident],
+      dps: { ...dps(), style: "magic", weapon: trident, setup: { weapon: trident } }
+    });
+
+    expect(plan.canStart).toBe(true);
+    expect(plan.firstTripRange).toContain("One chest");
+    expect(plan.rows[0].label).toBe("Leave the bank with");
+    expect(plan.rows[0].slots.map((slot) => slot.label)).toContain("Spade");
+    expect(plan.rows.map((row) => row.label)).not.toContain("Required switches");
   });
 
   it("builds multi-style raid switches instead of one generic weapon row", () => {

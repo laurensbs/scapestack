@@ -41,11 +41,10 @@ describe("boss detail modal affordance", () => {
     expect(source).toContain("Pick the role first");
     expect(source).toContain("Plan the full run");
     expect(source).toContain("isNonCombatBossActivity");
-    expect(source).toContain("Upgrade before camping");
-    expect(source).toContain("Leave with this");
-    expect(source).toContain("Try first");
-    expect(source).toContain("Gold chips are in your bank");
-    expect(source).toContain("Buy/gather chips are missing");
+    expect(source).toContain("Best next improvement");
+    expect(source).toContain("First-trip inventory");
+    expect(source).toContain("Missing before you go");
+    expect(source).toContain("Other usable items in your bank");
     expect(source).toContain("Try another boss");
     expect(source).toContain("bossRail");
     expect(source).toContain('aria-current={active ? "true" : undefined}');
@@ -55,12 +54,12 @@ describe("boss detail modal affordance", () => {
     expect(source).toContain('data-testid="boss-modal-scroll-panel"');
     expect(source).toContain('data-testid="boss-inventory-setup"');
     expect(source.indexOf("Can I do this?")).toBeLessThan(source.indexOf("Kill speed"));
-    expect(source.indexOf("Leave with this")).toBeLessThan(source.indexOf("Upgrade before camping"));
+    expect(source.indexOf("First-trip inventory")).toBeLessThan(source.indexOf("Best next improvement"));
   });
 
   it("treats Wintertodt-style skilling bosses as activity setup, not combat DPS", () => {
     expect(source).toContain("const activitySetup = isNonCombatBossActivity(boss);");
-    expect(source).toContain("() => activitySetup || !singleDps ? [] : suggestUpgradesForBoss(owned, boss, dps)");
+    expect(source).toContain("() => activitySetup || !singleDps ? null : buildBossUpgradePlan({ boss, owned, bankItems, current: dps, accountType })");
     expect(source).toContain('activitySetup ? "Activity setup" : knowledge.groupSize');
     expect(source).toContain("This is not a combat DPS check.");
     expect(source).toContain("!activitySetup && (");
@@ -71,11 +70,12 @@ describe("boss detail modal affordance", () => {
 
   it("builds boss inventory from the pasted bank and marks missing buys", () => {
     expect(source).toContain("bankItems?: BankHandoffItem[]");
-    expect(source).toContain("buildBossInventoryPlan({ boss, preset, bankItems, owned, dps })");
+    expect(source).toContain("buildBossInventoryPlan({ boss, preset, bankItems, owned, dps: bankDps })");
     expect(source).toContain("inventoryPlan.leaveWith");
     expect(source).toContain("inventoryPlan.firstTrip");
-    expect(source).toContain("slot.item ? wikiSearchUrl(slot.item.name) : wikiSearchUrl(slot.label)");
-    expect(source).toContain("Buy/gather");
-    expect(source).toContain("x{slot.item.quantity.toLocaleString()}");
+    expect(source).toContain("inventoryPlan.firstTripRange");
+    expect(source).toContain('data-testid="osrs-inventory-grid"');
+    expect(source).toContain("inventoryPlan.mandatoryMissing");
+    expect(source).toContain("slot.quantity");
   });
 });

@@ -4,8 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, Sword, Target, TrendingUp, Package, ExternalLink, Copy, CheckCheck } from "lucide-react";
 import { BOSSES, isNonCombatBossActivity, type Boss } from "@/lib/bosses";
-import { bestStyleAndSetup, calcDps, autoSetup, type DpsBreakdown, type Setup } from "@/lib/dps";
-import { GEAR, type GearItem, type CombatStyle } from "@/lib/gear";
+import { bestStyleAndSetup, calcDps, type DpsBreakdown, type Setup } from "@/lib/dps";
+import { type GearItem } from "@/lib/gear";
 import { PRESETS } from "@/lib/presets";
 import { formatGp, cn } from "@/lib/utils";
 import { ItemSprite } from "@/components/item-sprite";
@@ -22,6 +22,8 @@ import {
   bossKnowledgeAllowsGpRate,
   bossKnowledgeSupportsSingleDps
 } from "@/lib/boss-knowledge";
+import type { PlannerAccountType } from "@/lib/account-type";
+import { buildBossUpgradePlan } from "@/lib/boss-upgrade-plan";
 
 interface Props {
   boss: Boss;
@@ -30,13 +32,14 @@ interface Props {
   onClose: () => void;
   onSelectBoss?: (boss: Boss) => void;
   analyticsSource?: "next" | "check_kill";
+  accountType?: PlannerAccountType | null;
 }
 
 // Full-bleed boss profile modal. Triggered from /dps (row click) and
 // /next (KC-rec portrait click). Layout is side-by-side on desktop —
 // big portrait left 60%, gear+stats+upgrades+inventory right — and
 // stacks on mobile.
-export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelectBoss, analyticsSource = "check_kill" }: Props) {
+export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelectBoss, analyticsSource = "check_kill", accountType = null }: Props) {
   const titleId = "boss-modal-title";
   const descriptionId = "boss-modal-description";
   const statsId = "boss-modal-stats";
@@ -63,24 +66,28 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
     };
   }, [onClose]);
 
-  const dps = useMemo(() => bestStyleAndSetup(owned, boss), [owned, boss]);
+  const bankDps = useMemo(() => bestStyleAndSetup(owned, boss), [owned, boss]);
   const activitySetup = isNonCombatBossActivity(boss);
   const knowledge = useMemo(() => bossKnowledge(boss), [boss]);
   const singleDps = bossKnowledgeSupportsSingleDps(knowledge);
-  const upgrades = useMemo(
-    () => activitySetup || !singleDps ? [] : suggestUpgradesForBoss(owned, boss, dps),
-    [activitySetup, singleDps, owned, boss, dps]
-  );
   const preset = useMemo(() => PRESETS.find((p) => p.slug === boss.slug), [boss]);
   const inventoryPlan = useMemo(
-    () => buildBossInventoryPlan({ boss, preset, bankItems, owned, dps }),
-    [boss, preset, bankItems, owned, dps]
+    () => buildBossInventoryPlan({ boss, preset, bankItems, owned, dps: bankDps }),
+    [bankDps, bankItems, boss, owned, preset]
+  );
+  const dps = useMemo(
+    () => bankDps.dps > 0 ? calcDps(inventoryPlan.wornSetup, boss, bankDps.style) : bankDps,
+    [bankDps, boss, inventoryPlan.wornSetup]
+  );
+  const upgradePlan = useMemo(
+    () => activitySetup || !singleDps ? null : buildBossUpgradePlan({ boss, owned, bankItems, current: dps, accountType }),
+    [accountType, activitySetup, bankItems, boss, dps, owned, singleDps]
   );
   const inventoryRows = inventoryPlan.rows;
   const inventoryTagRows = activitySetup ? inventoryRows : undefined;
   const verdict = useMemo(
-    () => bossTripVerdict({ boss, dps, inventoryPlan, upgrades, activitySetup }),
-    [boss, dps, inventoryPlan, upgrades, activitySetup]
+    () => bossTripVerdict({ boss, dps, inventoryPlan, upgradePlan, activitySetup }),
+    [boss, dps, inventoryPlan, upgradePlan, activitySetup]
   );
   const tagString = useMemo(
     () => activitySetup || singleDps ? bossSetupTagString(boss, dps, inventoryTagRows) : "",
@@ -133,7 +140,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
       />
 
       <div
-        className="scapestack-lock-panel relative grid max-h-[90vh] min-h-0 w-full max-w-5xl lg:grid-cols-[3fr_2fr]"
+        className="scapestack-lock-panel relative grid max-h-[90vh] min-h-0 w-full max-w-5xl overflow-y-auto overscroll-contain lg:grid-cols-[3fr_2fr] lg:overflow-hidden"
         style={{ animation: "pop-in 0.28s cubic-bezier(0.22, 1, 0.36, 1)" }}
       >
         {/* Close — floats top-right over the portrait so it stays visible
@@ -191,7 +198,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
         {/* Right column — gear, stats, upgrades, inventory. Scrolls
             internally so the modal as a whole stays in viewport. */}
         <div
-          className="relative min-h-0 max-h-[90vh] space-y-5 overflow-y-auto overscroll-contain p-5 pb-16 sm:p-6 sm:pb-16"
+          className="relative min-h-0 space-y-5 p-5 pb-16 sm:p-6 sm:pb-16 lg:max-h-[90vh] lg:overflow-y-auto lg:overscroll-contain"
           data-testid="boss-modal-scroll-panel"
         >
           <section className="scapestack-lock-card border-[var(--color-accent)]/30 bg-[var(--color-bg)]/30 p-3.5" data-testid="boss-trip-verdict">
@@ -242,77 +249,81 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
             </div>
           </section>
 
-          {/* Inventory loadout — placed before stats/upgrades so the trip
-              answer starts with what to bring, not calculator output. */}
+          {/* Inventory loadout — a fixed 4×7 OSRS inventory, not a metrics panel. */}
           {inventoryRows.length > 0 && (
             <section data-testid="boss-inventory-setup">
-              <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">
-                <Package className="size-3 inline-block mr-1" />Leave with this
-              </h3>
-              <p className="mb-2 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-                {inventoryPlan.leaveWith}
-              </p>
-              <div className="space-y-2.5">
-                {inventoryRows.map((row) => (
-                  <div key={row.label}>
-                    <div className="text-[10.5px] uppercase tracking-wider text-[var(--color-text-dim)] mb-1.5">
-                      {row.label}
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {row.slots.map((slot, i) => {
-                        return (
-                          <a
-                            key={`${row.label}-${i}-${slot.label}`}
-                            href={slot.item ? wikiSearchUrl(slot.item.name) : wikiSearchUrl(slot.label)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={cn(
-                              "inline-flex min-h-9 items-center gap-1.5 rounded border px-2 py-1 text-[11px] transition-colors",
-                              slot.item
-                                ? "bg-[var(--color-accent)]/10 border-[var(--color-accent)]/30 text-[var(--color-text)]"
-                                : "bg-[var(--color-bg-2)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
-                            )}
-                            title={slot.item ? `${slot.item.name}: ${slot.item.quantity.toLocaleString()} in bank` : `${slot.label}: missing from bank`}
-                          >
-                            {slot.item ? (
-                              <ItemSprite
-                                id={slot.item.id}
-                                alt=""
-                                size={14}
-                                className="pixelated"
-                              />
-                            ) : (
-                              <span className="rounded bg-[var(--color-bg)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-[var(--color-accent)]">
-                                Buy/gather
-                              </span>
-                            )}
-                            <span className="truncate max-w-[155px]">{slot.item?.name ?? slot.label}</span>
-                            {slot.note && (
-                              <span className="text-[10px] text-[var(--color-text-muted)]">
-                                {slot.note}
-                              </span>
-                            )}
-                            {slot.item && slot.item.quantity > 1 && (
-                              <span className="font-mono text-[10px] text-[var(--color-text-muted)]">
-                                x{slot.item.quantity.toLocaleString()}
-                              </span>
-                            )}
-                          </a>
-                        );
-                      })}
-                    </div>
+              <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_224px] sm:items-start">
+                <div>
+                  <h3 className="eyebrow text-[var(--color-text-muted)]">
+                    <Package className="mr-1 inline-block size-3" />First-trip inventory
+                  </h3>
+                  <p className="mt-1 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text)]">
+                    {inventoryPlan.leaveWith}
+                  </p>
+                  <p className="mt-2 text-[11px] text-[var(--color-text-dim)]">
+                    {inventoryPlan.firstTripRange}
+                  </p>
+                  {inventoryPlan.mandatoryMissing.length > 0 && (
+                    <p className="mt-3 text-[12px] font-bold leading-relaxed text-[var(--color-danger)]" data-testid="boss-mandatory-missing">
+                      Missing before you go: {inventoryPlan.mandatoryMissing.join(", ")}.
+                    </p>
+                  )}
+                  {inventoryPlan.slotPressure && (
+                    <p className="mt-2 text-[11.5px] font-semibold text-[var(--color-warning)]">
+                      {inventoryPlan.slotPressure}
+                    </p>
+                  )}
+                  <p className="mt-3 text-[12px] leading-relaxed text-[var(--color-text-dim)]">
+                    {inventoryPlan.firstTrip}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-4 gap-1 rounded-md border border-[var(--color-border-strong)] bg-[#17130d] p-2" data-testid="osrs-inventory-grid">
+                  {inventoryPlan.inventory.map((slot, index) => (
+                    <a
+                      key={`${slot.label}-${index}`}
+                      href={slot.label === "Empty" ? undefined : wikiSearchUrl(slot.item?.name ?? slot.label)}
+                      target={slot.label === "Empty" ? undefined : "_blank"}
+                      rel={slot.label === "Empty" ? undefined : "noopener noreferrer"}
+                      aria-label={slot.label === "Empty" ? `Empty inventory slot ${index + 1}` : slot.item ? `${slot.item.name}, bring ${slot.quantity}` : `Missing ${slot.label}`}
+                      className={cn(
+                        "relative flex aspect-square min-w-0 items-center justify-center rounded border",
+                        slot.label === "Empty" && "pointer-events-none border-black/25 bg-black/20",
+                        slot.item && "border-[#5b4a2b] bg-[#282015] hover:border-[var(--color-accent)]/65",
+                        slot.missing && "border-dashed border-[var(--color-danger)]/55 bg-[var(--color-danger)]/5"
+                      )}
+                      title={slot.item ? `${slot.item.name}: ${slot.item.quantity.toLocaleString()} in bank` : slot.missing ? `${slot.label}: missing` : "Empty"}
+                    >
+                      {slot.item ? (
+                        <ItemSprite id={slot.item.id} alt="" className="pixelated max-h-[78%] max-w-[78%]" />
+                      ) : slot.missing ? (
+                        <span className="px-1 text-center text-[8px] font-black uppercase leading-tight text-[var(--color-danger)]">
+                          {slot.label}
+                        </span>
+                      ) : null}
+                      {slot.quantity > 1 && (
+                        <span className="absolute bottom-0.5 right-1 font-mono text-[9px] font-black text-[var(--color-accent)] [text-shadow:0_1px_2px_#000]">
+                          {slot.quantity}
+                        </span>
+                      )}
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              {inventoryRows.some((row) => row.slots.some((slot) => slot.alternatives.length > 0)) && (
+                <details className="mt-3 border-t border-[var(--color-border)] pt-2">
+                  <summary className="cursor-pointer text-[11.5px] font-bold text-[var(--color-text-dim)]">Other usable items in your bank</summary>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {inventoryRows.flatMap((row) => row.slots).flatMap((slot) => slot.alternatives.map((item) => (
+                      <span key={`${slot.label}-${item.id}`} className="inline-flex items-center gap-1 rounded border border-[var(--color-border)] px-2 py-1 text-[10.5px] text-[var(--color-text-dim)]">
+                        <ItemSprite id={item.id} alt="" size={14} className="pixelated" />
+                        {item.name}
+                      </span>
+                    )))}
                   </div>
-                ))}
-              </div>
-              <p className="mt-2 text-[10.5px] text-[var(--color-text-muted)] italic">
-                Gold chips are in your bank. Buy/gather chips are missing or too specific to detect from this paste.
-              </p>
-              <div className="mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2">
-                <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--color-accent)]">Try first</div>
-                <p className="mt-1 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text)]">
-                  {inventoryPlan.firstTrip}
-                </p>
-              </div>
+                </details>
+              )}
             </section>
           )}
 
@@ -424,75 +435,41 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
               <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">
                 <Sword className="size-3 inline-block mr-1" />Gear from bank
               </h3>
-              <GearSlotGrid setup={dps.setup} />
+              <GearSlotGrid setup={inventoryPlan.wornSetup} />
             </section>
           )}
 
-          {/* Upgrades — top 3 items the player doesn't own that would
-              raise DPS the most for THIS boss specifically (not the
-              global suggestion the page already shows up top). */}
-          {upgrades.length > 0 && (
+          {upgradePlan && (
             <section>
               <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">
-                <Target className="size-3 inline-block mr-1" />Upgrade before camping
+                <Target className="size-3 inline-block mr-1" />Best next improvement
               </h3>
-              <div className="space-y-1.5">
-                {upgrades.map((u) => {
-                  // Vertaal DPS-gain naar concrete impact: kills/uur erbij +
-                  // GP/uur erbij. Gebruikt dezelfde kph-cap als de hoofdrij.
-                  const currentKph = dps.ttk > 0 ? Math.min(boss.killsPerHourCap ?? Infinity, Math.floor(3600 / dps.ttk)) : 0;
-                  const newKph = u.newTtk > 0 ? Math.min(boss.killsPerHourCap ?? Infinity, Math.floor(3600 / u.newTtk)) : 0;
-                  const kphGain = Math.max(0, newKph - currentKph);
-                  const gpGain = kphGain && boss.avgLootGp ? kphGain * boss.avgLootGp : 0;
-                  return (
-                    <div
-                      key={u.item.id}
-                      className="flex items-center gap-2.5 px-2.5 py-2 rounded-md bg-[var(--color-bg-2)] border border-[var(--color-border)]"
-                    >
-                      <div className="size-8 shrink-0 rounded bg-[var(--color-bg)] border border-[var(--color-border)] flex items-center justify-center">
-                        <ItemSprite
-                          id={u.item.id}
-                          alt=""
-                          className="pixelated"
-                          style={{ maxWidth: "78%", maxHeight: "78%" }}
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[12.5px] font-semibold text-[var(--color-text)] truncate">{u.item.name}</div>
-                        <div className="text-[10.5px] text-[var(--color-text-muted)] tabular-nums">
-                          <span className="text-[var(--color-good)]">+{u.gain.toFixed(2)} DPS</span>
-                          {kphGain > 0 && (
-                            <> · <span className="text-[var(--color-text-dim)]">+{kphGain} kc/u</span></>
-                          )}
-                          {gpGain > 0 && (
-                            <> · <span className="text-[var(--color-text-dim)]">+{(gpGain / 1000).toFixed(0)}k GP/u</span></>
-                          )}
-                          {" · "}{u.item.slot ?? "weapon"}
-                        </div>
-                      </div>
-                      <div className="flex shrink-0 flex-col gap-1">
-                        <a
-                          href={wikiSearchUrl(u.item.name)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center gap-1 rounded border border-[var(--color-border)] px-2 py-1 text-[10px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
-                          aria-label={`Open ${u.item.name} on the OSRS Wiki`}
-                        >
-                          Wiki <ExternalLink className="size-2.5" />
-                        </a>
-                        <a
-                          href={wikiPriceUrl(u.item.id)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center gap-1 rounded border border-[var(--color-accent)]/25 px-2 py-1 text-[10px] font-semibold text-[var(--color-accent)] transition-colors hover:border-[var(--color-accent)]/45"
-                          aria-label={`Open ${u.item.name} GE price`}
-                        >
-                          GE <ExternalLink className="size-2.5" />
-                        </a>
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="flex items-center gap-3 border-y border-[var(--color-border)] py-3" data-testid="boss-primary-upgrade">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded border border-[var(--color-border)] bg-[var(--color-bg)]">
+                  <ItemSprite id={upgradePlan.item.id} alt="" className="pixelated max-h-[78%] max-w-[78%]" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[13px] font-black text-[var(--color-text)]">{upgradePlan.item.name}</div>
+                  <p className="mt-0.5 text-[11px] leading-relaxed text-[var(--color-text-dim)]">
+                    {upgradePlan.sourcePath ?? upgradePlan.reason}
+                  </p>
+                  <div className="mt-1 text-[10.5px] text-[var(--color-text-muted)]">
+                    +{upgradePlan.gain.toFixed(2)} DPS
+                    {upgradePlan.approximatePrice !== null && upgradePlan.approximatePrice > 0 && (
+                      <> · roughly {formatGp(upgradePlan.approximatePrice)}</>
+                    )}
+                    {!upgradePlan.sourcePath && upgradePlan.affordable && <> · inside visible cash</>}
+                  </div>
+                </div>
+                <a
+                  href={upgradePlan.sourcePath ? wikiSearchUrl(upgradePlan.item.name) : wikiPriceUrl(upgradePlan.item.id)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-9 shrink-0 items-center justify-center gap-1 rounded border border-[var(--color-accent)]/35 px-2.5 text-[10.5px] font-black text-[var(--color-accent)] hover:border-[var(--color-accent)]/65"
+                  aria-label={`${upgradePlan.actionLabel} for ${upgradePlan.item.name}`}
+                >
+                  {upgradePlan.actionLabel} <ExternalLink className="size-3" />
+                </a>
               </div>
             </section>
           )}
@@ -531,13 +508,13 @@ function bossTripVerdict({
   boss,
   dps,
   inventoryPlan,
-  upgrades,
+  upgradePlan,
   activitySetup
 }: {
   boss: Boss;
   dps: DpsBreakdown;
   inventoryPlan: ReturnType<typeof buildBossInventoryPlan>;
-  upgrades: UpgradePick[];
+  upgradePlan: ReturnType<typeof buildBossUpgradePlan>;
   activitySetup?: boolean;
 }): BossTripVerdict {
   const missingInventory = inventoryPlan.missingCount;
@@ -550,6 +527,14 @@ function bossTripVerdict({
         : "Your bank has the key activity items. Copy the tab, do one round, then adjust after the reward.",
       badge: "No combat DPS",
       tone: missingInventory > 0 ? "warn" : "good"
+    };
+  }
+  if (inventoryPlan.mandatoryMissing.length > 0) {
+    return {
+      title: "Do not leave yet",
+      body: `Your bank is missing ${inventoryPlan.mandatoryMissing.join(", ")}. Add those before this can be a real first trip.`,
+      badge: "Required prep",
+      tone: "warn"
     };
   }
   if (knowledge.wildernessRisk) {
@@ -584,7 +569,7 @@ function bossTripVerdict({
       tone: "warn"
     };
   }
-  if (dps.hitChance < 0.38 || upgrades.length >= 3) {
+  if (dps.hitChance < 0.38 || (upgradePlan && upgradePlan.gain > dps.dps * 0.4)) {
     return {
       title: "Not worth yet",
       body: `${dps.weapon.name} is detected, but the hit chance is low. Check upgrades before camping this boss.`,
@@ -691,37 +676,4 @@ function GearSlotGrid({ setup }: { setup: Setup }) {
       })}
     </div>
   );
-}
-
-interface UpgradePick {
-  item: GearItem;
-  gain: number;     // DPS gain over current best setup at this boss
-  /** TTK (seconds per kill) met deze upgrade. Gebruikt om kc/u en
-   *  GP/u te tonen — meer concreet dan "DPS +0.5". */
-  newTtk: number;
-}
-
-// Per-boss upgrade picker. Tries each unowned gear item against the
-// boss's best style; keeps the three with the biggest DPS gain. This
-// is cheaper than the global suggester because we only test one
-// boss + one style.
-function suggestUpgradesForBoss(owned: GearItem[], boss: Boss, current: DpsBreakdown): UpgradePick[] {
-  if (current.dps === 0) return [];
-  const ownedIds = new Set(owned.map((g) => g.id));
-  const style: CombatStyle = current.style;
-  const baseDps = current.dps;
-  const candidates: UpgradePick[] = [];
-  for (const g of GEAR) {
-    if (ownedIds.has(g.id)) continue;
-    // Style-bound weapons only count for their own style.
-    if (g.slot === "weapon" && g.weaponStyle && g.weaponStyle !== style) continue;
-    const newSetup = autoSetup([...owned, g], style);
-    if (!newSetup.weapon) continue;
-    const newCalc = calcDps(newSetup, boss, style);
-    const gain = newCalc.dps - baseDps;
-    if (gain > 0.1) {
-      candidates.push({ item: g, gain, newTtk: newCalc.ttk });
-    }
-  }
-  return candidates.sort((a, b) => b.gain - a.gain).slice(0, 3);
 }

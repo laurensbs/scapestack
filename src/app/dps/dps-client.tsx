@@ -679,6 +679,7 @@ export function DpsClient() {
           boss={modalBoss}
           owned={owned}
           bankItems={bankItems}
+          accountType={plannerAccountType}
           analyticsSource="check_kill"
           onSelectBoss={(nextBoss) => {
             setFocusedBoss(nextBoss);
@@ -711,8 +712,8 @@ function BossCard({ boss, dps, owned, bankItems, accountType, isFocused, onOpen 
     bossKnowledgeAllowsGpRate(knowledge) && usable && boss.avgLootGp && boss.killsPerHourCap
       ? Math.min(boss.killsPerHourCap, Math.floor(3600 / dps.ttk)) * boss.avgLootGp
       : null;
-  const status = bossTripVerdict(boss, dps, accountType);
   const inventoryPlan = buildBossInventoryPlan({ boss, bankItems, owned, dps });
+  const status = bossTripVerdict(boss, dps, accountType, inventoryPlan);
   const before = singleDps
     ? bossTripBeforeLeave(boss, dps, inventoryPlan.leaveWith)
     : knowledge.inventoryArchetype;
@@ -759,7 +760,7 @@ function BossCard({ boss, dps, owned, bankItems, accountType, isFocused, onOpen 
               </div>
               <span className={cn(
                 "rounded-full border px-2 py-1 text-[10px] font-bold",
-                !usable
+                !usable || inventoryPlan.mandatoryMissing.length > 0
                   ? "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
                 : boss.category === "wildy"
                   ? "border-[var(--color-danger)]/35 bg-[var(--color-danger)]/10 text-[var(--color-danger)]"
@@ -857,9 +858,15 @@ function bossTripFinishAfter(boss: Boss, dps: DpsBreakdown): string {
   return "One clean trip.";
 }
 
-function bossTripVerdict(boss: Boss, dps: DpsBreakdown, accountType: PlannerAccountType | null = null): string {
+function bossTripVerdict(
+  boss: Boss,
+  dps: DpsBreakdown,
+  accountType: PlannerAccountType | null = null,
+  inventoryPlan?: ReturnType<typeof buildBossInventoryPlan>
+): string {
   const knowledge = bossKnowledge(boss);
   if (isNonCombatBossActivity(boss)) return "Activity setup";
+  if (inventoryPlan?.mandatoryMissing.length) return "Prep required";
   if (accountType === "hardcore" && knowledge.wildernessRisk) return "HCIM risk";
   if (knowledge.wildernessRisk) return "Risky trip";
   if (!bossKnowledgeSupportsSingleDps(knowledge)) {

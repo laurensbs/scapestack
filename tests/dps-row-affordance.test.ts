@@ -35,7 +35,7 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("Add a weapon to see the trip setup and missing upgrades.");
     expect(source).toContain('import { Edit3, Sword, Search, X, Sparkles, ExternalLink } from "lucide-react";');
     expect(source).toContain("function bossTripVerdict");
-    expect(source).toContain("const status = bossTripVerdict(boss, dps, accountType);");
+    expect(source).toContain("const status = bossTripVerdict(boss, dps, accountType, inventoryPlan);");
     expect(source).toContain("buildBossInventoryPlan({ boss, bankItems, owned, dps })");
     expect(source).toContain('className="block h-full min-h-[236px] w-full p-5 text-left"');
     expect(source).toContain('"Do one trip"');
@@ -55,12 +55,12 @@ describe("DPS boss row affordance", () => {
   it("keeps boss-specific upgrades inside the clicked boss modal", () => {
     const modalSource = readFileSync(join(process.cwd(), "src/components/boss-detail-modal.tsx"), "utf8");
 
-    expect(modalSource).toContain("() => activitySetup || !singleDps ? [] : suggestUpgradesForBoss(owned, boss, dps)");
-    expect(modalSource).toContain("Upgrade before camping");
-    expect(modalSource).toContain("wikiSearchUrl(u.item.name)");
-    expect(modalSource).toContain("wikiPriceUrl(u.item.id)");
-    expect(modalSource).toContain("Open ${u.item.name} on the OSRS Wiki");
-    expect(modalSource).toContain("Open ${u.item.name} GE price");
+    expect(modalSource).toContain("buildBossUpgradePlan({ boss, owned, bankItems, current: dps, accountType })");
+    expect(modalSource).toContain("Best next improvement");
+    expect(modalSource).toContain("wikiSearchUrl(upgradePlan.item.name)");
+    expect(modalSource).toContain("wikiPriceUrl(upgradePlan.item.id)");
+    expect(modalSource).toContain("upgradePlan.sourcePath");
+    expect(modalSource).toContain("upgradePlan.affordable");
     expect(source).not.toContain("function suggestUpgradesForBoss(owned: GearItem[], boss: Boss): UpgradeSuggestion[]");
   });
 
@@ -116,13 +116,10 @@ describe("DPS boss row affordance", () => {
 
     expect(modalSource).toContain('import { wikiPriceUrl } from "@/lib/item-action";');
     expect(modalSource).toContain('import { wikiSearchUrl } from "@/lib/wiki";');
-    expect(modalSource).toContain("Upgrade before camping");
-    expect(modalSource).toContain("href={wikiSearchUrl(u.item.name)}");
-    expect(modalSource).toContain("href={wikiPriceUrl(u.item.id)}");
-    expect(modalSource).toContain("Open ${u.item.name} on the OSRS Wiki");
-    expect(modalSource).toContain("Open ${u.item.name} GE price");
-    expect(modalSource).toContain("{u.item.name}");
-    expect(modalSource).toContain("+{u.gain.toFixed(2)} DPS");
-    expect(modalSource).toContain("GE <ExternalLink");
+    expect(modalSource).toContain("Best next improvement");
+    expect(modalSource).toContain("upgradePlan.sourcePath ? wikiSearchUrl(upgradePlan.item.name) : wikiPriceUrl(upgradePlan.item.id)");
+    expect(modalSource).toContain("{upgradePlan.item.name}");
+    expect(modalSource).toContain("+{upgradePlan.gain.toFixed(2)} DPS");
+    expect(modalSource).toContain("{upgradePlan.actionLabel}");
   });
 });

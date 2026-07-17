@@ -1378,7 +1378,7 @@ Acceptance:
 
 ## Phase 19 - Build Boss Inventory And Upgrade Plans
 
-Status: TODO  
+Status: COMPLETE (2026-07-17)
 Depends on: Phases 13 and 18  
 Improves: Check Kill usefulness
 
@@ -1409,6 +1409,31 @@ Acceptance:
 - missing mandatory gear blocks a false Can kill verdict;
 - UI can render an OSRS-style inventory without a metrics dashboard.
 ```
+
+### Evidence
+
+- Replaced presence-only boss prep with typed trip requirements: target
+  quantities, mandatory items, bank alternatives, worn slots, inventory-slot
+  pressure and a fixed 28-slot first-trip inventory.
+- Vorkath now checks Salve, anti-dragon protection, antifire and individual
+  Crumble Undead rune requirements. A two-handed weapon cannot silently share
+  a required shield; a compatible one-handed bank alternative is selected or
+  the trip remains blocked.
+- Zulrah now requires viable magic and ranged switches plus venom protection,
+  then builds prayer, food and teleport quantities for one rotation. Barrows
+  uses a spade, magic weapon and one-chest supply plan rather than raid copy.
+- Mandatory prep now blocks both the boss tile and detail verdict from showing
+  a false successful trip. The detail view renders worn gear separately from
+  a compact OSRS-style 4x7 inventory, with missing slots and owned alternatives.
+- Check Kill now offers one encounter-tested next improvement. Normal accounts
+  prefer the highest-impact option covered by the visible coin stack; iron
+  modes receive a concrete self-source route instead of a GE action.
+- Verification: typecheck, focused Phase 19 regressions and all 198 unaffected
+  test files / 1,251 tests passed. All RuneLite Gradle tests passed. The eight
+  excluded reviewer-packet CLI tests require a local IPC socket that this
+  sandbox forbids; the webpack production compile passed before the unchanged
+  `/plugin` page-export type gate, and local browser port binding was likewise
+  unavailable in this sandbox.
 
 ## Phase 20 - Make Rates Fresh And Honest
 

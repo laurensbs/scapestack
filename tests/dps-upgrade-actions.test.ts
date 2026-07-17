@@ -21,13 +21,12 @@ describe("DPS upgrade actions", () => {
   it("keeps DPS upgrade cards clickable and item-ID visible", () => {
     const source = readFileSync(join(process.cwd(), "src/components/boss-detail-modal.tsx"), "utf8");
 
-    expect(source).toContain("() => activitySetup || !singleDps ? [] : suggestUpgradesForBoss(owned, boss, dps)");
-    expect(source).toContain("Upgrade before camping");
-    expect(source).toContain("{u.item.name}");
-    expect(source).toContain("+{u.gain.toFixed(2)} DPS");
-    expect(source).toContain("href={wikiSearchUrl(u.item.name)}");
-    expect(source).toContain("href={wikiPriceUrl(u.item.id)}");
-    expect(source).toContain("Open ${u.item.name} on the OSRS Wiki");
-    expect(source).toContain("Open ${u.item.name} GE price");
+    expect(source).toContain("buildBossUpgradePlan({ boss, owned, bankItems, current: dps, accountType })");
+    expect(source).toContain("Best next improvement");
+    expect(source).toContain("{upgradePlan.item.name}");
+    expect(source).toContain("+{upgradePlan.gain.toFixed(2)} DPS");
+    expect(source).toContain("wikiSearchUrl(upgradePlan.item.name)");
+    expect(source).toContain("wikiPriceUrl(upgradePlan.item.id)");
+    expect(source).toContain('data-testid="boss-primary-upgrade"');
   });
 });

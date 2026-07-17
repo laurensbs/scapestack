@@ -786,6 +786,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
           boss={modalBoss}
           owned={ownedGearItems}
           bankItems={activeBankItems}
+          accountType={result.summary.accountType}
           analyticsSource="next"
           onSelectBoss={(nextBoss) => setModalBoss(nextBoss)}
           onClose={() => setModalBoss(null)}
