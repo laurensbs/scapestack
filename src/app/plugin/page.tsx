@@ -87,8 +87,8 @@ export function pluginHeroActions(): PluginHeroAction[] {
 
 export default function PluginPage() {
   return (
-    <main className="relative z-10 mx-auto max-w-3xl px-5 pb-28 pt-10 sm:px-8 sm:pt-16">
-      <header>
+    <main className="scape-page scape-page--reading pb-28 pt-10 sm:px-8 sm:pt-16">
+      <header className="mb-8 border-b border-[var(--color-border)] pb-6">
         <p className="eyebrow text-[var(--color-accent)]">RuneLite connection</p>
         <h1 className="mt-2 max-w-2xl font-serif text-[42px] font-bold leading-[1.02] text-[var(--color-text)] sm:text-[58px]">
           Keep your next trip current.

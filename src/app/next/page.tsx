@@ -27,7 +27,7 @@ export default async function NextPage({
   const queryString = queryStringFromSearchParams(await (searchParams ?? Promise.resolve({})));
 
   return (
-    <main className="relative z-10 mx-auto max-w-6xl px-5 py-7 pb-20">
+    <main className="scape-page">
       <NextClient initialQueryString={queryString} />
     </main>
   );

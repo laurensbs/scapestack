@@ -86,12 +86,12 @@ export function ConnectBrowserModal({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[180] grid place-items-center overflow-y-auto bg-black/75 p-4" role="presentation" onMouseDown={onClose}>
+    <div className="fixed inset-0 z-[180] flex items-end justify-center overflow-y-auto bg-black/78 p-0 sm:items-center sm:p-4" role="presentation" onMouseDown={onClose}>
       <section
         role="dialog"
         aria-modal="true"
         aria-labelledby="connect-browser-title"
-        className="scapestack-modal max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto"
+        className="scape-dialog max-w-lg"
         onMouseDown={(event) => event.stopPropagation()}
       >
         <header className="flex items-center justify-between border-b border-[var(--color-parchment-edge)] px-5 py-4">

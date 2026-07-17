@@ -124,7 +124,7 @@ function DpsMissingSetupState({
     : "Scapestack will pick the best boss setup from your bank.";
 
   return (
-    <section className="mx-auto max-w-2xl rounded-2xl border border-[var(--color-accent)]/35 bg-[var(--color-panel)] px-4 py-5 shadow-[0_18px_55px_rgba(0,0,0,0.2)] sm:px-5">
+    <section className="scape-focus mx-auto max-w-2xl px-4 py-5 sm:px-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 gap-3">
           <span className="inline-flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/50">
@@ -699,7 +699,7 @@ function BossCard({ boss, dps, owned, bankItems, accountType, isFocused, onOpen 
     <article
       id={`boss-${boss.slug}`}
       className={cn(
-        "scapestack-boss-tile group w-full scroll-mt-24 p-0 text-left",
+        "scape-boss-tile scapestack-boss-tile group w-full scroll-mt-24 p-0 text-left",
         "hover:-translate-y-0.5",
         isFocused && "border-[var(--color-accent)]/55 shadow-[0_0_0_1px_rgba(240,176,44,0.22)]"
       )}>

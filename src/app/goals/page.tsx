@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function GoalsPage() {
   return (
-    <main className="relative z-10 mx-auto max-w-6xl px-5 py-7 pb-20">
+    <main className="scape-page">
       <ToolHeader slug="goals" />
       <GoalsClient />
     </main>

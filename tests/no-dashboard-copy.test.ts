@@ -19,6 +19,7 @@ const playerFacingFiles = [
 ];
 
 const source = playerFacingFiles.map((file) => readFileSync(join(process.cwd(), file), "utf8")).join("\n");
+const bankPageSource = readFileSync(join(process.cwd(), "src/app/bank/page.tsx"), "utf8");
 
 describe("player-facing copy avoids dashboard language", () => {
   it("keeps bank, DPS, Slayer and RuneLite surfaces in player language", () => {
@@ -54,7 +55,8 @@ describe("player-facing copy avoids dashboard language", () => {
   });
 
   it("keeps the replacement copy concrete and OSRS-native", () => {
-    expect(source).toContain("Make the next trip smarter");
+    expect(source).toContain("Paste once. Save. Better trips everywhere.");
+    expect(bankPageSource).not.toContain("ScapestackReadinessRail");
     expect(source).toContain("Paste check");
     expect(source).toContain("Pick a boss");
     expect(source).toContain("Search any boss. Click a tile for gear, supplies, upgrades and a first trip.");

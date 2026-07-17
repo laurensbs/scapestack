@@ -2072,7 +2072,7 @@ Acceptance:
 
 ## Phase 30 - Lock A Non-Dashboard Design System
 
-Status: TODO  
+Status: DONE (2026-07-17)
 Depends on: Phases 24, 27 and 28  
 Improves: branding, visual consistency
 
@@ -2107,6 +2107,31 @@ Acceptance:
 - screenshot review finds no generic SaaS dashboard composition;
 - theme regression tests protect the lock.
 ```
+
+### Evidence
+
+- Researched Wayfinder, Pipe, Franco Maria Ricci Editore and Krea in Refero and
+  documented what Scapestack borrows structurally: low chrome, one accent,
+  object-led hierarchy, quiet controls and editorial negative space. The lock
+  explicitly rejects KPI grids, nested cards, green success banners and AI
+  glow.
+- Added one semantic token and primitive contract for page, intro, focus,
+  dialog, sheet, boss tile, route choice, inventory, checklist and primary
+  action. Controls now use stable 8px geometry, cream display copy, warm-gold
+  focus states and a flat black canvas.
+- Migrated homepage, `/next`, `/bank`, `/dps`, `/goals`, `/plugin` and account
+  home onto the same shell. Removed the bank readiness rail, duplicate account
+  actions, decorative support orbs and bespoke modal framing. Mobile dialogs
+  become focused bottom sheets instead of compressed desktop cards.
+- Browser review covered all seven routes at 1440px and 390px. `/next`, boss
+  selection, RuneLite connection and account home retain one clear focus with
+  no page-level horizontal overflow; the recommendation and sync flows were
+  also checked visually in their first mobile viewport.
+- Added interface-lock regression coverage and updated old tests that required
+  the removed dashboard rail and legacy OSRS frame classes.
+- Verification: 208 test files / 1,314 tests passed. `npm run ci:check` passed
+  typecheck, smoke, recommendation audit, offline plugin release checks and the
+  216-page production build. `./gradlew test` passed the RuneLite suite.
 
 ## Phase 31 - Make The App Mobile-First
 

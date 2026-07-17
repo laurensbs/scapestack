@@ -39,7 +39,6 @@ export function HeroBossTripPreview() {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="pointer-events-none absolute inset-x-0 top-[15%] h-[70%] rounded-full bg-[radial-gradient(circle,rgba(214,166,58,0.20),rgba(214,166,58,0.07)_36%,transparent_68%)] blur-2xl" />
       <div className="pointer-events-none absolute inset-x-[10%] bottom-[12%] h-16 rounded-full bg-black/70 blur-2xl" />
 
       <button

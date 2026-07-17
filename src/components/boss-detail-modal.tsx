@@ -145,7 +145,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6"
+      className="fixed inset-0 z-[200] flex items-end justify-center p-0 sm:items-center sm:p-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
@@ -162,29 +162,22 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
       />
 
       <div
-        className="scapestack-lock-panel relative block max-h-[92vh] min-h-0 w-full max-w-3xl overflow-y-auto overscroll-contain bg-[#17130d] shadow-[0_28px_90px_rgba(0,0,0,0.72)]"
+        className="scape-sheet relative block min-h-0 max-w-3xl overscroll-contain"
         style={{
           animation: "pop-in 0.28s cubic-bezier(0.22, 1, 0.36, 1)",
-          backgroundColor: "#17130d"
+          backgroundColor: "var(--color-parchment-dark)"
         }}
       >
         <button
           type="button"
           onClick={onClose}
           aria-label={`Close ${boss.name} boss setup details`}
-          className="absolute top-3 right-3 z-10 size-9 rounded-full flex items-center justify-center bg-[var(--color-bg)]/70 backdrop-blur border border-[var(--color-border-strong)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg)] transition-colors"
+          className="icon-btn absolute right-3 top-3 z-10"
         >
           <X className="size-4" />
         </button>
 
         <header className="relative flex h-[30vh] min-h-[230px] max-h-[330px] items-center justify-center overflow-hidden border-b border-[var(--color-border)] bg-[var(--color-bg-2)] p-5 sm:min-h-[280px] sm:p-8">
-          <div
-            className="absolute inset-[-10%] pointer-events-none"
-            style={{
-              background: "radial-gradient(closest-side, rgba(134, 166, 217, 0.18) 0%, transparent 70%)",
-              opacity: 0.5
-            }}
-          />
           <img
             src={`/sprites/bosses/${boss.slug}.png`}
             alt=""

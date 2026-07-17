@@ -6,7 +6,7 @@ export const revalidate = 300;
 
 export default function HomePage() {
   return (
-    <main className="relative z-10 mx-auto max-w-6xl overflow-x-hidden px-5 pb-18 pt-10 sm:px-8 sm:pt-14">
+    <main className="scape-page pb-18 pt-10 sm:px-8 sm:pt-14">
       <section className="home-hero relative flex min-h-[calc(100vh-6rem)] min-w-0 items-center overflow-hidden">
         <div className="home-hero-grid mx-auto grid w-full min-w-0 items-center gap-8 py-8 lg:grid-cols-[minmax(0,1fr)_440px] lg:gap-x-12 lg:gap-y-5">
           <div className="home-hero-intro min-w-0 space-y-5 text-center lg:col-start-1 lg:row-start-1 lg:text-left">
@@ -66,14 +66,9 @@ export default function HomePage() {
       </section>
 
 
-      <footer className="mt-14 border-t border-[var(--color-parchment-edge)]/50 pt-10">
-        <div className="osrs-frame scapestack-lock-panel relative mx-auto max-w-3xl animate-[slide-up_0.5s_cubic-bezier(0.22,1,0.36,1)_0.2s_both]">
-          <div
-            className="absolute inset-x-0 top-0 h-px"
-            style={{ background: "linear-gradient(to right, transparent, rgba(200, 154, 61,0.4), transparent)" }}
-          />
-
-          <div className="osrs-body relative grid items-center gap-6 p-8 sm:grid-cols-[1fr_auto] sm:p-10">
+      <footer className="mt-14 border-t border-[var(--color-border)] pt-10">
+        <div className="relative mx-auto max-w-3xl animate-[slide-up_0.5s_cubic-bezier(0.22,1,0.36,1)_0.2s_both]">
+          <div className="relative grid items-center gap-6 sm:grid-cols-[1fr_auto]">
             <div>
               <div className="eyebrow mb-2" style={{ color: "var(--color-accent)" }}>
                 Solo project · No ads · No accounts

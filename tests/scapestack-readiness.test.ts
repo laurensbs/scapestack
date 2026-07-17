@@ -307,17 +307,14 @@ describe("Scapestack readiness rail", () => {
     expect(readiness.title).not.toContain("signals connected");
   });
 
-  it("is mounted on the core product result routes", () => {
-    const files = [
-      "src/app/bank/page.tsx",
-      "src/app/slayer/slayer-client.tsx"
-    ];
+  it("keeps readiness help contextual instead of mounting a rail on every route", () => {
+    const slayerSource = readFileSync(join(process.cwd(), "src/app/slayer/slayer-client.tsx"), "utf8");
+    expect(slayerSource).toContain("ScapestackReadinessRail");
+    expect(slayerSource).toContain('surface="slayer"');
 
-    for (const file of files) {
-      const source = readFileSync(join(process.cwd(), file), "utf8");
-      expect(source, file).toContain("ScapestackReadinessRail");
-      expect(source, file).toContain('surface="');
-    }
+    const bankSource = readFileSync(join(process.cwd(), "src/app/bank/page.tsx"), "utf8");
+    expect(bankSource).not.toContain("ScapestackReadinessRail");
+    expect(bankSource).toContain('className="scape-dialog');
 
     const goalsSource = readFileSync(join(process.cwd(), "src/app/goals/goals-client.tsx"), "utf8");
     expect(goalsSource).not.toContain("ScapestackReadinessRail");

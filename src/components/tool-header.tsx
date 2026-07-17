@@ -13,33 +13,19 @@ export function ToolHeader({ slug, actions }: ToolHeaderProps) {
   if (!tool) return null;
   const Icon = tool.icon;
   return (
-    // Premium tool-header: accent top-line + ruimere typografie + iets
-    // soeverein-laagje gradient op de icon-tile. Geen separator-border
-    // onderaan meer; de hero-card daaronder doet de visuele scheiding.
-    <header className="relative mb-6 sm:mb-8">
-      {/* Accent top-line zoals headline-card + hero-strip gebruiken —
-          bindt alle tools visueel aan elkaar. */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 top-0 h-px"
-        style={{ background: "linear-gradient(to right, transparent, rgba(224, 174, 55,0.45), transparent)" }}
-      />
-      <div className="flex items-center justify-between gap-4 pt-5">
-        <div className="flex items-center gap-3.5">
-          {/* Icon tile: gradient + accent border zodat hij actief voelt
-              ipv "tile met icoon". */}
-          <div className="relative size-11 rounded-lg flex items-center justify-center shrink-0 bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] border border-[var(--color-accent)]/30 text-[var(--color-accent)] shadow-[0_0_18px_-8px_rgba(224,174,55,0.5)]">
-            <Icon className="size-[22px]" strokeWidth={1.75} />
-          </div>
-          <div>
-            <h1 className="text-[22px] sm:text-[24px] font-bold text-[var(--color-text)] leading-tight tracking-normal">
+    <header className="scape-page-intro">
+      <div className="scape-page-intro__identity">
+        <span className="scape-page-intro__icon" aria-hidden="true">
+          <Icon className="size-5" strokeWidth={1.75} />
+        </span>
+        <div className="min-w-0">
+            <h1 className="text-[var(--color-text)]">
               {tool.name}
             </h1>
-            <p className="text-[12px] text-[var(--color-text-muted)] mt-0.5">{tool.tagline}</p>
-          </div>
+            <p>{tool.tagline}</p>
         </div>
-        {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
       </div>
+      {actions ? <div className="scape-page-intro__actions flex items-center gap-2">{actions}</div> : null}
     </header>
   );
 }

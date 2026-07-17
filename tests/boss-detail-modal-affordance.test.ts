@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const source = readFileSync(join(process.cwd(), "src/components/boss-detail-modal.tsx"), "utf8");
+const css = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
 
 describe("boss detail modal affordance", () => {
   it("exposes boss setup details as a named and described dialog", () => {
@@ -57,9 +58,11 @@ describe("boss detail modal affordance", () => {
     expect(source).toContain("bossRail");
     expect(source).toContain('aria-current={active ? "true" : undefined}');
     expect(source).toContain("onSelectBoss?: (boss: Boss) => void");
-    expect(source).toContain("max-h-[92vh]");
-    expect(source).toContain("overflow-y-auto overscroll-contain");
-    expect(source).toContain("relative block max-h-[92vh]");
+    expect(source).toContain('className="scape-sheet');
+    expect(source).toContain("overscroll-contain");
+    expect(css).toContain(".scape-sheet {");
+    expect(css).toContain("max-height: min(92dvh, 56rem);");
+    expect(css).toContain("overflow-y: auto;");
     expect(source).toContain("max-w-3xl");
     expect(source).not.toContain("lg:grid lg:grid-cols-[3fr_2fr]");
     expect(source).toContain("h-[30vh] min-h-[230px] max-h-[330px]");

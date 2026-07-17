@@ -87,10 +87,13 @@ describe("homepage first-impression copy", () => {
     expect(source).not.toContain("lg:grid-cols-[minmax(0,0.98fr)_minmax(340px,0.72fr)]");
   });
 
-  it("uses oldschool OSRS surfaces instead of generic black cards", () => {
-    expect(source).toContain("osrs-frame");
-    expect(source).toContain("osrs-body");
+  it("uses one object-led oldschool canvas instead of generic black cards", () => {
+    expect(source).toContain('className="scape-page');
+    expect(source).toContain("<HeroBossTripPreview />");
+    expect(source).toContain('className="mt-14 border-t border-[var(--color-border)] pt-10"');
     expect(source).not.toContain('bg-[#090909]');
+    expect(source).not.toContain("osrs-frame");
+    expect(source).not.toContain("osrs-body");
   });
 
   it("removes extra above-the-fold dashboard choices", () => {

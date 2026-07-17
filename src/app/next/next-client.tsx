@@ -4326,7 +4326,7 @@ function NextTripCard({
   const actionClass = "scapestack-command-button scapestack-primary-action px-4 text-[12.5px] font-black";
 
   return (
-    <article className="scapestack-plan-panel min-w-0 max-w-full overflow-hidden p-4 sm:p-6" data-next-trip-card="true">
+    <article className="scape-focus min-w-0 max-w-full overflow-hidden p-4 sm:p-6" data-next-trip-card="true">
       <div className="grid min-w-0 grid-cols-[88px_minmax(0,1fr)] gap-4 sm:grid-cols-[128px_minmax(0,1fr)] sm:gap-6">
         <div className="grid size-[88px] shrink-0 place-items-center overflow-hidden rounded-lg border border-[var(--color-accent)]/32 bg-black/30 text-[var(--color-accent)] sm:size-[128px]">
           {rec.kind === "kc" && rec.bossSlug ? (
@@ -4860,7 +4860,7 @@ function SessionMoodGrid({
 
   return (
     <section
-      className="min-w-0 max-w-full overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-3"
+      className="min-w-0 max-w-full overflow-hidden border-y border-[var(--color-border)] py-4"
       data-session-mood-grid="true"
       aria-label="Pick a session mood"
     >
@@ -4884,7 +4884,7 @@ function SessionMoodGrid({
                 onPick(choice.mood!, choice.minutes);
               }}
               className={cn(
-                "min-h-[72px] min-w-0 rounded-lg border px-3 py-2.5 text-left transition-colors",
+                "scape-route-choice min-h-[72px] min-w-0 px-3 py-2.5 text-left",
                 active
                   ? "border-[var(--color-accent)] bg-[var(--color-accent)]/16 text-[var(--color-text)] shadow-[0_0_0_1px_var(--color-accent)]"
                   : choice.id === "surprise"

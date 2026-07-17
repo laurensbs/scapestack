@@ -655,9 +655,9 @@ function NextUnlockCompanion({
   const intel = unlockIntel(set, completion, allCompletions);
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-[var(--color-accent)]/50 bg-[#21190f]/95 shadow-[0_18px_70px_-48px_rgba(0,0,0,0.95)]">
+    <section className="scape-focus overflow-hidden">
       <div className="grid gap-5 p-4 sm:p-6 md:grid-cols-[112px_minmax(0,1fr)]">
-        <div className="flex size-24 items-center justify-center self-start rounded-2xl border border-[var(--color-accent)]/30 bg-black/30 sm:size-28">
+        <div className="flex size-24 items-center justify-center self-start rounded-lg border border-[var(--color-accent)]/30 bg-black/30 sm:size-28">
           {rewardIconId ? (
             <ItemSprite id={rewardIconId} alt="" size={76} loading="eager" className="pixelated" />
           ) : (
@@ -687,7 +687,7 @@ function NextUnlockCompanion({
             <button
               type="button"
               onClick={onOpenSteps}
-              className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-4 py-2 text-[13px] font-bold text-[#0B0906] transition-all hover:brightness-110 sm:w-auto"
+              className="scape-primary-action mt-4 sm:w-auto"
             >
               See the route
               <ArrowRight className="size-3.5" />
@@ -949,14 +949,14 @@ function UnlockBrowserTile({
       onClick={onSelect}
       aria-pressed={selected}
       className={cn(
-        "group min-h-[164px] rounded-2xl border p-4 text-left transition-colors",
+        "scape-route-choice group min-h-[164px] p-4 text-left",
         selected
           ? "border-[var(--color-accent)] bg-[#342613]"
           : "border-[var(--color-border)] bg-[#17130c]/80 hover:border-[var(--color-accent)]/55"
       )}
     >
       <span className="flex h-full gap-4">
-        <span className="flex size-20 shrink-0 items-center justify-center rounded-2xl border border-[var(--color-accent)]/25 bg-black/25">
+        <span className="flex size-20 shrink-0 items-center justify-center rounded-lg border border-[var(--color-accent)]/25 bg-black/25">
           {iconId ? <ItemSprite id={iconId} alt="" size={56} className="pixelated" /> : <Compass className="size-8 text-[var(--color-accent)]" />}
         </span>
         <span className="min-w-0 flex-1">

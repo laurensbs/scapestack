@@ -39,21 +39,11 @@ export function SupportCard({ context = "Saved you a minute?" }: Props) {
 
   return (
     <section className={cn(
-      "relative mt-8 rounded-xl overflow-hidden",
-      "bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)]",
-      "border border-[var(--color-accent)]/25"
+      "relative mt-8 border-y border-[var(--color-border)]",
+      "bg-transparent"
     )}>
-      <div
-        className="absolute inset-x-0 top-0 h-px"
-        style={{ background: "linear-gradient(to right, transparent, rgba(224,174,55,0.4), transparent)" }}
-      />
-      <div
-        className="absolute -top-16 -right-16 size-48 rounded-full pointer-events-none blur-3xl opacity-30"
-        style={{ background: "rgba(224,174,55,0.32)" }}
-      />
-
       <div className="relative p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="size-10 rounded-lg flex items-center justify-center shrink-0 bg-[var(--color-accent)]/15 text-[var(--color-accent)] border border-[var(--color-accent)]/30">
+        <div className="size-10 flex items-center justify-center shrink-0 text-[var(--color-accent)]">
           <Heart className="size-5" strokeWidth={1.75} />
         </div>
 
@@ -73,7 +63,7 @@ export function SupportCard({ context = "Saved you a minute?" }: Props) {
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
-              "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md text-[13px] font-semibold",
+              "inline-flex min-h-10 items-center gap-1.5 rounded-md px-3.5 py-2 text-[13px] font-semibold",
               "bg-[var(--color-accent)] text-[#0B0906]",
               "hover:brightness-110 transition-all"
             )}

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, CheckCircle2, DatabaseZap, PlugZap, Shield, Sparkles, Sword, Trophy } from "lucide-react";
+import { ArrowLeft, ArrowRight, DatabaseZap, PlugZap, Shield, Sparkles, Sword, Trophy } from "lucide-react";
 import {
   fetchHiscores, computeCombatLevel, computeTotalLevel, totalXp,
   topSkills, formatXp, normalizeRsn
@@ -59,32 +59,12 @@ export default async function PlayerProfile({ params }: Props) {
   const synced = await getSyncedPlayer(hi.name);
 
   return (
-    <main className="relative z-10 mx-auto w-full max-w-5xl overflow-x-hidden px-4 py-8 pb-20 sm:px-5">
-      {/* Hero card */}
-      <section className="relative mb-6 max-w-full overflow-hidden rounded-2xl p-5 animate-[slide-up_0.35s_ease-out] sm:p-6"
-        style={{
-          background: "linear-gradient(135deg, var(--color-osrs-wood) 0%, var(--color-osrs-wood-dark) 100%)",
-          border: "2px solid var(--color-osrs-wood-edge)",
-          boxShadow: [
-            "inset 1px 1px 0 var(--color-osrs-wood-light)",
-            "inset -1px -1px 0 var(--color-osrs-wood-dark)",
-            "0 10px 30px -10px rgb(0 0 0 / 0.6)"
-          ].join(", ")
-        }}>
-        {/* Decorative scan-lines */}
-        <div className="absolute inset-0 pointer-events-none opacity-[0.04]"
-          style={{ backgroundImage: "repeating-linear-gradient(0deg, #fff 0 1px, transparent 1px 4px)" }} />
-
-        <div className="relative flex min-w-0 flex-col items-start gap-6 sm:flex-row sm:items-end">
+    <main className="scape-page max-w-5xl">
+      <section className="mb-8 border-b border-[var(--color-border)] pb-6 animate-[slide-up_0.35s_ease-out]">
+        <div className="min-w-0">
           <div className="flex-1 min-w-0">
-            <div className="text-[10px] uppercase tracking-[0.25em] font-bold text-[var(--color-gold-soft)] mb-1">
-              Old School RuneScape
-            </div>
-            <h1 className="text-3xl sm:text-5xl font-black leading-none tracking-normal mb-3"
-              style={{
-                color: "var(--color-osrs-title)",
-                textShadow: "2px 2px 0 #000, 0 0 24px oklch(0.74 0.13 75 / 0.4)"
-              }}>
+            <p className="eyebrow mb-2 text-[var(--color-gold)]">Old School RuneScape</p>
+            <h1 className="mb-3 text-4xl font-semibold leading-none text-[var(--color-text)] sm:text-6xl">
               {hi.name}
             </h1>
             <div className="flex min-w-0 flex-wrap gap-3 text-[12.5px]">
@@ -95,30 +75,6 @@ export default async function PlayerProfile({ params }: Props) {
                 <Stat label="Rank" value={`#${overallRank.toLocaleString()}`} />
               )}
             </div>
-          </div>
-          <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto sm:shrink-0 sm:justify-end">
-            <Link
-              href={profileNextHref}
-              className={cn(
-                "inline-flex min-w-0 items-center gap-1.5 rounded-xl px-4 py-2 text-[13px] font-bold",
-                "bg-gradient-to-b from-[oklch(0.92_0.14_85)] to-[oklch(0.62_0.16_65)]",
-                "text-[oklch(0.15_0.02_50)] border border-[oklch(0.46_0.13_60)]",
-                "shadow-[0_3px_0_oklch(0_0_0/0.5),inset_0_1px_0_oklch(1_0_0/0.3)]",
-                "hover:brightness-110 hover:-translate-y-px transition-all"
-              )}
-            >
-              Plan from profile <ArrowRight className="size-3.5" />
-            </Link>
-            <Link
-              href={pluginHref}
-              className={cn(
-                "inline-flex min-w-0 items-center gap-1.5 rounded-xl px-4 py-2 text-[13px] font-bold",
-                "border border-[var(--color-border)] bg-[var(--color-panel)]/80 text-[var(--color-text)]",
-                "hover:border-[var(--color-gold)]/60 hover:text-[var(--color-gold)] transition-colors"
-              )}
-            >
-              <PlugZap className="size-3.5" /> Sync RuneLite
-            </Link>
           </div>
         </div>
       </section>
@@ -191,20 +147,11 @@ function AccountHomeBoard({
     : "Paste Bank Memory or Bank Tags when gear, supplies or GP should change the route.";
   return (
     <section
-      className={cn(
-        "mb-6 rounded-2xl border border-[var(--color-gold)]/45 p-4 sm:p-5",
-        "max-w-full overflow-hidden",
-        "bg-gradient-to-br from-[var(--color-osrs-wood)] to-[var(--color-bg)]",
-        "shadow-[0_24px_70px_-45px_oklch(0.74_0.13_75/0.8)]"
-      )}
+      className="scape-focus mb-10 max-w-full overflow-hidden p-5 sm:p-7"
       data-account-home-board="true"
     >
       <div className="min-w-0">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[var(--color-gold)]/35 bg-black/20 px-3 py-1 text-[11px] font-bold text-[var(--color-gold)]">
-            <CheckCircle2 className="size-3.5" />
-            Account home
-          </div>
-          <h2 className="text-2xl font-black leading-tight text-[var(--color-text)] sm:text-4xl">
+          <h2 className="text-3xl font-semibold leading-tight text-[var(--color-text)] sm:text-5xl">
             Welcome back, {rsn}.
           </h2>
           <p className="mt-2 max-w-2xl text-[13px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
@@ -213,18 +160,12 @@ function AccountHomeBoard({
 
           <Link
             href={profileNextHref}
-            className={cn(
-              "mt-5 inline-flex w-full items-center justify-between gap-3 rounded-xl px-4 py-4 text-[15px] font-black sm:max-w-md",
-              "bg-gradient-to-b from-[oklch(0.92_0.14_85)] to-[oklch(0.62_0.16_65)]",
-              "text-[oklch(0.15_0.02_50)] border border-[oklch(0.46_0.13_60)]",
-              "shadow-[0_4px_0_oklch(0_0_0/0.55),inset_0_1px_0_oklch(1_0_0/0.35)]",
-              "hover:brightness-110 hover:-translate-y-px transition-all"
-            )}
+            className="scape-primary-action mt-5 w-full justify-between text-[15px] sm:max-w-md"
           >
             Plan next trip <ArrowRight className="size-5" />
           </Link>
 
-          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+          <div className="scape-checklist mt-6 grid sm:grid-cols-3">
             <ProfileQuickAction icon={DatabaseZap} href={bankHref} title={synced?.bankItems.length ? "Bank added" : "Add bank"} body={`${bankLine} Scapestack can account for gear, supplies and unlocks.`} />
             <ProfileQuickAction icon={Sword} href={`/dps?rsn=${encodeURIComponent(rsn)}&from=profile`} title="Check kill" body="Pick a boss and see gear, supplies and upgrades from your bank." />
             <ProfileQuickAction icon={PlugZap} href={pluginHref} title={synced ? "Refresh RuneLite" : "Add RuneLite"} body={runeliteLine} />
@@ -248,13 +189,13 @@ function ProfileQuickAction({
   return (
     <Link
       href={href}
-      className="group min-w-0 rounded-xl border border-[var(--color-border)] bg-black/16 p-3 transition-colors hover:border-[var(--color-gold)]/55 hover:bg-[var(--color-gold)]/8"
+      className="group flex min-h-20 min-w-0 items-start gap-3 px-1 py-3 transition-colors hover:bg-black/15 sm:px-3"
     >
-      <div className="mb-2 flex items-center gap-2">
-        <Icon className="size-4 text-[var(--color-gold)]" />
+      <Icon className="mt-0.5 size-4 shrink-0 text-[var(--color-gold)]" />
+      <div className="min-w-0">
         <span className="text-[13px] font-black text-[var(--color-text)]">{title}</span>
+        <p className="mt-1 text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">{body}</p>
       </div>
-      <p className="text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">{body}</p>
     </Link>
   );
 }
@@ -292,8 +233,7 @@ function SkillCard({ skill, rank }: { skill: import("@/lib/hiscores").HiscoreSki
   const spriteUrl = skillSpriteUrl(skill.name);
   return (
     <div className={cn(
-      "rounded-xl p-4 border border-[var(--color-border)]",
-      "bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)]"
+      "scape-route-choice p-4"
     )}>
       <div className="flex items-center gap-2 mb-1">
         {spriteUrl && (

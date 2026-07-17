@@ -133,11 +133,11 @@ export function AddBankModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="add-bank-modal-title"
-      className="fixed inset-0 z-[180] overflow-y-auto bg-black/72 px-4 pb-8 pt-16 backdrop-blur-sm sm:grid sm:place-items-center sm:py-8"
+      className="fixed inset-0 z-[180] flex items-end justify-center overflow-y-auto bg-black/78 p-0 backdrop-blur-sm sm:items-center sm:p-8"
       onClick={onClose}
     >
       <div
-        className="osrs-frame w-full max-w-2xl overflow-hidden text-left shadow-[0_34px_140px_-56px_rgba(0,0,0,0.95)]"
+        className="scape-dialog overflow-hidden text-left"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="osrs-title-bar flex items-start justify-between gap-4 px-5 py-4 sm:px-6">
@@ -154,7 +154,7 @@ export function AddBankModal({
             type="button"
             onClick={onClose}
             aria-label="Close add bank"
-            className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+            className="icon-btn shrink-0"
           >
             <X className="size-4" />
           </button>

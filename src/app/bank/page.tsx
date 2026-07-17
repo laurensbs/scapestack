@@ -7,7 +7,6 @@ import { Check, PencilLine, X } from "lucide-react";
 import { Intake } from "@/components/intake";
 import { BankResult } from "@/components/bank-result";
 import { DropCelebration } from "@/components/drop-celebration";
-import { ScapestackReadinessRail } from "@/components/scapestack-readiness-rail";
 import { SAMPLE_BANKTAGS } from "@/lib/utils";
 import { organizeAction } from "../actions";
 import { inferArchetype, saveArchetype, type Archetype } from "@/lib/archetype";
@@ -209,14 +208,14 @@ function BankPageContent() {
   const openingSavedBank = Boolean(savedBank && !replaceSavedBank && !isSampleMode());
 
   return (
-    <main className="relative z-10 mx-auto max-w-6xl overflow-x-hidden px-4 py-7 pb-20 sm:px-5">
+    <main className="scape-page">
       {view === "intake" && (
         <section
           role="dialog"
           aria-modal="true"
           aria-labelledby="bank-popup-title"
           data-testid="bank-save-popup"
-          className="scapestack-plan-panel mx-auto max-w-2xl overflow-hidden"
+          className="scape-dialog mx-auto overflow-hidden"
         >
           <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-5 py-4 sm:px-6">
             <div>
@@ -295,20 +294,6 @@ function BankPageContent() {
             returnBossSlug={returnBossSlug}
             initialMode={modeFromUrl()}
           />
-          <details className="mt-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-3">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-semibold text-[var(--color-text)] marker:hidden">
-              <span>Make the next trip smarter</span>
-              <span className="text-[11px] font-medium text-[var(--color-text-muted)]">Name/RuneLite only when they change the pick</span>
-            </summary>
-            <div className="mt-4">
-              <ScapestackReadinessRail
-                surface="bank"
-                hasBankContext
-                hasRsn={Boolean(inferredRsn)}
-                rsn={inferredRsn}
-              />
-            </div>
-          </details>
         </>
       )}
     </main>
