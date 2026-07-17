@@ -19,6 +19,8 @@ import { BOSSES, type Boss } from "./bosses";
 import { computeCombatLevel, computeTotalLevel, type HiscoreSkill } from "./hiscores";
 import { getQuests, questSlug, type QuestRecord } from "./quest-db";
 import { evaluateQuestRequirements, type QuestBankItem, type QuestRequirementEvaluation } from "./quest-requirements";
+import { buildQuestRoute, type QuestRouteProgress, type QuestRouteEvidence } from "./quest-route";
+import { isCuratedQuestUnlock, questUnlockSignal } from "./quest-unlocks";
 import { getDiaries, type DiaryRecord, type DiaryTier } from "./diary-db";
 import { buildDiaryTierProgress, type DiaryTierProgress } from "./diary-task-progress";
 import { diaryRewardFor } from "./diary-rewards";
@@ -210,6 +212,9 @@ export interface Recommendation {
   /** Exact Wiki diary tasks plus honest completion evidence. The client may
    *  merge account-local manual checks without changing server ranking. */
   diaryProgress?: DiaryTierProgress;
+  /** The shortest executable quest block toward a larger unlock. Full guides
+   *  stay on the Wiki; this contract only carries the current session. */
+  questRoute?: QuestRouteProgress;
 }
 
 export interface ReturnPlan {
@@ -1672,12 +1677,16 @@ function questRecs(
   quests: Map<string, QuestRecord>,
   skills: HiscoreSkill[],
   qp: number,
-  completedQuestNames?: Set<string>
+  completedQuestNames: Set<string> | undefined,
+  bank: CompletionItem[],
+  accountType: PlannerAccountType | null,
+  completionEvidence: Exclude<QuestRouteEvidence, "unknown"> | undefined
 ): Recommendation[] {
   if (skills.length === 0) return [];
   if (qp >= QUEST_CAPE_QP_THRESHOLD) return [];
   const combatLevel = computeCombatLevel(skills);
   const recs: Recommendation[] = [];
+  const bankItems = bank.map((item) => ({ id: item.id, name: item.name, quantity: item.quantity }));
   for (const q of quests.values()) {
     if (completedQuestNames?.has(q.name.toLowerCase())) continue;
     // Filter to recommendation-worthy difficulty. "Special" covers RFD and
@@ -1696,92 +1705,79 @@ function questRecs(
     // hiding a good rec is invisible damage.
     if (q.qpReq > 0 && qp > 0 && qp < q.qpReq) continue;
 
-    // Score: harder quest = more impactful to suggest. Grandmaster > Master.
-    // Quests with a long prereq chain score slightly lower (more friction).
-    const base = q.difficulty === "Grandmaster" ? 70 : q.difficulty === "Master" ? 60 : 55;
-    const prereqPenalty = Math.min(q.difficulty === "Grandmaster" ? 22 : 18, Math.floor(q.questReqs.length / 2));
-    const lowFrictionBonus = q.questReqs.length <= 4 ? 4 : 0;
-    const score = base + lowFrictionBonus - prereqPenalty;
+    const unlock = questUnlockSignal(q);
+    const route = buildQuestRoute(q, quests, {
+      skills,
+      completedQuestNames,
+      completionEvidence,
+      bankItems,
+      accountType,
+      payoff: unlock.label
+    });
+    const { progress, activeEvaluation, activeQuest } = route;
 
-    // Show only the first 3 prereqs as "you'll also need to have done …"
-    // context; the full Wiki-derived chain can be 30+ items, which is noise.
-    const prereqHint = q.questReqs.length > 0
-      ? `Needs: ${q.questReqs.slice(0, 3).join(", ")}${q.questReqs.length > 3 ? ` (+${q.questReqs.length - 3} more)` : ""}`
-      : "No quest prerequisites.";
+    // Score the target unlock, but charge friction for the remaining route.
+    // A short executable block can still surface; a large unknown chain cannot
+    // masquerade as one quest session.
+    const base = q.difficulty === "Grandmaster" ? 70 : q.difficulty === "Master" ? 60 : 55;
+    const prereqPenalty = progress.prerequisiteDepth === "long" ? 24 : progress.prerequisiteDepth === "short" ? 9 : 0;
+    const executableBonus = progress.expectedBlockMinutes.max <= 45 ? 5 : progress.activeIsTarget ? 3 : 0;
+    const score = base + executableBonus - prereqPenalty;
+    const firstPrep = progress.skillPreparation[0]
+      ?? progress.missingItems[0]
+      ?? (activeEvaluation.readinessStatus === "ready-to-start" ? `Start ${activeQuest.name}.` : progress.bankNote);
+    const nextStep = progress.nextQuestName
+      ? `Next route after this: ${progress.nextQuestName}.`
+      : `Stop after ${activeQuest.name} and replan.`;
+    const targetQuery = progress.activeIsTarget ? "" : `?target=${encodeURIComponent(questSlug(q.name))}`;
 
     recs.push({
       id: `quest:${q.name}`,
       kind: "quest",
-      title: q.name,
-      why: `${q.difficulty} · ${q.length ?? "varies"}${q.qpReq > 0 ? ` · ${q.qpReq} QP` : ""}`,
-      payoff: prereqHint,
-      decisionReason: completedQuestNames
-        ? `Completed quests were skipped; ${q.name} still matches your visible stats and quest points.`
-        : q.questReqs.length > 8
-          ? `${q.name} has a long prereq chain, so start only if you want an unlock session.`
-          : `${q.name} fits your stats and is short enough to be a real unlock target.`,
+      title: `Do ${activeQuest.name}`,
+      why: `${progress.expectedBlock} toward ${unlock.label}.`,
+      payoff: progress.activeIsTarget ? `Unlocks ${unlock.label}.` : `${q.name} remains the larger unlock route.`,
+      decisionReason: progress.whyThisBlock,
+      needs: [
+        ...progress.skillPreparation,
+        ...progress.missingItems,
+        ...(!activeEvaluation.bank.checked && activeEvaluation.itemRequirements.length > 0 ? [progress.bankNote] : [])
+      ].slice(0, 5),
       score,
-      link: `/quests/${questSlug(q.name)}`,
-      completionTarget: { kind: "quest_completed", quest: q.name },
-      routeTags: ["unlock", ...(q.questReqs.length <= 4 ? ["returning" as const] : []), ...(q.difficulty === "Grandmaster" ? ["fun" as const] : [])],
-      gearConfidence: q.difficulty === "Grandmaster" ? "unknown" : "likely",
+      link: `/quests/${progress.activeQuestSlug}${targetQuery}`,
+      completionTarget: { kind: "quest_completed", quest: activeQuest.name },
+      questRoute: progress,
+      routeTags: ["unlock", ...(progress.remainingBlocks <= 2 ? ["returning" as const] : []), ...(q.difficulty === "Grandmaster" ? ["fun" as const] : [])],
+      gearConfidence: activeQuest.difficulty === "Grandmaster" ? "unknown" : "likely",
+      sessionProfile: {
+        minimumMinutes: progress.expectedBlockMinutes.min,
+        prerequisiteDepth: progress.prerequisiteDepth,
+        resetCost: progress.prerequisiteDepth === "long" ? "high" : "moderate"
+      },
       quality: {
-        accountFit: q.questReqs.length > 8 ? 0.58 : 0.78,
-        actionability: q.questReqs.length > 8 ? 0.45 : 0.76,
-        stopPoint: q.length === "Very Long" || q.length === "Long" ? 0.54 : 0.82,
-        gearConfidence: q.difficulty === "Grandmaster" ? 0.48 : 0.72,
+        accountFit: progress.completionEvidence === "unknown" ? 0.48 : 0.82,
+        actionability: activeEvaluation.readinessStatus === "ready-to-start" ? 0.92 : progress.skillPreparation.length <= 1 ? 0.7 : 0.48,
+        stopPoint: 0.9,
+        gearConfidence: activeEvaluation.bank.checked ? 0.86 : activeQuest.difficulty === "Grandmaster" ? 0.48 : 0.66,
         unlockValue: q.difficulty === "Grandmaster" ? 0.96 : 0.86,
         fun: q.difficulty === "Grandmaster" ? 0.72 : 0.58,
-        friction: q.questReqs.length > 8 ? 0.78 : q.questReqs.length > 4 ? 0.52 : 0.32
+        friction: progress.prerequisiteDepth === "long" ? 0.82 : progress.prerequisiteDepth === "short" ? 0.48 : 0.22
       },
       planSeed: {
-        timebox: q.length === "Very Long" || q.length === "Long" ? "2-3 hr" : "1-2 hr",
-        prep: q.questReqs.length > 0
-          ? `Prereq check: ${q.questReqs.slice(0, 3).join(", ")}${q.questReqs.length > 3 ? ` (+${q.questReqs.length - 3} more)` : ""}.`
-          : "No direct quest prerequisites found in the dataset.",
+        timebox: progress.expectedBlock,
+        prep: firstPrep,
         steps: [
-          `Check ${q.name} prereqs before grabbing supplies; stop if the chain is longer than tonight's session.`,
-          q.skillReqs.length > 0 ? `Your skills meet the listed gates; bank teleports, stamina and combat supplies for a ${q.length ?? "variable"} quest.` : "Bank teleports, stamina and any quest items before starting the guide.",
-          `Clear ${q.name} or one blocking prereq, then check your plan for newly unlocked bosses or diaries.`
-        ]
+          firstPrep,
+          activeEvaluation.bank.checked && progress.ownedItems.length > 0
+            ? `Pull ${progress.ownedItems.slice(0, 3).join(", ")} from your bank.`
+            : `Open the ${activeQuest.name} Wiki guide for the exact quest steps.`,
+          progress.stopPoint,
+          nextStep
+        ].filter((step, index, steps) => steps.indexOf(step) === index).slice(0, 4)
       }
     });
   }
   return recs;
-}
-
-const QUEST_UNLOCK_RULES: Array<{ match: RegExp; unlock: string; value: number; iconItemId?: number }> = [
-  { match: /^tree gnome village$/i, unlock: "Spirit Trees", value: 92, iconItemId: 772 },
-  { match: /^the grand tree$/i, unlock: "Gnome Stronghold route and Monkey Madness chain", value: 84, iconItemId: 9469 },
-  { match: /^animal magnetism$/i, unlock: "Ava's device", value: 94, iconItemId: 10499 },
-  { match: /^druidic ritual$/i, unlock: "Herblore", value: 96, iconItemId: 255 },
-  { match: /fairy/i, unlock: "Fairy ring travel", value: 96, iconItemId: 772 },
-  { match: /^horror from the deep$/i, unlock: "God books and dagannoth quest chain", value: 74, iconItemId: 3840 },
-  { match: /^priest in peril$/i, unlock: "Morytania access", value: 88, iconItemId: 10499 },
-  { match: /^monkey madness/i, unlock: "Dragon scimitar and ape atoll route", value: 90, iconItemId: 4587 },
-  { match: /^recipe for disaster/i, unlock: "Barrows gloves route", value: 98, iconItemId: 7462 },
-  { match: /^king's ransom$/i, unlock: "Piety route", value: 95, iconItemId: 2412 },
-  { match: /^dragon slayer/i, unlock: "Dragon equipment and major quest progression", value: 86, iconItemId: 11283 },
-  { match: /^desert treasure/i, unlock: "Ancient Magicks", value: 92, iconItemId: 4675 },
-  { match: /^song of the elves$/i, unlock: "Prifddinas and corrupted gauntlet", value: 99, iconItemId: 23997 }
-];
-
-function questUnlockSignal(quest: QuestRecord): { label: string; value: number; iconItemId?: number } {
-  const curated = QUEST_UNLOCK_RULES.find((rule) => rule.match.test(quest.name));
-  if (curated) return { label: curated.unlock, value: curated.value, iconItemId: curated.iconItemId };
-
-  const difficultyValue =
-    quest.difficulty === "Grandmaster" ? 88
-    : quest.difficulty === "Master" ? 78
-    : quest.difficulty === "Experienced" ? 66
-    : quest.difficulty === "Intermediate" ? 58
-    : 46;
-  const chainValue = Math.min(12, quest.questReqs.length);
-  return {
-    label: quest.difficulty === "Grandmaster" ? "Grandmaster quest route" : `${quest.name} progression`,
-    value: Math.min(100, difficultyValue + chainValue),
-    iconItemId: 9813
-  };
 }
 
 function completedQuestKnown(completedQuestNames: Set<string> | undefined, questName: string): boolean {
@@ -1790,7 +1786,7 @@ function completedQuestKnown(completedQuestNames: Set<string> | undefined, quest
 
 function relevantQuestPool(quests: Map<string, QuestRecord>): QuestRecord[] {
   return [...quests.values()].filter((quest) => {
-    if (QUEST_UNLOCK_RULES.some((rule) => rule.match.test(quest.name))) return true;
+    if (isCuratedQuestUnlock(quest.name)) return true;
     if (quest.difficulty === "Grandmaster" || quest.difficulty === "Master" || quest.difficulty === "Special") return true;
     if (quest.difficulty === "Intermediate" && quest.questReqs.length <= 3) return true;
     return false;
@@ -1937,7 +1933,6 @@ function nextBestActions(input: {
   completedQuestNames?: Set<string>;
   completedDiaryTiers?: Set<string>;
 }): NextBestAction[] {
-  const completedQuests = input.completedQuestNames ? [...input.completedQuestNames] : [];
   const bankItems = input.bank.map((item) => ({
     id: item.id,
     name: item.name,
@@ -1946,14 +1941,31 @@ function nextBestActions(input: {
 
   const questActions = relevantQuestPool(input.quests)
     .filter((quest) => !completedQuestKnown(input.completedQuestNames, quest.name))
-    .map((quest) => {
-      const evaluation = evaluateQuestRequirements(quest, {
+    .map((quest): NextBestAction | null => {
+      const unlock = questUnlockSignal(quest);
+      const route = buildQuestRoute(quest, input.quests, {
         skills: input.skills,
-        completedQuests,
+        completedQuestNames: input.completedQuestNames,
+        completionEvidence: input.completedQuestNames ? "tracker" : undefined,
         bankItems,
-        accountType: input.accountType
+        accountType: input.accountType,
+        payoff: unlock.label
       });
-      return buildQuestAction(quest, evaluation, input.completedQuestNames);
+      const action = buildQuestAction(route.activeQuest, route.activeEvaluation, input.completedQuestNames);
+      if (!action) return null;
+
+      const targetQuery = route.progress.activeIsTarget
+        ? ""
+        : `?target=${encodeURIComponent(questSlug(quest.name))}`;
+      return {
+        ...action,
+        id: `${action.id}:toward:${questSlug(quest.name)}`,
+        reason: `${route.progress.whyThisBlock} This route unlocks ${unlock.label}.`,
+        relevantQuestOrUnlock: unlock.label,
+        unlockValue: Math.max(action.unlockValue, unlock.value - Math.max(0, route.progress.remainingBlocks - 1) * 3),
+        link: `/quests/${route.progress.activeQuestSlug}${targetQuery}`,
+        iconItemId: action.kind === "train-skill" ? action.iconItemId : unlock.iconItemId
+      };
     })
     .filter((action): action is NextBestAction => Boolean(action));
   const diaryActions = diaryNextBestActions({
@@ -3633,7 +3645,15 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     ...goalRecs(completions),
     ...(combatLevel !== null ? bossRecs(combatLevel, bank, skills, mergedBossKc) : []),
     ...slayerTaskRecs(input.scapestackSync?.slayer, input.scapestackSync?.displayName ?? accountMeta?.displayName),
-    ...questRecs(quests, skills, qp, completedQuestNames),
+    ...questRecs(
+      quests,
+      skills,
+      qp,
+      completedQuestNames,
+      bank,
+      accountMeta?.accountType ?? null,
+      input.scapestackSync ? "runelite" : completedQuestNames ? "tracker" : undefined
+    ),
     ...activeBossKcRecs(mergedBossKc, bank, skills),
     ...diaryRecs(diaries, skills, {
       bank,

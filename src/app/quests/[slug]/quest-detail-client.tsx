@@ -1,32 +1,33 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, CheckCircle2, Circle, PackageSearch, Shield } from "lucide-react";
-import { accountModePlanningTone, accountModeVisual, type PlannerAccountType } from "@/lib/account-type";
+import { AlertTriangle, ArrowRight, CheckCircle2, Circle, ExternalLink, Shield } from "lucide-react";
+import { type PlannerAccountType } from "@/lib/account-type";
 import { AccountModeBadge } from "@/components/account-mode-badge";
+import { ItemSprite } from "@/components/item-sprite";
 import type { QuestRecord } from "@/lib/quest-db";
+import type { QuestRouteProgress } from "@/lib/quest-route";
 import {
   evaluateQuestRequirements,
   normalizeQuestBankItems,
   questTripDecision,
-  questReadinessLabel,
   type EvaluatedItemRequirement,
   type QuestBankItem,
   type QuestRequirementEvaluation
 } from "@/lib/quest-requirements";
 import { readBankHandoffPayload, type BankHandoffItem } from "@/lib/next-bank-handoff";
-import { pluginBankStatusLabel, type PluginBankStatus } from "@/lib/plugin-bank-status";
 import { cn } from "@/lib/utils";
+import { wikiSearchUrl } from "@/lib/wiki";
 
 interface QuestDetailClientProps {
   quest: QuestRecord;
+  initialRoute: QuestRouteProgress;
   initialEvaluation: QuestRequirementEvaluation;
   initialSkills: Array<{ name: string; level: number }>;
   completedQuests: string[];
   accountType: PlannerAccountType | null;
   rsn: string | null;
   syncedBankItems: QuestBankItem[];
-  bankStatus: PluginBankStatus | null;
   progressSource: "runelite" | "hiscores" | "none";
 }
 
@@ -49,43 +50,9 @@ function RequirementPill({ met }: { met: boolean }) {
       )}
     >
       {met ? <CheckCircle2 className="size-3" /> : <Circle className="size-3" />}
-      {met ? "Ready" : "Missing"}
+      {met ? "Done" : "Needed"}
     </span>
   );
-}
-
-function Section({
-  title,
-  eyebrow,
-  children
-}: {
-  title: string;
-  eyebrow?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <details className="group border-t border-[var(--color-border)] py-4">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden [&::-webkit-details-marker]:hidden">
-        <span>
-          {eyebrow && (
-            <span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              {eyebrow}
-            </span>
-          )}
-          <span className="text-[17px] font-bold tracking-normal text-[var(--color-text)]">{title}</span>
-        </span>
-        <span className="text-[11px] font-bold text-[var(--color-text-muted)] group-open:hidden">Show</span>
-        <span className="hidden text-[11px] font-bold text-[var(--color-text-muted)] group-open:inline">Hide</span>
-      </summary>
-      <div className="mt-3">
-        {children}
-      </div>
-    </details>
-  );
-}
-
-function EmptyRequirement({ children }: { children: React.ReactNode }) {
-  return <p className="text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">{children}</p>;
 }
 
 function SourceBadge({ label, tone = "muted" }: { label: string; tone?: "good" | "accent" | "muted" }) {
@@ -101,39 +68,6 @@ function SourceBadge({ label, tone = "muted" }: { label: string; tone?: "good" |
   );
 }
 
-function DecisionColumn({
-  title,
-  lines,
-  tone = "default"
-}: {
-  title: string;
-  lines: string[];
-  tone?: "default" | "good" | "warn";
-}) {
-  return (
-    <div className={cn(
-      "rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/30 p-3",
-      tone === "good" && "border-[var(--color-good)]/25 bg-[var(--color-good)]/8",
-      tone === "warn" && "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/8"
-    )}>
-      <div className={cn(
-        "text-[10.5px] font-black uppercase tracking-[0.16em] text-[var(--color-accent)]",
-        tone === "good" && "text-[var(--color-good)]",
-        tone === "warn" && "text-[var(--color-warning)]"
-      )}>
-        {title}
-      </div>
-      <ul className="mt-2 space-y-1.5">
-        {lines.slice(0, 4).map((line) => (
-          <li key={line} className="text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-            {line}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 function ItemRequirementLine({
   req,
   bankNotApplicable
@@ -145,7 +79,7 @@ function ItemRequirementLine({
     ? ` Alternative: ${req.alternatives.map((alt) => `${alt.quantity}x ${alt.name}`).join(" or ")}.`
     : "";
   return (
-    <li className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3">
+    <li className="border-b border-[var(--color-border)] py-3 last:border-b-0">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="font-semibold text-[var(--color-text)]">
@@ -176,15 +110,45 @@ function ItemRequirementLine({
   );
 }
 
+function RouteStep({
+  label,
+  children,
+  last = false,
+  tone = "default"
+}: {
+  label: string;
+  children: React.ReactNode;
+  last?: boolean;
+  tone?: "default" | "warning" | "good";
+}) {
+  return (
+    <div className="relative grid grid-cols-[24px_minmax(0,1fr)] gap-3 pb-5 last:pb-0">
+      {!last && <span className="absolute left-[11px] top-6 h-[calc(100%-12px)] w-px bg-[var(--color-border)]" />}
+      <span className={cn(
+        "relative z-10 mt-0.5 flex size-6 items-center justify-center rounded-full border bg-[var(--color-panel)]",
+        tone === "good" && "border-[var(--color-good)]/45 text-[var(--color-good)]",
+        tone === "warning" && "border-[var(--color-warning)]/45 text-[var(--color-warning)]",
+        tone === "default" && "border-[var(--color-accent)]/45 text-[var(--color-accent)]"
+      )}>
+        {tone === "good" ? <CheckCircle2 className="size-3.5" /> : tone === "warning" ? <AlertTriangle className="size-3.5" /> : <ArrowRight className="size-3.5" />}
+      </span>
+      <div className="min-w-0">
+        <div className="eyebrow text-[var(--color-text-dim)]">{label}</div>
+        <div className="mt-1 text-[13px] font-semibold leading-relaxed text-[var(--color-text)]">{children}</div>
+      </div>
+    </div>
+  );
+}
+
 export function QuestDetailClient({
   quest,
+  initialRoute,
   initialEvaluation,
   initialSkills,
   completedQuests,
   accountType,
   rsn,
   syncedBankItems,
-  bankStatus,
   progressSource
 }: QuestDetailClientProps) {
   const [browserBankItems, setBrowserBankItems] = useState<QuestBankItem[]>([]);
@@ -199,9 +163,6 @@ export function QuestDetailClient({
     [browserBankItems, syncedBankItems]
   );
   const hasBrowserBank = browserBankItems.length > 0;
-  const hasBankContext = bankItems.length > 0;
-  const planningTone = accountModePlanningTone(accountType);
-
   const evaluation = useMemo(
     () => bankItems.length > 0
       ? evaluateQuestRequirements(quest, {
@@ -220,79 +181,93 @@ export function QuestDetailClient({
     [accountType, bankItems, completedQuests, initialEvaluation, initialSkills, quest]
   );
   const decision = useMemo(() => questTripDecision(evaluation), [evaluation]);
-  const decisionTone = decision.verdict === "Ready to start"
-    ? "good"
-    : decision.verdict === "Train first" || decision.verdict === "Items missing" || decision.verdict === "Stage for UIM"
-      ? "warn"
-      : "default";
+  const startCopy = initialSkills.length === 0
+    ? "Add your RSN or check RuneLite before choosing this route."
+    : decision.beforeYouGo[0] ?? `Open ${quest.name} and begin the first step.`;
+  const rawFirstMissing = decision.stillMissing.find((line) => line !== "Nothing obvious missing.") ?? null;
+  const firstMissing = rawFirstMissing && !startCopy.includes(rawFirstMissing) ? rawFirstMissing : null;
+  const bankCopy = evaluation.bank.notApplicable
+    ? "Stage the quest items before starting."
+    : evaluation.bank.checked
+      ? evaluation.itemRequirements.length === 0
+        ? "No quest items needed for this block."
+        : evaluation.bank.owned.length === evaluation.itemRequirements.length
+          ? "Your bank already covers the listed quest items."
+          : `${evaluation.bank.owned.length}/${evaluation.itemRequirements.length} quest items are already in your bank.`
+      : initialRoute.bankNote;
+  const sourceCopy = progressSource === "runelite"
+    ? `RuneLite checked${rsn ? ` for ${rsn}` : ""}.`
+    : progressSource === "hiscores"
+      ? `Stats loaded${rsn ? ` for ${rsn}` : ""}; quest completion is not guessed.`
+      : "Add your RSN or RuneLite later for completed quest checks.";
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-7 pb-20">
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <div className="eyebrow text-[var(--color-accent)]">Quest trip</div>
-          <h1 className="mt-1 text-[28px] font-black leading-tight tracking-normal text-[var(--color-text)] sm:text-[36px]">
+    <div className="mx-auto max-w-4xl px-4 py-6 pb-20 sm:px-6 sm:py-9">
+      <header className="mb-6 flex items-start gap-4">
+        <div className="flex size-16 shrink-0 items-center justify-center rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-panel)] sm:size-20">
+          <ItemSprite id={9813} alt="Quest point cape" size={54} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="eyebrow text-[var(--color-accent)]">
+            {initialRoute.activeIsTarget ? "Quest block" : `On route to ${initialRoute.targetQuestName}`}
+          </div>
+          <h1 className="mt-1 text-[28px] font-black leading-tight tracking-normal text-[var(--color-text)] sm:text-[38px]">
             {quest.name}
           </h1>
           <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-muted)]">
-            Check the first step, what to take, what is still missing, and when to stop.
+            {initialRoute.whyThisBlock}
           </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {progressSource === "runelite" && <SourceBadge label="RuneLite checked" tone="good" />}
-            {progressSource === "hiscores" && <SourceBadge label="Hiscores fallback" tone="accent" />}
-            {hasBrowserBank && <SourceBadge label="Browser bank" tone="accent" />}
-            {!hasBankContext && <SourceBadge label="Bank not added" />}
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-[11.5px] text-[var(--color-text-dim)]">
+            <AccountModeBadge accountType={accountType} confidence={accountType ? "detected" : "unknown"} compact />
+            <span>{sourceCopy}</span>
+            {hasBrowserBank && <span>Browser bank used.</span>}
           </div>
         </div>
-        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/65 px-3 py-2 text-[12px] text-[var(--color-text-dim)]">
-          <AccountModeBadge accountType={accountType} confidence={accountType ? "detected" : "unknown"} compact showSourceCopy />
-          <div className="mt-1">{planningTone.itemCopy}</div>
-          <div>{rsn ? `RSN: ${rsn}` : "Add an OSRS name for synced progress"}</div>
-        </div>
-      </div>
+      </header>
 
-      <section className={cn(
-        "mb-5 rounded-xl border bg-[var(--color-panel)]/82 p-4 sm:p-5",
-        decisionTone === "good" && "border-[var(--color-good)]/30",
-        decisionTone === "warn" && "border-[var(--color-warning)]/30",
-        decisionTone === "default" && "border-[var(--color-border)]"
-      )}>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <div className={cn(
-              "eyebrow",
-              decisionTone === "good" ? "text-[var(--color-good)]" : decisionTone === "warn" ? "text-[var(--color-warning)]" : "text-[var(--color-accent)]"
-            )}>
-              Next quest trip
+      {initialRoute.completionEvidence === "unknown" && (
+        <div className="mb-4 flex items-start gap-2 border-y border-[var(--color-warning)]/30 py-3 text-[12px] leading-relaxed text-[var(--color-warning)]">
+          <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+          Check RuneLite before committing to the full chain; completed prerequisites are not guessed.
+        </div>
+      )}
+
+      <section className="mb-5 overflow-hidden rounded-xl border border-[var(--color-accent)]/35 bg-[var(--color-panel)]/84">
+        <div className="border-b border-[var(--color-border)] px-4 py-4 sm:px-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="eyebrow text-[var(--color-accent)]">Do this first</div>
+              <h2 className="mt-1 text-[22px] font-black leading-tight tracking-normal text-[var(--color-text)] sm:text-[28px]">
+                {initialSkills.length === 0 ? "Add your RSN first" : decision.title}
+              </h2>
             </div>
-            <h2 className="mt-1 text-[26px] font-black leading-tight tracking-normal text-[var(--color-text)]">
-              {decision.title}
-            </h2>
-            <p className="mt-2 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
-              {questReadinessLabel(evaluation.readinessStatus)} · {planningTone.bankCopy}
-            </p>
+            <SourceBadge label={initialRoute.expectedBlock} tone="accent" />
           </div>
-          <div className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
-            {evaluation.bank.notApplicable
-              ? accountModeVisual(accountType, accountType ? "detected" : "unknown").bankCopy
-              : evaluation.bank.checked
-                ? `${evaluation.bank.owned.length}/${evaluation.itemRequirements.length} quest items found`
-                : bankStatus
-                  ? pluginBankStatusLabel(bankStatus, accountType)
-                  : "No bank check yet"}
-          </div>
+          <p className="mt-3 text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">
+            <strong className="text-[var(--color-text)]">Payoff:</strong> {initialRoute.payoff}
+            {!initialRoute.activeIsTarget && ` · ${initialRoute.remainingBlocks - 1} later block${initialRoute.remainingBlocks - 1 === 1 ? "" : "s"} stay out of this session.`}
+          </p>
         </div>
 
-        <div className="mt-4 grid gap-3 lg:grid-cols-4">
-          <DecisionColumn title="Before you leave" lines={decision.beforeYouGo} tone="good" />
-          {decision.bringItems.length > 0 && (
-            <DecisionColumn title={evaluation.bank.notApplicable ? "Stage for UIM" : "Bring"} lines={decision.bringItems} tone="good" />
-          )}
-          {decision.stillMissing[0] !== "Nothing obvious missing." && (
-            <DecisionColumn title="Still missing" lines={decision.stillMissing} tone="warn" />
-          )}
-          <DecisionColumn title="Finish after" lines={[decision.finishAfter]} />
-          <DecisionColumn title="Sync after" lines={[decision.syncAfter]} />
+        <div className="px-4 py-5 sm:px-6">
+          <RouteStep label="Start" tone="good">{startCopy}</RouteStep>
+          <RouteStep label={evaluation.bank.notApplicable ? "Stage" : "Bring"} tone={firstMissing ? "warning" : "good"}>
+            {decision.bringItems.length > 0 ? decision.bringItems.slice(0, 3).join(" · ") : bankCopy}
+          </RouteStep>
+          {firstMissing && <RouteStep label="Get first" tone="warning">{firstMissing}</RouteStep>}
+          <RouteStep label="Stop">{initialRoute.stopPoint}</RouteStep>
+          {initialRoute.nextQuestName && <RouteStep label="Next" last>{initialRoute.nextQuestName}</RouteStep>}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 border-t border-[var(--color-border)] px-4 py-4 sm:px-6">
+          <a
+            href={wikiSearchUrl(quest.name)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-[var(--color-accent)]/40 bg-[var(--color-accent)] px-4 text-[12.5px] font-black text-[var(--color-bg)]"
+          >
+            Open Wiki guide <ExternalLink className="size-4" />
+          </a>
         </div>
       </section>
 
@@ -300,7 +275,7 @@ export function QuestDetailClient({
         <details className="mb-4 rounded-xl border border-[var(--color-warning)]/25 bg-[var(--color-warning)]/8 p-3">
           <summary className="flex cursor-pointer list-none items-center gap-1.5 text-[12px] font-bold text-[var(--color-warning)] marker:hidden [&::-webkit-details-marker]:hidden">
             <Shield className="size-4" />
-            Accounttype notes
+            Account note
           </summary>
           <ul className="mt-2 space-y-1 text-[12px] leading-relaxed text-[var(--color-warning)]">
             {evaluation.accountWarnings.map((warning) => <li key={warning}>{warning}</li>)}
@@ -308,81 +283,58 @@ export function QuestDetailClient({
         </details>
       )}
 
-      <Section title="Skill requirements" eyebrow="Can I start?">
-        {evaluation.skillRequirements.length > 0 ? (
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {evaluation.skillRequirements.map((req) => (
-              <li key={req.skill} className="flex items-center justify-between gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2 text-[12.5px]">
-                <span>{req.skill} {req.level}</span>
-                <span className={req.met ? "text-[var(--color-good)]" : "text-[var(--color-warning)]"}>
-                  {req.currentLevel}/{req.level}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : <EmptyRequirement>No skill requirements listed.</EmptyRequirement>}
-      </Section>
+      <details className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55">
+        <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4 text-[13px] font-bold text-[var(--color-text)] marker:hidden sm:px-5 [&::-webkit-details-marker]:hidden">
+          Check exact requirements
+          <span className="text-[11px] font-semibold text-[var(--color-text-dim)]">Skills, quests and items</span>
+        </summary>
+        <div className="border-t border-[var(--color-border)] px-4 py-4 sm:px-5">
+          {evaluation.skillRequirements.length > 0 && (
+            <div className="mb-5">
+              <div className="eyebrow text-[var(--color-text-dim)]">Skills</div>
+              <ul className="mt-2 divide-y divide-[var(--color-border)]">
+                {evaluation.skillRequirements.map((req) => (
+                  <li key={req.skill} className="flex items-center justify-between gap-3 py-2.5 text-[12.5px]">
+                    <span>{req.skill} {req.level}</span>
+                    <span className={req.met ? "text-[var(--color-good)]" : "text-[var(--color-warning)]"}>{req.currentLevel}/{req.level}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
-      <Section title="Quest requirements" eyebrow="What blocks me?">
-        {evaluation.questRequirements.length > 0 ? (
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {evaluation.questRequirements.map((req) => (
-              <li key={req.name} className="flex items-center justify-between gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2 text-[12.5px]">
-                <span>{req.name}</span>
-                <RequirementPill met={req.met} />
-              </li>
-            ))}
-          </ul>
-        ) : <EmptyRequirement>No prerequisite quests listed.</EmptyRequirement>}
-      </Section>
+          {evaluation.questRequirements.length > 0 && (
+            <div className="mb-5">
+              <div className="eyebrow text-[var(--color-text-dim)]">Earlier quests</div>
+              <ul className="mt-2 divide-y divide-[var(--color-border)]">
+                {evaluation.questRequirements.map((req) => (
+                  <li key={req.name} className="flex items-center justify-between gap-3 py-2.5 text-[12.5px]">
+                    <span>{req.name}</span>
+                    <RequirementPill met={req.met} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
-      <Section title="Item requirements" eyebrow="What should I bring?">
-        {evaluation.itemRequirements.length > 0 ? (
-          <>
-            {!evaluation.bank.checked && (
-              <div className="mb-3 flex items-start gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3 text-[12px] text-[var(--color-text-muted)]">
-                <PackageSearch className="mt-0.5 size-4 shrink-0 text-[var(--color-accent)]" />
-                Open this quest from your trip plan or sync/open bank first to mark owned items.
-              </div>
-            )}
-            {evaluation.bank.notApplicable && (
-              <div className="mb-3 flex items-start gap-2 rounded-lg border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 p-3 text-[12px] text-[var(--color-warning)]">
-                <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-                UIM mode: this list is a staging checklist, not a normal bank-ready check.
-              </div>
-            )}
-            <ul className="space-y-2">
-              {evaluation.itemRequirements.map((req) => (
-                <ItemRequirementLine key={req.id} req={req} bankNotApplicable={evaluation.bank.notApplicable} />
-              ))}
-            </ul>
-          </>
-        ) : <EmptyRequirement>No item requirements listed.</EmptyRequirement>}
-      </Section>
-
-      <Section title="Completed requirements" eyebrow="Already covered">
-        {evaluation.completedRequirements.length > 0 ? (
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {evaluation.completedRequirements.slice(0, 24).map((item) => (
-              <li key={item} className="rounded-lg border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-3 py-2 text-[12px] text-[var(--color-good)]">
-                {item}
-              </li>
-            ))}
-          </ul>
-        ) : <EmptyRequirement>No completed requirements in the current context yet.</EmptyRequirement>}
-      </Section>
-
-      <Section title="Still missing" eyebrow="Next gap">
-        {evaluation.missingRequirements.length > 0 ? (
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {evaluation.missingRequirements.slice(0, 24).map((item) => (
-              <li key={item} className="rounded-lg border border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 px-3 py-2 text-[12px] text-[var(--color-warning)]">
-                {item}
-              </li>
-            ))}
-          </ul>
-        ) : <EmptyRequirement>All known requirements in the current context are complete.</EmptyRequirement>}
-      </Section>
+          {evaluation.itemRequirements.length > 0 ? (
+            <div>
+              <div className="eyebrow text-[var(--color-text-dim)]">Quest items</div>
+              {!evaluation.bank.checked && <p className="mt-2 text-[12px] text-[var(--color-text-muted)]">Add your bank to mark owned items.</p>}
+              {evaluation.bank.notApplicable && (
+                <div className="mt-2 flex items-start gap-2 text-[12px] text-[var(--color-warning)]">
+                  <AlertTriangle className="mt-0.5 size-4 shrink-0" /> UIM mode: use this as a staging list.
+                </div>
+              )}
+              <ul className="mt-2">
+                {evaluation.itemRequirements.map((req) => <ItemRequirementLine key={req.id} req={req} bankNotApplicable={evaluation.bank.notApplicable} />)}
+              </ul>
+            </div>
+          ) : (
+            <p className="text-[12px] text-[var(--color-text-muted)]">No listed quest items for this block.</p>
+          )}
+        </div>
+      </details>
     </div>
   );
 }

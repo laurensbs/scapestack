@@ -22,9 +22,11 @@ describe("account mode badge UI", () => {
     expect(pluginSource).toContain("<AccountModeBadge accountType={foundAccountType}");
   });
 
-  it("uses shared planning tone instead of account labels only", () => {
+  it("keeps account-specific planning behavior without repeating mode copy in the quest route", () => {
     expect(nextSource).toContain("accountModePlanningTone");
-    expect(questSource).toContain("planningTone.itemCopy");
+    expect(questSource).toContain("evaluation.accountWarnings");
+    expect(questSource).toContain("evaluation.bank.notApplicable");
+    expect(questSource).not.toContain("planningTone.itemCopy");
     expect(pluginSource).toContain("foundPlanningTone.tripCopy");
     expect(bankSource).toContain("ACCOUNT_MODE_ICON_ITEM_IDS.ironman");
     expect(bankSource).toContain("accountModePlanningTone(\"ironman\")");

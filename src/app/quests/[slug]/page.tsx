@@ -1,7 +1,9 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { scapestackAccountTypeToPlannerType, type PlannerAccountType } from "@/lib/account-type";
 import { fetchHiscores, type HiscoreSkill } from "@/lib/hiscores";
 import { evaluateQuestRequirements } from "@/lib/quest-requirements";
+import { buildQuestRoute } from "@/lib/quest-route";
+import { questUnlockSignal } from "@/lib/quest-unlocks";
 import { getQuestBySlug, getQuests, questSlug } from "@/lib/quest-db";
 import { getSyncedPlayer } from "@/lib/sync-repo";
 import { QuestDetailClient } from "./quest-detail-client";
@@ -56,12 +58,13 @@ export default async function QuestDetailPage({
   if (!quest) notFound();
 
   const rsn = firstParam(search.rsn)?.trim() || null;
-  const [syncedPlayer, hiscores] = rsn
-    ? await Promise.all([
-        getSyncedPlayer(rsn),
-        fetchHiscores(rsn)
-      ])
-    : [null, null] as const;
+  const targetSlug = firstParam(search.target)?.trim() || null;
+  const [syncedPlayer, hiscores, quests, requestedTarget] = await Promise.all([
+    rsn ? getSyncedPlayer(rsn) : Promise.resolve(null),
+    rsn ? fetchHiscores(rsn) : Promise.resolve(null),
+    getQuests(),
+    targetSlug ? getQuestBySlug(targetSlug) : Promise.resolve(null)
+  ]);
 
   const accountType: PlannerAccountType | null = syncedPlayer
     ? scapestackAccountTypeToPlannerType(syncedPlayer.accountType)
@@ -69,24 +72,42 @@ export default async function QuestDetailPage({
   const syncedSkills = syncedSkillsToQuestHiscoreSkills(syncedPlayer?.skills);
   const skills = syncedSkills.length > 0 ? syncedSkills : hiscores?.skills ?? [];
   const completedQuests = syncedPlayer?.questsCompleted ?? [];
+  const targetQuest = requestedTarget ?? quest;
+  const route = buildQuestRoute(targetQuest, quests, {
+    skills,
+    completedQuestNames: syncedPlayer ? completedQuests : undefined,
+    completionEvidence: syncedPlayer ? "runelite" : undefined,
+    bankItems: syncedPlayer?.bankItems ?? [],
+    accountType,
+    payoff: questUnlockSignal(targetQuest).label
+  });
+  const currentSlug = questSlug(quest.name);
+  if (route.progress.activeQuestSlug !== currentSlug) {
+    const query = new URLSearchParams();
+    if (targetQuest.name !== route.activeQuest.name) query.set("target", questSlug(targetQuest.name));
+    if (rsn) query.set("rsn", rsn);
+    const suffix = query.size > 0 ? `?${query.toString()}` : "";
+    redirect(`/quests/${route.progress.activeQuestSlug}${suffix}`);
+  }
   const initialEvaluation = evaluateQuestRequirements(quest, {
     skills,
     completedQuests,
     bankItems: syncedPlayer?.bankItems ?? [],
     accountType
   });
+  const initialRoute = route.progress;
 
   return (
     <main className="relative z-10">
       <QuestDetailClient
         quest={quest}
+        initialRoute={initialRoute}
         initialEvaluation={initialEvaluation}
         initialSkills={skills.map((skill) => ({ name: skill.name, level: skill.level }))}
         completedQuests={completedQuests}
         accountType={accountType}
         rsn={syncedPlayer?.displayName ?? rsn}
         syncedBankItems={syncedPlayer?.bankItems ?? []}
-        bankStatus={syncedPlayer?.bankStatus ?? null}
         progressSource={syncedPlayer ? "runelite" : hiscores ? "hiscores" : "none"}
       />
     </main>

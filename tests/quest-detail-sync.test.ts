@@ -25,34 +25,33 @@ describe("quest detail RuneLite sync contract", () => {
     expect(pageSource).toContain("bankItems: syncedPlayer?.bankItems ?? []");
     expect(pageSource).toContain("scapestackAccountTypeToPlannerType(syncedPlayer.accountType)");
     expect(pageSource).toContain('progressSource={syncedPlayer ? "runelite" : hiscores ? "hiscores" : "none"}');
+    expect(pageSource).toContain("route.progress.activeQuestSlug !== currentSlug");
+    expect(pageSource).toContain("redirect(`/quests/${route.progress.activeQuestSlug}${suffix}`)");
   });
 
   it("keeps browser bank as an additive fallback instead of replacing synced bank", () => {
     expect(clientSource).toContain("const [browserBankItems, setBrowserBankItems] = useState<QuestBankItem[]>([]);");
     expect(clientSource).toContain("normalizeQuestBankItems([...syncedBankItems, ...browserBankItems])");
-    expect(clientSource).toContain('SourceBadge label="Browser bank"');
-    expect(clientSource).toContain("quest items found");
+    expect(clientSource).toContain("Browser bank used.");
+    expect(clientSource).toContain("quest items are already in your bank");
   });
 
-  it("shows compact source and planning states on quest detail", () => {
-    expect(clientSource).toContain('SourceBadge label="RuneLite checked"');
-    expect(clientSource).toContain('SourceBadge label="Browser bank"');
-    expect(clientSource).toContain('SourceBadge label="Bank not added"');
-    expect(clientSource).not.toContain('SourceBadge label="No bank context"');
+  it("shows one route-first quest block with exact requirements collapsed", () => {
+    expect(pageSource).toContain("buildQuestRoute(targetQuest, quests");
+    expect(pageSource).toContain("initialRoute={initialRoute}");
+    expect(clientSource).toContain("Do this first");
+    expect(clientSource).toContain('RouteStep label="Start"');
+    expect(clientSource).toContain('label={evaluation.bank.notApplicable ? "Stage" : "Bring"}');
+    expect(clientSource).toContain('RouteStep label="Get first"');
+    expect(clientSource).toContain('RouteStep label="Stop"');
+    expect(clientSource).toContain('RouteStep label="Next"');
+    expect(clientSource).toContain("Check exact requirements");
+    expect(clientSource).toContain("Open Wiki guide");
     expect(clientSource).toContain("questTripDecision(evaluation)");
-    expect(clientSource).toContain("Quest trip");
-    expect(clientSource).toContain("Next quest trip");
-    expect(clientSource).toContain("Before you leave");
-    expect(clientSource).toContain("Bring");
-    expect(clientSource).toContain("Stage for UIM");
-    expect(clientSource).toContain("Still missing");
-    expect(clientSource).toContain("Finish after");
-    expect(clientSource).toContain("Sync after");
-    expect(clientSource).toContain("decision.bringItems.length > 0");
-    expect(clientSource).toContain('Section title="Completed requirements"');
-    expect(clientSource).toContain('Section title="Still missing"');
-    expect(clientSource).toContain("UIM mode: this list is a staging checklist");
-    expect(clientSource).toContain("accountModeVisual(accountType");
-    expect(clientSource).not.toContain("Open this quest from `/next`");
+    expect(clientSource).not.toContain("lg:grid-cols-4");
+    expect(clientSource).not.toContain('Section title="Completed requirements"');
+    expect(clientSource).not.toContain('Section title="Still missing"');
+    expect(clientSource).not.toContain("Before you leave");
+    expect(clientSource).not.toContain("Sync after");
   });
 });

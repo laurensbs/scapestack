@@ -1209,7 +1209,7 @@ Acceptance:
 
 ## Phase 16 - Build Quest Prerequisite Routes
 
-Status: TODO  
+Status: COMPLETE (2026-07-17)
 Depends on: Phase 06  
 Improves: unlock recommendations
 
@@ -1237,6 +1237,31 @@ Acceptance:
 - a 2-3 hour chain does not win a Short session;
 - bank items are used without dumping an item checklist dashboard.
 ```
+
+### Evidence (2026-07-17)
+
+- `src/lib/quest-route.ts` now resolves the first executable unfinished quest
+  block from exact RuneLite or tracker completion evidence. Without that
+  evidence it refuses to invent completed prerequisites.
+- Each quest route carries the active block, larger payoff, block and chain
+  duration, skill preparation without assumed boosts, bank-owned and missing
+  quest items, stop point and the next block after replanning.
+- Quest recommendations and Next Best Actions now point to the active quest,
+  demote long chains, and redirect stale deeplinks when fresh RuneLite progress
+  changes the first unfinished prerequisite.
+- `/quests/[slug]` is route-first rather than a four-column requirements
+  dashboard: Start, Bring, Get first, Stop and Next are the primary flow; the
+  exact skill, quest and item list is behind one collapsed section and the Wiki
+  remains the full walkthrough.
+- Regression tests cover executable prerequisite selection, completed quest
+  suppression, active-block-only bank and skill checks, unknown completion
+  honesty, Short-session rejection of long chains, additive browser bank use
+  and compact quest UI copy.
+- `npm run ci:check` passed 196 test files / 1,246 tests, smoke,
+  recommendation audit, plugin release checks and the 215-page production
+  build. `plugin/./gradlew test` also passed. Desktop 1280x900 and mobile
+  390x844 browser checks had content, no error overlay and no horizontal
+  overflow; screenshots are in `/tmp/scapestack-phase-16/`.
 
 ## Phase 17 - Deepen Slayer Planning
 

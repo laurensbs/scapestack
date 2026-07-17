@@ -5494,6 +5494,50 @@ function DiaryReadinessDetail({ rec, rsn }: { rec: Recommendation; rsn?: string 
   );
 }
 
+function QuestRouteDetail({ rec }: { rec: Recommendation }) {
+  const route = rec.questRoute;
+  if (rec.kind !== "quest" || !route) return null;
+
+  return (
+    <section className="overflow-hidden rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-bg)]/35">
+      <div className="flex items-center gap-3 border-b border-[var(--color-border)] px-3 py-3">
+        <ItemSprite id={9813} alt="Quest route" size={42} />
+        <div className="min-w-0 flex-1">
+          <p className="font-serif text-[17px] font-semibold text-[var(--color-text)]">{route.activeQuestName}</p>
+          <p className="text-[11.5px] text-[var(--color-text-muted)]">
+            {route.activeIsTarget ? route.payoff : `Toward ${route.targetQuestName} · ${route.payoff}`}
+          </p>
+        </div>
+        <span className="shrink-0 text-[11px] font-bold text-[var(--color-accent)]">{route.expectedBlock}</span>
+      </div>
+
+      <div className="space-y-3 px-3 py-3">
+        <p className="text-[12.5px] font-semibold leading-relaxed text-[var(--color-text)]">{route.whyThisBlock}</p>
+        {route.completionEvidence === "unknown" && (
+          <p className="rounded-md border border-[var(--color-warning)]/25 bg-[var(--color-warning)]/8 px-3 py-2 text-[11.5px] leading-snug text-[var(--color-text-secondary)]">
+            Check RuneLite before committing to the full chain; completed prerequisites are not guessed.
+          </p>
+        )}
+        {route.skillPreparation.length > 0 && (
+          <RoutePlanLine label="Train" value={route.skillPreparation.slice(0, 2).join(" · ")} strong />
+        )}
+        {route.ownedItems.length > 0 && (
+          <RoutePlanLine label="From bank" value={route.ownedItems.slice(0, 3).join(" · ")} />
+        )}
+        {route.missingItems.length > 0 && (
+          <RoutePlanLine label="Get first" value={route.missingItems.slice(0, 3).join(" · ")} strong />
+        )}
+        {route.ownedItems.length === 0 && route.missingItems.length === 0 && (
+          <RoutePlanLine label="Bank" value={route.bankNote} />
+        )}
+        <RoutePlanLine label="Boosts" value={route.boostAssumption} />
+        <RoutePlanLine label="Stop" value={route.stopPoint} strong />
+        {route.nextQuestName && <RoutePlanLine label="Next" value={route.nextQuestName} />}
+      </div>
+    </section>
+  );
+}
+
 function RecDetailPanel({
   rec,
   actionContext,
@@ -5512,12 +5556,13 @@ function RecDetailPanel({
   const wikiQuery = recommendationWikiQuery(rec);
   return (
     <div className="mt-2 px-4 py-3 rounded-lg bg-[var(--color-bg-2)]/40 border border-[var(--color-border)] animate-[fade-in_0.2s_ease-out] space-y-2.5">
-      {rec.kind !== "diary" && <ActionPlanBlock rec={rec} />}
+      {rec.kind !== "diary" && !rec.questRoute && <ActionPlanBlock rec={rec} />}
       <DiaryReadinessDetail rec={rec} rsn={actionContext.rsn ?? undefined} />
-      {rec.kind !== "diary" && <p className="text-[12.5px] text-[var(--color-text-dim)] leading-relaxed">
+      <QuestRouteDetail rec={rec} />
+      {rec.kind !== "diary" && !rec.questRoute && <p className="text-[12.5px] text-[var(--color-text-dim)] leading-relaxed">
         {rec.why}
       </p>}
-      {rec.kind !== "diary" && payoff && (
+      {rec.kind !== "diary" && !rec.questRoute && payoff && (
         <p className="text-[12px] font-semibold text-[var(--color-text-secondary)] leading-relaxed">
           {payoff}
         </p>
@@ -5529,7 +5574,7 @@ function RecDetailPanel({
           dropName={rec.kcMeta.dropName}
         />
       )}
-      {rec.kind !== "diary" && details && (
+      {rec.kind !== "diary" && !rec.questRoute && details && (
         <p className="text-[12.5px] text-[var(--color-text-dim)] leading-relaxed">
           {details}
         </p>
@@ -5540,7 +5585,7 @@ function RecDetailPanel({
           <span>{whyNot}</span>
         </p>
       )}
-      {rec.kind !== "diary" && needs.length > 0 && (
+      {rec.kind !== "diary" && !rec.questRoute && needs.length > 0 && (
         <div>
           <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-1.5">
             You'll need
@@ -5590,6 +5635,7 @@ function recommendationWikiQuery(rec: Recommendation): string {
   }
   return rec.title
     .replace(/^Try\s+/i, "")
+    .replace(/^Do\s+/i, "")
     .replace(/^Push\s+/i, "")
     .replace(/^Finish\s+/i, "")
     .replace(/\s+to\s+\d+\s*(?:KC)?$/i, "")
