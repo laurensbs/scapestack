@@ -2,12 +2,15 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 describe("shared account timeline UI", () => {
-  it("is reused by home, profile and next instead of adding separate recap panels", () => {
+  it("keeps full history off home while reusing it on profile and next", () => {
     const home = readFileSync("src/app/page.tsx", "utf8");
+    const hero = readFileSync("src/components/hero-intake.tsx", "utf8");
     const profile = readFileSync("src/app/u/[rsn]/page.tsx", "utf8");
     const next = readFileSync("src/app/next/next-client.tsx", "utf8");
 
-    expect(home).toContain("<AccountTimeline");
+    expect(home).not.toContain("<AccountTimeline");
+    expect(hero).toContain('data-return-home="true"');
+    expect(hero).toContain('fetch("/api/account/timeline?limit=10"');
     expect(profile).toContain("<AccountTimeline expectedRsn={hi.name}");
     expect(next).toContain("<AccountTimeline expectedRsn={activeRsn}");
     expect(profile).not.toContain("<WeeklyRecap");

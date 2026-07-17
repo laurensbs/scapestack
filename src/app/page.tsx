@@ -1,16 +1,15 @@
 import { BuyMeCoffee } from "@/components/buy-me-coffee";
 import { HeroBossTripPreview } from "@/components/hero-boss-trip-preview";
 import { HeroIntake } from "@/components/hero-intake";
-import { AccountTimeline } from "@/components/account-timeline";
 
 export const revalidate = 300;
 
 export default function HomePage() {
   return (
     <main className="relative z-10 mx-auto max-w-6xl overflow-x-hidden px-5 pb-18 pt-10 sm:px-8 sm:pt-14">
-      <section className="relative flex min-h-[calc(100vh-6rem)] min-w-0 items-center overflow-hidden">
-        <div className="mx-auto grid w-full min-w-0 items-center gap-8 py-8 lg:grid-cols-[minmax(0,1fr)_440px] lg:gap-x-12 lg:gap-y-5">
-          <div className="min-w-0 space-y-5 text-center lg:col-start-1 lg:row-start-1 lg:text-left">
+      <section className="home-hero relative flex min-h-[calc(100vh-6rem)] min-w-0 items-center overflow-hidden">
+        <div className="home-hero-grid mx-auto grid w-full min-w-0 items-center gap-8 py-8 lg:grid-cols-[minmax(0,1fr)_440px] lg:gap-x-12 lg:gap-y-5">
+          <div className="home-hero-intro min-w-0 space-y-5 text-center lg:col-start-1 lg:row-start-1 lg:text-left">
             <div
               className="eyebrow"
               style={{ animation: "hero-fade 0.55s cubic-bezier(0.22,1,0.36,1) 0.02s both" }}
@@ -51,14 +50,14 @@ export default function HomePage() {
           </div>
 
           <div
-            className="relative order-3 mx-auto -my-2 w-full max-w-[240px] sm:max-w-[390px] lg:order-none lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mx-0 lg:max-w-[460px]"
+            className="home-hero-boss relative order-3 mx-auto -my-2 w-full max-w-[240px] sm:max-w-[390px] lg:order-none lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mx-0 lg:max-w-[460px]"
             style={{ animation: "hero-boss-in 1.1s cubic-bezier(0.22,1,0.36,1) 0.65s both" }}
           >
             <HeroBossTripPreview />
           </div>
 
           <div
-            className="order-2 mx-auto w-full max-w-[720px] lg:order-none lg:col-start-1 lg:row-start-2 lg:mx-0"
+            className="home-hero-intake order-2 mx-auto w-full max-w-[720px] lg:order-none lg:col-start-1 lg:row-start-2 lg:mx-0"
             style={{ animation: "hero-scale-in 0.9s cubic-bezier(0.22,1,0.36,1) 0.95s both" }}
           >
             <HeroIntake />
@@ -66,7 +65,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <AccountTimeline className="mx-auto mt-2 max-w-3xl" />
 
       <footer className="mt-14 border-t border-[var(--color-parchment-edge)]/50 pt-10">
         <div className="osrs-frame scapestack-lock-panel relative mx-auto max-w-3xl animate-[slide-up_0.5s_cubic-bezier(0.22,1,0.36,1)_0.2s_both]">

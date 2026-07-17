@@ -1626,7 +1626,7 @@ Acceptance:
 
 ## Phase 23 - Turn Account Home Into A Return Moment
 
-Status: TODO  
+Status: DONE (2026-07-17)
 Depends on: Phases 05 and 09  
 Improves: return value, profile UX
 
@@ -1653,6 +1653,30 @@ Acceptance:
 - progress and recommendation are server-backed across devices;
 - mobile first viewport contains the return value and primary action.
 ```
+
+### Implemented
+
+- Replaced the returning setup rail, badge row, action grid and mood picker
+  with one account story and one `Open next trip` action.
+- Connected browsers now hydrate the stable RuneLite account automatically and
+  read recent progress, decisions and matched stop-point outcomes from the
+  server timeline. Local RSN-only accounts keep a truthful fallback.
+- Added a deterministic return summary that prefers meaningful quests,
+  diaries, outcomes, levels and boss progress over low-value bank changes. It
+  explicitly distinguishes completed, progressed and contradicted stop points.
+- A consumed return moment is remembered on the device, so old progress is not
+  celebrated again. The no-progress state names the previous plan when known
+  and otherwise offers a fresh recalculation without invented progress.
+- Removed the duplicate full timeline from home. Fresh visitors retain the
+  large boss hero; returning visitors see their account value at the top of the
+  first mobile and desktop viewport. Bank/account management stays in the
+  account menu, while RuneLite refresh only appears for scans older than 24h.
+- Browser verification covered fresh, returning, no-progress, real progress,
+  stale RuneLite, desktop and 390px mobile states without overlap or horizontal
+  overflow. The mobile return card starts at 164px and contains its CTA.
+- Verification: 204 test files / 1,290 tests passed. `npm run ci:check` passed
+  typecheck, smoke, recommendation audit, offline plugin release checks and the
+  216-page production build. `./gradlew test` passed the RuneLite suite.
 
 ## Phase 24 - Make `/next` One Decision Per Viewport
 

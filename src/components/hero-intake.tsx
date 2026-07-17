@@ -1,18 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CheckCircle2, ClipboardPaste, PlugZap, RefreshCw, Sword, X } from "lucide-react";
+import { ArrowRight, CheckCircle2, ClipboardPaste, PlugZap, RefreshCw, X } from "lucide-react";
 import { pluginSyncStatusAction } from "@/app/actions";
 import { AddBankModal } from "@/components/add-bank-modal";
 import { RuneliteOpenButton } from "@/components/runelite-open-button";
-import { SessionMoodPicker } from "@/components/session-mood-picker";
+import type { AccountTimelineMoment } from "@/lib/account-timeline";
+import { hydrateConnectedAccount } from "@/lib/account-connection";
 import { loadAccountSnapshot, type AccountSnapshot } from "@/lib/account-context";
 import { ACCOUNT_EVENT, clearRuneliteChecked, hasAccountFirstSetupSeen, markAccountFirstSetupSeen, markAccountPluginBankStatus, markAccountRuneliteProgress, markRuneliteChecked } from "@/lib/account-storage";
-import { MOOD_LABEL, type Mood, type TimeBudget } from "@/lib/mood";
-import { loadMood, relativeSince } from "@/lib/mood-storage";
 import { latestRecommendationMemory, latestStartedRecommendationMemory } from "@/lib/recommendation-feedback";
+import { buildReturnHomeSummary, type ReturnHomeFallback } from "@/lib/return-home";
 import { runeliteProgressFromSyncSummary } from "@/lib/runelite-progress-memory";
 import { saveSavedBank, saveSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,26 @@ import { cn } from "@/lib/utils";
 // Bank and RuneLite stay optional and can sharpen a later run.
 
 const HERO_BANK_KEY = "scapestack:hero:bank";
+const RETURN_HOME_SEEN_KEY = "scapestack:return-home-seen:v1";
+
+function normalizeRsn(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, " ").slice(0, 12);
+}
+
+function returnSeenKey(rsn: string): string {
+  return `${RETURN_HOME_SEEN_KEY}:${normalizeRsn(rsn)}`;
+}
+
+async function loadConnectedMoments(expectedRsn: string): Promise<AccountTimelineMoment[]> {
+  const response = await fetch("/api/account/timeline?limit=10", { cache: "no-store" });
+  if (!response.ok) return [];
+  const body = await response.json() as {
+    account?: { rsn?: string };
+    moments?: AccountTimelineMoment[];
+  };
+  if (normalizeRsn(body.account?.rsn ?? "") !== normalizeRsn(expectedRsn)) return [];
+  return body.moments ?? [];
+}
 
 export function HeroIntake() {
   const router = useRouter();
@@ -28,12 +48,11 @@ export function HeroIntake() {
   const [rememberedRsn, setRememberedRsn] = useState("");
   const [showBankGuide, setShowBankGuide] = useState(false);
   const [showRuneliteGuide, setShowRuneliteGuide] = useState(false);
-  const [editingAccount, setEditingAccount] = useState(false);
-  const [rememberedRuneliteCheckedAt, setRememberedRuneliteCheckedAt] = useState<number | null>(null);
   const [rememberedPluginBankItems, setRememberedPluginBankItems] = useState(0);
   const [runeliteRefresh, setRuneliteRefresh] = useState<"idle" | "checking" | "found" | "missing" | "error">("idle");
-  const [returningMood, setReturningMood] = useState<{ mood: Mood; minutes: TimeBudget; label: string } | null>(null);
-  const [returningChangeLines, setReturningChangeLines] = useState<string[]>([]);
+  const [returningFallback, setReturningFallback] = useState<ReturnHomeFallback>({});
+  const [returningMoments, setReturningMoments] = useState<AccountTimelineMoment[]>([]);
+  const [lastSeenReturnMomentId, setLastSeenReturnMomentId] = useState<string | null>(null);
   const [accountSnapshot, setAccountSnapshot] = useState<AccountSnapshot | null>(null);
   const [bank, setBank] = useState("");
   const [savedBankAt, setSavedBankAt] = useState<number | null>(null);
@@ -42,60 +61,40 @@ export function HeroIntake() {
   const canSubmit = Boolean(rsn.trim() || hasBankPaste);
   const cleanRsn = rsn.trim();
   const isRememberedRun = Boolean(rememberedRsn && cleanRsn === rememberedRsn);
-  const rememberedRuneliteChecked = accountSnapshot?.hasRunelite ?? Boolean(rememberedRuneliteCheckedAt);
   const shouldRefreshRunelite = accountSnapshot?.runeliteNeedsRefresh ?? false;
 
   useEffect(() => {
     const refreshRememberedAccount = () => {
       const snapshot = loadAccountSnapshot();
       setAccountSnapshot(snapshot);
-      const active = snapshot.account;
       const remembered = snapshot.rsn;
       if (!remembered) {
         setRsn("");
         setRememberedRsn("");
-        setRememberedRuneliteCheckedAt(null);
         setRememberedPluginBankItems(0);
         setRuneliteRefresh("idle");
-        setReturningMood(null);
-        setReturningChangeLines([]);
-        setEditingAccount(false);
+        setReturningFallback({});
+        setReturningMoments([]);
+        setLastSeenReturnMomentId(null);
         return;
       }
 
       setRsn(remembered);
       setRememberedRsn(remembered);
-      setRememberedRuneliteCheckedAt(snapshot.runeliteCheckedAt);
       setRememberedPluginBankItems(snapshot.pluginBankItemCount);
-      setEditingAccount(false);
-      const savedMood = loadMood(remembered);
-      setReturningMood(savedMood?.mood
-        ? {
-            mood: savedMood.mood,
-            minutes: savedMood.minutes,
-            label: MOOD_LABEL[savedMood.mood].name
-          }
-        : null);
       const started = latestStartedRecommendationMemory(undefined, { rsn: remembered });
       const latest = latestRecommendationMemory(undefined, { rsn: remembered });
-      const progressLines = [
-        snapshot.runeliteProgressTitle,
-        ...snapshot.runeliteProgressLines,
-        snapshot.runeliteProgressLead
-      ].filter((line): line is string => Boolean(line));
-      const lines: string[] = [...progressLines];
-      if (lines.length === 0 && started?.title) {
-        lines.push(`Last trip started: ${started.title}.`);
-      } else if (lines.length === 0 && latest?.title) {
-        lines.push(`Last pick: ${latest.title}.`);
+      setReturningFallback({
+        progressTitle: snapshot.runeliteProgressTitle,
+        progressDetail: snapshot.runeliteProgressLead ?? snapshot.runeliteProgressLines[0] ?? null,
+        startedTitle: started?.title ?? null,
+        lastPlanTitle: latest?.title ?? snapshot.lastHeadlineTitle
+      });
+      try {
+        setLastSeenReturnMomentId(localStorage.getItem(returnSeenKey(remembered)));
+      } catch {
+        setLastSeenReturnMomentId(null);
       }
-      if (lines.length < 3 && active?.runeliteCheckedAt) {
-        lines.push(`Last scan: ${relativeSince(active.runeliteCheckedAt)}.`);
-      }
-      if (lines.length < 3 && savedMood?.mood) {
-        lines.push(`Last vibe: ${MOOD_LABEL[savedMood.mood].name}.`);
-      }
-      setReturningChangeLines([...new Set(lines)].slice(0, 4));
     };
     refreshRememberedAccount();
     window.addEventListener(ACCOUNT_EVENT, refreshRememberedAccount);
@@ -104,6 +103,33 @@ export function HeroIntake() {
       window.removeEventListener(ACCOUNT_EVENT, refreshRememberedAccount);
       window.removeEventListener("storage", refreshRememberedAccount);
     };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const hydrateReturnHome = async () => {
+      try {
+        const connected = await hydrateConnectedAccount();
+        if (!connected || cancelled) return;
+        const connectedRsn = connected.displayName || connected.rsn;
+        const moments = await loadConnectedMoments(connectedRsn);
+        if (cancelled) return;
+        setReturningMoments(moments);
+        const snapshot = loadAccountSnapshot(connectedRsn);
+        setAccountSnapshot(snapshot);
+        setRsn(connectedRsn);
+        setRememberedRsn(connectedRsn);
+        try {
+          setLastSeenReturnMomentId(localStorage.getItem(returnSeenKey(connectedRsn)));
+        } catch {
+          setLastSeenReturnMomentId(null);
+        }
+      } catch {
+        // A local RSN still has a useful return path when no server session exists.
+      }
+    };
+    void hydrateReturnHome();
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
@@ -158,17 +184,17 @@ export function HeroIntake() {
         ));
         const snapshot = loadAccountSnapshot(target);
         setAccountSnapshot(snapshot);
-        setRememberedRuneliteCheckedAt(checkedAt);
         setRememberedPluginBankItems(next.player.bankStatus.enabled ? next.player.bankStatus.itemCount : 0);
-        setReturningChangeLines([
-          snapshot.runeliteProgressTitle,
-          ...snapshot.runeliteProgressLines,
-          snapshot.runeliteProgressLead
-        ].filter((line): line is string => Boolean(line)).slice(0, 4));
+        setReturningFallback((current) => ({
+          ...current,
+          progressTitle: snapshot.runeliteProgressTitle,
+          progressDetail: snapshot.runeliteProgressLead ?? snapshot.runeliteProgressLines[0] ?? null
+        }));
+        const moments = await loadConnectedMoments(target);
+        if (moments.length > 0) setReturningMoments(moments);
         setRuneliteRefresh("found");
       } else {
         clearRuneliteChecked(target);
-        setRememberedRuneliteCheckedAt(null);
         setRuneliteRefresh("missing");
       }
     } catch {
@@ -184,16 +210,29 @@ export function HeroIntake() {
     openPlan({ firstRun });
   };
 
-  if (isRememberedRun && !editingAccount) {
+  const returnSummary = useMemo(() => buildReturnHomeSummary({
+    moments: returningMoments,
+    lastSeenMomentId: lastSeenReturnMomentId,
+    fallback: returningFallback
+  }), [lastSeenReturnMomentId, returningFallback, returningMoments]);
+
+  const rememberReturnMoment = useCallback(() => {
+    if (!rememberedRsn || !returnSummary.latestMomentId) return;
+    try {
+      localStorage.setItem(returnSeenKey(rememberedRsn), returnSummary.latestMomentId);
+    } catch {
+      // Private browsing can keep the current visit without persistence.
+    }
+  }, [rememberedRsn, returnSummary.latestMomentId]);
+
+  useEffect(() => {
+    window.addEventListener("pagehide", rememberReturnMoment);
+    return () => window.removeEventListener("pagehide", rememberReturnMoment);
+  }, [rememberReturnMoment]);
+
+  if (isRememberedRun) {
     const encodedRsn = encodeURIComponent(rememberedRsn);
-    const planHref = accountSnapshot?.planHref ?? (returningMood
-      ? `/next?rsn=${encodedRsn}&intent=${encodeURIComponent(returningMood.mood)}&time=${returningMood.minutes}`
-      : `/next?rsn=${encodedRsn}`);
-    const runeliteStatusLabel = shouldRefreshRunelite
-      ? "Refresh RuneLite"
-      : accountSnapshot?.runeliteDetail ?? "RuneLite later";
-    const bankStatusLabel = accountSnapshot?.bankDetail ?? "Add bank if gear matters";
-    const bankButtonLabel = accountSnapshot?.bankLabel ?? (hasBankContext ? "Bank added" : "Add bank");
+    const planHref = accountSnapshot?.planHref ?? `/next?rsn=${encodedRsn}`;
     const runeliteRefreshMessage = runeliteRefresh === "checking"
       ? "Checking RuneLite…"
       : runeliteRefresh === "found"
@@ -204,154 +243,59 @@ export function HeroIntake() {
             ? "RuneLite check failed. Try again."
             : null;
     return (
-      <div className="osrs-frame p-4 text-left sm:p-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0">
-            <div className="eyebrow text-[var(--color-accent)]">Welcome back</div>
-            <h2 className="mt-1 text-[26px] font-semibold leading-tight text-[var(--color-text)]">
-              Open today&apos;s trip for {rememberedRsn}.
-            </h2>
-            <p className="mt-2 max-w-xl text-[13px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-              Scapestack will use the saved setup it can trust, then send you to one clear stop point.
-            </p>
-            <div className="mt-3 grid gap-1.5 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-              <ReturningSetupLine active={rememberedRuneliteChecked} text={runeliteStatusLabel} />
-              <ReturningSetupLine active={hasBankContext} text={bankStatusLabel} />
-              <ReturningSetupLine active={Boolean(returningMood)} text={`${accountSnapshot?.moodLabel ?? returningMood?.label ?? "Best now"} vibe`} />
-            </div>
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] font-semibold">
-              <span className={cn(
-                "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1",
-                hasBankContext
-                  ? "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/12 text-[var(--color-accent)]"
-                  : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-muted)]"
-              )}>
-                {hasBankContext && <CheckCircle2 className="size-3.5" />}
-                {bankButtonLabel}
-              </span>
-              <span className={cn(
-                "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1",
-                rememberedRuneliteChecked
-                  ? shouldRefreshRunelite
-                    ? "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
-                    : "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/12 text-[var(--color-accent)]"
-                  : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-muted)]"
-              )}>
-                {rememberedRuneliteChecked && <CheckCircle2 className="size-3.5" />}
-                {runeliteStatusLabel}
-              </span>
-              <span className="inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1 text-[var(--color-text-muted)]">
-                {`Vibe: ${accountSnapshot?.moodLabel ?? returningMood?.label ?? "Best now"}`}
-              </span>
-            </div>
-            {runeliteRefreshMessage && (
-              <p
-                role="status"
-                aria-live="polite"
-                className={cn(
-                  "mt-2 text-[12px] font-semibold leading-relaxed",
-                  runeliteRefresh === "found" ? "text-[var(--color-accent)]" : "text-[var(--color-warning)]"
-                )}
-              >
-                {runeliteRefreshMessage}
-              </p>
-            )}
-            {returningChangeLines.length > 0 && (
-              <div className="mt-4 rounded-xl border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 p-3">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="eyebrow text-[var(--color-accent)]">Since last scan</p>
-                    <p className="mt-1 text-[14px] font-bold leading-tight text-[var(--color-text)]">
-                      {returningChangeLines[0]}
-                    </p>
-                  </div>
-                  <Link
-                    href={planHref}
-                    className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/12 px-3 py-1.5 text-[12px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)] hover:text-[#0b0906]"
-                  >
-                    Plan from this
-                    <ArrowRight className="size-3.5" />
-                  </Link>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {returningChangeLines.slice(1).map((line) => (
-                    <span
-                      key={line}
-                      className="rounded-full border border-[var(--color-parchment-edge)]/65 bg-black/20 px-2.5 py-1 text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]"
-                    >
-                      {line}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={() => setEditingAccount(true)}
-            className="inline-flex shrink-0 items-center justify-center rounded-lg border border-[var(--color-border)] px-3 py-2 text-[12px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
-          >
-            Change RSN
-          </button>
+      <div className="osrs-frame overflow-hidden text-left" data-return-home="true">
+        <div className="osrs-title-bar px-5 py-4 sm:px-6">
+          <p className="eyebrow text-[var(--color-accent)]">Welcome back, {rememberedRsn}</p>
         </div>
+        <div className="osrs-body px-5 py-5 sm:px-6 sm:py-6" aria-live="polite">
+          <p className="eyebrow text-[var(--color-text-muted)]">{returnSummary.eyebrow}</p>
+          <h2 className="mt-2 max-w-2xl text-[clamp(26px,4vw,38px)] font-semibold leading-[1.08] text-[var(--color-text)]">
+            {returnSummary.headline}
+          </h2>
+          <p className="mt-3 max-w-2xl text-[14px] font-medium leading-relaxed text-[var(--color-text-dim)]">
+            {returnSummary.detail}
+          </p>
 
-        <div className="mt-5">
+          {returnSummary.stopPoint && (
+            <p className="mt-4 flex items-start gap-2 border-l-2 border-[var(--color-accent)] pl-3 text-[12.5px] font-bold leading-relaxed text-[var(--color-text)]">
+              <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[var(--color-accent)]" />
+              {returnSummary.stopPoint}
+            </p>
+          )}
+
           <Link
             href={planHref}
-            className="btn-primary min-h-[62px] w-full justify-between px-4 py-4 text-[15px]"
+            onClick={rememberReturnMoment}
+            className="btn-primary mt-6 min-h-[58px] w-full justify-between px-4 py-4 text-[15px] sm:max-w-sm"
           >
-            Open today&apos;s trip
+            Open next trip
             <ArrowRight className="size-4" />
           </Link>
-        </div>
 
-        <div className="mt-3 grid grid-cols-3 gap-2">
-          <button
-            type="button"
-            onClick={() => setShowBankGuide(true)}
-            className="relative flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2 py-3 text-center text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
-          >
-            {hasBankContext && <CheckCircle2 className="absolute right-2 top-2 size-3.5 text-[var(--color-accent)]" />}
-            <ClipboardPaste className="size-4" />
-            {bankButtonLabel}
-          </button>
-          <Link
-            href={accountSnapshot?.dpsHref ?? `/dps?rsn=${encodedRsn}&from=home`}
-            className="flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2 py-3 text-center text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
-          >
-            <Sword className="size-4" />
-            Boss
-          </Link>
-          {rememberedRuneliteChecked || runeliteRefresh === "missing" || runeliteRefresh === "error" ? (
+          {shouldRefreshRunelite && (
             <button
               type="button"
               onClick={refreshRunelite}
               disabled={runeliteRefresh === "checking"}
-              className="relative flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2 py-3 text-center text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] disabled:opacity-60"
+              className="mt-4 inline-flex min-h-10 items-center gap-2 text-[12px] font-bold text-[var(--color-warning)] transition-colors hover:text-[var(--color-accent)] disabled:opacity-60"
               aria-label={`Refresh RuneLite sync for ${rememberedRsn}`}
             >
-              {rememberedRuneliteChecked && <CheckCircle2 className="absolute right-2 top-2 size-3.5 text-[var(--color-accent)]" />}
               <RefreshCw className={cn("size-4", runeliteRefresh === "checking" && "animate-spin")} />
-              Refresh
+              Refresh RuneLite before a long trip
             </button>
-          ) : (
-            <Link
-              href={accountSnapshot?.pluginHref ?? `/plugin?rsn=${encodedRsn}&from=home#verify-sync`}
-              className="flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2 py-3 text-center text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
-            >
-              <PlugZap className="size-4" />
-              Add RuneLite
-            </Link>
           )}
-        </div>
-
-        <div className="mt-3">
-          <SessionMoodPicker
-            rsn={rememberedRsn}
-            label={returningMood?.label ?? "Best now"}
-            wide
-            onMoodChange={setReturningMood}
-          />
+          {runeliteRefreshMessage && (
+            <p
+              role="status"
+              aria-live="polite"
+              className={cn(
+                "mt-2 text-[12px] font-semibold leading-relaxed",
+                runeliteRefresh === "found" ? "text-[var(--color-accent)]" : "text-[var(--color-warning)]"
+              )}
+            >
+              {runeliteRefreshMessage}
+            </p>
+          )}
         </div>
       </div>
     );
@@ -551,17 +495,5 @@ export function HeroIntake() {
         </div>
       )}
     </form>
-  );
-}
-
-function ReturningSetupLine({ active, text }: { active: boolean; text: string }) {
-  return (
-    <div className="flex items-start gap-2">
-      <CheckCircle2 className={cn(
-        "mt-0.5 size-3.5 shrink-0",
-        active ? "text-[var(--color-accent)]" : "text-[var(--color-text-muted)]"
-      )} />
-      <span>{text}</span>
-    </div>
   );
 }

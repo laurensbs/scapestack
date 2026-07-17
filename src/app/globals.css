@@ -993,6 +993,31 @@ body {
   background: linear-gradient(90deg, transparent, var(--color-border-strong), transparent);
 }
 
+/* Returning players should see account value before the acquisition hero.
+   Fresh visitors keep the large rotating boss scene. */
+.home-hero-grid:has([data-return-home="true"]) {
+  grid-template-columns: minmax(0, 720px) !important;
+  justify-content: center;
+  padding-block: clamp(2.5rem, 8vh, 5rem);
+}
+
+.home-hero:has([data-return-home="true"]) {
+  min-height: auto;
+  align-items: flex-start;
+}
+
+.home-hero-grid:has([data-return-home="true"]) .home-hero-intro,
+.home-hero-grid:has([data-return-home="true"]) .home-hero-boss {
+  display: none !important;
+}
+
+.home-hero-grid:has([data-return-home="true"]) .home-hero-intake {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  max-width: 720px;
+  margin-inline: auto !important;
+}
+
 /* ── Global interactive affordance ──────────────────────────────────────
    OSRS players scan dense panels fast; every action needs an immediate
    "you can click this" signal even when a component forgets custom hover

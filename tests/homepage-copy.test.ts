@@ -76,8 +76,8 @@ describe("homepage first-impression copy", () => {
     const bossIndex = source.indexOf("<HeroBossTripPreview />");
 
     expect(source).toContain("lg:grid-cols-[minmax(0,1fr)_440px]");
-    expect(source).toContain("className=\"relative order-3");
-    expect(source).toContain("className=\"order-2");
+    expect(source).toContain("className=\"home-hero-boss relative order-3");
+    expect(source).toContain("className=\"home-hero-intake order-2");
     expect(source).toContain("lg:row-span-2");
     expect(boardIndex).toBeGreaterThan(-1);
     expect(intakeIndex).toBeGreaterThan(-1);
