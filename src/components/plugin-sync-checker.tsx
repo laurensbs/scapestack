@@ -164,7 +164,7 @@ export function PluginSyncChecker() {
             <button
               type="button"
               onClick={() => setEditingRsn((value) => !value)}
-              className="min-h-10 rounded-lg border border-[var(--color-border)] px-3 text-[12px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-text)]"
+              className="min-h-11 rounded-lg border border-[var(--color-border)] px-3 text-[12px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-text)]"
             >
               Use another RSN
             </button>
@@ -314,9 +314,12 @@ function RsnForm({
           placeholder="Type your OSRS name"
           maxLength={12}
           autoComplete="off"
+          autoCapitalize="none"
+          autoCorrect="off"
+          enterKeyHint="go"
           spellCheck={false}
           aria-describedby={`${helpId} ${statusId}`}
-          className="min-h-12 min-w-0 flex-1 rounded-xl border border-[var(--color-border)] bg-black/30 px-4 text-[15px] text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)]/55"
+          className="min-h-12 min-w-0 flex-1 rounded-xl border border-[var(--color-border)] bg-black/30 px-4 text-[16px] text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)]/55 sm:text-[15px]"
         />
         <button
           type="submit"

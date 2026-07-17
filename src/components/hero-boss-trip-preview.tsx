@@ -75,14 +75,19 @@ export function HeroBossTripPreview() {
             key={trip.boss}
             type="button"
             onClick={() => setActiveIndex(index)}
-            className={`h-2.5 rounded-full border border-[var(--color-accent)]/50 transition-all ${
-              index === activeIndex
-                ? "w-8 bg-[var(--color-accent)]"
-                : "w-2.5 bg-[var(--color-accent)]/14 hover:bg-[var(--color-accent)]/32"
-            }`}
+            className="group grid size-11 place-items-center rounded-md"
             aria-label={`Show ${trip.name}`}
             aria-pressed={index === activeIndex}
-          />
+          >
+            <span
+              aria-hidden="true"
+              className={`h-2.5 rounded-full border border-[var(--color-accent)]/50 transition-all ${
+                index === activeIndex
+                  ? "w-8 bg-[var(--color-accent)]"
+                  : "w-2.5 bg-[var(--color-accent)]/14 group-hover:bg-[var(--color-accent)]/32"
+              }`}
+            />
+          </button>
         ))}
       </div>
     </aside>

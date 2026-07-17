@@ -327,6 +327,9 @@ export function HeroIntake() {
             placeholder="Type your OSRS name"
             maxLength={12}
             autoComplete="off"
+            autoCapitalize="none"
+            autoCorrect="off"
+            enterKeyHint="go"
             spellCheck={false}
             aria-describedby="hero-plan-disabled-help"
             className={cn(
@@ -391,7 +394,7 @@ export function HeroIntake() {
           aria-expanded={showBankGuide}
           aria-label={hasBankContext ? "Edit bank paste for Scapestack" : "Add bank to Scapestack"}
           className={cn(
-            "inline-flex items-center gap-1.5 underline underline-offset-4 decoration-dotted transition-colors",
+            "inline-flex min-h-11 items-center gap-1.5 underline underline-offset-4 decoration-dotted transition-colors",
             hasBankContext ? "text-[var(--color-accent)] hover:text-[var(--color-accent-soft)]" : "hover:text-[var(--color-accent)]"
           )}
         >
@@ -403,7 +406,7 @@ export function HeroIntake() {
             type="button"
             onClick={() => setBank("")}
             aria-label="Remove pasted bank from this plan"
-            className="text-[11.5px] font-semibold text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-danger)]"
+            className="inline-flex min-h-11 items-center text-[11.5px] font-semibold text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-danger)]"
           >
             Remove
           </button>
@@ -414,7 +417,7 @@ export function HeroIntake() {
           onClick={() => setShowRuneliteGuide(true)}
           aria-haspopup="dialog"
           aria-label="Show RuneLite plugin setup"
-          className="hover:text-[var(--color-accent)] underline underline-offset-4 decoration-dotted transition-colors"
+          className="inline-flex min-h-11 items-center underline decoration-dotted underline-offset-4 transition-colors hover:text-[var(--color-accent)]"
         >
           RuneLite later
         </button>

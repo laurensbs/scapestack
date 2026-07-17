@@ -60,7 +60,7 @@ export function SessionMoodPicker({
           wide
             ? "group flex min-h-[68px] w-full items-center justify-between gap-3 rounded-lg border border-[var(--color-parchment-edge)] bg-[var(--color-parchment-dark)]/42 px-3 py-3 text-left shadow-[inset_0_1px_0_rgba(245,236,221,0.05)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-parchment)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/45"
             : mobileTile
-              ? "flex min-h-[54px] flex-col items-center justify-center rounded-xl border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-1.5 text-center text-[var(--color-accent)] transition-colors hover:border-[var(--color-accent)]/55"
+              ? "flex min-h-14 flex-col items-center justify-center rounded-lg border border-transparent px-1.5 text-center text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)]"
               : "inline-flex items-center gap-1 whitespace-nowrap rounded-full px-1.5 py-1 transition-colors hover:text-[var(--color-accent)]",
           compact && !mobileTile && !wide && "rounded-lg border border-[var(--color-border)] px-2 py-1.5",
           className
@@ -85,14 +85,9 @@ export function SessionMoodPicker({
         ) : (
           <>
             <Sword className={mobileTile ? "size-4" : "size-3.5"} />
-            <span className={mobileTile ? "mt-1 max-w-full truncate text-[11px] font-bold leading-none" : ""}>
+            <span className={mobileTile ? "mt-1.5 max-w-full truncate text-[11.5px] font-bold leading-none" : ""}>
               {picked}
             </span>
-            {mobileTile && (
-              <span className="mt-0.5 max-w-full truncate text-[9.5px] font-semibold leading-none opacity-70">
-                Vibe
-              </span>
-            )}
           </>
         )}
       </button>
@@ -102,11 +97,11 @@ export function SessionMoodPicker({
           role="dialog"
           aria-modal="true"
           aria-labelledby="session-mood-title"
-          className="fixed inset-0 z-[120] bg-black/70 px-4 pb-5 pt-24 backdrop-blur-sm sm:grid sm:place-items-center sm:py-8"
+          className="fixed inset-0 z-[120] flex items-end bg-black/70 backdrop-blur-sm sm:grid sm:place-items-center sm:p-8"
           onClick={() => setOpen(false)}
         >
           <div
-            className="osrs-frame w-full max-w-xl text-left"
+            className="scape-sheet flex w-full max-w-xl flex-col text-left"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="osrs-title-bar flex items-start justify-between gap-4 px-5 py-3 sm:px-6">
@@ -120,13 +115,13 @@ export function SessionMoodPicker({
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Close session picker"
-                className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+                className="icon-btn"
               >
                 <X className="size-4" />
               </button>
             </div>
 
-            <div className="osrs-body px-5 pb-5 pt-4 sm:px-6 sm:pb-6">
+            <div className="osrs-body min-h-0 overflow-y-auto overscroll-contain px-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] pt-4 sm:px-6 sm:pb-6">
               <p className="text-[13px] leading-relaxed text-[var(--color-text-muted)]">
                 Your next plan changes for this account.
               </p>

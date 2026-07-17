@@ -2135,7 +2135,7 @@ Acceptance:
 
 ## Phase 31 - Make The App Mobile-First
 
-Status: TODO  
+Status: DONE (2026-07-18)
 Depends on: Phase 30  
 Improves: mobile UX
 
@@ -2164,6 +2164,35 @@ Acceptance:
 - the first recommendation is usable one-handed;
 - browser screenshots cover every primary flow.
 ```
+
+### Evidence
+
+- Rebuilt the shared mobile shell around one fixed action bar contract. Route
+  selection is now separate from saved Bank/RuneLite checkmarks, secondary
+  helper rows were removed and the content/footer reserve the device safe area
+  instead of relying on a fixed `pb-24` guess.
+- Raised shared command, icon, carousel and route controls to at least 44px.
+  The boss carousel now keeps a large invisible tap target around its small
+  visual dots; Plan, Bank and Check kill expose no visible sub-44px controls in
+  the first viewport.
+- Converted the mood picker into a bounded mobile bottom sheet with safe-area
+  padding, contained scrolling, a 44px close control and six 88px choices. The
+  mobile navigation drawer now scrolls independently and leaves room for the
+  fixed action bar.
+- Made RSN and boss-search inputs mobile-keyboard aware with 16px mobile text,
+  disabled autocorrection/capitalization and appropriate Go/Search return
+  keys. Boss filters and sort choices use a thumb-friendly horizontal row
+  rather than shrinking or wrapping into dense micro-controls.
+- Browser verification covered homepage, `/next`, `/bank`, `/dps`, `/goals`,
+  `/plugin` and account home at both 360x800 and 390x844. Every route had zero
+  horizontal overflow; the 390px mobile bar stayed at y=768-844, the mood sheet
+  stayed within y=380-844 and its controls measured 44px/88px. Menu and mood
+  interactions produced no console errors. Screenshots are stored under
+  `/tmp/phase31-*-true-360.png` and `/tmp/phase31-*-390.png`.
+- Added mobile-first regression coverage. Verification: 209 test files / 1,317
+  tests passed. `npm run ci:check` passed typecheck, smoke, recommendation
+  audit, offline plugin release checks and the 216-page production build.
+  `./gradlew test` passed the RuneLite suite.
 
 ## Phase 32 - Complete Accessibility Semantics
 

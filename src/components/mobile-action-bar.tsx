@@ -39,23 +39,23 @@ export function MobileActionBar() {
     {
       href: nextHref,
       label: "Trip",
-      helper: rsn || "Trip",
       icon: Sparkles,
-      active: pathname === "/next"
+      selected: pathname === "/next",
+      complete: false
     },
     {
       href: bankHref,
-      label: hasBank ? "Setup" : "Add bank",
-      helper: hasBank ? "Added" : "Paste",
+      label: "Bank",
       icon: ClipboardPaste,
-      active: hasBank
+      selected: pathname === "/bank",
+      complete: hasBank
     },
     {
       href: pluginHref,
       label: "RuneLite",
-      helper: hasRunelite ? "Synced" : "Later",
       icon: hasRunelite ? RefreshCw : PlugZap,
-      active: hasRunelite
+      selected: pathname === "/plugin",
+      complete: hasRunelite
     }
   ];
 
@@ -64,7 +64,7 @@ export function MobileActionBar() {
   return (
     <nav
       aria-label="Mobile quick actions"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/94 px-2 pb-[calc(env(safe-area-inset-bottom)+0.45rem)] pt-2 shadow-[0_-18px_50px_-36px_rgba(0,0,0,0.95)] backdrop-blur-md sm:hidden"
+      className="mobile-action-bar fixed inset-x-0 bottom-0 z-40 border-t border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/94 px-2 pt-2 shadow-[0_-18px_50px_-36px_rgba(0,0,0,0.95)] backdrop-blur-md sm:hidden"
     >
       <div className="mx-auto grid max-w-md grid-cols-4 gap-1.5">
         {actions.map((action) => {
@@ -73,19 +73,19 @@ export function MobileActionBar() {
             <Link
               key={action.href}
               href={action.href}
+              aria-current={action.selected ? "page" : undefined}
               className={cn(
-                "relative flex min-h-[54px] flex-col items-center justify-center rounded-xl border px-1.5 text-center transition-colors",
-                action.active
+                "relative flex min-h-14 flex-col items-center justify-center rounded-lg border px-1.5 text-center transition-colors",
+                action.selected
                   ? "border-[var(--color-accent)]/45 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
                   : "border-transparent text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/30 hover:text-[var(--color-accent)]"
               )}
             >
-              <Icon className="size-4" />
-              {action.active && action.label !== "Trip" && (
-                <CheckCircle2 className="absolute right-1.5 top-1.5 size-3 text-[var(--color-accent)]" />
+              <Icon className="size-[18px]" />
+              {action.complete && (
+                <CheckCircle2 className="absolute right-1.5 top-1.5 size-3.5 text-[var(--color-accent)]" />
               )}
-              <span className="mt-1 max-w-full truncate text-[11px] font-bold leading-none">{action.label}</span>
-              <span className="mt-0.5 max-w-full truncate text-[9.5px] font-semibold leading-none opacity-70">{action.helper}</span>
+              <span className="mt-1.5 max-w-full truncate text-[11.5px] font-bold leading-none">{action.label}</span>
             </Link>
           );
         })}

@@ -1126,6 +1126,11 @@ function NextIntake({
               onChange={(e) => setRsn(e.target.value)}
               placeholder="Type your OSRS name"
               autoFocus
+              autoComplete="off"
+              autoCapitalize="none"
+              autoCorrect="off"
+              enterKeyHint="go"
+              spellCheck={false}
               disabled={loading}
               className="flex-1 bg-transparent outline-none px-5 py-4 sm:py-5 text-[16px] sm:text-[18px] font-mono text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] disabled:opacity-60"
             />
@@ -4524,7 +4529,7 @@ function RouteChainScroll({
                     <button
                       type="button"
                       onClick={() => finishStep(step.id)}
-                      className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-md border border-[var(--color-accent)]/44 bg-[var(--color-accent)]/12 px-3 text-[11px] font-black text-[var(--color-accent)]"
+                      className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-md border border-[var(--color-accent)]/44 bg-[var(--color-accent)]/12 px-3 text-[11px] font-black text-[var(--color-accent)]"
                     >
                       {step.kind === "stop" ? "Finish route" : "Done, next"} <ArrowRight className="size-3.5" />
                     </button>
@@ -5984,7 +5989,7 @@ function RecHeadlineExpandable({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="inline-flex min-h-10 items-center gap-1.5 px-1 text-[12px] font-bold text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-accent)]"
+          className="inline-flex min-h-11 items-center gap-1.5 px-1 text-[12px] font-bold text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-accent)]"
           aria-expanded={open}
           aria-haspopup="dialog"
         >

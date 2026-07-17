@@ -81,7 +81,7 @@ export function Header() {
             href="/"
             aria-label="Scapestack home"
             className={cn(
-              "group flex items-baseline shrink-0 leading-none",
+              "group flex min-h-11 shrink-0 items-center leading-none",
               "text-[18px] font-semibold tracking-normal lowercase drop-shadow-[1px_1px_0_rgba(0,0,0,0.85)]"
             )}
           >
@@ -158,7 +158,7 @@ export function Header() {
         <button
           type="button"
           onClick={() => setMobileOpen((v) => !v)}
-          className="sm:hidden size-9 rounded-md flex items-center justify-center border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
+          className="sm:hidden size-11 rounded-md flex items-center justify-center border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
           aria-controls={mobileNavId}
           aria-expanded={mobileOpen}
@@ -170,8 +170,8 @@ export function Header() {
       {/* Mobile drawer — shown when hamburger is open. Slides down from
           beneath the header bar; click anywhere inside to navigate. */}
       {mobileOpen && (
-        <div className="fixed inset-x-0 top-14 z-40 border-t border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)] shadow-[0_22px_50px_-36px_rgba(0,0,0,0.82)] sm:hidden">
-          <nav id={mobileNavId} className="px-4 py-3 space-y-1" aria-label="Mobile trip actions">
+        <div className="fixed inset-x-0 top-14 z-40 max-h-[calc(100dvh-3.5rem)] overflow-y-auto overscroll-contain border-t border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)] shadow-[0_22px_50px_-36px_rgba(0,0,0,0.82)] sm:hidden">
+          <nav id={mobileNavId} className="space-y-1 px-4 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-3" aria-label="Mobile trip actions">
             <div className="mb-3 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment)] p-3">
               <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-gold)]">
                 Your account
@@ -186,7 +186,7 @@ export function Header() {
                     href={contextualNavHref(step.href, pathname, contextQuery, activeRsn)}
                     onClick={() => setMobileOpen(false)}
                     aria-label={`${step.label} in Scapestack loop`}
-                    className="rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2 py-2 text-center text-[11.5px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+                    className="flex min-h-11 items-center justify-center rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2 py-2 text-center text-[11.5px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
                   >
                     {step.label}
                   </Link>
@@ -208,7 +208,7 @@ export function Header() {
                   aria-current={active ? "page" : undefined}
                   aria-label={`${tool.name}: ${tool.short}`}
                   className={cn(
-                    "group/tool flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium",
+                    "group/tool flex min-h-11 items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium",
                     active
                       ? "bg-[var(--color-panel-2)] text-[var(--color-text)]"
                       : "text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-panel-2)]/60"
@@ -358,8 +358,11 @@ function AccountSwitcher({
                 placeholder="Type RSN"
                 maxLength={12}
                 autoComplete="off"
+                autoCapitalize="none"
+                autoCorrect="off"
+                enterKeyHint="go"
                 spellCheck={false}
-                className="min-w-0 flex-1 rounded-md border border-[var(--color-parchment-edge)]/70 bg-[var(--color-bg)] px-3 py-2 text-[13px] font-semibold text-[var(--color-text)] outline-none focus:border-[var(--color-accent)]/55"
+                className="min-h-11 min-w-0 flex-1 rounded-md border border-[var(--color-parchment-edge)]/70 bg-[var(--color-bg)] px-3 py-2 text-[16px] font-semibold text-[var(--color-text)] outline-none focus:border-[var(--color-accent)]/55 sm:text-[13px]"
               />
               <button
                 type="submit"

@@ -256,7 +256,7 @@ export function GoalsClient() {
             setSkipHandoff(true);
           }}
           className={cn(
-            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px]",
+            "flex min-h-11 items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12.5px]",
             "bg-transparent border border-[var(--color-border)] text-[var(--color-text-dim)]",
             "hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)] transition-colors"
           )}

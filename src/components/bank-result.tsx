@@ -514,7 +514,7 @@ function BankDecisionHero({
             type="button"
             onClick={() => onPrimary(decision.primaryAction)}
             aria-label={`${decision.primaryLabel}: ${decision.title}`}
-            className="scapestack-command-button scapestack-primary-action min-w-0 px-3 py-2 text-[12.5px] font-bold sm:px-3.5"
+            className="scapestack-command-button scapestack-primary-action min-h-11 min-w-0 px-3 py-2 text-[12.5px] font-bold sm:px-3.5"
           >
             {decision.primaryAction === "copy" && copied === "all" ? <CheckCheck className="size-3.5" /> : <PrimaryIcon className="size-3.5" />}
             <span className="truncate">{decision.primaryAction === "copy" && copied === "all" ? "Copied" : decision.primaryLabel}</span>
@@ -523,13 +523,13 @@ function BankDecisionHero({
             type="button"
             onClick={() => secondaryQuickAction.action === "tidy" ? onTidy() : onPrimary("copy")}
             aria-label={secondaryQuickAction.ariaLabel}
-            className="scapestack-command-button min-w-0 border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[12.5px] font-bold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 sm:px-3.5"
+            className="scapestack-command-button min-h-11 min-w-0 border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[12.5px] font-bold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 sm:px-3.5"
           >
             {secondaryQuickAction.action === "copy" && copied === "all" ? <CheckCheck className="size-3.5" /> : <SecondaryIcon className="size-3.5" />}
             <span className="truncate">{secondaryQuickAction.label}</span>
           </button>
           <details className="group relative sm:col-span-1">
-            <summary className="scapestack-command-button w-full cursor-pointer list-none bg-transparent px-3 py-2 text-[12.5px] font-semibold marker:hidden sm:px-3.5 [&::-webkit-details-marker]:hidden">
+            <summary className="scapestack-command-button min-h-11 w-full cursor-pointer list-none bg-transparent px-3 py-2 text-[12.5px] font-semibold marker:hidden sm:px-3.5 [&::-webkit-details-marker]:hidden">
               More
               <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" />
             </summary>

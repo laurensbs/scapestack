@@ -84,6 +84,7 @@
   --width-page: 72rem;
   --width-reading: 45rem;
   --width-dialog: 42rem;
+  --mobile-action-bar-height: 4.75rem;
 
   /* Animations */
   --animate-shimmer: shimmer 2.5s linear infinite;
@@ -798,7 +799,7 @@ body {
 
 .scapestack-command-button {
   display: inline-flex;
-  min-height: 2.5rem;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   gap: 0.375rem;
@@ -1043,6 +1044,7 @@ body {
   width: min(100%, var(--width-dialog));
   max-height: calc(100dvh - 2rem);
   overflow-y: auto;
+  overscroll-behavior: contain;
   border: 2px solid var(--color-parchment-edge);
   border-radius: var(--radius-focus);
   background: var(--color-parchment);
@@ -1053,6 +1055,7 @@ body {
   width: min(100%, 48rem);
   max-height: min(92dvh, 56rem);
   overflow-y: auto;
+  overscroll-behavior: contain;
   border: 1px solid var(--color-parchment-edge);
   border-radius: var(--radius-focus);
   background: var(--color-parchment-dark);
@@ -1122,6 +1125,58 @@ body {
   background: var(--color-accent-soft);
 }
 
+.icon-btn {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  color: var(--color-text-muted);
+  transition: border-color 160ms ease, color 160ms ease, background-color 160ms ease;
+}
+
+.icon-btn:hover,
+.icon-btn:focus-visible {
+  border-color: color-mix(in srgb, var(--color-accent) 55%, var(--color-border));
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  color: var(--color-accent);
+}
+
+.mobile-action-bar {
+  min-height: calc(var(--mobile-action-bar-height) + env(safe-area-inset-bottom));
+  padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
+}
+
+.mobile-content-safe {
+  padding-bottom: calc(var(--mobile-action-bar-height) + env(safe-area-inset-bottom));
+}
+
+.mobile-footer-safe {
+  margin-bottom: calc(var(--mobile-action-bar-height) + env(safe-area-inset-bottom));
+}
+
+.mobile-scroll-row {
+  display: flex;
+  max-width: 100%;
+  gap: 0.5rem;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+
+.mobile-scroll-row::-webkit-scrollbar {
+  display: none;
+}
+
+.mobile-scroll-row > * {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
 :where(a, button, input, textarea, select, summary):focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 3px;
@@ -1131,11 +1186,20 @@ body {
   .scape-page {
     padding-inline: 1.5rem;
   }
+
+  .mobile-content-safe {
+    padding-bottom: 0;
+  }
+
+  .mobile-footer-safe {
+    margin-bottom: 0;
+  }
 }
 
 @media (max-width: 639px) {
   .scape-page {
     padding-top: 1.25rem;
+    padding-bottom: 2rem;
   }
 
   .scape-page-intro {
@@ -1150,8 +1214,9 @@ body {
   .scape-dialog,
   .scape-sheet {
     align-self: end;
-    max-height: 92dvh;
+    max-height: calc(100dvh - 0.75rem);
     border-radius: var(--radius-focus) var(--radius-focus) 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   .scape-primary-action {

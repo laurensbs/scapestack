@@ -532,16 +532,20 @@ export function DpsClient() {
                 }}
                 placeholder="Search bosses"
                 autoComplete="off"
+                autoCapitalize="none"
+                autoCorrect="off"
+                enterKeyHint="search"
+                inputMode="search"
                 spellCheck={false}
                 aria-describedby="dps-boss-search-help dps-boss-search-status"
-                className="scapestack-lock-card w-full py-2.5 pl-10 pr-4 text-[13.5px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-accent)]/50 focus:shadow-[0_0_0_3px_rgba(214,166,58,0.10)]"
+                className="scapestack-lock-card min-h-12 w-full py-2.5 pl-10 pr-14 text-[16px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-accent)]/50 focus:shadow-[0_0_0_3px_rgba(214,166,58,0.10)] sm:text-[13.5px]"
               />
               {search && (
                 <button
                   type="button"
                   onClick={clearBossFilter}
                   aria-label="Clear boss search"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 size-5 rounded flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-2)] transition-colors"
+                  className="absolute right-1 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-bg-2)] hover:text-[var(--color-text)]"
                 >
                   <X className="size-4" />
                 </button>
@@ -576,7 +580,7 @@ export function DpsClient() {
                   : `Showing ${filteredResults.length} of ${bossResults.length} bosses.`}
               </p>
             )}
-            <div className="mt-3 flex flex-wrap gap-2" aria-label="Filter bosses">
+            <div className="mobile-scroll-row mt-3 sm:flex-wrap" aria-label="Filter bosses">
                   {BOSS_FILTERS.map((filter) => (
                 <button
                   key={filter.key}
@@ -586,7 +590,7 @@ export function DpsClient() {
                     setBossFilter(filter.key);
                   }}
                   className={cn(
-                    "scapestack-command-button px-3 py-2 text-[12px] font-bold",
+                    "scapestack-command-button min-h-11 shrink-0 px-3 py-2 text-[12px] font-bold",
                     bossFilter === filter.key
                       ? "scapestack-primary-action"
                       : ""
@@ -599,10 +603,10 @@ export function DpsClient() {
             ))}
           </div>
             <details className="mt-3 border-t border-[var(--color-border)] pt-3">
-              <summary className="cursor-pointer list-none text-[11px] font-bold text-[var(--color-text-muted)] marker:hidden [&::-webkit-details-marker]:hidden">
+              <summary className="inline-flex min-h-11 cursor-pointer list-none items-center text-[12px] font-bold text-[var(--color-text-muted)] marker:hidden [&::-webkit-details-marker]:hidden">
                 Sort list
               </summary>
-              <div className="mt-3 flex items-center gap-2 flex-wrap">
+                <div className="mobile-scroll-row mt-3 items-center sm:flex-wrap">
                 <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
                   Sort
                 </span>
@@ -619,7 +623,7 @@ export function DpsClient() {
                     aria-label={`Sort boss rows by ${opt.label}`}
                     onClick={() => setSortBy(opt.key)}
                     className={cn(
-                      "scapestack-command-button min-h-0 px-2.5 py-1 text-[11px]",
+                      "scapestack-command-button min-h-11 shrink-0 px-3 py-2 text-[11px]",
                       sortBy === opt.key
                         ? "border-[var(--color-accent)]/50 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
                         : ""

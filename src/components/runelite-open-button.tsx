@@ -72,7 +72,7 @@ export function RuneliteOpenButton({ className, compact = false }: { className?:
           href={RUNELITE_PLUGIN_HUB_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-semibold text-[var(--color-text-dim)] underline decoration-dotted underline-offset-4 transition-colors hover:text-[var(--color-accent)]"
+          className="inline-flex min-h-11 items-center font-semibold text-[var(--color-text-dim)] underline decoration-dotted underline-offset-4 transition-colors hover:text-[var(--color-accent)]"
         >
           Plugin Hub page
         </a>

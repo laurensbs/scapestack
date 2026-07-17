@@ -10,15 +10,19 @@ describe("trip flow contract", () => {
     const mobileBar = read("src/components/mobile-action-bar.tsx");
     const globals = read("src/app/globals.css");
 
-    expect(layout).toContain("pb-24 sm:pb-0");
+    expect(layout).toContain("mobile-content-safe");
+    expect(layout).toContain("mobile-footer-safe");
     expect(layout).toContain('<html lang="en" className="min-h-full">');
     expect(layout).toContain('<body className="min-h-full');
     expect(layout).not.toContain('<body className="h-full');
     expect(globals).toContain("overflow-x: clip;");
     expect(globals).toContain("height: auto;");
+    expect(globals).toContain("--mobile-action-bar-height: 4.75rem;");
+    expect(globals).toContain("env(safe-area-inset-bottom)");
     expect(mobileBar).toContain('label: "Trip"');
-    expect(mobileBar).toContain('helper: rsn || "Trip"');
-    expect(mobileBar).toContain('active: pathname === "/next"');
+    expect(mobileBar).toContain('selected: pathname === "/next"');
+    expect(mobileBar).toContain("complete: hasBank");
+    expect(mobileBar).not.toContain("action.helper");
     expect(mobileBar).not.toContain('label: "Plan"');
   });
 
