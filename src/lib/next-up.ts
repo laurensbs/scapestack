@@ -39,7 +39,8 @@ import { getDropRates, type BossDropTable } from "./drop-rates-db";
 import { computePathProgress, type AccountMeta, type PathOverview } from "./path-progress";
 import { detectAccountStage, type AccountStage } from "./account-stage";
 import { skillCapeId } from "./skill-capes";
-import { buildSkillRoute, ROUTABLE_SKILLS, skillRouteNeeds, skillRoutePlanSeed } from "./skill-routes";
+import { buildSkillRoute, ROUTABLE_SKILLS, skillRouteNeeds, skillRoutePlanSeed, type SkillRoute } from "./skill-routes";
+import { buildCalculableSkillRoute, type CalculableRoute } from "./calculable-route";
 import { resolveSlayerTaskMonsterId } from "./slayer/task-ids";
 import { MONSTERS_BY_ID } from "./slayer/monsters";
 import { slayerUrlForSyncedRsn } from "./plugin-sync-actions";
@@ -87,6 +88,8 @@ export interface RecommendationPlanSeed {
   steps?: string[];
   caveat?: string;
   flow?: "supply";
+  /** Internal skill calculation used to build the player-facing route. */
+  skillRoute?: SkillRoute;
 }
 
 export type RecommendationRouteTag =
@@ -185,6 +188,9 @@ export interface Recommendation {
   actionPlan?: RecommendationActionPlan;
   /** Short session chain shown as one flow, not as a dashboard. */
   routeChain?: RecommendationRouteChain;
+  /** Quantity-aware route for skilling recommendations. Recomputed from the
+   * latest bank and RuneLite state on every /next request. */
+  calculableRoute?: CalculableRoute;
   /** Internal engine seed for data-specific plans. Stripped after enrichment
    *  so the UI only sees the normalized actionPlan shape. */
   planSeed?: RecommendationPlanSeed;
@@ -3430,6 +3436,9 @@ function decisionReasonFor(rec: Recommendation, ctx: ActionPlanContext): string 
 
 function withActionPlans(recs: Recommendation[], ctx: ActionPlanContext): Recommendation[] {
   return recs.map((rec) => {
+    const calculableRoute = rec.planSeed?.skillRoute
+      ? buildCalculableSkillRoute(rec.planSeed.skillRoute)
+      : null;
     const {
       planSeed: _planSeed,
       quality: _quality,
@@ -3442,6 +3451,7 @@ function withActionPlans(recs: Recommendation[], ctx: ActionPlanContext): Recomm
       actionPlan,
       sessionProfile: recommendationSessionProfile({ ...rec, actionPlan }),
       routeChain: routeChainFor(rec, actionPlan, ctx),
+      ...(calculableRoute ? { calculableRoute } : {}),
       decisionReason: decisionReasonFor(clean, ctx)
     };
   });

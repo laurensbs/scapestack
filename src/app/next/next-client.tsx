@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
   ArrowRight, ChevronRight, Edit3, Target, Sword, TrendingUp, Layers,
   Sparkles, Trophy, Gamepad2, Coins, Scroll, Map as MapIcon, Dices, ExternalLink,
-  CheckCheck, CheckCircle2, Shield, Trash2, ClipboardPaste, X
+  CheckCheck, CheckCircle2, Shield, Trash2, ClipboardPaste, X, LockKeyhole
 } from "lucide-react";
 import { SupportCard } from "@/components/support-card";
 import { AddBankModal } from "@/components/add-bank-modal";
@@ -118,6 +118,12 @@ import {
   formatXpRange,
   type BankedXpSkillDescriptor
 } from "@/lib/banked-xp";
+import {
+  completeCalculableRouteStep,
+  resolveCalculableRouteProgress,
+  selectCalculableRouteStep,
+  type CalculableRouteProgress
+} from "@/lib/calculable-route";
 import {
   DIARY_PROGRESS_EVENT,
   loadDiaryTaskChecks,
@@ -4342,27 +4348,158 @@ function NextTripCard({
   );
 }
 
-function RouteChainScroll({ rec }: { rec: Recommendation }) {
+function RouteChainScroll({
+  rec,
+  onStart
+}: {
+  rec: Recommendation;
+  onStart?: (rec: Recommendation) => void;
+}) {
   const steps = rec.routeChain?.steps ?? [];
-  if (steps.length === 0) return null;
+  const calculable = rec.calculableRoute ?? null;
+  const routeFingerprint = calculable
+    ? `${calculable.id}:${calculable.bankCoveredXp}:${calculable.remainingSessionXp}:${calculable.steps.map((step) => `${step.id}:${step.requiredQuantity ?? "x"}:${step.ownedQuantity ?? "x"}`).join("|")}`
+    : "static";
+  const [progress, setProgress] = useState<CalculableRouteProgress>({
+    completedStepIds: [],
+    activeStepId: calculable?.steps.find((step) => step.state === "active")?.id ?? null
+  });
+  const [routeMessage, setRouteMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setProgress({
+      completedStepIds: [],
+      activeStepId: calculable?.steps.find((step) => step.state === "active")?.id ?? null
+    });
+    setRouteMessage(null);
+  }, [routeFingerprint]);
+
+  const resolvedRoute = useMemo(
+    () => calculable ? resolveCalculableRouteProgress(calculable, progress) : null,
+    [calculable, progress]
+  );
+
+  if (!calculable && steps.length === 0) return null;
+
+  if (calculable && resolvedRoute) {
+    const chooseStep = (stepId: string) => {
+      const selection = selectCalculableRouteStep(calculable, progress, stepId);
+      if (!selection.accepted) {
+        const blocker = calculable.steps.find((step) => step.id === selection.blockerId);
+        setRouteMessage(blocker ? `Finish “${blocker.title}” first.` : "Finish the earlier route step first.");
+        return;
+      }
+      setProgress(selection.progress);
+      setRouteMessage(null);
+      onStart?.(rec);
+    };
+    const finishStep = (stepId: string) => {
+      setProgress((current) => completeCalculableRouteStep(calculable, current, stepId));
+      setRouteMessage(null);
+      onStart?.(rec);
+    };
+
+    return (
+      <section
+        className="mt-4 rounded-lg border border-[var(--color-accent)]/28 bg-[var(--color-bg)]/36 px-4 py-4"
+        data-route-chain-scroll="true"
+        data-calculable-route="true"
+      >
+        <div className="mb-4">
+          <p className="font-serif text-[18px] font-semibold text-[var(--color-text)]">Your route</p>
+          <p className="mt-1 text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+            {calculable.bankSummary} About {calculable.estimatedSessions} session{calculable.estimatedSessions === 1 ? "" : "s"} to level {calculable.targetLevel}.
+          </p>
+        </div>
+
+        <ol className="space-y-0">
+          {resolvedRoute.steps.map((step, index) => {
+            const active = step.state === "active";
+            const done = step.state === "done";
+            const blocked = step.state === "blocked";
+            return (
+              <li key={step.id} className="relative grid grid-cols-[30px_minmax(0,1fr)] gap-3 pb-3 last:pb-0">
+                {index < resolvedRoute.steps.length - 1 && (
+                  <span className="absolute bottom-0 left-[14px] top-7 w-px bg-[var(--color-parchment-edge)]" aria-hidden="true" />
+                )}
+                <span className={cn(
+                  "relative z-[1] grid size-[30px] place-items-center rounded-full border text-[11px] font-black",
+                  done
+                    ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-black"
+                    : active
+                      ? "border-[var(--color-accent)] bg-[var(--color-accent)]/16 text-[var(--color-accent)] shadow-[0_0_0_3px_rgba(214,170,72,0.10)]"
+                      : "border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text-muted)]"
+                )}>
+                  {done ? <CheckCircle2 className="size-4" /> : blocked ? <LockKeyhole className="size-3.5" /> : index + 1}
+                </span>
+                <div
+                  className={cn(
+                    "min-w-0 rounded-md border px-3 py-3 text-left transition-colors",
+                    active
+                      ? "border-[var(--color-accent)]/48 bg-[var(--color-accent)]/10"
+                      : done
+                        ? "border-[var(--color-border)]/55 bg-[var(--color-bg)]/24 opacity-70"
+                        : "border-[var(--color-border)] bg-[var(--color-bg)]/38 hover:border-[var(--color-accent)]/40"
+                  )}
+                >
+                  <button
+                    type="button"
+                    onClick={() => chooseStep(step.id)}
+                    aria-current={active ? "step" : undefined}
+                    className="block w-full text-left"
+                  >
+                    <span className="flex flex-wrap items-start justify-between gap-2">
+                      <span className="min-w-0 font-semibold leading-snug text-[var(--color-text)]">{step.title}</span>
+                      <span className="shrink-0 text-[9.5px] font-black uppercase tracking-[0.12em] text-[var(--color-accent)]">
+                        {done ? "Done" : active ? "Do now" : blocked ? "After first" : "Choose"}
+                      </span>
+                    </span>
+                    <span className="mt-1 block text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">{step.detail}</span>
+                  </button>
+                  {active && (
+                    <button
+                      type="button"
+                      onClick={() => finishStep(step.id)}
+                      className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-md border border-[var(--color-accent)]/44 bg-[var(--color-accent)]/12 px-3 text-[11px] font-black text-[var(--color-accent)]"
+                    >
+                      {step.kind === "stop" ? "Finish route" : "Done, next"} <ArrowRight className="size-3.5" />
+                    </button>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+
+        {routeMessage && (
+          <p role="status" className="mt-3 rounded-md border border-[var(--color-warning)]/28 bg-[var(--color-warning)]/8 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text-secondary)]">
+            {routeMessage}
+          </p>
+        )}
+        <p className="mt-4 border-t border-[var(--color-parchment-edge)] pt-3 text-[11px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+          {calculable.nextReplanPoint}
+        </p>
+      </section>
+    );
+  }
 
   return (
     <section
-      className="mt-4 rounded-lg border border-[var(--color-accent)]/24 bg-[linear-gradient(135deg,rgba(214,170,72,0.10),rgba(0,0,0,0.16))] px-3 py-3"
+      className="mt-4 rounded-lg border border-[var(--color-accent)]/24 bg-[var(--color-bg)]/36 px-4 py-4"
       data-route-chain-scroll="true"
     >
-      <ol className="grid gap-2 sm:grid-cols-4">
+      <ol className="space-y-3">
         {steps.slice(0, 4).map((step, index) => (
-          <li key={`${rec.id}:route-chain:${step.label}`} className="min-w-0">
-            <div className="mb-1 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.13em] text-[var(--color-accent)]">
+          <li key={`${rec.id}:route-chain:${step.label}`} className="grid min-w-0 grid-cols-[24px_minmax(0,1fr)] gap-2.5">
+            <div className="flex items-start text-[10px] font-black uppercase tracking-[0.13em] text-[var(--color-accent)]">
               <span className="grid size-5 shrink-0 place-items-center rounded-full border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[10px]">
                 {index + 1}
               </span>
-              <span className="truncate">{step.label}</span>
             </div>
-            <p className="text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-              {step.text}
-            </p>
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-[0.13em] text-[var(--color-accent)]">{step.label}</p>
+              <p className="mt-0.5 text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">{step.text}</p>
+            </div>
           </li>
         ))}
       </ol>
@@ -5626,7 +5763,7 @@ function RecDetailPanel({
   const wikiQuery = recommendationWikiQuery(rec);
   return (
     <div className="mt-2 px-4 py-3 rounded-lg bg-[var(--color-bg-2)]/40 border border-[var(--color-border)] animate-[fade-in_0.2s_ease-out] space-y-2.5">
-      {rec.kind !== "diary" && !rec.questRoute && <ActionPlanBlock rec={rec} />}
+      {rec.kind !== "diary" && !rec.questRoute && !rec.calculableRoute && <ActionPlanBlock rec={rec} />}
       <DiaryReadinessDetail rec={rec} rsn={actionContext.rsn ?? undefined} />
       <QuestRouteDetail rec={rec} />
       {rec.kind !== "diary" && !rec.questRoute && <p className="text-[12.5px] text-[var(--color-text-dim)] leading-relaxed">
@@ -5655,7 +5792,7 @@ function RecDetailPanel({
           <span>{whyNot}</span>
         </p>
       )}
-      {rec.kind !== "diary" && !rec.questRoute && needs.length > 0 && (
+      {rec.kind !== "diary" && !rec.questRoute && !rec.calculableRoute && needs.length > 0 && (
         <div>
           <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-1.5">
             You'll need
@@ -5820,7 +5957,7 @@ function RecHeadlineExpandable({
               </button>
             </header>
             <div className="osrs-body space-y-4 p-4 sm:p-5">
-              <RouteChainScroll rec={rec} />
+              <RouteChainScroll rec={rec} onStart={onStart} />
               <RecDetailPanel rec={rec} actionContext={actionContext} whyNot={whyNot} />
               {unknownNotes.length > 0 && (
                 <div className="border-t border-[var(--color-parchment-edge)] pt-4">

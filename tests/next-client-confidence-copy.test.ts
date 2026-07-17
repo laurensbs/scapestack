@@ -80,7 +80,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("OSRS Wiki");
     expect(source).toContain("<RecDetailPanel rec={rec} actionContext={actionContext} whyNot={whyNot} />");
     expect(source).toContain('aria-label="Close trip details"');
-    expect(source).toContain("<RouteChainScroll rec={rec} />");
+    expect(source).toContain("<RouteChainScroll rec={rec} onStart={onStart} />");
     expect(source).toContain("whyNot?: string | null;");
     expect(source).not.toContain("function RecommendationProofStrip");
     expect(source).not.toContain('data-testid={compact ? "next-row-proof-strip" : "next-headline-proof-strip"}');
@@ -115,7 +115,9 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function NextTripCard");
     expect(source).toContain("function RouteChainScroll");
     expect(source).toContain('data-route-chain-scroll="true"');
-    expect(source).toContain("<RouteChainScroll rec={rec} />");
+    expect(source).toContain("<RouteChainScroll rec={rec} onStart={onStart} />");
+    expect(source).toContain('data-calculable-route="true"');
+    expect(source).toContain("Finish the earlier route step first.");
     expect(source).toContain("rec.routeChain?.steps");
     expect(source).toContain("tripBankItems");
     expect(source).not.toContain("Copy Bank Tag");

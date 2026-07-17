@@ -83,6 +83,7 @@ export interface SkillRoute {
   sourcing: SkillSupplyState[];
   bankedXpEstimate: BankedXpEstimate;
   supplyRoute: IronmanSupplyRoute | null;
+  accountType: PlannerAccountType | null;
 }
 
 const DEFAULT_METHODS: Record<RoutableSkill, Omit<SkillRouteMethod, "skill">> = {
@@ -297,7 +298,8 @@ export function buildSkillRoute(input: {
     unlock: input.unlock ?? (targetLevel === 99 ? `${skill} cape` : `${skill} ${targetLevel}`),
     sourcing,
     bankedXpEstimate,
-    supplyRoute
+    supplyRoute,
+    accountType: input.accountType ?? null
   };
 }
 
@@ -317,7 +319,7 @@ export function skillRouteNeeds(route: SkillRoute): string[] {
   return [...(bankedLine ? [bankedLine] : []), ...(sourceLine ? [sourceLine] : []), ...supplyLines].slice(0, 3);
 }
 
-export function skillRoutePlanSeed(route: SkillRoute): { timebox: string; prep: string; steps: string[]; flow?: "supply" } {
+export function skillRoutePlanSeed(route: SkillRoute): { timebox: string; prep: string; steps: string[]; flow?: "supply"; skillRoute: SkillRoute } {
   const methodValue = route.recommended?.method;
   const needs = skillRouteNeeds(route);
   const steps = route.supplyRoute
@@ -328,6 +330,7 @@ export function skillRoutePlanSeed(route: SkillRoute): { timebox: string; prep: 
         `${route.shortSession.label}, then stop and check the next route.`
       ];
   return {
+    skillRoute: route,
     ...(route.supplyRoute ? { flow: "supply" as const } : {}),
     timebox: route.supplyRoute
       ? `${route.supplyRoute.estimatedMinutesLow}-${route.supplyRoute.estimatedMinutesHigh} min source + ${route.shortSession.minutes} min process`

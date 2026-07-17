@@ -167,5 +167,7 @@ describe("ironman supply routes", () => {
     ]);
     expect(recommendation?.routeChain?.steps[0]?.text).toMatch(/450-650 per hour/);
     expect(recommendation?.routeChain?.steps[1]?.text).toMatch(/cook/i);
+    expect(recommendation?.calculableRoute?.steps.map((step) => step.kind)).toEqual(["source", "process", "stop"]);
+    expect(recommendation?.calculableRoute?.supplyDecision).toBe("source-yourself");
   });
 });

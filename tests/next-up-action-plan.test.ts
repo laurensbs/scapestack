@@ -69,6 +69,9 @@ describe("next-up action plans", () => {
     expect(route?.needs?.join(" ")).toMatch(/2,000 raw shark.*Cooking XP/);
     expect(route?.actionPlan?.steps[0]).toContain("cook the best raw food already available");
     expect(route?.actionPlan?.steps.join(" ")).not.toMatch(/gear|teleport|quest items/i);
+    expect(route?.calculableRoute?.steps.map((step) => step.kind)).toEqual(["process", "stop"]);
+    expect(route?.calculableRoute?.bankCoveredXp).toBeGreaterThan(0);
+    expect(route?.calculableRoute?.nextReplanPoint).toContain("sync");
   });
 
   it("adds an executable session plan to recommendations", async () => {

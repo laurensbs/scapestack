@@ -1742,7 +1742,7 @@ Acceptance:
 
 ## Phase 25 - Make Route Chains Calculable And Interactive
 
-Status: TODO  
+Status: DONE (2026-07-17)
 Depends on: Phases 09, 12 and 24  
 Improves: depth without dashboard UI
 
@@ -1771,6 +1771,34 @@ Acceptance:
 - selecting a later step cannot bypass a hard requirement;
 - new sync updates quantities and route state.
 ```
+
+### Implemented
+
+- Added a typed quantity-aware route contract that carries target XP, current
+  bank coverage, the remaining session gap, estimated sessions, account-mode
+  supply choice and a stable replan point into `/next`.
+- Reused the existing banked-XP and ironman supply engines. Ironmen only see a
+  source step when the bank cannot cover the block; mains get a bounded buy
+  step and are explicitly told not to price an entire long 99 grind at once.
+- Replaced the static four-column route summary with a vertical OSRS path in
+  the trip sheet. One step is active, completed steps advance the path and a
+  locked process/stop step cannot bypass its dependency.
+- Route identity includes fresh bank coverage and quantities. A new request
+  after bank/RuneLite progress rebuilds the path, removes covered sourcing and
+  resets the active step from the updated route rather than stale UI state.
+- Added focused tests for Cooking source -> cook -> stop, bank-covered
+  dependency removal, main-account buying, unknown bank honesty, blocked step
+  selection and fresh-bank recalculation. `/next` contract tests prove the
+  structured route survives recommendation enrichment.
+- Browser verification covered a live skilling route on desktop and 390x844
+  mobile, locked-step feedback, `Done, next`, modal framing and horizontal
+  overflow. Screenshots: `/tmp/scapestack-phase25-desktop.png` and
+  `/tmp/scapestack-phase25-mobile.png`.
+- Verification: 205 test files / 1,296 tests passed. `npm run ci:check` passed
+  typecheck, smoke, recommendation audit, offline plugin release checks and the
+  216-page production build. `./gradlew test` passed the RuneLite suite.
+- Known residual risk: skills without an exact bank recipe can state the XP
+  gap and dependency honestly, but cannot claim a precise item quantity.
 
 ## Phase 26 - Simplify Bank Entry Without Removing The Organizer
 
