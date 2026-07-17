@@ -40,6 +40,7 @@ import {
   scapestackAccountTypeToPlannerType,
   type PlannerAccountType
 } from "@/lib/account-type";
+import { bossProfitEstimate, formatRateRange, rateRankingValue } from "@/lib/rate-registry";
 
 type BossDpsResult = { boss: Boss; dps: DpsBreakdown };
 type BossFilter = "all" | "gp" | "slayer" | "wildy" | "raid" | "beginner" | "solo";
@@ -345,10 +346,8 @@ export function DpsClient() {
 
   const gpHourForBoss = (entry: BossDpsResult) => {
     if (!bossKnowledgeAllowsGpRate(bossKnowledge(entry.boss))) return -1;
-    const k = entry.boss.killsPerHourCap;
-    const gp = entry.boss.avgLootGp;
-    if (!k || !gp || entry.dps.dps <= 0) return -1;
-    return Math.min(k, Math.floor(3600 / entry.dps.ttk)) * gp;
+    const rate = bossProfitEstimate(entry.boss, entry.dps, plannerAccountType);
+    return rateRankingValue(rate?.grossGpPerHour ?? null, plannerAccountType) || -1;
   };
 
   const bossTripFitScore = (entry: BossDpsResult) => {
@@ -393,7 +392,9 @@ export function DpsClient() {
       return sorted;
     }
     if (!q && bossFilter === "gp") {
-      sorted.sort((a, b) => gpHourForBoss(b) - gpHourForBoss(a));
+      sorted.sort((a, b) => plannerAccountType === "ironman" || plannerAccountType === "hardcore" || plannerAccountType === "ultimate"
+        ? bossTripFitScore(b) - bossTripFitScore(a)
+        : gpHourForBoss(b) - gpHourForBoss(a));
       return sorted;
     }
     switch (sortBy) {
@@ -596,7 +597,7 @@ export function DpsClient() {
               </p>
             )}
             <div className="mt-3 flex flex-wrap gap-2" aria-label="Filter bosses">
-              {BOSS_FILTERS.map((filter) => (
+                  {BOSS_FILTERS.map((filter) => (
                 <button
                   key={filter.key}
                   type="button"
@@ -611,7 +612,9 @@ export function DpsClient() {
                       : ""
                   )}
                 >
-                {filter.label}
+                {filter.key === "gp" && (plannerAccountType === "ironman" || plannerAccountType === "hardcore" || plannerAccountType === "ultimate")
+                  ? "Loot"
+                  : filter.label}
               </button>
             ))}
           </div>
@@ -626,7 +629,7 @@ export function DpsClient() {
                 {([
                   { key: "dps",      label: "Best kill speed" },
                   { key: "accuracy", label: "Most accurate" },
-                  { key: "gpHour",   label: "Most GP/hour" },
+                  { key: "gpHour",   label: "Best estimated GP" },
                   { key: "ttk",      label: "Fastest kill" }
                 ] as const).map((opt) => (
                   <button
@@ -708,10 +711,9 @@ function BossCard({ boss, dps, owned, bankItems, accountType, isFocused, onOpen 
   const knowledge = bossKnowledge(boss);
   const singleDps = bossKnowledgeSupportsSingleDps(knowledge);
   const usable = activity || !singleDps || dps.dps > 0;
-  const gpPerHour =
-    bossKnowledgeAllowsGpRate(knowledge) && usable && boss.avgLootGp && boss.killsPerHourCap
-      ? Math.min(boss.killsPerHourCap, Math.floor(3600 / dps.ttk)) * boss.avgLootGp
-      : null;
+  const profitEstimate = bossKnowledgeAllowsGpRate(knowledge) && usable
+    ? bossProfitEstimate(boss, dps, accountType)
+    : null;
   const inventoryPlan = buildBossInventoryPlan({ boss, bankItems, owned, dps });
   const status = bossTripVerdict(boss, dps, accountType, inventoryPlan);
   const before = singleDps
@@ -779,9 +781,10 @@ function BossCard({ boss, dps, owned, bankItems, accountType, isFocused, onOpen 
             {missing && <BossTripLine label="Missing" value={missing} tone="warn" />}
             <BossTripLine label="Try first" value={finish} />
             <div className="flex flex-wrap gap-1.5 pt-1">
-              {gpPerHour && (
+              {profitEstimate && (
                 <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1 text-[10.5px] font-semibold text-[var(--color-text-muted)]">
-                  {formatGp(gpPerHour)}/hr
+                  Est. {formatRateRange(profitEstimate.grossGpPerHour.range, formatGp)}/hr
+                  {!profitEstimate.spendable && " loot value"}
                 </span>
               )}
               <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1 text-[10.5px] font-semibold text-[var(--color-text-muted)]">

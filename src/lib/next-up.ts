@@ -65,6 +65,7 @@ import {
   recommendationSessionProfile,
   type RecommendationSessionProfile
 } from "./recommendation-session";
+import { formatRateRange, moneyMethodRate, rateRankingValue } from "./rate-registry";
 
 // Kind drives the icon + accent the hub renders, and groups the checklist.
 export type RecKind =
@@ -686,7 +687,7 @@ const MINIGAMES: Minigame[] = [
     why: "Top Mining XP from 60+ and the only source of Volcanic shards.",
     payoff: "Dragon pickaxe upgrade kits + 200k+ Mining XP/hr", iconItemId: 27695 },
   { slug: "hallowed-sepulchre", name: "Hallowed Sepulchre", gateSkill: "Agility", gateLevel: 52,
-    why: "Best Agility XP/hr and great GP/hr at 72+; floor 5 opens at 92.",
+    why: "Strong Agility XP with tradeable loot; actual profit moves with current prices.",
     payoff: "Dark dye + Ring of endurance + Hallowed outfit", iconItemId: 24731 },
   { slug: "motherlode", name: "Motherlode Mine", gateSkill: "Mining", gateLevel: 30,
     why: "AFK Mining with no risk and the Prospector outfit + gem rolls.",
@@ -890,7 +891,13 @@ function genericBossIntroScore(baseScore: number, input: {
   return Math.max(34, Math.round(score));
 }
 
-function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSkill[], bossKc: Record<string, number>): Recommendation[] {
+function bossRecs(
+  combatLevel: number,
+  bank: CompletionItem[],
+  skills: HiscoreSkill[],
+  bossKc: Record<string, number>,
+  accountType?: PlannerAccountType | null
+): Recommendation[] {
   const totalKnownBossKc = Object.values(bossKc).reduce((sum, kc) => sum + Math.max(0, kc), 0);
   if (totalKnownBossKc >= 1_000) return [];
 
@@ -977,7 +984,9 @@ function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSk
       kind: "boss",
       title: `Try ${boss.name}`,
       why: gearWhy(combatLevel, match.item) ?? `Your combat level (${combatLevel}) is in range for this boss.`,
-      payoff: boss.avgLootGp ? `~${Math.round(boss.avgLootGp / 1000)}k average loot per kill` : boss.notes,
+      payoff: boss.avgLootGp
+        ? `Estimated long-run loot: ~${Math.round(boss.avgLootGp / 1000)}k per kill${isIronPlannerAccount(accountType) ? "; useful drops matter more than GE value" : ""}.`
+        : boss.notes,
       decisionReason: match.item
         ? `${displayMatchedGear(match.item)} gives this trip a gear anchor before you buy upgrades.`
         : boss.category === "wildy"
@@ -987,7 +996,7 @@ function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSk
       link: "/dps",
       iconItemId: boss.iconItemId,
       bossSlug: boss.slug,
-      routeTags: ["pvm", "fun", ...(boss.category === "wildy" ? [] : ["gp" as const])],
+      routeTags: ["pvm", "fun", ...(!isIronPlannerAccount(accountType) && boss.category !== "wildy" ? ["gp" as const] : [])],
       gearConfidence,
       quality: {
         accountFit: boss.category === "wildy" && gearConfidence === "unknown" ? 0.46 : 0.74,
@@ -1004,7 +1013,7 @@ function bossRecs(combatLevel: number, bank: CompletionItem[], skills: HiscoreSk
         steps: [
           `Check ${boss.name} and use the best owned setup before buying anything.`,
           "Bring supplies for 3-5 kills so mistakes stay cheap.",
-          boss.avgLootGp ? `Compare your real supply cost against ~${Math.round(boss.avgLootGp / 1000)}k average loot/kill after the test trip.` : "After the test trip, compare kill time and supply burn before committing to a grind."
+          boss.avgLootGp ? `Compare your real supply cost against the estimated ~${Math.round(boss.avgLootGp / 1000)}k long-run loot/kill after the test trip.` : "After the test trip, compare kill time and supply burn before committing to a grind."
         ]
       }
     });
@@ -1511,6 +1520,11 @@ function fmtGp(n: number): string {
   return `${n}`;
 }
 
+function editorialEstimateCopy(value: string | undefined): string | undefined {
+  if (!value || !/gp|profit|price|margin|cost/i.test(value)) return value;
+  return /^estimate:/i.test(value) ? value : `Estimate: ${value}`;
+}
+
 function moneyRecs(skills: HiscoreSkill[], accountMeta?: AccountMeta | null): Recommendation[] {
   if (skills.length === 0) return [];
   if (
@@ -1559,17 +1573,30 @@ function moneyRecs(skills: HiscoreSkill[], accountMeta?: AccountMeta | null): Re
     // low-attention methods in the candidate pool even when their gp/hr would
     // be noise on the GP route. The mood contract decides whether to show it.
     if (m.gpHr < minGpHr && m.intensity !== "afk") continue;
+    const rate = moneyMethodRate({
+      slug: m.slug,
+      expectedGpPerHour: m.gpHr,
+      assumptions: [
+        `${m.intensity} pace with the listed requirements`,
+        "GE buy limits, banking variance and learning time are not guaranteed",
+        "Test one short block before committing supplies"
+      ]
+    });
+    const rankingValue = rateRankingValue(rate, accountMeta?.accountType ?? null);
     recs.push({
       id: `money:${m.slug}`,
       kind: "money",
       title: m.name,
-      why: m.gpHr > 0 ? `~${fmtGp(m.gpHr)} gp/hr · ${m.intensity}` : m.intensity,
-      payoff: m.payoff,
-      decisionReason: `${m.name} matches your levels and can fund the next unlock without starting a long grind.`,
-      needs: m.needs,
-      details: m.details,
-      // Higher gp/hr scores higher, capped so it doesn't dominate the list.
-      score: 50 + Math.min(20, Math.log10(Math.max(1, m.gpHr)) * 2),
+      why: m.gpHr > 0
+        ? `Estimated ${formatRateRange(rate.range, fmtGp)} GP/hr · ${m.intensity}`
+        : m.intensity,
+      payoff: editorialEstimateCopy(m.payoff),
+      decisionReason: `${m.name} matches your levels. The rate is a Wiki-based estimate, so test one short block before committing supplies.`,
+      needs: m.needs?.map((line) => editorialEstimateCopy(line) ?? line),
+      details: m.details ? `${editorialEstimateCopy(m.details)} ${rate.freshness === "fresh" ? "Rate guide checked Jul 17." : "Rate evidence is older; verify prices first."}` : undefined,
+      // Weak or stale evidence loses ranking weight instead of presenting the
+      // biggest catalogue number as the obvious winner.
+      score: 46 + Math.min(20, Math.log10(Math.max(1, rankingValue)) * 2) + rate.confidenceWeight * 4,
       link: undefined,
       iconItemId: m.iconItemId,
       routeTags: [
@@ -1592,7 +1619,7 @@ function moneyRecs(skills: HiscoreSkill[], accountMeta?: AccountMeta | null): Re
         timebox: m.intensity === "afk" ? "45-90 min" : "30-60 min",
         prep: `${m.name} is a ${m.intensity} money option matched to your current levels.`,
         steps: [
-          m.gpHr > 0 ? `Run a measured half-hour and compare real profit against ~${fmtGp(m.gpHr)} gp/hr.` : "Use this as an unlock/reward session rather than a profit session.",
+          m.gpHr > 0 ? `Run a measured half-hour and compare real profit against the estimated ${formatRateRange(rate.range, fmtGp)} GP/hr range.` : "Use this as an unlock/reward session rather than a profit session.",
           "Check supply and GE prices before committing to a long grind.",
           "Spend the profit on the next unlock shown above instead of letting cash sit idle."
         ]
@@ -2267,9 +2294,9 @@ function bossForKcName(name: string): Boss | undefined {
   );
 }
 
-function activeBossKcScore(kc: number, boss: Boss, hasBank: boolean): number {
+function activeBossKcScore(kc: number, boss: Boss, hasBank: boolean, accountType?: PlannerAccountType | null): number {
   const avgLoot = boss.avgLootGp ?? 0;
-  const lootBoost =
+  const lootBoost = isIronPlannerAccount(accountType) ? 0 :
     avgLoot >= 300_000 ? 8
       : avgLoot >= 150_000 ? 5
         : avgLoot >= 100_000 ? 3
@@ -2299,7 +2326,12 @@ function activeBossKcWhy(kc: number, boss: Boss): string {
   return `${kc.toLocaleString()} KC means this is already started; 50 KC is enough to judge whether the grind fits.`;
 }
 
-function activeBossKcRecs(bossKc: Record<string, number>, bank: CompletionItem[], skills: HiscoreSkill[]): Recommendation[] {
+function activeBossKcRecs(
+  bossKc: Record<string, number>,
+  bank: CompletionItem[],
+  skills: HiscoreSkill[],
+  accountType?: PlannerAccountType | null
+): Recommendation[] {
   const slayerLevel = lvl(skills, "Slayer");
   const recs: Recommendation[] = [];
   for (const [name, kc] of Object.entries(bossKc)) {
@@ -2326,19 +2358,21 @@ function activeBossKcRecs(bossKc: Record<string, number>, bank: CompletionItem[]
       kind: "kc",
       title: `Push ${boss.name} to 50 KC`,
       why: activeBossKcWhy(kc, boss),
-      payoff: boss.avgLootGp ? `~${Math.round(boss.avgLootGp / 1000)}k average loot per kill while you build proof.` : boss.notes,
+      payoff: boss.avgLootGp
+        ? `Estimated long-run loot: ~${Math.round(boss.avgLootGp / 1000)}k per kill while you build proof${isIronPlannerAccount(accountType) ? "; judge the drops, not their GE value" : ""}.`
+        : boss.notes,
       decisionReason: kc < 5
         ? `This is only ${kc.toLocaleString()} KC, so it stays a scout read instead of the main plan.`
         : kc < 10
           ? `${kc.toLocaleString()} ${boss.name} KC is a proof run; keep it short before chasing 50.`
           : `You already have ${kc.toLocaleString()} ${boss.name} KC, so 50 KC is a clean stop point.`,
-      score: activeBossKcScore(kc, boss, bank.length > 0),
+      score: activeBossKcScore(kc, boss, bank.length > 0, accountType),
       link: "/dps",
       iconItemId: boss.iconItemId,
       bossSlug: boss.slug,
       kcMeta: { kc, denom: 50, dropName: "first 50 KC" },
       completionTarget: { kind: "boss_kc_at_least", boss: boss.slug, target: 50 },
-      routeTags: ["pvm", "fun", ...(boss.avgLootGp ? ["gp" as const] : [])],
+      routeTags: ["pvm", "fun", ...(!isIronPlannerAccount(accountType) && boss.avgLootGp ? ["gp" as const] : [])],
       gearConfidence,
       quality: {
         accountFit: kc < 5 ? 0.44 : kc < 10 ? 0.66 : 0.86,
@@ -3684,7 +3718,7 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
 
   const rawRecs = applyBossViability([
     ...goalRecs(completions),
-    ...(combatLevel !== null ? bossRecs(combatLevel, bank, skills, mergedBossKc) : []),
+    ...(combatLevel !== null ? bossRecs(combatLevel, bank, skills, mergedBossKc, accountMeta?.accountType ?? null) : []),
     ...slayerTaskRecs(input.scapestackSync?.slayer, {
       displayName: input.scapestackSync?.displayName ?? accountMeta?.displayName,
       bank,
@@ -3702,7 +3736,7 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
       accountMeta?.accountType ?? null,
       input.scapestackSync ? "runelite" : completedQuestNames ? "tracker" : undefined
     ),
-    ...activeBossKcRecs(mergedBossKc, bank, skills),
+    ...activeBossKcRecs(mergedBossKc, bank, skills, accountMeta?.accountType ?? null),
     ...diaryRecs(diaries, skills, {
       bank,
       accountType: accountMeta?.accountType ?? null,

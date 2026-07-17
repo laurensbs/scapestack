@@ -46,7 +46,9 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain('"HCIM risk"');
     expect(source).toContain('"Activity setup"');
     expect(source).toContain("killPace");
-    expect(source).toContain("{formatGp(gpPerHour)}/hr");
+    expect(source).toContain("bossProfitEstimate(boss, dps, accountType)");
+    expect(source).toContain("Est. {formatRateRange(profitEstimate.grossGpPerHour.range, formatGp)}/hr");
+    expect(source).toContain('!profitEstimate.spendable && " loot value"');
     expect(source).not.toContain('<span className="text-[var(--color-text-muted)]">DPS</span>');
     expect(source).not.toContain("role=\"button\"");
     expect(source).not.toContain("tabIndex={0}");

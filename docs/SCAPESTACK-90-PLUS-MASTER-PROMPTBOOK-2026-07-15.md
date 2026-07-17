@@ -1437,7 +1437,7 @@ Acceptance:
 
 ## Phase 20 - Make Rates Fresh And Honest
 
-Status: TODO  
+Status: COMPLETE (2026-07-17)
 Depends on: Phases 12 and 18  
 Improves: GP recommendations, trust
 
@@ -1464,6 +1464,32 @@ Acceptance:
 - ironman ranking does not optimize GE profit as spendable value;
 - freshness tests use a fixed clock.
 ```
+
+### Evidence
+
+- Added a typed rate registry that separates live prices, measured rates and
+  editorial estimates. Every record carries a source URL, retrieval time,
+  assumptions, calculation inputs, low/expected/high range, staleness window
+  and a player-safe fallback.
+- Check Kill no longer turns modelled TTK and old average loot into one precise
+  GP/hour claim. Boss cards and details show a range, gross-value wording and a
+  compact Wiki provenance link; KPH includes banking/mechanics uptime and the
+  encounter ceiling.
+- Iron accounts keep loot context but receive no spendable-GP ranking boost.
+  The GP lens becomes Loot and sorts on trip fit instead of GE value.
+- Money recommendations now say `Estimated`, use ranges and lose ranking weight
+  when their editorial evidence ages. Item-price copy inside those routes is
+  explicitly framed as an estimate and asks the player to test a short block.
+- Added `/api/prices` on top of the resilient Wiki snapshot cache. Boss upgrade
+  costs use the live Wiki price when available and a clearly labelled rough
+  fallback when the feed is unavailable.
+- Fixed a mobile boss-modal grid stretch found during browser verification by
+  using normal stacked flow below desktop. Playwright confirmed desktop and
+  mobile content, no framework overlay, no console errors, no horizontal
+  overflow, 28 inventory slots and a fresh price response.
+- Verification: 201 test files / 1,275 tests passed, TypeScript passed, all
+  RuneLite Gradle tests passed and the Next.js 16 production build completed
+  all 216 static pages.
 
 ## Phase 21 - Rebuild Ranking Around Opportunity Cost
 

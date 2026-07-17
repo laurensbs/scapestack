@@ -42,6 +42,13 @@ describe("boss detail modal affordance", () => {
     expect(source).toContain("Plan the full run");
     expect(source).toContain("isNonCombatBossActivity");
     expect(source).toContain("Best next improvement");
+    expect(source).toContain("bossProfitEstimate(boss, dps, accountType)");
+    expect(source).toContain("profitEstimate.displayLabel");
+    expect(source).toContain("Iron account: useful drops matter; GE value is not spendable profit.");
+    expect(source).toContain("profitEstimate.grossGpPerHour.sourceUrl");
+    expect(source).toContain("fetch(`/api/prices?ids=${itemId}`)");
+    expect(source).toContain("Wiki price {formatGp(liveUpgradePrice.value)}");
+    expect(source).toContain("rough fallback {formatGp(upgradePlan.approximatePrice)}");
     expect(source).toContain("First-trip inventory");
     expect(source).toContain("Missing before you go");
     expect(source).toContain("Other usable items in your bank");
@@ -51,6 +58,9 @@ describe("boss detail modal affordance", () => {
     expect(source).toContain("onSelectBoss?: (boss: Boss) => void");
     expect(source).toContain("max-h-[90vh]");
     expect(source).toContain("overflow-y-auto overscroll-contain");
+    expect(source).toContain("relative block max-h-[90vh]");
+    expect(source).toContain("lg:grid lg:grid-cols-[3fr_2fr]");
+    expect(source).toContain("h-[42vh] min-h-[300px] max-h-[420px]");
     expect(source).toContain('data-testid="boss-modal-scroll-panel"');
     expect(source).toContain('data-testid="boss-inventory-setup"');
     expect(source.indexOf("Can I do this?")).toBeLessThan(source.indexOf("Kill speed"));

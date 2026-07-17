@@ -9,6 +9,14 @@ const TTL_MS = 60 * 60 * 1000;
 let cache: { fetchedAt: number; prices: Map<number, number> } | null = null;
 let inflight: Promise<Map<number, number>> | null = null;
 
+export interface PriceSnapshot {
+  prices: Map<number, number>;
+  sourceUrl: string;
+  retrievedAt: string | null;
+  freshness: "fresh" | "stale" | "unavailable";
+  fallbackUsed: boolean;
+}
+
 async function doFetch(): Promise<Map<number, number>> {
   const res = await fetch(URL, { headers: { "user-agent": USER_AGENT, accept: "application/json" } });
   if (!res.ok) throw new Error(`Wiki prices HTTP ${res.status}`);
@@ -50,6 +58,27 @@ export async function getPrices(): Promise<Map<number, number>> {
       return new Map<number, number>();
     });
   return inflight;
+}
+
+export async function getPriceSnapshot(now = Date.now()): Promise<PriceSnapshot> {
+  const prices = await getPrices();
+  if (!cache) {
+    return {
+      prices,
+      sourceUrl: URL,
+      retrievedAt: null,
+      freshness: "unavailable",
+      fallbackUsed: true
+    };
+  }
+  const ageMs = Math.max(0, now - cache.fetchedAt);
+  return {
+    prices,
+    sourceUrl: URL,
+    retrievedAt: new Date(cache.fetchedAt).toISOString(),
+    freshness: ageMs < TTL_MS ? "fresh" : "stale",
+    fallbackUsed: ageMs >= TTL_MS
+  };
 }
 
 // Items that aren't traded on the GE but have a fixed in-game value.

@@ -24,6 +24,7 @@ import {
 } from "@/lib/boss-knowledge";
 import type { PlannerAccountType } from "@/lib/account-type";
 import { buildBossUpgradePlan } from "@/lib/boss-upgrade-plan";
+import { bossProfitEstimate, formatRateRange } from "@/lib/rate-registry";
 
 interface Props {
   boss: Boss;
@@ -44,6 +45,10 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
   const descriptionId = "boss-modal-description";
   const statsId = "boss-modal-stats";
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
+  const [liveUpgradePrice, setLiveUpgradePrice] = useState<{
+    value: number;
+    freshness: "fresh" | "stale" | "unavailable";
+  } | null>(null);
   const lastTrackedBoss = useRef<string | null>(null);
   useEffect(() => {
     if (lastTrackedBoss.current === boss.slug) return;
@@ -83,6 +88,28 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
     () => activitySetup || !singleDps ? null : buildBossUpgradePlan({ boss, owned, bankItems, current: dps, accountType }),
     [accountType, activitySetup, bankItems, boss, dps, owned, singleDps]
   );
+  useEffect(() => {
+    const itemId = upgradePlan?.item.id;
+    if (!itemId || upgradePlan?.sourcePath) {
+      setLiveUpgradePrice(null);
+      return;
+    }
+    let cancelled = false;
+    setLiveUpgradePrice(null);
+    fetch(`/api/prices?ids=${itemId}`)
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error(`Price HTTP ${response.status}`)))
+      .then((payload: { values?: Record<string, number>; freshness?: "fresh" | "stale" | "unavailable" }) => {
+        if (cancelled) return;
+        const value = Number(payload.values?.[String(itemId)] ?? 0);
+        if (value > 0) {
+          setLiveUpgradePrice({ value, freshness: payload.freshness ?? "unavailable" });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLiveUpgradePrice(null);
+      });
+    return () => { cancelled = true; };
+  }, [upgradePlan?.item.id, upgradePlan?.sourcePath]);
   const inventoryRows = inventoryPlan.rows;
   const inventoryTagRows = activitySetup ? inventoryRows : undefined;
   const verdict = useMemo(
@@ -99,10 +126,8 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
     return [boss, ...sameCategory, ...rest].slice(0, 13);
   }, [boss]);
 
-  // GP/hr is only comparable for supported single-target encounters and is
-  // capped at the encounter's realistic kills-per-hour ceiling.
-  const gpPerHour = bossKnowledgeAllowsGpRate(knowledge) && dps.dps > 0 && boss.avgLootGp && boss.killsPerHourCap
-    ? Math.min(boss.killsPerHourCap, Math.floor(3600 / dps.ttk)) * boss.avgLootGp
+  const profitEstimate = bossKnowledgeAllowsGpRate(knowledge) && dps.dps > 0
+    ? bossProfitEstimate(boss, dps, accountType)
     : null;
   const copyRuneLiteTab = async () => {
     if (!tagString) return;
@@ -140,7 +165,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
       />
 
       <div
-        className="scapestack-lock-panel relative grid max-h-[90vh] min-h-0 w-full max-w-5xl overflow-y-auto overscroll-contain lg:grid-cols-[3fr_2fr] lg:overflow-hidden"
+        className="scapestack-lock-panel relative block max-h-[90vh] min-h-0 w-full max-w-5xl overflow-y-auto overscroll-contain lg:grid lg:grid-cols-[3fr_2fr] lg:overflow-hidden"
         style={{ animation: "pop-in 0.28s cubic-bezier(0.22, 1, 0.36, 1)" }}
       >
         {/* Close — floats top-right over the portrait so it stays visible
@@ -157,7 +182,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
         {/* Left column — portrait. Full-bleed within its column, no frame
             (matches the homepage showcase treatment). Drop-shadow gives
             it weight against the panel background. */}
-        <div className="relative bg-[var(--color-bg-2)] aspect-square lg:aspect-auto min-h-[280px] flex items-center justify-center p-6 overflow-hidden">
+        <div className="relative flex h-[42vh] min-h-[300px] max-h-[420px] items-center justify-center overflow-hidden bg-[var(--color-bg-2)] p-6 lg:h-auto lg:max-h-none lg:min-h-[280px]">
           <div
             className="absolute inset-[-10%] pointer-events-none"
             style={{
@@ -367,19 +392,30 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
                       <Stat label="DPS"      value={dps.dps.toFixed(1)} />
                       <Stat label="Max hit"  value={String(dps.maxHit)} />
                       <Stat label="Accuracy" value={`${Math.round(dps.hitChance * 100)}%`} />
-                      {dps.ttk > 0 && (
+                      {profitEstimate && (
                         <Stat
-                          label="Kc/u"
-                          value={String(Math.min(boss.killsPerHourCap ?? Infinity, Math.floor(3600 / dps.ttk)))}
+                          label="Kills/hr est."
+                          value={formatRateRange(profitEstimate.killsPerHour.range, (value) => String(Math.round(value)))}
                         />
                       )}
                     </div>
-                    {gpPerHour !== null && (
-                      <div className="mt-2 text-[12px] text-[var(--color-text-dim)] flex items-center gap-1.5">
+                    {profitEstimate && (
+                      <div className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12px] text-[var(--color-text-dim)]">
                         <TrendingUp className="size-3.5 text-[var(--color-accent)]" />
-                        Est. <span className="text-[var(--color-text)] font-mono tabular-nums">{formatGp(gpPerHour)}</span>/hr
-                        {boss.killsPerHourCap !== undefined && Math.floor(3600 / dps.ttk) > boss.killsPerHourCap && (
-                          <span className="text-[var(--color-text-muted)]"> (capped at {boss.killsPerHourCap} kills/hr)</span>
+                        {profitEstimate.displayLabel}{" "}
+                        <span className="font-mono tabular-nums text-[var(--color-text)]">
+                          {formatRateRange(profitEstimate.grossGpPerHour.range, formatGp)} GP/hr
+                        </span>
+                        <a
+                          href={profitEstimate.grossGpPerHour.sourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[var(--color-text-muted)] underline decoration-dotted underline-offset-2 hover:text-[var(--color-accent)]"
+                        >
+                          {profitEstimate.sourceLabel}
+                        </a>
+                        {!profitEstimate.spendable && (
+                          <span className="basis-full text-[var(--color-text-muted)]">Iron account: useful drops matter; GE value is not spendable profit.</span>
                         )}
                       </div>
                     )}
@@ -455,8 +491,11 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
                   </p>
                   <div className="mt-1 text-[10.5px] text-[var(--color-text-muted)]">
                     +{upgradePlan.gain.toFixed(2)} DPS
-                    {upgradePlan.approximatePrice !== null && upgradePlan.approximatePrice > 0 && (
-                      <> · roughly {formatGp(upgradePlan.approximatePrice)}</>
+                    {liveUpgradePrice && (
+                      <> · Wiki price {formatGp(liveUpgradePrice.value)}{liveUpgradePrice.freshness === "stale" ? " (cached)" : ""}</>
+                    )}
+                    {!liveUpgradePrice && upgradePlan.approximatePrice !== null && upgradePlan.approximatePrice > 0 && (
+                      <> · rough fallback {formatGp(upgradePlan.approximatePrice)}</>
                     )}
                     {!upgradePlan.sourcePath && upgradePlan.affordable && <> · inside visible cash</>}
                   </div>
