@@ -1,15 +1,15 @@
 // Builds data/diaries.json from the OSRS Wiki.
 //
 // For each of the 12 Achievement Diary regions, fetches the page wikitext
-// and parses the {{DiarySkillStats}} block per tier (Easy / Medium / Hard /
-// Elite). Skill levels are deduplicated to the highest per tier in case the
-// page lists Regular vs Ironman variants side-by-side.
+// and parses the {{DiarySkillStats}} block plus the exact task table per tier
+// (Easy / Medium / Hard / Elite). Skill levels are deduplicated to the highest
+// per tier in case the page lists Regular vs Ironman variants side-by-side.
 //
 // Output shape (data/diaries.json):
 //   { "Karamja": {
 //       name: "Karamja Diary",
 //       tiers: {
-//         Easy:   { skills: [{ skill, level }, ...] },
+//         Easy:   { skills: [{ skill, level }, ...], tasks: [{ id, label, requirements }] },
 //         Medium: { skills: [...] },
 //         Hard:   { skills: [...] },
 //         Elite:  { skills: [...] }
@@ -94,6 +94,83 @@ function parseDiaryStats(body) {
     .sort((a, b) => b.level - a.level);
 }
 
+function stripBalancedTemplates(value, templateName) {
+  let output = value;
+  const needle = `{{${templateName}`.toLowerCase();
+  let start = output.toLowerCase().indexOf(needle);
+  while (start >= 0) {
+    const parsed = readTemplate(output, start);
+    if (!parsed) break;
+    output = `${output.slice(0, start)}${output.slice(parsed.end)}`;
+    start = output.toLowerCase().indexOf(needle);
+  }
+  return output;
+}
+
+export function cleanDiaryWikitext(value) {
+  let output = value
+    .replace(/<ref\b[^>]*>[\s\S]*?<\/ref>/gi, " ")
+    .replace(/<ref\b[^>]*\/?\s*>/gi, " ")
+    .replace(/<!--([\s\S]*?)-->/g, " ");
+  output = stripBalancedTemplates(output, "efn");
+  output = output
+    .replace(/\{\{NA\|([^}]+)\}\}/gi, "$1")
+    .replace(/\{\{SCP\|Quest(?:\|[^}]*)?\}\}/gi, "Quest")
+    .replace(/\{\{SCP\|([^|}]+)\|([^|}]+)(?:\|[^}]*)?\}\}/gi, "$1 $2")
+    .replace(/\{\{sic(?:\|[^}]*)?\}\}/gi, "")
+    .replace(/\{\{[^{}]*\}\}/g, " ")
+    .replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, "$2")
+    .replace(/\[\[([^\]]+)\]\]/g, "$1")
+    .replace(/\[https?:\/\/[^\s\]]+\s+([^\]]+)\]/g, "$1")
+    .replace(/\[https?:\/\/[^\]]+\]/g, " ")
+    .replace(/<br\s*\/?>/gi, " · ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/''+/g, "")
+    .replace(/&nbsp;|&#160;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/\s+/g, " ")
+    .trim();
+  return output;
+}
+
+function taskLabel(value) {
+  const withoutNotes = value.split(/\n\s*''?Note:/i)[0] ?? value;
+  return cleanDiaryWikitext(withoutNotes)
+    .replace(/^\d+\.\s*/, "")
+    .trim();
+}
+
+function taskRequirements(value) {
+  const lines = value
+    .split(/\n+/)
+    .map((line) => line.replace(/^\s*\*+\s*/, "").trim())
+    .filter((line) => line && !/^''?Note:/i.test(line))
+    .map(cleanDiaryWikitext)
+    .filter((line) => line && !/^none$/i.test(line));
+  return [...new Set(lines)];
+}
+
+export function parseDiaryTaskTable(wikitext, region, tier) {
+  const marker = new RegExp(`data-diary-tier=["']${tier}["']`, "i").exec(wikitext);
+  if (!marker) return [];
+  const tableEnd = wikitext.indexOf("\n|}", marker.index);
+  if (tableEnd < 0) return [];
+  const table = wikitext.slice(marker.index, tableEnd);
+  const rows = table.split(/\n\|-\s*\n/).slice(1);
+  const regionId = region.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return rows.flatMap((row, index) => {
+    const columns = /^\|\s*([\s\S]*?)\n\|\s*([\s\S]*)$/.exec(row.trim());
+    if (!columns) return [];
+    const label = taskLabel(columns[1]);
+    if (!label) return [];
+    return [{
+      id: `${regionId}:${tier.toLowerCase()}:${index + 1}`,
+      label,
+      requirements: taskRequirements(columns[2])
+    }];
+  });
+}
+
 async function parseDiary(title) {
   const enc = encodeURIComponent(title);
   const data = await getJSON(`${WIKI}?action=parse&page=${enc}&prop=wikitext&format=json`);
@@ -120,12 +197,13 @@ async function parseDiary(title) {
     const end = i + 1 < found.length ? tierIdx[found[i + 1]] : w.length;
     const slice = w.slice(start, end);
     const statsIdx = slice.indexOf("{{DiarySkillStats");
-    if (statsIdx < 0) { tiers[tier] = { skills: [] }; continue; }
+    const tasks = parseDiaryTaskTable(w, title.replace(/ Diary$/, ""), tier);
+    if (statsIdx < 0) { tiers[tier] = { skills: [], tasks }; continue; }
     const tmpl = readTemplate(slice, statsIdx);
-    if (!tmpl) { tiers[tier] = { skills: [] }; continue; }
-    tiers[tier] = { skills: parseDiaryStats(tmpl.body) };
+    if (!tmpl) { tiers[tier] = { skills: [], tasks }; continue; }
+    tiers[tier] = { skills: parseDiaryStats(tmpl.body), tasks };
   }
-  for (const t of TIERS) if (!tiers[t]) tiers[t] = { skills: [] };
+  for (const t of TIERS) if (!tiers[t]) tiers[t] = { skills: [], tasks: parseDiaryTaskTable(w, title.replace(/ Diary$/, ""), t) };
   return tiers;
 }
 
@@ -138,7 +216,7 @@ async function main() {
       const tiers = await parseDiary(title);
       out[key] = { name: title, tiers };
       parsed++;
-      const tierSummary = TIERS.map((t) => `${t}:${tiers[t].skills.length}`).join(" ");
+      const tierSummary = TIERS.map((t) => `${t}:${tiers[t].skills.length}s/${tiers[t].tasks.length}t`).join(" ");
       console.log(`  ${title} — ${tierSummary}`);
     } catch (e) {
       console.warn(`  ! ${title}: ${e.message}`);
@@ -150,7 +228,9 @@ async function main() {
   console.log(`✓ Wrote ${parsed}/${DIARIES.length} diaries → data/diaries.json`);
 }
 
-main().catch((err) => {
-  console.error("✗ build-diary-data failed:", err);
-  process.exit(1);
-});
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  main().catch((err) => {
+    console.error("✗ build-diary-data failed:", err);
+    process.exit(1);
+  });
+}

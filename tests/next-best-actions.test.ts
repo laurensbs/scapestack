@@ -235,4 +235,55 @@ describe("next best actions", () => {
     const visibleRoutes = [result.headline, ...result.rest].filter(Boolean);
     expect(visibleRoutes.some((rec) => rec?.title === "Finish Karamja gloves")).toBe(true);
   });
+
+  it("attaches exact Karamja Hard tasks and the correct gloves tier", async () => {
+    const result = await computeNextUp({
+      skills: skillsFromLevels({}),
+      bank: [
+        { id: 11138, name: "Karamja gloves 2", quantity: 1 }
+      ],
+      scapestackSync: {
+        accountType: "normal",
+        questsCompleted: ["Shilo Village"],
+        diariesCompleted: [
+          { region: "Karamja", tier: "Easy" },
+          { region: "Karamja", tier: "Medium" }
+        ],
+        collectionLogItemIds: []
+      }
+    });
+
+    const diary = [result.headline, ...result.rest]
+      .find((rec) => rec?.id === "diary:Karamja:Hard");
+    expect(diary).toMatchObject({
+      title: "Finish Karamja gloves 3",
+      iconItemId: 11140,
+      diaryProgress: {
+        region: "Karamja",
+        tier: "Hard",
+        rewardName: "Karamja gloves 3",
+        totalTasks: 10,
+        remainingTasks: 10
+      }
+    });
+    expect(diary?.diaryProgress?.nextTask).toBeTruthy();
+    expect(diary?.diaryProgress?.tasks.every((task) => task.evidence === "unknown")).toBe(true);
+  });
+
+  it("does not recommend lower Karamja tiers when gloves 4 are in the bank", async () => {
+    const result = await computeNextUp({
+      skills: skillsFromLevels({ Runecraft: 99, Herblore: 99 }),
+      bank: [{ id: 13103, name: "Karamja gloves 4", quantity: 1 }],
+      scapestackSync: {
+        accountType: "normal",
+        questsCompleted: [],
+        diariesCompleted: [],
+        collectionLogItemIds: []
+      }
+    });
+
+    const visibleRoutes = [result.headline, ...result.rest].filter(Boolean);
+    expect(visibleRoutes.some((rec) => rec?.id.startsWith("diary:Karamja:"))).toBe(false);
+    expect(result.nextBestActions.some((action) => action.id.includes("Karamja"))).toBe(false);
+  });
 });

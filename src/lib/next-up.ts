@@ -20,6 +20,8 @@ import { computeCombatLevel, computeTotalLevel, type HiscoreSkill } from "./hisc
 import { getQuests, questSlug, type QuestRecord } from "./quest-db";
 import { evaluateQuestRequirements, type QuestBankItem, type QuestRequirementEvaluation } from "./quest-requirements";
 import { getDiaries, type DiaryRecord, type DiaryTier } from "./diary-db";
+import { buildDiaryTierProgress, type DiaryTierProgress } from "./diary-task-progress";
+import { diaryRewardFor } from "./diary-rewards";
 import {
   diaryBlockerCount,
   diaryCompletedRequirementLines,
@@ -205,6 +207,9 @@ export interface Recommendation {
   /** Structured finish condition consumed by the persisted decision contract.
    *  Player-facing copy must never be reverse-engineered to prove outcomes. */
   completionTarget?: RecommendationCompletionTarget;
+  /** Exact Wiki diary tasks plus honest completion evidence. The client may
+   *  merge account-local manual checks without changing server ranking. */
+  diaryProgress?: DiaryTierProgress;
 }
 
 export interface ReturnPlan {
@@ -2023,6 +2028,7 @@ function buildDiaryAction(evaluation: DiaryRequirementEvaluation): NextBestActio
   const missingItems = evaluation.bank.notApplicable ? [] : evaluation.bank.missing;
   const unlockValue = diaryUnlockValue(evaluation.tier);
   const unlockLabel = `${evaluation.region} ${evaluation.tier} diary`;
+  const reward = diaryRewardFor(evaluation.region, evaluation.tier);
   const requiredItems = evaluation.itemRequirements.slice(0, 6).map(diaryItemLabel);
   const accountTypeNote = evaluation.accountWarnings[0];
 
@@ -2031,14 +2037,14 @@ function buildDiaryAction(evaluation: DiaryRequirementEvaluation): NextBestActio
     return {
       id: `nba:diary:${evaluation.region}:${evaluation.tier}`,
       kind,
-      title: evaluation.region === "Karamja" ? "Finish Karamja gloves" : `Do ${evaluation.region} ${evaluation.tier}`,
+      title: `Finish ${reward.name}`,
       reason: `${diaryReadinessSummary(evaluation)} Payoff: ${evaluation.payoff}`,
       missingRequirements: evaluation.bank.notApplicable ? diaryMissingRequirementLines(evaluation) : [],
       requiredItems,
       preparation: diaryPreparation(evaluation, kind),
       relevantQuestOrUnlock: evaluation.payoff,
       unlockValue,
-      iconItemId: DIARY_REWARD_ICONS[evaluation.region],
+      iconItemId: reward.itemId,
       accountTypeNote
     };
   }
@@ -2078,7 +2084,7 @@ function buildDiaryAction(evaluation: DiaryRequirementEvaluation): NextBestActio
       preparation: diaryPreparation(evaluation, kind),
       relevantQuestOrUnlock: unlockLabel,
       unlockValue: Math.max(1, unlockValue - 5),
-      iconItemId: DIARY_REWARD_ICONS[evaluation.region],
+      iconItemId: reward.itemId,
       accountTypeNote
     };
   }
@@ -2096,7 +2102,7 @@ function buildDiaryAction(evaluation: DiaryRequirementEvaluation): NextBestActio
       preparation: diaryPreparation(evaluation, kind),
       relevantQuestOrUnlock: unlockLabel,
       unlockValue: Math.max(1, unlockValue - (missingTiers.length + missingQuests.length) * 4),
-      iconItemId: DIARY_REWARD_ICONS[evaluation.region],
+      iconItemId: reward.itemId,
       accountTypeNote
     };
   }
@@ -2494,8 +2500,16 @@ function diaryRecs(
     if (!best) continue;
 
     const { tier, evaluation, score } = best;
+    const diaryProgress = buildDiaryTierProgress({
+      evaluation,
+      tasks: d.tiers[tier]?.tasks ?? [],
+      exactCompleted: context.completedDiaryTiers,
+      bankItems
+    });
     const blockers = diaryMissingRequirementLines(evaluation);
-    const tasks = diaryTaskRequirementLines(evaluation);
+    const tasks = diaryProgress.tasks
+      .filter((task) => task.status === "to-confirm")
+      .map((task) => task.label);
     const completed = diaryCompletedRequirementLines(evaluation).slice(0, 4);
     const routeLines = blockers.length > 0 ? blockers : tasks;
     const blockersText = blockers.length > 0 ? blockers.join(", ") : "ready for task sweep";
@@ -2507,7 +2521,7 @@ function diaryRecs(
     const missingQuest = evaluation.questRequirements.find((req) => !req.met);
     const missingItems = evaluation.bank.notApplicable ? [] : evaluation.bank.missing;
     const title = region === "Karamja"
-      ? "Finish Karamja gloves"
+      ? `Finish ${diaryProgress.rewardName}`
       : skillBlocker
         ? `Train ${skillBlocker.skill} for ${region} ${tier}`
       : missingQuest
@@ -2518,7 +2532,9 @@ function diaryRecs(
     const blockerCount = diaryBlockerCount(evaluation);
     const why = blockerCount > 0
       ? `${region} ${tier} is ${blockerCount} step${blockerCount === 1 ? "" : "s"} away: ${blockersText}.`
-      : `${region} ${tier} is ready: ${taskText}`;
+      : diaryProgress.remainingTasks > 0
+        ? `${diaryProgress.remainingTasks} exact task${diaryProgress.remainingTasks === 1 ? "" : "s"} left. Start with: ${diaryProgress.nextTask}`
+        : `${region} ${tier} is ready to claim.`;
 
     recs.push({
       id: `diary:${region}:${tier}`,
@@ -2526,11 +2542,12 @@ function diaryRecs(
       title,
       why,
       payoff: evaluation.payoff,
-      decisionReason: `${diaryReadinessLabel(evaluation.readinessStatus)}: ${blockersText}. Payoff: ${evaluation.payoff}. Finish after: ${evaluation.stopPoint}`,
-      needs: routeLines.slice(0, 5),
+      decisionReason: `${diaryReadinessLabel(evaluation.readinessStatus)}: ${blockersText}. ${diaryProgress.remainingTasks} diary tasks still need confirmation. Finish after: ${diaryProgress.stopPoint}`,
+      needs: [...blockers, ...tasks.slice(0, 3)].slice(0, 5),
       score,
-      iconItemId: DIARY_REWARD_ICONS[region],
+      iconItemId: diaryProgress.rewardItemId,
       completionTarget: { kind: "diary_completed", region, tier },
+      diaryProgress,
       routeTags: ["unlock", "maxing", "returning"],
       gearConfidence: "likely",
       quality: {
@@ -2546,14 +2563,17 @@ function diaryRecs(
         timebox: tier === "Elite" ? "1-2 hr" : "45-90 min",
         prep: evaluation.bank.notApplicable
           ? `${region} ${tier}: use staging/carry/storage planning instead of bank-ready.`
-          : blockers.length > 0
+            : blockers.length > 0
             ? `${region} ${tier}: clear ${blockers[0]} first.`
-            : `${region} ${tier}: every visible step is clear.`,
+            : `${region} ${tier}: start with ${diaryProgress.nextTask ?? `claim ${diaryProgress.rewardName}`}.`,
         steps: [
-          ...blockers.slice(0, 2).map((blocker) => `Clear ${blocker}.`),
+          ...blockers.slice(0, 2).map((blocker) => {
+            const missingTier = blocker.match(/^(.+) diary missing$/i);
+            return missingTier ? `Finish ${missingTier[1]} first.` : `Clear ${blocker}.`;
+          }),
           ...(completed.length > 0 && blockers.length > 0 ? [`Already handled: ${completed.join(", ")}.`] : []),
-          tasks[0] ?? `Run the ${region} ${tier} tasks as one regional sweep.`,
-          "Claim the diary reward and re-sync so completed diary nudges disappear."
+          ...tasks.slice(0, blockers.length > 0 ? 1 : 3),
+          `Claim ${diaryProgress.rewardName}, then press Sync in RuneLite.`
         ].slice(0, 4),
         caveat: evaluation.accountWarnings[0]
       }

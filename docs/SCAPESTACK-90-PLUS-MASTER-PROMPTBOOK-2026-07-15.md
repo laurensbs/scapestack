@@ -1159,7 +1159,7 @@ Acceptance:
 
 ## Phase 15 - Build Exact Diary Task Progress
 
-Status: TODO  
+Status: COMPLETE (2026-07-17)
 Depends on: Phases 03 and 06  
 Improves: goals, trust
 
@@ -1189,6 +1189,23 @@ Acceptance:
 - unknown tasks are checkable, not labeled confirmed blockers;
 - checklist state survives return visits.
 ```
+
+### Evidence (2026-07-17)
+
+- `data/diaries.json` is generated from current OSRS Wiki diary tables and now
+  contains 492 named tasks across all 48 region/tier routes.
+- RuneLite tier booleans and owned reward items are treated as completion
+  evidence. Individual tasks remain honest manual checks until RuneLite exposes
+  task-level state.
+- Every diary recommendation carries its exact reward, remaining task count,
+  next three-task sweep, preparation, blockers and a one-session stop point.
+- Owning a higher diary reward infers every lower tier, including Karamja gloves
+  4 closing Easy through Elite and suppressing obsolete glove recommendations.
+- Manual checks are saved per RSN and survived a browser reload during desktop
+  and 390px mobile verification; both viewports had no overflow or error overlay.
+- `npm run ci:check` passed 195 test files / 1,242 tests, smoke, recommendation
+  audit, plugin release checks and the production build. `plugin/./gradlew test`
+  also passed.
 
 ## Phase 16 - Build Quest Prerequisite Routes
 

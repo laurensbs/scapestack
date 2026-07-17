@@ -119,6 +119,11 @@ import {
   formatXpRange,
   type BankedXpSkillDescriptor
 } from "@/lib/banked-xp";
+import {
+  DIARY_PROGRESS_EVENT,
+  loadDiaryTaskChecks,
+  setDiaryTaskChecked
+} from "@/lib/diary-progress-storage";
 
 // Per-kind visual identity — Lucide fallback + an OSRS sprite. Recs that
 // already carry their own `iconItemId` keep theirs; everything else falls
@@ -5398,28 +5403,94 @@ function RoutePlanLine({ label, value, strong = false }: { label: string; value:
 // Werkt voor zowel hero als alt-rows (zelfde details, andere
 // presentation density).
 
-function DiaryReadinessDetail({ rec }: { rec: Recommendation }) {
-  if (rec.kind !== "diary") return null;
-  const missing = recommendationNeeds(rec);
-  const blockerLabel = missing.length === 0
-    ? "Ready"
-    : missing.length === 1
-      ? "1 thing left"
-      : `${missing.length} things left`;
-  const tasksLeft = rec.actionPlan?.steps
-    .filter((step) => /task|sweep|claim|sync|clear/i.test(step))
-    .slice(0, 3) ?? [];
+function DiaryReadinessDetail({ rec, rsn }: { rec: Recommendation; rsn?: string }) {
+  const progress = rec.diaryProgress;
+  const [manualChecks, setManualChecks] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    if (!progress || !rsn) return;
+    const reload = () => setManualChecks(loadDiaryTaskChecks(rsn));
+    reload();
+    window.addEventListener(DIARY_PROGRESS_EVENT, reload);
+    return () => window.removeEventListener(DIARY_PROGRESS_EVENT, reload);
+  }, [progress, rsn]);
+  if (rec.kind !== "diary" || !progress) return null;
+
+  const tasks = progress.tasks.map((task) => manualChecks.has(task.id) && task.status !== "done"
+    ? { ...task, status: "done" as const, evidence: "manual" as const }
+    : task);
+  const remaining = tasks.filter((task) => task.status !== "done");
+  const nextSweep = remaining.slice(0, 3);
+  const later = remaining.slice(3);
+  const completed = progress.totalTasks - remaining.length;
+  const toggle = (taskId: string, checked: boolean) => {
+    if (!rsn) return;
+    setManualChecks(setDiaryTaskChecked(rsn, taskId, checked));
+  };
 
   return (
-    <div className="grid gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3 sm:grid-cols-2">
-      <RouteStepBrief label={blockerLabel} value={missing.length ? missing.slice(0, 3).join(" · ") : "All visible requirements are handled."} tone={missing.length ? "default" : "accent"} />
-      <RouteStepBrief label="Missing skills" value={missing.filter((line) => /needed, you have/i.test(line)).join(" · ") || "No skill gap visible."} />
-      <RouteStepBrief label="Missing quests" value={missing.filter((line) => /missing$/i.test(line) && !/x |rope|plank|grapple|crossbow|coins/i.test(line)).join(" · ") || "No quest gap visible."} />
-      <RouteStepBrief label="Missing items" value={missing.filter((line) => /bank|stage|carry|x |rope|plank|grapple|crossbow|coins/i.test(line)).join(" · ") || "No item gap visible."} />
-      <RouteStepBrief label="Tasks left" value={tasksLeft.join(" · ") || "Run the diary tasks and claim the reward."} />
-      <RouteStepBrief label="Payoff" value={headlinePayoff(rec) ?? rec.why} />
-      <RouteStepBrief label="Finish after" value={recommendationStopPointValue(rec)} />
-    </div>
+    <section className="overflow-hidden rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-bg)]/35">
+      <div className="flex items-center gap-3 border-b border-[var(--color-border)] px-3 py-3">
+        <ItemSprite id={progress.rewardItemId} alt={progress.rewardName} size={42} />
+        <div className="min-w-0 flex-1">
+          <p className="font-serif text-[17px] font-semibold text-[var(--color-text)]">{progress.rewardName}</p>
+          <p className="text-[11.5px] text-[var(--color-text-muted)]">
+            {progress.completionEvidence
+              ? `Already complete · proven by ${progress.completionEvidence === "runelite" ? "RuneLite" : "the reward in your bank"}`
+              : `${completed}/${progress.totalTasks} checked · ${remaining.length} to confirm`}
+          </p>
+        </div>
+      </div>
+
+      {!progress.completionEvidence && nextSweep.length > 0 && (
+        <div className="px-3 py-3">
+          {progress.blockers.length > 0 && (
+            <p className="mb-3 rounded-md border border-[var(--color-warning)]/25 bg-[var(--color-warning)]/8 px-3 py-2 text-[11.5px] leading-snug text-[var(--color-text-secondary)]">
+              <span className="font-bold text-[var(--color-warning)]">Before this sweep:</span> {progress.blockers.slice(0, 3).join(" · ")}
+            </p>
+          )}
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">{progress.blockers.length > 0 ? "Next sweep" : "Do these next"}</p>
+          <div className="space-y-1.5">
+            {nextSweep.map((task) => (
+              <label key={task.id} className="flex cursor-pointer items-start gap-2.5 rounded-md px-2 py-2 transition-colors hover:bg-[var(--color-accent)]/8">
+                <input
+                  type="checkbox"
+                  checked={task.status === "done"}
+                  onChange={(event) => toggle(task.id, event.currentTarget.checked)}
+                  disabled={!rsn}
+                  className="mt-0.5 size-4 accent-[var(--color-accent)]"
+                />
+                <span className="min-w-0">
+                  <span className="block text-[12.5px] font-semibold leading-snug text-[var(--color-text)]">{task.label}</span>
+                  {task.requirements.length > 0 && (
+                    <span className="mt-0.5 block text-[11px] leading-snug text-[var(--color-text-muted)]">Before: {task.requirements.slice(0, 2).join(" · ")}</span>
+                  )}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!progress.completionEvidence && remaining.length === 0 && (
+        <p className="px-4 py-4 text-[12.5px] font-semibold text-[var(--color-accent)]">Claim {progress.rewardName}, then press Sync in RuneLite.</p>
+      )}
+
+      {later.length > 0 && (
+        <details className="border-t border-[var(--color-border)] px-3 py-2.5">
+          <summary className="cursor-pointer list-none text-[11.5px] font-semibold text-[var(--color-text-muted)] marker:hidden">See all {remaining.length} remaining tasks</summary>
+          <div className="mt-2 space-y-1">
+            {later.map((task) => (
+              <label key={task.id} className="flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 hover:bg-[var(--color-accent)]/8">
+                <input type="checkbox" checked={task.status === "done"} onChange={(event) => toggle(task.id, event.currentTarget.checked)} disabled={!rsn} className="mt-0.5 size-4 accent-[var(--color-accent)]" />
+                <span className="text-[11.5px] leading-snug text-[var(--color-text-secondary)]">{task.label}</span>
+              </label>
+            ))}
+          </div>
+        </details>
+      )}
+
+      <p className="border-t border-[var(--color-border)] px-4 py-2.5 text-[11px] leading-snug text-[var(--color-text-muted)]">Stop after {progress.stopPoint}</p>
+    </section>
   );
 }
 
@@ -5441,12 +5512,12 @@ function RecDetailPanel({
   const wikiQuery = recommendationWikiQuery(rec);
   return (
     <div className="mt-2 px-4 py-3 rounded-lg bg-[var(--color-bg-2)]/40 border border-[var(--color-border)] animate-[fade-in_0.2s_ease-out] space-y-2.5">
-      <ActionPlanBlock rec={rec} />
-      <DiaryReadinessDetail rec={rec} />
-      <p className="text-[12.5px] text-[var(--color-text-dim)] leading-relaxed">
+      {rec.kind !== "diary" && <ActionPlanBlock rec={rec} />}
+      <DiaryReadinessDetail rec={rec} rsn={actionContext.rsn ?? undefined} />
+      {rec.kind !== "diary" && <p className="text-[12.5px] text-[var(--color-text-dim)] leading-relaxed">
         {rec.why}
-      </p>
-      {payoff && (
+      </p>}
+      {rec.kind !== "diary" && payoff && (
         <p className="text-[12px] font-semibold text-[var(--color-text-secondary)] leading-relaxed">
           {payoff}
         </p>
@@ -5458,7 +5529,7 @@ function RecDetailPanel({
           dropName={rec.kcMeta.dropName}
         />
       )}
-      {details && (
+      {rec.kind !== "diary" && details && (
         <p className="text-[12.5px] text-[var(--color-text-dim)] leading-relaxed">
           {details}
         </p>
@@ -5469,7 +5540,7 @@ function RecDetailPanel({
           <span>{whyNot}</span>
         </p>
       )}
-      {needs.length > 0 && (
+      {rec.kind !== "diary" && needs.length > 0 && (
         <div>
           <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-1.5">
             You'll need

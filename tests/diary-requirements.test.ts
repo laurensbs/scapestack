@@ -242,6 +242,24 @@ describe("diary requirement matching", () => {
     expect(result.tasksLeft).toEqual([]);
   });
 
+  it("infers lower diary tiers from an owned elite reward", () => {
+    const result = evaluateDiaryTier("Karamja", "Hard", {
+      name: "Karamja Diary",
+      tiers: {
+        Easy: { skills: [] },
+        Medium: { skills: [] },
+        Hard: { skills: [] },
+        Elite: { skills: [] }
+      }
+    }, {
+      completedDiaryTiers: [],
+      bankItems: [{ id: 13103, name: "Karamja gloves 4", quantity: 1 }]
+    });
+
+    expect(result.readinessStatus).toBe("completed");
+    expect(result.tierDependencies.every((dependency) => dependency.met)).toBe(true);
+  });
+
   it("keeps task, combat and minigame diary requirements structured", () => {
     const result = evaluateDiaryTier("Western Provinces", "Hard", {
       name: "Western Provinces",

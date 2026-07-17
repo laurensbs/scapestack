@@ -15,8 +15,18 @@ export interface DiarySkillReq {
   level: number;
 }
 
+export interface DiaryTaskDefinition {
+  /** Stable across copy refreshes so account-local checklist state survives. */
+  id: string;
+  /** Exact player action from the OSRS Wiki diary table. */
+  label: string;
+  /** Cleaned task-specific requirements; informational until verified in-game. */
+  requirements: string[];
+}
+
 export interface DiaryTierData {
   skills: DiarySkillReq[];
+  tasks?: DiaryTaskDefinition[];
 }
 
 export interface DiaryRecord {

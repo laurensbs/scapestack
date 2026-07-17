@@ -2,6 +2,7 @@ import type { PlannerAccountType } from "./account-type";
 import { accountModeSourceCopy, isIronPlannerAccount, isUltimatePlannerAccount, plannerAccountTypeLabel } from "./account-type";
 import type { DiaryRecord, DiaryTier } from "./diary-db";
 import type { HiscoreSkill } from "./hiscores";
+import { inferredCompletedDiaryTierKeys } from "./diary-rewards";
 import {
   evaluateItemAvailability,
   type ItemAvailability,
@@ -567,8 +568,9 @@ export function evaluateDiaryTier(
   const completedRequirements: string[] = [];
   const missingRequirements: string[] = [];
   const completedQuests = completedQuestSet(context.completedQuests);
-  const completedDiaries = completedDiarySet(context.completedDiaryTiers);
+  const exactCompletedDiaries = completedDiarySet(context.completedDiaryTiers);
   const bankItems = normalizeQuestBankItems(context.bankItems);
+  const completedDiaries = inferredCompletedDiaryTierKeys(exactCompletedDiaries, bankItems);
   const bankChecked = bankItems.length > 0;
   const accountType = context.accountType ?? null;
   const bankNotApplicable = isUltimatePlannerAccount(accountType);
