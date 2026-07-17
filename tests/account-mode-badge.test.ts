@@ -15,11 +15,11 @@ describe("account mode badge UI", () => {
     expect(source).toContain("data-account-mode={visual.tone}");
   });
 
-  it("uses the shared account badge on next, quest detail, and plugin verify success", () => {
+  it("uses the shared account badge where mode changes the route", () => {
     expect(nextSource).toContain("<AccountModeBadge accountMode={accountMode} compact />");
     expect(nextSource).toContain("<AccountModeBadge accountMode={accountMode} compact showSourceCopy />");
     expect(questSource).toContain("<AccountModeBadge accountType={accountType}");
-    expect(pluginSource).toContain("<AccountModeBadge accountType={foundAccountType}");
+    expect(pluginSource).not.toContain("AccountModeBadge");
   });
 
   it("keeps account-specific planning behavior without repeating mode copy in the quest route", () => {
@@ -27,7 +27,7 @@ describe("account mode badge UI", () => {
     expect(questSource).toContain("evaluation.accountWarnings");
     expect(questSource).toContain("evaluation.bank.notApplicable");
     expect(questSource).not.toContain("planningTone.itemCopy");
-    expect(pluginSource).toContain("foundPlanningTone.tripCopy");
+    expect(pluginSource).not.toContain("foundPlanningTone");
     expect(bankSource).toContain("ACCOUNT_MODE_ICON_ITEM_IDS.ironman");
     expect(bankSource).toContain("accountModePlanningTone(\"ironman\")");
   });

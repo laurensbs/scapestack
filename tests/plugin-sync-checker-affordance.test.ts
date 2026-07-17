@@ -5,68 +5,69 @@ import { describe, expect, it } from "vitest";
 const source = readFileSync(join(process.cwd(), "src/components/plugin-sync-checker.tsx"), "utf8");
 
 describe("plugin sync checker affordance", () => {
-  it("labels the RSN verifier as a real RuneLite sync form", () => {
+  it("keeps a labelled RSN form only for accounts that need it", () => {
     expect(source).toContain('const rsnHelpId = "plugin-sync-rsn-help";');
     expect(source).toContain('const rsnStatusId = "plugin-sync-rsn-status";');
     expect(source).toContain('htmlFor="plugin-sync-rsn"');
     expect(source).toContain('id="plugin-sync-rsn"');
     expect(source).toContain('name="rsn"');
-    expect(source).toContain('type="text"');
     expect(source).toContain("maxLength={12}");
-    expect(source).toContain('autoComplete="off"');
-    expect(source).toContain("spellCheck={false}");
-    expect(source).toContain("aria-describedby={`${rsnHelpId} ${rsnStatusId}`}");
-    expect(source).toContain("Same display name as RuneLite");
-    expect(source).toContain("Max 12 characters");
+    expect(source).toContain('aria-describedby={`${helpId} ${statusId}`}');
+    expect(source).toContain("Same display name as RuneLite. Max 12 characters.");
+    expect(source).toContain("Use another RSN");
   });
 
-  it("announces checker state and names every verifier action by RSN", () => {
+  it("automatically checks URL, active or saved RSN in that order", () => {
+    expect(source).toContain('const fromUrl = params.get("rsn")?.trim() ?? "";');
+    expect(source).toContain('const active = getActiveAccount()?.rsn?.trim() ?? "";');
+    expect(source).toContain("const initialRsn = fromUrl || active || saved;");
+    expect(source).toContain('checkRsnValue(initialRsn, fromUrl ? "url" : active ? "active" : "saved")');
+    expect(source).toContain("window.addEventListener(ACCOUNT_EVENT, handleAccountChange)");
+    expect(source).toContain('if (!active) {');
+    expect(source).toContain('setRsn("")');
+    expect(source).toContain("requestIdRef.current += 1");
+  });
+
+  it("ignores an older check after the player switches account", () => {
+    expect(source).toContain("const requestId = ++requestIdRef.current");
+    expect(source).toContain("if (requestId !== requestIdRef.current) return;");
+  });
+
+  it("announces checks and names refresh actions by account", () => {
     expect(source).toContain('role="status"');
     expect(source).toContain("Checking RuneLite for");
-    expect(source).toContain("Ready to check RuneLite for");
     expect(source).toContain("Enter an OSRS name to check RuneLite.");
-    expect(source).toContain("aria-label={normalized ? `Check RuneLite for ${normalized}` : \"Enter an OSRS name before checking RuneLite\"}");
-    expect(source).toContain("aria-label={`Re-check RuneLite sync for ${state.rsn} after logging in`}");
-    expect(source).toContain("aria-label={`Re-check RuneLite sync for ${foundDisplayName}`}");
+    expect(source).toContain('aria-label={`Re-check RuneLite sync for ${state.rsn} after pressing Sync now`}');
+    expect(source).toContain('aria-label={`Refresh RuneLite status for ${foundDisplayName}`}');
   });
 
-  it("keeps found-sync actions to open next or check again", () => {
-    expect(source).toContain("RuneLite is helping your next trip");
-    expect(source).toContain("Open one plan that skips finished quests");
-    expect(source).toContain("Open one plan");
-    expect(source).toContain("Check again");
-    expect(source).toContain("markAccountPluginBankStatus(clean, next.player.bankStatus)");
-    expect(source).toContain("const foundPluginBankReady = state.kind === \"found\" && state.player.bankStatus.enabled && state.player.bankStatus.itemCount > 0;");
-    expect(source).toContain('${foundPluginBankReady ? "" : "&bank=none"}');
-    expect(source).not.toContain("formatPluginSyncSessionChecklist");
-    expect(source).not.toContain("Copy checklist");
-    expect(source).not.toContain("Copy proof");
-    expect(source).not.toContain("Manual sync proof fallback");
+  it("uses one connected-state story instead of status chips", () => {
+    expect(source).toContain("pluginConnectionView(state.player)");
+    expect(source).toContain("{connection.title}");
+    expect(source).toContain("{connection.scanLabel}");
+    expect(source).toContain("{connection.changedLine}");
+    expect(source).toContain("{connection.bankLine}");
+    expect(source).toContain("Open next plan");
+    expect(source).not.toContain("AccountModeBadge");
+    expect(source).not.toContain("Slayer task ready");
+    expect(source).not.toContain("ServiceReadinessPill");
   });
 
-  it("shows only the sync status chips players need", () => {
-    expect(source).toContain("{syncScanLabel(state.player.syncedAt)}");
-    expect(source).toContain("Bank synced:");
-    expect(source).not.toContain("{state.player.questsCompleted.length} quests");
-    expect(source).not.toContain("{state.player.diariesCompleted.length} diary tiers");
-    expect(source).not.toContain("{state.player.collectionLogItemIds.length.toLocaleString()} log items");
-    expect(source).toContain("Slayer task ready");
-    expect(source).not.toContain('data-testid="plugin-sync-receipt"');
-    expect(source).not.toContain("RuneLite sync receipt");
-    expect(source).not.toContain("Add bank context");
+  it("clears false local connection state when no scan exists", () => {
+    expect(source).toContain('if (next.kind === "missing")');
+    expect(source).toContain("clearRuneliteChecked(clean)");
+    expect(source).toContain("markAccountPluginBankStatus(clean, null)");
+    expect(source).toContain('title="Press Sync now"');
+    expect(source).toContain("install or enable Scapestack Sync, then press Sync now");
+    expect(source).toContain("<RuneliteOpenButton compact />");
   });
 
-  it("makes missing-sync recovery a direct RuneLite setup path", () => {
-    expect(source).not.toContain('fetch("/api/plugin-hub/status"');
-    expect(source).not.toContain("scapestackPluginHubStateFromStatus(body)");
-    expect(source).not.toContain("Plugin Hub review handoff is blocked");
-    expect(source).not.toContain("Open plugin review status");
-    expect(source).not.toContain("canShowMissingSetup");
-    expect(source).not.toContain("review-readiness");
-    expect(source).toContain("Press Sync now, then check again");
+  it("hides service commands behind explicit technical troubleshooting", () => {
+    expect(source).toContain("Technical troubleshooting");
+    expect(source).toContain("Copy service setup command");
+    expect(source).toContain("This is not a RuneLite account problem.");
+    expect(source.indexOf("Technical troubleshooting")).toBeLessThan(source.indexOf("Copy service setup command"));
     expect(source).not.toContain("Copy scapestack.org sync URL");
-    expect(source).not.toContain("Sync URL copied");
-    expect(source).not.toContain("Copy claim URL");
-    expect(source).toContain('state.kind === "unconfigured" && diagnostic');
+    expect(source).not.toContain("LOCAL_SYNC_URL");
   });
 });

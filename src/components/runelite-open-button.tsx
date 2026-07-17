@@ -9,7 +9,7 @@ const PLUGIN_SEARCH = "Scapestack Sync";
 const RUNELITE_PROTOCOL_URL = "runelite://";
 const RUNELITE_PLUGIN_HUB_URL = "https://runelite.net/plugin-hub/show/scapestack-sync";
 
-export function RuneliteOpenButton({ className }: { className?: string }) {
+export function RuneliteOpenButton({ className, compact = false }: { className?: string; compact?: boolean }) {
   const [state, setState] = useState<"idle" | "opening" | "copied" | "error">("idle");
 
   const openRunelite = async () => {
@@ -31,17 +31,23 @@ export function RuneliteOpenButton({ className }: { className?: string }) {
   };
 
   return (
-    <div className={cn("flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center", className)}>
+    <div className={cn("flex flex-col gap-2", !compact && "sm:flex-row sm:flex-wrap sm:items-center", className)}>
       <button
         type="button"
         onClick={openRunelite}
-        className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-accent)] px-4 py-3 text-[13px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110"
+        className={cn(
+          "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--color-accent)] px-4 py-3 text-[13px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110",
+          compact && "w-full"
+        )}
         aria-label="Open RuneLite and copy Scapestack Sync plugin search"
       >
         <PlugZap className="size-4" />
         Open RuneLite
       </button>
-      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
+      <div className={cn(
+        "flex min-w-0 flex-1 flex-wrap items-center gap-2 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]",
+        compact && state === "idle" && "sr-only"
+      )}>
         <span role="status" aria-live="polite" className="inline-flex min-w-0 items-center gap-1">
           {state === "opening" ? (
             <>

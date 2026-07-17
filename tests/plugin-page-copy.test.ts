@@ -4,25 +4,22 @@ import { join } from "node:path";
 import { pluginContextFromSearchParams, pluginHeroActions } from "@/app/plugin/page";
 
 describe("plugin page copy constants", () => {
-  it("keeps the player sync flow focused on RSN, .org sync and next actions", () => {
+  it("keeps the player sync flow focused on the active account and one status", () => {
     const pageSource = readFileSync(join(process.cwd(), "src/app/plugin/page.tsx"), "utf8");
 
-    expect(pageSource).toContain("Check RuneLite.");
-    expect(pageSource).toContain("Open a cleaner trip.");
-    expect(pageSource).toContain("No login");
-    expect(pageSource).toContain("Bank can be turned off");
-    expect(pageSource).toContain("No screenshots");
-    expect(pageSource).toContain("PluginTrustPill");
-    expect(pageSource).toContain("Check RuneLite");
-    expect(pageSource).toContain("Open one plan");
-    expect(pageSource).toContain("Setup help");
-    expect(pageSource).toContain("Normal setup");
-    expect(pageSource).toContain("The plugin connects to Scapestack automatically; open your bank once when you want item checks included.");
-    expect(pageSource).toContain("PLAYER_SYNC_CHOICES");
-    expect(pageSource).toContain("Press Sync now once");
-    expect(pageSource).toContain("Turn on Sync on login");
-    expect(pageSource).toContain("Open bank once");
-    expect(pageSource).toContain("Refresh after quests");
+    expect(pageSource).toContain("Keep your next trip current.");
+    expect(pageSource).toContain("Scapestack checks your active account automatically.");
+    expect(pageSource).toContain("PluginSyncChecker");
+    expect(pageSource).toContain("What RuneLite shares");
+    expect(pageSource).toContain("optional bank stacks");
+    expect(pageSource).toContain("Sync on login is optional and off by default.");
+    expect(pageSource).toContain("Bank can be turned off at any time.");
+    expect(pageSource).toContain("No RuneScape password, chat, screenshots, clicks, inventory or equipped items.");
+    expect(pageSource).not.toContain("Setup help");
+    expect(pageSource).not.toContain("Normal setup");
+    expect(pageSource).not.toContain("PLAYER_SYNC_CHOICES");
+    expect(pageSource).not.toContain("After Sync now");
+    expect(pageSource).not.toContain("Privacy and fixes");
     expect(pageSource).not.toContain("Developer/self-hosting endpoint");
     expect(pageSource).not.toContain("Copy developer endpoint");
     expect(pageSource).not.toContain("PUBLIC_SYNC_URL");
@@ -30,22 +27,6 @@ describe("plugin page copy constants", () => {
     expect(pageSource).not.toContain("Copy sync URL");
     expect(pageSource).not.toContain("Scapestack link");
     expect(pageSource).not.toContain("scapestack.app");
-    expect(pageSource).toContain("PluginSyncChecker");
-    expect(pageSource).toContain("RuneliteOpenButton");
-    expect(pageSource).toContain("Open one plan");
-    expect(pageSource).toContain("After Sync now");
-    expect(pageSource).toContain("Open one plan that skips finished stuff.");
-    expect(pageSource).toContain("Press Sync now in RuneLite.");
-    expect(pageSource).toContain("Open your bank before syncing when gear should change the trip.");
-    expect(pageSource).not.toContain("Sync found? Pick a route.");
-    expect(pageSource).not.toContain("POST_SYNC_ACTIONS");
-    expect(pageSource).toContain("Privacy and fixes");
-    expect(pageSource).toContain("RuneLite adds");
-    expect(pageSource).toContain("Never reads");
-    expect(pageSource).toContain("No credentials");
-    expect(pageSource).toContain("Nothing showing?");
-    expect(pageSource).not.toContain("After a successful sync");
-    expect(pageSource).not.toContain("Turn sync into the next thing to do.");
   });
 
   it("offers a RuneLite open button without pretending browser search is guaranteed", () => {
@@ -142,36 +123,27 @@ describe("plugin page copy constants", () => {
     });
   });
 
-  it("does not tell players that enabling the plugin alone is enough to sync", () => {
+  it("ties status to the active account and hides technical recovery", () => {
     const checkerSource = readFileSync(join(process.cwd(), "src/components/plugin-sync-checker.tsx"), "utf8");
-    const diagnosticsSource = readFileSync(join(process.cwd(), "src/lib/plugin-sync-diagnostics.ts"), "utf8");
 
-    expect(checkerSource).not.toContain("plugin enabled, confirm the Sync URL");
-    expect(checkerSource).not.toContain("if this finds your RSN, /next can use exact account state");
-    expect(diagnosticsSource).not.toContain("Scapestack Sync enabled.");
-    expect(diagnosticsSource).toContain("Enable “Sync on login”");
-    expect(checkerSource).toContain("RuneLite can remember finished quests");
-    expect(checkerSource).toContain("RuneLite is helping your next trip");
-    expect(checkerSource).toContain("Open one plan that skips finished quests");
-    expect(checkerSource).toContain("Slayer task ready");
-    expect(checkerSource).not.toContain("Sync details");
-    expect(checkerSource).not.toContain("/next sync signals");
-    expect(checkerSource).not.toContain("Session action queue");
-    expect(checkerSource).not.toContain("actionQueueForSyncedPlayer");
-    expect(checkerSource).not.toContain("syncUrlsForOrigin(syncOrigin)");
-    expect(checkerSource).not.toContain("LOCAL_SYNC_URL");
-    expect(checkerSource).not.toContain("LOCAL_SYNC_CLAIM_URL");
-    expect(diagnosticsSource).toContain("Press Sync now, then check this RSN again.");
-    expect(diagnosticsSource).toContain("Enable “Sync on login”");
+    expect(checkerSource).toContain("getActiveAccount()?.rsn");
+    expect(checkerSource).toContain("ACCOUNT_EVENT");
+    expect(checkerSource).toContain('checkRsnValue(initialRsn, fromUrl ? "url" : active ? "active" : "saved")');
+    expect(checkerSource).toContain("clearRuneliteChecked(clean)");
+    expect(checkerSource).toContain("Technical troubleshooting");
+    expect(checkerSource).toContain("Service setup is incomplete. This is not a RuneLite account problem.");
+    expect(checkerSource).not.toContain("ServiceReadinessPill");
   });
 
-  it("keeps synced player success as status and next action only", () => {
+  it("keeps a connected player on status, change, bank and next action only", () => {
     const checkerSource = readFileSync(join(process.cwd(), "src/components/plugin-sync-checker.tsx"), "utf8");
 
-    expect(checkerSource).toContain("Open one plan");
-    expect(checkerSource).toContain("Check again");
-    expect(checkerSource).toContain("{syncScanLabel(state.player.syncedAt)}");
-    expect(checkerSource).toContain("Bank synced:");
+    expect(checkerSource).toContain("pluginConnectionView(state.player)");
+    expect(checkerSource).toContain("{connection.scanLabel}");
+    expect(checkerSource).toContain("{connection.changedLine}");
+    expect(checkerSource).toContain("{connection.bankLine}");
+    expect(checkerSource).toContain("Open next plan");
+    expect(checkerSource).toContain("Check for a newer scan");
     expect(checkerSource).not.toContain("formatPluginSyncProof");
     expect(checkerSource).not.toContain("Copy proof");
     expect(checkerSource).not.toContain("Proof copied");

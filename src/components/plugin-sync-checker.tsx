@@ -2,32 +2,24 @@
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { AlertTriangle, ArrowRight, CheckCircle2, DatabaseZap, RefreshCw, Search, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, ChevronDown, RefreshCw, Search } from "lucide-react";
 import { pluginSyncStatusAction } from "@/app/actions";
-import { AccountModeBadge } from "@/components/account-mode-badge";
 import { CopyCommand } from "@/components/copy-command";
 import { RuneliteOpenButton } from "@/components/runelite-open-button";
-import type { SyncedPlayer } from "@/lib/sync-repo";
-import { accountModePlanningTone, normalizeScapestackAccountType, scapestackAccountTypeToPlannerType } from "@/lib/account-type";
-import { pluginSyncHealth } from "@/lib/plugin-sync";
-import { markAccountPluginBankStatus, markRuneliteChecked } from "@/lib/account-storage";
-import { pluginBankStatusLabel } from "@/lib/plugin-bank-status";
 import {
-  diagnosticForUnconfiguredSync,
-  healthLabel,
-  type PluginSyncDiagnostic
-} from "@/lib/plugin-sync-diagnostics";
-import { syncMemoryLines } from "@/lib/next-plugin-sync-summary";
-import { PLUGIN_VERIFY_SYNC_HASH } from "@/lib/plugin-bank-bridge";
-import { DB_INIT_COMMAND } from "@/lib/plugin-sync-actions";
-import { cn } from "@/lib/utils";
-import {
-  summarizePluginSyncService,
-  type PluginSyncServiceStatus,
-  type PluginSyncServiceSummary
-} from "@/lib/plugin-sync-service";
-import { loadSavedRsn, saveSavedRsn } from "@/lib/saved-bank";
+  ACCOUNT_EVENT,
+  clearRuneliteChecked,
+  getActiveAccount,
+  markAccountPluginBankStatus,
+  markRuneliteChecked
+} from "@/lib/account-storage";
 import { track } from "@/lib/analytics";
+import { PLUGIN_VERIFY_SYNC_HASH } from "@/lib/plugin-bank-bridge";
+import { pluginConnectionView } from "@/lib/plugin-connection-view";
+import { DB_INIT_COMMAND } from "@/lib/plugin-sync-actions";
+import type { SyncedPlayer } from "@/lib/sync-repo";
+import { cn } from "@/lib/utils";
+import { loadSavedRsn, saveSavedRsn } from "@/lib/saved-bank";
 
 type CheckState =
   | { kind: "idle" }
@@ -36,460 +28,374 @@ type CheckState =
   | { kind: "unconfigured" }
   | { kind: "error"; message: string };
 
-function syncScanLabel(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "Last scan: unknown";
-  const value = new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-  }).format(date);
-  return `Last scan: ${value}`;
-}
+type CheckSource = "manual" | "url" | "active" | "saved" | "refresh";
 
 export function PluginSyncChecker() {
   const [rsn, setRsn] = useState("");
-  const [prefillSource, setPrefillSource] = useState<"url" | "saved" | null>(null);
   const [state, setState] = useState<CheckState>({ kind: "idle" });
-  const [serviceStatus, setServiceStatus] = useState<PluginSyncServiceStatus | null>(null);
-  const [serviceError, setServiceError] = useState<string | null>(null);
-  const [syncOrigin, setSyncOrigin] = useState<string | null>(null);
+  const [editingRsn, setEditingRsn] = useState(false);
   const [pending, startTransition] = useTransition();
-  const autoCheckStarted = useRef(false);
+  const initialCheckStarted = useRef(false);
+  const requestIdRef = useRef(0);
+  const rsnRef = useRef("");
 
   const normalized = rsn.trim();
   const rsnHelpId = "plugin-sync-rsn-help";
   const rsnStatusId = "plugin-sync-rsn-status";
-  const serviceSummary = useMemo<PluginSyncServiceSummary>(() => {
-    if (serviceError) {
-      return {
-        tone: "warning",
-        label: "RuneLite check paused",
-        detail: "Try again in a moment. /next still works from your OSRS name.",
-        actions: []
-      };
-    }
-    return summarizePluginSyncService(serviceStatus, syncOrigin);
-  }, [serviceError, serviceStatus, syncOrigin]);
-  const summary = useMemo(() => {
-    if (state.kind !== "found") return null;
-    const health = pluginSyncHealth({
-      pluginVersion: state.player.pluginVersion,
-      syncedAt: state.player.syncedAt
-    });
-    return {
-      health,
-      label: healthLabel(health),
-      tone: health === "live" ? "good" : health === "stale" ? "warning" : "danger"
-    };
-  }, [state]);
-  const diagnostic = useMemo((): PluginSyncDiagnostic | null => {
-    if (state.kind === "unconfigured") return diagnosticForUnconfiguredSync();
-    return null;
-  }, [state]);
-  const foundDisplayName = state.kind === "found" ? state.player.displayName || state.player.rsn : "";
-  const foundPluginBankReady = state.kind === "found" && state.player.bankStatus.enabled && state.player.bankStatus.itemCount > 0;
-  const foundAccountType = state.kind === "found"
-    ? scapestackAccountTypeToPlannerType(normalizeScapestackAccountType(state.player.accountType))
-    : null;
-  const foundPlanningTone = foundAccountType ? accountModePlanningTone(foundAccountType) : null;
+  const connection = useMemo(
+    () => state.kind === "found" ? pluginConnectionView(state.player) : null,
+    [state]
+  );
+  const foundDisplayName = state.kind === "found" ? state.player.displayName || state.player.rsn : normalized;
+  const foundPluginBankReady = state.kind === "found"
+    && state.player.bankStatus.enabled
+    && state.player.bankStatus.itemCount > 0;
   const foundNextHref = foundDisplayName
     ? `/next?rsn=${encodeURIComponent(foundDisplayName)}&from=plugin${foundPluginBankReady ? "" : "&bank=none"}`
-    : `/next?from=plugin${foundPluginBankReady ? "" : "&bank=none"}`;
-  const foundMemoryLines = state.kind === "found" ? syncMemoryLines(state.player.lastSyncSummary) : [];
+    : "/next?from=plugin&bank=none";
 
   useEffect(() => {
-    setSyncOrigin(window.location.origin);
-  }, []);
+    rsnRef.current = normalized;
+  }, [normalized]);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function loadServiceStatus() {
-      try {
-        const response = await fetch("/api/sync", { cache: "no-store" });
-        const body = await response.json() as PluginSyncServiceStatus;
-        if (!cancelled) setServiceStatus(body);
-      } catch (error) {
-        if (!cancelled) {
-          setServiceError(error instanceof Error ? error.message : "Unable to check sync service");
-          track("runelite:sync_failure", {
-            reason: "service_error",
-            source: "service_probe"
-          }, { dedupeKey: "runelite-service-probe-failure" });
-        }
-      }
-    }
-    void loadServiceStatus();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const checkRsnValue = useCallback((
-    value: string,
-    source: "manual" | "url" | "saved" = "manual"
-  ) => {
-    const clean = value.trim();
+  const checkRsnValue = useCallback((value: string, source: CheckSource = "manual") => {
+    const clean = value.trim().slice(0, 12);
     if (!clean) return;
+    const requestId = ++requestIdRef.current;
+    const analyticsSource = source === "active" ? "saved" : source === "refresh" ? "manual" : source;
+    rsnRef.current = clean;
+    setRsn(clean);
+    setEditingRsn(false);
     startTransition(async () => {
       try {
         const next = await pluginSyncStatusAction(clean);
+        if (requestId !== requestIdRef.current) return;
         setState(next);
-        if (next.kind === "unconfigured") {
-          track("runelite:sync_failure", { reason: "unconfigured", source });
-        } else if (next.kind === "missing") {
-          track("runelite:sync_failure", { reason: "not_found", source });
-        } else {
-          const health = pluginSyncHealth({ pluginVersion: next.player.pluginVersion, syncedAt: next.player.syncedAt });
+        saveSavedRsn(clean);
+
+        if (next.kind === "found") {
+          const syncedAt = new Date(next.player.syncedAt).getTime();
+          markRuneliteChecked(clean, Number.isFinite(syncedAt) ? syncedAt : Date.now());
+          markAccountPluginBankStatus(clean, next.player.bankStatus);
+          const view = pluginConnectionView(next.player);
           track("runelite:sync_success", {
             result: "found",
-            fresh: health === "live",
+            fresh: view.health === "live",
             bankReady: next.player.bankStatus.enabled && next.player.bankStatus.itemCount > 0,
-            source
+            source: analyticsSource
           });
+          return;
         }
-        if (next.kind !== "unconfigured") {
-          saveSavedRsn(clean);
-          if (next.kind === "found") {
-            const syncedAt = new Date(next.player.syncedAt).getTime();
-            markRuneliteChecked(clean, Number.isFinite(syncedAt) ? syncedAt : Date.now());
-            markAccountPluginBankStatus(clean, next.player.bankStatus);
-          } else {
-            markRuneliteChecked(clean);
-          }
+
+        if (next.kind === "missing") {
+          clearRuneliteChecked(clean);
+          markAccountPluginBankStatus(clean, null);
+          track("runelite:sync_failure", { reason: "not_found", source: analyticsSource });
+          return;
         }
-      } catch (err) {
-        track("runelite:sync_failure", { reason: "request_error", source });
+
+        if (next.kind === "unconfigured") {
+          track("runelite:sync_failure", { reason: "unconfigured", source: analyticsSource });
+        }
+      } catch (error) {
+        if (requestId !== requestIdRef.current) return;
+        track("runelite:sync_failure", { reason: "request_error", source: analyticsSource });
         setState({
           kind: "error",
-          message: err instanceof Error ? err.message : "RuneLite check failed"
+          message: error instanceof Error ? error.message : "RuneLite check failed"
         });
       }
     });
-  }, [startTransition]);
+  }, []);
 
   useEffect(() => {
-    if (autoCheckStarted.current) return;
+    if (initialCheckStarted.current) return;
+    initialCheckStarted.current = true;
     const params = new URLSearchParams(window.location.search);
-    const rsnFromUrl = params.get("rsn")?.trim() ?? "";
-    const savedRsn = loadSavedRsn()?.trim() ?? "";
-    const initialRsn = rsnFromUrl || savedRsn;
+    const fromUrl = params.get("rsn")?.trim() ?? "";
+    const active = getActiveAccount()?.rsn?.trim() ?? "";
+    const saved = loadSavedRsn()?.trim() ?? "";
+    const initialRsn = fromUrl || active || saved;
     if (!initialRsn) return;
-
-    setRsn(initialRsn);
-    setPrefillSource(rsnFromUrl ? "url" : "saved");
-    if (rsnFromUrl) {
-      autoCheckStarted.current = true;
-      checkRsnValue(rsnFromUrl, "url");
-    }
+    checkRsnValue(initialRsn, fromUrl ? "url" : active ? "active" : "saved");
   }, [checkRsnValue]);
 
-  const runCheck = (event: FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    const handleAccountChange = () => {
+      const active = getActiveAccount()?.rsn?.trim() ?? "";
+      if (!active) {
+        requestIdRef.current += 1;
+        rsnRef.current = "";
+        setRsn("");
+        setState({ kind: "idle" });
+        setEditingRsn(false);
+        return;
+      }
+      if (active.toLowerCase() === rsnRef.current.toLowerCase()) return;
+      setState({ kind: "idle" });
+      checkRsnValue(active, "active");
+    };
+    window.addEventListener(ACCOUNT_EVENT, handleAccountChange);
+    return () => window.removeEventListener(ACCOUNT_EVENT, handleAccountChange);
+  }, [checkRsnValue]);
+
+  const submitRsn = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    checkCurrentRsn();
+    checkRsnValue(normalized, "manual");
   };
 
-  const checkCurrentRsn = () => {
-    checkRsnValue(normalized, prefillSource === "saved" ? "saved" : prefillSource === "url" ? "url" : "manual");
-  };
+  const refresh = () => checkRsnValue(normalized, "refresh");
 
   return (
-    <section id={PLUGIN_VERIFY_SYNC_HASH} className="mt-6 scroll-mt-16 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/75 p-5 sm:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">RuneLite memory</div>
-          <h2 className="mt-1 text-[22px] font-bold tracking-normal text-[var(--color-text)]">
-            Check RuneLite
-          </h2>
-          <p className="mt-2 max-w-2xl text-[13.5px] leading-relaxed text-[var(--color-text-dim)]">
-            Same RSN as RuneLite. Found it? Open one cleaner trip.
-          </p>
-          <div className="mt-3">
-            <RuneliteOpenButton />
+    <section
+      id={PLUGIN_VERIFY_SYNC_HASH}
+      className="osrs-frame mt-6 scroll-mt-16 overflow-hidden"
+      aria-label="RuneLite connection"
+    >
+      <div className="px-5 py-5 sm:px-7 sm:py-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="eyebrow text-[var(--color-accent)]">RuneLite</p>
+            <h2 className="mt-1 font-serif text-[28px] font-bold leading-tight text-[var(--color-text)] sm:text-[34px]">
+              {normalized ? `For ${normalized}` : "Connect your account"}
+            </h2>
           </div>
+          {normalized && (
+            <button
+              type="button"
+              onClick={() => setEditingRsn((value) => !value)}
+              className="min-h-10 rounded-lg border border-[var(--color-border)] px-3 text-[12px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-text)]"
+            >
+              Use another RSN
+            </button>
+          )}
         </div>
-        {summary && (
-          <div className={cn(
-            "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] font-bold",
-            summary.tone === "good" && "border-[var(--color-good)]/30 bg-[var(--color-good)]/10 text-[var(--color-good)]",
-            summary.tone === "warning" && "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 text-[var(--color-warning)]",
-            summary.tone === "danger" && "border-[var(--color-danger)]/30 bg-[var(--color-danger)]/10 text-[var(--color-danger)]"
-          )}>
-            {summary.tone === "good" ? <CheckCircle2 className="size-4" /> : <AlertTriangle className="size-4" />}
-            {summary.label}
-          </div>
+
+        {(!normalized || editingRsn) && (
+          <RsnForm
+            rsn={rsn}
+            pending={pending}
+            helpId={rsnHelpId}
+            statusId={rsnStatusId}
+            onChange={(value) => setRsn(value)}
+            onSubmit={submitRsn}
+          />
         )}
-      </div>
 
-      <ServiceReadinessPill summary={serviceSummary} />
+        <p id={rsnStatusId} role="status" aria-live="polite" className="sr-only">
+          {pending
+            ? `Checking RuneLite for ${normalized || "this RSN"}.`
+            : normalized
+              ? `RuneLite status shown for ${normalized}.`
+              : "Enter an OSRS name to check RuneLite."}
+        </p>
 
-      <form onSubmit={runCheck} className="mt-5 flex flex-col sm:flex-row gap-2">
-        <label className="sr-only" htmlFor="plugin-sync-rsn">OSRS name</label>
-        <input
-          id="plugin-sync-rsn"
-          name="rsn"
-          type="text"
-          value={rsn}
-          onChange={(event) => {
-            setRsn(event.target.value);
-            setPrefillSource(null);
-          }}
-          placeholder="Type your OSRS name"
-          maxLength={12}
-          autoComplete="off"
-          spellCheck={false}
-          aria-describedby={`${rsnHelpId} ${rsnStatusId}`}
-          className="min-w-0 flex-1 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 text-[14px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-accent)]/55 focus:shadow-[0_0_0_3px_rgba(134, 166, 217,0.12)]"
-        />
-        <button
-          type="submit"
-          disabled={pending || !normalized}
-          aria-label={normalized ? `Check RuneLite for ${normalized}` : "Enter an OSRS name before checking RuneLite"}
-          aria-describedby={`${rsnHelpId} ${rsnStatusId}`}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-accent)] px-4 py-3 text-[13px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-55"
-        >
-          <Search className="size-4" />
-          {pending ? "Checking…" : "Check RuneLite"}
-        </button>
-      </form>
-      <p id={rsnHelpId} className="mt-2 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
-        Same display name as RuneLite. Max 12 characters.
-      </p>
-      <p id={rsnStatusId} role="status" aria-live="polite" className="sr-only">
-        {pending
-          ? `Checking RuneLite for ${normalized || "this RSN"}.`
-          : normalized
-            ? `Ready to check RuneLite for ${normalized}.`
-            : "Enter an OSRS name to check RuneLite."}
-      </p>
+        {pending && <CheckingState rsn={normalized} />}
 
-      {prefillSource && normalized && (
-        <div className="mt-2 rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 px-3 py-2 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
-          {prefillSource === "url"
-            ? `Checking ${normalized} from /next.`
-            : `Loaded ${normalized}. Press Check RuneLite.`}
-        </div>
-      )}
-
-      <div className="mt-4">
-        {state.kind === "idle" && (
-          <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-4 py-3 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-            RuneLite can remember finished quests, diary tiers, clog slots, Slayer and your bank after you sync.
+        {!pending && state.kind === "idle" && normalized && (
+          <div className="mt-5 border-t border-[var(--color-border)] pt-5">
+            <p className="text-[14px] font-bold text-[var(--color-text)]">Ready to check RuneLite</p>
+            <button type="button" onClick={refresh} className="btn-primary mt-3 min-h-11 px-4 text-[13px]">
+              <Search className="size-4" />
+              Check RuneLite
+            </button>
           </div>
         )}
 
-        {state.kind === "missing" && (
-          <div className="rounded-xl border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-4 py-3">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div className="flex min-w-0 items-start gap-2">
-                <XCircle className="mt-0.5 size-4 shrink-0 text-[var(--color-warning)]" />
-                <div className="min-w-0">
-                  <div className="text-[13px] font-bold text-[var(--color-warning)]">Press Sync now, then check again</div>
-                  <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                    No RuneLite scan found for {state.rsn}.
-                  </p>
-                </div>
-              </div>
-              <div className="shrink-0">
-                <button
-                  type="button"
-                  onClick={checkCurrentRsn}
-                  disabled={pending}
-                  aria-label={`Re-check RuneLite sync for ${state.rsn} after logging in`}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-semibold text-[var(--color-warning)] hover:bg-[var(--color-warning)]/10 transition-colors disabled:opacity-50"
-                >
-                  <RefreshCw className={cn("size-3.5", pending && "animate-spin")} />
-                  Check again
-                </button>
+        {!pending && state.kind === "missing" && (
+          <ConnectionActionState
+            icon={<AlertTriangle className="size-5" />}
+            title="Press Sync now"
+            body={`No RuneLite scan is connected to ${state.rsn} yet. Open RuneLite, install or enable Scapestack Sync, then press Sync now.`}
+            tone="warning"
+          >
+            <RuneliteOpenButton compact />
+            <button
+              type="button"
+              onClick={refresh}
+              aria-label={`Re-check RuneLite sync for ${state.rsn} after pressing Sync now`}
+              className="btn-ghost min-h-11 justify-center px-4 text-[13px]"
+            >
+              <RefreshCw className="size-4" />
+              Check again
+            </button>
+          </ConnectionActionState>
+        )}
+
+        {!pending && state.kind === "found" && connection && (
+          <div className="mt-5 border-t border-[var(--color-border)] pt-5">
+            <div className="flex items-start gap-3">
+              {connection.health === "live" ? (
+                <CheckCircle2 className="mt-1 size-6 shrink-0 text-[var(--color-accent)]" />
+              ) : (
+                <AlertTriangle className="mt-1 size-6 shrink-0 text-[var(--color-accent)]" />
+              )}
+              <div className="min-w-0 flex-1">
+                <h3 className="font-serif text-[25px] font-bold leading-tight text-[var(--color-text)]">
+                  {connection.title}
+                </h3>
+                <p className="mt-2 text-[14px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+                  {connection.instruction}
+                </p>
+                <p className="mt-4 text-[13px] font-bold text-[var(--color-text)]">{connection.scanLabel}</p>
+                <p className="mt-1 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+                  {connection.changedLine}
+                </p>
+                <p className="mt-1 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
+                  {connection.bankLine}
+                </p>
               </div>
             </div>
-          </div>
-        )}
 
-        {state.kind === "unconfigured" && (
-          <div className="rounded-xl border border-[var(--color-danger)]/30 bg-[var(--color-danger)]/10 px-4 py-3">
-            <div className="flex items-start gap-2">
-              <DatabaseZap className="mt-0.5 size-4 text-[var(--color-danger)] shrink-0" />
-              <div>
-                <div className="text-[13px] font-bold text-[var(--color-danger)]">RuneLite needs setup</div>
-                <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                  Finish setup, then check this RSN again. /next still works from your OSRS name.
-                </p>
-                <CopyCommand value={DB_INIT_COMMAND} label="Copy command" />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {state.kind === "error" && (
-          <div className="rounded-xl border border-[var(--color-danger)]/30 bg-[var(--color-danger)]/10 px-4 py-3 text-[12.5px] text-[var(--color-text-dim)]">
-            {state.message}
-          </div>
-        )}
-
-        {state.kind === "found" && (
-          <div className="rounded-xl border border-[var(--color-good)]/30 bg-[var(--color-good)]/10 px-4 py-3">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 text-[14px] font-bold text-[var(--color-good)]">
-                  <CheckCircle2 className="size-4 shrink-0" />
-                  RuneLite is helping your next trip
-                </div>
-                <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-                  {foundPlanningTone
-                    ? foundPlanningTone.tripCopy
-                    : "Open one plan that skips finished quests, diary steps, clog slots and wrong Slayer calls."}
-                </p>
-                <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-[var(--color-text-muted)]">
-                  <AccountModeBadge accountType={foundAccountType} confidence="detected" compact showSourceCopy />
-                  <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
-                    {syncScanLabel(state.player.syncedAt)}
-                  </span>
-                  {foundMemoryLines.slice(0, 2).map((line) => (
-                    <span key={line} className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
-                      {line}
-                    </span>
-                  ))}
-                  <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
-                    {state.player.bankStatus.itemCount > 0
-                      ? `Bank synced: ${state.player.bankStatus.itemCount.toLocaleString()} stacks`
-                      : pluginBankStatusLabel(state.player.bankStatus)}
-                  </span>
-                  {state.player.slayer && (
-                    <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1">
-                      Slayer task ready
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="flex shrink-0 flex-wrap gap-2">
-                <Link
-                  href={foundNextHref}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3 py-2 text-[12px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110"
-                >
-                  Open one plan
-                  <ArrowRight className="size-3.5" />
+            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+              {connection.health === "live" ? (
+                <Link href={foundNextHref} className="btn-primary min-h-12 flex-1 justify-center px-4 text-[13px]">
+                  Open next plan
+                  <ArrowRight className="size-4" />
                 </Link>
-                <button
-                  type="button"
-                  onClick={checkCurrentRsn}
-                  disabled={pending}
-                  aria-label={`Re-check RuneLite sync for ${foundDisplayName}`}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)] disabled:opacity-50"
-                >
-                  <RefreshCw className={cn("size-3.5", pending && "animate-spin")} />
-                  Check again
-                </button>
-              </div>
+              ) : (
+                <RuneliteOpenButton compact className="flex-1" />
+              )}
+              <button
+                type="button"
+                onClick={refresh}
+                aria-label={`Refresh RuneLite status for ${foundDisplayName}`}
+                className="btn-ghost min-h-12 flex-1 justify-center px-4 text-[13px]"
+              >
+                <RefreshCw className="size-4" />
+                {connection.health === "live" ? "Check for a newer scan" : "Check again"}
+              </button>
             </div>
           </div>
         )}
 
-        {state.kind === "unconfigured" && diagnostic && (
-          <div className="mt-3">
-            <DiagnosticPanel diagnostic={diagnostic} />
-          </div>
+        {!pending && state.kind === "error" && (
+          <ConnectionError message={state.message} onRetry={refresh} />
+        )}
+
+        {!pending && state.kind === "unconfigured" && (
+          <ConnectionError
+            message="Scapestack cannot check RuneLite right now. Your next plan still works from your OSRS name."
+            onRetry={refresh}
+            technical
+          />
         )}
       </div>
     </section>
   );
 }
 
-function toneTextClass(tone: PluginSyncDiagnostic["tone"]): string {
-  if (tone === "good") return "text-[var(--color-good)]";
-  if (tone === "warning") return "text-[var(--color-warning)]";
-  if (tone === "danger") return "text-[var(--color-danger)]";
-  return "text-[var(--color-text)]";
-}
-
-function tonePanelClass(tone: PluginSyncDiagnostic["tone"]): string {
-  if (tone === "good") return "border-[var(--color-good)]/25 bg-[var(--color-good)]/10";
-  if (tone === "warning") return "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10";
-  if (tone === "danger") return "border-[var(--color-danger)]/25 bg-[var(--color-danger)]/10";
-  return "border-[var(--color-border)] bg-[var(--color-bg)]/35";
-}
-
-function serviceTonePanelClass(tone: PluginSyncServiceSummary["tone"]): string {
-  if (tone === "good") return "border-[var(--color-good)]/25 bg-[var(--color-good)]/10";
-  if (tone === "warning") return "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10";
-  if (tone === "danger") return "border-[var(--color-danger)]/25 bg-[var(--color-danger)]/10";
-  return "border-[var(--color-border)] bg-[var(--color-bg)]/35";
-}
-
-function serviceToneTextClass(tone: PluginSyncServiceSummary["tone"]): string {
-  if (tone === "good") return "text-[var(--color-good)]";
-  if (tone === "warning") return "text-[var(--color-warning)]";
-  if (tone === "danger") return "text-[var(--color-danger)]";
-  return "text-[var(--color-text)]";
-}
-
-function ServiceReadinessPill({ summary }: { summary: PluginSyncServiceSummary }) {
-  if (summary.tone === "good") return null;
-
-  const Icon = summary.tone === "danger" ? DatabaseZap : AlertTriangle;
-
+function RsnForm({
+  rsn,
+  pending,
+  helpId,
+  statusId,
+  onChange,
+  onSubmit
+}: {
+  rsn: string;
+  pending: boolean;
+  helpId: string;
+  statusId: string;
+  onChange: (value: string) => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+}) {
+  const normalized = rsn.trim();
   return (
-    <div className={cn("mt-4 flex items-start gap-2 rounded-xl border px-3 py-2.5", serviceTonePanelClass(summary.tone))}>
-      <Icon className={cn("mt-0.5 size-4 shrink-0", serviceToneTextClass(summary.tone))} />
+    <form onSubmit={onSubmit} className="mt-5 border-t border-[var(--color-border)] pt-5">
+      <label htmlFor="plugin-sync-rsn" className="text-[13px] font-bold text-[var(--color-text)]">OSRS name</label>
+      <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+        <input
+          id="plugin-sync-rsn"
+          name="rsn"
+          type="text"
+          value={rsn}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder="Type your OSRS name"
+          maxLength={12}
+          autoComplete="off"
+          spellCheck={false}
+          aria-describedby={`${helpId} ${statusId}`}
+          className="min-h-12 min-w-0 flex-1 rounded-xl border border-[var(--color-border)] bg-black/30 px-4 text-[15px] text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)]/55"
+        />
+        <button
+          type="submit"
+          disabled={pending || !normalized}
+          aria-label={normalized ? `Check RuneLite for ${normalized}` : "Enter an OSRS name before checking RuneLite"}
+          className="btn-primary min-h-12 justify-center px-5 text-[13px] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Search className="size-4" />
+          Check RuneLite
+        </button>
+      </div>
+      <p id={helpId} className="mt-2 text-[11.5px] text-[var(--color-text-muted)]">Same display name as RuneLite. Max 12 characters.</p>
+    </form>
+  );
+}
+
+function CheckingState({ rsn }: { rsn: string }) {
+  return (
+    <div className="mt-5 flex min-h-28 items-center gap-3 border-t border-[var(--color-border)] pt-5 text-[var(--color-text-dim)]">
+      <RefreshCw className="size-5 animate-spin text-[var(--color-accent)]" />
       <div>
-        <div className={cn("text-[12px] font-bold", serviceToneTextClass(summary.tone))}>
-          {summary.label}
-        </div>
-        <p className="mt-0.5 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
-          {summary.detail}
-        </p>
-        {summary.actions.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-2">
-            {summary.actions.map((action) => (
-              <CopyCommand key={action.label} value={action.copy} label={action.label} />
-            ))}
-          </div>
-        )}
+        <p className="text-[14px] font-bold text-[var(--color-text)]">Checking {rsn}</p>
+        <p className="mt-1 text-[12.5px]">Looking for the latest RuneLite scan.</p>
       </div>
     </div>
   );
 }
 
-function DiagnosticPanel({ diagnostic }: { diagnostic: PluginSyncDiagnostic }) {
+function ConnectionActionState({
+  icon,
+  title,
+  body,
+  tone,
+  children
+}: {
+  icon: React.ReactNode;
+  title: string;
+  body: string;
+  tone: "warning" | "danger";
+  children: React.ReactNode;
+}) {
   return (
-    <div className={cn("rounded-xl border px-4 py-3", tonePanelClass(diagnostic.tone))}>
-      <div className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-text-muted)]">
-        Fix
-      </div>
-      <h3 className="mt-1 text-[15px] font-bold text-[var(--color-text)]">{diagnostic.title}</h3>
-      <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">{diagnostic.body}</p>
-      <ol className="mt-3 grid gap-1.5 text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
-        {diagnostic.steps.map((step, index) => (
-          <li key={step} className="flex gap-2">
-            <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] text-[10px] font-bold text-[var(--color-text-muted)]">
-              {index + 1}
-            </span>
-            <span>{step}</span>
-          </li>
-        ))}
-      </ol>
-      {(diagnostic.primaryAction || diagnostic.secondaryAction) && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {[diagnostic.primaryAction, diagnostic.secondaryAction].filter(Boolean).map((action) => {
-            if (!action) return null;
-            if (action.copy) return <CopyCommand key={action.label} value={action.copy} label={action.label} />;
-            if (action.href) {
-              return (
-                <Link
-                  key={action.label}
-                  href={action.href}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3 py-2 text-[12px] font-bold text-[var(--color-bg)] hover:brightness-110 transition-all"
-                >
-                  {action.label}
-                  <ArrowRight className="size-3.5" />
-                </Link>
-              );
-            }
-            return null;
-          })}
+    <div className="mt-5 border-t border-[var(--color-border)] pt-5">
+      <div className={cn("flex items-start gap-3", tone === "danger" ? "text-[var(--color-danger)]" : "text-[var(--color-accent)]")}>
+        <span className="mt-0.5 shrink-0">{icon}</span>
+        <div>
+          <h3 className="font-serif text-[24px] font-bold leading-tight text-[var(--color-text)]">{title}</h3>
+          <p className="mt-2 max-w-2xl text-[13.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">{body}</p>
         </div>
-      )}
+      </div>
+      <div className="mt-5 flex flex-col gap-2 sm:flex-row">{children}</div>
     </div>
+  );
+}
+
+function ConnectionError({ message, onRetry, technical = false }: { message: string; onRetry: () => void; technical?: boolean }) {
+  return (
+    <ConnectionActionState
+      icon={<AlertTriangle className="size-5" />}
+      title="Could not check RuneLite"
+      body={message}
+      tone="danger"
+    >
+      <button type="button" onClick={onRetry} className="btn-primary min-h-11 justify-center px-4 text-[13px]">
+        <RefreshCw className="size-4" />
+        Try again
+      </button>
+      {technical && (
+        <details className="group w-full rounded-lg border border-[var(--color-border)] bg-black/20 px-3 sm:max-w-sm">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-[12px] font-bold text-[var(--color-text-dim)] marker:hidden">
+            Technical troubleshooting
+            <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="border-t border-[var(--color-border)] py-3">
+            <p className="text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">Service setup is incomplete. This is not a RuneLite account problem.</p>
+            <CopyCommand value={DB_INIT_COMMAND} label="Copy service setup command" />
+          </div>
+        </details>
+      )}
+    </ConnectionActionState>
   );
 }

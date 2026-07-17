@@ -11,7 +11,8 @@ const playerFacingSources = [
   "src/components/hero-intake.tsx",
   "src/app/next/next-client.tsx",
   "src/app/plugin/page.tsx",
-  "src/components/plugin-sync-checker.tsx"
+  "src/components/plugin-sync-checker.tsx",
+  "src/lib/plugin-connection-view.ts"
 ].map(read).join("\n");
 
 describe("Scapestack anti-bankstanding product contract", () => {
@@ -105,10 +106,11 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).toContain("Chill now");
     expect(next).toContain("accountStage={summary.accountStage}");
     expect(next).not.toContain("Bossing stays backup while this route has the cleaner stop point.");
-    expect(plugin).toContain("Open a cleaner trip.");
-    expect(plugin).toContain("No login");
+    expect(plugin).toContain("Keep your next trip current.");
+    expect(plugin).toContain("Scapestack checks your active account automatically.");
+    expect(plugin).toContain("Sync on login is optional and off by default.");
     expect(plugin).toContain("Bank can be turned off");
-    expect(plugin).toContain("No screenshots");
+    expect(plugin).toContain("No RuneScape password, chat, screenshots, clicks, inventory or equipped items.");
     expect(direction).toContain("anti-bankstanding");
     expect(direction).toContain("one thing to do first");
     expect(direction).toContain("Critical Audit");
@@ -146,12 +148,14 @@ describe("Scapestack anti-bankstanding product contract", () => {
   });
 
   it("keeps RuneLite as quiet intelligence instead of the main task", () => {
-    expect(playerFacingSources).toContain("RuneLite can remember finished quests");
+    expect(playerFacingSources).toContain("One scan keeps finished progress out");
     expect(playerFacingSources).toContain("Skips finished quests, diaries, clog slots and Slayer mistakes.");
     expect(playerFacingSources).toContain("Finished quests, diary steps, clog slots and Slayer mistakes are skipped.");
     expect(playerFacingSources).toContain("Last scan:");
     expect(playerFacingSources).toContain("RuneLite can improve picks later.");
     expect(playerFacingSources).toContain("Check RuneLite");
+    expect(playerFacingSources).toContain("Open next plan");
+    expect(playerFacingSources).toContain("First scan saved. The next scan will show what changed.");
     expect(playerFacingSources).not.toContain("Open synced /next");
     expect(playerFacingSources).not.toContain("Verified RuneLite payload");
   });

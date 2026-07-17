@@ -2007,7 +2007,7 @@ Acceptance:
 
 ## Phase 29 - Make RuneLite Setup Nearly Invisible
 
-Status: TODO  
+Status: DONE (2026-07-17)
 Depends on: Phases 03, 04 and 09  
 Improves: RuneLite UX
 
@@ -2033,6 +2033,38 @@ Acceptance:
 - technical diagnostics are hidden behind an explicit troubleshooting action;
 - plugin and web tests remain green.
 ```
+
+### Evidence
+
+- Reduced `/plugin` to one account-bound connection story. The page now uses
+  the URL RSN, active account or saved RSN in that order, checks it
+  automatically and reacts when the active account changes. The normal path
+  no longer repeats the RSN field, endpoint URLs, service readiness or setup
+  panels.
+- Added explicit live, stale, outdated, missing and service-error views. A
+  connected player sees the last scan, at most one concise change sentence,
+  an accurate bank sentence and the next-plan action. Missing scans clear old
+  local RuneLite and plugin-bank markers instead of leaving a false checkmark.
+- The missing and stale paths now give one exact action: open RuneLite, press
+  `Sync now`, then check again. The RuneLite opener copies the plugin name,
+  opens the `runelite://` protocol and reveals a Plugin Hub fallback only when
+  the open attempt needs help.
+- Consent and privacy details live in one collapsed disclosure. Release-review
+  facts such as optional `Sync on login`, bank opt-out and excluded password,
+  chat, inventory and equipment stay available without becoming the primary
+  player experience. Service commands only appear under `Technical
+  troubleshooting`.
+- Browser verification covered empty, missing, connected/outdated and active
+  account states at 390x844 and 1440x1000. The active account survived a
+  queryless reload without a duplicate RSN field; all checked pages had zero
+  horizontal overflow and no browser errors. Screenshots:
+  `/tmp/scapestack-phase29-empty-mobile.png`,
+  `/tmp/scapestack-phase29-missing-mobile.png`,
+  `/tmp/scapestack-phase29-lauky-mobile.png` and
+  `/tmp/scapestack-phase29-lauky-desktop.png`.
+- Verification: 207 test files / 1,309 tests passed. `npm run ci:check` passed
+  typecheck, smoke, recommendation audit, offline plugin release checks and
+  the 216-page production build. `./gradlew test` passed the RuneLite suite.
 
 ---
 
