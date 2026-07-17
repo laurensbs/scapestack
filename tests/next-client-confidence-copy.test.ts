@@ -396,7 +396,7 @@ describe("/next confidence UI copy", () => {
 
   it("gives plugin-origin players a concrete sync verification path", () => {
     expect(source).toContain('pluginVerifyUrlForSyncedRsn(rsn, "next"');
-    expect(source).toContain("hasBankContext: Boolean(fromBank)");
+    expect(source).toContain("hasBankContext: hasAttachedBank");
     expect(source).toContain("Back from RuneLite");
     expect(source).toContain("Enter the same RSN.");
     expect(source).toContain("If the plan still looks guessed, press Sync now in RuneLite and check again.");
@@ -581,13 +581,14 @@ describe("/next confidence UI copy", () => {
   });
 
   it("keeps optional bank paste inside a compact popup", () => {
-    expect(source).toContain('aria-label={bank.trim() ? "Edit pasted bank" : "Add bank paste"}');
+    expect(source).toContain('aria-label={hasAttachedBank ? "Edit attached bank" : "Add bank paste"}');
     expect(source).toContain('import { AddBankModal } from "@/components/add-bank-modal";');
     expect(source).toContain("<AddBankModal");
     expect(source).toContain("open={showBankField}");
     expect(source).toContain('source="next"');
     expect(source).toContain("onSaved={(savedBank) => setBank(savedBank)}");
-    expect(source).toContain("input: bank.trim() ? bank : undefined");
+    expect(source).toContain("const hasAttachedBank = Boolean(fromBank || attachedBank);");
+    expect(source).toContain("input: attachedBank || undefined");
     expect(source).not.toContain('placeholder="Paste Bank Memory or Bank Tags here..."');
     expect(source).not.toContain("Gear paste");
   });
@@ -684,7 +685,9 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function syncedSkillsToHiscoreSkills");
     expect(source).toContain("hiscores?.skills ?? syncedSkillsToHiscoreSkills(scapestackSync?.skills)");
     expect(source).toContain("markAccountPluginBankStatus(rsn, scapestackSync.bankStatus)");
-    expect(source).toContain("if (scapestackSync?.bankItems?.length)");
+    expect(source).toContain("const usePluginBank = shouldUsePluginBank({");
+    expect(source).toContain('const hasManualBankOverride = bankSource === "browser" || bankSource === "handoff";');
+    expect(source).toContain("if (usePluginBank && scapestackSync?.bankItems?.length)");
     expect(source).toContain('bankHandoffItemsFromBankItems(bank, "RuneLite bank sync")');
     expect(source).toContain("ownedGear(asOrganizedItems(bank))");
     expect(source).toContain('bankSource = "plugin";');

@@ -2322,10 +2322,10 @@ export function BankResult({
         <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 marker:hidden [&::-webkit-details-marker]:hidden">
           <span className="inline-flex items-center gap-2 text-[12px] font-bold text-[var(--color-text)]">
             <SlidersHorizontal className="size-3.5 text-[var(--color-accent)]" />
-            More controls
+            Change bank view
           </span>
           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--color-text-muted)]">
-            Layout, sort and density
+            Tabs, sort, density and filters
             <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" />
           </span>
         </summary>

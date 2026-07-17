@@ -16,7 +16,7 @@ describe("bank export feedback", () => {
     expect(source).toContain("Preview tabs");
     expect(source).toContain("Smart tidy");
     expect(source).toContain("Copy to RuneLite");
-    expect(source).toContain("More controls");
+    expect(source).toContain("Change bank view");
     expect(source).toContain("Open the kill check, lock a setup, then do one short trip.");
     expect(source).toContain("Check one boss trip before buying upgrades");
     expect(source).toContain("Use this bank for one clear trip");
@@ -43,7 +43,7 @@ describe("bank export feedback", () => {
     expect(source).toContain("<span>Saved banks</span>");
     expect(source.indexOf("{decision.title}")).toBeLessThan(source.indexOf('<div id="smart-tidy-setup">'));
     expect(source.indexOf('<div id="smart-tidy-setup">')).toBeLessThan(source.indexOf('id="bank-view-panel"'));
-    expect(source.indexOf('id="bank-view-panel"')).toBeLessThan(source.indexOf("More controls"));
+    expect(source.indexOf('id="bank-view-panel"')).toBeLessThan(source.indexOf("Change bank view"));
     expect(source.indexOf('id="bank-view-panel"')).toBeLessThan(source.indexOf("Import details"));
     expect(source.indexOf('id="bank-view-panel"')).toBeLessThan(source.indexOf("<span>Saved banks</span>"));
   });

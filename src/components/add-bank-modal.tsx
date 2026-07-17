@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, CheckCircle2, ClipboardPaste, ExternalLink, X } from "lucide-react";
-import { BankSetupSteps } from "@/components/bank-setup-steps";
+import { type DragEvent, useEffect, useMemo, useState } from "react";
+import { ArrowRight, CheckCircle2, ChevronDown, ClipboardPaste, ExternalLink, FileUp, X } from "lucide-react";
+import { BankSetupSteps, CUBEUPLOAD_BANK_EXAMPLE } from "@/components/bank-setup-steps";
 import { getActiveAccount } from "@/lib/account-storage";
 import { loadSavedBank, loadSavedRsn, saveSavedBank, saveSavedRsn } from "@/lib/saved-bank";
 import { cn } from "@/lib/utils";
@@ -31,6 +31,7 @@ export function AddBankModal({
 }: AddBankModalProps) {
   const [bank, setBank] = useState(initialBank);
   const [pasteState, setPasteState] = useState<PasteState>("idle");
+  const [dragActive, setDragActive] = useState(false);
   const effectiveRsn = useMemo(() => {
     if (!open) return "";
     return (rsn ?? getActiveAccount()?.rsn ?? loadSavedRsn() ?? "").trim();
@@ -43,6 +44,7 @@ export function AddBankModal({
     if (!open) return;
     setBank(initialBank);
     setPasteState("idle");
+    setDragActive(false);
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKey = (event: KeyboardEvent) => {
@@ -92,6 +94,27 @@ export function AddBankModal({
     window.setTimeout(onClose, 260);
   };
 
+  const readBankFile = async (file: File | null | undefined) => {
+    if (!file) return;
+    try {
+      const text = await file.text();
+      if (!text.trim()) {
+        setPasteState("empty");
+        return;
+      }
+      setBank(text);
+      setPasteState("pasted");
+    } catch {
+      setPasteState("blocked");
+    }
+  };
+
+  const dropBankFile = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragActive(false);
+    void readBankFile(event.dataTransfer.files?.[0]);
+  };
+
   const statusCopy =
     pasteState === "saved"
       ? "Bank saved. Scapestack can use it everywhere."
@@ -99,11 +122,11 @@ export function AddBankModal({
         ? "Pasted from clipboard."
         : pasteState === "empty"
           ? "Paste a Bank Memory export first."
-          : pasteState === "blocked"
-            ? "Clipboard blocked. Paste manually below."
+            : pasteState === "blocked"
+              ? "Clipboard blocked. Paste manually below."
             : effectiveRsn
               ? `Saving this bank for ${effectiveRsn}.`
-              : "No RSN selected yet. Saved on this device.";
+              : "Paste or drop your Bank Memory export.";
 
   return (
     <div
@@ -138,9 +161,45 @@ export function AddBankModal({
         </div>
 
         <div className="osrs-body p-5 sm:p-6">
-          <BankSetupSteps compact showBankExample />
+          <div className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-3 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/35 p-3 sm:grid-cols-[136px_minmax(0,1fr)]">
+            <div className="flex min-h-[80px] items-center justify-center overflow-hidden rounded-md border border-[var(--color-border)] bg-black p-1.5 sm:min-h-[92px]">
+              <img
+                src={CUBEUPLOAD_BANK_EXAMPLE}
+                alt="Bank Memory saved bank in RuneLite"
+                className="max-h-[88px] w-full object-contain sm:max-h-[104px]"
+                onError={(event) => {
+                  event.currentTarget.src = "/intro/step2.png";
+                }}
+              />
+            </div>
+            <div>
+              <p className="text-[12.5px] font-bold leading-snug text-[var(--color-text)] sm:text-[13.5px]">Copy item data from Bank Memory</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-[var(--color-text-muted)] sm:text-[12px]">
+                Right-click your saved bank in RuneLite, copy item data, then paste or drop the export below.
+              </p>
+              <p className="mt-1.5 inline-flex items-center gap-1.5 text-[10.5px] font-semibold text-[var(--color-accent)] sm:mt-2 sm:text-[11.5px]">
+                <CheckCircle2 className="size-3.5" />
+                {effectiveRsn ? `Attaches to ${effectiveRsn}` : "Saved on this device"}
+              </p>
+            </div>
+          </div>
 
-          <label className="mt-4 block">
+          <div
+            className={cn(
+              "mt-4 rounded-lg border bg-[var(--color-bg)] p-2 transition-colors",
+              dragActive ? "border-[var(--color-accent)] bg-[var(--color-accent)]/5" : "border-[var(--color-border)]"
+            )}
+            onDragEnter={(event) => {
+              event.preventDefault();
+              setDragActive(true);
+            }}
+            onDragOver={(event) => event.preventDefault()}
+            onDragLeave={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragActive(false);
+            }}
+            onDrop={dropBankFile}
+          >
+          <label className="block">
             <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
               Bank Memory or Bank Tags
             </span>
@@ -148,13 +207,26 @@ export function AddBankModal({
               value={bank}
               onChange={(event) => setBank(event.target.value)}
               placeholder="Paste your bank here..."
-              rows={7}
+              rows={4}
               spellCheck={false}
-              autoFocus
               aria-describedby="add-bank-modal-status"
-              className="mt-2 w-full resize-y rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-3 font-mono text-[12px] text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)]"
+              className="mt-2 w-full resize-y border-0 bg-transparent px-2 py-2 font-mono text-[12px] text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)]"
             />
           </label>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--color-border)] px-2 pt-2">
+              <span className="text-[11px] text-[var(--color-text-muted)]">Drop .txt, .tsv or .csv here</span>
+              <label className="inline-flex cursor-pointer items-center gap-1.5 text-[11.5px] font-bold text-[var(--color-accent)] hover:underline">
+                <FileUp className="size-3.5" />
+                Choose file
+                <input
+                  type="file"
+                  accept=".txt,.tsv,.csv,text/plain,text/tab-separated-values,text/csv"
+                  className="sr-only"
+                  onChange={(event) => void readBankFile(event.target.files?.[0])}
+                />
+              </label>
+            </div>
+          </div>
 
           <p
             id="add-bank-modal-status"
@@ -172,33 +244,43 @@ export function AddBankModal({
             {(pasteState === "saved" || pasteState === "pasted") && <CheckCircle2 className="size-3.5" />}
             {statusCopy}
           </p>
+
+          <details className="group mt-4 border-t border-[var(--color-parchment-edge)]/70 pt-3">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[12px] font-bold text-[var(--color-text)] marker:hidden [&::-webkit-details-marker]:hidden">
+              <span>How to copy your bank</span>
+              <ChevronDown className="size-3.5 text-[var(--color-text-muted)] transition-transform group-open:rotate-180" />
+            </summary>
+            <BankSetupSteps compact className="mt-3" />
+          </details>
         </div>
 
-        <div className="osrs-body flex flex-col gap-2 border-t border-[var(--color-parchment-edge)] px-5 pb-5 sm:flex-row sm:px-6 sm:pb-6">
-          <button
-            type="button"
-            onClick={pasteFromClipboard}
-            className="btn-ghost h-11 justify-center px-4 text-[13px] font-bold"
-          >
-            <ClipboardPaste className="size-4" />
-            Paste
-          </button>
-          <button
-            type="button"
-            onClick={save}
-            disabled={!bank.trim()}
-            className="btn-primary h-11 flex-1 justify-center px-4 text-[14px] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Save bank
-            <ArrowRight className="size-4" />
-          </button>
+        <div className="osrs-body border-t border-[var(--color-parchment-edge)] px-5 pb-5 sm:px-6 sm:pb-6">
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <button
+              type="button"
+              onClick={pasteFromClipboard}
+              className="btn-ghost h-11 justify-center px-4 text-[13px] font-bold"
+            >
+              <ClipboardPaste className="size-4" />
+              Paste
+            </button>
+            <button
+              type="button"
+              onClick={save}
+              disabled={!bank.trim()}
+              className="btn-primary h-11 flex-1 justify-center px-4 text-[14px] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Save bank
+              <ArrowRight className="size-4" />
+            </button>
+          </div>
           <Link
             href={fullOrganizerHref}
             onClick={onClose}
-            className="btn-ghost h-11 justify-center px-4 text-[13px] font-bold"
+            className="mt-3 inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-accent)]"
           >
-            Open full organizer
-            <ExternalLink className="size-3.5" />
+            Organize this bank instead
+            <ExternalLink className="size-3" />
           </Link>
         </div>
       </div>

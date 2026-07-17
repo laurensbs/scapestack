@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
-const CUBEUPLOAD_BANK_EXAMPLE = "https://u.cubeupload.com/laurensbos/scapestackbankmemory.png";
+export const CUBEUPLOAD_BANK_EXAMPLE = "https://u.cubeupload.com/laurensbos/scapestackbankmemory.png";
 
 export const BANK_SETUP_STEPS = [
   {

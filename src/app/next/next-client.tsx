@@ -69,7 +69,7 @@ import {
 import { recordTripEvent, type TripTimelineAction } from "@/lib/trip-timeline";
 import { wikiSearchUrl } from "@/lib/wiki";
 import { pluginSyncHealth } from "@/lib/plugin-sync";
-import { pluginBankStatusLabel, pluginBankStatusTone, type PluginBankStatus } from "@/lib/plugin-bank-status";
+import { pluginBankStatusLabel, pluginBankStatusTone, shouldUsePluginBank, type PluginBankStatus } from "@/lib/plugin-bank-status";
 import { isPluginSyncSource, pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
 import { summarizeNextPluginSync, type NextPluginSyncSummary } from "@/lib/next-plugin-sync-summary";
 import { runeliteProgressFromSyncSummary } from "@/lib/runelite-progress-memory";
@@ -493,8 +493,8 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
           ])
         : [null, null, null, null, null];
 
-      // RuneLite bank is the primary source when present. Browser handoff
-      // and manual paste stay as fallbacks for players without plugin bank.
+      // A fresh RuneLite bank is primary for RSN-only planning. A bank the
+      // player just pasted or handed off is an explicit override.
       const handoffItems = opts.bankItems ?? [];
       let bankItemsForContext = handoffItems;
       let bankSource: NextBankSource = handoffItems.length > 0 ? "handoff" : "none";
@@ -520,7 +520,13 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
       if (rsn && scapestackSync) {
         markAccountPluginBankStatus(rsn, scapestackSync.bankStatus);
       }
-      if (scapestackSync?.bankItems?.length) {
+      const hasManualBankOverride = bankSource === "browser" || bankSource === "handoff";
+      const usePluginBank = shouldUsePluginBank({
+        status: scapestackSync?.bankStatus,
+        itemCount: scapestackSync?.bankItems?.length ?? 0,
+        hasManualOverride: hasManualBankOverride
+      });
+      if (usePluginBank && scapestackSync?.bankItems?.length) {
         bank = scapestackSync.bankItems.map((item) => ({
           id: item.id,
           name: item.name,
@@ -904,8 +910,10 @@ function NextIntake({
   const [bank, setBank] = useState("");
   const [selectedRouteLens, setSelectedRouteLens] = useState<RouteLens>("smart");
   const handoffSummary = fromBank ? summarizeBankHandoff(fromBank.items) : null;
+  const attachedBank = bank.trim() || (!fromBank ? savedBank?.banktags.trim() ?? "" : "");
+  const hasAttachedBank = Boolean(fromBank || attachedBank);
   const pluginVerifyHref = pluginVerifyUrlForSyncedRsn(rsn, "next", {
-    hasBankContext: Boolean(fromBank)
+    hasBankContext: hasAttachedBank
   });
 
   const runWithRoute = (choice?: {
@@ -920,7 +928,7 @@ function NextIntake({
     setShowRoutePicker(false);
     onRun({
       rsn: clean,
-      input: bank.trim() ? bank : undefined,
+      input: attachedBank || undefined,
       // If the user came from /bank, ride that bank along so /next can
       // give gear-aware recs even before they type their RSN.
       bankItems: fromBank?.items,
@@ -1112,16 +1120,16 @@ function NextIntake({
             type="button"
             onClick={() => setShowBankField(true)}
             disabled={loading}
-            aria-label={bank.trim() ? "Edit pasted bank" : "Add bank paste"}
+            aria-label={hasAttachedBank ? "Edit attached bank" : "Add bank paste"}
             className={cn(
               "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12.5px] font-semibold transition-colors disabled:opacity-50",
-              bank.trim()
+              hasAttachedBank
                 ? "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15"
                 : "border-transparent text-[var(--color-text-dim)] underline decoration-dotted underline-offset-4 hover:text-[var(--color-accent)]"
             )}
           >
             <ClipboardPaste className="size-3.5" />
-            {bank.trim() ? "Bank added" : "Add bank"}
+            {hasAttachedBank ? "Bank added" : "Add bank"}
           </button>
           <button
             type="button"
@@ -1226,7 +1234,7 @@ function NextIntake({
                 className="btn-ghost h-11 justify-center px-4 text-[13px] font-bold"
               >
                 <ClipboardPaste className="size-4" />
-                Add bank first
+                {hasAttachedBank ? "Review bank" : "Add bank first"}
               </button>
             </div>
           </div>
@@ -1237,7 +1245,7 @@ function NextIntake({
         open={showBankField}
         onClose={() => setShowBankField(false)}
         rsn={rsn}
-        initialBank={bank}
+        initialBank={attachedBank}
         source="next"
         onSaved={(savedBank) => setBank(savedBank)}
       />

@@ -1802,7 +1802,7 @@ Acceptance:
 
 ## Phase 26 - Simplify Bank Entry Without Removing The Organizer
 
-Status: TODO  
+Status: DONE
 Depends on: Phase 04  
 Improves: bank UX
 
@@ -1835,6 +1835,33 @@ Acceptance:
 - organizer regression tests remain green;
 - mobile primary state has far fewer than the baseline 110 buttons.
 ```
+
+### Evidence
+
+- Rebuilt Add bank as one account-scoped modal: one Bank Memory example,
+  paste/drop/file input, one Save bank action and optional screenshot help.
+  The full organizer remains a quiet escape hatch instead of competing with
+  the save action.
+- A saved account bank is now attached automatically on `/next`; the intake
+  says Bank added and planning uses it without a second opt-in. Explicit
+  browser paste or `/bank` handoff overrides plugin data.
+- Fresh RuneLite bank capture is the automatic RSN-only source. Stale plugin
+  capture is rejected, and tests cover fresh, stale, empty and manual-override
+  source decisions.
+- Kept the organizer, Bank Tags export, import warnings, saved banks and bank
+  insights intact. View preferences remain collapsed and are presented as
+  `Change bank view` rather than a generic controls panel.
+- Browser verification covered desktop and 390x844 mobile. The quick modal
+  fits title, screenshot, input and Save bank in one mobile viewport with no
+  horizontal overflow. The organizer has 4 visible primary buttons on mobile
+  and 63 total DOM buttons versus the 110-button baseline. Screenshots:
+  `/tmp/scapestack-phase26-modal-desktop.png`,
+  `/tmp/scapestack-phase26-modal-mobile-v2.png` and
+  `/tmp/scapestack-phase26-bank-mobile.png`.
+- Verification: 205 test files / 1,297 tests passed. `npm run ci:check`
+  passed typecheck, smoke, recommendation audit, offline plugin release checks
+  and the 216-page production build. `./gradlew test` passed the RuneLite
+  suite.
 
 ## Phase 27 - Make Check Kill A Boss Browser
 

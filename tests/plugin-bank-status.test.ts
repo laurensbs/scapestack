@@ -4,7 +4,8 @@ import {
   isPluginBankStatusStale,
   normalizePluginBankStatus,
   pluginBankStatusLabel,
-  pluginBankStatusTone
+  pluginBankStatusTone,
+  shouldUsePluginBank
 } from "@/lib/plugin-bank-status";
 
 describe("plugin bank status copy", () => {
@@ -78,5 +79,24 @@ describe("plugin bank status copy", () => {
     expect(isPluginBankStatusStale(status, nowMs)).toBe(true);
     expect(pluginBankStatusLabel(status, null, nowMs)).toBe("Open bank in RuneLite, then sync again");
     expect(pluginBankStatusTone(status, nowMs)).toBe("warn");
+  });
+
+  it("uses only a fresh plugin bank when there is no manual override", () => {
+    const nowMs = new Date("2026-07-08T13:00:00.000Z").getTime();
+    const fresh = normalizePluginBankStatus({
+      enabled: true,
+      itemCount: 612,
+      capturedAt: "2026-07-08T12:00:00.000Z"
+    });
+    const stale = normalizePluginBankStatus({
+      enabled: true,
+      itemCount: 612,
+      capturedAt: "2026-07-07T12:00:00.000Z"
+    });
+
+    expect(shouldUsePluginBank({ status: fresh, itemCount: 612, nowMs })).toBe(true);
+    expect(shouldUsePluginBank({ status: fresh, itemCount: 612, hasManualOverride: true, nowMs })).toBe(false);
+    expect(shouldUsePluginBank({ status: stale, itemCount: 612, nowMs })).toBe(false);
+    expect(shouldUsePluginBank({ status: fresh, itemCount: 0, nowMs })).toBe(false);
   });
 });

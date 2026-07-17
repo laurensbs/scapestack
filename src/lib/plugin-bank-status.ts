@@ -93,6 +93,17 @@ export function isPluginBankStatusStale(
   return hoursOld >= staleAfterHours;
 }
 
+export function shouldUsePluginBank(input: {
+  status: PluginBankStatus | null | undefined;
+  itemCount: number;
+  hasManualOverride?: boolean;
+  nowMs?: number;
+}): boolean {
+  if (input.hasManualOverride || input.itemCount <= 0) return false;
+  if (!input.status?.enabled || input.status.itemCount <= 0) return false;
+  return !isPluginBankStatusStale(input.status, input.nowMs ?? Date.now());
+}
+
 export function pluginBankStatusTone(status: PluginBankStatus | null | undefined, nowMs = Date.now()): "good" | "warn" | "muted" {
   if (!status) return "muted";
   if (isPluginBankStatusStale(status, nowMs)) return "warn";
