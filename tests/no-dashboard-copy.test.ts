@@ -63,6 +63,6 @@ describe("player-facing copy avoids dashboard language", () => {
     expect(source).toContain("Check RuneLite");
     expect(source).toContain("RuneLite can help later");
     expect(source).toContain("Bank added");
-    expect(source).toContain("Slayer checks found");
+    expect(source).toContain("Items found for this task");
   });
 });

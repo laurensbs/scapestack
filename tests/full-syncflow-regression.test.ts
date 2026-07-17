@@ -156,7 +156,7 @@ describe("end-to-end syncflow regression contracts", () => {
           quests: 1,
           diaries: 1,
           clItems: 0,
-          pluginVersion: "0.2.0",
+          pluginVersion: "0.3.0",
           bankStatus
         }
       }

@@ -40,7 +40,7 @@ describe("sync service readiness", () => {
       ok: true,
       service: "scapestack-sync",
       ready: false,
-      plugin: { currentVersion: "0.2.0" },
+      plugin: { currentVersion: "0.3.0" },
       endpoints: { sync: "/api/sync", claim: "/api/sync/claim" },
       database: {
         configured: false,

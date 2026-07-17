@@ -25,16 +25,15 @@ export interface SyncedPlayer {
   bossKc?: Record<string, number> | null;
   bankItems: Array<{ id: number; name: string; quantity: number }>;
   bankStatus: PluginBankStatus;
-  /** Slayer-state from the plugin's VarPlayer reads. Null when the
-   *  plugin couldn't read it (no session / old plugin version).
-   *  - currentTaskId: monster the player is currently assigned to (raw
-   *    OSRS task-id; UI mapt via TASK_ID_TO_MONSTER)
-   *  - blocks: vertaalde monster.id slugs uit de 6 block-slots */
+  /** Slayer-state from RuneLite. Canonical task name and location are
+   *  preferred; currentTaskId remains for older plugin snapshots. */
   slayer: {
     points: number;
     streak: number;
     taskRemaining: number;
     currentTaskId: number;
+    taskName?: string | null;
+    taskLocation?: string | null;
     blocks: string[];
   } | null;
   pluginVersion: string;
@@ -129,6 +128,8 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
         streak: number;
         taskRemaining: number;
         currentTaskId?: number;
+        taskName?: string | null;
+        taskLocation?: string | null;
         blocks?: string[];
       } | null;
       plugin_version: string;
@@ -371,6 +372,8 @@ function normalizeSlayer(value: unknown): SyncedPlayer["slayer"] {
     streak: integer(row.streak, 100_000),
     taskRemaining: integer(row.taskRemaining, 100_000),
     currentTaskId: integer(row.currentTaskId, 1_000_000),
+    taskName: typeof row.taskName === "string" && row.taskName.trim() ? row.taskName.trim().slice(0, 80) : null,
+    taskLocation: typeof row.taskLocation === "string" && row.taskLocation.trim() ? row.taskLocation.trim().slice(0, 100) : null,
     blocks: Array.isArray(row.blocks)
       ? row.blocks.filter((entry): entry is string => typeof entry === "string").map((entry) => entry.slice(0, 80)).slice(0, 6)
       : []

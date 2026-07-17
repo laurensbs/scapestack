@@ -40,10 +40,11 @@ import { computePathProgress, type AccountMeta, type PathOverview } from "./path
 import { detectAccountStage, type AccountStage } from "./account-stage";
 import { skillCapeId } from "./skill-capes";
 import { buildSkillRoute, ROUTABLE_SKILLS, skillRouteNeeds, skillRoutePlanSeed } from "./skill-routes";
-import { TASK_ID_TO_MONSTER } from "./slayer/task-ids";
+import { resolveSlayerTaskMonsterId } from "./slayer/task-ids";
 import { MONSTERS_BY_ID } from "./slayer/monsters";
 import { slayerUrlForSyncedRsn } from "./plugin-sync-actions";
 import { pluginSyncHealth } from "./plugin-sync";
+import { decideSlayerTask, type SlayerTaskDecision } from "./slayer-task-decision";
 import type { PluginBankStatus } from "./plugin-bank-status";
 import {
   isIronPlannerAccount,
@@ -215,6 +216,9 @@ export interface Recommendation {
   /** The shortest executable quest block toward a larger unlock. Full guides
    *  stay on the Wiki; this contract only carries the current session. */
   questRoute?: QuestRouteProgress;
+  /** Exact Slayer task decision built from task freshness, points, bank and
+   *  account mode. The UI renders this contract instead of parsing copy. */
+  slayerDecision?: SlayerTaskDecision;
 }
 
 export interface ReturnPlan {
@@ -303,6 +307,8 @@ export interface NextUpInput {
       streak: number;
       taskRemaining: number;
       currentTaskId: number;
+      taskName?: string | null;
+      taskLocation?: string | null;
       blocks: string[];
     } | null;
   };
@@ -1598,63 +1604,98 @@ function moneyRecs(skills: HiscoreSkill[], accountMeta?: AccountMeta | null): Re
 
 function slayerTaskRecs(
   slayer: NonNullable<NextUpInput["scapestackSync"]>["slayer"] | undefined,
-  displayName?: string
+  context: {
+    displayName?: string;
+    bank: CompletionItem[];
+    accountType: PlannerAccountType | null;
+    combatLevel: number | null;
+    slayerLevel: number | null;
+    syncHealth: ReturnType<typeof pluginSyncHealth> | "unknown";
+  }
 ): Recommendation[] {
-  if (!slayer || slayer.taskRemaining <= 0 || slayer.currentTaskId <= 0) return [];
-  const slug = TASK_ID_TO_MONSTER[slayer.currentTaskId];
+  if (!slayer || slayer.taskRemaining <= 0) return [];
+  const slug = resolveSlayerTaskMonsterId(slayer.taskName, slayer.currentTaskId);
   const monster = slug ? MONSTERS_BY_ID.get(slug) : undefined;
   if (!monster) return [];
 
+  const decision = decideSlayerTask({
+    task: monster,
+    state: slayer,
+    bank: context.bank,
+    accountType: context.accountType,
+    combatLevel: context.combatLevel,
+    slayerLevel: context.slayerLevel,
+    syncHealth: context.syncHealth
+  });
+  if (decision.verdict === "refresh") return [];
+
   const taskXp = Math.max(0, monster.hp * 4 * slayer.taskRemaining);
   const taskLeftLabel = `${slayer.taskRemaining.toLocaleString()} ${monster.name}${slayer.taskRemaining === 1 ? "" : "s"}`;
-  const pointsHint = slayer.points >= 100
-    ? `${slayer.points.toLocaleString()} Slayer points available for skips, blocks or unlocks.`
-    : `${slayer.points.toLocaleString()} Slayer points banked; keep streak discipline.`;
+  const title = decision.verdict === "skip"
+    ? `Skip your ${monster.name} task`
+    : decision.bossVariant
+      ? `Try ${decision.bossVariant.name} on task`
+      : `Finish your ${monster.name} task`;
+  const score = decision.verdict === "boss-variant" ? 98 : decision.verdict === "skip" ? 90 : slayer.taskRemaining >= 10 ? 96 : 72;
+  const completionTarget = decision.verdict === "skip" ? undefined : {
+    kind: "slayer_task_finished" as const,
+    taskId: slayer.currentTaskId,
+    taskName: monster.name,
+    startingRemaining: slayer.taskRemaining
+  };
+  const bossLink = decision.bossVariant
+    ? `/dps?boss=${encodeURIComponent(decision.bossVariant.slug)}&from=slayer-task${context.displayName ? `&rsn=${encodeURIComponent(context.displayName)}` : ""}`
+    : null;
+  const routeTags: RecommendationRouteTag[] = ["slayer", "unlock"];
+  if (decision.method === "boss") routeTags.push("pvm", "fun");
+  else if (decision.method === "afk") routeTags.push("afk");
+  else routeTags.push("pvm");
 
   return [{
     id: `slayer:current-task:${slug}`,
     kind: "slayer",
-    title: `Finish your ${monster.name} task`,
-    why: `RuneLite sync says you have ${taskLeftLabel} left right now.`,
+    title,
+    why: decision.why,
     payoff: `~${Math.round(taskXp / 100) / 10}k Slayer XP remaining · streak ${slayer.streak.toLocaleString()}.`,
-    decisionReason: `RuneLite says ${taskLeftLabel} are left, so finishing the task beats starting a random grind.`,
-    score: slayer.taskRemaining >= 10 ? 94 : 68,
-    link: displayName ? slayerUrlForSyncedRsn(displayName) : "/slayer",
-    iconItemId: 11864,
-    completionTarget: {
-      kind: "slayer_task_finished",
-      taskId: slayer.currentTaskId,
-      taskName: monster.name,
-      startingRemaining: slayer.taskRemaining
+    decisionReason: `RuneLite last confirmed ${taskLeftLabel}. ${decision.why}`,
+    score,
+    link: bossLink ?? (context.displayName ? slayerUrlForSyncedRsn(context.displayName) : "/slayer"),
+    iconItemId: decision.bossVariant?.viability.boss.iconItemId ?? 11864,
+    completionTarget,
+    routeTags,
+    gearConfidence: decision.bankUsed ? "confirmed" : "unknown",
+    slayerDecision: decision,
+    sessionProfile: {
+      intensity: decision.method === "boss" ? "high" : decision.method === "afk" ? "low" : "moderate",
+      attention: decision.method === "boss" ? "focused" : decision.method === "afk" ? "afk" : "active",
+      idleWindowSeconds: decision.method === "afk" ? 20 : 0,
+      setupConfidence: decision.bankUsed ? "verified" : "unknown",
+      expectedProfit: decision.bossVariant ? "positive" : "unknown",
+      profitEvidence: decision.bossVariant ? "account" : "none"
     },
-    routeTags: ["slayer", "pvm", "unlock"],
-    gearConfidence: "likely",
     quality: {
       accountFit: 0.99,
       actionability: 0.96,
       stopPoint: 0.94,
-      gearConfidence: 0.76,
+      gearConfidence: decision.bankUsed ? 0.94 : 0.48,
       unlockValue: 0.78,
       fun: 0.74,
       friction: 0.14
     },
     needs: [
-      "Current task from Scapestack RuneLite plugin",
-      monster.slayerLevel > 1 ? `${monster.slayerLevel} Slayer requirement` : "No special Slayer level gate",
-      pointsHint
+      ...decision.inventory.filter((item) => item.owned).slice(0, 3).map((item) => item.itemName ?? item.label),
+      ...decision.missing.slice(0, 2).map((item) => `Missing: ${item}`)
     ],
-    details: monster.hint ?? `${monster.locations.slice(0, 2).join(" / ")} · ${monster.cannonable ? "cannonable" : "no cannon baseline"}.`,
+    details: `${decision.location}. ${decision.pointsConsequence}${decision.avoid ? ` ${decision.avoid}` : ""}`,
     planSeed: {
       timebox: slayer.taskRemaining >= 80 ? "45-90 min" : slayer.taskRemaining >= 25 ? "25-45 min" : "10-20 min",
-      prep: `${taskLeftLabel} left. ${pointsHint}`,
+      prep: decision.firstStep,
       steps: [
-        displayName
-          ? `Open the synced Slayer task for ${displayName} and confirm whether ${monster.name} is worth finishing, skipping or blocking.`
-          : `Open the Slayer task check and confirm whether ${monster.name} is worth finishing, skipping or blocking.`,
-        monster.cannonable
-          ? "Bring cannon + balls if the location supports it; otherwise use the fastest safe setup."
-          : "Bring the fastest safe setup; do not over-bank supplies for a short remainder.",
-        "Finish or intentionally skip the task, then sync again so your plan follows the new assignment."
+        decision.firstStep,
+        decision.inventory.length > 0
+          ? `Bring ${decision.inventory.slice(0, 3).map((item) => item.itemName ?? item.label).join(", ")}.`
+          : `Build one short ${decision.methodLabel.toLowerCase()} setup.`,
+        decision.stopPoint
       ]
     }
   }];
@@ -3644,7 +3685,14 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
   const rawRecs = applyBossViability([
     ...goalRecs(completions),
     ...(combatLevel !== null ? bossRecs(combatLevel, bank, skills, mergedBossKc) : []),
-    ...slayerTaskRecs(input.scapestackSync?.slayer, input.scapestackSync?.displayName ?? accountMeta?.displayName),
+    ...slayerTaskRecs(input.scapestackSync?.slayer, {
+      displayName: input.scapestackSync?.displayName ?? accountMeta?.displayName,
+      bank,
+      accountType: accountMeta?.accountType ?? null,
+      combatLevel,
+      slayerLevel: lvl(skills, "Slayer"),
+      syncHealth: pluginSyncState ?? "unknown"
+    }),
     ...questRecs(
       quests,
       skills,

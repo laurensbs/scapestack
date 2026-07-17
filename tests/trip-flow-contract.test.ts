@@ -33,16 +33,18 @@ describe("trip flow contract", () => {
   it("makes Slayer start from one task trip before the master evidence", () => {
     const slayer = read("src/app/slayer/slayer-client.tsx");
 
-    expect(slayer).toContain("function SlayerTripCard");
-    expect(slayer).toContain("Next task trip");
-    expect(slayer).toContain("Before you leave");
-    expect(slayer).toContain("Still missing");
-    expect(slayer).toContain("Finish after");
-    expect(slayer).toContain("More task routes");
-    expect(slayer).toContain("Master choices and blocks");
-    expect(slayer.indexOf("<SlayerTripCard")).toBeLessThan(slayer.indexOf("<ScapestackReadinessRail"));
+    expect(slayer).toContain("function SlayerTaskRoute");
+    expect(slayer).toContain('label="Start"');
+    expect(slayer).toContain('label="Bring"');
+    expect(slayer).toContain('label="Stop at"');
+    expect(slayer).toContain('label="Points"');
+    expect(slayer).toContain("Compare Slayer masters");
+    expect(slayer).toContain("Only when you need a new assignment.");
+    expect(slayer.indexOf("<SlayerTaskRoute")).toBeLessThan(slayer.indexOf("<ScapestackReadinessRail"));
     expect(slayer).not.toContain("Best master for you");
     expect(slayer).not.toContain("Sorted op expected XP/uur");
+    expect(slayer).not.toContain("Plugin sync live");
+    expect(slayer).not.toContain("Master choices and blocks");
     expect(slayer).not.toContain("item id ${item.id}");
   });
 });

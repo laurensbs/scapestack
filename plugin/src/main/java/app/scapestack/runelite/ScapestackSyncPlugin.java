@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -113,7 +114,7 @@ public class ScapestackSyncPlugin extends Plugin {
     private ScapestackSyncPanel panel;
     private NavigationButton navigationButton;
     private static final MediaType JSON = MediaType.parse("application/json");
-    private static final String PLUGIN_VERSION = "0.2.0";
+    private static final String PLUGIN_VERSION = "0.3.0";
     private static final String USER_AGENT = "scapestack-plugin/" + PLUGIN_VERSION;
     private static final String OPT_IN_HINT = "ScapeStack is ready. Turn on Sync on login to keep your planner updated.";
     private static final long MANUAL_SYNC_COOLDOWN_MS = 2_500L;
@@ -747,7 +748,14 @@ public class ScapestackSyncPlugin extends Plugin {
             slayer.addProperty("streak", snap.slayer.streak);
             slayer.addProperty("taskRemaining", snap.slayer.taskRemaining);
             slayer.addProperty("currentTaskId", snap.slayer.currentTaskId);
+            if (snap.slayer.taskName != null && !snap.slayer.taskName.isBlank()) {
+                slayer.addProperty("taskName", snap.slayer.taskName);
+            }
+            if (snap.slayer.taskLocation != null && !snap.slayer.taskLocation.isBlank()) {
+                slayer.addProperty("taskLocation", snap.slayer.taskLocation);
+            }
             slayer.add("blocks", gson.toJsonTree(snap.slayer.blocks));
+            slayer.add("blockNames", gson.toJsonTree(new ArrayList<>(snap.slayer.blockNames)));
             body.add("slayer", slayer);
         }
         return body;

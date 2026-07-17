@@ -70,7 +70,7 @@ describe("plugin sync service summary", () => {
   it("summarizes a ready sync service", () => {
     expect(summarizePluginSyncService({
       ready: true,
-      plugin: { currentVersion: "0.2.0" },
+      plugin: { currentVersion: "0.3.0" },
       endpoints: { sync: "/api/sync", claim: "/api/sync/claim" },
       database: {
         configured: true,
@@ -81,7 +81,7 @@ describe("plugin sync service summary", () => {
     })).toMatchObject({
       tone: "good",
       label: "RuneLite ready",
-      detail: "Scapestack Sync v0.2.0 is ready.",
+      detail: "Scapestack Sync v0.3.0 is ready.",
       actions: []
     });
   });
@@ -89,7 +89,7 @@ describe("plugin sync service summary", () => {
   it("keeps ready local services free of copy endpoint actions", () => {
     expect(summarizePluginSyncService({
       ready: true,
-      plugin: { currentVersion: "0.2.0" },
+      plugin: { currentVersion: "0.3.0" },
       endpoints: { sync: "/api/sync", claim: "/api/sync/claim" },
       database: {
         configured: true,

@@ -49,7 +49,8 @@ vi.mock("@/lib/db", () => ({
 }));
 
 vi.mock("@/lib/slayer/task-ids", () => ({
-  mapBlockTaskIds: (ids: number[]) => ids.map((id) => `mapped-${id}`)
+  mapBlockTaskIds: (ids: number[]) => ids.map((id) => `mapped-${id}`),
+  mapBlockTaskNames: (names: string[]) => names.map((name) => `named-${name.toLowerCase().replaceAll(" ", "-")}`)
 }));
 
 const VALID_TOKEN = "11111111-2222-3333-4444-555555555555";
@@ -142,7 +143,7 @@ describe("GET /api/sync", () => {
     const body = await response.json();
 
     expect(body.ready).toBe(true);
-    expect(body.plugin.currentVersion).toBe("0.2.0");
+    expect(body.plugin.currentVersion).toBe("0.3.0");
     expect(body.limits).toMatchObject({
       maxBodyBytes: 1_000_000,
       quests: 500,
@@ -199,7 +200,7 @@ describe("POST /api/sync", () => {
       questsCompleted: [],
       diariesCompleted: [],
       collectionLogItemIds: [],
-      pluginVersion: "0.2.0"
+      pluginVersion: "0.3.0"
     }));
     const body = await response.json();
 
@@ -247,9 +248,12 @@ describe("POST /api/sync", () => {
         streak: 12,
         taskRemaining: 83,
         currentTaskId: 1337,
-        blocks: [1, "bad", 2]
+        taskName: "Dust devils",
+        taskLocation: "Catacombs of Kourend",
+        blocks: [1, "bad", 2],
+        blockNames: ["Black demons", "Waterfiends"]
       },
-      pluginVersion: "0.2.0"
+      pluginVersion: "0.3.0"
     }));
 
     expect(response.status).toBe(200);
@@ -283,9 +287,11 @@ describe("POST /api/sync", () => {
         streak: 12,
         taskRemaining: 83,
         currentTaskId: 1337,
-        blocks: ["mapped-1", "mapped-2"]
+        taskName: "Dust devils",
+        taskLocation: "Catacombs of Kourend",
+        blocks: ["named-black-demons", "named-waterfiends"]
       },
-      pluginVersion: "0.2.0"
+      pluginVersion: "0.3.0"
     });
     expect(state.upserts[0]).toMatchObject({
       availability: {
@@ -305,7 +311,7 @@ describe("POST /api/sync", () => {
       syncedAt: "2026-06-03T10:00:00.000Z",
       player: { rsn: "lynx titan", displayName: "LYNX TITAN", accountType: "ultimate_ironman" },
       plugin: {
-        version: "0.2.0",
+        version: "0.3.0",
         slayer: { status: "accepted", currentTaskId: 1337, blocks: 2 },
         bank: {
           enabled: true,

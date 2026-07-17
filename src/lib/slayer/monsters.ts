@@ -60,7 +60,7 @@ export const MONSTERS: SlayerMonster[] = [
     id: "cave_kraken", name: "Cave kraken", hp: 125, slayerLevel: 87,
     weakness: "magic", locations: ["Kraken Cove"],
     cannonable: false, isBoss: false,
-    hint: "Trident of the Seas; rod 1-tick. Snelste XP/u in skill."
+    hint: "Low-attention Magic task; the Kraken boss is an optional task variant."
   },
   {
     id: "cave_slime", name: "Cave slime", hp: 25, slayerLevel: 17,
@@ -93,7 +93,7 @@ export const MONSTERS: SlayerMonster[] = [
     id: "dust_devil", name: "Dust devil", hp: 105, slayerLevel: 65,
     weakness: "crush", locations: ["Smoke Dungeon", "Catacombs of Kourend"],
     cannonable: true, isBoss: false,
-    hint: "Face mask + cannon in Catacombs = 80k+ XP/u."
+    hint: "Use a facemask or Slayer helm. Burst in the Catacombs; cannon only where the location allows it."
   },
   {
     id: "earth_warrior", name: "Earth warrior", hp: 54, slayerLevel: 1,
@@ -255,7 +255,7 @@ export const MONSTERS: SlayerMonster[] = [
     id: "greater_demon", name: "Greater demon", hp: 87, slayerLevel: 1,
     weakness: "stab", locations: ["Catacombs of Kourend", "Forthos Dungeon"],
     cannonable: true, isBoss: false,
-    hint: "Cannon Catacombs = beste GP per uur low-mid combat."
+    hint: "AFK in the Catacombs, or use a cannon at a location that permits it."
   },
   {
     id: "harpie_bug_swarm", name: "Harpie bug swarm", hp: 25, slayerLevel: 33,
@@ -267,7 +267,7 @@ export const MONSTERS: SlayerMonster[] = [
     id: "hellhound", name: "Hellhound", hp: 116, slayerLevel: 1,
     weakness: "stab", locations: ["Taverley Dungeon", "Catacombs of Kourend"],
     cannonable: true, isBoss: false,
-    hint: "Catacombs = cannon-friendly + clue scroll drops."
+    hint: "Low-attention task in the Catacombs; use a cannon only at a location that permits it."
   },
   {
     id: "infernal_mage", name: "Infernal mage", hp: 60, slayerLevel: 45,
@@ -334,7 +334,7 @@ export const MONSTERS: SlayerMonster[] = [
     id: "nechryael", name: "Nechryael", hp: 105, slayerLevel: 80,
     weakness: "stab", locations: ["Slayer Tower", "Catacombs of Kourend"],
     cannonable: true, isBoss: false,
-    hint: "Greater Nechryael in Catacombs = cannonable + AFK 90k+ XP/u."
+    hint: "Burst Greater Nechryael in the Catacombs, or use a simpler melee trip."
   },
   {
     id: "ogre", name: "Ogre", hp: 60, slayerLevel: 1,
@@ -417,13 +417,13 @@ export const MONSTERS: SlayerMonster[] = [
     id: "waterfiend", name: "Waterfiend", hp: 128, slayerLevel: 1,
     weakness: "crush", locations: ["Ancient Cavern", "Catacombs of Kourend"],
     cannonable: true, isBoss: false,
-    hint: "Drops 1k+ runes per kill. Bursting in Catacombs = 200k+ Magic XP/u."
+    hint: "Crush weapons are preferred; often skipped when points are available."
   },
   {
     id: "wyrm", name: "Wyrm", hp: 120, slayerLevel: 62,
     weakness: "magic", locations: ["Karuulm Slayer Dungeon"],
     cannonable: true, isBoss: false,
-    hint: "Karuulm boots vereist. Drops Dragon hunter lance + Hydra leather."
+    hint: "Bring protection for the Karuulm dungeon floor."
   },
 
   // ---------- Tier 3: high slayer (drake/hydra family + 85+) ----------

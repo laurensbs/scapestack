@@ -3,7 +3,7 @@
 // (anders zou de UI proberen te filteren op een non-existent monster).
 
 import { describe, it, expect } from "vitest";
-import { TASK_ID_TO_MONSTER, mapBlockTaskIds } from "@/lib/slayer/task-ids";
+import { TASK_ID_TO_MONSTER, mapBlockTaskIds, mapBlockTaskNames, resolveSlayerTaskMonsterId } from "@/lib/slayer/task-ids";
 import { MONSTERS_BY_ID } from "@/lib/slayer/monsters";
 
 describe("TASK_ID_TO_MONSTER", () => {
@@ -26,6 +26,21 @@ describe("TASK_ID_TO_MONSTER", () => {
     for (const slug of Object.values(TASK_ID_TO_MONSTER)) {
       expect(slug).toMatch(/^[a-z][a-z0-9_]*$/);
     }
+  });
+});
+
+describe("canonical Slayer task names", () => {
+  it("uses the game task name when the old raw ID is unknown", () => {
+    expect(resolveSlayerTaskMonsterId("Dust devils", 138)).toBe("dust_devil");
+  });
+
+  it("normalizes named block-list entries", () => {
+    expect(mapBlockTaskNames(["Black bears", "Greater demons", "Greater demons"]))
+      .toEqual(["bear", "greater_demon"]);
+  });
+
+  it("keeps old known IDs as a compatibility fallback", () => {
+    expect(resolveSlayerTaskMonsterId(null, 19)).toBe("dust_devil");
   });
 });
 

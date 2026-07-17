@@ -14,7 +14,7 @@
 import { NextResponse } from "next/server";
 import { upsertSyncedPlayer } from "@/lib/sync-repo";
 import { extractBearerToken, verifyClaim } from "@/lib/sync-auth";
-import { mapBlockTaskIds } from "@/lib/slayer/task-ids";
+import { mapBlockTaskIds, mapBlockTaskNames } from "@/lib/slayer/task-ids";
 import { getSyncServiceStatus, SYNC_SERVICE_LIMITS } from "@/lib/sync-service-readiness";
 import { normalizeScapestackAccountType } from "@/lib/account-type";
 import { normalizePluginBankStatus } from "@/lib/plugin-bank-status";
@@ -236,13 +236,13 @@ export async function POST(req: Request): Promise<Response> {
   // hele sync (degradeert naar slayer = null).
   let slayer: {
     points: number; streak: number; taskRemaining: number;
-    currentTaskId: number; blocks: string[];
+    currentTaskId: number; taskName: string | null; taskLocation: string | null; blocks: string[];
   } | null = null;
   let slayerStatus: "missing" | "accepted" | "ignored" = "missing";
   if (body.slayer && typeof body.slayer === "object") {
     const s = body.slayer as {
       points?: unknown; streak?: unknown; taskRemaining?: unknown;
-      currentTaskId?: unknown; blocks?: unknown;
+      currentTaskId?: unknown; taskName?: unknown; taskLocation?: unknown; blocks?: unknown; blockNames?: unknown;
     };
     const num = (v: unknown, lo: number, hi: number) =>
       typeof v === "number" && Number.isFinite(v) ? Math.max(lo, Math.min(hi, Math.floor(v))) : null;
@@ -250,15 +250,24 @@ export async function POST(req: Request): Promise<Response> {
     const streak = num(s.streak, 0, 100_000);
     const taskRem = num(s.taskRemaining, 0, 500);
     const taskId = num(s.currentTaskId, 0, 10_000) ?? 0;
+    const taskName = typeof s.taskName === "string" && s.taskName.trim()
+      ? s.taskName.trim().slice(0, 80)
+      : null;
+    const taskLocation = typeof s.taskLocation === "string" && s.taskLocation.trim()
+      ? s.taskLocation.trim().slice(0, 100)
+      : null;
     // Raw task-IDs van de plugin → server-side mappen naar monster.id
     // slugs zodat de UI niet hoeft te weten van de OSRS varp-tabel.
     const rawBlocks = Array.isArray(s.blocks) ? s.blocks : [];
     const blockIds = rawBlocks
       .filter((b): b is number => typeof b === "number" && Number.isFinite(b) && b > 0)
       .slice(0, 12);
-    const blocks = mapBlockTaskIds(blockIds);
+    const namedBlocks = Array.isArray(s.blockNames)
+      ? s.blockNames.filter((name): name is string => typeof name === "string").map((name) => name.slice(0, 80)).slice(0, 6)
+      : [];
+    const blocks = namedBlocks.length > 0 ? mapBlockTaskNames(namedBlocks) : mapBlockTaskIds(blockIds);
     if (points !== null && streak !== null && taskRem !== null) {
-      slayer = { points, streak, taskRemaining: taskRem, currentTaskId: taskId, blocks };
+      slayer = { points, streak, taskRemaining: taskRem, currentTaskId: taskId, taskName, taskLocation, blocks };
       slayerStatus = "accepted";
     } else {
       slayerStatus = "ignored";

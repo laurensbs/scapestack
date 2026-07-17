@@ -20,8 +20,8 @@ npm run plugin:release-plan
 ./scripts/extract-plugin.sh ~/code/scapestack-runelite-plugin
 cd ~/code/scapestack-runelite-plugin
 git add -A
-git commit -m "Release v0.2.0"
-git tag v0.2.0
+git commit -m "Release v0.3.0"
+git tag v0.3.0
 git push --tags origin main
 ```
 

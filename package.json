@@ -1,6 +1,6 @@
 {
   "name": "osrs-bank-organizer",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Smart OSRS bank auto-organizer with RuneLite Bank Tags + Bank Memory support",
   "private": true,
   "type": "module",

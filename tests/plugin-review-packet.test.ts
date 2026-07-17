@@ -41,7 +41,7 @@ describe("plugin reviewer packet", () => {
   it("formats a copyable maintainer review summary", () => {
     const packet = buildPluginReviewerPacket(status);
 
-    expect(packet).toContain("Scapestack Sync v0.2.0");
+    expect(packet).toContain("Scapestack Sync v0.3.0");
     expect(packet).toContain("RuneLite Plugin Hub PR #12536");
     expect(packet).toContain("Sync on login defaults off");
     expect(packet).toContain("Refresh after quests defaults off");
@@ -107,7 +107,7 @@ describe("plugin reviewer packet", () => {
       encoding: "utf8"
     });
 
-    expect(output).toContain("Scapestack Sync v0.2.0");
+    expect(output).toContain("Scapestack Sync v0.3.0");
     expect(output).toContain("Offline reviewer packet");
     expect(output).toContain("Sync on login defaults off");
     expect(output).toContain("Quest-complete refresh is also gated behind Sync on login");
@@ -125,7 +125,7 @@ describe("plugin reviewer packet", () => {
   it("formats a full PR-body replacement with current consent and handoff wording", () => {
     const body = buildPluginPrBodyReplacement(status);
 
-    expect(body).toContain("Adds Scapestack Sync v0.2.0");
+    expect(body).toContain("Adds Scapestack Sync v0.3.0");
     expect(body).toContain("## Current review state");
     expect(body).toContain("Status: Plugin Hub PR #12536 open");
     expect(body).toContain("PR body copy: Live PR body still needs review-copy fixes");
@@ -163,7 +163,7 @@ describe("plugin reviewer packet", () => {
       encoding: "utf8"
     });
 
-    expect(output).toContain("Adds Scapestack Sync v0.2.0");
+    expect(output).toContain("Adds Scapestack Sync v0.3.0");
     expect(output).toContain("Offline reviewer packet");
     expect(output).toContain("Sync on login defaults off");
     expect(output).toContain("Quest-complete refresh is also gated behind Sync on login");
@@ -233,7 +233,7 @@ describe("plugin reviewer packet", () => {
     expect(output).toContain("npm run --silent plugin:pr-body >");
     expect(output).toContain("gh pr edit 12536 --repo runelite/plugin-hub --body-file");
     expect(output).not.toContain("--offline");
-    expect(output).not.toContain("Adds Scapestack Sync v0.2.0");
+    expect(output).not.toContain("Adds Scapestack Sync v0.3.0");
   }, CLI_TIMEOUT_MS);
 
   it("prints an offline PR update command from the CLI when requested", () => {
@@ -243,7 +243,7 @@ describe("plugin reviewer packet", () => {
 
     expect(output).toContain("npm run --silent plugin:pr-body -- --offline >");
     expect(output).toContain("gh pr edit 12536 --repo runelite/plugin-hub --body-file");
-    expect(output).not.toContain("Adds Scapestack Sync v0.2.0");
+    expect(output).not.toContain("Adds Scapestack Sync v0.3.0");
   }, CLI_TIMEOUT_MS);
 
   it("prints the reviewer reply command from the CLI", () => {
@@ -254,7 +254,7 @@ describe("plugin reviewer packet", () => {
     expect(output).toContain("npm run --silent plugin:review-packet >");
     expect(output).toContain("gh pr comment 12536 --repo runelite/plugin-hub --body-file");
     expect(output).not.toContain("--offline");
-    expect(output).not.toContain("Scapestack Sync v0.2.0");
+    expect(output).not.toContain("Scapestack Sync v0.3.0");
   }, CLI_TIMEOUT_MS);
 
   it("prints an offline reviewer reply command from the CLI when requested", () => {
@@ -264,7 +264,7 @@ describe("plugin reviewer packet", () => {
 
     expect(output).toContain("npm run --silent plugin:review-packet -- --offline >");
     expect(output).toContain("gh pr comment 12536 --repo runelite/plugin-hub --body-file");
-    expect(output).not.toContain("Scapestack Sync v0.2.0");
+    expect(output).not.toContain("Scapestack Sync v0.3.0");
   }, CLI_TIMEOUT_MS);
 
   it("prints the combined reviewer handoff command from the CLI", () => {
@@ -277,7 +277,7 @@ describe("plugin reviewer packet", () => {
     expect(output).toContain("gh pr edit 12536 --repo runelite/plugin-hub --body-file");
     expect(output).toContain("gh pr comment 12536 --repo runelite/plugin-hub --body-file");
     expect(output).not.toContain("--offline");
-    expect(output).not.toContain("Scapestack Sync v0.2.0");
+    expect(output).not.toContain("Scapestack Sync v0.3.0");
   }, CLI_TIMEOUT_MS);
 
   it("prints an offline combined reviewer handoff command from the CLI when requested", () => {
@@ -289,6 +289,6 @@ describe("plugin reviewer packet", () => {
     expect(output).toContain("npm run --silent plugin:review-packet -- --offline >");
     expect(output).toContain("gh pr edit 12536 --repo runelite/plugin-hub --body-file");
     expect(output).toContain("gh pr comment 12536 --repo runelite/plugin-hub --body-file");
-    expect(output).not.toContain("Scapestack Sync v0.2.0");
+    expect(output).not.toContain("Scapestack Sync v0.3.0");
   }, CLI_TIMEOUT_MS);
 });

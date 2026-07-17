@@ -45,7 +45,10 @@ public class ScapestackSyncPluginTest {
             51,
             47,
             19,
-            Arrays.asList(1, 2)
+            "Dust devils",
+            "Catacombs of Kourend",
+            Arrays.asList(1, 2),
+            Arrays.asList("Banshees", "Black demons")
         );
 
         JsonObject payload = ScapestackSyncPlugin.buildSyncPayload("Lynx Titan", snapshot, new Gson());
@@ -81,8 +84,14 @@ public class ScapestackSyncPluginTest {
             "streak",
             "taskRemaining",
             "currentTaskId",
-            "blocks"
+            "taskName",
+            "taskLocation",
+            "blocks",
+            "blockNames"
         )), slayer.keySet());
+        assertEquals("Dust devils", slayer.get("taskName").getAsString());
+        assertEquals("Catacombs of Kourend", slayer.get("taskLocation").getAsString());
+        assertEquals("Banshees", slayer.getAsJsonArray("blockNames").get(0).getAsString());
         assertEquals("normal", payload.get("accountType").getAsString());
         assertEquals(2, payload.getAsJsonArray("skills").size());
         assertEquals("Agility", payload.getAsJsonArray("skills").get(0).getAsJsonObject().get("name").getAsString());

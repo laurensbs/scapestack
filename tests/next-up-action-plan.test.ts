@@ -140,7 +140,7 @@ describe("next-up action plans", () => {
           quests: 1,
           diaries: 1,
           clItems: 0,
-          pluginVersion: "0.2.0",
+          pluginVersion: "0.3.0",
           bankStatus: { enabled: false, itemCount: 0, capturedAt: null, unavailableReason: "opt-in-off" },
           lastSyncSummary: null
         }
@@ -767,8 +767,38 @@ describe("next-up action plans", () => {
     expect(result.headline?.actionPlan?.confidence).toBe("exact");
     expect(result.headline?.actionPlan?.confidenceLabel).toBe("Synced");
     expect(result.headline?.actionPlan?.confidenceLabel).not.toBe("Exact sync");
-    expect(result.headline?.actionPlan?.steps.join(" ")).toContain("synced Slayer task");
+    expect(result.headline?.actionPlan?.steps.join(" ")).toContain("Pick Catacombs for bursting");
+    expect(result.headline?.slayerDecision).toMatchObject({
+      verdict: "do",
+      method: "burst",
+      remaining: 47
+    });
     expect(result.headline?.actionPlan?.steps.join(" ")).not.toContain("exact /slayer");
+  });
+
+  it("uses the canonical RuneLite task name when the raw target ID is unmapped", async () => {
+    const result = await computeNextUp({
+      skills: skillsAt(85),
+      questPoints: 180,
+      scapestackSync: {
+        displayName: "Lynx Titan",
+        questsCompleted: [],
+        diariesCompleted: [],
+        collectionLogItemIds: [],
+        slayer: {
+          points: 132,
+          streak: 51,
+          taskRemaining: 47,
+          currentTaskId: 138,
+          taskName: "Dust devils",
+          taskLocation: "Catacombs of Kourend",
+          blocks: []
+        }
+      }
+    });
+
+    expect(result.headline?.id).toBe("slayer:current-task:dust_devil");
+    expect(result.headline?.slayerDecision?.location).toBe("Catacombs of Kourend");
   });
 
   it("does not mark outdated plugin sync recommendations as exact", async () => {
@@ -804,17 +834,9 @@ describe("next-up action plans", () => {
       }
     });
 
-    expect(result.headline?.kind).toBe("slayer");
-    expect(result.headline?.actionPlan?.confidence).not.toBe("exact");
-    expect(result.headline?.actionPlan?.caveat).toContain("refresh or update it");
-
-    const text = formatRecommendationActionPlan(result.headline!, {
-      from: "next",
-      rsn: "Lynx Titan",
-      hasBankContext: false
-    });
-    expect(text).toContain("Optional: Press Sync again");
-    expect(text).toContain("https://www.scapestack.org/plugin?rsn=Lynx+Titan&from=next&bank=none#verify-sync");
+    const recommendations = [result.headline, ...result.rest].filter(Boolean);
+    expect(recommendations.some((recommendation) => recommendation?.kind === "slayer")).toBe(false);
+    expect(result.headline?.kind).not.toBe("slayer");
   });
 
   it("surfaces plugin version and Slayer sync metadata in path progress", async () => {
@@ -842,7 +864,7 @@ describe("next-up action plans", () => {
           quests: 1,
           diaries: 1,
           clItems: 1,
-          pluginVersion: "0.2.0",
+          pluginVersion: "0.3.0",
           slayerTaskRemaining: 47,
           slayerBlocks: 2
         }
@@ -850,7 +872,7 @@ describe("next-up action plans", () => {
     });
 
     expect(result.pathProgress.syncedSources?.scapestack).toMatchObject({
-      pluginVersion: "0.2.0",
+      pluginVersion: "0.3.0",
       slayerTaskRemaining: 47,
       slayerBlocks: 2
     });
@@ -936,7 +958,7 @@ describe("next-up action plans", () => {
           quests: 1,
           diaries: 1,
           clItems: 1,
-          pluginVersion: "0.2.0",
+          pluginVersion: "0.3.0",
           bankStatus: {
             enabled: true,
             itemCount: 2,

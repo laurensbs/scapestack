@@ -1265,7 +1265,7 @@ Acceptance:
 
 ## Phase 17 - Deepen Slayer Planning
 
-Status: TODO  
+Status: COMPLETE (2026-07-17)
 Depends on: Phases 03 and 06  
 Improves: recommendation relevance
 
@@ -1297,6 +1297,26 @@ Acceptance:
 - Chill and AFK choose suitable task methods;
 - boss variants require viable gear and intent.
 ```
+
+### Evidence
+
+- Added a typed Slayer task decision engine for do, skip, boss variant and
+  refresh routes, with mood, streak, points, account mode, bank inventory,
+  task method and first-trip stop-point handling.
+- Rebuilt `/slayer` around one executable task route. Task inventory, bank
+  evidence, master comparison and setup readiness stay secondary or collapsed.
+- Scapestack Sync v0.3.0 now resolves the canonical Slayer task name and
+  location from RuneLite's game DB tables and sends named block-list entries.
+  Raw IDs remain only as a backwards-compatible fallback.
+- Old or stale scans no longer become live recommendations. An unresolved old
+  task shows one honest RuneLite refresh action rather than guessing a monster.
+- Regression coverage proves Chill/AFK task methods, skip-point protection,
+  bank-gated boss variants, named task resolution and API normalization.
+- `npm run ci:check` passed 197 test files / 1,257 tests, smoke,
+  recommendation audit, plugin v0.3.0 release checks and the 215-page production
+  build. `plugin/./gradlew test` also passed. Desktop 1440x1100 and mobile
+  390x844 browser checks had content, no error overlay and no horizontal
+  overflow; screenshots are in `/tmp/scapestack-phase-17/`.
 
 ## Phase 18 - Complete The Boss Knowledge Catalog
 

@@ -20,7 +20,7 @@ function player(overrides: Partial<SyncedPlayer> = {}): SyncedPlayer {
       currentTaskId: 1337,
       blocks: ["dust_devil", "iron_dragon"]
     },
-    pluginVersion: "0.2.0",
+    pluginVersion: "0.3.0",
     lastSyncSummary: null,
     syncedAt: "2026-06-03T11:30:00.000Z"
   };
@@ -58,7 +58,7 @@ describe("plugin sync proof", () => {
     expect(proof).toContain("Scapestack Sync proof");
     expect(proof).toContain("RSN: Lynx Titan");
     expect(proof).toContain("Account type: Normal");
-    expect(proof).toContain("Plugin version: v0.2.0");
+    expect(proof).toContain("Plugin version: v0.3.0");
     expect(proof).toContain("Skills synced: 2");
     expect(proof).toContain("Quests completed: 2");
     expect(proof).toContain("Diary tiers completed: 1");

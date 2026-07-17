@@ -3,9 +3,9 @@ import { CURRENT_PLUGIN_VERSION, isPluginVersionAtLeast, pluginSyncHealth } from
 
 describe("plugin sync health", () => {
   it("compares semantic versions without string ordering bugs", () => {
-    expect(isPluginVersionAtLeast("0.2.0")).toBe(true);
-    expect(isPluginVersionAtLeast("v0.2.1")).toBe(true);
-    expect(isPluginVersionAtLeast("0.10.0", "0.2.0")).toBe(true);
+    expect(isPluginVersionAtLeast("0.3.0")).toBe(true);
+    expect(isPluginVersionAtLeast("v0.3.1")).toBe(true);
+    expect(isPluginVersionAtLeast("0.10.0", "0.3.0")).toBe(true);
     expect(isPluginVersionAtLeast("0.1.9")).toBe(false);
     expect(isPluginVersionAtLeast(undefined)).toBe(false);
   });
