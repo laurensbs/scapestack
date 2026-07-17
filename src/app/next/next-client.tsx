@@ -4749,6 +4749,7 @@ function WhatToDo({
         previousKind: latestSkipped?.kind ?? memoryKind(latestMemory),
         previousId: latestSkipped?.id ?? latestMemory?.id ?? null,
         excludedIds: [...new Set([...Object.keys(sessionSkipped), ...recentRejectedMemory.map((entry) => entry.id)])],
+        acceptedIds: [...new Set([lastStarted?.id, latestStartedMemory?.id].filter((id): id is string => Boolean(id)))],
         recentFamilies: [...new Set(recentFamilies)],
         seed: `${activeRsn || bankSource}:${mood}:${minutes}:${shuffleIdx}`,
         preferenceProfile,
@@ -4759,7 +4760,7 @@ function WhatToDo({
         }
       };
     },
-    [activeRsn, allRecs, bankSource, hasBankContext, latestMemory, latestSkipped?.id, latestSkipped?.kind, minutes, mood, pluginSyncState, preferenceProfile, recentMemoryCounts, recentRejectedMemory, sessionSkipped, shuffleIdx, syncResult.summary.basis]
+    [activeRsn, allRecs, bankSource, hasBankContext, lastStarted?.id, latestMemory, latestSkipped?.id, latestSkipped?.kind, latestStartedMemory?.id, minutes, mood, pluginSyncState, preferenceProfile, recentMemoryCounts, recentRejectedMemory, sessionSkipped, shuffleIdx, syncResult.summary.basis]
   );
   const actionContext = useMemo<RecommendationActionContext>(
     () => ({ from: "next", hasBankContext, rsn: activeRsn, accountType: accountMode.type }),

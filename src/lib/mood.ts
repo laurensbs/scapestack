@@ -31,6 +31,12 @@ import {
   recommendationHonestyMultiplier,
   type RecommendationHonestyContext
 } from "./recommendation-honesty";
+import {
+  buildRecommendationRankingTrace,
+  rankRecommendationCandidates,
+  type RankedRecommendationCandidate,
+  type RecommendationRankingTrace
+} from "./recommendation-ranking";
 
 export type Mood = "chill" | "focused" | "cash" | "quest" | "bossing" | "unlock" | "afk" | "short";
 
@@ -495,6 +501,8 @@ export interface MoodPick {
   routeLens: RouteLens;
   routeLabel: string;
   routeHelper: string;
+  /** Internal explainability contract. Player components must not render it. */
+  rankingTrace: RecommendationRankingTrace;
 }
 
 export type RecommendationDiversityFamily =
@@ -529,6 +537,8 @@ export interface RoutePickOptions {
   /** Current and recently rejected identities. They remain out until the
    *  eligible pool is exhausted, so randomize cannot immediately repeat. */
   excludedIds?: string[];
+  /** An unfinished route the player explicitly started. */
+  acceptedIds?: string[];
   /** Recently shown families. A new family wins while one remains available. */
   recentFamilies?: RecommendationDiversityFamily[];
   /** Stable seed used only as a near-score tie-breaker. */
@@ -561,42 +571,15 @@ function sessionNoveltyMultiplier(rec: Recommendation, options: RoutePickOptions
   return multiplier;
 }
 
-function seededRank(seed: RoutePickOptions["seed"], id: string): number {
-  const input = `${seed ?? "scapestack"}:${id}`;
-  let hash = 2166136261;
-  for (let index = 0; index < input.length; index += 1) {
-    hash ^= input.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return hash >>> 0;
-}
-
-type ScoredRecommendation = { rec: Recommendation; adjScore: number };
-
-function compareScored(
-  left: ScoredRecommendation,
-  right: ScoredRecommendation,
-  seed: RoutePickOptions["seed"]
-): number {
-  const scoreGap = right.adjScore - left.adjScore;
-  const materialGap = Math.max(left.adjScore, right.adjScore) * 0.03;
-  if (Math.abs(scoreGap) > materialGap) return scoreGap;
-  const seededGap = seededRank(seed, left.rec.id) - seededRank(seed, right.rec.id);
-  return seededGap || scoreGap || left.rec.id.localeCompare(right.rec.id);
-}
-
 function constrainedHeadlinePool(
-  scored: ScoredRecommendation[],
+  scored: RankedRecommendationCandidate[],
   options: RoutePickOptions | undefined
-): ScoredRecommendation[] {
+): RankedRecommendationCandidate[] {
   if (!options) return scored;
-
-  const excluded = new Set(options.excludedIds ?? []);
-  const withoutRejected = scored.filter(({ rec }) => !excluded.has(rec.id));
-  const identityPool = withoutRejected.length > 0 ? withoutRejected : scored;
   const recentFamilies = new Set(options.recentFamilies ?? []);
-  const unseenFamilyPool = identityPool.filter(({ rec }) => !recentFamilies.has(recommendationDiversityFamily(rec)));
-  return unseenFamilyPool.length > 0 ? unseenFamilyPool : identityPool;
+  if (options.previousKind) recentFamilies.add(recommendationDiversityFamilyForKind(options.previousKind));
+  const unseenFamilyPool = scored.filter(({ rec }) => !recentFamilies.has(recommendationDiversityFamily(rec)));
+  return unseenFamilyPool.length > 0 ? unseenFamilyPool : scored;
 }
 
 /** Hoofdfunctie: ranked recs in, mood + tijd erbij, één hoofdpick +
@@ -629,69 +612,104 @@ export function pickForRoute(
   if (recs.length === 0) return null;
   const weights = MOOD_KIND_WEIGHTS[mood];
   const route = ROUTE_LENS_LABEL[routeLens];
-  const eligibleRecs = recs.filter((rec) => recommendationMoodEligibility(rec, mood, minutes).eligible);
-  if (eligibleRecs.length === 0) return null;
-
-  const scored: ScoredRecommendation[] = eligibleRecs.map((rec) => {
+  const recentlyRejected = new Set(options?.excludedIds ?? []);
+  if (options?.previousId) recentlyRejected.add(options.previousId);
+  if (Array.isArray(options?.skippedIds)) {
+    for (const id of options.skippedIds) recentlyRejected.add(id);
+  } else if (options?.skippedIds) {
+    for (const [id, count] of Object.entries(options.skippedIds)) {
+      if (count > 0) recentlyRejected.add(id);
+    }
+  }
+  const acceptedRoutes = new Set(options?.acceptedIds ?? []);
+  const rankingContext = {
+    mood,
+    routeLens,
+    minutes,
+    hasBank: options?.honestyContext?.hasBank ?? false,
+    seed: options?.seed
+  };
+  const rankingInputs = recs.map((rec) => {
+    const eligibility = recommendationMoodEligibility(rec, mood, minutes);
     const moodMult = weights[rec.kind] ?? 1.0;
     const kindMult = routeLens === "smart"
       ? moodMult
       : Math.max(0.32, Math.sqrt(moodMult)) * routeLensMultiplier(rec, routeLens);
-    const timeMult = timeBudgetFit(rec, minutes);
-    const accountMult = accountFitMultiplier(rec, mood);
-    const noveltyMult = sessionNoveltyMultiplier(rec, options);
-    const preferenceMult = recommendationPreferenceMultiplier(options?.preferenceProfile, rec, minutes);
-    const honestyMult = recommendationHonestyMultiplier(rec, options?.honestyContext);
-    return { rec, adjScore: rec.score * kindMult * timeMult * accountMult * noveltyMult * preferenceMult * honestyMult };
+    const hardViolations: string[] = [...eligibility.violations];
+    const explicitWildernessIntent = mood === "bossing" || mood === "cash";
+    if (eligibility.profile.wilderness
+      && (!explicitWildernessIntent || eligibility.profile.setupConfidence !== "verified")) {
+      hardViolations.push("wilderness-without-intent-or-setup");
+    }
+    return {
+      rec,
+      profile: eligibility.profile,
+      hardViolations,
+      kindFit: kindMult,
+      timeFit: timeBudgetFit(rec, minutes),
+      accountFit: accountFitMultiplier(rec, mood),
+      noveltyFit: sessionNoveltyMultiplier(rec, options),
+      preferenceFit: recommendationPreferenceMultiplier(options?.preferenceProfile, rec, minutes),
+      honestyFit: recommendationHonestyMultiplier(rec, options?.honestyContext),
+      recentlyRejected: recentlyRejected.has(rec.id),
+      acceptedRoute: acceptedRoutes.has(rec.id)
+    };
   });
-  scored.sort((a, b) => compareScored(a, b, options?.seed));
+  const { ranked: scored, traces } = rankRecommendationCandidates(
+    rankingInputs,
+    rankingContext,
+    recommendationDiversityFamily
+  );
+  if (scored.length === 0) return null;
   const headlinePool = constrainedHeadlinePool(scored, options);
 
   // Shuffle: bouw een lijst van "hero-kandidaten" waar elke
   // opeenvolgende een ander kind heeft dan z'n voorganger. Dat
   // voorkomt "boss → boss → boss" als de speler op de shuffle-knop
   // ramt.
-  const heroCandidates: Recommendation[] = [];
+  const heroCandidates: RankedRecommendationCandidate[] = [];
   const usedFamilies = new Set<RecommendationDiversityFamily>();
   for (const s of headlinePool) {
     const family = recommendationDiversityFamily(s.rec);
     if (!usedFamilies.has(family)) {
-      heroCandidates.push(s.rec);
+      heroCandidates.push(s);
       usedFamilies.add(family);
     }
   }
   // Als de speler verder shuffled dan we kinds hebben → cycle terug
   // door alle scored recs (zelfde kind mag dan terugkomen).
-  const fallbackList = headlinePool.map((s) => s.rec);
-  const headline =
+  const fallbackList = headlinePool;
+  const headlineCandidate =
     heroCandidates[shuffleIndex % Math.max(1, heroCandidates.length)]
     ?? fallbackList[shuffleIndex % fallbackList.length]
-    ?? headlinePool[0].rec;
+    ?? headlinePool[0];
+  const headline = headlineCandidate.rec;
 
   // Alternatieven: kies bewust een andere sessie-beloning/intensiteit.
   // Dit voorkomt dat backups voelen als "de rest van de sortering".
-  const alts: Recommendation[] = [];
+  const altCandidates: RankedRecommendationCandidate[] = [];
   const seenIds = new Set([headline.id]);
   const seenBuckets = new Set<BackupBucket>();
   const bucketOrder = backupBucketOrder(headline);
   for (const bucket of bucketOrder) {
-    if (alts.length === 2) break;
+    if (altCandidates.length === 2) break;
     const next = headlinePool.find((s) => !seenIds.has(s.rec.id)
       && backupBucket(s.rec) === bucket
-      && !seenBuckets.has(bucket))?.rec;
+      && !seenBuckets.has(bucket));
     if (!next) continue;
-    alts.push(next);
-    seenIds.add(next.id);
+    altCandidates.push(next);
+    seenIds.add(next.rec.id);
     seenBuckets.add(bucket);
   }
   // Vul aan met wat-dan-ook (zelfde kind mag) als we minder dan 2 hebben.
   for (const r of fallbackList) {
-    if (alts.length === 2) break;
-    if (!seenIds.has(r.id)) {
-      alts.push(r);
-      seenIds.add(r.id);
+    if (altCandidates.length === 2) break;
+    if (!seenIds.has(r.rec.id)) {
+      altCandidates.push(r);
+      seenIds.add(r.rec.id);
     }
   }
+  const alts = altCandidates.map((candidate) => candidate.rec);
 
   return {
     headline,
@@ -700,7 +718,14 @@ export function pickForRoute(
     minutes,
     routeLens,
     routeLabel: route.name,
-    routeHelper: route.tagline
+    routeHelper: route.tagline,
+    rankingTrace: buildRecommendationRankingTrace({
+      context: rankingContext,
+      traces,
+      ranked: scored,
+      winner: headlineCandidate,
+      alternatives: altCandidates
+    })
   };
 }
 

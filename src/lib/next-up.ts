@@ -576,10 +576,12 @@ function rankRecommendations(
 ): Recommendation[] {
   return recs
     .map((rec) => {
-      const score = rec.score
-        * qualityMultiplier(rec, ctx.hasBank)
-        * gearRealityMultiplier(rec, ctx.hasBank)
-        * archetypeMultiplier(rec, ctx.accountStage, ctx.accountMeta);
+      const multiplierPoints = (multiplier: number, weight: number): number =>
+        clamp01(0.5 + Math.log2(Math.max(0.1, multiplier)) / 4) * weight - weight / 2;
+      const qualityPoints = multiplierPoints(qualityMultiplier(rec, ctx.hasBank), 28);
+      const gearPoints = multiplierPoints(gearRealityMultiplier(rec, ctx.hasBank), 34);
+      const archetypePoints = multiplierPoints(archetypeMultiplier(rec, ctx.accountStage, ctx.accountMeta), 42);
+      const score = rec.score + qualityPoints + gearPoints + archetypePoints;
       return { ...rec, score: Math.max(1, Math.round(score)) };
     })
     .sort((a, b) => b.score - a.score);
@@ -3445,7 +3447,7 @@ function withActionPlans(recs: Recommendation[], ctx: ActionPlanContext): Recomm
   });
 }
 
-const VISIBLE_RECOMMENDATION_COUNT = 8;
+const VISIBLE_RECOMMENDATION_COUNT = 12;
 const VISIBLE_KIND_LIMITS: Partial<Record<RecKind, number>> = {
   diary: 1,
   money: 2,

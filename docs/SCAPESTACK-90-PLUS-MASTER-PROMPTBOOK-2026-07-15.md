@@ -1493,7 +1493,7 @@ Acceptance:
 
 ## Phase 21 - Rebuild Ranking Around Opportunity Cost
 
-Status: TODO  
+Status: DONE (2026-07-17)
 Depends on: Phases 07, 10, 12, 15, 16, 17, 18 and 20  
 Improves: recommendation relevance
 
@@ -1532,6 +1532,38 @@ Acceptance:
 - golden scenarios prove why the winner beats the runner-up;
 - backups are different choices, not small variations of the same grind.
 ```
+
+### Evidence
+
+- Replaced final multiplicative reranking with one additive, typed pipeline.
+  Every eligible candidate now carries separate usefulness, fit, commitment,
+  friction, opportunity-cost, preference and account-evidence contributions.
+  Hard mood, time, risk and setup violations are applied before scoring.
+- The internal `RecommendationRankingTrace` records generated and eligible
+  counts, every gate and contribution, deterministic rank, winner, runner-up,
+  winning margin, loss reasons and the two selected alternative families. The
+  trace lives beside the player recommendations; a source contract test proves
+  `/next` never renders it.
+- Strong account facts are explicit rules: live RuneLite Slayer tasks, near
+  unlocks, established KC, bank-supported short wins and unfinished accepted
+  routes receive bounded promotions. Scout KC, long prerequisite chains,
+  unsupported Wilderness, distant maxing lanes, uncertain gear and recently
+  rejected identities receive named demotions or hard exclusion.
+- `Try another` now temporarily removes both the exact identity and, while a
+  materially different option exists, its previous activity family. A rejected
+  card returns only when the valid pool is exhausted. Backups are chosen from
+  different session-reward buckets before same-family fallback is allowed.
+- Account preselection is additive too and keeps a bounded twelve-candidate
+  pool, preventing the old multiplier stack from discarding a good route before
+  mood, time and opportunity cost are evaluated. A route the player already
+  started is passed into ranking instead of being bolted onto the result later.
+- Golden scenarios cover a confirmed active Slayer task, 1-KC scout versus
+  established commitment, a long quest in a short login, learned preferences,
+  accepted-route continuity, recent rejection, three-family diversity and
+  winner-versus-runner-up explanations.
+- Verification: 202 test files / 1,282 tests passed. `npm run ci:check` passed
+  typecheck, smoke, recommendation audit, offline plugin release checks and the
+  216-page production build. `./gradlew test` passed the RuneLite suite.
 
 ---
 

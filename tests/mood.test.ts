@@ -240,7 +240,12 @@ describe("pickForMood", () => {
     const recs: Recommendation[] = [
       rec("diary", "desert-hard", 82),
       { ...rec("skill", "iron-supplies", 64), title: "Run herbs + birdhouses", routeTags: ["iron", "afk", "rebuild", "skiller"] },
-      { ...rec("milestone", "maxing-lane", 60), title: "Pick a maxing lane", routeTags: ["maxing", "afk", "skiller"] }
+      {
+        ...rec("milestone", "maxing-lane", 60),
+        title: "Pick a maxing lane",
+        why: "One level from the next useful maxing stop.",
+        routeTags: ["maxing", "afk", "skiller"]
+      }
     ];
 
     const afk = pickForRoute(recs, "afk", 60, "afk-progress");
