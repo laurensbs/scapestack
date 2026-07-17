@@ -260,7 +260,6 @@ type InitialRouteChoice = {
   minutes: TimeBudget;
 };
 
-const INTAKE_ROUTE_LENSES: RouteLens[] = ["smart", "boss-log", "maxing", "gp-upgrade", "afk-progress", "short-login"];
 const INTAKE_SESSION_CHOICES: Array<{
   id: string;
   label: string;
@@ -369,6 +368,10 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
   const cameFromHome = useMemo(() => {
     const params = new URLSearchParams(initialQueryString.replace(/^\?/, ""));
     return params.get("from") === "home";
+  }, [initialQueryString]);
+  const isFirstRun = useMemo(() => {
+    const params = new URLSearchParams(initialQueryString.replace(/^\?/, ""));
+    return params.get("first") === "1";
   }, [initialQueryString]);
 
   // Three intake paths feed the same engine: RSN-only (no bank),
@@ -776,6 +779,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
         routeIntent={routeIntent}
         initialRouteChoice={initialRouteChoice}
         planRequestedAt={planRequestedAt}
+        isFirstRun={isFirstRun}
         onBossOpen={(slug) => {
           const target = BOSSES.find((b) => b.slug === slug);
           if (target) setModalBoss(target);
@@ -926,10 +930,6 @@ function NextIntake({
     if (!rsn.trim() && !fromBank) return;
     const clean = rsn.trim();
     if (clean) saveSavedRsn(clean);
-    if (clean) {
-      setShowRoutePicker(true);
-      return;
-    }
     runWithRoute();
   };
 
@@ -940,50 +940,6 @@ function NextIntake({
         ? "animate-[intake-lift_0.5s_cubic-bezier(0.22,1,0.36,1)_both]"
         : "animate-[slide-up_0.4s_ease-out]"
     )}>
-      <div className="mb-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] p-3 text-left sm:p-4">
-        <div className="mb-3 flex items-baseline justify-between gap-3">
-          <div>
-            <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              Pick today&apos;s trip
-            </div>
-            <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-muted)]">
-              Pick the kind of OSRS session you want, or let Scapestack choose.
-            </p>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {INTAKE_ROUTE_LENSES.map((lens) => {
-            const label = ROUTE_LENS_LABEL[lens];
-            const active = selectedRouteLens === lens;
-            return (
-              <button
-                key={lens}
-                type="button"
-                aria-pressed={active}
-                aria-label={lens === "smart" ? "Pick best route now" : `Pick ${label.name} route`}
-                onClick={() => setSelectedRouteLens(lens)}
-                className={cn(
-                  "flex min-h-[58px] items-center gap-2 rounded-xl border px-3 py-3 text-left transition-colors sm:min-h-[64px]",
-                  active
-                    ? "border-[var(--color-accent)]/60 bg-[var(--color-accent)]/12 text-[var(--color-accent)]"
-                    : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)]"
-                )}
-              >
-                <ItemSprite id={label.itemId} alt="" size={22} />
-                <span className="min-w-0">
-                  <span className="block truncate text-[14px] font-bold sm:text-[13px]">
-                    {lens === "smart" ? "Best now" : label.name}
-                  </span>
-                  <span className="mt-0.5 hidden truncate text-[10.5px] opacity-80 sm:block">
-                    {label.tagline}
-                  </span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Welcome-back banner. Only shown when there's no fresh /bank
           handoff — the loader above already skips populating savedBank
           in that case, but the explicit guard keeps the JSX honest. */}
@@ -1162,6 +1118,16 @@ function NextIntake({
             <ClipboardPaste className="size-3.5" />
             {bank.trim() ? "Bank added" : "Add bank"}
           </button>
+          <button
+            type="button"
+            onClick={() => setShowRoutePicker(true)}
+            disabled={loading}
+            aria-haspopup="dialog"
+            aria-expanded={showRoutePicker}
+            className="inline-flex items-center gap-1.5 rounded-full border border-transparent px-3 py-1.5 text-[12.5px] font-semibold text-[var(--color-text-dim)] underline decoration-dotted underline-offset-4 transition-colors hover:text-[var(--color-accent)] disabled:opacity-50"
+          >
+            Choose a session instead
+          </button>
           {bank.trim() && (
             <button
               type="button"
@@ -1292,7 +1258,7 @@ function NextIntake({
   );
 }
 
-function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOpen, onClearStoredBankHandoff, expectedPluginSync, routeIntent, initialRouteChoice, planRequestedAt }: {
+function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOpen, onClearStoredBankHandoff, expectedPluginSync, routeIntent, initialRouteChoice, planRequestedAt, isFirstRun }: {
   result: NextUpResult;
   bankItems: BankHandoffItem[];
   bankSource: NextBankSource;
@@ -1306,6 +1272,7 @@ function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOp
   routeIntent: NextIntentPreset | null;
   initialRouteChoice: InitialRouteChoice | null;
   planRequestedAt: number | null;
+  isFirstRun: boolean;
 }) {
   const { headline, rest, summary } = result;
 
@@ -1357,6 +1324,13 @@ function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOp
           planRequestedAt={planRequestedAt}
         />
       </div>
+
+      <FirstPlanSharpening
+        activeRsn={activeRsn}
+        hasBank={bankItems.length > 0}
+        hasRunelite={pluginSyncState === "live"}
+        firstRun={isFirstRun}
+      />
 
       <div style={trackAnim(150)}>
         <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-4 sm:p-5">
@@ -1423,6 +1397,170 @@ function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOp
         <SupportCard />
       </div>
     </div>
+  );
+}
+
+function FirstPlanSharpening({
+  activeRsn,
+  hasBank,
+  hasRunelite,
+  firstRun
+}: {
+  activeRsn: string;
+  hasBank: boolean;
+  hasRunelite: boolean;
+  firstRun: boolean;
+}) {
+  const [visible, setVisible] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [bankOpen, setBankOpen] = useState(false);
+
+  useEffect(() => {
+    if (!firstRun || (hasBank && hasRunelite)) return;
+    const key = `scapestack:first-plan-sharpened:${activeRsn.trim().toLowerCase()}`;
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
+    } catch {
+      // The optional prompt can still appear when session storage is unavailable.
+    }
+    setVisible(true);
+  }, [activeRsn, firstRun, hasBank, hasRunelite]);
+
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open]);
+
+  if (!visible && !open && !bankOpen) return null;
+
+  const syncHref = pluginVerifyUrlForSyncedRsn(activeRsn, "next", { hasBankContext: hasBank });
+
+  return (
+    <>
+      {visible && (
+        <div className="flex flex-col gap-3 border-y border-[var(--color-border)] py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-[13px] font-bold text-[var(--color-text)]">Your first plan is ready.</p>
+            <p className="mt-0.5 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
+              Add gear or finished progress only when you want the next pick sharper.
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              aria-haspopup="dialog"
+              aria-expanded={open}
+              className="btn-ghost min-h-10 justify-center px-3 text-[12px] font-bold"
+            >
+              Sharpen next plan
+              <ArrowRight className="size-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setVisible(false)}
+              className="px-2 py-2 text-[11.5px] font-semibold text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text)]"
+            >
+              Not now
+            </button>
+          </div>
+        </div>
+      )}
+
+      {open && (
+        <div
+          className="fixed inset-0 z-[110] grid place-items-center bg-black/72 px-4 py-8 backdrop-blur-sm"
+        >
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-label="Close optional setup"
+            className="absolute inset-0 cursor-default"
+            onClick={() => setOpen(false)}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="first-plan-sharpen-title"
+            className="osrs-frame relative w-full max-w-lg text-left"
+          >
+            <div className="osrs-title-bar flex items-start justify-between gap-4 px-5 py-4">
+              <div>
+                <p className="eyebrow text-[var(--color-accent)]">Optional</p>
+                <h2 id="first-plan-sharpen-title" className="mt-1 text-[22px] font-semibold leading-tight text-[var(--color-text)]">
+                  Make the next pick sharper
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Close optional setup"
+                className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+            <div className="osrs-body grid gap-2 p-5 sm:grid-cols-2">
+              {!hasBank && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    setVisible(false);
+                    setBankOpen(true);
+                  }}
+                  className="min-h-[92px] rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 p-4 text-left transition-colors hover:border-[var(--color-accent)]"
+                >
+                  <ClipboardPaste className="size-4 text-[var(--color-accent)]" />
+                  <span className="mt-3 block text-[14px] font-bold text-[var(--color-text)]">Add bank</span>
+                  <span className="mt-1 block text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">Use owned gear, supplies and GP next time.</span>
+                </button>
+              )}
+              {!hasRunelite && (
+                <Link
+                  href={syncHref}
+                  className="min-h-[92px] rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 p-4 text-left transition-colors hover:border-[var(--color-accent)]"
+                >
+                  <Sparkles className="size-4 text-[var(--color-accent)]" />
+                  <span className="mt-3 block text-[14px] font-bold text-[var(--color-text)]">Add RuneLite</span>
+                  <span className="mt-1 block text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">Skip quests, diaries and clog progress already finished.</span>
+                </Link>
+              )}
+            </div>
+            <div className="osrs-body border-t border-[var(--color-parchment-edge)] px-5 pb-5">
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  setVisible(false);
+                }}
+                className="btn-ghost min-h-10 w-full justify-center text-[12px] font-bold"
+              >
+                Keep this plan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <AddBankModal
+        open={bankOpen}
+        onClose={() => setBankOpen(false)}
+        rsn={activeRsn}
+        source="next"
+        onSaved={() => setBankOpen(false)}
+      />
+    </>
   );
 }
 
@@ -5205,12 +5343,6 @@ function WhatToDo({
               activeRsn={activeRsn}
               accountMode={accountMode}
             />
-            <AccountTimeline expectedRsn={activeRsn} limit={5} />
-            <SessionMoodGrid
-              mood={mood}
-              onPick={applySessionIntent}
-              onSurprise={moveToAnotherPlan}
-            />
             <RecHeadlineExpandable
               rec={activePick.headline}
               decision={activeDecision!}
@@ -5233,6 +5365,23 @@ function WhatToDo({
               pluginSyncState={pluginSyncState}
               pluginBankStatus={pluginSyncSummary?.bankStatus ?? null}
             />
+            <details className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/35 px-3.5 py-3">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[12px] font-bold text-[var(--color-text-dim)] marker:hidden [&::-webkit-details-marker]:hidden">
+                <span>Want a different kind of session?</span>
+                <span className="inline-flex items-center gap-1.5 text-[var(--color-accent)]">
+                  {MOOD_LABEL[visibleMood(mood)].name}
+                  <ChevronRight className="size-3.5 transition-transform group-open:rotate-90" />
+                </span>
+              </summary>
+              <div className="mt-3">
+                <SessionMoodGrid
+                  mood={mood}
+                  onPick={applySessionIntent}
+                  onSurprise={moveToAnotherPlan}
+                />
+              </div>
+            </details>
+            <AccountTimeline expectedRsn={activeRsn} limit={5} />
             <ReturnPlanCard result={syncResult} rec={activePick.headline} />
             <SessionRouteTimeline
               headline={activePick.headline}

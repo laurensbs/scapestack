@@ -3,14 +3,14 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const source = readFileSync(join(process.cwd(), "src/components/hero-intake.tsx"), "utf8");
+const nextSource = readFileSync(join(process.cwd(), "src/app/next/next-client.tsx"), "utf8");
 
 describe("hero intake copy and routing", () => {
   it("marks RSN-only homepage runs as bankless while allowing bank-only starts", () => {
     expect(source).toContain("const hasBankPaste = Boolean(bank.trim())");
     expect(source).toContain("const canSubmit = Boolean(rsn.trim() || hasBankPaste)");
-    expect(source).toContain("if (trimmed) {");
-    expect(source).toContain("setShowFirstSetup(true);");
-    expect(source).toContain("hasAccountFirstSetupSeen(trimmed)");
+    expect(source).toContain("const firstRun = Boolean(trimmed && !hasAccountFirstSetupSeen(trimmed));");
+    expect(source).toContain("openPlan({ firstRun });");
     expect(source).toContain('if (!hasBankContext) params.set("bank", "none");');
     expect(source).toContain("router.push(`/next?${params.toString()}`)");
   });
@@ -97,42 +97,23 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("onMoodChange={setReturningMood}");
   });
 
-  it("shows first-time setup before the first /next plan", () => {
-    expect(source).toContain('type FirstSetupIntent = "surprise" | "chill" | "cash" | "bossing" | "unlock" | "afk" | "short";');
-    expect(source).toContain("const FIRST_SETUP_INTENTS:");
-    expect(source).toContain('label: "Chill"');
-    expect(source).toContain('label: "GP"');
-    expect(source).toContain('label: "Bossing"');
-    expect(source).toContain('label: "Unlock"');
-    expect(source).toContain('label: "AFK"');
-    expect(source).toContain('label: "Short"');
-    expect(source).toContain("function markFirstSetupSeen(rsn: string): void");
-    expect(source).toContain("markAccountFirstSetupSeen(rsn);");
-    expect(source).toContain("if (!hasAccountFirstSetupSeen(trimmed))");
-    expect(source).toContain("const [showFirstSetup, setShowFirstSetup] = useState(false);");
-    expect(source).toContain('const [selectedFirstSetupIntent, setSelectedFirstSetupIntent] = useState<FirstSetupIntent>("surprise");');
-    expect(source).toContain('aria-labelledby="hero-first-setup-title"');
-    expect(source).toContain('label: "Best now"');
-    expect(source).toContain("Before we pick");
-    expect(source).toContain("What do you feel like doing?");
-    expect(source).toContain("Pick a route. Add bank or RuneLite now only if you want the first plan sharper.");
-    expect(source).toContain("setSelectedFirstSetupIntent(choice.intent)");
-    expect(source).toContain("Add RuneLite plugin");
-    expect(source).toContain("RuneLite selected");
-    expect(source).toContain("Plan this session");
-    expect(source).toContain("Skip setup");
-    expect(source).toContain("markFirstSetupSeen(trimmed)");
-    expect(source).not.toContain("markRuneliteChecked(trimmed)");
-    expect(source).toContain("saveMood({");
-    expect(source).toContain("}, trimmed || undefined);");
-    expect(source).toContain("if (options.includeSetupIntent) {");
-    expect(source).toContain('params.set("intent", selectedFirstSetupIntent);');
-    expect(source).toContain('params.set("time", String(intentPreset.minutes));');
-    expect(source).toContain("openPlan({ markSetup: true, includeSetupIntent: true })");
+  it("delivers the first plan before optional setup", () => {
+    expect(source).toContain("if (options.firstRun) markAccountFirstSetupSeen(trimmed);");
+    expect(source).toContain('if (options.firstRun) params.set("first", "1");');
+    expect(source).toContain("saveSavedRsn(trimmed)");
     expect(source).toContain("saveSavedBank(bank, trimmed)");
     expect(source).toContain("AddBankModal");
-    expect(source).not.toContain("RuneLite is connected");
-    expect(source).not.toContain("Make {cleanRsn || \"this account\"} smarter?");
+    expect(source).not.toContain("showFirstSetup");
+    expect(source).not.toContain("FIRST_SETUP_INTENTS");
+    expect(source).not.toContain("Plan this session");
+    expect(nextSource).toContain("runWithRoute();");
+    expect(nextSource).toContain("Choose a session instead");
+    expect(nextSource).toContain("Your first plan is ready.");
+    expect(nextSource).toContain("Sharpen next plan");
+    expect(nextSource).toContain("Make the next pick sharper");
+    expect(nextSource).toContain("sessionStorage.setItem(key, \"1\")");
+    expect(nextSource).toContain("<AddBankModal");
+    expect(nextSource).toContain("Add RuneLite");
   });
 
   it("explains why the hero planner CTA is disabled", () => {

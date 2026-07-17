@@ -62,7 +62,9 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).not.toContain("First step, then what logically follows.");
     expect(next).not.toContain("First this");
     expect(next).not.toContain("After that");
-    expect(next).toContain("Pick today&apos;s trip");
+    expect(next).toContain("Plan my next move");
+    expect(next).toContain("Choose a session instead");
+    expect(next).toContain("Want a different kind of session?");
     expect(next).not.toContain("Another route");
     expect(next).toContain("Not this one?");
     expect(next).toContain("<summary className=\"inline-flex cursor-pointer list-none items-center gap-1.5");

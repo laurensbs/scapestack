@@ -11,53 +11,21 @@ import { SessionMoodPicker } from "@/components/session-mood-picker";
 import { loadAccountSnapshot, type AccountSnapshot } from "@/lib/account-context";
 import { ACCOUNT_EVENT, clearRuneliteChecked, hasAccountFirstSetupSeen, markAccountFirstSetupSeen, markAccountPluginBankStatus, markAccountRuneliteProgress, markRuneliteChecked } from "@/lib/account-storage";
 import { MOOD_LABEL, type Mood, type TimeBudget } from "@/lib/mood";
-import { loadMood, saveMood, relativeSince } from "@/lib/mood-storage";
+import { loadMood, relativeSince } from "@/lib/mood-storage";
 import { latestRecommendationMemory, latestStartedRecommendationMemory } from "@/lib/recommendation-feedback";
 import { runeliteProgressFromSyncSummary } from "@/lib/runelite-progress-memory";
 import { saveSavedBank, saveSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
 import { cn } from "@/lib/utils";
 
-// Homepage hero intake — kleine zus van /next's NextIntake. Eén RSN
-// input + first-time intent/setup voor bank/RuneLite. Submit → navigate
-// naar /next met RSN, gekozen sessie-vibe en/of bank-paste. /next pakt de
-// hero bank op via sessionStorage en saved-bank bewaart hem per RSN.
-//
-// Returning players houden één duidelijk submit-doel; first timers krijgen
-// alleen één korte "waar heb je zin in?" keuze zodat het advies meteen
-// minder willekeurig voelt.
+// Homepage intake: one RSN submit must reach a useful public-stats plan.
+// Bank and RuneLite stay optional and can sharpen a later run.
 
 const HERO_BANK_KEY = "scapestack:hero:bank";
-type FirstSetupIntent = "surprise" | "chill" | "cash" | "bossing" | "unlock" | "afk" | "short";
-
-const FIRST_SETUP_INTENTS: Array<{
-  intent: FirstSetupIntent;
-  mood: Mood;
-  minutes: TimeBudget;
-  label: string;
-  helper: string;
-}> = [
-  { intent: "surprise", mood: "unlock", minutes: 60, label: "Best now", helper: "Cleanest route for this login" },
-  { intent: "chill", mood: "chill", minutes: 30, label: "Chill", helper: "Low effort progress" },
-  { intent: "cash", mood: "cash", minutes: 60, label: "GP", helper: "Fund upgrades" },
-  { intent: "bossing", mood: "bossing", minutes: 60, label: "Bossing", helper: "Trip or KC block" },
-  { intent: "unlock", mood: "unlock", minutes: 120, label: "Unlock", helper: "Quest or diary" },
-  { intent: "afk", mood: "afk", minutes: 60, label: "AFK", helper: "Progress while chilling" },
-  { intent: "short", mood: "short", minutes: 15, label: "Short", helper: "Quick stop point" }
-];
-
-function firstSetupIntentPreset(intent: FirstSetupIntent) {
-  return FIRST_SETUP_INTENTS.find((preset) => preset.intent === intent) ?? FIRST_SETUP_INTENTS[0];
-}
-
-function markFirstSetupSeen(rsn: string): void {
-  markAccountFirstSetupSeen(rsn);
-}
 
 export function HeroIntake() {
   const router = useRouter();
   const [rsn, setRsn] = useState("");
   const [rememberedRsn, setRememberedRsn] = useState("");
-  const [showFirstSetup, setShowFirstSetup] = useState(false);
   const [showBankGuide, setShowBankGuide] = useState(false);
   const [showRuneliteGuide, setShowRuneliteGuide] = useState(false);
   const [editingAccount, setEditingAccount] = useState(false);
@@ -67,8 +35,6 @@ export function HeroIntake() {
   const [returningMood, setReturningMood] = useState<{ mood: Mood; minutes: TimeBudget; label: string } | null>(null);
   const [returningChangeLines, setReturningChangeLines] = useState<string[]>([]);
   const [accountSnapshot, setAccountSnapshot] = useState<AccountSnapshot | null>(null);
-  const [selectedFirstSetupIntent, setSelectedFirstSetupIntent] = useState<FirstSetupIntent>("surprise");
-  const [firstSetupRunelite, setFirstSetupRunelite] = useState(false);
   const [bank, setBank] = useState("");
   const [savedBankAt, setSavedBankAt] = useState<number | null>(null);
   const hasBankPaste = Boolean(bank.trim());
@@ -156,18 +122,11 @@ export function HeroIntake() {
     };
   }, [cleanRsn]);
 
-  const openPlan = (options: { markSetup?: boolean; includeSetupIntent?: boolean } = {}) => {
+  const openPlan = (options: { firstRun?: boolean } = {}) => {
     const trimmed = cleanRsn;
-    const intentPreset = firstSetupIntentPreset(selectedFirstSetupIntent);
     if (trimmed) {
       saveSavedRsn(trimmed);
-      if (options.markSetup) markFirstSetupSeen(trimmed);
-    }
-    if (options.includeSetupIntent) {
-      saveMood({
-        mood: intentPreset.mood,
-        minutes: intentPreset.minutes
-      }, trimmed || undefined);
+      if (options.firstRun) markAccountFirstSetupSeen(trimmed);
     }
     if (hasBankPaste) {
       if (trimmed) saveSavedBank(bank, trimmed);
@@ -178,10 +137,7 @@ export function HeroIntake() {
     params.set("from", "home");
     if (trimmed) params.set("rsn", trimmed);
     if (!hasBankContext) params.set("bank", "none");
-    if (options.includeSetupIntent && selectedFirstSetupIntent !== "surprise") {
-      params.set("intent", selectedFirstSetupIntent);
-      params.set("time", String(intentPreset.minutes));
-    }
+    if (options.firstRun) params.set("first", "1");
     router.push(`/next?${params.toString()}`);
   };
 
@@ -224,16 +180,8 @@ export function HeroIntake() {
     e.preventDefault();
     const trimmed = cleanRsn;
     if (!canSubmit) return;
-    if (trimmed) saveSavedRsn(trimmed);
-    if (trimmed) {
-      if (!hasAccountFirstSetupSeen(trimmed)) {
-        setShowFirstSetup(true);
-        return;
-      }
-      openPlan();
-      return;
-    }
-    openPlan();
+    const firstRun = Boolean(trimmed && !hasAccountFirstSetupSeen(trimmed));
+    openPlan({ firstRun });
   };
 
   if (isRememberedRun && !editingAccount) {
@@ -527,141 +475,6 @@ export function HeroIntake() {
           RuneLite later
         </button>
       </div>
-
-      {showFirstSetup && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="hero-first-setup-title"
-          className="fixed inset-0 z-[110] overflow-y-auto bg-black/72 px-4 pb-8 pt-20 backdrop-blur-sm sm:grid sm:place-items-center sm:py-8"
-          onClick={() => setShowFirstSetup(false)}
-        >
-          <div
-            className="osrs-frame w-full max-w-2xl text-left"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="osrs-title-bar flex items-start justify-between gap-4 px-5 py-4 sm:px-6">
-              <div>
-                <p className="eyebrow text-[var(--color-accent)]">Before we pick</p>
-                <h2 id="hero-first-setup-title" className="mt-1 text-[24px] font-semibold leading-tight text-[var(--color-text)]">
-                  What do you feel like doing?
-                </h2>
-                <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
-                  Pick a route. Add bank or RuneLite now only if you want the first plan sharper.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowFirstSetup(false)}
-                aria-label="Close first setup"
-                className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-
-            <div className="osrs-body border-b border-[var(--color-parchment-edge)] p-5 sm:p-6">
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {FIRST_SETUP_INTENTS.map((choice) => {
-                  const selected = selectedFirstSetupIntent === choice.intent;
-                  return (
-                    <button
-                      key={choice.intent}
-                      type="button"
-                      onClick={() => setSelectedFirstSetupIntent(choice.intent)}
-                      aria-pressed={selected}
-                      className={cn(
-                        "min-h-[74px] rounded-lg border px-3 py-3 text-left transition-colors",
-                        selected
-                          ? "border-[var(--color-accent)] bg-[var(--color-accent)]/16 text-[var(--color-text)]"
-                          : "border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 text-[var(--color-text-dim)] hover:border-[var(--color-accent)] hover:text-[var(--color-text)]"
-                      )}
-                    >
-                      <span className="block text-[14px] font-bold text-[var(--color-text)]">{choice.label}</span>
-                      <span className="mt-1 block text-[11.5px] leading-snug text-[var(--color-text-muted)]">{choice.helper}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="osrs-body grid gap-3 p-5 sm:grid-cols-2 sm:p-6">
-              <button
-                type="button"
-                onClick={() => setShowBankGuide(true)}
-                aria-haspopup="dialog"
-                className={cn(
-                  "rounded-lg border p-4 text-left transition-colors",
-                  hasBankContext
-                    ? "border-[var(--color-accent)] bg-[var(--color-accent)]/12"
-                    : "border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 hover:border-[var(--color-accent)]"
-                )}
-              >
-                <span className="inline-flex size-9 items-center justify-center rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 text-[var(--color-accent)]">
-                  <ClipboardPaste className="size-4" />
-                </span>
-                <span className="mt-3 block text-[16px] font-bold text-[var(--color-text)]">
-                  {hasBankContext ? "Bank added" : "Add bank"}
-                </span>
-                <span className="mt-1 block text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">
-                  Better gear, supplies and GP calls for this RSN.
-                </span>
-              </button>
-
-              <div
-                className={cn(
-                  "rounded-lg border p-4 transition-colors",
-                  firstSetupRunelite
-                    ? "border-[var(--color-accent)] bg-[var(--color-accent)]/12"
-                    : "border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45"
-                )}
-              >
-                <button
-                  type="button"
-                  onClick={() => setFirstSetupRunelite(true)}
-                  className="w-full text-left"
-                >
-                  <span className="inline-flex size-9 items-center justify-center rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 text-[var(--color-accent)]">
-                    <PlugZap className="size-4" />
-                  </span>
-                  <span className="mt-3 block text-[16px] font-bold text-[var(--color-text)]">
-                    {firstSetupRunelite ? "RuneLite selected" : "Add RuneLite plugin"}
-                  </span>
-                  <span className="mt-1 block text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">
-                    Helps avoid finished quests, diary steps, clog slots and Slayer mistakes.
-                  </span>
-                </button>
-                {firstSetupRunelite && (
-                  <div className="mt-3">
-                    <RuneliteOpenButton className="w-full" />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="osrs-body flex flex-col gap-2 border-t border-[var(--color-parchment-edge)] px-5 pb-5 sm:flex-row sm:px-6 sm:pb-6">
-              <button
-                type="button"
-                onClick={() => openPlan({ markSetup: true, includeSetupIntent: true })}
-                className="btn-primary h-11 flex-1 justify-center px-4 text-[14px]"
-              >
-                Plan this session
-                <ArrowRight className="size-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (cleanRsn) markFirstSetupSeen(cleanRsn);
-                  openPlan({ markSetup: false, includeSetupIntent: true });
-                }}
-                className="btn-ghost h-11 justify-center px-4 text-[13px] font-bold"
-              >
-                Skip setup
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <AddBankModal
         open={showBankGuide}

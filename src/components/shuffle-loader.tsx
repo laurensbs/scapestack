@@ -30,7 +30,13 @@ export function ShuffleLoader({ label = "Building your next trip…" }: ShuffleL
   const active = LOADER_BOSSES[idx];
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col items-center px-4 py-8 text-center sm:py-10">
+    <div
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      aria-label={label}
+      className="mx-auto flex w-full max-w-xl flex-col items-center px-4 py-8 text-center sm:py-10"
+    >
       <div className="text-[12px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)]">
         {label}
       </div>

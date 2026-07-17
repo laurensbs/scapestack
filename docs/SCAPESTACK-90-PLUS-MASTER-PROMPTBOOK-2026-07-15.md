@@ -1571,7 +1571,7 @@ Acceptance:
 
 ## Phase 22 - Make First Run Deliver Value Immediately
 
-Status: TODO  
+Status: DONE (2026-07-17)
 Depends on: Phases 06 and 07  
 Improves: onboarding, conversion
 
@@ -1600,6 +1600,29 @@ Acceptance:
 - no duplicate account UI;
 - Playwright covers fresh, invalid RSN, slow hiscores and returning states.
 ```
+
+### Implemented
+
+- Removed the blocking first-run mood, bank and RuneLite setup. The homepage
+  now saves a new RSN, marks the first run once and opens a public-stats plan
+  from the same submit.
+- `/next` now runs `Best now` directly. Session route selection remains
+  available as an explicit secondary action instead of occupying or blocking
+  the intake.
+- Added a one-time post-plan sharpening prompt. It leaves the useful plan in
+  view, can be dismissed, and opens compact optional bank or RuneLite setup
+  only when requested.
+- First-run presentation is remembered per account and tab, so refresh and
+  back navigation do not restart setup. Existing invalid-name and loading
+  states remain in the same direct flow.
+- Regression coverage protects direct submit, automatic RSN persistence,
+  optional route selection, first-run URL state and post-value sharpening.
+- Browser verification covered fresh, invalid, slow, refreshed, returning and
+  mobile states without overlap or onboarding restart. The slow state now
+  exposes an accessible live status.
+- Verification: 203 test files / 1,286 tests passed. `npm run ci:check` passed
+  typecheck, smoke, recommendation audit, offline plugin release checks and the
+  216-page production build. `./gradlew test` passed the RuneLite suite.
 
 ## Phase 23 - Turn Account Home Into A Return Moment
 
