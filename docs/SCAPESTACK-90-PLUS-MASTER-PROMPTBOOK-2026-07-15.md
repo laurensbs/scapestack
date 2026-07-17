@@ -1680,7 +1680,7 @@ Acceptance:
 
 ## Phase 24 - Make `/next` One Decision Per Viewport
 
-Status: TODO  
+Status: DONE (2026-07-17)
 Depends on: Phases 21 and 22  
 Improves: UI clarity, trust
 
@@ -1715,6 +1715,30 @@ Acceptance:
 - clicking the whole alternative selects it;
 - setup detail opens as a focused sheet/modal.
 ```
+
+### Implemented
+
+- Rebuilt the primary recommendation around the typed
+  `RecommendationDecision`: one large OSRS visual, one account-specific reason,
+  `Start`, a bank-backed `Bring` only when present, `Stop at` and one primary
+  action. Starting the action also records trip continuity.
+- Removed the rendered account-context row, account timeline, return-plan grid,
+  five-column route timeline and five-button feedback strip from the main
+  decision flow. Mood controls remain collapsed until requested.
+- Moved route steps, calculations, assumptions, Wiki triangulation and trip
+  feedback into one focused sheet. The sheet is portalled to `document.body`,
+  locks page scroll and covers the fixed mobile navigation.
+- Promoted at most two alternatives into large, fully clickable cards. Choosing
+  one replaces the headline recommendation and rebuilds its decision contract;
+  the previous headline becomes an alternative without changing the selected
+  session mood.
+- Browser verification covered the sample decision on desktop and 390px mobile,
+  whole-card alternative selection, modal open/close behavior, body scroll
+  locking and horizontal overflow. The mobile primary card ends at 533px and
+  exposes the alternatives within the first 844px viewport.
+- Verification: 204 test files / 1,290 tests passed. `npm run ci:check` passed
+  typecheck, smoke, recommendation audit, offline plugin release checks and the
+  216-page production build. `./gradlew test` passed the RuneLite suite.
 
 ## Phase 25 - Make Route Chains Calculable And Interactive
 

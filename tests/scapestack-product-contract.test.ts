@@ -32,7 +32,7 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(homepage).not.toContain("Every panel must earn the click");
     expect(homepage).not.toContain("Progression lanes");
     expect(homepage).not.toContain("Every panel answers a player question");
-    expect(next).toContain("Next trip");
+    expect(next).toContain("Do this first");
     expect(next).toContain("function NextTripCard");
     expect(next).toContain('data-next-trip-card="true"');
     expect(next).toContain('label: "Before you leave"');
@@ -46,8 +46,8 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).not.toContain("Find unlock");
     expect(next).not.toContain("Nothing obvious");
     expect(next).toContain("Open unlocks");
-    expect(next).toContain("function NextTripContextLine");
-    expect(next).toContain("<AccountTimeline expectedRsn={activeRsn}");
+    expect(next).not.toContain("<NextTripContextLine");
+    expect(next).not.toContain("<AccountTimeline");
     expect(next).not.toContain("function lastSyncReturnTitle");
     expect(next).toContain("RouteCard");
     expect(next).toContain("data-route-card");
@@ -66,8 +66,8 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).toContain("Choose a session instead");
     expect(next).toContain("Want a different kind of session?");
     expect(next).not.toContain("Another route");
-    expect(next).toContain("Not this one?");
-    expect(next).toContain("<summary className=\"inline-flex cursor-pointer list-none items-center gap-1.5");
+    expect(next).toContain("Choose a different vibe");
+    expect(next).toContain("Two different session routes.");
     expect(next).toContain("const activePick = useMemo(() =>");
     expect(next).toContain("const fallbackRecs = activePick ? activePick.alternatives.slice(0, 2) : [];");
     expect(next).not.toContain("Backup moves");
@@ -101,7 +101,7 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).not.toContain("Screenshot mode");
     expect(next).not.toContain("Copy plan");
     expect(next).toContain("Last scan:");
-    expect(next).toContain("Next trip");
+    expect(next).toContain("Trip details");
     expect(next).toContain("Chill now");
     expect(next).toContain("accountStage={summary.accountStage}");
     expect(next).not.toContain("Bossing stays backup while this route has the cleaner stop point.");

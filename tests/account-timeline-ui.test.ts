@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 describe("shared account timeline UI", () => {
-  it("keeps full history off home while reusing it on profile and next", () => {
+  it("keeps full history on the profile instead of crowding home or next", () => {
     const home = readFileSync("src/app/page.tsx", "utf8");
     const hero = readFileSync("src/components/hero-intake.tsx", "utf8");
     const profile = readFileSync("src/app/u/[rsn]/page.tsx", "utf8");
@@ -12,7 +12,7 @@ describe("shared account timeline UI", () => {
     expect(hero).toContain('data-return-home="true"');
     expect(hero).toContain('fetch("/api/account/timeline?limit=10"');
     expect(profile).toContain("<AccountTimeline expectedRsn={hi.name}");
-    expect(next).toContain("<AccountTimeline expectedRsn={activeRsn}");
+    expect(next).not.toContain("<AccountTimeline");
     expect(profile).not.toContain("<WeeklyRecap");
     expect(next).not.toContain("JourneyRecapCard");
   });

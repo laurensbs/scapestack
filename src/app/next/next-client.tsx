@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
   ArrowRight, ChevronRight, Edit3, Target, Sword, TrendingUp, Layers,
@@ -13,7 +14,6 @@ import { SavedBankBanner } from "@/components/saved-bank-banner";
 import { BossSprite } from "@/components/boss-picker";
 import { ItemSprite } from "@/components/item-sprite";
 import { AccountModeBadge } from "@/components/account-mode-badge";
-import { AccountTimeline } from "@/components/account-timeline";
 import { KcProbabilityGraph } from "@/components/kc-probability-graph";
 import { XpDropLoader } from "@/components/xp-drop-loader";
 import { ShuffleLoader } from "@/components/shuffle-loader";
@@ -67,7 +67,6 @@ import {
   recommendationPreferenceContext
 } from "@/lib/recommendation-preferences";
 import { recordTripEvent, type TripTimelineAction } from "@/lib/trip-timeline";
-import { formatShareableTripCard, shareableTripFromRecommendation } from "@/lib/shareable-trip";
 import { wikiSearchUrl } from "@/lib/wiki";
 import { pluginSyncHealth } from "@/lib/plugin-sync";
 import { pluginBankStatusLabel, pluginBankStatusTone, type PluginBankStatus } from "@/lib/plugin-bank-status";
@@ -4227,6 +4226,7 @@ function NextTripCard({
   decision,
   actionContext,
   onBossOpen,
+  onStart,
   hasBankContext,
   bankItems,
   accountMode
@@ -4235,6 +4235,7 @@ function NextTripCard({
   decision: RecommendationDecision;
   actionContext: RecommendationActionContext;
   onBossOpen: (slug: string) => void;
+  onStart: (rec: Recommendation) => void;
   hasBankContext: boolean;
   bankItems: BankHandoffItem[];
   accountMode: NextUpResult["summary"]["accountMode"];
@@ -4244,88 +4245,69 @@ function NextTripCard({
   const actionLabel = nextTripCtaLabel(rec, isBossWithDetail ? "Check kill" : primaryAction.label);
   const actionHref = isBossWithDetail ? undefined : primaryAction.href;
   const decisionCopy = recommendationDecisionCopy(decision);
-  const completionIsUnknown = decision.unknowns.some((unknown) => unknown.code === "runelite_completion");
-  const bankLines = (hasBankContext ? nextTripLines({ rec, hasBankContext, bankItems, accountMode }) : [])
-    .filter((line) =>
-      line.label === "Grab from bank"
-      || line.label === "Stage for UIM"
-      || (line.label === "Still missing" && !completionIsUnknown)
-    )
-    .slice(0, 1);
-  const decisionLines: NextTripLine[] = [
-    { label: "Why this pick", value: decisionCopy.why },
+  const bringLine = (hasBankContext ? nextTripLines({ rec, hasBankContext, bankItems, accountMode }) : [])
+    .find((line) => line.label === "Grab from bank" || line.label === "Stage for UIM");
+  const planLines = [
     { label: "Start", value: decisionCopy.firstStep },
-    ...bankLines
+    ...(bringLine ? [{ label: "Bring", value: bringLine.value }] : []),
+    { label: "Stop at", value: decisionCopy.stopPoint }
   ];
-  decisionLines.push({ label: "Finish after", value: decisionCopy.stopPoint });
-  const lines = decisionLines.slice(0, 5);
 
   const actionClass = "scapestack-command-button scapestack-primary-action px-4 text-[12.5px] font-black";
 
   return (
-    <article className="scapestack-plan-panel scapestack-lock-panel min-w-0 max-w-full p-4 sm:p-5 lg:p-6" data-next-trip-card="true">
-      <div className="grid min-w-0 gap-4 sm:grid-cols-[80px_minmax(0,1fr)]">
-        <div className="grid size-[76px] shrink-0 place-items-center overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/42 text-[var(--color-accent)]">
+    <article className="scapestack-plan-panel min-w-0 max-w-full overflow-hidden p-4 sm:p-6" data-next-trip-card="true">
+      <div className="grid min-w-0 grid-cols-[88px_minmax(0,1fr)] gap-4 sm:grid-cols-[128px_minmax(0,1fr)] sm:gap-6">
+        <div className="grid size-[88px] shrink-0 place-items-center overflow-hidden rounded-lg border border-[var(--color-accent)]/32 bg-black/30 text-[var(--color-accent)] sm:size-[128px]">
           {rec.kind === "kc" && rec.bossSlug ? (
-            <KcPortrait rec={rec} size={62} />
+            <KcPortrait rec={rec} size={104} />
           ) : rec.iconItemId ? (
             <ItemSprite
               id={rec.iconItemId}
               alt=""
               className="pixelated"
-              size={52}
+              size={82}
               style={{ imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
             />
           ) : (
-            <KindGlyph kind={rec.kind} size={38} tone="accent" />
+            <KindGlyph kind={rec.kind} size={48} tone="accent" />
           )}
         </div>
 
         <div className="min-w-0">
-          <div className="mb-2 flex flex-wrap items-center gap-2">
-            <span className="eyebrow text-[var(--color-accent)]">Next trip</span>
-            <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/30 px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
-              {nextTripContextLabel(rec)}
-            </span>
-            <AccountModeBadge accountMode={accountMode} compact />
-          </div>
+          <p className="eyebrow mb-2 text-[var(--color-accent)]">Do this first</p>
 
-          <h2 className="min-w-0 break-words text-[24px] font-black leading-tight tracking-normal text-[var(--color-text)] sm:text-[30px]">
+          <h2 className="min-w-0 break-words text-[23px] font-black leading-[1.08] tracking-normal text-[var(--color-text)] sm:text-[32px]">
             {decisionCopy.title}
           </h2>
+          <p className="mt-2 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)] sm:text-[13.5px]">
+            {decisionCopy.why}
+          </p>
+        </div>
 
-          <dl className="scapestack-lock-list scapestack-decision-list mt-4">
-            {lines.map((line) => (
-              <div
-                key={`${line.label}:${line.value}`}
-                className={cn(
-                  "scapestack-lock-row sm:grid-cols-[128px_minmax(0,1fr)] sm:gap-3",
-                  line.tone === "good" && "text-[var(--color-good)]",
-                  line.tone === "warn" && "text-[var(--color-warning)]"
-                )}
-              >
-                <dt className={cn(
-                  "text-[11px] font-black text-[var(--color-accent)]",
-                  line.tone === "good" && "text-[var(--color-good)]",
-                  line.tone === "warn" && "text-[var(--color-warning)]"
-                )}>
-                  {line.label}
-                </dt>
-                <dd className="min-w-0 break-words text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)] [overflow-wrap:anywhere]">
-                  {line.value}
-                </dd>
-              </div>
-            ))}
-          </dl>
+        <dl className="col-span-2 grid gap-3 border-t border-[var(--color-border)] pt-4 sm:grid-cols-3">
+          {planLines.map((line) => (
+            <div key={`${line.label}:${line.value}`} className="min-w-0">
+              <dt className="text-[10.5px] font-black uppercase tracking-[0.14em] text-[var(--color-accent)]">
+                {line.label}
+              </dt>
+              <dd className="mt-1 min-w-0 break-words text-[12.5px] font-semibold leading-relaxed text-[var(--color-text)] [overflow-wrap:anywhere]">
+                {line.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
 
-          <RouteChainScroll rec={rec} />
-
-          <div className="mt-4 flex flex-wrap items-center gap-2">
+        <div className="col-span-2">
+          <div className="flex flex-wrap items-center gap-2">
             {isBossWithDetail && rec.bossSlug ? (
               <button
                 type="button"
-                onClick={() => onBossOpen(rec.bossSlug!)}
-                className={actionClass}
+                onClick={() => {
+                  onStart(rec);
+                  onBossOpen(rec.bossSlug!);
+                }}
+                className={cn(actionClass, "min-h-11 w-full justify-center sm:w-auto")}
                 aria-label={`${actionLabel}: ${rec.title}`}
               >
                 {actionLabel} <ArrowRight className="size-4" />
@@ -4336,7 +4318,8 @@ function NextTripCard({
                   href={actionHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={actionClass}
+                  onClick={() => onStart(rec)}
+                  className={cn(actionClass, "min-h-11 w-full justify-center sm:w-auto")}
                   aria-label={`${actionLabel}: ${rec.title}`}
                 >
                   {actionLabel} <ExternalLink className="size-3.5" />
@@ -4344,7 +4327,8 @@ function NextTripCard({
               ) : (
                 <Link
                   href={actionHref}
-                  className={actionClass}
+                  onClick={() => onStart(rec)}
+                  className={cn(actionClass, "min-h-11 w-full justify-center sm:w-auto")}
                   aria-label={`${actionLabel}: ${rec.title}`}
                 >
                   {actionLabel} <ArrowRight className="size-4" />
@@ -4389,54 +4373,37 @@ function RouteChainScroll({ rec }: { rec: Recommendation }) {
 // One checklist row — compact, with explicit links/buttons.
 function RecRow({
   rec,
-  actionContext,
-  onBossOpen,
-  mood,
-  minutes,
-  hasBankContext,
-  bankItems,
-  accountStage,
+  onSelect,
   backupPrompt
 }: {
   rec: Recommendation;
-  actionContext: RecommendationActionContext;
-  onBossOpen: (slug: string) => void;
-  mood: Mood;
-  minutes: TimeBudget;
-  hasBankContext: boolean;
-  bankItems: BankHandoffItem[];
-  accountStage: NextUpResult["summary"]["accountStage"];
+  onSelect: (rec: Recommendation) => void;
   backupPrompt?: { label: string; helper: string };
 }) {
-  const isBossWithDetail = (rec.kind === "kc" || rec.kind === "boss") && !!rec.bossSlug;
-  const primaryAction = primaryActionForRecommendation(rec, actionContext);
-  const actionLabel = isBossWithDetail ? "Check kill" : primaryAction.label;
-  const compactCtaLabel = compactActionLabel(rec, actionLabel);
-  const actionHref = isBossWithDetail ? undefined : primaryAction.href;
   const choice = playerChoiceTag(rec);
-  const inner = (
-    <article
-      className={cn(
-        "group min-h-[118px] rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-4",
-        (actionHref || isBossWithDetail) && "transition-colors hover:border-[var(--color-accent)]/40"
-      )}
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(rec)}
+      className="group min-h-[136px] w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-4 text-left transition-colors hover:border-[var(--color-accent)]/55 hover:bg-[var(--color-accent)]/8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
+      aria-label={`Choose ${rec.title}`}
     >
-      <div className="flex min-h-10 items-start gap-3">
-        <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)] text-[var(--color-accent)]">
+      <div className="flex min-h-12 items-start gap-4">
+        <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)] text-[var(--color-accent)]">
           {rec.kind === "kc" && rec.bossSlug ? (
-            <KcPortrait rec={rec} size={40} />
+            <KcPortrait rec={rec} size={54} />
           ) : rec.iconItemId ? (
             <ItemSprite
               id={rec.iconItemId}
               alt=""
               className="pixelated"
-              style={{ maxWidth: "78%", maxHeight: "78%", imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
+              style={{ maxWidth: "82%", maxHeight: "82%", imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
             />
           ) : (
-            <KindGlyph kind={rec.kind} size={26} tone="accent" />
+            <KindGlyph kind={rec.kind} size={32} tone="accent" />
           )}
         </div>
-        <div className="min-w-0 flex-1 space-y-2">
+        <div className="min-w-0 flex-1">
           <div className="flex min-w-0 flex-wrap items-center gap-1.5">
             <span
               className="shrink-0 rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-0.5 text-[10px] font-bold text-[var(--color-accent)]"
@@ -4444,53 +4411,18 @@ function RecRow({
             >
               {backupPrompt?.label ?? choice.label}
             </span>
-            <h4 className="min-w-0 text-[15px] font-bold leading-snug tracking-normal text-[var(--color-text)]">
+            <h4 className="min-w-0 text-[17px] font-black leading-snug tracking-normal text-[var(--color-text)]">
               {rec.title}
             </h4>
           </div>
-          <p className="max-h-[2.9em] overflow-hidden text-[12px] leading-relaxed text-[var(--color-text-muted)]">
+          <p className="mt-2 text-[12px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
             {backupPrompt?.helper ?? choice.helper}
           </p>
         </div>
-        <div className="shrink-0">
-          {isBossWithDetail && rec.bossSlug ? (
-            <button
-              type="button"
-              onClick={() => onBossOpen(rec.bossSlug!)}
-              className="inline-flex items-center gap-1 rounded-md border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
-              aria-label={`${actionLabel}: ${rec.title}`}
-              title={`${actionLabel}: ${rec.title}`}
-            >
-              {compactCtaLabel} <ArrowRight className="size-3.5" />
-            </button>
-          ) : actionHref && (
-            primaryAction.external ? (
-              <a
-                href={actionHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`${actionLabel}: ${rec.title}`}
-                title={`${actionLabel}: ${rec.title}`}
-                className="inline-flex items-center gap-1 rounded-md border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
-              >
-                {compactCtaLabel} <ExternalLink className="size-3" />
-              </a>
-            ) : (
-              <Link
-                href={actionHref}
-                aria-label={`${actionLabel}: ${rec.title}`}
-                title={`${actionLabel}: ${rec.title}`}
-                className="inline-flex items-center gap-1 rounded-md border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
-              >
-                {compactCtaLabel} <ArrowRight className="size-3.5" />
-              </Link>
-            )
-          )}
-        </div>
+        <ArrowRight className="mt-5 size-5 shrink-0 text-[var(--color-accent)] transition-transform group-hover:translate-x-1" />
       </div>
-    </article>
+    </button>
   );
-  return inner;
 }
 
 // ── Mood section ───────────────────────────────────────────────────────────
@@ -4733,7 +4665,7 @@ function SessionMoodGrid({
     >
       <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
         <p className="min-w-0 text-[12px] font-black text-[var(--color-text)]">What are you in the mood for?</p>
-        <p className="min-w-0 max-w-full text-[11px] font-semibold leading-snug text-[var(--color-text-muted)]">Tap one. Random stays inside it.</p>
+        <p className="min-w-0 max-w-full text-[11px] font-semibold leading-snug text-[var(--color-text-muted)]">Same mood, different route.</p>
       </div>
       <div className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
         {SESSION_MOOD_GRID_CHOICES.map((choice) => {
@@ -4814,6 +4746,7 @@ function WhatToDo({
   const [minutes, setMinutes] = useState<TimeBudget>(routeIntent?.minutes ?? initialRouteChoice?.minutes ?? DEFAULT_TIME);
   const [routeLens] = useState<RouteLens>(initialRouteChoice?.routeLens ?? "smart");
   const [shuffleIdx, setShuffleIdx] = useState(0);
+  const [selectedRecommendationId, setSelectedRecommendationId] = useState<string | null>(null);
   const [isRandomizing, setIsRandomizing] = useState(false);
   const [sessionSkipped, setSessionSkipped] = useState<Record<string, SessionSkippedPick>>({});
   const [lastStarted, setLastStarted] = useState<{ id: string; title: string } | null>(null);
@@ -4824,7 +4757,6 @@ function WhatToDo({
     suppressed: {},
     recent: []
   }));
-  const [lastSession, setLastSession] = useState<MoodSession | null>(null);
   useEffect(() => {
     if (!isRandomizing) return;
     const timer = window.setTimeout(() => setIsRandomizing(false), 760);
@@ -4832,7 +4764,6 @@ function WhatToDo({
   }, [isRandomizing]);
   useEffect(() => {
     const last = loadMood(activeRsn);
-    setLastSession(last);
     if (last) {
       if (!routeIntent && !initialRouteChoice) {
         setMood(visibleMood(last.mood));
@@ -4949,6 +4880,7 @@ function WhatToDo({
   // op de top-pick, anders blijven we stiekem op een oude alternative.
   useEffect(() => {
     setShuffleIdx(0);
+    setSelectedRecommendationId(null);
   }, [mood, minutes, routeLens]);
 
   const pick = useMemo(
@@ -4961,6 +4893,15 @@ function WhatToDo({
   );
   const activePick = useMemo(() => {
     if (!pick) return null;
+    const selectedRec = selectedRecommendationId
+      ? moodEligibleRecs.find((rec) => rec.id === selectedRecommendationId)
+      : null;
+    if (selectedRec && selectedRec.id !== pick.headline.id) {
+      const alternatives = [pick.headline, ...pick.alternatives]
+        .filter((rec, index, list) => rec.id !== selectedRec.id && list.findIndex((candidate) => candidate.id === rec.id) === index)
+        .slice(0, 2);
+      return { ...pick, headline: selectedRec, alternatives };
+    }
     const rememberedStartedId = lastStarted?.id ?? latestStartedMemory?.id ?? null;
     const startedId = rememberedStartedId
       && !recentRejectedMemory.some((entry) => entry.id === rememberedStartedId)
@@ -4972,7 +4913,7 @@ function WhatToDo({
       .filter((rec, index, list) => rec.id !== startedRec.id && list.findIndex((candidate) => candidate.id === rec.id) === index)
       .slice(0, 2);
     return { ...pick, headline: startedRec, alternatives };
-  }, [lastStarted?.id, latestStartedMemory?.id, moodEligibleRecs, pick, recentRejectedMemory]);
+  }, [lastStarted?.id, latestStartedMemory?.id, moodEligibleRecs, pick, recentRejectedMemory, selectedRecommendationId]);
   const activeDecision = useMemo(() => activePick
     ? buildRecommendationDecision({
         winner: activePick.headline,
@@ -4997,17 +4938,6 @@ function WhatToDo({
       routeLens,
       syncResult.summary.basis
     ]);
-  const memoryNote = useMemo(
-    () => sessionMemoryNote({
-      feedback,
-      lastSession,
-      allRecs,
-      headline: activePick?.headline ?? null,
-      activeRsn
-    }),
-    [activeRsn, feedback, lastSession, allRecs, activePick?.headline]
-  );
-
   useEffect(() => {
     if (!activePick) return;
     saveMood({
@@ -5213,6 +5143,7 @@ function WhatToDo({
   };
   const moveToAnotherPlan = () => {
     setIsRandomizing(true);
+    setSelectedRecommendationId(null);
     setLastStarted(null);
     setLastCompleted(null);
     setLastSuppressed(null);
@@ -5249,9 +5180,20 @@ function WhatToDo({
     setLastSuppressed(null);
     setLastCompleted(null);
     setShuffleIdx(0);
+    setSelectedRecommendationId(null);
   };
-  const routePreviewRecs = activePick ? [activePick.headline, ...activePick.alternatives, ...moodEligibleRecs].slice(0, 5) : [];
   const fallbackRecs = activePick ? activePick.alternatives.slice(0, 2) : [];
+  const selectAlternative = (rec: Recommendation) => {
+    if (!activePick || rec.id === activePick.headline.id) return;
+    track("recommendation:accepted", {
+      ...recommendationAnalytics(rec)
+    });
+    setSelectedRecommendationId(rec.id);
+    setLastStarted(null);
+    setLastCompleted(null);
+    setLastSuppressed(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <section className="min-w-0 max-w-full overflow-x-hidden">
@@ -5336,13 +5278,6 @@ function WhatToDo({
       <div className="min-w-0 max-w-full space-y-3">
         {activePick ? (
           <>
-            {memoryNote && !lastStarted && !lastSuppressed && !lastCompleted && (
-              <ContinueRouteBanner note={memoryNote} lastSession={lastSession} />
-            )}
-            <NextTripContextLine
-              activeRsn={activeRsn}
-              accountMode={accountMode}
-            />
             <RecHeadlineExpandable
               rec={activePick.headline}
               decision={activeDecision!}
@@ -5352,19 +5287,36 @@ function WhatToDo({
               onStart={startRecommendation}
               onSuppress={hideRecommendation}
               onComplete={completeRecommendation}
-              onEdit={onEdit}
               started={(lastStarted?.id ?? latestStartedMemory?.id) === activePick.headline.id}
               mood={mood}
-              minutes={minutes}
               hasBankContext={hasBankContext}
               bankItems={bankItems}
-              accountStage={accountStage}
-              accountType={accountType}
               accountMode={accountMode}
-              maxEstimate={maxEstimate}
               pluginSyncState={pluginSyncState}
-              pluginBankStatus={pluginSyncSummary?.bankStatus ?? null}
             />
+            {fallbackRecs.length > 0 && (
+              <section className="pt-2" aria-labelledby="next-alternatives-title">
+                <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+                  <div>
+                    <p className="eyebrow text-[var(--color-accent)]">Not your trip?</p>
+                    <h3 id="next-alternatives-title" className="mt-1 text-[18px] font-black text-[var(--color-text)]">
+                      Choose a different vibe
+                    </h3>
+                  </div>
+                  <p className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">Two different session routes.</p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {fallbackRecs.map((rec) => (
+                    <RecRowExpandable
+                      key={rec.id}
+                      rec={rec}
+                      onSelect={selectAlternative}
+                      backupPrompt={backupChoicePrompt(rec, activePick.headline)}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
             <details className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/35 px-3.5 py-3">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[12px] font-bold text-[var(--color-text-dim)] marker:hidden [&::-webkit-details-marker]:hidden">
                 <span>Want a different kind of session?</span>
@@ -5381,39 +5333,6 @@ function WhatToDo({
                 />
               </div>
             </details>
-            <AccountTimeline expectedRsn={activeRsn} limit={5} />
-            <ReturnPlanCard result={syncResult} rec={activePick.headline} />
-            <SessionRouteTimeline
-              headline={activePick.headline}
-              recs={routePreviewRecs}
-              pluginSyncState={pluginSyncState}
-              hasBankContext={hasBankContext}
-              lastSession={lastSession}
-            />
-            {fallbackRecs.length > 0 && (
-              <details className="group rounded-lg border border-transparent">
-                <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-[12px] font-bold text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-accent)] marker:hidden [&::-webkit-details-marker]:hidden">
-                  Not this one?
-                  <ChevronRight className="size-3 transition-transform group-open:rotate-90" />
-                </summary>
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  {fallbackRecs.map((r) => (
-                    <RecRowExpandable
-                      key={r.id}
-                      rec={r}
-                      actionContext={actionContext}
-                      onBossOpen={onBossOpen}
-                      mood={mood}
-                      minutes={minutes}
-                      hasBankContext={hasBankContext}
-                      bankItems={bankItems}
-                      accountStage={accountStage}
-                      backupPrompt={backupChoicePrompt(r, activePick.headline)}
-                    />
-                  ))}
-                </div>
-              </details>
-            )}
             {lastStarted && !lastSuppressed && !lastCompleted && (
               <div
                 role="status"
@@ -5794,23 +5713,6 @@ function recommendationWikiQuery(rec: Recommendation): string {
     .trim();
 }
 
-function recommendationFeedbackButtonClass(
-  tone: "done" | "skip" | "details",
-  compact = false
-): string {
-  const toneClass = tone === "done"
-    ? "hover:border-[var(--color-good)]/40 hover:bg-[var(--color-good)]/10 hover:text-[var(--color-good)]"
-    : tone === "skip"
-      ? "hover:border-[var(--color-warning)]/40 hover:bg-[var(--color-warning)]/10 hover:text-[var(--color-warning)]"
-      : "hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-accent)]/10 hover:text-[var(--color-accent)]";
-
-  return cn(
-    "inline-flex items-center justify-center gap-1 rounded-full border border-[var(--color-border)] bg-[var(--color-panel)]/65 font-semibold text-[var(--color-text-muted)] transition-colors",
-    compact ? "px-2.5 py-1 text-[10.5px]" : "px-3 py-1.5 text-[11px]",
-    toneClass
-  );
-}
-
 function RecHeadlineExpandable({
   rec,
   decision,
@@ -5820,19 +5722,12 @@ function RecHeadlineExpandable({
   onStart,
   onSuppress,
   onComplete,
-  onEdit,
   started = false,
-  cleanMode = false,
   mood,
-  minutes,
   hasBankContext,
   bankItems,
-  accountStage,
-  accountType,
   accountMode,
-  maxEstimate,
-  pluginSyncState,
-  pluginBankStatus
+  pluginSyncState
 }: {
   rec: Recommendation;
   decision: RecommendationDecision;
@@ -5842,48 +5737,36 @@ function RecHeadlineExpandable({
   onStart: (rec: Recommendation) => void;
   onSuppress: (rec: Recommendation) => void;
   onComplete: (rec: Recommendation) => void;
-  onEdit: () => void;
   started?: boolean;
-  cleanMode?: boolean;
   mood: Mood;
-  minutes: TimeBudget;
   hasBankContext: boolean;
   bankItems: BankHandoffItem[];
-  accountStage: NextUpResult["summary"]["accountStage"];
-  accountType: PlannerAccountType | null;
   accountMode: NextUpResult["summary"]["accountMode"];
-  maxEstimate: HoursToMaxSummary | null;
   pluginSyncState: "live" | "stale" | "outdated" | null;
-  pluginBankStatus?: PluginBankStatus | null;
 }) {
   const [open, setOpen] = useState(false);
-  const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "failed">("idle");
   const whyNot = recommendationWhyNot({ headline: rec, allRecs, mood, hasBankContext, pluginSyncState });
-  const shareRsn = actionContext.rsn ?? undefined;
-  const shareTrip = async () => {
-    const card = shareableTripFromRecommendation(rec, {
-      rsn: shareRsn,
-      stopPoint: recommendationStopPointValue(rec)
-    });
-    try {
-      await navigator.clipboard.writeText(formatShareableTripCard(card));
-      recordTripEvent({
-        id: rec.id,
-        kind: rec.kind,
-        title: rec.title,
-        action: "shared",
-        mood,
-        routeLens: undefined,
-        rsn: shareRsn,
-        stopPoint: card.stopPoint
-      });
-      setShareStatus("copied");
-      window.setTimeout(() => setShareStatus("idle"), 1600);
-    } catch {
-      setShareStatus("failed");
-      window.setTimeout(() => setShareStatus("idle"), 1600);
-    }
-  };
+
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open]);
+
+  const unknownNotes = decision.unknowns.map((unknown) => {
+    if (unknown.code === "bank_setup") return "Your exact setup is not known, so the bring list stays conservative.";
+    if (unknown.code === "runelite_completion") return "RuneLite can confirm whether this progress is already finished.";
+    return "Public progress is limited, so the route avoids narrow assumptions.";
+  });
+
   return (
     <div>
       <NextTripCard
@@ -5891,89 +5774,96 @@ function RecHeadlineExpandable({
         decision={decision}
         actionContext={actionContext}
         onBossOpen={onBossOpen}
+        onStart={onStart}
         hasBankContext={hasBankContext}
         bankItems={bankItems}
         accountMode={accountMode}
       />
-      <div className="mt-2 flex flex-wrap items-center gap-2">
+      <div className="mt-2 flex justify-end">
         <button
           type="button"
-          onClick={() => onStart(rec)}
-          className={recommendationFeedbackButtonClass("details", true)}
-          aria-pressed={started}
-          aria-label={`Remember that ${rec.title} is started`}
-        >
-          {started ? "Trip started" : "I started"}
-        </button>
-        <button
-          type="button"
-          onClick={() => onComplete(rec)}
-          className={recommendationFeedbackButtonClass("done", true)}
-          aria-label={`Mark ${rec.title} done`}
-        >
-          Mark done
-        </button>
-        <button
-          type="button"
-          onClick={() => onSuppress(rec)}
-          className={recommendationFeedbackButtonClass("details", true)}
-          aria-label={`Show fewer plans like ${rec.title}`}
-        >
-          Less like this
-        </button>
-        <button
-          type="button"
-          onClick={() => setOpen((current) => !current)}
-          className={recommendationFeedbackButtonClass("details", true)}
+          onClick={() => setOpen(true)}
+          className="inline-flex min-h-10 items-center gap-1.5 px-1 text-[12px] font-bold text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-accent)]"
           aria-expanded={open}
+          aria-haspopup="dialog"
         >
-          More notes
-        </button>
-        <button
-          type="button"
-          onClick={shareTrip}
-          className={recommendationFeedbackButtonClass("details", true)}
-          aria-label={`Share a safe trip card for ${rec.title}`}
-        >
-          {shareStatus === "copied" ? "Trip copied" : shareStatus === "failed" ? "Copy failed" : "Share trip"}
+          Trip details <ChevronRight className="size-3.5" />
         </button>
       </div>
-      {open && <RecDetailPanel rec={rec} actionContext={actionContext} whyNot={whyNot} />}
+      {open && createPortal((
+        <div className="fixed inset-0 z-[120] flex items-end justify-center bg-black/76 p-0 backdrop-blur-sm sm:items-center sm:p-6">
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 cursor-default"
+            onClick={() => setOpen(false)}
+          />
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="trip-details-title"
+            className="osrs-frame relative max-h-[92dvh] w-full overflow-y-auto rounded-b-none sm:max-w-2xl sm:rounded-lg"
+          >
+            <header className="osrs-title-bar sticky top-0 z-10 flex items-start justify-between gap-4 px-5 py-4">
+              <div className="min-w-0">
+                <p className="eyebrow text-[var(--color-accent)]">Trip details</p>
+                <h2 id="trip-details-title" className="mt-1 break-words text-[22px] font-semibold leading-tight text-[var(--color-text)]">
+                  {rec.title}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Close trip details"
+                className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+              >
+                <X className="size-4" />
+              </button>
+            </header>
+            <div className="osrs-body space-y-4 p-4 sm:p-5">
+              <RouteChainScroll rec={rec} />
+              <RecDetailPanel rec={rec} actionContext={actionContext} whyNot={whyNot} />
+              {unknownNotes.length > 0 && (
+                <div className="border-t border-[var(--color-parchment-edge)] pt-4">
+                  <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[var(--color-accent)]">Kept conservative</p>
+                  <ul className="mt-2 space-y-1.5 text-[12px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+                    {unknownNotes.map((note) => <li key={note}>{note}</li>)}
+                  </ul>
+                </div>
+              )}
+              <div className="flex flex-col gap-2 border-t border-[var(--color-parchment-edge)] pt-4 sm:flex-row">
+                {!started && (
+                  <button type="button" onClick={() => onStart(rec)} className="btn-ghost min-h-11 justify-center text-[12px] font-bold">
+                    Mark trip started
+                  </button>
+                )}
+                <button type="button" onClick={() => onComplete(rec)} className="btn-ghost min-h-11 justify-center text-[12px] font-bold">
+                  Mark done
+                </button>
+                <button type="button" onClick={() => onSuppress(rec)} className="btn-ghost min-h-11 justify-center text-[12px] font-bold">
+                  Less like this
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      ), document.body)}
     </div>
   );
 }
 
 function RecRowExpandable({
   rec,
-  actionContext,
-  onBossOpen,
-  mood,
-  minutes,
-  hasBankContext,
-  bankItems,
-  accountStage,
+  onSelect,
   backupPrompt
 }: {
   rec: Recommendation;
-  actionContext: RecommendationActionContext;
-  onBossOpen: (slug: string) => void;
-  mood: Mood;
-  minutes: TimeBudget;
-  hasBankContext: boolean;
-  bankItems: BankHandoffItem[];
-  accountStage: NextUpResult["summary"]["accountStage"];
+  onSelect: (rec: Recommendation) => void;
   backupPrompt?: { label: string; helper: string };
 }) {
   return (
     <RecRow
       rec={rec}
-      actionContext={actionContext}
-      onBossOpen={onBossOpen}
-      mood={mood}
-      minutes={minutes}
-      hasBankContext={hasBankContext}
-      bankItems={bankItems}
-      accountStage={accountStage}
+      onSelect={onSelect}
       backupPrompt={backupPrompt}
     />
   );

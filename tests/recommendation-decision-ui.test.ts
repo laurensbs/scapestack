@@ -9,11 +9,11 @@ describe("/next RecommendationDecision adoption", () => {
     expect(source).toContain("recommendationMoodEligibility(rec, mood, minutes).eligible");
     expect(source).toContain("moodEligibleRecs.find((rec) => rec.id === startedId)");
     expect(source).toContain("!recentRejectedMemory.some((entry) => entry.id === rememberedStartedId)");
-    expect(source).toContain("...moodEligibleRecs].slice(0, 5)");
+    expect(source).toContain("moodEligibleRecs.find((rec) => rec.id === selectedRecommendationId)");
     expect(source).toContain("const decisionCopy = recommendationDecisionCopy(decision)");
-    expect(source).toContain('{ label: "Why this pick", value: decisionCopy.why }');
     expect(source).toContain('{ label: "Start", value: decisionCopy.firstStep }');
-    expect(source).toContain('{ label: "Finish after", value: decisionCopy.stopPoint }');
+    expect(source).toContain('{ label: "Stop at", value: decisionCopy.stopPoint }');
+    expect(source).toContain("{decisionCopy.why}");
   });
 
   it("saves only the typed decision through the connected-account endpoint", () => {
@@ -23,8 +23,9 @@ describe("/next RecommendationDecision adoption", () => {
   });
 
   it("only renders bank claims when bank and completion facts support them", () => {
-    expect(source).toContain("const bankLines = (hasBankContext ? nextTripLines");
-    expect(source).toContain('line.label === "Still missing" && !completionIsUnknown');
+    expect(source).toContain("const bringLine = (hasBankContext ? nextTripLines");
+    expect(source).toContain('line.label === "Grab from bank" || line.label === "Stage for UIM"');
+    expect(source).toContain('...(bringLine ? [{ label: "Bring", value: bringLine.value }] : [])');
     expect(source).toContain('unknown.code === "runelite_completion"');
   });
 });

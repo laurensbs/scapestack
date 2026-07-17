@@ -17,17 +17,12 @@ describe("/next confidence UI copy", () => {
   });
 
   it("makes compact recommendation rows visibly and accessibly clickable", () => {
-    expect(source).toContain("const primaryAction = primaryActionForRecommendation(rec, actionContext);");
-    expect(source).toContain("const actionLabel = isBossWithDetail ? \"Check kill\" : primaryAction.label;");
-    expect(source).toContain("const compactCtaLabel = compactActionLabel(rec, actionLabel);");
-    expect(source).toContain("const actionHref = isBossWithDetail ? undefined : primaryAction.href;");
-    expect(source).toContain("aria-label={`${actionLabel}: ${rec.title}`}");
-    expect(source).toContain("title={`${actionLabel}: ${rec.title}`}");
+    expect(source).toContain("onSelect: (rec: Recommendation) => void;");
+    expect(source).toContain("onClick={() => onSelect(rec)}");
+    expect(source).toContain("aria-label={`Choose ${rec.title}`}");
+    expect(source).toContain("Two different session routes.");
     expect(source).toContain('type="button"');
-    expect(source).toContain("onClick={() => onBossOpen(rec.bossSlug!)}");
-    expect(source).toContain("{compactCtaLabel} <ArrowRight");
-    expect(source).toContain('target="_blank"');
-    expect(source).toContain('rel="noopener noreferrer"');
+    expect(source).toContain("group min-h-[136px] w-full");
     expect(source).not.toContain('role="button"');
     expect(source).not.toContain("tabIndex={0}");
     expect(source).not.toContain("div-as-button pattern");
@@ -47,45 +42,20 @@ describe("/next confidence UI copy", () => {
   it("shows return value after real RuneLite deltas without raw sync diagnostics", () => {
     expect(source).not.toContain("function LastSyncSummaryCard");
     expect(source).not.toContain("function lastSyncReturnTitle");
-    expect(source).toContain("<AccountTimeline expectedRsn={activeRsn}");
+    expect(source).not.toContain("<AccountTimeline");
     expect(source).not.toContain("raw diff");
     expect(source).not.toContain("sync payload");
   });
 
-  it("turns /next into a return loop instead of a one-off answer", () => {
-    expect(source).toContain("function ReturnLoopCard");
-    expect(source).toContain('data-return-loop-card="true"');
-    expect(source).toContain("function ReturnPlanCard");
-    expect(source).toContain('data-return-plan-card="true"');
-    expect(source).toContain("const plan = result.returnPlan;");
-    expect(source).toContain("function ContinueRouteBanner");
-    expect(source).toContain('data-continue-route-memory="true"');
-    expect(source).toContain("Continue route");
+  it("keeps return mechanics behind one decision instead of dashboard panels", () => {
     expect(source).toContain("markAccountRuneliteProgress(rsn, runeliteProgressFromSyncSummary(");
     expect(source).toContain("headlineTitle: nextResult.headline?.title");
-    expect(source).toContain("function SessionRouteTimeline");
-    expect(source).toContain("function routeTimelineItems");
-    expect(source).toContain('data-session-route-timeline="true"');
-    expect(source).toContain('import { AccountTimeline } from "@/components/account-timeline"');
     expect(source).toContain("markAccountTrip(activeRsn, { ...event, action })");
-    expect(source).toContain("<AccountTimeline expectedRsn={activeRsn}");
-    expect(source).toContain("Come back after");
-    expect(source).toContain("Check back");
-    expect(source).toContain("Trip chain");
-    expect(source).toContain("One route you can follow after the first stop.");
-    expect(source).toContain('label: "Now"');
-    expect(source).toContain('label: "After"');
-    expect(source).toContain('label: "If you get bored"');
-    expect(source).toContain('label: "Next login"');
-    expect(source).toContain('label: "Sync after progress"');
-    expect(source).toContain("<SessionRouteTimeline");
-    expect(source).toContain("After this trip");
-    expect(source).toContain("One trip at a time. Come back after the stop point.");
-    expect(source).toContain("Mark done here, or press Sync in RuneLite after progress.");
-    expect(source).toContain("XP, quests, diary tiers, clog and Slayer can move the next pick.");
-    expect(source).toContain("Fresh RuneLite progress can change the route instead of repeating it.");
-    expect(source).toContain("Your skips and done picks still shape the next route.");
-    expect(source).toContain("<ReturnPlanCard result={syncResult} rec={activePick.headline} />");
+    expect(source).toContain("Trip details");
+    expect(source).toContain('role="dialog"');
+    expect(source).not.toContain("<AccountTimeline");
+    expect(source).not.toContain("<ReturnPlanCard");
+    expect(source).not.toContain("<SessionRouteTimeline");
     expect(source).not.toContain("<ReturnLoopCard");
     expect(source).not.toContain("Session timeline");
     expect(source).not.toContain("Timeline dashboard");
@@ -108,7 +78,9 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("<ActionPlanBlock rec={rec} />");
     expect(source).toContain("You'll need");
     expect(source).toContain("OSRS Wiki");
-    expect(source).toContain("{open && <RecDetailPanel rec={rec} actionContext={actionContext} whyNot={whyNot} />}");
+    expect(source).toContain("<RecDetailPanel rec={rec} actionContext={actionContext} whyNot={whyNot} />");
+    expect(source).toContain('aria-label="Close trip details"');
+    expect(source).toContain("<RouteChainScroll rec={rec} />");
     expect(source).toContain("whyNot?: string | null;");
     expect(source).not.toContain("function RecommendationProofStrip");
     expect(source).not.toContain('data-testid={compact ? "next-row-proof-strip" : "next-headline-proof-strip"}');
@@ -123,14 +95,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('label: "Chill"');
     expect(source).toContain('label: "Slayer"');
     expect(source).toContain('label: "Unlock"');
-    expect(source).toContain("function RecommendationSessionSummary");
-    expect(source).toContain("bossViabilityFromBankItems");
-    expect(source).toContain("function bossViabilityBadgeText");
-    expect(source).toContain("function bossViabilityBadgeClass");
     expect(source).toContain("bankItems: BankHandoffItem[]");
-    expect(source).not.toContain("Kill check");
-    expect(source).toContain("viability.verdict");
-    expect(source).toContain("bossViabilityForRecommendation");
     expect(source).not.toContain("Session fit");
     expect(source).not.toContain("Fits a chill");
     expect(source).not.toContain("Fits AFK mode");
@@ -142,35 +107,11 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("Light setup:");
     expect(source).toContain("function recommendationFirstStepValue");
     expect(source).toContain("function recommendationStopPointValue");
-    expect(source).toContain("function recommendationBringValue");
-    expect(source).toContain("function recommendationNeedsItemCheck");
     expect(source).toContain("function nextTripLines");
-    expect(source).toContain("function recommendationSkillLabel");
-    expect(source).toContain("function recommendationPlanSurface");
     expect(source).toContain("function buildRecommendationTrip");
-    expect(source).not.toContain("function buildNextReadyToLeave");
-    expect(source).not.toContain("<ReadyToLeave status={readyToLeave.status}");
-    expect(source).not.toContain("Paste bank to check gear");
-    expect(source).not.toContain("Add bank to check supplies");
-    expect(source).not.toContain("Add bank to pick supplies");
-    expect(source).toContain('label: "Before you leave"');
-    expect(source).toContain('label: accountMode.type === "ultimate" ? "Stage for UIM" : "Grab from bank"');
-    expect(source).toContain('label: "Still missing"');
-    expect(source).toContain('label: "Finish after"');
-    expect(source).not.toContain("Check after bank");
-    expect(source).toContain('label: accountMode.type === "ultimate" ? "Stage for UIM" : "Grab from bank"');
-    expect(source).not.toContain('label: "Need"');
-    expect(source).not.toContain('label: "Bring"');
-    expect(source).not.toContain('label: "Train"');
-    expect(source).not.toContain('label: "Go to"');
-    expect(source).not.toContain('label: "Method"');
-    expect(source).not.toContain('label: "Cash out"');
-    expect(source).not.toContain('label: "Task"');
-    expect(source).not.toContain("Check quest/diary items");
-    expect(source).not.toContain("Good first trip");
-    expect(source).not.toContain("Bank first");
-    expect(source).not.toContain("Bring food");
-    expect(source).not.toContain("Pick a teleport");
+    expect(source).toContain('{ label: "Start", value: decisionCopy.firstStep }');
+    expect(source).toContain('...(bringLine ? [{ label: "Bring", value: bringLine.value }] : [])');
+    expect(source).toContain('{ label: "Stop at", value: decisionCopy.stopPoint }');
     expect(source).toContain("function NextTripCard");
     expect(source).toContain("function RouteChainScroll");
     expect(source).toContain('data-route-chain-scroll="true"');
@@ -181,25 +122,13 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("Add bank to build a Bank Tag.");
     expect(source).toContain("Best teleport near the first step");
     expect(source).toContain("{step.label}");
-    expect(source).not.toContain("Why this pick:");
-    expect(source).toContain("function headlineOneLineReason");
-    expect(source).not.toContain("const reason = headlineOneLineReason(rec);");
-    expect(source).not.toContain("{reason}");
-    expect(source).toContain("const payoff = headlinePayoff(rec);");
-    expect(source).toContain("{rec.why}");
+    expect(source).toContain("{decisionCopy.why}");
     expect(source).toContain("function recommendationWhyNot");
     expect(source).toContain("Not picked");
     expect(source).toContain("so boss trips stay conservative.");
     expect(source).toContain("bossing stays lower unless you ask for a sweaty trip.");
-    expect(source).not.toContain("Stop at");
-    expect(source).not.toContain("Teleport");
-    expect(source).toContain("recommendationNeeds(rec)");
-    expect(source).not.toContain("function RecommendationQuickFacts");
-    expect(source).not.toContain("function RecommendationFirstStep");
-    expect(source).not.toContain("function RecommendationDecisionBrief");
-    expect(source).not.toContain("function RecommendationDecisionSpec");
-    expect(source).not.toContain("OSRS item ID {visual.id}");
-    expect(source).not.toContain("Visual identity");
+    expect(source).toContain("Trip details");
+    expect(source).toContain('aria-haspopup="dialog"');
   });
 
   it("keeps recommendation cards valid by using explicit links instead of nested card anchors", () => {
@@ -243,11 +172,11 @@ describe("/next confidence UI copy", () => {
   });
 
   it("starts the result page with one plan instead of setup panels", () => {
-    expect(source).toContain("Next trip");
+    expect(source).toContain("Do this first");
     expect(source).toContain("function NextTripCard");
     expect(source).toContain('data-next-trip-card="true"');
-    expect(source).toContain("function NextTripContextLine");
-    expect(source).toContain("RSN <span");
+    expect(source).not.toContain("<NextTripContextLine");
+    expect(source).not.toContain("<AccountTimeline");
     expect(source).not.toContain("<LastSyncSummaryCard result={syncResult} />");
     expect(source).toContain("nextTripLines({ rec, hasBankContext, bankItems, accountMode })");
     expect(source).not.toContain("Session board");
@@ -255,11 +184,8 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("One move, two backups, the prep, blockers, bank signal and stop point.");
     expect(source).not.toContain("function SessionBoardStrip");
     expect(source).not.toContain("function sessionBoardBankSignal");
-    expect(source).toContain("<AccountModeBadge accountMode={accountMode} compact />");
-    expect(source).toContain('label: "Before you leave"');
-    expect(source).toContain('label: accountMode.type === "ultimate" ? "Stage for UIM" : "Grab from bank"');
-    expect(source).toContain('label: "Still missing"');
-    expect(source).toContain('label: "Finish after"');
+    expect(source).toContain('{ label: "Start", value: decisionCopy.firstStep }');
+    expect(source).toContain('{ label: "Stop at", value: decisionCopy.stopPoint }');
     expect(source).toContain("Start this trip");
     expect(source).toContain("Open quest");
     expect(source).toContain("Set up bank");
@@ -292,7 +218,6 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("First this");
     expect(source).not.toContain("Then");
     expect(source).not.toContain("After that");
-    expect(source).toContain("routePreviewRecs");
     expect(source).toContain("function RouteChain");
     expect(source).toContain("function RouteIdentityStrip");
     expect(source).toContain("function RoutePrimarySprite");
@@ -372,15 +297,15 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('data-session-mood-grid="true"');
     expect(source).toContain("SESSION_MOOD_GRID_CHOICES");
     expect(source).toContain("What are you in the mood for?");
-    expect(source).toContain("Tap one. Random stays inside it.");
+    expect(source).toContain("Same mood, different route.");
     expect(source).toContain('label: "Surprise me"');
     expect(source).toContain("Same vibe, different route.");
     expect(source).toContain("onSurprise={moveToAnotherPlan}");
     expect(source).toContain("onPick={applySessionIntent}");
     expect(source).toContain("pickForRoute(visibleRecs, mood, minutes, routeLens, 0, routePickOptions)");
     expect(source).not.toContain("Change time or pace");
-    expect(source).toContain("Not this one?");
-    expect(source).toContain("<summary className=\"inline-flex cursor-pointer list-none items-center gap-1.5");
+    expect(source).toContain("Choose a different vibe");
+    expect(source).toContain("onSelect={selectAlternative}");
     expect(source).toContain("const fallbackRecs = activePick ? activePick.alternatives.slice(0, 2) : [];");
     expect(source).not.toContain("Use these when the main move is blocked or not the session you want.");
     expect(source).not.toContain("Backups");
@@ -433,12 +358,12 @@ describe("/next confidence UI copy", () => {
 
   it("makes backup cards feel like real alternatives instead of tiny rows", () => {
     expect(source).toContain("function RecRow");
-    expect(source).toContain("min-h-[118px]");
-    expect(source).toContain("size-12");
-    expect(source).toContain("max-h-[2.9em]");
-    expect(source).toContain("Not this one?");
+    expect(source).toContain("min-h-[136px]");
+    expect(source).toContain("size-16");
+    expect(source).toContain("Choose a different vibe");
     expect(source).toContain("const fallbackRecs = activePick ? activePick.alternatives.slice(0, 2) : [];");
-    expect(source).toContain("<summary className=\"inline-flex cursor-pointer list-none items-center gap-1.5");
+    expect(source).toContain("onClick={() => onSelect(rec)}");
+    expect(source).toContain("aria-label={`Choose ${rec.title}`}");
     expect(source).not.toContain("Other things you can do");
     expect(source).not.toContain("Backup moves");
     expect(source).not.toContain("Use these when the main move is blocked or not the session you want.");
@@ -545,10 +470,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("latestStartedRecommendationMemory(feedback, { rsn: activeRsn })");
     expect(source).toContain('action: "started"');
     expect(source).toContain("const startRecommendation = (rec: Recommendation) =>");
-    expect(source).toContain("Welcome back — you started");
-    expect(source).toContain("Finish it or mark it done when the trip is complete.");
-    expect(source).toContain("I started");
-    expect(source).toContain("Trip started");
+    expect(source).toContain("Mark trip started");
     expect(source).toContain("Started:");
     expect(source).toContain("onStart={startRecommendation}");
     expect(source).toContain("onStart: (rec: Recommendation) => void");
@@ -557,7 +479,6 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("const completeRecommendation = (rec: Recommendation) =>");
     expect(source).toContain("Nice.");
     expect(source).toContain("Pick the next move.");
-    expect(source).toContain("is marked done, so this is the next move.");
     expect(source).toContain("Next trip");
     expect(source).not.toContain("Another trip");
     expect(source).toContain("Chill now");
@@ -577,7 +498,8 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Want chill?");
     expect(source).toContain("Want action?");
     expect(source).toContain("Prefer unlock?");
-    expect(source).toContain("backupPrompt={backupChoicePrompt(r, activePick.headline)}");
+    expect(source).toContain("backupPrompt={backupChoicePrompt(rec, activePick.headline)}");
+    expect(source).toContain("onSelect={selectAlternative}");
     expect(source).toContain("backupPrompt?: { label: string; helper: string }");
   });
 
@@ -618,17 +540,13 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("function accountArchetypeCopy");
   });
 
-  it("keeps recommendation feedback controls on the main pick", () => {
-    expect(source).toContain("function recommendationFeedbackButtonClass");
-    expect(source).toContain('tone: "done" | "skip" | "details"');
-    expect(source).toContain("rounded-full border border-[var(--color-border)] bg-[var(--color-panel)]/65");
-    expect(source).toContain('recommendationFeedbackButtonClass("done", true)');
-    expect(source).not.toContain('recommendationFeedbackButtonClass("skip", true)');
-    expect(source).toContain('recommendationFeedbackButtonClass("details", true)');
-    expect(source).not.toContain("Trip details");
-    expect(source).not.toContain("Not today");
-    expect(source).not.toContain("Show steps");
-    expect(source).not.toContain("Hide steps");
+  it("keeps recommendation feedback inside the focused trip details sheet", () => {
+    expect(source).not.toContain("function recommendationFeedbackButtonClass");
+    expect(source).toContain("Trip details");
+    expect(source).toContain('role="dialog"');
+    expect(source).toContain("Mark trip started");
+    expect(source).toContain("Mark done");
+    expect(source).toContain("Less like this");
   });
 
   it("makes expanded recommendation details triangulate to OSRS Wiki", () => {
