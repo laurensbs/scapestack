@@ -17,6 +17,11 @@ import { exportTag } from "@/lib/bank-tags";
 import { copyText } from "@/lib/clipboard";
 import { buildBossInventoryPlan, type InventoryRowPick } from "@/lib/boss-trip-loadout";
 import { track } from "@/lib/analytics";
+import {
+  bossKnowledge,
+  bossKnowledgeAllowsGpRate,
+  bossKnowledgeSupportsSingleDps
+} from "@/lib/boss-knowledge";
 
 interface Props {
   boss: Boss;
@@ -60,9 +65,11 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
 
   const dps = useMemo(() => bestStyleAndSetup(owned, boss), [owned, boss]);
   const activitySetup = isNonCombatBossActivity(boss);
+  const knowledge = useMemo(() => bossKnowledge(boss), [boss]);
+  const singleDps = bossKnowledgeSupportsSingleDps(knowledge);
   const upgrades = useMemo(
-    () => activitySetup ? [] : suggestUpgradesForBoss(owned, boss, dps),
-    [activitySetup, owned, boss, dps]
+    () => activitySetup || !singleDps ? [] : suggestUpgradesForBoss(owned, boss, dps),
+    [activitySetup, singleDps, owned, boss, dps]
   );
   const preset = useMemo(() => PRESETS.find((p) => p.slug === boss.slug), [boss]);
   const inventoryPlan = useMemo(
@@ -76,8 +83,8 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
     [boss, dps, inventoryPlan, upgrades, activitySetup]
   );
   const tagString = useMemo(
-    () => bossSetupTagString(boss, dps, inventoryTagRows),
-    [boss, dps, inventoryTagRows]
+    () => activitySetup || singleDps ? bossSetupTagString(boss, dps, inventoryTagRows) : "",
+    [activitySetup, singleDps, boss, dps, inventoryTagRows]
   );
   const bossRail = useMemo(() => {
     const sameCategory = BOSSES.filter((candidate) => candidate.category === boss.category && candidate.slug !== boss.slug);
@@ -85,9 +92,9 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
     return [boss, ...sameCategory, ...rest].slice(0, 13);
   }, [boss]);
 
-  // GP/hr is honest: cap kills/hour at the boss's killsPerHourCap. Skipped
-  // when the engine couldn't find a usable weapon (dps === 0).
-  const gpPerHour = dps.dps > 0 && boss.avgLootGp && boss.killsPerHourCap
+  // GP/hr is only comparable for supported single-target encounters and is
+  // capped at the encounter's realistic kills-per-hour ceiling.
+  const gpPerHour = bossKnowledgeAllowsGpRate(knowledge) && dps.dps > 0 && boss.avgLootGp && boss.killsPerHourCap
     ? Math.min(boss.killsPerHourCap, Math.floor(3600 / dps.ttk)) * boss.avgLootGp
     : null;
   const copyRuneLiteTab = async () => {
@@ -169,7 +176,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
             </h2>
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <p id={descriptionId} className="text-[12px] text-[var(--color-text-dim)]" style={{ textShadow: "0 1px 6px rgb(0 0 0 / 0.7)" }}>
-                {activitySetup ? "Activity setup" : `${boss.hp} HP`}{boss.notes ? ` · ${boss.notes}` : ""}
+                {activitySetup ? "Activity setup" : knowledge.groupSize} · {knowledge.playerLine}
               </p>
               {boss.iconItemId && (
                 <span className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-black/30 px-1.5 py-0.5 text-[9.5px] font-black text-[var(--color-text-muted)]">
@@ -318,6 +325,22 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
                   This is not a combat DPS check. Use the inventory above for warm gear, tools and food from your bank.
                 </p>
               </div>
+            ) : !singleDps ? (
+              <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/30 p-3.5">
+                <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">
+                  {knowledge.encounterType === "raid" ? "Build the raid" : knowledge.encounterType === "wave" ? "Plan the full run" : "Plan the encounter"}
+                </h3>
+                <p className="text-[13px] font-semibold leading-relaxed text-[var(--color-text)]">
+                  {knowledge.playerLine}
+                </p>
+                <div className="mt-3 space-y-2 border-t border-[var(--color-border)] pt-3 text-[12px] leading-relaxed text-[var(--color-text-dim)]">
+                  <p><span className="font-black text-[var(--color-accent)]">Bring:</span> {knowledge.inventoryArchetype}</p>
+                  {knowledge.hardRequirements.length > 0 && (
+                    <p><span className="font-black text-[var(--color-accent)]">Before:</span> {knowledge.hardRequirements.join("; ")}</p>
+                  )}
+                  <p><span className="font-black text-[var(--color-accent)]">Stop:</span> {knowledge.stopPoint}</p>
+                </div>
+              </div>
             ) : (
               <>
                 <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">Kill speed</h3>
@@ -396,7 +419,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
           {/* Worn gear grid — 8 slots in the OSRS equipment-tab layout
               (best-fit since we don't model 11 slots; missing slots
               render as empty cells). */}
-          {!activitySetup && (
+          {!activitySetup && singleDps && (
             <section>
               <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">
                 <Sword className="size-3 inline-block mr-1" />Gear from bank
@@ -476,7 +499,9 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
 
           {!activitySetup && (
             <p className="text-[10.5px] text-[var(--color-text-muted)] italic pt-3 border-t border-[var(--color-border)]">
-              DPS at level 99 stats with full offensive prayer. Boss-specific mechanics not modelled.
+              {singleDps
+                ? "Solo DPS uses level 99 stats and offensive prayers. Mechanics can change real kill speed."
+                : "No single DPS or GP/hour is shown here because roles, rooms or the full run decide the result."}
             </p>
           )}
         </div>
@@ -516,6 +541,7 @@ function bossTripVerdict({
   activitySetup?: boolean;
 }): BossTripVerdict {
   const missingInventory = inventoryPlan.missingCount;
+  const knowledge = bossKnowledge(boss);
   if (activitySetup) {
     return {
       title: "Prep the activity",
@@ -526,7 +552,7 @@ function bossTripVerdict({
       tone: missingInventory > 0 ? "warn" : "good"
     };
   }
-  if (boss.category === "wildy") {
+  if (knowledge.wildernessRisk) {
     return {
       title: "Risky trip",
       body: dps.dps > 0
@@ -534,6 +560,20 @@ function bossTripVerdict({
         : "Wildy boss with no clear weapon in this bank. Add gear before risking a trip.",
       badge: "Wildy risk",
       tone: "risk"
+    };
+  }
+  if (!bossKnowledgeSupportsSingleDps(knowledge)) {
+    const encounterCopy = knowledge.encounterType === "raid"
+      ? { title: "Build a learner raid", badge: "Room checklist" }
+      : knowledge.encounterType === "wave"
+        ? { title: "Plan the full run", badge: "Full-run prep" }
+        : knowledge.dpsModel === "phase-switch"
+          ? { title: "Build every phase", badge: "Switch check" }
+          : { title: "Pick the role first", badge: "Role first" };
+    return {
+      ...encounterCopy,
+      body: `${knowledge.playerLine} ${knowledge.stopPoint}`,
+      tone: "warn"
     };
   }
   if (dps.dps <= 0) {

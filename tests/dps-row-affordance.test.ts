@@ -55,7 +55,7 @@ describe("DPS boss row affordance", () => {
   it("keeps boss-specific upgrades inside the clicked boss modal", () => {
     const modalSource = readFileSync(join(process.cwd(), "src/components/boss-detail-modal.tsx"), "utf8");
 
-    expect(modalSource).toContain("() => activitySetup ? [] : suggestUpgradesForBoss(owned, boss, dps)");
+    expect(modalSource).toContain("() => activitySetup || !singleDps ? [] : suggestUpgradesForBoss(owned, boss, dps)");
     expect(modalSource).toContain("Upgrade before camping");
     expect(modalSource).toContain("wikiSearchUrl(u.item.name)");
     expect(modalSource).toContain("wikiPriceUrl(u.item.id)");
@@ -89,6 +89,9 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("function accountTypeFromDpsParams");
     expect(source).toContain("function bossRiskPenaltyForAccount");
     expect(source).toContain("score -= bossRiskPenaltyForAccount(boss, plannerAccountType);");
+    expect(source).toContain("bossKnowledgeRankingAdjustment(knowledge)");
+    expect(source).toContain("bossKnowledgeSupportsSingleDps");
+    expect(source).toContain("bossKnowledgeAllowsGpRate");
     expect(source).not.toContain("Show recommended bosses");
     expect(source).not.toContain("Show all ${filteredResults.length} in this category");
     expect(source).not.toContain('label: "Activities"');

@@ -43,4 +43,30 @@ describe("boss trip loadout", () => {
     expect(plan.rows[0].slots.map((slot) => slot.item?.name ?? slot.label)).toContain("Extended super antifire(4)");
     expect(plan.rows[0].slots.map((slot) => slot.item?.name ?? slot.label)).toContain("Anti-venom+(4)");
   });
+
+  it("builds multi-style raid switches instead of one generic weapon row", () => {
+    const cox = BOSSES.find((boss) => boss.slug === "cox")!;
+    const ranged = GEAR.find((gear) => gear.name === "Toxic blowpipe")!;
+    const magic = GEAR.find((gear) => gear.name === "Trident of the seas")!;
+    const crush = GEAR.find((gear) => gear.name === "Elder maul")!;
+    const plan = buildBossInventoryPlan({
+      boss: cox,
+      bankItems: normalizeBankHandoffItems([
+        { id: ranged.id, name: ranged.name, quantity: 1 },
+        { id: magic.id, name: magic.name, quantity: 1 },
+        { id: crush.id, name: crush.name, quantity: 1 }
+      ]),
+      owned: [ranged, magic, crush],
+      dps: dps()
+    });
+
+    expect(plan.rows[0].label).toBe("Required switches");
+    expect(plan.rows[0].slots.map((slot) => slot.label)).toEqual([
+      "Crush weapon",
+      "Range weapon",
+      "Magic weapon"
+    ]);
+    expect(plan.leaveWith).toContain("Multi-style switches");
+    expect(plan.firstTrip).toContain("learner raid");
+  });
 });

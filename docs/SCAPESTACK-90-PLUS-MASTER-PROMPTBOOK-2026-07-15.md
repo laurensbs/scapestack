@@ -1320,7 +1320,7 @@ Acceptance:
 
 ## Phase 18 - Complete The Boss Knowledge Catalog
 
-Status: TODO  
+Status: COMPLETE (2026-07-17)
 Depends on: Phase 06  
 Improves: Check Kill breadth and depth
 
@@ -1352,6 +1352,29 @@ Acceptance:
 - wilderness risk influences ranking;
 - tests cover every catalog entry.
 ```
+
+### Evidence
+
+- Added a typed knowledge catalog for all 60 Check Kill encounters. Every
+  entry now declares encounter and group type, relevant combat styles,
+  requirements, setup bands, mandatory items, inventory shape, supply and
+  death pressure, Wilderness risk, stop point, GP confidence and support depth.
+- Missing catalog entries now throw instead of silently inheriting generic
+  coverage. Regression tests iterate over every visible boss and enforce the
+  full contract.
+- Raids, team bosses, phase fights and wave encounters no longer show or sort
+  by one misleading DPS, kill-speed or GP/hour value. Their cards and details
+  use room, role, switch or full-run guidance in player-facing language.
+- Generic multi-style encounters now build one bank-aware switch row per
+  required style plus full-run supplies instead of pretending one weapon is a
+  complete setup.
+- Wilderness and death risk now materially lower ranking, with additional
+  HCIM penalties and one-low-risk-trip stop points.
+- `npm run ci:check` passed 198 test files / 1,262 tests, smoke,
+  recommendation audit, plugin v0.3.0 release checks and the production build.
+  `plugin/./gradlew test` also passed. Desktop 1280x633 and mobile 390x844
+  browser checks had content, no error overlay and no horizontal overflow;
+  screenshots are in `/tmp/` with the `scapestack-phase18-` prefix.
 
 ## Phase 19 - Build Boss Inventory And Upgrade Plans
 

@@ -36,6 +36,10 @@ describe("boss detail modal affordance", () => {
     expect(source).toContain("Gear from bank");
     expect(source).toContain("Activity setup");
     expect(source).toContain("No combat DPS");
+    expect(source).toContain("No single DPS or GP/hour is shown here");
+    expect(source).toContain("Build a learner raid");
+    expect(source).toContain("Pick the role first");
+    expect(source).toContain("Plan the full run");
     expect(source).toContain("isNonCombatBossActivity");
     expect(source).toContain("Upgrade before camping");
     expect(source).toContain("Leave with this");
@@ -56,12 +60,13 @@ describe("boss detail modal affordance", () => {
 
   it("treats Wintertodt-style skilling bosses as activity setup, not combat DPS", () => {
     expect(source).toContain("const activitySetup = isNonCombatBossActivity(boss);");
-    expect(source).toContain("() => activitySetup ? [] : suggestUpgradesForBoss(owned, boss, dps)");
-    expect(source).toContain("activitySetup ? \"Activity setup\" : `${boss.hp} HP`");
+    expect(source).toContain("() => activitySetup || !singleDps ? [] : suggestUpgradesForBoss(owned, boss, dps)");
+    expect(source).toContain('activitySetup ? "Activity setup" : knowledge.groupSize');
     expect(source).toContain("This is not a combat DPS check.");
     expect(source).toContain("!activitySetup && (");
     expect(source).toContain("const inventoryTagRows = activitySetup ? inventoryRows : undefined;");
     expect(source).toContain("bossSetupTagString(boss, dps, inventoryTagRows)");
+    expect(source).toContain("activitySetup || singleDps ? bossSetupTagString");
   });
 
   it("builds boss inventory from the pasted bank and marks missing buys", () => {

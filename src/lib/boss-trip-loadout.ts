@@ -3,6 +3,7 @@ import type { DpsBreakdown } from "./dps";
 import type { GearItem, CombatStyle } from "./gear";
 import type { BankHandoffItem } from "./next-bank-handoff";
 import type { Preset } from "./presets";
+import { bossKnowledge, bossKnowledgeSupportsSingleDps, type BossKnowledge } from "./boss-knowledge";
 
 export interface InventorySlotPick {
   label: string;
@@ -213,13 +214,16 @@ export function buildBossInventoryPlan({
   dps: DpsBreakdown;
 }): BossInventoryPlan {
   const spec = BOSS_LOADOUTS[boss.slug];
+  const knowledge = bossKnowledge(boss);
   const rows = spec
     ? [{ label: "Leave the bank with", slots: spec.slots.map((slot) => resolveSlot(slot, bankItems, owned)) }]
+    : !bossKnowledgeSupportsSingleDps(knowledge) && knowledge.dpsModel !== "not-applicable"
+      ? buildEncounterRows({ knowledge, bankItems, owned })
     : buildGenericRows({ preset, bankItems, owned, dps });
   const allSlots = rows.flatMap((row) => row.slots);
   const missing = allSlots.filter((slot) => !slot.item);
-  const leaveWith = spec?.leaveWith ?? genericLeaveWith(dps);
-  const firstTrip = spec?.firstTrip ?? genericFirstTrip(boss, dps);
+  const leaveWith = spec?.leaveWith ?? knowledge.inventoryArchetype;
+  const firstTrip = spec?.firstTrip ?? knowledge.stopPoint;
 
   return {
     rows,
@@ -229,6 +233,45 @@ export function buildBossInventoryPlan({
     ownedCount: allSlots.length - missing.length,
     missingCount: missing.length
   };
+}
+
+function buildEncounterRows({
+  knowledge,
+  bankItems,
+  owned
+}: {
+  knowledge: BossKnowledge;
+  bankItems: BankHandoffItem[];
+  owned: GearItem[];
+}): InventoryRowPick[] {
+  const styleWeapons = [...new Set(knowledge.combatStyles)].map((style) => {
+    const weapon = bestOwnedWeaponForStyle(owned, style);
+    return {
+      label: `${styleLabel(style)} weapon`,
+      item: weapon ? bankItemFromGear(weapon, bankItems) : null,
+      note: knowledge.dpsModel === "multi-role" ? "Your role" : "Switch"
+    };
+  });
+  const supplies = [
+    resolveSlot({ label: "Prayer restore", patterns: PRAYER_PATTERNS, note: "Full run" }, bankItems, owned),
+    resolveSlot({ label: "Food", patterns: FOOD_PATTERNS, note: "Mistakes" }, bankItems, owned),
+    resolveSlot({ label: "Teleport", patterns: TELEPORT_PATTERNS, note: "Reset" }, bankItems, owned)
+  ];
+  return [
+    { label: knowledge.dpsModel === "multi-role" ? "Choose your role" : "Required switches", slots: styleWeapons },
+    { label: "Run supplies", slots: supplies }
+  ];
+}
+
+function bestOwnedWeaponForStyle(owned: GearItem[], style: CombatStyle): GearItem | null {
+  return owned
+    .filter((item) => item.slot === "weapon" && item.weaponStyle === style)
+    .sort((a, b) => (b.attack[style] ?? 0) - (a.attack[style] ?? 0))[0] ?? null;
+}
+
+function styleLabel(style: CombatStyle): string {
+  if (style === "ranged") return "Range";
+  return style.charAt(0).toUpperCase() + style.slice(1);
 }
 
 function buildGenericRows({

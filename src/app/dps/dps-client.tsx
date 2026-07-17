@@ -29,6 +29,13 @@ import {
 import { buildDpsBankContext } from "@/lib/dps-bank-context";
 import { buildBossInventoryPlan } from "@/lib/boss-trip-loadout";
 import {
+  bossKnowledge,
+  bossKnowledgeAllowsGpRate,
+  bossKnowledgeRankingAdjustment,
+  bossKnowledgeSupportsSingleDps,
+  type BossKnowledge
+} from "@/lib/boss-knowledge";
+import {
   normalizeScapestackAccountType,
   scapestackAccountTypeToPlannerType,
   type PlannerAccountType
@@ -54,10 +61,11 @@ function accountTypeFromDpsParams(searchParams: Pick<URLSearchParams, "get">): P
 
 function bossRiskPenaltyForAccount(boss: Boss, accountType: PlannerAccountType | null): number {
   if (accountType !== "hardcore") return 0;
-  if (boss.category === "wildy") return 95;
-  if (boss.category === "raid" || boss.category === "dt2") return 22;
-  if (boss.category === "gwd") return 14;
-  return 0;
+  const knowledge = bossKnowledge(boss);
+  if (knowledge.wildernessRisk) return 95;
+  if (knowledge.deathRisk === "extreme") return 36;
+  if (knowledge.deathRisk === "high") return 22;
+  return knowledge.deathRisk === "medium" ? 5 : 0;
 }
 
 function DpsIntakeHero() {
@@ -286,10 +294,6 @@ export function DpsClient() {
       setBankSummary(context?.summary ?? null);
       setLoadedFromHandoff(false);
       setView("result");
-      // Resolve the deep-linked boss now that we have a bank. If the
-      // slug doesn't match any known boss (raid slug like 'cox' / 'tob'
-      // / 'toa' falls through here — they're rooms-of-bosses in the
-      // dps engine, no single target) we silently ignore.
     });
   };
 
@@ -317,11 +321,12 @@ export function DpsClient() {
 
   const bossMatchesFilter = (entry: BossDpsResult) => {
     const { boss } = entry;
+    const knowledge = bossKnowledge(boss);
     switch (bossFilter) {
       case "all":
         return true;
       case "gp":
-        return !isNonCombatBossActivity(boss) && Boolean(boss.avgLootGp) && entry.dps.dps > 0;
+        return bossKnowledgeAllowsGpRate(knowledge) && Boolean(boss.avgLootGp) && entry.dps.dps > 0;
       case "slayer":
         return boss.category === "slayer";
       case "wildy":
@@ -331,13 +336,15 @@ export function DpsClient() {
       case "beginner":
         return boss.hp > 0 && boss.hp <= 320 && boss.category !== "raid" && boss.category !== "dt2" && boss.category !== "gwd";
       case "solo":
-        return boss.category !== "raid" && !isNonCombatBossActivity(boss);
+        return (knowledge.encounterType === "solo" || knowledge.encounterType === "phase")
+          && !isNonCombatBossActivity(boss);
       default:
         return false;
     }
   };
 
   const gpHourForBoss = (entry: BossDpsResult) => {
+    if (!bossKnowledgeAllowsGpRate(bossKnowledge(entry.boss))) return -1;
     const k = entry.boss.killsPerHourCap;
     const gp = entry.boss.avgLootGp;
     if (!k || !gp || entry.dps.dps <= 0) return -1;
@@ -346,18 +353,27 @@ export function DpsClient() {
 
   const bossTripFitScore = (entry: BossDpsResult) => {
     const { boss, dps } = entry;
+    const knowledge = bossKnowledge(boss);
     if (isNonCombatBossActivity(boss)) return bossFilter === "all" ? 8 : -1000;
-    if (dps.dps <= 0) return -1000;
-    let score = dps.dps * 12 + dps.hitChance * 42;
+    const singleDps = bossKnowledgeSupportsSingleDps(knowledge);
+    if (singleDps && dps.dps <= 0) return -1000;
+    let score = singleDps ? dps.dps * 12 + dps.hitChance * 42 : 30;
     if (boss.category === "slayer") score += 18;
     if (boss.category === "gwd") score += 10;
     if (boss.hp <= 320 && boss.category !== "raid" && boss.category !== "dt2") score += 14;
-    if (boss.category === "wildy") score -= 35;
-    if (boss.category === "raid") score -= 18;
-    if (boss.category === "dt2") score -= 12;
+    score += bossKnowledgeRankingAdjustment(knowledge);
     score -= bossRiskPenaltyForAccount(boss, plannerAccountType);
     return score;
   };
+
+  const comparableDps = (entry: BossDpsResult) =>
+    bossKnowledgeSupportsSingleDps(bossKnowledge(entry.boss)) ? entry.dps.dps : -1;
+  const comparableAccuracy = (entry: BossDpsResult) =>
+    bossKnowledgeSupportsSingleDps(bossKnowledge(entry.boss)) ? entry.dps.hitChance : -1;
+  const comparableTtk = (entry: BossDpsResult) =>
+    bossKnowledgeSupportsSingleDps(bossKnowledge(entry.boss)) && entry.dps.ttk > 0
+      ? entry.dps.ttk
+      : Infinity;
 
   // Live-filtered + sorted boss list. Matches against boss.name
   // (lowercased substring) so 'gra' finds 'General Graardor'. Empty
@@ -381,13 +397,13 @@ export function DpsClient() {
       return sorted;
     }
     switch (sortBy) {
-      case "dps":      sorted.sort((a, b) => b.dps.dps - a.dps.dps); break;
-      case "accuracy": sorted.sort((a, b) => b.dps.hitChance - a.dps.hitChance); break;
+      case "dps":      sorted.sort((a, b) => comparableDps(b) - comparableDps(a)); break;
+      case "accuracy": sorted.sort((a, b) => comparableAccuracy(b) - comparableAccuracy(a)); break;
       case "gpHour":   sorted.sort((a, b) => gpHourForBoss(b) - gpHourForBoss(a)); break;
       case "ttk":      sorted.sort((a, b) => {
         // TTK = lager is beter; 0/negatief = "niet killbaar" → naar achteren.
-        const aT = a.dps.ttk > 0 ? a.dps.ttk : Infinity;
-        const bT = b.dps.ttk > 0 ? b.dps.ttk : Infinity;
+        const aT = comparableTtk(a);
+        const bT = comparableTtk(b);
         return aT - bT;
       }); break;
     }
@@ -406,8 +422,7 @@ export function DpsClient() {
     setSkipHandoff(true);
   };
 
-  // Pretty name for the deep-linked boss banner (raid slugs fall through
-  // — the banner just doesn't show in that case).
+  // Pretty name for the deep-linked encounter banner.
   const pendingBossName = useMemo(() => {
     if (!pendingBossSlug) return null;
     const b = bossFromDpsParam(pendingBossSlug);
@@ -649,8 +664,7 @@ export function DpsClient() {
             ))}
           </div>
           <p className="mt-6 text-[10.5px] text-center text-[var(--color-text-dim)] italic">
-            Kill speed is estimated at level 99 stats with full offensive prayer (Piety / Rigour / Augury).
-            Boss-specific mechanics (heap mode, transitions, specs) not modelled.
+            Solo kill speed uses level 99 stats and offensive prayers. Raids, teams and full-run encounters use role and route checks instead.
           </p>
         </div>
       </section>
@@ -690,21 +704,29 @@ function BossCard({ boss, dps, owned, bankItems, accountType, isFocused, onOpen 
   onOpen: () => void;
 }) {
   const activity = isNonCombatBossActivity(boss);
-  const usable = activity || dps.dps > 0;
+  const knowledge = bossKnowledge(boss);
+  const singleDps = bossKnowledgeSupportsSingleDps(knowledge);
+  const usable = activity || !singleDps || dps.dps > 0;
   const gpPerHour =
-    !activity && usable && boss.avgLootGp && boss.killsPerHourCap
+    bossKnowledgeAllowsGpRate(knowledge) && usable && boss.avgLootGp && boss.killsPerHourCap
       ? Math.min(boss.killsPerHourCap, Math.floor(3600 / dps.ttk)) * boss.avgLootGp
       : null;
   const status = bossTripVerdict(boss, dps, accountType);
   const inventoryPlan = buildBossInventoryPlan({ boss, bankItems, owned, dps });
-  const before = bossTripBeforeLeave(boss, dps, inventoryPlan.leaveWith);
-  const missing = bossTripMissing(boss, dps, accountType, inventoryPlan.missingLine);
-  const finish = inventoryPlan.firstTrip || bossTripFinishAfter(boss, dps);
-  const killPace = !activity && usable && dps.ttk > 0
+  const before = singleDps
+    ? bossTripBeforeLeave(boss, dps, inventoryPlan.leaveWith)
+    : knowledge.inventoryArchetype;
+  const missing = singleDps
+    ? bossTripMissing(boss, dps, accountType, inventoryPlan.missingLine)
+    : inventoryPlan.missingLine ?? (knowledge.hardRequirements.slice(0, 2).join("; ") || null);
+  const finish = knowledge.stopPoint;
+  const killPace = singleDps && !activity && usable && dps.ttk > 0
     ? `${Math.max(1, Math.round(dps.ttk))} sec kill`
     : activity
       ? "Activity"
-      : "Needs gear";
+      : !singleDps
+        ? knowledge.groupSize
+        : "Needs gear";
 
   return (
     <article
@@ -724,11 +746,15 @@ function BossCard({ boss, dps, owned, bankItems, accountType, isFocused, onOpen 
         <div className="flex items-start gap-4">
           <BossThumb boss={boss} />
           <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-2">
+            <div className="flex flex-col items-start gap-2 sm:flex-row sm:justify-between">
               <div className="min-w-0">
-                <div className="truncate text-[18px] font-black text-[var(--color-text)]">{boss.name}</div>
-                <div className="mt-1 text-[11px] font-semibold text-[var(--color-text-muted)]">
-                  {activity ? "Activity setup" : `${dps.weapon?.name ?? "No weapon"} · ${killPace}`}
+                <div className="line-clamp-2 text-[18px] font-black leading-tight text-[var(--color-text)]">{boss.name}</div>
+                <div className="mt-1 line-clamp-2 text-[11px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+                  {activity
+                    ? "Activity setup"
+                    : singleDps
+                      ? `${dps.weapon?.name ?? "No weapon"} · ${killPace}`
+                      : `${bossEncounterCardLine(knowledge)} · ${killPace}`}
                 </div>
               </div>
               <span className={cn(
@@ -770,6 +796,13 @@ function BossCard({ boss, dps, owned, bankItems, accountType, isFocused, onOpen 
       </button>
     </article>
   );
+}
+
+function bossEncounterCardLine(knowledge: BossKnowledge): string {
+  if (knowledge.encounterType === "raid") return "Room-by-room learner check";
+  if (knowledge.encounterType === "wave") return "Full-run gear and supply check";
+  if (knowledge.dpsModel === "phase-switch") return "Switch check for every phase";
+  return "Role and team setup check";
 }
 
 function BossTripLine({
@@ -825,10 +858,17 @@ function bossTripFinishAfter(boss: Boss, dps: DpsBreakdown): string {
 }
 
 function bossTripVerdict(boss: Boss, dps: DpsBreakdown, accountType: PlannerAccountType | null = null): string {
+  const knowledge = bossKnowledge(boss);
   if (isNonCombatBossActivity(boss)) return "Activity setup";
+  if (accountType === "hardcore" && knowledge.wildernessRisk) return "HCIM risk";
+  if (knowledge.wildernessRisk) return "Risky trip";
+  if (!bossKnowledgeSupportsSingleDps(knowledge)) {
+    if (knowledge.encounterType === "raid") return "Build learner raid";
+    if (knowledge.encounterType === "wave") return "Full-run prep";
+    if (knowledge.dpsModel === "phase-switch") return "Check every phase";
+    return "Pick a role";
+  }
   if (dps.dps <= 0) return "Gear missing";
-  if (accountType === "hardcore" && boss.category === "wildy") return "HCIM risk";
-  if (boss.category === "wildy") return "Risky trip";
   if (boss.hp <= 320 && dps.hitChance >= 0.5 && boss.category !== "raid" && boss.category !== "dt2") return "Good first trip";
   if (dps.hitChance >= 0.62) return "Good with bank";
   if (dps.hitChance >= 0.45) return "Do one trip";
