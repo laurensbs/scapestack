@@ -329,7 +329,8 @@ describe("Scapestack readiness rail", () => {
     expect(dpsSource).not.toContain("ScapestackReadinessRail");
     expect(dpsSource).toContain("Pick a boss");
     expect(dpsSource).toContain("Search any boss. Click a tile for gear, supplies, upgrades and a first trip.");
-    expect(dpsSource).toContain('label: "Bring" | "Missing" | "Try first"');
+    expect(dpsSource).toContain("function bossCardReason");
+    expect(dpsSource).toContain("Pick a boss to see the actual setup, inventory and numbers.");
     expect(dpsSource).toContain("buildBossInventoryPlan({ boss, bankItems, owned, dps })");
 
     const nextSource = readFileSync(join(process.cwd(), "src/app/next/next-client.tsx"), "utf8");

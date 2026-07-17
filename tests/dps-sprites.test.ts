@@ -32,7 +32,7 @@ describe("DPS and boss sprites", () => {
 
   it("uses the shared labelled BossSprite fallback in boss options", () => {
     expect(dpsClientSource).toContain('import { BossSprite } from "@/components/boss-picker";');
-    expect(dpsClientSource).toContain("<BossSprite boss={boss} size={52} />");
+    expect(dpsClientSource).toContain("<BossSprite boss={boss} size={120} />");
     expect(dpsClientSource).toContain("boss options never fall back to");
     expect(dpsClientSource).not.toContain('useState<"portrait" | "drop" | "dot">("portrait")');
     expect(dpsClientSource).not.toContain('className="size-9 shrink-0 rounded-full bg-[var(--color-text-muted)]/40 inline-block"');

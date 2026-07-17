@@ -1865,7 +1865,7 @@ Acceptance:
 
 ## Phase 27 - Make Check Kill A Boss Browser
 
-Status: TODO  
+Status: DONE (2026-07-17)
 Depends on: Phases 18 and 19  
 Improves: Check Kill UX
 
@@ -1897,6 +1897,43 @@ Acceptance:
 - detail does not look like a four-column dashboard;
 - no-bank state offers Add bank in a modal but still explains what can be known.
 ```
+
+### Evidence
+
+- Replaced the bordered report grid with an unframed browser of 60 large,
+  fully clickable boss choices. Boss art is the primary signal; each tile now
+  carries only its name, a plain-language verdict and one account-fit reason.
+  Exact DPS, accuracy, kill pace, GP and inventory counts no longer appear in
+  the browse layer.
+- Account fit is the explicit default sort for every search and filter, with
+  account-mode risk, bank usability, encounter knowledge and trip suitability
+  retained in the ranking. Kill speed, accuracy and loot value remain optional
+  secondary sorts.
+- Search supports live filtering, Escape to clear and Enter to open the first
+  match. All supported bosses remain discoverable through the All, GP/Loot,
+  Slayer, Wildy, Raid, Beginner and Solo filters.
+- Rebuilt boss detail as one scrollable encounter sheet instead of a desktop
+  split. It now reads in play order: boss, verdict, first-trip inventory,
+  mandatory missing items, owned gear, highest-impact upgrade, collapsed
+  combat numbers and nearby alternatives.
+- The no-bank deep link explains the selected boss before opening one compact
+  Add bank modal. Bank Memory guidance now uses a local bundled image instead
+  of the broken Cubeupload dependency, removing the player-facing 404.
+- Browser verification covered 1440x1000 desktop and 390x844 mobile, keyboard
+  search selection, all 60 boss tiles, a Vorkath detail, mobile Kraken detail,
+  no-bank Vorkath setup, closed combat numbers by default and zero horizontal
+  overflow. Screenshots: `/tmp/scapestack-phase27-browser-desktop.png`,
+  `/tmp/scapestack-phase27-detail-desktop.png`,
+  `/tmp/scapestack-phase27-browser-mobile.png`,
+  `/tmp/scapestack-phase27-detail-mobile-final.png` and
+  `/tmp/scapestack-phase27-no-bank-mobile-final.png`.
+- Verification: 205 test files / 1,297 tests passed. `npm run ci:check`
+  passed typecheck, smoke, recommendation audit, offline plugin release checks
+  and the 216-page production build. `./gradlew test` passed the RuneLite
+  suite.
+- Known residual risk: solo DPS still uses the existing level-99/prayer model;
+  the UI now keeps those estimates secondary, but exact player combat stats
+  remain a later accuracy improvement.
 
 ## Phase 28 - Make Goals An Unlock Companion
 

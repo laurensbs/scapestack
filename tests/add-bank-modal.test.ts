@@ -11,7 +11,7 @@ describe("AddBankModal", () => {
     expect(source).toContain('aria-labelledby="add-bank-modal-title"');
     expect(source).toContain("Add bank");
     expect(source).toContain("Paste Bank Memory once. Scapestack saves it on this device.");
-    expect(source).toContain("CUBEUPLOAD_BANK_EXAMPLE");
+    expect(source).toContain("BANK_MEMORY_EXAMPLE");
     expect(source).toContain("How to copy your bank");
     expect(source).toContain('<BankSetupSteps compact className="mt-3" />');
     expect(source).toContain("dropBankFile");

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { type DragEvent, useEffect, useMemo, useState } from "react";
 import { ArrowRight, CheckCircle2, ChevronDown, ClipboardPaste, ExternalLink, FileUp, X } from "lucide-react";
-import { BankSetupSteps, CUBEUPLOAD_BANK_EXAMPLE } from "@/components/bank-setup-steps";
+import { BANK_MEMORY_EXAMPLE, BankSetupSteps } from "@/components/bank-setup-steps";
 import { getActiveAccount } from "@/lib/account-storage";
 import { loadSavedBank, loadSavedRsn, saveSavedBank, saveSavedRsn } from "@/lib/saved-bank";
 import { cn } from "@/lib/utils";
@@ -164,7 +164,7 @@ export function AddBankModal({
           <div className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-3 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/35 p-3 sm:grid-cols-[136px_minmax(0,1fr)]">
             <div className="flex min-h-[80px] items-center justify-center overflow-hidden rounded-md border border-[var(--color-border)] bg-black p-1.5 sm:min-h-[92px]">
               <img
-                src={CUBEUPLOAD_BANK_EXAMPLE}
+                src={BANK_MEMORY_EXAMPLE}
                 alt="Bank Memory saved bank in RuneLite"
                 className="max-h-[88px] w-full object-contain sm:max-h-[104px]"
                 onError={(event) => {

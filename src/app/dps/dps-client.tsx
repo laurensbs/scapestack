@@ -11,7 +11,7 @@ import { organizeAction } from "@/app/actions";
 import { BOSSES, isNonCombatBossActivity, type Boss } from "@/lib/bosses";
 import { ownedGear, lookupGear, type GearItem } from "@/lib/gear";
 import { bestStyleAndSetup, type DpsBreakdown } from "@/lib/dps";
-import { cn, formatGp } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { BossDetailModal } from "@/components/boss-detail-modal";
 import { AddBankModal } from "@/components/add-bank-modal";
 import { BossSprite } from "@/components/boss-picker";
@@ -32,15 +32,14 @@ import {
   bossKnowledge,
   bossKnowledgeAllowsGpRate,
   bossKnowledgeRankingAdjustment,
-  bossKnowledgeSupportsSingleDps,
-  type BossKnowledge
+  bossKnowledgeSupportsSingleDps
 } from "@/lib/boss-knowledge";
 import {
   normalizeScapestackAccountType,
   scapestackAccountTypeToPlannerType,
   type PlannerAccountType
 } from "@/lib/account-type";
-import { bossProfitEstimate, formatRateRange, rateRankingValue } from "@/lib/rate-registry";
+import { bossProfitEstimate, rateRankingValue } from "@/lib/rate-registry";
 
 type BossDpsResult = { boss: Boss; dps: DpsBreakdown };
 type BossFilter = "all" | "gp" | "slayer" | "wildy" | "raid" | "beginner" | "solo";
@@ -173,13 +172,8 @@ export function DpsClient() {
   // Replaces the old BossPicker dropdown — having the search field above
   // the table reads more directly ('type to find', not 'click to open').
   const [search, setSearch] = useState("");
-  // Sort-order voor de boss-table. Default 'dps' = bestaande gedrag.
-  // Andere opties geven een andere lens op dezelfde data:
-  //   accuracy  → wie raakt het vaakst (1-shotbaar pures, etc.)
-  //   gpHour    → wie levert de meeste GP/u (afgeleid: kills × loot)
-  //   ttk       → wie sterft het snelst per kill (XP/u proxy)
-  type SortKey = "dps" | "accuracy" | "gpHour" | "ttk";
-  const [sortBy, setSortBy] = useState<SortKey>("dps");
+  type SortKey = "fit" | "dps" | "accuracy" | "gpHour";
+  const [sortBy, setSortBy] = useState<SortKey>("fit");
   const [bossFilter, setBossFilter] = useState<BossFilter>("all");
   // Currently-open boss in the detail modal. Lifted here so deep-link
   // (?boss=<slug>) can open it on result-view mount, and so the Enter-
@@ -369,11 +363,6 @@ export function DpsClient() {
     bossKnowledgeSupportsSingleDps(bossKnowledge(entry.boss)) ? entry.dps.dps : -1;
   const comparableAccuracy = (entry: BossDpsResult) =>
     bossKnowledgeSupportsSingleDps(bossKnowledge(entry.boss)) ? entry.dps.hitChance : -1;
-  const comparableTtk = (entry: BossDpsResult) =>
-    bossKnowledgeSupportsSingleDps(bossKnowledge(entry.boss)) && entry.dps.ttk > 0
-      ? entry.dps.ttk
-      : Infinity;
-
   // Live-filtered + sorted boss list. Matches against boss.name
   // (lowercased substring) so 'gra' finds 'General Graardor'. Empty
   // query = full list. Sort runs AFTER filter zodat het aantal blijft
@@ -387,26 +376,17 @@ export function DpsClient() {
       : bossResults;
     const base = searched.filter(bossMatchesFilter);
     const sorted = [...base];
-    if (!q && bossFilter === "all") {
-      sorted.sort((a, b) => bossTripFitScore(b) - bossTripFitScore(a));
-      return sorted;
-    }
-    if (!q && bossFilter === "gp") {
+    if (sortBy === "fit" && bossFilter === "gp" && !q) {
       sorted.sort((a, b) => plannerAccountType === "ironman" || plannerAccountType === "hardcore" || plannerAccountType === "ultimate"
         ? bossTripFitScore(b) - bossTripFitScore(a)
         : gpHourForBoss(b) - gpHourForBoss(a));
       return sorted;
     }
     switch (sortBy) {
+      case "fit":      sorted.sort((a, b) => bossTripFitScore(b) - bossTripFitScore(a)); break;
       case "dps":      sorted.sort((a, b) => comparableDps(b) - comparableDps(a)); break;
       case "accuracy": sorted.sort((a, b) => comparableAccuracy(b) - comparableAccuracy(a)); break;
       case "gpHour":   sorted.sort((a, b) => gpHourForBoss(b) - gpHourForBoss(a)); break;
-      case "ttk":      sorted.sort((a, b) => {
-        // TTK = lager is beter; 0/negatief = "niet killbaar" → naar achteren.
-        const aT = comparableTtk(a);
-        const bT = comparableTtk(b);
-        return aT - bT;
-      }); break;
     }
     return sorted;
   }, [bossResults, bossFilter, plannerAccountType, search, sortBy]);
@@ -503,7 +483,7 @@ export function DpsClient() {
       )}
 
       {/* Boss list */}
-      <section className="scapestack-lock-panel mb-7 p-3 sm:p-5">
+      <section className="mb-7">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
@@ -618,7 +598,7 @@ export function DpsClient() {
               </button>
             ))}
           </div>
-            <details className="mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/25 px-3 py-2">
+            <details className="mt-3 border-t border-[var(--color-border)] pt-3">
               <summary className="cursor-pointer list-none text-[11px] font-bold text-[var(--color-text-muted)] marker:hidden [&::-webkit-details-marker]:hidden">
                 Sort list
               </summary>
@@ -627,10 +607,10 @@ export function DpsClient() {
                   Sort
                 </span>
                 {([
+                  { key: "fit",      label: "Best for this bank" },
                   { key: "dps",      label: "Best kill speed" },
                   { key: "accuracy", label: "Most accurate" },
-                  { key: "gpHour",   label: "Best estimated GP" },
-                  { key: "ttk",      label: "Fastest kill" }
+                  { key: "gpHour",   label: "Best loot value" }
                 ] as const).map((opt) => (
                   <button
                     key={opt.key}
@@ -652,7 +632,7 @@ export function DpsClient() {
             </details>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {visibleResults.map(({ boss, dps }) => (
               <BossCard
                 key={boss.slug}
@@ -666,8 +646,8 @@ export function DpsClient() {
               />
             ))}
           </div>
-          <p className="mt-6 text-[10.5px] text-center text-[var(--color-text-dim)] italic">
-            Solo kill speed uses level 99 stats and offensive prayers. Raids, teams and full-run encounters use role and route checks instead.
+          <p className="mt-5 text-center text-[10.5px] text-[var(--color-text-dim)]">
+            Pick a boss to see the actual setup, inventory and numbers.
           </p>
         </div>
       </section>
@@ -711,25 +691,9 @@ function BossCard({ boss, dps, owned, bankItems, accountType, isFocused, onOpen 
   const knowledge = bossKnowledge(boss);
   const singleDps = bossKnowledgeSupportsSingleDps(knowledge);
   const usable = activity || !singleDps || dps.dps > 0;
-  const profitEstimate = bossKnowledgeAllowsGpRate(knowledge) && usable
-    ? bossProfitEstimate(boss, dps, accountType)
-    : null;
   const inventoryPlan = buildBossInventoryPlan({ boss, bankItems, owned, dps });
   const status = bossTripVerdict(boss, dps, accountType, inventoryPlan);
-  const before = singleDps
-    ? bossTripBeforeLeave(boss, dps, inventoryPlan.leaveWith)
-    : knowledge.inventoryArchetype;
-  const missing = singleDps
-    ? bossTripMissing(boss, dps, accountType, inventoryPlan.missingLine)
-    : inventoryPlan.missingLine ?? (knowledge.hardRequirements.slice(0, 2).join("; ") || null);
-  const finish = knowledge.stopPoint;
-  const killPace = singleDps && !activity && usable && dps.ttk > 0
-    ? `${Math.max(1, Math.round(dps.ttk))} sec kill`
-    : activity
-      ? "Activity"
-      : !singleDps
-        ? knowledge.groupSize
-        : "Needs gear";
+  const reason = bossCardReason({ boss, dps, inventoryPlan, activity, singleDps });
 
   return (
     <article
@@ -744,121 +708,58 @@ function BossCard({ boss, dps, owned, bankItems, accountType, isFocused, onOpen 
         onClick={onOpen}
         aria-label={`Open ${boss.name} ${activity ? "activity setup" : "kill setup"} details`}
         title={`Open ${boss.name} ${activity ? "activity setup" : "kill setup"} details`}
-        className="block h-full min-h-[236px] w-full p-5 text-left"
+        className="flex h-full min-h-[220px] w-full flex-col p-3 text-left sm:min-h-[250px] sm:p-4"
       >
-        <div className="flex items-start gap-4">
+        <div className="flex min-h-0 flex-1 items-center justify-center py-2 sm:py-4">
           <BossThumb boss={boss} />
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-col items-start gap-2 sm:flex-row sm:justify-between">
-              <div className="min-w-0">
-                <div className="line-clamp-2 text-[18px] font-black leading-tight text-[var(--color-text)]">{boss.name}</div>
-                <div className="mt-1 line-clamp-2 text-[11px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
-                  {activity
-                    ? "Activity setup"
-                    : singleDps
-                      ? `${dps.weapon?.name ?? "No weapon"} · ${killPace}`
-                      : `${bossEncounterCardLine(knowledge)} · ${killPace}`}
-                </div>
-              </div>
-              <span className={cn(
-                "rounded-full border px-2 py-1 text-[10px] font-bold",
-                !usable || inventoryPlan.mandatoryMissing.length > 0
-                  ? "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
-                : boss.category === "wildy"
-                  ? "border-[var(--color-danger)]/35 bg-[var(--color-danger)]/10 text-[var(--color-danger)]"
-                : activity || dps.hitChance >= 0.55
-                    ? "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
-                    : "border-[var(--color-border)] bg-[var(--color-bg)]/45 text-[var(--color-text-dim)]"
-              )}>
-                {status}
-              </span>
-            </div>
-          </div>
         </div>
-        {usable ? (
-          <div className="mt-5 space-y-3">
-            <BossTripLine label="Bring" value={before} />
-            {missing && <BossTripLine label="Missing" value={missing} tone="warn" />}
-            <BossTripLine label="Try first" value={finish} />
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              {profitEstimate && (
-                <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1 text-[10.5px] font-semibold text-[var(--color-text-muted)]">
-                  Est. {formatRateRange(profitEstimate.grossGpPerHour.range, formatGp)}/hr
-                  {!profitEstimate.spendable && " loot value"}
-                </span>
-              )}
-              <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1 text-[10.5px] font-semibold text-[var(--color-text-muted)]">
-                {inventoryPlan.ownedCount}/{inventoryPlan.ownedCount + inventoryPlan.missingCount} trip items
-              </span>
-            </div>
-          </div>
-        ) : (
-          <p className="mt-3 text-[11px] leading-relaxed text-[var(--color-text-dim)]">
-            Add a weapon to see the trip setup and missing upgrades.
+        <div className="border-t border-[var(--color-border)] pt-3">
+          <div className="line-clamp-2 text-[15px] font-black leading-tight text-[var(--color-text)] sm:text-[17px]">{boss.name}</div>
+          <span className={cn(
+            "mt-2 inline-flex rounded-full border px-2 py-1 text-[9.5px] font-bold",
+            !usable || inventoryPlan.mandatoryMissing.length > 0
+              ? "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
+              : boss.category === "wildy"
+                ? "border-[var(--color-danger)]/35 bg-[var(--color-danger)]/10 text-[var(--color-danger)]"
+                : activity || dps.hitChance >= 0.55
+                  ? "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
+                  : "border-[var(--color-border)] bg-[var(--color-bg)]/45 text-[var(--color-text-dim)]"
+          )}>
+            {status}
+          </span>
+          <p className="mt-2 line-clamp-2 text-[10.5px] font-semibold leading-relaxed text-[var(--color-text-muted)] sm:text-[11px]">
+            {reason}
           </p>
-        )}
+        </div>
       </button>
     </article>
   );
 }
 
-function bossEncounterCardLine(knowledge: BossKnowledge): string {
-  if (knowledge.encounterType === "raid") return "Room-by-room learner check";
-  if (knowledge.encounterType === "wave") return "Full-run gear and supply check";
-  if (knowledge.dpsModel === "phase-switch") return "Switch check for every phase";
-  return "Role and team setup check";
-}
-
-function BossTripLine({
-  label,
-  value,
-  tone = "default"
+function bossCardReason({
+  boss,
+  dps,
+  inventoryPlan,
+  activity,
+  singleDps
 }: {
-  label: "Bring" | "Missing" | "Try first";
-  value: string;
-  tone?: "default" | "warn";
-}) {
-  return (
-    <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-2 text-[11.5px]">
-      <span className={cn(
-        "font-black uppercase tracking-[0.12em] text-[var(--color-accent)]",
-        tone === "warn" && "text-[var(--color-warning)]"
-      )}>
-        {label}
-      </span>
-      <span className="min-w-0 font-semibold leading-relaxed text-[var(--color-text-dim)]">
-        {value}
-      </span>
-    </div>
-  );
-}
-
-function bossTripBeforeLeave(boss: Boss, dps: DpsBreakdown, planLine?: string): string {
-  if (isNonCombatBossActivity(boss)) return activityBeforeLeave(boss);
-  if (planLine) return planLine;
-  return `${dps.weapon.name}; ${dps.style.toUpperCase()} prayers and food.`;
-}
-
-function bossTripMissing(
-  boss: Boss,
-  dps: DpsBreakdown,
-  accountType: PlannerAccountType | null,
-  planMissing?: string | null
-): string | null {
-  if (isNonCombatBossActivity(boss)) return activityMissingLine(boss);
-  if (accountType === "hardcore" && boss.category === "wildy") return "HCIM: Wilderness death risk.";
-  if (boss.category === "wildy") return "Teleport plan and risk check.";
-  if (planMissing) return planMissing;
-  if (dps.hitChance < 0.45) return "Better accuracy or a safer boss.";
-  return null;
-}
-
-function bossTripFinishAfter(boss: Boss, dps: DpsBreakdown): string {
-  if (isNonCombatBossActivity(boss)) return "Stop after one crate, permit run or reward pull.";
-  if (boss.category === "raid") return "One scout or learner raid.";
-  if (boss.category === "gwd") return "One inventory or when supplies run low.";
-  if (dps.hitChance < 0.55) return "One test kill.";
-  return "One clean trip.";
+  boss: Boss;
+  dps: DpsBreakdown;
+  inventoryPlan: ReturnType<typeof buildBossInventoryPlan>;
+  activity: boolean;
+  singleDps: boolean;
+}): string {
+  const knowledge = bossKnowledge(boss);
+  if (inventoryPlan.mandatoryMissing.length > 0) {
+    return `Missing ${inventoryPlan.mandatoryMissing[0]}`;
+  }
+  if (knowledge.wildernessRisk) return "Wilderness risk — test one cheap trip";
+  if (activity) return "Tools and supplies checked from your bank";
+  if (!singleDps) return knowledge.playerLine;
+  if (dps.dps <= 0) return "No usable weapon found in this bank";
+  if (dps.hitChance >= 0.62) return `Strong accuracy with ${dps.weapon.name}`;
+  if (dps.hitChance >= 0.45) return `${dps.weapon.name} supports a test trip`;
+  return `${dps.weapon.name} works, but accuracy is weak`;
 }
 
 function bossTripVerdict(
@@ -883,20 +784,6 @@ function bossTripVerdict(
   if (dps.hitChance >= 0.62) return "Good with bank";
   if (dps.hitChance >= 0.45) return "Do one trip";
   return "Not worth yet";
-}
-
-function activityBeforeLeave(boss: Boss): string {
-  if (boss.slug === "wintertodt") return "Bring warm clothing, axe, tinderbox, knife and food.";
-  if (boss.slug === "tempoross") return "Bring harpoon, rope, buckets and fishing supplies.";
-  if (boss.slug === "guardians-of-the-rift") return "Bring rune pouches, essence access and a charged cell plan.";
-  return "Bring activity tools, teleports and enough food for one run.";
-}
-
-function activityMissingLine(boss: Boss): string | null {
-  if (boss.slug === "wintertodt") return "Firemaking access and warm gear.";
-  if (boss.slug === "tempoross") return "Fishing access and Tempoross tools.";
-  if (boss.slug === "guardians-of-the-rift") return "Temple of the Eye access.";
-  return null;
 }
 
 function DpsHandoffIntakeHint({
@@ -1018,8 +905,8 @@ function DpsNoWeaponGate({
 // missing-sprite tile.
 function BossThumb({ boss }: { boss: Boss }) {
   return (
-    <div className="size-14 shrink-0 rounded-lg bg-[var(--color-bg-2)] border border-[var(--color-border)] flex items-center justify-center overflow-hidden">
-      <BossSprite boss={boss} size={52} />
+    <div className="flex size-24 shrink-0 items-center justify-center overflow-hidden sm:size-32">
+      <BossSprite boss={boss} size={120} />
     </div>
   );
 }

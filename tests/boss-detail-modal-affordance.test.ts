@@ -15,7 +15,8 @@ describe("boss detail modal affordance", () => {
     expect(source).toContain("aria-describedby={`${descriptionId} ${statsId}`}");
     expect(source).toContain("id={titleId}");
     expect(source).toContain("id={descriptionId}");
-    expect(source).toContain("<section id={statsId}>");
+    expect(source).toContain('<details id={statsId}');
+    expect(source).toContain('<section id={statsId}');
   });
 
   it("labels close controls with the active boss name", () => {
@@ -32,7 +33,7 @@ describe("boss detail modal affordance", () => {
     expect(source).toContain("Risky trip");
     expect(source).toContain("Copy RuneLite tab");
     expect(source).toContain("bossSetupTagString");
-    expect(source).toContain("Kill speed");
+    expect(source).toContain("Combat numbers");
     expect(source).toContain("Gear from bank");
     expect(source).toContain("Activity setup");
     expect(source).toContain("No combat DPS");
@@ -56,15 +57,18 @@ describe("boss detail modal affordance", () => {
     expect(source).toContain("bossRail");
     expect(source).toContain('aria-current={active ? "true" : undefined}');
     expect(source).toContain("onSelectBoss?: (boss: Boss) => void");
-    expect(source).toContain("max-h-[90vh]");
+    expect(source).toContain("max-h-[92vh]");
     expect(source).toContain("overflow-y-auto overscroll-contain");
-    expect(source).toContain("relative block max-h-[90vh]");
-    expect(source).toContain("lg:grid lg:grid-cols-[3fr_2fr]");
-    expect(source).toContain("h-[42vh] min-h-[300px] max-h-[420px]");
+    expect(source).toContain("relative block max-h-[92vh]");
+    expect(source).toContain("max-w-3xl");
+    expect(source).not.toContain("lg:grid lg:grid-cols-[3fr_2fr]");
+    expect(source).toContain("h-[30vh] min-h-[230px] max-h-[330px]");
+    expect(source).toContain("Combat numbers");
     expect(source).toContain('data-testid="boss-modal-scroll-panel"');
     expect(source).toContain('data-testid="boss-inventory-setup"');
-    expect(source.indexOf("Can I do this?")).toBeLessThan(source.indexOf("Kill speed"));
+    expect(source.indexOf("Can I do this?")).toBeLessThan(source.indexOf("Combat numbers"));
     expect(source.indexOf("First-trip inventory")).toBeLessThan(source.indexOf("Best next improvement"));
+    expect(source.indexOf("Best next improvement")).toBeLessThan(source.indexOf("Try another boss"));
   });
 
   it("treats Wintertodt-style skilling bosses as activity setup, not combat DPS", () => {

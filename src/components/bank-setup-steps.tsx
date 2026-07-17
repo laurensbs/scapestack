@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
-export const CUBEUPLOAD_BANK_EXAMPLE = "https://u.cubeupload.com/laurensbos/scapestackbankmemory.png";
+export const BANK_MEMORY_EXAMPLE = "/intro/step2.png";
 
 export const BANK_SETUP_STEPS = [
   {
@@ -29,7 +29,7 @@ export function BankSetupSteps({ className, compact = false, showBankExample = f
         <div className="overflow-hidden rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-panel)] sm:col-span-2">
           <div className="relative flex items-center justify-center bg-black p-2">
             <img
-              src={CUBEUPLOAD_BANK_EXAMPLE}
+              src={BANK_MEMORY_EXAMPLE}
               alt="Bank Memory bank example"
               loading="lazy"
               className="max-h-[180px] w-full rounded-md object-contain"

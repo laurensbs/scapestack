@@ -12,8 +12,8 @@ describe("shared bank setup screenshots", () => {
     expect(source).toContain("RuneLite Plugin Hub -> Bank Memory.");
     expect(source).toContain("Right-click your saved bank and copy item data.");
     expect(source).toContain("export function BankSetupSteps");
-    expect(source).toContain("CUBEUPLOAD_BANK_EXAMPLE");
-    expect(source).toContain("https://u.cubeupload.com/laurensbos/scapestackbankmemory.png");
+    expect(source).toContain("BANK_MEMORY_EXAMPLE");
+    expect(source).toContain('export const BANK_MEMORY_EXAMPLE = "/intro/step2.png";');
     expect(source).toContain("showBankExample");
     expect(source).toContain("Your bank in RuneLite");
   });

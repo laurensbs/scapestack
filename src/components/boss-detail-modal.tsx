@@ -36,10 +36,7 @@ interface Props {
   accountType?: PlannerAccountType | null;
 }
 
-// Full-bleed boss profile modal. Triggered from /dps (row click) and
-// /next (KC-rec portrait click). Layout is side-by-side on desktop —
-// big portrait left 60%, gear+stats+upgrades+inventory right — and
-// stacks on mobile.
+// One focused encounter sheet: boss first, then the trip in play order.
 export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelectBoss, analyticsSource = "check_kill", accountType = null }: Props) {
   const titleId = "boss-modal-title";
   const descriptionId = "boss-modal-description";
@@ -165,11 +162,12 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
       />
 
       <div
-        className="scapestack-lock-panel relative block max-h-[90vh] min-h-0 w-full max-w-5xl overflow-y-auto overscroll-contain lg:grid lg:grid-cols-[3fr_2fr] lg:overflow-hidden"
-        style={{ animation: "pop-in 0.28s cubic-bezier(0.22, 1, 0.36, 1)" }}
+        className="scapestack-lock-panel relative block max-h-[92vh] min-h-0 w-full max-w-3xl overflow-y-auto overscroll-contain bg-[#17130d] shadow-[0_28px_90px_rgba(0,0,0,0.72)]"
+        style={{
+          animation: "pop-in 0.28s cubic-bezier(0.22, 1, 0.36, 1)",
+          backgroundColor: "#17130d"
+        }}
       >
-        {/* Close — floats top-right over the portrait so it stays visible
-            even when the portrait is dark in that corner. */}
         <button
           type="button"
           onClick={onClose}
@@ -179,10 +177,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
           <X className="size-4" />
         </button>
 
-        {/* Left column — portrait. Full-bleed within its column, no frame
-            (matches the homepage showcase treatment). Drop-shadow gives
-            it weight against the panel background. */}
-        <div className="relative flex h-[42vh] min-h-[300px] max-h-[420px] items-center justify-center overflow-hidden bg-[var(--color-bg-2)] p-6 lg:h-auto lg:max-h-none lg:min-h-[280px]">
+        <header className="relative flex h-[30vh] min-h-[230px] max-h-[330px] items-center justify-center overflow-hidden border-b border-[var(--color-border)] bg-[var(--color-bg-2)] p-5 sm:min-h-[280px] sm:p-8">
           <div
             className="absolute inset-[-10%] pointer-events-none"
             style={{
@@ -196,8 +191,6 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
             className="relative w-full h-full object-contain"
             style={{ filter: "drop-shadow(0 14px 24px rgb(0 0 0 / 0.55))" }}
           />
-          {/* Title overlay along the bottom-left. Big enough to be the
-              page hero, low-contrast bg-tint so it doesn't fight the boss. */}
           <div className="absolute bottom-4 left-4 right-4 z-10">
             <h2
               id={titleId}
@@ -218,12 +211,10 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
               )}
             </div>
           </div>
-        </div>
+        </header>
 
-        {/* Right column — gear, stats, upgrades, inventory. Scrolls
-            internally so the modal as a whole stays in viewport. */}
         <div
-          className="relative min-h-0 space-y-5 p-5 pb-16 sm:p-6 sm:pb-16 lg:max-h-[90vh] lg:overflow-y-auto lg:overscroll-contain"
+          className="relative min-h-0 space-y-6 p-4 pb-16 sm:p-7 sm:pb-16"
           data-testid="boss-modal-scroll-panel"
         >
           <section className="scapestack-lock-card border-[var(--color-accent)]/30 bg-[var(--color-bg)]/30 p-3.5" data-testid="boss-trip-verdict">
@@ -352,116 +343,28 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
             </section>
           )}
 
-          {/* Stats row — available after the verdict and inventory. */}
-          <section id={statsId}>
-            {activitySetup ? (
-              <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/30 p-3.5">
-                <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">Activity setup</h3>
-                <p className="text-[13px] leading-relaxed text-[var(--color-text-dim)]">
-                  This is not a combat DPS check. Use the inventory above for warm gear, tools and food from your bank.
-                </p>
-              </div>
-            ) : !singleDps ? (
-              <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/30 p-3.5">
-                <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">
-                  {knowledge.encounterType === "raid" ? "Build the raid" : knowledge.encounterType === "wave" ? "Plan the full run" : "Plan the encounter"}
-                </h3>
-                <p className="text-[13px] font-semibold leading-relaxed text-[var(--color-text)]">
-                  {knowledge.playerLine}
-                </p>
-                <div className="mt-3 space-y-2 border-t border-[var(--color-border)] pt-3 text-[12px] leading-relaxed text-[var(--color-text-dim)]">
-                  <p><span className="font-black text-[var(--color-accent)]">Bring:</span> {knowledge.inventoryArchetype}</p>
-                  {knowledge.hardRequirements.length > 0 && (
-                    <p><span className="font-black text-[var(--color-accent)]">Before:</span> {knowledge.hardRequirements.join("; ")}</p>
-                  )}
-                  <p><span className="font-black text-[var(--color-accent)]">Stop:</span> {knowledge.stopPoint}</p>
-                </div>
-              </div>
-            ) : (
-              <>
-                <h3 className="eyebrow text-[var(--color-text-muted)] mb-2">Kill speed</h3>
-                {dps.dps > 0 ? (
-                  <>
-                    <div className="text-[13px] text-[var(--color-text-dim)] mb-3">
-                      Use{" "}
-                      <span className="text-[var(--color-accent)] font-semibold uppercase tracking-wider">{dps.style}</span>
-                      {" with "}
-                      <span className="text-[var(--color-text)] font-semibold">{dps.weapon.name}</span>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                      <Stat label="DPS"      value={dps.dps.toFixed(1)} />
-                      <Stat label="Max hit"  value={String(dps.maxHit)} />
-                      <Stat label="Accuracy" value={`${Math.round(dps.hitChance * 100)}%`} />
-                      {profitEstimate && (
-                        <Stat
-                          label="Kills/hr est."
-                          value={formatRateRange(profitEstimate.killsPerHour.range, (value) => String(Math.round(value)))}
-                        />
-                      )}
-                    </div>
-                    {profitEstimate && (
-                      <div className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12px] text-[var(--color-text-dim)]">
-                        <TrendingUp className="size-3.5 text-[var(--color-accent)]" />
-                        {profitEstimate.displayLabel}{" "}
-                        <span className="font-mono tabular-nums text-[var(--color-text)]">
-                          {formatRateRange(profitEstimate.grossGpPerHour.range, formatGp)} GP/hr
-                        </span>
-                        <a
-                          href={profitEstimate.grossGpPerHour.sourceUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[var(--color-text-muted)] underline decoration-dotted underline-offset-2 hover:text-[var(--color-accent)]"
-                        >
-                          {profitEstimate.sourceLabel}
-                        </a>
-                        {!profitEstimate.spendable && (
-                          <span className="basis-full text-[var(--color-text-muted)]">Iron account: useful drops matter; GE value is not spendable profit.</span>
-                        )}
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-[13px] text-[var(--color-warning)]">
-                    Your bank doesn&apos;t carry a weapon that works against this boss yet — check the upgrades below.
-                  </p>
+          {activitySetup ? (
+            <section id={statsId} className="border-y border-[var(--color-border)] py-4">
+              <h3 className="eyebrow mb-2 text-[var(--color-text-muted)]">Activity setup</h3>
+              <p className="text-[13px] leading-relaxed text-[var(--color-text-dim)]">
+                This is not a combat DPS check. Use the inventory above for warm gear, tools and food from your bank.
+              </p>
+            </section>
+          ) : !singleDps ? (
+            <section id={statsId} className="border-y border-[var(--color-border)] py-4">
+              <h3 className="eyebrow mb-2 text-[var(--color-text-muted)]">
+                {knowledge.encounterType === "raid" ? "Build the raid" : knowledge.encounterType === "wave" ? "Plan the full run" : "Plan the encounter"}
+              </h3>
+              <p className="text-[13px] font-semibold leading-relaxed text-[var(--color-text)]">{knowledge.playerLine}</p>
+              <div className="mt-3 space-y-2 text-[12px] leading-relaxed text-[var(--color-text-dim)]">
+                <p><span className="font-black text-[var(--color-accent)]">Bring:</span> {knowledge.inventoryArchetype}</p>
+                {knowledge.hardRequirements.length > 0 && (
+                  <p><span className="font-black text-[var(--color-accent)]">Before:</span> {knowledge.hardRequirements.join("; ")}</p>
                 )}
-              </>
-            )}
-          </section>
-
-          {onSelectBoss && bossRail.length > 0 && (
-            <section>
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <h3 className="eyebrow text-[var(--color-text-muted)]">Try another boss</h3>
-                <span className="text-[10.5px] text-[var(--color-text-muted)]">{bossRail.length - 1} nearby picks</span>
-              </div>
-              <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
-                {bossRail.map((candidate) => {
-                  const active = candidate.slug === boss.slug;
-                  return (
-                  <button
-                    key={candidate.slug}
-                    type="button"
-                    onClick={() => {
-                      if (!active) onSelectBoss(candidate);
-                    }}
-                    title={candidate.name}
-                    aria-label={active ? `${candidate.name} is selected` : `Switch boss setup to ${candidate.name}`}
-                    aria-current={active ? "true" : undefined}
-                    className={cn(
-                      "inline-flex size-11 shrink-0 items-center justify-center rounded-lg border bg-[var(--color-bg)]/50 transition-colors",
-                      active
-                        ? "border-[var(--color-accent)] bg-[var(--color-accent)]/12 shadow-[0_0_0_2px_rgba(240,176,44,0.18)]"
-                        : "border-[var(--color-border)] hover:border-[var(--color-accent)]/55 hover:bg-[var(--color-accent)]/10"
-                    )}
-                  >
-                    <BossSprite boss={candidate} size={36} />
-                  </button>
-                  );
-                })}
+                <p><span className="font-black text-[var(--color-accent)]">Stop:</span> {knowledge.stopPoint}</p>
               </div>
             </section>
-          )}
+          ) : null}
 
           {/* Worn gear grid — 8 slots in the OSRS equipment-tab layout
               (best-fit since we don't model 11 slots; missing slots
@@ -509,6 +412,77 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
                 >
                   {upgradePlan.actionLabel} <ExternalLink className="size-3" />
                 </a>
+              </div>
+            </section>
+          )}
+
+          {!activitySetup && singleDps && (
+            <details id={statsId} className="border-y border-[var(--color-border)] py-3">
+              <summary className="cursor-pointer list-none font-black text-[13px] text-[var(--color-text)] marker:hidden [&::-webkit-details-marker]:hidden">
+                Combat numbers
+                <span className="ml-2 font-normal text-[11px] text-[var(--color-text-muted)]">DPS, accuracy and loot estimate</span>
+              </summary>
+              <div className="mt-4">
+                {dps.dps > 0 ? (
+                  <>
+                    <p className="mb-3 text-[13px] text-[var(--color-text-dim)]">
+                      Use <span className="font-semibold uppercase text-[var(--color-accent)]">{dps.style}</span> with <span className="font-semibold text-[var(--color-text)]">{dps.weapon.name}</span>.
+                    </p>
+                    <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+                      <Stat label="DPS" value={dps.dps.toFixed(1)} />
+                      <Stat label="Max hit" value={String(dps.maxHit)} />
+                      <Stat label="Accuracy" value={`${Math.round(dps.hitChance * 100)}%`} />
+                      {profitEstimate && (
+                        <Stat label="Kills/hr est." value={formatRateRange(profitEstimate.killsPerHour.range, (value) => String(Math.round(value)))} />
+                      )}
+                    </div>
+                    {profitEstimate && (
+                      <div className="mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12px] text-[var(--color-text-dim)]">
+                        <TrendingUp className="size-3.5 text-[var(--color-accent)]" />
+                        {profitEstimate.displayLabel}{" "}
+                        <span className="font-mono tabular-nums text-[var(--color-text)]">{formatRateRange(profitEstimate.grossGpPerHour.range, formatGp)} GP/hr</span>
+                        <a href={profitEstimate.grossGpPerHour.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted underline-offset-2 hover:text-[var(--color-accent)]">
+                          {profitEstimate.sourceLabel}
+                        </a>
+                        {!profitEstimate.spendable && <span className="basis-full text-[var(--color-text-muted)]">Iron account: useful drops matter; GE value is not spendable profit.</span>}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-[13px] text-[var(--color-warning)]">Your bank doesn&apos;t carry a weapon that works against this boss yet.</p>
+                )}
+              </div>
+            </details>
+          )}
+
+          {onSelectBoss && bossRail.length > 0 && (
+            <section>
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <h3 className="eyebrow text-[var(--color-text-muted)]">Try another boss</h3>
+                <span className="text-[10.5px] text-[var(--color-text-muted)]">{bossRail.length - 1} nearby picks</span>
+              </div>
+              <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+                {bossRail.map((candidate) => {
+                  const active = candidate.slug === boss.slug;
+                  return (
+                    <button
+                      key={candidate.slug}
+                      type="button"
+                      onClick={() => { if (!active) onSelectBoss(candidate); }}
+                      title={candidate.name}
+                      aria-label={active ? `${candidate.name} is selected` : `Switch boss setup to ${candidate.name}`}
+                      aria-current={active ? "true" : undefined}
+                      className={cn(
+                        "inline-flex size-11 shrink-0 items-center justify-center rounded-lg border bg-[var(--color-bg)]/50 transition-colors",
+                        active
+                          ? "border-[var(--color-accent)] bg-[var(--color-accent)]/12 shadow-[0_0_0_2px_rgba(240,176,44,0.18)]"
+                          : "border-[var(--color-border)] hover:border-[var(--color-accent)]/55 hover:bg-[var(--color-accent)]/10"
+                      )}
+                    >
+                      <BossSprite boss={candidate} size={36} />
+                    </button>
+                  );
+                })}
               </div>
             </section>
           )}
