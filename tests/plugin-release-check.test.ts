@@ -325,7 +325,8 @@ describe("plugin release check", () => {
       "runelite-plugin.properties",
       "README.md",
       "src/main/java/app/scapestack/runelite/ScapestackSyncPlugin.java",
-      "src/test/java/app/scapestack/runelite/ScapestackSyncPluginTest.java"
+      "src/test/java/app/scapestack/runelite/ScapestackSyncPluginTest.java",
+      "src/test/resources/fixtures/plugin-sync-v3.json"
     ])).toEqual([]);
 
     expect(helper.disallowedStandalonePluginFiles([
@@ -351,12 +352,15 @@ describe("plugin release check", () => {
     expect(extractScript).toContain("source=plugin-sync&bank=none");
     expect(extractScript).toContain("localhost");
     expect(extractScript).toContain("Slayer state");
+    expect(extractScript).toContain("skill levels and XP");
+    expect(extractScript).toContain("observed boss kill counts");
     expect(extractScript).toContain("Data contract");
     expect(extractScript).toContain("bank item IDs/names/quantities");
     expect(extractScript).toContain("RuneScape password");
     expect(extractScript).toContain("inventory, equipment");
     expect(extractScript).toContain("Authorization: Bearer <token>");
-    expect(extractScript).toContain("verified RuneLite payload");
+    expect(extractScript).toContain("manual sync or automatic-sync opt-in");
+    expect(extractScript).toContain("connection IP as transport metadata");
     expect(extractScript).toContain("only as the Authorization");
     expect(extractScript).toContain("bearer on claim/sync requests");
     expect(extractScript).not.toContain("works from real data");
