@@ -53,6 +53,28 @@ describe("account timeline repository", () => {
     expect(database.calls[0].query).toContain("matched.snapshot_id = sync_snapshot.snapshot_id");
   });
 
+  it("builds a cross-device return recap from stored progress moments", async () => {
+    database.rows = [
+      {
+        source_kind: "snapshot", source_key: "snapshot:quest", occurred_at: "2026-07-16T11:00:00.000Z",
+        data: { delta: { kind: "changed", quests: { added: ["Monkey Madness II"] } } }
+      },
+      {
+        source_kind: "snapshot", source_key: "snapshot:boss", occurred_at: "2026-07-16T10:00:00.000Z",
+        data: { delta: { kind: "changed", bossKc: [{ boss: "Vorkath", movement: { before: 48, after: 50, delta: 2 } }] } }
+      }
+    ];
+
+    const page = await getAccountTimeline("11111111-2222-4333-8444-555555555555", { limit: 10, accountRsn: "Lauky" });
+
+    expect(page.recap).toMatchObject({
+      title: "Finished unlocks are out of the way",
+      nextAction: "Find the next unlock",
+      nextHref: "/next?rsn=Lauky&from=recap"
+    });
+    expect(page.recap?.moments.map((entry) => entry.title)).toEqual(["Finished Monkey Madness II", "Vorkath: 50 KC"]);
+  });
+
   it("rejects malformed cursors instead of silently changing pages", () => {
     expect(validTimelineCursor("not-a-cursor")).toBe(false);
     expect(validTimelineCursor(null)).toBe(true);

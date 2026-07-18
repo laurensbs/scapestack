@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   CheckCircle2,
   ChevronDown,
@@ -12,6 +13,7 @@ import {
   Trophy
 } from "lucide-react";
 import type { AccountTimelineMoment, AccountTimelineMomentKind } from "@/lib/account-timeline";
+import type { AccountReturnRecap } from "@/lib/account-return-recap";
 import {
   loadTripTimeline,
   TRIP_TIMELINE_CHANGE_EVENT,
@@ -24,12 +26,14 @@ import {
   suppressRecommendation
 } from "@/lib/recommendation-feedback";
 import { cn } from "@/lib/utils";
+import { ItemSprite } from "@/components/item-sprite";
 
 interface TimelineResponse {
   ok: boolean;
   account?: { rsn: string; displayName: string };
   moments?: AccountTimelineMoment[];
   nextCursor?: string | null;
+  recap?: AccountReturnRecap | null;
 }
 
 interface AccountTimelineProps {
@@ -86,6 +90,7 @@ export function AccountTimeline({ expectedRsn, className, limit = 6 }: AccountTi
   const [moments, setMoments] = useState<AccountTimelineMoment[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [accountRsn, setAccountRsn] = useState<string | null>(null);
+  const [recap, setRecap] = useState<AccountReturnRecap | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
 
   const refresh = useCallback(async () => {
@@ -95,13 +100,16 @@ export function AccountTimeline({ expectedRsn, className, limit = 6 }: AccountTi
         setMoments([]);
         setCursor(null);
         setAccountRsn(null);
+        setRecap(null);
         return;
       }
       setAccountRsn(page.account.rsn);
       setMoments(page.moments ?? []);
       setCursor(page.nextCursor ?? null);
+      setRecap(page.recap ?? null);
     } catch {
       setMoments([]);
+      setRecap(null);
     }
   }, [expectedRsn, limit]);
 
@@ -195,6 +203,35 @@ export function AccountTimeline({ expectedRsn, className, limit = 6 }: AccountTi
 
   return (
     <section className={cn("border-y border-[var(--color-border)]/70 py-4", className)} data-account-timeline="true">
+      {recap && (
+        <div
+          className="mb-4 grid gap-3 rounded-[var(--radius-panel)] border border-[var(--color-accent)]/35 bg-[var(--color-surface-soft)] p-4 sm:grid-cols-[76px_minmax(0,1fr)_auto] sm:items-center"
+          data-return-recap="true"
+        >
+          <div className="flex size-[68px] items-center justify-center rounded-[var(--radius-card)] border border-[var(--color-accent)]/25 bg-black/30">
+            <ItemSprite id={recap.visualItemId} alt="" size={46} className="pixelated" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--color-accent)]">Welcome back</p>
+            <h3 className="mt-1 font-serif text-[22px] font-semibold leading-tight text-[var(--color-text)]">{recap.title}</h3>
+            <p className="mt-1 max-w-2xl text-[13px] font-medium leading-relaxed text-[var(--color-text-muted)]">{recap.lead}</p>
+            <ul className="mt-3 grid gap-1.5 text-[12px] font-semibold text-[var(--color-text)] sm:grid-cols-3">
+              {recap.moments.map((moment) => (
+                <li key={moment.id} className="min-w-0 rounded-[var(--radius-card)] border border-[var(--color-border)]/60 bg-black/20 px-3 py-2">
+                  <span className="block truncate">{moment.title}</span>
+                  {moment.detail && <span className="mt-0.5 block truncate text-[11px] text-[var(--color-text-muted)]">{moment.detail}</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <Link
+            href={recap.nextHref}
+            className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-card)] border border-[var(--color-accent)]/55 px-4 text-[13px] font-black text-[var(--color-accent)] transition hover:bg-[var(--color-accent)] hover:text-black"
+          >
+            {recap.nextAction}
+          </Link>
+        </div>
+      )}
       <div className="mb-3 flex items-baseline justify-between gap-3">
         <h2 className="font-serif text-[20px] font-semibold text-[var(--color-text)]">Since last time</h2>
         <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">{accountRsn}</span>

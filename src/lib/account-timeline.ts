@@ -33,6 +33,7 @@ export interface AccountTimelineMoment {
 export interface AccountTimelinePage {
   moments: AccountTimelineMoment[];
   nextCursor: string | null;
+  recap?: import("./account-return-recap").AccountReturnRecap | null;
 }
 
 export interface AccountTimelineRecord {

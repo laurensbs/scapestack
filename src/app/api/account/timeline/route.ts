@@ -30,11 +30,12 @@ export async function GET(request: Request): Promise<Response> {
   const requestedLimit = Number(url.searchParams.get("limit") ?? 8);
   const limit = Number.isFinite(requestedLimit) ? requestedLimit : 8;
   try {
-    const page = await getAccountTimeline(account.accountId, { cursor, limit });
+    const page = await getAccountTimeline(account.accountId, { cursor, limit, accountRsn: account.rsn });
     return NextResponse.json({
       ok: true,
       account: { rsn: account.rsn, displayName: account.displayName },
-      ...page
+      ...page,
+      recap: page.recap ?? null
     }, { headers: { "cache-control": "no-store" } });
   } catch (error) {
     console.error("Account timeline load failed", {

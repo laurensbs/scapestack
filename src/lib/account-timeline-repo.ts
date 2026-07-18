@@ -6,6 +6,7 @@ import {
   type AccountTimelinePage,
   type AccountTimelineRecord
 } from "./account-timeline";
+import { buildAccountReturnRecap } from "./account-return-recap";
 
 interface QueryClient {
   query<T extends Record<string, unknown> = Record<string, unknown>>(query: string, params?: unknown[]): Promise<T[]>;
@@ -54,7 +55,7 @@ export function validTimelineCursor(value: string | null | undefined): boolean {
 
 export async function getAccountTimeline(
   accountId: string,
-  options: { cursor?: string | null; limit?: number } = {}
+  options: { cursor?: string | null; limit?: number; accountRsn?: string | null } = {}
 ): Promise<AccountTimelinePage> {
   await ensureSyncSchema();
   const cursor = decodeTimelineCursor(options.cursor);
@@ -133,6 +134,7 @@ export async function getAccountTimeline(
   const last = consumed.at(-1);
   return {
     moments,
+    recap: buildAccountReturnRecap({ moments, account: { rsn: options.accountRsn } }),
     nextCursor: rows.length > limit && last
       ? encodeCursor({ at: new Date(last.occurred_at).toISOString(), key: last.source_key })
       : null

@@ -2378,7 +2378,7 @@ Acceptance:
 
 ## Phase 36 - Build The Return Recap
 
-Status: TODO  
+Status: DONE - 2026-07-18  
 Depends on: Phases 05, 09 and 23  
 Improves: retention loop
 
@@ -2405,6 +2405,17 @@ Acceptance:
 - no-progress state is quiet and useful;
 - tests use fixed historical snapshots.
 ```
+
+### Implementation Notes
+
+- Added a server-built account return recap from stored timeline moments, with
+  at most three meaningful progress items and no bank/plan-only placeholder.
+- Rendered a compact `Welcome back` recap on the profile timeline using an OSRS
+  item visual and one natural next action back into `/next`.
+- Kept `/` and `/next` free of timeline panels while preserving the quiet
+  empty-state behavior.
+- Added fixed snapshot/unit/API/UI coverage for recap ranking, account-scoped
+  recap links and player-safe copy.
 
 ## Phase 37 - Add Voluntary Re-Engagement
 

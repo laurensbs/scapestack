@@ -21,6 +21,9 @@ describe("shared account timeline UI", () => {
     const source = readFileSync("src/components/account-timeline.tsx", "utf8");
     expect(source).toContain("if (visible.length === 0) return null");
     expect(source).toContain("Since last time");
+    expect(source).toContain('data-return-recap="true"');
+    expect(source).toContain("<ItemSprite");
+    expect(source).toContain("recap.nextAction");
     expect(source).not.toMatch(/>[^<{]*(payload|signals|data source|reconciliation)[^<{]*</i);
   });
 
