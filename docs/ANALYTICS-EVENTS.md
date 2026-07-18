@@ -34,6 +34,7 @@ an analytics vendor.
 - `bank:attached`, `bank:refreshed`
 - `runelite:sync_success`, `runelite:sync_failure`
 - `return:visit`, `timeline:viewed`
+- `reminder:created`, `reminder:opened`, `reminder:cancelled`
 - `outcome:viewed` with status and evidence type, never raw account values
 - `boss:opened`, `boss:loadout_used`
 
@@ -44,3 +45,7 @@ render timing. `context` is one of `public_stats`, `bank`, `runelite`,
 
 `trip:completed_sync` remains in the contract for old clients, but new RuneLite
 completion is reconciled server-side and observed through `outcome:viewed`.
+
+Reminder events are only fired after an explicit player click from the return
+recap. They store the goal kind and delivery mode, not the RSN, exact goal text,
+bank contents or plugin payload.

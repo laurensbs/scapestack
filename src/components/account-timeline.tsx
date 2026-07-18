@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
+  Bell,
   CheckCircle2,
   ChevronDown,
   Coins,
@@ -10,7 +11,8 @@ import {
   Shield,
   Sparkles,
   Sword,
-  Trophy
+  Trophy,
+  X
 } from "lucide-react";
 import type { AccountTimelineMoment, AccountTimelineMomentKind } from "@/lib/account-timeline";
 import type { AccountReturnRecap } from "@/lib/account-return-recap";
@@ -27,6 +29,13 @@ import {
 } from "@/lib/recommendation-feedback";
 import { cn } from "@/lib/utils";
 import { ItemSprite } from "@/components/item-sprite";
+import {
+  cancelReturnReminder,
+  loadReturnReminder,
+  requestReminderDelivery,
+  saveReturnReminder,
+  type ReturnReminder
+} from "@/lib/return-reminder";
 
 interface TimelineResponse {
   ok: boolean;
@@ -91,6 +100,8 @@ export function AccountTimeline({ expectedRsn, className, limit = 6 }: AccountTi
   const [cursor, setCursor] = useState<string | null>(null);
   const [accountRsn, setAccountRsn] = useState<string | null>(null);
   const [recap, setRecap] = useState<AccountReturnRecap | null>(null);
+  const [reminder, setReminder] = useState<ReturnReminder | null>(null);
+  const [reminderNote, setReminderNote] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
 
   const refresh = useCallback(async () => {
@@ -133,6 +144,7 @@ export function AccountTimeline({ expectedRsn, className, limit = 6 }: AccountTi
   }, [accountRsn, refresh]);
 
   useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => { setReminder(loadReturnReminder()); }, []);
   useEffect(() => { void migrate(); }, [migrate]);
   useEffect(() => {
     const sync = () => { void migrate(); };
@@ -187,6 +199,35 @@ export function AccountTimeline({ expectedRsn, className, limit = 6 }: AccountTi
   const visible = useMemo(() => moments.slice(0, 18), [moments]);
   if (visible.length === 0) return null;
 
+  const reminderMatchesRecap = recap && reminder?.href === recap.nextHref && reminder.goal === recap.nextAction;
+  const reminderDue = reminderMatchesRecap
+    ? new Intl.DateTimeFormat("en", { weekday: "short", hour: "numeric", minute: "2-digit" }).format(new Date(reminder.dueAt))
+    : null;
+
+  const armReminder = async () => {
+    if (!recap) return;
+    const saved = saveReturnReminder({ goal: recap.nextAction, href: recap.nextHref });
+    if (!saved) {
+      setReminderNote("Could not save a reminder in this browser.");
+      track("reminder:created", { source: "return_recap", goalKind: recap.moments[0]?.kind ?? "trip", delivery: "failed" });
+      return;
+    }
+    setReminder(saved);
+    const delivery = await requestReminderDelivery(saved);
+    const deliveryMode = delivery.ok ? delivery.mode : delivery.mode;
+    track("reminder:created", { source: "return_recap", goalKind: recap.moments[0]?.kind ?? "trip", delivery: deliveryMode });
+    setReminderNote(delivery.ok
+      ? `Reminder set for ${new Intl.DateTimeFormat("en", { weekday: "short", hour: "numeric", minute: "2-digit" }).format(new Date(saved.dueAt))}.`
+      : delivery.reason);
+  };
+
+  const removeReminder = () => {
+    cancelReturnReminder();
+    setReminder(null);
+    setReminderNote("Reminder cancelled.");
+    track("reminder:cancelled", { source: "return_recap" });
+  };
+
   const loadEarlier = async () => {
     if (!cursor || loadingMore) return;
     setLoadingMore(true);
@@ -226,10 +267,32 @@ export function AccountTimeline({ expectedRsn, className, limit = 6 }: AccountTi
           </div>
           <Link
             href={recap.nextHref}
+            onClick={() => track("reminder:opened", { source: "return_recap", goalKind: recap.moments[0]?.kind ?? "trip" })}
             className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-card)] border border-[var(--color-accent)]/55 px-4 text-[13px] font-black text-[var(--color-accent)] transition hover:bg-[var(--color-accent)] hover:text-black"
           >
             {recap.nextAction}
           </Link>
+          <div className="sm:col-start-2 sm:col-end-4">
+            {reminderMatchesRecap ? (
+              <div className="flex flex-wrap items-center gap-2 text-[12px] font-bold text-[var(--color-text-muted)]">
+                <span className="inline-flex min-h-9 items-center gap-2 rounded-full border border-[var(--color-accent)]/35 px-3 text-[var(--color-accent)]">
+                  <Bell className="size-3.5" /> Reminder {reminderDue}
+                </span>
+                <button type="button" onClick={removeReminder} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-[var(--color-border)]/70 px-3">
+                  <X className="size-3.5" /> Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={armReminder}
+                className="inline-flex min-h-9 items-center gap-2 rounded-full border border-[var(--color-border)]/70 px-3 text-[12px] font-black text-[var(--color-text)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+              >
+                <Bell className="size-3.5" /> Remind me tomorrow
+              </button>
+            )}
+            {reminderNote && <p className="mt-1.5 text-[11px] font-semibold text-[var(--color-text-muted)]">{reminderNote}</p>}
+          </div>
         </div>
       )}
       <div className="mb-3 flex items-baseline justify-between gap-3">

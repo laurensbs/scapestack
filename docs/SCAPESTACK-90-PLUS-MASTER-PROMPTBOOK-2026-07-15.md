@@ -2419,7 +2419,7 @@ Acceptance:
 
 ## Phase 37 - Add Voluntary Re-Engagement
 
-Status: TODO  
+Status: DONE - 2026-07-18  
 Depends on: Phase 36  
 Improves: retention without spam
 
@@ -2443,6 +2443,16 @@ Acceptance:
 - no notification is created without explicit consent;
 - analytics measures open-to-plan without storing sensitive payloads.
 ```
+
+### Implementation Notes
+
+- Added a local `Remind me tomorrow` action to the return recap, tied to the
+  recap's next OSRS goal and never created without a click.
+- Stored reminders only in the browser, with cancel support and graceful
+  fallback when Notification permission is denied or unavailable.
+- Added privacy-safe reminder analytics for create/open/cancel using source,
+  goal kind and delivery mode only.
+- Covered the reminder helper, analytics contract and timeline UI with tests.
 
 ## Phase 38 - Make Sharing Prove Usefulness
 

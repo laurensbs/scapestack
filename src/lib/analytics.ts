@@ -71,6 +71,18 @@ export interface AnalyticsEventMap {
     hasRuneliteProgress: boolean;
     momentCount: number;
   };
+  "reminder:created": {
+    source: "return_recap";
+    goalKind: string;
+    delivery: "notification" | "local" | "unsupported" | "denied" | "failed";
+  };
+  "reminder:cancelled": {
+    source: "return_recap";
+  };
+  "reminder:opened": {
+    source: "return_recap";
+    goalKind: string;
+  };
   "outcome:viewed": {
     status: "completed" | "progressed" | "contradicted";
     evidenceType: string;
@@ -131,6 +143,9 @@ const EVENT_KEYS = {
   "bank:refreshed": ["source", "linkedToAccount"],
   "return:visit": ["hasBank", "hasRunelite", "hasTripHistory"],
   "timeline:viewed": ["hasProgress", "hasBankUpdate", "hasRuneliteProgress", "momentCount"],
+  "reminder:created": ["source", "goalKind", "delivery"],
+  "reminder:cancelled": ["source"],
+  "reminder:opened": ["source", "goalKind"],
   "outcome:viewed": ["status", "evidenceType"],
   "boss:opened": ["bossSlug", "source", "hasBank"],
   "boss:loadout_used": ["bossSlug", "source", "hasBank", "action"],
@@ -158,6 +173,9 @@ const REQUIRED_KEYS: { [E in AnalyticsEvent]: readonly (keyof AnalyticsEventMap[
   "bank:refreshed": EVENT_KEYS["bank:refreshed"],
   "return:visit": EVENT_KEYS["return:visit"],
   "timeline:viewed": EVENT_KEYS["timeline:viewed"],
+  "reminder:created": EVENT_KEYS["reminder:created"],
+  "reminder:cancelled": EVENT_KEYS["reminder:cancelled"],
+  "reminder:opened": EVENT_KEYS["reminder:opened"],
   "outcome:viewed": EVENT_KEYS["outcome:viewed"],
   "boss:opened": EVENT_KEYS["boss:opened"],
   "boss:loadout_used": EVENT_KEYS["boss:loadout_used"],
@@ -183,6 +201,9 @@ const ENUM_VALUES: Partial<Record<AnalyticsEvent, Record<string, readonly Primit
   },
   "bank:attached": { source: ["home", "next", "header", "run-bar", "dps", "goals", "slayer", "bank", "unknown"] },
   "bank:refreshed": { source: ["home", "next", "header", "run-bar", "dps", "goals", "slayer", "bank", "unknown"] },
+  "reminder:created": { source: ["return_recap"], delivery: ["notification", "local", "unsupported", "denied", "failed"] },
+  "reminder:cancelled": { source: ["return_recap"] },
+  "reminder:opened": { source: ["return_recap"] },
   "outcome:viewed": { status: ["completed", "progressed", "contradicted"] },
   "boss:opened": { source: ["next", "check_kill"] },
   "boss:loadout_used": { source: ["next", "check_kill"], action: ["copy_runelite_tab"] }

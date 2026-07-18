@@ -29,6 +29,9 @@ describe("decision funnel instrumentation", () => {
     const timeline = read("src/components/account-timeline.tsx");
     expect(timeline).toContain("return:visit");
     expect(timeline).toContain("timeline:viewed");
+    expect(timeline).toContain("reminder:created");
+    expect(timeline).toContain("reminder:opened");
+    expect(timeline).toContain("reminder:cancelled");
     expect(timeline).toContain("outcome:viewed");
     const boss = read("src/components/boss-detail-modal.tsx");
     expect(boss).toContain("boss:opened");
@@ -55,6 +58,9 @@ describe("decision funnel instrumentation", () => {
       "bank:refreshed",
       "return:visit",
       "timeline:viewed",
+      "reminder:created",
+      "reminder:opened",
+      "reminder:cancelled",
       "boss:opened",
       "boss:loadout_used"
     ]) {

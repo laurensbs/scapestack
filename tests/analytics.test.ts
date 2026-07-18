@@ -96,6 +96,9 @@ describe("privacy-safe analytics contract", () => {
 
     track("return:visit", { hasBank: true, hasRunelite: true, hasTripHistory: true });
     track("timeline:viewed", { hasProgress: true, hasBankUpdate: true, hasRuneliteProgress: true, momentCount: 4 });
+    track("reminder:created", { source: "return_recap", goalKind: "boss", delivery: "local" });
+    track("reminder:opened", { source: "return_recap", goalKind: "boss" });
+    track("reminder:cancelled", { source: "return_recap" });
     track("runelite:sync_success", { result: "found", fresh: true, bankReady: true, source: "saved" });
     track("recommendation:another", { ...recommendation, nextRouteFamily: "unlock" });
     track("recommendation:skipped", { ...recommendation, reason: "another_plan" });
@@ -103,7 +106,7 @@ describe("privacy-safe analytics contract", () => {
     track("boss:opened", { bossSlug: "vorkath", source: "next", hasBank: true });
     track("boss:loadout_used", { bossSlug: "vorkath", source: "next", hasBank: true, action: "copy_runelite_tab" });
 
-    expect(events).toHaveLength(8);
+    expect(events).toHaveLength(11);
     expect(events.every((event) => !Object.keys(event.props).some((key) => /rsn|bankRows|token|payload/i.test(key)))).toBe(true);
   });
 });

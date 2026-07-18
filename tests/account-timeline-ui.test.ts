@@ -24,6 +24,9 @@ describe("shared account timeline UI", () => {
     expect(source).toContain('data-return-recap="true"');
     expect(source).toContain("<ItemSprite");
     expect(source).toContain("recap.nextAction");
+    expect(source).toContain("Remind me tomorrow");
+    expect(source).toContain("cancelReturnReminder");
+    expect(source).toContain("requestReminderDelivery");
     expect(source).not.toMatch(/>[^<{]*(payload|signals|data source|reconciliation)[^<{]*</i);
   });
 
