@@ -12,6 +12,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
@@ -123,8 +124,13 @@ public class ScapestackSyncPluginTest {
 
     @Test
     public void committedV3FixtureMatchesProductionSerializer() throws Exception {
+        Path fixture = Paths.get("..", "tests", "fixtures", "plugin-sync-v3.json");
+        if (!Files.isRegularFile(fixture)) {
+            fixture = Paths.get("src", "test", "resources", "fixtures", "plugin-sync-v3.json");
+        }
+
         try (Reader reader = Files.newBufferedReader(
-            Paths.get("..", "tests", "fixtures", "plugin-sync-v3.json"),
+            fixture,
             java.nio.charset.StandardCharsets.UTF_8
         )) {
             JsonObject committed = new Gson().fromJson(reader, JsonObject.class);

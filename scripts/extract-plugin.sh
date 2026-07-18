@@ -64,6 +64,8 @@ fi
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PLUGIN_DIR="$ROOT/plugin"
+SYNC_FIXTURE_SOURCE="$ROOT/tests/fixtures/plugin-sync-v3.json"
+SYNC_FIXTURE_RELATIVE="src/test/resources/fixtures/plugin-sync-v3.json"
 
 if [[ ! -d "$PLUGIN_DIR" ]]; then
   echo "Plugin dir not found at $PLUGIN_DIR" >&2
@@ -181,6 +183,13 @@ if [[ "$DRY_RUN" == "true" ]]; then
   if [[ -f "$ROOT/LICENSE" && ! -f "$TARGET/LICENSE" ]]; then
     echo ">f+++++++++ LICENSE (copied from monorepo)"
   fi
+  if [[ -f "$SYNC_FIXTURE_SOURCE" ]]; then
+    if [[ ! -f "$TARGET/$SYNC_FIXTURE_RELATIVE" ]]; then
+      echo ">f+++++++++ $SYNC_FIXTURE_RELATIVE (copied contract fixture)"
+    elif ! cmp -s "$SYNC_FIXTURE_SOURCE" "$TARGET/$SYNC_FIXTURE_RELATIVE"; then
+      echo ">f.st.... $SYNC_FIXTURE_RELATIVE (copied contract fixture)"
+    fi
+  fi
   if [[ -f "$TARGET/README.md.published" ]]; then
     echo "*deleting   README.md.published (legacy generated file)"
   fi
@@ -207,6 +216,14 @@ if [[ "$CLEAN" == "true" ]]; then
 fi
 
 rsync "${RSYNC_ARGS[@]}" "$PLUGIN_DIR/" "$TARGET/"
+
+# The v3 payload fixture is shared with the website contract tests. Mirror it
+# into standalone test resources so the extracted repository is independently
+# buildable instead of relying on the monorepo's ../tests directory.
+if [[ -f "$SYNC_FIXTURE_SOURCE" ]]; then
+  mkdir -p "$TARGET/$(dirname "$SYNC_FIXTURE_RELATIVE")"
+  cp "$SYNC_FIXTURE_SOURCE" "$TARGET/$SYNC_FIXTURE_RELATIVE"
+fi
 
 # Generate a top-level README from this canonical release template so
 # Plugin Hub reviewers do not see stale standalone copy.
