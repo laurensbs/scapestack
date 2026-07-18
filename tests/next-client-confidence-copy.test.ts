@@ -689,7 +689,9 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain('const hasManualBankOverride = bankSource === "browser" || bankSource === "handoff";');
     expect(source).toContain("if (usePluginBank && scapestackSync?.bankItems?.length)");
     expect(source).toContain('bankHandoffItemsFromBankItems(bank, "RuneLite bank sync")');
-    expect(source).toContain("ownedGear(asOrganizedItems(bank))");
+    expect(source).toContain('const LazyBossDetailModal = dynamic(() => import("@/components/lazy-boss-detail-modal")');
+    expect(source).toContain("bossSlug={modalBossSlug}");
+    expect(source).not.toContain("ownedGear(asOrganizedItems(bank))");
     expect(source).toContain('bankSource = "plugin";');
     expect(source).toContain("setActiveBankSource(bankSource)");
   });

@@ -47,26 +47,20 @@ export function HeroBossTripPreview() {
         className="group/boss relative grid aspect-[0.82] w-full place-items-center overflow-visible outline-none"
         aria-label={`Open ${active.name} kill check`}
       >
-        {HERO_BOSSES.map((trip, index) => {
-          const isActive = index === activeIndex;
-          return (
-            <Image
-              key={trip.boss}
-              src={`/sprites/bosses/${trip.boss}.png`}
-              alt={isActive ? `${trip.name} boss` : ""}
-              aria-hidden={!isActive}
-              fill
-              priority={index === 0}
-              sizes="(max-width: 768px) 92vw, 520px"
-              className="absolute inset-0 object-contain transition-all duration-700 ease-out group-hover/boss:scale-[1.035]"
-              style={{
-                opacity: isActive ? 1 : 0,
-                filter: "drop-shadow(0 34px 40px rgb(0 0 0 / 0.76))",
-                transform: isActive ? "translateY(0) scale(1.08)" : "translateY(12px) scale(1.01)"
-              }}
-            />
-          );
-        })}
+        <Image
+          key={active.boss}
+          src={`/sprites/bosses/${active.boss}.png`}
+          alt={`${active.name} boss`}
+          fill
+          priority={activeIndex === 0}
+          loading={activeIndex === 0 ? undefined : "lazy"}
+          sizes="(max-width: 768px) 92vw, 520px"
+          className="absolute inset-0 object-contain transition-transform duration-700 ease-out group-hover/boss:scale-[1.035]"
+          style={{
+            filter: "drop-shadow(0 34px 40px rgb(0 0 0 / 0.76))",
+            transform: "translateY(0) scale(1.08)"
+          }}
+        />
       </button>
 
       <div className="relative z-10 -mt-5 flex items-center justify-center gap-2">

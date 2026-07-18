@@ -3,6 +3,7 @@
 import { useState, useTransition, useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   ArrowRight, ChevronRight, Edit3, Target, Sword, TrendingUp, Layers,
   Sparkles, Trophy, Gamepad2, Coins, Scroll, Map as MapIcon, Dices, ExternalLink,
@@ -14,12 +15,9 @@ import { SavedBankBanner } from "@/components/saved-bank-banner";
 import { BossSprite } from "@/components/boss-picker";
 import { ItemSprite } from "@/components/item-sprite";
 import { AccountModeBadge } from "@/components/account-mode-badge";
-import { KcProbabilityGraph } from "@/components/kc-probability-graph";
 import { XpDropLoader } from "@/components/xp-drop-loader";
 import { ShuffleLoader } from "@/components/shuffle-loader";
-import { BossDetailModal } from "@/components/boss-detail-modal";
 import { BOSSES, type Boss } from "@/lib/bosses";
-import { ownedGear, type GearItem } from "@/lib/gear";
 import { organizeAction, nextUpAction, hiscoresAction, womAction, collectionLogAction, templeAction, syncedPlayerAction } from "@/app/actions";
 import { type HiscoreSkill } from "@/lib/hiscores";
 import { unlockedFromHiscores, GOAL_SETS, normaliseCompletion, type SetCompletion } from "@/lib/goals";
@@ -105,14 +103,12 @@ import {
   bankHandoffItemsFromTabs,
   clearBankHandoffPayload,
   nextUpBankFromHandoff,
-  organizedItemsFromHandoff,
   persistBankHandoffPayloadFromItems,
   readBankHandoffPayload,
   summarizeBankHandoff,
   type BankHandoffItem
 } from "@/lib/next-bank-handoff";
 import { buildNextBankContext } from "@/lib/next-bank-context";
-import type { OrganizedItem } from "@/lib/organizer";
 import {
   BANKED_XP_SKILL_DESCRIPTORS,
   estimateBankedXp,
@@ -130,6 +126,16 @@ import {
   loadDiaryTaskChecks,
   setDiaryTaskChecked
 } from "@/lib/diary-progress-storage";
+
+const LazyBossDetailModal = dynamic(() => import("@/components/lazy-boss-detail-modal"), {
+  ssr: false,
+  loading: () => null
+});
+
+const LazyKcProbabilityGraph = dynamic(
+  () => import("@/components/kc-probability-graph").then((mod) => mod.KcProbabilityGraph),
+  { ssr: false, loading: () => null }
+);
 
 // Per-kind visual identity — Lucide fallback + an OSRS sprite. Recs that
 // already carry their own `iconItemId` keep theirs; everything else falls
@@ -215,18 +221,6 @@ function sampleSkills(): HiscoreSkill[] {
   }));
   const total = skills.reduce((sum, skill) => sum + skill.level, 0);
   return [{ id: 0, name: "Overall", rank: 100_000, level: total, xp: 0 }, ...skills];
-}
-
-function asOrganizedItems(items: Array<{ id: number; name: string; quantity?: number }>): OrganizedItem[] {
-  return items.map((item) => ({
-    ...item,
-    subtab: "Demo",
-    slot: null,
-    weight: 0,
-    quantity: item.quantity ?? 1,
-    unitPrice: 0,
-    stackValue: 0
-  }));
 }
 
 function syncedSkillsToHiscoreSkills(skills: Array<{ name: string; level: number }> | undefined): HiscoreSkill[] {
@@ -382,13 +376,9 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
   // When we land on the not-found view, remember what the user typed so
   // we can show 'Lynx Titan didn't return any data' and offer a retry.
   const [notFoundRsn, setNotFoundRsn] = useState<string>("");
-  // GearItem[] derived from the player's bank — needed by the boss
-  // detail modal which is shared with /dps. Stored alongside `result`
-  // so a KC-rec click opens the modal with real owned-gear instead
-  // of an empty bag.
-  const [ownedGearItems, setOwnedGearItems] = useState<GearItem[]>([]);
-  // Currently-open boss in the detail modal (KC-rec click target).
-  const [modalBoss, setModalBoss] = useState<Boss | null>(null);
+  // Currently-open boss detail target. The heavy DPS/gear sheet loads after
+  // click so the first /next viewport stays small on mobile.
+  const [modalBossSlug, setModalBossSlug] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [expectedPluginSync, setExpectedPluginSync] = useState(false);
   // When the user came from /bank's plan-next-move handoff,
@@ -494,7 +484,6 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
         } catch {
           // Demo still works in /next if storage is unavailable; DPS handoff is best-effort.
         }
-        setOwnedGearItems(ownedGear(asOrganizedItems(bank)));
         setResult(await nextUpAction({
           skills: sampleSkills(),
           bank,
@@ -551,12 +540,6 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
       let bankItemsForContext = handoffItems;
       let bankSource: NextBankSource = handoffItems.length > 0 ? "handoff" : "none";
       let bank: Array<{ id: number; name: string; quantity?: number }> = nextUpBankFromHandoff(handoffItems);
-      // ownedGear needs richer OrganizedItem-shaped entries. The /bank
-      // handoff now carries quantity/value/subtab metadata, so boss detail
-      // modals can use the gear immediately instead of looking bank-less.
-      let gearItems: GearItem[] = handoffItems.length > 0
-        ? ownedGear(organizedItemsFromHandoff(handoffItems))
-        : [];
       if (bank.length === 0 && input) {
         const bankRes = await organizeAction(input, { junkFilter: false, includePrices: false });
         if (bankRes.error || !bankRes.result) {
@@ -565,7 +548,6 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
         }
         const flat = bankRes.result.tabs.flatMap((t) => t.items);
         bank = flat.map((it) => ({ id: it.id, name: it.name, quantity: it.quantity }));
-        gearItems = ownedGear(flat);
         bankItemsForContext = bankHandoffItemsFromTabs(bankRes.result.tabs);
         bankSource = "browser";
       }
@@ -585,10 +567,8 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
           quantity: item.quantity
         }));
         bankItemsForContext = bankHandoffItemsFromBankItems(bank, "RuneLite bank sync");
-        gearItems = ownedGear(asOrganizedItems(bank));
         bankSource = "plugin";
       }
-      setOwnedGearItems(gearItems);
       setActiveBankItems(bankItemsForContext);
       setActiveBankSource(bankSource);
       if (bankItemsForContext.length > 0 && typeof window !== "undefined") {
@@ -844,20 +824,16 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
         initialRouteChoice={initialRouteChoice}
         planRequestedAt={planRequestedAt}
         isFirstRun={isFirstRun}
-        onBossOpen={(slug) => {
-          const target = BOSSES.find((b) => b.slug === slug);
-          if (target) setModalBoss(target);
-        }}
+        onBossOpen={(slug) => setModalBossSlug(slug)}
       />
-      {modalBoss && (
-        <BossDetailModal
-          boss={modalBoss}
-          owned={ownedGearItems}
+      {modalBossSlug && (
+        <LazyBossDetailModal
+          bossSlug={modalBossSlug}
           bankItems={activeBankItems}
           accountType={result.summary.accountType}
           analyticsSource="next"
-          onSelectBoss={(nextBoss) => setModalBoss(nextBoss)}
-          onClose={() => setModalBoss(null)}
+          onSelectBoss={(nextBossSlug) => setModalBossSlug(nextBossSlug)}
+          onClose={() => setModalBossSlug(null)}
         />
       )}
     </>
@@ -5843,7 +5819,7 @@ function RecDetailPanel({
         </p>
       )}
       {hasDropChanceGraph(rec) && (
-        <KcProbabilityGraph
+        <LazyKcProbabilityGraph
           kc={rec.kcMeta.kc}
           denom={rec.kcMeta.denom}
           dropName={rec.kcMeta.dropName}

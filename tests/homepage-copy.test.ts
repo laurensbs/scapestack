@@ -16,7 +16,8 @@ describe("homepage first-impression copy", () => {
     expect(source).toContain("Type your OSRS name. Scapestack opens one clean trip and tells you when to stop.");
     expect(source).toContain("<HeroBossTripPreview />");
     expect(source).toContain('aria-label="Rotating OSRS bosses"');
-    expect(source).toContain('src={`/sprites/bosses/${trip.boss}.png`}');
+    expect(source).toContain('src={`/sprites/bosses/${active.boss}.png`}');
+    expect(source).toContain("priority={activeIndex === 0}");
     expect(source).not.toContain("Quest readiness");
     expect(source).not.toContain("Near-ready unlocks first");
     expect(source).not.toContain("Bank gaps");

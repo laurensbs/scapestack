@@ -2243,7 +2243,7 @@ Acceptance:
 
 ## Phase 33 - Hit Mobile Performance Gates
 
-Status: TODO  
+Status: DONE  
 Depends on: Phase 24  
 Improves: performance, mobile UX
 
@@ -2274,6 +2274,20 @@ Acceptance:
 - no regression in recommendation behavior;
 - before/after reports saved under docs or CI artifacts.
 ```
+
+### Completed 2026-07-18
+
+- Rendered only the active homepage boss image and kept the first LCP candidate
+  prioritized while later boss rotations stay lazy.
+- Split boss detail, owned-gear derivation, DPS setup, inventory planning and
+  upgrade checks behind a lazy `/next` modal wrapper.
+- Split the KC probability graph behind a lazy detail import.
+- Saved production evidence in `docs/performance/phase33-mobile-performance.md`,
+  `phase33-http.json`, `phase33-chunks.json`, `phase33-browser-screens.json`
+  and mobile screenshots.
+- Production build passed; mobile browser screenshots showed zero console
+  errors. Local Lighthouse was unavailable, so score/LCP/CLS gates should be
+  enforced in deployment CI.
 
 ## Phase 34 - Break Up The Monoliths By Product Boundary
 

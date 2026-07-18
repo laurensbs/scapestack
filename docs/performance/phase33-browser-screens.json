@@ -1,0 +1,21 @@
+{
+  "measuredAt": "2026-07-18T11:25:06.750Z",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "pages": [
+    {
+      "label": "home",
+      "url": "http://localhost:4173/",
+      "screenshotPath": "/Users/laurens/Desktop/Persoonlijke Projecten/osrs-bank-organizer/docs/performance/phase33-home-mobile.png",
+      "consoleErrors": []
+    },
+    {
+      "label": "next",
+      "url": "http://localhost:4173/next?rsn=lauky&bank=none",
+      "screenshotPath": "/Users/laurens/Desktop/Persoonlijke Projecten/osrs-bank-organizer/docs/performance/phase33-next-mobile.png",
+      "consoleErrors": []
+    }
+  ]
+}

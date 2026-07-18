@@ -1,0 +1,20 @@
+{
+  "measuredAt": "2026-07-18T11:27:03.878Z",
+  "method": "Node http against next start production server on localhost:4173",
+  "pages": [
+    {
+      "path": "/",
+      "status": 200,
+      "ttfbMs": 11,
+      "totalMs": 12,
+      "bytes": 35700
+    },
+    {
+      "path": "/next?rsn=lauky&bank=none",
+      "status": 200,
+      "ttfbMs": 8,
+      "totalMs": 9,
+      "bytes": 28654
+    }
+  ]
+}
