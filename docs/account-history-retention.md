@@ -34,6 +34,10 @@ tokens, raw plugin payloads or full bank contents.
   any future temporary processing and defaults to 24 hours.
 - Claim tokens are stored only as SHA-256 hashes.
 - `requestAccountDeletion` records the request and optional grace period.
+- `DELETE /api/account/delete` is the browser-facing deletion path. It requires
+  the connected HttpOnly account cookie, ignores any RSN in the URL/body, checks
+  same-origin browser requests, then calls `deleteAccountHistory` for the
+  connected account only.
 - `deleteAccountHistory` removes the current projection and claim, then deletes
   the account identity. Foreign-key cascades remove every snapshot, decision,
   trip event, outcome, preference and retention row.

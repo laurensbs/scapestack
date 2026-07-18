@@ -2335,9 +2335,16 @@ Acceptance:
 
 ## Phase 35 - Harden Privacy, Security And Data Deletion
 
-Status: TODO  
+Status: DONE - 2026-07-18  
 Depends on: Phases 02 and 04  
 Improves: trust, production readiness
+
+Completed:
+- Added `DELETE /api/account/delete` as the explicit server-side privacy deletion route for connected browser accounts.
+- Kept browser disconnect separate from account-history deletion; deletion ignores query/body RSNs and uses the connected account only.
+- Added same-origin protection for destructive account-session requests.
+- Documented the data inventory, threat model, retention boundaries and deletion behavior.
+- Verified `npm audit --audit-level=moderate`, `npm run ci:check`, and `plugin/./gradlew test`.
 
 ### Prompt
 
