@@ -2456,7 +2456,7 @@ Acceptance:
 
 ## Phase 38 - Make Sharing Prove Usefulness
 
-Status: TODO  
+Status: DONE - 2026-07-18  
 Depends on: Phases 09 and 36  
 Improves: Reddit fit, organic acquisition
 
@@ -2480,6 +2480,17 @@ Acceptance:
 - private context is excluded by tests;
 - Open Graph rendering works on mobile and social crawlers.
 ```
+
+### Implementation Notes
+
+- Reworked `shareable-trip` into an account-safe decision artifact with a
+  result line, one reason, stop point, sprite id, preview text and OG image URL.
+- Added private-copy filtering so RSNs, bank rows, raw stats, payloads, item
+  quantities and tokens cannot become share content.
+- Added `/share/trip/opengraph-image` for a standalone social crawler image
+  that renders the decision, sprite, reason and stop point.
+- Expanded tests to cover useful bank/boss and banked-skill share examples,
+  preview parity and the OG route.
 
 ## Phase 39 - Build A Complete End-To-End Matrix
 
