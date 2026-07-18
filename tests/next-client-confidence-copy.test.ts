@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const source = readFileSync(join(process.cwd(), "src/app/next/next-client.tsx"), "utf8");
 const bankedXpSource = readFileSync(join(process.cwd(), "src/lib/banked-xp.ts"), "utf8");
+const planSurfaceSource = readFileSync(join(process.cwd(), "src/lib/next-plan-surface.ts"), "utf8");
 
 describe("/next confidence UI copy", () => {
   it("keeps internal confidence labels out of recommendation cards", () => {
@@ -151,17 +152,19 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain('data-testid="next-evidence-ledger"');
     expect(source).not.toContain("Make this smarter");
     expect(source).not.toContain("Optional: add gear or RuneLite when the pick looks off.");
-    expect(source).toContain("function makePlanSmarterCopy");
-    expect(source).toContain("Gear, food and teleports can change the trip.");
-    expect(source).toContain("Add bank only when GP, gear or items should change the method.");
+    expect(source).toContain('from "@/lib/next-plan-surface"');
+    expect(source).not.toContain("function makePlanSmarterCopy");
+    expect(planSurfaceSource).toContain("function makePlanSmarterCopy");
+    expect(planSurfaceSource).toContain("Gear, food and teleports can change the trip.");
+    expect(planSurfaceSource).toContain("Add bank only when GP, gear or items should change the method.");
     expect(source).not.toContain("Better supplies, boss picks and Bank Tags.");
     expect(source).not.toContain("What shaped this");
     expect(source).toContain("Add bank");
-    expect(source).toContain("Want a sharper pick?");
+    expect(planSurfaceSource).toContain("Want a sharper pick?");
     expect(source).not.toContain("Add supplies if needed");
     expect(source).not.toContain('bankCta: "Add supplies"');
-    expect(source).toContain("Add quest items");
-    expect(source).toContain("Add GP check");
+    expect(planSurfaceSource).toContain("Add quest items");
+    expect(planSurfaceSource).toContain("Add GP check");
     expect(source).not.toContain("Add bank for GP");
     expect(source).toContain("Check RuneLite");
     expect(source).not.toContain("Used for this route");
@@ -650,8 +653,11 @@ describe("/next confidence UI copy", () => {
   });
 
   it("turns skilling maxing picks into bank-aware XP progress", () => {
-    expect(source).toContain("function skillingBankSummaryForRecommendation");
-    expect(source).toContain("const SKILL_BANK_XP");
+    expect(source).toContain("skillingBankSummaryForSkill(recommendationSkillLabel(rec), bankItems, maxEstimate)");
+    expect(source).not.toContain("function skillingBankSummaryForRecommendation");
+    expect(source).not.toContain("const SKILL_BANK_XP");
+    expect(planSurfaceSource).toContain("function skillingBankSummaryForSkill");
+    expect(planSurfaceSource).toContain("BANKED_XP_SKILL_DESCRIPTORS");
     expect(source).toContain("function savedBankForRun");
     expect(source).toContain("heroBank = savedBankForRun(heroRsn.trim(), activeAccountRsn)?.banktags;");
     expect(source).toContain("input: savedBankForRun(activeAccountRsn)?.banktags");
@@ -667,16 +673,16 @@ describe("/next confidence UI copy", () => {
     expect(bankedXpSource).toContain('skill: "Woodcutting"');
     expect(bankedXpSource).toContain('skill: "Mining"');
     expect(bankedXpSource).toContain('skill: "Hunter"');
-    expect(source).toContain("neededAfterBankLabel");
-    expect(source).toContain("estimateBankedXp({");
-    expect(source).toContain("Need about ${Math.ceil(remainingAfterBank / xpPerBestMaterial).toLocaleString()} more ${bestMaterial.name}");
+    expect(planSurfaceSource).toContain("neededAfterBankLabel");
+    expect(planSurfaceSource).toContain("estimateBankedXp({");
+    expect(planSurfaceSource).toContain("Need about ${Math.ceil(remainingAfterBank / xpPerBestMaterial).toLocaleString()} more ${bestMaterial.name}");
     expect(source).toContain("Bank has ${summary.bankItemsLabel}. Use that method;");
     expect(source).not.toContain("{skillingSummary.skill} route");
     expect(source).not.toContain("Need:");
     expect(source).not.toContain("Use:");
     expect(source).not.toContain("Stop:");
     expect(source).not.toContain("No ${config.suppliesLabel} found in this bank");
-    expect(source).toContain("This bank does not cover the chosen skilling method yet");
+    expect(planSurfaceSource).toContain("This bank does not cover the chosen skilling method yet");
     expect(source).toContain("skillConfig.keywords");
     expect(source).not.toContain("${skillConfig.suppliesLabel} stack");
   });

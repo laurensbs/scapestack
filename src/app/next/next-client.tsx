@@ -110,11 +110,13 @@ import {
 } from "@/lib/next-bank-handoff";
 import { buildNextBankContext } from "@/lib/next-bank-context";
 import {
-  BANKED_XP_SKILL_DESCRIPTORS,
-  estimateBankedXp,
-  formatXpRange,
-  type BankedXpSkillDescriptor
-} from "@/lib/banked-xp";
+  formatPlanXp,
+  makePlanSmarterCopy,
+  skillBankConfigForSkill,
+  skillingBankSummaryForSkill,
+  skillingLevelGapLine,
+  type SkillingBankSummary
+} from "@/lib/next-plan-surface";
 import {
   completeCalculableRouteStep,
   resolveCalculableRouteProgress,
@@ -2751,90 +2753,6 @@ function runeLitePlanNote(pluginSyncSummary: NextPluginSyncSummary | null): stri
   return "RuneLite can improve picks later.";
 }
 
-type RecommendationPlanSurface = "combat" | "slayer" | "skilling" | "afk" | "unlock" | "gp" | "chill";
-
-function recommendationPlanSurface(rec: Recommendation | null): RecommendationPlanSurface {
-  if (!rec) return "chill";
-  if (rec.kind === "slayer") return "slayer";
-  if (rec.kind === "boss" || rec.kind === "kc") return "combat";
-  if (rec.kind === "money") return "gp";
-  if (rec.kind === "skill") {
-    return rec.routeTags?.includes("afk") ? "afk" : "skilling";
-  }
-  if (rec.kind === "quest" || rec.kind === "diary" || rec.kind === "goal" || rec.kind === "milestone") {
-    return "unlock";
-  }
-  return "chill";
-}
-
-function makePlanSmarterCopy(rec: Recommendation | null): {
-  title: string;
-  helper: string;
-  bankLabel: string;
-  loadedHelper: string;
-  emptyHelper: string;
-  bankCta: string;
-} {
-  switch (recommendationPlanSurface(rec)) {
-    case "combat":
-      return {
-        title: "Add bank",
-        helper: "Gear, food and teleports can change the trip.",
-        bankLabel: "Bank",
-        loadedHelper: "Your bank can shape this boss pick.",
-        emptyHelper: "Use it when PvM supplies matter.",
-        bankCta: "Add bank"
-      };
-    case "slayer":
-      return {
-        title: "Add bank",
-        helper: "Task gear, supplies and teleports can change the route.",
-        bankLabel: "Bank",
-        loadedHelper: "Your bank can shape the task plan.",
-        emptyHelper: "Use it when task setup matters.",
-        bankCta: "Add bank"
-      };
-    case "gp":
-      return {
-        title: "Add GP check",
-        helper: "Cash, supplies and items can change the money-maker.",
-        bankLabel: "Bank/GP",
-        loadedHelper: "Cash stack and items can shape this GP pick.",
-        emptyHelper: "Use it when profit or supplies matter.",
-        bankCta: "Add GP"
-      };
-    case "unlock":
-      return {
-        title: "Add quest items",
-        helper: "Items and teleports can change the unlock route.",
-        bankLabel: "Items",
-        loadedHelper: "Quest items and teleports can shape this unlock.",
-        emptyHelper: "Use it when required items matter.",
-        bankCta: "Add items"
-      };
-    case "afk":
-    case "skilling":
-      return {
-        title: "Want a sharper pick?",
-        helper: "Add bank only when GP, gear or items should change the method.",
-        bankLabel: "Bank",
-        loadedHelper: "Your bank can shape this skilling pick.",
-        emptyHelper: "Skip this for simple level pushes.",
-        bankCta: "Add bank"
-      };
-    case "chill":
-    default:
-      return {
-        title: "Add details later",
-        helper: "Use gear or RuneLite only when the plan feels off.",
-        bankLabel: "Bank",
-        loadedHelper: "Your bank can shape the next pick.",
-        emptyHelper: "Optional for lighter sessions.",
-        bankCta: "Add bank"
-      };
-  }
-}
-
 const GEAR_REALITY_KEYWORDS = {
   weapon: [
     "whip", "fang", "scythe", "shadow", "trident", "bowfa", "blowpipe", "crossbow",
@@ -3168,7 +3086,7 @@ function buildRecommendationTrip(
 ): TripBuilderPlan {
   const needsCombat = recommendationNeedsCombatSetup(rec);
   const isUnlock = recommendationNeedsItemCheck(rec);
-  const skillConfig = skillBankConfigForRecommendation(rec);
+  const skillConfig = skillBankConfigForSkill(recommendationSkillLabel(rec));
   const keywordGroups = needsCombat
     ? [
         TRIP_BANK_KEYWORDS.weapon,
@@ -3391,97 +3309,6 @@ function backupChoicePrompt(rec: Recommendation, headline: Recommendation): { la
   return { label: "Prefer unlock?", helper: "Use this when account progress matters more than GP or KC." };
 }
 
-type SkillingBankSummary = {
-  skill: string;
-  xpRemaining: number | null;
-  bankXp: number;
-  bankItemsLabel: string;
-  hasBankMatch: boolean;
-  suppliesLabel: string;
-  actionVerb: string;
-  bringHint: string;
-  remainingAfterBank: number | null;
-  neededAfterBankLabel: string | null;
-  bankCoversTarget: boolean;
-};
-
-const SKILL_BANK_XP = BANKED_XP_SKILL_DESCRIPTORS;
-
-function formatXp(value: number): string {
-  return `${Math.round(value).toLocaleString()} XP`;
-}
-
-function skillNameForRecommendation(rec: Recommendation): string {
-  return recommendationSkillLabel(rec);
-}
-
-function skillingBankSummaryForRecommendation(
-  rec: Recommendation,
-  bankItems: BankHandoffItem[],
-  maxEstimate: HoursToMaxSummary | null
-): SkillingBankSummary | null {
-  const skill = skillNameForRecommendation(rec);
-  const config = skillBankConfigForSkill(skill);
-  if (!config) return null;
-  if (bankItems.length === 0) return null;
-
-  const skillEstimate = maxEstimate?.perSkill.find((entry) => entry.skill.toLowerCase() === config.skill.toLowerCase()) ?? null;
-  const xpRemaining = skillEstimate?.xpRemaining ?? null;
-  const bankEstimate = estimateBankedXp({
-    skill: config.skill,
-    bank: bankItems.length > 0 ? bankItems : undefined,
-    currentLevel: skillEstimate?.currentLevel,
-    xpRemaining
-  });
-  const bankXp = bankEstimate.coveredXpHigh;
-  const bestMaterial = bankEstimate.materials[0] ?? null;
-  const supportingItems = bankItems
-    .filter((item) => config.keywords.some((keyword) => item.name.toLowerCase().includes(keyword.toLowerCase())))
-    .sort((a, b) => b.quantity - a.quantity)
-    .slice(0, 3);
-  const bankItemsLabel = bankEstimate.materials.length
-    ? bankEstimate.materials.map((item) => `${item.quantity.toLocaleString()} ${item.name}`).join(", ")
-    : supportingItems.length
-      ? supportingItems.map((item) => `${item.quantity.toLocaleString()} ${item.name.toLowerCase()}`).join(", ")
-      : "This bank does not cover the chosen skilling method yet";
-  const remainingAfterBank = bankEstimate.remainingXpHigh;
-  const xpPerBestMaterial = bestMaterial && bestMaterial.quantity > 0
-    ? bestMaterial.xpHigh / bestMaterial.quantity
-    : null;
-  const neededAfterBankLabel = remainingAfterBank && remainingAfterBank > 0 && xpPerBestMaterial
-    ? `Need about ${Math.ceil(remainingAfterBank / xpPerBestMaterial).toLocaleString()} more ${bestMaterial.name} if you keep this method.`
-    : null;
-
-  return {
-    skill: config.skill,
-    xpRemaining,
-    bankXp,
-    bankItemsLabel,
-    hasBankMatch: bankEstimate.status === "estimated" || supportingItems.length > 0,
-    suppliesLabel: config.suppliesLabel,
-    actionVerb: config.actionVerb,
-    bringHint: config.bringHint,
-    remainingAfterBank,
-    neededAfterBankLabel,
-    bankCoversTarget: xpRemaining !== null && bankEstimate.coveredXpLow >= xpRemaining && xpRemaining > 0
-  };
-}
-
-function skillBankConfigForSkill(skill: string): BankedXpSkillDescriptor | null {
-  return SKILL_BANK_XP.find((config) => config.skill.toLowerCase() === skill.toLowerCase()) ?? null;
-}
-
-function skillBankConfigForRecommendation(rec: Recommendation): BankedXpSkillDescriptor | null {
-  return skillBankConfigForSkill(skillNameForRecommendation(rec));
-}
-
-function skillingLevelGapLine(summary: SkillingBankSummary | null): string | null {
-  if (!summary) return null;
-  if (summary.xpRemaining === null) return `${summary.actionVerb} the banked stack first, then re-check your ${summary.skill} gap.`;
-  if (summary.xpRemaining <= 0) return `${summary.skill} is already 99; pick a different maxing lane.`;
-  return `${summary.skill}: ${formatXp(summary.xpRemaining)} left for 99.`;
-}
-
 function routeStepPrep(
   rec: Recommendation,
   bankItems: BankHandoffItem[],
@@ -3489,7 +3316,7 @@ function routeStepPrep(
   maxEstimate: HoursToMaxSummary | null = null
 ): string {
   const isIron = accountStage.id === "iron-route";
-  const summary = skillingBankSummaryForRecommendation(rec, bankItems, maxEstimate);
+  const summary = skillingBankSummaryForSkill(recommendationSkillLabel(rec), bankItems, maxEstimate);
 
   if (summary) {
     if (summary.bankXp > 0) {
@@ -3497,19 +3324,14 @@ function routeStepPrep(
         ? "then re-check the level gap"
         : summary.remainingAfterBank === 0
           ? "enough for the 99 push"
-          : `${formatXp(summary.remainingAfterBank)} still left after that`;
+          : `${formatPlanXp(summary.remainingAfterBank)} still left after that`;
       const needed = summary.neededAfterBankLabel ? ` ${summary.neededAfterBankLabel}` : "";
-      const bankEstimate = estimateBankedXp({
-        skill: summary.skill,
-        bank: bankItems,
-        xpRemaining: summary.xpRemaining
-      });
-      return `Bank has ${summary.bankItemsLabel} (${formatXpRange(bankEstimate.coveredXpLow, bankEstimate.coveredXpHigh)} XP). ${summary.actionVerb} those first; ${gap}.${needed}`;
+      return `Bank has ${summary.bankItemsLabel} (${summary.bankXpRangeLabel} XP). ${summary.actionVerb} those first; ${gap}.${needed}`;
     }
     if (summary.hasBankMatch) {
       const gap = summary.xpRemaining === null
         ? "check the level gap after the route"
-        : `${formatXp(summary.xpRemaining)} left for 99`;
+        : `${formatPlanXp(summary.xpRemaining)} left for 99`;
       return `Bank has ${summary.bankItemsLabel}. Use that method; ${gap}.`;
     }
     return isIron
@@ -3547,7 +3369,7 @@ function routeStepBring(
   accountStage: NextUpResult["summary"]["accountStage"],
   maxEstimate: HoursToMaxSummary | null = null
 ): string {
-  const summary = skillingBankSummaryForRecommendation(rec, bankItems, maxEstimate);
+  const summary = skillingBankSummaryForSkill(recommendationSkillLabel(rec), bankItems, maxEstimate);
   if (summary) {
     if (summary.bankXp > 0) return `${summary.bankItemsLabel}. ${summary.bringHint}.`;
     if (summary.hasBankMatch) return `${summary.bankItemsLabel}. ${summary.bringHint}.`;

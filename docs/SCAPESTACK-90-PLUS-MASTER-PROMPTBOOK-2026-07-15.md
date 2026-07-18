@@ -2291,9 +2291,15 @@ Acceptance:
 
 ## Phase 34 - Break Up The Monoliths By Product Boundary
 
-Status: TODO  
+Status: DONE - 2026-07-18  
 Depends on: Phase 06  
 Improves: engineering quality and delivery speed
+
+Completed:
+- Extracted `/next` plan-surface copy and banked skilling XP summaries into `src/lib/next-plan-surface.ts`.
+- Kept `src/app/next/next-client.tsx` on UI orchestration instead of direct banked-XP estimation imports.
+- Added boundary tests for the new module and size guards for `next-client.tsx`, `next-up.ts`, and `bank-result.tsx`.
+- Verified `npm run typecheck`, `npm run ci:check`, and `plugin/./gradlew test`.
 
 ### Prompt
 

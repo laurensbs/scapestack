@@ -331,9 +331,12 @@ describe("Scapestack readiness rail", () => {
     expect(dpsSource).toContain("buildBossInventoryPlan({ boss, bankItems, owned, dps })");
 
     const nextSource = readFileSync(join(process.cwd(), "src/app/next/next-client.tsx"), "utf8");
+    const planSurfaceSource = readFileSync(join(process.cwd(), "src/lib/next-plan-surface.ts"), "utf8");
     expect(nextSource).not.toContain("ScapestackReadinessRail");
-    expect(nextSource).toContain("function makePlanSmarterCopy");
-    expect(nextSource).toContain("Add bank only when GP, gear or items should change the method.");
+    expect(nextSource).toContain('from "@/lib/next-plan-surface"');
+    expect(nextSource).not.toContain("function makePlanSmarterCopy");
+    expect(planSurfaceSource).toContain("function makePlanSmarterCopy");
+    expect(planSurfaceSource).toContain("Add bank only when GP, gear or items should change the method.");
     expect(nextSource).not.toContain("Add supplies if needed");
     expect(nextSource).not.toContain("Better supplies, boss picks and Bank Tags.");
   });
