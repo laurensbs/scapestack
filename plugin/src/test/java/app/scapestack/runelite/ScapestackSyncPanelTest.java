@@ -27,7 +27,7 @@ public class ScapestackSyncPanelTest {
         assertTrue(source.contains("Next action"));
         assertTrue(source.contains("Use recommended sync"));
         assertTrue(source.contains("Planner fuel"));
-        assertTrue(source.contains("Skills, XP, quests, diaries, Slayer task and bank items"));
+        assertTrue(source.contains("Skills, XP, quests, diaries, boss KC RuneLite has seen, Slayer task and bank items"));
         assertTrue(source.contains("Auto update refreshes after login and then every 15 minutes while you play"));
         assertTrue(source.contains("Turn bank off if you only want finished-progress checks"));
         assertTrue(source.contains("Collection Log"));

@@ -206,7 +206,7 @@ final class ScapestackSyncPanel extends PluginPanel {
     private JPanel whatSyncsCard() {
         JPanel panel = card();
         panel.add(sectionTitle("Planner fuel"));
-        panel.add(copy("Skills, XP, quests, diaries, Slayer task and bank items."));
+        panel.add(copy("Skills, XP, quests, diaries, boss KC RuneLite has seen, Slayer task and bank items."));
         panel.add(copy("Auto update refreshes after login and then every 15 minutes while you play."));
         panel.add(copy("Turn bank off if you only want finished-progress checks."));
         return panel;

@@ -433,8 +433,8 @@ Completed: 2026-07-18
   coverage for skills, quests, diaries, collection log, boss KC, Slayer,
   account mode and bank.
 - Coverage now preserves `available`, `unavailable`, `permission-off`,
-  `not-loaded` and `unsupported`, plus a domain timestamp and reason. Boss KC
-  remains honestly `unsupported` until the supported RuneLite reader ships.
+  `not-loaded` and `unsupported`, plus a domain timestamp and reason. At this
+  milestone boss KC remained honestly `unsupported` pending a supported reader.
 - Collection Log that was never opened or has no loaded item slots can no
   longer be persisted as an empty completed set.
 - Bank permission-off, bank-not-loaded and a legitimately empty loaded bank
@@ -452,10 +452,42 @@ Completed: 2026-07-18
   check passed.
 - Release truth: Plugin Hub and standalone remain on tested published `0.2.0`;
   candidate `0.3.0` remains intentionally unpublished.
-- Remaining before REC-02 is DONE: supported boss-KC extraction, real-client
-  XP/KC/Slayer proof, finer diary coverage where RuneLite supports it, the
-  Java -> production server -> Neon smoke, then standalone and Plugin Hub
-  publication of the tested artifact.
+- Remaining moved forward in Milestone 2 below.
+
+### Milestone 2 evidence - observed RuneLite boss KC
+
+Completed: 2026-07-18
+
+- The pinned RuneLite `1.12.33` client now supplies the boss catalog through
+  `HiscoreSkillType.BOSS`; Scapestack no longer enumerates mixed minigame or
+  clue rows from a raw table.
+- Boss counts come from RuneLite's per-profile `killcount` values, the same
+  observed state used by RuneLite Chat Commands. Only present keys are sent.
+  Missing keys remain unknown and an explicit stored zero remains zero.
+- The reader is bounded to 128 bosses and 80-character names. Partial lookup
+  failure is represented separately from a completely unavailable profile.
+- Snapshot coverage now reports boss KC as `available`, `not-loaded` or
+  `unavailable` with an honest reason and timestamp. TypeScript rejects an
+  available claim without a non-empty, bounded count map.
+- Account-history deltas compare only bosses observed in both snapshots. A
+  newly loaded or temporarily absent sparse key can no longer create fake KC
+  gains or regressions.
+- The Java production serializer fixture contains Vorkath `48` and an explicit
+  Zulrah `0`; Java, the TypeScript parser and the real sync route all consume
+  the same fixture and preserve its coverage.
+- Player-facing plugin copy says `boss KC RuneLite has seen`; cache and contract
+  language remains internal.
+- Verification: full Gradle suite passed; 217 Vitest files / 1,359 tests passed;
+  `npm run typecheck`, smoke, Next audit, offline plugin release check and the
+  production build with 217 generated pages passed through `npm run ci:check`.
+- Live release verification passed against RuneLite `1.12.33`. Plugin Hub and
+  standalone remain on published `0.2.0`; candidate `0.3.0` remains
+  intentionally unpublished.
+- Remaining before REC-02 is DONE: capture a real logged-in client snapshot
+  containing XP plus at least one observed boss KC, prove that exact Java
+  payload through the production server into Neon, confirm live Slayer naming
+  and finer diary coverage where RuneLite supports it, then publish the tested
+  standalone artifact and update the Plugin Hub submission.
 
 ---
 

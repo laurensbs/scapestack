@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Scapestack Sync — reads the player's quest list, diary completion state,
- * collection log and Slayer state out of the running game client and POSTs
+ * collection log, observed boss KC and Slayer state out of the running game client and POSTs
  * them to www.scapestack.org/api/sync.
  *
  * Triggers:
@@ -55,6 +55,8 @@ import java.util.concurrent.TimeUnit;
  *   - Collection log: cl.net plugin already does this, but they require
  *     a separate upload step. We integrate it so one plugin gives
  *     Scapestack everything.
+ *   - Boss KC: only counts RuneLite has already observed are included;
+ *     missing cache entries remain unknown rather than becoming zero.
  *   - Slayer: current task, points, streak and blocks are session state;
  *     public trackers cannot reliably infer today's assignment.
  *

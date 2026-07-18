@@ -142,6 +142,20 @@ describe("typed account snapshot delta", () => {
     expect(delta.facts.some((fact) => fact.kind === "xp" && (fact.amount ?? 0) < 0)).toBe(false);
   });
 
+  it("does not turn sparse RuneLite boss observations into zero-KC movement", () => {
+    const before = snapshot("a".repeat(64), "2026-07-15T10:00:00Z", {
+      bossKc: { Vorkath: 48 }
+    });
+    const after = snapshot("b".repeat(64), "2026-07-15T11:00:00Z", {
+      bossKc: { Zulrah: 12 }
+    });
+
+    const delta = compareAccountSnapshots(before, after);
+
+    expect(delta.bossKc).toEqual([]);
+    expect(delta.facts.some((fact) => fact.kind === "boss-kc")).toBe(false);
+  });
+
   it("caps retained bank mutations without losing the total change count", () => {
     const before = snapshot("a".repeat(64), "2026-07-15T10:00:00Z", {
       bankItems: [],

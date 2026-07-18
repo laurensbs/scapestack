@@ -53,6 +53,7 @@ public class ScapestackSyncPluginTest {
             Arrays.asList(1, 2),
             Arrays.asList("Banshees", "Black demons")
         );
+        snapshot.bossKc = Collections.singletonMap("Vorkath", 48);
 
         JsonObject payload = ScapestackSyncPlugin.buildSyncPayload("Lynx Titan", snapshot, new Gson());
         Set<String> fields = payload.keySet();
@@ -70,6 +71,7 @@ public class ScapestackSyncPluginTest {
             "diariesCompleted",
             "collectionLogItemIds",
             "collectionLogStatus",
+            "bossKc",
             "bankStatus",
             "bankItems",
             "slayer"
@@ -114,7 +116,8 @@ public class ScapestackSyncPluginTest {
         assertTrue(payload.getAsJsonObject("bankStatus").get("enabled").getAsBoolean());
         assertEquals(2, payload.getAsJsonObject("bankStatus").get("itemCount").getAsInt());
         assertEquals(3, payload.get("contractVersion").getAsInt());
-        assertEquals("unsupported", payload.getAsJsonObject("coverage").getAsJsonObject("bossKc").get("state").getAsString());
+        assertEquals(48, payload.getAsJsonObject("bossKc").get("Vorkath").getAsInt());
+        assertEquals("available", payload.getAsJsonObject("coverage").getAsJsonObject("bossKc").get("state").getAsString());
         assertEquals("available", payload.getAsJsonObject("coverage").getAsJsonObject("skills").get("state").getAsString());
     }
 
@@ -137,6 +140,23 @@ public class ScapestackSyncPluginTest {
         JsonObject payload = ScapestackSyncPlugin.buildSyncPayload("Uim Lynx", snapshot, new Gson());
 
         assertEquals("ultimate_ironman", payload.get("accountType").getAsString());
+    }
+
+    @Test
+    public void syncPayloadKeepsUnobservedBossKcUnknown() {
+        GameStateReader.Snapshot snapshot = new GameStateReader.Snapshot();
+        snapshot.bossKcStatus = BossKillCountReader.Result.notLoaded(
+            BossKillCountReader.defaultBossCatalog().size(),
+            "boss-kill-log-not-observed"
+        );
+
+        JsonObject payload = ScapestackSyncPlugin.buildSyncPayload("Lynx Titan", snapshot, new Gson());
+        JsonObject coverage = payload.getAsJsonObject("coverage").getAsJsonObject("bossKc");
+
+        assertFalse(payload.has("bossKc"));
+        assertEquals("not-loaded", coverage.get("state").getAsString());
+        assertEquals("boss-kill-log-not-observed", coverage.get("reason").getAsString());
+        assertFalse(coverage.has("capturedAt"));
     }
 
     @Test

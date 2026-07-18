@@ -82,9 +82,7 @@ final class PluginSnapshotContract {
             coverage.put("collectionLog", Domain.notLoaded("collection-log-not-opened"));
         }
 
-        coverage.put("bossKc", snapshot.bossKc != null
-            ? Domain.available(capturedAt)
-            : Domain.unsupported("boss-kc-reader-not-shipped"));
+        coverage.put("bossKc", bossKcCoverage(snapshot, capturedAt));
         coverage.put("slayer", snapshot.slayer != null
             ? Domain.available(capturedAt)
             : Domain.unavailable("slayer-vars-unavailable"));
@@ -133,6 +131,22 @@ final class PluginSnapshotContract {
             return Domain.unavailable(status.unavailableReason);
         }
         return Domain.available(firstTimestamp(status.capturedAt, fallbackCapturedAt));
+    }
+
+    private static Domain bossKcCoverage(GameStateReader.Snapshot snapshot, String fallbackCapturedAt) {
+        BossKillCountReader.Result status = snapshot.bossKcStatus;
+        if (status == null) {
+            return snapshot.bossKc != null
+                ? Domain.available(fallbackCapturedAt, "observed-boss-kill-counts")
+                : Domain.notLoaded("boss-kill-counts-not-read");
+        }
+        if ("available".equals(status.state)) {
+            return Domain.available(firstTimestamp(status.capturedAt, fallbackCapturedAt), status.reason);
+        }
+        if ("not-loaded".equals(status.state)) {
+            return Domain.notLoaded(status.reason);
+        }
+        return Domain.unavailable(status.reason);
     }
 
     private static String firstTimestamp(String preferred, String fallback) {

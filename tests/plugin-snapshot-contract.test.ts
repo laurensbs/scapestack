@@ -20,8 +20,14 @@ describe("plugin snapshot contract v3", () => {
     });
     expect(snapshotAvailabilityFromCoverage(result.value.coverage)).toMatchObject({
       skills: "available",
-      bossKc: "unsupported",
+      bossKc: "available",
       bank: "available"
+    });
+    expect(syncPayloadV3.bossKc).toEqual({ Vorkath: 48, Zulrah: 0 });
+    expect(result.value.coverage.bossKc).toEqual({
+      state: "available",
+      capturedAt: "2026-07-18T12:32:00.000Z",
+      reason: "runelite-killcount-cache-observed-only"
     });
   });
 
@@ -68,6 +74,40 @@ describe("plugin snapshot contract v3", () => {
     expect(parsePluginSnapshotContract({ questsCompleted: [] })).toMatchObject({
       ok: true,
       value: { kind: "legacy", contractVersion: null, coverage: null }
+    });
+  });
+
+  it("keeps an unobserved boss log unknown instead of inventing zero KC", () => {
+    const notLoaded = structuredClone(syncPayloadV3) as Record<string, unknown> & {
+      coverage: Record<string, unknown>;
+    };
+    delete notLoaded.bossKc;
+    notLoaded.coverage.bossKc = {
+      state: "not-loaded",
+      reason: "boss-kill-log-not-observed"
+    };
+
+    const result = parsePluginSnapshotContract(notLoaded, Date.parse("2026-07-18T15:00:00Z"));
+
+    expect(result.ok).toBe(true);
+    if (!result.ok || result.value.kind !== "v3") throw new Error("expected v3 contract");
+    expect(notLoaded.bossKc).toBeUndefined();
+    expect(snapshotAvailabilityFromCoverage(result.value.coverage).bossKc).toBe("not-loaded");
+  });
+
+  it("rejects boss KC coverage that claims availability without observed counts", () => {
+    const missing = structuredClone(syncPayloadV3) as Record<string, unknown>;
+    delete missing.bossKc;
+    expect(parsePluginSnapshotContract(missing, Date.parse("2026-07-18T15:00:00Z"))).toEqual({
+      ok: false,
+      error: "bossKc is required when coverage is available"
+    });
+
+    const empty = structuredClone(syncPayloadV3) as Record<string, unknown>;
+    empty.bossKc = {};
+    expect(parsePluginSnapshotContract(empty, Date.parse("2026-07-18T15:00:00Z"))).toEqual({
+      ok: false,
+      error: "bossKc contains malformed or excessive values"
     });
   });
 });

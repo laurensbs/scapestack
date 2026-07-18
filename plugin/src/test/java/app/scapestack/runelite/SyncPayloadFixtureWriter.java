@@ -10,6 +10,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /** Writes the contract fixture through the same serializer used by RuneLite. */
 public final class SyncPayloadFixtureWriter {
@@ -56,6 +58,16 @@ public final class SyncPayloadFixtureWriter {
             "Catacombs of Kourend",
             Arrays.asList(1, 2),
             Arrays.asList("Banshees", "Black demons")
+        );
+        Map<String, Integer> bossKc = new LinkedHashMap<>();
+        bossKc.put("Vorkath", 48);
+        bossKc.put("Zulrah", 0);
+        snapshot.bossKc = bossKc;
+        snapshot.bossKcStatus = BossKillCountReader.Result.available(
+            bossKc,
+            BossKillCountReader.defaultBossCatalog().size(),
+            "2026-07-18T12:32:00Z",
+            0
         );
         snapshot.coverage = PluginSnapshotContract.observedCoverage(snapshot);
         return ScapestackSyncPlugin.buildSyncPayload("Iron Lynx", snapshot, new Gson());

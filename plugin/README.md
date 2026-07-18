@@ -1,6 +1,6 @@
 # Scapestack Sync (RuneLite plugin)
 
-Syncs your OSRS account type, skills, XP, quest, diary, collection-log, Slayer state, and bank items to
+Syncs your OSRS account type, skills, XP, quest, diary, collection-log, boss KC RuneLite has seen, Slayer state, and bank items to
 [scapestack.org](https://www.scapestack.org) after you opt in via
 `Sync on login`, so Scapestack can label skill, quest, diary, collection-log,
 bank gear/supplies and Slayer coverage from RuneLite instead of only
@@ -29,8 +29,12 @@ the log was not opened, opened without item slots, or loaded correctly.
 ## Data contract
 
 Sent after opt-in: RSN, plugin version, account type, skill levels and XP, quest and diary completion,
-loaded collection-log item IDs, Slayer state, bank item IDs/names/quantities when bank checks are on,
+loaded collection-log item IDs, boss KC RuneLite has already observed, Slayer state, bank item IDs/names/quantities when bank checks are on,
 and the local install token only as the Authorization bearer on claim/sync requests.
+
+Boss KC is intentionally sparse: RuneLite only knows a count after it has seen that boss in the
+adventure log or after a new kill. Missing bosses stay unknown and are never
+reported as zero.
 
 Never sent: RuneScape password, inventory, equipment, GE offers, chat,
 friends list, clicks, key presses, screenshots, local files, or RuneLite

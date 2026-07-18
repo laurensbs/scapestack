@@ -217,7 +217,7 @@ function validateV3PayloadConsistency(
       return "bossKc is required when coverage is available";
     }
     const entries = Object.entries(body.bossKc as Record<string, unknown>);
-    if (entries.length > 128 || entries.some(([name, kc]) =>
+    if (entries.length === 0 || entries.length > 128 || entries.some(([name, kc]) =>
       !name.trim() || name.length > 80 || !Number.isInteger(kc) || (kc as number) < 0 || (kc as number) > 2_147_483_647)) {
       return "bossKc contains malformed or excessive values";
     }

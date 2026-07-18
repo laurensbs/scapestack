@@ -15,7 +15,9 @@ import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.api.gameval.DBTableID;
 import net.runelite.api.gameval.VarPlayerID;
 import net.runelite.api.gameval.VarbitID;
+import net.runelite.client.config.ConfigManager;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -45,6 +47,9 @@ import java.util.Map;
 @Singleton
 public class GameStateReader {
 
+    @Inject
+    private ConfigManager configManager;
+
     public static class Snapshot {
         public String capturedAt = Instant.now().toString();
         public List<String> questsCompleted = new ArrayList<>();
@@ -56,6 +61,7 @@ public class GameStateReader {
         public BankStatus bankStatus = BankStatus.optInOff();
         public SlayerState slayer = null;
         public Map<String, Integer> bossKc = null;
+        BossKillCountReader.Result bossKcStatus = null;
         public String accountType = "normal";
         public Map<String, PluginSnapshotContract.Domain> coverage = new LinkedHashMap<>();
     }
@@ -165,6 +171,7 @@ public class GameStateReader {
         s.skills = readSkills(client);
         s.diariesCompleted = readDiaries(client);
         s.collectionLogItemIds = readCollectionLog(client);
+        readBossKillCounts(s);
         s.accountType = readAccountType(client);
         s.coverage = PluginSnapshotContract.observedCoverage(s);
         return s;
@@ -271,9 +278,18 @@ public class GameStateReader {
         s.bankItems = bank.items;
         s.bankStatus = bank.status;
         s.slayer = readSlayer(client);
+        readBossKillCounts(s);
         s.accountType = readAccountType(client);
         s.coverage = PluginSnapshotContract.observedCoverage(s);
         return s;
+    }
+
+    private void readBossKillCounts(Snapshot snapshot) {
+        BossKillCountReader.Result result = BossKillCountReader.read(configManager, snapshot.capturedAt);
+        snapshot.bossKcStatus = result;
+        snapshot.bossKc = result.isAvailable()
+            ? new LinkedHashMap<>(result.counts)
+            : null;
     }
 
     private List<SkillLevel> readSkills(Client client) {

@@ -23,8 +23,9 @@
       "reason": "loaded-categories-only"
     },
     "bossKc": {
-      "state": "unsupported",
-      "reason": "boss-kc-reader-not-shipped"
+      "state": "available",
+      "capturedAt": "2026-07-18T12:32:00Z",
+      "reason": "runelite-killcount-cache-observed-only"
     },
     "slayer": {
       "state": "available",
@@ -73,6 +74,10 @@
     "lastWidgetItemCount": 100,
     "obtainedItemCount": 3,
     "capturedAt": "2026-07-18T12:30:00Z"
+  },
+  "bossKc": {
+    "Vorkath": 48,
+    "Zulrah": 0
   },
   "bankItems": [
     {

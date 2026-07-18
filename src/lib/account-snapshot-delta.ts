@@ -271,12 +271,15 @@ function bossMovement(
   if (beforeAvailability !== "available" || afterAvailability !== "available") return [];
   const before = new Map(Object.entries(previous.bossKc ?? {}).map(([name, kc]) => [name.toLowerCase(), { name, kc }]));
   const after = new Map(Object.entries(current.bossKc ?? {}).map(([name, kc]) => [name.toLowerCase(), { name, kc }]));
-  return [...new Set([...before.keys(), ...after.keys()])].sort().map((key) => {
-    const oldBoss = before.get(key);
-    const newBoss = after.get(key);
-    const result = movement(oldBoss?.kc ?? 0, newBoss?.kc ?? 0, true);
+  // RuneLite's killcount cache is sparse: a missing key means "not observed",
+  // never zero. Compare only bosses observed in both snapshots so opening a
+  // boss log cannot create fake gains or regressions.
+  return [...before.keys()].filter((key) => after.has(key)).sort().map((key) => {
+    const oldBoss = before.get(key)!;
+    const newBoss = after.get(key)!;
+    const result = movement(oldBoss.kc, newBoss.kc, true);
     return {
-      boss: newBoss?.name ?? oldBoss?.name ?? key,
+      boss: newBoss.name,
       status: result.confidence === "source-regression" ? "regressed" : result.delta === 0 ? "unchanged" : "changed",
       movement: result
     };

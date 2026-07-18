@@ -192,6 +192,7 @@ describe("POST /api/sync", () => {
         { name: "Agility", level: 35, xp: 22406 },
         { name: "Ranged", level: 70, xp: 737627 }
       ],
+      bossKc: { Vorkath: 48, Zulrah: 0 },
       snapshotCoverage: {
         collectionLog: {
           state: "available",
@@ -199,9 +200,9 @@ describe("POST /api/sync", () => {
           reason: "loaded-categories-only"
         },
         bossKc: {
-          state: "unsupported",
-          capturedAt: null,
-          reason: "boss-kc-reader-not-shipped"
+          state: "available",
+          capturedAt: "2026-07-18T12:32:00.000Z",
+          reason: "runelite-killcount-cache-observed-only"
         },
         bank: {
           state: "available",
@@ -212,7 +213,7 @@ describe("POST /api/sync", () => {
       availability: {
         skills: "available",
         collectionLog: "available",
-        bossKc: "unsupported",
+        bossKc: "available",
         slayer: "available",
         bank: "available"
       }
@@ -249,6 +250,33 @@ describe("POST /api/sync", () => {
           state: "not-loaded",
           capturedAt: null,
           reason: "collection-log-not-opened"
+        }
+      }
+    });
+  });
+
+  it("stores unobserved boss KC as unknown instead of an empty zero-KC map", async () => {
+    const payload = structuredClone(syncPayloadV3) as Record<string, unknown> & {
+      coverage: Record<string, unknown>;
+    };
+    delete payload.bossKc;
+    payload.coverage.bossKc = {
+      state: "not-loaded",
+      reason: "boss-kill-log-not-observed"
+    };
+
+    const { POST } = await loadRoute();
+    const response = await POST(syncRequest(payload));
+
+    expect(response.status).toBe(200);
+    expect(state.upserts[0]).toMatchObject({
+      bossKc: null,
+      availability: { bossKc: "not-loaded" },
+      snapshotCoverage: {
+        bossKc: {
+          state: "not-loaded",
+          capturedAt: null,
+          reason: "boss-kill-log-not-observed"
         }
       }
     });

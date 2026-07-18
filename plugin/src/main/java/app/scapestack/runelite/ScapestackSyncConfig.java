@@ -20,7 +20,7 @@ public interface ScapestackSyncConfig extends Config {
     @ConfigItem(
         keyName = "autoSync",
         name = "Sync on login",
-        description = "Keeps your planner current with account mode, skills, XP, quests, diaries, Slayer task and bank items."
+        description = "Keeps your planner current with account mode, skills, XP, quests, diaries, boss KC RuneLite has seen, Slayer task and bank items."
     )
     default boolean autoSync() {
         return false;
