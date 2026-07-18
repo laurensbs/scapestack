@@ -29,6 +29,21 @@ vi.mock("@/lib/db", () => ({
 
 import { buildHistoricalBankSummary, buildSnapshotChecksum, buildSnapshotSummary, type ImmutableSnapshotState } from "@/lib/account-history";
 import { deleteAccountHistory, persistSyncAndSnapshot, PERSIST_SYNC_SQL } from "@/lib/account-history-repo";
+import type { PluginSnapshotCoverage } from "@/lib/plugin-snapshot-contract";
+
+function coverage(capturedAt: string): PluginSnapshotCoverage {
+  const available = { state: "available" as const, capturedAt, reason: null };
+  return {
+    skills: available,
+    quests: available,
+    diaries: available,
+    collectionLog: available,
+    bossKc: { state: "unsupported", capturedAt: null, reason: "boss-kc-reader-not-shipped" },
+    slayer: available,
+    accountMode: available,
+    bank: available
+  };
+}
 
 function state(overrides: Partial<ImmutableSnapshotState> = {}): ImmutableSnapshotState {
   return {
@@ -77,6 +92,8 @@ describe("immutable account snapshots", () => {
     expect(PERSIST_SYNC_SQL).toContain("inserted_snapshot AS");
     expect(PERSIST_SYNC_SQL).toContain("latest AS");
     expect(PERSIST_SYNC_SQL).toContain("ON CONFLICT (account_id, checksum) DO NOTHING");
+    expect(PERSIST_SYNC_SQL).toContain("snapshot_coverage");
+    expect(PERSIST_SYNC_SQL).toContain("availability, coverage, delta");
     expect(PERSIST_SYNC_SQL).not.toContain("token_hash");
   });
 
@@ -108,6 +125,22 @@ describe("immutable account snapshots", () => {
       ]
     }));
     expect(reordered).toBe(first);
+  });
+
+  it("persists domain coverage but excludes observation timestamps from state identity", async () => {
+    const firstCoverage = coverage("2026-07-18T10:00:00.000Z");
+    const laterCoverage = coverage("2026-07-18T11:00:00.000Z");
+    expect(buildSnapshotChecksum(state({ snapshotCoverage: firstCoverage })))
+      .toBe(buildSnapshotChecksum(state({ snapshotCoverage: laterCoverage })));
+
+    await persistSyncAndSnapshot({
+      rsn: "lauky",
+      displayName: "Lauky",
+      state: state({ snapshotCoverage: firstCoverage }),
+      pluginVersion: "0.3.0",
+      syncSummary: null
+    });
+    expect(JSON.parse(String(database.queries[0]?.params[19]))).toEqual(firstCoverage);
   });
 
   it("persists the typed delta beside a changed snapshot", async () => {

@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import type { ScapestackAccountType } from "./account-type";
 import type { PluginBankStatus } from "./plugin-bank-status";
 import type { SnapshotAvailability } from "./account-snapshot-delta";
+import type { PluginSnapshotCoverage } from "./plugin-snapshot-contract";
 
 export interface ImmutableSnapshotState {
   accountType: ScapestackAccountType;
@@ -20,6 +21,7 @@ export interface ImmutableSnapshotState {
     blocks: string[];
   } | null;
   availability?: Partial<SnapshotAvailability>;
+  snapshotCoverage?: PluginSnapshotCoverage | null;
 }
 
 export interface SnapshotSummary {
@@ -94,6 +96,12 @@ function canonicalState(state: ImmutableSnapshotState) {
           slayer: state.availability.slayer ?? null,
           bank: state.availability.bank ?? null
         }
+      : null,
+    snapshotCoverage: state.snapshotCoverage
+      ? Object.fromEntries(Object.entries(state.snapshotCoverage).map(([domain, value]) => [domain, {
+          state: value.state,
+          reason: value.reason
+        }]))
       : null
   };
 }

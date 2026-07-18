@@ -20,6 +20,7 @@ export const REQUIRED_PLAYER_SYNC_COLUMNS = [
   "bank_status",
   "slayer",
   "plugin_version",
+  "snapshot_coverage",
   "sync_summary",
   "synced_at"
 ];

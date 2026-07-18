@@ -365,7 +365,7 @@ cd plugin && ./gradlew clean test
 
 ## REC-02 - Complete And Ship The RuneLite Snapshot Contract
 
-Status: TODO
+Status: IN PROGRESS
 Depends on: REC-01
 Improves: live plugin data completeness, recommendation relevance
 
@@ -424,6 +424,38 @@ npm run plugin:release-check:live
 
 Also run the real Java -> local production server -> Neon smoke and record the
 persisted snapshot coverage.
+
+### Milestone 1 evidence - explicit v3 coverage contract
+
+Completed: 2026-07-18
+
+- Added contract version `3`, a source snapshot timestamp and explicit domain
+  coverage for skills, quests, diaries, collection log, boss KC, Slayer,
+  account mode and bank.
+- Coverage now preserves `available`, `unavailable`, `permission-off`,
+  `not-loaded` and `unsupported`, plus a domain timestamp and reason. Boss KC
+  remains honestly `unsupported` until the supported RuneLite reader ships.
+- Collection Log that was never opened or has no loaded item slots can no
+  longer be persisted as an empty completed set.
+- Bank permission-off, bank-not-loaded and a legitimately empty loaded bank
+  are separate states; bank item opt-in remains unchanged.
+- Candidate payloads reject contradictory real-level/XP pairs, malformed
+  quests, diaries, item IDs, bank rows, Slayer values and inconsistent domain
+  claims. Legacy published payloads remain accepted during migration.
+- The real Java production serializer writes
+  `tests/fixtures/plugin-sync-v3.json`; Java asserts byte-equivalent JSON data
+  and TypeScript consumes the same fixture through the real sync route.
+- Per-domain coverage is stored on the latest projection and immutable
+  snapshots, while timestamps are excluded from state checksums.
+- Verification: Java suite passed; 217 Vitest files / 1,355 tests passed;
+  `npm run typecheck`, `npm run build`, offline release check and live release
+  check passed.
+- Release truth: Plugin Hub and standalone remain on tested published `0.2.0`;
+  candidate `0.3.0` remains intentionally unpublished.
+- Remaining before REC-02 is DONE: supported boss-KC extraction, real-client
+  XP/KC/Slayer proof, finer diary coverage where RuneLite supports it, the
+  Java -> production server -> Neon smoke, then standalone and Plugin Hub
+  publication of the tested artifact.
 
 ---
 

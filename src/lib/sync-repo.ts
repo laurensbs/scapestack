@@ -11,6 +11,10 @@ import { syncSchemaStatements } from "./sync-schema";
 import type { SnapshotAvailability } from "./account-snapshot-delta";
 import type { AccountSnapshotDelta } from "./account-snapshot-delta";
 import itemsJson from "../../data/items.json";
+import {
+  normalizePluginSnapshotCoverage,
+  type PluginSnapshotCoverage
+} from "./plugin-snapshot-contract";
 
 export { SCHEMA_SQL } from "./sync-schema";
 
@@ -37,6 +41,7 @@ export interface SyncedPlayer {
     blocks: string[];
   } | null;
   pluginVersion: string;
+  snapshotCoverage?: PluginSnapshotCoverage | null;
   availability?: Partial<SnapshotAvailability>;
   lastSyncSummary: SyncDeltaSummary | null;
   syncedAt: string;        // ISO timestamp
@@ -108,7 +113,7 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
     await ensureSyncSchema();
     const rows = await sql()`
       SELECT rsn, display_name, skills, quests_completed, diaries_completed,
-             account_type, collection_log_item_ids, boss_kc, bank_items, bank_status, slayer, plugin_version, sync_summary, synced_at
+             account_type, collection_log_item_ids, boss_kc, bank_items, bank_status, slayer, plugin_version, snapshot_coverage, sync_summary, synced_at
       FROM player_sync
       WHERE rsn = ${norm}
       LIMIT 1
@@ -133,6 +138,7 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
         blocks?: string[];
       } | null;
       plugin_version: string;
+      snapshot_coverage: unknown;
       sync_summary: unknown;
       synced_at: string;
     }>;
@@ -155,6 +161,7 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
       // consistent kan switchen zonder runtime crash.
       slayer: normalizeSlayer(row.slayer),
       pluginVersion: row.plugin_version,
+      snapshotCoverage: normalizePluginSnapshotCoverage(row.snapshot_coverage),
       lastSyncSummary: normalizeSyncDeltaSummary(row.sync_summary),
       syncedAt: typeof row.synced_at === "string" ? row.synced_at : new Date(row.synced_at).toISOString()
     };
@@ -177,7 +184,7 @@ export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt" | "las
     SELECT current.account_type, current.skills, current.quests_completed,
            current.diaries_completed, current.collection_log_item_ids,
            current.boss_kc, current.bank_items, current.bank_status,
-           current.slayer, current.synced_at,
+           current.slayer, current.snapshot_coverage, current.synced_at,
            history.checksum AS snapshot_checksum,
            history.captured_at AS snapshot_captured_at,
            history.availability AS snapshot_availability
@@ -202,6 +209,7 @@ export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt" | "las
     bank_items: unknown;
     bank_status: unknown;
     slayer: unknown;
+    snapshot_coverage: unknown;
     synced_at: string | Date | null;
     snapshot_checksum: string | null;
     snapshot_captured_at: string | Date | null;
@@ -240,6 +248,7 @@ export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt" | "las
           bankItems: normalizeBankItems(previousRow.bank_items),
           bankStatus: normalizePluginBankStatus(previousRow.bank_status, normalizeBankItems(previousRow.bank_items).length),
           slayer: normalizeSlayer(previousRow.slayer),
+          snapshotCoverage: normalizePluginSnapshotCoverage(previousRow.snapshot_coverage),
           availability: normalizeSnapshotAvailability(previousRow.snapshot_availability)
         }
       }
@@ -259,6 +268,7 @@ export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt" | "las
       bankItems,
       bankStatus,
       slayer: normalizeSlayer(p.slayer),
+      snapshotCoverage: p.snapshotCoverage ?? null,
       availability: p.availability
     },
     previousSnapshot: previousComparable
@@ -382,7 +392,7 @@ function normalizeSlayer(value: unknown): SyncedPlayer["slayer"] {
 
 function normalizeSnapshotAvailability(value: unknown): Partial<SnapshotAvailability> | undefined {
   if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
-  const allowed = new Set(["available", "unavailable", "unknown"]);
+  const allowed = new Set(["available", "unavailable", "permission-off", "not-loaded", "unsupported", "unknown"]);
   const row = value as Record<string, unknown>;
   const keys: Array<keyof SnapshotAvailability> = ["skills", "quests", "diaries", "collectionLog", "bossKc", "slayer", "bank"];
   const result: Partial<SnapshotAvailability> = {};

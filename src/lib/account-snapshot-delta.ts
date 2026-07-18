@@ -1,7 +1,13 @@
 import { createHash } from "node:crypto";
 import type { ImmutableSnapshotState } from "./account-history";
 
-export type SnapshotDataAvailability = "available" | "unavailable" | "unknown";
+export type SnapshotDataAvailability =
+  | "available"
+  | "unavailable"
+  | "permission-off"
+  | "not-loaded"
+  | "unsupported"
+  | "unknown";
 export type DeltaStatus = "changed" | "unchanged" | "unknown" | "unavailable" | "regressed";
 export type DeltaFreshness = "fresh" | "recent" | "stale" | "unknown";
 
@@ -136,8 +142,9 @@ function fieldStatus(
   changed: boolean,
   regressed = false
 ): DeltaStatus {
-  if (before === "unavailable" || after === "unavailable") return "unavailable";
-  if (before === "unknown" || after === "unknown") return "unknown";
+  const unavailable = new Set<SnapshotDataAvailability>(["unavailable", "permission-off", "unsupported"]);
+  if (unavailable.has(before) || unavailable.has(after)) return "unavailable";
+  if (before === "unknown" || after === "unknown" || before === "not-loaded" || after === "not-loaded") return "unknown";
   if (regressed) return "regressed";
   return changed ? "changed" : "unchanged";
 }

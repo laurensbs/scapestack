@@ -692,6 +692,9 @@ public class ScapestackSyncPlugin extends Plugin {
         body.addProperty("rsn", rsn);
         body.addProperty("displayName", rsn);
         body.addProperty("pluginVersion", PLUGIN_VERSION);
+        body.addProperty("contractVersion", PluginSnapshotContract.VERSION);
+        body.addProperty("capturedAt", snap.capturedAt);
+        body.add("coverage", PluginSnapshotContract.coverageJson(snap));
         body.addProperty("accountType", snap.accountType != null && !snap.accountType.isBlank() ? snap.accountType : "normal");
         body.add("questsCompleted", gson.toJsonTree(snap.questsCompleted));
         JsonArray skills = new JsonArray();
@@ -719,6 +722,12 @@ public class ScapestackSyncPlugin extends Plugin {
         collectionLogStatusJson.addProperty("lastWidgetItemCount", collectionLogStatus.lastWidgetItemCount);
         collectionLogStatusJson.addProperty("obtainedItemCount", collectionLogStatus.obtainedItemCount);
         body.add("collectionLogStatus", collectionLogStatusJson);
+        if (collectionLogStatus.capturedAt != null && !collectionLogStatus.capturedAt.isBlank()) {
+            collectionLogStatusJson.addProperty("capturedAt", collectionLogStatus.capturedAt);
+        }
+        if (snap.bossKc != null) {
+            body.add("bossKc", gson.toJsonTree(snap.bossKc));
+        }
         if (snap.bankItems != null && !snap.bankItems.isEmpty()) {
             JsonArray bankItems = new JsonArray();
             for (GameStateReader.BankItem item : snap.bankItems) {

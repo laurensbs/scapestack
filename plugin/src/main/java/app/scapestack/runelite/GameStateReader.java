@@ -20,7 +20,9 @@ import javax.inject.Singleton;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Reads quest/diary/CL state out of the live game client.
@@ -44,6 +46,7 @@ import java.util.List;
 public class GameStateReader {
 
     public static class Snapshot {
+        public String capturedAt = Instant.now().toString();
         public List<String> questsCompleted = new ArrayList<>();
         public List<SkillLevel> skills = new ArrayList<>();
         public List<DiaryCompletion> diariesCompleted = new ArrayList<>();
@@ -52,7 +55,9 @@ public class GameStateReader {
         public List<BankItem> bankItems = new ArrayList<>();
         public BankStatus bankStatus = BankStatus.optInOff();
         public SlayerState slayer = null;
+        public Map<String, Integer> bossKc = null;
         public String accountType = "normal";
+        public Map<String, PluginSnapshotContract.Domain> coverage = new LinkedHashMap<>();
     }
 
     public static class BankItem {
@@ -161,6 +166,7 @@ public class GameStateReader {
         s.diariesCompleted = readDiaries(client);
         s.collectionLogItemIds = readCollectionLog(client);
         s.accountType = readAccountType(client);
+        s.coverage = PluginSnapshotContract.observedCoverage(s);
         return s;
     }
 
@@ -266,6 +272,7 @@ public class GameStateReader {
         s.bankStatus = bank.status;
         s.slayer = readSlayer(client);
         s.accountType = readAccountType(client);
+        s.coverage = PluginSnapshotContract.observedCoverage(s);
         return s;
     }
 
@@ -304,14 +311,14 @@ public class GameStateReader {
                 items.add(new BankItem(item.getId(), name, item.getQuantity()));
                 if (items.size() >= 1200) break;
             }
-            String capturedAt = items.isEmpty() ? null : Instant.now().toString();
+            String capturedAt = Instant.now().toString();
             return new BankSnapshot(
                 items,
                 new BankStatus(
                     true,
                     items.size(),
                     capturedAt,
-                    items.isEmpty() ? "no-items-captured" : null
+                    null
                 )
             );
         } catch (Exception ex) {
@@ -373,10 +380,6 @@ public class GameStateReader {
                     String blockName = resolveSlayerTaskName(client, id);
                     if (blockName != null && !blockName.isBlank()) blockNames.add(blockName);
                 }
-            }
-            // Geen sessie / niet ingelogd → alle vars 0. Treat als "no data."
-            if (points == 0 && streak == 0 && remaining == 0 && taskId == 0 && blocks.isEmpty()) {
-                return null;
             }
             return new SlayerState(
                 points,

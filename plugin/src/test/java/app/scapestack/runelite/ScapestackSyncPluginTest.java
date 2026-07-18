@@ -10,6 +10,9 @@ import okio.Timeout;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -58,6 +61,9 @@ public class ScapestackSyncPluginTest {
             "rsn",
             "displayName",
             "pluginVersion",
+            "contractVersion",
+            "capturedAt",
+            "coverage",
             "accountType",
             "skills",
             "questsCompleted",
@@ -107,6 +113,20 @@ public class ScapestackSyncPluginTest {
         assertEquals(3, collectionLogStatus.get("obtainedItemCount").getAsInt());
         assertTrue(payload.getAsJsonObject("bankStatus").get("enabled").getAsBoolean());
         assertEquals(2, payload.getAsJsonObject("bankStatus").get("itemCount").getAsInt());
+        assertEquals(3, payload.get("contractVersion").getAsInt());
+        assertEquals("unsupported", payload.getAsJsonObject("coverage").getAsJsonObject("bossKc").get("state").getAsString());
+        assertEquals("available", payload.getAsJsonObject("coverage").getAsJsonObject("skills").get("state").getAsString());
+    }
+
+    @Test
+    public void committedV3FixtureMatchesProductionSerializer() throws Exception {
+        try (Reader reader = Files.newBufferedReader(
+            Paths.get("..", "tests", "fixtures", "plugin-sync-v3.json"),
+            java.nio.charset.StandardCharsets.UTF_8
+        )) {
+            JsonObject committed = new Gson().fromJson(reader, JsonObject.class);
+            assertEquals(SyncPayloadFixtureWriter.fixturePayload(), committed);
+        }
     }
 
     @Test

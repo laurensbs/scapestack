@@ -128,3 +128,12 @@ test {
         exceptionFormat = 'short'
     }
 }
+
+tasks.register('writeSyncContractFixture', JavaExec) {
+    group = 'verification'
+    description = 'Regenerate the v3 plugin sync fixture through the production serializer'
+    dependsOn 'testClasses'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'app.scapestack.runelite.SyncPayloadFixtureWriter'
+    args = [file('../tests/fixtures/plugin-sync-v3.json').absolutePath]
+}

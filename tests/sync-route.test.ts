@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import releaseManifest from "../plugin/release-manifest.json";
+import syncPayloadV3 from "./fixtures/plugin-sync-v3.json";
 
 const state = vi.hoisted(() => ({
   allowed: true,
@@ -102,6 +103,7 @@ const PLAYER_SYNC_COLUMNS = [
   "bank_status",
   "slayer",
   "plugin_version",
+  "snapshot_coverage",
   "sync_summary",
   "synced_at"
 ];
@@ -179,6 +181,94 @@ describe("GET /api/sync", () => {
 });
 
 describe("POST /api/sync", () => {
+  it("accepts the Java-generated v3 fixture without losing domain coverage", async () => {
+    const { POST } = await loadRoute();
+    const response = await POST(syncRequest(syncPayloadV3));
+
+    expect(response.status).toBe(200);
+    expect(state.upserts[0]).toMatchObject({
+      accountType: "ironman",
+      skills: [
+        { name: "Agility", level: 35, xp: 22406 },
+        { name: "Ranged", level: 70, xp: 737627 }
+      ],
+      snapshotCoverage: {
+        collectionLog: {
+          state: "available",
+          capturedAt: "2026-07-18T12:30:00.000Z",
+          reason: "loaded-categories-only"
+        },
+        bossKc: {
+          state: "unsupported",
+          capturedAt: null,
+          reason: "boss-kc-reader-not-shipped"
+        },
+        bank: {
+          state: "available",
+          capturedAt: "2026-07-18T12:31:00.000Z",
+          reason: null
+        }
+      },
+      availability: {
+        skills: "available",
+        collectionLog: "available",
+        bossKc: "unsupported",
+        slayer: "available",
+        bank: "available"
+      }
+    });
+    await expect(response.json()).resolves.toMatchObject({
+      plugin: { version: "0.3.0", contractVersion: 3 }
+    });
+  });
+
+  it("stores a not-loaded collection log as unknown coverage, never as an empty completed log", async () => {
+    const payload = structuredClone(syncPayloadV3) as typeof syncPayloadV3;
+    payload.collectionLogItemIds = [];
+    payload.collectionLogStatus = {
+      opened: false,
+      widgetLoads: 0,
+      lastWidgetItemCount: 0,
+      obtainedItemCount: 0,
+      capturedAt: ""
+    };
+    payload.coverage.collectionLog = {
+      state: "not-loaded",
+      reason: "collection-log-not-opened"
+    } as typeof payload.coverage.collectionLog;
+
+    const { POST } = await loadRoute();
+    const response = await POST(syncRequest(payload));
+
+    expect(response.status).toBe(200);
+    expect(state.upserts[0]).toMatchObject({
+      collectionLogItemIds: [],
+      availability: { collectionLog: "not-loaded" },
+      snapshotCoverage: {
+        collectionLog: {
+          state: "not-loaded",
+          capturedAt: null,
+          reason: "collection-log-not-opened"
+        }
+      }
+    });
+  });
+
+  it("rejects contradictory v3 XP before writing", async () => {
+    const payload = structuredClone(syncPayloadV3) as typeof syncPayloadV3;
+    payload.skills[0].xp = 200_000_000;
+
+    const { POST } = await loadRoute();
+    const response = await POST(syncRequest(payload));
+
+    expect(response.status).toBe(400);
+    expect(state.upserts).toHaveLength(0);
+    await expect(response.json()).resolves.toMatchObject({
+      ok: false,
+      error: "skill Agility level does not match XP"
+    });
+  });
+
   it("reconciles exact started plans and returns only meaningful new outcomes", async () => {
     state.upsertResult = {
       syncedAt: "2026-07-16T12:00:00.000Z",
@@ -360,7 +450,7 @@ describe("POST /api/sync", () => {
     expect(state.upserts[0]).toMatchObject({
       bankItems: [],
       bankStatus: { enabled: false, itemCount: 0, capturedAt: null, unavailableReason: "opt-in-off" },
-      availability: { skills: "unknown", bossKc: "unknown", slayer: "unknown", bank: "unavailable" }
+      availability: { skills: "unknown", bossKc: "unknown", slayer: "unknown", bank: "permission-off" }
     });
     await expect(response.json()).resolves.toMatchObject({
       plugin: {

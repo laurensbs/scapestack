@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS player_sync (
   bank_status JSONB NOT NULL DEFAULT '{"enabled":false,"itemCount":0,"capturedAt":null,"unavailableReason":"opt-in-off"}'::jsonb,
   slayer JSONB,
   plugin_version TEXT NOT NULL DEFAULT 'unknown',
+  snapshot_coverage JSONB,
   sync_summary JSONB,
   synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -32,6 +33,7 @@ ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS bank_items JSONB NOT NULL DEFAU
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS bank_status JSONB NOT NULL DEFAULT '{"enabled":false,"itemCount":0,"capturedAt":null,"unavailableReason":"opt-in-off"}'::jsonb;
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS slayer JSONB;
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS plugin_version TEXT NOT NULL DEFAULT 'unknown';
+ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS snapshot_coverage JSONB;
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS sync_summary JSONB;
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 CREATE INDEX IF NOT EXISTS player_sync_synced_at_idx ON player_sync(synced_at DESC);
@@ -118,6 +120,7 @@ CREATE TABLE IF NOT EXISTS sync_snapshot (
   boss_kc JSONB,
   bank_summary JSONB NOT NULL,
   availability JSONB NOT NULL DEFAULT '{}'::jsonb,
+  coverage JSONB,
   delta JSONB NOT NULL DEFAULT '{}'::jsonb,
   slayer JSONB,
   plugin_version TEXT NOT NULL,
@@ -126,6 +129,7 @@ CREATE TABLE IF NOT EXISTS sync_snapshot (
 );
 ALTER TABLE sync_snapshot ADD COLUMN IF NOT EXISTS boss_kc JSONB;
 ALTER TABLE sync_snapshot ADD COLUMN IF NOT EXISTS availability JSONB NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE sync_snapshot ADD COLUMN IF NOT EXISTS coverage JSONB;
 ALTER TABLE sync_snapshot ADD COLUMN IF NOT EXISTS delta JSONB NOT NULL DEFAULT '{}'::jsonb;
 CREATE INDEX IF NOT EXISTS sync_snapshot_latest_idx ON sync_snapshot(account_id, captured_at DESC, snapshot_id DESC);
 CREATE OR REPLACE FUNCTION prevent_immutable_history_update() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'immutable history rows cannot be updated'; RETURN OLD; END; $$;

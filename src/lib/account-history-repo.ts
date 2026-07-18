@@ -57,11 +57,11 @@ WITH identity AS (
   INSERT INTO sync_snapshot (
     account_id, checksum, summary, account_type, skills, quests_completed,
     diaries_completed, collection_log_item_ids, boss_kc, bank_summary,
-    availability, delta, slayer, plugin_version, captured_at
+    availability, coverage, delta, slayer, plugin_version, captured_at
   )
   SELECT account_id, $14, $15::jsonb, $3, $4::jsonb, $5::jsonb,
          $6::jsonb, $7::integer[], $8::jsonb, $16::jsonb, $17::jsonb,
-         $18::jsonb, $11::jsonb, $12, $19::timestamptz
+         $20::jsonb, $18::jsonb, $11::jsonb, $12, $19::timestamptz
   FROM identity
   ON CONFLICT (account_id, checksum) DO NOTHING
   RETURNING snapshot_id
@@ -69,10 +69,10 @@ WITH identity AS (
   INSERT INTO player_sync (
     rsn, display_name, account_type, skills, quests_completed, diaries_completed,
     collection_log_item_ids, boss_kc, bank_items, bank_status, slayer, plugin_version,
-    sync_summary, synced_at
+    snapshot_coverage, sync_summary, synced_at
   )
   VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6::jsonb, $7::integer[],
-          $8::jsonb, $9::jsonb, $10::jsonb, $11::jsonb, $12, $13::jsonb,
+          $8::jsonb, $9::jsonb, $10::jsonb, $11::jsonb, $12, $20::jsonb, $13::jsonb,
           $19::timestamptz)
   ON CONFLICT (rsn) DO UPDATE SET
     display_name = EXCLUDED.display_name,
@@ -86,6 +86,7 @@ WITH identity AS (
     bank_status = EXCLUDED.bank_status,
     slayer = EXCLUDED.slayer,
     plugin_version = EXCLUDED.plugin_version,
+    snapshot_coverage = EXCLUDED.snapshot_coverage,
     sync_summary = EXCLUDED.sync_summary,
     synced_at = EXCLUDED.synced_at
   RETURNING synced_at
@@ -134,7 +135,8 @@ export async function persistSyncAndSnapshot(input: PersistSyncInput): Promise<P
     JSON.stringify(bankSummary),
     JSON.stringify(availability),
     JSON.stringify(accountDelta),
-    capturedAt
+    capturedAt,
+    input.state.snapshotCoverage ? JSON.stringify(input.state.snapshotCoverage) : null
   ]);
   const row = rows[0];
   if (!row?.synced_at) throw new Error("Sync persistence returned no timestamp");

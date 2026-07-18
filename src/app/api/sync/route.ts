@@ -19,6 +19,10 @@ import { getSyncServiceStatus, SYNC_SERVICE_LIMITS } from "@/lib/sync-service-re
 import { normalizeScapestackAccountType } from "@/lib/account-type";
 import { normalizePluginBankStatus } from "@/lib/plugin-bank-status";
 import { reconcileActiveRecommendationOutcomes } from "@/lib/recommendation-outcome-repo";
+import {
+  parsePluginSnapshotContract,
+  snapshotAvailabilityFromCoverage
+} from "@/lib/plugin-snapshot-contract";
 
 const MAX_BODY_BYTES = SYNC_SERVICE_LIMITS.maxBodyBytes;
 const ALLOWED_DIARY_TIERS = new Set(["Easy", "Medium", "Hard", "Elite"]);
@@ -32,10 +36,14 @@ interface SyncBody {
   rsn?: unknown;
   displayName?: unknown;
   accountType?: unknown;
+  contractVersion?: unknown;
+  capturedAt?: unknown;
+  coverage?: unknown;
   skills?: unknown;
   questsCompleted?: unknown;
   diariesCompleted?: unknown;
   collectionLogItemIds?: unknown;
+  collectionLogStatus?: unknown;
   bossKc?: unknown;
   bankItems?: unknown;
   bankStatus?: unknown;
@@ -143,6 +151,9 @@ export async function POST(req: Request): Promise<Response> {
 
   const displayName = cleanDisplayName(body.displayName, rsn);
   const accountType = normalizeScapestackAccountType(body.accountType);
+  const contractResult = parsePluginSnapshotContract(body as Record<string, unknown>);
+  if (!contractResult.ok) return badRequest(contractResult.error);
+  const snapshotContract = contractResult.value;
 
   // Skills — optional RuneLite real levels. Hiscores may still enrich
   // rank/xp later, but plugin levels let /next plan from live account data.
@@ -278,6 +289,16 @@ export async function POST(req: Request): Promise<Response> {
   let syncSummary: unknown = null;
   let newOutcomes: Array<{ status: string; title: string; detail: string }> = [];
   try {
+    const availability = snapshotContract.kind === "v3"
+      ? snapshotAvailabilityFromCoverage(snapshotContract.coverage)
+      : legacySnapshotAvailability({
+          body,
+          skillsCount: skills.length,
+          collectionLogItemsCount: collectionLogItemIds.length,
+          bossKc,
+          slayerAccepted: slayerStatus === "accepted",
+          bankStatus
+        });
     const result = await upsertSyncedPlayer({
       rsn,
       displayName,
@@ -291,17 +312,8 @@ export async function POST(req: Request): Promise<Response> {
       bankStatus,
       slayer,
       pluginVersion,
-      availability: {
-        skills: skills.length > 0 ? "available" : "unknown",
-        quests: "available",
-        diaries: "available",
-        collectionLog: "available",
-        bossKc: bossKc ? "available" : "unknown",
-        slayer: slayerStatus === "accepted" ? "available" : "unknown",
-        bank: bankStatus.enabled && bankStatus.unavailableReason === null
-          ? "available"
-          : bankStatus.unavailableReason ? "unavailable" : "unknown"
-      }
+      snapshotCoverage: snapshotContract.coverage,
+      availability
     });
     syncedAt = result.syncedAt;
     syncSummary = result.syncSummary;
@@ -345,6 +357,7 @@ export async function POST(req: Request): Promise<Response> {
     },
     plugin: {
       version: pluginVersion,
+      contractVersion: snapshotContract.contractVersion,
       slayer: {
         status: slayerStatus,
         currentTaskId: slayer?.currentTaskId ?? null,
@@ -377,6 +390,39 @@ export async function POST(req: Request): Promise<Response> {
       }
     }
   });
+}
+
+function legacySnapshotAvailability(input: {
+  body: SyncBody;
+  skillsCount: number;
+  collectionLogItemsCount: number;
+  bossKc: Record<string, number> | null;
+  slayerAccepted: boolean;
+  bankStatus: ReturnType<typeof normalizePluginBankStatus>;
+}) {
+  const rawCollectionStatus = input.body.collectionLogStatus;
+  const loadedCollectionSlots = rawCollectionStatus
+    && typeof rawCollectionStatus === "object"
+    && !Array.isArray(rawCollectionStatus)
+    && typeof (rawCollectionStatus as Record<string, unknown>).lastWidgetItemCount === "number"
+    && ((rawCollectionStatus as Record<string, number>).lastWidgetItemCount ?? 0) > 0;
+  const collectionLogOpened = rawCollectionStatus
+    && typeof rawCollectionStatus === "object"
+    && !Array.isArray(rawCollectionStatus)
+    && (rawCollectionStatus as Record<string, unknown>).opened === true;
+  return {
+    skills: input.skillsCount > 0 ? "available" as const : "unknown" as const,
+    quests: "available" as const,
+    diaries: "available" as const,
+    collectionLog: loadedCollectionSlots || input.collectionLogItemsCount > 0
+      ? "available" as const
+      : collectionLogOpened ? "not-loaded" as const : "unknown" as const,
+    bossKc: input.bossKc ? "available" as const : "unknown" as const,
+    slayer: input.slayerAccepted ? "available" as const : "unknown" as const,
+    bank: input.bankStatus.enabled && input.bankStatus.unavailableReason === null
+      ? "available" as const
+      : input.bankStatus.enabled ? "not-loaded" as const : "permission-off" as const
+  };
 }
 
 // Permissive CORS for plugin POSTs from a desktop client. Auth still comes
