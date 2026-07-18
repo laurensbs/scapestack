@@ -1,4 +1,3 @@
-import { BuyMeCoffee } from "@/components/buy-me-coffee";
 import { HeroBossTripPreview } from "@/components/hero-boss-trip-preview";
 import { HeroIntake } from "@/components/hero-intake";
 
@@ -66,29 +65,6 @@ export default function HomePage() {
       </section>
 
 
-      <footer className="mt-14 border-t border-[var(--color-border)] pt-10">
-        <div className="relative mx-auto max-w-3xl animate-[slide-up_0.5s_cubic-bezier(0.22,1,0.36,1)_0.2s_both]">
-          <div className="relative grid items-center gap-6 sm:grid-cols-[1fr_auto]">
-            <div>
-              <div className="eyebrow mb-2" style={{ color: "var(--color-accent)" }}>
-                Solo project · No ads · No accounts
-              </div>
-              <h2 className="text-[22px] font-semibold tracking-normal text-[var(--color-text)] sm:text-[26px]">
-                Help keep Scapestack running
-              </h2>
-              <p className="mt-2.5 max-w-md text-[14px] leading-relaxed text-[var(--color-text-dim)]">
-                Free, no ads, no account. Coffee keeps the tools online.
-              </p>
-            </div>
-            <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
-              <BuyMeCoffee />
-              <span className="text-[11px] tracking-wide text-[var(--color-text-muted)]">
-                One-time · from €1 · takes 20 seconds
-              </span>
-            </div>
-          </div>
-        </div>
-      </footer>
     </main>
   );
 }

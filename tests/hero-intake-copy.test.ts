@@ -62,7 +62,9 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("{returnSummary.headline}");
     expect(source).toContain("{returnSummary.detail}");
     expect(source).toContain("{returnSummary.stopPoint}");
-    expect(source).toContain("Open next trip");
+    expect(source).toContain("Plan next trip");
+    expect(source).toContain("autoRuneliteCheckRef");
+    expect(source).toContain("checkRuneliteForRsn(target, { showChecking: false })");
     expect(source).toContain('data-return-home="true"');
     expect(source).toContain("Refresh RuneLite before a long trip");
     expect(source).toContain("CheckCircle2");

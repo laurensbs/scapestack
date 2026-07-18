@@ -95,11 +95,11 @@ export function buildReturnHomeSummary(input: {
     ?? input.fallback?.lastPlanTitle
     ?? (latestPlan ? cleanPlanTitle(latestPlan.title) : null);
   return {
-    eyebrow: "Ready when you are",
-    headline: "No new progress yet.",
+    eyebrow: previousPlan ? "Pick it back up" : "Ready when you are",
+    headline: previousPlan ? "Your next trip is still ready." : "Pick a fresh trip.",
     detail: previousPlan
-      ? `Last time you picked ${previousPlan}. Open the next trip to continue or recalculate.`
-      : "Open a fresh trip and Scapestack will recalculate the best move for this account.",
+      ? `Last pick: ${previousPlan}. Open it again or recalculate from your latest RuneLite scan.`
+      : "Open a fresh route and Scapestack will pick one clean thing to do now.",
     stopPoint: outcomeStopPoint(latestOutcome),
     hasNewProgress: false,
     latestMomentId

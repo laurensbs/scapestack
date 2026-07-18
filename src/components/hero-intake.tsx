@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CheckCircle2, ClipboardPaste, PlugZap, RefreshCw, X } from "lucide-react";
@@ -56,6 +56,7 @@ export function HeroIntake() {
   const [returningMoments, setReturningMoments] = useState<AccountTimelineMoment[]>([]);
   const [lastSeenReturnMomentId, setLastSeenReturnMomentId] = useState<string | null>(null);
   const [accountSnapshot, setAccountSnapshot] = useState<AccountSnapshot | null>(null);
+  const autoRuneliteCheckRef = useRef("");
   const [bank, setBank] = useState("");
   const [savedBankAt, setSavedBankAt] = useState<number | null>(null);
   const hasBankPaste = Boolean(bank.trim());
@@ -169,10 +170,13 @@ export function HeroIntake() {
     router.push(`/next?${params.toString()}`);
   };
 
-  const refreshRunelite = async () => {
-    const target = rememberedRsn.trim();
+  const checkRuneliteForRsn = useCallback(async (
+    targetRsn: string,
+    options: { showChecking?: boolean } = {}
+  ) => {
+    const target = targetRsn.trim();
     if (!target || runeliteRefresh === "checking") return;
-    setRuneliteRefresh("checking");
+    if (options.showChecking ?? true) setRuneliteRefresh("checking");
     try {
       const next = await pluginSyncStatusAction(target);
       if (next.kind === "found") {
@@ -197,12 +201,33 @@ export function HeroIntake() {
         setRuneliteRefresh("found");
       } else {
         clearRuneliteChecked(target);
-        setRuneliteRefresh("missing");
+        if (options.showChecking ?? true) setRuneliteRefresh("missing");
       }
     } catch {
-      setRuneliteRefresh("error");
+      if (options.showChecking ?? true) setRuneliteRefresh("error");
     }
+  }, [runeliteRefresh]);
+
+  const refreshRunelite = () => {
+    void checkRuneliteForRsn(rememberedRsn, { showChecking: true });
   };
+
+  useEffect(() => {
+    const target = rememberedRsn.trim();
+    if (!target || runeliteRefresh === "checking") return;
+    if (accountSnapshot?.hasRunelite && !accountSnapshot.runeliteNeedsRefresh) return;
+    const key = `${normalizeRsn(target)}:${accountSnapshot?.runeliteCheckedAt ?? "none"}`;
+    if (autoRuneliteCheckRef.current === key) return;
+    autoRuneliteCheckRef.current = key;
+    void checkRuneliteForRsn(target, { showChecking: false });
+  }, [
+    accountSnapshot?.hasRunelite,
+    accountSnapshot?.runeliteCheckedAt,
+    accountSnapshot?.runeliteNeedsRefresh,
+    checkRuneliteForRsn,
+    rememberedRsn,
+    runeliteRefresh
+  ]);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -270,7 +295,7 @@ export function HeroIntake() {
             onClick={rememberReturnMoment}
             className="btn-primary mt-6 min-h-[58px] w-full justify-between px-4 py-4 text-[15px] sm:max-w-sm"
           >
-            Open next trip
+            Plan next trip
             <ArrowRight className="size-4" />
           </Link>
 

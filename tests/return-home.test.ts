@@ -63,9 +63,10 @@ describe("return-home summary", () => {
     });
 
     expect(summary).toMatchObject({
-      headline: "No new progress yet.",
+      headline: "Your next trip is still ready.",
       hasNewProgress: false
     });
+    expect(summary.eyebrow).toBe("Pick it back up");
     expect(summary.detail).toContain("Finish a Dust devil task");
     expect(summary.stopPoint).toBeNull();
   });
@@ -73,8 +74,16 @@ describe("return-home summary", () => {
   it("keeps an unconnected local account useful without inventing progress", () => {
     const summary = buildReturnHomeSummary({ fallback: { startedTitle: "Run herbs + birdhouses" } });
 
-    expect(summary.headline).toBe("No new progress yet.");
+    expect(summary.headline).toBe("Your next trip is still ready.");
     expect(summary.detail).toContain("Run herbs + birdhouses");
     expect(summary.stopPoint).toBeNull();
+  });
+
+  it("never makes a returning account feel empty when there is no new scan", () => {
+    const summary = buildReturnHomeSummary({});
+
+    expect(summary.headline).toBe("Pick a fresh trip.");
+    expect(summary.detail).toContain("one clean thing to do now");
+    expect(summary.headline).not.toContain("No new progress");
   });
 });

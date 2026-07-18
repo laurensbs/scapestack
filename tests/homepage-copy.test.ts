@@ -91,7 +91,8 @@ describe("homepage first-impression copy", () => {
   it("uses one object-led oldschool canvas instead of generic black cards", () => {
     expect(source).toContain('className="scape-page');
     expect(source).toContain("<HeroBossTripPreview />");
-    expect(source).toContain('className="mt-14 border-t border-[var(--color-border)] pt-10"');
+    expect(source).not.toContain("Help keep Scapestack running");
+    expect(source).not.toContain("<BuyMeCoffee");
     expect(source).not.toContain('bg-[#090909]');
     expect(source).not.toContain("osrs-frame");
     expect(source).not.toContain("osrs-body");
