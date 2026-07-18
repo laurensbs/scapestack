@@ -100,6 +100,13 @@ task runClient(type: JavaExec) {
     // ExternalPluginManager.loadBuiltin verifieert dat -ea aan staat:
     // pakt API-misbruik tijdens dev vroeger.
     jvmArgs '-ea'
+    // Gradle itself needs a JDK, while RuneLite's macOS app ships a JRE that
+    // matches the launcher runtime. Allow the dev client to use that runtime
+    // without forcing compileJava onto a JRE with no javac:
+    //   ./gradlew runClient -PruneliteJava=/Applications/RuneLite.app/Contents/Resources/jre/bin/java
+    if (project.hasProperty('runeliteJava')) {
+        executable = project.property('runeliteJava')
+    }
     systemProperty 'runelite.pluginhub.version', project.version
 }
 
