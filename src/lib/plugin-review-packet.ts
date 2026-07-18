@@ -1,4 +1,4 @@
-import { CURRENT_PLUGIN_VERSION } from "./plugin-sync";
+import { CANDIDATE_PLUGIN_VERSION } from "./plugin-sync";
 import { PLUGIN_HUB_PR_NUMBER, type PluginHubStatus } from "./plugin-hub-status";
 
 export const DEFAULT_PR_BODY_FILE = "/tmp/scapestack-plugin-pr-body.md";
@@ -48,7 +48,7 @@ const STALE_PR_BODY_REPLACEMENTS = [
 
 export function buildPluginReviewerPacket(status: PluginHubStatus): string {
   const lines = [
-    `Scapestack Sync v${CURRENT_PLUGIN_VERSION} — RuneLite Plugin Hub PR #${PLUGIN_HUB_PR_NUMBER}`,
+    `Scapestack Sync v${CANDIDATE_PLUGIN_VERSION} — RuneLite Plugin Hub PR #${PLUGIN_HUB_PR_NUMBER}`,
     "",
     "Review summary",
     `- PR status: ${status.label}`,
@@ -101,7 +101,7 @@ export function buildPluginReviewerPacket(status: PluginHubStatus): string {
 
 export function buildPluginPrBodyReplacement(status: PluginHubStatus): string {
   const lines = [
-    `Adds Scapestack Sync v${CURRENT_PLUGIN_VERSION}, a RuneLite plugin that syncs opt-in account-progress signals to Scapestack so /next can stop guessing from public Hiscores alone.`,
+    `Adds Scapestack Sync v${CANDIDATE_PLUGIN_VERSION}, a RuneLite plugin that syncs opt-in account-progress signals to Scapestack so /next can stop guessing from public Hiscores alone.`,
     "",
     "## Current review state",
     `- Plugin Hub PR: #${PLUGIN_HUB_PR_NUMBER}`,

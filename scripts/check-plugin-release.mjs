@@ -8,10 +8,12 @@ import { fileURLToPath } from "node:url";
 
 const root = process.cwd();
 const args = new Set(process.argv.slice(2));
-const livePr = args.has("--live-pr");
+const livePublished = args.has("--live") || args.has("--live-pr");
 const releasePlan = args.has("--plan");
+const jsonOutput = args.has("--json");
 const defaultStandaloneDir = `${process.env.HOME ?? ""}/code/scapestack-runelite-plugin`;
-const pluginHubPrNumber = 12536;
+const releaseManifestPath = "plugin/release-manifest.json";
+const canonicalReleaseManifest = JSON.parse(readFileSync(join(root, releaseManifestPath), "utf8"));
 
 function read(path) {
   return readFileSync(`${root}/${path}`, "utf8");
@@ -19,6 +21,44 @@ function read(path) {
 
 function fail(message) {
   throw new Error(message);
+}
+
+function validateReleaseManifest(manifest) {
+  if (!manifest || manifest.schemaVersion !== 1) fail("Unsupported plugin release manifest schema");
+  if (!/^[a-z0-9-]+$/.test(manifest.pluginId ?? "")) fail("Invalid pluginId in release manifest");
+  if (!/^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\.git$/.test(manifest.repository ?? "")) {
+    fail("Invalid standalone repository in release manifest");
+  }
+  if (!/^\d+\.\d+\.\d+$/.test(manifest.candidate?.version ?? "")) fail("Invalid candidate version in release manifest");
+  if (!/^\d+\.\d+\.\d+$/.test(manifest.published?.version ?? "")) fail("Invalid published version in release manifest");
+  if (!/^[a-f0-9]{40}$/.test(manifest.published?.sourceCommit ?? "")) fail("Invalid published sourceCommit in release manifest");
+  if (!Number.isInteger(manifest.candidate?.contractVersion) || manifest.candidate.contractVersion < 1) {
+    fail("Invalid candidate contractVersion in release manifest");
+  }
+  if (!Number.isInteger(manifest.published?.contractVersion) || manifest.published.contractVersion < 1) {
+    fail("Invalid published contractVersion in release manifest");
+  }
+  if (!Number.isInteger(manifest.candidate?.minimumWebsiteContractVersion)
+    || manifest.candidate.minimumWebsiteContractVersion < 1) {
+    fail("Invalid minimumWebsiteContractVersion in release manifest");
+  }
+  if (manifest.candidate?.runeLiteDependency !== "latest.release") {
+    fail("RuneLite dependency must follow the official Plugin Hub latest.release guidance");
+  }
+  if (!/^\d+\.\d+\.\d+$/.test(manifest.candidate?.verifiedRuneLiteRelease ?? "")) {
+    fail("Invalid verifiedRuneLiteRelease in release manifest");
+  }
+  return manifest;
+}
+
+function rootGitArgs(args) {
+  return existsSync(join(root, ".repo-git"))
+    ? ["--git-dir=.repo-git", "--work-tree=.", ...args]
+    : args;
+}
+
+function rootGit(args) {
+  return execFileSync("git", rootGitArgs(args), { cwd: root, encoding: "utf8" }).trim();
 }
 
 function match(path, pattern, label) {
@@ -41,16 +81,16 @@ const RELEASE_IMPACT_PREFIXES = [
   "src/lib/plugin-sync.ts",
   "src/lib/plugin-hub-status.ts",
   "src/lib/plugin-",
+  "src/lib/sync-service-readiness.ts",
   "src/app/plugin/",
+  "src/app/api/sync/",
   "src/components/plugin-",
   "scripts/print-plugin-review-packet.ts",
   "scripts/check-plugin-release.mjs",
   "scripts/extract-plugin.sh",
   "package.json",
-  "tests/plugin-release-check.test.ts",
-  "tests/plugin-hub-status.test.ts",
-  "tests/plugin-review-packet.test.ts",
-  "tests/plugin-page-copy.test.ts"
+  "tests/plugin-",
+  "tests/sync-"
 ];
 
 export function releaseImpactChangesFromStatus(statusText) {
@@ -85,11 +125,14 @@ const RELEASE_IMPACT_GROUPS = [
       || path.startsWith("src/lib/plugin-")
       || path === "src/lib/plugin-hub-status.ts"
       || path === "src/lib/plugin-sync.ts"
+      || path === "src/lib/sync-service-readiness.ts"
+      || path.startsWith("src/app/api/sync/")
   },
   {
     label: "Release tooling/tests",
     matches: (path) => path.startsWith("scripts/")
       || path.startsWith("tests/plugin-")
+      || path.startsWith("tests/sync-")
       || path === "package.json"
   }
 ];
@@ -112,10 +155,7 @@ export function groupReleaseImpactChanges(changes) {
 
 function localReleaseImpactChanges() {
   try {
-    const output = execFileSync("git", ["status", "--short", ...RELEASE_IMPACT_PREFIXES], {
-      cwd: root,
-      encoding: "utf8"
-    });
+    const output = rootGit(["status", "--short"]);
     return releaseImpactChangesFromStatus(output);
   } catch {
     return [];
@@ -172,13 +212,15 @@ function standaloneReleaseStatus(target = defaultStandaloneDir) {
   }
 }
 
-function checkVersions() {
-  const pkg = JSON.parse(read("package.json"));
-  const expected = pkg.version;
+function lockedRuneLiteVersions() {
+  const lock = read("plugin/gradle.lockfile");
+  return [...lock.matchAll(/^net\.runelite:(?:client|injected-client|jshell|runelite-api):([^=]+)=/gm)]
+    .map((match) => match[1]);
+}
+
+function checkVersions(manifest) {
+  const expected = manifest.candidate.version;
   const versions = {
-    "package.json": expected,
-    "src/lib/plugin-sync.ts": match("src/lib/plugin-sync.ts", /CURRENT_PLUGIN_VERSION\s*=\s*"([^"]+)"/, "CURRENT_PLUGIN_VERSION"),
-    "plugin/build.gradle": match("plugin/build.gradle", /version\s*=\s*['"]([^'"]+)['"]/, "Gradle version"),
     "plugin/runelite-plugin.properties": match("plugin/runelite-plugin.properties", /^version=(.+)$/m, "Plugin Hub manifest version"),
     "ScapestackSyncPlugin.PLUGIN_VERSION": match(
       "plugin/src/main/java/app/scapestack/runelite/ScapestackSyncPlugin.java",
@@ -191,7 +233,29 @@ function checkVersions() {
     if (version !== expected) fail(`${source} is ${version}, expected ${expected}`);
   }
 
-  return expected;
+  expectContains("src/lib/plugin-sync.ts", 'import releaseManifest from "../../plugin/release-manifest.json"');
+  expectContains("src/lib/plugin-sync.ts", "releaseManifest.candidate.version");
+  expectContains("src/lib/plugin-sync.ts", "releaseManifest.published.version");
+  expectContains("src/lib/plugin-hub-status.ts", "releaseManifest.reviewPullRequest");
+  expectContains("plugin/build.gradle", "candidateRelease.version");
+  expectContains("plugin/build.gradle", "candidateRelease.runeLiteDependency");
+  expectContains("plugin/build.gradle", "lockAllConfigurations()");
+
+  const locked = lockedRuneLiteVersions();
+  if (locked.length === 0) fail("plugin/gradle.lockfile does not lock RuneLite dependencies");
+  for (const version of locked) {
+    if (version !== manifest.candidate.verifiedRuneLiteRelease) {
+      fail(`RuneLite lock is ${version}, expected ${manifest.candidate.verifiedRuneLiteRelease}`);
+    }
+  }
+
+  return {
+    version: expected,
+    contractVersion: manifest.candidate.contractVersion,
+    minimumWebsiteContractVersion: manifest.candidate.minimumWebsiteContractVersion,
+    runeLiteDependency: manifest.candidate.runeLiteDependency,
+    verifiedRuneLiteRelease: manifest.candidate.verifiedRuneLiteRelease
+  };
 }
 
 function checkOptInDefaults() {
@@ -227,18 +291,10 @@ function checkReviewCopy() {
   }
 
   expectContains("plugin/PUBLISHING.md", "External HTTP calls without user opt-in");
-  expectContains("plugin/PUBLISHING.md", "npm run plugin:review-packet");
-  expectContains("plugin/PUBLISHING.md", "npm run plugin:review-reply-command");
-  expectContains("plugin/PUBLISHING.md", "npm run plugin:review-handoff-command");
-  expectContains("plugin/PUBLISHING.md", "Replace stale PR-body copy");
+  expectContains("plugin/PUBLISHING.md", "plugin/release-manifest.json");
+  expectContains("plugin/PUBLISHING.md", "npm run plugin:release-evidence");
+  expectContains("plugin/PUBLISHING.md", "Plugin Hub master");
   expectContains("src/app/plugin/page.tsx", "Bank can be turned off");
-  expectContains("src/lib/plugin-review-packet.ts", "background Thread, not on RuneLite's client thread");
-  expectContains("src/lib/plugin-review-packet.ts", "No progress POST happens until the player enables Sync on login");
-  expectContains("src/lib/plugin-review-packet.ts", "replace stale PR-body copy");
-  expectContains("scripts/print-plugin-review-packet.ts", "buildPluginReviewerPacket");
-  expectContains("scripts/print-plugin-review-packet.ts", "buildPluginReviewerReplyCommand");
-  expectContains("scripts/print-plugin-review-packet.ts", "--offline");
-
   for (const path of [
     "plugin/README.md",
     "plugin/PUBLISHING.md",
@@ -270,9 +326,11 @@ export function disallowedStandalonePluginFiles(files) {
     /^README\.md$/,
     /^LICENSE$/,
     /^build\.gradle$/,
+    /^gradle\.lockfile$/,
     /^gradlew$/,
     /^gradlew\.bat$/,
     /^runelite-plugin\.properties$/,
+    /^release-manifest\.json$/,
     /^gradle\/wrapper\/gradle-wrapper\.(jar|properties)$/,
     /^src\/main\/java\/app\/scapestack\/runelite\/[A-Za-z0-9_$]+\.java$/,
     /^src\/test\/java\/app\/scapestack\/runelite\/[A-Za-z0-9_$]+\.java$/
@@ -310,151 +368,157 @@ function checkStandaloneExtractSurface() {
   }
 }
 
-async function printLivePrStatus() {
-  const prNumber = pluginHubPrNumber;
-  const prPageUrl = `https://github.com/runelite/plugin-hub/pull/${prNumber}`;
+export function parsePluginHubManifest(text) {
+  if (typeof text !== "string" || !text.trim()) fail("Plugin Hub master manifest is empty");
+  const values = Object.fromEntries(text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith("#"))
+    .map((line) => {
+      const separator = line.indexOf("=");
+      return separator === -1 ? [line, ""] : [line.slice(0, separator), line.slice(separator + 1)];
+    }));
+  if (!values.repository) fail("Plugin Hub master manifest is missing repository");
+  if (!/^[a-f0-9]{40}$/.test(values.commit ?? "")) fail("Plugin Hub master manifest has an invalid commit");
+  return {
+    repository: values.repository,
+    commit: values.commit,
+    warning: values.warning ?? null
+  };
+}
+
+export function pluginVersionFromProperties(text) {
+  const version = typeof text === "string" ? text.match(/^version=(.+)$/m)?.[1]?.trim() : null;
+  if (!version) fail("Pinned standalone runelite-plugin.properties has no version");
+  return version;
+}
+
+function normalizedRepository(value) {
+  return String(value ?? "").trim().replace(/\.git$/i, "").replace(/\/$/, "").toLowerCase();
+}
+
+export function comparePublishedRelease(manifest, state) {
+  const failures = [];
+  const warnings = [];
+  const published = manifest.published;
+
+  if (normalizedRepository(state.hubRepository) !== normalizedRepository(manifest.repository)) {
+    failures.push(`Plugin Hub repository is ${state.hubRepository || "missing"}, expected ${manifest.repository}`);
+  }
+  if (state.hubCommit !== published.sourceCommit) {
+    failures.push(`Plugin Hub master pin is ${state.hubCommit || "missing"}, expected published source ${published.sourceCommit}`);
+  }
+  if (state.pinnedVersion !== published.version) {
+    failures.push(`Pinned standalone version is ${state.pinnedVersion || "missing"}, expected published v${published.version}`);
+  }
+  if (state.officialRuneLiteRelease !== manifest.candidate.verifiedRuneLiteRelease) {
+    failures.push(`Official RuneLite release is ${state.officialRuneLiteRelease || "unknown"}, lock verifies ${manifest.candidate.verifiedRuneLiteRelease}`);
+  }
+
+  let standaloneState = "published-current";
+  if (state.standaloneHead && state.standaloneHead !== published.sourceCommit) {
+    if (state.standaloneMainVersion === manifest.candidate.version) {
+      standaloneState = "candidate-ahead";
+      warnings.push(`Standalone main has candidate v${state.standaloneMainVersion} at ${state.standaloneHead}`);
+    } else {
+      failures.push(`Standalone main ${state.standaloneHead} has untracked version ${state.standaloneMainVersion || "unknown"}`);
+    }
+  } else if (state.standaloneMainVersion !== published.version) {
+    failures.push(`Standalone published head reports v${state.standaloneMainVersion || "unknown"}, expected v${published.version}`);
+  }
+
+  return { failures, warnings, standaloneState };
+}
+
+function githubRepositoryPath(repository) {
+  const match = normalizedRepository(repository).match(/^https:\/\/github\.com\/([^/]+\/[^/]+)$/);
+  if (!match?.[1]) fail(`Unsupported standalone repository URL: ${repository}`);
+  return match[1];
+}
+
+async function fetchText(url, label) {
+  let response;
+  try {
+    response = await fetch(url, {
+      headers: {
+        accept: "text/plain",
+        "user-agent": "scapestack-plugin-release-check"
+      }
+    });
+  } catch (error) {
+    fail(`${label} fetch failed (${error instanceof Error ? error.message : String(error)})`);
+  }
+  if (!response.ok) fail(`${label} fetch failed (${response.status})`);
+  return response.text();
+}
+
+function standaloneRemoteHead(manifest) {
+  const output = execFileSync("git", ["ls-remote", manifest.repository, `refs/heads/${manifest.standaloneBranch}`], {
+    cwd: root,
+    encoding: "utf8"
+  }).trim();
+  const head = output.split(/\s+/)[0] ?? "";
+  if (!/^[a-f0-9]{40}$/.test(head)) fail("Could not resolve standalone main commit");
+  return head;
+}
+
+function officialRuneLiteRelease(metadata) {
+  const release = metadata.match(/<release>([^<]+)<\/release>/)?.[1]?.trim();
+  if (!release) fail("Official RuneLite Maven metadata has no release");
+  return release;
+}
+
+async function informationalPrStatus(manifest) {
+  const prNumber = manifest.reviewPullRequest;
   const headers = {
     accept: "application/vnd.github+json",
     "user-agent": "scapestack-plugin-release-check"
   };
-  let prResponse;
-  let reviewsResponse;
-  let filesResponse;
-  let standaloneResponse;
   try {
-    [prResponse, reviewsResponse, filesResponse, standaloneResponse] = await Promise.all([
-      fetch(`https://api.github.com/repos/runelite/plugin-hub/pulls/${prNumber}`, { headers }),
-      fetch(`https://api.github.com/repos/runelite/plugin-hub/pulls/${prNumber}/reviews`, { headers }),
-      fetch(`https://api.github.com/repos/runelite/plugin-hub/pulls/${prNumber}/files`, { headers }),
-      fetch("https://api.github.com/repos/laurensbs/scapestack-runelite-plugin/commits/main", { headers })
-    ]);
+    const response = await fetch(`https://api.github.com/repos/runelite/plugin-hub/pulls/${prNumber}`, { headers });
+    if (!response.ok) return { available: false, status: response.status, prNumber };
+    const pr = await response.json();
+    return {
+      available: true,
+      prNumber,
+      state: pr.merged_at ? "merged" : pr.state ?? "unknown",
+      updatedAt: pr.updated_at ?? null,
+      reviewCopyIssues: reviewCopyIssuesFromBody(pr.body)
+    };
   } catch (error) {
-    fail(`Live Plugin Hub gate failed: GitHub fetch failed (${error instanceof Error ? error.message : String(error)})`);
-  }
-
-  if (!prResponse.ok) {
-    await printPublicPrFallback(prPageUrl, prResponse.status);
-    return;
-  }
-
-  const pr = await prResponse.json();
-  const reviews = reviewsResponse.ok ? await reviewsResponse.json() : [];
-  const files = filesResponse.ok ? await filesResponse.json() : [];
-  const pluginHubFile = Array.isArray(files)
-    ? files.find((file) => file.filename === "plugins/scapestack-sync")
-    : null;
-  const submittedCommit = typeof pluginHubFile?.patch === "string"
-    ? pluginHubFile.patch.match(/^\+commit=([a-f0-9]{40})$/m)?.[1] ?? null
-    : null;
-  const standalone = standaloneResponse.ok ? await standaloneResponse.json() : null;
-  const standaloneCommit = typeof standalone?.sha === "string" ? standalone.sha : null;
-  const headSha = typeof pr.head?.sha === "string" ? pr.head.sha : null;
-  const checksResponse = headSha
-    ? await fetch(`https://api.github.com/repos/runelite/plugin-hub/commits/${headSha}/check-runs`, { headers })
-    : null;
-  const checksPayload = checksResponse?.ok ? await checksResponse.json() : null;
-  const checks = Array.isArray(checksPayload?.check_runs) ? checksPayload.check_runs : [];
-  const build = checks.find((check) => check.name === "build");
-  const hub = checks.find((check) => check.name === "RuneLite Plugin Hub Checks");
-  const state = pr.merged_at ? "merged" : pr.state ?? "unknown";
-  const failures = [];
-  const reviewCopyIssues = reviewCopyIssuesFromBody(pr.body);
-  console.log(`Live PR: #${prNumber} ${state}, reviews=${Array.isArray(reviews) ? reviews.length : "unknown"}, updated=${pr.updated_at ?? "unknown"}`);
-  if (submittedCommit) console.log(`Live Plugin Hub pin: ${submittedCommit}`);
-  if (standaloneCommit) console.log(`Live standalone head: ${standaloneCommit}`);
-  if (submittedCommit && standaloneCommit) {
-    const pinMatches = submittedCommit === standaloneCommit;
-    console.log(pinMatches
-      ? "Live pin status: Plugin Hub pin matches standalone head"
-      : "Live pin status: Plugin Hub pin is behind standalone head");
-    if (!pinMatches) failures.push("Plugin Hub pin is behind standalone head");
-  }
-  if (build || hub) {
-    console.log(`Live checks: build=${build?.conclusion ?? "unknown"}, pluginHubGate=${hub?.conclusion ?? "unknown"}`);
-    if (build && build.conclusion !== "success") failures.push(`build check is ${build.conclusion ?? "unknown"}`);
-  }
-  console.log(reviewCopyIssues.length > 0
-    ? `Live PR body: stale review copy (${reviewCopyIssues.join(", ")})`
-    : "Live PR body: aligned with current opt-in, token, payload and privacy copy");
-  if (reviewCopyIssues.length > 0) failures.push(`stale PR body copy: ${reviewCopyIssues.join(", ")}`);
-
-  if (failures.length > 0) {
-    fail(`Live Plugin Hub gate failed: ${failures.join("; ")}`);
+    return {
+      available: false,
+      status: "fetch-failed",
+      prNumber,
+      detail: error instanceof Error ? error.message : String(error)
+    };
   }
 }
 
-function decodeHtmlText(html) {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&quot;/g, "\"")
-    .replace(/&#39;|&apos;/g, "'")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-export function publicPrStatusFromHtml(html) {
-  if (typeof html !== "string" || !html.trim()) return null;
-  const text = decodeHtmlText(html);
-  const lower = text.toLowerCase();
-  if (!lower.includes(`add scapestack-sync#${pluginHubPrNumber}`) && !lower.includes(`add scapestack-sync #${pluginHubPrNumber}`)) {
-    return null;
-  }
-
-  const state = lower.includes(`plugin hub pr #${pluginHubPrNumber} merged`)
-    ? "merged"
-    : lower.includes(`plugin hub pr #${pluginHubPrNumber} closed`)
-      ? "closed"
-      : lower.includes(`plugin hub pr #${pluginHubPrNumber} open`)
-        ? "open"
-        : lower.includes("awaiting runelite maintainer review")
-          ? "open"
-        : lower.includes(" merged ")
-          ? "merged"
-          : lower.includes(" closed ")
-            ? "closed"
-            : lower.includes(" open ")
-              ? "open"
-              : "unknown";
-  return {
-    state,
-    reviewCount: lower.includes("no reviews") ? 0 : null,
-    maintainerGate: lower.includes("this plugin requires a review from a plugin hub maintainer"),
-    submittedCommit: html.match(/scapestack-runelite-plugin\/tree\/([a-f0-9]{40})/i)?.[1] ?? null,
-    reviewCopyIssues: reviewCopyIssuesFromBody(text)
+async function checkLivePublishedState(manifest) {
+  const repositoryPath = githubRepositoryPath(manifest.repository);
+  const hubUrl = `https://raw.githubusercontent.com/runelite/plugin-hub/master/${manifest.pluginHubManifestPath}`;
+  const hubManifest = parsePluginHubManifest(await fetchText(hubUrl, "Plugin Hub master manifest"));
+  const pinnedPropertiesUrl = `https://raw.githubusercontent.com/${repositoryPath}/${hubManifest.commit}/runelite-plugin.properties`;
+  const mainPropertiesUrl = `https://raw.githubusercontent.com/${repositoryPath}/${manifest.standaloneBranch}/runelite-plugin.properties`;
+  const [pinnedProperties, mainProperties, mavenMetadata, pr] = await Promise.all([
+    fetchText(pinnedPropertiesUrl, "Pinned standalone properties"),
+    fetchText(mainPropertiesUrl, "Standalone main properties"),
+    fetchText("https://repo.runelite.net/net/runelite/client/maven-metadata.xml", "RuneLite Maven metadata"),
+    informationalPrStatus(manifest)
+  ]);
+  const state = {
+    hubRepository: hubManifest.repository,
+    hubCommit: hubManifest.commit,
+    hubWarning: hubManifest.warning,
+    pinnedVersion: pluginVersionFromProperties(pinnedProperties),
+    standaloneHead: standaloneRemoteHead(manifest),
+    standaloneMainVersion: pluginVersionFromProperties(mainProperties),
+    officialRuneLiteRelease: officialRuneLiteRelease(mavenMetadata)
   };
-}
+  const comparison = comparePublishedRelease(manifest, state);
 
-async function printPublicPrFallback(prPageUrl, apiStatus) {
-  const response = await fetch(prPageUrl, {
-    headers: {
-      accept: "text/html",
-      "user-agent": "scapestack-plugin-release-check"
-    }
-  });
-
-  if (!response.ok) {
-    fail(`Live Plugin Hub gate failed: Live PR unavailable (${apiStatus}; public HTML ${response.status})`);
-  }
-
-  const status = publicPrStatusFromHtml(await response.text());
-  if (!status) {
-    fail(`Live Plugin Hub gate failed: Live PR unavailable (${apiStatus}; public HTML unreadable)`);
-  }
-
-  console.log(`Live PR: #${pluginHubPrNumber} ${status.state}, reviews=${status.reviewCount ?? "unknown"} (public HTML fallback after API ${apiStatus})`);
-  if (status.submittedCommit) console.log(`Live Plugin Hub pin: ${status.submittedCommit}`);
-  if (status.maintainerGate) console.log("Live checks: public PR page shows Plugin Hub maintainer review gate");
-  console.log(status.reviewCopyIssues.length > 0
-    ? `Live PR body: stale review copy (${status.reviewCopyIssues.join(", ")})`
-    : "Live PR body: aligned with current opt-in, token, payload and privacy copy");
-  if (status.reviewCopyIssues.length > 0) {
-    fail(`Live Plugin Hub gate failed: stale PR body copy: ${status.reviewCopyIssues.join(", ")}`);
-  }
+  return { state, comparison, reviewPr: pr };
 }
 
 export function reviewCopyIssuesFromBody(body) {
@@ -510,7 +574,7 @@ function printReleasePlan(version) {
   const standaloneStatus = standaloneReleaseStatus();
   console.log("Release plan:");
   if (releaseImpactChanges.length > 0) {
-    console.log(`Local release-impact changes: ${releaseImpactChanges.length} path${releaseImpactChanges.length === 1 ? "" : "s"} need extraction before Plugin Hub sees them.`);
+    console.log(`Local release-impact changes: ${releaseImpactChanges.length} path${releaseImpactChanges.length === 1 ? "" : "s"} must be reconciled before handoff.`);
   } else {
     console.log("Local release-impact changes: none detected.");
   }
@@ -543,34 +607,97 @@ function printReleasePlan(version) {
   console.log(`4. In the standalone repo, commit and tag the extracted tree as v${version}.`);
   console.log("5. Push the standalone repo and copy its new full commit SHA.");
   console.log("6. Update runelite/plugin-hub plugins/scapestack-sync commit=<new sha> so reviewers see these local changes.");
-  console.log("7. Re-run npm run plugin:release-check:live and confirm the Plugin Hub pin equals the standalone head.");
-  console.log("8. Run npm run plugin:review-packet and replace stale PR-body copy before asking maintainers to re-review.");
-  console.log("9. Run npm run plugin:review-reply-command to prepare the reviewer packet PR comment.");
-  console.log("10. Run npm run plugin:review-handoff-command when GitHub CLI is authenticated and you want body + comment together.");
-  console.log("11. Keep the PR body explicit: sync is opt-in, bank checks send item IDs/names/quantities only, HTTP runs off the client thread.");
+  console.log("7. Update plugin/release-manifest.json only after Plugin Hub master points to the intended published commit.");
+  console.log("8. Re-run npm run plugin:release-check:live and verify published and candidate state are reported separately.");
+  console.log("9. Save npm run plugin:release-evidence output with the release handoff.");
+  console.log("10. Keep the new PR body explicit: sync is opt-in, bank checks send item IDs/names/quantities only, HTTP runs off the client thread.");
+}
+
+function printLivePublishedState(live) {
+  console.log(`Published Plugin Hub pin: ${live.state.hubCommit}`);
+  console.log(`Published standalone artifact: v${live.state.pinnedVersion}`);
+  console.log(`Standalone main: v${live.state.standaloneMainVersion} at ${live.state.standaloneHead}`);
+  console.log(`Standalone state: ${live.comparison.standaloneState}`);
+  console.log(`Verified RuneLite release: ${live.state.officialRuneLiteRelease}`);
+  if (live.state.hubWarning) console.log(`Plugin Hub warning: ${live.state.hubWarning}`);
+  for (const warning of live.comparison.warnings) console.log(`Release note: ${warning}`);
+  if (live.reviewPr.available) {
+    console.log(`Historical PR #${live.reviewPr.prNumber}: ${live.reviewPr.state}, updated=${live.reviewPr.updatedAt ?? "unknown"} (informational)`);
+    if (live.reviewPr.reviewCopyIssues.length > 0) {
+      console.log(`Historical PR copy is stale (${live.reviewPr.reviewCopyIssues.join(", ")}); master state remains authoritative.`);
+    }
+  } else {
+    console.log(`Historical PR #${live.reviewPr.prNumber}: unavailable (${live.reviewPr.status}); informational only.`);
+  }
 }
 
 async function main() {
-  const version = checkVersions();
+  const manifest = validateReleaseManifest(canonicalReleaseManifest);
+  const candidate = checkVersions(manifest);
   checkOptInDefaults();
   checkReviewCopy();
   checkStandaloneExtractSurface();
 
-  console.log(`Offline Plugin Hub release checks passed for v${version}`);
-  console.log("Offline checks: version parity, opt-in defaults, review copy, Slayer copy, standalone extract surface");
-  if (releasePlan) printReleasePlan(version);
+  const evidence = {
+    schemaVersion: 1,
+    generatedAt: new Date().toISOString(),
+    ok: true,
+    authority: {
+      manifest: releaseManifestPath,
+      published: `runelite/plugin-hub master:${manifest.pluginHubManifestPath}`,
+      historicalReviewPullRequest: manifest.reviewPullRequest
+    },
+    main: {
+      commit: rootGit(["rev-parse", "HEAD"]),
+      candidate
+    },
+    published: manifest.published,
+    localStandalone: standaloneReleaseStatus(),
+    live: null
+  };
 
-  if (livePr) {
-    await printLivePrStatus();
-    console.log(`Live Plugin Hub release check passed for v${version}`);
+  if (!jsonOutput) {
+    console.log(`Offline Plugin Hub release checks passed for candidate v${candidate.version}`);
+    console.log(`Offline contract: v${candidate.contractVersion}, website minimum=${candidate.minimumWebsiteContractVersion}, RuneLite=${candidate.verifiedRuneLiteRelease} locked`);
+    console.log("Offline checks: manifest ownership, candidate version parity, dependency lock, opt-in defaults, review copy, standalone extract surface");
   }
+  if (releasePlan && !jsonOutput) printReleasePlan(candidate.version);
+
+  if (livePublished) {
+    evidence.live = await checkLivePublishedState(manifest);
+    if (!jsonOutput) printLivePublishedState(evidence.live);
+    if (evidence.live.comparison.failures.length > 0) {
+      evidence.ok = false;
+      if (jsonOutput) {
+        console.log(JSON.stringify(evidence, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+      fail(`Live Plugin Hub gate failed: ${evidence.live.comparison.failures.join("; ")}`);
+    }
+    if (!jsonOutput) {
+      console.log(`Live published release check passed for v${manifest.published.version}; candidate v${candidate.version} is tracked separately`);
+    }
+  }
+
+  if (jsonOutput) console.log(JSON.stringify(evidence, null, 2));
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   try {
     await main();
   } catch (error) {
-    console.error(error instanceof Error ? error.message : String(error));
+    const message = error instanceof Error ? error.message : String(error);
+    if (jsonOutput) {
+      console.log(JSON.stringify({
+        schemaVersion: 1,
+        generatedAt: new Date().toISOString(),
+        ok: false,
+        error: message
+      }, null, 2));
+    } else {
+      console.error(message);
+    }
     process.exitCode = 1;
   }
 }

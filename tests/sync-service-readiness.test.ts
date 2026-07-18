@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import releaseManifest from "../plugin/release-manifest.json";
 
 const state = vi.hoisted(() => ({
   dbConfigured: false,
@@ -40,7 +41,7 @@ describe("sync service readiness", () => {
       ok: true,
       service: "scapestack-sync",
       ready: false,
-      plugin: { currentVersion: "0.3.0" },
+      plugin: { currentVersion: releaseManifest.published.version },
       endpoints: { sync: "/api/sync", claim: "/api/sync/claim" },
       database: {
         configured: false,

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import releaseManifest from "../plugin/release-manifest.json";
 
 const state = vi.hoisted(() => ({
   allowed: true,
@@ -143,7 +144,7 @@ describe("GET /api/sync", () => {
     const body = await response.json();
 
     expect(body.ready).toBe(true);
-    expect(body.plugin.currentVersion).toBe("0.3.0");
+    expect(body.plugin.currentVersion).toBe(releaseManifest.published.version);
     expect(body.limits).toMatchObject({
       maxBodyBytes: 1_000_000,
       quests: 500,

@@ -1,4 +1,6 @@
-export const PLUGIN_HUB_PR_NUMBER = 12536;
+import releaseManifest from "../../plugin/release-manifest.json";
+
+export const PLUGIN_HUB_PR_NUMBER = releaseManifest.reviewPullRequest;
 export const PLUGIN_HUB_PR_URL = `https://github.com/runelite/plugin-hub/pull/${PLUGIN_HUB_PR_NUMBER}`;
 
 const PR_API_URL = `https://api.github.com/repos/runelite/plugin-hub/pulls/${PLUGIN_HUB_PR_NUMBER}`;

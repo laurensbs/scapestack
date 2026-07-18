@@ -1,4 +1,10 @@
-export const CURRENT_PLUGIN_VERSION = "0.3.0";
+import releaseManifest from "../../plugin/release-manifest.json";
+
+export const CANDIDATE_PLUGIN_VERSION = releaseManifest.candidate.version;
+export const CANDIDATE_PLUGIN_CONTRACT_VERSION = releaseManifest.candidate.contractVersion;
+export const CURRENT_PLUGIN_VERSION = releaseManifest.published.version;
+export const CURRENT_PLUGIN_CONTRACT_VERSION = releaseManifest.published.contractVersion;
+export const MINIMUM_WEBSITE_CONTRACT_VERSION = releaseManifest.candidate.minimumWebsiteContractVersion;
 
 export type PluginSyncHealth = "live" | "stale" | "outdated";
 

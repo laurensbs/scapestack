@@ -73,7 +73,7 @@ describe("plugin connection view", () => {
       title: "Refresh RuneLite",
       instruction: "Open RuneLite, press Sync now, then check again here."
     });
-    expect(pluginConnectionView(player({ pluginVersion: "0.2.0" }))).toMatchObject({
+    expect(pluginConnectionView(player({ pluginVersion: "0.1.9" }))).toMatchObject({
       health: "outdated",
       title: "Update Scapestack Sync"
     });

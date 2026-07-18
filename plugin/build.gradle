@@ -15,6 +15,8 @@ plugins {
     id 'java'
 }
 
+import groovy.json.JsonSlurper
+
 repositories {
     mavenLocal()
     mavenCentral()
@@ -23,7 +25,9 @@ repositories {
     }
 }
 
-def runeLiteVersion = 'latest.release'
+def releaseManifest = new JsonSlurper().parse(file('release-manifest.json'))
+def candidateRelease = releaseManifest.candidate
+def runeLiteVersion = candidateRelease.runeLiteDependency
 
 // 'runClient' needs the RuneLite client + its transitive deps on a
 // real (non-test) runtime classpath. The main compileOnly dep keeps
@@ -50,7 +54,14 @@ dependencies {
 }
 
 group = 'app.scapestack.runelite'
-version = '0.3.0'
+version = candidateRelease.version
+
+// RuneLite's official Plugin Hub template intentionally tracks
+// `latest.release`. Locking records the exact release tested by Scapestack so
+// local/release builds stay reproducible until the lock is updated explicitly.
+dependencyLocking {
+    lockAllConfigurations()
+}
 
 java {
     sourceCompatibility = JavaVersion.VERSION_11

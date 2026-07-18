@@ -3,6 +3,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "no
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import pkg from "../package.json";
+import releaseManifest from "../plugin/release-manifest.json";
 import { describe, expect, it } from "vitest";
 
 describe("plugin release check", () => {
@@ -11,7 +12,8 @@ describe("plugin release check", () => {
       encoding: "utf8"
     });
 
-    expect(output).toContain(`Offline Plugin Hub release checks passed for v${pkg.version}`);
+    expect(output).toContain(`Offline Plugin Hub release checks passed for candidate v${releaseManifest.candidate.version}`);
+    expect(output).toContain(`RuneLite=${releaseManifest.candidate.verifiedRuneLiteRelease} locked`);
     expect(output).toContain("opt-in defaults");
     expect(output).toContain("standalone extract surface");
     expect(output).not.toContain("Live Plugin Hub release check passed");
@@ -19,7 +21,8 @@ describe("plugin release check", () => {
 
   it("exposes release-check commands for local and live review work", () => {
     expect(pkg.scripts["plugin:release-check"]).toBe("node scripts/check-plugin-release.mjs --offline");
-    expect(pkg.scripts["plugin:release-check:live"]).toBe("node scripts/check-plugin-release.mjs --live-pr");
+    expect(pkg.scripts["plugin:release-check:live"]).toBe("node scripts/check-plugin-release.mjs --live");
+    expect(pkg.scripts["plugin:release-evidence"]).toBe("node scripts/check-plugin-release.mjs --live --json");
     expect(pkg.scripts["plugin:release-plan"]).toBe("node scripts/check-plugin-release.mjs --plan");
     expect(pkg.scripts["plugin:review-packet"]).toBe("tsx scripts/print-plugin-review-packet.ts");
     expect(pkg.scripts["plugin:pr-update-command"]).toBe("tsx scripts/print-plugin-review-packet.ts --gh-command");
@@ -42,11 +45,9 @@ describe("plugin release check", () => {
     expect(output).toContain("plugins/scapestack-sync commit=<new sha>");
     expect(output).toContain("plugin:release-check:live");
     expect(output).toContain("npm run ci:check");
-    expect(output).toContain("Plugin Hub pin equals the standalone head");
-    expect(output).toContain("plugin:review-packet");
-    expect(output).toContain("plugin:review-reply-command");
-    expect(output).toContain("plugin:review-handoff-command");
-    expect(output).toContain("replace stale PR-body copy");
+    expect(output).toContain("Plugin Hub master points to the intended published commit");
+    expect(output).toContain("published and candidate state are reported separately");
+    expect(output).toContain("plugin:release-evidence");
     expect(output).toContain("sync is opt-in");
     expect(output).toContain("bank checks send item IDs/names/quantities only");
   });
@@ -74,21 +75,48 @@ describe("plugin release check", () => {
     expect(clean.summary).toContain("is clean at head 39931dc");
   });
 
-  it("documents the reviewer packet handoff in publishing docs", () => {
+  it("documents the canonical candidate and published release handoff", () => {
     const publishing = readFileSync("plugin/PUBLISHING.md", "utf8");
 
-    expect(publishing).toContain("npm run plugin:review-packet");
-    expect(publishing).toContain("npm run plugin:review-reply-command");
-    expect(publishing).toContain("npm run plugin:review-handoff-command");
-    expect(publishing).toContain("Paste that packet into the Plugin Hub PR body");
-    expect(publishing).toContain("rewrites the stale PR body");
-    expect(publishing).toContain("Replace stale PR-body copy");
-    expect(publishing).toContain("raw token is only sent as the Authorization bearer");
-    expect(publishing).toContain("web-app merge contract");
+    expect(publishing).toContain("plugin/release-manifest.json");
+    expect(publishing).toContain("candidate");
+    expect(publishing).toContain("published");
+    expect(publishing).toContain("Plugin Hub master");
+    expect(publishing).toContain("npm run plugin:release-evidence");
+    expect(publishing).toContain("raw install token only as the");
+    expect(publishing).toContain("Authorization bearer");
     expect(publishing).toContain("/next?rsn=...&source=plugin-sync&bank=none");
-    expect(publishing).toContain("prevents stale");
-    expect(publishing).toContain("browser-only Bank Memory or Bank Tags paste");
-    expect(publishing).toContain("Ambiguous web handoff");
+    expect(publishing).toMatch(/bank item names,\s+IDs and quantities/);
+    expect(publishing).toContain("historical PR");
+  });
+
+  it("prints parseable machine-readable release evidence", () => {
+    const output = execFileSync("node", ["scripts/check-plugin-release.mjs", "--offline", "--json"], {
+      encoding: "utf8"
+    });
+    const evidence = JSON.parse(output) as {
+      ok: boolean;
+      authority: { manifest: string; published: string; historicalReviewPullRequest: number };
+      main: { commit: string; candidate: { version: string; contractVersion: number } };
+      published: { version: string; sourceCommit: string };
+    };
+
+    expect(evidence).toMatchObject({
+      ok: true,
+      authority: {
+        manifest: "plugin/release-manifest.json",
+        published: "runelite/plugin-hub master:plugins/scapestack-sync",
+        historicalReviewPullRequest: releaseManifest.reviewPullRequest
+      },
+      main: {
+        candidate: {
+          version: releaseManifest.candidate.version,
+          contractVersion: releaseManifest.candidate.contractVersion
+        }
+      },
+      published: releaseManifest.published
+    });
+    expect(evidence.main.commit).toMatch(/^[a-f0-9]{40}$/);
   });
 
   it("filters git status to release-impact paths", async () => {
@@ -102,17 +130,23 @@ describe("plugin release check", () => {
       "?? src/app/plugin/page.tsx",
       "?? src/components/plugin-sync-checker.tsx",
       "?? src/lib/plugin-sync-proof.ts",
+      " M src/lib/sync-service-readiness.ts",
+      " M src/app/api/sync/route.ts",
       " M src/app/bank/page.tsx",
       "?? scripts/print-plugin-review-packet.ts",
       "?? tests/plugin-review-packet.test.ts",
+      " M tests/sync-route.test.ts",
       "?? tests/plugin-release-check.test.ts"
     ].join("\n")).map((entry) => entry.path)).toEqual([
       "plugin/src/main/java/app/scapestack/runelite/ScapestackSyncPlugin.java",
       "src/app/plugin/page.tsx",
       "src/components/plugin-sync-checker.tsx",
       "src/lib/plugin-sync-proof.ts",
+      "src/lib/sync-service-readiness.ts",
+      "src/app/api/sync/route.ts",
       "scripts/print-plugin-review-packet.ts",
       "tests/plugin-review-packet.test.ts",
+      "tests/sync-route.test.ts",
       "tests/plugin-release-check.test.ts"
     ]);
   });
@@ -189,63 +223,90 @@ describe("plugin release check", () => {
     ].join("\n"))).toContain("shutdown thread interrupt");
   });
 
-  it("documents live PR body as a hard release gate", () => {
+  it("uses Plugin Hub master as the live authority and keeps the old PR informational", () => {
     const script = readFileSync("scripts/check-plugin-release.mjs", "utf8");
 
-    expect(script).toContain("Live PR body: stale review copy");
-    expect(script).toContain("stale PR body copy");
+    expect(script).toContain("raw.githubusercontent.com/runelite/plugin-hub/master");
+    expect(script).toContain("Historical PR #");
+    expect(script).toContain("informational");
+    expect(script).toContain("master state remains authoritative");
     expect(script).toContain("Live Plugin Hub gate failed");
-    expect(script).toContain("quest-complete opt-in gate");
-    expect(script).toContain("public HTML fallback after API");
-    expect(script).toContain("public HTML unreadable");
     expect(script).toContain("process.exitCode = 1");
-    expect(script).toContain("Live Plugin Hub release check passed");
-    expect(script).toContain("GitHub fetch failed");
+    expect(script).toContain("Live published release check passed");
+    expect(script).not.toContain("Live PR body: stale review copy");
   });
 
-  it("extracts stale PR body copy from public GitHub HTML as a live fallback", async () => {
+  it("parses the actual Plugin Hub master entry", async () => {
     // @ts-expect-error The release helper is a Node CLI .mjs file.
     const helper = await import("../scripts/check-plugin-release.mjs") as {
-      publicPrStatusFromHtml: (html: string) => {
-        state: string;
-        reviewCount: number | null;
-        maintainerGate: boolean;
-        submittedCommit: string | null;
-        reviewCopyIssues: string[];
-      } | null;
+      parsePluginHubManifest: (text: string) => { repository: string; commit: string; warning: string | null };
     };
 
-    const status = helper.publicPrStatusFromHtml(`
-      <main>
-        <h1>Add scapestack-sync#12536</h1>
-        <span>Open</span>
-        <p>Sync on login defaults to on.</p>
-        <p>The raw token never leaves the install.</p>
-        <p>POST https://www.scapestack.org/api/sync on every login + on quest-complete chat messages.</p>
-        <p>Live PR body appears aligned with current consent, token, data and web-handoff wording.</p>
-        <p>Shutdown interrupts the named daemon sync worker.</p>
-        <p>No IP, no machine fingerprint, no chat-log content.</p>
-        <a href="https://github.com/laurensbs/scapestack-runelite-plugin/tree/39931dc965e4e9f01bf549bdc192b85c4cd6c1fc">pin</a>
-        <p>This plugin requires a review from a Plugin Hub maintainer.</p>
-        <p>No reviews</p>
-      </main>
-    `);
-
-    expect(status).toMatchObject({
-      state: "open",
-      reviewCount: 0,
-      maintainerGate: true,
-      submittedCommit: "39931dc965e4e9f01bf549bdc192b85c4cd6c1fc",
-      reviewCopyIssues: [
-        "sync-on-login defaults",
-        "token transport",
-        "POST timing",
-        "shutdown thread interrupt",
-        "quest-complete opt-in gate",
-        "Slayer payload",
-        "bank/inventory/equipment exclusion"
-      ]
+    expect(helper.parsePluginHubManifest([
+      "repository=https://github.com/laurensbs/scapestack-runelite-plugin.git",
+      `commit=${releaseManifest.published.sourceCommit}`,
+      "warning=sample"
+    ].join("\n"))).toEqual({
+      repository: releaseManifest.repository,
+      commit: releaseManifest.published.sourceCommit,
+      warning: "sample"
     });
+  });
+
+  it("fails stale published pins and untracked standalone commits", async () => {
+    // @ts-expect-error The release helper is a Node CLI .mjs file.
+    const helper = await import("../scripts/check-plugin-release.mjs") as {
+      comparePublishedRelease: (
+        manifest: typeof releaseManifest,
+        state: {
+          hubRepository: string;
+          hubCommit: string;
+          pinnedVersion: string;
+          standaloneHead: string;
+          standaloneMainVersion: string;
+          officialRuneLiteRelease: string;
+        }
+      ) => { failures: string[]; warnings: string[]; standaloneState: string };
+    };
+    const current = {
+      hubRepository: releaseManifest.repository,
+      hubCommit: releaseManifest.published.sourceCommit,
+      pinnedVersion: releaseManifest.published.version,
+      standaloneHead: releaseManifest.published.sourceCommit,
+      standaloneMainVersion: releaseManifest.published.version,
+      officialRuneLiteRelease: releaseManifest.candidate.verifiedRuneLiteRelease
+    };
+
+    expect(helper.comparePublishedRelease(releaseManifest, current)).toEqual({
+      failures: [],
+      warnings: [],
+      standaloneState: "published-current"
+    });
+
+    const staleHub = helper.comparePublishedRelease(releaseManifest, {
+      ...current,
+      hubCommit: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    });
+    expect(staleHub.failures).toContain(
+      `Plugin Hub master pin is aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, expected published source ${releaseManifest.published.sourceCommit}`
+    );
+
+    const staleStandalone = helper.comparePublishedRelease(releaseManifest, {
+      ...current,
+      standaloneHead: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      standaloneMainVersion: "0.1.0"
+    });
+    expect(staleStandalone.failures).toContain(
+      "Standalone main bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb has untracked version 0.1.0"
+    );
+
+    const candidateAhead = helper.comparePublishedRelease(releaseManifest, {
+      ...current,
+      standaloneHead: "cccccccccccccccccccccccccccccccccccccccc",
+      standaloneMainVersion: releaseManifest.candidate.version
+    });
+    expect(candidateAhead).toMatchObject({ failures: [], standaloneState: "candidate-ahead" });
+    expect(candidateAhead.warnings[0]).toContain(`candidate v${releaseManifest.candidate.version}`);
   });
 
   it("flags generated or non-Plugin-Hub files in standalone extracts", async () => {
@@ -257,8 +318,10 @@ describe("plugin release check", () => {
     expect(helper.disallowedStandalonePluginFiles([
       ".gitignore",
       "build.gradle",
+      "gradle.lockfile",
       "gradle/wrapper/gradle-wrapper.jar",
       "gradle/wrapper/gradle-wrapper.properties",
+      "release-manifest.json",
       "runelite-plugin.properties",
       "README.md",
       "src/main/java/app/scapestack/runelite/ScapestackSyncPlugin.java",
@@ -372,8 +435,10 @@ describe("plugin release check", () => {
     expect(publishing).toContain("npm run plugin:release-plan");
     expect(publishing).toContain("npm run ci:check");
     expect(publishing).toContain("plugins/scapestack-sync");
-    expect(publishing).toContain("Local monorepo improvements do not affect review");
-    expect(publishing).toContain("PII/data leakage");
-    expect(publishing).toContain("RuneScape password, bank/inventory/equipment");
+    expect(publishing).toMatch(/Local monorepo improvements do not affect Plugin Hub review/);
+    expect(publishing).toMatch(/bank item names,\s+IDs and quantities/);
+    expect(publishing).toContain("RuneScape password");
+    expect(publishing).toContain("inventory,");
+    expect(publishing).toContain("equipment,");
   });
 });
