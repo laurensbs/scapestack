@@ -636,7 +636,7 @@ export function DpsClient() {
             </details>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5" role="list" aria-label="Bosses matching this bank">
             {visibleResults.map(({ boss, dps }) => (
               <BossCard
                 key={boss.slug}
@@ -698,10 +698,13 @@ function BossCard({ boss, dps, owned, bankItems, accountType, isFocused, onOpen 
   const inventoryPlan = buildBossInventoryPlan({ boss, bankItems, owned, dps });
   const status = bossTripVerdict(boss, dps, accountType, inventoryPlan);
   const reason = bossCardReason({ boss, dps, inventoryPlan, activity, singleDps });
+  const statusId = `boss-${boss.slug}-status`;
+  const reasonId = `boss-${boss.slug}-reason`;
 
   return (
     <article
       id={`boss-${boss.slug}`}
+      role="listitem"
       className={cn(
         "scape-boss-tile scapestack-boss-tile group w-full scroll-mt-24 p-0 text-left",
         "hover:-translate-y-0.5",
@@ -711,6 +714,7 @@ function BossCard({ boss, dps, owned, bankItems, accountType, isFocused, onOpen 
         type="button"
         onClick={onOpen}
         aria-label={`Open ${boss.name} ${activity ? "activity setup" : "kill setup"} details`}
+        aria-describedby={`${statusId} ${reasonId}`}
         title={`Open ${boss.name} ${activity ? "activity setup" : "kill setup"} details`}
         className="flex h-full min-h-[220px] w-full flex-col p-3 text-left sm:min-h-[250px] sm:p-4"
       >
@@ -719,7 +723,7 @@ function BossCard({ boss, dps, owned, bankItems, accountType, isFocused, onOpen 
         </div>
         <div className="border-t border-[var(--color-border)] pt-3">
           <div className="line-clamp-2 text-[15px] font-black leading-tight text-[var(--color-text)] sm:text-[17px]">{boss.name}</div>
-          <span className={cn(
+          <span id={statusId} className={cn(
             "mt-2 inline-flex rounded-full border px-2 py-1 text-[9.5px] font-bold",
             !usable || inventoryPlan.mandatoryMissing.length > 0
               ? "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
@@ -731,7 +735,7 @@ function BossCard({ boss, dps, owned, bankItems, accountType, isFocused, onOpen 
           )}>
             {status}
           </span>
-          <p className="mt-2 line-clamp-2 text-[10.5px] font-semibold leading-relaxed text-[var(--color-text-muted)] sm:text-[11px]">
+          <p id={reasonId} className="mt-2 line-clamp-2 text-[10.5px] font-semibold leading-relaxed text-[var(--color-text-muted)] sm:text-[11px]">
             {reason}
           </p>
         </div>

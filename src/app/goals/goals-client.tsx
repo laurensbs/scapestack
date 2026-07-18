@@ -17,6 +17,7 @@ import { loadArchetype, type Archetype } from "@/lib/archetype";
 import { hiscoresAction } from "@/app/actions";
 import { cn } from "@/lib/utils";
 import { wikiSearchUrl } from "@/lib/wiki";
+import { useDialogA11y } from "@/lib/use-dialog-a11y";
 import { goalItemsWithHiscoreUnlocks } from "@/lib/goal-handoff";
 import {
   goalManualChecksStorageKey,
@@ -225,9 +226,9 @@ export function GoalsClient() {
       <section className="mx-auto max-w-3xl">
         <div className="mb-5">
           <p className="eyebrow text-[var(--color-accent)]">Unlock companion</p>
-          <h1 className="mt-2 font-serif text-[34px] font-bold leading-tight text-[var(--color-text)] sm:text-[46px]">
+          <h2 className="mt-2 font-serif text-[34px] font-bold leading-tight text-[var(--color-text)] sm:text-[46px]">
             What should you unlock next?
-          </h1>
+          </h2>
           <p className="mt-2 max-w-xl text-[14px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
             Add your account once. Scapestack finds one useful reward and the next step toward it.
           </p>
@@ -733,18 +734,7 @@ function GoalUnlockModal({
   activeRsn: string;
   onClose: () => void;
 }) {
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = previous;
-    };
-  }, [onClose]);
+  const dialogRef = useDialogA11y<HTMLDivElement>(true, onClose);
 
   if (typeof document === "undefined") return null;
 
@@ -775,6 +765,9 @@ function GoalUnlockModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="goal-unlock-modal-title"
+      aria-describedby="goal-unlock-modal-description"
+      ref={dialogRef}
+      tabIndex={-1}
       className="fixed inset-0 z-[220] overflow-y-auto bg-black/78 px-3 py-5 backdrop-blur-sm sm:grid sm:place-items-center sm:px-5"
     >
       <button
@@ -802,6 +795,9 @@ function GoalUnlockModal({
               </h2>
               <p className="mt-1 text-[13px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
                 {set.name}
+              </p>
+              <p id="goal-unlock-modal-description" className="sr-only">
+                Unlock steps, missing requirements and route actions for this reward.
               </p>
             </div>
           </div>

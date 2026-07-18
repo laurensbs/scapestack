@@ -318,6 +318,7 @@ function RsnForm({
           autoCorrect="off"
           enterKeyHint="go"
           spellCheck={false}
+          aria-label="Type your OSRS name"
           aria-describedby={`${helpId} ${statusId}`}
           className="min-h-12 min-w-0 flex-1 rounded-xl border border-[var(--color-border)] bg-black/30 px-4 text-[16px] text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)]/55 sm:text-[15px]"
         />

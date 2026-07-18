@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { createPortal } from "react-dom";
 import { ArrowRight, X } from "lucide-react";
 import {
@@ -11,6 +11,7 @@ import {
   type SavedBank
 } from "@/lib/saved-bank";
 import { track } from "@/lib/analytics";
+import { useDialogA11y } from "@/lib/use-dialog-a11y";
 
 interface Props {
   saved: SavedBank;
@@ -60,31 +61,7 @@ export function SavedBankBanner({
   const when = describeSavedAt(saved.savedAt);
   const body = message ?? `We still have your bank from ${when}. Load it back, or start fresh?`;
   const continueBtnRef = useRef<HTMLButtonElement | null>(null);
-
-  // a11y: trap focus on the primary action when the modal mounts.
-  useEffect(() => {
-    if (presentation !== "modal") return;
-    continueBtnRef.current?.focus();
-  }, [presentation]);
-
-  // Esc closes — universally expected, missing is a smell.
-  useEffect(() => {
-    if (presentation !== "modal") return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onDismiss();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onDismiss, presentation]);
-
-  // Lock body scroll while modal is open. Otherwise long pages scroll
-  // behind the modal on iOS which looks broken.
-  useEffect(() => {
-    if (presentation !== "modal") return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = prev; };
-  }, [presentation]);
+  const dialogRef = useDialogA11y<HTMLDivElement>(presentation === "modal", onDismiss);
 
   const startFresh = () => {
     if (secondaryMode === "clear") {
@@ -105,6 +82,8 @@ export function SavedBankBanner({
 
   const frame = (
     <div
+      ref={presentation === "modal" ? dialogRef : undefined}
+      tabIndex={presentation === "modal" ? -1 : undefined}
       className={presentation === "modal"
         ? "relative w-full max-w-md rounded-md overflow-hidden"
         : "relative w-full rounded-md overflow-hidden text-left animate-[fade-in_0.2s_ease-out]"}
@@ -170,6 +149,7 @@ export function SavedBankBanner({
             type="button"
             onClick={handleUse}
             disabled={loading}
+            data-autofocus
             className="btn-primary group flex-1 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Loading…" : primaryLabel}

@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, Check, Circle, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PathProgress } from "@/lib/path-progress";
 import { ItemSprite } from "./item-sprite";
+import { useDialogA11y } from "@/lib/use-dialog-a11y";
 
 interface Props {
   path: PathProgress;
@@ -18,16 +19,7 @@ export function PathDetailModal({ path, onClose }: Props) {
   const descriptionId = "path-modal-description";
   const searchId = "path-modal-search";
   const searchStatusId = "path-modal-search-status";
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [onClose]);
+  const dialogRef = useDialogA11y<HTMLDivElement>(true, onClose);
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "open" | "done">("all");
@@ -51,6 +43,8 @@ export function PathDetailModal({ path, onClose }: Props) {
       aria-modal="true"
       aria-labelledby={titleId}
       aria-describedby={descriptionId}
+      ref={dialogRef}
+      tabIndex={-1}
       style={{ animation: "fade-in 0.2s ease-out" }}
     >
       <button

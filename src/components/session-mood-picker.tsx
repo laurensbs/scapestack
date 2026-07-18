@@ -5,6 +5,7 @@ import { ChevronRight, Sword, X } from "lucide-react";
 import { ItemSprite } from "@/components/item-sprite";
 import { MOOD_LABEL, type Mood, type TimeBudget } from "@/lib/mood";
 import { saveMood } from "@/lib/mood-storage";
+import { useDialogA11y } from "@/lib/use-dialog-a11y";
 import { cn } from "@/lib/utils";
 
 const SESSION_MOODS: Array<{ mood: Mood; minutes: TimeBudget }> = [
@@ -37,6 +38,7 @@ export function SessionMoodPicker({
 }: SessionMoodPickerProps) {
   const [open, setOpen] = useState(false);
   const [picked, setPicked] = useState(label);
+  const dialogRef = useDialogA11y<HTMLDivElement>(open, () => setOpen(false));
 
   useEffect(() => {
     setPicked(label);
@@ -97,10 +99,13 @@ export function SessionMoodPicker({
           role="dialog"
           aria-modal="true"
           aria-labelledby="session-mood-title"
+          aria-describedby="session-mood-description"
           className="fixed inset-0 z-[120] flex items-end bg-black/70 backdrop-blur-sm sm:grid sm:place-items-center sm:p-8"
           onClick={() => setOpen(false)}
         >
           <div
+            ref={dialogRef}
+            tabIndex={-1}
             className="scape-sheet flex w-full max-w-xl flex-col text-left"
             onClick={(event) => event.stopPropagation()}
           >
@@ -122,17 +127,19 @@ export function SessionMoodPicker({
             </div>
 
             <div className="osrs-body min-h-0 overflow-y-auto overscroll-contain px-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] pt-4 sm:px-6 sm:pb-6">
-              <p className="text-[13px] leading-relaxed text-[var(--color-text-muted)]">
+              <p id="session-mood-description" className="text-[13px] leading-relaxed text-[var(--color-text-muted)]">
                 Your next plan changes for this account.
               </p>
               <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
               {SESSION_MOODS.map(({ mood, minutes }) => {
                 const meta = MOOD_LABEL[mood];
+                const selected = picked === meta.name;
                 return (
                   <button
                     key={mood}
                     type="button"
                     onClick={() => chooseMood(mood, minutes)}
+                    aria-pressed={selected}
                     className="min-h-[88px] rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/58 px-3 py-3 text-left shadow-[inset_0_1px_0_rgba(245,236,221,0.04)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-parchment)]"
                   >
                     <span className="flex items-center gap-2">

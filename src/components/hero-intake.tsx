@@ -15,6 +15,7 @@ import { latestRecommendationMemory, latestStartedRecommendationMemory } from "@
 import { buildReturnHomeSummary, type ReturnHomeFallback } from "@/lib/return-home";
 import { runeliteProgressFromSyncSummary } from "@/lib/runelite-progress-memory";
 import { saveSavedBank, saveSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
+import { useDialogA11y } from "@/lib/use-dialog-a11y";
 import { cn } from "@/lib/utils";
 
 // Homepage intake: one RSN submit must reach a useful public-stats plan.
@@ -48,6 +49,7 @@ export function HeroIntake() {
   const [rememberedRsn, setRememberedRsn] = useState("");
   const [showBankGuide, setShowBankGuide] = useState(false);
   const [showRuneliteGuide, setShowRuneliteGuide] = useState(false);
+  const runeliteGuideRef = useDialogA11y<HTMLDivElement>(showRuneliteGuide, () => setShowRuneliteGuide(false));
   const [rememberedPluginBankItems, setRememberedPluginBankItems] = useState(0);
   const [runeliteRefresh, setRuneliteRefresh] = useState<"idle" | "checking" | "found" | "missing" | "error">("idle");
   const [returningFallback, setReturningFallback] = useState<ReturnHomeFallback>({});
@@ -331,6 +333,7 @@ export function HeroIntake() {
             autoCorrect="off"
             enterKeyHint="go"
             spellCheck={false}
+            aria-label="Type your OSRS name"
             aria-describedby="hero-plan-disabled-help"
             className={cn(
               "h-13 w-full min-w-0 rounded-lg border border-transparent bg-[var(--color-bg)]/72 px-3.5 outline-none",
@@ -441,10 +444,13 @@ export function HeroIntake() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="hero-runelite-guide-title"
+          aria-describedby="hero-runelite-guide-description"
           className="fixed inset-0 z-[100] overflow-y-auto bg-black/72 px-4 pb-8 pt-20 backdrop-blur-sm sm:grid sm:place-items-center sm:py-8"
           onClick={() => setShowRuneliteGuide(false)}
         >
           <div
+            ref={runeliteGuideRef}
+            tabIndex={-1}
             className="osrs-frame w-full max-w-xl text-left"
             onClick={(e) => e.stopPropagation()}
           >
@@ -454,7 +460,7 @@ export function HeroIntake() {
                 <h2 id="hero-runelite-guide-title" className="mt-1 text-[22px] font-semibold leading-tight text-[var(--color-text)]">
                   Let Scapestack skip finished stuff.
                 </h2>
-                <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
+                <p id="hero-runelite-guide-description" className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
                   Install Scapestack Sync when you want quests, diaries, clog and Slayer to shape the next plan.
                 </p>
               </div>

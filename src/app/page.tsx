@@ -73,9 +73,9 @@ export default function HomePage() {
               <div className="eyebrow mb-2" style={{ color: "var(--color-accent)" }}>
                 Solo project · No ads · No accounts
               </div>
-              <h3 className="text-[22px] font-semibold tracking-normal text-[var(--color-text)] sm:text-[26px]">
+              <h2 className="text-[22px] font-semibold tracking-normal text-[var(--color-text)] sm:text-[26px]">
                 Help keep Scapestack running
-              </h3>
+              </h2>
               <p className="mt-2.5 max-w-md text-[14px] leading-relaxed text-[var(--color-text-dim)]">
                 Free, no ads, no account. Coffee keeps the tools online.
               </p>

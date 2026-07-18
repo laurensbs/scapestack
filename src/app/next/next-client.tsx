@@ -75,6 +75,7 @@ import { summarizeNextPluginSync, type NextPluginSyncSummary } from "@/lib/next-
 import { runeliteProgressFromSyncSummary } from "@/lib/runelite-progress-memory";
 import { toolHandoffUrl } from "@/lib/bank-tool-routes";
 import { bankOrganizerHref } from "@/lib/bank-handoff-url";
+import { useDialogA11y } from "@/lib/use-dialog-a11y";
 import { shouldReadNextBankHandoff, shouldReadNextHeroBank } from "@/lib/next-route-context";
 import { nextIntentFromSearch, type NextIntentPreset } from "@/lib/next-intent";
 import {
@@ -959,6 +960,7 @@ function NextIntake({
   const [rsn, setRsn] = useState(savedRsn ?? "");
   const [showBankField, setShowBankField] = useState(false);
   const [showRoutePicker, setShowRoutePicker] = useState(false);
+  const routePickerRef = useDialogA11y<HTMLDivElement>(showRoutePicker, () => setShowRoutePicker(false));
   const [bank, setBank] = useState("");
   const [selectedRouteLens, setSelectedRouteLens] = useState<RouteLens>("smart");
   const handoffSummary = fromBank ? summarizeBankHandoff(fromBank.items) : null;
@@ -1121,6 +1123,7 @@ function NextIntake({
         )}>
           <div className="flex flex-col sm:flex-row sm:items-center">
             <input
+              aria-label="Type your OSRS name"
               type="text"
               value={rsn}
               onChange={(e) => setRsn(e.target.value)}
@@ -1220,10 +1223,13 @@ function NextIntake({
           role="dialog"
           aria-modal="true"
           aria-labelledby="next-route-popup-title"
+          aria-describedby="next-route-popup-description"
           className="fixed inset-0 z-[110] overflow-y-auto bg-black/72 px-4 pb-8 pt-20 backdrop-blur-sm sm:grid sm:place-items-center sm:py-8"
           onClick={() => setShowRoutePicker(false)}
         >
           <div
+            ref={routePickerRef}
+            tabIndex={-1}
             className="osrs-frame w-full max-w-2xl text-left"
             onClick={(event) => event.stopPropagation()}
           >
@@ -1233,7 +1239,7 @@ function NextIntake({
                 <h2 id="next-route-popup-title" className="mt-1 text-[24px] font-semibold leading-tight text-[var(--color-text)]">
                   What do you feel like doing?
                 </h2>
-                <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
+                <p id="next-route-popup-description" className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
                   Pick the session. Bank and RuneLite can make the route sharper later.
                 </p>
               </div>
@@ -1488,6 +1494,7 @@ function FirstPlanSharpening({
   const [visible, setVisible] = useState(false);
   const [open, setOpen] = useState(false);
   const [bankOpen, setBankOpen] = useState(false);
+  const sharpenDialogRef = useDialogA11y<HTMLDivElement>(open, () => setOpen(false));
 
   useEffect(() => {
     if (!firstRun || (hasBank && hasRunelite)) return;
@@ -1500,20 +1507,6 @@ function FirstPlanSharpening({
     }
     setVisible(true);
   }, [activeRsn, firstRun, hasBank, hasRunelite]);
-
-  useEffect(() => {
-    if (!open) return;
-    const previousOverflow = document.body.style.overflow;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", closeOnEscape);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [open]);
 
   if (!visible && !open && !bankOpen) return null;
 
@@ -1566,6 +1559,9 @@ function FirstPlanSharpening({
             role="dialog"
             aria-modal="true"
             aria-labelledby="first-plan-sharpen-title"
+            aria-describedby="first-plan-sharpen-description"
+            ref={sharpenDialogRef}
+            tabIndex={-1}
             className="osrs-frame relative w-full max-w-lg text-left"
           >
             <div className="osrs-title-bar flex items-start justify-between gap-4 px-5 py-4">
@@ -1574,6 +1570,9 @@ function FirstPlanSharpening({
                 <h2 id="first-plan-sharpen-title" className="mt-1 text-[22px] font-semibold leading-tight text-[var(--color-text)]">
                   Make the next pick sharper
                 </h2>
+                <p id="first-plan-sharpen-description" className="sr-only">
+                  Choose bank or RuneLite to improve the next Scapestack plan.
+                </p>
               </div>
               <button
                 type="button"
@@ -5951,21 +5950,8 @@ function RecHeadlineExpandable({
   pluginSyncState: "live" | "stale" | "outdated" | null;
 }) {
   const [open, setOpen] = useState(false);
+  const tripDetailsRef = useDialogA11y<HTMLElement>(open, () => setOpen(false));
   const whyNot = recommendationWhyNot({ headline: rec, allRecs, mood, hasBankContext, pluginSyncState });
-
-  useEffect(() => {
-    if (!open) return;
-    const previousOverflow = document.body.style.overflow;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", closeOnEscape);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [open]);
 
   const unknownNotes = decision.unknowns.map((unknown) => {
     if (unknown.code === "bank_setup") return "Your exact setup is not known, so the bring list stays conservative.";
@@ -6007,6 +5993,9 @@ function RecHeadlineExpandable({
             role="dialog"
             aria-modal="true"
             aria-labelledby="trip-details-title"
+            aria-describedby="trip-details-description"
+            ref={tripDetailsRef}
+            tabIndex={-1}
             className="osrs-frame relative max-h-[92dvh] w-full overflow-y-auto rounded-b-none sm:max-w-2xl sm:rounded-lg"
           >
             <header className="osrs-title-bar sticky top-0 z-10 flex items-start justify-between gap-4 px-5 py-4">
@@ -6015,6 +6004,9 @@ function RecHeadlineExpandable({
                 <h2 id="trip-details-title" className="mt-1 break-words text-[22px] font-semibold leading-tight text-[var(--color-text)]">
                   {rec.title}
                 </h2>
+                <p id="trip-details-description" className="sr-only">
+                  Trip details, steps and follow-up actions for this recommendation.
+                </p>
               </div>
               <button
                 type="button"

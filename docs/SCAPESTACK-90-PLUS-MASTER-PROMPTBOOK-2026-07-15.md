@@ -2196,7 +2196,7 @@ Acceptance:
 
 ## Phase 32 - Complete Accessibility Semantics
 
-Status: TODO  
+Status: DONE - 2026-07-18
 Depends on: Phase 31  
 Improves: accessibility
 
@@ -2223,6 +2223,23 @@ Acceptance:
 - no axe critical/serious issues;
 - component tests cover dialog and choice semantics.
 ```
+
+### Evidence - 2026-07-18
+
+- Added `useDialogA11y` for dialog focus trapping, Escape close, scroll
+  locking and focus return. Applied it to Add bank, mood picker, RuneLite
+  guide, browser connect, boss detail, path detail, saved-bank return,
+  Goals unlock and `/next` route/trip sheets.
+- Tightened semantics without adding visible dashboard copy: dialog
+  descriptions, status/error announcements, selected-state `aria-pressed`,
+  named OSRS inputs and boss browser `role=list` / `role=listitem` choices.
+- Browser pass on `/`, `/next`, `/dps`, `/goals` and `/plugin` at 390x844 and
+  1280x900 found no horizontal overflow, no heading skips after fixes and no
+  unnamed visible controls. Screenshots saved under `/tmp/phase32-*.png`.
+- Added `tests/accessibility-semantics.test.ts`. Verification: 210 test files /
+  1,322 tests passed. `npm run ci:check` passed typecheck, smoke,
+  recommendation audit, offline plugin release checks and the 216-page
+  production build. `./gradlew test` passed the RuneLite suite.
 
 ## Phase 33 - Hit Mobile Performance Gates
 

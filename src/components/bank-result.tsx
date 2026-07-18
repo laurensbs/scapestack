@@ -5793,7 +5793,7 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
             )}
           </div>
 
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(54px,1fr))] gap-2" data-testid="boss-quick-picks">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(54px,1fr))] gap-2" role="list" aria-label="Bosses matching this bank" data-testid="boss-quick-picks">
             {visibleBosses.length === 0 ? (
               <div className="col-span-full rounded-md border border-dashed border-[var(--color-border)] px-3 py-6 text-center text-[12px] text-[var(--color-text-muted)]">
                 No bosses match &ldquo;{query}&rdquo;.
@@ -5801,24 +5801,25 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
             ) : visibleBosses.map((b) => {
               const isSelected = b.slug === bossSlug;
               return (
-                <button
-                  key={b.slug}
-                  type="button"
-                  onClick={() => setBossSlug(b.slug)}
-                  aria-pressed={isSelected}
-                  title={b.name + (b.notes ? ` - ${b.notes}` : "")}
-                  className={cn(
-                    "group flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-lg border px-1.5 py-2 text-center transition-all",
-                    isSelected
-                      ? "scale-[1.02] border-[var(--color-accent)] bg-[var(--color-accent)]/12 shadow-[0_0_0_3px_rgba(134,166,217,0.16)]"
-                      : "border-[var(--color-border)] bg-[var(--color-bg-2)] hover:-translate-y-0.5 hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-panel-2)]"
-                  )}
-                >
-                  <BossSprite boss={b} size={38} />
-                  <span className="max-w-full truncate text-[9.5px] font-bold text-[var(--color-text-muted)] group-hover:text-[var(--color-text)]">
-                    {b.name}
-                  </span>
-                </button>
+                <div key={b.slug} role="listitem">
+                  <button
+                    type="button"
+                    onClick={() => setBossSlug(b.slug)}
+                    aria-pressed={isSelected}
+                    title={b.name + (b.notes ? ` - ${b.notes}` : "")}
+                    className={cn(
+                      "group flex min-h-[64px] w-full flex-col items-center justify-center gap-1 rounded-lg border px-1.5 py-2 text-center transition-all",
+                      isSelected
+                        ? "scale-[1.02] border-[var(--color-accent)] bg-[var(--color-accent)]/12 shadow-[0_0_0_3px_rgba(134,166,217,0.16)]"
+                        : "border-[var(--color-border)] bg-[var(--color-bg-2)] hover:-translate-y-0.5 hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-panel-2)]"
+                    )}
+                  >
+                    <BossSprite boss={b} size={38} />
+                    <span className="max-w-full truncate text-[9.5px] font-bold text-[var(--color-text-muted)] group-hover:text-[var(--color-text)]">
+                      {b.name}
+                    </span>
+                  </button>
+                </div>
               );
             })}
           </div>

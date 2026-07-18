@@ -6,6 +6,7 @@ import { ArrowRight, CheckCircle2, ChevronDown, ClipboardPaste, ExternalLink, Fi
 import { BANK_MEMORY_EXAMPLE, BankSetupSteps } from "@/components/bank-setup-steps";
 import { getActiveAccount } from "@/lib/account-storage";
 import { loadSavedBank, loadSavedRsn, saveSavedBank, saveSavedRsn } from "@/lib/saved-bank";
+import { useDialogA11y } from "@/lib/use-dialog-a11y";
 import { cn } from "@/lib/utils";
 import { track } from "@/lib/analytics";
 
@@ -32,6 +33,7 @@ export function AddBankModal({
   const [bank, setBank] = useState(initialBank);
   const [pasteState, setPasteState] = useState<PasteState>("idle");
   const [dragActive, setDragActive] = useState(false);
+  const dialogRef = useDialogA11y<HTMLDivElement>(open, onClose);
   const effectiveRsn = useMemo(() => {
     if (!open) return "";
     return (rsn ?? getActiveAccount()?.rsn ?? loadSavedRsn() ?? "").trim();
@@ -45,17 +47,7 @@ export function AddBankModal({
     setBank(initialBank);
     setPasteState("idle");
     setDragActive(false);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = previous;
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [initialBank, onClose, open]);
+  }, [initialBank, open]);
 
   if (!open) return null;
 
@@ -133,10 +125,13 @@ export function AddBankModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="add-bank-modal-title"
+      aria-describedby="add-bank-modal-description add-bank-modal-status"
       className="fixed inset-0 z-[180] flex items-end justify-center overflow-y-auto bg-black/78 p-0 backdrop-blur-sm sm:items-center sm:p-8"
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         className="scape-dialog overflow-hidden text-left"
         onClick={(event) => event.stopPropagation()}
       >
@@ -146,7 +141,7 @@ export function AddBankModal({
             <h2 id="add-bank-modal-title" className="mt-1 text-[25px] font-semibold leading-tight text-[var(--color-text)]">
               Add bank
             </h2>
-            <p className="mt-1 max-w-xl text-[13px] leading-relaxed text-[var(--color-text-muted)]">
+            <p id="add-bank-modal-description" className="mt-1 max-w-xl text-[13px] leading-relaxed text-[var(--color-text-muted)]">
               Paste Bank Memory once. Scapestack saves it on this device.
             </p>
           </div>

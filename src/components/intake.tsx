@@ -425,6 +425,7 @@ export function Intake({
             }}
             rows={compactSave ? 5 : 6}
             spellCheck={false}
+            aria-label="Paste RuneLite Bank Memory, Bank Tags or item IDs"
             aria-describedby="bank-paste-help bank-paste-status"
             className={cn(
               "w-full rounded-lg px-4 py-3.5 font-mono text-[12.5px] leading-relaxed",
@@ -463,6 +464,7 @@ export function Intake({
           type="file"
           accept=".tsv,.txt,.csv,text/plain,text/tab-separated-values,text/csv"
           className="sr-only"
+          aria-label="Choose a Bank Memory, Bank Tags or item ID file"
           aria-describedby="bank-paste-help"
           onChange={onFileChange}
         />

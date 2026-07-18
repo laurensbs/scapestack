@@ -15,6 +15,7 @@ import { wikiSearchUrl } from "@/lib/wiki";
 import type { BankHandoffItem } from "@/lib/next-bank-handoff";
 import { exportTag } from "@/lib/bank-tags";
 import { copyText } from "@/lib/clipboard";
+import { useDialogA11y } from "@/lib/use-dialog-a11y";
 import { buildBossInventoryPlan, type InventoryRowPick } from "@/lib/boss-trip-loadout";
 import { track } from "@/lib/analytics";
 import {
@@ -46,6 +47,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
     value: number;
     freshness: "fresh" | "stale" | "unavailable";
   } | null>(null);
+  const dialogRef = useDialogA11y<HTMLDivElement>(true, onClose);
   const lastTrackedBoss = useRef<string | null>(null);
   useEffect(() => {
     if (lastTrackedBoss.current === boss.slug) return;
@@ -56,18 +58,6 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
       hasBank: bankItems.length > 0
     });
   }, [analyticsSource, bankItems.length, boss.slug]);
-  // a11y: Esc closes, body scroll locked while open.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [onClose]);
-
   const bankDps = useMemo(() => bestStyleAndSetup(owned, boss), [owned, boss]);
   const activitySetup = isNonCombatBossActivity(boss);
   const knowledge = useMemo(() => bossKnowledge(boss), [boss]);
@@ -146,10 +136,12 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
   return createPortal(
     <div
       className="fixed inset-0 z-[200] flex items-end justify-center p-0 sm:items-center sm:p-6"
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
       aria-describedby={`${descriptionId} ${statsId}`}
+      tabIndex={-1}
       style={{ animation: "fade-in 0.2s ease-out" }}
     >
       <button

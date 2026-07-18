@@ -8,6 +8,7 @@ import {
   startBrowserPairing,
   type PairingHandle
 } from "@/lib/account-connection";
+import { useDialogA11y } from "@/lib/use-dialog-a11y";
 
 export function ConnectBrowserModal({
   open,
@@ -23,6 +24,7 @@ export function ConnectBrowserModal({
   const [pairing, setPairing] = useState<PairingHandle | null>(null);
   const [state, setState] = useState<"idle" | "starting" | "waiting" | "connected" | "error">("idle");
   const [error, setError] = useState("");
+  const dialogRef = useDialogA11y<HTMLElement>(open, onClose);
 
   useEffect(() => {
     if (!open) {
@@ -31,20 +33,6 @@ export function ConnectBrowserModal({
       setError("");
     }
   }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = previous;
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [onClose, open]);
 
   useEffect(() => {
     if (!open || state !== "waiting" || !pairing) return;
@@ -88,9 +76,12 @@ export function ConnectBrowserModal({
   return createPortal(
     <div className="fixed inset-0 z-[180] flex items-end justify-center overflow-y-auto bg-black/78 p-0 sm:items-center sm:p-4" role="presentation" onMouseDown={onClose}>
       <section
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="connect-browser-title"
+        aria-describedby="connect-browser-description"
+        tabIndex={-1}
         className="scape-dialog max-w-lg"
         onMouseDown={(event) => event.stopPropagation()}
       >
@@ -98,6 +89,9 @@ export function ConnectBrowserModal({
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-gold)]">RuneLite proof</p>
             <h2 id="connect-browser-title" className="mt-1 font-serif text-2xl text-[var(--color-text)]">Connect this browser</h2>
+            <p id="connect-browser-description" className="sr-only">
+              Connect RuneLite to this browser for the current player.
+            </p>
           </div>
           <button type="button" onClick={onClose} className="icon-btn" aria-label="Close connection dialog">
             <X className="size-4" />
@@ -138,7 +132,7 @@ export function ConnectBrowserModal({
                   </p>
                 </div>
               </div>
-              {error && <p className="mt-4 rounded-md border border-[var(--color-danger)]/35 bg-[var(--color-danger)]/10 px-3 py-2 text-sm text-[var(--color-text)]">{error}</p>}
+              {error && <p role="alert" className="mt-4 rounded-md border border-[var(--color-danger)]/35 bg-[var(--color-danger)]/10 px-3 py-2 text-sm text-[var(--color-text)]">{error}</p>}
               <button type="button" onClick={() => void start()} disabled={!rsn || state === "starting"} className="btn-primary mt-5 w-full justify-center disabled:opacity-50">
                 {state === "starting" && <Loader2 className="size-4 animate-spin" />}
                 Get connection code
