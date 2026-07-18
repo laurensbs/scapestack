@@ -57,10 +57,10 @@ export function RuneliteOpenButton({ className, compact = false }: { className?:
           ) : state === "copied" ? (
             <>
               <CheckCircle2 className="size-3 text-[var(--color-good)]" />
-              Copied. Search Plugin Hub for Scapestack Sync.
+              Copied. Search RuneLite for Scapestack Sync.
             </>
           ) : state === "error" ? (
-            "Open RuneLite, search Plugin Hub for Scapestack Sync."
+            "Open RuneLite, search for Scapestack Sync."
           ) : (
             <>
               <Copy className="size-3" />
@@ -74,7 +74,7 @@ export function RuneliteOpenButton({ className, compact = false }: { className?:
           rel="noopener noreferrer"
           className="inline-flex min-h-11 items-center font-semibold text-[var(--color-text-dim)] underline decoration-dotted underline-offset-4 transition-colors hover:text-[var(--color-accent)]"
         >
-          Plugin Hub page
+          RuneLite page
         </a>
       </div>
     </div>

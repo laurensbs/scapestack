@@ -2494,7 +2494,7 @@ Acceptance:
 
 ## Phase 39 - Build A Complete End-To-End Matrix
 
-Status: TODO  
+Status: DONE - 2026-07-18
 Depends on: Phases 22 through 38  
 Improves: all product scores
 
@@ -2527,6 +2527,25 @@ Acceptance:
 - no test depends on current live hiscores or prices unless explicitly marked
   as a separate live smoke.
 ```
+
+### Implemented
+
+- Added Playwright production-build coverage for the main player stories:
+  first RSN to plan, inline vibe choice, clickable backup routes, AFK-safe
+  surprise rerolls, bank paste persistence, Check Kill boss grid, empty bank
+  setup, RuneLite status/fix copy, returning account recap, account removal,
+  mobile quick actions and share image rendering.
+- Added desktop and mobile Chromium projects, Chromium-only install script,
+  console-error failure handling and horizontal overflow checks for app pages.
+- Added stable route-card targeting for the larger clickable backup cards.
+- Removed visible "Plugin Hub page" copy from the RuneLite opener and updated
+  copy tests to protect the player-facing wording.
+
+Verification:
+- `npm run e2e` - 23 passed, 1 desktop skip for the mobile-only story.
+- `npm run ci:check` - passed.
+- `npm run typecheck` - passed.
+- `plugin/./gradlew test` - passed.
 
 ## Phase 40 - Run Real OSRS Comprehension Tests
 

@@ -17,3 +17,5 @@ _rebuild/
 _rebuild_dup/
 .vercel
 .artifacts/
+test-results/
+playwright-report/

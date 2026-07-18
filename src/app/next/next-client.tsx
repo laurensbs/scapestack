@@ -4388,6 +4388,7 @@ function RecRow({
     <button
       type="button"
       onClick={() => onSelect(rec)}
+      data-route-card="true"
       className="group min-h-[136px] w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-4 text-left transition-colors hover:border-[var(--color-accent)]/55 hover:bg-[var(--color-accent)]/8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
       aria-label={`Choose ${rec.title}`}
     >
