@@ -19,11 +19,11 @@ describe("first plan latency contract", () => {
   });
 
   it("bounds critical and optional sources independently", () => {
-    expect(actions).toContain("scapestack: 900");
-    expect(actions).toContain("hiscores: 1_200");
-    expect(actions).toContain("wom: 450");
-    expect(actions).toContain("temple: 450");
-    expect(actions).toContain("collectionLog: 450");
+    expect(actions).toContain("scapestack: 650");
+    expect(actions).toContain("hiscores: 900");
+    expect(actions).toContain("wom: 300");
+    expect(actions).toContain("temple: 300");
+    expect(actions).toContain("collectionLog: 300");
     expect(actions).toContain('runBoundedSource("scapestack"');
     expect(actions).toContain('runBoundedSource("hiscores"');
     expect(actions).toContain('runBoundedSource("collection_log"');

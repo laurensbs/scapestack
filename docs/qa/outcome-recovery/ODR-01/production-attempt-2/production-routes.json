@@ -1,0 +1,1874 @@
+{
+  "schemaVersion": 1,
+  "baseUrl": "https://www.scapestack.org",
+  "generatedAt": "2026-07-19T16:22:51.705Z",
+  "browser": "149.0.7827.55",
+  "runCount": 3,
+  "routes": [
+    {
+      "route": "home",
+      "path": "/",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000,
+        "isMobile": false
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 612,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 592,
+          "actionableMs": 612,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 152,
+            "domContentLoadedMs": 590,
+            "loadEventMs": 741
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-01/production/ax/desktop-home.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-01/production/screenshots/desktop-home.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 1761,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 1745,
+          "actionableMs": 1761,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 1596,
+            "domContentLoadedMs": 1744,
+            "loadEventMs": 2048
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 320,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 303,
+          "actionableMs": 320,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 207,
+            "domContentLoadedMs": 302,
+            "loadEventMs": 450
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 84,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 56,
+          "actionableMs": 84,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?_rsc=5CB68i4pnAekjehf",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/?_rsc=7h4NYy5eoyMcNlUN",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/?_rsc=yIp22O3xgPPxC28X",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/api/account/me",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/dps?_rsc=7h4NYy5eoyMcNlUN",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 41,
+            "domContentLoadedMs": 54,
+            "loadEventMs": 125
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 86,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 58,
+          "actionableMs": 86,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/bank?_rsc=B0XTjNdT1YmnFybB",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/bank?_rsc=7h4NYy5eoyMcNlUN",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/1jeka2b4cuivx.js?dpl=dpl_GAfTXTJ2FRVgBMxZKRj62t5FFQ9Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?_rsc=tXyZJ52UQVBCVsD3",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/bank?_rsc=uaK0MgyDJoHiW1hD",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 41,
+            "domContentLoadedMs": 57,
+            "loadEventMs": 171
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 93,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 64,
+          "actionableMs": 93,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?_rsc=tXyZJ52UQVBCVsD3",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 50,
+            "domContentLoadedMs": 63,
+            "loadEventMs": 125
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 612,
+        "coldMinMs": 320,
+        "coldMaxMs": 1761,
+        "warmMedianMs": 86,
+        "warmMinMs": 84,
+        "warmMaxMs": 93,
+        "readyRuns": 6,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    },
+    {
+      "route": "next",
+      "path": "/next?rsn=Lauky&intent=short&time=15",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000,
+        "isMobile": false
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 1976,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 635,
+          "actionableMs": 1976,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=next&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 135,
+            "domContentLoadedMs": 629,
+            "loadEventMs": 747
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-01/production/ax/desktop-next.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-01/production/screenshots/desktop-next.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 1734,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 405,
+          "actionableMs": 1734,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 133,
+            "domContentLoadedMs": 404,
+            "loadEventMs": 521
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 2030,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 689,
+          "actionableMs": 2030,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 214,
+            "domContentLoadedMs": 688,
+            "loadEventMs": 763
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 1053,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 248,
+          "actionableMs": 1053,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=next&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 45,
+            "domContentLoadedMs": 246,
+            "loadEventMs": 246
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 2552,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 1246,
+          "actionableMs": 2552,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=next&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 42,
+            "domContentLoadedMs": 1244,
+            "loadEventMs": 1244
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 1048,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 243,
+          "actionableMs": 1048,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=next&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 41,
+            "domContentLoadedMs": 242,
+            "loadEventMs": 242
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 1976,
+        "coldMinMs": 1734,
+        "coldMaxMs": 2030,
+        "warmMedianMs": 1053,
+        "warmMinMs": 1048,
+        "warmMaxMs": 2552,
+        "readyRuns": 6,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    },
+    {
+      "route": "home",
+      "path": "/",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844,
+        "isMobile": true
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 243,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 227,
+          "actionableMs": 243,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 138,
+            "domContentLoadedMs": 226,
+            "loadEventMs": 340
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-01/production/ax/mobile-home.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-01/production/screenshots/mobile-home.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 246,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 230,
+          "actionableMs": 246,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 131,
+            "domContentLoadedMs": 229,
+            "loadEventMs": 433
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 340,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 322,
+          "actionableMs": 340,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 194,
+            "domContentLoadedMs": 321,
+            "loadEventMs": 398
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 79,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 54,
+          "actionableMs": 79,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 42,
+            "domContentLoadedMs": 53,
+            "loadEventMs": 101
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 110,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 79,
+          "actionableMs": 110,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 43,
+            "domContentLoadedMs": 77,
+            "loadEventMs": 220
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 88,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 60,
+          "actionableMs": 88,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 42,
+            "domContentLoadedMs": 58,
+            "loadEventMs": 104
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 246,
+        "coldMinMs": 243,
+        "coldMaxMs": 340,
+        "warmMedianMs": 88,
+        "warmMinMs": 79,
+        "warmMaxMs": 110,
+        "readyRuns": 6,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    },
+    {
+      "route": "next",
+      "path": "/next?rsn=Lauky&intent=short&time=15",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844,
+        "isMobile": true
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 1136,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 338,
+          "actionableMs": 1136,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 132,
+            "domContentLoadedMs": 336,
+            "loadEventMs": 492
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-01/production/ax/mobile-next.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-01/production/screenshots/mobile-next.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 2835,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 527,
+          "actionableMs": 2835,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 219,
+            "domContentLoadedMs": 526,
+            "loadEventMs": 2080
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 1455,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 626,
+          "actionableMs": 1455,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 129,
+            "domContentLoadedMs": 624,
+            "loadEventMs": 624
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 1013,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 211,
+          "actionableMs": 1013,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 51,
+            "domContentLoadedMs": 210,
+            "loadEventMs": 210
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 1553,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 243,
+          "actionableMs": 1553,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 41,
+            "domContentLoadedMs": 241,
+            "loadEventMs": 241
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 1027,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 219,
+          "actionableMs": 1027,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 42,
+            "domContentLoadedMs": 219,
+            "loadEventMs": 219
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 1455,
+        "coldMinMs": 1136,
+        "coldMaxMs": 2835,
+        "warmMedianMs": 1027,
+        "warmMinMs": 1013,
+        "warmMaxMs": 1553,
+        "readyRuns": 6,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    }
+  ],
+  "summary": {
+    "routeViewportPairs": 4,
+    "measuredNavigations": 24,
+    "failedReadyRuns": 0,
+    "consoleErrors": 0,
+    "pageErrors": 0,
+    "hydrationErrors": 0,
+    "overflowRuns": 0,
+    "brokenImages": 0,
+    "unnamedControls": 0
+  }
+}

@@ -139,6 +139,7 @@ async function measure(page, cdp, route, mode) {
   const consoleErrors = [];
   const pageErrors = [];
   const requestFailures = [];
+  const requestTimings = [];
 
   const onConsole = (message) => {
     if (message.type() === "error") consoleErrors.push(message.text());
@@ -151,10 +152,24 @@ async function measure(page, cdp, route, mode) {
       error: request.failure()?.errorText ?? "unknown"
     });
   };
+  const onRequestFinished = (request) => {
+    const url = new URL(request.url());
+    const isFirstParty = url.origin === new URL(BASE_URL).origin;
+    const isUsefulTiming = request.method() === "POST" || request.resourceType() === "script";
+    if (!isFirstParty || !isUsefulTiming) return;
+    const timing = request.timing();
+    requestTimings.push({
+      path: url.pathname,
+      method: request.method(),
+      resourceType: request.resourceType(),
+      durationMs: Math.max(0, Math.round(timing.responseEnd))
+    });
+  };
 
   page.on("console", onConsole);
   page.on("pageerror", onPageError);
   page.on("requestfailed", onRequestFailed);
+  page.on("requestfinished", onRequestFinished);
 
   const startedAt = Date.now();
   let status = null;
@@ -251,6 +266,7 @@ async function measure(page, cdp, route, mode) {
   page.off("console", onConsole);
   page.off("pageerror", onPageError);
   page.off("requestfailed", onRequestFailed);
+  page.off("requestfinished", onRequestFinished);
 
   return {
     mode,
@@ -266,6 +282,7 @@ async function measure(page, cdp, route, mode) {
     pageErrors,
     hydrationErrors: [...consoleErrors, ...pageErrors].filter((message) => /hydration|Minified React error #418/i.test(message)),
     requestFailures,
+    requestTimings,
     horizontalOverflowPx: dom.horizontalOverflowPx,
     brokenImages: dom.brokenImages,
     unnamedControls: [...dom.unnamedControls, ...axUnnamedInteractive],

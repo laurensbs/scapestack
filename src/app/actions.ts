@@ -13,11 +13,11 @@ import { runBoundedSource, type BoundedSourceTiming } from "@/lib/bounded-source
 import { buildNextUpInputFromSources } from "@/lib/planning-input";
 
 const PLANNING_SOURCE_DEADLINES_MS = {
-  scapestack: 900,
-  hiscores: 1_200,
-  wom: 450,
-  temple: 450,
-  collectionLog: 450
+  scapestack: 650,
+  hiscores: 900,
+  wom: 300,
+  temple: 300,
+  collectionLog: 300
 } as const;
 
 export async function hiscoresAction(rsn: string): Promise<PlayerHiscores | null> {
