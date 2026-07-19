@@ -97,6 +97,17 @@ describe("immutable account snapshots", () => {
     expect(PERSIST_SYNC_SQL).not.toContain("token_hash");
   });
 
+  it("keeps the last known projection when a partial scan did not observe a domain", () => {
+    expect(PERSIST_SYNC_SQL).toContain("ELSE player_sync.skills");
+    expect(PERSIST_SYNC_SQL).toContain("ELSE player_sync.quests_completed");
+    expect(PERSIST_SYNC_SQL).toContain("ELSE player_sync.collection_log_item_ids");
+    expect(PERSIST_SYNC_SQL).toContain("ELSE player_sync.boss_kc");
+    expect(PERSIST_SYNC_SQL).toContain("ELSE player_sync.bank_items");
+    expect(PERSIST_SYNC_SQL).toContain("ELSE player_sync.bank_status");
+    expect(PERSIST_SYNC_SQL).toContain("ELSE player_sync.slayer");
+    expect(PERSIST_SYNC_SQL).toContain("IN ('available', 'permission-off')");
+  });
+
   it("keeps full bank contents out of historical summaries", () => {
     const snapshot = state();
     const summary = buildSnapshotSummary(snapshot);

@@ -307,6 +307,7 @@ export interface NextUpInput {
     questsCompleted: string[];
     diariesCompleted: Array<{ region: string; tier: string }>;
     collectionLogItemIds: number[];
+    bossKc?: Record<string, number> | null;
     bankStatus?: PluginBankStatus;
     lastSyncSummary?: SyncDeltaSummary | null;
     slayer?: {
@@ -3036,7 +3037,8 @@ function accountRouteRecs(input: {
     });
   }
 
-  const shouldSuggestSupplyLoop = farming >= 32 && hunter >= 5 && accountStage.id !== "maxed-grinder";
+  const shouldSuggestSupplyLoop = farming >= 32 && hunter >= 5;
+  const supplyLoopScore = accountStage.id === "maxed-grinder" ? 20 : 60;
   if (shouldSuggestSupplyLoop) {
     if (iron) {
       recs.push({
@@ -3046,7 +3048,7 @@ function accountRouteRecs(input: {
         why: "Ironman supplies come from loops: herbs, nests, seeds and passive Hunter XP.",
         payoff: "Prayer pots, brews later, tree seeds and easy daily progress.",
         decisionReason: "Your Farming and Hunter already support the supply loop that keeps ironman progress moving.",
-        score: 60,
+        score: supplyLoopScore,
         link: "/goals",
         iconItemId: 10092,
         routeTags: ["iron", "afk", "rebuild", "skiller"],
@@ -3078,7 +3080,7 @@ function accountRouteRecs(input: {
         why: "Fast GP and passive Hunter XP without committing to a grind.",
         payoff: "A 10-minute loop can fund teleports, supplies and small upgrades.",
         decisionReason: "This is a practical rebuild loop: low setup, clear stop point, and useful even when you are unsure what to do.",
-        score: 56,
+        score: accountStage.id === "maxed-grinder" ? 20 : 56,
         link: undefined,
         iconItemId: 10092,
         routeTags: ["gp", "afk", "rebuild", "returning"],
@@ -3695,9 +3697,12 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     ? new Set(input.scapestackSync.diariesCompleted.map((d) => diaryTierKey(d.region, d.tier)))
     : undefined;
 
-  // Boss KCs: merge Hiscores + WOM via max — WOM is often fresher
-  // because the RuneLite plugin pushes more often than Jagex updates.
-  const mergedBossKc: Record<string, number> = { ...(input.bossKc ?? {}) };
+  // Plugin KC can be fresher than Hiscores. Keep the highest observed value
+  // so a delayed public lookup cannot make established progress disappear.
+  const mergedBossKc: Record<string, number> = { ...(input.scapestackSync?.bossKc ?? {}) };
+  for (const [boss, kc] of Object.entries(input.bossKc ?? {})) {
+    mergedBossKc[boss] = Math.max(mergedBossKc[boss] ?? 0, kc);
+  }
   if (input.womBossKills) {
     // WOM uses snake_case names; the engine + drop-tables use the Wiki
     // form. We seed the merged map with WOM data under the SAME keys
@@ -3800,7 +3805,7 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     skills,
     quests,
     diaries,
-    bossKc: input.bossKc ?? {},
+    bossKc: mergedBossKc,
     questPoints: qp,
     womBossKills: input.womBossKills,
     accountMeta,

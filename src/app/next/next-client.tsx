@@ -592,9 +592,9 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
       // Pull Quest points + every positive boss KC from Hiscores activities.
       const qpActivity = hiscores?.activities.find((a) => a.name === "Quest points");
       const questPoints = qpActivity && qpActivity.score >= 0 ? qpActivity.score : 0;
-      const bossKc: Record<string, number> = {};
+      const bossKc: Record<string, number> = { ...(scapestackSync?.bossKc ?? {}) };
       for (const a of hiscores?.activities ?? []) {
-        if (a.score > 0) bossKc[a.name] = a.score;
+        if (a.score > 0) bossKc[a.name] = Math.max(bossKc[a.name] ?? 0, a.score);
       }
 
       // If neither RSN nor bank gave us anything, branch on *why*. A
@@ -638,6 +638,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
           questsCompleted: scapestackSync.questsCompleted,
           diariesCompleted: scapestackSync.diariesCompleted,
           collectionLogItemIds: scapestackSync.collectionLogItemIds,
+          bossKc: scapestackSync.bossKc,
           bankStatus: scapestackSync.bankStatus,
           lastSyncSummary: scapestackSync.lastSyncSummary,
           slayer: scapestackSync.slayer
@@ -4956,6 +4957,9 @@ function WhatToDo({
     if (!activeDecision || pluginSyncState === null) return;
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
+      const connectedAccount = getActiveAccount();
+      if (!connectedAccount?.serverAccountId) return;
+      if (activeRsn && connectedAccount.rsn.toLowerCase() !== activeRsn.toLowerCase()) return;
       void fetch("/api/account/decision", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -4969,13 +4973,16 @@ function WhatToDo({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [activeDecision, pluginSyncState]);
+  }, [activeDecision, activeRsn, pluginSyncState]);
 
   const persistDecisionLifecycle = (
     rec: Recommendation,
     eventType: "started" | "done" | "skipped"
   ) => {
     if (pluginSyncState === null) return;
+    const connectedAccount = getActiveAccount();
+    if (!connectedAccount?.serverAccountId) return;
+    if (activeRsn && connectedAccount.rsn.toLowerCase() !== activeRsn.toLowerCase()) return;
     const decision = activeDecision?.recommendationId === rec.id
       ? activeDecision
       : buildRecommendationDecision({
@@ -5360,7 +5367,7 @@ function WhatToDo({
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-8 text-center text-[var(--color-text-muted)] text-[13px]">
             {hiddenCount > 0
               ? "Everything matching this mood is hidden. Restore hidden picks or change mood/time."
-              : "Nothing urgent to flag — your account looks well on top of things."}
+              : "No safe trip fits this exact mood and time yet. Pick another vibe or a longer session."}
           </div>
         )}
       </div>

@@ -18,6 +18,8 @@ describe("/next RecommendationDecision adoption", () => {
 
   it("saves only the typed decision through the connected-account endpoint", () => {
     expect(source).toContain('fetch("/api/account/decision"');
+    expect(source).toContain("if (!connectedAccount?.serverAccountId) return;");
+    expect(source).toContain("connectedAccount.rsn.toLowerCase() !== activeRsn.toLowerCase()");
     expect(source).toContain("body: JSON.stringify({ decision: activeDecision })");
     expect(source).not.toContain("body: JSON.stringify({ decision: activeDecision, rsn:");
   });

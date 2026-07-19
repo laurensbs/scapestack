@@ -77,14 +77,38 @@ WITH identity AS (
   ON CONFLICT (rsn) DO UPDATE SET
     display_name = EXCLUDED.display_name,
     account_type = EXCLUDED.account_type,
-    skills = EXCLUDED.skills,
-    quests_completed = EXCLUDED.quests_completed,
-    diaries_completed = EXCLUDED.diaries_completed,
-    collection_log_item_ids = EXCLUDED.collection_log_item_ids,
-    boss_kc = EXCLUDED.boss_kc,
-    bank_items = EXCLUDED.bank_items,
-    bank_status = EXCLUDED.bank_status,
-    slayer = EXCLUDED.slayer,
+    skills = CASE
+      WHEN ($17::jsonb ->> 'skills') = 'available' THEN EXCLUDED.skills
+      ELSE player_sync.skills
+    END,
+    quests_completed = CASE
+      WHEN ($17::jsonb ->> 'quests') = 'available' THEN EXCLUDED.quests_completed
+      ELSE player_sync.quests_completed
+    END,
+    diaries_completed = CASE
+      WHEN ($17::jsonb ->> 'diaries') = 'available' THEN EXCLUDED.diaries_completed
+      ELSE player_sync.diaries_completed
+    END,
+    collection_log_item_ids = CASE
+      WHEN ($17::jsonb ->> 'collectionLog') = 'available' THEN EXCLUDED.collection_log_item_ids
+      ELSE player_sync.collection_log_item_ids
+    END,
+    boss_kc = CASE
+      WHEN ($17::jsonb ->> 'bossKc') = 'available' THEN EXCLUDED.boss_kc
+      ELSE player_sync.boss_kc
+    END,
+    bank_items = CASE
+      WHEN ($17::jsonb ->> 'bank') IN ('available', 'permission-off') THEN EXCLUDED.bank_items
+      ELSE player_sync.bank_items
+    END,
+    bank_status = CASE
+      WHEN ($17::jsonb ->> 'bank') IN ('available', 'permission-off') THEN EXCLUDED.bank_status
+      ELSE player_sync.bank_status
+    END,
+    slayer = CASE
+      WHEN ($17::jsonb ->> 'slayer') = 'available' THEN EXCLUDED.slayer
+      ELSE player_sync.slayer
+    END,
     plugin_version = EXCLUDED.plugin_version,
     snapshot_coverage = EXCLUDED.snapshot_coverage,
     sync_summary = EXCLUDED.sync_summary,

@@ -163,7 +163,7 @@ export const NEXT_AUDIT_SCENARIOS: NextAuditScenario[] = [
     rules: [
       ...commonHeadlineRules,
       rule("skills-complete", "The skills path recognizes a maxed account.", { type: "path-percent-range", path: "Skills", min: 100, max: 100 }),
-      rule("no-skill-grind", "No sub-99 skill route is shown to a maxed account.", { type: "visible-none", matcher: { kinds: ["skill"] } }),
+      rule("no-skill-grind", "No sub-99 skill route is shown to a maxed account.", { type: "visible-none", matcher: { kinds: ["skill"], titleIncludes: ["99"] } }),
       rule("endgame-choice", "A collection, goal or established KC route remains visible.", { type: "visible-any", matcher: { kinds: ["goal", "kc"] } })
     ]
   },

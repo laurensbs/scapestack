@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { computeNextUp } from "@/lib/next-up";
 import { formatRecommendationActionPlan, formatRecommendationSessionPlan } from "@/lib/action-plan-text";
 import type { HiscoreSkill } from "@/lib/hiscores";
-import { recommendationMoodEligibility } from "@/lib/mood";
+import { pickForRoute, recommendationMoodEligibility } from "@/lib/mood";
 
 const SKILLS = [
   "Attack", "Defence", "Strength", "Hitpoints", "Ranged", "Prayer",
@@ -735,6 +735,57 @@ describe("next-up action plans", () => {
 
     expect(recs.some((rec) => rec?.id === "skill:iron-herb-birdhouse-loop")).toBe(true);
     expect(recs.some((rec) => rec?.kind === "money")).toBe(false);
+  });
+
+  it("keeps a valid 15-minute route for a maxed-stage ironman", async () => {
+    const result = await computeNextUp({
+      skills: skillsAt(99),
+      questPoints: 300,
+      accountMeta: {
+        displayName: "Maxed Iron",
+        accountType: "ironman",
+        ehp: 1_000,
+        ehb: 1_000,
+        lastChangedAt: null
+      },
+      bossKc: { Vorkath: 1_500 }
+    });
+    const recs = [result.headline, ...result.rest]
+      .filter((rec): rec is NonNullable<typeof rec> => Boolean(rec));
+    const pick = pickForRoute(recs, "short", 15, "short-login");
+
+    expect(result.summary.accountStage.id).toBe("maxed-grinder");
+    expect(pick?.headline.id).toBe("skill:iron-herb-birdhouse-loop");
+  });
+
+  it("uses RuneLite boss KC when public Hiscores have not caught up", async () => {
+    const result = await computeNextUp({
+      skills: skillsFromLevels({
+        Attack: 90, Strength: 90, Defence: 80, Hitpoints: 85, Ranged: 92,
+        Magic: 85, Prayer: 74, Slayer: 80, Cooking: 80, Farming: 75, Hunter: 70
+      }),
+      questPoints: 180,
+      bank: [
+        { id: 4151, name: "Abyssal whip" },
+        { id: 11832, name: "Bandos chestplate" },
+        { id: 11834, name: "Bandos tassets" },
+        { id: 19553, name: "Amulet of torture" },
+        { id: 7462, name: "Barrows gloves" },
+        { id: 12954, name: "Dragon defender" }
+      ],
+      scapestackSync: {
+        displayName: "Plugin KC",
+        accountType: "normal",
+        questsCompleted: [],
+        diariesCompleted: [],
+        collectionLogItemIds: [],
+        bossKc: { Vardorvis: 15 }
+      }
+    });
+    const recs = [result.headline, ...result.rest].filter(Boolean);
+    const vardorvis = recs.find((rec) => rec?.id === "kc:Vardorvis:first-50");
+
+    expect(vardorvis?.decisionReason).toContain("15 Vardorvis KC");
   });
 
   it("prioritizes the live RuneLite Slayer task when plugin sync has one", async () => {
