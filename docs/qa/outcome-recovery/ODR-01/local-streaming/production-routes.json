@@ -1,0 +1,4676 @@
+{
+  "schemaVersion": 1,
+  "baseUrl": "http://127.0.0.1:3012",
+  "generatedAt": "2026-07-19T16:47:35.053Z",
+  "browser": "149.0.7827.55",
+  "runCount": 3,
+  "routes": [
+    {
+      "route": "home",
+      "path": "/",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000,
+        "isMobile": false
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 216,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 136,
+          "actionableMs": 216,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=5CB68i4pnAekjehf",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=tXyZJ52UQVBCVsD3",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 18
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 19
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 21
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 24
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 25
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 27
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 28
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 32
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 32
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 32
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 33
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 35
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 37
+            },
+            {
+              "path": "/_next/static/chunks/1jeka2b4cuivx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 4
+            },
+            {
+              "path": "/_next/static/chunks/2357h3_hatpnc.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 4
+            },
+            {
+              "path": "/_next/static/chunks/1x31i4i_kflfd.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 4
+            },
+            {
+              "path": "/_next/static/chunks/1r62903v4p4x1.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 4
+            },
+            {
+              "path": "/_next/static/chunks/2vc9f-hclt7gr.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 8
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 30,
+            "domContentLoadedMs": 133,
+            "loadEventMs": 187
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-01/local-streaming/ax/desktop-home.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-01/local-streaming/screenshots/desktop-home.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 71,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 17,
+          "actionableMs": 71,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=5CB68i4pnAekjehf",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=tXyZJ52UQVBCVsD3",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 7
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 8
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 8
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 10
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 11
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 11
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 11
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 14
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 14
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 15
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 15
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 15
+            },
+            {
+              "path": "/_next/static/chunks/2357h3_hatpnc.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 5
+            },
+            {
+              "path": "/_next/static/chunks/1jeka2b4cuivx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 5
+            },
+            {
+              "path": "/_next/static/chunks/1x31i4i_kflfd.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 6
+            },
+            {
+              "path": "/_next/static/chunks/1r62903v4p4x1.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 4
+            },
+            {
+              "path": "/_next/static/chunks/2vc9f-hclt7gr.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 8
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 3,
+            "domContentLoadedMs": 16,
+            "loadEventMs": 69
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 74,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 31,
+          "actionableMs": 74,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=5CB68i4pnAekjehf",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=tXyZJ52UQVBCVsD3",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 4
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 5
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 6
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 10
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 11
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 13
+            },
+            {
+              "path": "/_next/static/chunks/2357h3_hatpnc.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 6
+            },
+            {
+              "path": "/_next/static/chunks/1x31i4i_kflfd.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 6
+            },
+            {
+              "path": "/_next/static/chunks/1jeka2b4cuivx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 7
+            },
+            {
+              "path": "/_next/static/chunks/1r62903v4p4x1.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 5
+            },
+            {
+              "path": "/_next/static/chunks/2vc9f-hclt7gr.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 3,
+            "domContentLoadedMs": 29,
+            "loadEventMs": 63
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 33,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 11,
+          "actionableMs": 33,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=5CB68i4pnAekjehf",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=tXyZJ52UQVBCVsD3",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2357h3_hatpnc.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1jeka2b4cuivx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1x31i4i_kflfd.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2vc9f-hclt7gr.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1r62903v4p4x1.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 3,
+            "domContentLoadedMs": 9,
+            "loadEventMs": 27
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 36,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 9,
+          "actionableMs": 36,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=5CB68i4pnAekjehf",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=tXyZJ52UQVBCVsD3",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2357h3_hatpnc.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1jeka2b4cuivx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1x31i4i_kflfd.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2vc9f-hclt7gr.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1r62903v4p4x1.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 2,
+            "domContentLoadedMs": 7,
+            "loadEventMs": 25
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 35,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 9,
+          "actionableMs": 35,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=5CB68i4pnAekjehf",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=tXyZJ52UQVBCVsD3",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2357h3_hatpnc.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1jeka2b4cuivx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1x31i4i_kflfd.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2vc9f-hclt7gr.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1r62903v4p4x1.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 2,
+            "domContentLoadedMs": 8,
+            "loadEventMs": 29
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 74,
+        "coldMinMs": 71,
+        "coldMaxMs": 216,
+        "warmMedianMs": 35,
+        "warmMinMs": 33,
+        "warmMaxMs": 36,
+        "readyRuns": 6,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    },
+    {
+      "route": "next",
+      "path": "/next?rsn=Lauky&intent=short&time=15",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000,
+        "isMobile": false
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 634,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 532,
+          "actionableMs": 634,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 3
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 6
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 6
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 13
+            },
+            {
+              "path": "/_next/static/chunks/17d50d2wy96-o.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 15
+            },
+            {
+              "path": "/_next/static/chunks/3934cxth_3c1t.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 15
+            },
+            {
+              "path": "/_next/static/chunks/2357h3_hatpnc.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 15
+            },
+            {
+              "path": "/_next/static/chunks/2znzl8_mhbift.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 18
+            },
+            {
+              "path": "/_next/static/chunks/1x31i4i_kflfd.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 5
+            },
+            {
+              "path": "/_next/static/chunks/1jeka2b4cuivx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 6
+            },
+            {
+              "path": "/_next/static/chunks/1r62903v4p4x1.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 8
+            },
+            {
+              "path": "/_next/static/chunks/2vc9f-hclt7gr.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 13
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Tidy your bank"
+            },
+            {
+              "level": "h3",
+              "text": "Choose a different vibe"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Collect 2 items for The Blood Moon Rises"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Tidy your bank",
+            "Choose a different vibe",
+            "Push Farming to 99",
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 63,
+            "domContentLoadedMs": 530,
+            "loadEventMs": 530
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-01/local-streaming/ax/desktop-next.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-01/local-streaming/screenshots/desktop-next.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 676,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 608,
+          "actionableMs": 676,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 4
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 6
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 6
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 13
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 13
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 14
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 15
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 15
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 15
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 17
+            },
+            {
+              "path": "/_next/static/chunks/17d50d2wy96-o.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 17
+            },
+            {
+              "path": "/_next/static/chunks/3934cxth_3c1t.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 18
+            },
+            {
+              "path": "/_next/static/chunks/2357h3_hatpnc.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 18
+            },
+            {
+              "path": "/_next/static/chunks/2znzl8_mhbift.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 20
+            },
+            {
+              "path": "/_next/static/chunks/1jeka2b4cuivx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 7
+            },
+            {
+              "path": "/_next/static/chunks/1x31i4i_kflfd.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 7
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 4
+            },
+            {
+              "path": "/_next/static/chunks/1r62903v4p4x1.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 8
+            },
+            {
+              "path": "/_next/static/chunks/2vc9f-hclt7gr.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 13
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Tidy your bank"
+            },
+            {
+              "level": "h3",
+              "text": "Choose a different vibe"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Collect 2 items for The Blood Moon Rises"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Tidy your bank",
+            "Choose a different vibe",
+            "Push Farming to 99",
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 8,
+            "domContentLoadedMs": 607,
+            "loadEventMs": 1561
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 509,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 438,
+          "actionableMs": 509,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 2
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 5
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 5
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 6
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 7
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 8
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 8
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 10
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 10
+            },
+            {
+              "path": "/_next/static/chunks/17d50d2wy96-o.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 11
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 11
+            },
+            {
+              "path": "/_next/static/chunks/3934cxth_3c1t.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/2357h3_hatpnc.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/2znzl8_mhbift.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 15
+            },
+            {
+              "path": "/_next/static/chunks/1jeka2b4cuivx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/1x31i4i_kflfd.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 2
+            },
+            {
+              "path": "/_next/static/chunks/1r62903v4p4x1.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 5
+            },
+            {
+              "path": "/_next/static/chunks/2vc9f-hclt7gr.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 10
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Tidy your bank"
+            },
+            {
+              "level": "h3",
+              "text": "Choose a different vibe"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Collect 2 items for The Blood Moon Rises"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Tidy your bank",
+            "Choose a different vibe",
+            "Push Farming to 99",
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 7,
+            "domContentLoadedMs": 438,
+            "loadEventMs": 439
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 462,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 431,
+          "actionableMs": 462,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/17d50d2wy96-o.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3934cxth_3c1t.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2357h3_hatpnc.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2znzl8_mhbift.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1jeka2b4cuivx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1x31i4i_kflfd.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2vc9f-hclt7gr.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1r62903v4p4x1.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Tidy your bank"
+            },
+            {
+              "level": "h3",
+              "text": "Choose a different vibe"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Collect 2 items for The Blood Moon Rises"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Tidy your bank",
+            "Choose a different vibe",
+            "Push Farming to 99",
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 9,
+            "domContentLoadedMs": 430,
+            "loadEventMs": 430
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 461,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 434,
+          "actionableMs": 461,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/17d50d2wy96-o.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3934cxth_3c1t.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2357h3_hatpnc.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2znzl8_mhbift.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1jeka2b4cuivx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1x31i4i_kflfd.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2vc9f-hclt7gr.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1r62903v4p4x1.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Tidy your bank"
+            },
+            {
+              "level": "h3",
+              "text": "Choose a different vibe"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Collect 2 items for The Blood Moon Rises"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Tidy your bank",
+            "Choose a different vibe",
+            "Push Farming to 99",
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 7,
+            "domContentLoadedMs": 432,
+            "loadEventMs": 433
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 467,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 441,
+          "actionableMs": 467,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/17d50d2wy96-o.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3934cxth_3c1t.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2357h3_hatpnc.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2znzl8_mhbift.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1jeka2b4cuivx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1x31i4i_kflfd.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2vc9f-hclt7gr.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1r62903v4p4x1.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Tidy your bank"
+            },
+            {
+              "level": "h3",
+              "text": "Choose a different vibe"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Collect 2 items for The Blood Moon Rises"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Tidy your bank",
+            "Choose a different vibe",
+            "Push Farming to 99",
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 6,
+            "domContentLoadedMs": 440,
+            "loadEventMs": 440
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 634,
+        "coldMinMs": 509,
+        "coldMaxMs": 676,
+        "warmMedianMs": 462,
+        "warmMinMs": 461,
+        "warmMaxMs": 467,
+        "readyRuns": 6,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    },
+    {
+      "route": "home",
+      "path": "/",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844,
+        "isMobile": true
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 75,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 32,
+          "actionableMs": 75,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 4
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 5
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 6
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 8
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 8
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 10
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 10
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 11
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 11
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 13
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 4,
+            "domContentLoadedMs": 31,
+            "loadEventMs": 65
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-01/local-streaming/ax/mobile-home.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-01/local-streaming/screenshots/mobile-home.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 74,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 14,
+          "actionableMs": 74,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 6
+            },
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 6
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 6
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 8
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 10
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 10
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 10
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 13
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 13
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 13
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 14
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 14
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 2,
+            "domContentLoadedMs": 13,
+            "loadEventMs": 64
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 76,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 28,
+          "actionableMs": 76,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 6
+            },
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 6
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 6
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 8
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 10
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 10
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 13
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 13
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 14
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 2,
+            "domContentLoadedMs": 27,
+            "loadEventMs": 65
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 32,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 8,
+          "actionableMs": 32,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 2,
+            "domContentLoadedMs": 7,
+            "loadEventMs": 24
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 31,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 10,
+          "actionableMs": 31,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 2,
+            "domContentLoadedMs": 8,
+            "loadEventMs": 25
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 30,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 8,
+          "actionableMs": 30,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 2,
+            "domContentLoadedMs": 7,
+            "loadEventMs": 24
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 75,
+        "coldMinMs": 74,
+        "coldMaxMs": 76,
+        "warmMedianMs": 31,
+        "warmMinMs": 30,
+        "warmMaxMs": 32,
+        "readyRuns": 6,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    },
+    {
+      "route": "next",
+      "path": "/next?rsn=Lauky&intent=short&time=15",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844,
+        "isMobile": true
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 498,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 430,
+          "actionableMs": 498,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?rsn=Lauky&intent=short&time=15&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 3
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 7
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 7
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 11
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 11
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 11
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 13
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 15
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 15
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 15
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 16
+            },
+            {
+              "path": "/_next/static/chunks/17d50d2wy96-o.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 16
+            },
+            {
+              "path": "/_next/static/chunks/2357h3_hatpnc.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 18
+            },
+            {
+              "path": "/_next/static/chunks/3934cxth_3c1t.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 18
+            },
+            {
+              "path": "/_next/static/chunks/2znzl8_mhbift.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 20
+            },
+            {
+              "path": "/_next/static/chunks/1r62903v4p4x1.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 6
+            },
+            {
+              "path": "/_next/static/chunks/1ac5n6mr2x2eq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 3
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 3
+            },
+            {
+              "path": "/_next/static/chunks/2vc9f-hclt7gr.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 10
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Tidy your bank"
+            },
+            {
+              "level": "h3",
+              "text": "Choose a different vibe"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Collect 2 items for The Blood Moon Rises"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Tidy your bank",
+            "Choose a different vibe",
+            "Push Farming to 99",
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 6,
+            "domContentLoadedMs": 429,
+            "loadEventMs": 429
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-01/local-streaming/ax/mobile-next.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-01/local-streaming/screenshots/mobile-next.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 411,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 346,
+          "actionableMs": 411,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?rsn=Lauky&intent=short&time=15&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 2
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 5
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 5
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 7
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 7
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 8
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/17d50d2wy96-o.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 11
+            },
+            {
+              "path": "/_next/static/chunks/3934cxth_3c1t.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 11
+            },
+            {
+              "path": "/_next/static/chunks/2357h3_hatpnc.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/2znzl8_mhbift.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 15
+            },
+            {
+              "path": "/_next/static/chunks/1ac5n6mr2x2eq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 7
+            },
+            {
+              "path": "/_next/static/chunks/1r62903v4p4x1.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 7
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 2
+            },
+            {
+              "path": "/_next/static/chunks/2vc9f-hclt7gr.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 13
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Tidy your bank"
+            },
+            {
+              "level": "h3",
+              "text": "Choose a different vibe"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Collect 2 items for The Blood Moon Rises"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Tidy your bank",
+            "Choose a different vibe",
+            "Push Farming to 99",
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 7,
+            "domContentLoadedMs": 345,
+            "loadEventMs": 346
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 467,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 261,
+          "actionableMs": 467,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?rsn=Lauky&intent=short&time=15&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 2
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 5
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 5
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 6
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 7
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 7
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 8
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 8
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 9
+            },
+            {
+              "path": "/_next/static/chunks/17d50d2wy96-o.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 10
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 10
+            },
+            {
+              "path": "/_next/static/chunks/2357h3_hatpnc.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 11
+            },
+            {
+              "path": "/_next/static/chunks/3934cxth_3c1t.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 12
+            },
+            {
+              "path": "/_next/static/chunks/2znzl8_mhbift.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 15
+            },
+            {
+              "path": "/_next/static/chunks/1ac5n6mr2x2eq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 4
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 2
+            },
+            {
+              "path": "/_next/static/chunks/1r62903v4p4x1.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 4
+            },
+            {
+              "path": "/_next/static/chunks/2vc9f-hclt7gr.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 10
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Tidy your bank"
+            },
+            {
+              "level": "h3",
+              "text": "Choose a different vibe"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Collect 2 items for The Blood Moon Rises"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Tidy your bank",
+            "Choose a different vibe",
+            "Push Farming to 99",
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 6,
+            "domContentLoadedMs": 260,
+            "loadEventMs": 261
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 462,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 433,
+          "actionableMs": 462,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "http://127.0.0.1:3012/next?rsn=Lauky&intent=short&time=15&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/17d50d2wy96-o.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3934cxth_3c1t.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2357h3_hatpnc.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2znzl8_mhbift.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1ac5n6mr2x2eq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2vc9f-hclt7gr.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1r62903v4p4x1.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Tidy your bank"
+            },
+            {
+              "level": "h3",
+              "text": "Choose a different vibe"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Collect 2 items for The Blood Moon Rises"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Tidy your bank",
+            "Choose a different vibe",
+            "Push Farming to 99",
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 6,
+            "domContentLoadedMs": 432,
+            "loadEventMs": 432
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 364,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 322,
+          "actionableMs": 364,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "http://127.0.0.1:3012/next?_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "http://127.0.0.1:3012/next?rsn=Lauky&intent=short&time=15&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/17d50d2wy96-o.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3934cxth_3c1t.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2357h3_hatpnc.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2znzl8_mhbift.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1ac5n6mr2x2eq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2vc9f-hclt7gr.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1r62903v4p4x1.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Tidy your bank"
+            },
+            {
+              "level": "h3",
+              "text": "Choose a different vibe"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Collect 2 items for The Blood Moon Rises"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Tidy your bank",
+            "Choose a different vibe",
+            "Push Farming to 99",
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 8,
+            "domContentLoadedMs": 321,
+            "loadEventMs": 321
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 353,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 267,
+          "actionableMs": 353,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "http://127.0.0.1:3012/next?rsn=Lauky&intent=short&time=15&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "requestTimings": [
+            {
+              "path": "/_next/static/chunks/22m45e037uyax.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/0paxexg6-m0de.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1eglloh0s_w8l.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1njcoqxx42smm.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-14c_i9v5toytx.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/36p18osrua69j.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3neesbl6nsfsq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2pgun7znvoogh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3n_hent779i15.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3p85xazakrskj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/05-c3ty_6dwfk.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/14mrh2-p_w84d.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/17d50d2wy96-o.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/3934cxth_3c1t.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2357h3_hatpnc.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2znzl8_mhbift.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1ac5n6mr2x2eq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/2vc9f-hclt7gr.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/1r62903v4p4x1.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            },
+            {
+              "path": "/_next/static/chunks/39kg2ef7rto08.js",
+              "method": "GET",
+              "resourceType": "script",
+              "durationMs": 0
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Tidy your bank"
+            },
+            {
+              "level": "h3",
+              "text": "Choose a different vibe"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Collect 2 items for The Blood Moon Rises"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Tidy your bank",
+            "Choose a different vibe",
+            "Push Farming to 99",
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 8,
+            "domContentLoadedMs": 266,
+            "loadEventMs": 266
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 467,
+        "coldMinMs": 411,
+        "coldMaxMs": 498,
+        "warmMedianMs": 364,
+        "warmMinMs": 353,
+        "warmMaxMs": 462,
+        "readyRuns": 6,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    }
+  ],
+  "summary": {
+    "routeViewportPairs": 4,
+    "measuredNavigations": 24,
+    "failedReadyRuns": 0,
+    "consoleErrors": 0,
+    "pageErrors": 0,
+    "hydrationErrors": 0,
+    "overflowRuns": 0,
+    "brokenImages": 0,
+    "unnamedControls": 0
+  }
+}

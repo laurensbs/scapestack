@@ -570,7 +570,8 @@ describe("/next confidence UI copy", () => {
   it("passes browser handoff items into direct RSN runs", () => {
     expect(source).toContain("let heroBankItems = [] as BankHandoffItem[];");
     expect(source).toContain("heroBankItems = readBankHandoffPayload(window);");
-    expect(source).toContain("run({ rsn: heroRsn.trim(), input: heroBank, bankItems: heroBankItems });");
+    expect(source).toContain("bankItems: heroBankItems");
+    expect(source).toContain("planningContext: initialPlanningContext ?? undefined");
     expect(source).toContain('placeholder="Type your OSRS name"');
     expect(source).toContain("Plan my next move");
   });

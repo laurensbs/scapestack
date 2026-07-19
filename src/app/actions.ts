@@ -5,20 +5,25 @@ import type { Archetype } from "@/lib/archetype";
 import { computeNextUp, type NextUpInput, type NextUpResult } from "@/lib/next-up";
 import { fetchHiscores, type PlayerHiscores } from "@/lib/hiscores";
 import { fetchWom, type WomPlayer } from "@/lib/wom";
-import { fetchCollectionLog, type CollectionLog } from "@/lib/collection-log";
-import { fetchTemple, type TempleData } from "@/lib/temple";
+import { fetchCollectionLog } from "@/lib/collection-log";
+import { fetchTemple } from "@/lib/temple";
 import { getSyncedPlayer, type SyncedPlayer } from "@/lib/sync-repo";
 import { hasDatabase } from "@/lib/db";
-import { runBoundedSource, type BoundedSourceTiming } from "@/lib/bounded-source";
-import { buildNextUpInputFromSources } from "@/lib/planning-input";
+import {
+  collectionLogPayload,
+  loadPlanningContext,
+  templePayload,
+  type CollectionLogPayload,
+  type PlanningContextPayload,
+  type TemplePayload
+} from "@/lib/planning-context";
 
-const PLANNING_SOURCE_DEADLINES_MS = {
-  scapestack: 650,
-  hiscores: 900,
-  wom: 300,
-  temple: 300,
-  collectionLog: 300
-} as const;
+export type {
+  CollectionLogPayload,
+  PlanningContextPayload,
+  PlanningContextTiming,
+  TemplePayload
+} from "@/lib/planning-context";
 
 export async function hiscoresAction(rsn: string): Promise<PlayerHiscores | null> {
   // Server-side proxy for the OSRS Hiscores fetch. The Jagex endpoint
@@ -39,27 +44,6 @@ export async function womAction(rsn: string): Promise<WomPlayer | null> {
 
 /** Serialisable shape — Set isn't structured-clone-safe across the
  *  server/client boundary. Caller rebuilds the Set on the client side. */
-export interface CollectionLogPayload {
-  displayName: string;
-  uniqueObtained: number;
-  uniqueItems: number;
-  ownedItemIds: number[];
-  tabs: Record<string, { obtained: number; total: number }>;
-  lastSyncedAt: string | null;
-}
-
-function collectionLogPayload(log: CollectionLog | null): CollectionLogPayload | null {
-  if (!log) return null;
-  return {
-    displayName: log.displayName,
-    uniqueObtained: log.uniqueObtained,
-    uniqueItems: log.uniqueItems,
-    ownedItemIds: Array.from(log.ownedItemIds),
-    tabs: log.tabs,
-    lastSyncedAt: log.lastSyncedAt
-  };
-}
-
 export async function collectionLogAction(rsn: string): Promise<CollectionLogPayload | null> {
   // CollectionLog.net only has data for players who actively use their
   // RuneLite plugin. Most won't be tracked — null is the common path
@@ -70,21 +54,6 @@ export async function collectionLogAction(rsn: string): Promise<CollectionLogPay
 }
 
 /** Serialisable shape for the same reason as the collection-log payload. */
-export interface TemplePayload {
-  displayName: string;
-  questsCompleted: string[];
-  lastUpdatedAt: string | null;
-}
-
-function templePayload(data: TempleData | null): TemplePayload | null {
-  if (!data) return null;
-  return {
-    displayName: data.displayName,
-    questsCompleted: Array.from(data.questsCompleted),
-    lastUpdatedAt: data.lastUpdatedAt
-  };
-}
-
 export async function templeAction(rsn: string): Promise<TemplePayload | null> {
   // TempleOSRS tracks per-quest completion for plugin-using accounts.
   // For Temple-tracked players we use real completion data instead of
@@ -100,91 +69,13 @@ export async function syncedPlayerAction(rsn: string): Promise<SyncedPlayer | nu
   return getSyncedPlayer(rsn);
 }
 
-export interface PlanningContextTiming {
-  totalMs: number;
-  criticalMs: number;
-  optionalMs: number;
-  plannerMs: number;
-  timeoutCount: number;
-  sources: BoundedSourceTiming[];
-}
-
-export interface PlanningContextPayload {
-  hiscores: PlayerHiscores | null;
-  wom: WomPlayer | null;
-  temple: TemplePayload | null;
-  collectionLog: CollectionLogPayload | null;
-  scapestackSync: SyncedPlayer | null;
-  initialPlan: NextUpResult | null;
-  timing: PlanningContextTiming;
-}
-
-async function computeInitialPlan(input: {
-  rsn: string;
-  hiscores: PlayerHiscores | null;
-  wom: WomPlayer | null;
-  temple: TempleData | null;
-  collectionLog: CollectionLog | null;
-  scapestackSync: SyncedPlayer | null;
-}): Promise<NextUpResult | null> {
-  const nextUpInput = buildNextUpInputFromSources({
-    rsn: input.rsn,
-    hiscores: input.hiscores,
-    wom: input.wom,
-    templeQuestsCompleted: input.temple ? Array.from(input.temple.questsCompleted) : undefined,
-    collectionLogOwnedItemIds: input.collectionLog ? Array.from(input.collectionLog.ownedItemIds) : undefined,
-    scapestackSync: input.scapestackSync
-  });
-  return nextUpInput ? computeNextUp(nextUpInput) : null;
-}
-
 /**
  * One bounded round trip for the first recommendation. Scapestack sync and
  * official Hiscores are the critical account read; community trackers are
  * optional and never get to delay the first useful plan beyond their budget.
  */
 export async function planningContextAction(rsn: string): Promise<PlanningContextPayload> {
-  const startedAt = performance.now();
-  const [scapestack, hiscores, wom, temple, collectionLog] = await Promise.all([
-    runBoundedSource("scapestack", PLANNING_SOURCE_DEADLINES_MS.scapestack, () => getSyncedPlayer(rsn)),
-    runBoundedSource("hiscores", PLANNING_SOURCE_DEADLINES_MS.hiscores, (signal) => fetchHiscores(rsn, { signal })),
-    runBoundedSource("wom", PLANNING_SOURCE_DEADLINES_MS.wom, (signal) => fetchWom(rsn, { signal })),
-    runBoundedSource("temple", PLANNING_SOURCE_DEADLINES_MS.temple, (signal) => fetchTemple(rsn, { signal })),
-    runBoundedSource("collection_log", PLANNING_SOURCE_DEADLINES_MS.collectionLog, (signal) => fetchCollectionLog(rsn, { signal }))
-  ]);
-
-  const sources = [scapestack.timing, hiscores.timing, wom.timing, temple.timing, collectionLog.timing];
-  const plannerStartedAt = performance.now();
-  const initialPlan = await computeInitialPlan({
-    rsn,
-    hiscores: hiscores.value,
-    wom: wom.value,
-    temple: temple.value,
-    collectionLog: collectionLog.value,
-    scapestackSync: scapestack.value
-  });
-  const plannerMs = Math.max(0, Math.round(performance.now() - plannerStartedAt));
-  const timing: PlanningContextTiming = {
-    totalMs: Math.max(0, Math.round(performance.now() - startedAt)),
-    criticalMs: Math.max(scapestack.timing.elapsedMs, hiscores.timing.elapsedMs),
-    optionalMs: Math.max(wom.timing.elapsedMs, temple.timing.elapsedMs, collectionLog.timing.elapsedMs),
-    plannerMs,
-    timeoutCount: sources.filter((source) => source.state === "timeout").length,
-    sources
-  };
-
-  // No RSN, bank rows or payload data: this is safe to retain in server logs.
-  console.info("scapestack.next_context", JSON.stringify(timing));
-
-  return {
-    hiscores: hiscores.value,
-    wom: wom.value,
-    temple: templePayload(temple.value),
-    collectionLog: collectionLogPayload(collectionLog.value),
-    scapestackSync: scapestack.value,
-    initialPlan,
-    timing
-  };
+  return loadPlanningContext(rsn);
 }
 
 export type PluginSyncStatus =

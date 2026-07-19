@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 
 const actions = readFileSync(join(process.cwd(), "src/app/actions.ts"), "utf8");
 const nextClient = readFileSync(join(process.cwd(), "src/app/next/next-client.tsx"), "utf8");
+const nextPage = readFileSync(join(process.cwd(), "src/app/next/page.tsx"), "utf8");
+const planningContext = readFileSync(join(process.cwd(), "src/lib/planning-context.ts"), "utf8");
 const home = readFileSync(join(process.cwd(), "src/app/page.tsx"), "utf8");
 const wom = readFileSync(join(process.cwd(), "src/lib/wom.ts"), "utf8");
 const temple = readFileSync(join(process.cwd(), "src/lib/temple.ts"), "utf8");
@@ -13,20 +15,29 @@ describe("first plan latency contract", () => {
   it("has no deliberate loader floor and reads account context in one call", () => {
     expect(nextClient).toContain("planningContextAction(rsn)");
     expect(nextClient).toContain("planningContext?.initialPlan");
+    expect(nextClient).toContain("opts.planningContext ?? await planningContextAction(rsn)");
     expect(nextClient).not.toContain("minLoaderUntil");
     expect(nextClient).not.toContain("minimum loader");
     expect(nextClient).not.toMatch(/remainingLoaderMs[\s\S]*setTimeout/);
   });
 
   it("bounds critical and optional sources independently", () => {
-    expect(actions).toContain("scapestack: 650");
-    expect(actions).toContain("hiscores: 900");
-    expect(actions).toContain("wom: 300");
-    expect(actions).toContain("temple: 300");
-    expect(actions).toContain("collectionLog: 300");
-    expect(actions).toContain('runBoundedSource("scapestack"');
-    expect(actions).toContain('runBoundedSource("hiscores"');
-    expect(actions).toContain('runBoundedSource("collection_log"');
+    expect(planningContext).toContain("scapestack: 650");
+    expect(planningContext).toContain("hiscores: 900");
+    expect(planningContext).toContain("wom: 300");
+    expect(planningContext).toContain("temple: 300");
+    expect(planningContext).toContain("collectionLog: 300");
+    expect(planningContext).toContain('runBoundedSource("scapestack"');
+    expect(planningContext).toContain('runBoundedSource("hiscores"');
+    expect(planningContext).toContain('runBoundedSource("collection_log"');
+    expect(actions).toContain("return loadPlanningContext(rsn)");
+  });
+
+  it("starts account loading in the streamed route before client hydration", () => {
+    expect(nextPage).toContain("<Suspense");
+    expect(nextPage).toContain("await loadPlanningContext(rsn)");
+    expect(nextPage).toContain("initialPlanningContext={initialPlanningContext}");
+    expect(nextPage).toContain("Picking your next trip...");
   });
 
   it("passes abort signals to every optional HTTP source", () => {
@@ -37,8 +48,8 @@ describe("first plan latency contract", () => {
   });
 
   it("records only privacy-safe duration data", () => {
-    expect(actions).toContain('console.info("scapestack.next_context", JSON.stringify(timing))');
-    expect(actions).toContain("plannerMs");
+    expect(planningContext).toContain('console.info("scapestack.next_context", JSON.stringify(timing))');
+    expect(planningContext).toContain("plannerMs");
     expect(nextClient).toContain('track("plan:context_ready"');
   });
 

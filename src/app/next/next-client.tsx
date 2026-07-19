@@ -26,6 +26,7 @@ import { getActiveAccount, markAccountPluginBankStatus, markAccountRuneliteProgr
 import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
 import { track, type AnalyticsContext } from "@/lib/analytics";
 import type { Recommendation, RecKind, NextUpResult, NextBestAction } from "@/lib/next-up";
+import type { PlanningContextPayload } from "@/lib/planning-context";
 import { buildNextUpInputFromSources } from "@/lib/planning-input";
 import {
   buildRecommendationDecision,
@@ -235,6 +236,7 @@ type NextRunOptions = {
   input?: string;
   rsn?: string;
   bankItems?: BankHandoffItem[];
+  planningContext?: PlanningContextPayload;
   sample?: boolean;
   routeLens?: RouteLens;
   mood?: Mood;
@@ -358,7 +360,13 @@ function KindGlyph({
   );
 }
 
-export function NextClient({ initialQueryString }: { initialQueryString: string }) {
+export function NextClient({
+  initialQueryString,
+  initialPlanningContext
+}: {
+  initialQueryString: string;
+  initialPlanningContext: PlanningContextPayload | null;
+}) {
   const [view, setView] = useState<"intake" | "result" | "not-found">("intake");
   const [result, setResult] = useState<NextUpResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -498,7 +506,9 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
       // One server round trip reads the critical RuneLite + Hiscores context
       // and gives optional community trackers a shorter, fixed budget. Late
       // sources never replace a recommendation that the player already saw.
-      const planningContext = rsn ? await planningContextAction(rsn) : null;
+      const planningContext = rsn
+        ? opts.planningContext ?? await planningContextAction(rsn)
+        : null;
       const hiscores = planningContext?.hiscores ?? null;
       const wom = planningContext?.wom ?? null;
       const temple = planningContext?.temple ?? null;
@@ -671,11 +681,20 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
       // blijft ook werken in background tabs; requestAnimationFrame kan daar
       // te agressief throttlen waardoor deep-links stil op de intake bleven.
       window.setTimeout(() => {
-        run({ rsn: heroRsn.trim(), input: heroBank, bankItems: heroBankItems });
+        run({
+          rsn: heroRsn.trim(),
+          input: heroBank,
+          bankItems: heroBankItems,
+          planningContext: initialPlanningContext ?? undefined
+        });
       }, 0);
     } else if (!hasFromParam && activeAccountRsn && !shouldReadBankHandoff && !shouldReadHeroBank) {
       window.setTimeout(() => {
-        run({ rsn: activeAccountRsn, input: savedBankForRun(activeAccountRsn)?.banktags });
+        run({
+          rsn: activeAccountRsn,
+          input: savedBankForRun(activeAccountRsn)?.banktags,
+          planningContext: initialPlanningContext ?? undefined
+        });
       }, 0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
