@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-19T14:45:10.869Z",
+  "ok": true,
+  "candidate": {
+    "version": "0.3.0",
+    "contractVersion": 3,
+    "minimumWebsiteContractVersion": 3,
+    "verifiedRuneLiteRelease": "1.12.33"
+  },
+  "published": {
+    "version": "0.3.0",
+    "contractVersion": 3,
+    "sourceCommit": "e29f6ac6995ffd8f95c3f71bebeac1d0ea26ebd3"
+  },
+  "pluginHub": {
+    "repository": "https://github.com/laurensbs/scapestack-runelite-plugin.git",
+    "pinnedCommit": "e29f6ac6995ffd8f95c3f71bebeac1d0ea26ebd3",
+    "standaloneState": "published-current",
+    "reviewPullRequest": 12536,
+    "reviewState": "merged"
+  }
+}

@@ -1,0 +1,625 @@
+{
+  "schemaVersion": 1,
+  "baseUrl": "https://www.scapestack.org",
+  "generatedAt": "2026-07-19T14:44:10.381Z",
+  "browser": "149.0.7827.55",
+  "runCount": 3,
+  "routes": [
+    {
+      "route": "plugin",
+      "path": "/plugin?rsn=Lauky&from=odr00",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000,
+        "isMobile": false
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 505,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 432,
+          "actionableMs": 1317,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            },
+            {
+              "level": "h3",
+              "text": "Update Scapestack Sync"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky",
+            "Update Scapestack Sync"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 274,
+            "domContentLoadedMs": 429,
+            "loadEventMs": 472
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-00/ax/desktop-plugin.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-00/screenshots/desktop-plugin.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 391,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 358,
+          "actionableMs": 1180,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/plugin?rsn=Lauky&from=odr00",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            },
+            {
+              "level": "h3",
+              "text": "Update Scapestack Sync"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky",
+            "Update Scapestack Sync"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 191,
+            "domContentLoadedMs": 356,
+            "loadEventMs": 356
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 304,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 289,
+          "actionableMs": 1112,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            },
+            {
+              "level": "h3",
+              "text": "Update Scapestack Sync"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky",
+            "Update Scapestack Sync"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 171,
+            "domContentLoadedMs": 288,
+            "loadEventMs": 332
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 211,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 196,
+          "actionableMs": 996,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            },
+            {
+              "level": "h3",
+              "text": "Update Scapestack Sync"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky",
+            "Update Scapestack Sync"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 168,
+            "domContentLoadedMs": 195,
+            "loadEventMs": 195
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 97,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 78,
+          "actionableMs": 385,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?_rsc=qHPcftDg_UtzhTO6",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            },
+            {
+              "level": "h3",
+              "text": "Update Scapestack Sync"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky",
+            "Update Scapestack Sync"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 46,
+            "domContentLoadedMs": 76,
+            "loadEventMs": 78
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 93,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 76,
+          "actionableMs": 877,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&_rsc=-uvGR6_-NCjfEH0q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            },
+            {
+              "level": "h3",
+              "text": "Update Scapestack Sync"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky",
+            "Update Scapestack Sync"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 43,
+            "domContentLoadedMs": 75,
+            "loadEventMs": 77
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 1180,
+        "coldMinMs": 1112,
+        "coldMaxMs": 1317,
+        "warmMedianMs": 877,
+        "warmMinMs": 385,
+        "warmMaxMs": 996,
+        "readyRuns": 6,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    },
+    {
+      "route": "plugin",
+      "path": "/plugin?rsn=Lauky&from=odr00",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844,
+        "isMobile": true
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 426,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 411,
+          "actionableMs": 2233,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/plugin?rsn=Lauky&from=odr00",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&_rsc=qHPcftDg_UtzhTO6",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            },
+            {
+              "level": "h3",
+              "text": "Update Scapestack Sync"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky",
+            "Update Scapestack Sync"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 183,
+            "domContentLoadedMs": 410,
+            "loadEventMs": 1722
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-00/ax/mobile-plugin.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-00/screenshots/mobile-plugin.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 379,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 363,
+          "actionableMs": 1175,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/plugin?rsn=Lauky&from=odr00",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            },
+            {
+              "level": "h3",
+              "text": "Update Scapestack Sync"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky",
+            "Update Scapestack Sync"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 159,
+            "domContentLoadedMs": 362,
+            "loadEventMs": 442
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 315,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 299,
+          "actionableMs": 1112,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            },
+            {
+              "level": "h3",
+              "text": "Update Scapestack Sync"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky",
+            "Update Scapestack Sync"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 188,
+            "domContentLoadedMs": 298,
+            "loadEventMs": 393
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 88,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 72,
+          "actionableMs": 369,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?_rsc=qHPcftDg_UtzhTO6",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            },
+            {
+              "level": "h3",
+              "text": "Update Scapestack Sync"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky",
+            "Update Scapestack Sync"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 48,
+            "domContentLoadedMs": 72,
+            "loadEventMs": 73
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 133,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 118,
+          "actionableMs": 416,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            },
+            {
+              "level": "h3",
+              "text": "Update Scapestack Sync"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky",
+            "Update Scapestack Sync"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 74,
+            "domContentLoadedMs": 116,
+            "loadEventMs": 116
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 98,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 85,
+          "actionableMs": 381,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            },
+            {
+              "level": "h3",
+              "text": "Update Scapestack Sync"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky",
+            "Update Scapestack Sync"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 52,
+            "domContentLoadedMs": 85,
+            "loadEventMs": 85
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 1175,
+        "coldMinMs": 1112,
+        "coldMaxMs": 2233,
+        "warmMedianMs": 381,
+        "warmMinMs": 369,
+        "warmMaxMs": 416,
+        "readyRuns": 6,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    }
+  ],
+  "summary": {
+    "routeViewportPairs": 2,
+    "measuredNavigations": 12,
+    "failedReadyRuns": 0,
+    "consoleErrors": 0,
+    "pageErrors": 0,
+    "hydrationErrors": 0,
+    "overflowRuns": 0,
+    "brokenImages": 0,
+    "unnamedControls": 0
+  }
+}

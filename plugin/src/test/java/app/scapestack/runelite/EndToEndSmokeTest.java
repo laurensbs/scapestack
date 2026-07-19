@@ -1,6 +1,5 @@
 package app.scapestack.runelite;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -23,23 +22,24 @@ import java.sql.PreparedStatement;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
-import static org.junit.Assume.assumeTrue;
 
 /**
  * Volledige end-to-end smoketest: voert de exacte HTTP-flow uit die de
  * RuneLite plugin doet, tegen de live Next.js dev-server op
- * http://localhost:4173. De server praat met de echte Neon DB.
+ * http://localhost:4173. De server praat met een geisoleerde Neon-branch.
  *
  * Voorwaarden:
  *   - dev-server draait (npm run dev)
- *   - DATABASE_URL gezet in .env.local
+ *   - SCAPESTACK_E2E_DATABASE_URL wijst naar een tijdelijke Neon-branch
+ *   - SCAPESTACK_E2E_RSN is een echte Hiscores-naam
  *   - Hiscores bereikbaar (gebruikt 'Lynx Titan' — bestaat altijd)
  *
- * Wordt overgeslagen als de server niet bereikbaar is. Run via:
- *   JAVA_HOME=~/jdk-11/jdk-11.0.31+11/Contents/Home ./gradlew test
+ * Draait alleen via de expliciete `pluginE2e` Gradle-task. Ontbrekende
+ * voorwaarden falen hard; ze worden nooit als groene skip verborgen.
  *
  * De assertions verifieren de volledige threat model:
  *   1. Eerste claim slaagt (200)
@@ -54,12 +54,12 @@ import static org.junit.Assume.assumeTrue;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class EndToEndSmokeTest {
 
-    private static final String BASE = "http://localhost:4173";
-    private static final String RSN = "Lynx Titan";
-    // Unieke test-token zodat we niet botsen met live data uit eerdere runs.
-    // Format moet voldoen aan het serverside regex: [A-Za-z0-9-_.~]{16,200}
-    private static final String TEST_TOKEN  = "e2e-test-token-aaaaaaaaaaaaaaaaaaaaa";
-    private static final String OTHER_TOKEN = "e2e-other-token-bbbbbbbbbbbbbbbbbbbbb";
+    private static String base;
+    private static String rsn;
+    private static String dbUrl;
+    // Uniek per run; het formaat voldoet aan [A-Za-z0-9-_.~]{16,200}.
+    private static final String TEST_TOKEN = "e2e-test-" + UUID.randomUUID();
+    private static final String OTHER_TOKEN = "e2e-rival-" + UUID.randomUUID();
 
     private static final OkHttpClient http = new OkHttpClient.Builder()
         .connectTimeout(5, TimeUnit.SECONDS)
@@ -70,21 +70,11 @@ public class EndToEndSmokeTest {
 
     @BeforeClass
     public static void requireServer() throws Exception {
-        assumeTrue("Skipped: dev-server niet bereikbaar op " + BASE + " — start hem met `npm run dev`",
-            serverReachable());
-        // Maak deterministisch: drop bestaande claim-rij voor deze RSN
-        // zodat testA altijd "eerste claim" is en testE altijd vers
-        // 409 oplevert. Skipt zonder fout als DATABASE_URL niet beschikbaar
-        // is — dev kan dan handmatig opruimen.
-        String dbUrl = System.getProperty("DATABASE_URL");
-        assumeTrue("Skipped: DATABASE_URL niet doorgegeven aan JVM — voeg toe via -DDATABASE_URL=... "
-            + "of zet hem in .env.local en draai via gradle", dbUrl != null && !dbUrl.isBlank());
-        try (Connection c = DriverManager.getConnection(toJdbcUrl(dbUrl), jdbcProps(dbUrl))) {
-            try (PreparedStatement p = c.prepareStatement("DELETE FROM player_claim WHERE rsn=?")) {
-                p.setString(1, RSN.toLowerCase());
-                p.executeUpdate();
-            }
-        }
+        base = requiredProperty("SCAPESTACK_E2E_BASE_URL").replaceAll("/+$", "");
+        rsn = requiredProperty("SCAPESTACK_E2E_RSN");
+        dbUrl = requiredProperty("SCAPESTACK_E2E_DATABASE_URL");
+        assertTrue("E2E-server niet bereikbaar op " + base, serverReachable());
+        deleteClaim();
     }
 
     /** Converteert Neon's postgresql://user:pass@host/db?sslmode=...
@@ -122,16 +112,16 @@ public class EndToEndSmokeTest {
     }
 
     @AfterClass
-    public static void cleanup() {
-        // Niet nodig — de claim blijft staan; volgende runs zijn ook ok.
+    public static void cleanup() throws Exception {
+        if (dbUrl != null && rsn != null) deleteClaim();
     }
 
     // ---------- 1) eerste claim ----------
 
     @Test
     public void testA_firstClaimSucceeds() throws IOException {
-        Result r = postJson(BASE + "/api/sync/claim",
-            "{\"rsn\":\"" + RSN + "\"}",
+        Result r = postJson(base + "/api/sync/claim",
+            "{\"rsn\":\"" + rsn + "\"}",
             "Bearer " + TEST_TOKEN);
         // BeforeClass heeft de claim opgeruimd, dus dit is altijd eerste keer.
         assertEquals("Eerste claim moet 200 zijn. body=" + r.body, 200, r.status);
@@ -142,8 +132,8 @@ public class EndToEndSmokeTest {
 
     @Test
     public void testB_syncWithoutTokenIs401() throws IOException {
-        Result r = postJson(BASE + "/api/sync",
-            "{\"rsn\":\"" + RSN + "\",\"questsCompleted\":[],\"diariesCompleted\":[],\"collectionLogItemIds\":[]}",
+        Result r = postJson(base + "/api/sync",
+            "{\"rsn\":\"" + rsn + "\",\"questsCompleted\":[],\"diariesCompleted\":[],\"collectionLogItemIds\":[]}",
             null);
         assertEquals("Geen token → 401. body=" + r.body, 401, r.status);
     }
@@ -152,8 +142,8 @@ public class EndToEndSmokeTest {
 
     @Test
     public void testC_syncWithWrongTokenIs403() throws IOException {
-        Result r = postJson(BASE + "/api/sync",
-            "{\"rsn\":\"" + RSN + "\",\"questsCompleted\":[],\"diariesCompleted\":[],\"collectionLogItemIds\":[]}",
+        Result r = postJson(base + "/api/sync",
+            "{\"rsn\":\"" + rsn + "\",\"questsCompleted\":[],\"diariesCompleted\":[],\"collectionLogItemIds\":[]}",
             "Bearer " + OTHER_TOKEN);
         assertEquals("Verkeerde token → 403. body=" + r.body, 403, r.status);
     }
@@ -162,45 +152,32 @@ public class EndToEndSmokeTest {
 
     @Test
     public void testD_fullSyncRoundTrip() throws IOException {
-        // Simuleer de body die ScapestackSyncPlugin.triggerSync() bouwt:
-        // 3 quests, 2 diaries, 3 CL-items.
-        JsonObject body = new JsonObject();
-        body.addProperty("rsn", RSN);
-        body.addProperty("displayName", RSN);
-        body.addProperty("pluginVersion", "junit-e2e");
-        JsonArray quests = new JsonArray();
-        quests.add("Cooks Assistant");
-        quests.add("Dragon Slayer I");
-        quests.add("Recipe for Disaster");
-        body.add("questsCompleted", quests);
-        JsonArray diaries = new JsonArray();
-        JsonObject d1 = new JsonObject();
-        d1.addProperty("region", "Karamja"); d1.addProperty("tier", "Easy");
-        diaries.add(d1);
-        JsonObject d2 = new JsonObject();
-        d2.addProperty("region", "Falador"); d2.addProperty("tier", "Hard");
-        diaries.add(d2);
-        body.add("diariesCompleted", diaries);
-        JsonArray cl = new JsonArray();
-        cl.add(11785); cl.add(11787); cl.add(12922);
-        body.add("collectionLogItemIds", cl);
+        // Gebruik dezelfde v3-serializerfixture als de echte plugin. Alleen
+        // identiteit en versie worden voor deze geisoleerde run aangepast.
+        JsonObject body = SyncPayloadFixtureWriter.fixturePayload();
+        body.addProperty("rsn", rsn);
+        body.addProperty("displayName", rsn);
+        body.addProperty("pluginVersion", "junit-e2e-v3");
 
-        Result r = postJson(BASE + "/api/sync", body.toString(),
+        Result r = postJson(base + "/api/sync", body.toString(),
             "Bearer " + TEST_TOKEN);
         assertEquals("Volledige sync moet 200 zijn. body=" + r.body, 200, r.status);
         // Counts in response moeten gelijk zijn aan wat we postten.
-        assertTrue("counts.quests:3 verwacht: " + r.body, r.body.contains("\"quests\":3"));
-        assertTrue("counts.diaries:2 verwacht: " + r.body, r.body.contains("\"diaries\":2"));
+        assertTrue("contractVersion:3 verwacht: " + r.body, r.body.contains("\"contractVersion\":3"));
+        assertTrue("counts.quests:2 verwacht: " + r.body, r.body.contains("\"quests\":2"));
+        assertTrue("counts.skills:2 verwacht: " + r.body, r.body.contains("\"skills\":2"));
+        assertTrue("counts.diaries:1 verwacht: " + r.body, r.body.contains("\"diaries\":1"));
         assertTrue("counts.collectionLogItems:3 verwacht: " + r.body,
             r.body.contains("\"collectionLogItems\":3"));
+        assertTrue("counts.bankItems:2 verwacht: " + r.body, r.body.contains("\"bankItems\":2"));
     }
 
     // ---------- 5) rival-install kan RSN niet stelen ----------
 
     @Test
     public void testE_rivalClaimIs409() throws IOException {
-        Result r = postJson(BASE + "/api/sync/claim",
-            "{\"rsn\":\"" + RSN + "\"}",
+        Result r = postJson(base + "/api/sync/claim",
+            "{\"rsn\":\"" + rsn + "\"}",
             "Bearer " + OTHER_TOKEN);
         assertEquals("Rival token op zelfde RSN → 409. body=" + r.body, 409, r.status);
     }
@@ -209,8 +186,8 @@ public class EndToEndSmokeTest {
 
     @Test
     public void testF_sameTokenReclaim() throws IOException {
-        Result r = postJson(BASE + "/api/sync/claim",
-            "{\"rsn\":\"" + RSN + "\"}",
+        Result r = postJson(base + "/api/sync/claim",
+            "{\"rsn\":\"" + rsn + "\"}",
             "Bearer " + TEST_TOKEN);
         assertEquals("Re-claim met zelfde token → 200. body=" + r.body, 200, r.status);
     }
@@ -245,8 +222,8 @@ public class EndToEndSmokeTest {
         Map<String, String> store = new HashMap<>();
         InstallToken.KeyValueStore kv = mapStore(store);
         assertNull("Vers, niets onthouden", InstallToken.claimedRsn(kv));
-        InstallToken.rememberClaimedRsn(kv, "Lynx Titan");
-        assertEquals("Lynx Titan", InstallToken.claimedRsn(kv));
+        InstallToken.rememberClaimedRsn(kv, rsn);
+        assertEquals(rsn, InstallToken.claimedRsn(kv));
     }
 
     @Test
@@ -254,7 +231,7 @@ public class EndToEndSmokeTest {
         Map<String, String> store = new HashMap<>();
         InstallToken.KeyValueStore kv = mapStore(store);
         String token = InstallToken.getOrCreate(kv);
-        InstallToken.rememberClaimedRsn(kv, "Lynx Titan");
+        InstallToken.rememberClaimedRsn(kv, rsn);
 
         InstallToken.forgetClaim(kv);
 
@@ -273,7 +250,7 @@ public class EndToEndSmokeTest {
 
     private static boolean serverReachable() {
         try {
-            HttpURLConnection c = (HttpURLConnection) new URL(BASE).openConnection();
+            HttpURLConnection c = (HttpURLConnection) new URL(base).openConnection();
             c.setConnectTimeout(1000);
             c.setReadTimeout(1000);
             c.setRequestMethod("HEAD");
@@ -281,6 +258,22 @@ public class EndToEndSmokeTest {
             return code < 500;
         } catch (IOException e) {
             return false;
+        }
+    }
+
+    private static String requiredProperty(String name) {
+        String value = System.getProperty(name);
+        assertNotNull(name + " ontbreekt", value);
+        assertFalse(name + " is leeg", value.isBlank());
+        return value.trim();
+    }
+
+    private static void deleteClaim() throws Exception {
+        try (Connection c = DriverManager.getConnection(toJdbcUrl(dbUrl), jdbcProps(dbUrl))) {
+            try (PreparedStatement p = c.prepareStatement("DELETE FROM player_claim WHERE rsn=?")) {
+                p.setString(1, rsn.toLowerCase());
+                p.executeUpdate();
+            }
         }
     }
 

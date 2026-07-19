@@ -1,0 +1,5167 @@
+{
+  "schemaVersion": 1,
+  "baseUrl": "https://www.scapestack.org",
+  "generatedAt": "2026-07-19T14:28:29.947Z",
+  "browser": "149.0.7827.55",
+  "runCount": 3,
+  "routes": [
+    {
+      "route": "home",
+      "path": "/",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000,
+        "isMobile": false
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 552,
+          "actionableMs": 575,
+          "consoleErrors": [],
+          "pageErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "hydrationErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 168,
+            "domContentLoadedMs": 551,
+            "loadEventMs": 641
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-00/ax/desktop-home.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-00/screenshots/desktop-home.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 1242,
+          "actionableMs": 1278,
+          "consoleErrors": [],
+          "pageErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "hydrationErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 832,
+            "domContentLoadedMs": 1241,
+            "loadEventMs": 1241
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 524,
+          "actionableMs": 553,
+          "consoleErrors": [],
+          "pageErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "hydrationErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 128,
+            "domContentLoadedMs": 523,
+            "loadEventMs": 523
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 52,
+          "actionableMs": 81,
+          "consoleErrors": [],
+          "pageErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "hydrationErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/1jeka2b4cuivx.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?_rsc=5CB68i4pnAekjehf",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/bank?_rsc=B0XTjNdT1YmnFybB",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/2cnef9jmu2s04.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/bank?_rsc=uaK0MgyDJoHiW1hD",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/2357h3_hatpnc.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 42,
+            "domContentLoadedMs": 52,
+            "loadEventMs": 114
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 53,
+          "actionableMs": 80,
+          "consoleErrors": [],
+          "pageErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "hydrationErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?_rsc=tXyZJ52UQVBCVsD3",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/?_rsc=8nTjltbQWvg6NcbE",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 42,
+            "domContentLoadedMs": 53,
+            "loadEventMs": 95
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 114,
+          "actionableMs": 148,
+          "consoleErrors": [],
+          "pageErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "hydrationErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/0ix2x3-c0xka5.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 100,
+            "domContentLoadedMs": 112,
+            "loadEventMs": 155
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 575,
+        "coldMinMs": 553,
+        "coldMaxMs": 1278,
+        "warmMedianMs": 81,
+        "warmMinMs": 80,
+        "warmMaxMs": 148,
+        "readyRuns": 6,
+        "errorCount": 6,
+        "hydrationErrorCount": 6,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    },
+    {
+      "route": "next",
+      "path": "/next?rsn=Lauky&intent=short&time=15",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000,
+        "isMobile": false
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 453,
+          "actionableMs": 10854,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 133,
+            "domContentLoadedMs": 447,
+            "loadEventMs": 658
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-00/ax/desktop-next.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-00/screenshots/desktop-next.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 508,
+          "actionableMs": 2824,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=next&_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 192,
+            "domContentLoadedMs": 507,
+            "loadEventMs": 581
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 377,
+          "actionableMs": 3195,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 161,
+            "domContentLoadedMs": 376,
+            "loadEventMs": 787
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 198,
+          "actionableMs": 11129,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=next&_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 42,
+            "domContentLoadedMs": 196,
+            "loadEventMs": 196
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 233,
+          "actionableMs": 2553,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/goals?rsn=Lauky&from=next&bank=none&_rsc=u-K5BZjN9yI4RgJI",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 41,
+            "domContentLoadedMs": 231,
+            "loadEventMs": 231
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 213,
+          "actionableMs": 2542,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=next&_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=next&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 46,
+            "domContentLoadedMs": 211,
+            "loadEventMs": 211
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 3195,
+        "coldMinMs": 2824,
+        "coldMaxMs": 10854,
+        "warmMedianMs": 2553,
+        "warmMinMs": 2542,
+        "warmMaxMs": 11129,
+        "readyRuns": 6,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    },
+    {
+      "route": "bank",
+      "path": "/bank?rsn=Lauky&from=odr00",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000,
+        "isMobile": false
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 459,
+          "actionableMs": 476,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Add bank"
+            },
+            {
+              "level": "h2",
+              "text": "Paste bank"
+            }
+          ],
+          "axHeadings": [
+            "Add bank",
+            "Paste bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 286,
+            "domContentLoadedMs": 458,
+            "loadEventMs": 788
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-00/ax/desktop-bank.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-00/screenshots/desktop-bank.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 244,
+          "actionableMs": 261,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Add bank"
+            },
+            {
+              "level": "h2",
+              "text": "Paste bank"
+            }
+          ],
+          "axHeadings": [
+            "Add bank",
+            "Paste bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 132,
+            "domContentLoadedMs": 243,
+            "loadEventMs": 548
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 395,
+          "actionableMs": 411,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Add bank"
+            },
+            {
+              "level": "h2",
+              "text": "Paste bank"
+            }
+          ],
+          "axHeadings": [
+            "Add bank",
+            "Paste bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 192,
+            "domContentLoadedMs": 394,
+            "loadEventMs": 873
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 70,
+          "actionableMs": 98,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/424dgk74vdzil.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&bank=local&_rsc=3fw_HmzovNogmncn",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?_rsc=43lXNrKYfxNx813Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/dps?_rsc=43lXNrKYfxNx813Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=bank&_rsc=3fw_HmzovNogmncn",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Add bank"
+            },
+            {
+              "level": "h2",
+              "text": "Paste bank"
+            }
+          ],
+          "axHeadings": [
+            "Add bank",
+            "Paste bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 57,
+            "domContentLoadedMs": 69,
+            "loadEventMs": 91
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 64,
+          "actionableMs": 97,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?_rsc=43lXNrKYfxNx813Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/bank?rsn=Lauky&from=odr00&_rsc=4eij2SSJv19Ociss",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/?_rsc=8OFs13ANacejWZ70",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/?_rsc=Nlqs2iO1HfWgnbYB",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Add bank"
+            },
+            {
+              "level": "h2",
+              "text": "Paste bank"
+            }
+          ],
+          "axHeadings": [
+            "Add bank",
+            "Paste bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 46,
+            "domContentLoadedMs": 63,
+            "loadEventMs": 90
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 92,
+          "actionableMs": 127,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/bank?rsn=Lauky&from=odr00&_rsc=4eij2SSJv19Ociss",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=bank&_rsc=3fw_HmzovNogmncn",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&bank=local&_rsc=3fw_HmzovNogmncn",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/?_rsc=Nlqs2iO1HfWgnbYB",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&bank=local&_rsc=43lXNrKYfxNx813Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Add bank"
+            },
+            {
+              "level": "h2",
+              "text": "Paste bank"
+            }
+          ],
+          "axHeadings": [
+            "Add bank",
+            "Paste bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 71,
+            "domContentLoadedMs": 91,
+            "loadEventMs": 119
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 411,
+        "coldMinMs": 261,
+        "coldMaxMs": 476,
+        "warmMedianMs": 98,
+        "warmMinMs": 97,
+        "warmMaxMs": 127,
+        "readyRuns": 6,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    },
+    {
+      "route": "boss",
+      "path": "/dps?rsn=Lauky&from=odr00",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000,
+        "isMobile": false
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": false,
+          "navigationError": null,
+          "readyError": "locator.waitFor: Timeout 35000ms exceeded.",
+          "domContentLoadedMs": 245,
+          "actionableMs": 35253,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?_rsc=CQD-DbWZMfNMxjHt",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Can I kill this?"
+            },
+            {
+              "level": "h2",
+              "text": "Can I kill this with my bank?"
+            },
+            {
+              "level": "h2",
+              "text": "Paste or drop your bank"
+            }
+          ],
+          "axHeadings": [
+            "Can I kill this?",
+            "Can I kill this with my bank?",
+            "Paste or drop your bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 136,
+            "domContentLoadedMs": 244,
+            "loadEventMs": 622
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-00/ax/desktop-boss.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-00/screenshots/desktop-boss.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": false,
+          "navigationError": null,
+          "readyError": "locator.waitFor: Timeout 35000ms exceeded.",
+          "domContentLoadedMs": 487,
+          "actionableMs": 35488,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=dps&_rsc=PaZkyXlFwnfMcjy1",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Can I kill this?"
+            },
+            {
+              "level": "h2",
+              "text": "Can I kill this with my bank?"
+            },
+            {
+              "level": "h2",
+              "text": "Paste or drop your bank"
+            }
+          ],
+          "axHeadings": [
+            "Can I kill this?",
+            "Can I kill this with my bank?",
+            "Paste or drop your bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 391,
+            "domContentLoadedMs": 486,
+            "loadEventMs": 589
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": false,
+          "navigationError": null,
+          "readyError": "locator.waitFor: Timeout 35000ms exceeded.",
+          "domContentLoadedMs": 314,
+          "actionableMs": 35317,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Can I kill this?"
+            },
+            {
+              "level": "h2",
+              "text": "Can I kill this with my bank?"
+            },
+            {
+              "level": "h2",
+              "text": "Paste or drop your bank"
+            }
+          ],
+          "axHeadings": [
+            "Can I kill this?",
+            "Can I kill this with my bank?",
+            "Paste or drop your bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 199,
+            "domContentLoadedMs": 312,
+            "loadEventMs": 399
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": false,
+          "navigationError": null,
+          "readyError": "locator.waitFor: Timeout 35000ms exceeded.",
+          "domContentLoadedMs": 63,
+          "actionableMs": 35068,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Can I kill this?"
+            },
+            {
+              "level": "h2",
+              "text": "Can I kill this with my bank?"
+            },
+            {
+              "level": "h2",
+              "text": "Paste or drop your bank"
+            }
+          ],
+          "axHeadings": [
+            "Can I kill this?",
+            "Can I kill this with my bank?",
+            "Paste or drop your bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 43,
+            "domContentLoadedMs": 61,
+            "loadEventMs": 81
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": false,
+          "navigationError": null,
+          "readyError": "locator.waitFor: Timeout 35000ms exceeded.",
+          "domContentLoadedMs": 63,
+          "actionableMs": 35063,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=dps&_rsc=PaZkyXlFwnfMcjy1",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Can I kill this?"
+            },
+            {
+              "level": "h2",
+              "text": "Can I kill this with my bank?"
+            },
+            {
+              "level": "h2",
+              "text": "Paste or drop your bank"
+            }
+          ],
+          "axHeadings": [
+            "Can I kill this?",
+            "Can I kill this with my bank?",
+            "Paste or drop your bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 42,
+            "domContentLoadedMs": 62,
+            "loadEventMs": 82
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": false,
+          "navigationError": null,
+          "readyError": "locator.waitFor: Timeout 35000ms exceeded.",
+          "domContentLoadedMs": 84,
+          "actionableMs": 35087,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=dps&_rsc=PaZkyXlFwnfMcjy1",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Can I kill this?"
+            },
+            {
+              "level": "h2",
+              "text": "Can I kill this with my bank?"
+            },
+            {
+              "level": "h2",
+              "text": "Paste or drop your bank"
+            }
+          ],
+          "axHeadings": [
+            "Can I kill this?",
+            "Can I kill this with my bank?",
+            "Paste or drop your bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 43,
+            "domContentLoadedMs": 69,
+            "loadEventMs": 91
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 35317,
+        "coldMinMs": 35253,
+        "coldMaxMs": 35488,
+        "warmMedianMs": 35068,
+        "warmMinMs": 35063,
+        "warmMaxMs": 35087,
+        "readyRuns": 0,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    },
+    {
+      "route": "goals",
+      "path": "/goals?rsn=Lauky&from=odr00",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000,
+        "isMobile": false
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 575,
+          "actionableMs": 613,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "What unlock next?"
+            },
+            {
+              "level": "h2",
+              "text": "What should you unlock next?"
+            },
+            {
+              "level": "h2",
+              "text": "Paste or drop your bank"
+            }
+          ],
+          "axHeadings": [
+            "What unlock next?",
+            "What should you unlock next?",
+            "Paste or drop your bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 132,
+            "domContentLoadedMs": 574,
+            "loadEventMs": 574
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-00/ax/desktop-goals.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-00/screenshots/desktop-goals.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 312,
+          "actionableMs": 327,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "What unlock next?"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock this next"
+            },
+            {
+              "level": "h3",
+              "text": "Defence cape"
+            }
+          ],
+          "axHeadings": [
+            "What unlock next?",
+            "Unlock this next",
+            "Defence cape"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 168,
+            "domContentLoadedMs": 310,
+            "loadEventMs": 444
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 524,
+          "actionableMs": 568,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "What unlock next?"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock this next"
+            },
+            {
+              "level": "h3",
+              "text": "Defence cape"
+            }
+          ],
+          "axHeadings": [
+            "What unlock next?",
+            "Unlock this next",
+            "Defence cape"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 309,
+            "domContentLoadedMs": 524,
+            "loadEventMs": 524
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 101,
+          "actionableMs": 128,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?_rsc=xr-wByE-KghYs5zc",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=goals&_rsc=9FEM54AM3chk8IHj",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/424dgk74vdzil.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/api/sprite/item/9747.png",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "What unlock next?"
+            },
+            {
+              "level": "h2",
+              "text": "What should you unlock next?"
+            },
+            {
+              "level": "h2",
+              "text": "Paste or drop your bank"
+            }
+          ],
+          "axHeadings": [
+            "What unlock next?",
+            "What should you unlock next?",
+            "Paste or drop your bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 89,
+            "domContentLoadedMs": 100,
+            "loadEventMs": 121
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 148,
+          "actionableMs": 165,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=goals&_rsc=xr-wByE-KghYs5zc",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=goals&_rsc=xr-wByE-KghYs5zc",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "What unlock next?"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock this next"
+            },
+            {
+              "level": "h3",
+              "text": "Defence cape"
+            }
+          ],
+          "axHeadings": [
+            "What unlock next?",
+            "Unlock this next",
+            "Defence cape"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 116,
+            "domContentLoadedMs": 147,
+            "loadEventMs": 147
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 83,
+          "actionableMs": 106,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/1jeka2b4cuivx.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=goals&_rsc=9FEM54AM3chk8IHj",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/2cnef9jmu2s04.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/2357h3_hatpnc.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/bank?_rsc=F0Y7GU_XTn50cvxm",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/bank?_rsc=7u6U4XK7dxsCXTFN",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/?_rsc=f1IVzT4zX9dyhkAq",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "What unlock next?"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock this next"
+            },
+            {
+              "level": "h3",
+              "text": "Defence cape"
+            }
+          ],
+          "axHeadings": [
+            "What unlock next?",
+            "Unlock this next",
+            "Defence cape"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 44,
+            "domContentLoadedMs": 81,
+            "loadEventMs": 84
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 568,
+        "coldMinMs": 327,
+        "coldMaxMs": 613,
+        "warmMedianMs": 128,
+        "warmMinMs": 106,
+        "warmMaxMs": 165,
+        "readyRuns": 6,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    },
+    {
+      "route": "plugin",
+      "path": "/plugin?rsn=Lauky&from=odr00",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000,
+        "isMobile": false
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 280,
+          "actionableMs": 296,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&_rsc=qHPcftDg_UtzhTO6",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 155,
+            "domContentLoadedMs": 280,
+            "loadEventMs": 643
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-00/ax/desktop-plugin.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-00/screenshots/desktop-plugin.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 667,
+          "actionableMs": 702,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 273,
+            "domContentLoadedMs": 665,
+            "loadEventMs": 665
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 317,
+          "actionableMs": 333,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 216,
+            "domContentLoadedMs": 315,
+            "loadEventMs": 835
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 158,
+          "actionableMs": 188,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&_rsc=-uvGR6_-NCjfEH0q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/424dgk74vdzil.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/plugin?rsn=Lauky&from=odr00",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?_rsc=qHPcftDg_UtzhTO6",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&_rsc=qHPcftDg_UtzhTO6",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 147,
+            "domContentLoadedMs": 157,
+            "loadEventMs": 181
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 144,
+          "actionableMs": 167,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/0ix2x3-c0xka5.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/29sta36isj0av.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/plugin?rsn=Lauky&from=odr00",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&_rsc=qHPcftDg_UtzhTO6",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 124,
+            "domContentLoadedMs": 142,
+            "loadEventMs": 159
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 78,
+          "actionableMs": 99,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?_rsc=qHPcftDg_UtzhTO6",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/424dgk74vdzil.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/29sta36isj0av.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/0ix2x3-c0xka5.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&_rsc=-uvGR6_-NCjfEH0q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/plugin?rsn=Lauky&from=odr00",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 43,
+            "domContentLoadedMs": 76,
+            "loadEventMs": 93
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 333,
+        "coldMinMs": 296,
+        "coldMaxMs": 702,
+        "warmMedianMs": 167,
+        "warmMinMs": 99,
+        "warmMaxMs": 188,
+        "readyRuns": 6,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    },
+    {
+      "route": "account",
+      "path": "/u/Lauky",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000,
+        "isMobile": false
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 7604,
+          "actionableMs": 7636,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Lauky"
+            },
+            {
+              "level": "h2",
+              "text": "Welcome back, Lauky."
+            },
+            {
+              "level": "h2",
+              "text": "Top skills"
+            },
+            {
+              "level": "h2",
+              "text": "All skills"
+            }
+          ],
+          "axHeadings": [
+            "Lauky",
+            "Welcome back, Lauky.",
+            "TOP SKILLS",
+            "ALL SKILLS"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 189,
+            "domContentLoadedMs": 7603,
+            "loadEventMs": 7603
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-00/ax/desktop-account.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-00/screenshots/desktop-account.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 561,
+          "actionableMs": 579,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Lauky"
+            },
+            {
+              "level": "h2",
+              "text": "Welcome back, Lauky."
+            },
+            {
+              "level": "h2",
+              "text": "Top skills"
+            },
+            {
+              "level": "h2",
+              "text": "All skills"
+            }
+          ],
+          "axHeadings": [
+            "Lauky",
+            "Welcome back, Lauky.",
+            "TOP SKILLS",
+            "ALL SKILLS"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 193,
+            "domContentLoadedMs": 560,
+            "loadEventMs": 780
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 1952,
+          "actionableMs": 1970,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Lauky"
+            },
+            {
+              "level": "h2",
+              "text": "Welcome back, Lauky."
+            },
+            {
+              "level": "h2",
+              "text": "Top skills"
+            },
+            {
+              "level": "h2",
+              "text": "All skills"
+            }
+          ],
+          "axHeadings": [
+            "Lauky",
+            "Welcome back, Lauky.",
+            "TOP SKILLS",
+            "ALL SKILLS"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 271,
+            "domContentLoadedMs": 1950,
+            "loadEventMs": 2215
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 299,
+          "actionableMs": 331,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=profile&_rsc=2qwIHRMQ_RgZI2Nx",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?_rsc=2qwIHRMQ_RgZI2Nx",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/0ix2x3-c0xka5.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/29sta36isj0av.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=profile&_rsc=yeY0atmrp8Z2idfi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?_rsc=2qwIHRMQ_RgZI2Nx",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=profile&_rsc=2qwIHRMQ_RgZI2Nx",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Lauky"
+            },
+            {
+              "level": "h2",
+              "text": "Welcome back, Lauky."
+            },
+            {
+              "level": "h2",
+              "text": "Top skills"
+            },
+            {
+              "level": "h2",
+              "text": "All skills"
+            }
+          ],
+          "axHeadings": [
+            "Lauky",
+            "Welcome back, Lauky.",
+            "TOP SKILLS",
+            "ALL SKILLS"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 42,
+            "domContentLoadedMs": 298,
+            "loadEventMs": 756
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 654,
+          "actionableMs": 668,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?_rsc=yeY0atmrp8Z2idfi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Lauky"
+            },
+            {
+              "level": "h2",
+              "text": "Welcome back, Lauky."
+            },
+            {
+              "level": "h2",
+              "text": "Top skills"
+            },
+            {
+              "level": "h2",
+              "text": "All skills"
+            }
+          ],
+          "axHeadings": [
+            "Lauky",
+            "Welcome back, Lauky.",
+            "TOP SKILLS",
+            "ALL SKILLS"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 107,
+            "domContentLoadedMs": 653,
+            "loadEventMs": 722
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 437,
+          "actionableMs": 472,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=profile&_rsc=2qwIHRMQ_RgZI2Nx",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/0ix2x3-c0xka5.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?_rsc=2qwIHRMQ_RgZI2Nx",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Lauky"
+            },
+            {
+              "level": "h2",
+              "text": "Welcome back, Lauky."
+            },
+            {
+              "level": "h2",
+              "text": "Top skills"
+            },
+            {
+              "level": "h2",
+              "text": "All skills"
+            }
+          ],
+          "axHeadings": [
+            "Lauky",
+            "Welcome back, Lauky.",
+            "TOP SKILLS",
+            "ALL SKILLS"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 40,
+            "domContentLoadedMs": 435,
+            "loadEventMs": 503
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 1970,
+        "coldMinMs": 579,
+        "coldMaxMs": 7636,
+        "warmMedianMs": 472,
+        "warmMinMs": 331,
+        "warmMaxMs": 668,
+        "readyRuns": 6,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    },
+    {
+      "route": "home",
+      "path": "/",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844,
+        "isMobile": true
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 273,
+          "actionableMs": 290,
+          "consoleErrors": [],
+          "pageErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "hydrationErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 140,
+            "domContentLoadedMs": 272,
+            "loadEventMs": 541
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-00/ax/mobile-home.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-00/screenshots/mobile-home.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 295,
+          "actionableMs": 312,
+          "consoleErrors": [],
+          "pageErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "hydrationErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 214,
+            "domContentLoadedMs": 294,
+            "loadEventMs": 399
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 487,
+          "actionableMs": 516,
+          "consoleErrors": [],
+          "pageErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "hydrationErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 145,
+            "domContentLoadedMs": 486,
+            "loadEventMs": 486
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 52,
+          "actionableMs": 79,
+          "consoleErrors": [],
+          "pageErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "hydrationErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 41,
+            "domContentLoadedMs": 51,
+            "loadEventMs": 142
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 57,
+          "actionableMs": 89,
+          "consoleErrors": [],
+          "pageErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "hydrationErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 41,
+            "domContentLoadedMs": 56,
+            "loadEventMs": 100
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 130,
+          "actionableMs": 163,
+          "consoleErrors": [],
+          "pageErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "hydrationErrors": [
+            "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+          ],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Stop bankstanding.Pick the next trip."
+            }
+          ],
+          "axHeadings": [
+            "Stop bankstanding. Pick the next trip."
+          ],
+          "navigationTiming": {
+            "responseStartMs": 80,
+            "domContentLoadedMs": 128,
+            "loadEventMs": 240
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 312,
+        "coldMinMs": 290,
+        "coldMaxMs": 516,
+        "warmMedianMs": 89,
+        "warmMinMs": 79,
+        "warmMaxMs": 163,
+        "readyRuns": 6,
+        "errorCount": 6,
+        "hydrationErrorCount": 6,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    },
+    {
+      "route": "next",
+      "path": "/next?rsn=Lauky&intent=short&time=15",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844,
+        "isMobile": true
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 522,
+          "actionableMs": 2888,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 209,
+            "domContentLoadedMs": 520,
+            "loadEventMs": 833
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-00/ax/mobile-next.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-00/screenshots/mobile-next.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 343,
+          "actionableMs": 2672,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 205,
+            "domContentLoadedMs": 343,
+            "loadEventMs": 431
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 628,
+          "actionableMs": 4476,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 214,
+            "domContentLoadedMs": 626,
+            "loadEventMs": 626
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 306,
+          "actionableMs": 2621,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 99,
+            "domContentLoadedMs": 305,
+            "loadEventMs": 305
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 966,
+          "actionableMs": 3306,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/232i_46y5v3it.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 740,
+            "domContentLoadedMs": 965,
+            "loadEventMs": 990
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 273,
+          "actionableMs": 2587,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 129,
+            "domContentLoadedMs": 272,
+            "loadEventMs": 272
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 2888,
+        "coldMinMs": 2672,
+        "coldMaxMs": 4476,
+        "warmMedianMs": 2621,
+        "warmMinMs": 2587,
+        "warmMaxMs": 3306,
+        "readyRuns": 6,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    },
+    {
+      "route": "bank",
+      "path": "/bank?rsn=Lauky&from=odr00",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844,
+        "isMobile": true
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 347,
+          "actionableMs": 360,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Add bank"
+            },
+            {
+              "level": "h2",
+              "text": "Paste bank"
+            }
+          ],
+          "axHeadings": [
+            "Add bank",
+            "Paste bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 126,
+            "domContentLoadedMs": 345,
+            "loadEventMs": 544
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-00/ax/mobile-bank.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-00/screenshots/mobile-bank.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 223,
+          "actionableMs": 240,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Add bank"
+            },
+            {
+              "level": "h2",
+              "text": "Paste bank"
+            }
+          ],
+          "axHeadings": [
+            "Add bank",
+            "Paste bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 132,
+            "domContentLoadedMs": 222,
+            "loadEventMs": 347
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 417,
+          "actionableMs": 434,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Add bank"
+            },
+            {
+              "level": "h2",
+              "text": "Paste bank"
+            }
+          ],
+          "axHeadings": [
+            "Add bank",
+            "Paste bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 129,
+            "domContentLoadedMs": 416,
+            "loadEventMs": 658
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 54,
+          "actionableMs": 83,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/?_rsc=Nlqs2iO1HfWgnbYB",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?_rsc=3fw_HmzovNogmncn",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/plugin?_rsc=43lXNrKYfxNx813Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/?_rsc=8OFs13ANacejWZ70",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Add bank"
+            },
+            {
+              "level": "h2",
+              "text": "Paste bank"
+            }
+          ],
+          "axHeadings": [
+            "Add bank",
+            "Paste bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 40,
+            "domContentLoadedMs": 53,
+            "loadEventMs": 76
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 81,
+          "actionableMs": 109,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/?_rsc=Nlqs2iO1HfWgnbYB",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?_rsc=3fw_HmzovNogmncn",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&bank=local&_rsc=3fw_HmzovNogmncn",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Add bank"
+            },
+            {
+              "level": "h2",
+              "text": "Paste bank"
+            }
+          ],
+          "axHeadings": [
+            "Add bank",
+            "Paste bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 51,
+            "domContentLoadedMs": 79,
+            "loadEventMs": 101
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 58,
+          "actionableMs": 94,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?_rsc=3fw_HmzovNogmncn",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&bank=local&_rsc=3fw_HmzovNogmncn",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/plugin?_rsc=43lXNrKYfxNx813Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/?_rsc=8OFs13ANacejWZ70",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Add bank"
+            },
+            {
+              "level": "h2",
+              "text": "Paste bank"
+            }
+          ],
+          "axHeadings": [
+            "Add bank",
+            "Paste bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 41,
+            "domContentLoadedMs": 56,
+            "loadEventMs": 87
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 360,
+        "coldMinMs": 240,
+        "coldMaxMs": 434,
+        "warmMedianMs": 94,
+        "warmMinMs": 83,
+        "warmMaxMs": 109,
+        "readyRuns": 6,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    },
+    {
+      "route": "boss",
+      "path": "/dps?rsn=Lauky&from=odr00",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844,
+        "isMobile": true
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": false,
+          "navigationError": null,
+          "readyError": "locator.waitFor: Timeout 35000ms exceeded.",
+          "domContentLoadedMs": 212,
+          "actionableMs": 35215,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?_rsc=PaZkyXlFwnfMcjy1",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Can I kill this?"
+            },
+            {
+              "level": "h2",
+              "text": "Can I kill this with my bank?"
+            },
+            {
+              "level": "h2",
+              "text": "Paste or drop your bank"
+            }
+          ],
+          "axHeadings": [
+            "Can I kill this?",
+            "Can I kill this with my bank?",
+            "Paste or drop your bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 130,
+            "domContentLoadedMs": 210,
+            "loadEventMs": 323
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-00/ax/mobile-boss.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-00/screenshots/mobile-boss.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": false,
+          "navigationError": null,
+          "readyError": "locator.waitFor: Timeout 35000ms exceeded.",
+          "domContentLoadedMs": 329,
+          "actionableMs": 35333,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Can I kill this?"
+            },
+            {
+              "level": "h2",
+              "text": "Can I kill this with my bank?"
+            },
+            {
+              "level": "h2",
+              "text": "Paste or drop your bank"
+            }
+          ],
+          "axHeadings": [
+            "Can I kill this?",
+            "Can I kill this with my bank?",
+            "Paste or drop your bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 207,
+            "domContentLoadedMs": 328,
+            "loadEventMs": 400
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": false,
+          "navigationError": null,
+          "readyError": "locator.waitFor: Timeout 35000ms exceeded.",
+          "domContentLoadedMs": 517,
+          "actionableMs": 35518,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Can I kill this?"
+            },
+            {
+              "level": "h2",
+              "text": "Can I kill this with my bank?"
+            },
+            {
+              "level": "h2",
+              "text": "Paste or drop your bank"
+            }
+          ],
+          "axHeadings": [
+            "Can I kill this?",
+            "Can I kill this with my bank?",
+            "Paste or drop your bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 231,
+            "domContentLoadedMs": 517,
+            "loadEventMs": 623
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": false,
+          "navigationError": null,
+          "readyError": "locator.waitFor: Timeout 35000ms exceeded.",
+          "domContentLoadedMs": 113,
+          "actionableMs": 35118,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?_rsc=PaZkyXlFwnfMcjy1",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Can I kill this?"
+            },
+            {
+              "level": "h2",
+              "text": "Can I kill this with my bank?"
+            },
+            {
+              "level": "h2",
+              "text": "Paste or drop your bank"
+            }
+          ],
+          "axHeadings": [
+            "Can I kill this?",
+            "Can I kill this with my bank?",
+            "Paste or drop your bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 93,
+            "domContentLoadedMs": 112,
+            "loadEventMs": 134
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": false,
+          "navigationError": null,
+          "readyError": "locator.waitFor: Timeout 35000ms exceeded.",
+          "domContentLoadedMs": 71,
+          "actionableMs": 35073,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?_rsc=PaZkyXlFwnfMcjy1",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Can I kill this?"
+            },
+            {
+              "level": "h2",
+              "text": "Can I kill this with my bank?"
+            },
+            {
+              "level": "h2",
+              "text": "Paste or drop your bank"
+            }
+          ],
+          "axHeadings": [
+            "Can I kill this?",
+            "Can I kill this with my bank?",
+            "Paste or drop your bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 42,
+            "domContentLoadedMs": 69,
+            "loadEventMs": 95
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": false,
+          "navigationError": null,
+          "readyError": "locator.waitFor: Timeout 35000ms exceeded.",
+          "domContentLoadedMs": 73,
+          "actionableMs": 35077,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Can I kill this?"
+            },
+            {
+              "level": "h2",
+              "text": "Can I kill this with my bank?"
+            },
+            {
+              "level": "h2",
+              "text": "Paste or drop your bank"
+            }
+          ],
+          "axHeadings": [
+            "Can I kill this?",
+            "Can I kill this with my bank?",
+            "Paste or drop your bank"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 50,
+            "domContentLoadedMs": 72,
+            "loadEventMs": 90
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 35333,
+        "coldMinMs": 35215,
+        "coldMaxMs": 35518,
+        "warmMedianMs": 35077,
+        "warmMinMs": 35073,
+        "warmMaxMs": 35118,
+        "readyRuns": 0,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    },
+    {
+      "route": "goals",
+      "path": "/goals?rsn=Lauky&from=odr00",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844,
+        "isMobile": true
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 538,
+          "actionableMs": 585,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "What unlock next?"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock this next"
+            },
+            {
+              "level": "h3",
+              "text": "Defence cape"
+            }
+          ],
+          "axHeadings": [
+            "What unlock next?",
+            "Unlock this next",
+            "Defence cape"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 175,
+            "domContentLoadedMs": 537,
+            "loadEventMs": 537
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-00/ax/mobile-goals.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-00/screenshots/mobile-goals.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 1008,
+          "actionableMs": 1022,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "What unlock next?"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock this next"
+            },
+            {
+              "level": "h3",
+              "text": "Defence cape"
+            }
+          ],
+          "axHeadings": [
+            "What unlock next?",
+            "Unlock this next",
+            "Defence cape"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 478,
+            "domContentLoadedMs": 1006,
+            "loadEventMs": 1168
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 295,
+          "actionableMs": 309,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "What unlock next?"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock this next"
+            },
+            {
+              "level": "h3",
+              "text": "Defence cape"
+            }
+          ],
+          "axHeadings": [
+            "What unlock next?",
+            "Unlock this next",
+            "Defence cape"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 125,
+            "domContentLoadedMs": 294,
+            "loadEventMs": 417
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 70,
+          "actionableMs": 86,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/goals?rsn=Lauky&from=odr00",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "What unlock next?"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock this next"
+            },
+            {
+              "level": "h3",
+              "text": "Defence cape"
+            }
+          ],
+          "axHeadings": [
+            "What unlock next?",
+            "Unlock this next",
+            "Defence cape"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 41,
+            "domContentLoadedMs": 69,
+            "loadEventMs": 69
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 80,
+          "actionableMs": 96,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/goals?rsn=Lauky&from=odr00",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/goals?rsn=Lauky&from=odr00",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "What unlock next?"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock this next"
+            },
+            {
+              "level": "h3",
+              "text": "Defence cape"
+            }
+          ],
+          "axHeadings": [
+            "What unlock next?",
+            "Unlock this next",
+            "Defence cape"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 40,
+            "domContentLoadedMs": 79,
+            "loadEventMs": 79
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 102,
+          "actionableMs": 136,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?_rsc=9FEM54AM3chk8IHj",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/29sta36isj0av.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "What unlock next?"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock this next"
+            },
+            {
+              "level": "h3",
+              "text": "Defence cape"
+            }
+          ],
+          "axHeadings": [
+            "What unlock next?",
+            "Unlock this next",
+            "Defence cape"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 93,
+            "domContentLoadedMs": 102,
+            "loadEventMs": 127
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 585,
+        "coldMinMs": 309,
+        "coldMaxMs": 1022,
+        "warmMedianMs": 96,
+        "warmMinMs": 86,
+        "warmMaxMs": 136,
+        "readyRuns": 6,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    },
+    {
+      "route": "plugin",
+      "path": "/plugin?rsn=Lauky&from=odr00",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844,
+        "isMobile": true
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 313,
+          "actionableMs": 328,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 211,
+            "domContentLoadedMs": 312,
+            "loadEventMs": 385
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-00/ax/mobile-plugin.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-00/screenshots/mobile-plugin.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 239,
+          "actionableMs": 253,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?_rsc=qHPcftDg_UtzhTO6",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 134,
+            "domContentLoadedMs": 239,
+            "loadEventMs": 2473
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 338,
+          "actionableMs": 350,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            },
+            {
+              "level": "h3",
+              "text": "Update Scapestack Sync"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky",
+            "Update Scapestack Sync"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 212,
+            "domContentLoadedMs": 337,
+            "loadEventMs": 403
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 52,
+          "actionableMs": 73,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?_rsc=-uvGR6_-NCjfEH0q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/plugin?rsn=Lauky&from=odr00",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky",
+            "Update Scapestack Sync"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 42,
+            "domContentLoadedMs": 51,
+            "loadEventMs": 67
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 355,
+          "actionableMs": 379,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?_rsc=-uvGR6_-NCjfEH0q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/plugin?rsn=Lauky&from=odr00",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/424dgk74vdzil.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/bank?_rsc=qHPcftDg_UtzhTO6",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 331,
+            "domContentLoadedMs": 355,
+            "loadEventMs": 374
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 74,
+          "actionableMs": 90,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&_rsc=qHPcftDg_UtzhTO6",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/bank?_rsc=qHPcftDg_UtzhTO6",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?_rsc=-uvGR6_-NCjfEH0q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Keep your next trip current."
+            },
+            {
+              "level": "h2",
+              "text": "For Lauky"
+            }
+          ],
+          "axHeadings": [
+            "Keep your next trip current.",
+            "For Lauky"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 46,
+            "domContentLoadedMs": 73,
+            "loadEventMs": 74
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 328,
+        "coldMinMs": 253,
+        "coldMaxMs": 350,
+        "warmMedianMs": 90,
+        "warmMinMs": 73,
+        "warmMaxMs": 379,
+        "readyRuns": 6,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    },
+    {
+      "route": "account",
+      "path": "/u/Lauky",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844,
+        "isMobile": true
+      },
+      "cold": [
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 532,
+          "actionableMs": 545,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Lauky"
+            },
+            {
+              "level": "h2",
+              "text": "Welcome back, Lauky."
+            },
+            {
+              "level": "h2",
+              "text": "Top skills"
+            },
+            {
+              "level": "h2",
+              "text": "All skills"
+            }
+          ],
+          "axHeadings": [
+            "Lauky",
+            "Welcome back, Lauky.",
+            "TOP SKILLS",
+            "ALL SKILLS"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 135,
+            "domContentLoadedMs": 531,
+            "loadEventMs": 848
+          },
+          "axArtifact": "docs/qa/outcome-recovery/ODR-00/ax/mobile-account.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-00/screenshots/mobile-account.png"
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 598,
+          "actionableMs": 634,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Lauky"
+            },
+            {
+              "level": "h2",
+              "text": "Welcome back, Lauky."
+            },
+            {
+              "level": "h2",
+              "text": "Top skills"
+            },
+            {
+              "level": "h2",
+              "text": "All skills"
+            }
+          ],
+          "axHeadings": [
+            "Lauky",
+            "Welcome back, Lauky.",
+            "TOP SKILLS",
+            "ALL SKILLS"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 185,
+            "domContentLoadedMs": 597,
+            "loadEventMs": 877
+          }
+        },
+        {
+          "mode": "cold",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 523,
+          "actionableMs": 538,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Lauky"
+            },
+            {
+              "level": "h2",
+              "text": "Welcome back, Lauky."
+            },
+            {
+              "level": "h2",
+              "text": "Top skills"
+            },
+            {
+              "level": "h2",
+              "text": "All skills"
+            }
+          ],
+          "axHeadings": [
+            "Lauky",
+            "Welcome back, Lauky.",
+            "TOP SKILLS",
+            "ALL SKILLS"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 216,
+            "domContentLoadedMs": 522,
+            "loadEventMs": 761
+          }
+        }
+      ],
+      "warm": [
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 365,
+          "actionableMs": 398,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=profile&_rsc=yeY0atmrp8Z2idfi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Lauky"
+            },
+            {
+              "level": "h2",
+              "text": "Welcome back, Lauky."
+            },
+            {
+              "level": "h2",
+              "text": "Top skills"
+            },
+            {
+              "level": "h2",
+              "text": "All skills"
+            }
+          ],
+          "axHeadings": [
+            "Lauky",
+            "Welcome back, Lauky.",
+            "TOP SKILLS",
+            "ALL SKILLS"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 41,
+            "domContentLoadedMs": 365,
+            "loadEventMs": 426
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 453,
+          "actionableMs": 488,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Lauky"
+            },
+            {
+              "level": "h2",
+              "text": "Welcome back, Lauky."
+            },
+            {
+              "level": "h2",
+              "text": "Top skills"
+            },
+            {
+              "level": "h2",
+              "text": "All skills"
+            }
+          ],
+          "axHeadings": [
+            "Lauky",
+            "Welcome back, Lauky.",
+            "TOP SKILLS",
+            "ALL SKILLS"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 149,
+            "domContentLoadedMs": 452,
+            "loadEventMs": 502
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 375,
+          "actionableMs": 390,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/424dgk74vdzil.js?dpl=dpl_qLDzDmUK9npeXnJv8P2w9z3n2Fgi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/dps?_rsc=yeY0atmrp8Z2idfi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/bank?_rsc=yeY0atmrp8Z2idfi",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "Lauky"
+            },
+            {
+              "level": "h2",
+              "text": "Welcome back, Lauky."
+            },
+            {
+              "level": "h2",
+              "text": "Top skills"
+            },
+            {
+              "level": "h2",
+              "text": "All skills"
+            }
+          ],
+          "axHeadings": [
+            "Lauky",
+            "Welcome back, Lauky.",
+            "TOP SKILLS",
+            "ALL SKILLS"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 125,
+            "domContentLoadedMs": 374,
+            "loadEventMs": 418
+          }
+        }
+      ],
+      "summary": {
+        "coldMedianMs": 545,
+        "coldMinMs": 538,
+        "coldMaxMs": 634,
+        "warmMedianMs": 398,
+        "warmMinMs": 390,
+        "warmMaxMs": 488,
+        "readyRuns": 6,
+        "errorCount": 0,
+        "hydrationErrorCount": 0,
+        "overflowRuns": 0,
+        "brokenImageCount": 0,
+        "unnamedControlCount": 0
+      }
+    }
+  ],
+  "summary": {
+    "routeViewportPairs": 14,
+    "measuredNavigations": 84,
+    "failedReadyRuns": 12,
+    "consoleErrors": 0,
+    "pageErrors": 12,
+    "hydrationErrors": 12,
+    "overflowRuns": 0,
+    "brokenImages": 0,
+    "unnamedControls": 0
+  }
+}

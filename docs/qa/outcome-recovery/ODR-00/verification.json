@@ -1,0 +1,32 @@
+{
+  "capturedAt": "2026-07-19T14:45:10.869Z",
+  "ci": {
+    "passed": true,
+    "testFiles": 217,
+    "tests": 1362,
+    "staticPages": 217,
+    "typecheck": true,
+    "smoke": true,
+    "recommendationAudit": true,
+    "offlineReleaseCheck": true,
+    "build": true
+  },
+  "liveSmoke": {
+    "passed": true,
+    "organizerRuntimeMs": 577,
+    "livePrices": true
+  },
+  "pluginUnit": {
+    "passed": true,
+    "tests": 89,
+    "skipped": 0,
+    "failures": 0
+  },
+  "pluginIntegration": {
+    "passed": true,
+    "tests": 10,
+    "skipped": 0,
+    "failures": 0,
+    "isolatedPersistence": true
+  }
+}

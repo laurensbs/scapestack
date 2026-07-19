@@ -1,0 +1,19 @@
+{
+  "capturedAt": "2026-07-19T14:14:00.000Z",
+  "url": "https://www.scapestack.org/api/sync",
+  "ok": true,
+  "service": "scapestack-sync",
+  "ready": true,
+  "plugin": {
+    "currentVersion": "0.3.0"
+  },
+  "database": {
+    "configured": true,
+    "ready": true,
+    "missingTables": [],
+    "missingColumns": {
+      "player_sync": [],
+      "player_claim": []
+    }
+  }
+}

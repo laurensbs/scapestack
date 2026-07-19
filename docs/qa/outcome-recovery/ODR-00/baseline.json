@@ -1,0 +1,418 @@
+{
+  "schemaVersion": 1,
+  "phase": "ODR-00",
+  "capturedAt": "2026-07-19T15:05:00.000Z",
+  "baselineCommit": "47b6441",
+  "launchReady": false,
+  "release": {
+    "publishedVersion": "0.3.0",
+    "contractVersion": 3,
+    "sourceCommit": "e29f6ac6995ffd8f95c3f71bebeac1d0ea26ebd3",
+    "pluginHubVerified": true
+  },
+  "gates": {
+    "ci": {
+      "passed": true,
+      "reason": "The full local gate passed 217 test files, 1,362 tests, typecheck, smoke, recommendation audit, release checks and the 217-page production build.",
+      "evidence": [
+        {
+          "level": 7,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/verification.json",
+          "reason": "Records the exact passing CI, unit, build and smoke counts."
+        }
+      ]
+    },
+    "browser": {
+      "passed": false,
+      "reason": "The local production browser matrix passed 19 stories but failed four and skipped one; first planning exceeded ten seconds and the RuneLite fixture no longer intercepted the server-action path.",
+      "evidence": [
+        {
+          "level": 5,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/local-browser-gate.json",
+          "reason": "Lists every passing, failing and skipped browser story with its failure mode."
+        },
+        {
+          "level": 5,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/local-e2e/product-matrix-Scapestack--941da-s-mood-right-after-planning-chromium-desktop/error-context.md",
+          "reason": "Captures the desktop planner still loading after the assertion deadline."
+        }
+      ]
+    },
+    "production": {
+      "passed": false,
+      "reason": "All 84 route navigations became ready, but the homepage raised React hydration error #418 in all twelve desktop/mobile cold and warm runs, and every one of the twelve /next runs missed the 2.5 second target.",
+      "evidence": [
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/production-routes.json",
+          "reason": "Contains three cold and three warm measurements for seven routes at desktop and mobile viewports."
+        },
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/screenshots/mobile-next.png",
+          "reason": "Shows the real loaded mobile recommendation and its current information hierarchy."
+        }
+      ]
+    },
+    "pluginRelease": {
+      "passed": true,
+      "reason": "Plugin Hub publishes Scapestack Sync 0.3.0 at contract v3 from the verified pinned source commit.",
+      "evidence": [
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/release-evidence.json",
+          "reason": "Records the live Plugin Hub version, contract, merged review and pinned commit."
+        },
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/plugin-settled/screenshots/desktop-plugin.png",
+          "reason": "Shows production correctly asking the legacy snapshot owner to update to v0.3.0."
+        }
+      ]
+    },
+    "pluginIntegration": {
+      "passed": true,
+      "reason": "The explicit Java plugin integration gate ran ten tests with zero skips against an isolated Neon branch and proved contract-v3 write, claim, auth, conflict and readback behavior.",
+      "evidence": [
+        {
+          "level": 4,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/plugin-e2e.xml",
+          "reason": "JUnit output proves ten executed tests with zero failures and zero skips."
+        },
+        {
+          "level": 4,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/plugin-e2e-readback.json",
+          "reason": "Privacy-safe readback proves all eight contract-v3 domains persisted in isolated storage."
+        }
+      ],
+      "executed": true,
+      "tests": 10,
+      "skipped": 0,
+      "isolatedPersistence": true
+    }
+  },
+  "categories": [
+    {
+      "id": "product-promise",
+      "score": 8.5,
+      "target": 9.0,
+      "passed": false,
+      "reason": "The homepage communicates stop-bankstanding and one next trip clearly, but the first result is not consistently fast or evidenced enough to complete the promise.",
+      "evidence": [
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/screenshots/desktop-home.png",
+          "reason": "Production screenshot proves the strong, direct first-viewport promise."
+        },
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/production-routes.json",
+          "reason": "Production timings show the promised answer still misses the target."
+        }
+      ]
+    },
+    {
+      "id": "first-useful-plan",
+      "score": 7.0,
+      "target": 9.0,
+      "passed": false,
+      "reason": "A plan appears and is actionable, but desktop and mobile cold medians are above 2.5 seconds, one production cold run reached 12.77 seconds and the local real-data story can also exceed ten seconds.",
+      "evidence": [
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/production-routes.json",
+          "reason": "Measures desktop cold median 3,075 ms and mobile cold median 2,754 ms, with every cold and warm run above 2.5 seconds."
+        },
+        {
+          "level": 5,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/local-browser-gate.json",
+          "reason": "Records the planner timeout in both browser projects."
+        }
+      ]
+    },
+    {
+      "id": "recommendation-relevance",
+      "score": 5.5,
+      "target": 8.8,
+      "passed": false,
+      "reason": "The short-session winner is plausible, but the current audit proves mainly forbidden-case safety rather than that the winner beats meaningful alternatives for this account.",
+      "evidence": [
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/screenshots/desktop-next.png",
+          "reason": "Shows the live winner and alternatives used for the qualitative comparison."
+        },
+        {
+          "level": 8,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/report.md",
+          "reason": "Documents the missing pairwise decision-quality proof."
+        }
+      ]
+    },
+    {
+      "id": "recommendation-evidence",
+      "score": 5.5,
+      "target": 9.0,
+      "passed": false,
+      "reason": "The visible reason mentions Farming and Hunter, but does not expose exact account facts, why this won or what competing route lost.",
+      "evidence": [
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/screenshots/mobile-next.png",
+          "reason": "Shows the generic visible reason on the real production result."
+        }
+      ]
+    },
+    {
+      "id": "active-session",
+      "score": 4.5,
+      "target": 8.8,
+      "passed": false,
+      "reason": "Scapestack can present and remember a trip, but the core path does not yet prove durable start, stop, completion and reconciliation across closure.",
+      "evidence": [
+        {
+          "level": 8,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/report.md",
+          "reason": "The end-to-end return-loop audit identifies the missing durable session proof."
+        }
+      ]
+    },
+    {
+      "id": "long-term-route",
+      "score": 4.0,
+      "target": 8.5,
+      "passed": false,
+      "reason": "Long arcs exist in product copy and data structures, but a completed trip does not yet visibly advance one stable account journey.",
+      "evidence": [
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/screenshots/desktop-goals.png",
+          "reason": "Shows the current goal surface and a weak generic Defence-cape priority."
+        }
+      ]
+    },
+    {
+      "id": "return-value",
+      "score": 4.0,
+      "target": 8.8,
+      "passed": false,
+      "reason": "There is no measured D1/D7 cohort and no proven next-visit moment that summarizes real progress and advances the route.",
+      "evidence": [
+        {
+          "level": 8,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/report.md",
+          "reason": "Records that existing events do not constitute a measured retention outcome."
+        }
+      ]
+    },
+    {
+      "id": "runelite-contract-release",
+      "score": 8.5,
+      "target": 9.2,
+      "passed": false,
+      "reason": "Version 0.3.0 and contract v3 are published and integration-tested, but the owned production snapshot still reports plugin 0.2.0 and no v3 coverage object.",
+      "evidence": [
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/release-evidence.json",
+          "reason": "Proves the current published Plugin Hub release."
+        },
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/production-snapshot.json",
+          "reason": "Proves the current real snapshot is still legacy 0.2.0."
+        }
+      ]
+    },
+    {
+      "id": "runelite-player-ux",
+      "score": 6.0,
+      "target": 8.8,
+      "passed": false,
+      "reason": "The plugin page gives a clear update action, but website observation of a real client sync and its use by the planner are not yet proven automatically.",
+      "evidence": [
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/plugin-settled/screenshots/mobile-plugin.png",
+          "reason": "Shows the concise production update state on mobile."
+        },
+        {
+          "level": 5,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/local-browser-gate.json",
+          "reason": "Shows that the current browser sync story is stale and red."
+        }
+      ]
+    },
+    {
+      "id": "bank-boss-utility",
+      "score": 7.5,
+      "target": 8.5,
+      "passed": false,
+      "reason": "The organizer and boss browser are substantial, but the owned production snapshot contains no captured bank and cannot prove exact setup or supply advice.",
+      "evidence": [
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/screenshots/desktop-boss.png",
+          "reason": "Shows the real production boss surface and its bank-dependent path."
+        },
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/production-snapshot.json",
+          "reason": "Records bank enabled but unavailable because it was not opened this session."
+        }
+      ]
+    },
+    {
+      "id": "branding",
+      "score": 8.0,
+      "target": 8.8,
+      "passed": false,
+      "reason": "The restrained black, cream and gold direction is recognizable and OSRS-adjacent, but inner pages still rely on generic rows and panels rather than one unified companion interaction language.",
+      "evidence": [
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/screenshots/desktop-home.png",
+          "reason": "Shows the strongest expression of the current brand."
+        },
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/screenshots/desktop-goals.png",
+          "reason": "Shows the denser inner-product treatment that weakens consistency."
+        }
+      ]
+    },
+    {
+      "id": "inner-product-ui",
+      "score": 6.5,
+      "target": 8.5,
+      "passed": false,
+      "reason": "Core pages are clean and technically stable, but repeated collapsed rows, empty vertical space and generic card treatments make the companion feel thin and panel-like.",
+      "evidence": [
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/screenshots/desktop-next.png",
+          "reason": "Shows the live result hierarchy and repeated collapsed rows."
+        },
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/screenshots/desktop-account.png",
+          "reason": "Shows the account surface used in the cross-product consistency audit."
+        }
+      ]
+    },
+    {
+      "id": "mobile-accessibility",
+      "score": 6.5,
+      "target": 9.0,
+      "passed": false,
+      "reason": "No audited mobile route overflowed or exposed unnamed controls, but /next has no level-one heading and homepage hydration fails on every mobile run.",
+      "evidence": [
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/production-routes.json",
+          "reason": "Records zero overflow and unnamed controls alongside twelve hydration errors and heading captures."
+        },
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/ax/mobile-next.json",
+          "reason": "The production accessibility tree exposes only the plan title as a heading."
+        }
+      ]
+    },
+    {
+      "id": "performance",
+      "score": 5.0,
+      "target": 9.0,
+      "passed": false,
+      "reason": "Production /next cold medians are 3.08 seconds desktop and 2.75 seconds mobile, warm medians remain above 2.5 seconds and one production cold run reached 12.77 seconds.",
+      "evidence": [
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/production-routes.json",
+          "reason": "Provides raw cold and warm actionable timings instead of a best-run quote."
+        },
+        {
+          "level": 5,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/local-browser-gate.json",
+          "reason": "Shows the real-data planner failing a ten-second browser deadline."
+        }
+      ]
+    },
+    {
+      "id": "measurement",
+      "score": 4.5,
+      "target": 8.5,
+      "passed": false,
+      "reason": "The repo now has reproducible route and release audits, but product instrumentation has no trusted cohort, recommendation-quality benchmark or owner-visible outcome gate yet.",
+      "evidence": [
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/production-routes.json",
+          "reason": "Demonstrates the new repeatable production route measurement."
+        },
+        {
+          "level": 8,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/report.md",
+          "reason": "Separates implemented events from unmeasured retention outcomes."
+        }
+      ]
+    },
+    {
+      "id": "privacy-trust",
+      "score": 8.0,
+      "target": 9.0,
+      "passed": false,
+      "reason": "No credentials are required, evidence captures only counts and availability, and auth/claim integration passes; stale snapshot and uncertain bank coverage still need clearer automatic reconciliation.",
+      "evidence": [
+        {
+          "level": 4,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/plugin-e2e-readback.json",
+          "reason": "Privacy-safe integration readback proves contract coverage without retaining item payloads in evidence."
+        },
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/production-snapshot.json",
+          "reason": "Production evidence is intentionally limited to counts, timestamps and availability."
+        }
+      ]
+    },
+    {
+      "id": "engineering",
+      "score": 9.0,
+      "target": 9.2,
+      "passed": false,
+      "reason": "The test, type, build and Java unit suites are broad and green, but the player browser gate is red and cross-system E2E previously hid behind a skip instead of an explicit isolated task.",
+      "evidence": [
+        {
+          "level": 7,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/verification.json",
+          "reason": "Records 1,362 web tests, 89 Java unit tests and successful production build."
+        },
+        {
+          "level": 4,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/plugin-e2e.xml",
+          "reason": "Proves the new explicit integration task runs without hidden skips."
+        }
+      ]
+    },
+    {
+      "id": "reddit-fit",
+      "score": 6.5,
+      "target": 8.5,
+      "passed": false,
+      "reason": "The pitch and brand are immediately understandable, but a Reddit player can still challenge speed, comparative intelligence and proof that RuneLite changed the recommendation.",
+      "evidence": [
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/screenshots/desktop-home.png",
+          "reason": "Shows the compelling shareable first impression."
+        },
+        {
+          "level": 2,
+          "artifact": "docs/qa/outcome-recovery/ODR-00/screenshots/desktop-next.png",
+          "reason": "Shows that the actual result still lacks a defensible account-specific wow moment."
+        }
+      ]
+    }
+  ]
+}

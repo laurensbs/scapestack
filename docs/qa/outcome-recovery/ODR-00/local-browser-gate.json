@@ -1,0 +1,28 @@
+{
+  "capturedAt": "2026-07-19T14:00:00.000Z",
+  "command": "npm run e2e",
+  "passed": false,
+  "passedTests": 19,
+  "failedTests": 4,
+  "skippedTests": 1,
+  "failures": [
+    {
+      "story": "first-time route picker offers mood right after planning",
+      "projects": ["chromium-desktop", "mobile-chromium"],
+      "observed": "Planner remained on Building your next trip after the 10 second assertion deadline.",
+      "artifacts": [
+        "docs/qa/outcome-recovery/ODR-00/local-e2e/product-matrix-Scapestack--941da-s-mood-right-after-planning-chromium-desktop/error-context.md",
+        "docs/qa/outcome-recovery/ODR-00/local-e2e/product-matrix-Scapestack--941da-s-mood-right-after-planning-mobile-chromium/error-context.md"
+      ]
+    },
+    {
+      "story": "RuneLite page shows check, status and fix without developer panels",
+      "projects": ["chromium-desktop", "mobile-chromium"],
+      "observed": "The test mocked a browser API route, but the page now uses a server action and remained on Checking.",
+      "artifacts": [
+        "docs/qa/outcome-recovery/ODR-00/local-e2e/product-matrix-Scapestack--af896-ix-without-developer-panels-chromium-desktop/error-context.md",
+        "docs/qa/outcome-recovery/ODR-00/local-e2e/product-matrix-Scapestack--af896-ix-without-developer-panels-mobile-chromium/error-context.md"
+      ]
+    }
+  ]
+}

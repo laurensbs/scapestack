@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "authoritativePromptbook": "docs/SCAPESTACK-OUTCOME-RECOVERY-PROMPTBOOK-2026-07-19.md",
+  "executionPointer": "ODR-01",
+  "baselineCommit": "47b6441",
+  "outcomeArtifact": "docs/qa/outcome-recovery/ODR-00/baseline.json",
+  "release": {
+    "pluginId": "scapestack-sync",
+    "publishedVersion": "0.3.0",
+    "contractVersion": 3,
+    "sourceCommit": "e29f6ac6995ffd8f95c3f71bebeac1d0ea26ebd3"
+  },
+  "supersededPromptbooks": [
+    "docs/SCAPESTACK-90-PLUS-MASTER-PROMPTBOOK-2026-07-15.md",
+    "docs/SCAPESTACK-PRODUCTION-RECOVERY-PROMPTBOOK-2026-07-18.md"
+  ],
+  "updatedAt": "2026-07-19T15:05:00Z"
+}

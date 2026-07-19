@@ -25,6 +25,7 @@ describe("package scripts", () => {
       "npm test",
       "npm run smoke",
       "npm run audit:next",
+      "npm run audit:controller",
       "npm run plugin:release-check",
       "npm run build"
     ].join(" && "));

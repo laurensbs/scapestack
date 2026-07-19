@@ -1,0 +1,35 @@
+{
+  "capturedAt": "2026-07-19T14:26:54.146Z",
+  "persistence": "isolated Neon branch br-holy-silence-alsgjudv",
+  "productionMutated": false,
+  "tests": 10,
+  "skipped": 0,
+  "failures": 0,
+  "contractVersion": 3,
+  "pluginVersion": "junit-e2e-v3",
+  "coverage": {
+    "skills": "available",
+    "quests": "available",
+    "diaries": "available",
+    "collectionLog": "available",
+    "bossKc": "available",
+    "slayer": "available",
+    "accountMode": "available",
+    "bank": "available"
+  },
+  "counts": {
+    "skills": 2,
+    "quests": 2,
+    "diaries": 1,
+    "collectionLogItems": 3,
+    "bossKc": 2,
+    "bankItems": 2
+  },
+  "authAssertions": [
+    "first claim accepted",
+    "missing token rejected",
+    "wrong token rejected",
+    "rival claim rejected",
+    "same-token reclaim accepted"
+  ]
+}

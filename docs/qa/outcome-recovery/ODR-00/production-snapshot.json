@@ -1,0 +1,29 @@
+{
+  "capturedAt": "2026-07-19T14:15:00.000Z",
+  "found": true,
+  "rsn": "lauky",
+  "syncedAt": "2026-07-19T10:57:36.844Z",
+  "pluginVersion": "0.2.0",
+  "accountType": "ironman",
+  "contractCoverage": null,
+  "counts": {
+    "skills": 24,
+    "quests": 207,
+    "diaries": 20,
+    "collectionLogItems": 0,
+    "bossKc": 0,
+    "bankItems": 0
+  },
+  "bank": {
+    "enabled": true,
+    "itemCount": 0,
+    "capturedAt": null,
+    "unavailableReason": "bank-not-opened-this-session"
+  },
+  "slayer": {
+    "available": true,
+    "hasCurrentTask": true,
+    "blockCount": 1
+  },
+  "privacy": "Counts, availability and timestamps only; no bank items or private payload values retained."
+}

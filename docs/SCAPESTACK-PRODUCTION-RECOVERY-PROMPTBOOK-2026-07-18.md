@@ -1,14 +1,15 @@
 # Scapestack Production Recovery Promptbook
 
-Status: active execution controller
+Status: superseded historical controller
 Created: 2026-07-18
 Baseline commit: `2dd61b7`
 Baseline product score: 5.2/10
 Target product score: at least 8.8/10, with no core category below 8.0
-Execution pointer: `REC-02`
+Execution pointer: archived at `REC-02`
 
-This file is the controller for recovering Scapestack from a locally green but
-production-incomplete state. It does not replace the product ideas in
+This file is historical evidence for recovering Scapestack from a locally green
+but production-incomplete state. Execution moved to
+`docs/SCAPESTACK-OUTCOME-RECOVERY-PROMPTBOOK-2026-07-19.md`. It does not replace the product ideas in
 `docs/SCAPESTACK-90-PLUS-MASTER-PROMPTBOOK-2026-07-15.md`. It overrides that
 file's completion claims whenever real production evidence disagrees with
 them.

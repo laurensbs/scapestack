@@ -45,8 +45,7 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     testImplementation group: 'net.runelite', name: 'client', version: runeLiteVersion
     testImplementation group: 'net.runelite', name: 'jshell', version: runeLiteVersion
-    // E2E smoke-test uses JDBC to reset claim rows before assertions
-    // (skipped automatically when DATABASE_URL isn't set).
+    // The explicit pluginE2e task uses JDBC only on an isolated Neon branch.
     testImplementation 'org.postgresql:postgresql:42.7.4'
 
     runClient group: 'net.runelite', name: 'client', version: runeLiteVersion
@@ -112,23 +111,58 @@ task runClient(type: JavaExec) {
 
 test {
     useJUnit()
-    // Pass DATABASE_URL through to JVM so EndToEndSmokeTest can reset
-    // claim rows before assertions. Tries .env.local first, then env.
-    def dbUrl = System.getenv('DATABASE_URL')
-    if (!dbUrl && file('../.env.local').exists()) {
-        def line = file('../.env.local').readLines()
-            .find { it.startsWith('DATABASE_URL=') }
-        if (line) dbUrl = line.substring('DATABASE_URL='.length()).trim()
-    }
-    if (dbUrl) systemProperty 'DATABASE_URL', dbUrl
+    // Cross-system writes never belong in the ordinary green unit suite.
+    // `pluginE2e` is explicit and refuses to run against production storage.
+    exclude '**/EndToEndSmokeTest.class'
 
-    // E2E hits a live server — gradle has no way to know if that server's
-    // state changed, so up-to-date caching gives false-silent runs.
-    // Always rerun. Pure-unit suites are fast enough that we don't care.
+    // Keep ordinary verification observable on every release check. The unit
+    // suite is small enough that a cached green result is not worth the doubt.
     outputs.upToDateWhen { false }
 
     // Per-test PASS/FAIL/SKIP visibility — without this you only see the
     // summary "BUILD SUCCESSFUL" which hides what actually ran.
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        showStandardStreams = false
+        exceptionFormat = 'short'
+    }
+}
+
+tasks.register('pluginE2e', Test) {
+    group = 'verification'
+    description = 'Run the real plugin -> website -> isolated Neon roundtrip'
+    useJUnit()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/EndToEndSmokeTest.class'
+
+    def e2eDbUrl = System.getenv('SCAPESTACK_E2E_DATABASE_URL')
+    def e2eRsn = System.getenv('SCAPESTACK_E2E_RSN')
+    def e2eBaseUrl = System.getenv('SCAPESTACK_E2E_BASE_URL') ?: 'http://localhost:4173'
+    def productionDbUrl = System.getenv('DATABASE_URL')
+    if (!productionDbUrl && file('../.env.local').exists()) {
+        def line = file('../.env.local').readLines()
+            .find { it.startsWith('DATABASE_URL=') }
+        if (line) productionDbUrl = line.substring('DATABASE_URL='.length()).trim()
+    }
+
+    if (e2eDbUrl) systemProperty 'SCAPESTACK_E2E_DATABASE_URL', e2eDbUrl
+    if (e2eRsn) systemProperty 'SCAPESTACK_E2E_RSN', e2eRsn
+    systemProperty 'SCAPESTACK_E2E_BASE_URL', e2eBaseUrl
+
+    doFirst {
+        if (!e2eDbUrl) {
+            throw new GradleException('SCAPESTACK_E2E_DATABASE_URL is required; create an isolated Neon branch first')
+        }
+        if (!e2eRsn) {
+            throw new GradleException('SCAPESTACK_E2E_RSN is required and must be a real Hiscores account')
+        }
+        if (productionDbUrl && e2eDbUrl == productionDbUrl) {
+            throw new GradleException('Refusing pluginE2e because the E2E database equals production DATABASE_URL')
+        }
+    }
+
+    outputs.upToDateWhen { false }
     testLogging {
         events 'passed', 'skipped', 'failed'
         showStandardStreams = false
