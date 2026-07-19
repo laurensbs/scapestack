@@ -53,8 +53,9 @@ describe("hero intake copy and routing", () => {
     expect(source).toContain("pluginSyncStatusAction(target)");
     expect(source).toContain("markRuneliteChecked(target, checkedAt)");
     expect(source).toContain("markAccountPluginBankStatus(target, next.player.bankStatus)");
-    expect(source).toContain("markAccountRuneliteProgress(target, runeliteProgressFromSyncSummary(");
-    expect(source).toContain("next.player.lastSyncSummary");
+    expect(source).toContain("const snapshot = loadAccountSnapshot(target);");
+    expect(source).not.toContain("next.player.lastSyncSummary");
+    expect(source).not.toContain("runeliteProgressFromSyncSummary");
     expect(source).toContain("clearRuneliteChecked(target)");
     expect(source).toContain("RuneLite refreshed.");
     expect(source).toContain("No fresh sync yet. Open RuneLite, press Sync now, then refresh.");

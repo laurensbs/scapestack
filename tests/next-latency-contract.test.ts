@@ -22,12 +22,15 @@ describe("first plan latency contract", () => {
   });
 
   it("bounds critical and optional sources independently", () => {
-    expect(planningContext).toContain("scapestack: 650");
+    expect(planningContext).toContain("scapestack: 1_200");
+    expect(planningContext).toContain("scapestackHandoffRetry: 1_200");
     expect(planningContext).toContain("hiscores: 900");
     expect(planningContext).toContain("wom: 300");
     expect(planningContext).toContain("temple: 300");
     expect(planningContext).toContain("collectionLog: 300");
-    expect(planningContext).toContain('runBoundedSource("scapestack"');
+    expect(planningContext).toContain('"scapestack",\n    PLANNING_SOURCE_DEADLINES_MS.scapestack');
+    expect(planningContext).toContain('"scapestack_retry",\n    PLANNING_SOURCE_DEADLINES_MS.scapestackHandoffRetry');
+    expect(planningContext).toContain("options.preferScapestack === true");
     expect(planningContext).toContain('runBoundedSource("hiscores"');
     expect(planningContext).toContain('runBoundedSource("collection_log"');
     expect(actions).toContain("return loadPlanningContext(rsn)");
@@ -35,7 +38,8 @@ describe("first plan latency contract", () => {
 
   it("starts account loading in the streamed route before client hydration", () => {
     expect(nextPage).toContain("<Suspense");
-    expect(nextPage).toContain("await loadPlanningContext(rsn)");
+    expect(nextPage).toContain("await loadPlanningContext(rsn, { preferScapestack })");
+    expect(nextPage).toContain('source === "plugin-sync" || from === "plugin"');
     expect(nextPage).toContain("initialPlanningContext={initialPlanningContext}");
     expect(nextPage).toContain("Picking your next trip...");
   });

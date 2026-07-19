@@ -32,5 +32,6 @@ describe("package scripts", () => {
     expect(packageJson.scripts?.["plugin:review-handoff-command"]).toBe(
       "tsx scripts/print-plugin-review-packet.ts --handoff-command"
     );
+    expect(packageJson.scripts?.["ci:cross-system"]).toBe("node scripts/run-cross-system-gate.mjs");
   });
 });

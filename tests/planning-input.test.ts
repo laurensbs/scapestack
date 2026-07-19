@@ -60,4 +60,56 @@ describe("shared first-plan input", () => {
       scapestackSync: null
     })).toBeNull();
   });
+
+  it("keeps not-loaded domains unknown instead of turning them into empty facts", () => {
+    const player = syncedPlayer();
+    player.collectionLogItemIds = [];
+    player.bossKc = { Vorkath: 48 };
+    player.slayer = {
+      points: 100,
+      streak: 20,
+      taskRemaining: 42,
+      currentTaskId: 1,
+      blocks: []
+    };
+    player.availability = {
+      skills: "available",
+      quests: "available",
+      diaries: "available",
+      collectionLog: "not-loaded",
+      bossKc: "not-loaded",
+      slayer: "not-loaded",
+      bank: "not-loaded"
+    };
+
+    const input = buildNextUpInputFromSources({
+      rsn: "Lauky",
+      hiscores: null,
+      wom: null,
+      scapestackSync: player
+    });
+
+    expect(input?.scapestackSync?.collectionLogItemIds).toBeUndefined();
+    expect(input?.scapestackSync?.bossKc).toBeUndefined();
+    expect(input?.scapestackSync?.slayer).toBeUndefined();
+    expect(input?.bossKc?.Vorkath).toBeUndefined();
+    // A recent last-known bank remains usable, but its availability is still
+    // carried so UI/evidence can ask the player to open the bank to refresh.
+    expect(input?.bank).toHaveLength(1);
+    expect(input?.syncedSources?.scapestack?.availability?.bank).toBe("not-loaded");
+  });
+
+  it("never reuses bank values after bank permission is turned off", () => {
+    const player = syncedPlayer();
+    player.bankStatus = { enabled: false, itemCount: 0, capturedAt: null, unavailableReason: "opt-in-off" };
+    player.availability = { bank: "permission-off" };
+
+    const input = buildNextUpInputFromSources({
+      rsn: "Lauky",
+      hiscores: null,
+      wom: null,
+      scapestackSync: player
+    });
+    expect(input?.bank).toEqual([]);
+  });
 });

@@ -304,9 +304,9 @@ export interface NextUpInput {
   scapestackSync?: {
     displayName?: string;
     accountType?: string;
-    questsCompleted: string[];
-    diariesCompleted: Array<{ region: string; tier: string }>;
-    collectionLogItemIds: number[];
+    questsCompleted?: string[];
+    diariesCompleted?: Array<{ region: string; tier: string }>;
+    collectionLogItemIds?: number[];
     bossKc?: Record<string, number> | null;
     bankStatus?: PluginBankStatus;
     lastSyncSummary?: SyncDeltaSummary | null;
@@ -337,6 +337,7 @@ export interface NextUpInput {
       slayerTaskRemaining?: number | null;
       slayerBlocks?: number;
       bankStatus?: PluginBankStatus;
+      availability?: Partial<import("./account-snapshot-delta").SnapshotAvailability>;
       lastSyncSummary?: SyncDeltaSummary | null;
     } | null;
   };
@@ -3688,12 +3689,12 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     ? new Set(input.collectionLogOwnedItemIds)
     : undefined;
 
-  const completedQuestNames = input.scapestackSync
+  const completedQuestNames = input.scapestackSync?.questsCompleted
     ? new Set(input.scapestackSync.questsCompleted.map((q) => q.toLowerCase()))
     : input.templeQuestsCompleted
       ? new Set(input.templeQuestsCompleted.map((q) => q.toLowerCase()))
       : undefined;
-  const completedDiaryTierKeys = input.scapestackSync
+  const completedDiaryTierKeys = input.scapestackSync?.diariesCompleted
     ? new Set(input.scapestackSync.diariesCompleted.map((d) => diaryTierKey(d.region, d.tier)))
     : undefined;
 
@@ -3751,7 +3752,7 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
       completedQuestNames,
       bank,
       accountMeta?.accountType ?? null,
-      input.scapestackSync ? "runelite" : completedQuestNames ? "tracker" : undefined
+      input.scapestackSync?.questsCompleted ? "runelite" : completedQuestNames ? "tracker" : undefined
     ),
     ...activeBossKcRecs(mergedBossKc, bank, skills, accountMeta?.accountType ?? null),
     ...diaryRecs(diaries, skills, {
@@ -3814,9 +3815,12 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
       : undefined,
     collectionLogOwnedItemIds: clOwned,
     scapestackSync: input.scapestackSync ? {
-      questsCompleted: new Set(input.scapestackSync.questsCompleted.map((q) => q.toLowerCase())),
-      diariesCompleted: new Set(input.scapestackSync.diariesCompleted.map((d) => `${d.region}:${d.tier}`)),
-      collectionLogItemIds: new Set(input.scapestackSync.collectionLogItemIds)
+      questsCompleted: input.scapestackSync.questsCompleted
+        ? new Set(input.scapestackSync.questsCompleted.map((q) => q.toLowerCase())) : undefined,
+      diariesCompleted: input.scapestackSync.diariesCompleted
+        ? new Set(input.scapestackSync.diariesCompleted.map((d) => `${d.region}:${d.tier}`)) : undefined,
+      collectionLogItemIds: input.scapestackSync.collectionLogItemIds
+        ? new Set(input.scapestackSync.collectionLogItemIds) : undefined
     } : undefined,
     syncedSources: input.syncedSources
   });

@@ -691,7 +691,8 @@ describe("/next confidence UI copy", () => {
 
   it("uses real Scapestack sync skills and bank items before falling back to empty context", () => {
     expect(planningInputSource).toContain("function syncedSkillsToHiscoreSkills");
-    expect(planningInputSource).toContain("hiscores?.skills ?? syncedSkillsToHiscoreSkills(scapestackSync?.skills)");
+    expect(planningInputSource).toContain('domainAvailable(scapestackSync, "skills") ? scapestackSync?.skills : undefined');
+    expect(planningInputSource).toContain("availability: scapestackSync?.availability?.bank");
     expect(source).toContain("buildNextUpInputFromSources({");
     expect(source).toContain("markAccountPluginBankStatus(rsn, scapestackSync.bankStatus)");
     expect(source).toContain("const usePluginBank = shouldUsePluginBank({");

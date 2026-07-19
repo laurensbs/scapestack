@@ -1,5 +1,6 @@
 package app.scapestack.runelite;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -15,10 +16,14 @@ import org.junit.runners.MethodSorters;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -45,7 +50,7 @@ import static org.junit.Assert.*;
  *   1. Eerste claim slaagt (200)
  *   2. Sync zonder token wordt geweigerd (401)
  *   3. Sync met andere token wordt geweigerd (403)
- *   4. Sync met juiste token slaagt + counts kloppen
+ *   4. Sync met juiste token slaagt + receipt, status en opslag kloppen
  *   5. Rival-install kan dezelfde RSN niet stelen (409)
  *   6. Idempotent re-claim met zelfde token werkt
  *   7. InstallToken in-memory store gedraagt zich identiek aan
@@ -74,7 +79,7 @@ public class EndToEndSmokeTest {
         rsn = requiredProperty("SCAPESTACK_E2E_RSN");
         dbUrl = requiredProperty("SCAPESTACK_E2E_DATABASE_URL");
         assertTrue("E2E-server niet bereikbaar op " + base, serverReachable());
-        deleteClaim();
+        deleteTestIdentity();
     }
 
     /** Converteert Neon's postgresql://user:pass@host/db?sslmode=...
@@ -113,7 +118,7 @@ public class EndToEndSmokeTest {
 
     @AfterClass
     public static void cleanup() throws Exception {
-        if (dbUrl != null && rsn != null) deleteClaim();
+        if (dbUrl != null && rsn != null) deleteTestIdentity();
     }
 
     // ---------- 1) eerste claim ----------
@@ -151,25 +156,40 @@ public class EndToEndSmokeTest {
     // ---------- 4) volledige sync via plugin-pad ----------
 
     @Test
-    public void testD_fullSyncRoundTrip() throws IOException {
+    public void testD_fullSyncRoundTrip() throws Exception {
         // Gebruik dezelfde v3-serializerfixture als de echte plugin. Alleen
         // identiteit en versie worden voor deze geisoleerde run aangepast.
         JsonObject body = SyncPayloadFixtureWriter.fixturePayload();
         body.addProperty("rsn", rsn);
         body.addProperty("displayName", rsn);
-        body.addProperty("pluginVersion", "junit-e2e-v3");
 
         Result r = postJson(base + "/api/sync", body.toString(),
             "Bearer " + TEST_TOKEN);
         assertEquals("Volledige sync moet 200 zijn. body=" + r.body, 200, r.status);
-        // Counts in response moeten gelijk zijn aan wat we postten.
-        assertTrue("contractVersion:3 verwacht: " + r.body, r.body.contains("\"contractVersion\":3"));
-        assertTrue("counts.quests:2 verwacht: " + r.body, r.body.contains("\"quests\":2"));
-        assertTrue("counts.skills:2 verwacht: " + r.body, r.body.contains("\"skills\":2"));
-        assertTrue("counts.diaries:1 verwacht: " + r.body, r.body.contains("\"diaries\":1"));
-        assertTrue("counts.collectionLogItems:3 verwacht: " + r.body,
-            r.body.contains("\"collectionLogItems\":3"));
-        assertTrue("counts.bankItems:2 verwacht: " + r.body, r.body.contains("\"bankItems\":2"));
+        JsonObject response = parseObject(r.body);
+        JsonObject accepted = response.getAsJsonObject("accepted");
+        assertNotNull("Een HTTP 200 zonder accepted receipt telt niet", accepted);
+        assertEquals(3, accepted.get("contractVersion").getAsInt());
+        assertEquals("0.3.0", accepted.get("pluginVersion").getAsString());
+        assertEquals(rsn.toLowerCase(), accepted.getAsJsonObject("claim").get("rsn").getAsString());
+        assertEquals("verified", accepted.getAsJsonObject("claim").get("status").getAsString());
+        assertFalse("accepted sync time ontbreekt", accepted.get("syncedAt").getAsString().isBlank());
+
+        JsonObject acceptedCoverage = accepted.getAsJsonObject("coverage");
+        for (String domain : PluginSnapshotContract.DOMAINS) {
+            assertEquals(domain + " moet eerlijk als available terugkomen voor de volledige fixture",
+                "available", acceptedCoverage.getAsJsonObject(domain).get("state").getAsString());
+        }
+
+        JsonObject counts = response.getAsJsonObject("counts");
+        assertEquals(2, counts.get("quests").getAsInt());
+        assertEquals(2, counts.get("skills").getAsInt());
+        assertEquals(1, counts.get("diaries").getAsInt());
+        assertEquals(3, counts.get("collectionLogItems").getAsInt());
+        assertEquals(2, counts.get("bankItems").getAsInt());
+
+        assertPersistedSnapshot(accepted);
+        assertPublicReadback(accepted);
     }
 
     // ---------- 5) rival-install kan RSN niet stelen ----------
@@ -268,13 +288,100 @@ public class EndToEndSmokeTest {
         return value.trim();
     }
 
-    private static void deleteClaim() throws Exception {
+    private static void assertPersistedSnapshot(JsonObject accepted) throws Exception {
         try (Connection c = DriverManager.getConnection(toJdbcUrl(dbUrl), jdbcProps(dbUrl))) {
-            try (PreparedStatement p = c.prepareStatement("DELETE FROM player_claim WHERE rsn=?")) {
+            String projectionSql =
+                "SELECT plugin_version, synced_at, " +
+                "jsonb_array_length(skills) AS skills_count, " +
+                "jsonb_array_length(quests_completed) AS quests_count, " +
+                "jsonb_array_length(diaries_completed) AS diaries_count, " +
+                "cardinality(collection_log_item_ids) AS clog_count, " +
+                "jsonb_array_length(bank_items) AS bank_count, " +
+                "boss_kc ->> 'Vorkath' AS vorkath_kc, " +
+                "slayer ->> 'taskName' AS task_name, " +
+                "snapshot_coverage -> 'bank' ->> 'state' AS bank_coverage " +
+                "FROM player_sync WHERE rsn=?";
+            try (PreparedStatement p = c.prepareStatement(projectionSql)) {
                 p.setString(1, rsn.toLowerCase());
-                p.executeUpdate();
+                try (ResultSet row = p.executeQuery()) {
+                    assertTrue("player_sync projection ontbreekt na geaccepteerde POST", row.next());
+                    assertEquals("0.3.0", row.getString("plugin_version"));
+                    assertEquals(Instant.parse(accepted.get("syncedAt").getAsString()),
+                        row.getTimestamp("synced_at").toInstant());
+                    assertEquals(2, row.getInt("skills_count"));
+                    assertEquals(2, row.getInt("quests_count"));
+                    assertEquals(1, row.getInt("diaries_count"));
+                    assertEquals(3, row.getInt("clog_count"));
+                    assertEquals(2, row.getInt("bank_count"));
+                    assertEquals("48", row.getString("vorkath_kc"));
+                    assertEquals("Dust devils", row.getString("task_name"));
+                    assertEquals("available", row.getString("bank_coverage"));
+                    assertFalse("Meer dan een projection-row voor de E2E-identiteit", row.next());
+                }
+            }
+
+            String historySql =
+                "SELECT snapshot.plugin_version, snapshot.captured_at, " +
+                "snapshot.coverage -> 'skills' ->> 'state' AS skills_coverage, " +
+                "jsonb_array_length(snapshot.skills) AS skills_count " +
+                "FROM account_identity identity " +
+                "JOIN sync_snapshot snapshot ON snapshot.account_id=identity.account_id " +
+                "WHERE identity.rsn=? ORDER BY snapshot.captured_at DESC LIMIT 1";
+            try (PreparedStatement p = c.prepareStatement(historySql)) {
+                p.setString(1, rsn.toLowerCase());
+                try (ResultSet row = p.executeQuery()) {
+                    assertTrue("Immutable sync_snapshot ontbreekt", row.next());
+                    assertEquals("0.3.0", row.getString("plugin_version"));
+                    assertEquals(Instant.parse(accepted.get("syncedAt").getAsString()),
+                        row.getTimestamp("captured_at").toInstant());
+                    assertEquals("available", row.getString("skills_coverage"));
+                    assertEquals(2, row.getInt("skills_count"));
+                }
             }
         }
+    }
+
+    private static void assertPublicReadback(JsonObject accepted) throws IOException {
+        String encodedRsn = URLEncoder.encode(rsn, StandardCharsets.UTF_8);
+        Result status = get(base + "/api/sync/status?rsn=" + encodedRsn);
+        assertEquals("Browser readback moet dezelfde scan vinden. body=" + status.body, 200, status.status);
+        JsonObject receipt = parseObject(status.body).getAsJsonObject("player");
+        assertNotNull(receipt);
+        assertEquals(accepted.get("syncedAt").getAsString(), receipt.get("syncedAt").getAsString());
+        assertEquals(accepted.get("pluginVersion").getAsString(), receipt.get("pluginVersion").getAsString());
+        assertEquals(3, receipt.get("contractVersion").getAsInt());
+        assertEquals("verified", receipt.getAsJsonObject("claim").get("status").getAsString());
+        assertEquals("available", receipt.getAsJsonObject("coverage")
+            .getAsJsonObject("collectionLog").get("state").getAsString());
+        assertFalse("Status receipt mag geen questwaarden lekken", status.body.contains("Dragon Slayer I"));
+        assertFalse("Status receipt mag geen bankwaarden lekken", status.body.contains("Iron bar"));
+        assertFalse("Status receipt mag geen Slayer-taak lekken", status.body.contains("Dust devils"));
+    }
+
+    private static void deleteTestIdentity() throws Exception {
+        try (Connection c = DriverManager.getConnection(toJdbcUrl(dbUrl), jdbcProps(dbUrl))) {
+            c.setAutoCommit(false);
+            try {
+                deleteByRsn(c, "DELETE FROM player_claim WHERE rsn=?");
+                deleteByRsn(c, "DELETE FROM player_sync WHERE rsn=?");
+                deleteByRsn(c, "DELETE FROM account_identity WHERE rsn=?");
+                c.commit();
+            } catch (Exception error) {
+                c.rollback();
+                throw error;
+            }
+        }
+    }
+
+    private static void deleteByRsn(Connection connection, String sql) throws Exception {
+        try (PreparedStatement p = connection.prepareStatement(sql)) {
+            p.setString(1, rsn.toLowerCase());
+            p.executeUpdate();
+        }
+    }
+
+    private static JsonObject parseObject(String body) {
+        return new Gson().fromJson(body, JsonObject.class);
     }
 
     private static final class Result {
@@ -290,6 +397,18 @@ public class EndToEndSmokeTest {
             .header("User-Agent", "scapestack-junit-e2e");
         if (authHeader != null) b.header("Authorization", authHeader);
         try (Response res = http.newCall(b.build()).execute()) {
+            String body = res.body() != null ? res.body().string() : "";
+            return new Result(res.code(), body);
+        }
+    }
+
+    private static Result get(String url) throws IOException {
+        Request request = new Request.Builder()
+            .url(url)
+            .get()
+            .header("User-Agent", "scapestack-junit-e2e")
+            .build();
+        try (Response res = http.newCall(request).execute()) {
             String body = res.body() != null ? res.body().string() : "";
             return new Result(res.code(), body);
         }

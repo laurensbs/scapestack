@@ -13,6 +13,7 @@ import type { AccountSnapshotDelta } from "./account-snapshot-delta";
 import itemsJson from "../../data/items.json";
 import {
   normalizePluginSnapshotCoverage,
+  snapshotAvailabilityFromCoverage,
   type PluginSnapshotCoverage
 } from "./plugin-snapshot-contract";
 
@@ -148,6 +149,7 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
     const row = rows[0];
     if (!row) return null;
     const bankItems = normalizeBankItems(row.bank_items);
+    const snapshotCoverage = normalizePluginSnapshotCoverage(row.snapshot_coverage);
     return {
       rsn: row.rsn,
       displayName: row.display_name,
@@ -164,7 +166,10 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
       // consistent kan switchen zonder runtime crash.
       slayer: normalizeSlayer(row.slayer),
       pluginVersion: row.plugin_version,
-      snapshotCoverage: normalizePluginSnapshotCoverage(row.snapshot_coverage),
+      snapshotCoverage,
+      availability: snapshotCoverage
+        ? snapshotAvailabilityFromCoverage(snapshotCoverage)
+        : undefined,
       lastSyncSummary: normalizeSyncDeltaSummary(row.sync_summary),
       syncedAt: typeof row.synced_at === "string" ? row.synced_at : new Date(row.synced_at).toISOString()
     };

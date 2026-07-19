@@ -548,7 +548,8 @@ export function NextClient({
       const usePluginBank = shouldUsePluginBank({
         status: scapestackSync?.bankStatus,
         itemCount: scapestackSync?.bankItems?.length ?? 0,
-        hasManualOverride: hasManualBankOverride
+        hasManualOverride: hasManualBankOverride,
+        availability: scapestackSync?.availability?.bank
       });
       if (usePluginBank && scapestackSync?.bankItems?.length) {
         bank = scapestackSync.bankItems.map((item) => ({

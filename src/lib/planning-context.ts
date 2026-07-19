@@ -8,12 +8,19 @@ import { fetchTemple, type TempleData } from "@/lib/temple";
 import { fetchWom, type WomPlayer } from "@/lib/wom";
 
 export const PLANNING_SOURCE_DEADLINES_MS = {
-  scapestack: 650,
+  scapestack: 1_200,
+  scapestackHandoffRetry: 1_200,
   hiscores: 900,
   wom: 300,
   temple: 300,
   collectionLog: 300
 } as const;
+
+export interface PlanningContextOptions {
+  /** A successful plugin POST is authoritative. Give its immediate browser
+   * handoff one retry so a cold Neon read cannot silently erase RuneLite. */
+  preferScapestack?: boolean;
+}
 
 export interface CollectionLogPayload {
   displayName: string;
@@ -94,10 +101,36 @@ async function computeInitialPlan(input: {
  * work while the browser downloads its client chunks; the Server Action is a
  * fallback for client-only reruns, not the default first-answer path.
  */
-export async function loadPlanningContext(rsn: string): Promise<PlanningContextPayload> {
+async function loadScapestackContext(rsn: string, preferScapestack: boolean) {
+  const first = await runBoundedSource(
+    "scapestack",
+    PLANNING_SOURCE_DEADLINES_MS.scapestack,
+    () => getSyncedPlayer(rsn)
+  );
+  if (first.value || !preferScapestack) return first;
+
+  const retry = await runBoundedSource(
+    "scapestack_retry",
+    PLANNING_SOURCE_DEADLINES_MS.scapestackHandoffRetry,
+    () => getSyncedPlayer(rsn)
+  );
+  return {
+    value: retry.value,
+    timing: {
+      source: "scapestack",
+      elapsedMs: first.timing.elapsedMs + retry.timing.elapsedMs,
+      state: retry.timing.state
+    }
+  };
+}
+
+export async function loadPlanningContext(
+  rsn: string,
+  options: PlanningContextOptions = {}
+): Promise<PlanningContextPayload> {
   const startedAt = performance.now();
   const [scapestack, hiscores, wom, temple, collectionLog] = await Promise.all([
-    runBoundedSource("scapestack", PLANNING_SOURCE_DEADLINES_MS.scapestack, () => getSyncedPlayer(rsn)),
+    loadScapestackContext(rsn, options.preferScapestack === true),
     runBoundedSource("hiscores", PLANNING_SOURCE_DEADLINES_MS.hiscores, (signal) => fetchHiscores(rsn, { signal })),
     runBoundedSource("wom", PLANNING_SOURCE_DEADLINES_MS.wom, (signal) => fetchWom(rsn, { signal })),
     runBoundedSource("temple", PLANNING_SOURCE_DEADLINES_MS.temple, (signal) => fetchTemple(rsn, { signal })),

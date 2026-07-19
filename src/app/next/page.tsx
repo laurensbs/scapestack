@@ -23,13 +23,15 @@ function queryStringFromSearchParams(searchParams: SearchParams): string {
 
 async function NextPlanBootstrap({
   queryString,
-  rsn
+  rsn,
+  preferScapestack
 }: {
   queryString: string;
   rsn: string;
+  preferScapestack: boolean;
 }) {
   const initialPlanningContext = rsn
-    ? await loadPlanningContext(rsn).catch(() => null)
+    ? await loadPlanningContext(rsn, { preferScapestack }).catch(() => null)
     : null;
 
   return (
@@ -68,11 +70,20 @@ export default async function NextPage({
   const queryString = queryStringFromSearchParams(resolvedSearchParams);
   const rsnValue = resolvedSearchParams.rsn;
   const rsn = (Array.isArray(rsnValue) ? rsnValue[0] : rsnValue)?.trim().slice(0, 12) ?? "";
+  const sourceValue = resolvedSearchParams.source;
+  const fromValue = resolvedSearchParams.from;
+  const source = (Array.isArray(sourceValue) ? sourceValue[0] : sourceValue)?.trim().toLowerCase();
+  const from = (Array.isArray(fromValue) ? fromValue[0] : fromValue)?.trim().toLowerCase();
+  const preferScapestack = source === "plugin-sync" || from === "plugin";
 
   return (
     <main className="scape-page">
       <Suspense key={queryString} fallback={<NextPlanLoadingShell />}>
-        <NextPlanBootstrap queryString={queryString} rsn={rsn} />
+        <NextPlanBootstrap
+          queryString={queryString}
+          rsn={rsn}
+          preferScapestack={preferScapestack}
+        />
       </Suspense>
     </main>
   );

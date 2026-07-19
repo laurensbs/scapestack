@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SyncedPlayer } from "@/lib/sync-repo";
+import { pluginSyncReceipt, type PluginSyncReceipt } from "@/lib/plugin-sync-receipt";
+import type { PluginSnapshotCoverage } from "@/lib/plugin-snapshot-contract";
 import {
   formatPluginScanLabel,
   pluginBankConnectionLine,
@@ -7,8 +9,16 @@ import {
   pluginConnectionView
 } from "@/lib/plugin-connection-view";
 
-function player(overrides: Partial<SyncedPlayer> = {}): SyncedPlayer {
-  return {
+const fullCoverage: PluginSnapshotCoverage = Object.fromEntries([
+  "skills", "quests", "diaries", "collectionLog", "bossKc", "slayer", "accountMode", "bank"
+].map((domain) => [domain, {
+  state: "available",
+  capturedAt: "2026-07-17T11:00:00.000Z",
+  reason: null
+}])) as PluginSnapshotCoverage;
+
+function player(overrides: Partial<SyncedPlayer> = {}): PluginSyncReceipt {
+  return pluginSyncReceipt({
     rsn: "lauky",
     displayName: "Lauky",
     accountType: "normal",
@@ -25,10 +35,11 @@ function player(overrides: Partial<SyncedPlayer> = {}): SyncedPlayer {
     },
     slayer: null,
     pluginVersion: "0.3.0",
+    snapshotCoverage: fullCoverage,
     lastSyncSummary: null,
     syncedAt: "2026-07-17T11:00:00.000Z",
     ...overrides
-  };
+  });
 }
 
 describe("plugin connection view", () => {
@@ -46,25 +57,20 @@ describe("plugin connection view", () => {
       title: "RuneLite is connected",
       bankLine: "Bank included: 1 stack."
     });
-    expect(view.instruction).toContain("Finished quests");
-    expect(view.changedLine).toBe("First scan saved. The next scan will show what changed.");
+    expect(view.instruction).toContain("accepted scan");
+    expect(view.changedLine).toContain("Scan accepted: skills, quests, diaries, clog, boss KC, Slayer");
     expect(formatPluginScanLabel("2026-07-17T11:00:00.000Z")).toContain("Last scan");
   });
 
-  it("turns sync changes into one sentence", () => {
+  it("reports unloaded coverage without exposing payload values", () => {
     const changed = pluginChangedLine(player({
-      lastSyncSummary: {
-        previousSyncedAt: "2026-07-17T10:00:00.000Z",
-        questsCompleted: ["Animal Magnetism"],
-        diariesCompleted: [],
-        collectionLogItemIds: [],
-        collectionLogItems: [],
-        skills: [{ name: "Ranged", previousLevel: 79, currentLevel: 80, xpGained: 125_000 }],
-        bank: null,
-        accountType: { previous: "normal", current: "normal", changed: false }
+      snapshotCoverage: {
+        ...fullCoverage,
+        collectionLog: { state: "not-loaded", capturedAt: null, reason: "collection-log-not-opened" }
       }
     }));
-    expect(changed).toBe("Since the previous scan: +125k XP since last scan and 1 quest finished.");
+    expect(changed).toContain("open Collection Log once");
+    expect(changed).not.toContain("Animal Magnetism");
   });
 
   it("gives stale and outdated scans one exact RuneLite action", () => {

@@ -20,6 +20,7 @@
     "audit:next": "tsx scripts/audit-next.ts",
     "audit:controller": "node scripts/check-outcome-controller.mjs",
     "audit:production": "node scripts/audit-production-outcomes.mjs",
+    "ci:cross-system": "node scripts/run-cross-system-gate.mjs",
     "plugin:e2e": "cd plugin && ./gradlew pluginE2e",
     "plugin:release-check": "node scripts/check-plugin-release.mjs --offline",
     "plugin:release-check:live": "node scripts/check-plugin-release.mjs --live",

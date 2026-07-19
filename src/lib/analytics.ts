@@ -59,7 +59,7 @@ export interface AnalyticsEventMap {
     result: "found";
     fresh: boolean;
     bankReady: boolean;
-    source: "manual" | "url" | "saved";
+    source: "manual" | "url" | "saved" | "watch";
   };
   "runelite:sync_failure": {
     reason: "not_found" | "unconfigured" | "request_error" | "service_error";
@@ -203,7 +203,7 @@ const ENUM_VALUES: Partial<Record<AnalyticsEvent, Record<string, readonly Primit
   "mood:changed": { source: ["picker", "feedback", "completion", "onboarding"] },
   "recommendation:skipped": { reason: ["not_today", "too_hard", "already_done", "another_plan"] },
   "trip:completed_sync": { evidence: ["runelite_progress"] },
-  "runelite:sync_success": { result: ["found"], source: ["manual", "url", "saved"] },
+  "runelite:sync_success": { result: ["found"], source: ["manual", "url", "saved", "watch"] },
   "runelite:sync_failure": {
     reason: ["not_found", "unconfigured", "request_error", "service_error"],
     source: ["manual", "url", "saved", "service_probe"]

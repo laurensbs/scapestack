@@ -9,6 +9,7 @@ import { fetchCollectionLog } from "@/lib/collection-log";
 import { fetchTemple } from "@/lib/temple";
 import { getSyncedPlayer, type SyncedPlayer } from "@/lib/sync-repo";
 import { hasDatabase } from "@/lib/db";
+import { pluginSyncReceipt, type PluginSyncReceipt } from "@/lib/plugin-sync-receipt";
 import {
   collectionLogPayload,
   loadPlanningContext,
@@ -81,13 +82,13 @@ export async function planningContextAction(rsn: string): Promise<PlanningContex
 export type PluginSyncStatus =
   | { kind: "unconfigured" }
   | { kind: "missing"; rsn: string }
-  | { kind: "found"; player: SyncedPlayer };
+  | { kind: "found"; player: PluginSyncReceipt };
 
 export async function pluginSyncStatusAction(rsn: string): Promise<PluginSyncStatus> {
   if (!hasDatabase()) return { kind: "unconfigured" };
   const trimmed = rsn.trim();
   const player = await getSyncedPlayer(trimmed);
-  return player ? { kind: "found", player } : { kind: "missing", rsn: trimmed };
+  return player ? { kind: "found", player: pluginSyncReceipt(player) } : { kind: "missing", rsn: trimmed };
 }
 
 export async function nextUpAction(input: NextUpInput): Promise<NextUpResult> {

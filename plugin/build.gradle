@@ -138,6 +138,7 @@ tasks.register('pluginE2e', Test) {
 
     def e2eDbUrl = System.getenv('SCAPESTACK_E2E_DATABASE_URL')
     def e2eRsn = System.getenv('SCAPESTACK_E2E_RSN')
+    def e2eIsolationConfirmed = System.getenv('SCAPESTACK_E2E_CONFIRM_ISOLATED')
     def e2eBaseUrl = System.getenv('SCAPESTACK_E2E_BASE_URL') ?: 'http://localhost:4173'
     def productionDbUrl = System.getenv('DATABASE_URL')
     if (!productionDbUrl && file('../.env.local').exists()) {
@@ -156,6 +157,9 @@ tasks.register('pluginE2e', Test) {
         }
         if (!e2eRsn) {
             throw new GradleException('SCAPESTACK_E2E_RSN is required and must be a real Hiscores account')
+        }
+        if (e2eIsolationConfirmed != '1') {
+            throw new GradleException('SCAPESTACK_E2E_CONFIRM_ISOLATED=1 is required because this test deletes its test identity')
         }
         if (productionDbUrl && e2eDbUrl == productionDbUrl) {
             throw new GradleException('Refusing pluginE2e because the E2E database equals production DATABASE_URL')

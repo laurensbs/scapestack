@@ -1,7 +1,6 @@
-import { syncMemoryLines } from "./next-plugin-sync-summary";
 import { isPluginBankStatusStale } from "./plugin-bank-status";
 import { CURRENT_PLUGIN_VERSION, pluginSyncHealth, type PluginSyncHealth } from "./plugin-sync";
-import type { SyncedPlayer } from "./sync-repo";
+import type { PluginSyncReceipt } from "./plugin-sync-receipt";
 
 export interface PluginConnectionView {
   health: PluginSyncHealth;
@@ -24,14 +23,38 @@ export function formatPluginScanLabel(iso: string): string {
   return `Last scan ${value}`;
 }
 
-export function pluginChangedLine(player: SyncedPlayer): string {
-  const lines = syncMemoryLines(player.lastSyncSummary).filter((line) => !line.startsWith("Bank snapshot:"));
-  if (lines.length === 0) return "First scan saved. The next scan will show what changed.";
-  return `Since the previous scan: ${lines.slice(0, 2).join(" and ")}.`;
+export function pluginChangedLine(player: PluginSyncReceipt): string {
+  if (!player.coverage) return "Legacy scan accepted. Sync again for exact coverage.";
+  const available = Object.entries(player.coverage)
+    .filter(([, domain]) => domain.state === "available")
+    .map(([domain]) => domain);
+  const labels: Record<string, string> = {
+    skills: "skills",
+    quests: "quests",
+    diaries: "diaries",
+    collectionLog: "clog",
+    bossKc: "boss KC",
+    slayer: "Slayer",
+    accountMode: "account mode",
+    bank: "bank"
+  };
+  const followUps: string[] = [];
+  if (player.coverage.collectionLog.state === "not-loaded") followUps.push("open Collection Log once for clog checks");
+  if (player.coverage.bossKc.state !== "available") followUps.push("boss KC was not loaded");
+  if (player.coverage.slayer.state !== "available") followUps.push("Slayer was not loaded");
+  const accepted = `Scan accepted: ${available.map((domain) => labels[domain] ?? domain).join(", ") || "account identity only"}.`;
+  return followUps.length > 0 ? `${accepted} Next: ${followUps.join("; ")}.` : accepted;
 }
 
-export function pluginBankConnectionLine(player: SyncedPlayer, nowMs = Date.now()): string {
+export function pluginBankConnectionLine(player: PluginSyncReceipt, nowMs = Date.now()): string {
   const status = player.bankStatus;
+  const coverage = player.coverage?.bank;
+  if (coverage?.state === "permission-off") {
+    return "Bank sync is off. Scapestack stays conservative about gear and supplies.";
+  }
+  if (coverage && coverage.state !== "available" && status.enabled && status.itemCount > 0) {
+    return `Last bank kept: ${status.itemCount.toLocaleString()} stacks. Open your bank in RuneLite to refresh it.`;
+  }
   if (isPluginBankStatusStale(status, nowMs)) {
     return "Bank needs a refresh. Open it in RuneLite before pressing Sync now.";
   }
@@ -44,7 +67,7 @@ export function pluginBankConnectionLine(player: SyncedPlayer, nowMs = Date.now(
   return "Bank sync is off. Scapestack will use your saved browser bank or stay conservative.";
 }
 
-export function pluginConnectionView(player: SyncedPlayer, nowMs = Date.now()): PluginConnectionView {
+export function pluginConnectionView(player: PluginSyncReceipt, nowMs = Date.now()): PluginConnectionView {
   const health = pluginSyncHealth({
     pluginVersion: player.pluginVersion,
     syncedAt: player.syncedAt
@@ -75,7 +98,7 @@ export function pluginConnectionView(player: SyncedPlayer, nowMs = Date.now()): 
   return {
     health,
     title: "RuneLite is connected",
-    instruction: "Finished quests, diary tiers, clog slots and Slayer progress now stay out of the wrong trips.",
+    instruction: "The accepted scan is now used by your next plan. Anything RuneLite could not read stays unknown instead of being guessed.",
     scanLabel: formatPluginScanLabel(player.syncedAt),
     changedLine: pluginChangedLine(player),
     bankLine: pluginBankConnectionLine(player, nowMs)

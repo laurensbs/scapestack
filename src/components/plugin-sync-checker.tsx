@@ -17,13 +17,14 @@ import { track } from "@/lib/analytics";
 import { PLUGIN_VERIFY_SYNC_HASH } from "@/lib/plugin-bank-bridge";
 import { pluginConnectionView } from "@/lib/plugin-connection-view";
 import { DB_INIT_COMMAND } from "@/lib/plugin-sync-actions";
-import type { SyncedPlayer } from "@/lib/sync-repo";
+import type { PluginSyncReceipt } from "@/lib/plugin-sync-receipt";
+import { waitForAcceptedPluginSync } from "@/lib/plugin-sync-watch";
 import { cn } from "@/lib/utils";
 import { loadSavedRsn, saveSavedRsn } from "@/lib/saved-bank";
 
 type CheckState =
   | { kind: "idle" }
-  | { kind: "found"; player: SyncedPlayer }
+  | { kind: "found"; player: PluginSyncReceipt }
   | { kind: "missing"; rsn: string }
   | { kind: "unconfigured" }
   | { kind: "error"; message: string };
@@ -34,6 +35,8 @@ export function PluginSyncChecker() {
   const [rsn, setRsn] = useState("");
   const [state, setState] = useState<CheckState>({ kind: "idle" });
   const [editingRsn, setEditingRsn] = useState(false);
+  const [watching, setWatching] = useState(false);
+  const [watchNonce, setWatchNonce] = useState(0);
   const [pending, startTransition] = useTransition();
   const initialCheckStarted = useRef(false);
   const requestIdRef = useRef(0);
@@ -120,6 +123,47 @@ export function PluginSyncChecker() {
     checkRsnValue(initialRsn, fromUrl ? "url" : active ? "active" : "saved");
   }, [checkRsnValue]);
 
+  // Keep the page open beside RuneLite: once an RSN is known, quietly watch
+  // for the accepted production write for 15 seconds. The player never has to
+  // reload and guess whether Sync now reached Scapestack.
+  useEffect(() => {
+    if (!normalized || pending || !["missing", "found"].includes(state.kind)) return;
+    const watchedRsn = normalized;
+    const initialSyncedAt = state.kind === "found" ? state.player.syncedAt : null;
+    const controller = new AbortController();
+    setWatching(true);
+    void waitForAcceptedPluginSync({
+      initialSyncedAt,
+      signal: controller.signal,
+      read: async () => {
+        const next = await pluginSyncStatusAction(watchedRsn);
+        return next.kind === "found" ? next.player : null;
+      }
+    }).then((player) => {
+      if (!player || controller.signal.aborted
+        || rsnRef.current.toLowerCase() !== watchedRsn.toLowerCase()) return;
+      const syncedAt = new Date(player.syncedAt).getTime();
+      markRuneliteChecked(watchedRsn, Number.isFinite(syncedAt) ? syncedAt : Date.now());
+      markAccountPluginBankStatus(watchedRsn, player.bankStatus);
+      setState({ kind: "found", player });
+      track("runelite:sync_success", {
+        result: "found",
+        fresh: true,
+        bankReady: player.bankStatus.enabled && player.bankStatus.itemCount > 0,
+        source: "watch"
+      });
+    }).finally(() => {
+      if (!controller.signal.aborted) setWatching(false);
+    });
+    return () => {
+      controller.abort();
+      setWatching(false);
+    };
+  // `watchNonce` intentionally restarts the bounded watch after an explicit
+  // refresh without making every status object restart the timer.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [normalized, pending, state.kind, watchNonce]);
+
   useEffect(() => {
     const handleAccountChange = () => {
       const active = getActiveAccount()?.rsn?.trim() ?? "";
@@ -144,7 +188,10 @@ export function PluginSyncChecker() {
     checkRsnValue(normalized, "manual");
   };
 
-  const refresh = () => checkRsnValue(normalized, "refresh");
+  const refresh = () => {
+    setWatchNonce((value) => value + 1);
+    checkRsnValue(normalized, "refresh");
+  };
 
   return (
     <section
@@ -206,7 +253,9 @@ export function PluginSyncChecker() {
           <ConnectionActionState
             icon={<AlertTriangle className="size-5" />}
             title="Press Sync now"
-            body={`No RuneLite scan is connected to ${state.rsn} yet. Open RuneLite, install or enable Scapestack Sync, then press Sync now.`}
+            body={watching
+              ? `Waiting for the RuneLite scan for ${state.rsn}. Press Sync now; this page will update automatically.`
+              : `No RuneLite scan is connected to ${state.rsn} yet. Open RuneLite, install or enable Scapestack Sync, then press Sync now.`}
             tone="warning"
           >
             <RuneliteOpenButton compact />
@@ -263,7 +312,9 @@ export function PluginSyncChecker() {
                 className="btn-ghost min-h-12 flex-1 justify-center px-4 text-[13px]"
               >
                 <RefreshCw className="size-4" />
-                {connection.health === "live" ? "Check for a newer scan" : "Check again"}
+                {watching
+                  ? "Waiting for a newer scan"
+                  : connection.health === "live" ? "Check for a newer scan" : "Check again"}
               </button>
             </div>
           </div>

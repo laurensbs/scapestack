@@ -1,5 +1,6 @@
 import type { PlannerAccountType } from "./account-type";
 import { isUltimatePlannerAccount } from "./account-type";
+import type { SnapshotDataAvailability } from "./account-snapshot-delta";
 
 export type BankUnavailableReason =
   | "opt-in-off"
@@ -98,9 +99,12 @@ export function shouldUsePluginBank(input: {
   itemCount: number;
   hasManualOverride?: boolean;
   nowMs?: number;
+  availability?: SnapshotDataAvailability;
 }): boolean {
   if (input.hasManualOverride || input.itemCount <= 0) return false;
   if (!input.status?.enabled || input.status.itemCount <= 0) return false;
+  if (input.availability
+    && !["available", "not-loaded"].includes(input.availability)) return false;
   return !isPluginBankStatusStale(input.status, input.nowMs ?? Date.now());
 }
 

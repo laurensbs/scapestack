@@ -1323,9 +1323,9 @@ export interface ComputePathProgressInput {
    *  exact quest + diary + CL state straight from the game client.
    *  When present, overrides Temple/cl.net and bypasses heuristics. */
   scapestackSync?: {
-    questsCompleted: Set<string>;
-    diariesCompleted: Set<string>; // 'Region:Tier' keys
-    collectionLogItemIds: Set<number>;
+    questsCompleted?: Set<string>;
+    diariesCompleted?: Set<string>; // 'Region:Tier' keys
+    collectionLogItemIds?: Set<number>;
   };
   /** Tracks which external sources had data, drives the synced-badge
    *  copy. */
@@ -1356,7 +1356,7 @@ export function computePathProgress(input: ComputePathProgressInput): PathOvervi
   //   - diaries: only scapestack-sync provides this; otherwise we fall
   //     back to the skill-margin + XP-evidence heuristics
   const effectiveQuests = input.scapestackSync?.questsCompleted ?? input.templeQuestsCompleted;
-  const effectiveClItems = input.scapestackSync
+  const effectiveClItems = input.scapestackSync?.collectionLogItemIds
     ? new Set([
         ...Array.from(input.collectionLogOwnedItemIds ?? []),
         ...Array.from(input.scapestackSync.collectionLogItemIds)

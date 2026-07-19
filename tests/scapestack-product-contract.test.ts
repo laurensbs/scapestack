@@ -155,7 +155,8 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(playerFacingSources).toContain("RuneLite can improve picks later.");
     expect(playerFacingSources).toContain("Check RuneLite");
     expect(playerFacingSources).toContain("Open next plan");
-    expect(playerFacingSources).toContain("First scan saved. The next scan will show what changed.");
+    expect(playerFacingSources).toContain("Scan accepted:");
+    expect(playerFacingSources).toContain("Anything RuneLite could not read stays unknown instead of being guessed.");
     expect(playerFacingSources).not.toContain("Open synced /next");
     expect(playerFacingSources).not.toContain("Verified RuneLite payload");
   });

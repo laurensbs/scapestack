@@ -348,6 +348,19 @@ export async function POST(req: Request): Promise<Response> {
   return json({
     ok: true,
     syncedAt,
+    accepted: {
+      claim: { status: "verified", rsn: normalizedRsn },
+      contractVersion: snapshotContract.contractVersion,
+      pluginVersion,
+      syncedAt,
+      coverage: snapshotContract.coverage
+        ? Object.fromEntries(Object.entries(snapshotContract.coverage).map(([domain, value]) => [domain, {
+            state: value.state,
+            capturedAt: value.capturedAt,
+            reason: value.reason
+          }]))
+        : null
+    },
     syncSummary,
     outcomes: newOutcomes,
     player: {

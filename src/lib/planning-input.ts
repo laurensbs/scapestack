@@ -16,6 +16,16 @@ interface PlanningInputSources {
   bankOverride?: NextUpInput["bank"];
 }
 
+function domainAvailable(
+  player: SyncedPlayer | null,
+  domain: keyof NonNullable<SyncedPlayer["availability"]>
+): boolean {
+  const state = player?.availability?.[domain];
+  // Legacy snapshots predate explicit coverage. Preserve their established
+  // behavior; v3 snapshots must earn authority per domain.
+  return state === undefined || state === "available";
+}
+
 function syncedSkillsToHiscoreSkills(
   skills: Array<{ name: string; level: number }> | undefined
 ): PlayerHiscores["skills"] {
@@ -38,10 +48,13 @@ function syncedSkillsToHiscoreSkills(
  */
 export function buildNextUpInputFromSources(sources: PlanningInputSources): NextUpInput | null {
   const { rsn, hiscores, wom, scapestackSync } = sources;
-  const skills = hiscores?.skills ?? syncedSkillsToHiscoreSkills(scapestackSync?.skills);
+  const skills = hiscores?.skills ?? syncedSkillsToHiscoreSkills(
+    domainAvailable(scapestackSync, "skills") ? scapestackSync?.skills : undefined
+  );
   const usePluginBank = sources.bankOverride === undefined && shouldUsePluginBank({
     status: scapestackSync?.bankStatus,
-    itemCount: scapestackSync?.bankItems.length ?? 0
+    itemCount: scapestackSync?.bankItems.length ?? 0,
+    availability: scapestackSync?.availability?.bank
   });
   const bank = sources.bankOverride ?? (usePluginBank && scapestackSync
     ? scapestackSync.bankItems.map((item) => ({
@@ -56,7 +69,9 @@ export function buildNextUpInputFromSources(sources: PlanningInputSources): Next
   const earnedItems = unlockedFromHiscores(skills).filter((item) => !seenBankIds.has(item.id));
   const qpActivity = hiscores?.activities.find((activity) => activity.name === "Quest points");
   const questPoints = qpActivity && qpActivity.score >= 0 ? qpActivity.score : 0;
-  const bossKc: Record<string, number> = { ...(scapestackSync?.bossKc ?? {}) };
+  const bossKc: Record<string, number> = {
+    ...(domainAvailable(scapestackSync, "bossKc") ? scapestackSync?.bossKc ?? {} : {})
+  };
   for (const activity of hiscores?.activities ?? []) {
     if (activity.score > 0) {
       bossKc[activity.name] = Math.max(bossKc[activity.name] ?? 0, activity.score);
@@ -89,13 +104,18 @@ export function buildNextUpInputFromSources(sources: PlanningInputSources): Next
       ? {
           displayName: scapestackSync.displayName,
           accountType: scapestackSync.accountType,
-          questsCompleted: scapestackSync.questsCompleted,
-          diariesCompleted: scapestackSync.diariesCompleted,
-          collectionLogItemIds: scapestackSync.collectionLogItemIds,
-          bossKc: scapestackSync.bossKc,
+          questsCompleted: domainAvailable(scapestackSync, "quests")
+            ? scapestackSync.questsCompleted : undefined,
+          diariesCompleted: domainAvailable(scapestackSync, "diaries")
+            ? scapestackSync.diariesCompleted : undefined,
+          collectionLogItemIds: domainAvailable(scapestackSync, "collectionLog")
+            ? scapestackSync.collectionLogItemIds : undefined,
+          bossKc: domainAvailable(scapestackSync, "bossKc")
+            ? scapestackSync.bossKc : undefined,
           bankStatus: scapestackSync.bankStatus,
           lastSyncSummary: scapestackSync.lastSyncSummary,
-          slayer: scapestackSync.slayer
+          slayer: domainAvailable(scapestackSync, "slayer")
+            ? scapestackSync.slayer : undefined
         }
       : undefined,
     syncedSources: {
@@ -112,6 +132,7 @@ export function buildNextUpInputFromSources(sources: PlanningInputSources): Next
             slayerTaskRemaining: scapestackSync.slayer?.taskRemaining ?? null,
             slayerBlocks: scapestackSync.slayer?.blocks.length ?? 0,
             bankStatus: scapestackSync.bankStatus,
+            availability: scapestackSync.availability,
             lastSyncSummary: scapestackSync.lastSyncSummary
           }
         : null

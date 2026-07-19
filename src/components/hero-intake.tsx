@@ -10,10 +10,9 @@ import { RuneliteOpenButton } from "@/components/runelite-open-button";
 import type { AccountTimelineMoment } from "@/lib/account-timeline";
 import { hydrateConnectedAccount } from "@/lib/account-connection";
 import { loadAccountSnapshot, type AccountSnapshot } from "@/lib/account-context";
-import { ACCOUNT_EVENT, clearRuneliteChecked, hasAccountFirstSetupSeen, markAccountFirstSetupSeen, markAccountPluginBankStatus, markAccountRuneliteProgress, markRuneliteChecked } from "@/lib/account-storage";
+import { ACCOUNT_EVENT, clearRuneliteChecked, hasAccountFirstSetupSeen, markAccountFirstSetupSeen, markAccountPluginBankStatus, markRuneliteChecked } from "@/lib/account-storage";
 import { latestRecommendationMemory, latestStartedRecommendationMemory } from "@/lib/recommendation-feedback";
 import { buildReturnHomeSummary, type ReturnHomeFallback } from "@/lib/return-home";
-import { runeliteProgressFromSyncSummary } from "@/lib/runelite-progress-memory";
 import { saveSavedBank, saveSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
 import { useDialogA11y } from "@/lib/use-dialog-a11y";
 import { cn } from "@/lib/utils";
@@ -184,10 +183,6 @@ export function HeroIntake() {
         const checkedAt = Number.isFinite(syncedAt) ? syncedAt : Date.now();
         markRuneliteChecked(target, checkedAt);
         markAccountPluginBankStatus(target, next.player.bankStatus);
-        markAccountRuneliteProgress(target, runeliteProgressFromSyncSummary(
-          next.player.lastSyncSummary,
-          { syncedAt: next.player.syncedAt }
-        ));
         const snapshot = loadAccountSnapshot(target);
         setAccountSnapshot(snapshot);
         setRememberedPluginBankItems(next.player.bankStatus.enabled ? next.player.bankStatus.itemCount : 0);

@@ -219,7 +219,18 @@ describe("POST /api/sync", () => {
       }
     });
     await expect(response.json()).resolves.toMatchObject({
-      plugin: { version: "0.3.0", contractVersion: 3 }
+      plugin: { version: "0.3.0", contractVersion: 3 },
+      accepted: {
+        claim: { status: "verified", rsn: "iron lynx" },
+        contractVersion: 3,
+        pluginVersion: "0.3.0",
+        syncedAt: "2026-06-03T10:00:00.000Z",
+        coverage: {
+          skills: { state: "available" },
+          collectionLog: { state: "available" },
+          bank: { state: "available" }
+        }
+      }
     });
   });
 
