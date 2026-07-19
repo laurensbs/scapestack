@@ -1,0 +1,19 @@
+{
+  "headline": "Tidy your bank",
+  "horizontalOverflow": false,
+  "href": "https://www.scapestack.org/next?rsn=Lauky&from=plugin&intent=short&time=15",
+  "page": {
+    "height": 1741,
+    "width": 380
+  },
+  "tripCard": {
+    "left": 16,
+    "right": 364,
+    "visible": true,
+    "width": 348
+  },
+  "viewport": {
+    "height": 844,
+    "width": 380
+  }
+}

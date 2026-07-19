@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "authoritativePromptbook": "docs/SCAPESTACK-OUTCOME-RECOVERY-PROMPTBOOK-2026-07-19.md",
-  "executionPointer": "ODR-02",
+  "executionPointer": "ODR-03",
   "baselineCommit": "47b6441",
   "outcomeArtifact": "docs/qa/outcome-recovery/ODR-00/baseline.json",
   "release": {
@@ -14,5 +14,5 @@
     "docs/SCAPESTACK-90-PLUS-MASTER-PROMPTBOOK-2026-07-15.md",
     "docs/SCAPESTACK-PRODUCTION-RECOVERY-PROMPTBOOK-2026-07-18.md"
   ],
-  "updatedAt": "2026-07-19T16:59:57Z"
+  "updatedAt": "2026-07-19T19:32:36Z"
 }

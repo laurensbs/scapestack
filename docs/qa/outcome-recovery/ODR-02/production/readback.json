@@ -1,0 +1,10 @@
+{
+  "rsn": "Lauky",
+  "route": "https://www.scapestack.org/plugin?rsn=Lauky&from=next#verify-sync",
+  "startedAt": "2026-07-19T19:18:29.930Z",
+  "observedAt": "2026-07-19T19:18:31.944Z",
+  "elapsedMs": 2014,
+  "gateMs": 15000,
+  "withinGate": true,
+  "browserReloaded": false
+}

@@ -1,0 +1,42 @@
+- banner:
+  - link "Scapestack home":
+    - /url: /
+    - generic: scape
+    - generic: stack
+  - navigation "Primary trip actions":
+    - 'link "Today: Enter your OSRS name and get one clear next move"':
+      - /url: /next?rsn=Lauky
+      - text: Today
+    - 'link "Setup: Add bank once for the next trip"':
+      - /url: /bank
+      - text: Setup
+    - 'link "Boss: Check a boss trip from this setup"':
+      - /url: /dps?rsn=Lauky
+      - text: Boss
+    - button "Current account Lauky":
+      - generic: Lauky
+    - link "Support Scapestack with a coffee":
+      - /url: https://www.buymeacoffee.com/laurensb
+- main:
+  - paragraph: RuneLite connection
+  - heading "Keep your next trip current." [level=1]
+  - paragraph: Scapestack checks your active account automatically. One scan keeps finished progress out and can bring your bank into the next plan.
+  - region "RuneLite connection":
+    - paragraph: RuneLite
+    - heading "For Lauky" [level=2]
+    - button "Use another RSN"
+    - status: RuneLite status shown for Lauky.
+    - heading "RuneLite is connected" [level=3]
+    - paragraph: The accepted scan is now used by your next plan. Anything RuneLite could not read stays unknown instead of being guessed.
+    - paragraph: Last scan Jul 19, 09:00 PM
+    - paragraph: "Scan accepted: skills, quests, diaries, boss KC, Slayer, account mode. Next: open Collection Log once for clog checks."
+    - paragraph: "Last bank kept: 809 stacks. Open your bank in RuneLite to refresh it."
+    - link "Open next plan":
+      - /url: /next?rsn=Lauky&from=plugin
+      - text: Open next plan
+    - button "Refresh RuneLite status for Lauky":
+      - text: Check for a newer scan
+  - generic "What RuneLite shares":
+    - text: What RuneLite shares
+- contentinfo: Scapestack · What can I do now in OSRS? · Made for Gielinor
+- alert

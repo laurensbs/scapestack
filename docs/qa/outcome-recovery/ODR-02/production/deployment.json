@@ -1,0 +1,14 @@
+{
+  "deploymentId": "dpl_2ednFqVp94mg6cuwDtRKyFibbtyH",
+  "deploymentUrl": "scapestack-o0jtc7f0n-laurensbos-projects.vercel.app",
+  "aliases": [
+    "scapestack.org",
+    "www.scapestack.org"
+  ],
+  "target": "production",
+  "state": "READY",
+  "framework": "nextjs",
+  "commit": "3133e0bc4b20d8b319cf792545094c5d9e0a9989",
+  "createdAt": "2026-07-19T18:57:23.931Z",
+  "readyAt": "2026-07-19T18:58:03.219Z"
+}

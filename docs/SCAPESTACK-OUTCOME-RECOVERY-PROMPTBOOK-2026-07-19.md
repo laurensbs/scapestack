@@ -4,8 +4,8 @@ Status: active execution controller
 Created: 2026-07-19
 Baseline commit: `47b6441`
 Baseline score: `6.4/10`
-Execution pointer: `ODR-02`
-Last validated phase: `ODR-01`
+Execution pointer: `ODR-03`
+Last validated phase: `ODR-02`
 Target: a measured, trustworthy OSRS companion with no core product score below `8.0`
 
 This file supersedes the **execution order** in:
@@ -383,7 +383,7 @@ Acceptance:
 
 ## ODR-02 - Close The Real RuneLite Production Loop
 
-Status: IN PROGRESS
+Status: LIVE VERIFIED
 Depends on: ODR-00
 Required evidence: level 1
 Improves: RuneLite UX, data completeness, trust
@@ -418,6 +418,15 @@ Acceptance:
 - zero skipped plugin E2E tests in the release gate;
 - auth, claim replay and payload limits remain green.
 ```
+
+### Evidence
+
+- Real Plugin Hub `0.3.0` -> production -> browser receipt and planner proof:
+  `docs/qa/outcome-recovery/ODR-02/report.md`
+- Production deployment: `dpl_2ednFqVp94mg6cuwDtRKyFibbtyH` from
+  implementation commit `3133e0b`.
+- Browser receipt readback: 2,014 ms; cross-system Java E2E: 10 passed,
+  zero skipped.
 
 ---
 
@@ -1021,7 +1030,7 @@ screenshot and task-success statement.
 | --- | --- | ---: | --- | --- |
 | ODR-00 | VALIDATED | 2 | `f6ac181` | `docs/qa/outcome-recovery/ODR-00/report.md` |
 | ODR-01 | LIVE VERIFIED | 2 | `56dbb65` | `docs/qa/outcome-recovery/ODR-01/production/production-routes.json` |
-| ODR-02 | IN PROGRESS | 1 | - | - |
+| ODR-02 | LIVE VERIFIED | 1 | `3133e0b` | `docs/qa/outcome-recovery/ODR-02/report.md` |
 | ODR-03 | TODO | 4 | - | - |
 | ODR-04 | TODO | 4 | - | - |
 | ODR-05 | TODO | 4 | - | - |

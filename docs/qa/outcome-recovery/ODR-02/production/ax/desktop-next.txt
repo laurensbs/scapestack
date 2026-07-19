@@ -1,0 +1,66 @@
+- banner:
+  - link "Scapestack home":
+    - /url: /
+    - generic: scape
+    - generic: stack
+  - generic: ·
+  - generic: Do This First
+  - navigation "Primary trip actions":
+    - 'link "Today: Enter your OSRS name and get one clear next move"':
+      - /url: /next?rsn=Lauky&from=next
+      - text: Today
+    - 'link "Setup: Add bank once for the next trip"':
+      - /url: /bank
+      - text: Setup
+    - 'link "Boss: Check a boss trip from this setup"':
+      - /url: /dps?rsn=Lauky&from=next
+      - text: Boss
+    - button "Current account Lauky":
+      - generic: Lauky
+    - link "Support Scapestack with a coffee":
+      - /url: https://www.buymeacoffee.com/laurensb
+- main:
+  - article:
+    - paragraph: Do this first
+    - heading "Tidy your bank" [level=2]
+    - paragraph: This best matches your visible account progress. This fits short and 15 minutes.
+    - term: Start
+    - definition: Pick the bank layout that matches how you play.
+    - term: Bring
+    - definition: Blood rune x5738, Chaos rune, Mind rune, Air rune x143
+    - term: Stop at
+    - definition: Copy the cleaned tabs into RuneLite when the layout feels usable.
+    - 'link "Set up bank: Tidy your bank"':
+      - /url: /bank?mode=tidy&rsn=Lauky&from=next
+      - text: Set up bank
+  - button "Trip details":
+    - text: Trip details
+  - region "Choose a different vibe":
+    - paragraph: Not your trip?
+    - heading "Choose a different vibe" [level=3]
+    - paragraph: Two different session routes.
+    - button "Choose Push Farming to 99":
+      - generic "Lower-pressure progress with a clearer stop point.": Want chill?
+      - heading "Push Farming to 99" [level=4]
+      - paragraph: Lower-pressure progress with a clearer stop point.
+    - button "Choose Run herbs + birdhouses":
+      - generic "Lower-pressure progress with a clearer stop point.": Want chill?
+      - heading "Run herbs + birdhouses" [level=4]
+      - paragraph: Lower-pressure progress with a clearer stop point.
+  - generic "Want a different kind of session? Short":
+    - generic: Want a different kind of session?
+    - text: Short
+  - generic "More routes Quests, diaries and bank checks after this trip":
+    - generic: More routes
+    - generic: Quests, diaries and bank checks after this trip
+  - generic "Why this trip? What changed, what is close and how to make the pick sharper":
+    - generic: Why this trip?
+    - generic: What changed, what is close and how to make the pick sharper
+  - generic: Saved you a minute?
+  - paragraph: Scapestack is a one-person side project, free to use, with no ads or accounts. Coffees cover hosting and buy time for the next tool. Every bit helps.
+  - link "Buy me a coffee":
+    - /url: https://www.buymeacoffee.com/laurensb
+    - text: Buy me a coffee
+  - button "Dismiss":
+- contentinfo: Scapestack · What can I do now in OSRS? · Made for Gielinor
+- alert

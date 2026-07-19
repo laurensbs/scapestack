@@ -1,0 +1,41 @@
+- banner:
+  - link "Scapestack home":
+    - /url: /
+    - generic: scape
+    - generic: stack
+  - button "Open menu":
+- main:
+  - paragraph: RuneLite connection
+  - heading "Keep your next trip current." [level=1]
+  - paragraph: Scapestack checks your active account automatically. One scan keeps finished progress out and can bring your bank into the next plan.
+  - region "RuneLite connection":
+    - paragraph: RuneLite
+    - heading "For Lauky" [level=2]
+    - button "Use another RSN"
+    - status: RuneLite status shown for Lauky.
+    - heading "RuneLite is connected" [level=3]
+    - paragraph: The accepted scan is now used by your next plan. Anything RuneLite could not read stays unknown instead of being guessed.
+    - paragraph: Last scan Jul 19, 09:22 PM
+    - paragraph: "Scan accepted: skills, quests, diaries, boss KC, Slayer, account mode. Next: open Collection Log once for clog checks."
+    - paragraph: "Last bank kept: 809 stacks. Open your bank in RuneLite to refresh it."
+    - link "Open next plan":
+      - /url: /next?rsn=Lauky&from=plugin
+      - text: Open next plan
+    - button "Refresh RuneLite status for Lauky":
+      - text: Check for a newer scan
+  - generic "What RuneLite shares":
+    - text: What RuneLite shares
+- navigation "Mobile quick actions":
+  - link "Trip":
+    - /url: /next?rsn=Lauky&intent=short&time=15
+    - generic: Trip
+  - link "Bank":
+    - /url: /bank?rsn=Lauky&from=mobile
+    - generic: Bank
+  - link "RuneLite":
+    - /url: /plugin?rsn=Lauky&from=mobile#verify-sync
+    - generic: RuneLite
+  - button "Short":
+    - generic: Short
+- contentinfo: Scapestack · What can I do now in OSRS? · Made for Gielinor
+- alert

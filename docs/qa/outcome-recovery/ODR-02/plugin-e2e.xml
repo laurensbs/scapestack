@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.scapestack.runelite.EndToEndSmokeTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-07-19T18:42:00.510Z" hostname="MacBook-Pro-van-Laurens.local" time="11.192">
+  <properties/>
+  <testcase name="testA_firstClaimSucceeds" classname="app.scapestack.runelite.EndToEndSmokeTest" time="1.274"/>
+  <testcase name="testB_syncWithoutTokenIs401" classname="app.scapestack.runelite.EndToEndSmokeTest" time="0.017"/>
+  <testcase name="testC_syncWithWrongTokenIs403" classname="app.scapestack.runelite.EndToEndSmokeTest" time="0.098"/>
+  <testcase name="testD_fullSyncRoundTrip" classname="app.scapestack.runelite.EndToEndSmokeTest" time="7.909"/>
+  <testcase name="testE_rivalClaimIs409" classname="app.scapestack.runelite.EndToEndSmokeTest" time="0.199"/>
+  <testcase name="testF_sameTokenReclaim" classname="app.scapestack.runelite.EndToEndSmokeTest" time="0.142"/>
+  <testcase name="testG_installTokenCacheHit" classname="app.scapestack.runelite.EndToEndSmokeTest" time="0.002"/>
+  <testcase name="testH_installTokenCacheMissGeneratesUuid" classname="app.scapestack.runelite.EndToEndSmokeTest" time="0.0"/>
+  <testcase name="testI_claimedRsnMemo" classname="app.scapestack.runelite.EndToEndSmokeTest" time="0.001"/>
+  <testcase name="testJ_forgetClaimKeepsInstallToken" classname="app.scapestack.runelite.EndToEndSmokeTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
