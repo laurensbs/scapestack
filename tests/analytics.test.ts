@@ -70,6 +70,7 @@ describe("privacy-safe analytics contract", () => {
     const recommendation = recommendationProps();
 
     track("rsn:submitted", { source: "homepage", context: "public_stats", hasBank: false, sample: false });
+    track("plan:context_ready", { serverMs: 380, criticalMs: 340, optionalMs: 210, timeoutCount: 0 });
     track("mood:changed", { mood: "chill", sessionMinutes: 45, source: "onboarding" });
     track("plan:first_rendered", recommendation);
     track("recommendation:impression", recommendation);
@@ -79,6 +80,7 @@ describe("privacy-safe analytics contract", () => {
 
     expect(events.map((event) => event.event)).toEqual([
       "rsn:submitted",
+      "plan:context_ready",
       "mood:changed",
       "plan:first_rendered",
       "recommendation:impression",
@@ -87,6 +89,24 @@ describe("privacy-safe analytics contract", () => {
       "trip:completed_manual"
     ]);
     expect(JSON.stringify(events)).not.toMatch(/Lauky|claimToken|bankRows|payload/);
+  });
+
+  it("keeps source timing useful without accepting account data", () => {
+    const envelope = validateAnalyticsEnvelope("plan:context_ready", {
+      serverMs: 800,
+      criticalMs: 760,
+      optionalMs: 450,
+      timeoutCount: 2,
+      rsn: "Lauky",
+      bankRows: [995, 1_000_000]
+    });
+
+    expect(envelope?.props).toEqual({
+      serverMs: 800,
+      criticalMs: 760,
+      optionalMs: 450,
+      timeoutCount: 2
+    });
   });
 
   it("captures a returning RuneLite and timeline funnel", () => {

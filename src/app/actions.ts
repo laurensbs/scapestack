@@ -9,6 +9,15 @@ import { fetchCollectionLog, type CollectionLog } from "@/lib/collection-log";
 import { fetchTemple, type TempleData } from "@/lib/temple";
 import { getSyncedPlayer, type SyncedPlayer } from "@/lib/sync-repo";
 import { hasDatabase } from "@/lib/db";
+import { runBoundedSource, type BoundedSourceTiming } from "@/lib/bounded-source";
+
+const PLANNING_SOURCE_DEADLINES_MS = {
+  scapestack: 900,
+  hiscores: 1_200,
+  wom: 450,
+  temple: 450,
+  collectionLog: 450
+} as const;
 
 export async function hiscoresAction(rsn: string): Promise<PlayerHiscores | null> {
   // Server-side proxy for the OSRS Hiscores fetch. The Jagex endpoint
@@ -38,13 +47,7 @@ export interface CollectionLogPayload {
   lastSyncedAt: string | null;
 }
 
-export async function collectionLogAction(rsn: string): Promise<CollectionLogPayload | null> {
-  // CollectionLog.net only has data for players who actively use their
-  // RuneLite plugin. Most won't be tracked — null is the common path
-  // and not an error. When we DO have data, the ownedItemIds set tells
-  // the engine which iconic drops are actually owned (no more guessing
-  // from bank pastes for raids the player skipped in their export).
-  const log: CollectionLog | null = await fetchCollectionLog(rsn);
+function collectionLogPayload(log: CollectionLog | null): CollectionLogPayload | null {
   if (!log) return null;
   return {
     displayName: log.displayName,
@@ -56,6 +59,15 @@ export async function collectionLogAction(rsn: string): Promise<CollectionLogPay
   };
 }
 
+export async function collectionLogAction(rsn: string): Promise<CollectionLogPayload | null> {
+  // CollectionLog.net only has data for players who actively use their
+  // RuneLite plugin. Most won't be tracked — null is the common path
+  // and not an error. When we DO have data, the ownedItemIds set tells
+  // the engine which iconic drops are actually owned (no more guessing
+  // from bank pastes for raids the player skipped in their export).
+  return collectionLogPayload(await fetchCollectionLog(rsn));
+}
+
 /** Serialisable shape for the same reason as the collection-log payload. */
 export interface TemplePayload {
   displayName: string;
@@ -63,11 +75,7 @@ export interface TemplePayload {
   lastUpdatedAt: string | null;
 }
 
-export async function templeAction(rsn: string): Promise<TemplePayload | null> {
-  // TempleOSRS tracks per-quest completion for plugin-using accounts.
-  // For Temple-tracked players we use real completion data instead of
-  // the QP-budget heuristic in path-progress.
-  const data: TempleData | null = await fetchTemple(rsn);
+function templePayload(data: TempleData | null): TemplePayload | null {
   if (!data) return null;
   return {
     displayName: data.displayName,
@@ -76,12 +84,73 @@ export async function templeAction(rsn: string): Promise<TemplePayload | null> {
   };
 }
 
+export async function templeAction(rsn: string): Promise<TemplePayload | null> {
+  // TempleOSRS tracks per-quest completion for plugin-using accounts.
+  // For Temple-tracked players we use real completion data instead of
+  // the QP-budget heuristic in path-progress.
+  return templePayload(await fetchTemple(rsn));
+}
+
 /** Our own scapestack-plugin sync data. Highest-priority signal — beats
  *  Temple / WOM / cl.net because it's a direct feed from the player's
  *  game client. Null when the player hasn't installed the plugin (or
  *  when DATABASE_URL is unset in dev). */
 export async function syncedPlayerAction(rsn: string): Promise<SyncedPlayer | null> {
   return getSyncedPlayer(rsn);
+}
+
+export interface PlanningContextTiming {
+  totalMs: number;
+  criticalMs: number;
+  optionalMs: number;
+  timeoutCount: number;
+  sources: BoundedSourceTiming[];
+}
+
+export interface PlanningContextPayload {
+  hiscores: PlayerHiscores | null;
+  wom: WomPlayer | null;
+  temple: TemplePayload | null;
+  collectionLog: CollectionLogPayload | null;
+  scapestackSync: SyncedPlayer | null;
+  timing: PlanningContextTiming;
+}
+
+/**
+ * One bounded round trip for the first recommendation. Scapestack sync and
+ * official Hiscores are the critical account read; community trackers are
+ * optional and never get to delay the first useful plan beyond their budget.
+ */
+export async function planningContextAction(rsn: string): Promise<PlanningContextPayload> {
+  const startedAt = performance.now();
+  const [scapestack, hiscores, wom, temple, collectionLog] = await Promise.all([
+    runBoundedSource("scapestack", PLANNING_SOURCE_DEADLINES_MS.scapestack, () => getSyncedPlayer(rsn)),
+    runBoundedSource("hiscores", PLANNING_SOURCE_DEADLINES_MS.hiscores, (signal) => fetchHiscores(rsn, { signal })),
+    runBoundedSource("wom", PLANNING_SOURCE_DEADLINES_MS.wom, (signal) => fetchWom(rsn, { signal })),
+    runBoundedSource("temple", PLANNING_SOURCE_DEADLINES_MS.temple, (signal) => fetchTemple(rsn, { signal })),
+    runBoundedSource("collection_log", PLANNING_SOURCE_DEADLINES_MS.collectionLog, (signal) => fetchCollectionLog(rsn, { signal }))
+  ]);
+
+  const sources = [scapestack.timing, hiscores.timing, wom.timing, temple.timing, collectionLog.timing];
+  const timing: PlanningContextTiming = {
+    totalMs: Math.max(0, Math.round(performance.now() - startedAt)),
+    criticalMs: Math.max(scapestack.timing.elapsedMs, hiscores.timing.elapsedMs),
+    optionalMs: Math.max(wom.timing.elapsedMs, temple.timing.elapsedMs, collectionLog.timing.elapsedMs),
+    timeoutCount: sources.filter((source) => source.state === "timeout").length,
+    sources
+  };
+
+  // No RSN, bank rows or payload data: this is safe to retain in server logs.
+  console.info("scapestack.next_context", JSON.stringify(timing));
+
+  return {
+    hiscores: hiscores.value,
+    wom: wom.value,
+    temple: templePayload(temple.value),
+    collectionLog: collectionLogPayload(collectionLog.value),
+    scapestackSync: scapestack.value,
+    timing
+  };
 }
 
 export type PluginSyncStatus =

@@ -33,6 +33,12 @@ export interface AnalyticsEventMap {
     hasBank: boolean;
     sample: boolean;
   };
+  "plan:context_ready": {
+    serverMs: number;
+    criticalMs: number;
+    optionalMs: number;
+    timeoutCount: number;
+  };
   "plan:first_rendered": RecommendationEventProps;
   "mood:changed": {
     mood: string;
@@ -128,6 +134,7 @@ declare global {
 
 const EVENT_KEYS = {
   "rsn:submitted": ["source", "context", "hasBank", "sample"],
+  "plan:context_ready": ["serverMs", "criticalMs", "optionalMs", "timeoutCount"],
   "plan:first_rendered": ["recommendationId", "recommendationKind", "routeFamily", "mood", "accountStage", "context", "sessionMinutes", "elapsedMs"],
   "mood:changed": ["mood", "sessionMinutes", "source"],
   "recommendation:impression": ["recommendationId", "recommendationKind", "routeFamily", "mood", "accountStage", "context", "sessionMinutes", "elapsedMs"],
@@ -158,6 +165,7 @@ const EVENT_KEYS = {
 
 const REQUIRED_KEYS: { [E in AnalyticsEvent]: readonly (keyof AnalyticsEventMap[E])[] } = {
   "rsn:submitted": EVENT_KEYS["rsn:submitted"],
+  "plan:context_ready": EVENT_KEYS["plan:context_ready"],
   "plan:first_rendered": EVENT_KEYS["plan:first_rendered"].filter((key) => key !== "elapsedMs"),
   "mood:changed": EVENT_KEYS["mood:changed"],
   "recommendation:impression": EVENT_KEYS["recommendation:impression"].filter((key) => key !== "elapsedMs"),

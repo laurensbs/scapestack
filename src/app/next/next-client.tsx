@@ -18,7 +18,7 @@ import { AccountModeBadge } from "@/components/account-mode-badge";
 import { XpDropLoader } from "@/components/xp-drop-loader";
 import { ShuffleLoader } from "@/components/shuffle-loader";
 import { BOSSES, type Boss } from "@/lib/bosses";
-import { organizeAction, nextUpAction, hiscoresAction, womAction, collectionLogAction, templeAction, syncedPlayerAction } from "@/app/actions";
+import { organizeAction, nextUpAction, planningContextAction } from "@/app/actions";
 import { type HiscoreSkill } from "@/lib/hiscores";
 import { unlockedFromHiscores, GOAL_SETS, normaliseCompletion, type SetCompletion } from "@/lib/goals";
 import type { HoursToMaxSummary } from "@/lib/hours-to-max";
@@ -461,11 +461,6 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
       });
     }
     startTransition(async () => {
-      // Minimum loader-tijd: zelfs als data binnen 50ms binnen is
-      // (cached request) houden we de ShuffleLoader minimaal 2s op
-      // het scherm. Voorkomt dat de wow-animatie nauwelijks zichtbaar
-      // is + geeft de speler een moment om de lore-quote te lezen.
-      const minLoaderUntil = Date.now() + 2000;
       const rsn = (opts.rsn ?? "").trim();
       const input = (opts.input ?? "").trim();
       setActiveRsn(rsn);
@@ -509,32 +504,27 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
             scapestack: null
           }
         }));
-        const remainingLoaderMs = minLoaderUntil - Date.now();
-        if (remainingLoaderMs > 0) {
-          await new Promise((resolve) => setTimeout(resolve, remainingLoaderMs));
-        }
         setView("result");
         return;
       }
 
-      // Five best-effort lookups in parallel:
-      //   - Hiscores: Jagex official. Skills + bossKC + activities.
-      //   - WOM: account type + EHP/EHB + WOM-tracked boss KCs.
-      //   - Temple: per-quest completion (real data, not heuristic).
-      //   - cl.net: per-item collection-log state.
-      //   - scapestackSync: our own plugin (highest priority — sources
-      //     quest + diary + CL state directly from the game client).
-      // Each returns null when the player isn't tracked there — we keep
-      // whatever we got and fall back to heuristics for the rest.
-      const [hiscores, wom, temple, collectionLog, scapestackSync] = rsn
-        ? await Promise.all([
-            hiscoresAction(rsn),
-            womAction(rsn),
-            templeAction(rsn),
-            collectionLogAction(rsn),
-            syncedPlayerAction(rsn)
-          ])
-        : [null, null, null, null, null];
+      // One server round trip reads the critical RuneLite + Hiscores context
+      // and gives optional community trackers a shorter, fixed budget. Late
+      // sources never replace a recommendation that the player already saw.
+      const planningContext = rsn ? await planningContextAction(rsn) : null;
+      const hiscores = planningContext?.hiscores ?? null;
+      const wom = planningContext?.wom ?? null;
+      const temple = planningContext?.temple ?? null;
+      const collectionLog = planningContext?.collectionLog ?? null;
+      const scapestackSync = planningContext?.scapestackSync ?? null;
+      if (planningContext) {
+        track("plan:context_ready", {
+          serverMs: planningContext.timing.totalMs,
+          criticalMs: planningContext.timing.criticalMs,
+          optionalMs: planningContext.timing.optionalMs,
+          timeoutCount: planningContext.timing.timeoutCount
+        });
+      }
 
       // A fresh RuneLite bank is primary for RSN-only planning. A bank the
       // player just pasted or handed off is an explicit override.
@@ -671,13 +661,6 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
         ));
       }
 
-      // Wacht uit tot we de minimum loader-tijd hebben gehaald voordat
-      // we naar het result-view flippen. Bij gecachede requests (data
-      // in <100ms binnen) houden we de wow-animatie ~2s zichtbaar.
-      const remainingLoaderMs = minLoaderUntil - Date.now();
-      if (remainingLoaderMs > 0) {
-        await new Promise((r) => setTimeout(r, remainingLoaderMs));
-      }
       setView("result");
 
       // Remember the RSN for next time — independent of bank-save. If the

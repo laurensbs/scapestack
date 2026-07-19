@@ -91,8 +91,8 @@ try {
             path.join(OUTPUT_DIR, "ax", `${prefix}.json`),
             `${JSON.stringify(ax, null, 2)}\n`
           );
-          cold.axArtifact = `docs/qa/outcome-recovery/ODR-00/ax/${prefix}.json`;
-          cold.screenshotArtifact = `docs/qa/outcome-recovery/ODR-00/screenshots/${prefix}.png`;
+          cold.axArtifact = artifactPath(path.join(OUTPUT_DIR, "ax", `${prefix}.json`));
+          cold.screenshotArtifact = artifactPath(path.join(OUTPUT_DIR, "screenshots", `${prefix}.png`));
         }
 
         await cdp.send("Network.setCacheDisabled", { cacheDisabled: false });
@@ -297,6 +297,10 @@ function median(values) {
   const sorted = [...values].sort((a, b) => a - b);
   const middle = Math.floor(sorted.length / 2);
   return sorted.length % 2 ? sorted[middle] : Math.round((sorted[middle - 1] + sorted[middle]) / 2);
+}
+
+function artifactPath(filePath) {
+  return path.relative(process.cwd(), filePath).split(path.sep).join("/");
 }
 
 function formatMs(value) {

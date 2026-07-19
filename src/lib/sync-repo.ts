@@ -110,7 +110,10 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
   const norm = normalize(rsn);
   if (!norm) return null;
   try {
-    await ensureSyncSchema();
+    // Reads must stay on the hot path. Running every schema statement before
+    // this SELECT made a cold planner request wait on DDL and regularly hid a
+    // valid RuneLite sync behind the first-plan deadline. Schema creation is
+    // still guaranteed by sync writes, pairing and the explicit DB migration.
     const rows = await sql()`
       SELECT rsn, display_name, skills, quests_completed, diaries_completed,
              account_type, collection_log_item_ids, boss_kc, bank_items, bank_status, slayer, plugin_version, snapshot_coverage, sync_summary, synced_at

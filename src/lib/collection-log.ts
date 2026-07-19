@@ -37,13 +37,17 @@ const UA = "scapestack/0.5 (+https://www.scapestack.org)";
 
 /** Returns parsed collection-log state, or null when the player isn't on
  *  cl.net / the request failed / the payload was malformed. Never throws. */
-export async function fetchCollectionLog(rsn: string): Promise<CollectionLog | null> {
+export async function fetchCollectionLog(
+  rsn: string,
+  options: { signal?: AbortSignal } = {}
+): Promise<CollectionLog | null> {
   const cleaned = rsn.trim();
   if (!cleaned) return null;
   const url = `${ENDPOINT}/${encodeURIComponent(cleaned)}`;
   try {
     const res = await fetch(url, {
       headers: { "user-agent": UA },
+      signal: options.signal,
       next: { revalidate: 300 } // 5 min cache, matches Hiscores/WOM
     });
     if (!res.ok) return null;

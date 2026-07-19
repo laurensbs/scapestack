@@ -322,7 +322,7 @@ browser timeout and hydration failures exposed here.
 
 ## ODR-01 - Deliver One Useful Plan In Under 2.5 Seconds
 
-Status: TODO
+Status: IN PROGRESS
 Depends on: ODR-00
 Required evidence: level 2
 Improves: first useful plan, performance, trust

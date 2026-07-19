@@ -1,7 +1,10 @@
 import { HeroBossTripPreview } from "@/components/hero-boss-trip-preview";
 import { HeroIntake } from "@/components/hero-intake";
 
-export const revalidate = 300;
+// This page has no server data. Keeping it as one immutable deployment
+// artifact prevents an ISR regeneration from rendering pathname-dependent
+// client chrome differently from the client bundle during hydration.
+export const dynamic = "force-static";
 
 export default function HomePage() {
   return (

@@ -44,7 +44,10 @@ const UA = "scapestack/0.5 (+https://www.scapestack.org)";
 /** Returns null when the player isn't on WOM (404), when the request
  *  fails, or when the response is malformed. Never throws. Callers are
  *  expected to fall back to Hiscores-only behaviour in the null case. */
-export async function fetchWom(rsn: string): Promise<WomPlayer | null> {
+export async function fetchWom(
+  rsn: string,
+  options: { signal?: AbortSignal } = {}
+): Promise<WomPlayer | null> {
   const cleaned = rsn.trim();
   if (!cleaned) return null;
   // WOM canonicalises to lowercase + underscores. The endpoint accepts
@@ -53,6 +56,7 @@ export async function fetchWom(rsn: string): Promise<WomPlayer | null> {
   try {
     const res = await fetch(url, {
       headers: { "user-agent": UA },
+      signal: options.signal,
       next: { revalidate: 300 } // 5 min server-side cache, matches Hiscores
     });
     if (!res.ok) return null; // 404 = not on WOM, 5xx = WOM down, both fine

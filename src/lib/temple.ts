@@ -40,13 +40,17 @@ interface RawQuestResponse {
   };
 }
 
-export async function fetchTemple(rsn: string): Promise<TempleData | null> {
+export async function fetchTemple(
+  rsn: string,
+  options: { signal?: AbortSignal } = {}
+): Promise<TempleData | null> {
   const cleaned = rsn.trim();
   if (!cleaned) return null;
   const url = `${ENDPOINT}/player_quests.php?player=${encodeURIComponent(cleaned)}`;
   try {
     const res = await fetch(url, {
       headers: { "user-agent": UA },
+      signal: options.signal,
       next: { revalidate: 300 }
     });
     if (!res.ok) return null;
