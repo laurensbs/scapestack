@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 const source = readFileSync(join(process.cwd(), "src/app/next/next-client.tsx"), "utf8");
 const bankedXpSource = readFileSync(join(process.cwd(), "src/lib/banked-xp.ts"), "utf8");
 const planSurfaceSource = readFileSync(join(process.cwd(), "src/lib/next-plan-surface.ts"), "utf8");
+const planningInputSource = readFileSync(join(process.cwd(), "src/lib/planning-input.ts"), "utf8");
 
 describe("/next confidence UI copy", () => {
   it("keeps internal confidence labels out of recommendation cards", () => {
@@ -688,8 +689,9 @@ describe("/next confidence UI copy", () => {
   });
 
   it("uses real Scapestack sync skills and bank items before falling back to empty context", () => {
-    expect(source).toContain("function syncedSkillsToHiscoreSkills");
-    expect(source).toContain("hiscores?.skills ?? syncedSkillsToHiscoreSkills(scapestackSync?.skills)");
+    expect(planningInputSource).toContain("function syncedSkillsToHiscoreSkills");
+    expect(planningInputSource).toContain("hiscores?.skills ?? syncedSkillsToHiscoreSkills(scapestackSync?.skills)");
+    expect(source).toContain("buildNextUpInputFromSources({");
     expect(source).toContain("markAccountPluginBankStatus(rsn, scapestackSync.bankStatus)");
     expect(source).toContain("const usePluginBank = shouldUsePluginBank({");
     expect(source).toContain('const hasManualBankOverride = bankSource === "browser" || bankSource === "handoff";');

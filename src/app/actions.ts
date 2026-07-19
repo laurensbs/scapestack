@@ -10,6 +10,7 @@ import { fetchTemple, type TempleData } from "@/lib/temple";
 import { getSyncedPlayer, type SyncedPlayer } from "@/lib/sync-repo";
 import { hasDatabase } from "@/lib/db";
 import { runBoundedSource, type BoundedSourceTiming } from "@/lib/bounded-source";
+import { buildNextUpInputFromSources } from "@/lib/planning-input";
 
 const PLANNING_SOURCE_DEADLINES_MS = {
   scapestack: 900,
@@ -103,6 +104,7 @@ export interface PlanningContextTiming {
   totalMs: number;
   criticalMs: number;
   optionalMs: number;
+  plannerMs: number;
   timeoutCount: number;
   sources: BoundedSourceTiming[];
 }
@@ -113,7 +115,27 @@ export interface PlanningContextPayload {
   temple: TemplePayload | null;
   collectionLog: CollectionLogPayload | null;
   scapestackSync: SyncedPlayer | null;
+  initialPlan: NextUpResult | null;
   timing: PlanningContextTiming;
+}
+
+async function computeInitialPlan(input: {
+  rsn: string;
+  hiscores: PlayerHiscores | null;
+  wom: WomPlayer | null;
+  temple: TempleData | null;
+  collectionLog: CollectionLog | null;
+  scapestackSync: SyncedPlayer | null;
+}): Promise<NextUpResult | null> {
+  const nextUpInput = buildNextUpInputFromSources({
+    rsn: input.rsn,
+    hiscores: input.hiscores,
+    wom: input.wom,
+    templeQuestsCompleted: input.temple ? Array.from(input.temple.questsCompleted) : undefined,
+    collectionLogOwnedItemIds: input.collectionLog ? Array.from(input.collectionLog.ownedItemIds) : undefined,
+    scapestackSync: input.scapestackSync
+  });
+  return nextUpInput ? computeNextUp(nextUpInput) : null;
 }
 
 /**
@@ -132,10 +154,21 @@ export async function planningContextAction(rsn: string): Promise<PlanningContex
   ]);
 
   const sources = [scapestack.timing, hiscores.timing, wom.timing, temple.timing, collectionLog.timing];
+  const plannerStartedAt = performance.now();
+  const initialPlan = await computeInitialPlan({
+    rsn,
+    hiscores: hiscores.value,
+    wom: wom.value,
+    temple: temple.value,
+    collectionLog: collectionLog.value,
+    scapestackSync: scapestack.value
+  });
+  const plannerMs = Math.max(0, Math.round(performance.now() - plannerStartedAt));
   const timing: PlanningContextTiming = {
     totalMs: Math.max(0, Math.round(performance.now() - startedAt)),
     criticalMs: Math.max(scapestack.timing.elapsedMs, hiscores.timing.elapsedMs),
     optionalMs: Math.max(wom.timing.elapsedMs, temple.timing.elapsedMs, collectionLog.timing.elapsedMs),
+    plannerMs,
     timeoutCount: sources.filter((source) => source.state === "timeout").length,
     sources
   };
@@ -149,6 +182,7 @@ export async function planningContextAction(rsn: string): Promise<PlanningContex
     temple: templePayload(temple.value),
     collectionLog: collectionLogPayload(collectionLog.value),
     scapestackSync: scapestack.value,
+    initialPlan,
     timing
   };
 }

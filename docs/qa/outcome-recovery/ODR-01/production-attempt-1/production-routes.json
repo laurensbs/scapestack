@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "baseUrl": "http://127.0.0.1:3012",
-  "generatedAt": "2026-07-19T16:18:52.815Z",
+  "baseUrl": "https://www.scapestack.org",
+  "generatedAt": "2026-07-19T15:58:16.439Z",
   "browser": "149.0.7827.55",
   "runCount": 3,
   "routes": [
@@ -19,27 +19,16 @@
           "mode": "cold",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 164,
+          "shellReadyMs": 819,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 100,
-          "actionableMs": 164,
+          "domContentLoadedMs": 769,
+          "actionableMs": 819,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
-          "requestFailures": [
-            {
-              "url": "http://127.0.0.1:3012/next?_rsc=5CB68i4pnAekjehf",
-              "method": "GET",
-              "error": "net::ERR_ABORTED"
-            },
-            {
-              "url": "http://127.0.0.1:3012/next?_rsc=tXyZJ52UQVBCVsD3",
-              "method": "GET",
-              "error": "net::ERR_ABORTED"
-            }
-          ],
+          "requestFailures": [],
           "horizontalOverflowPx": 0,
           "brokenImages": [],
           "unnamedControls": [],
@@ -53,38 +42,27 @@
             "Stop bankstanding. Pick the next trip."
           ],
           "navigationTiming": {
-            "responseStartMs": 24,
-            "domContentLoadedMs": 98,
-            "loadEventMs": 147
+            "responseStartMs": 162,
+            "domContentLoadedMs": 767,
+            "loadEventMs": 831
           },
-          "axArtifact": "docs/qa/outcome-recovery/ODR-01/local/ax/desktop-home.json",
-          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-01/local/screenshots/desktop-home.png"
+          "axArtifact": "docs/qa/outcome-recovery/ODR-01/production/ax/desktop-home.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-01/production/screenshots/desktop-home.png"
         },
         {
           "mode": "cold",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 77,
+          "shellReadyMs": 1261,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 32,
-          "actionableMs": 77,
+          "domContentLoadedMs": 1248,
+          "actionableMs": 1261,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
-          "requestFailures": [
-            {
-              "url": "http://127.0.0.1:3012/next?_rsc=5CB68i4pnAekjehf",
-              "method": "GET",
-              "error": "net::ERR_ABORTED"
-            },
-            {
-              "url": "http://127.0.0.1:3012/next?_rsc=tXyZJ52UQVBCVsD3",
-              "method": "GET",
-              "error": "net::ERR_ABORTED"
-            }
-          ],
+          "requestFailures": [],
           "horizontalOverflowPx": 0,
           "brokenImages": [],
           "unnamedControls": [],
@@ -98,36 +76,25 @@
             "Stop bankstanding. Pick the next trip."
           ],
           "navigationTiming": {
-            "responseStartMs": 2,
-            "domContentLoadedMs": 30,
-            "loadEventMs": 66
+            "responseStartMs": 695,
+            "domContentLoadedMs": 1247,
+            "loadEventMs": 2135
           }
         },
         {
           "mode": "cold",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 76,
+          "shellReadyMs": 297,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 30,
-          "actionableMs": 76,
+          "domContentLoadedMs": 280,
+          "actionableMs": 297,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
-          "requestFailures": [
-            {
-              "url": "http://127.0.0.1:3012/next?_rsc=5CB68i4pnAekjehf",
-              "method": "GET",
-              "error": "net::ERR_ABORTED"
-            },
-            {
-              "url": "http://127.0.0.1:3012/next?_rsc=tXyZJ52UQVBCVsD3",
-              "method": "GET",
-              "error": "net::ERR_ABORTED"
-            }
-          ],
+          "requestFailures": [],
           "horizontalOverflowPx": 0,
           "brokenImages": [],
           "unnamedControls": [],
@@ -141,9 +108,9 @@
             "Stop bankstanding. Pick the next trip."
           ],
           "navigationTiming": {
-            "responseStartMs": 3,
-            "domContentLoadedMs": 29,
-            "loadEventMs": 65
+            "responseStartMs": 189,
+            "domContentLoadedMs": 279,
+            "loadEventMs": 428
           }
         }
       ],
@@ -152,23 +119,43 @@
           "mode": "warm",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 32,
+          "shellReadyMs": 225,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 10,
-          "actionableMs": 32,
+          "domContentLoadedMs": 196,
+          "actionableMs": 225,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
           "requestFailures": [
             {
-              "url": "http://127.0.0.1:3012/next?_rsc=5CB68i4pnAekjehf",
+              "url": "https://www.scapestack.org/?_rsc=7h4NYy5eoyMcNlUN",
               "method": "GET",
               "error": "net::ERR_ABORTED"
             },
             {
-              "url": "http://127.0.0.1:3012/next?_rsc=tXyZJ52UQVBCVsD3",
+              "url": "https://www.scapestack.org/api/account/me",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/dps?_rsc=U4W3Jn2W64qAyj-2",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/api/account/me",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?_rsc=5CB68i4pnAekjehf",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/dps?_rsc=7h4NYy5eoyMcNlUN",
               "method": "GET",
               "error": "net::ERR_ABORTED"
             }
@@ -186,32 +173,62 @@
             "Stop bankstanding. Pick the next trip."
           ],
           "navigationTiming": {
-            "responseStartMs": 3,
-            "domContentLoadedMs": 9,
-            "loadEventMs": 27
+            "responseStartMs": 89,
+            "domContentLoadedMs": 196,
+            "loadEventMs": 459
           }
         },
         {
           "mode": "warm",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 38,
+          "shellReadyMs": 140,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 11,
-          "actionableMs": 38,
+          "domContentLoadedMs": 110,
+          "actionableMs": 140,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
           "requestFailures": [
             {
-              "url": "http://127.0.0.1:3012/next?_rsc=5CB68i4pnAekjehf",
+              "url": "https://www.scapestack.org/next?_rsc=tXyZJ52UQVBCVsD3",
               "method": "GET",
               "error": "net::ERR_ABORTED"
             },
             {
-              "url": "http://127.0.0.1:3012/next?_rsc=tXyZJ52UQVBCVsD3",
+              "url": "https://www.scapestack.org/bank?_rsc=7h4NYy5eoyMcNlUN",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/bank?_rsc=uaK0MgyDJoHiW1hD",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/?_rsc=8nTjltbQWvg6NcbE",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/bank?_rsc=B0XTjNdT1YmnFybB",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/23azzoqgxnv38.js?dpl=dpl_B4Sc9oN7DAdLg9v6BdzJuK5EW8LC",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/_next/static/chunks/2357h3_hatpnc.js?dpl=dpl_B4Sc9oN7DAdLg9v6BdzJuK5EW8LC",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?_rsc=5CB68i4pnAekjehf",
               "method": "GET",
               "error": "net::ERR_ABORTED"
             }
@@ -229,37 +246,32 @@
             "Stop bankstanding. Pick the next trip."
           ],
           "navigationTiming": {
-            "responseStartMs": 2,
-            "domContentLoadedMs": 10,
-            "loadEventMs": 31
+            "responseStartMs": 94,
+            "domContentLoadedMs": 108,
+            "loadEventMs": 149
           }
         },
         {
           "mode": "warm",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 30,
+          "shellReadyMs": 99,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 8,
-          "actionableMs": 30,
+          "domContentLoadedMs": 71,
+          "actionableMs": 99,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
           "requestFailures": [
             {
-              "url": "https://plausible.io/js/script.js",
+              "url": "https://www.scapestack.org/next?_rsc=tXyZJ52UQVBCVsD3",
               "method": "GET",
               "error": "net::ERR_ABORTED"
             },
             {
-              "url": "http://127.0.0.1:3012/next?_rsc=5CB68i4pnAekjehf",
-              "method": "GET",
-              "error": "net::ERR_ABORTED"
-            },
-            {
-              "url": "http://127.0.0.1:3012/next?_rsc=tXyZJ52UQVBCVsD3",
+              "url": "https://www.scapestack.org/next?_rsc=tXyZJ52UQVBCVsD3",
               "method": "GET",
               "error": "net::ERR_ABORTED"
             }
@@ -277,19 +289,19 @@
             "Stop bankstanding. Pick the next trip."
           ],
           "navigationTiming": {
-            "responseStartMs": 2,
-            "domContentLoadedMs": 7,
-            "loadEventMs": 26
+            "responseStartMs": 44,
+            "domContentLoadedMs": 68,
+            "loadEventMs": 118
           }
         }
       ],
       "summary": {
-        "coldMedianMs": 77,
-        "coldMinMs": 76,
-        "coldMaxMs": 164,
-        "warmMedianMs": 32,
-        "warmMinMs": 30,
-        "warmMaxMs": 38,
+        "coldMedianMs": 819,
+        "coldMinMs": 297,
+        "coldMaxMs": 1261,
+        "warmMedianMs": 140,
+        "warmMinMs": 99,
+        "warmMaxMs": 225,
         "readyRuns": 6,
         "errorCount": 0,
         "hydrationErrorCount": 0,
@@ -312,43 +324,28 @@
           "mode": "cold",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 1499,
+          "shellReadyMs": 2902,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 159,
-          "actionableMs": 1499,
+          "domContentLoadedMs": 582,
+          "actionableMs": 2902,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
           "requestFailures": [
             {
-              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=1xvxz12uuu4-K_Rk",
-              "method": "GET",
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
               "error": "net::ERR_ABORTED"
             },
             {
-              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=oseKngdmXkzMHm7Q",
-              "method": "GET",
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
               "error": "net::ERR_ABORTED"
             },
             {
-              "url": "http://127.0.0.1:3012/next?_rsc=1xvxz12uuu4-K_Rk",
-              "method": "GET",
-              "error": "net::ERR_ABORTED"
-            },
-            {
-              "url": "http://127.0.0.1:3012/quests/fairytale-ii-cure-a-queen?from=next&bank=none&_rsc=1xvxz12uuu4-K_Rk",
-              "method": "GET",
-              "error": "net::ERR_ABORTED"
-            },
-            {
-              "url": "http://127.0.0.1:3012/quests/fairytale-ii-cure-a-queen?rsn=Lauky&from=next&bank=none&_rsc=1xvxz12uuu4-K_Rk",
-              "method": "GET",
-              "error": "net::ERR_ABORTED"
-            },
-            {
-              "url": "http://127.0.0.1:3012/quests/fairytale-ii-cure-a-queen?rsn=Lauky&from=next&bank=none&_rsc=oseKngdmXkzMHm7Q",
+              "url": "https://www.scapestack.org/quests/fairytale-ii-cure-a-queen?rsn=Lauky&from=next&bank=none&_rsc=oseKngdmXkzMHm7Q",
               "method": "GET",
               "error": "net::ERR_ABORTED"
             }
@@ -440,44 +437,34 @@
             "Run herbs + birdhouses"
           ],
           "navigationTiming": {
-            "responseStartMs": 110,
-            "domContentLoadedMs": 158,
-            "loadEventMs": 158
+            "responseStartMs": 133,
+            "domContentLoadedMs": 574,
+            "loadEventMs": 819
           },
-          "axArtifact": "docs/qa/outcome-recovery/ODR-01/local/ax/desktop-next.json",
-          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-01/local/screenshots/desktop-next.png"
+          "axArtifact": "docs/qa/outcome-recovery/ODR-01/production/ax/desktop-next.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-01/production/screenshots/desktop-next.png"
         },
         {
           "mode": "cold",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 877,
+          "shellReadyMs": 3064,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 18,
-          "actionableMs": 877,
+          "domContentLoadedMs": 1210,
+          "actionableMs": 3064,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
           "requestFailures": [
             {
-              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=1xvxz12uuu4-K_Rk",
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=next&_rsc=oseKngdmXkzMHm7Q",
               "method": "GET",
               "error": "net::ERR_ABORTED"
             },
             {
-              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=oseKngdmXkzMHm7Q",
-              "method": "GET",
-              "error": "net::ERR_ABORTED"
-            },
-            {
-              "url": "http://127.0.0.1:3012/next?_rsc=1xvxz12uuu4-K_Rk",
-              "method": "GET",
-              "error": "net::ERR_ABORTED"
-            },
-            {
-              "url": "http://127.0.0.1:3012/next?rsn=Lauky&intent=short&time=15",
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
               "method": "POST",
               "error": "net::ERR_ABORTED"
             }
@@ -563,38 +550,28 @@
             "Run herbs + birdhouses"
           ],
           "navigationTiming": {
-            "responseStartMs": 7,
-            "domContentLoadedMs": 17,
-            "loadEventMs": 72
+            "responseStartMs": 133,
+            "domContentLoadedMs": 1210,
+            "loadEventMs": 1461
           }
         },
         {
           "mode": "cold",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 358,
+          "shellReadyMs": 2230,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 15,
-          "actionableMs": 358,
+          "domContentLoadedMs": 900,
+          "actionableMs": 2230,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
           "requestFailures": [
             {
-              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=1xvxz12uuu4-K_Rk",
-              "method": "GET",
-              "error": "net::ERR_ABORTED"
-            },
-            {
-              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=oseKngdmXkzMHm7Q",
-              "method": "GET",
-              "error": "net::ERR_ABORTED"
-            },
-            {
-              "url": "http://127.0.0.1:3012/next?_rsc=1xvxz12uuu4-K_Rk",
-              "method": "GET",
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
               "error": "net::ERR_ABORTED"
             }
           ],
@@ -679,9 +656,9 @@
             "Run herbs + birdhouses"
           ],
           "navigationTiming": {
-            "responseStartMs": 7,
-            "domContentLoadedMs": 14,
-            "loadEventMs": 67
+            "responseStartMs": 434,
+            "domContentLoadedMs": 899,
+            "loadEventMs": 921
           }
         }
       ],
@@ -690,144 +667,28 @@
           "mode": "warm",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 830,
+          "shellReadyMs": 1697,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 24,
-          "actionableMs": 830,
+          "domContentLoadedMs": 385,
+          "actionableMs": 1697,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
           "requestFailures": [
             {
-              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=1xvxz12uuu4-K_Rk",
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=next&_rsc=oseKngdmXkzMHm7Q",
               "method": "GET",
               "error": "net::ERR_ABORTED"
             },
             {
-              "url": "http://127.0.0.1:3012/next?_rsc=1xvxz12uuu4-K_Rk",
-              "method": "GET",
-              "error": "net::ERR_ABORTED"
-            }
-          ],
-          "horizontalOverflowPx": 0,
-          "brokenImages": [],
-          "unnamedControls": [],
-          "headings": [
-            {
-              "level": "h2",
-              "text": "Run herbs + birdhouses"
-            },
-            {
-              "level": "h2",
-              "text": "More unlock moves"
-            },
-            {
-              "level": "h3",
-              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
-            },
-            {
-              "level": "h3",
-              "text": "Train Runecraft to 78 for Varrock Elite diary"
-            },
-            {
-              "level": "h3",
-              "text": "Train Fletching to 95 for Desert Elite diary"
-            },
-            {
-              "level": "h3",
-              "text": "Train Sailing to 65 for The Graveyard"
-            },
-            {
-              "level": "h3",
-              "text": "Train Agility to 90 for Ardougne Elite diary"
-            },
-            {
-              "level": "h2",
-              "text": "Unlock gaps"
-            },
-            {
-              "level": "h3",
-              "text": "Barrows gloves route"
-            },
-            {
-              "level": "h3",
-              "text": "Fairy rings route"
-            },
-            {
-              "level": "h3",
-              "text": "Piety route"
-            },
-            {
-              "level": "h3",
-              "text": "Ava's assembler route"
-            },
-            {
-              "level": "h3",
-              "text": "Dragon defender route"
-            },
-            {
-              "level": "h3",
-              "text": "Quest cape route"
-            },
-            {
-              "level": "h3",
-              "text": "Raids prep route"
-            },
-            {
-              "level": "h3",
-              "text": "Slayer unlock route"
-            },
-            {
-              "level": "h3",
-              "text": "Routes to inspect"
-            },
-            {
-              "level": "h3",
-              "text": "Almost there"
-            }
-          ],
-          "axHeadings": [
-            "Run herbs + birdhouses"
-          ],
-          "navigationTiming": {
-            "responseStartMs": 8,
-            "domContentLoadedMs": 24,
-            "loadEventMs": 25
-          }
-        },
-        {
-          "mode": "warm",
-          "status": 200,
-          "shellReady": true,
-          "shellReadyMs": 836,
-          "ready": true,
-          "navigationError": null,
-          "readyError": null,
-          "domContentLoadedMs": 29,
-          "actionableMs": 836,
-          "consoleErrors": [],
-          "pageErrors": [],
-          "hydrationErrors": [],
-          "requestFailures": [
-            {
-              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=1xvxz12uuu4-K_Rk",
-              "method": "GET",
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
               "error": "net::ERR_ABORTED"
             },
             {
-              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=oseKngdmXkzMHm7Q",
-              "method": "GET",
-              "error": "net::ERR_ABORTED"
-            },
-            {
-              "url": "http://127.0.0.1:3012/next?_rsc=1xvxz12uuu4-K_Rk",
-              "method": "GET",
-              "error": "net::ERR_ABORTED"
-            },
-            {
-              "url": "http://127.0.0.1:3012/next?rsn=Lauky&intent=short&time=15",
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
               "method": "POST",
               "error": "net::ERR_ABORTED"
             }
@@ -913,37 +774,27 @@
             "Run herbs + birdhouses"
           ],
           "navigationTiming": {
-            "responseStartMs": 9,
-            "domContentLoadedMs": 28,
-            "loadEventMs": 30
+            "responseStartMs": 45,
+            "domContentLoadedMs": 383,
+            "loadEventMs": 384
           }
         },
         {
           "mode": "warm",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 237,
+          "shellReadyMs": 1708,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 31,
-          "actionableMs": 237,
+          "domContentLoadedMs": 403,
+          "actionableMs": 1708,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
           "requestFailures": [
             {
-              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=1xvxz12uuu4-K_Rk",
-              "method": "GET",
-              "error": "net::ERR_ABORTED"
-            },
-            {
-              "url": "http://127.0.0.1:3012/next?rsn=Lauky&from=next&_rsc=oseKngdmXkzMHm7Q",
-              "method": "GET",
-              "error": "net::ERR_ABORTED"
-            },
-            {
-              "url": "http://127.0.0.1:3012/next?_rsc=1xvxz12uuu4-K_Rk",
+              "url": "https://www.scapestack.org/next?rsn=Lauky&from=next&_rsc=oseKngdmXkzMHm7Q",
               "method": "GET",
               "error": "net::ERR_ABORTED"
             }
@@ -1029,19 +880,125 @@
             "Run herbs + birdhouses"
           ],
           "navigationTiming": {
-            "responseStartMs": 8,
-            "domContentLoadedMs": 30,
-            "loadEventMs": 31
+            "responseStartMs": 75,
+            "domContentLoadedMs": 401,
+            "loadEventMs": 402
+          }
+        },
+        {
+          "mode": "warm",
+          "status": 200,
+          "shellReady": true,
+          "shellReadyMs": 1783,
+          "ready": true,
+          "navigationError": null,
+          "readyError": null,
+          "domContentLoadedMs": 457,
+          "actionableMs": 1783,
+          "consoleErrors": [],
+          "pageErrors": [],
+          "hydrationErrors": [],
+          "requestFailures": [
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            }
+          ],
+          "horizontalOverflowPx": 0,
+          "brokenImages": [],
+          "unnamedControls": [],
+          "headings": [
+            {
+              "level": "h2",
+              "text": "Run herbs + birdhouses"
+            },
+            {
+              "level": "h2",
+              "text": "More unlock moves"
+            },
+            {
+              "level": "h3",
+              "text": "Train Slayer to 95 for Kourend & Kebos Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Runecraft to 78 for Varrock Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Fletching to 95 for Desert Elite diary"
+            },
+            {
+              "level": "h3",
+              "text": "Train Sailing to 65 for The Graveyard"
+            },
+            {
+              "level": "h3",
+              "text": "Train Agility to 90 for Ardougne Elite diary"
+            },
+            {
+              "level": "h2",
+              "text": "Unlock gaps"
+            },
+            {
+              "level": "h3",
+              "text": "Barrows gloves route"
+            },
+            {
+              "level": "h3",
+              "text": "Fairy rings route"
+            },
+            {
+              "level": "h3",
+              "text": "Piety route"
+            },
+            {
+              "level": "h3",
+              "text": "Ava's assembler route"
+            },
+            {
+              "level": "h3",
+              "text": "Dragon defender route"
+            },
+            {
+              "level": "h3",
+              "text": "Quest cape route"
+            },
+            {
+              "level": "h3",
+              "text": "Raids prep route"
+            },
+            {
+              "level": "h3",
+              "text": "Slayer unlock route"
+            },
+            {
+              "level": "h3",
+              "text": "Routes to inspect"
+            },
+            {
+              "level": "h3",
+              "text": "Almost there"
+            }
+          ],
+          "axHeadings": [
+            "Run herbs + birdhouses"
+          ],
+          "navigationTiming": {
+            "responseStartMs": 407,
+            "domContentLoadedMs": 454,
+            "loadEventMs": 483
           }
         }
       ],
       "summary": {
-        "coldMedianMs": 877,
-        "coldMinMs": 358,
-        "coldMaxMs": 1499,
-        "warmMedianMs": 830,
-        "warmMinMs": 237,
-        "warmMaxMs": 836,
+        "coldMedianMs": 2902,
+        "coldMinMs": 2230,
+        "coldMaxMs": 3064,
+        "warmMedianMs": 1708,
+        "warmMinMs": 1697,
+        "warmMaxMs": 1783,
         "readyRuns": 6,
         "errorCount": 0,
         "hydrationErrorCount": 0,
@@ -1064,12 +1021,12 @@
           "mode": "cold",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 75,
+          "shellReadyMs": 304,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 30,
-          "actionableMs": 75,
+          "domContentLoadedMs": 288,
+          "actionableMs": 304,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
@@ -1087,23 +1044,23 @@
             "Stop bankstanding. Pick the next trip."
           ],
           "navigationTiming": {
-            "responseStartMs": 4,
-            "domContentLoadedMs": 29,
-            "loadEventMs": 64
+            "responseStartMs": 203,
+            "domContentLoadedMs": 288,
+            "loadEventMs": 403
           },
-          "axArtifact": "docs/qa/outcome-recovery/ODR-01/local/ax/mobile-home.json",
-          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-01/local/screenshots/mobile-home.png"
+          "axArtifact": "docs/qa/outcome-recovery/ODR-01/production/ax/mobile-home.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-01/production/screenshots/mobile-home.png"
         },
         {
           "mode": "cold",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 74,
+          "shellReadyMs": 255,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 29,
-          "actionableMs": 74,
+          "domContentLoadedMs": 242,
+          "actionableMs": 255,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
@@ -1121,21 +1078,21 @@
             "Stop bankstanding. Pick the next trip."
           ],
           "navigationTiming": {
-            "responseStartMs": 2,
-            "domContentLoadedMs": 28,
-            "loadEventMs": 63
+            "responseStartMs": 133,
+            "domContentLoadedMs": 241,
+            "loadEventMs": 414
           }
         },
         {
           "mode": "cold",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 66,
+          "shellReadyMs": 421,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 14,
-          "actionableMs": 66,
+          "domContentLoadedMs": 398,
+          "actionableMs": 421,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
@@ -1153,9 +1110,9 @@
             "Stop bankstanding. Pick the next trip."
           ],
           "navigationTiming": {
-            "responseStartMs": 3,
-            "domContentLoadedMs": 12,
-            "loadEventMs": 65
+            "responseStartMs": 135,
+            "domContentLoadedMs": 397,
+            "loadEventMs": 397
           }
         }
       ],
@@ -1164,12 +1121,12 @@
           "mode": "warm",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 33,
+          "shellReadyMs": 86,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 9,
-          "actionableMs": 33,
+          "domContentLoadedMs": 63,
+          "actionableMs": 86,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
@@ -1187,21 +1144,21 @@
             "Stop bankstanding. Pick the next trip."
           ],
           "navigationTiming": {
-            "responseStartMs": 2,
-            "domContentLoadedMs": 8,
-            "loadEventMs": 26
+            "responseStartMs": 42,
+            "domContentLoadedMs": 63,
+            "loadEventMs": 137
           }
         },
         {
           "mode": "warm",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 37,
+          "shellReadyMs": 76,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 11,
-          "actionableMs": 37,
+          "domContentLoadedMs": 54,
+          "actionableMs": 76,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
@@ -1219,21 +1176,21 @@
             "Stop bankstanding. Pick the next trip."
           ],
           "navigationTiming": {
-            "responseStartMs": 2,
-            "domContentLoadedMs": 10,
-            "loadEventMs": 31
+            "responseStartMs": 40,
+            "domContentLoadedMs": 53,
+            "loadEventMs": 98
           }
         },
         {
           "mode": "warm",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 38,
+          "shellReadyMs": 134,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 10,
-          "actionableMs": 38,
+          "domContentLoadedMs": 110,
+          "actionableMs": 134,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
@@ -1251,19 +1208,19 @@
             "Stop bankstanding. Pick the next trip."
           ],
           "navigationTiming": {
-            "responseStartMs": 2,
-            "domContentLoadedMs": 9,
-            "loadEventMs": 30
+            "responseStartMs": 95,
+            "domContentLoadedMs": 110,
+            "loadEventMs": 155
           }
         }
       ],
       "summary": {
-        "coldMedianMs": 74,
-        "coldMinMs": 66,
-        "coldMaxMs": 75,
-        "warmMedianMs": 37,
-        "warmMinMs": 33,
-        "warmMaxMs": 38,
+        "coldMedianMs": 304,
+        "coldMinMs": 255,
+        "coldMaxMs": 421,
+        "warmMedianMs": 86,
+        "warmMinMs": 76,
+        "warmMaxMs": 134,
         "readyRuns": 6,
         "errorCount": 0,
         "hydrationErrorCount": 0,
@@ -1286,28 +1243,23 @@
           "mode": "cold",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 367,
+          "shellReadyMs": 1744,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 14,
-          "actionableMs": 367,
+          "domContentLoadedMs": 423,
+          "actionableMs": 1744,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
           "requestFailures": [
             {
-              "url": "http://127.0.0.1:3012/next?_rsc=1xvxz12uuu4-K_Rk",
+              "url": "https://www.scapestack.org/next?rsn=Lauky&_rsc=1xvxz12uuu4-K_Rk",
               "method": "GET",
               "error": "net::ERR_ABORTED"
             },
             {
-              "url": "http://127.0.0.1:3012/next?_rsc=oseKngdmXkzMHm7Q",
-              "method": "GET",
-              "error": "net::ERR_ABORTED"
-            },
-            {
-              "url": "http://127.0.0.1:3012/next?rsn=Lauky&intent=short&time=15",
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
               "method": "POST",
               "error": "net::ERR_ABORTED"
             }
@@ -1393,34 +1345,49 @@
             "Run herbs + birdhouses"
           ],
           "navigationTiming": {
-            "responseStartMs": 5,
-            "domContentLoadedMs": 13,
-            "loadEventMs": 67
+            "responseStartMs": 215,
+            "domContentLoadedMs": 422,
+            "loadEventMs": 540
           },
-          "axArtifact": "docs/qa/outcome-recovery/ODR-01/local/ax/mobile-next.json",
-          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-01/local/screenshots/mobile-next.png"
+          "axArtifact": "docs/qa/outcome-recovery/ODR-01/production/ax/mobile-next.json",
+          "screenshotArtifact": "docs/qa/outcome-recovery/ODR-01/production/screenshots/mobile-next.png"
         },
         {
           "mode": "cold",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 367,
+          "shellReadyMs": 1653,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 15,
-          "actionableMs": 367,
+          "domContentLoadedMs": 350,
+          "actionableMs": 1653,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
           "requestFailures": [
             {
-              "url": "http://127.0.0.1:3012/next?_rsc=1xvxz12uuu4-K_Rk",
+              "url": "https://www.scapestack.org/next?_rsc=oseKngdmXkzMHm7Q",
               "method": "GET",
               "error": "net::ERR_ABORTED"
             },
             {
-              "url": "http://127.0.0.1:3012/next?_rsc=oseKngdmXkzMHm7Q",
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15&_rsc=oseKngdmXkzMHm7Q",
               "method": "GET",
               "error": "net::ERR_ABORTED"
             }
@@ -1506,42 +1473,37 @@
             "Run herbs + birdhouses"
           ],
           "navigationTiming": {
-            "responseStartMs": 5,
-            "domContentLoadedMs": 14,
-            "loadEventMs": 67
+            "responseStartMs": 202,
+            "domContentLoadedMs": 349,
+            "loadEventMs": 467
           }
         },
         {
           "mode": "cold",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 368,
+          "shellReadyMs": 1154,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 17,
-          "actionableMs": 368,
+          "domContentLoadedMs": 343,
+          "actionableMs": 1154,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
           "requestFailures": [
             {
-              "url": "http://127.0.0.1:3012/next?_rsc=1xvxz12uuu4-K_Rk",
+              "url": "https://www.scapestack.org/next?rsn=Lauky&_rsc=1xvxz12uuu4-K_Rk",
               "method": "GET",
               "error": "net::ERR_ABORTED"
             },
             {
-              "url": "http://127.0.0.1:3012/next?_rsc=oseKngdmXkzMHm7Q",
-              "method": "GET",
-              "error": "net::ERR_ABORTED"
-            },
-            {
-              "url": "http://127.0.0.1:3012/next?rsn=Lauky&intent=short&time=15",
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
               "method": "POST",
               "error": "net::ERR_ABORTED"
             },
             {
-              "url": "http://127.0.0.1:3012/next?rsn=Lauky&intent=short&time=15&_rsc=oseKngdmXkzMHm7Q",
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15&_rsc=oseKngdmXkzMHm7Q",
               "method": "GET",
               "error": "net::ERR_ABORTED"
             }
@@ -1627,9 +1589,9 @@
             "Run herbs + birdhouses"
           ],
           "navigationTiming": {
-            "responseStartMs": 6,
-            "domContentLoadedMs": 16,
-            "loadEventMs": 69
+            "responseStartMs": 140,
+            "domContentLoadedMs": 342,
+            "loadEventMs": 456
           }
         }
       ],
@@ -1638,23 +1600,23 @@
           "mode": "warm",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 226,
+          "shellReadyMs": 1050,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 24,
-          "actionableMs": 226,
+          "domContentLoadedMs": 245,
+          "actionableMs": 1050,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
           "requestFailures": [
             {
-              "url": "http://127.0.0.1:3012/next?rsn=Lauky&intent=short&time=15&_rsc=oseKngdmXkzMHm7Q",
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15&_rsc=oseKngdmXkzMHm7Q",
               "method": "GET",
               "error": "net::ERR_ABORTED"
             },
             {
-              "url": "http://127.0.0.1:3012/next?rsn=Lauky&intent=short&time=15",
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
               "method": "POST",
               "error": "net::ERR_ABORTED"
             }
@@ -1740,27 +1702,42 @@
             "Run herbs + birdhouses"
           ],
           "navigationTiming": {
-            "responseStartMs": 6,
-            "domContentLoadedMs": 23,
-            "loadEventMs": 24
+            "responseStartMs": 88,
+            "domContentLoadedMs": 244,
+            "loadEventMs": 244
           }
         },
         {
           "mode": "warm",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 333,
+          "shellReadyMs": 992,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 32,
-          "actionableMs": 333,
+          "domContentLoadedMs": 176,
+          "actionableMs": 992,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
           "requestFailures": [
             {
-              "url": "http://127.0.0.1:3012/next?rsn=Lauky&intent=short&time=15",
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15&_rsc=oseKngdmXkzMHm7Q",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?_rsc=1xvxz12uuu4-K_Rk",
+              "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
               "method": "POST",
               "error": "net::ERR_ABORTED"
             }
@@ -1846,28 +1823,33 @@
             "Run herbs + birdhouses"
           ],
           "navigationTiming": {
-            "responseStartMs": 8,
-            "domContentLoadedMs": 31,
-            "loadEventMs": 32
+            "responseStartMs": 43,
+            "domContentLoadedMs": 174,
+            "loadEventMs": 204
           }
         },
         {
           "mode": "warm",
           "status": 200,
           "shellReady": true,
-          "shellReadyMs": 332,
+          "shellReadyMs": 1005,
           "ready": true,
           "navigationError": null,
           "readyError": null,
-          "domContentLoadedMs": 31,
-          "actionableMs": 332,
+          "domContentLoadedMs": 199,
+          "actionableMs": 1005,
           "consoleErrors": [],
           "pageErrors": [],
           "hydrationErrors": [],
           "requestFailures": [
             {
-              "url": "http://127.0.0.1:3012/next?rsn=Lauky&intent=short&time=15&_rsc=oseKngdmXkzMHm7Q",
+              "url": "https://www.scapestack.org/next?_rsc=1xvxz12uuu4-K_Rk",
               "method": "GET",
+              "error": "net::ERR_ABORTED"
+            },
+            {
+              "url": "https://www.scapestack.org/next?rsn=Lauky&intent=short&time=15",
+              "method": "POST",
               "error": "net::ERR_ABORTED"
             }
           ],
@@ -1952,19 +1934,19 @@
             "Run herbs + birdhouses"
           ],
           "navigationTiming": {
-            "responseStartMs": 8,
-            "domContentLoadedMs": 30,
-            "loadEventMs": 31
+            "responseStartMs": 118,
+            "domContentLoadedMs": 198,
+            "loadEventMs": 198
           }
         }
       ],
       "summary": {
-        "coldMedianMs": 367,
-        "coldMinMs": 367,
-        "coldMaxMs": 368,
-        "warmMedianMs": 332,
-        "warmMinMs": 226,
-        "warmMaxMs": 333,
+        "coldMedianMs": 1653,
+        "coldMinMs": 1154,
+        "coldMaxMs": 1744,
+        "warmMedianMs": 1005,
+        "warmMinMs": 992,
+        "warmMaxMs": 1050,
         "readyRuns": 6,
         "errorCount": 0,
         "hydrationErrorCount": 0,

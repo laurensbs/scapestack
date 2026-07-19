@@ -37,6 +37,7 @@ export interface AnalyticsEventMap {
     serverMs: number;
     criticalMs: number;
     optionalMs: number;
+    plannerMs: number;
     timeoutCount: number;
   };
   "plan:first_rendered": RecommendationEventProps;
@@ -134,7 +135,7 @@ declare global {
 
 const EVENT_KEYS = {
   "rsn:submitted": ["source", "context", "hasBank", "sample"],
-  "plan:context_ready": ["serverMs", "criticalMs", "optionalMs", "timeoutCount"],
+  "plan:context_ready": ["serverMs", "criticalMs", "optionalMs", "plannerMs", "timeoutCount"],
   "plan:first_rendered": ["recommendationId", "recommendationKind", "routeFamily", "mood", "accountStage", "context", "sessionMinutes", "elapsedMs"],
   "mood:changed": ["mood", "sessionMinutes", "source"],
   "recommendation:impression": ["recommendationId", "recommendationKind", "routeFamily", "mood", "accountStage", "context", "sessionMinutes", "elapsedMs"],

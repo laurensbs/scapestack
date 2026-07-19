@@ -12,6 +12,7 @@ const collectionLog = readFileSync(join(process.cwd(), "src/lib/collection-log.t
 describe("first plan latency contract", () => {
   it("has no deliberate loader floor and reads account context in one call", () => {
     expect(nextClient).toContain("planningContextAction(rsn)");
+    expect(nextClient).toContain("planningContext?.initialPlan");
     expect(nextClient).not.toContain("minLoaderUntil");
     expect(nextClient).not.toContain("minimum loader");
     expect(nextClient).not.toMatch(/remainingLoaderMs[\s\S]*setTimeout/);
@@ -37,6 +38,7 @@ describe("first plan latency contract", () => {
 
   it("records only privacy-safe duration data", () => {
     expect(actions).toContain('console.info("scapestack.next_context", JSON.stringify(timing))');
+    expect(actions).toContain("plannerMs");
     expect(nextClient).toContain('track("plan:context_ready"');
   });
 

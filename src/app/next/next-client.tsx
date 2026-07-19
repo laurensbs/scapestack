@@ -20,12 +20,13 @@ import { ShuffleLoader } from "@/components/shuffle-loader";
 import { BOSSES, type Boss } from "@/lib/bosses";
 import { organizeAction, nextUpAction, planningContextAction } from "@/app/actions";
 import { type HiscoreSkill } from "@/lib/hiscores";
-import { unlockedFromHiscores, GOAL_SETS, normaliseCompletion, type SetCompletion } from "@/lib/goals";
+import { GOAL_SETS, normaliseCompletion, type SetCompletion } from "@/lib/goals";
 import type { HoursToMaxSummary } from "@/lib/hours-to-max";
 import { getActiveAccount, markAccountPluginBankStatus, markAccountRuneliteProgress, markAccountTrip } from "@/lib/account-storage";
 import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
 import { track, type AnalyticsContext } from "@/lib/analytics";
-import type { Recommendation, RecKind, NextUpInput, NextUpResult, NextBestAction } from "@/lib/next-up";
+import type { Recommendation, RecKind, NextUpResult, NextBestAction } from "@/lib/next-up";
+import { buildNextUpInputFromSources } from "@/lib/planning-input";
 import {
   buildRecommendationDecision,
   recommendationDecisionCopy,
@@ -81,7 +82,6 @@ import {
   accountModeVisual,
   isUltimatePlannerAccount,
   plannerAccountTypeLabel,
-  scapestackAccountTypeToPlannerType,
   type PlannerAccountType
 } from "@/lib/account-type";
 import {
@@ -223,19 +223,6 @@ function sampleSkills(): HiscoreSkill[] {
   }));
   const total = skills.reduce((sum, skill) => sum + skill.level, 0);
   return [{ id: 0, name: "Overall", rank: 100_000, level: total, xp: 0 }, ...skills];
-}
-
-function syncedSkillsToHiscoreSkills(skills: Array<{ name: string; level: number }> | undefined): HiscoreSkill[] {
-  if (!skills?.length) return [];
-  const rows = skills.map((skill, index) => ({
-    id: index + 1,
-    name: skill.name,
-    rank: 0,
-    level: skill.level,
-    xp: 0
-  }));
-  const totalLevel = rows.reduce((sum, skill) => sum + skill.level, 0);
-  return [{ id: 0, name: "Overall", rank: 0, level: totalLevel, xp: 0 }, ...rows];
 }
 
 function savedBankForRun(primaryRsn: string, fallbackRsn = ""): SavedBank | null {
@@ -522,6 +509,7 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
           serverMs: planningContext.timing.totalMs,
           criticalMs: planningContext.timing.criticalMs,
           optionalMs: planningContext.timing.optionalMs,
+          plannerMs: planningContext.timing.plannerMs,
           timeoutCount: planningContext.timing.timeoutCount
         });
       }
@@ -571,29 +559,22 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
         }
       }
 
-      // Fold in 99-skill capes synthesised from the Hiscores so goal-
-      // completion reflects what the player has *earned*, not just what
-      // sits in their bank.
-      const skills: HiscoreSkill[] = hiscores?.skills ?? syncedSkillsToHiscoreSkills(scapestackSync?.skills);
-      const seenBankIds = new Set(bank.map((it) => it.id));
-      const earnedItems = unlockedFromHiscores(skills)
-        .filter((cape) => !seenBankIds.has(cape.id));
-
-      // Pull Quest points + every positive boss KC from Hiscores activities.
-      const qpActivity = hiscores?.activities.find((a) => a.name === "Quest points");
-      const questPoints = qpActivity && qpActivity.score >= 0 ? qpActivity.score : 0;
-      const bossKc: Record<string, number> = { ...(scapestackSync?.bossKc ?? {}) };
-      for (const a of hiscores?.activities ?? []) {
-        if (a.score > 0) bossKc[a.name] = Math.max(bossKc[a.name] ?? 0, a.score);
-      }
-
       // If neither RSN nor bank gave us anything, branch on *why*. A
       // player who typed an RSN that 404'd on the Hiscores (typo, or
       // combat too low to be ranked) gets the not-found preview screen
       // — better than a red error blob next to the button which is
       // where v0.4 lost people. A player who submitted nothing gets
       // the original 'fill something in' nudge.
-      if (skills.length === 0 && bank.length === 0) {
+      const plannerInput = buildNextUpInputFromSources({
+        rsn,
+        hiscores,
+        wom,
+        templeQuestsCompleted: temple?.questsCompleted,
+        collectionLogOwnedItemIds: collectionLog?.ownedItemIds,
+        scapestackSync,
+        bankOverride: bank
+      });
+      if (!plannerInput) {
         if (rsn) {
           setNotFoundRsn(rsn);
           setView("not-found");
@@ -603,53 +584,12 @@ export function NextClient({ initialQueryString }: { initialQueryString: string 
         return;
       }
 
-      const accountMeta: NextUpInput["accountMeta"] = scapestackSync || wom ? {
-        displayName: wom?.displayName ?? scapestackSync?.displayName ?? rsn,
-        accountType: scapestackSync
-          ? scapestackAccountTypeToPlannerType(scapestackSync.accountType)
-          : wom!.accountType,
-        ehp: wom?.ehp ?? 0,
-        ehb: wom?.ehb ?? 0,
-        lastChangedAt: wom?.lastChangedAt ?? null
-      } : null;
-
-      // Pass all four enrichments. Each is null when the player isn't
-      // tracked on that service; the engine + path-progress fall back
-      // to heuristics for whatever's missing.
-      const nextResult = await nextUpAction({
-        skills, bank, earnedItems, questPoints, bossKc,
-        womBossKills: wom?.bossKills,
-        accountMeta,
-        templeQuestsCompleted: temple?.questsCompleted,
-        collectionLogOwnedItemIds: collectionLog?.ownedItemIds,
-        scapestackSync: scapestackSync ? {
-          displayName: scapestackSync.displayName,
-          accountType: scapestackSync.accountType,
-          questsCompleted: scapestackSync.questsCompleted,
-          diariesCompleted: scapestackSync.diariesCompleted,
-          collectionLogItemIds: scapestackSync.collectionLogItemIds,
-          bossKc: scapestackSync.bossKc,
-          bankStatus: scapestackSync.bankStatus,
-          lastSyncSummary: scapestackSync.lastSyncSummary,
-          slayer: scapestackSync.slayer
-        } : undefined,
-        syncedSources: {
-          wom: wom !== null,
-          temple: temple !== null,
-          collectionLog: collectionLog !== null,
-          scapestack: scapestackSync ? {
-            syncedAt: scapestackSync.syncedAt,
-            quests: scapestackSync.questsCompleted.length,
-            diaries: scapestackSync.diariesCompleted.length,
-            clItems: scapestackSync.collectionLogItemIds.length,
-            pluginVersion: scapestackSync.pluginVersion,
-            slayerTaskRemaining: scapestackSync.slayer?.taskRemaining ?? null,
-            slayerBlocks: scapestackSync.slayer?.blocks.length ?? 0,
-            bankStatus: scapestackSync.bankStatus,
-            lastSyncSummary: scapestackSync.lastSyncSummary
-          } : null
-        }
-      });
+      // The RSN-only path already carries the computed plan, so it avoids a
+      // second network round trip. Explicit bank overrides still recalculate
+      // from the same shared input builder.
+      const nextResult = !hasManualBankOverride && planningContext?.initialPlan
+        ? planningContext.initialPlan
+        : await nextUpAction(plannerInput);
       setResult(nextResult);
       if (rsn && scapestackSync?.lastSyncSummary) {
         markAccountRuneliteProgress(rsn, runeliteProgressFromSyncSummary(
