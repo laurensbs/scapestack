@@ -4,8 +4,8 @@ Status: active execution controller
 Created: 2026-07-19
 Baseline commit: `47b6441`
 Baseline score: `6.4/10`
-Execution pointer: `ODR-01`
-Last validated phase: `ODR-00`
+Execution pointer: `ODR-02`
+Last validated phase: `ODR-01`
 Target: a measured, trustworthy OSRS companion with no core product score below `8.0`
 
 This file supersedes the **execution order** in:
@@ -322,7 +322,7 @@ browser timeout and hydration failures exposed here.
 
 ## ODR-01 - Deliver One Useful Plan In Under 2.5 Seconds
 
-Status: IN PROGRESS
+Status: LIVE VERIFIED (2026-07-19)
 Depends on: ODR-00
 Required evidence: level 2
 Improves: first useful plan, performance, trust
@@ -367,11 +367,23 @@ Acceptance:
 - all existing planner facts remain truthful.
 ```
 
+### Evidence
+
+- Final production `/next` cold runs: desktop `1,222 / 2,391 / 993ms` and
+  mobile `1,318 / 1,073 / 1,128ms`; every run passes the 2.5-second gate:
+  `docs/qa/outcome-recovery/ODR-01/production/production-routes.json`
+- Across 24 final production navigations: zero readiness, console, page,
+  hydration, overflow, broken-image or unnamed-control failures.
+- Full implementation, failed-attempt analysis, degraded-mode proof and CI
+  counts: `docs/qa/outcome-recovery/ODR-01/report.md`
+- Production deployment: `dpl_EPMYxA5SXcSu6yL6LPBpuXUrGAVs` from
+  implementation commit `56dbb65`.
+
 ---
 
 ## ODR-02 - Close The Real RuneLite Production Loop
 
-Status: TODO
+Status: IN PROGRESS
 Depends on: ODR-00
 Required evidence: level 1
 Improves: RuneLite UX, data completeness, trust
@@ -1007,9 +1019,9 @@ screenshot and task-success statement.
 
 | Phase | Status | Required evidence | Commit | Production proof |
 | --- | --- | ---: | --- | --- |
-| ODR-00 | TODO | 2 | - | - |
-| ODR-01 | TODO | 2 | - | - |
-| ODR-02 | TODO | 1 | - | - |
+| ODR-00 | VALIDATED | 2 | `f6ac181` | `docs/qa/outcome-recovery/ODR-00/report.md` |
+| ODR-01 | LIVE VERIFIED | 2 | `56dbb65` | `docs/qa/outcome-recovery/ODR-01/production/production-routes.json` |
+| ODR-02 | IN PROGRESS | 1 | - | - |
 | ODR-03 | TODO | 4 | - | - |
 | ODR-04 | TODO | 4 | - | - |
 | ODR-05 | TODO | 4 | - | - |
