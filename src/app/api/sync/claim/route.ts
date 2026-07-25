@@ -14,6 +14,8 @@ import { NextResponse } from "next/server";
 import { checkHiscoresForClaim } from "@/lib/claim-hiscores";
 import { extractBearerToken, hasExistingClaim, recordClaim } from "@/lib/sync-auth";
 import { cleanRsnInput, isValidRsn, normalizeRsn } from "@/lib/rsn";
+import { checkAndRecordClaimAttempt, clientAddressFrom } from "@/lib/claim-rate-limit";
+import { ensureSyncSchema } from "@/lib/sync-repo";
 
 const MAX_BODY_BYTES = 50_000;
 const CORS_HEADERS = {
@@ -96,6 +98,24 @@ export async function POST(req: Request): Promise<Response> {
   const rsn = cleanRsnInput(body.rsn);
   if (rsn.length < 1 || rsn.length > 12) return bad("rsn length out of range");
   if (!isValidRsn(rsn)) return bad("rsn contains invalid characters");
+
+  // Claiming is the first thing a new install does, so on a fresh deployment
+  // it can arrive before any sync has created the schema. Without this the
+  // rate limiter would query a table that does not exist, fail open, and be
+  // silently disabled — and recordClaim's last_synced_at read would error out.
+  // Memoised per process, so this is a cold-start cost, not a per-request one.
+  await ensureSyncSchema();
+
+  // Rate limit before the Hiscores lookup, not after. Otherwise this endpoint
+  // doubles as an unmetered proxy for enumerating Jagex's Hiscores, which is
+  // exactly what a name-grabber needs to find claimable targets.
+  const rate = await checkAndRecordClaimAttempt({ address: clientAddressFrom(req), token });
+  if (!rate.allowed) {
+    return json(
+      { ok: false, error: "Too many claim attempts. Wait a while and try again." },
+      { status: 429 }
+    );
+  }
 
   // Hiscores existence check — best-effort. Skip it for existing claims:
   // idempotent re-claims and rival-token conflicts are decided entirely by

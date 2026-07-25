@@ -79,6 +79,24 @@ ALTER TABLE player_claim ADD COLUMN IF NOT EXISTS account_id UUID;
 -- "this player logged into their other character on the same install".
 -- Nullable: plugin builds before 0.4.0 do not send it.
 ALTER TABLE player_claim ADD COLUMN IF NOT EXISTS account_hash TEXT;
+
+-- Set only by verifyClaim, i.e. only by a sync the server actually accepted.
+-- last_used_at cannot answer this: it is set at claim time and bumped by
+-- bookkeeping too, so it cannot tell "claimed" apart from "actually used".
+-- A claim that never synced is what a name-squatter leaves behind.
+ALTER TABLE player_claim ADD COLUMN IF NOT EXISTS last_synced_at TIMESTAMPTZ;
+
+-- Claim attempts, successful or not. Exists to rate-limit; rows outside the
+-- longest window are deleted on write, so this does not grow unbounded. The
+-- IP is hashed — the threat model forbids storing one.
+CREATE TABLE IF NOT EXISTS claim_attempt (
+  attempt_id BIGSERIAL PRIMARY KEY,
+  ip_hash TEXT NOT NULL,
+  token_hash TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS claim_attempt_ip_idx ON claim_attempt(ip_hash, created_at DESC);
+CREATE INDEX IF NOT EXISTS claim_attempt_token_idx ON claim_attempt(token_hash, created_at DESC);
 UPDATE player_claim claim
 SET account_id = identity.account_id
 FROM account_identity identity

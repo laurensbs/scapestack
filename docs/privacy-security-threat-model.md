@@ -43,3 +43,23 @@ Disconnecting a browser at `/api/account/me` only revokes that browser session.
 Deleting account history is separate and destructive: `DELETE /api/account/delete`
 uses the currently connected account, deletes server-side history for that
 account, revokes the browser session and clears the cookie.
+
+## Claim-endpoint (2026-07-25)
+
+`/api/sync/claim` is onvermijdelijk ongeauthenticeerd — de aanroeper claimt een
+identiteit, dus er is nog niets om tegen te authenticeren. Twee mechanismen
+begrenzen dat:
+
+- **Verval.** Alleen een geaccepteerde sync zet `player_claim.last_synced_at`.
+  Een claim die na 24 uur nooit gesynchroniseerd heeft, wordt vrijgegeven. Dat
+  haalt de opbrengst uit naam-kaping; een echte speler claimt en synchroniseert
+  seconden na elkaar.
+- **Rate limiting.** `claim_attempt` telt pogingen per installatietoken en per
+  bronadres, geslaagd of niet. Het adres wordt gehasht opgeslagen, nooit rauw.
+  Rijen buiten het venster worden bij elke schrijfactie verwijderd.
+
+De limiet staat vóór de Hiscores-lookup, zodat het endpoint niet als
+ongelimiteerde proxy voor het enumereren van spelersnamen te gebruiken is.
+
+Wat hiermee níet is opgelost: wie een naam claimt én er onzin onder blijft
+synchroniseren, houdt hem. Dat vraagt echt eigendomsbewijs.

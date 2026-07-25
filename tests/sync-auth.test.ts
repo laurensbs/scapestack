@@ -25,6 +25,10 @@ const dbState: {
   migrated: boolean;
   insertedAccountHashes: (string | null)[];
   accountHashUpdates: string[];
+  /** The claim already sitting on the target RSN, if any. */
+  targetClaim: { tokenHash: string; lastSyncedAt: string | null; stale: boolean } | null;
+  seizedRsns: string[];
+  syncMarkedRsns: string[];
 } = {
   hasDb: true,
   rows: [],
@@ -36,6 +40,9 @@ const dbState: {
   migrated: false,
   insertedAccountHashes: [],
   accountHashUpdates: [],
+  targetClaim: null,
+  seizedRsns: [],
+  syncMarkedRsns: [],
 };
 
 // Build a tagged-template stub that pattern-matches on the first SQL
@@ -71,6 +78,33 @@ function sqlTag(strings: TemplateStringsArray, ...vals: unknown[]): unknown {
     dbState.accountHashUpdates.push(String(vals[0]));
     return Promise.resolve([]);
   }
+  if (/SELECT token_hash, last_synced_at/i.test(flat)) {
+    if (dbState.targetClaim) {
+      return Promise.resolve([{
+        token_hash: dbState.targetClaim.tokenHash,
+        last_synced_at: dbState.targetClaim.lastSyncedAt,
+        stale: dbState.targetClaim.stale
+      }]);
+    }
+    return Promise.resolve(dbState.rows);
+  }
+  if (/UPDATE player_claim SET token_hash/i.test(flat)) {
+    // Mirrors the WHERE clause: only an unsynced, stale claim can be taken.
+    const claim = dbState.targetClaim;
+    const takeable = claim && claim.lastSyncedAt === null && claim.stale;
+    if (takeable) {
+      dbState.seizedRsns.push(String(vals[2]));
+      return Promise.resolve([{ rsn: String(vals[2]) }]);
+    }
+    return Promise.resolve([]);
+  }
+  if (/UPDATE player_claim SET last_used_at = NOW\(\), last_synced_at/i.test(flat)) {
+    // Still "touched the row" for the original assertion, plus the stronger
+    // claim that this is what records an accepted sync.
+    dbState.updatedRsns.push(String(vals[0]));
+    dbState.syncMarkedRsns.push(String(vals[0]));
+    return Promise.resolve([]);
+  }
   if (/SELECT token_hash FROM player_claim/i.test(flat)) {
     return Promise.resolve(dbState.rows);
   }
@@ -97,6 +131,9 @@ beforeEach(() => {
   dbState.migrated = false;
   dbState.insertedAccountHashes = [];
   dbState.accountHashUpdates = [];
+  dbState.targetClaim = null;
+  dbState.seizedRsns = [];
+  dbState.syncMarkedRsns = [];
 });
 
 // Lazy-import after the mock is registered.
@@ -300,6 +337,48 @@ describe("recordClaim", () => {
 
     expect(result.ok).toBe(true);
     expect(dbState.accountHashUpdates).toEqual(["5550001111"]);
+  });
+});
+
+describe("unused claims release, used ones do not", () => {
+  const OWNER = "22222222-3333-4444-5555-666666666666";
+  const SQUATTER_HASH = "squatter-token-hash";
+
+  it("lets the rightful owner take a name that was claimed but never synced", async () => {
+    // A real player's plugin claims and syncs seconds apart. A claim with no
+    // accepted sync after a day was a land grab, not a player setting up.
+    const { recordClaim } = await loadAuth();
+    dbState.targetClaim = { tokenHash: SQUATTER_HASH, lastSyncedAt: null, stale: true };
+
+    const result = await recordClaim("Lynx Titan", OWNER);
+
+    expect(result.ok).toBe(true);
+    expect(dbState.seizedRsns).toEqual(["lynx titan"]);
+  });
+
+  it("refuses to take a name whose claim has actually synced", async () => {
+    const { recordClaim } = await loadAuth();
+    dbState.targetClaim = {
+      tokenHash: SQUATTER_HASH,
+      lastSyncedAt: "2026-07-25T10:00:00.000Z",
+      stale: true
+    };
+
+    const result = await recordClaim("Lynx Titan", OWNER);
+
+    expect(result.ok).toBe(false);
+    expect(result.existingTokenHash).toBe(SQUATTER_HASH);
+    expect(dbState.seizedRsns).toEqual([]);
+  });
+
+  it("refuses to take a fresh claim, so a real setup in progress is safe", async () => {
+    const { recordClaim } = await loadAuth();
+    dbState.targetClaim = { tokenHash: SQUATTER_HASH, lastSyncedAt: null, stale: false };
+
+    const result = await recordClaim("Lynx Titan", OWNER);
+
+    expect(result.ok).toBe(false);
+    expect(dbState.seizedRsns).toEqual([]);
   });
 });
 

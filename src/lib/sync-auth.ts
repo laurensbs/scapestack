@@ -12,11 +12,15 @@
 //   ❌ Catches: a player POSTing fake data under someone else's RSN.
 //      They'd need to know that player's token, which only the original
 //      plugin install has.
-//   ⚠️  Misses: the first-mover problem. If a griefer claims an RSN
-//      before the real owner ever installs the plugin, the real owner
-//      can't sync. We add a /api/sync/reclaim endpoint later (proof of
-//      ownership via in-game message or similar) but it's out of scope
-//      for v0.2.
+//   ✅ Handles: the first-mover problem, without a reclaim endpoint. A
+//      griefer who claims an RSN and never syncs it loses it after
+//      UNUSED_CLAIM_TTL_HOURS, because only an accepted sync sets
+//      last_synced_at. Rate limiting (claim-rate-limit.ts) caps how fast
+//      names can be grabbed in the first place.
+//   ⚠️  Still misses: a griefer who claims an RSN *and* keeps syncing junk
+//      under it holds it indefinitely. That needs real proof of ownership
+//      (an in-game message, or the RuneLite account hash matching), and the
+//      account hash now in player_claim is the obvious foundation for it.
 //   ⚠️  No transport encryption beyond HTTPS — token travels in plain
 //      text inside the bearer header. That's standard for OAuth-style
 //      tokens; HTTPS is enough for this threat level.
@@ -24,6 +28,13 @@
 import { createHash, randomUUID } from "node:crypto";
 import { sql, hasDatabase } from "./db";
 import { normalizeRsn } from "./rsn";
+
+/**
+ * How long an unused claim holds a name. The plugin claims and syncs within
+ * seconds of each other, so a claim with no accepted sync after this long was
+ * never a player getting set up.
+ */
+export const UNUSED_CLAIM_TTL_HOURS = 24;
 
 /** Hashed-token form we store in the DB. Never store the raw token. */
 function hashToken(token: string): string {
@@ -96,11 +107,34 @@ export async function recordClaim(
 
   try {
     const targetRows = await sql()`
-      SELECT token_hash FROM player_claim WHERE rsn = ${norm} LIMIT 1
-    ` as Array<{ token_hash: string }>;
+      SELECT token_hash,
+             last_synced_at,
+             claimed_at < NOW() - (${UNUSED_CLAIM_TTL_HOURS} * INTERVAL '1 hour') AS stale
+      FROM player_claim WHERE rsn = ${norm} LIMIT 1
+    ` as Array<{ token_hash: string; last_synced_at: string | null; stale: boolean }>;
     const targetHash = targetRows[0]?.token_hash;
     if (targetHash) {
       if (targetHash !== hash) {
+        // First-claim-wins was absolute, which made this endpoint a permanent
+        // land grab on every name in the game: claim a name before its owner
+        // installs the plugin and they can never sync.
+        //
+        // A claim that has never produced an accepted sync is worth nothing to
+        // a real player — the plugin claims and POSTs seconds apart — so an
+        // unused one is released after a day and the rightful owner can take
+        // it. A claim with sync history stays untouchable.
+        const unused = targetRows[0]?.last_synced_at === null && targetRows[0]?.stale === true;
+        if (!unused) {
+          return { ok: false, reason: "RSN already claimed by another install", existingTokenHash: targetHash };
+        }
+        const seized = await sql()`
+          UPDATE player_claim
+          SET token_hash = ${hash}, account_hash = ${account}, claimed_at = NOW(), last_used_at = NOW()
+          WHERE rsn = ${norm} AND last_synced_at IS NULL
+            AND claimed_at < NOW() - (${UNUSED_CLAIM_TTL_HOURS} * INTERVAL '1 hour')
+          RETURNING rsn
+        ` as Array<{ rsn: string }>;
+        if (seized[0]) return { ok: true };
         return { ok: false, reason: "RSN already claimed by another install", existingTokenHash: targetHash };
       }
       // Same install re-confirming a claim it already holds. Record the
@@ -199,8 +233,11 @@ export async function verifyClaim(rsn: string, token: string): Promise<boolean> 
     if (stored !== hash) return false;
     // Touch last_used_at for observability — lets us spot stale claims
     // that can be GC'd later.
+    // last_synced_at is the only field that means "a sync was accepted". It is
+    // what lets an unused name-squat expire while a real player's claim never
+    // does.
     await sql()`
-      UPDATE player_claim SET last_used_at = NOW() WHERE rsn = ${norm}
+      UPDATE player_claim SET last_used_at = NOW(), last_synced_at = NOW() WHERE rsn = ${norm}
     `;
     return true;
   } catch {
