@@ -67,8 +67,14 @@ export function buildNextUpInputFromSources(sources: PlanningInputSources): Next
 
   const seenBankIds = new Set(bank.map((item) => item.id));
   const earnedItems = unlockedFromHiscores(skills).filter((item) => !seenBankIds.has(item.id));
+  // The OSRS Hiscores do not expose quest points at all — there is no such
+  // activity in the response — so this lookup has always come back empty and
+  // the old `: 0` fallback made every RSN-only account look like it had done
+  // nothing. null means "we do not know", which the consumers treat as
+  // permissive instead of as proof of zero. The lookup stays in case Jagex
+  // ever adds it.
   const qpActivity = hiscores?.activities.find((activity) => activity.name === "Quest points");
-  const questPoints = qpActivity && qpActivity.score >= 0 ? qpActivity.score : 0;
+  const questPoints = qpActivity && qpActivity.score >= 0 ? qpActivity.score : null;
   const bossKc: Record<string, number> = {
     ...(domainAvailable(scapestackSync, "bossKc") ? scapestackSync?.bossKc ?? {} : {})
   };

@@ -25,7 +25,8 @@ export interface DetectAccountStageInput {
   skills: HiscoreSkill[];
   combatLevel: number | null;
   totalLevel: number | null;
-  questPoints: number;
+  /** null = unknown. Never treat as zero — see planning-input.ts. */
+  questPoints: number | null;
   bossKc?: Record<string, number>;
   accountMeta?: AccountMeta | null;
   hasBankContext: boolean;
@@ -132,8 +133,12 @@ export function detectAccountStage(input: DetectAccountStageInput): AccountStage
   if (isIronRoute(input.accountMeta)) return STAGES["iron-route"];
   if (input.hasPluginSync) return STAGES["runelite-aware"];
   if (bossTotal >= 50 || (combat >= 110 && total >= 1500)) return STAGES["pvm-ready"];
-  if (total < 750 || combat < 60 || qp < 40) return STAGES["new-account"];
-  if (total < 1400 || qp < 120) return STAGES["early-main"];
-  if (total < 1900 || qp < 220) return STAGES["midgame-main"];
+  // Unknown QP must not drag an account into "new-account". Only a QP total
+  // we actually know is allowed to argue the player is early-game.
+  if (total < 750 || combat < 60 || (qp !== null && qp < 40)) return STAGES["new-account"];
+  // Same rule for the later tiers: unknown QP falls back to total level alone
+  // rather than pinning everyone to the earliest stage that matches.
+  if (total < 1400 || (qp !== null && qp < 120)) return STAGES["early-main"];
+  if (total < 1900 || (qp !== null && qp < 220)) return STAGES["midgame-main"];
   return STAGES.returning;
 }

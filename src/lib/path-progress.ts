@@ -276,8 +276,9 @@ function buildTransitivePrereqs(quests: Map<string, QuestRecord>): Map<string, S
 function questsPath(
   quests: Map<string, QuestRecord>,
   skills: HiscoreSkill[],
-  qp: number,
-  templeQuestsCompleted?: Set<string>
+  qp: number | null,
+  templeQuestsCompleted?: Set<string>,
+  exactQuestSourceLabel: string = "synced from Temple"
 ): PathProgress {
   if (quests.size === 0) {
     return {
@@ -294,7 +295,7 @@ function questsPath(
   // — exact, not a guess. Falls through to the QP-budget heuristic
   // below when Temple has no record for this player.
   if (templeQuestsCompleted && templeQuestsCompleted.size > 0) {
-    return questsPathFromTemple(quests, skills, qp, templeQuestsCompleted);
+    return questsPathFromExactQuests(quests, skills, qp, templeQuestsCompleted, exactQuestSourceLabel);
   }
 
   // Dependency-aware heuristic. The old version sorted quests by
@@ -326,8 +327,36 @@ function questsPath(
 
   const likelyDoneNames = new Set<string>();
   if (skills.length > 0) {
-    if (qp >= QC_THRESHOLD) {
+    if (qp !== null && qp >= QC_THRESHOLD) {
       for (const q of quests.values()) likelyDoneNames.add(q.name);
+    } else if (qp === null) {
+      // No quest-point total available — and there never is one from the
+      // Hiscores, which do not publish it. Running the budget walk with a
+      // budget of 0 concluded that nothing was done, so a 2277 account read
+      // "183 quests likely open" at 0%.
+      //
+      // Without QP the honest proxy is skills plus prerequisites: a quest is
+      // likely done when the player clears every skill requirement and every
+      // transitive prerequisite is itself likely done. It over-counts for a
+      // deliberate skiller, which is why the copy says "likely" and why a
+      // RuneLite sync replaces this entirely.
+      let changed = true;
+      while (changed) {
+        changed = false;
+        for (const q of quests.values()) {
+          if (likelyDoneNames.has(q.name)) continue;
+          if (!q.skillReqs.every((r) => lvl(r.skill) >= r.level)) continue;
+          const prereqs = transitivePrereqs.get(q.name) ?? new Set();
+          let prereqsDone = true;
+          for (const pr of prereqs) {
+            if (!quests.has(pr)) continue;
+            if (!likelyDoneNames.has(pr)) { prereqsDone = false; break; }
+          }
+          if (!prereqsDone) continue;
+          likelyDoneNames.add(q.name);
+          changed = true;
+        }
+      }
     } else {
       // Sort easiest-first so we resolve prereqs before their consumers.
       const sortedQuests = [...quests.values()].sort((a, b) =>
@@ -399,7 +428,7 @@ function questsPath(
     .filter((q) => {
       if (skills.length === 0) return false;
       const meets = q.skillReqs.every((r) => lvl(r.skill) >= r.level);
-      const qpGate = q.qpReq === 0 || qp >= q.qpReq;
+      const qpGate = q.qpReq === 0 || qp === null || qp >= q.qpReq;
       return meets && qpGate && !likelyDoneNames.has(q.name);
     })
     .sort((a, b) => (difficultyRank[b.difficulty ?? "Intermediate"] ?? 1) -
@@ -424,15 +453,17 @@ function questsPath(
   };
 }
 
-// Temple-driven quest path. When TempleOSRS has a record we use the
-// exact 'completed' flag per quest instead of guessing from QP. The
-// tagline says 'Synced via Temple' so the user knows this number is
-// real, not a heuristic.
-function questsPathFromTemple(
+// Exact quest path. When a tracker has a real per-quest completion flag we use
+// it instead of guessing. The tagline names the source so the player knows the
+// number is real rather than a heuristic — and it has to name the RIGHT one:
+// this function also serves the RuneLite plugin's own quest list, which used to
+// be credited to Temple.
+function questsPathFromExactQuests(
   quests: Map<string, QuestRecord>,
   skills: HiscoreSkill[],
-  qp: number,
-  templeQuests: Set<string>
+  qp: number | null,
+  templeQuests: Set<string>,
+  sourceLabel: string
 ): PathProgress {
   const lvl = (name: string) => skills.find((s) => s.name === name)?.level ?? 1;
   const total = quests.size;
@@ -462,7 +493,7 @@ function questsPathFromTemple(
     .filter((q) => {
       if (skills.length === 0) return false;
       const meets = q.skillReqs.every((r) => lvl(r.skill) >= r.level);
-      const qpGate = q.qpReq === 0 || qp >= q.qpReq;
+      const qpGate = q.qpReq === 0 || qp === null || qp >= q.qpReq;
       return meets && qpGate && !templeQuests.has(q.name.toLowerCase());
     })
     .sort((a, b) => (difficultyRank[b.difficulty ?? "Intermediate"] ?? 1) -
@@ -479,8 +510,8 @@ function questsPathFromTemple(
     kind: "quests",
     label: "Quests",
     tagline: done === total
-      ? "Quest cape earned · synced from Temple."
-      : `${total - done} open · synced from Temple.`,
+      ? `Quest cape earned · ${sourceLabel}.`
+      : `${total - done} open · ${sourceLabel}.`,
     percent: Math.round((done / total) * 100),
     done, total, nextSteps, allSteps
   };
@@ -979,7 +1010,8 @@ function buildStaticUnlockRoute(input: {
   skills: HiscoreSkill[];
   questPath: PathProgress;
   completedDiaryTiers: Set<string>;
-  questPoints: number;
+  /** null = unknown; never read as zero. */
+  questPoints: number | null;
   accountType: PlannerAccountType | null | undefined;
 }): UnlockRoutePlan {
   const def = input.definition;
@@ -1034,12 +1066,16 @@ function buildStaticUnlockRoute(input: {
     return { ...req, met };
   });
 
-  if (def.minQuestPoints && input.questPoints < def.minQuestPoints) {
+  // An unknown QP total is not a blocker. Claiming "0/290 quest points" to a
+  // maxed account because the Hiscores do not publish the number is worse
+  // than saying nothing about quest points at all.
+  const knownQuestPoints = input.questPoints;
+  if (def.minQuestPoints && knownQuestPoints !== null && knownQuestPoints < def.minQuestPoints) {
     blockers.push({
       type: "qp",
-      label: `${input.questPoints}/${def.minQuestPoints} quest points`,
-      detail: `${def.minQuestPoints - input.questPoints} quest points short.`,
-      nextAction: `Earn ${def.minQuestPoints - input.questPoints} more quest points`
+      label: `${knownQuestPoints}/${def.minQuestPoints} quest points`,
+      detail: `${def.minQuestPoints - knownQuestPoints} quest points short.`,
+      nextAction: `Earn ${def.minQuestPoints - knownQuestPoints} more quest points`
     });
   }
 
@@ -1094,7 +1130,11 @@ function buildStaticUnlockRoute(input: {
     (def.requiredQuests ?? []).filter((name) => completedQuests.has(normalizeRouteName(name))).length
     + requiredSkills.filter((req) => req.met).length
     + requiredDiaryTiers.filter((req) => req.met).length
-    + (def.minQuestPoints ? input.questPoints >= def.minQuestPoints ? 1 : 0 : 0);
+    // Unknown QP counts as satisfied so the route percentage is not dragged
+    // down by a requirement we simply cannot observe.
+    + (def.minQuestPoints
+        ? input.questPoints === null || input.questPoints >= def.minQuestPoints ? 1 : 0
+        : 0);
   const progressPercent = totalTrackable > 0
     ? Math.round((completedTrackable / totalTrackable) * 100)
     : blockers.length === 0 ? 100 : 0;
@@ -1229,7 +1269,8 @@ function buildUnlockRoutes(input: {
   skills: HiscoreSkill[];
   questPath: PathProgress;
   completedDiaryTiers: Set<string>;
-  questPoints: number;
+  /** null = unknown; never read as zero. */
+  questPoints: number | null;
   accountType: PlannerAccountType | null | undefined;
 }): UnlockRoutePlan[] {
   const staticRoutes = UNLOCK_ROUTE_DEFINITIONS.map((definition) => buildStaticUnlockRoute({
@@ -1306,7 +1347,8 @@ export interface ComputePathProgressInput {
   quests: Map<string, QuestRecord>;
   diaries: Map<string, DiaryRecord>;
   bossKc: Record<string, number>;
-  questPoints: number;
+  /** null = unknown; never read as zero. */
+  questPoints: number | null;
   /** WOM-derived enrichment. Optional — when missing we fall back to
    *  Hiscores-only data and don't surface the synced badge. */
   womBossKills?: Record<string, number>;
@@ -1364,7 +1406,16 @@ export function computePathProgress(input: ComputePathProgressInput): PathOvervi
     : input.collectionLogOwnedItemIds;
   const paths: [PathProgress, PathProgress, PathProgress, PathProgress] = [
     skillsPath(input.skills, input.accountMeta?.accountType),
-    questsPath(input.quests, input.skills, input.questPoints, effectiveQuests),
+    questsPath(
+      input.quests,
+      input.skills,
+      input.questPoints,
+      effectiveQuests,
+      // effectiveQuests prefers the plugin's own list over Temple's, so the
+      // label has to follow the same order or the player is told a tracker
+      // they never signed up for read their quest log.
+      input.scapestackSync?.questsCompleted ? "checked by RuneLite" : "synced from Temple"
+    ),
     diariesPath(input.diaries, input.skills, input.scapestackSync?.diariesCompleted),
     bossesPath(input.bossKc, input.skills, input.womBossKills, effectiveClItems)
   ];
