@@ -1,6 +1,6 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { Recommendation } from "@/lib/next-up";
+import { nextUpSource } from "./helpers/next-up-source";
 import { recommendationSessionProfile } from "@/lib/recommendation-session";
 
 function rec(overrides: Partial<Recommendation>): Recommendation {
@@ -52,7 +52,7 @@ describe("recommendation session profile", () => {
   });
 
   it("keeps inaccurate blanket AFK tags out of recommendation generators", () => {
-    const source = readFileSync("src/lib/next-up.ts", "utf8");
+    const source = nextUpSource();
     expect(source).not.toContain('routeTags: ["fun", "afk", "skiller"');
     expect(source).not.toContain('routeTags: ["maxing", "afk", "skiller"]');
     expect(source).not.toContain('routeTags: ["afk", "skiller", "returning", "unlock"]');

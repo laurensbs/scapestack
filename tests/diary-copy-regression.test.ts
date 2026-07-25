@@ -1,15 +1,18 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { nextUpSource } from "./helpers/next-up-source";
 
 const sources = [
-  "src/lib/next-up.ts",
-  "src/lib/path-progress.ts",
-  "src/app/next/next-client.tsx"
-].map((file) => ({
-  file,
-  source: readFileSync(join(process.cwd(), file), "utf8")
-}));
+  { file: "src/lib/next-up*.ts", source: nextUpSource() },
+  ...[
+    "src/lib/path-progress.ts",
+    "src/app/next/next-client.tsx"
+  ].map((file) => ({
+    file,
+    source: readFileSync(join(process.cwd(), file), "utf8")
+  }))
+];
 
 describe("diary recommendation copy", () => {
   it("does not overclaim that Hiscores prove every diary task is clear", () => {

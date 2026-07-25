@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 
-// BOSS_CL_GATE and BOSS_GEAR_GATES live next to each other in next-up.ts —
-// keeping them in sync is the only way a player gets gear-aware filtering.
+// BOSS_CL_GATE and BOSS_GEAR_GATES both live in the /next engine — keeping
+// them in sync is the only way a player gets gear-aware filtering.
 // If a boss enters CL_GATE without a matching gear-gate entry we'd
 // regress to the pre-audit behaviour ("Try Kraken to a player with no
 // trident"). These tests catch that on the first failing CI run.
@@ -10,17 +10,16 @@ import { describe, it, expect } from "vitest";
 // module-private. That's a smell for tests, but cheap and the alternative
 // (export them just for tests) muddies the public surface.
 
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { nextUpSource } from "./helpers/next-up-source";
 
-const SRC = readFileSync(join(process.cwd(), "src/lib/next-up.ts"), "utf8");
+const SRC = nextUpSource();
 
 function extractSlugs(constName: string): Set<string> {
   // Grab everything between "const NAME ... = {" and the matching closing "};"
   // — simple but works for our two flat object literals.
   const re = new RegExp(`const ${constName}[^=]*=\\s*{([\\s\\S]+?)\\n};`);
   const match = SRC.match(re);
-  if (!match) throw new Error(`Could not find ${constName} in next-up.ts`);
+  if (!match) throw new Error(`Could not find ${constName} in the /next engine sources`);
   const slugs = new Set<string>();
   for (const m of match[1].matchAll(/"([a-z][a-z0-9-]+)":/g)) {
     slugs.add(m[1]);

@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { computeNextUp } from "@/lib/next-up";
+import { nextUpSource } from "./helpers/next-up-source";
 import { formatRecommendationActionPlan, formatRecommendationSessionPlan } from "@/lib/action-plan-text";
 import type { HiscoreSkill } from "@/lib/hiscores";
 import { pickForRoute, recommendationMoodEligibility } from "@/lib/mood";
@@ -36,19 +35,20 @@ function skillsFromLevels(levels: Partial<Record<string, number>>): HiscoreSkill
 
 describe("next-up action plans", () => {
   it("builds milestone copy from current XP, method and bank context", async () => {
-    const skills = skillsFromLevels({ Mining: 84 });
+    // Amethyst is 92 Mining, not 85 — the milestone table used to say 85.
+    const skills = skillsFromLevels({ Mining: 90 });
     const mining = skills.find((entry) => entry.name === "Mining")!;
-    mining.xp = 3_000_000;
+    mining.xp = 5_400_000;
     const result = await computeNextUp({
       skills,
       bank: [{ id: 1275, name: "Rune pickaxe", quantity: 1 }]
     });
     const recs = [result.headline, ...result.rest].filter(Boolean);
-    const route = recs.find((rec) => rec?.id === "skill:Mining:85");
+    const route = recs.find((rec) => rec?.id === "skill:Mining:92");
 
     expect(route?.why).toMatch(/XP to Amethyst/);
     expect(route?.needs).toContain("Pickaxe in bank");
-    expect(route?.actionPlan?.prep).toContain("Mining 84");
+    expect(route?.actionPlan?.prep).toContain("Mining 90");
     expect(route?.actionPlan?.steps.join(" ")).not.toMatch(/food|teleport|quest items/i);
   });
 
@@ -354,10 +354,10 @@ describe("next-up action plans", () => {
   });
 
   it("keeps Hardcore Ironman risky bossing conservative", async () => {
-    const nextUpSource = readFileSync(join(process.cwd(), "src/lib/next-up.ts"), "utf8");
-    expect(nextUpSource).toContain("function ironSourceChainMultiplier");
-    expect(nextUpSource).toContain('if (/herb|birdhouse|seed|nest|farming|hunter|supply loop/.test(text)) multiplier *= 1.14;');
-    expect(nextUpSource).toContain("if (isRiskyRecommendation(rec)) multiplier *= 0.52;");
+    const engineSource = nextUpSource();
+    expect(engineSource).toContain("function ironSourceChainMultiplier");
+    expect(engineSource).toContain('if (/herb|birdhouse|seed|nest|farming|hunter|supply loop/.test(text)) multiplier *= 1.14;');
+    expect(engineSource).toContain("if (isRiskyRecommendation(rec)) multiplier *= 0.52;");
 
     const result = await computeNextUp({
       skills: skillsAt(99),
