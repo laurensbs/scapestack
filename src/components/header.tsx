@@ -15,8 +15,13 @@ import { AddBankModal } from "./add-bank-modal";
 import { BuyMeCoffee } from "./buy-me-coffee";
 import { ConnectBrowserModal } from "./connect-browser-modal";
 
+// "Is this task worth it?" is the question a Slayer player asks several times
+// a session, and it is the one Scapestack can answer better than anything else
+// — it needs the exact task, blocks, points and bank that only the plugin
+// knows. It belongs in the nav, not two clicks deep.
 const LOOP_STEPS = [
   { label: "Trip", href: "/next" },
+  { label: "Task", href: "/slayer" },
   { label: "Setup", href: "/bank" },
   { label: "Boss", href: "/dps" }
 ];

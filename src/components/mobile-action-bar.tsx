@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CheckCircle2, ClipboardPaste, PlugZap, RefreshCw, Sparkles } from "lucide-react";
+import { CheckCircle2, ClipboardPaste, PlugZap, RefreshCw, Skull, Sparkles } from "lucide-react";
 import { ACCOUNT_EVENT } from "@/lib/account-storage";
 import { loadAccountSnapshot, type AccountSnapshot } from "@/lib/account-context";
 import { SAVED_BANK_EVENT } from "@/lib/saved-bank";
@@ -35,12 +35,20 @@ export function MobileActionBar() {
   const nextHref = snapshot?.planHref ?? (rsn ? `/next?rsn=${encodeURIComponent(rsn)}` : "/next");
   const bankHref = rsn ? `/bank?rsn=${encodeURIComponent(rsn)}&from=mobile` : "/bank?from=mobile";
   const pluginHref = rsn ? `/plugin?rsn=${encodeURIComponent(rsn)}&from=mobile#verify-sync` : "/plugin?from=mobile#verify-sync";
+  const slayerHref = rsn ? `/slayer?rsn=${encodeURIComponent(rsn)}&from=mobile` : "/slayer?from=mobile";
   const actions = [
     {
       href: nextHref,
       label: "Trip",
       icon: Sparkles,
       selected: pathname === "/next",
+      complete: false
+    },
+    {
+      href: slayerHref,
+      label: "Task",
+      icon: Skull,
+      selected: pathname === "/slayer",
       complete: false
     },
     {
@@ -66,7 +74,7 @@ export function MobileActionBar() {
       aria-label="Mobile quick actions"
       className="mobile-action-bar fixed inset-x-0 bottom-0 z-40 border-t border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/94 px-2 pt-2 shadow-[0_-18px_50px_-36px_rgba(0,0,0,0.95)] backdrop-blur-md sm:hidden"
     >
-      <div className="mx-auto grid max-w-md grid-cols-4 gap-1.5">
+      <div className="mx-auto grid max-w-md grid-cols-5 gap-1.5">
         {actions.map((action) => {
           const Icon = action.icon;
           return (
