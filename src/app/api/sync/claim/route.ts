@@ -13,9 +13,9 @@
 import { NextResponse } from "next/server";
 import { checkHiscoresForClaim } from "@/lib/claim-hiscores";
 import { extractBearerToken, hasExistingClaim, recordClaim } from "@/lib/sync-auth";
+import { cleanRsnInput, isValidRsn, normalizeRsn } from "@/lib/rsn";
 
 const MAX_BODY_BYTES = 50_000;
-const RSN_RE = /^[A-Za-z0-9 _-]+$/;
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -24,6 +24,9 @@ const CORS_HEADERS = {
 
 interface ClaimBody {
   rsn?: unknown;
+  /** RuneLite's per-account hash. Plugin 0.4.0+. Tells a rename apart from
+   *  an account switch on the same install. */
+  accountHash?: unknown;
 }
 
 function withCors(init: ResponseInit = {}): ResponseInit {
@@ -39,10 +42,6 @@ function withCors(init: ResponseInit = {}): ResponseInit {
 
 function json(data: unknown, init: ResponseInit = {}): Response {
   return NextResponse.json(data, withCors(init));
-}
-
-function normalizeRsn(rsn: string): string {
-  return rsn.trim().toLowerCase().slice(0, 12);
 }
 
 function byteLength(value: string): number {
@@ -93,9 +92,10 @@ export async function POST(req: Request): Promise<Response> {
     return bad("Invalid JSON");
   }
   if (typeof body.rsn !== "string") return bad("rsn must be a string");
-  const rsn = body.rsn.trim();
+  // Fold the client's non-breaking spaces before validating — see lib/rsn.ts.
+  const rsn = cleanRsnInput(body.rsn);
   if (rsn.length < 1 || rsn.length > 12) return bad("rsn length out of range");
-  if (!RSN_RE.test(rsn)) return bad("rsn contains invalid characters");
+  if (!isValidRsn(rsn)) return bad("rsn contains invalid characters");
 
   // Hiscores existence check — best-effort. Skip it for existing claims:
   // idempotent re-claims and rival-token conflicts are decided entirely by
@@ -110,7 +110,12 @@ export async function POST(req: Request): Promise<Response> {
     // still require the same token on every payload.
   }
 
-  const result = await recordClaim(rsn, token);
+  // Only accept a plausible account hash; RuneLite's is a decimal long.
+  const accountHash = typeof body.accountHash === "string" && /^-?\d{1,32}$/.test(body.accountHash.trim())
+    ? body.accountHash.trim()
+    : null;
+
+  const result = await recordClaim(rsn, token, accountHash);
   if (!result.ok) {
     return bad(result.reason ?? "Claim rejected", result.existingTokenHash ? 409 : 500);
   }

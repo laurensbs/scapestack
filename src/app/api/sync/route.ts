@@ -17,6 +17,7 @@ import { extractBearerToken, verifyClaim } from "@/lib/sync-auth";
 import { mapBlockTaskIds, mapBlockTaskNames } from "@/lib/slayer/task-ids";
 import { getSyncServiceStatus, SYNC_SERVICE_LIMITS } from "@/lib/sync-service-readiness";
 import { normalizeScapestackAccountType } from "@/lib/account-type";
+import { RSN_MAX_LENGTH, cleanRsnInput, isValidRsn, normalizeRsn } from "@/lib/rsn";
 import { normalizePluginBankStatus } from "@/lib/plugin-bank-status";
 import { reconcileActiveRecommendationOutcomes } from "@/lib/recommendation-outcome-repo";
 import {
@@ -26,7 +27,6 @@ import {
 
 const MAX_BODY_BYTES = SYNC_SERVICE_LIMITS.maxBodyBytes;
 const ALLOWED_DIARY_TIERS = new Set(["Easy", "Medium", "Hard", "Elite"]);
-const RSN_RE = /^[A-Za-z0-9 _-]+$/;
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -74,14 +74,10 @@ function byteLength(value: string): number {
   return new TextEncoder().encode(value).byteLength;
 }
 
-function normalizeRsn(rsn: string): string {
-  return rsn.trim().toLowerCase().slice(0, 12);
-}
-
 function cleanDisplayName(value: unknown, fallback: string): string {
   if (typeof value !== "string") return fallback;
-  const displayName = value.trim().slice(0, 12);
-  return displayName && RSN_RE.test(displayName) ? displayName : fallback;
+  const displayName = cleanRsnInput(value).slice(0, RSN_MAX_LENGTH);
+  return displayName && isValidRsn(displayName) ? displayName : fallback;
 }
 
 export async function GET(): Promise<Response> {
@@ -133,11 +129,12 @@ export async function POST(req: Request): Promise<Response> {
     return badRequest("Invalid JSON");
   }
 
-  // RSN — required, max 12 chars (OSRS limit), printable ascii-ish.
+  // RSN — required, max 12 chars (OSRS limit), printable ascii-ish. The game
+  // client sends U+00A0 for spaces, so fold whitespace before validating.
   if (typeof body.rsn !== "string") return badRequest("rsn must be a string");
-  const rsn = body.rsn.trim();
-  if (rsn.length < 1 || rsn.length > 12) return badRequest("rsn length out of range");
-  if (!RSN_RE.test(rsn)) return badRequest("rsn contains invalid characters");
+  const rsn = cleanRsnInput(body.rsn);
+  if (rsn.length < 1 || rsn.length > RSN_MAX_LENGTH) return badRequest("rsn length out of range");
+  if (!isValidRsn(rsn)) return badRequest("rsn contains invalid characters");
   const normalizedRsn = normalizeRsn(rsn);
 
   // Verify the bearer matches the claim row for this RSN.

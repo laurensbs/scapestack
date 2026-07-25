@@ -118,7 +118,7 @@ public class ScapestackSyncPlugin extends Plugin {
     private static final MediaType JSON = MediaType.parse("application/json");
     private static final String PLUGIN_VERSION = "0.3.0";
     private static final String USER_AGENT = "scapestack-plugin/" + PLUGIN_VERSION;
-    private static final String OPT_IN_HINT = "ScapeStack is ready. Turn on Sync on login to keep your planner updated.";
+    private static final String OPT_IN_HINT = "Scapestack is ready. Turn on Sync on login to keep your planner updated.";
     private static final long MANUAL_SYNC_COOLDOWN_MS = 2_500L;
     static final int DEFAULT_AUTO_SYNC_INTERVAL_MINUTES = 15;
     private static final int MIN_AUTO_SYNC_INTERVAL_MINUTES = 5;
@@ -232,7 +232,7 @@ public class ScapestackSyncPlugin extends Plugin {
     }
 
     private void triggerSync(boolean manual) {
-        String rsn = client.getLocalPlayer() != null ? client.getLocalPlayer().getName() : null;
+        String rsn = normalizeRsn(client.getLocalPlayer() != null ? client.getLocalPlayer().getName() : null);
         if (rsn == null || rsn.isBlank()) {
             log.debug("triggerSync called but RSN unknown — skipping");
             if (manual) notifyChat("Player name not ready yet. Try again in a moment.");
@@ -260,7 +260,7 @@ public class ScapestackSyncPlugin extends Plugin {
             );
         } catch (Exception ex) {
             log.warn("Failed to read game state", ex);
-            notifyChat("ScapeStack could not read your progress. Try again in a moment.");
+            notifyChat("Scapestack could not read your progress. Try again in a moment.");
             updatePanelStatus("Try again");
             return;
         }
@@ -275,7 +275,7 @@ public class ScapestackSyncPlugin extends Plugin {
         final String bodyJson = body.toString();
         if (!syncGate.tryStart()) {
             log.debug("Scapestack sync already in flight — skipping duplicate trigger");
-            if (manual) notifyChat("ScapeStack is already syncing.");
+            if (manual) notifyChat("Scapestack is already syncing.");
             return;
         }
         if (manual) {
@@ -283,19 +283,19 @@ public class ScapestackSyncPlugin extends Plugin {
         } else {
             lastAutoSyncAtMs = now;
         }
-        notifyChat("ScapeStack is syncing your progress...");
+        notifyChat("Scapestack is syncing your progress...");
         Thread thread = newSyncThread(() -> {
             try {
                 String syncUrl = configuredSyncUrl();
                 if (syncUrl.isBlank()) {
                     log.warn("Scapestack sync URL is empty");
-                    notifyChat("ScapeStack needs attention. Open troubleshooting in the plugin panel.");
+                    notifyChat("Scapestack needs attention. Open troubleshooting in the plugin panel.");
                     updatePanelStatus("Needs attention");
                     return;
                 }
                 if (!ClaimClient.isHttpSyncUrl(syncUrl)) {
                     log.warn("Scapestack sync URL must be http(s): {}", syncUrl);
-                    notifyChat("ScapeStack needs attention. Open troubleshooting in the plugin panel.");
+                    notifyChat("Scapestack needs attention. Open troubleshooting in the plugin panel.");
                     updatePanelStatus("Needs attention");
                     return;
                 }
@@ -305,7 +305,7 @@ public class ScapestackSyncPlugin extends Plugin {
                 if (!running) return;
                 if (!readiness.proceed) {
                     log.warn("Scapestack sync service is not ready: {}", readiness.message);
-                    notifyChat("ScapeStack is not ready right now. Try again later.");
+                    notifyChat("Scapestack is not ready right now. Try again later.");
                     updatePanelStatus("Try again later");
                     return;
                 }
@@ -313,7 +313,7 @@ public class ScapestackSyncPlugin extends Plugin {
                 if (config.forceClaimOnNextSync()) {
                     InstallToken.forgetClaim(configManager);
                     configManager.setConfiguration(CONFIG_GROUP, KEY_FORCE_CLAIM, false);
-                    notifyChat("ScapeStack reconnected this RuneLite install.");
+                    notifyChat("Scapestack reconnected this RuneLite install.");
                 }
 
                 String token = InstallToken.getOrCreate(configManager);
@@ -323,7 +323,7 @@ public class ScapestackSyncPlugin extends Plugin {
                 // same token}, so re-running is cheap.
                 if (claimedRsn == null || !claimedRsn.equalsIgnoreCase(rsn)) {
                     String claimUrl = ClaimClient.claimUrlFromSyncUrl(syncUrl);
-                    if (claimClient.claim(claimUrl, rsn, token, USER_AGENT, this::setActiveCall)) {
+                    if (claimClient.claim(claimUrl, rsn, token, USER_AGENT, this::setActiveCall, currentAccountHash())) {
                         InstallToken.rememberClaimedRsn(configManager, rsn);
                     } else {
                         // The sync POST below will likely fail with 403; log
@@ -345,7 +345,7 @@ public class ScapestackSyncPlugin extends Plugin {
                         .build();
                 } catch (IllegalArgumentException ex) {
                     log.warn("Scapestack sync URL is invalid: {}", syncUrl);
-                    notifyChat("ScapeStack needs attention. Open troubleshooting in the plugin panel.");
+                    notifyChat("Scapestack needs attention. Open troubleshooting in the plugin panel.");
                     updatePanelStatus("Needs attention");
                     return;
                 }
@@ -384,7 +384,7 @@ public class ScapestackSyncPlugin extends Plugin {
                 } catch (IOException ex) {
                     log.warn("Sync request failed", ex);
                     updatePanelStatus("Check connection");
-                    notifyChat("ScapeStack could not sync. Check connection, then sync again.");
+                    notifyChat("Scapestack could not sync. Check connection, then sync again.");
                 } finally {
                     clearActiveCall(call);
                 }
@@ -424,7 +424,7 @@ public class ScapestackSyncPlugin extends Plugin {
             this::requestBrowserPairing
         );
         navigationButton = NavigationButton.builder()
-            .tooltip("ScapeStack Sync")
+            .tooltip("Scapestack Sync")
             .icon(ScapestackSyncPanel.createIcon())
             .priority(7)
             .panel(panel)
@@ -451,7 +451,7 @@ public class ScapestackSyncPlugin extends Plugin {
     }
 
     private void requestBrowserPairing(String code) {
-        String rsn = client.getLocalPlayer() != null ? client.getLocalPlayer().getName() : null;
+        String rsn = normalizeRsn(client.getLocalPlayer() != null ? client.getLocalPlayer().getName() : null);
         if (rsn == null || rsn.isBlank() || client.getGameState() != GameState.LOGGED_IN) {
             updatePanelStatus("Log in to connect");
             notifyChat("Log in, then connect this browser again.");
@@ -464,7 +464,7 @@ public class ScapestackSyncPlugin extends Plugin {
             String claimedRsn = InstallToken.claimedRsn(configManager);
             if (claimedRsn == null || !claimedRsn.equalsIgnoreCase(rsn)) {
                 String claimUrl = ClaimClient.claimUrlFromSyncUrl(syncUrl);
-                if (!claimClient.claim(claimUrl, rsn, token, USER_AGENT)) {
+                if (!claimClient.claim(claimUrl, rsn, token, USER_AGENT, currentAccountHash())) {
                     updatePanelStatus("Sync player first");
                     notifyChat("Sync this player once, then connect the browser again.");
                     return;
@@ -473,7 +473,7 @@ public class ScapestackSyncPlugin extends Plugin {
             }
             if (pairingClient.approve(syncUrl, rsn, code, token, USER_AGENT)) {
                 updatePanelStatus("Browser connected");
-                notifyChat("ScapeStack connected this browser to " + rsn + ".");
+                notifyChat("Scapestack connected this browser to " + rsn + ".");
             } else {
                 updatePanelStatus("Code expired");
                 notifyChat("That connection code expired. Create a new one on Scapestack.");
@@ -605,9 +605,9 @@ public class ScapestackSyncPlugin extends Plugin {
 
         String message;
         if (hasNewProgress) {
-            message = "ScapeStack synced. Next trip updated.";
+            message = "Scapestack synced. Next trip updated.";
         } else if (bankStatus.itemCount > 0) {
-            message = "ScapeStack synced your bank.";
+            message = "Scapestack synced your bank.";
         } else if (bankStatus.enabled
             && "bank-not-opened-this-session".equals(bankStatus.unavailableReason)) {
             message = "Open your bank once, then sync again.";
@@ -687,6 +687,38 @@ public class ScapestackSyncPlugin extends Plugin {
             return DEFAULT_SYNC_URL;
         }
         return candidate;
+    }
+
+    /**
+     * The game client stores display names with U+00A0 where a player sees a
+     * space, so {@code getLocalPlayer().getName()} returns a name whose space is U+00A0. Scapestack keys
+     * a name with a space in it. Scapestack keys accounts on the plain-space
+     * form, so fold it here — at the one place the name enters the plugin —
+     * rather than at every call site that forwards it.
+     */
+    /**
+     * RuneLite's account hash: stable per OSRS account, unchanged by an in-game
+     * name change, and unrelated to the install. The server needs it to tell a
+     * rename apart from an account switch on a shared install; without it, it
+     * conservatively gives the second character its own claim.
+     *
+     * Returns null when logged out or when the client reports the sentinel.
+     */
+    private String currentAccountHash() {
+        try {
+            long hash = client.getAccountHash();
+            return hash == -1L ? null : Long.toString(hash);
+        } catch (Throwable ex) {
+            // Never let an API shift break syncing; the server copes with null.
+            log.debug("Scapestack could not read the account hash", ex);
+            return null;
+        }
+    }
+
+    static String normalizeRsn(String rawName) {
+        if (rawName == null) return null;
+        String folded = rawName.replace('\u00A0', ' ').trim();
+        return folded.isEmpty() ? null : folded;
     }
 
     static JsonObject buildSyncPayload(String rsn, GameStateReader.Snapshot snap, Gson gson) {
@@ -866,7 +898,7 @@ public class ScapestackSyncPlugin extends Plugin {
         }
         if ("Synced".equals(status)) {
             if (bankStatus.itemCount > 0) {
-                return "Open next trip in ScapeStack";
+                return "Open next trip in Scapestack";
             }
             if (!bankStatus.enabled) {
                 return "Turn on bank checks when you want item prep";
@@ -943,15 +975,15 @@ public class ScapestackSyncPlugin extends Plugin {
 
     static String recoveryMessageForHttpFailure(int statusCode, String detail) {
         if (statusCode == 401 || statusCode == 403) {
-            return "ScapeStack needs reconnect. Press Reconnect player, then Sync now.";
+            return "Scapestack needs reconnect. Press Reconnect player, then Sync now.";
         }
         if (statusCode >= 500) {
-            return "ScapeStack is temporarily unavailable. Try again later.";
+            return "Scapestack is temporarily unavailable. Try again later.";
         }
         if (statusCode == 429) {
-            return "ScapeStack is busy. Wait a moment, then Sync now.";
+            return "Scapestack is busy. Wait a moment, then Sync now.";
         }
-        return "ScapeStack could not sync. Open troubleshooting in the plugin panel.";
+        return "Scapestack could not sync. Open troubleshooting in the plugin panel.";
     }
 
     static Thread newSyncThread(Runnable task) {

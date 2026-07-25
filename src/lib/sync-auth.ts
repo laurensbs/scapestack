@@ -23,6 +23,7 @@
 
 import { createHash, randomUUID } from "node:crypto";
 import { sql, hasDatabase } from "./db";
+import { normalizeRsn } from "./rsn";
 
 /** Hashed-token form we store in the DB. Never store the raw token. */
 function hashToken(token: string): string {
@@ -37,9 +38,8 @@ export function extractBearerToken(authHeader: string | null): string | null {
   return m ? m[1] : null;
 }
 
-function normalize(rsn: string): string {
-  return rsn.trim().toLowerCase().slice(0, 12);
-}
+// Shared with the pairing + sync paths so one player never gets two keys.
+const normalize = normalizeRsn;
 
 export interface ClaimResult {
   ok: boolean;
@@ -66,12 +66,33 @@ export async function hasExistingClaim(rsn: string): Promise<boolean> {
 }
 
 /** Records a claim. First call for a given RSN wins; subsequent calls
- *  with a different token-hash get rejected. */
-export async function recordClaim(rsn: string, token: string): Promise<ClaimResult> {
+ *  with a different token-hash get rejected.
+ *
+ *  `accountHash` is RuneLite's per-OSRS-account identifier. It is what
+ *  distinguishes the two cases that look identical from the token alone:
+ *
+ *    rename  — same account, new name  → move the identity and its history
+ *    switch  — same install, other character → give it its own claim
+ *
+ *  Before this was modelled, every switch was treated as a rename: the other
+ *  character's player_sync row was deleted and its whole ledger was re-pointed
+ *  at the new name. Playing a main and an ironman on one RuneLite install
+ *  destroyed data on every login.
+ *
+ *  Plugin builds before 0.4.0 send no accountHash. For those we take the safe
+ *  branch — a second claim row, nothing moved, nothing deleted. player_claim
+ *  is keyed on rsn with no unique constraint on token_hash, so one install
+ *  holding several characters has always been representable. */
+export async function recordClaim(
+  rsn: string,
+  token: string,
+  accountHash?: string | null
+): Promise<ClaimResult> {
   if (!hasDatabase()) return { ok: false, reason: "Database not configured" };
   const norm = normalize(rsn);
   if (!norm) return { ok: false, reason: "Invalid RSN" };
   const hash = hashToken(token);
+  const account = accountHash && accountHash.trim() ? accountHash.trim().slice(0, 64) : null;
 
   try {
     const targetRows = await sql()`
@@ -79,16 +100,30 @@ export async function recordClaim(rsn: string, token: string): Promise<ClaimResu
     ` as Array<{ token_hash: string }>;
     const targetHash = targetRows[0]?.token_hash;
     if (targetHash) {
-      return targetHash === hash
-        ? { ok: true }
-        : { ok: false, reason: "RSN already claimed by another install", existingTokenHash: targetHash };
+      if (targetHash !== hash) {
+        return { ok: false, reason: "RSN already claimed by another install", existingTokenHash: targetHash };
+      }
+      // Same install re-confirming a claim it already holds. Record the
+      // account hash the first time the plugin is new enough to send one.
+      if (account) {
+        await sql()`
+          UPDATE player_claim
+          SET account_hash = ${account}, last_used_at = NOW()
+          WHERE rsn = ${norm} AND account_hash IS DISTINCT FROM ${account}
+        `;
+      }
+      return { ok: true };
     }
 
-    // The install token is the stable proof across an in-game name change.
-    // Move the existing identity instead of creating disconnected history.
-    const installRows = await sql()`
-      SELECT rsn, token_hash FROM player_claim WHERE token_hash = ${hash} LIMIT 1
-    ` as Array<{ rsn?: string; token_hash: string }>;
+    // Only an account-hash match proves this is the same OSRS account under a
+    // new name. Without one we must not touch the other character's rows.
+    const installRows = account
+      ? await sql()`
+          SELECT rsn, token_hash FROM player_claim
+          WHERE token_hash = ${hash} AND account_hash = ${account}
+          LIMIT 1
+        ` as Array<{ rsn?: string; token_hash: string }>
+      : [];
     const previousRsn = installRows[0]?.rsn;
     if (previousRsn && previousRsn !== norm) {
       const migrated = await sql()`
@@ -98,9 +133,15 @@ export async function recordClaim(rsn: string, token: string): Promise<ClaimResu
           LIMIT 1
         ), target_conflict AS (
           SELECT account_id FROM account_identity WHERE rsn = ${norm}
-        ), removed_latest AS (
-          DELETE FROM player_sync
-          WHERE rsn = ${previousRsn} AND NOT EXISTS (SELECT 1 FROM target_conflict)
+        ), moved_sync AS (
+          -- Carry the snapshot across instead of deleting it. rsn is the
+          -- primary key here, so the row simply moves to the new name and the
+          -- player keeps their quests, diaries, bank and Slayer state.
+          UPDATE player_sync
+          SET rsn = ${norm}
+          WHERE rsn = ${previousRsn}
+            AND NOT EXISTS (SELECT 1 FROM target_conflict)
+            AND NOT EXISTS (SELECT 1 FROM player_sync existing WHERE existing.rsn = ${norm})
           RETURNING rsn
         ), moved_identity AS (
           UPDATE account_identity
@@ -122,10 +163,11 @@ export async function recordClaim(rsn: string, token: string): Promise<ClaimResu
     }
 
     // Atomic insert-or-noop. A concurrent first claim is resolved by the
-    // final hash comparison below.
+    // final hash comparison below. This is also the path a second character
+    // on the same install takes: its own row, alongside the first one.
     await sql()`
-      INSERT INTO player_claim (rsn, token_hash, last_used_at)
-      VALUES (${norm}, ${hash}, NOW())
+      INSERT INTO player_claim (rsn, token_hash, account_hash, last_used_at)
+      VALUES (${norm}, ${hash}, ${account}, NOW())
       ON CONFLICT (rsn) DO NOTHING
     `;
     const rows = await sql()`

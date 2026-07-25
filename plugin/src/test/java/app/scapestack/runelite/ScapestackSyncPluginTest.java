@@ -23,9 +23,27 @@ import net.runelite.client.events.ConfigChanged;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class ScapestackSyncPluginTest {
+
+    @Test
+    public void normalizeRsnFoldsTheClientNonBreakingSpace() {
+        // getLocalPlayer().getName() returns U+00A0 where the player sees a
+        // space. Scapestack keys accounts on the plain-space form, and the
+        // API used to reject the raw client form outright.
+        assertEquals("Zezima 1", ScapestackSyncPlugin.normalizeRsn("Zezima\u00A01"));
+        assertEquals("Iron Mammal", ScapestackSyncPlugin.normalizeRsn("  Iron\u00A0Mammal  "));
+    }
+
+    @Test
+    public void normalizeRsnLeavesPlainNamesAloneAndDropsEmptyOnes() {
+        assertEquals("Woox", ScapestackSyncPlugin.normalizeRsn("Woox"));
+        assertNull(ScapestackSyncPlugin.normalizeRsn(null));
+        assertNull(ScapestackSyncPlugin.normalizeRsn("   "));
+        assertNull(ScapestackSyncPlugin.normalizeRsn("\u00A0"));
+    }
 
     @Test
     public void syncPayloadMatchesDocumentedDataContract() {
@@ -282,7 +300,7 @@ public class ScapestackSyncPluginTest {
         );
 
         assertEquals(
-            "ScapeStack synced your bank.",
+            "Scapestack synced your bank.",
             message
         );
         assertNoPlayerTech(message);
@@ -303,7 +321,7 @@ public class ScapestackSyncPluginTest {
             "{\"ok\":true,\"syncSummary\":{\"questsCompleted\":[\"Biohazard\"],\"diariesCompleted\":[],\"collectionLogItemIds\":[]}}"
         );
 
-        assertEquals("ScapeStack synced. Next trip updated.", message);
+        assertEquals("Scapestack synced. Next trip updated.", message);
         assertNoPlayerTech(message);
     }
 
@@ -316,7 +334,7 @@ public class ScapestackSyncPluginTest {
 
         String message = ScapestackSyncPlugin.buildSyncSuccessMessage(snapshot);
 
-        assertEquals("ScapeStack synced your bank. Ironman mode detected.", message);
+        assertEquals("Scapestack synced your bank. Ironman mode detected.", message);
         assertNoPlayerTech(message);
     }
 
@@ -383,7 +401,7 @@ public class ScapestackSyncPluginTest {
         snapshot.bankStatus = new GameStateReader.BankStatus(true, 1, "2026-07-08T10:00:00Z", null);
 
         assertEquals(
-            "ScapeStack synced your bank.",
+            "Scapestack synced your bank.",
             ScapestackSyncPlugin.buildSyncSuccessMessage(
                 "Lynx Titan",
                 snapshot,
@@ -482,7 +500,7 @@ public class ScapestackSyncPluginTest {
 
     @Test
     public void optInHintNamesTheSafePayloadScope() {
-        assertTrue(ScapestackSyncPlugin.optInHintMessage().contains("ScapeStack is ready"));
+        assertTrue(ScapestackSyncPlugin.optInHintMessage().contains("Scapestack is ready"));
         assertTrue(ScapestackSyncPlugin.optInHintMessage().contains("Sync on login"));
         assertNoPlayerTech(ScapestackSyncPlugin.optInHintMessage());
     }
@@ -558,19 +576,19 @@ public class ScapestackSyncPluginTest {
     @Test
     public void recoveryMessagesGiveActionableNextSteps() {
         assertEquals(
-            "ScapeStack needs reconnect. Press Reconnect player, then Sync now.",
+            "Scapestack needs reconnect. Press Reconnect player, then Sync now.",
             ScapestackSyncPlugin.recoveryMessageForHttpFailure(403, "Token does not match RSN claim")
         );
         assertEquals(
-            "ScapeStack is temporarily unavailable. Try again later.",
+            "Scapestack is temporarily unavailable. Try again later.",
             ScapestackSyncPlugin.recoveryMessageForHttpFailure(500, "Database unavailable")
         );
         assertEquals(
-            "ScapeStack is busy. Wait a moment, then Sync now.",
+            "Scapestack is busy. Wait a moment, then Sync now.",
             ScapestackSyncPlugin.recoveryMessageForHttpFailure(429, "Too many requests")
         );
         assertEquals(
-            "ScapeStack could not sync. Open troubleshooting in the plugin panel.",
+            "Scapestack could not sync. Open troubleshooting in the plugin panel.",
             ScapestackSyncPlugin.recoveryMessageForHttpFailure(400, "Bad payload")
         );
         assertNoPlayerTech(ScapestackSyncPlugin.recoveryMessageForHttpFailure(403, "Token does not match RSN claim"));
@@ -604,7 +622,7 @@ public class ScapestackSyncPluginTest {
             )
         );
         assertEquals(
-            "Open next trip in ScapeStack",
+            "Open next trip in Scapestack",
             ScapestackSyncPlugin.panelNextAction(
                 new GameStateReader.BankStatus(true, 42, "2026-07-09T10:00:00Z", null),
                 new CollectionLogReader.Status(true, 1, 100, 5),

@@ -1,6 +1,7 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { sql } from "./db";
 import { ensureSyncSchema } from "./sync-repo";
+import { normalizeRsn } from "./rsn";
 
 const PAIRING_TTL_MS = 10 * 60 * 1000;
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -30,9 +31,6 @@ export type CompletePairingResult =
   | { status: "connected"; sessionToken: string; expiresAt: string; account: ConnectedAccount }
   | { status: "pending" | "expired" | "invalid" };
 
-function normalizeRsn(rsn: string): string {
-  return rsn.trim().toLowerCase().replace(/\s+/g, " ").slice(0, 12);
-}
 
 export function hashAccountSecret(secret: string): string {
   return createHash("sha256").update(secret, "utf8").digest("hex");
