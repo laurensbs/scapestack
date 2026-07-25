@@ -6,12 +6,16 @@ const source = readFileSync(join(process.cwd(), "src/app/slayer/slayer-client.ts
 
 describe("Slayer sync status copy", () => {
   it("separates a connected account from a verified live Slayer task", () => {
-    expect(source).toContain("Found ${player!.slayer!.taskRemaining.toLocaleString()} left on your current task.");
+    // The task comes from slayerTaskAction now: the redacted snapshot nulls
+    // `slayer` for anyone without a paired browser, which broke this route
+    // outright. The three states this test protects are unchanged.
+    expect(source).toMatch(/Found \$\{task!\.slayer!\.taskRemaining\.toLocaleString\(\)\} left on your current task\./);
     expect(source).toContain("RuneLite is connected, but no active Slayer task was found.");
     expect(source).toContain("Stats loaded. Add RuneLite to read the current task.");
     expect(source).toContain("const [hasPluginPayload, setHasPluginPayload] = useState(false)");
     expect(source).toContain("setHasPluginPayload(false)");
-    expect(source).toContain("setHasPluginPayload(Boolean(player))");
+    // Connected means either source produced something.
+    expect(source).toContain("setHasPluginPayload(Boolean(player ?? task))");
   });
 
   it("keeps readiness context collapsed below the task route", () => {

@@ -85,6 +85,18 @@ ALTER TABLE player_claim ADD COLUMN IF NOT EXISTS account_hash TEXT;
 -- bookkeeping too, so it cannot tell "claimed" apart from "actually used".
 -- A claim that never synced is what a name-squatter leaves behind.
 ALTER TABLE player_claim ADD COLUMN IF NOT EXISTS last_synced_at TIMESTAMPTZ;
+-- Backfill, and it is not optional. The column arrived empty while the release
+-- rule that reads it treats NULL as "never synced, may be taken". Every claim
+-- made before that deploy therefore read NULL and was older than the window,
+-- so the entire existing user base became takeover-eligible — a bigger hole
+-- than the land grab this was meant to close.
+--
+-- player_sync.synced_at is the true "this account has synced" signal. A real
+-- squatter has no player_sync row, so theirs stays NULL and still expires.
+UPDATE player_claim claim
+SET last_synced_at = sync.synced_at
+FROM player_sync sync
+WHERE sync.rsn = claim.rsn AND claim.last_synced_at IS NULL;
 
 -- Claim attempts, successful or not. Exists to rate-limit; rows outside the
 -- longest window are deleted on write, so this does not grow unbounded. The

@@ -24,14 +24,16 @@ function contextFrom(hasBank: boolean, hasRunelite: boolean): AnalyticsContext {
 
 export function RouteVisitTracker() {
   const pathname = usePathname();
-  // A route counts once per arrival, not once per re-render.
-  const lastRecorded = useRef<string | null>(null);
+  // Keyed on the route, not the pathname. /u/alice and /u/bob are two
+  // pathnames and one route, and counting the second as a return invented a
+  // repeat visit that never happened.
+  const recordedRoutes = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    if (!pathname || lastRecorded.current === pathname) return;
+    if (!pathname) return;
     const route = analyticsRouteFor(pathname);
-    if (!route) return;
-    lastRecorded.current = pathname;
+    if (!route || recordedRoutes.current.has(route)) return;
+    recordedRoutes.current.add(route);
 
     const visitor = classifyAndRecordVisit(route);
     let context: AnalyticsContext = "public_stats";
@@ -45,11 +47,10 @@ export function RouteVisitTracker() {
       // Context is a nice-to-have; the visit itself is the measurement.
     }
 
-    // Deduped per page load, so clicking back and forth between two routes in
-    // one session counts once each. A return is coming back later, not pacing
-    // around now — and localStorage still carries the timestamp forward, so a
-    // genuine visit next week classifies correctly.
-    track("route:visit", { route, visitor, context }, { dedupeKey: `route-visit:${pathname}` });
+    // Deduped per page load, so pacing between routes counts once each. A
+    // return is coming back later, not walking around now — and localStorage
+    // carries the timestamp forward, so next week classifies correctly.
+    track("route:visit", { route, visitor, context }, { dedupeKey: `route-visit:${route}` });
   }, [pathname]);
 
   return null;

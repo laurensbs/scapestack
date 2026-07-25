@@ -7,7 +7,12 @@ import { fetchHiscores, type PlayerHiscores } from "@/lib/hiscores";
 import { fetchWom, type WomPlayer } from "@/lib/wom";
 import { fetchCollectionLog } from "@/lib/collection-log";
 import { getSyncedPlayer } from "@/lib/sync-repo";
-import { syncedPlayerForViewer, type VisibleSyncedPlayer } from "@/lib/synced-player-visibility";
+import {
+  slayerTaskProjection,
+  syncedPlayerForViewer,
+  type SlayerTaskProjection,
+  type VisibleSyncedPlayer
+} from "@/lib/synced-player-visibility";
 import { resolveViewerRsn } from "@/lib/viewer-account";
 import { hasDatabase } from "@/lib/db";
 import { pluginSyncReceipt, type PluginSyncReceipt } from "@/lib/plugin-sync-receipt";
@@ -70,6 +75,15 @@ export async function syncedPlayerAction(rsn: string): Promise<VisibleSyncedPlay
  * official Hiscores are the critical account read; community trackers are
  * optional and never get to delay the first useful plan beyond their budget.
  */
+/**
+ * The Slayer task only. /slayer needs it to answer at all, and the redacted
+ * snapshot cannot carry it — see slayerTaskProjection for where the privacy
+ * line sits and why the bank stays out of this.
+ */
+export async function slayerTaskAction(rsn: string): Promise<SlayerTaskProjection | null> {
+  return slayerTaskProjection(await getSyncedPlayer(rsn));
+}
+
 export async function planningContextAction(rsn: string): Promise<PlanningContextPayload> {
   return loadPlanningContext(rsn, { viewerRsn: await resolveViewerRsn() });
 }

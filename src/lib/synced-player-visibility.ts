@@ -83,3 +83,43 @@ export function syncedPlayerForViewer(
   if (viewerRsn && viewerRsn === player.rsn) return player;
   return redactSyncedPlayer(player);
 }
+
+/**
+ * Just enough for /slayer to answer its question.
+ *
+ * The redaction above broke that route outright: its whole reason to exist is
+ * `slayer.taskName` / `taskRemaining` / `points` / `streak` / `blocks`, and all
+ * of it went null for anyone without a paired browser — which is almost
+ * everyone, since the plugin opens the site in whatever browser is default.
+ *
+ * Where the line sits, said out loud: the current Slayer task is ephemeral
+ * gameplay state players routinely post in clan chat, and it was already
+ * readable by anyone before today. The bank is the asset, and it stays
+ * redacted. Restoring only the task keeps every field that mattered private
+ * while giving the route back its answer.
+ *
+ * Bank-derived gear advice still degrades without a paired browser, the same
+ * way it does on /dps. That is the deliberate trade, not an oversight.
+ */
+export interface SlayerTaskProjection {
+  rsn: string;
+  displayName: string;
+  accountType: SyncedPlayer["accountType"];
+  slayer: SyncedPlayer["slayer"];
+  bankStatus: SyncedPlayer["bankStatus"];
+  pluginVersion: string;
+  syncedAt: string;
+}
+
+export function slayerTaskProjection(player: SyncedPlayer | null): SlayerTaskProjection | null {
+  if (!player) return null;
+  return {
+    rsn: player.rsn,
+    displayName: player.displayName,
+    accountType: player.accountType,
+    slayer: player.slayer,
+    bankStatus: player.bankStatus,
+    pluginVersion: player.pluginVersion,
+    syncedAt: player.syncedAt
+  };
+}

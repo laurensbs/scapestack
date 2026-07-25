@@ -1010,10 +1010,17 @@ function buildStaticUnlockRoute(input: {
   completedDiaryTiers: Set<string>;
   /** null = unknown; never read as zero. */
   questPoints: number | null;
+  /** Quests an exact source actually reported. Empty without a plugin sync. */
+  exactCompletedQuests: Set<string> | null;
   accountType: PlannerAccountType | null | undefined;
 }): UnlockRoutePlan {
   const def = input.definition;
-  const completedQuests = completedQuestNamesFromPath(input.questPath);
+  // Blockers must run on evidence, never on the heuristic. The skills-plus-
+  // prerequisites walk marks ~96% of the quest database done for a mid-level
+  // RSN-only account, and feeding that here made every required quest look
+  // complete — so a route that is genuinely blocked reported no blockers.
+  const completedQuests = input.exactCompletedQuests
+    ?? new Set<string>();
   const blockers: UnlockRouteBlocker[] = [];
 
   for (const questName of def.requiredQuests ?? []) {
@@ -1075,6 +1082,15 @@ function buildStaticUnlockRoute(input: {
       detail: `${def.minQuestPoints - knownQuestPoints} quest points short.`,
       nextAction: `Earn ${def.minQuestPoints - knownQuestPoints} more quest points`
     });
+  } else if (def.minQuestPoints && knownQuestPoints === null) {
+    // Say we cannot see it rather than inventing "0/290" or quietly assuming
+    // it is met. The Hiscores do not publish quest points at all.
+    blockers.push({
+      type: "qp",
+      label: `${def.minQuestPoints} quest points needed`,
+      detail: "Scapestack cannot read your quest points from the Hiscores.",
+      nextAction: "Sync RuneLite to confirm this one"
+    });
   }
 
   const requiredItems = (def.requiredItems ?? []).map((item) => {
@@ -1122,16 +1138,21 @@ function buildStaticUnlockRoute(input: {
     (def.requiredQuests?.length ?? 0)
     + requiredSkills.length
     + requiredDiaryTiers.length
+    // Stays in the denominator even when unobservable: an unknown requirement
+    // is not a satisfied one, and a route that cannot be confirmed must never
+    // read 100%. Dropping it from both sides let the quest-cape card report
+    // "Ready · 100% mapped" off four skill gates alone.
     + (def.minQuestPoints ? 1 : 0)
     + (def.activityRequirements?.length ?? 0);
   const completedTrackable =
     (def.requiredQuests ?? []).filter((name) => completedQuests.has(normalizeRouteName(name))).length
     + requiredSkills.filter((req) => req.met).length
     + requiredDiaryTiers.filter((req) => req.met).length
-    // Unknown QP counts as satisfied so the route percentage is not dragged
-    // down by a requirement we simply cannot observe.
-    + (def.minQuestPoints
-        ? input.questPoints === null || input.questPoints >= def.minQuestPoints ? 1 : 0
+    // An unobservable requirement leaves the fraction entirely — counting it
+    // as satisfied rendered a green "Ready · 100% mapped" quest-cape card to
+    // accounts we know nothing about.
+    + (def.minQuestPoints && input.questPoints !== null
+        ? input.questPoints >= def.minQuestPoints ? 1 : 0
         : 0);
   const progressPercent = totalTrackable > 0
     ? Math.round((completedTrackable / totalTrackable) * 100)
@@ -1269,6 +1290,7 @@ function buildUnlockRoutes(input: {
   completedDiaryTiers: Set<string>;
   /** null = unknown; never read as zero. */
   questPoints: number | null;
+  exactCompletedQuests: Set<string> | null;
   accountType: PlannerAccountType | null | undefined;
 }): UnlockRoutePlan[] {
   const staticRoutes = UNLOCK_ROUTE_DEFINITIONS.map((definition) => buildStaticUnlockRoute({
@@ -1278,6 +1300,7 @@ function buildUnlockRoutes(input: {
     questPath: input.questPath,
     completedDiaryTiers: input.completedDiaryTiers,
     questPoints: input.questPoints,
+    exactCompletedQuests: input.exactCompletedQuests,
     accountType: input.accountType
   }));
   return [
@@ -1417,6 +1440,11 @@ export function computePathProgress(input: ComputePathProgressInput): PathOvervi
     questPath: paths[1],
     completedDiaryTiers: input.scapestackSync?.diariesCompleted ?? new Set(),
     questPoints: input.questPoints,
+    // Only what the plugin actually reported. Null when there is no exact
+    // source, which the blocker logic reads as "prove nothing".
+    exactCompletedQuests: input.scapestackSync?.questsCompleted
+      ? new Set([...input.scapestackSync.questsCompleted].map(normalizeRouteName))
+      : null,
     accountType: input.accountMeta?.accountType ?? null
   });
   const overallPercent = Math.round(

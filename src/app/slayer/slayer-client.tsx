@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { ArrowRight, Backpack, Ban, Check, ChevronDown, Coins, MapPin, RotateCw, Search, Swords } from "lucide-react";
-import { hiscoresAction, syncedPlayerAction } from "@/app/actions";
+import { hiscoresAction, slayerTaskAction, syncedPlayerAction } from "@/app/actions";
 import { ItemSprite } from "@/components/item-sprite";
 import { ScapestackReadinessRail } from "@/components/scapestack-readiness-rail";
 import { computeCombatLevel } from "@/lib/hiscores";
@@ -80,9 +80,14 @@ export function SlayerClient() {
     setSync(null);
 
     startTransition(async () => {
-      const [hiscores, player] = await Promise.all([
+      // Two calls on purpose. The snapshot is redacted for anyone without a
+      // paired browser, which is almost everyone — so the task, this route's
+      // entire reason to exist, comes from a projection that carries it and
+      // nothing sensitive. See slayerTaskProjection.
+      const [hiscores, player, task] = await Promise.all([
         hiscoresAction(trimmed),
-        syncedPlayerAction(trimmed)
+        syncedPlayerAction(trimmed),
+        slayerTaskAction(trimmed)
       ]);
       if (!hiscores) {
         setLookupError(`No Hiscores result for “${trimmed}”. Check the spelling.`);
@@ -94,15 +99,17 @@ export function SlayerClient() {
       setCombatLevel(nextCombat);
       setSlayerLevel(nextSlayer);
       setQuestsDone(player ? syncedQuestSet(player.questsCompleted) : new Set());
-      setHasPluginPayload(Boolean(player));
+      setHasPluginPayload(Boolean(player ?? task));
 
-      if (player) {
+      if (task) {
         setSync({
-          state: player.slayer,
-          syncedAt: player.syncedAt,
-          pluginVersion: player.pluginVersion,
-          accountType: scapestackAccountTypeToPlannerType(player.accountType)
+          state: task.slayer,
+          syncedAt: task.syncedAt,
+          pluginVersion: task.pluginVersion,
+          accountType: scapestackAccountTypeToPlannerType(task.accountType)
         });
+      }
+      if (player) {
         if (player.bankItems.length > 0) {
           const pluginBank = player.bankItems.map((item) => ({ id: item.id, name: item.name, quantity: item.quantity }));
           const handoff = bankHandoffItemsFromBankItems(pluginBank, "RuneLite bank sync");
@@ -111,16 +118,16 @@ export function SlayerClient() {
         }
       }
 
-      const taskSlug = player?.slayer
-        ? resolveSlayerTaskMonsterId(player.slayer.taskName, player.slayer.currentTaskId)
+      const taskSlug = task?.slayer
+        ? resolveSlayerTaskMonsterId(task.slayer.taskName, task.slayer.currentTaskId)
         : null;
-      const taskFound = Boolean(player?.slayer?.taskRemaining && taskSlug);
-      const unresolvedTask = Boolean(player?.slayer?.taskRemaining && !taskSlug);
+      const taskFound = Boolean(task?.slayer?.taskRemaining && taskSlug);
+      const unresolvedTask = Boolean(task?.slayer?.taskRemaining && !taskSlug);
       setLookupMessage(taskFound
-        ? `Found ${player!.slayer!.taskRemaining.toLocaleString()} left on your current task.`
+        ? `Found ${task!.slayer!.taskRemaining.toLocaleString()} left on your current task.`
         : unresolvedTask
-          ? `RuneLite found ${player!.slayer!.taskRemaining.toLocaleString()} left, but this older scan does not include the task name yet.`
-        : player
+          ? `RuneLite found ${task!.slayer!.taskRemaining.toLocaleString()} left, but this older scan does not include the task name yet.`
+        : (player ?? task)
           ? "RuneLite is connected, but no active Slayer task was found."
           : "Stats loaded. Add RuneLite to read the current task.");
     });

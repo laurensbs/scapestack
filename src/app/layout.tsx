@@ -81,12 +81,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="min-h-full">
       <body className="min-h-full subpixel-antialiased font-sans">
         {process.env.NODE_ENV === "production" && (
-          <Script
-            defer
-            strategy="afterInteractive"
-            data-domain={PLAUSIBLE_DOMAIN}
-            src="https://plausible.io/js/script.js"
-          />
+          <>
+            {/* Plausible's documented queue stub, and it is load-bearing here.
+                The script is deferred, so it does not exist yet when React
+                runs its mount effects — and route:visit fires from exactly
+                such an effect. Without the queue every landing visit was
+                dropped while its localStorage timestamp was still written, so
+                the next arrival read as a return with no first visit ever
+                recorded. That biased the return rate up; the docs claim it is
+                biased down. */}
+            <Script id="plausible-queue" strategy="beforeInteractive">
+              {"window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments)}"}
+            </Script>
+            <Script
+              defer
+              strategy="afterInteractive"
+              data-domain={PLAUSIBLE_DOMAIN}
+              src="https://plausible.io/js/script.js"
+            />
+          </>
         )}
         {/* No sidebar — header carries nav. Removes ~56px of horizontal
             chrome on every page and feels less app-y for a tools landing

@@ -28,6 +28,7 @@ const dbState: {
   /** The claim already sitting on the target RSN, if any. */
   targetClaim: { tokenHash: string; lastSyncedAt: string | null; stale: boolean } | null;
   seizedRsns: string[];
+  revokedAccountIds: string[];
   syncMarkedRsns: string[];
 } = {
   hasDb: true,
@@ -42,6 +43,7 @@ const dbState: {
   accountHashUpdates: [],
   targetClaim: null,
   seizedRsns: [],
+  revokedAccountIds: [],
   syncMarkedRsns: [],
 };
 
@@ -94,8 +96,12 @@ function sqlTag(strings: TemplateStringsArray, ...vals: unknown[]): unknown {
     const takeable = claim && claim.lastSyncedAt === null && claim.stale;
     if (takeable) {
       dbState.seizedRsns.push(String(vals[2]));
-      return Promise.resolve([{ rsn: String(vals[2]) }]);
+      return Promise.resolve([{ rsn: String(vals[2]), account_id: "acct-of-previous-holder" }]);
     }
+    return Promise.resolve([]);
+  }
+  if (/UPDATE account_browser_session SET revoked_at/i.test(flat)) {
+    dbState.revokedAccountIds.push(String(vals[0]));
     return Promise.resolve([]);
   }
   if (/UPDATE player_claim SET last_used_at = NOW\(\), last_synced_at/i.test(flat)) {
@@ -133,6 +139,7 @@ beforeEach(() => {
   dbState.accountHashUpdates = [];
   dbState.targetClaim = null;
   dbState.seizedRsns = [];
+  dbState.revokedAccountIds = [];
   dbState.syncMarkedRsns = [];
 });
 
@@ -354,6 +361,9 @@ describe("unused claims release, used ones do not", () => {
 
     expect(result.ok).toBe(true);
     expect(dbState.seizedRsns).toEqual(["lynx titan"]);
+    // The row keeps its account_id, so any browser already paired to that
+    // identity would still hold the session that un-redacts the snapshot.
+    expect(dbState.revokedAccountIds).toEqual(["acct-of-previous-holder"]);
   });
 
   it("refuses to take a name whose claim has actually synced", async () => {

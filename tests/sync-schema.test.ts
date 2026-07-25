@@ -95,4 +95,18 @@ describe("sync schema migrations", () => {
     expect(repositorySource).toContain("INSERT INTO sync_snapshot (");
     expect(repositorySource).toContain("export async function getLatestAccountDelta");
   });
+
+  it("backfills last_synced_at, or every pre-existing claim becomes seizable", () => {
+    // The release-an-unused-claim rule reads NULL as "never synced, may be
+    // taken". The column shipped empty, so on deploy every claim ever made
+    // read NULL and was older than the window — a bigger hole than the land
+    // grab it was meant to close. Verified against the live database at the
+    // time: 4 of 6 claims seizable, all with real synced data.
+    expect(SCHEMA_SQL).toMatch(/UPDATE player_claim claim\s+SET last_synced_at = sync\.synced_at/);
+    // The backfill has to come after the column exists.
+    const addColumn = SCHEMA_SQL.indexOf("ADD COLUMN IF NOT EXISTS last_synced_at");
+    const backfill = SCHEMA_SQL.indexOf("SET last_synced_at = sync.synced_at");
+    expect(addColumn).toBeGreaterThan(-1);
+    expect(backfill).toBeGreaterThan(addColumn);
+  });
 });

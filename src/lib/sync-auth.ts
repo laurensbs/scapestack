@@ -132,8 +132,19 @@ export async function recordClaim(
           SET token_hash = ${hash}, account_hash = ${account}, claimed_at = NOW(), last_used_at = NOW()
           WHERE rsn = ${norm} AND last_synced_at IS NULL
             AND claimed_at < NOW() - (${UNUSED_CLAIM_TTL_HOURS} * INTERVAL '1 hour')
-          RETURNING rsn
-        ` as Array<{ rsn: string }>;
+          RETURNING rsn, account_id
+        ` as Array<{ rsn: string; account_id: string | null }>;
+        // The row keeps its account_id, so whoever takes the claim inherits the
+        // identity it points at. Any browser already paired to that identity
+        // would keep an authenticated session — and that session is exactly the
+        // key that un-redacts the snapshot. Cut them.
+        if (seized[0]?.account_id) {
+          await sql()`
+            UPDATE account_browser_session
+            SET revoked_at = NOW()
+            WHERE account_id = ${seized[0].account_id} AND revoked_at IS NULL
+          `;
+        }
         if (seized[0]) return { ok: true };
         return { ok: false, reason: "RSN already claimed by another install", existingTokenHash: targetHash };
       }

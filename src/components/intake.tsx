@@ -334,7 +334,7 @@ export function Intake({
             onClick={loadSample}
             aria-label="Load sample bank into the paste box"
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium",
+              "flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium",
               "bg-[var(--color-accent)]/12 text-[var(--color-accent)] border border-[var(--color-accent)]/30",
               "hover:bg-[var(--color-accent)]/18 hover:scale-[1.02] transition-all",
               "animate-[pop-in_0.2s_ease-out]"
@@ -384,7 +384,7 @@ export function Intake({
         )}
         open={showEmptyState && !compactSave && !optional}
       >
-        <summary className="cursor-pointer list-none text-[12.5px] font-semibold text-[var(--color-text)] marker:hidden">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center text-[12.5px] font-semibold text-[var(--color-text)] marker:hidden">
           How to copy your bank
         </summary>
         <BankSetupSteps className="mt-3" compact showBankExample={compactSave} />
@@ -408,7 +408,7 @@ export function Intake({
                 setCompactPasteOpen(true);
                 window.setTimeout(() => taRef.current?.focus(), 50);
               }}
-              className="btn-ghost shrink-0"
+              className="btn-ghost min-h-11 shrink-0"
             >
               <PencilLine className="size-3.5" /> Edit paste
             </button>
@@ -489,18 +489,18 @@ export function Intake({
           type="button"
           onClick={onChooseFile}
           aria-label="Choose a Bank Memory, Bank Tags or item ID file"
-          className="btn-ghost"
+          className="btn-ghost min-h-11"
         >
           <Upload className="size-3.5" /> Choose file
         </button>
-        <button type="button" onClick={onPaste} aria-label="Paste bank export from clipboard" className="btn-ghost">
+        <button type="button" onClick={onPaste} aria-label="Paste bank export from clipboard" className="btn-ghost min-h-11">
           <ClipboardPaste className="size-3.5" /> Paste
         </button>
         <button
           type="button"
           onClick={onClear}
           aria-label="Clear pasted bank export"
-          className="btn-ghost hover:text-[var(--color-danger)] hover:border-[var(--color-danger)]/40"
+          className="btn-ghost min-h-11 hover:text-[var(--color-danger)] hover:border-[var(--color-danger)]/40"
         >
           <Trash2 className="size-3.5" /> Clear
         </button>
