@@ -74,3 +74,25 @@ describe("routes that deliberately have no catalogue", () => {
     }
   });
 });
+
+describe("the bank is optional where the page already works", () => {
+  it("does not number the paste box on the catalogue routes", () => {
+    // "type your OSRS name" versus "Step 3 of 4" on the same screen. /dps and
+    // /goals now list their whole catalogue before anything is pasted, so the
+    // bank is an upgrade there, not step three of a mandatory flow.
+    const intake = source("src/components/intake.tsx");
+    expect(intake).not.toContain("Step 3 of 4");
+    expect(intake).toContain("optional");
+
+    for (const route of ["src/app/dps/dps-client.tsx", "src/app/goals/goals-client.tsx"]) {
+      expect(source(route), route).toMatch(/<Intake[^>]*optional/);
+    }
+  });
+
+  it("leaves /bank its real sequence", () => {
+    // Install Bank Memory, copy, paste, save is a genuine flow and says so.
+    const bank = source("src/app/bank/page.tsx");
+    expect(bank).toContain("compactSave");
+    expect(bank).not.toMatch(/<Intake[^>]*optional/);
+  });
+});

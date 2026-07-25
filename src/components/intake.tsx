@@ -76,6 +76,18 @@ interface IntakeProps {
   askRsn?: boolean;
   initialRsn?: string;
   compactSave?: boolean;
+  /**
+   * The bank is an optional upgrade to a page that already works, not step
+   * three of four.
+   *
+   * /bank is a real sequence — install Bank Memory, copy, paste, organize —
+   * and says so. /dps and /goals now list their whole catalogue before anyone
+   * pastes anything, so numbering the paste box there contradicts the
+   * product's own promise ("type your OSRS name") and frames an optional
+   * enhancement as a mandatory flow. This drops the numbering, collapses the
+   * how-to, and says out loud that skipping it is fine.
+   */
+  optional?: boolean;
   saveLabel?: string;
   onSaveOnly?: (input: string, rsn: string) => void;
   // Fired as the user fills the flow in: false → empty box, true → a valid
@@ -89,6 +101,7 @@ export function Intake({
   error,
   initialRsn = "",
   compactSave = false,
+  optional = false,
   saveLabel = "Save bank",
   onSaveOnly,
   onPasteStateChange
@@ -284,7 +297,7 @@ export function Intake({
     >
       <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
         <div className="flex items-center gap-3">
-          {!compactSave && (
+          {!compactSave && !optional && (
             <div
               className={cn(
                 "size-7 rounded-full flex items-center justify-center text-[12px] font-semibold border-2 transition-all duration-200",
@@ -298,7 +311,9 @@ export function Intake({
           )}
           <div>
             <h2 className="text-[15px] font-semibold text-[var(--color-text)] tracking-normal leading-tight sm:text-[18px]">
-              {compactSave ? (showCompactReceipt ? "Bank ready" : "Paste bank") : "Paste or drop your bank"}
+              {compactSave
+                ? showCompactReceipt ? "Bank ready" : "Paste bank"
+                : optional ? "Add your bank for a sharper answer" : "Paste or drop your bank"}
             </h2>
             <p className="text-[11.5px] text-[var(--color-text-muted)] mt-0.5">
               {compactSave
@@ -307,7 +322,9 @@ export function Intake({
                   : "Paste your RuneLite bank."
                 : pasteDone
                   ? "Bank detected — review the OSRS name below, then organize"
-                  : "Step 3 of 4 — drop the export from RuneLite here"}
+                  : optional
+                    ? "Optional. Everything above works without it; your bank makes the verdict exact."
+                    : "Drop the export from RuneLite here"}
             </p>
           </div>
         </div>
@@ -365,7 +382,7 @@ export function Intake({
           "mb-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 px-4 py-3",
           compactSave && "border-[var(--color-accent)]/25 bg-black/18"
         )}
-        open={showEmptyState && !compactSave}
+        open={showEmptyState && !compactSave && !optional}
       >
         <summary className="cursor-pointer list-none text-[12.5px] font-semibold text-[var(--color-text)] marker:hidden">
           How to copy your bank

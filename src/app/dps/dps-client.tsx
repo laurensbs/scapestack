@@ -475,7 +475,7 @@ export function DpsClient() {
           setupHref={setupBankHref}
         />
         <DpsIntakeHero />
-        <Intake onSubmit={run} loading={pending} error={error} />
+        <Intake onSubmit={run} loading={pending} error={error} optional />
         <BossRoster onPick={(boss) => setPendingBossSlug(boss.slug)} />
       </>
     );

@@ -234,7 +234,7 @@ export function GoalsClient() {
             Add your account once. Scapestack finds one useful reward and the next step toward it.
           </p>
         </div>
-        <Intake onSubmit={run} loading={pending} error={error} askRsn />
+        <Intake onSubmit={run} loading={pending} error={error} askRsn optional />
         <GoalRoster />
       </section>
     );
