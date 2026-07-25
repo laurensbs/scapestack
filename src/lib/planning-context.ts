@@ -4,6 +4,7 @@ import { fetchHiscores, type PlayerHiscores } from "@/lib/hiscores";
 import { computeNextUp, type NextUpResult } from "@/lib/next-up";
 import { buildNextUpInputFromSources } from "@/lib/planning-input";
 import { getSyncedPlayer, type SyncedPlayer } from "@/lib/sync-repo";
+import { syncedPlayerForViewer, type VisibleSyncedPlayer } from "@/lib/synced-player-visibility";
 import { fetchTemple, type TempleData } from "@/lib/temple";
 import { fetchWom, type WomPlayer } from "@/lib/wom";
 
@@ -20,6 +21,9 @@ export interface PlanningContextOptions {
   /** A successful plugin POST is authoritative. Give its immediate browser
    * handoff one retry so a cold Neon read cannot silently erase RuneLite. */
   preferScapestack?: boolean;
+  /** Normalised RSN of the paired browser session. Only the account owner
+   *  receives the unredacted snapshot; everyone else gets counts and status. */
+  viewerRsn?: string | null;
 }
 
 export interface CollectionLogPayload {
@@ -72,7 +76,8 @@ export interface PlanningContextPayload {
   wom: WomPlayer | null;
   temple: TemplePayload | null;
   collectionLog: CollectionLogPayload | null;
-  scapestackSync: SyncedPlayer | null;
+  /** Redacted for anyone who is not the account owner. See synced-player-visibility.ts. */
+  scapestackSync: VisibleSyncedPlayer | null;
   initialPlan: NextUpResult | null;
   timing: PlanningContextTiming;
 }
@@ -160,12 +165,15 @@ export async function loadPlanningContext(
   // No RSN, bank rows or payload data: this is safe to retain in server logs.
   console.info("scapestack.next_context", JSON.stringify(timing));
 
+  // The plan above was computed from the FULL snapshot, so it stays bank-aware.
+  // Only the copy that leaves the server is redacted — /next is a public URL
+  // and everything here ends up in the HTML.
   return {
     hiscores: hiscores.value,
     wom: wom.value,
     temple: templePayload(temple.value),
     collectionLog: collectionLogPayload(collectionLog.value),
-    scapestackSync: scapestack.value,
+    scapestackSync: syncedPlayerForViewer(scapestack.value, options.viewerRsn ?? null),
     initialPlan,
     timing
   };

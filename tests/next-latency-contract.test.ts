@@ -33,12 +33,15 @@ describe("first plan latency contract", () => {
     expect(planningContext).toContain("options.preferScapestack === true");
     expect(planningContext).toContain('runBoundedSource("hiscores"');
     expect(planningContext).toContain('runBoundedSource("collection_log"');
-    expect(actions).toContain("return loadPlanningContext(rsn)");
+    // The action must delegate to the bounded loader rather than fetching
+    // sources itself. It also passes a viewer for redaction, so match the
+    // call rather than one exact argument list.
+    expect(actions).toMatch(/return loadPlanningContext\(rsn[,)]/);
   });
 
   it("starts account loading in the streamed route before client hydration", () => {
     expect(nextPage).toContain("<Suspense");
-    expect(nextPage).toContain("await loadPlanningContext(rsn, { preferScapestack })");
+    expect(nextPage).toMatch(/await loadPlanningContext\(rsn, \{ preferScapestack/);
     expect(nextPage).toContain('source === "plugin-sync" || from === "plugin"');
     expect(nextPage).toContain("initialPlanningContext={initialPlanningContext}");
     expect(nextPage).toContain("Picking your next trip...");

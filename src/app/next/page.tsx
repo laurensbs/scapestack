@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { loadPlanningContext } from "@/lib/planning-context";
+import { resolveViewerRsn } from "@/lib/viewer-account";
 import { NextClient } from "./next-client";
 
 export const metadata = {
@@ -30,8 +31,11 @@ async function NextPlanBootstrap({
   rsn: string;
   preferScapestack: boolean;
 }) {
+  // /next is a public URL, so the snapshot in the RSC payload is redacted
+  // unless this browser is paired to the account being looked up.
+  const viewerRsn = rsn ? await resolveViewerRsn() : null;
   const initialPlanningContext = rsn
-    ? await loadPlanningContext(rsn, { preferScapestack }).catch(() => null)
+    ? await loadPlanningContext(rsn, { preferScapestack, viewerRsn }).catch(() => null)
     : null;
 
   return (

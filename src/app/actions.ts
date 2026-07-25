@@ -7,7 +7,9 @@ import { fetchHiscores, type PlayerHiscores } from "@/lib/hiscores";
 import { fetchWom, type WomPlayer } from "@/lib/wom";
 import { fetchCollectionLog } from "@/lib/collection-log";
 import { fetchTemple } from "@/lib/temple";
-import { getSyncedPlayer, type SyncedPlayer } from "@/lib/sync-repo";
+import { getSyncedPlayer } from "@/lib/sync-repo";
+import { syncedPlayerForViewer, type VisibleSyncedPlayer } from "@/lib/synced-player-visibility";
+import { resolveViewerRsn } from "@/lib/viewer-account";
 import { hasDatabase } from "@/lib/db";
 import { pluginSyncReceipt, type PluginSyncReceipt } from "@/lib/plugin-sync-receipt";
 import {
@@ -66,8 +68,12 @@ export async function templeAction(rsn: string): Promise<TemplePayload | null> {
  *  Temple / WOM / cl.net because it's a direct feed from the player's
  *  game client. Null when the player hasn't installed the plugin (or
  *  when DATABASE_URL is unset in dev). */
-export async function syncedPlayerAction(rsn: string): Promise<SyncedPlayer | null> {
-  return getSyncedPlayer(rsn);
+export async function syncedPlayerAction(rsn: string): Promise<VisibleSyncedPlayer | null> {
+  // Server Actions are POST endpoints anyone can call with any RSN, so this
+  // is subject to the same redaction as the SSR payload: bank items, the
+  // collection log and the Slayer task only go to the account's own paired
+  // browser. See lib/synced-player-visibility.ts.
+  return syncedPlayerForViewer(await getSyncedPlayer(rsn), await resolveViewerRsn());
 }
 
 /**
@@ -76,7 +82,7 @@ export async function syncedPlayerAction(rsn: string): Promise<SyncedPlayer | nu
  * optional and never get to delay the first useful plan beyond their budget.
  */
 export async function planningContextAction(rsn: string): Promise<PlanningContextPayload> {
-  return loadPlanningContext(rsn);
+  return loadPlanningContext(rsn, { viewerRsn: await resolveViewerRsn() });
 }
 
 export type PluginSyncStatus =
