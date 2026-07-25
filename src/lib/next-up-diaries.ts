@@ -159,7 +159,7 @@ export function diaryNextBestActions(input: {
   accountType: PlannerAccountType | null;
   completedQuestNames?: Set<string>;
   completedDiaryTiers?: Set<string>;
-  knownQuestNames?: Iterable<string>;
+  knownQuestNames?: ReadonlySet<string>;
 }): NextBestAction[] {
   if (input.skills.length === 0 || input.diaries.size === 0) return [];
   const completedQuests = input.completedQuestNames ? [...input.completedQuestNames] : [];
@@ -198,7 +198,7 @@ export function diaryRecs(
     completedQuestNames?: Set<string>;
     completedDiaryTiers?: Set<string>;
     /** Quest titles from the quest database, used to validate derived gates. */
-    knownQuestNames?: Iterable<string>;
+    knownQuestNames?: ReadonlySet<string>;
   }
 ): Recommendation[] {
   if (skills.length === 0 || diaries.size === 0) return [];

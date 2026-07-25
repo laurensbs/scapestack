@@ -93,8 +93,11 @@ export interface DiaryRequirementContext {
   /** Quest titles the app can actually verify, from the quest database.
    *  Derived diary quest gates are enforced only when they resolve to one of
    *  these, so a Wiki string we cannot match never becomes a permanent
-   *  blocker. Omit to skip derived gates entirely. */
-  knownQuestNames?: Iterable<string>;
+   *  blocker. Omit to skip derived gates entirely.
+   *
+   *  A Set, not an Iterable: this is read once per diary tier, and a
+   *  single-use iterator drained on the first tier left the other 47 ungated. */
+  knownQuestNames?: ReadonlySet<string>;
 }
 
 interface DiaryTierOverride {

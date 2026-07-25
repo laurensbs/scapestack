@@ -1149,6 +1149,8 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     completedDiaryTierKeys,
     skills
   };
+  // Materialised once. Every consumer may iterate it as often as it likes.
+  const knownQuestNames = new Set(quests.keys());
 
   const rawRecs = applyBossViability([
     ...goalRecs(completions),
@@ -1176,7 +1178,10 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
       accountType: accountMeta?.accountType ?? null,
       completedQuestNames,
       completedDiaryTiers: completedDiaryTierKeys,
-      knownQuestNames: quests.keys()
+      // A Map iterator, which was the bug: diary-requirements spreads it into
+      // a Set per tier, so the first tier drained it and the other 47 got an
+      // empty set and no quest gate at all — 6 of 48 tiers gated instead of 37.
+      knownQuestNames: knownQuestNames
     }),
     ...kcRecs(dropTables, mergedBossKc, bank, clOwned),
     ...minigameRecs(skills, accessContext),

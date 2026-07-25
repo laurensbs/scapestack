@@ -89,7 +89,7 @@ describe("diary quest gates come from the task data, not a hand-kept list", () =
     const [region, record] = western!;
     const evaluation = evaluateDiaryTier(region, "Hard", record, {
       completedQuests: [],
-      knownQuestNames: quests.keys()
+      knownQuestNames: new Set(quests.keys())
     });
 
     expect(evaluation.questRequirements.map((req) => req.name)).toContain("Regicide");
@@ -103,7 +103,7 @@ describe("diary quest gates come from the task data, not a hand-kept list", () =
       for (const tier of ["Easy", "Medium", "Hard", "Elite"] as const) {
         const evaluation = evaluateDiaryTier(region, tier, record, {
           completedQuests: [],
-          knownQuestNames: quests.keys()
+          knownQuestNames: new Set(quests.keys())
         });
         if (evaluation.questRequirements.length > 0) gated += 1;
       }
@@ -121,7 +121,7 @@ describe("diary quest gates come from the task data, not a hand-kept list", () =
       for (const tier of ["Easy", "Medium", "Hard", "Elite"] as const) {
         const evaluation = evaluateDiaryTier(region, tier, record, {
           completedQuests: [],
-          knownQuestNames: quests.keys()
+          knownQuestNames: new Set(quests.keys())
         });
         for (const req of evaluation.questRequirements) {
           const cleaned = req.name.toLowerCase().replace(/\([^)]*\)/g, "")
@@ -173,5 +173,28 @@ describe("minigames respect quest gates", () => {
     });
     const titles = [result.headline, ...result.rest].filter(Boolean).map((rec) => rec!.title);
     expect(titles.some((title) => /Wintertodt|Tempoross|Motherlode|Mahogany Homes|Soul Wars|Barbarian Assault/.test(title))).toBe(true);
+  });
+});
+
+describe("the quest-name set survives more than one diary tier", () => {
+  it("gates far more than the first region", async () => {
+    // Regression: this was passed as quests.keys(), a single-use Map iterator.
+    // evaluateDiaryTier spreads it into a Set per tier, so the first tier
+    // drained it and the remaining 47 silently got an empty set and no gate —
+    // 6 of 48 tiers gated instead of 37. The whole diary fix worked for one
+    // region and nowhere else.
+    const [diaries, quests] = await Promise.all([getDiaries(), getQuests()]);
+    const known = new Set(quests.keys());
+    let gated = 0;
+    for (const [region, record] of diaries) {
+      for (const tier of ["Easy", "Medium", "Hard", "Elite"] as const) {
+        const evaluation = evaluateDiaryTier(region, tier, record, {
+          completedQuests: [],
+          knownQuestNames: known
+        });
+        if (evaluation.questRequirements.length > 0) gated += 1;
+      }
+    }
+    expect(gated).toBeGreaterThanOrEqual(30);
   });
 });

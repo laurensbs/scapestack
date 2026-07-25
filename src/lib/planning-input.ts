@@ -45,6 +45,24 @@ function syncedSkillsToHiscoreSkills(
  * explicit browser-bank overrides. Keeping source priority here prevents the
  * two paths from producing different advice from the same account snapshot.
  */
+/**
+ * The Hiscores activity list is not a boss list.
+ *
+ * Its first twenty entries are points, ranks, clue counts and scores — and
+ * "Colosseum Glory" alone reads 36,582 on a real account. Copying all of them
+ * into bossKc made the total blow past bossRecs' 1,000-KC "this player has
+ * done plenty of bossing" cutoff for essentially every established account,
+ * so a returning player got zero boss suggestions and no explanation.
+ *
+ * Clue tiers are excluded for a second reason: "Clue Scrolls (all)" double
+ * counts every tier beneath it.
+ */
+const NON_BOSS_ACTIVITY = /^(?:Grid Points|League Points|Deadman Points|Bounty Hunter|Clue Scrolls|LMS - Rank|PvP Arena - Rank|Soul Wars Zeal|Rifts closed|Colosseum Glory|Collections Logged)/i;
+
+function isBossActivity(name: string): boolean {
+  return !NON_BOSS_ACTIVITY.test(name.trim());
+}
+
 export function buildNextUpInputFromSources(sources: PlanningInputSources): NextUpInput | null {
   const { rsn, hiscores, wom, scapestackSync } = sources;
   const skills = hiscores?.skills ?? syncedSkillsToHiscoreSkills(
@@ -78,7 +96,7 @@ export function buildNextUpInputFromSources(sources: PlanningInputSources): Next
     ...(domainAvailable(scapestackSync, "bossKc") ? scapestackSync?.bossKc ?? {} : {})
   };
   for (const activity of hiscores?.activities ?? []) {
-    if (activity.score > 0) {
+    if (activity.score > 0 && isBossActivity(activity.name)) {
       bossKc[activity.name] = Math.max(bossKc[activity.name] ?? 0, activity.score);
     }
   }
