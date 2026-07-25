@@ -18,6 +18,7 @@ import { copyText } from "@/lib/clipboard";
 import { useDialogA11y } from "@/lib/use-dialog-a11y";
 import { buildBossInventoryPlan, type InventoryRowPick } from "@/lib/boss-trip-loadout";
 import { track } from "@/lib/analytics";
+import { trackRouteEngagement } from "@/lib/route-engagement";
 import {
   bossKnowledge,
   bossKnowledgeAllowsGpRate,
@@ -52,6 +53,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
   useEffect(() => {
     if (lastTrackedBoss.current === boss.slug) return;
     lastTrackedBoss.current = boss.slug;
+    trackRouteEngagement("boss_opened");
     track("boss:opened", {
       bossSlug: boss.slug,
       source: analyticsSource,

@@ -6,6 +6,25 @@
  * discarded if a caller tries to add them through untyped code.
  */
 
+/** The tool routes worth comparing against each other for return behaviour. */
+export type AnalyticsRoute =
+  | "home"
+  | "next"
+  | "slayer"
+  | "dps"
+  | "bank"
+  | "goals"
+  | "profile"
+  | "plugin";
+
+/**
+ * How long ago this browser last opened this same route. Derived from a
+ * per-route timestamp in localStorage — no RSN, no server state, nothing that
+ * identifies a person. "returning_7d" is the number that matters: a planner
+ * people come back to within a week is a habit, one they do not is a tool.
+ */
+export type AnalyticsVisitor = "first" | "returning_7d" | "returning_later";
+
 export type AnalyticsContext =
   | "public_stats"
   | "bank"
@@ -71,6 +90,19 @@ export interface AnalyticsEventMap {
     hasBank: boolean;
     hasRunelite: boolean;
     hasTripHistory: boolean;
+  };
+  /** Fired once per route per page view. The denominator for return rate. */
+  "route:visit": {
+    route: AnalyticsRoute;
+    visitor: AnalyticsVisitor;
+    context: AnalyticsContext;
+  };
+  /** Fired at most once per route visit, when the player does something
+   *  beyond arriving. A visit without one of these is a bounce. */
+  "route:engaged": {
+    route: AnalyticsRoute;
+    visitor: AnalyticsVisitor;
+    action: string;
   };
   "timeline:viewed": {
     hasProgress: boolean;
@@ -150,6 +182,8 @@ const EVENT_KEYS = {
   "bank:attached": ["source", "linkedToAccount"],
   "bank:refreshed": ["source", "linkedToAccount"],
   "return:visit": ["hasBank", "hasRunelite", "hasTripHistory"],
+  "route:visit": ["route", "visitor", "context"],
+  "route:engaged": ["route", "visitor", "action"],
   "timeline:viewed": ["hasProgress", "hasBankUpdate", "hasRuneliteProgress", "momentCount"],
   "reminder:created": ["source", "goalKind", "delivery"],
   "reminder:cancelled": ["source"],
@@ -181,6 +215,8 @@ const REQUIRED_KEYS: { [E in AnalyticsEvent]: readonly (keyof AnalyticsEventMap[
   "bank:attached": EVENT_KEYS["bank:attached"],
   "bank:refreshed": EVENT_KEYS["bank:refreshed"],
   "return:visit": EVENT_KEYS["return:visit"],
+  "route:visit": EVENT_KEYS["route:visit"],
+  "route:engaged": EVENT_KEYS["route:engaged"],
   "timeline:viewed": EVENT_KEYS["timeline:viewed"],
   "reminder:created": EVENT_KEYS["reminder:created"],
   "reminder:cancelled": EVENT_KEYS["reminder:cancelled"],
@@ -214,6 +250,16 @@ const ENUM_VALUES: Partial<Record<AnalyticsEvent, Record<string, readonly Primit
   "reminder:cancelled": { source: ["return_recap"] },
   "reminder:opened": { source: ["return_recap"] },
   "outcome:viewed": { status: ["completed", "progressed", "contradicted"] },
+  "route:visit": {
+    route: ["home", "next", "slayer", "dps", "bank", "goals", "profile", "plugin"],
+    visitor: ["first", "returning_7d", "returning_later"],
+    context: ["public_stats", "bank", "runelite", "bank_runelite", "sample"]
+  },
+  "route:engaged": {
+    route: ["home", "next", "slayer", "dps", "bank", "goals", "profile", "plugin"],
+    visitor: ["first", "returning_7d", "returning_later"],
+    action: ["plan_rendered", "rsn_submitted", "mood_changed", "boss_opened", "bank_attached", "task_checked", "sync_checked"]
+  },
   "boss:opened": { source: ["next", "check_kill"] },
   "boss:loadout_used": { source: ["next", "check_kill"], action: ["copy_runelite_tab"] }
 };

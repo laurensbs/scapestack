@@ -25,6 +25,7 @@ import type { HoursToMaxSummary } from "@/lib/hours-to-max";
 import { getActiveAccount, markAccountPluginBankStatus, markAccountRuneliteProgress, markAccountTrip } from "@/lib/account-storage";
 import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
 import { track, type AnalyticsContext } from "@/lib/analytics";
+import { trackRouteEngagement } from "@/lib/route-engagement";
 import type { Recommendation, RecKind, NextUpResult, NextBestAction } from "@/lib/next-up";
 import type { PlanningContextPayload } from "@/lib/planning-context";
 import { buildNextUpInputFromSources } from "@/lib/planning-input";
@@ -448,6 +449,7 @@ export function NextClient({
       hasBank: hasSubmittedBank
     });
     if (hasSubmittedRsn) {
+      trackRouteEngagement("rsn_submitted");
       track("rsn:submitted", {
         source: submitSource,
         context: hasSubmittedBank ? "bank" : "public_stats",
@@ -4949,6 +4951,7 @@ function WhatToDo({
   useEffect(() => {
     if (!activePick) return;
     const props = recommendationAnalytics(activePick.headline);
+    trackRouteEngagement("plan_rendered");
     track("plan:first_rendered", props, {
       dedupeKey: `plan:${planRequestedAt ?? "unknown"}:${activePick.headline.id}`
     });
@@ -4959,6 +4962,7 @@ function WhatToDo({
 
   useEffect(() => {
     if (!routeIntent && !initialRouteChoice) return;
+    trackRouteEngagement("mood_changed");
     track("mood:changed", {
       mood,
       sessionMinutes: minutes,

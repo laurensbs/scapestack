@@ -29,6 +29,37 @@ an analytics vendor.
 | Reject | `recommendation:skipped` | The player rejected it with a structured reason. |
 | Explore | `recommendation:another` | The player requested a different route. |
 
+## Return behaviour
+
+One question: **which route brings a player back?** It exists because the
+product is built around "what should I do next?", a question a player asks a
+few times a year, while "is this Slayer task worth it?" is asked several times
+a session. That reasoning is sound but unmeasured, and rebuilding on an
+unmeasured hunch is expensive.
+
+| Event | Meaning |
+| --- | --- |
+| `route:visit` | A tool route was opened. Once per arrival. The denominator. |
+| `route:engaged` | The player did something on that route. At most once per visit. A visit without one is a bounce. |
+
+`route` is one of `home`, `next`, `slayer`, `dps`, `bank`, `goals`, `profile`,
+`plugin`. `visitor` is `first`, `returning_7d` or `returning_later`.
+
+Recency comes from a per-route timestamp in the visitor's own localStorage —
+no RSN, no server state, nothing that follows anyone between devices. A cleared
+browser reads as a first visit, so the return number is biased low. That is the
+honest direction to be wrong in when the number is being used to justify work.
+
+Engagement reports the bucket recorded when the player *arrived*, not a fresh
+reading. Re-deriving it would call every engaged visit a return, because the
+arrival already wrote the timestamp.
+
+Read the numbers with:
+
+```sh
+PLAUSIBLE_API_KEY=... node scripts/return-report.mjs --days 30
+```
+
 ## Context events
 
 - `bank:attached`, `bank:refreshed`
