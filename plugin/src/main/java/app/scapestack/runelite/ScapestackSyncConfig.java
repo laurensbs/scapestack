@@ -11,7 +11,7 @@ public interface ScapestackSyncConfig extends Config {
     @ConfigItem(
         keyName = "syncNow",
         name = "Sync now",
-        description = "Refresh your ScapeStack planner now."
+        description = "Refresh your Scapestack planner now."
     )
     default boolean syncNow() {
         return false;
@@ -33,7 +33,7 @@ public interface ScapestackSyncConfig extends Config {
     @ConfigItem(
         keyName = "autoSyncIntervalMinutes",
         name = "Refresh every",
-        description = "When Sync on login is on, refresh ScapeStack quietly while you play."
+        description = "When Sync on login is on, refresh Scapestack quietly while you play."
     )
     default int autoSyncIntervalMinutes() {
         return 15;
@@ -51,7 +51,7 @@ public interface ScapestackSyncConfig extends Config {
     @ConfigItem(
         keyName = "syncOnQuestComplete",
         name = "Refresh after quests",
-        description = "Refreshes ScapeStack after a quest completion. Requires Sync on login."
+        description = "Refreshes Scapestack after a quest completion. Requires Sync on login."
     )
     default boolean syncOnQuestComplete() {
         return false;
@@ -69,7 +69,7 @@ public interface ScapestackSyncConfig extends Config {
     @ConfigItem(
         keyName = "chatFeedback",
         name = "Compact chat updates",
-        description = "Show short RuneLite chat updates when ScapeStack checks your progress or needs attention."
+        description = "Show short RuneLite chat updates when Scapestack checks your progress or needs attention."
     )
     default boolean chatFeedback() {
         return true;

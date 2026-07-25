@@ -142,7 +142,7 @@ final class ScapestackSyncPanel extends PluginPanel {
 
     private JPanel header() {
         JPanel panel = card();
-        panel.add(title("ScapeStack Sync"));
+        panel.add(title("Scapestack Sync"));
         panel.add(copy("Keeps your OSRS planner current from RuneLite."));
         return panel;
     }
@@ -245,9 +245,14 @@ final class ScapestackSyncPanel extends PluginPanel {
     private JPanel troubleshootingCard() {
         JPanel wrapper = card();
         JButton toggle = secondaryButton("Troubleshooting");
-        troubleshootingBody.add(copy("If bank checks are empty, open your bank once and sync again."));
-        troubleshootingBody.add(copy("If Collection Log is missing, open it once, then sync again."));
-        troubleshootingBody.add(copy("If sync is rejected, use Reconnect player, then Sync now."));
+        // These used to be three conditional workarounds the player had to
+        // match against their own situation. Scapestack already knows which
+        // one applies — it receives per-domain coverage on every sync and says
+        // so on the page, at the moment it matters. Point there instead of
+        // making the player diagnose the plugin.
+        troubleshootingBody.add(copy("Scapestack shows what it could and could not read on your plan page."));
+        troubleshootingBody.add(copy("Open scapestack.org/plugin for the current state of this install."));
+        troubleshootingBody.add(copy("Changed your RSN? Turn on Reconnect player, then sync once."));
         troubleshootingBody.setVisible(false);
         toggle.addActionListener(e -> {
             troubleshootingBody.setVisible(!troubleshootingBody.isVisible());

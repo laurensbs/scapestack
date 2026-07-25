@@ -46,9 +46,9 @@ public class ScapestackSyncConfigTest {
             .getAnnotation(ConfigItem.class)
             .description();
 
-        assertTrue(syncNowDescription.contains("Refresh your ScapeStack planner now"));
+        assertTrue(syncNowDescription.contains("Refresh your Scapestack planner now"));
         assertTrue(autoSyncDescription.contains("account mode, skills, XP, quests, diaries, boss KC RuneLite has seen, Slayer task and bank items"));
-        assertTrue(intervalDescription.contains("refresh ScapeStack quietly while you play"));
+        assertTrue(intervalDescription.contains("refresh Scapestack quietly while you play"));
         assertTrue(bankSyncDescription.contains("Includes bank item names, IDs and quantities"));
         assertTrue(bankSyncDescription.contains("Turn off if you only want progress sync"));
         assertTrue(bankSyncDescription.contains("Never sends inventory, equipment, chat, screenshots or login details"));

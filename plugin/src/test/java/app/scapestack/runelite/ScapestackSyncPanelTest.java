@@ -18,7 +18,7 @@ public class ScapestackSyncPanelTest {
             StandardCharsets.UTF_8
         );
 
-        assertTrue(source.contains("ScapeStack Sync"));
+        assertTrue(source.contains("Scapestack Sync"));
         assertTrue(source.contains("Keeps your OSRS planner current from RuneLite."));
         assertTrue(source.contains("Sync now"));
         assertTrue(source.contains("Account mode"));
