@@ -74,6 +74,11 @@ SELECT rsn, rsn, claimed_at, last_used_at
 FROM player_claim
 ON CONFLICT (rsn) DO NOTHING;
 ALTER TABLE player_claim ADD COLUMN IF NOT EXISTS account_id UUID;
+-- RuneLite's account hash is stable per OSRS account and survives a name
+-- change, which is the only way to tell "this player renamed" apart from
+-- "this player logged into their other character on the same install".
+-- Nullable: plugin builds before 0.4.0 do not send it.
+ALTER TABLE player_claim ADD COLUMN IF NOT EXISTS account_hash TEXT;
 UPDATE player_claim claim
 SET account_id = identity.account_id
 FROM account_identity identity

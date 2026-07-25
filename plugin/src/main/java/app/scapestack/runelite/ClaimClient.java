@@ -42,12 +42,32 @@ public final class ClaimClient {
      * the trailing /sync with /sync/claim — keeps one config field.
      */
     public boolean claim(String claimUrl, String rsn, String token, String userAgent) {
-        return claim(claimUrl, rsn, token, userAgent, null);
+        return claim(claimUrl, rsn, token, userAgent, null, null);
+    }
+
+    public boolean claim(String claimUrl, String rsn, String token, String userAgent, String accountHash) {
+        return claim(claimUrl, rsn, token, userAgent, null, accountHash);
     }
 
     boolean claim(String claimUrl, String rsn, String token, String userAgent, Consumer<Call> activeCall) {
+        return claim(claimUrl, rsn, token, userAgent, activeCall, null);
+    }
+
+    /**
+     * The account hash is RuneLite's stable per-OSRS-account identifier. It is
+     * the only thing that tells the server "this player renamed" apart from
+     * "this player logged into their other character on the same install" —
+     * the install token looks identical in both cases. Without it the server
+     * used to treat every account switch as a rename and move the other
+     * character's history onto the new name.
+     */
+    boolean claim(String claimUrl, String rsn, String token, String userAgent,
+                  Consumer<Call> activeCall, String accountHash) {
         JsonObject body = new JsonObject();
         body.addProperty("rsn", rsn);
+        if (accountHash != null && !accountHash.isBlank()) {
+            body.addProperty("accountHash", accountHash);
+        }
 
         try {
             Request req = new Request.Builder()

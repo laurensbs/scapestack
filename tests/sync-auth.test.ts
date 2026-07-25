@@ -19,7 +19,12 @@ const dbState: {
   updatedRsns: string[];            // captured by UPDATE last_used_at
   conflictOnInsert: boolean;        // simulate "row already existed"
   tokenBindingRsn: string | null;
+  /** Account hash stored against tokenBindingRsn. Only an exact match makes
+   *  the rename migration eligible. */
+  tokenBindingAccountHash: string | null;
   migrated: boolean;
+  insertedAccountHashes: (string | null)[];
+  accountHashUpdates: string[];
 } = {
   hasDb: true,
   rows: [],
@@ -27,39 +32,53 @@ const dbState: {
   updatedRsns: [],
   conflictOnInsert: false,
   tokenBindingRsn: null,
+  tokenBindingAccountHash: null,
   migrated: false,
+  insertedAccountHashes: [],
+  accountHashUpdates: [],
 };
 
 // Build a tagged-template stub that pattern-matches on the first SQL
 // fragment to decide which behaviour to apply.
 function sqlTag(strings: TemplateStringsArray, ...vals: unknown[]): unknown {
-  const head = strings[0] ?? "";
-  const query = strings.join(" ");
-  if (/WITH source_claim/i.test(head)) {
+  // Collapse whitespace so multi-line SQL matches the same way single-line did.
+  const flat = strings.join(" ").replace(/\s+/g, " ").trim();
+  if (/WITH source_claim/i.test(flat)) {
     dbState.migrated = true;
     return Promise.resolve([{ migrated: true }]);
   }
-  if (/SELECT rsn, token_hash FROM player_claim WHERE token_hash/i.test(query)) {
-    return Promise.resolve(dbState.tokenBindingRsn
+  if (/SELECT rsn, token_hash FROM player_claim WHERE token_hash/i.test(flat)) {
+    // The real query filters on account_hash too; only answer when the caller
+    // supplied the hash this binding was recorded with.
+    const wantsAccountHash = /account_hash/i.test(flat);
+    const suppliedAccountHash = wantsAccountHash ? String(vals[1]) : null;
+    const matches = dbState.tokenBindingRsn
+      && (!wantsAccountHash || suppliedAccountHash === dbState.tokenBindingAccountHash);
+    return Promise.resolve(matches
       ? [{ rsn: dbState.tokenBindingRsn, token_hash: String(vals[0]) }]
       : []);
   }
-  if (/INSERT INTO player_claim/i.test(head)) {
-    // values = [rsn, hash]; only record the hash if no conflict.
+  if (/INSERT INTO player_claim/i.test(flat)) {
+    // values = [rsn, hash, accountHash]
     if (!dbState.conflictOnInsert) {
       dbState.insertedHashes.push(String(vals[1]));
+      dbState.insertedAccountHashes.push(vals[2] == null ? null : String(vals[2]));
       dbState.rows = [{ token_hash: String(vals[1]) }];
     }
     return Promise.resolve([]);
   }
-  if (/SELECT token_hash FROM player_claim/i.test(head)) {
+  if (/UPDATE player_claim SET account_hash/i.test(flat)) {
+    dbState.accountHashUpdates.push(String(vals[0]));
+    return Promise.resolve([]);
+  }
+  if (/SELECT token_hash FROM player_claim/i.test(flat)) {
     return Promise.resolve(dbState.rows);
   }
-  if (/UPDATE player_claim SET last_used_at/i.test(head)) {
+  if (/UPDATE player_claim SET last_used_at/i.test(flat)) {
     dbState.updatedRsns.push(String(vals[0]));
     return Promise.resolve([]);
   }
-  throw new Error(`Unexpected SQL in test: ${head.slice(0, 80)}`);
+  throw new Error(`Unexpected SQL in test: ${flat.slice(0, 90)}`);
 }
 
 vi.mock("@/lib/db", () => ({
@@ -74,7 +93,10 @@ beforeEach(() => {
   dbState.updatedRsns = [];
   dbState.conflictOnInsert = false;
   dbState.tokenBindingRsn = null;
+  dbState.tokenBindingAccountHash = null;
   dbState.migrated = false;
+  dbState.insertedAccountHashes = [];
+  dbState.accountHashUpdates = [];
 });
 
 // Lazy-import after the mock is registered.
@@ -223,16 +245,61 @@ describe("recordClaim", () => {
     expect(r.ok).toBe(true);
   });
 
-  it("moves the existing account identity when the same install changes RSN", async () => {
+  it("moves the existing account identity when the same OSRS account changes RSN", async () => {
     const { recordClaim } = await loadAuth();
     dbState.rows = [];
     dbState.tokenBindingRsn = "old titan";
+    dbState.tokenBindingAccountHash = "7788990011";
 
-    const result = await recordClaim("New Titan", "11111111-2222-3333-4444-555555555555");
+    // Same account hash as the existing binding: this really is a rename.
+    const result = await recordClaim("New Titan", "11111111-2222-3333-4444-555555555555", "7788990011");
 
     expect(result.ok).toBe(true);
     expect(dbState.migrated).toBe(true);
     expect(dbState.insertedHashes).toEqual([]);
+  });
+
+  it("gives a second character on the same install its own claim instead of a migration", async () => {
+    // The regression this models: main + ironman on one RuneLite install.
+    // Treating the switch as a rename used to move the main's history onto
+    // the ironman and drop the main's synced snapshot.
+    const { recordClaim } = await loadAuth();
+    dbState.rows = [];
+    dbState.tokenBindingRsn = "my main";
+    dbState.tokenBindingAccountHash = "1111111111";
+
+    const result = await recordClaim("My Ironman", "11111111-2222-3333-4444-555555555555", "2222222222");
+
+    expect(result.ok).toBe(true);
+    expect(dbState.migrated).toBe(false);
+    expect(dbState.insertedHashes.length).toBe(1);
+    expect(dbState.insertedAccountHashes).toEqual(["2222222222"]);
+  });
+
+  it("never migrates when the plugin is too old to send an account hash", async () => {
+    // Published plugin 0.3.0 sends no accountHash. Without that proof the
+    // safe reading of "same token, different name" is a second character.
+    const { recordClaim } = await loadAuth();
+    dbState.rows = [];
+    dbState.tokenBindingRsn = "my main";
+    dbState.tokenBindingAccountHash = null;
+
+    const result = await recordClaim("My Ironman", "11111111-2222-3333-4444-555555555555");
+
+    expect(result.ok).toBe(true);
+    expect(dbState.migrated).toBe(false);
+    expect(dbState.insertedAccountHashes).toEqual([null]);
+  });
+
+  it("backfills the account hash on a claim it already holds", async () => {
+    const { recordClaim, __test } = await loadAuth();
+    const token = "11111111-2222-3333-4444-555555555555";
+    dbState.rows = [{ token_hash: __test.hashToken(token) }];
+
+    const result = await recordClaim("Lynx Titan", token, "5550001111");
+
+    expect(result.ok).toBe(true);
+    expect(dbState.accountHashUpdates).toEqual(["5550001111"]);
   });
 });
 
