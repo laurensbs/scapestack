@@ -90,6 +90,11 @@ export interface DiaryRequirementContext {
   completedDiaryTiers?: Iterable<string | { region: string; tier: DiaryTier | string }>;
   bankItems?: QuestBankItem[];
   accountType?: PlannerAccountType | null;
+  /** Quest titles the app can actually verify, from the quest database.
+   *  Derived diary quest gates are enforced only when they resolve to one of
+   *  these, so a Wiki string we cannot match never becomes a permanent
+   *  blocker. Omit to skip derived gates entirely. */
+  knownQuestNames?: Iterable<string>;
 }
 
 interface DiaryTierOverride {
@@ -559,6 +564,54 @@ export function diaryTripDecision(evaluation: DiaryRequirementEvaluation): Requi
   };
 }
 
+/**
+ * Quest gates that the Wiki records on individual diary tasks.
+ *
+ * DIARY_TIER_OVERRIDES only carries hand-written quest requirements for a
+ * handful of tiers, so most quest-gated tiers were reported as reachable on
+ * skill levels alone — Western Provinces Elite read as ready without Regicide.
+ * The requirement is already in the task data as free text ("Quest Completion
+ * of Regicide"), so derive it instead of maintaining a second list by hand.
+ */
+function questNamesFromTierTasks(
+  tierData: { tasks?: Array<{ requirements?: string[] }> } | undefined,
+  knownQuestNames: Set<string> | null
+): string[] {
+  if (!knownQuestNames) return [];
+  const names = new Set<string>();
+  for (const task of tierData?.tasks ?? []) {
+    for (const requirement of task.requirements ?? []) {
+      const match = /^\s*Quest Completion of\s+(.+?)\s*$/i.exec(requirement);
+      const name = match?.[1];
+      if (!name || !isSingleQuestTitle(name)) continue;
+      // Must resolve to a real quest. Miniquests the Wiki names differently
+      // from the quest database ("Mage Arena I" vs "The Mage Arena") would
+      // otherwise be missing forever and block the tier permanently.
+      if (!knownQuestNames.has(cleanName(name))) continue;
+      names.add(name);
+    }
+  }
+  return [...names];
+}
+
+/**
+ * Roughly a third of these strings are prose, not a quest title: "The Knight's
+ * Sword and Doric's Quest", "all quests", "Jungle Potion, and either completion
+ * of Shilo Village or items for Tai Bwo Wannai Cleanup". None of those can ever
+ * match a completed-quest set, so enforcing them would permanently block tiers
+ * the player can actually do — the same class of mistake as recommending
+ * content they cannot reach, just failing silently instead of loudly.
+ *
+ * Only single, unqualified titles are enforced. The rest still reach the player
+ * through the per-task requirement lines, which are shown as written.
+ */
+function isSingleQuestTitle(value: string): boolean {
+  if (value.length > 60) return false;
+  if (/[,(]/.test(value)) return false;
+  if (/\b(?:and|or|either|partial|unless|all quests|subquest)\b/i.test(value)) return false;
+  return true;
+}
+
 export function evaluateDiaryTier(
   region: string,
   tier: DiaryTier,
@@ -591,11 +644,26 @@ export function evaluateDiaryTier(
     return { tier: previous, met };
   });
 
-  const questRequirements = (override?.questRequirements ?? []).map((name) => {
-    const met = completedQuests.has(cleanName(name));
-    requirementSummary(name, met, completedRequirements, missingRequirements);
-    return { name, met };
-  });
+  // Hand-written overrides first, then anything the task data reveals. The
+  // union is deduplicated on the cleaned name so a tier listed in both places
+  // is not reported twice.
+  const knownQuestNames = context.knownQuestNames
+    ? new Set([...context.knownQuestNames].map(cleanName))
+    : null;
+  const derivedQuestNames = questNamesFromTierTasks(diary.tiers?.[tier], knownQuestNames);
+  const seenQuestNames = new Set<string>();
+  const questRequirements = [...(override?.questRequirements ?? []), ...derivedQuestNames]
+    .filter((name) => {
+      const key = cleanName(name);
+      if (seenQuestNames.has(key)) return false;
+      seenQuestNames.add(key);
+      return true;
+    })
+    .map((name) => {
+      const met = completedQuests.has(cleanName(name));
+      requirementSummary(name, met, completedRequirements, missingRequirements);
+      return { name, met };
+    });
 
   const itemRequirements = (override?.itemRequirements ?? []).map((req) =>
     evaluateItemRequirement(req, bankItems, bankChecked, accountType, completedRequirements, missingRequirements)
