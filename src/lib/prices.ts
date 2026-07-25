@@ -3,7 +3,8 @@
 // have stale data, fall back to it instead of breaking organize.
 
 const URL = "https://prices.runescape.wiki/api/v1/osrs/latest";
-const USER_AGENT = "osrs-bank-organizer/0.2 - personal project";
+// The Wiki asks callers to identify themselves with a contactable source.
+const USER_AGENT = "scapestack/0.3 - https://www.scapestack.org";
 const TTL_MS = 60 * 60 * 1000;
 
 let cache: { fetchedAt: number; prices: Map<number, number> } | null = null;

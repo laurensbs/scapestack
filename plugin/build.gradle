@@ -107,6 +107,15 @@ task runClient(type: JavaExec) {
         executable = project.property('runeliteJava')
     }
     systemProperty 'runelite.pluginhub.version', project.version
+    // -D on the gradle command line reaches the Gradle daemon, not this forked
+    // JVM, so the documented dev override has to be handed through explicitly:
+    //   ./gradlew runClient -Dscapestack.syncUrl=http://127.0.0.1:4173/api/sync
+    // Also accept -PscapestackSyncUrl=... for the Gradle-native spelling.
+    def devSyncUrl = System.getProperty('scapestack.syncUrl')
+        ?: (project.hasProperty('scapestackSyncUrl') ? project.property('scapestackSyncUrl') : null)
+    if (devSyncUrl) {
+        systemProperty 'scapestack.syncUrl', devSyncUrl
+    }
 }
 
 test {

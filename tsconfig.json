@@ -37,7 +37,6 @@
   ],
   "exclude": [
     "node_modules",
-    "_rebuild_dup",
-    "_legacy"
+    "_archive"
   ]
 }

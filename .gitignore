@@ -11,10 +11,11 @@ dist
 # runs (.next/dev/types vs .next/types). Tracking it causes endless diffs.
 next-env.d.ts
 
-# Old / duplicate working copies — kept locally, never published.
-_legacy/
-_rebuild/
-_rebuild_dup/
+# Old working copies — kept locally, never published. See _archive/README.md.
+_archive/
+
+# Machine-specific Claude Code permissions. launch.json IS shared.
+.claude/settings.local.json
 .vercel
 .artifacts/
 test-results/

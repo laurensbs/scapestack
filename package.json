@@ -1,7 +1,7 @@
 {
-  "name": "osrs-bank-organizer",
+  "name": "scapestack",
   "version": "0.3.0",
-  "description": "Smart OSRS bank auto-organizer with RuneLite Bank Tags + Bank Memory support",
+  "description": "OSRS session planner — one clear trip, gear from your bank, RuneLite-aware so it skips what you already finished",
   "private": true,
   "type": "module",
   "scripts": {
