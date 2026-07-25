@@ -149,7 +149,6 @@ describe("end-to-end syncflow regression contracts", () => {
       },
       syncedSources: {
         wom: true,
-        temple: false,
         collectionLog: false,
         scapestack: {
           syncedAt: "2026-07-08T12:55:00.000Z",

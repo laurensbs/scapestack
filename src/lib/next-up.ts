@@ -1100,9 +1100,7 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
 
   const completedQuestNames = input.scapestackSync?.questsCompleted
     ? new Set(input.scapestackSync.questsCompleted.map((q) => q.toLowerCase()))
-    : input.templeQuestsCompleted
-      ? new Set(input.templeQuestsCompleted.map((q) => q.toLowerCase()))
-      : undefined;
+    : undefined;
   const completedDiaryTierKeys = input.scapestackSync?.diariesCompleted
     ? new Set(input.scapestackSync.diariesCompleted.map((d) => diaryTierKey(d.region, d.tier)))
     : undefined;
@@ -1229,9 +1227,6 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     questPoints: qp,
     womBossKills: input.womBossKills,
     accountMeta,
-    templeQuestsCompleted: input.templeQuestsCompleted
-      ? new Set(input.templeQuestsCompleted)
-      : undefined,
     collectionLogOwnedItemIds: clOwned,
     scapestackSync: input.scapestackSync ? {
       questsCompleted: input.scapestackSync.questsCompleted

@@ -10,7 +10,6 @@ interface PlanningInputSources {
   rsn: string;
   hiscores: PlayerHiscores | null;
   wom: WomPlayer | null;
-  templeQuestsCompleted?: string[];
   collectionLogOwnedItemIds?: number[];
   scapestackSync: SyncedPlayer | null;
   bankOverride?: NextUpInput["bank"];
@@ -104,7 +103,6 @@ export function buildNextUpInputFromSources(sources: PlanningInputSources): Next
     bossKc,
     womBossKills: wom?.bossKills,
     accountMeta,
-    templeQuestsCompleted: sources.templeQuestsCompleted,
     collectionLogOwnedItemIds: sources.collectionLogOwnedItemIds,
     scapestackSync: scapestackSync
       ? {
@@ -126,7 +124,6 @@ export function buildNextUpInputFromSources(sources: PlanningInputSources): Next
       : undefined,
     syncedSources: {
       wom: wom !== null,
-      temple: sources.templeQuestsCompleted !== undefined,
       collectionLog: sources.collectionLogOwnedItemIds !== undefined,
       scapestack: scapestackSync
         ? {

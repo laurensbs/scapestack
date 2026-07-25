@@ -76,13 +76,6 @@ function SyncedBadge({ data }: { data: PathOverviewData }) {
       primary: !plugin
     });
   }
-  if (synced?.temple) {
-    sources.push({
-      name: "Temple quests",
-      url: `https://templeosrs.com/player/quests.php?player=${encodeURIComponent(meta?.displayName ?? "")}`,
-      primary: false
-    });
-  }
   if (synced?.collectionLog) {
     sources.push({
       name: "Collection log",

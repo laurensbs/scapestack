@@ -8,7 +8,6 @@ const nextPage = readFileSync(join(process.cwd(), "src/app/next/page.tsx"), "utf
 const planningContext = readFileSync(join(process.cwd(), "src/lib/planning-context.ts"), "utf8");
 const home = readFileSync(join(process.cwd(), "src/app/page.tsx"), "utf8");
 const wom = readFileSync(join(process.cwd(), "src/lib/wom.ts"), "utf8");
-const temple = readFileSync(join(process.cwd(), "src/lib/temple.ts"), "utf8");
 const collectionLog = readFileSync(join(process.cwd(), "src/lib/collection-log.ts"), "utf8");
 
 describe("first plan latency contract", () => {
@@ -26,7 +25,10 @@ describe("first plan latency contract", () => {
     expect(planningContext).toContain("scapestackHandoffRetry: 1_200");
     expect(planningContext).toContain("hiscores: 900");
     expect(planningContext).toContain("wom: 300");
-    expect(planningContext).toContain("temple: 300");
+    // TempleOSRS is gone: player_quests.php 404s for every player, and the
+    // bounded source spent ~300ms of a ~315ms render waiting for it. No new
+    // optional source may reintroduce that cost silently.
+    expect(planningContext).not.toContain("temple");
     expect(planningContext).toContain("collectionLog: 300");
     expect(planningContext).toContain('"scapestack",\n    PLANNING_SOURCE_DEADLINES_MS.scapestack');
     expect(planningContext).toContain('"scapestack_retry",\n    PLANNING_SOURCE_DEADLINES_MS.scapestackHandoffRetry');
@@ -48,7 +50,7 @@ describe("first plan latency contract", () => {
   });
 
   it("passes abort signals to every optional HTTP source", () => {
-    for (const source of [wom, temple, collectionLog]) {
+    for (const source of [wom, collectionLog]) {
       expect(source).toContain("signal?: AbortSignal");
       expect(source).toContain("signal: options.signal");
     }

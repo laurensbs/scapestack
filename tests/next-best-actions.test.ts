@@ -43,7 +43,15 @@ describe("next best actions", () => {
   it("uses bank contents to recommend collecting the remaining quest items", async () => {
     const result = await computeNextUp({
       skills: skillsFromLevels({ Woodcutting: 35, Ranged: 30, Crafting: 19, Slayer: 18 }),
-      templeQuestsCompleted: ["The Restless Ghost", "Ernest the Chicken", "Priest in Peril"],
+      // Animal Magnetism's prerequisites, supplied through the plugin now that
+      // TempleOSRS is gone. Same guarantee, one remaining exact source.
+      scapestackSync: {
+        displayName: "Synced",
+        accountType: "normal",
+        questsCompleted: ["The Restless Ghost", "Ernest the Chicken", "Priest in Peril"],
+        diariesCompleted: [],
+        collectionLogItemIds: []
+      },
       bank: [
         { id: 1355, name: "Mithril axe", quantity: 1 },
         { id: 2351, name: "Iron bar", quantity: 5 },
@@ -57,9 +65,15 @@ describe("next best actions", () => {
 
     expect(action).toMatchObject({
       kind: "collect-items",
-      relevantQuestOrUnlock: "Ava's device",
-      missingRequirements: expect.arrayContaining(["20x ecto-token", "Holy symbol", "Polished buttons"])
+      relevantQuestOrUnlock: "Ava's device"
     });
+    // Assert the substance, not the phrasing: the wording follows the evidence
+    // type (RuneLite vs tracker), so pinning exact strings makes this test
+    // break on a source change rather than on a behaviour change.
+    const missing = action?.missingRequirements.join(" ").toLowerCase() ?? "";
+    for (const item of ["ecto-token", "holy symbol", "polished buttons"]) {
+      expect(missing, item).toContain(item);
+    }
     expect(action?.requiredItems.join(" ")).toContain("Mithril axe");
   });
 
@@ -103,7 +117,6 @@ describe("next best actions", () => {
   it("adds accounttype warnings to iron-sensitive item actions", async () => {
     const result = await computeNextUp({
       skills: skillsFromLevels({ Woodcutting: 35, Ranged: 30, Crafting: 19, Slayer: 18 }),
-      templeQuestsCompleted: ["The Restless Ghost", "Ernest the Chicken", "Priest in Peril"],
       bank: [],
       scapestackSync: {
         accountType: "ultimate_ironman",
@@ -214,7 +227,6 @@ describe("next best actions", () => {
   it("uses Karamja gloves language for Karamja diary routes", async () => {
     const result = await computeNextUp({
       skills: skillsFromLevels({}),
-      templeQuestsCompleted: ["Shilo Village", "Tai Bwo Wannai Trio"],
       bank: [
         { id: 954, name: "Rope", quantity: 1 },
         { id: 995, name: "Coins", quantity: 1000 },

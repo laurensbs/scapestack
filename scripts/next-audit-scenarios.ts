@@ -386,7 +386,6 @@ export const NEXT_AUDIT_SCENARIOS: NextAuditScenario[] = [
       },
       syncedSources: {
         wom: false,
-        temple: false,
         collectionLog: false,
         scapestack: {
           syncedAt: "2025-01-01T00:00:00.000Z",

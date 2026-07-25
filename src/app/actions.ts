@@ -6,7 +6,6 @@ import { computeNextUp, type NextUpInput, type NextUpResult } from "@/lib/next-u
 import { fetchHiscores, type PlayerHiscores } from "@/lib/hiscores";
 import { fetchWom, type WomPlayer } from "@/lib/wom";
 import { fetchCollectionLog } from "@/lib/collection-log";
-import { fetchTemple } from "@/lib/temple";
 import { getSyncedPlayer } from "@/lib/sync-repo";
 import { syncedPlayerForViewer, type VisibleSyncedPlayer } from "@/lib/synced-player-visibility";
 import { resolveViewerRsn } from "@/lib/viewer-account";
@@ -15,17 +14,14 @@ import { pluginSyncReceipt, type PluginSyncReceipt } from "@/lib/plugin-sync-rec
 import {
   collectionLogPayload,
   loadPlanningContext,
-  templePayload,
   type CollectionLogPayload,
   type PlanningContextPayload,
-  type TemplePayload
 } from "@/lib/planning-context";
 
 export type {
   CollectionLogPayload,
   PlanningContextPayload,
   PlanningContextTiming,
-  TemplePayload
 } from "@/lib/planning-context";
 
 export async function hiscoresAction(rsn: string): Promise<PlayerHiscores | null> {
@@ -56,13 +52,6 @@ export async function collectionLogAction(rsn: string): Promise<CollectionLogPay
   return collectionLogPayload(await fetchCollectionLog(rsn));
 }
 
-/** Serialisable shape for the same reason as the collection-log payload. */
-export async function templeAction(rsn: string): Promise<TemplePayload | null> {
-  // TempleOSRS tracks per-quest completion for plugin-using accounts.
-  // For Temple-tracked players we use real completion data instead of
-  // the QP-budget heuristic in path-progress.
-  return templePayload(await fetchTemple(rsn));
-}
 
 /** Our own scapestack-plugin sync data. Highest-priority signal — beats
  *  Temple / WOM / cl.net because it's a direct feed from the player's

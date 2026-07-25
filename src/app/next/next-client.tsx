@@ -494,7 +494,6 @@ export function NextClient({
           },
           syncedSources: {
             wom: false,
-            temple: false,
             collectionLog: false,
             scapestack: null
           }
@@ -511,7 +510,6 @@ export function NextClient({
         : null;
       const hiscores = planningContext?.hiscores ?? null;
       const wom = planningContext?.wom ?? null;
-      const temple = planningContext?.temple ?? null;
       const collectionLog = planningContext?.collectionLog ?? null;
       const scapestackSync = planningContext?.scapestackSync ?? null;
       if (planningContext) {
@@ -580,7 +578,6 @@ export function NextClient({
         rsn,
         hiscores,
         wom,
-        templeQuestsCompleted: temple?.questsCompleted,
         collectionLogOwnedItemIds: collectionLog?.ownedItemIds,
         scapestackSync,
         bankOverride: bank

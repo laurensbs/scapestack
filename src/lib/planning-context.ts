@@ -5,7 +5,6 @@ import { computeNextUp, type NextUpResult } from "@/lib/next-up";
 import { buildNextUpInputFromSources } from "@/lib/planning-input";
 import { getSyncedPlayer, type SyncedPlayer } from "@/lib/sync-repo";
 import { syncedPlayerForViewer, type VisibleSyncedPlayer } from "@/lib/synced-player-visibility";
-import { fetchTemple, type TempleData } from "@/lib/temple";
 import { fetchWom, type WomPlayer } from "@/lib/wom";
 
 export const PLANNING_SOURCE_DEADLINES_MS = {
@@ -13,7 +12,6 @@ export const PLANNING_SOURCE_DEADLINES_MS = {
   scapestackHandoffRetry: 1_200,
   hiscores: 900,
   wom: 300,
-  temple: 300,
   collectionLog: 300
 } as const;
 
@@ -47,20 +45,7 @@ export function collectionLogPayload(log: CollectionLog | null): CollectionLogPa
   };
 }
 
-export interface TemplePayload {
-  displayName: string;
-  questsCompleted: string[];
-  lastUpdatedAt: string | null;
-}
 
-export function templePayload(data: TempleData | null): TemplePayload | null {
-  if (!data) return null;
-  return {
-    displayName: data.displayName,
-    questsCompleted: Array.from(data.questsCompleted),
-    lastUpdatedAt: data.lastUpdatedAt
-  };
-}
 
 export interface PlanningContextTiming {
   totalMs: number;
@@ -74,7 +59,6 @@ export interface PlanningContextTiming {
 export interface PlanningContextPayload {
   hiscores: PlayerHiscores | null;
   wom: WomPlayer | null;
-  temple: TemplePayload | null;
   collectionLog: CollectionLogPayload | null;
   /** Redacted for anyone who is not the account owner. See synced-player-visibility.ts. */
   scapestackSync: VisibleSyncedPlayer | null;
@@ -86,7 +70,6 @@ async function computeInitialPlan(input: {
   rsn: string;
   hiscores: PlayerHiscores | null;
   wom: WomPlayer | null;
-  temple: TempleData | null;
   collectionLog: CollectionLog | null;
   scapestackSync: SyncedPlayer | null;
 }): Promise<NextUpResult | null> {
@@ -94,7 +77,6 @@ async function computeInitialPlan(input: {
     rsn: input.rsn,
     hiscores: input.hiscores,
     wom: input.wom,
-    templeQuestsCompleted: input.temple ? Array.from(input.temple.questsCompleted) : undefined,
     collectionLogOwnedItemIds: input.collectionLog ? Array.from(input.collectionLog.ownedItemIds) : undefined,
     scapestackSync: input.scapestackSync
   });
@@ -134,21 +116,19 @@ export async function loadPlanningContext(
   options: PlanningContextOptions = {}
 ): Promise<PlanningContextPayload> {
   const startedAt = performance.now();
-  const [scapestack, hiscores, wom, temple, collectionLog] = await Promise.all([
+  const [scapestack, hiscores, wom, collectionLog] = await Promise.all([
     loadScapestackContext(rsn, options.preferScapestack === true),
     runBoundedSource("hiscores", PLANNING_SOURCE_DEADLINES_MS.hiscores, (signal) => fetchHiscores(rsn, { signal })),
     runBoundedSource("wom", PLANNING_SOURCE_DEADLINES_MS.wom, (signal) => fetchWom(rsn, { signal })),
-    runBoundedSource("temple", PLANNING_SOURCE_DEADLINES_MS.temple, (signal) => fetchTemple(rsn, { signal })),
     runBoundedSource("collection_log", PLANNING_SOURCE_DEADLINES_MS.collectionLog, (signal) => fetchCollectionLog(rsn, { signal }))
   ]);
 
-  const sources = [scapestack.timing, hiscores.timing, wom.timing, temple.timing, collectionLog.timing];
+  const sources = [scapestack.timing, hiscores.timing, wom.timing, collectionLog.timing];
   const plannerStartedAt = performance.now();
   const initialPlan = await computeInitialPlan({
     rsn,
     hiscores: hiscores.value,
     wom: wom.value,
-    temple: temple.value,
     collectionLog: collectionLog.value,
     scapestackSync: scapestack.value
   });
@@ -156,7 +136,7 @@ export async function loadPlanningContext(
   const timing: PlanningContextTiming = {
     totalMs: Math.max(0, Math.round(performance.now() - startedAt)),
     criticalMs: Math.max(scapestack.timing.elapsedMs, hiscores.timing.elapsedMs),
-    optionalMs: Math.max(wom.timing.elapsedMs, temple.timing.elapsedMs, collectionLog.timing.elapsedMs),
+    optionalMs: Math.max(wom.timing.elapsedMs, collectionLog.timing.elapsedMs),
     plannerMs,
     timeoutCount: sources.filter((source) => source.state === "timeout").length,
     sources
@@ -171,7 +151,6 @@ export async function loadPlanningContext(
   return {
     hiscores: hiscores.value,
     wom: wom.value,
-    temple: templePayload(temple.value),
     collectionLog: collectionLogPayload(collectionLog.value),
     scapestackSync: syncedPlayerForViewer(scapestack.value, options.viewerRsn ?? null),
     initialPlan,

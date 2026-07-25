@@ -143,7 +143,7 @@ export function buildPluginPrBodyReplacement(status: PluginHubStatus): string {
     "- Successful sync chat is URL-free and tells the player to open Scapestack /next; the web app still loads verified `/next?rsn=...&source=plugin-sync&bank=none` state.",
     "- `bank=none` is intentional: it prevents stale browser bank reuse after a plugin sync. RuneLite bank sync is loaded from the verified server payload when bank checks are on.",
     "- Players can still paste a bank into the web app separately for prices or manual Bank Tags; that browser-only bank context is never sent to the plugin.",
-    "- While Plugin Hub review is pending, Scapestack still works with Hiscores, bank paste, TempleOSRS, WOM and collectionlog.net.",
+    "- While Plugin Hub review is pending, Scapestack still works with Hiscores, bank paste, WOM and collectionlog.net.",
     "",
     "## Web-app merge contract",
     ...WEB_APP_MERGE_CONTRACT.map((item) => `- ${item}`)

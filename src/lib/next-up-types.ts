@@ -242,10 +242,6 @@ export interface NextUpInput {
   /** WOM-derived account metadata. Drives the 'Synced via WOM' badge
    *  and account-type-aware recommendations. */
   accountMeta?: import("./path-progress").AccountMeta | null;
-  /** TempleOSRS exact-completed quest names (lowercased). When present,
-   *  questsPath uses this for completion-state instead of the QP-budget
-   *  heuristic. */
-  templeQuestsCompleted?: string[];
   /** collectionlog.net owned item IDs (any item with the obtained flag).
    *  Used to skip KC-recs whose iconic drop the player already has —
    *  exact data instead of bank-paste guesswork. */
@@ -278,7 +274,6 @@ export interface NextUpInput {
    *  (freshness + counts), null when the player hasn't installed it. */
   syncedSources?: {
     wom: boolean;
-    temple: boolean;
     collectionLog: boolean;
     scapestack: {
       syncedAt: string;

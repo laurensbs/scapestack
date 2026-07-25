@@ -277,8 +277,8 @@ function questsPath(
   quests: Map<string, QuestRecord>,
   skills: HiscoreSkill[],
   qp: number | null,
-  templeQuestsCompleted?: Set<string>,
-  exactQuestSourceLabel: string = "synced from Temple"
+  exactCompletedQuests?: Set<string>,
+  exactQuestSourceLabel: string = "checked by RuneLite"
 ): PathProgress {
   if (quests.size === 0) {
     return {
@@ -291,11 +291,10 @@ function questsPath(
   const lvl = (name: string) => skills.find((s) => s.name === name)?.level ?? 1;
   const total = quests.size;
 
-  // When Temple has real per-quest completion state we use it directly
-  // — exact, not a guess. Falls through to the QP-budget heuristic
-  // below when Temple has no record for this player.
-  if (templeQuestsCompleted && templeQuestsCompleted.size > 0) {
-    return questsPathFromExactQuests(quests, skills, qp, templeQuestsCompleted, exactQuestSourceLabel);
+  // When we have a real per-quest completion set we use it directly — exact,
+  // not a guess. Falls through to the heuristic below when we do not.
+  if (exactCompletedQuests && exactCompletedQuests.size > 0) {
+    return questsPathFromExactQuests(quests, skills, qp, exactCompletedQuests, exactQuestSourceLabel);
   }
 
   // Dependency-aware heuristic. The old version sorted quests by
@@ -456,13 +455,12 @@ function questsPath(
 // Exact quest path. When a tracker has a real per-quest completion flag we use
 // it instead of guessing. The tagline names the source so the player knows the
 // number is real rather than a heuristic — and it has to name the RIGHT one:
-// this function also serves the RuneLite plugin's own quest list, which used to
-// be credited to Temple.
+// the RuneLite plugin is the only exact source now that TempleOSRS is gone.
 function questsPathFromExactQuests(
   quests: Map<string, QuestRecord>,
   skills: HiscoreSkill[],
   qp: number | null,
-  templeQuests: Set<string>,
+  exactQuests: Set<string>,
   sourceLabel: string
 ): PathProgress {
   const lvl = (name: string) => skills.find((s) => s.name === name)?.level ?? 1;
@@ -471,7 +469,7 @@ function questsPathFromExactQuests(
   let done = 0;
 
   for (const q of quests.values()) {
-    const isDone = templeQuests.has(q.name.toLowerCase());
+    const isDone = exactQuests.has(q.name.toLowerCase());
     if (isDone) done++;
     allSteps.push({
       title: q.name,
@@ -494,7 +492,7 @@ function questsPathFromExactQuests(
       if (skills.length === 0) return false;
       const meets = q.skillReqs.every((r) => lvl(r.skill) >= r.level);
       const qpGate = q.qpReq === 0 || qp === null || qp >= q.qpReq;
-      return meets && qpGate && !templeQuests.has(q.name.toLowerCase());
+      return meets && qpGate && !exactQuests.has(q.name.toLowerCase());
     })
     .sort((a, b) => (difficultyRank[b.difficulty ?? "Intermediate"] ?? 1) -
                      (difficultyRank[a.difficulty ?? "Intermediate"] ?? 1));
@@ -1320,13 +1318,12 @@ export interface PathOverview {
    *  to render the 'Synced via Wise Old Man' badge. */
   accountMeta: AccountMeta | null;
   /** Which external trackers returned data for this player. Drives the
-   *  'Synced via WOM/Temple/CL/Scapestack' badge.
+   *  'Synced via WOM/CL/Scapestack' badge.
    *  scapestack is the live plugin sync — when present we also surface
    *  freshness + counts in the badge ("Synced 2 min ago · N quests…")
    *  so the user knows the plugin is actually working. */
   syncedSources?: {
     wom: boolean;
-    temple: boolean;
     collectionLog: boolean;
     scapestack: {
       syncedAt: string;
@@ -1353,17 +1350,15 @@ export interface ComputePathProgressInput {
    *  Hiscores-only data and don't surface the synced badge. */
   womBossKills?: Record<string, number>;
   accountMeta?: AccountMeta | null;
-  /** Lowercased quest-names from TempleOSRS — exact completion data
-   *  for players who use the Temple plugin. When present, questsPath
+  /** Lowercased quest-names — exact completion data. When present, questsPath
    *  uses these instead of the QP-budget heuristic. */
-  templeQuestsCompleted?: Set<string>;
   /** collectionlog.net owned item-IDs. Used by bossesPath to mark a
    *  boss as 'committed' when the player has any unique drop from it,
    *  even when KC is low. Beats the 50-KC threshold for accuracy. */
   collectionLogOwnedItemIds?: Set<number>;
   /** Our own scapestack-plugin sync data. Highest-priority signal —
    *  exact quest + diary + CL state straight from the game client.
-   *  When present, overrides Temple/cl.net and bypasses heuristics. */
+   *  When present, overrides cl.net and bypasses heuristics. */
   scapestackSync?: {
     questsCompleted?: Set<string>;
     diariesCompleted?: Set<string>; // 'Region:Tier' keys
@@ -1373,7 +1368,6 @@ export interface ComputePathProgressInput {
    *  copy. */
   syncedSources?: {
     wom: boolean;
-    temple: boolean;
     collectionLog: boolean;
     scapestack: {
       syncedAt: string;
@@ -1393,11 +1387,11 @@ export function computePathProgress(input: ComputePathProgressInput): PathOvervi
   // Scapestack-plugin sync has priority — when it's present, the player
   // installed our plugin and the data is authoritative. We merge into
   // the existing maps:
-  //   - quests: scapestack-sync overrides Temple
+  //   - quests: scapestack-sync is the only exact source
   //   - CL items: scapestack-sync merges into the cl.net set
   //   - diaries: only scapestack-sync provides this; otherwise we fall
   //     back to the skill-margin + XP-evidence heuristics
-  const effectiveQuests = input.scapestackSync?.questsCompleted ?? input.templeQuestsCompleted;
+  const effectiveQuests = input.scapestackSync?.questsCompleted;
   const effectiveClItems = input.scapestackSync?.collectionLogItemIds
     ? new Set([
         ...Array.from(input.collectionLogOwnedItemIds ?? []),
@@ -1411,10 +1405,7 @@ export function computePathProgress(input: ComputePathProgressInput): PathOvervi
       input.skills,
       input.questPoints,
       effectiveQuests,
-      // effectiveQuests prefers the plugin's own list over Temple's, so the
-      // label has to follow the same order or the player is told a tracker
-      // they never signed up for read their quest log.
-      input.scapestackSync?.questsCompleted ? "checked by RuneLite" : "synced from Temple"
+      "checked by RuneLite"
     ),
     diariesPath(input.diaries, input.skills, input.scapestackSync?.diariesCompleted),
     bossesPath(input.bossKc, input.skills, input.womBossKills, effectiveClItems)

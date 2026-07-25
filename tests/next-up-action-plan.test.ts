@@ -136,7 +136,6 @@ describe("next-up action plans", () => {
       },
       syncedSources: {
         wom: false,
-        temple: false,
         collectionLog: false,
         scapestack: {
           syncedAt: new Date().toISOString(),
@@ -231,10 +230,18 @@ describe("next-up action plans", () => {
   });
 
   it("does not recommend quests that exact sync data marks complete", async () => {
+    // The exact source used to be TempleOSRS. That endpoint no longer exists,
+    // so the RuneLite plugin is the only one left — the guarantee is the same.
     const result = await computeNextUp({
       skills: skillsAt(99),
       questPoints: 180,
-      templeQuestsCompleted: ["monkey madness ii"]
+      scapestackSync: {
+        displayName: "Synced",
+        accountType: "normal",
+        questsCompleted: ["Monkey Madness II"],
+        diariesCompleted: [],
+        collectionLogItemIds: []
+      }
     });
     const recs = [result.headline, ...result.rest].filter(Boolean);
 
@@ -874,7 +881,6 @@ describe("next-up action plans", () => {
       },
       syncedSources: {
         wom: false,
-        temple: false,
         collectionLog: false,
         scapestack: {
           syncedAt: new Date().toISOString(),
@@ -911,7 +917,6 @@ describe("next-up action plans", () => {
       },
       syncedSources: {
         wom: false,
-        temple: false,
         collectionLog: false,
         scapestack: {
           syncedAt: "2026-06-03T08:00:00.000Z",
@@ -1005,7 +1010,6 @@ describe("next-up action plans", () => {
       },
       syncedSources: {
         wom: false,
-        temple: false,
         collectionLog: false,
         scapestack: {
           syncedAt: "2026-07-15T11:00:00.000Z",
