@@ -83,7 +83,7 @@ export function BossRoster({ onPick }: { onPick: (boss: Boss) => void }) {
           No boss matches “{query.trim()}”.
         </p>
       ) : (
-        <ul className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+        <ul className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {bosses.map((boss) => {
             const requirement = requirementLine(boss);
             return (

@@ -97,7 +97,7 @@ export function GoalRoster({ onPick }: { onPick?: (set: GoalSet) => void }) {
             <h3 className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">
               {group.label}
             </h3>
-            <ul className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+            <ul className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {group.sets.map((set) => {
                 const body = (
                   <>
