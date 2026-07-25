@@ -389,6 +389,10 @@ export function recommendationMoodEligibility(
   if (activeMood === "bossing") {
     const isPvmTask = rec.kind === "slayer" && (rec.routeTags?.includes("pvm") ?? false);
     if (rec.kind !== "boss" && rec.kind !== "kc" && !isPvmTask) violations.push("not-bossing");
+    // A verified setup must always outrank an unverified one, so this stays a
+    // violation rather than becoming a score penalty a high raw score could
+    // outrun. pickForRoute relaxes it only when NOTHING else qualifies — see
+    // RELAXABLE_VIOLATIONS there.
     if (profile.setupConfidence === "unknown") violations.push("setup");
     if (profile.wilderness && profile.setupConfidence !== "verified") violations.push("wilderness");
   }
@@ -413,6 +417,14 @@ export function recommendationMoodEligibility(
 
   return { eligible: violations.length === 0, violations: [...new Set(violations)], profile };
 }
+
+/**
+ * Violations that describe missing evidence rather than a bad fit. When the
+ * strict pass yields nothing, these may be waived so the mood still answers.
+ * Anything with a real cost attached — wilderness risk, a raid, a timebox that
+ * does not fit — is deliberately absent.
+ */
+const RELAXABLE_VIOLATIONS = new Set(["setup"]);
 
 function routeLensMultiplier(rec: Recommendation, lens: RouteLens): number {
   const base = ROUTE_LENS_KIND_WEIGHTS[lens][rec.kind] ?? 1;
@@ -655,11 +667,31 @@ export function pickForRoute(
       acceptedRoute: acceptedRoutes.has(rec.id)
     };
   });
-  const { ranked: scored, traces } = rankRecommendationCandidates(
+  let { ranked: scored, traces } = rankRecommendationCandidates(
     rankingInputs,
     rankingContext,
     recommendationDiversityFamily
   );
+
+  // Second pass. Some violations mean "we cannot prove this is a good idea",
+  // not "this is a bad idea" — an unverified setup is the common one, because
+  // every boss generator reports setupConfidence "unknown" until a bank
+  // exists. Enforcing them strictly emptied the Bossing tile for every account
+  // that had not pasted a bank, even while the planner held good boss trips.
+  //
+  // Relaxing only when the strict pass came back empty keeps the ordering
+  // guarantee intact: a verified setup still beats an unverified one whenever
+  // both are available, because the verified one wins the first pass outright.
+  if (scored.length === 0) {
+    const relaxed = rankingInputs
+      .filter((input) => input.hardViolations.every((violation) => RELAXABLE_VIOLATIONS.has(violation)))
+      .map((input) => ({ ...input, hardViolations: [] }));
+    if (relaxed.length > 0) {
+      const fallback = rankRecommendationCandidates(relaxed, rankingContext, recommendationDiversityFamily);
+      scored = fallback.ranked;
+      traces = [...traces, ...fallback.traces];
+    }
+  }
   if (scored.length === 0) return null;
   const headlinePool = constrainedHeadlinePool(scored, options);
 
