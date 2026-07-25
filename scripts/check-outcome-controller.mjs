@@ -60,9 +60,16 @@ check(
   `only ${controller.authoritativePromptbook} is active (found: ${activeControllers.join(", ") || "none"})`
 );
 
+// Three categories, not two. The strong invariant is above: exactly one file
+// may carry `Status: active execution controller`. This check is the weaker
+// one — every promptbook must be accounted for, so a stale document cannot
+// quietly compete for authority. A reference promptbook claims no authority
+// and supersedes nothing, and before this category existed such a document
+// could not be added at all without lying about one or the other.
 const knownPromptbooks = new Set([
   controller.authoritativePromptbook,
-  ...controller.supersededPromptbooks
+  ...controller.supersededPromptbooks,
+  ...(controller.referencePromptbooks ?? [])
 ]);
 check(
   promptbookFiles.every((file) => knownPromptbooks.has(file)),
