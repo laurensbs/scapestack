@@ -6,6 +6,7 @@ import {
   Edit3, Search, Target, ChevronDown, ArrowRight, CheckCircle2, Circle, ExternalLink, Compass
 } from "lucide-react";
 import { Intake } from "@/components/intake";
+import { GoalRoster } from "@/components/goal-roster";
 import { ItemSprite } from "@/components/item-sprite";
 import { organizeAction } from "@/app/actions";
 import {
@@ -234,6 +235,7 @@ export function GoalsClient() {
           </p>
         </div>
         <Intake onSubmit={run} loading={pending} error={error} askRsn />
+        <GoalRoster />
       </section>
     );
   }

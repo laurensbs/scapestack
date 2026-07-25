@@ -15,6 +15,7 @@ import { decideSlayerTask, type SlayerTaskDecision, type SlayerTaskMood, type Sl
 import { buildSlayerTaskActions } from "@/lib/slayer-task-actions";
 import { MONSTERS_BY_ID } from "@/lib/slayer/monsters";
 import { rankMasters, type PlayerState } from "@/lib/slayer/simulator";
+import { SlayerMasterReference } from "@/components/slayer-master-reference";
 import { resolveSlayerTaskMonsterId } from "@/lib/slayer/task-ids";
 
 const MASTER_QUESTS = [
@@ -208,7 +209,7 @@ export function SlayerClient() {
         </div>
       </details>
 
-      <MasterRoutes masters={masters} />
+      {rsn.trim() ? <MasterRoutes masters={masters} /> : <SlayerMasterReference />}
     </div>
   );
 }
@@ -403,9 +404,9 @@ function NoCurrentTask({
         <p className="mt-2 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
           {unresolvedRemaining > 0
             ? `The previous scan found ${unresolvedRemaining.toLocaleString()} kills left but did not carry the monster name, so Scapestack will not guess the task.`
-            : topMaster
+            : rsn && topMaster
               ? `${topMaster} is the strongest available master from the levels and quests currently known.`
-              : "Scapestack will not invent a live task from levels alone."}
+              : "Scapestack will not name a master before it has seen your levels."}
         </p>
         {rsn && (
           <a href={pluginVerifyUrlForSyncedRsn(rsn, "slayer")} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-lg bg-[var(--color-accent)] px-4 text-[13px] font-black text-[var(--color-bg)]">Check RuneLite <ArrowRight className="size-4" /></a>
