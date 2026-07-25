@@ -15,7 +15,6 @@ import { cn } from "@/lib/utils";
 import { BossDetailModal } from "@/components/boss-detail-modal";
 import { AddBankModal } from "@/components/add-bank-modal";
 import { BossSprite } from "@/components/boss-picker";
-import { BossRoster } from "@/components/boss-roster";
 import { bossFromDpsParam } from "@/lib/dps-route";
 import { bankOrganizerHref } from "@/lib/bank-handoff-url";
 import { getActiveAccount } from "@/lib/account-storage";
@@ -434,7 +433,6 @@ export function DpsClient() {
               setSavedBankRefreshKey((value) => value + 1);
             }}
           />
-          <BossRoster onPick={(boss) => setPendingBossSlug(boss.slug)} />
         </>
       );
     }
@@ -476,7 +474,6 @@ export function DpsClient() {
         />
         <DpsIntakeHero />
         <Intake onSubmit={run} loading={pending} error={error} optional />
-        <BossRoster onPick={(boss) => setPendingBossSlug(boss.slug)} />
       </>
     );
   }

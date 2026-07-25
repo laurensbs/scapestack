@@ -12,6 +12,7 @@
 // The verdict arrives once there is something real to base it on.
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { Search } from "lucide-react";
 import { BOSSES, type Boss } from "@/lib/bosses";
 import { BOSS_ACCESS } from "@/lib/content-access-data";
@@ -37,7 +38,20 @@ function requirementLine(boss: Boss): string | null {
   return gate ? `Combat ${gate}+` : null;
 }
 
-export function BossRoster({ onPick }: { onPick: (boss: Boss) => void }) {
+/**
+ * `onPick` is optional on purpose.
+ *
+ * Rendered inside DpsClient it can drive that component's state, but
+ * dps-client.tsx calls useSearchParams, which excludes everything inside the
+ * page's Suspense boundary from the statically prerendered HTML. The roster
+ * was therefore invisible to anything that does not run JavaScript — the
+ * opposite of why it was added.
+ *
+ * Without a callback the tiles are ordinary links to /dps?boss=<slug>, so the
+ * roster renders on the server, gets crawled, and each boss has a URL worth
+ * sharing.
+ */
+export function BossRoster({ onPick }: { onPick?: (boss: Boss) => void }) {
   const [query, setQuery] = useState("");
 
   const bosses = useMemo(() => {
@@ -88,25 +102,35 @@ export function BossRoster({ onPick }: { onPick: (boss: Boss) => void }) {
             const requirement = requirementLine(boss);
             return (
               <li key={boss.slug}>
-                <button
-                  type="button"
-                  onClick={() => onPick(boss)}
-                  className="flex h-full w-full items-center gap-2.5 rounded-xl border border-[var(--color-accent)]/15 bg-[var(--color-bg)]/40 px-3 py-2.5 text-left transition-all hover:border-[var(--color-accent)]/45 hover:bg-[var(--color-accent)]/5"
-                >
-                  <span className="inline-flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)]/60">
-                    <BossSprite boss={boss} size={28} />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block truncate text-[13px] font-semibold text-[var(--color-text)]">
-                      {boss.name}
-                    </span>
-                    {requirement && (
-                      <span className="mt-0.5 block truncate text-[11.5px] text-[var(--color-text-dim)]">
-                        {requirement}
+                {(() => {
+                  const tileClass = "flex h-full w-full items-center gap-2.5 rounded-xl border border-[var(--color-accent)]/15 bg-[var(--color-bg)]/40 px-3 py-2.5 text-left transition-all hover:border-[var(--color-accent)]/45 hover:bg-[var(--color-accent)]/5";
+                  const inner = (
+                    <>
+                      <span className="inline-flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)]/60">
+                        <BossSprite boss={boss} size={28} />
                       </span>
-                    )}
-                  </span>
-                </button>
+                      <span className="min-w-0">
+                        <span className="block truncate text-[13px] font-semibold text-[var(--color-text)]">
+                          {boss.name}
+                        </span>
+                        {requirement && (
+                          <span className="mt-0.5 block truncate text-[11.5px] text-[var(--color-text-dim)]">
+                            {requirement}
+                          </span>
+                        )}
+                      </span>
+                    </>
+                  );
+                  return onPick ? (
+                    <button type="button" onClick={() => onPick(boss)} className={tileClass}>
+                      {inner}
+                    </button>
+                  ) : (
+                    <Link href={`/dps?boss=${boss.slug}`} className={tileClass}>
+                      {inner}
+                    </Link>
+                  );
+                })()}
               </li>
             );
           })}

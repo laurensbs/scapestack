@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { ToolHeader } from "@/components/tool-header";
 import { DpsClient } from "./dps-client";
+import { BossRoster } from "@/components/boss-roster";
 
 export const metadata = {
   title: "Can I kill this?",
@@ -17,6 +18,11 @@ export default function DpsPage() {
       <Suspense fallback={null}>
         <DpsClient />
       </Suspense>
+      {/* Outside the boundary on purpose. DpsClient calls useSearchParams,
+          which keeps everything inside the Suspense out of the prerendered
+          HTML — so a roster rendered in there is invisible to anything that
+          does not run JavaScript. */}
+      <BossRoster />
     </main>
   );
 }

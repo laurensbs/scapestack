@@ -12,10 +12,24 @@ const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8")
 // next?" and showed none of the forty-two sets. Content stands on its own and
 // the account makes it personal — never the other way round.
 describe("catalogue routes show their catalogue without an account", () => {
-  it("keeps the boss roster mounted on /dps", () => {
+  it("renders the boss roster outside the Suspense boundary", () => {
+    // dps-client.tsx calls useSearchParams, which excludes everything inside
+    // the page's Suspense from the prerendered HTML. With the roster in there,
+    // production served 219 characters and no boss names at all — visible to a
+    // browser after hydration, invisible to anything that does not run JS.
+    // Outside the boundary a real production build serves 1,625.
+    const page = source("src/app/dps/page.tsx");
     const client = source("src/app/dps/dps-client.tsx");
-    expect(client).toContain("BossRoster");
+    expect(page).toContain("<BossRoster />");
+    expect(page).toMatch(/<\/Suspense>[\s\S]*<BossRoster \/>/);
+    expect(client).not.toContain("BossRoster");
     expect(BOSSES.length).toBeGreaterThan(40);
+  });
+
+  it("links each boss so the tiles work without JavaScript", () => {
+    const roster = source("src/components/boss-roster.tsx");
+    expect(roster).toContain("/dps?boss=");
+    expect(roster).toContain("onPick?:");
   });
 
   it("keeps the unlock roster mounted on /goals", () => {
