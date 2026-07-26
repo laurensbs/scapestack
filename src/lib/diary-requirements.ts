@@ -2,6 +2,7 @@ import type { PlannerAccountType } from "./account-type";
 import { accountModeSourceCopy, isIronPlannerAccount, isUltimatePlannerAccount, plannerAccountTypeLabel } from "./account-type";
 import type { DiaryRecord, DiaryTier } from "./diary-db";
 import type { HiscoreSkill } from "./hiscores";
+import { cleanName } from "./name-key";
 import { inferredCompletedDiaryTierKeys } from "./diary-rewards";
 import {
   evaluateItemAvailability,
@@ -211,16 +212,6 @@ const DIARY_TIER_OVERRIDES: Record<string, DiaryTierOverride> = {
 
 export function diaryTierKey(region: string, tier: DiaryTier | string): string {
   return `${region}:${tier}`;
-}
-
-function cleanName(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/\([^)]*\)/g, "")
-    .replace(/[^a-z0-9]+/g, " ")
-    .replace(/\b(?:a|an|the)\b/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
 }
 
 function singular(value: string): string {

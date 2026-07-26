@@ -36,6 +36,7 @@ import {
 } from "./account-type";
 import type { SyncDeltaSummary } from "./sync-repo";
 import { pluginSyncHealth } from "./plugin-sync";
+import { latestActivity } from "./returning-player";
 import { isIronAccount, rankRecommendations } from "./next-up-scoring";
 import { completedQuest, lvl } from "./next-up-shared";
 import { minigameRecs } from "./next-up-minigames";
@@ -1138,7 +1139,15 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     bossKc: mergedBossKc,
     accountMeta,
     hasBankContext: hasBank,
-    hasPluginSync: pluginSyncState === "live"
+    hasPluginSync: pluginSyncState === "live",
+    // Deliberately not gated on pluginSyncState. A snapshot older than 24 hours
+    // reads "stale", but it is still proof the client was open then — and that
+    // has to outrank a WOM lastChangedAt that may simply never have been
+    // refreshed. Only the returning check reads this.
+    lastActiveAt: latestActivity(
+      accountMeta?.lastChangedAt,
+      input.syncedSources?.scapestack?.syncedAt
+    )
   });
 
   // What the player can actually reach. Quest and diary sets are undefined

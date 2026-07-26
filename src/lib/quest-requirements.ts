@@ -1,4 +1,5 @@
 import type { HiscoreSkill } from "./hiscores";
+import { cleanName } from "./name-key";
 import type { PlannerAccountType } from "./account-type";
 import { accountModeSourceCopy, isIronPlannerAccount, isUltimatePlannerAccount, plannerAccountTypeLabel } from "./account-type";
 import {
@@ -82,16 +83,6 @@ export interface RequirementTripDecision {
   stillMissing: string[];
   finishAfter: string;
   syncAfter: string;
-}
-
-function cleanName(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/\([^)]*\)/g, "")
-    .replace(/[^a-z0-9]+/g, " ")
-    .replace(/\b(?:a|an|the)\b/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
 }
 
 function singular(value: string): string {

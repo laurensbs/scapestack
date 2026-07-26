@@ -1,6 +1,9 @@
 import { Suspense } from "react";
+import { updatesSince } from "@/lib/game-updates";
 import { loadPlanningContext } from "@/lib/planning-context";
+import { classifyAbsence, isReturningAbsence, latestActivity } from "@/lib/returning-player";
 import { resolveViewerRsn } from "@/lib/viewer-account";
+import { ReturningBriefing } from "@/components/returning-briefing";
 import { NextClient } from "./next-client";
 
 export const metadata = {
@@ -38,11 +41,39 @@ async function NextPlanBootstrap({
     ? await loadPlanningContext(rsn, { preferScapestack, viewerRsn }).catch(() => null)
     : null;
 
+  // Answered here rather than inside NextClient, because it is a different
+  // question from "what next" and needs no browser state at all. Rendering it
+  // in this Server Component keeps it in the streamed HTML.
+  // The freshest of the two signals, never WOM alone: a plugin snapshot proves
+  // the client was open, and a WOM record nobody updates does not prove the
+  // opposite. See latestActivity in returning-player.ts.
+  const absence = classifyAbsence(latestActivity(
+    initialPlanningContext?.wom?.lastChangedAt,
+    initialPlanningContext?.scapestackSync?.syncedAt
+  ));
+  const completedQuestNames = initialPlanningContext?.scapestackSync?.questsCompleted;
+  const updates = isReturningAbsence(absence.band)
+    ? updatesSince(absence.since, {
+        completedQuestNames: completedQuestNames?.length
+          ? new Set(completedQuestNames)
+          : undefined
+      })
+    : null;
+
   return (
-    <NextClient
-      initialQueryString={queryString}
-      initialPlanningContext={initialPlanningContext}
-    />
+    <>
+      {updates && (
+        <ReturningBriefing
+          absence={absence}
+          updates={updates}
+          displayName={initialPlanningContext?.wom?.displayName}
+        />
+      )}
+      <NextClient
+        initialQueryString={queryString}
+        initialPlanningContext={initialPlanningContext}
+      />
+    </>
   );
 }
 

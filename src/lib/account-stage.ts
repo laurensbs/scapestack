@@ -1,6 +1,7 @@
 import type { HiscoreSkill } from "./hiscores";
 import type { AccountMeta } from "./path-progress";
 import { isIronPlannerAccount } from "./account-type";
+import { classifyAbsence, isReturningAbsence } from "./returning-player";
 
 export type AccountStageId =
   | "first-run"
@@ -27,6 +28,13 @@ export interface DetectAccountStageInput {
   totalLevel: number | null;
   /** null = unknown. Never treat as zero — see planning-input.ts. */
   questPoints: number | null;
+  /**
+   * Freshest evidence of activity across every source, ISO. Callers that can
+   * see a plugin snapshot's syncedAt should pass latestActivity() of it and
+   * accountMeta.lastChangedAt; without it this falls back to lastChangedAt
+   * alone, which can be stale for an active player.
+   */
+  lastActiveAt?: string | null;
   bossKc?: Record<string, number>;
   accountMeta?: AccountMeta | null;
   hasBankContext: boolean;
@@ -131,7 +139,32 @@ export function detectAccountStage(input: DetectAccountStageInput): AccountStage
   if (combat < 50 && nonCombat >= 800) return STAGES.skiller;
   if (total >= 2200 || (total >= 2000 && bossTotal >= 1000)) return STAGES["maxed-grinder"];
   if (isIronRoute(input.accountMeta)) return STAGES["iron-route"];
+
   if (input.hasPluginSync) return STAGES["runelite-aware"];
+
+  // `returning` used to be the bottom of the ladder — reachable only at 1900+
+  // total, which meant a player back after five months at 1583 was labelled a
+  // midgame main, exactly like someone who logged out an hour ago. It is a real
+  // detection now, off WOM's lastChangedAt.
+  //
+  // Where it sits in this list is the design. Build types are checked first and
+  // keep their stage — skiller and ironman decide which content applies at all,
+  // and a break does not change that.
+  //
+  // Freshness is the other half. A WOM record nobody updates goes stale while
+  // the player keeps logging in, so lastChangedAt alone would call an active
+  // player returning. hasPluginSync above is not enough of a guard on its own:
+  // next-up.ts passes `pluginSyncState === "live"`, which is false for any
+  // snapshot over 24 hours old — exactly the case where a stale WOM timestamp
+  // would otherwise win. lastActiveAt is the real signal; see latestActivity.
+  //
+  // The total-level floor keeps an account that was made, played for an evening
+  // and abandoned out of this: that player is new, not returning.
+  const lastActive = input.lastActiveAt ?? input.accountMeta?.lastChangedAt;
+  if (total >= 750 && isReturningAbsence(classifyAbsence(lastActive).band)) {
+    return STAGES.returning;
+  }
+
   if (bossTotal >= 50 || (combat >= 110 && total >= 1500)) return STAGES["pvm-ready"];
   // Unknown QP must not drag an account into "new-account". Only a QP total
   // we actually know is allowed to argue the player is early-game.
@@ -139,6 +172,9 @@ export function detectAccountStage(input: DetectAccountStageInput): AccountStage
   // Same rule for the later tiers: unknown QP falls back to total level alone
   // rather than pinning everyone to the earliest stage that matches.
   if (total < 1400 || (qp !== null && qp < 120)) return STAGES["early-main"];
-  if (total < 1900 || (qp !== null && qp < 220)) return STAGES["midgame-main"];
-  return STAGES.returning;
+  // Whatever is left is a midgame main. This used to fall through to
+  // `returning` at 1900+ total, which is what made that stage a statement about
+  // account size rather than about absence — the exact confusion the check
+  // above now resolves.
+  return STAGES["midgame-main"];
 }
