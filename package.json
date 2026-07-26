@@ -1,7 +1,7 @@
 {
   "name": "scapestack",
   "version": "0.3.0",
-  "description": "OSRS session planner — one clear trip, gear from your bank, RuneLite-aware so it skips what you already finished",
+  "description": "OSRS session planner \u2014 one clear trip, gear from your bank, RuneLite-aware so it skips what you already finished",
   "private": true,
   "type": "module",
   "scripts": {
@@ -32,7 +32,10 @@
     "plugin:review-reply-command": "tsx scripts/print-plugin-review-packet.ts --reply-command",
     "plugin:review-handoff-command": "tsx scripts/print-plugin-review-packet.ts --handoff-command",
     "build:sprites": "node scripts/build-skill-sprites.mjs && node scripts/build-boss-sprites.mjs",
-    "db:init": "node scripts/db-init.mjs"
+    "db:init": "node scripts/db-init.mjs",
+    "wiki:sync": "node scripts/wiki-sync.mjs",
+    "wiki:check": "node scripts/wiki-sync.mjs --check",
+    "wiki:reconcile": "tsx scripts/wiki-reconcile.mts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

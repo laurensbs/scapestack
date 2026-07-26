@@ -1,0 +1,496 @@
+
+BOSSES — 232 disagreements across 59 entries
+  General Graardor           def.stab        ours       60   wiki 90
+  General Graardor           def.slash       ours       50   wiki 90
+  General Graardor           def.crush       ours       60   wiki 90
+  General Graardor           def.magic       ours      198   wiki 298
+  Kree'arra                  def.stab        ours      200   wiki 180
+  Kree'arra                  def.slash       ours      200   wiki 180
+  Kree'arra                  def.crush       ours      200   wiki 180
+  Kree'arra                  def.magic       ours      150   wiki 200
+  Commander Zilyana          defenceLevel    ours      200   wiki 300
+  Commander Zilyana          def.stab        ours       60   wiki 100
+  Commander Zilyana          def.slash       ours       70   wiki 100
+  Commander Zilyana          def.crush       ours       60   wiki 100
+  Commander Zilyana          def.magic       ours      165   wiki 100
+  K'ril Tsutsaroth           def.slash       ours       50   wiki 80
+  K'ril Tsutsaroth           def.crush       ours       70   wiki 80
+  K'ril Tsutsaroth           def.magic       ours      100   wiki 80
+  Nex                        def.stab        ours      250   wiki 40
+  Nex                        def.slash       ours      250   wiki 140
+  Nex                        def.crush       ours      250   wiki 60
+  Nex                        def.magic       ours      250   wiki 300
+  Callisto                   hp              ours      470   wiki 1000
+  Callisto                   defenceLevel    ours      240   wiki 225
+  Callisto                   def.stab        ours       65   wiki 150
+  Callisto                   def.slash       ours       55   wiki 130
+  Callisto                   def.crush       ours       35   wiki 125
+  Callisto                   def.magic       ours       75   wiki 0
+  Venenatis                  hp              ours      490   wiki 850
+  Venenatis                  defenceLevel    ours      250   wiki 321
+  Venenatis                  def.stab        ours       70   wiki 100
+  Venenatis                  def.slash       ours       70   wiki 100
+  Venenatis                  def.crush       ours       60   wiki 10
+  Venenatis                  def.magic       ours      195   wiki 300
+  Vet'ion                    defenceLevel    ours      235   wiki [395,395]  (2 versions on the wiki)
+  Vet'ion                    def.stab        ours      200   wiki [201,201]  (2 versions on the wiki)
+  Vet'ion                    def.crush       ours      200   wiki [-10,-10]  (2 versions on the wiki)
+  Vet'ion                    def.magic       ours       50   wiki [250,250]  (2 versions on the wiki)
+  Vet'ion                    undead          ours    false   wiki true
+  Calvar'ion                 hp              ours      220   wiki [150,150]  (2 versions on the wiki)
+  Calvar'ion                 defenceLevel    ours      215   wiki [225,225]  (2 versions on the wiki)
+  Calvar'ion                 def.stab        ours      200   wiki [130,130]  (2 versions on the wiki)
+  Calvar'ion                 def.slash       ours      200   wiki [128,128]  (2 versions on the wiki)
+  Calvar'ion                 def.crush       ours      200   wiki [-10,-10]  (2 versions on the wiki)
+  Calvar'ion                 def.magic       ours       25   wiki [198,198]  (2 versions on the wiki)
+  Calvar'ion                 undead          ours    false   wiki true
+  Spindel                    hp              ours      250   wiki 515
+  Spindel                    defenceLevel    ours      220   wiki 225
+  Spindel                    def.crush       ours       60   wiki 10
+  Spindel                    def.magic       ours      195   wiki 205
+  Artio                      hp              ours      225   wiki 450
+  Artio                      defenceLevel    ours      200   wiki 150
+  Artio                      def.stab        ours       65   wiki 125
+  Artio                      def.slash       ours       55   wiki 110
+  Artio                      def.crush       ours       35   wiki 110
+  Artio                      def.magic       ours       75   wiki 0
+  Scorpia                    defenceLevel    ours       90   wiki 180
+  Scorpia                    def.stab        ours       80   wiki 246
+  Scorpia                    def.slash       ours       80   wiki 284
+  Scorpia                    def.crush       ours       80   wiki 284
+  Scorpia                    def.magic       ours       20   wiki 44
+  Chaos Elemental            hp              ours      305   wiki 250
+  Chaos Elemental            defenceLevel    ours      220   wiki 270
+  Chaos Elemental            def.stab        ours      100   wiki 70
+  Chaos Elemental            def.slash       ours      100   wiki 70
+  Chaos Elemental            def.crush       ours      100   wiki 70
+  Chaos Elemental            def.magic       ours        0   wiki 70
+  Chaos Fanatic              hp              ours      200   wiki 225
+  Chaos Fanatic              defenceLevel    ours       70   wiki 220
+  Chaos Fanatic              def.stab        ours       30   wiki 260
+  Chaos Fanatic              def.slash       ours       30   wiki 260
+  Chaos Fanatic              def.crush       ours       30   wiki 250
+  Chaos Fanatic              def.magic       ours        5   wiki 280
+  Crazy Archaeologist        hp              ours      220   wiki 225
+  Crazy Archaeologist        defenceLevel    ours      100   wiki 240
+  Crazy Archaeologist        def.stab        ours       50   wiki 5
+  Crazy Archaeologist        def.slash       ours       50   wiki 5
+  Crazy Archaeologist        def.crush       ours       50   wiki 30
+  Crazy Archaeologist        def.magic       ours       25   wiki 250
+  King Black Dragon          def.stab        ours       65   wiki 40
+  King Black Dragon          def.slash       ours       55   wiki 90
+  King Black Dragon          def.crush       ours       35   wiki 90
+  King Black Dragon          def.magic       ours       60   wiki 80
+  Kalphite Queen             hp              ours      510   wiki [255,255]  (2 versions on the wiki)
+  Kalphite Queen             def.stab        ours       40   wiki [100,50]  (2 versions on the wiki)
+  Kalphite Queen             def.slash       ours       40   wiki [100,50]  (2 versions on the wiki)
+  Kalphite Queen             def.crush       ours       40   wiki [100,10]  (2 versions on the wiki)
+  Kalphite Queen             def.magic       ours      120   wiki [10,100]  (2 versions on the wiki)
+  Zulrah                     def.stab        ours       50   wiki [0,0,0]  (3 versions on the wiki)
+  Zulrah                     def.slash       ours       50   wiki [0,0,0]  (3 versions on the wiki)
+  Zulrah                     def.crush       ours       50   wiki [0,0,0]  (3 versions on the wiki)
+  Zulrah                     def.magic       ours      100   wiki [0,-45,300]  (3 versions on the wiki)
+  Zulrah                     magicLevel      ours      250   wiki [300,300,300]  (3 versions on the wiki)
+  Alchemical Hydra           defenceLevel    ours       80   wiki [100,100,100,100]  (4 versions on the wiki)
+  Alchemical Hydra           def.stab        ours       70   wiki [75,75,75,75]  (4 versions on the wiki)
+  Alchemical Hydra           def.slash       ours       60   wiki [150,150,150,150]  (4 versions on the wiki)
+  Alchemical Hydra           def.crush       ours       60   wiki [150,150,150,150]  (4 versions on the wiki)
+  Alchemical Hydra           def.magic       ours       30   wiki [150,150,150,150]  (4 versions on the wiki)
+  Abyssal Sire               hp              ours      400   wiki [425,425,425,425]  (4 versions on the wiki)
+  Abyssal Sire               def.slash       ours       40   wiki [60,60,60,30]  (4 versions on the wiki)
+  Abyssal Sire               def.crush       ours       40   wiki [50,50,50,25]  (4 versions on the wiki)
+  Abyssal Sire               def.magic       ours       60   wiki [20,20,20,-40]  (4 versions on the wiki)
+  Kraken                     defenceLevel    ours       90   wiki [1,1]  (2 versions on the wiki)
+  Kraken                     def.magic       ours      100   wiki [130,130]  (2 versions on the wiki)
+  Cerberus                   def.stab        ours        0   wiki 50
+  Cerberus                   def.slash       ours       25   wiki 100
+  Cerberus                   def.crush       ours        0   wiki 25
+  Cerberus                   def.magic       ours       10   wiki 65
+  Thermonuclear Smoke Devil  defenceLevel    ours      100   wiki 360
+  Thermonuclear Smoke Devil  def.stab        ours        0   wiki 11
+  Thermonuclear Smoke Devil  def.slash       ours        0   wiki 4
+  Thermonuclear Smoke Devil  def.crush       ours        0   wiki 9
+  Thermonuclear Smoke Devil  def.magic       ours       50   wiki 800
+  Skotizo                    hp              ours      320   wiki 450
+  Skotizo                    def.stab        ours       60   wiki 80
+  Skotizo                    def.slash       ours       60   wiki 80
+  Skotizo                    def.crush       ours       60   wiki 80
+  Skotizo                    def.magic       ours      200   wiki 80
+  Skotizo                    undead          ours     true   wiki false
+  The Mimic                  hp              ours      750   wiki 230
+  The Mimic                  defenceLevel    ours      200   wiki 120
+  The Mimic                  def.stab        ours       90   wiki 160
+  The Mimic                  def.slash       ours       90   wiki 165
+  The Mimic                  def.crush       ours       90   wiki 150
+  The Mimic                  def.magic       ours       25   wiki 30
+  Hespori                    hp              ours      320   wiki 300
+  Hespori                    defenceLevel    ours      110   wiki 120
+  Hespori                    def.stab        ours        0   wiki 60
+  Hespori                    def.slash       ours        0   wiki 20
+  Hespori                    def.crush       ours        0   wiki 60
+  Hespori                    def.magic       ours       60   wiki 80
+  Vardorvis                  def.stab        ours       70   wiki [215,215,150]  (3 versions on the wiki)
+  Vardorvis                  def.slash       ours       70   wiki [65,65,25]  (3 versions on the wiki)
+  Vardorvis                  def.crush       ours       70   wiki [85,85,50]  (3 versions on the wiki)
+  Vardorvis                  def.magic       ours      200   wiki [580,580,560]  (3 versions on the wiki)
+  The Leviathan              hp              ours      800   wiki [2700,900,720]  (3 versions on the wiki)
+  The Leviathan              def.stab        ours       30   wiki [260,260,200]  (3 versions on the wiki)
+  The Leviathan              def.slash       ours       60   wiki [190,190,150]  (3 versions on the wiki)
+  The Leviathan              def.crush       ours       30   wiki [230,230,180]  (3 versions on the wiki)
+  The Leviathan              def.magic       ours      200   wiki [280,280,220]  (3 versions on the wiki)
+  Duke Sucellus              hp              ours      660   wiki [485,1697,330,485,1697,330,485,1697,330]  (9 versions on the wiki)
+  Duke Sucellus              defenceLevel    ours      270   wiki [275,316,215,275,316,215,275,316,215]  (9 versions on the wiki)
+  Duke Sucellus              def.stab        ours       90   wiki [255,255,210,255,255,210,255,255,210]  (9 versions on the wiki)
+  Duke Sucellus              def.slash       ours       70   wiki [45,65,30,45,65,30,45,65,30]  (9 versions on the wiki)
+  Duke Sucellus              def.crush       ours       90   wiki [190,190,160,190,190,160,190,190,160]  (9 versions on the wiki)
+  Duke Sucellus              def.magic       ours      200   wiki [440,440,400,440,440,400,440,440,400]  (9 versions on the wiki)
+  The Whisperer              hp              ours      750   wiki [2700,900,660]  (3 versions on the wiki)
+  The Whisperer              def.stab        ours       70   wiki [180,180,180]  (3 versions on the wiki)
+  The Whisperer              def.slash       ours       70   wiki [300,300,300]  (3 versions on the wiki)
+  The Whisperer              def.crush       ours       70   wiki [220,220,220]  (3 versions on the wiki)
+  The Whisperer              def.magic       ours        0   wiki [10,10,10]  (3 versions on the wiki)
+  Phantom Muspah             hp              ours      380   wiki [850,850,850,75,850]  (5 versions on the wiki)
+  Phantom Muspah             defenceLevel    ours      100   wiki [200,200,200,200,200]  (5 versions on the wiki)
+  Phantom Muspah             def.stab        ours       50   wiki [185,185,185,185,185]  (5 versions on the wiki)
+  Phantom Muspah             def.slash       ours       50   wiki [134,134,134,134,134]  (5 versions on the wiki)
+  Phantom Muspah             def.crush       ours       50   wiki [120,120,120,120,120]  (5 versions on the wiki)
+  Phantom Muspah             def.magic       ours        0   wiki [34,437,437,437,437]  (5 versions on the wiki)
+  Galvek                     hp              ours      250   wiki [1200,1200,1200,1200]  (4 versions on the wiki)
+  Galvek                     defenceLevel    ours      250   wiki [188,188,188,188]  (4 versions on the wiki)
+  Galvek                     def.stab        ours      100   wiki [80,80,80,80]  (4 versions on the wiki)
+  Galvek                     def.slash       ours      100   wiki [140,140,140,140]  (4 versions on the wiki)
+  Galvek                     def.crush       ours      100   wiki [140,140,140,140]  (4 versions on the wiki)
+  Galvek                     def.magic       ours       60   wiki [280,280,280,280]  (4 versions on the wiki)
+  Corporeal Beast            defenceLevel    ours      250   wiki 310
+  Corporeal Beast            def.crush       ours        0   wiki 100
+  Corporeal Beast            def.magic       ours      350   wiki 150
+  Dagannoth Rex              def.magic       ours        0   wiki 10
+  Dagannoth Supreme          def.stab        ours      255   wiki 10
+  Dagannoth Supreme          def.slash       ours      255   wiki 10
+  Dagannoth Supreme          def.crush       ours      255   wiki 10
+  Dagannoth Prime            defenceLevel    ours      128   wiki 255
+  Dagannoth Prime            def.magic       ours        0   wiki 255
+  Obor                       hp              ours      122   wiki 120
+  Obor                       defenceLevel    ours       10   wiki 60
+  Obor                       def.stab        ours        5   wiki 35
+  Obor                       def.slash       ours        5   wiki 40
+  Obor                       def.crush       ours        5   wiki 45
+  Obor                       def.magic       ours       50   wiki 20
+  Bryophyta                  hp              ours      145   wiki 115
+  Bryophyta                  defenceLevel    ours       50   wiki 100
+  Bryophyta                  def.stab        ours       10   wiki 0
+  Bryophyta                  def.slash       ours       10   wiki 0
+  Bryophyta                  def.crush       ours       10   wiki 0
+  Bryophyta                  def.magic       ours       80   wiki 0
+  TzKal-Zuk                  defenceLevel    ours      240   wiki [260,260]  (2 versions on the wiki)
+  TzKal-Zuk                  def.stab        ours      100   wiki [0,0]  (2 versions on the wiki)
+  TzKal-Zuk                  def.slash       ours      100   wiki [0,0]  (2 versions on the wiki)
+  TzKal-Zuk                  def.crush       ours      100   wiki [0,0]  (2 versions on the wiki)
+  TzTok-Jad                  defenceLevel    ours      157   wiki 480
+  TzTok-Jad                  def.stab        ours      130   wiki 0
+  TzTok-Jad                  def.slash       ours      130   wiki 0
+  TzTok-Jad                  def.crush       ours      130   wiki 0
+  TzTok-Jad                  def.magic       ours      240   wiki 0
+  Giant Mole                 hp              ours      255   wiki 200
+  Giant Mole                 defenceLevel    ours      230   wiki 200
+  Giant Mole                 def.stab        ours       30   wiki 60
+  Giant Mole                 def.slash       ours       30   wiki 80
+  Giant Mole                 def.crush       ours        0   wiki 100
+  Giant Mole                 def.magic       ours       30   wiki 80
+  Deranged Archaeologist     hp              ours      230   wiki 200
+  Deranged Archaeologist     defenceLevel    ours      110   wiki 280
+  Deranged Archaeologist     def.stab        ours        5   wiki 20
+  Deranged Archaeologist     def.slash       ours        5   wiki 20
+  Deranged Archaeologist     def.crush       ours        5   wiki 50
+  Deranged Archaeologist     def.magic       ours       30   wiki 300
+  Sarachnis                  hp              ours      450   wiki 400
+  Sarachnis                  defenceLevel    ours      230   wiki 150
+  Sarachnis                  def.stab        ours       30   wiki 60
+  Sarachnis                  def.slash       ours       30   wiki 40
+  Sarachnis                  def.crush       ours       30   wiki 10
+  Sarachnis                  def.magic       ours       30   wiki 150
+  Zalcano                    hp              ours     1500   wiki [300,1000]  (2 versions on the wiki)
+  Araxxor                    hp              ours      460   wiki [1020,1020]  (2 versions on the wiki)
+  Araxxor                    defenceLevel    ours      180   wiki [170,135]  (2 versions on the wiki)
+  Araxxor                    def.stab        ours       25   wiki [160,160]  (2 versions on the wiki)
+  Araxxor                    def.slash       ours       25   wiki [75,75]  (2 versions on the wiki)
+  Araxxor                    def.crush       ours       25   wiki [15,15]  (2 versions on the wiki)
+  Araxxor                    def.magic       ours       65   wiki [237,237]  (2 versions on the wiki)
+  Amoxliatl                  hp              ours      300   wiki [520,400]  (2 versions on the wiki)
+  Amoxliatl                  defenceLevel    ours      100   wiki [80,60]  (2 versions on the wiki)
+  Amoxliatl                  def.stab        ours       30   wiki [100,100]  (2 versions on the wiki)
+  Amoxliatl                  def.slash       ours       30   wiki [100,100]  (2 versions on the wiki)
+  Amoxliatl                  def.crush       ours       30   wiki [40,40]  (2 versions on the wiki)
+  Amoxliatl                  def.magic       ours        0   wiki [100,100]  (2 versions on the wiki)
+  The Hueycoatl              hp              ours      700   wiki [250,300,2500,2500,300,2500]  (6 versions on the wiki)
+  The Hueycoatl              defenceLevel    ours      180   wiki [125,125,125,125,125,125]  (6 versions on the wiki)
+  The Hueycoatl              def.stab        ours       50   wiki [100,100,100,100,100,100]  (6 versions on the wiki)
+  The Hueycoatl              def.slash       ours       50   wiki [100,100,100,100,100,100]  (6 versions on the wiki)
+  The Hueycoatl              def.crush       ours       50   wiki [0,0,0,0,0,0]  (6 versions on the wiki)
+  The Hueycoatl              def.magic       ours       50   wiki [200,200,200,200,200,200]  (6 versions on the wiki)
+  Sol Heredit                def.stab        ours       80   wiki 65
+  Sol Heredit                def.slash       ours       80   wiki 5
+  Sol Heredit                def.crush       ours       80   wiki 30
+  Sol Heredit                def.magic       ours      100   wiki 750
+
+  no wiki row for: Grotesque Guardians, Demonic Gorillas, Barrows, Chambers of Xeric, Theatre of Blood, Tombs of Amascut, Wintertodt, Tempoross, Guardians of the Rift, Moons of Peril
+
+GEAR — 253 disagreements across 116 entries
+  Blade of Saeldor           atk.slash       ours       94   wiki [0,100]
+  Blade of Saeldor           strength        ours       89   wiki [0,93]
+  Ghrazi rapier              atk.stab        ours       94   wiki 100
+  Ghrazi rapier              strength        ours       89   wiki 93
+  Osmumten's fang            atk.stab        ours      103   wiki 105
+  Osmumten's fang            atk.slash       ours       50   wiki 75
+  Osmumten's fang            strength        ours      102   wiki 103
+  Osmumten's fang            speed           ours        4   wiki 5
+  Scythe of vitur            atk.magic       ours        0   wiki [-6,-6]
+  Bandos godsword            atk.crush       ours        0   wiki 80
+  Bandos godsword            prayer          ours        0   wiki 8
+  Armadyl godsword           atk.crush       ours        0   wiki 80
+  Armadyl godsword           prayer          ours        0   wiki 8
+  Dragon claws               atk.crush       ours        0   wiki -4
+  Dragon claws               prayer          ours        1   wiki 0
+  Voidwaker                  atk.stab        ours       82   wiki 70
+  Voidwaker                  atk.slash       ours       60   wiki 80
+  Voidwaker                  atk.crush       ours        0   wiki -2
+  Voidwaker                  atk.magic       ours        0   wiki 5
+  Voidwaker                  strength        ours       75   wiki 80
+  Dragon scimitar            atk.stab        ours        0   wiki 8
+  Dragon scimitar            atk.crush       ours        0   wiki -2
+  Rune scimitar              atk.stab        ours        0   wiki 7
+  Rune scimitar              atk.crush       ours        0   wiki -2
+  Twisted bow                strength        ours       20   wiki 0
+  Twisted bow                rangedStrength  ours        0   wiki 20
+  Twisted bow                speed           ours        5   wiki 6
+  Bow of Faerdhinen          speed           ours        4   wiki [5,5]
+  Zaryte crossbow            atk.ranged      ours       95   wiki 110
+  Zaryte crossbow            prayer          ours        0   wiki 1
+  Zaryte crossbow            speed           ours        5   wiki 6
+  Toxic blowpipe             atk.ranged      ours       60   wiki [30,30]
+  Toxic blowpipe             rangedStrength  ours       40   wiki [20,0]
+  Blazing blowpipe           atk.ranged      ours       70   wiki [30,30]
+  Blazing blowpipe           rangedStrength  ours       45   wiki [20,0]
+  Karil's crossbow           atk.ranged      ours       65   wiki [84,84,0,84,84,84]
+  Karil's crossbow           strength        ours        8   wiki [0,0,0,0,0,0]
+  Tonalztics of ralos        atk.ranged      ours       75   wiki [115,115]
+  Tonalztics of ralos        rangedStrength  ours       30   wiki [55,55]
+  Tonalztics of ralos        prayer          ours        0   wiki [2,2]
+  Tonalztics of ralos        speed           ours        5   wiki [7,7]
+  Burning claws              atk.stab        ours       50   wiki 43
+  Burning claws              atk.slash       ours       70   wiki 54
+  Burning claws              strength        ours       70   wiki 32
+  Soulreaper axe             atk.stab        ours        0   wiki 28
+  Soulreaper axe             atk.slash       ours       90   wiki 134
+  Soulreaper axe             atk.crush       ours        0   wiki 66
+  Soulreaper axe             strength        ours       92   wiki 125
+  Twinflame staff            atk.stab        ours        0   wiki 7
+  Twinflame staff            atk.slash       ours        0   wiki -1
+  Twinflame staff            atk.crush       ours        0   wiki 28
+  Twinflame staff            atk.magic       ours       25   wiki 12
+  Twinflame staff            strength        ours        0   wiki 22
+  Twinflame staff            speed           ours        4   wiki 6
+  Tumeken's shadow           atk.crush       ours       30   wiki [0,0]
+  Tumeken's shadow           prayer          ours        0   wiki [1,1]
+  Sanguinesti staff          atk.crush       ours       25   wiki [0,0]
+  Sanguinesti staff          atk.ranged      ours        0   wiki [-4,-4]
+  Harmonised nightmare staff atk.magic       ours       22   wiki 16
+  Harmonised nightmare staff speed           ours        4   wiki 5
+  Trident of the seas        atk.magic       ours       25   wiki [15,15,15]
+  Kodai wand                 atk.crush       ours       28   wiki 0
+  Ancient sceptre            atk.stab        ours        0   wiki [20,20]
+  Ancient sceptre            atk.slash       ours        0   wiki [-1,-1]
+  Ancient sceptre            atk.crush       ours        0   wiki [50,50]
+  Ancient sceptre            strength        ours        0   wiki [60,60]
+  Ancient sceptre            prayer          ours        0   wiki [-1,-1]
+  Slayer helmet (i)          atk.magic       ours        0   wiki [3,3,3]
+  Slayer helmet (i)          atk.ranged      ours        0   wiki [3,3,3]
+  Slayer helmet              atk.magic       ours        0   wiki -6
+  Slayer helmet              atk.ranged      ours        0   wiki -2
+  Serpentine helm            atk.magic       ours        0   wiki [-5,-5]
+  Serpentine helm            atk.ranged      ours        0   wiki [-5,-5]
+  Torva full helm            atk.magic       ours        0   wiki -5
+  Torva full helm            atk.ranged      ours        0   wiki -5
+  Masori mask (f)            atk.magic       ours        0   wiki -1
+  Masori mask (f)            atk.ranged      ours        0   wiki 12
+  Masori mask (f)            rangedStrength  ours        4   wiki 2
+  Masori mask                atk.magic       ours        0   wiki -1
+  Masori mask                atk.ranged      ours        0   wiki 12
+  Masori mask                rangedStrength  ours        4   wiki 2
+  Masori mask                prayer          ours        1   wiki 0
+  Ancestral hat              atk.ranged      ours        0   wiki -2
+  Ancestral hat              prayer          ours        1   wiki 0
+  Virtus mask                atk.magic       ours        7   wiki 8
+  Virtus mask                atk.ranged      ours        0   wiki -3
+  Infernal cape              atk.stab        ours        0   wiki [4,4]
+  Infernal cape              atk.slash       ours        0   wiki [4,4]
+  Infernal cape              atk.crush       ours        0   wiki [4,4]
+  Infernal cape              atk.magic       ours        0   wiki [1,1]
+  Infernal cape              atk.ranged      ours        0   wiki [1,1]
+  Infernal cape              strength        ours        4   wiki [8,8]
+  Infernal cape              prayer          ours        0   wiki [2,2]
+  Fire cape                  atk.stab        ours        0   wiki [1,1,1]
+  Fire cape                  atk.slash       ours        0   wiki [1,1,1]
+  Fire cape                  atk.crush       ours        0   wiki [1,1,1]
+  Fire cape                  atk.magic       ours        0   wiki [1,1,1]
+  Fire cape                  atk.ranged      ours        0   wiki [1,1,1]
+  Fire cape                  prayer          ours        0   wiki [2,2,2]
+  Imbued saradomin cape      prayer          ours        1   wiki [0,0,0]
+  Imbued guthix cape         prayer          ours        1   wiki [0,0,0]
+  Ava's assembler            atk.ranged      ours        0   wiki [8,8,8]
+  Ava's assembler            rangedStrength  ours        8   wiki [2,2,2]
+  Ava's assembler            prayer          ours        1   wiki [0,0,0]
+  Masori assembler           atk.ranged      ours        0   wiki [8,8,8]
+  Masori assembler           rangedStrength  ours        8   wiki [2,2,2]
+  Masori assembler           prayer          ours        1   wiki [0,0,0]
+  Ardougne cloak 4           atk.stab        ours        0   wiki 6
+  Ardougne cloak 4           atk.magic       ours        0   wiki 6
+  Ardougne cloak 4           prayer          ours        1   wiki 6
+  Amulet of torture          atk.stab        ours        0   wiki 15
+  Amulet of torture          atk.slash       ours        0   wiki 15
+  Amulet of torture          atk.crush       ours        0   wiki 15
+  Amulet of torture          prayer          ours        0   wiki 2
+  Amulet of fury             atk.stab        ours        0   wiki 10
+  Amulet of fury             atk.slash       ours        0   wiki 10
+  Amulet of fury             atk.crush       ours        0   wiki 10
+  Amulet of fury             atk.magic       ours        0   wiki 10
+  Amulet of fury             atk.ranged      ours        0   wiki 10
+  Amulet of fury             prayer          ours        3   wiki 5
+  Necklace of anguish        atk.ranged      ours        0   wiki 15
+  Necklace of anguish        prayer          ours        0   wiki 2
+  Occult necklace            prayer          ours        0   wiki 2
+  Amulet of rancour          atk.stab        ours        0   wiki 25
+  Amulet of rancour          atk.slash       ours        0   wiki 25
+  Amulet of rancour          atk.crush       ours        0   wiki 25
+  Amulet of rancour          atk.magic       ours        0   wiki -6
+  Amulet of rancour          atk.ranged      ours        0   wiki -8
+  Amulet of glory            atk.stab        ours        0   wiki [10,10,10,10,10,10,10]
+  Amulet of glory            atk.slash       ours        0   wiki [10,10,10,10,10,10,10]
+  Amulet of glory            atk.crush       ours        0   wiki [10,10,10,10,10,10,10]
+  Amulet of glory            atk.magic       ours        0   wiki [10,10,10,10,10,10,10]
+  Amulet of glory            atk.ranged      ours        0   wiki [10,10,10,10,10,10,10]
+  Salve amulet(ei)           prayer          ours        0   wiki [3,3,3]
+  Bandos chestplate          atk.magic       ours        0   wiki -15
+  Bandos chestplate          atk.ranged      ours        0   wiki -10
+  Torva platebody            atk.magic       ours        0   wiki -18
+  Torva platebody            atk.ranged      ours        0   wiki -14
+  Torva platebody            strength        ours        8   wiki 6
+  Ancestral robe top         atk.ranged      ours        0   wiki -8
+  Ancestral robe top         prayer          ours        1   wiki 0
+  Virtus robe top            atk.magic       ours       30   wiki 35
+  Virtus robe top            atk.ranged      ours        0   wiki -11
+  Virtus robe top            prayer          ours        1   wiki 2
+  Masori body (f)            atk.magic       ours        0   wiki -4
+  Masori body (f)            atk.ranged      ours        0   wiki 43
+  Masori body                atk.magic       ours        0   wiki -4
+  Masori body                atk.ranged      ours        0   wiki 43
+  Masori body                prayer          ours        1   wiki 0
+  Armadyl chestplate         atk.stab        ours        0   wiki -7
+  Armadyl chestplate         atk.slash       ours        0   wiki -7
+  Armadyl chestplate         atk.crush       ours        0   wiki -7
+  Armadyl chestplate         atk.magic       ours        0   wiki -15
+  Armadyl chestplate         atk.ranged      ours        0   wiki 33
+  Fighter torso              atk.magic       ours        0   wiki [-40,-40,-40]
+  Elite void top             prayer          ours        0   wiki [3,3,3]
+  Bandos tassets             atk.magic       ours        0   wiki -21
+  Bandos tassets             atk.ranged      ours        0   wiki -7
+  Torva platelegs            atk.magic       ours        0   wiki -24
+  Torva platelegs            atk.ranged      ours        0   wiki -11
+  Ancestral robe bottom      atk.magic       ours       30   wiki 26
+  Ancestral robe bottom      atk.ranged      ours        0   wiki -7
+  Ancestral robe bottom      prayer          ours        1   wiki 0
+  Masori chaps (f)           atk.magic       ours        0   wiki -2
+  Masori chaps (f)           atk.ranged      ours        0   wiki 27
+  Masori chaps (f)           rangedStrength  ours        3   wiki 2
+  Masori chaps               atk.magic       ours        0   wiki -2
+  Masori chaps               atk.ranged      ours        0   wiki 27
+  Masori chaps               rangedStrength  ours        3   wiki 2
+  Masori chaps               prayer          ours        1   wiki 0
+  Armadyl chainskirt         atk.stab        ours        0   wiki -6
+  Armadyl chainskirt         atk.slash       ours        0   wiki -6
+  Armadyl chainskirt         atk.crush       ours        0   wiki -6
+  Armadyl chainskirt         atk.magic       ours        0   wiki -10
+  Armadyl chainskirt         atk.ranged      ours        0   wiki 20
+  Elite void robe            prayer          ours        0   wiki [3,3,3]
+  Barrows gloves             atk.stab        ours        0   wiki 12
+  Barrows gloves             atk.slash       ours        0   wiki 12
+  Barrows gloves             atk.crush       ours        0   wiki 12
+  Barrows gloves             atk.magic       ours        0   wiki 6
+  Barrows gloves             atk.ranged      ours        0   wiki 12
+  Ferocious gloves           atk.stab        ours        0   wiki 16
+  Ferocious gloves           atk.slash       ours        0   wiki 16
+  Ferocious gloves           atk.crush       ours        0   wiki 16
+  Ferocious gloves           atk.magic       ours        0   wiki -16
+  Ferocious gloves           atk.ranged      ours        0   wiki -16
+  Ferocious gloves           strength        ours       16   wiki 14
+  Zaryte vambraces           atk.stab        ours        0   wiki -8
+  Zaryte vambraces           atk.slash       ours        0   wiki -8
+  Zaryte vambraces           atk.crush       ours        0   wiki -8
+  Zaryte vambraces           atk.ranged      ours        0   wiki 18
+  Black d'hide vambraces     atk.magic       ours        0   wiki -10
+  Black d'hide vambraces     atk.ranged      ours        0   wiki 11
+  Black d'hide vambraces     rangedStrength  ours        2   wiki 0
+  Mithril gloves             atk.stab        ours        0   wiki 6
+  Mithril gloves             atk.slash       ours        0   wiki 6
+  Mithril gloves             atk.crush       ours        0   wiki 6
+  Mithril gloves             atk.magic       ours        0   wiki 3
+  Mithril gloves             atk.ranged      ours        0   wiki 6
+  Mithril gloves             strength        ours        4   wiki 6
+  Primordial boots           atk.stab        ours        0   wiki 2
+  Primordial boots           atk.slash       ours        0   wiki 2
+  Primordial boots           atk.crush       ours        0   wiki 2
+  Primordial boots           atk.magic       ours        0   wiki -4
+  Primordial boots           atk.ranged      ours        0   wiki -1
+  Pegasian boots             atk.magic       ours        0   wiki -12
+  Pegasian boots             atk.ranged      ours        0   wiki 12
+  Pegasian boots             rangedStrength  ours        2   wiki 1
+  Dragon boots               atk.magic       ours        0   wiki -3
+  Dragon boots               atk.ranged      ours        0   wiki -1
+  Ranger boots               atk.magic       ours        0   wiki -10
+  Ranger boots               atk.ranged      ours        0   wiki 8
+  Ranger boots               rangedStrength  ours        4   wiki 0
+  Magus ring                 atk.magic       ours        0   wiki 15
+  Venator ring               atk.ranged      ours        0   wiki 10
+  Venator ring               rangedStrength  ours        6   wiki 2
+  Bellator ring              atk.slash       ours        0   wiki 20
+  Bellator ring              strength        ours        8   wiki 6
+  Archers ring (i)           atk.ranged      ours        0   wiki [8,8,8]
+  Archers ring (i)           rangedStrength  ours        8   wiki [0,0,0]
+  Archers ring               atk.ranged      ours        0   wiki 4
+  Archers ring               rangedStrength  ours        4   wiki 0
+  Seers ring (i)             atk.magic       ours        8   wiki [12,12,12]
+  Seers ring                 atk.magic       ours        4   wiki 6
+  Brimstone ring             atk.stab        ours        0   wiki 4
+  Brimstone ring             atk.slash       ours        0   wiki 4
+  Brimstone ring             atk.crush       ours        0   wiki 4
+  Brimstone ring             atk.magic       ours        4   wiki 6
+  Brimstone ring             atk.ranged      ours        0   wiki 4
+  Brimstone ring             rangedStrength  ours        1   wiki 0
+  Warrior ring (i)           atk.slash       ours        0   wiki [8,8,8]
+  Warrior ring (i)           strength        ours        4   wiki [0,0,0]
+  Warrior ring               atk.slash       ours        0   wiki 4
+  Avernic defender           atk.magic       ours        0   wiki [-5,-5,-5]
+  Avernic defender           atk.ranged      ours        0   wiki [-4,-4,-4]
+  Dragon defender            atk.magic       ours        0   wiki [-3,-3,-3]
+  Dragon defender            atk.ranged      ours        0   wiki [-2,-2,-2]
+  Dragonfire shield          atk.magic       ours        0   wiki [-10,-10]
+  Dragonfire shield          atk.ranged      ours        0   wiki [-5,-5]
+  Dragonfire shield          strength        ours        0   wiki [7,7]
+  Dragonfire ward            atk.stab        ours        0   wiki [-10,-10]
+  Dragonfire ward            atk.slash       ours        0   wiki [-10,-10]
+  Dragonfire ward            atk.crush       ours        0   wiki [-10,-10]
+  Dragonfire ward            atk.magic       ours        5   wiki [-10,-10]
+  Dragonfire ward            atk.ranged      ours        0   wiki [15,15]
+  Dragonfire ward            strength        ours        0   wiki [-2,-2]
+  Dragonfire ward            rangedStrength  ours        0   wiki [8,8]
+  Elidinis' ward (f)         atk.magic       ours       13   wiki 25
+  Elidinis' ward (f)         prayer          ours        1   wiki 4
+  Ruby dragon bolts (e)      rangedStrength  ours      117   wiki 122
+  Diamond dragon bolts (e)   rangedStrength  ours      117   wiki 122
+  Dragon dart                rangedStrength  ours       20   wiki [35,35,35,35]
+  Amethyst dart              rangedStrength  ours       16   wiki [28,28,28,28]
+
+  no wiki row for: Virtus robe legs
+
+wiki rows available: 3234 monsters, 5698 equipment
+hand-maintained:     59 bosses, 116 items
