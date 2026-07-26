@@ -125,6 +125,29 @@ In the plugin it is nearly free: `VarbitID.CA_POINTS` and the six `CA_TIER_STATU
 
 ---
 
+## Wave 2.1 — the server accepts contract v4 · shipped 2026-07-26
+
+The server now parses `contractVersion` 3 **and** 4, with `equipment`, `farming` and `combatAchievements` as three new coverage domains, each validated to the same standard as the v3 payloads. The published constant stays at 3: release checks pin against it, and it moves only when a plugin actually ships. Nothing in the plugin changed.
+
+Three traps this had to route around, each a prior failure class here:
+
+- `normalizePluginSnapshotCoverage` reads rows written before v4 existed. The new domains are optional there and required only in the v4 parser — folding them into the shared list would have rejected every stored row on read.
+- `getSyncedPlayer` selects explicit columns and deliberately skips DDL on the hot path, so the three columns were created on production **before** the deploy.
+- The history ledger's checksum is fed by `ImmutableSnapshotState`. The v4 fields live outside it, so the canonical form of existing snapshots is unchanged and dedup keeps working.
+
+**The adversarial pass found two real defects, and nearly lost them.** The workflow reported "0 confirmed" — but six of twelve verify agents had been killed by a session limit, and a killed agent returns null, which filters out of `confirmed` exactly like a refutation. Both criticals were in that group.
+
+*The v4 columns were write-once.* `PERSIST_SYNC_SQL` gates each column on `($17::jsonb ->> '<domain>') = 'available'`, and `$17` is `resolveSnapshotAvailability`'s return — an object literal with exactly the seven core keys. `NULL = 'available'` is never true, so the `CASE` fell to `ELSE` and kept the stored value: written on INSERT, never updated for an account that already had a row. My own production check missed it because it used a fresh RSN, which takes the INSERT path.
+
+*`/quests/[slug]` leaked the bank.* It read the snapshot straight from the database, bypassing the visibility layer, and passed the whole bank to a client component — so `?rsn=<any name>` returned that player's full bank in the public RSC payload. Confirmed live against a real 830-stack account. `/next` was fixed for exactly this in July; this route was missed.
+
+**Two rules earned here, both about verification rather than code:**
+
+- *A verification must be able to produce a negative.* A deploy check polling for HTTP 200 approves the old build. A database check with a fresh row never exercises `ON CONFLICT`. A leak check against a 404 slug proves nothing. Each of those three happened today.
+- *A regression test for a systemic bug should be structural.* The replacement asserts that **every** domain the SQL gates on is a key the resolver can emit — not that three specific names are present. It was reverted once to confirm it fails.
+
+---
+
 ## Wave 2 — one plugin release
 
 ### 2.1 Server first, and only the server
