@@ -91,6 +91,7 @@ import {
   bossViabilityFromBankItems,
   type BossViability
 } from "@/lib/boss-viability";
+import { combatStatsFromSkills, type CombatStats } from "@/lib/dps";
 import {
   primaryActionForRecommendation,
   recommendationHrefWithContext,
@@ -396,6 +397,10 @@ export function NextClient({
   const [activeBankItems, setActiveBankItems] = useState<BankHandoffItem[]>([]);
   const [activeBankSource, setActiveBankSource] = useState<NextBankSource>("none");
   const [activeRsn, setActiveRsn] = useState("");
+  // The planning round trip already fetches this account's Hiscores; until now
+  // the skills were read once inside the submit handler and dropped, so the
+  // boss modal two levels down recomputed every kill time for a maxed account.
+  const [combatStats, setCombatStats] = useState<CombatStats | null>(null);
   const [planRequestedAt, setPlanRequestedAt] = useState<number | null>(null);
   const [initialRouteChoice, setInitialRouteChoice] = useState<InitialRouteChoice | null>(null);
   const routeIntent = useMemo(
@@ -511,6 +516,7 @@ export function NextClient({
         ? opts.planningContext ?? await planningContextAction(rsn)
         : null;
       const hiscores = planningContext?.hiscores ?? null;
+      setCombatStats(combatStatsFromSkills(hiscores?.skills));
       const wom = planningContext?.wom ?? null;
       const collectionLog = planningContext?.collectionLog ?? null;
       const scapestackSync = planningContext?.scapestackSync ?? null;
@@ -776,6 +782,7 @@ export function NextClient({
           bossSlug={modalBossSlug}
           bankItems={activeBankItems}
           accountType={result.summary.accountType}
+          stats={combatStats}
           analyticsSource="next"
           onSelectBoss={(nextBossSlug) => setModalBossSlug(nextBossSlug)}
           onClose={() => setModalBossSlug(null)}
@@ -2713,14 +2720,17 @@ const GEAR_REALITY_KEYWORDS = {
   travel: ["teleport", "tablet", "tabs", "rune", "ring", "amulet", "necklace", "jewellery", "jewelry"]
 } as const;
 
+// Currently unused. Kept with the levels parameter in place so that wiring it
+// back up cannot silently reintroduce a maxed-stat verdict.
 function bossViabilityForRecommendation(
   rec: Recommendation,
   bankItems: BankHandoffItem[],
-  hasBankContext: boolean
+  hasBankContext: boolean,
+  stats: CombatStats | null
 ): BossViability | null {
   if (!hasBankContext || bankItems.length === 0 || !rec.bossSlug) return null;
   const boss = bossBySlug(rec.bossSlug);
-  return boss ? bossViabilityFromBankItems(bankItems, boss) : null;
+  return boss ? bossViabilityFromBankItems(bankItems, boss, stats) : null;
 }
 
 function bossViabilityBadgeText(viability: BossViability): string {

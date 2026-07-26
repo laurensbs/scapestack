@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { BOSSES } from "@/lib/bosses";
 import { buildBossInventoryPlan } from "@/lib/boss-trip-loadout";
-import type { DpsBreakdown } from "@/lib/dps";
+import { MAXED_STATS, type DpsBreakdown } from "@/lib/dps";
 import { GEAR } from "@/lib/gear";
 import { normalizeBankHandoffItems } from "@/lib/next-bank-handoff";
 
@@ -16,7 +16,8 @@ function dps(): DpsBreakdown {
     dps: 8,
     ttk: 90,
     setup: { weapon: blowpipe },
-    gearScore: 120
+    gearScore: 120,
+    stats: MAXED_STATS
   };
 }
 

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, Sword, Target, TrendingUp, Package, ExternalLink, Copy, CheckCheck } from "lucide-react";
 import { BOSSES, isNonCombatBossActivity, type Boss } from "@/lib/bosses";
-import { bestStyleAndSetup, calcDps, type DpsBreakdown, type Setup } from "@/lib/dps";
+import { bestStyleAndSetup, calcDps, type CombatStats, type DpsBreakdown, type Setup } from "@/lib/dps";
 import { type GearItem } from "@/lib/gear";
 import { PRESETS } from "@/lib/presets";
 import { formatGp, cn } from "@/lib/utils";
@@ -36,10 +36,13 @@ interface Props {
   onSelectBoss?: (boss: Boss) => void;
   analyticsSource?: "next" | "check_kill";
   accountType?: PlannerAccountType | null;
+  /** The account's real combat levels. Null means we do not know them, and
+   *  every figure below is then computed for a maxed account and labelled. */
+  stats?: CombatStats | null;
 }
 
 // One focused encounter sheet: boss first, then the trip in play order.
-export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelectBoss, analyticsSource = "check_kill", accountType = null }: Props) {
+export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelectBoss, analyticsSource = "check_kill", accountType = null, stats = null }: Props) {
   const titleId = "boss-modal-title";
   const descriptionId = "boss-modal-description";
   const statsId = "boss-modal-stats";
@@ -60,7 +63,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
       hasBank: bankItems.length > 0
     });
   }, [analyticsSource, bankItems.length, boss.slug]);
-  const bankDps = useMemo(() => bestStyleAndSetup(owned, boss), [owned, boss]);
+  const bankDps = useMemo(() => bestStyleAndSetup(owned, boss, stats ?? undefined), [owned, boss, stats]);
   const activitySetup = isNonCombatBossActivity(boss);
   const knowledge = useMemo(() => bossKnowledge(boss), [boss]);
   const singleDps = bossKnowledgeSupportsSingleDps(knowledge);
@@ -70,8 +73,8 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
     [bankDps, bankItems, boss, owned, preset]
   );
   const dps = useMemo(
-    () => bankDps.dps > 0 ? calcDps(inventoryPlan.wornSetup, boss, bankDps.style) : bankDps,
-    [bankDps, boss, inventoryPlan.wornSetup]
+    () => bankDps.dps > 0 ? calcDps(inventoryPlan.wornSetup, boss, bankDps.style, stats ?? undefined) : bankDps,
+    [bankDps, boss, inventoryPlan.wornSetup, stats]
   );
   const upgradePlan = useMemo(
     () => activitySetup || !singleDps ? null : buildBossUpgradePlan({ boss, owned, bankItems, current: dps, accountType }),
@@ -477,7 +480,9 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
           {!activitySetup && (
             <p className="text-[10.5px] text-[var(--color-text-muted)] italic pt-3 border-t border-[var(--color-border)]">
               {singleDps
-                ? "Solo DPS uses level 99 stats and offensive prayers. Mechanics can change real kill speed."
+                ? stats
+                  ? `Solo DPS uses your levels (${stats.attack}/${stats.strength}/${stats.ranged}/${stats.magic}, ${stats.prayer} Prayer) and the best prayer they allow. Mechanics can change real kill speed.`
+                  : "Solo DPS assumes level 99 stats and their prayers, because this account's levels are unknown. Add your RSN for your own numbers."
                 : "No single DPS or GP/hour is shown here because roles, rooms or the full run decide the result."}
             </p>
           )}

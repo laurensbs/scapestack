@@ -5,6 +5,7 @@ import { BossDetailModal } from "@/components/boss-detail-modal";
 import { BOSSES } from "@/lib/bosses";
 import { ownedGear } from "@/lib/gear";
 import type { PlannerAccountType } from "@/lib/account-type";
+import type { CombatStats } from "@/lib/dps";
 import {
   organizedItemsFromHandoff,
   type BankHandoffItem
@@ -17,6 +18,7 @@ interface Props {
   onSelectBoss?: (bossSlug: string) => void;
   analyticsSource?: "next" | "check_kill";
   accountType?: PlannerAccountType | null;
+  stats?: CombatStats | null;
 }
 
 export default function LazyBossDetailModal({
@@ -25,7 +27,8 @@ export default function LazyBossDetailModal({
   onClose,
   onSelectBoss,
   analyticsSource = "next",
-  accountType = null
+  accountType = null,
+  stats = null
 }: Props) {
   const boss = useMemo(
     () => BOSSES.find((candidate) => candidate.slug === bossSlug) ?? null,
@@ -44,6 +47,7 @@ export default function LazyBossDetailModal({
       owned={owned}
       bankItems={bankItems}
       accountType={accountType}
+      stats={stats}
       analyticsSource={analyticsSource}
       onSelectBoss={(nextBoss) => onSelectBoss?.(nextBoss.slug)}
       onClose={onClose}

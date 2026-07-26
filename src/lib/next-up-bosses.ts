@@ -11,6 +11,7 @@
 // the ranking layer can penalise guesses.
 
 import { BOSSES, type Boss } from "./bosses";
+import type { CombatStats } from "./dps";
 import type { CompletionItem } from "./goals";
 import type { HiscoreSkill } from "./hiscores";
 import { isIronPlannerAccount, type PlannerAccountType } from "./account-type";
@@ -196,7 +197,8 @@ export function bossRecs(
   skills: HiscoreSkill[],
   bossKc: Record<string, number>,
   accountType?: PlannerAccountType | null,
-  access?: AccessContext
+  access?: AccessContext,
+  stats?: CombatStats | null
 ): Recommendation[] {
   const totalKnownBossKc = Object.values(bossKc).reduce((sum, kc) => sum + Math.max(0, kc), 0);
   if (totalKnownBossKc >= 1_000) return [];
@@ -205,6 +207,11 @@ export function bossRecs(
   const accessContext: AccessContext = access ?? { skills };
   const seenGroups = new Set<string>();
   const recs: Recommendation[] = [];
+  // Whether anything inside the window is a fight this account comfortably
+  // wins. "test" does not count: a four-minute kill on a whip-only setup is a
+  // warning, not a recommendation, and treating it as one is what left this
+  // account with no boss worth doing.
+  let sawReadyInWindow = false;
   for (const boss of BOSSES) {
     const gate = BOSS_CL_GATE[boss.slug];
     if (gate === undefined) continue;
@@ -242,6 +249,15 @@ export function bossRecs(
       : bank.length > 0
         ? "not-needed"
         : "unknown";
+
+    // Only counts once the boss has survived every gate above. Checking it
+    // earlier meant Kraken — comfortably killable on paper, and then dropped
+    // for needing 87 Slayer against this account's 50 — marked the window as
+    // healthy and suppressed the fallback that exists for exactly this account.
+    if (bank.length > 0 && stats) {
+      const windowViability = bossViabilityFromSimpleBank(bank, boss, stats);
+      if (windowViability?.tone === "ready") sawReadyInWindow = true;
+    }
 
     // Group siblings into one rec (Dagannoth Kings → one tile, not three).
     const group = BOSS_GROUPS[boss.slug];
@@ -337,9 +353,111 @@ export function bossRecs(
       }
     });
   }
+  // Every boss in the window is a fight this account loses. That combination is
+  // common and it used to produce nothing at all: the window offers bosses at
+  // most 25 combat levels below the player, so a 70/75 account with a whip is
+  // shown Dagannoth Kings and Barrows — and once the DPS figures stopped
+  // assuming maxed stats, the engine correctly blocked all of them and left the
+  // player with no boss. Meanwhile Obor, Bryophyta and Kraken sit just under the
+  // window and die comfortably.
+  //
+  // So widen it, but only in the case that needs it, and say plainly that this
+  // is the honest recommendation rather than the aspirational one.
+  if (!sawReadyInWindow && bank.length > 0 && stats) {
+    recs.push(...reachableBossFallback({
+      combatLevel, bank, bossKc, slayerLevel, accessContext, stats, totalKnownBossKc, seenGroups
+    }));
+  }
+
   // Cap at top-4 — beyond that the checklist becomes "every boss in CL range"
   // which is noise. The kill check is one click away for the full list.
   return recs.sort((a, b) => b.score - a.score).slice(0, 4);
+}
+
+/**
+ * The best bosses below the recommendation window that this account genuinely
+ * kills, scored under everything in the window.
+ *
+ * Deliberately capped at two and scored low: this is a fallback, not a demotion
+ * of the player's ambitions. It exists so "nothing you can fight" is never the
+ * answer when something obviously is.
+ */
+function reachableBossFallback(input: {
+  combatLevel: number;
+  bank: CompletionItem[];
+  bossKc: Record<string, number>;
+  slayerLevel: number;
+  accessContext: AccessContext;
+  stats: CombatStats;
+  totalKnownBossKc: number;
+  seenGroups: Set<string>;
+}): Recommendation[] {
+  const found: Array<{ boss: Boss; gate: number; ttk: number | null }> = [];
+  for (const boss of BOSSES) {
+    const gate = BOSS_CL_GATE[boss.slug];
+    // Strictly below the window the main pass already covered.
+    if (gate === undefined || input.combatLevel <= gate + 25) continue;
+    if (hasBossExperience(boss, input.bank, input.bossKc)) continue;
+    if (evaluateAccess(BOSS_ACCESS[boss.slug], input.accessContext).state === "locked") continue;
+    const gearGate = BOSS_GEAR_GATES[boss.slug];
+    if (gearGate?.slayerLevel !== undefined && input.slayerLevel < gearGate.slayerLevel) continue;
+    if (BOSS_GROUPS[boss.slug] && input.seenGroups.has(BOSS_GROUPS[boss.slug]!.id)) continue;
+
+    const viability = bossViabilityFromSimpleBank(input.bank, boss, input.stats);
+    // "ready" only. A test trip at a boss the player has already outlevelled is
+    // not worth the slot.
+    if (!viability || viability.tone !== "ready") continue;
+    found.push({ boss, gate, ttk: viability.ttk });
+  }
+
+  // Highest entry bar first — the closest thing to a real step up.
+  found.sort((left, right) => right.gate - left.gate);
+
+  return found.slice(0, 2).map(({ boss, ttk }, index) => ({
+    id: `boss:${boss.slug}`,
+    kind: "boss" as const,
+    title: `Try ${boss.name}`,
+    why: "Nothing at your combat level is a fight this bank wins yet. This one is.",
+    payoff: boss.avgLootGp
+      ? `Estimated long-run loot: ~${Math.round(boss.avgLootGp / 1000)}k per kill.`
+      : boss.notes,
+    decisionReason: ttk
+      ? `Your stats and bank kill it in about ${ttk < 90 ? `${Math.round(ttk)} sec` : `${Math.round(ttk / 60)} min`}, where the bosses at your level do not go down at all.`
+      : "Your stats and bank handle this one, where the bosses at your level do not go down at all.",
+    // Scored in the same band as an in-window boss, not beneath it. The
+    // evidence here is strictly stronger: every in-window rec is a guess from a
+    // combat-level gate, while this one has a kill time computed from the
+    // player's own levels against their own gear. Ranking it lower would mean
+    // preferring the guess to the measurement.
+    //
+    // The runner-up drops ten points so the pair cannot take two of the three
+    // headline slots between them. Obor and Bryophyta are close to the same
+    // suggestion twice; one competes, the other is a backup.
+    score: index === 0 ? 58 : 48,
+    link: "/dps",
+    iconItemId: boss.iconItemId,
+    bossSlug: boss.slug,
+    routeTags: ["pvm", "fun"],
+    gearConfidence: "confirmed" as const,
+    quality: {
+      accountFit: 0.8,
+      actionability: 0.84,
+      stopPoint: 0.86,
+      gearConfidence: 0.9,
+      unlockValue: 0.3,
+      fun: 0.7,
+      friction: 0.3
+    },
+    planSeed: {
+      timebox: "30-60 min",
+      prep: `Take your best owned setup; ${boss.name} is comfortably inside what it handles.`,
+      steps: [
+        `Do 3-5 ${boss.name} kills and confirm the kill time matches.`,
+        "Bank the drops and note what actually slowed you down.",
+        "Come back to the bosses at your combat level once the setup or levels move."
+      ]
+    }
+  }));
 }
 
 // Build the rec's `why` line. When we matched a specific gear item we
@@ -371,14 +489,20 @@ function mergeUniqueShort(first: string[], second: string[], limit: number): str
   return out;
 }
 
-export function applyBossViability(recs: Recommendation[], bank: CompletionItem[]): Recommendation[] {
+export function applyBossViability(
+  recs: Recommendation[],
+  bank: CompletionItem[],
+  // Null keeps the old behaviour — maxed stats, and the verdict says so. Every
+  // production path has real levels here; the fixtures in tests do not.
+  stats?: CombatStats | null
+): Recommendation[] {
   if (bank.length === 0) return recs;
 
   return recs.map((rec) => {
     const boss = bossBySlug(rec.bossSlug);
     if (!boss) return rec;
 
-    const viability = bossViabilityFromSimpleBank(bank, boss);
+    const viability = bossViabilityFromSimpleBank(bank, boss, stats);
     if (!viability) return rec;
 
     const blocked = viability.tone === "blocked";

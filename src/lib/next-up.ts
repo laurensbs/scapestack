@@ -36,6 +36,7 @@ import {
 } from "./account-type";
 import type { SyncDeltaSummary } from "./sync-repo";
 import { pluginSyncHealth } from "./plugin-sync";
+import { combatStatsFromSkills } from "./dps";
 import { latestActivity } from "./returning-player";
 import { isIronAccount, rankRecommendations } from "./next-up-scoring";
 import { completedQuest, lvl } from "./next-up-shared";
@@ -1161,9 +1162,14 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
   // Materialised once. Every consumer may iterate it as often as it likes.
   const knownQuestNames = new Set(quests.keys());
 
+  // The account's own combat levels, so "Can kill" stops meaning "a maxed
+  // account could kill". Null when the skill rows are incomplete, which the
+  // verdict then declares rather than papering over with 99s.
+  const combatStats = combatStatsFromSkills(skills);
+
   const rawRecs = applyBossViability([
     ...goalRecs(completions),
-    ...(combatLevel !== null ? bossRecs(combatLevel, bank, skills, mergedBossKc, accountMeta?.accountType ?? null, accessContext) : []),
+    ...(combatLevel !== null ? bossRecs(combatLevel, bank, skills, mergedBossKc, accountMeta?.accountType ?? null, accessContext, combatStats) : []),
     ...slayerTaskRecs(input.scapestackSync?.slayer, {
       displayName: input.scapestackSync?.displayName ?? accountMeta?.displayName,
       bank,
@@ -1209,7 +1215,7 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     // No-Hiscores nudge: when the player only gave a bank, lead with "add
     // your RSN" rather than letting "Tidy your bank" become the headline.
     ...(!hasHiscores && hasBank ? [noHiscoresNudge()] : [])
-  ], bank);
+  ], bank, combatStats);
   const sortedRecs = rankRecommendations(rawRecs, {
     hasBank,
     accountStage,

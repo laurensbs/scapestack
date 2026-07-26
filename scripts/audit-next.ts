@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { pickForRoute } from "../src/lib/mood";
 import { computeNextUp, type Recommendation } from "../src/lib/next-up";
 import { NEXT_AUDIT_SCENARIOS, type NextAuditScenario } from "./next-audit-scenarios";
@@ -128,7 +129,12 @@ async function main(): Promise<void> {
   if (!report.passed) process.exitCode = 1;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not a template string. import.meta.url percent-encodes, and
+// this repo's path contains a space: "…/Persoonlijke%20Projecten/…" never
+// equals "…/Persoonlijke Projecten/…", so main() silently never ran. The script
+// printed nothing, exited 0, and `npm run audit:next` sat in ci:check as a gate
+// that gated nothing. Any path with a space, accent or "#" hits this.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((error) => {
     console.error(error);
     process.exitCode = 1;

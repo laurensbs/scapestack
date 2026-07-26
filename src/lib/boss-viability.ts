@@ -1,5 +1,5 @@
 import { BOSSES, type Boss } from "./bosses";
-import { bestStyleAndSetup, type DpsBreakdown } from "./dps";
+import { bestStyleAndSetup, MAXED_STATS, type CombatStats, type DpsBreakdown } from "./dps";
 import { lookupGear, ownedGear, type CombatStyle, type GearItem } from "./gear";
 import {
   organizedItemsFromHandoff,
@@ -21,6 +21,13 @@ export interface BossViability {
   summary: string;
   firstTrip: string;
   missing: string[];
+  /**
+   * True when no real combat levels were supplied, so every number above was
+   * computed for a maxed account. Carried on the verdict rather than left to
+   * each UI to remember, because "Can kill" is the most load-bearing claim in
+   * the product and it was being made from somebody else's stats.
+   */
+  assumedMaxed: boolean;
 }
 
 const READY_DPS = 4.5;
@@ -139,14 +146,14 @@ function isSpecWeaponAsMain(weaponName: string): boolean {
   return /godsword|dragon claws/i.test(weaponName);
 }
 
-function preferredMainBreakdown(owned: GearItem[], boss: Boss): DpsBreakdown {
-  const best = bestStyleAndSetup(owned, boss);
+function preferredMainBreakdown(owned: GearItem[], boss: Boss, stats: CombatStats): DpsBreakdown {
+  const best = bestStyleAndSetup(owned, boss, stats);
   if (!isSpecWeaponAsMain(best.weapon.name)) return best;
 
   const nonSpecOwned = owned.filter((item) =>
     item.slot !== "weapon" || !isSpecWeaponAsMain(item.name)
   );
-  const fasterMainhand = bestStyleAndSetup(nonSpecOwned, boss);
+  const fasterMainhand = bestStyleAndSetup(nonSpecOwned, boss, stats);
   if (
     fasterMainhand.weapon.id !== 0
     && (fasterMainhand.weapon.speed ?? 4) <= 4
@@ -157,8 +164,19 @@ function preferredMainBreakdown(owned: GearItem[], boss: Boss): DpsBreakdown {
   return best;
 }
 
-export function bossViabilityFromGear(owned: GearItem[], boss: Boss): BossViability {
-  const best = preferredMainBreakdown(owned, boss);
+/**
+ * `stats` null means "we do not know this account's levels". The engine then
+ * answers for a maxed account and the verdict says so — see assumedMaxed. It is
+ * not a silent default: a kill time computed for 99s and shown to an 85-Attack
+ * player is the exact failure this parameter exists to end.
+ */
+export function bossViabilityFromGear(
+  owned: GearItem[],
+  boss: Boss,
+  stats?: CombatStats | null
+): BossViability {
+  const assumedMaxed = !stats;
+  const best = preferredMainBreakdown(owned, boss, stats ?? MAXED_STATS);
   const noWeapon = weaponMissing(best);
   const tone = noWeapon ? "blocked" : toneForBreakdown(best);
   const ttk = finiteTtk(best.ttk);
@@ -180,7 +198,8 @@ export function bossViabilityFromGear(owned: GearItem[], boss: Boss): BossViabil
       verdict: "Blocked",
       summary: "No usable weapon found in this bank.",
       firstTrip: "Pick a safer backup or add gear first.",
-      missing: ["usable weapon"]
+      missing: ["usable weapon"],
+      assumedMaxed
     }, owned);
   }
 
@@ -196,7 +215,8 @@ export function bossViabilityFromGear(owned: GearItem[], boss: Boss): BossViabil
       verdict: "Can kill",
       summary: `Best owned setup: ${weaponName} (${styleText}) at ${dpsText} DPS${ttkText ? `, ~${ttkText} kill` : ""}.`,
       firstTrip: "Do one 3-5 kill trip, then decide if it becomes a block.",
-      missing: []
+      missing: [],
+      assumedMaxed
     }, owned);
   }
 
@@ -212,7 +232,8 @@ export function bossViabilityFromGear(owned: GearItem[], boss: Boss): BossViabil
       verdict: "Test trip",
       summary: `Best owned setup: ${weaponName} (${styleText}) at ${dpsText} DPS${ttkText ? `, ~${ttkText} kill` : ""}. Keep it short.`,
       firstTrip: "Test 1-2 kills before calling it tonight's grind.",
-      missing: ["stronger setup for longer trips"]
+      missing: ["stronger setup for longer trips"],
+      assumedMaxed
     }, owned);
   }
 
@@ -227,18 +248,30 @@ export function bossViabilityFromGear(owned: GearItem[], boss: Boss): BossViabil
     verdict: "Blocked",
     summary: `${weaponName} is only ${dpsText} DPS here. Pick a safer boss or upgrade first.`,
     firstTrip: `Skip for now; unlock or buy a stronger ${styleText.toLowerCase()} setup first.`,
-    missing: [`stronger ${styleText.toLowerCase()} setup`]
+    missing: [`stronger ${styleText.toLowerCase()} setup`],
+    assumedMaxed
   }, owned);
 }
 
-export function bossViabilityFromBankItems(items: BankHandoffItem[], boss: Boss): BossViability | null {
+export function bossViabilityFromBankItems(
+  items: BankHandoffItem[],
+  boss: Boss,
+  stats?: CombatStats | null
+): BossViability | null {
   if (items.length === 0) return null;
-  return applyBankBossHints(bossViabilityFromGear(ownedGear(organizedItemsFromHandoff(items)), boss), items);
+  return applyBankBossHints(
+    bossViabilityFromGear(ownedGear(organizedItemsFromHandoff(items)), boss, stats),
+    items
+  );
 }
 
-export function bossViabilityFromSimpleBank(bank: NextUpBankItem[], boss: Boss): BossViability | null {
+export function bossViabilityFromSimpleBank(
+  bank: NextUpBankItem[],
+  boss: Boss,
+  stats?: CombatStats | null
+): BossViability | null {
   if (bank.length === 0) return null;
-  return bossViabilityFromGear(simpleBankToGear(bank), boss);
+  return bossViabilityFromGear(simpleBankToGear(bank), boss, stats);
 }
 
 export function bossViabilityScoreMultiplier(viability: BossViability | null): number {
@@ -248,12 +281,23 @@ export function bossViabilityScoreMultiplier(viability: BossViability | null): n
   return 0.18;
 }
 
+/** The one-line qualifier, or null when the numbers are the player's own. */
+export function bossViabilityBasis(viability: BossViability): string | null {
+  return viability.assumedMaxed
+    ? "Assumes maxed combat stats \u2014 add your RSN for your own numbers."
+    : null;
+}
+
 export function bossViabilityDecisionLine(viability: BossViability): string {
+  // "Bank says" was the wrong attribution while levels were assumed: the bank
+  // supplied the gear, the engine supplied somebody else's 99s. It is accurate
+  // once the levels are the player's, and hedged when they are not.
+  const source = viability.assumedMaxed ? "At maxed stats" : "Your stats and bank say";
   if (viability.tone === "ready") {
-    return `Bank says you can kill ${viability.boss.name}: ${viability.summary}`;
+    return `${source} you can kill ${viability.boss.name}: ${viability.summary}`;
   }
   if (viability.tone === "test") {
-    return `Bank says ${viability.boss.name} is a test trip: ${viability.summary}`;
+    return `${source} ${viability.boss.name} is a test trip: ${viability.summary}`;
   }
   return `Skipped ${viability.boss.name}: ${viability.summary}`;
 }

@@ -7,10 +7,10 @@ import { Edit3, Sword, Search, X, Sparkles, ExternalLink } from "lucide-react";
 import { Intake } from "@/components/intake";
 import { SupportCard } from "@/components/support-card";
 import { ItemSprite } from "@/components/item-sprite";
-import { organizeAction } from "@/app/actions";
+import { hiscoresAction, organizeAction } from "@/app/actions";
 import { BOSSES, isNonCombatBossActivity, type Boss } from "@/lib/bosses";
 import { ownedGear, lookupGear, type GearItem } from "@/lib/gear";
-import { bestStyleAndSetup, type DpsBreakdown } from "@/lib/dps";
+import { bestStyleAndSetup, combatStatsFromSkills, type CombatStats, type DpsBreakdown } from "@/lib/dps";
 import { cn } from "@/lib/utils";
 import { BossDetailModal } from "@/components/boss-detail-modal";
 import { AddBankModal } from "@/components/add-bank-modal";
@@ -194,8 +194,30 @@ export function DpsClient() {
   const [accountRsn, setAccountRsn] = useState("");
   const [hasKnownSetup, setHasKnownSetup] = useState(false);
   const [pendingBossSlug, setPendingBossSlug] = useState<string | null>(null);
+  // Real combat levels. Every kill time on this page used to be computed for a
+  // maxed account because nothing here ever asked the Hiscores for the levels
+  // it already had an RSN for. Null until they arrive, and null forever for a
+  // visitor with no name — which the copy then states outright.
+  const [combatStats, setCombatStats] = useState<CombatStats | null>(null);
   const urlRsn = searchParams.get("rsn")?.trim() ?? "";
   const effectiveRsn = urlRsn || accountRsn;
+
+  useEffect(() => {
+    if (!effectiveRsn) {
+      setCombatStats(null);
+      return;
+    }
+    let cancelled = false;
+    hiscoresAction(effectiveRsn)
+      .then((hiscores) => {
+        if (cancelled) return;
+        setCombatStats(combatStatsFromSkills(hiscores?.skills));
+      })
+      // A failed lookup is not an error state here: the page keeps working on
+      // the documented maxed default, and the label keeps telling the truth.
+      .catch(() => { if (!cancelled) setCombatStats(null); });
+    return () => { cancelled = true; };
+  }, [effectiveRsn]);
 
   useEffect(() => {
     const nextRsn = urlRsn || getActiveAccount()?.rsn || loadSavedRsn() || "";
@@ -310,8 +332,8 @@ export function DpsClient() {
   // render activity prep instead of fake combat DPS.
   const bossResults = useMemo(
     () => BOSSES
-      .map((boss) => ({ boss, dps: bestStyleAndSetup(owned, boss) })),
-    [owned]
+      .map((boss) => ({ boss, dps: bestStyleAndSetup(owned, boss, combatStats ?? undefined) })),
+    [owned, combatStats]
   );
 
   const bossMatchesFilter = (entry: BossDpsResult) => {
@@ -669,6 +691,7 @@ export function DpsClient() {
           owned={owned}
           bankItems={bankItems}
           accountType={plannerAccountType}
+          stats={combatStats}
           analyticsSource="check_kill"
           onSelectBoss={(nextBoss) => {
             setFocusedBoss(nextBoss);

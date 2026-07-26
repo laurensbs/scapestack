@@ -54,7 +54,7 @@ import type { HiscoreSkill } from "@/lib/hiscores";
 import { BOSSES, type Boss } from "@/lib/bosses";
 import { BossSprite } from "./boss-picker";
 import { ownedGear } from "@/lib/gear";
-import { bestStyleAndSetup } from "@/lib/dps";
+import { bestStyleAndSetup, combatStatsFromSkills, type CombatStats } from "@/lib/dps";
 import { exportTag } from "@/lib/bank-tags";
 import { DiscordWebhookCard } from "./discord-webhook-card";
 import { SupportCard } from "./support-card";
@@ -2872,6 +2872,7 @@ export function BankResult({
         items={allItems}
         flash={flash}
         copied={copied}
+        hiscoreSkills={hiscoreSkills}
         onOpenDps={(bossSlug) => openBankHandoffRoute(bankToolUrl("/dps", inferredRsn, { boss: bossSlug }))}
       />
 
@@ -5592,8 +5593,12 @@ function bossMatchesLoadoutFilter(boss: Boss, filter: BossLoadoutFilter): boolea
   return boss.category === filter;
 }
 
-function bossRelevanceScore(boss: Boss, ownedGearItems: ReturnType<typeof ownedGear>): number {
-  const dps = bestStyleAndSetup(ownedGearItems, boss);
+function bossRelevanceScore(
+  boss: Boss,
+  ownedGearItems: ReturnType<typeof ownedGear>,
+  stats: CombatStats | null
+): number {
+  const dps = bestStyleAndSetup(ownedGearItems, boss, stats ?? undefined);
   const usableBoost = dps.dps > 0 ? 50 : 0;
   const gpBoost = boss.avgLootGp ? Math.min(20, boss.avgLootGp / 20_000) : 0;
   const beginnerBoost = boss.hp > 0 && boss.hp <= 320 ? 8 : 0;
@@ -5634,11 +5639,15 @@ function bossInventoryPrep(items: OrganizedItem[]) {
   ];
 }
 
-function BossTagSection({ items, flash, copied, onOpenDps }: {
+function BossTagSection({ items, flash, copied, onOpenDps, hiscoreSkills }: {
   items: OrganizedItem[];
   flash: (key: string) => void;
   copied: string | null;
   onOpenDps: (bossSlug: string) => void;
+  // BankResult has held these since long before this section existed and used
+  // them for upgrade suggestions; the boss verdicts below were still computed
+  // for a maxed account. Null on the public shared-bank view, which has no RSN.
+  hiscoreSkills?: HiscoreSkill[] | null;
 }) {
   // Selected boss is null until the player clicks an icon — keeps the section
   // compact on first sight (no giant loadout under the bank by default).
@@ -5649,6 +5658,7 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
   const [showAllBosses, setShowAllBosses] = useState(false);
   const boss = useMemo(() => (bossSlug ? BOSSES.find((b) => b.slug === bossSlug) ?? null : null), [bossSlug]);
   const ownedGearItems = useMemo(() => ownedGear(items), [items]);
+  const combatStats = useMemo(() => combatStatsFromSkills(hiscoreSkills), [hiscoreSkills]);
 
   const visibleBosses = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -5660,11 +5670,14 @@ function BossTagSection({ items, flash, copied, onOpenDps }: {
         )
       : BOSSES.filter((b) => bossMatchesLoadoutFilter(b, activeFilter));
     return [...filtered]
-      .sort((a, b) => bossRelevanceScore(b, ownedGearItems) - bossRelevanceScore(a, ownedGearItems))
+      .sort((a, b) => bossRelevanceScore(b, ownedGearItems, combatStats) - bossRelevanceScore(a, ownedGearItems, combatStats))
       .slice(0, showAllBosses || q ? 60 : 12);
-  }, [activeFilter, ownedGearItems, query, showAllBosses]);
+  }, [activeFilter, combatStats, ownedGearItems, query, showAllBosses]);
 
-  const best = useMemo(() => (boss ? bestStyleAndSetup(ownedGearItems, boss) : null), [boss, ownedGearItems]);
+  const best = useMemo(
+    () => (boss ? bestStyleAndSetup(ownedGearItems, boss, combatStats ?? undefined) : null),
+    [boss, combatStats, ownedGearItems]
+  );
   const bossVerdict = best && boss
     ? best.dps <= 0
       ? "Gear missing"

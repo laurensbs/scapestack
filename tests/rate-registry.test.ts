@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { BOSSES } from "@/lib/bosses";
-import type { DpsBreakdown } from "@/lib/dps";
+import { MAXED_STATS, type DpsBreakdown } from "@/lib/dps";
 import type { GearItem } from "@/lib/gear";
 import {
   bossProfitEstimate,
@@ -19,7 +19,8 @@ const dps: DpsBreakdown = {
   dps: 8,
   ttk: 90,
   setup: { weapon },
-  gearScore: 100
+  gearScore: 100,
+  stats: MAXED_STATS
 };
 
 function record(retrievedAt: string): RateRecord {
