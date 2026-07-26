@@ -367,7 +367,9 @@ public class ScapestackSyncPluginTest {
         assertEquals("Ultimate Ironman mode", ScapestackSyncPlugin.accountModeLabel("ultimate_ironman"));
         assertEquals("Group Ironman mode", ScapestackSyncPlugin.accountModeLabel("group_ironman"));
         assertEquals("Group Ironman mode", ScapestackSyncPlugin.accountModeLabel("hardcore_group_ironman"));
-        assertEquals("Account mode unknown", ScapestackSyncPlugin.accountModeLabel(""));
+        // The panel row is already labelled "Account mode"; the value must not
+        // repeat it.
+        assertEquals("Unknown", ScapestackSyncPlugin.accountModeLabel(""));
     }
 
     @Test

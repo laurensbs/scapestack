@@ -848,9 +848,10 @@ public class ScapestackSyncPlugin extends Plugin {
         return count + " " + (count == 1 ? singular : plural);
     }
 
+    // Also lands in a row already labelled "Account mode".
     static String accountModeLabel(String accountType) {
         if (accountType == null || accountType.isBlank()) {
-            return "Account mode unknown";
+            return "Unknown";
         }
         switch (accountType.trim().toLowerCase()) {
             case "normal":
@@ -865,32 +866,34 @@ public class ScapestackSyncPlugin extends Plugin {
             case "hardcore_group_ironman":
                 return "Group Ironman mode";
             default:
-                return "Account mode unknown";
+                return "Unknown";
         }
     }
 
     private static String accountModeDetectedMessage(String accountType) {
         String label = accountModeLabel(accountType);
-        if ("Normal account".equals(label) || "Account mode unknown".equals(label)) {
+        if ("Normal account".equals(label) || "Unknown".equals(label)) {
             return null;
         }
         return label + " detected.";
     }
 
+    // Lands in a panel row already labelled "Bank", so the value never repeats
+    // the word: "Bank: Bank off" read as a stutter.
     private static String panelBankStatus(GameStateReader.BankStatus status) {
         if (status.itemCount > 0) {
-            return "Bank synced: " + formatCount(status.itemCount, "item stack", "item stacks");
+            return formatCount(status.itemCount, "item stack", "item stacks");
         }
         if (!status.enabled) {
-            return "Bank off";
+            return "Off";
         }
         if ("bank-not-opened-this-session".equals(status.unavailableReason)) {
             return "Open your bank once";
         }
         if ("no-items-captured".equals(status.unavailableReason)) {
-            return "No bank items captured";
+            return "No items captured";
         }
-        return "Bank check unavailable";
+        return "Unavailable";
     }
 
     static String panelNextAction(
