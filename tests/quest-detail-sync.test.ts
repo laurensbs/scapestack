@@ -22,7 +22,13 @@ describe("quest detail RuneLite sync contract", () => {
     expect(pageSource).toContain("const syncedSkills = syncedSkillsToQuestHiscoreSkills(syncedPlayer?.skills);");
     expect(pageSource).toContain("const skills = syncedSkills.length > 0 ? syncedSkills : hiscores?.skills ?? [];");
     expect(pageSource).toContain("const completedQuests = syncedPlayer?.questsCompleted ?? [];");
-    expect(pageSource).toContain("bankItems: syncedPlayer?.bankItems ?? []");
+    // The server still plans against the real bank — that is what this line
+    // has always been about. It now reads it through serverBankItems, because
+    // the copy that crosses to the client is redacted for anyone who is not
+    // the paired owner: /quests/<slug>?rsn=<any name> used to return that
+    // player's whole bank in the public RSC payload.
+    expect(pageSource).toContain("const serverBankItems = syncedPlayer?.bankItems ?? [];");
+    expect(pageSource).toContain("bankItems: serverBankItems");
     expect(pageSource).toContain("scapestackAccountTypeToPlannerType(syncedPlayer.accountType)");
     expect(pageSource).toContain('progressSource={syncedPlayer ? "runelite" : hiscores ? "hiscores" : "none"}');
     expect(pageSource).toContain("route.progress.activeQuestSlug !== currentSlug");

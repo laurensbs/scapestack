@@ -36,7 +36,13 @@ export function pluginChangedLine(player: PluginSyncReceipt): string {
     bossKc: "boss KC",
     slayer: "Slayer",
     accountMode: "account mode",
-    bank: "bank"
+    bank: "bank",
+    // Contract v4. The lookup falls back to the raw key, so without these a
+    // v4 scan would read "Scan accepted: ..., combatAchievements." in copy the
+    // player sees.
+    equipment: "worn gear",
+    farming: "farm timers",
+    combatAchievements: "combat achievements"
   };
   const followUps: string[] = [];
   if (player.coverage.collectionLog.state === "not-loaded") followUps.push("open Collection Log once for clog checks");

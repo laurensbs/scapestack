@@ -6,6 +6,7 @@ import { buildQuestRoute } from "@/lib/quest-route";
 import { questUnlockSignal } from "@/lib/quest-unlocks";
 import { getQuestBySlug, getQuests, questSlug } from "@/lib/quest-db";
 import { getSyncedPlayer } from "@/lib/sync-repo";
+import { resolveViewerRsn } from "@/lib/viewer-account";
 import { QuestDetailClient } from "./quest-detail-client";
 
 type PageParams = { slug: string };
@@ -59,12 +60,27 @@ export default async function QuestDetailPage({
 
   const rsn = firstParam(search.rsn)?.trim() || null;
   const targetSlug = firstParam(search.target)?.trim() || null;
-  const [syncedPlayer, hiscores, quests, requestedTarget] = await Promise.all([
+  const [syncedPlayer, hiscores, quests, requestedTarget, viewerRsn] = await Promise.all([
     rsn ? getSyncedPlayer(rsn) : Promise.resolve(null),
     rsn ? fetchHiscores(rsn) : Promise.resolve(null),
     getQuests(),
-    targetSlug ? getQuestBySlug(targetSlug) : Promise.resolve(null)
+    targetSlug ? getQuestBySlug(targetSlug) : Promise.resolve(null),
+    rsn ? resolveViewerRsn() : Promise.resolve(null)
   ]);
+
+  // /quests/<slug>?rsn=<name> is a public URL, and everything handed to the
+  // client component below is serialised into the RSC payload embedded in the
+  // HTML. This route was reading the snapshot straight from the database and
+  // passing the whole bank down, so any name anyone typed returned that
+  // player's full bank — item names, ids and quantities — to one curl.
+  //
+  // /next was fixed for exactly this in July; this route was missed. Same
+  // rule: the server keeps computing against the real bank so the route and
+  // the requirement checks stay accurate, and only the copy that leaves the
+  // server is withheld.
+  const isOwner = Boolean(viewerRsn && syncedPlayer && viewerRsn === syncedPlayer.rsn);
+  const serverBankItems = syncedPlayer?.bankItems ?? [];
+  const clientBankItems = isOwner ? serverBankItems : [];
 
   const accountType: PlannerAccountType | null = syncedPlayer
     ? scapestackAccountTypeToPlannerType(syncedPlayer.accountType)
@@ -77,7 +93,7 @@ export default async function QuestDetailPage({
     skills,
     completedQuestNames: syncedPlayer ? completedQuests : undefined,
     completionEvidence: syncedPlayer ? "runelite" : undefined,
-    bankItems: syncedPlayer?.bankItems ?? [],
+    bankItems: serverBankItems,
     accountType,
     payoff: questUnlockSignal(targetQuest).label
   });
@@ -92,7 +108,7 @@ export default async function QuestDetailPage({
   const initialEvaluation = evaluateQuestRequirements(quest, {
     skills,
     completedQuests,
-    bankItems: syncedPlayer?.bankItems ?? [],
+    bankItems: serverBankItems,
     accountType
   });
   const initialRoute = route.progress;
@@ -107,7 +123,7 @@ export default async function QuestDetailPage({
         completedQuests={completedQuests}
         accountType={accountType}
         rsn={syncedPlayer?.displayName ?? rsn}
-        syncedBankItems={syncedPlayer?.bankItems ?? []}
+        syncedBankItems={clientBankItems}
         progressSource={syncedPlayer ? "runelite" : hiscores ? "hiscores" : "none"}
       />
     </main>

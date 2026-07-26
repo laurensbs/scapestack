@@ -1,4 +1,7 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { resolveSnapshotAvailability } from "@/lib/account-snapshot-delta";
 import syncPayloadV3 from "./fixtures/plugin-sync-v3.json";
 import {
   parsePluginSnapshotContract,
@@ -282,5 +285,145 @@ describe("the new domains never leave the server for a stranger", () => {
       expect(seen && "redacted" in seen && seen.redacted).toBe(true);
       expect((seen as { equipment: unknown }).equipment).toBeNull();
     }
+  });
+});
+
+describe("the availability gate the SQL actually reads", () => {
+  const historyRepo = readFileSync(join(process.cwd(), "src/lib/account-history-repo.ts"), "utf8");
+
+  /**
+   * The one that got away, and the reason this test is structural rather than
+   * a list of three names.
+   *
+   * PERSIST_SYNC_SQL gates every column on `($17::jsonb ->> '<domain>') =
+   * 'available'`, and $17 is whatever resolveSnapshotAvailability returns. That
+   * function built an object literal with exactly the seven core keys, so for
+   * the three v4 columns the comparison was `NULL = 'available'` — never true.
+   * The CASE fell to ELSE and kept the stored value, every time. The columns
+   * were written on INSERT and never once updated for an account that already
+   * had a row.
+   *
+   * It survived a production round-trip because that test used a fresh RSN,
+   * which takes the INSERT path. Only an account syncing twice shows it.
+   */
+  it("can emit every domain the SQL gates on", () => {
+    const gated = new Set<string>();
+    for (const match of historyRepo.matchAll(/\$17::jsonb ->> '([A-Za-z]+)'/g)) {
+      gated.add(match[1]);
+    }
+    expect(gated.size, "no availability gates found — did the SQL change?").toBeGreaterThan(5);
+
+    // Everything explicit, so the resolver has something to pass through.
+    const emitted = new Set(Object.keys(resolveSnapshotAvailability({
+      accountType: "normal",
+      skills: [],
+      questsCompleted: [],
+      diariesCompleted: [],
+      collectionLogItemIds: [],
+      bankItems: [],
+      bankStatus: { enabled: true, itemCount: 0, capturedAt: null, unavailableReason: null },
+      slayer: null,
+      availability: {
+        skills: "available", quests: "available", diaries: "available",
+        collectionLog: "available", bossKc: "available", slayer: "available",
+        bank: "available", equipment: "available", farming: "available",
+        combatAchievements: "available"
+      }
+    })));
+
+    const unreachable = [...gated].filter((domain) => !emitted.has(domain));
+    expect(unreachable, `columns gated on keys that can never appear: ${unreachable.join(", ")}`).toEqual([]);
+  });
+
+  it("omits a v4 domain the snapshot did not carry, so a v3 sync cannot erase it", () => {
+    // The asymmetry is deliberate: an absent key means the CASE keeps the
+    // stored value, which is exactly what a v3 plugin — silent about
+    // equipment — should do to data a v4 sync wrote.
+    const resolved = resolveSnapshotAvailability({
+      accountType: "normal",
+      skills: [],
+      questsCompleted: [],
+      diariesCompleted: [],
+      collectionLogItemIds: [],
+      bankItems: [],
+      bankStatus: { enabled: false, itemCount: 0, capturedAt: null, unavailableReason: "opt-in-off" },
+      slayer: null,
+      availability: { skills: "available" }
+    });
+    expect("equipment" in resolved).toBe(false);
+    expect(JSON.parse(JSON.stringify(resolved)).equipment).toBeUndefined();
+  });
+});
+
+describe("redaction cannot be outgrown by a new field", () => {
+  it("names every SyncedPlayer field it is not redacting", () => {
+    // redactSyncedPlayer spreads ...player and then overrides a hand-written
+    // list. Any field added to SyncedPlayer later is therefore public by
+    // default — the failure would be silent and the field would be gone from
+    // the server's control the moment it shipped.
+    //
+    // This test does not judge which fields are safe; it forces the decision
+    // to be made once, here, by anyone who adds one.
+    const ALLOWED_PUBLIC = new Set([
+      "rsn", "displayName", "accountType", "questsCompleted", "diariesCompleted",
+      "bossKc", "bankStatus", "pluginVersion", "snapshotCoverage", "availability",
+      "lastSyncSummary", "syncedAt"
+    ]);
+    const REDACTED = new Set([
+      "bankItems", "collectionLogItemIds", "skills", "slayer",
+      "equipment", "farming", "combatAchievements"
+    ]);
+
+    const source = readFileSync(join(process.cwd(), "src/lib/sync-repo.ts"), "utf8");
+    const block = source.match(/export interface SyncedPlayer \{([\s\S]+?)\n\}/);
+    expect(block, "SyncedPlayer interface not found").toBeTruthy();
+    const declared = new Set<string>();
+    for (const line of block![1].split("\n")) {
+      const field = line.match(/^\s{2}([A-Za-z][A-Za-z0-9]*)\??:/);
+      if (field) declared.add(field[1]);
+    }
+    expect(declared.size).toBeGreaterThan(10);
+
+    const undecided = [...declared].filter((f) => !ALLOWED_PUBLIC.has(f) && !REDACTED.has(f));
+    expect(
+      undecided,
+      `New SyncedPlayer field(s) with no redaction decision: ${undecided.join(", ")}. `
+        + "Add to REDACTED (and to redactSyncedPlayer) or to ALLOWED_PUBLIC, deliberately."
+    ).toEqual([]);
+  });
+});
+
+describe("the new domains have human copy, not field names", () => {
+  it("labels every domain a scan can report", () => {
+    // pluginChangedLine falls back to the raw key, so a missing label is not
+    // an error — it is "Scan accepted: ..., combatAchievements." in copy the
+    // player reads.
+    const view = readFileSync(join(process.cwd(), "src/lib/plugin-connection-view.ts"), "utf8");
+    const block = view.match(/const labels: Record<string, string> = \{([\s\S]+?)\n  \};/);
+    expect(block, "labels map not found").toBeTruthy();
+    const labelled = new Set<string>();
+    for (const entry of block![1].matchAll(/^\s*([A-Za-z]+):/gm)) labelled.add(entry[1]);
+
+    const result = parsePluginSnapshotContract(v4Body(), NOW);
+    if (!result.ok || result.value.coverage === null) throw new Error("expected coverage");
+    const unlabelled = Object.keys(result.value.coverage).filter((domain) => !labelled.has(domain));
+    expect(unlabelled, `domains rendered as raw keys: ${unlabelled.join(", ")}`).toEqual([]);
+  });
+});
+
+describe("the bank does not leave the server on the quest route either", () => {
+  it("redacts /quests/[slug] for anyone but the paired owner", () => {
+    // This route read the snapshot straight from the database and passed the
+    // whole bank to a client component, so /quests/<slug>?rsn=<any name>
+    // returned that player's full bank — names, ids, quantities — in the
+    // public RSC payload. Verified live before the fix. /next was fixed for
+    // exactly this in July; this route was missed.
+    const page = readFileSync(join(process.cwd(), "src/app/quests/[slug]/page.tsx"), "utf8");
+    expect(page).toContain("resolveViewerRsn");
+    expect(page).toContain("syncedBankItems={clientBankItems}");
+    // The server still computes against the real bank, or the route and the
+    // requirement checks would silently get worse for the owner too.
+    expect(page).toContain("bankItems: serverBankItems");
+    expect(page).not.toContain("syncedBankItems={syncedPlayer?.bankItems ?? []}");
   });
 });

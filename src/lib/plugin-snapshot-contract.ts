@@ -306,18 +306,36 @@ export function normalizePluginSnapshotCoverage(value: unknown): PluginSnapshotC
   // because this function also reads rows written before v4 existed and must
   // not start rejecting them the day the constant list grows.
   for (const domain of [...PLUGIN_SNAPSHOT_DOMAINS, ...PLUGIN_SNAPSHOT_V4_DOMAINS]) {
+    const optional = (PLUGIN_SNAPSHOT_V4_DOMAINS as readonly string[]).includes(domain);
     const entry = raw[domain];
-    if (entry === undefined && (PLUGIN_SNAPSHOT_V4_DOMAINS as readonly string[]).includes(domain)) continue;
-    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return null;
+    if (entry === undefined && optional) continue;
+    // A malformed optional domain drops that domain, not the whole row.
+    // Returning null here would throw away eight good core domains over one
+    // bad key and silently downgrade the account to "no coverage at all".
+    // The core domains keep the strict all-or-nothing rule, because a
+    // half-read core coverage is worse than none.
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      if (optional) continue;
+      return null;
+    }
     const row = entry as Record<string, unknown>;
-    if (typeof row.state !== "string" || !DOMAIN_STATES.has(row.state as PluginSnapshotDomainState)) return null;
+    if (typeof row.state !== "string" || !DOMAIN_STATES.has(row.state as PluginSnapshotDomainState)) {
+      if (optional) continue;
+      return null;
+    }
     const state = row.state as PluginSnapshotDomainState;
     const capturedAt = typeof row.capturedAt === "string" && Number.isFinite(Date.parse(row.capturedAt))
       ? new Date(row.capturedAt).toISOString()
       : null;
     const reason = typeof row.reason === "string" && row.reason.trim() ? row.reason.trim().slice(0, 100) : null;
-    if (state === "available" && !capturedAt) return null;
-    if (state !== "available" && !reason) return null;
+    if (state === "available" && !capturedAt) {
+      if (optional) continue;
+      return null;
+    }
+    if (state !== "available" && !reason) {
+      if (optional) continue;
+      return null;
+    }
     coverage[domain] = { state, capturedAt, reason };
   }
   return coverage;

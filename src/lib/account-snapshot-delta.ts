@@ -136,7 +136,24 @@ export function resolveSnapshotAvailability(state: ImmutableSnapshotState): Snap
     collectionLog: explicit.collectionLog ?? "available",
     bossKc: explicit.bossKc ?? (state.bossKc ? "available" : "unknown"),
     slayer: explicit.slayer ?? (state.slayer ? "available" : "unknown"),
-    bank: explicit.bank ?? bankAvailability
+    bank: explicit.bank ?? bankAvailability,
+    // Contract v4 domains, passed through only when the snapshot actually
+    // carried them — and that asymmetry is the point.
+    //
+    // This object is the availability gate in PERSIST_SYNC_SQL: every column
+    // updates only when ($17::jsonb ->> '<domain>') = 'available'. A key that
+    // is absent yields SQL NULL, the comparison is not true, and the CASE
+    // keeps the stored value. So omitting these for a v3 sync is exactly right
+    // — a v3 plugin says nothing about equipment, and must not erase what a v4
+    // sync stored. Emitting them unconditionally as undefined would be the
+    // same as omitting them; emitting a literal would be a lie.
+    //
+    // They were missing entirely at first, which made all three CASE arms
+    // vacuously false: the columns were written on INSERT and never once
+    // updated for an account that already had a row.
+    ...(explicit.equipment ? { equipment: explicit.equipment } : {}),
+    ...(explicit.farming ? { farming: explicit.farming } : {}),
+    ...(explicit.combatAchievements ? { combatAchievements: explicit.combatAchievements } : {})
   };
 }
 
