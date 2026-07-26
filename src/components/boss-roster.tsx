@@ -15,21 +15,12 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { BOSSES, type Boss } from "@/lib/bosses";
+// The engine's own table, not a copy of it. The copy that used to live here
+// had drifted twenty-five entries behind.
+import { BOSS_CL_GATE as COMBAT_GATE } from "@/lib/boss-gates";
 import { BOSS_ACCESS } from "@/lib/content-access-data";
 import { BossSprite } from "@/components/boss-picker";
 
-/** Combat-level entry bars, mirrored from the /next engine's BOSS_CL_GATE. */
-const COMBAT_GATE: Record<string, number> = {
-  "obor": 50, "bryophyta": 55, "giant-mole": 65,
-  "barrows": 75, "king-black-dragon": 80, "sarachnis": 80,
-  "dks-rex": 85, "dks-prime": 85, "dks-supreme": 85, "kraken": 85,
-  "zulrah": 90, "sire": 95, "thermonuclear": 90, "skotizo": 95,
-  "vorkath": 100, "graardor": 100, "kree": 100, "cerberus": 100,
-  "grotesque-guardians": 100, "phantom-muspah": 105, "demonic-gorillas": 105,
-  "zilyana": 110, "kril": 110, "hydra": 110, "araxxor": 110,
-  "vardorvis": 115, "leviathan": 115, "whisperer": 115, "duke-sucellus": 115,
-  "nex": 120
-};
 
 function requirementLine(boss: Boss): string | null {
   const quests = BOSS_ACCESS[boss.slug]?.quests;

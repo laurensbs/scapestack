@@ -206,9 +206,6 @@ export const BOSSES: Boss[] = [
   { slug: "dks-prime", name: "Dagannoth Prime", emoji: "🐉", iconItemId: 6737, category: "world",
     hp: 255, defenceLevel: 128, defenceBonuses: { stab: 255, slash: 255, crush: 255, magic: 0, ranged: 255 },
     weaknesses: ["magic"], avgLootGp: 20_000, killsPerHourCap: 30 },
-  { slug: "kbd", name: "King Black Dragon", emoji: "👑", iconItemId: 12655, category: "world",
-    hp: 240, defenceLevel: 240, defenceBonuses: { stab: 65, slash: 55, crush: 35, magic: 60, ranged: 50 },
-    weaknesses: ["ranged"], avgLootGp: 30_000, killsPerHourCap: 30 },
   { slug: "barrows", name: "Barrows", emoji: "⚰️", iconItemId: 4708, category: "minigame",
     hp: 1100, defenceLevel: 100, defenceBonuses: { stab: 80, slash: 80, crush: 80, magic: 5, ranged: 5 },
     weaknesses: ["magic", "ranged"], avgLootGp: 130_000, killsPerHourCap: 16,
@@ -301,8 +298,12 @@ export const BOSSES: Boss[] = [
     hp: 450, defenceLevel: 230, defenceBonuses: { stab: 30, slash: 30, crush: 30, magic: 30, ranged: 0 },
     weaknesses: ["ranged"], avgLootGp: 65_000, killsPerHourCap: 35 },
   { slug: "zalcano", name: "Zalcano", emoji: "🌋", iconItemId: 23673, category: "skilling",
-    hp: 1500, defenceLevel: 200, defenceBonuses: { stab: 50, slash: 50, crush: 50, magic: 0, ranged: 0 },
-    weaknesses: ["magic"], avgLootGp: 120_000, killsPerHourCap: 18,
+    // The wiki infobox reads att/str/def/mage/range all 1 with every defence
+    // bonus 0: you damage Zalcano with a pickaxe, scaled off Mining. The
+    // fabricated magic weakness made it look like a spellcasting fight and kept
+    // it out of isNonCombatBossActivity, so /dps offered it a DPS verdict.
+    hp: 1500, defenceLevel: 1, defenceBonuses: { stab: 0, slash: 0, crush: 0, magic: 0, ranged: 0 },
+    weaknesses: [], avgLootGp: 120_000, killsPerHourCap: 18,
     notes: "Skilling boss — mining + smithing focus." },
   { slug: "wintertodt", name: "Wintertodt", emoji: "❄️", iconItemId: 20708, category: "skilling",
     hp: 0, defenceLevel: 0, defenceBonuses: { stab: 0, slash: 0, crush: 0, magic: 0, ranged: 0 },

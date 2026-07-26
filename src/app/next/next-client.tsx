@@ -1287,6 +1287,10 @@ function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOp
   isFirstRun: boolean;
 }) {
   const { headline, rest, summary } = result;
+  // What WhatToDo actually put on screen. Falls back to the engine's headline
+  // for the first paint, before the child has reported.
+  const [shownRec, setShownRec] = useState<Recommendation | null>(null);
+  const explainedRec = shownRec ?? headline;
 
   const basisNote =
     summary.basis === "full" ? "Bank and stats are shaping this pick."
@@ -1321,6 +1325,7 @@ function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOp
       <div style={trackAnim(0)}>
         <WhatToDo
           allRecs={allRecs}
+          onActivePickChange={setShownRec}
           activeRsn={activeRsn}
           accountStage={summary.accountStage}
           accountType={summary.accountType}
@@ -1380,9 +1385,9 @@ function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOp
             </span>
           </summary>
           <div className="mt-4 space-y-6">
-            {headline && (
+            {explainedRec && (
               <RecDetailPanel
-                rec={headline}
+                rec={explainedRec}
                 actionContext={{ from: "next", hasBankContext: bankItems.length > 0, rsn: activeRsn, accountType: summary.accountMode.type }}
               />
             )}
@@ -1393,7 +1398,7 @@ function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOp
             />
             <BankProgressSection progress={result.readiness} />
             <MakePlanSmarter
-              headline={headline}
+              headline={explainedRec}
               summary={summary}
               basisNote={basisNote}
               bankItems={bankItems}
@@ -4684,7 +4689,8 @@ function WhatToDo({
   pluginSyncSummary,
   syncResult,
   bankSource,
-  planRequestedAt
+  planRequestedAt,
+  onActivePickChange
 }: {
   allRecs: Recommendation[];
   activeRsn: string;
@@ -4698,6 +4704,8 @@ function WhatToDo({
   onEdit: () => void;
   routeIntent: NextIntentPreset | null;
   initialRouteChoice: InitialRouteChoice | null;
+  /** The rec actually on screen, so the explanation can describe that one. */
+  onActivePickChange?: (rec: Recommendation | null) => void;
   pluginSyncState: "live" | "stale" | "outdated" | null;
   pluginSyncSummary: NextPluginSyncSummary | null;
   syncResult: NextUpResult;
@@ -4902,6 +4910,15 @@ function WhatToDo({
       routeLens,
       syncResult.summary.basis
     ]);
+  // The card the user is looking at is not result.headline. This component
+  // re-ranks every rec by mood, time budget, route lens, shuffle, saved
+  // feedback and explicit selection, so the two diverge on the first render for
+  // most accounts and always after any interaction. "Why this trip?" was
+  // reading the engine's default and explaining a trip that was not on screen.
+  useEffect(() => {
+    onActivePickChange?.(activePick?.headline ?? null);
+  }, [activePick, onActivePickChange]);
+
   useEffect(() => {
     if (!activePick) return;
     saveMood({

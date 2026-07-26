@@ -144,15 +144,45 @@ describe("a boss the account can actually kill", () => {
     Magic: 70, Prayer: 52, Slayer: 50
   });
 
-  it("offers one when everything at the player's combat level is out of reach", () => {
-    // The window only proposes bosses within 25 combat levels below the player.
-    // Once the DPS stopped assuming maxed stats the engine correctly blocked all
-    // of them — and left a whip-carrying account with no boss at all, while Obor
-    // and Bryophyta sit just under the window and die in well under a minute.
+  it("always leaves a mid-game account at least one boss it can actually kill", () => {
+    // The property, not the mechanism. The window only proposes bosses within
+    // 25 combat levels below the player; once the DPS stopped assuming maxed
+    // stats the engine correctly blocked all of them and left a whip-carrying
+    // account with no boss at all. Either the window or the fallback has to
+    // produce something ready — which of the two does it is not the point.
     const recs = bossRecs(89, MID_BANK, midSkills, {}, null, { skills: midSkills }, MID);
-    const slugs = recs.map((rec) => rec.id);
-    expect(slugs).toContain("boss:obor");
-    expect(recs.find((rec) => rec.id === "boss:obor")?.decisionReason).toMatch(/\d+ sec|\d+ min/);
+    const ready = recs.filter((rec) => {
+      const target = BOSSES.find((entry) => entry.slug === rec.bossSlug);
+      return target
+        ? bossViabilityFromSimpleBank(MID_BANK, target, MID)?.tone === "ready"
+        : false;
+    });
+    expect(ready.length, recs.map((rec) => rec.id).join(", ")).toBeGreaterThan(0);
+  });
+
+  it("states a measured kill time when it falls back", () => {
+    const recs = bossRecs(110, [{ id: 1333, name: "Rune scimitar" }], skills({
+      Attack: 90, Strength: 90, Defence: 90, Hitpoints: 90, Ranged: 80,
+      Magic: 80, Prayer: 70, Slayer: 60
+    }), {}, null, { skills: midSkills }, {
+      attack: 90, strength: 90, defence: 90, ranged: 80, magic: 80, prayer: 70
+    });
+    const fallback = recs.filter((rec) => rec.why.startsWith("Your bank is behind"));
+    expect(fallback.length).toBeGreaterThan(0);
+    expect(fallback[0].decisionReason).toMatch(/\d+ sec|\d+ min/);
+  });
+
+  it("never sends an under-geared account into the Wilderness as its fallback", () => {
+    // The fallback exists to hand a confidence-building fight to an account
+    // whose gear is behind its combat level. Losing what little gear it has is
+    // the worst outcome available.
+    for (const cl of [95, 100, 110, 120]) {
+      const recs = bossRecs(cl, [{ id: 1333, name: "Rune scimitar" }], midSkills, {}, null, { skills: midSkills }, MID);
+      for (const rec of recs.filter((entry) => entry.why.startsWith("Your bank is behind"))) {
+        const target = BOSSES.find((entry) => entry.slug === rec.bossSlug);
+        expect(target?.category, `${cl}: ${rec.id}`).not.toBe("wildy");
+      }
+    }
   });
 
   it("stays out of the way when the window already works", () => {
@@ -216,7 +246,6 @@ describe("a boss the account can actually kill", () => {
     // window healthy and suppressed the fallback built for exactly this account.
     const recs = bossRecs(89, MID_BANK, midSkills, {}, null, { skills: midSkills }, MID);
     expect(recs.map((rec) => rec.id)).not.toContain("boss:kraken");
-    expect(recs.map((rec) => rec.id)).toContain("boss:obor");
   });
 });
 

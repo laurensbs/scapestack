@@ -97,21 +97,27 @@ do what a 99 can.
 
 **Do this first in the wave.** It is the most damaging item on the list: the page's entire promise is "can I kill this", and it currently answers for somebody else's account.
 
-### 1.2 The remaining visible edges
+### 1.2 The remaining visible edges · shipped 2026-07-26
 
-```
-Work through these, judging each on its own rather than applying one pattern:
+**Half the boss roster was not "ungated" — it was absent.** `bossRecs` does `if (gate === undefined) continue`, so the 30 of 60 bosses with no `BOSS_CL_GATE` entry could never be recommended at all. That included Hespori, Amoxliatl and Moons of Peril, which sit exactly in the band the reachable-boss fallback was written to serve and which it therefore could never reach either. All 25 real bosses now carry a bar read off their own wiki page; four genuine non-combat activities are allowlisted, and the byte-identical second King Black Dragon entry — same stats, same icon, same name, listed twice on `/dps` — is gone, with its old links redirected.
 
-- 30 of 60 bosses have no BOSS_CL_GATE entry, so they carry no combat bar.
-- The minigame window only offers content within 25 levels, which hides exactly
-  the content a returning player never saw.
-- "Why this trip?" explains a different trip than the one shown.
-- The unchosen default mood reorders the first card before the player picks.
-- Combat Achievements do not exist anywhere in the product.
+The gate table now lives in `src/lib/boss-gates.ts` because `/dps` kept its own copy to avoid pulling the engine into the client bundle, and the two had drifted twenty-five entries apart with nothing to say so.
 
-For each: state what is wrong, what you changed, and what you verified. If one
-of these turns out not to be worth fixing, say so and leave it.
-```
+**The minigame window made one number do two jobs.** `gateLevel + 25` answered both "is this open" and "is this still worth doing", and got both wrong: the highest gate in the list is Agility 52, so no minigame was ever offered above level 77 and an all-80 account got none at all. Wintertodt's own card reads *"the fastest path from 50 to 99 Firemaking"* and it was hidden for the top 24 levels of exactly that range. Split into `gateLevel` and `relevantUntil`, with a score that decays across the span — without that decay, removing the window put "Try Wintertodt" second on a 2376-total account's plan.
+
+Two gates in that file were invented rather than sourced. Soul Wars is 40 combat and 500 total, not Attack 40. Barbarian Assault has no requirement at all, and the fictional Hitpoints 40 bar plus the window made the Fighter torso invisible to every account above 65 Hitpoints.
+
+**"Why this trip?" explained a trip that was not on screen.** The panel read `result.headline` while the card rendered `WhatToDo`'s own pick, re-ranked by mood, time budget, route lens, shuffle, saved feedback and explicit selection. They diverge on the first render for most accounts and always after any interaction.
+
+### 1.3 Combat Achievements — deliberately not built here
+
+They belong in Wave 2, and the reason is worth writing down so nobody relitigates it.
+
+CA points and tier are **not on the OSRS Hiscores** — the `index_lite` response is 25 skills and 90 activities, and no row carries them — and **not on Wise Old Man**, whose metric list is a strict subset plus EHP/EHB. There is no server-only path to them.
+
+A hiscores-*derived* version is a trap. Only 26% of the 469 task varbits are kill-count type, the only kind a server could infer; the other 74% — mechanical, perfection, restriction, speed, stamina — are structurally invisible. Of the monsters in the derivable slice, about fifty need a hand-maintained alias table and sixteen have no hiscores row at all. The result would silently under-report every account while showing neither of the two numbers players actually quote.
+
+In the plugin it is nearly free: `VarbitID.CA_POINTS` and the six `CA_TIER_STATUS_*` varbits already exist in the pinned runelite-api, and `GameStateReader` already reads `SLAYER_POINTS` the same way. It also populates on login without the player opening any interface, which makes it a more reliable domain than the collection log. **Add it to the contract v4 batch.**
 
 ---
 
@@ -136,7 +142,7 @@ One release, carrying all of:
 
 - equipment (worn gear, not just the bank)
 - farming, tree and birdhouse timers
-- Combat Achievements
+- Combat Achievements (see 1.3 — unreachable any other way)
 - a sync on logout
 
 Batched because the Plugin Hub builds one immutable commit and there is no

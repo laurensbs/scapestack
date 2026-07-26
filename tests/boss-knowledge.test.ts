@@ -9,7 +9,9 @@ import {
 
 describe("boss knowledge catalog", () => {
   it("gives every visible encounter explicit, complete knowledge", () => {
-    expect(BOSSES).toHaveLength(60);
+    // 59, not 60: "kbd" was a byte-identical second King Black Dragon entry —
+    // same stats, same icon, same name — so /dps listed the boss twice.
+    expect(BOSSES).toHaveLength(59);
     expect(new Set(BOSSES.map((boss) => boss.slug)).size).toBe(BOSSES.length);
 
     for (const boss of BOSSES) {

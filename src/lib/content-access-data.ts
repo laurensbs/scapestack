@@ -72,7 +72,21 @@ export const BOSS_ACCESS: Record<string, AccessRequirement> = {
   "vardorvis": { quests: ["Desert Treasure II - The Fallen Empire"] },
   "leviathan": { quests: ["Desert Treasure II - The Fallen Empire"] },
   "whisperer": { quests: ["Desert Treasure II - The Fallen Empire"] },
-  "duke-sucellus": { quests: ["Desert Treasure II - The Fallen Empire"] }
+  "duke-sucellus": { quests: ["Desert Treasure II - The Fallen Empire"] },
+
+  // Added with the other half of the boss roster. Only the locks the wiki
+  // states on the boss's own page; the wilderness bosses' diary alternatives
+  // are deliberately absent, because a diary tier is not something we can see
+  // and "medium Wilderness diary OR a Slayer task" is satisfied often enough
+  // that gating on it would hide the boss from players who can do it.
+  "galvek": { quests: ["Dragon Slayer II"] },
+  "moons-of-peril": { quests: ["Perilous Moons"] },
+  "amoxliatl": { quests: ["The Heart of Darkness"] },
+  "fortis-colosseum": { quests: ["Children of the Sun"] },
+  "hueycoatl": { quests: ["Children of the Sun"] },
+  "deranged-archaeologist": { quests: ["Bone Voyage"] },
+  "tob": { quests: ["Priest in Peril"] },
+  "toa": { quests: ["Beneath Cursed Sands"] }
 
   // Deliberately ungated: Obor, Bryophyta, Giant Mole, KBD, Sarachnis,
   // Skotizo, Araxxor and the Slayer-only bosses (Kraken, Cerberus, Hydra,

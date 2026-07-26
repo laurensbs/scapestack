@@ -13,7 +13,7 @@
 // GoTR for RC, Pyramid Plunder for Thieving) over fringe content; surface
 // each minigame once, around the level it first becomes a sensible chase.
 
-import type { HiscoreSkill } from "./hiscores";
+import { computeCombatLevel, computeTotalLevel, type HiscoreSkill } from "./hiscores";
 import { lvl } from "./next-up-shared";
 import {
   accessNeedsLine,
@@ -27,42 +27,63 @@ import type { Recommendation } from "./next-up-types";
 interface Minigame {
   slug: string;
   name: string;
+  /** What the window measures. "Combat" is valid and means the combat level. */
   gateSkill: string;
+  /** The level at which the minigame opens. */
   gateLevel: number;
+  /**
+   * The level past which it stops being a sensible chase.
+   *
+   * This used to be gateLevel + 25 for everything, which made one number do two
+   * jobs and got both wrong. Because the highest gate in the list is Agility 52,
+   * no minigame was ever offered above level 77 in its own gate skill — an
+   * all-80 account got zero of them — while four were only ever shown *below*
+   * the level at which their own stated payoff exists. Wintertodt's card says
+   * "the fastest path from 50 to 99 Firemaking" and it was hidden for the top
+   * 24 levels of exactly that range.
+   */
+  relevantUntil: number;
+  /** A second bar the game imposes that a skill level cannot express. */
+  totalLevelRequired?: number;
   why: string;
   payoff: string;
   iconItemId: number;
 }
 
 const MINIGAMES: Minigame[] = [
-  { slug: "wintertodt", name: "Wintertodt", gateSkill: "Firemaking", gateLevel: 50,
+  { slug: "wintertodt", name: "Wintertodt", gateSkill: "Firemaking", gateLevel: 50, relevantUntil: 99,
     why: "The fastest path from 50 to 99 Firemaking, with rolls for the Pyromancer outfit.",
     payoff: "Pyromancer outfit + Phoenix pet + Bruma torch", iconItemId: 20720 },
-  { slug: "tempoross", name: "Tempoross", gateSkill: "Fishing", gateLevel: 35,
+  { slug: "tempoross", name: "Tempoross", gateSkill: "Fishing", gateLevel: 35, relevantUntil: 99,
     why: "Solid Fishing XP plus rewards you can't earn anywhere else.",
     payoff: "Spirit angler outfit + Tackle box + Big harpoonfish pet", iconItemId: 25588 },
-  { slug: "gotr", name: "Guardians of the Rift", gateSkill: "Runecraft", gateLevel: 27,
+  { slug: "gotr", name: "Guardians of the Rift", gateSkill: "Runecraft", gateLevel: 27, relevantUntil: 99,
     why: "By far the best Runecraft XP and the only source of the Raiments of the Eye.",
     payoff: "Abyssal lantern + Hat of the Eye + Abyssal Protector pet", iconItemId: 26850 },
-  { slug: "mahogany-homes", name: "Mahogany Homes", gateSkill: "Construction", gateLevel: 20,
+  { slug: "mahogany-homes", name: "Mahogany Homes", gateSkill: "Construction", gateLevel: 20, relevantUntil: 80,
     why: "Construction XP without burning planks at home, plus the carpenter outfit.",
     payoff: "Carpenter outfit (+2.5% Construction XP) + Plank sack", iconItemId: 24882 },
-  { slug: "pyramid-plunder", name: "Pyramid Plunder", gateSkill: "Thieving", gateLevel: 21,
+  { slug: "pyramid-plunder", name: "Pyramid Plunder", gateSkill: "Thieving", gateLevel: 21, relevantUntil: 99,
     why: "The fastest Thieving XP in the game from 71+, and gems on the way.",
     payoff: "Pharaoh's sceptre + Top-tier Thieving XP/hr", iconItemId: 9044 },
-  { slug: "volcanic-mine", name: "Volcanic Mine", gateSkill: "Mining", gateLevel: 50,
+  { slug: "volcanic-mine", name: "Volcanic Mine", gateSkill: "Mining", gateLevel: 50, relevantUntil: 99,
     why: "Top Mining XP from 60+ and the only source of Volcanic shards.",
     payoff: "Dragon pickaxe upgrade kits + 200k+ Mining XP/hr", iconItemId: 27695 },
-  { slug: "hallowed-sepulchre", name: "Hallowed Sepulchre", gateSkill: "Agility", gateLevel: 52,
+  { slug: "hallowed-sepulchre", name: "Hallowed Sepulchre", gateSkill: "Agility", gateLevel: 52, relevantUntil: 99,
     why: "Strong Agility XP with tradeable loot; actual profit moves with current prices.",
     payoff: "Dark dye + Ring of endurance + Hallowed outfit", iconItemId: 24731 },
-  { slug: "motherlode", name: "Motherlode Mine", gateSkill: "Mining", gateLevel: 30,
+  { slug: "motherlode", name: "Motherlode Mine", gateSkill: "Mining", gateLevel: 30, relevantUntil: 72,
     why: "AFK Mining with no risk and the Prospector outfit + gem rolls.",
     payoff: "Prospector outfit (+2.5% Mining XP) + nuggets for upgrades", iconItemId: 12012 },
-  { slug: "soul-wars", name: "Soul Wars", gateSkill: "Attack", gateLevel: 40,
+  // Combat 40 and 500 total, per the wiki — not Attack 40, which was never a
+  // Soul Wars requirement and gated the minigame on the wrong number.
+  { slug: "soul-wars", name: "Soul Wars", gateSkill: "Combat", gateLevel: 40, relevantUntil: 100, totalLevelRequired: 500,
     why: "Tradeable XP across combat skills and an iconic cosmetic cape.",
     payoff: "Soul cape (+huge prayer bonus) + Ectoplasmator", iconItemId: 25346 },
-  { slug: "barbarian-assault", name: "Barbarian Assault", gateSkill: "Hitpoints", gateLevel: 40,
+  // The wiki is explicit: "There are no requirements to play". The invented
+  // Hitpoints 40 bar plus the 25-level window made the Fighter torso — the best
+  // mid-game body in the game — invisible to every account above 65 Hitpoints.
+  { slug: "barbarian-assault", name: "Barbarian Assault", gateSkill: "Combat", gateLevel: 3, relevantUntil: 100,
     why: "Best free-to-mid-game body slot — Fighter torso beats every Rune body.",
     payoff: "Fighter torso + Penance horn + Granite body", iconItemId: 10551 }
 ];
@@ -72,7 +93,10 @@ export function minigameRecs(skills: HiscoreSkill[], access?: AccessContext): Re
   const accessContext: AccessContext = access ?? { skills };
   const recs: Recommendation[] = [];
   for (const mg of MINIGAMES) {
-    const level = lvl(skills, mg.gateSkill);
+    const level = mg.gateSkill === "Combat"
+      ? computeCombatLevel(skills)
+      : lvl(skills, mg.gateSkill);
+    if (mg.totalLevelRequired !== undefined && computeTotalLevel(skills) < mg.totalLevelRequired) continue;
     // Several of these sit behind a quest, not a level: GoTR needs Temple of
     // the Eye, Hallowed Sepulchre needs Sins of the Father. Without this a
     // synced account with 52 Agility and no quests was told to go do the
@@ -80,12 +104,16 @@ export function minigameRecs(skills: HiscoreSkill[], access?: AccessContext): Re
     const accessVerdict = evaluateAccess(MINIGAME_ACCESS[mg.slug], accessContext);
     if (accessVerdict.state === "locked") continue;
     const accessLine = accessNeedsLine(accessVerdict);
-    // Surface a minigame for ~25 levels after it first opens up. Within the
-    // first 10 levels of the gate it ranks higher (freshly unlocked), then
-    // tapers off so a maxed main isn't told to do Mahogany Homes.
+    // Open, and still worth doing. Two separate questions, so two numbers.
     const above = level - mg.gateLevel;
-    if (above < 0 || above > 25) continue;
+    if (above < 0 || level > mg.relevantUntil) continue;
+    // Freshly unlocked still ranks highest, and the score then decays across
+    // the minigame's whole span rather than falling off a cliff at +25. Without
+    // this decay, removing the window put "Try Wintertodt" second on a
+    // 2376-total account's list — the exact noise the window existed to stop.
     const freshness = Math.max(0, 10 - above);
+    const span = Math.max(1, mg.relevantUntil - mg.gateLevel);
+    const relevance = 1 - 0.5 * Math.min(1, above / span);
     recs.push({
       id: `minigame:${mg.slug}`,
       kind: "minigame",
@@ -95,7 +123,7 @@ export function minigameRecs(skills: HiscoreSkill[], access?: AccessContext): Re
       decisionReason: `${mg.name} is open at your ${mg.gateSkill} level and has a clear one-session reward target.`,
       needs: accessLine ? [accessLine] : undefined,
       // Minigames sit between freshly-unlocked bosses and skill-pushes.
-      score: (55 + freshness * 2) * accessScoreMultiplier(accessVerdict),
+      score: (55 + freshness * 2) * relevance * accessScoreMultiplier(accessVerdict),
       link: undefined, // no dedicated tool page yet
       iconItemId: mg.iconItemId,
       routeTags: [

@@ -11,6 +11,7 @@
 // the ranking layer can penalise guesses.
 
 import { BOSSES, type Boss } from "./bosses";
+import { BOSS_CL_GATE } from "./boss-gates";
 import type { CombatStats } from "./dps";
 import type { CompletionItem } from "./goals";
 import type { HiscoreSkill } from "./hiscores";
@@ -32,23 +33,6 @@ import { BOSS_ACCESS } from "./content-access-data";
 import { defaultQualityFor } from "./next-up-scoring";
 import type { Recommendation, RecommendationGearConfidence } from "./next-up-types";
 
-// Boss combat-level gates — a rough "you can realistically start here" bar.
-// Not a hard requirement (OSRS rarely has those for bosses) but the point
-// where a boss becomes a sensible suggestion for a stuck player. Slugs match
-// BOSSES in bosses.ts exactly.
-const BOSS_CL_GATE: Record<string, number> = {
-  "obor": 50, "bryophyta": 55, "giant-mole": 65,
-  // bosses.ts has both "kbd" and "king-black-dragon" as legacy duplicates;
-  // listing only one prevents the same boss appearing twice in the hub.
-  "barrows": 75, "king-black-dragon": 80, "sarachnis": 80,
-  "dks-rex": 85, "dks-prime": 85, "dks-supreme": 85, "kraken": 85,
-  "zulrah": 90, "sire": 95, "thermonuclear": 90, "skotizo": 95,
-  "vorkath": 100, "graardor": 100, "kree": 100, "cerberus": 100,
-  "grotesque-guardians": 100, "phantom-muspah": 105, "demonic-gorillas": 105,
-  "zilyana": 110, "kril": 110, "hydra": 110, "araxxor": 110,
-  "vardorvis": 115, "leviathan": 115, "whisperer": 115, "duke-sucellus": 115,
-  "nex": 120
-};
 
 // ── Bosses ──────────────────────────────────────────────────────────────────
 // Bosses the player's combat level now comfortably supports but that they
@@ -122,7 +106,36 @@ export const BOSS_GEAR_GATES: Record<string, {
   "araxxor":       { needs: ["scythe of vitur", "abyssal whip", "soulreaper axe", "osmumten's fang"], slayerLevel: 92 },
 
   // Endgame — Nex needs a team and BiS-ish kit.
-  "nex": { needs: ["twisted bow", "bow of faerdhinen", "scythe of vitur", "shadow of tumeken", "armadyl crossbow", "zaryte crossbow"] }
+  "nex": { needs: ["twisted bow", "bow of faerdhinen", "scythe of vitur", "shadow of tumeken", "armadyl crossbow", "zaryte crossbow"] },
+
+  // Wilderness: null on purpose. These are fought in gear chosen for what the
+  // player is willing to lose, so a "you must own X" list would suppress the
+  // boss for exactly the accounts that do them correctly.
+  "callisto": null, "artio": null, "venenatis": null, "spindel": null,
+  "vetion": null, "calvarion": null, "scorpia": null,
+  "chaos-elemental": null, "chaos-fanatic": null, "crazy-archaeologist": null,
+  "deranged-archaeologist": null,
+
+  // Gated by something other than gear.
+  "hespori": null,        // 65 Farming
+  "mimic": null,          // a master or elite clue casket
+  "galvek": null,         // Dragon Slayer II
+  "moons-of-peril": null, // Perilous Moons
+  "amoxliatl": { needs: [], slayerLevel: 48 },
+  "hueycoatl": null,
+
+  "kalphite-queen": { needs: ["dragon scimitar", "abyssal whip", "osmumten's fang", "keris partisan", "toxic blowpipe", "armadyl crossbow"] },
+
+  // Corp ignores anything that is not a spear or a crush weapon.
+  "corp": { needs: ["osmumten's fang", "zamorakian spear", "zamorakian hasta", "dragon warhammer", "elder maul", "bandos godsword"] },
+
+  "tztok-jad": { needs: ["toxic blowpipe", "armadyl crossbow", "rune crossbow", "magic shortbow"] },
+  "tzkal-zuk": { needs: ["toxic blowpipe", "twisted bow", "bow of faerdhinen", "armadyl crossbow"] },
+  "fortis-colosseum": { needs: ["osmumten's fang", "abyssal whip", "voidwaker", "scythe of vitur", "toxic blowpipe"] },
+
+  "cox": { needs: ["abyssal whip", "dragon hunter crossbow", "twisted bow", "toxic blowpipe", "dragon warhammer"] },
+  "tob": { needs: ["scythe of vitur", "abyssal bludgeon", "toxic blowpipe", "twisted bow", "dragon claws"] },
+  "toa": { needs: ["osmumten's fang", "abyssal whip", "toxic blowpipe", "twisted bow", "trident of the swamp"] }
 };
 
 const BOSS_SIGNATURE_ITEM_IDS: Record<string, number[]> = {
@@ -211,7 +224,11 @@ export function bossRecs(
   // wins. "test" does not count: a four-minute kill on a whip-only setup is a
   // warning, not a recommendation, and treating it as one is what left this
   // account with no boss worth doing.
-  let windowIsUsable = false;
+  // Set only by a boss the player is already killing. Whether the window
+  // *offers* something usable is decided further down, against the four recs
+  // that actually survive ranking — checking it here measured candidates, and a
+  // boss that places fifth is a boss the player never sees.
+  let alreadyBossingInWindow = false;
   for (const boss of BOSSES) {
     const gate = BOSS_CL_GATE[boss.slug];
     if (gate === undefined) continue;
@@ -223,7 +240,7 @@ export function bossRecs(
       // Already killing this one. It is not a recommendation, but it is proof
       // the window works — and the fallback below must not then tell a player
       // farming Vorkath that nothing at their combat level is winnable.
-      windowIsUsable = true;
+      alreadyBossingInWindow = true;
       continue;
     }
 
@@ -255,15 +272,6 @@ export function bossRecs(
       : bank.length > 0
         ? "not-needed"
         : "unknown";
-
-    // Only counts once the boss has survived every gate above. Checking it
-    // earlier meant Kraken — comfortably killable on paper, and then dropped
-    // for needing 87 Slayer against this account's 50 — marked the window as
-    // healthy and suppressed the fallback that exists for exactly this account.
-    if (bank.length > 0 && stats) {
-      const windowViability = bossViabilityFromSimpleBank(bank, boss, stats);
-      if (windowViability?.tone === "ready") windowIsUsable = true;
-    }
 
     // Group siblings into one rec (Dagannoth Kings → one tile, not three).
     const group = BOSS_GROUPS[boss.slug];
@@ -369,18 +377,32 @@ export function bossRecs(
   //
   // So widen it, but only in the case that needs it, and say plainly that this
   // is the honest recommendation rather than the aspirational one.
-  // totalKnownBossKc gates it as well: this is for an account that is not
-  // bossing yet. Someone with real kill counts does not need to be told which
-  // boss they can beat, and telling them reads as the engine not knowing them.
-  if (!windowIsUsable && bank.length > 0 && stats && totalKnownBossKc < 50) {
-    recs.push(...reachableBossFallback({
-      combatLevel, bank, bossKc, slayerLevel, accessContext, stats, totalKnownBossKc
-    }));
-  }
-
   // Cap at top-4 — beyond that the checklist becomes "every boss in CL range"
   // which is noise. The kill check is one click away for the full list.
-  return recs.sort((a, b) => b.score - a.score).slice(0, 4);
+  const ranked = recs.sort((a, b) => b.score - a.score).slice(0, 4);
+
+  // Judged on the four that survived, not on every candidate. A Chaos Fanatic
+  // that measures "ready" and then places fifth used to mark the window healthy
+  // and suppress the fallback, leaving the player with four bosses they cannot
+  // beat and no explanation.
+  //
+  // totalKnownBossKc gates it too: this is for an account that is not bossing
+  // yet. Someone with real kill counts does not need to be told which boss they
+  // can beat, and telling them reads as the engine not knowing them.
+  if (bank.length === 0 || !stats || alreadyBossingInWindow || totalKnownBossKc >= 50) {
+    return ranked;
+  }
+  const anyReady = ranked.some((rec) => {
+    const boss = bossBySlug(rec.bossSlug);
+    return boss ? bossViabilityFromSimpleBank(bank, boss, stats)?.tone === "ready" : false;
+  });
+  if (anyReady) return ranked;
+
+  const fallback = reachableBossFallback({
+    combatLevel, bank, bossKc, slayerLevel, accessContext, stats, totalKnownBossKc
+  });
+  if (fallback.length === 0) return ranked;
+  return [...ranked, ...fallback].sort((a, b) => b.score - a.score).slice(0, 4);
 }
 
 /**
@@ -420,6 +442,12 @@ function reachableBossFallback(input: {
     // Activities with no hit points are not fights; combat advice on Wintertodt
     // is nonsense whatever the DPS engine returns for it.
     if (boss.hp <= 0) continue;
+    // Never the Wilderness. This exists to hand a confidence-building fight to
+    // an account whose gear is behind its combat level — and the worst possible
+    // outcome for that account is losing the little gear it has. The main pass
+    // may still offer a wildy boss; it carries a risk penalty and a caveat that
+    // a flat fallback score would bypass.
+    if (boss.category === "wildy") continue;
     if (hasBossExperience(boss, input.bank, input.bossKc)) continue;
 
     const accessVerdict = evaluateAccess(BOSS_ACCESS[boss.slug], input.accessContext);
