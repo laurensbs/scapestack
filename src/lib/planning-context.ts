@@ -56,6 +56,15 @@ export interface PlanningContextTiming {
   sources: BoundedSourceTiming[];
 }
 
+const EMPTY_TIMING: PlanningContextTiming = {
+  totalMs: 0,
+  criticalMs: 0,
+  optionalMs: 0,
+  plannerMs: 0,
+  timeoutCount: 0,
+  sources: []
+};
+
 export interface PlanningContextPayload {
   hiscores: PlayerHiscores | null;
   wom: WomPlayer | null;
@@ -71,7 +80,7 @@ async function computeInitialPlan(input: {
   hiscores: PlayerHiscores | null;
   wom: WomPlayer | null;
   collectionLog: CollectionLog | null;
-  scapestackSync: SyncedPlayer | null;
+  scapestackSync: VisibleSyncedPlayer | null;
 }): Promise<NextUpResult | null> {
   const nextUpInput = buildNextUpInputFromSources({
     rsn: input.rsn,
@@ -81,6 +90,55 @@ async function computeInitialPlan(input: {
     scapestackSync: input.scapestackSync
   });
   return nextUpInput ? computeNextUp(nextUpInput) : null;
+}
+
+/**
+ * Everything after the network, as one pure function.
+ *
+ * Split out of `loadPlanningContext` so a guard can build the exact object that
+ * reaches the browser and search it, rather than reading this file as text. The
+ * previous guard did read it as text, matched `syncedPlayerForViewer(scapestack`
+ * and passed while `initialPlan` — derived from the same bank — went out
+ * unredacted next to it.
+ */
+export async function assemblePlanningPayload(input: {
+  rsn: string;
+  hiscores: PlayerHiscores | null;
+  wom: WomPlayer | null;
+  collectionLog: CollectionLog | null;
+  scapestack: SyncedPlayer | null;
+  viewerRsn: string | null;
+  timing: PlanningContextTiming;
+}): Promise<PlanningContextPayload> {
+  // Redact FIRST, then plan.
+  //
+  // The old order was the whole bug. The plan was computed from the full
+  // snapshot and only the raw bank was stripped afterwards, on the theory that
+  // the plan "stays on the server" — but the plan is a prop on a Client
+  // Component, so it is serialised into the HTML of a public URL like
+  // everything else. A 97KB NextUpResult carries a per-goal ownership map with
+  // exact matchedItemIds, and generated copy that quotes item names and stack
+  // sizes. Redacting the source and keeping the derivative is not redaction.
+  //
+  // Planning from the visible snapshot means a stranger's view is not
+  // bank-aware. That is the correct answer to "what should this account do
+  // tonight" when you are not that account — not a degradation to work around.
+  const visible = syncedPlayerForViewer(input.scapestack, input.viewerRsn);
+  const initialPlan = await computeInitialPlan({
+    rsn: input.rsn,
+    hiscores: input.hiscores,
+    wom: input.wom,
+    collectionLog: input.collectionLog,
+    scapestackSync: visible
+  });
+  return {
+    hiscores: input.hiscores,
+    wom: input.wom,
+    collectionLog: collectionLogPayload(input.collectionLog),
+    scapestackSync: visible,
+    initialPlan,
+    timing: input.timing
+  };
 }
 
 /**
@@ -125,12 +183,15 @@ export async function loadPlanningContext(
 
   const sources = [scapestack.timing, hiscores.timing, wom.timing, collectionLog.timing];
   const plannerStartedAt = performance.now();
-  const initialPlan = await computeInitialPlan({
+  const payload = await assemblePlanningPayload({
     rsn,
     hiscores: hiscores.value,
     wom: wom.value,
     collectionLog: collectionLog.value,
-    scapestackSync: scapestack.value
+    scapestack: scapestack.value,
+    viewerRsn: options.viewerRsn ?? null,
+    // Filled in below; the planner has to run before we can time it.
+    timing: EMPTY_TIMING
   });
   const plannerMs = Math.max(0, Math.round(performance.now() - plannerStartedAt));
   const timing: PlanningContextTiming = {
@@ -145,15 +206,5 @@ export async function loadPlanningContext(
   // No RSN, bank rows or payload data: this is safe to retain in server logs.
   console.info("scapestack.next_context", JSON.stringify(timing));
 
-  // The plan above was computed from the FULL snapshot, so it stays bank-aware.
-  // Only the copy that leaves the server is redacted — /next is a public URL
-  // and everything here ends up in the HTML.
-  return {
-    hiscores: hiscores.value,
-    wom: wom.value,
-    collectionLog: collectionLogPayload(collectionLog.value),
-    scapestackSync: syncedPlayerForViewer(scapestack.value, options.viewerRsn ?? null),
-    initialPlan,
-    timing
-  };
+  return { ...payload, timing };
 }

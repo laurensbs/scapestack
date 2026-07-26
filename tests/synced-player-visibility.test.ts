@@ -92,9 +92,23 @@ describe("synced player visibility", () => {
 describe("visibility is enforced at every server boundary", () => {
   const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 
-  it("redacts in loadPlanningContext rather than at a call site", () => {
+  it("redacts before planning, not after", () => {
+    // This assertion used to read `syncedPlayerForViewer(scapestack.value` and
+    // passed for months while `initialPlan` — computed from the same bank and
+    // returned in the same object — went out unredacted. Matching the presence
+    // of a redaction call says nothing about what else is in the payload.
+    //
+    // The order is the invariant: redact, then plan. If the plan is built from
+    // the full snapshot there is no later step that can make it safe, because
+    // the leak is in derived copy and ownership maps rather than in a field
+    // anyone would think to strip.
     const planning = source("src/lib/planning-context.ts");
-    expect(planning).toContain("syncedPlayerForViewer(scapestack.value");
+    const redactAt = planning.indexOf("const visible = syncedPlayerForViewer(");
+    const planAt = planning.indexOf("const initialPlan = await computeInitialPlan(");
+    expect(redactAt, "no redaction before the planner").toBeGreaterThan(-1);
+    expect(planAt).toBeGreaterThan(-1);
+    expect(redactAt, "planned before redacting").toBeLessThan(planAt);
+    expect(planning).toContain("scapestackSync: visible");
     // The raw type must not be what the payload advertises.
     expect(planning).toContain("scapestackSync: VisibleSyncedPlayer | null;");
   });

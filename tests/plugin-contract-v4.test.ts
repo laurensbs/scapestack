@@ -419,12 +419,22 @@ describe("the bank does not leave the server on the quest route either", () => {
     // returned that player's full bank — names, ids, quantities — in the
     // public RSC payload. Verified live before the fix. /next was fixed for
     // exactly this in July; this route was missed.
+    // Then it was half-fixed, and these assertions are why nobody noticed:
+    // "the server still computes against the real bank" was pinned in place as
+    // if it were the desirable half, while `buildQuestRoute` and
+    // `evaluateQuestRequirements` carried `ownedName` and `ownedQuantity`
+    // across to the client and the page printed "In bank: 123456789x Coins."
+    // to a stranger.
+    //
+    // Source text cannot tell those two cases apart. The real check now lives
+    // in tests/bank-never-leaves-server.test.ts, which searches the payload.
+    // What is left here is the one thing worth pinning: that the route reads a
+    // viewer at all, and that there is exactly one bank variable so it cannot
+    // be gated in one place and not another.
     const page = readFileSync(join(process.cwd(), "src/app/quests/[slug]/page.tsx"), "utf8");
     expect(page).toContain("resolveViewerRsn");
-    expect(page).toContain("syncedBankItems={clientBankItems}");
-    // The server still computes against the real bank, or the route and the
-    // requirement checks would silently get worse for the owner too.
-    expect(page).toContain("bankItems: serverBankItems");
+    expect(page).toContain("const visibleBankItems = isOwner ?");
+    expect(page).not.toContain("serverBankItems");
     expect(page).not.toContain("syncedBankItems={syncedPlayer?.bankItems ?? []}");
   });
 });

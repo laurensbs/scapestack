@@ -74,13 +74,19 @@ export default async function QuestDetailPage({
   // passing the whole bank down, so any name anyone typed returned that
   // player's full bank — item names, ids and quantities — to one curl.
   //
-  // /next was fixed for exactly this in July; this route was missed. Same
-  // rule: the server keeps computing against the real bank so the route and
-  // the requirement checks stay accurate, and only the copy that leaves the
-  // server is withheld.
+  // /next was fixed for exactly this in July; this route was missed, and then
+  // half-fixed: only `syncedBankItems` was gated, while the same bank still
+  // fed `buildQuestRoute` and `evaluateQuestRequirements` whose results cross
+  // to the client too. EvaluatedItemRequirement carries `ownedName` and
+  // `ownedQuantity`, and QuestRouteProgress carries formatted `ownedItems`, so
+  // a stranger did not get the bank withheld — they got it filtered down to
+  // the quest's item list, with real names and real stack sizes, and
+  // quest-detail-client.tsx printed it as "In bank: 123456789x Coins."
+  //
+  // One bank variable now, gated once. Computing against a bank you are not
+  // allowed to see is the bug, not the display of it.
   const isOwner = Boolean(viewerRsn && syncedPlayer && viewerRsn === syncedPlayer.rsn);
-  const serverBankItems = syncedPlayer?.bankItems ?? [];
-  const clientBankItems = isOwner ? serverBankItems : [];
+  const visibleBankItems = isOwner ? syncedPlayer?.bankItems ?? [] : [];
 
   const accountType: PlannerAccountType | null = syncedPlayer
     ? scapestackAccountTypeToPlannerType(syncedPlayer.accountType)
@@ -93,7 +99,7 @@ export default async function QuestDetailPage({
     skills,
     completedQuestNames: syncedPlayer ? completedQuests : undefined,
     completionEvidence: syncedPlayer ? "runelite" : undefined,
-    bankItems: serverBankItems,
+    bankItems: visibleBankItems,
     accountType,
     payoff: questUnlockSignal(targetQuest).label
   });
@@ -108,7 +114,7 @@ export default async function QuestDetailPage({
   const initialEvaluation = evaluateQuestRequirements(quest, {
     skills,
     completedQuests,
-    bankItems: serverBankItems,
+    bankItems: visibleBankItems,
     accountType
   });
   const initialRoute = route.progress;
@@ -123,7 +129,7 @@ export default async function QuestDetailPage({
         completedQuests={completedQuests}
         accountType={accountType}
         rsn={syncedPlayer?.displayName ?? rsn}
-        syncedBankItems={clientBankItems}
+        syncedBankItems={visibleBankItems}
         progressSource={syncedPlayer ? "runelite" : hiscores ? "hiscores" : "none"}
       />
     </main>

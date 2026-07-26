@@ -22,13 +22,14 @@ describe("quest detail RuneLite sync contract", () => {
     expect(pageSource).toContain("const syncedSkills = syncedSkillsToQuestHiscoreSkills(syncedPlayer?.skills);");
     expect(pageSource).toContain("const skills = syncedSkills.length > 0 ? syncedSkills : hiscores?.skills ?? [];");
     expect(pageSource).toContain("const completedQuests = syncedPlayer?.questsCompleted ?? [];");
-    // The server still plans against the real bank — that is what this line
-    // has always been about. It now reads it through serverBankItems, because
-    // the copy that crosses to the client is redacted for anyone who is not
-    // the paired owner: /quests/<slug>?rsn=<any name> used to return that
-    // player's whole bank in the public RSC payload.
-    expect(pageSource).toContain("const serverBankItems = syncedPlayer?.bankItems ?? [];");
-    expect(pageSource).toContain("bankItems: serverBankItems");
+    // "The server still plans against the real bank" was the wrong thing to
+    // pin. Planning against a bank the viewer may not see is precisely how the
+    // owned names and quantities reached a stranger, through the route and the
+    // requirement evaluation rather than through the raw bank prop. One gated
+    // variable now; the payload itself is checked in
+    // tests/bank-never-leaves-server.test.ts.
+    expect(pageSource).toContain("const visibleBankItems = isOwner ? syncedPlayer?.bankItems ?? [] : [];");
+    expect(pageSource).toContain("bankItems: visibleBankItems");
     expect(pageSource).toContain("scapestackAccountTypeToPlannerType(syncedPlayer.accountType)");
     expect(pageSource).toContain('progressSource={syncedPlayer ? "runelite" : hiscores ? "hiscores" : "none"}');
     expect(pageSource).toContain("route.progress.activeQuestSlug !== currentSlug");
