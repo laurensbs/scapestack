@@ -86,7 +86,14 @@ function bossUpgradeCandidates(
     if (item.slot === "weapon" && item.weaponStyle && item.weaponStyle !== style) continue;
     const setup = autoSetup([...owned, item], style);
     if (!setup.weapon) continue;
-    const result = calcDps(setup, boss, style);
+    // current.stats, never the default. `current` is now computed at the
+    // account's real levels, so leaving this on MAXED_STATS made every gain
+    // carry the whole 99s-vs-real gap on top of the item's own: a +0.21 DPS
+    // tentacle read +2.31, which then tripped the modal's "upgrade first"
+    // threshold and told a player the boss they had just been sent to was not
+    // worth doing. DpsBreakdown carries its stats precisely so this cannot
+    // drift again.
+    const result = calcDps(setup, boss, style, current.stats);
     const gain = result.dps - current.dps;
     if (gain <= 0.1) continue;
     candidates.push({

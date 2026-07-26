@@ -474,6 +474,10 @@ export function NextClient({
 
       if (opts.sample) {
         setActiveRsn("");
+        // The demo has its own levels. Without this the sample inherited
+        // whichever account was looked up before it and presented that
+        // account's stats as the demo's own.
+        setCombatStats(combatStatsFromSkills(sampleSkills()));
         setActiveBankSource("sample");
         const bank = SAMPLE_BANK.map((item) => ({ ...item }));
         const sampleHandoffItems = bankHandoffItemsFromBankItems(bank, "Demo PvM sample");
@@ -516,6 +520,9 @@ export function NextClient({
         ? opts.planningContext ?? await planningContextAction(rsn)
         : null;
       const hiscores = planningContext?.hiscores ?? null;
+      // Unconditional, including the null case: this is the only writer, so
+      // skipping it on a miss left the previous account's levels attached to
+      // the new one — and the modal states them as a claim.
       setCombatStats(combatStatsFromSkills(hiscores?.skills));
       const wom = planningContext?.wom ?? null;
       const collectionLog = planningContext?.collectionLog ?? null;

@@ -65,7 +65,19 @@ Two of those were factual errors about the game, in the file whose own header de
 
 Server-only. Everything here is visible to a returning player today and wrong.
 
-### 1.1 `dps.ts` computes every number for a maxed account
+### 1.1 `dps.ts` computes every number for a maxed account · shipped 2026-07-26
+
+`CombatStats` threads real levels through the engine; `MAXED_STATS` stays the documented default so the catalogue still works before an account is attached, and `BossViability.assumedMaxed` makes the UI say which it is showing. The offensive prayer now follows the account's Prayer level (and the Defence requirement Chivalry and Piety carry), and the standard-spellbook base — a flat 28, the Fire Surge hit, for every account — scales with Magic.
+
+Wired into `/dps` (which now fetches the Hiscores for the RSN it already had), `/next` (which was fetching the skills and discarding them) and `/bank` (which was holding the prop and not passing it down).
+
+**Two things this uncovered, both worth remembering.**
+
+*Honest numbers break thresholds tuned on dishonest ones.* `READY_DPS 4.5 / TEST_DPS 2.4` were calibrated when every account scored as maxed. With real levels, a 70/75 account with a whip is correctly blocked at every boss the recommendation window offers it — because that window only reaches 25 combat levels below the player, and Obor and Bryophyta, which die in well under a minute, sit just outside it. The engine went from "everyone can kill everything" to "you can kill nothing" in one step. `reachableBossFallback` closes it, firing only when nothing in the window is *ready*, and only off measured kill times.
+
+*A dead gate is worse than no gate.* `npm run audit:next` sat in `ci:check` and never ran: its `import.meta.url === \`file://${process.argv[1]}\`` guard fails whenever the repo path contains a space, which this one does. It printed nothing and exited 0. It now runs 73 rules over 13 scenarios — and passed with real levels in the engine, which is the only reason to trust that the rest of Wave 1 has a net to fall into.
+
+### 1.1 (original prompt, kept for reference)
 
 ```
 Read src/lib/dps.ts. STATS is a module constant of { attack: 99, strength: 99,

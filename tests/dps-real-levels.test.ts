@@ -3,8 +3,10 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { BOSSES } from "@/lib/bosses";
 import { bossViabilityFromSimpleBank } from "@/lib/boss-viability";
+import { buildBossUpgradePlan } from "@/lib/boss-upgrade-plan";
 import { bestStyleAndSetup, calcDps, combatStatsFromSkills, MAXED_STATS, type CombatStats } from "@/lib/dps";
 import { GEAR, lookupGear } from "@/lib/gear";
+import { normalizeBankHandoffItems } from "@/lib/next-bank-handoff";
 import { bossRecs } from "@/lib/next-up-bosses";
 import type { HiscoreSkill } from "@/lib/hiscores";
 
@@ -172,6 +174,42 @@ describe("a boss the account can actually kill", () => {
     }
   });
 
+  it("stays quiet for an account that is already bossing", () => {
+    // hasBossExperience skips a boss before any viability check, so an account
+    // farming Vorkath had no in-window boss left to mark the window healthy —
+    // and got told nothing at its combat level was winnable.
+    const recs = bossRecs(89, MID_BANK, midSkills, { Vorkath: 400 }, null, { skills: midSkills }, MID);
+    expect(recs.map((rec) => rec.id)).not.toContain("boss:obor");
+  });
+
+  it("collapses a boss group instead of spending two slots on one trip", () => {
+    // The caller's seenGroups is only filled for bosses inside the window, and
+    // the fallback only looks below it, so the guard could never fire: the
+    // Dagannoth Kings came out as two separate recommendations.
+    const maxed = skills(Object.fromEntries(SKILL_NAMES.map((name) => [name, 99])));
+    const recs = bossRecs(120, [{ id: 4587, name: "Dragon scimitar" }], maxed, {}, null, { skills: maxed }, MAXED_STATS);
+    const dks = recs.filter((rec) => /dks|dagannoth/i.test(rec.id));
+    expect(dks.length).toBeLessThanOrEqual(1);
+  });
+
+  it("applies the same gear-name gate the main pass applies", () => {
+    // Skipping it let the fallback recommend bosses the main pass had
+    // deliberately suppressed for this exact bank.
+    const recs = bossRecs(120, MID_BANK, midSkills, {}, null, { skills: midSkills }, MID);
+    for (const rec of recs.filter((entry) => entry.why.startsWith("Your bank is behind"))) {
+      expect(rec.gearConfidence, rec.id).toBe("confirmed");
+    }
+  });
+
+  it("never stamps combat advice on an activity with no hit points", () => {
+    const maxed = skills(Object.fromEntries(SKILL_NAMES.map((name) => [name, 99])));
+    const recs = bossRecs(120, [{ id: 4587, name: "Dragon scimitar" }], maxed, {}, null, { skills: maxed }, MAXED_STATS);
+    for (const rec of recs) {
+      const entry = BOSSES.find((candidate) => `boss:${candidate.slug}` === rec.id);
+      if (entry) expect(entry.hp, rec.id).toBeGreaterThan(0);
+    }
+  });
+
   it("respects the Slayer gate before counting a boss as proof the window works", () => {
     // Regression: the check ran before the gates, so Kraken — killable on paper,
     // then dropped for needing 87 Slayer against this account's 50 — marked the
@@ -179,6 +217,35 @@ describe("a boss the account can actually kill", () => {
     const recs = bossRecs(89, MID_BANK, midSkills, {}, null, { skills: midSkills }, MID);
     expect(recs.map((rec) => rec.id)).not.toContain("boss:kraken");
     expect(recs.map((rec) => rec.id)).toContain("boss:obor");
+  });
+});
+
+describe("the upgrade card compares like with like", () => {
+  it("computes the candidate at the same levels as the figure it subtracts from", () => {
+    // Regression: `current` was threaded to the account's real levels while
+    // buildBossUpgradePlan still fell back to MAXED_STATS, so every gain
+    // carried the whole 99s-vs-real gap. A +0.2 DPS amulet read +2.3, which
+    // tripped the modal's "upgrade first" threshold and told the player the
+    // boss they had just been sent to was not worth doing.
+    const owned = gear(4151, 1127, 2503, 4091);
+    const current = bestStyleAndSetup(owned, boss("obor"), MID);
+    const plan = buildBossUpgradePlan({
+      boss: boss("obor"),
+      owned,
+      bankItems: normalizeBankHandoffItems([{ id: 995, name: "Coins", quantity: 40_000_000 }]),
+      current,
+      accountType: null
+    });
+    expect(plan).toBeTruthy();
+    // The whole inflation was roughly the stat gap itself, about 2 DPS here.
+    expect(plan!.gain).toBeLessThan(1);
+    expect(plan!.gain).toBeGreaterThan(0);
+  });
+
+  it("carries the stats on the breakdown so the two sides cannot drift apart", () => {
+    const owned = gear(4151);
+    expect(bestStyleAndSetup(owned, boss("obor"), MID).stats).toEqual(MID);
+    expect(bestStyleAndSetup(owned, boss("obor")).stats).toEqual(MAXED_STATS);
   });
 });
 

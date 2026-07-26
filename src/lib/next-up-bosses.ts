@@ -211,7 +211,7 @@ export function bossRecs(
   // wins. "test" does not count: a four-minute kill on a whip-only setup is a
   // warning, not a recommendation, and treating it as one is what left this
   // account with no boss worth doing.
-  let sawReadyInWindow = false;
+  let windowIsUsable = false;
   for (const boss of BOSSES) {
     const gate = BOSS_CL_GATE[boss.slug];
     if (gate === undefined) continue;
@@ -219,7 +219,13 @@ export function bossRecs(
     // band above the gate, so it stays relevant rather than listing every
     // low-level boss to a maxed main.
     if (combatLevel < gate || combatLevel > gate + 25) continue;
-    if (hasBossExperience(boss, bank, bossKc)) continue;
+    if (hasBossExperience(boss, bank, bossKc)) {
+      // Already killing this one. It is not a recommendation, but it is proof
+      // the window works — and the fallback below must not then tell a player
+      // farming Vorkath that nothing at their combat level is winnable.
+      windowIsUsable = true;
+      continue;
+    }
 
     // Combat level is not the real gate for most of these — Vorkath wants
     // Dragon Slayer II, GWD wants Trollheim. Drop the boss when we can prove
@@ -256,7 +262,7 @@ export function bossRecs(
     // healthy and suppressed the fallback that exists for exactly this account.
     if (bank.length > 0 && stats) {
       const windowViability = bossViabilityFromSimpleBank(bank, boss, stats);
-      if (windowViability?.tone === "ready") sawReadyInWindow = true;
+      if (windowViability?.tone === "ready") windowIsUsable = true;
     }
 
     // Group siblings into one rec (Dagannoth Kings → one tile, not three).
@@ -363,9 +369,12 @@ export function bossRecs(
   //
   // So widen it, but only in the case that needs it, and say plainly that this
   // is the honest recommendation rather than the aspirational one.
-  if (!sawReadyInWindow && bank.length > 0 && stats) {
+  // totalKnownBossKc gates it as well: this is for an account that is not
+  // bossing yet. Someone with real kill counts does not need to be told which
+  // boss they can beat, and telling them reads as the engine not knowing them.
+  if (!windowIsUsable && bank.length > 0 && stats && totalKnownBossKc < 50) {
     recs.push(...reachableBossFallback({
-      combatLevel, bank, bossKc, slayerLevel, accessContext, stats, totalKnownBossKc, seenGroups
+      combatLevel, bank, bossKc, slayerLevel, accessContext, stats, totalKnownBossKc
     }));
   }
 
@@ -390,40 +399,75 @@ function reachableBossFallback(input: {
   accessContext: AccessContext;
   stats: CombatStats;
   totalKnownBossKc: number;
-  seenGroups: Set<string>;
 }): Recommendation[] {
-  const found: Array<{ boss: Boss; gate: number; ttk: number | null }> = [];
+  const found: Array<{
+    boss: Boss;
+    gate: number;
+    ttk: number | null;
+    accessLine: string | null;
+    accessMultiplier: number;
+  }> = [];
+  // Its own, because the main loop only ever fills the caller's set for bosses
+  // inside the window and the two ranges are disjoint — so the caller's set is
+  // always empty here, and passing it in produced two Dagannoth Kings tiles for
+  // one Waterbirth trip.
+  const groups = new Set<string>();
+
   for (const boss of BOSSES) {
     const gate = BOSS_CL_GATE[boss.slug];
     // Strictly below the window the main pass already covered.
     if (gate === undefined || input.combatLevel <= gate + 25) continue;
+    // Activities with no hit points are not fights; combat advice on Wintertodt
+    // is nonsense whatever the DPS engine returns for it.
+    if (boss.hp <= 0) continue;
     if (hasBossExperience(boss, input.bank, input.bossKc)) continue;
-    if (evaluateAccess(BOSS_ACCESS[boss.slug], input.accessContext).state === "locked") continue;
+
+    const accessVerdict = evaluateAccess(BOSS_ACCESS[boss.slug], input.accessContext);
+    if (accessVerdict.state === "locked") continue;
     const gearGate = BOSS_GEAR_GATES[boss.slug];
     if (gearGate?.slayerLevel !== undefined && input.slayerLevel < gearGate.slayerLevel) continue;
-    if (BOSS_GROUPS[boss.slug] && input.seenGroups.has(BOSS_GROUPS[boss.slug]!.id)) continue;
+    // The same gear-name gate the main pass applies. Skipping it let the
+    // fallback recommend bosses the main pass had deliberately suppressed for
+    // this exact bank.
+    if (matchedGearForBoss(boss.slug, input.bank, input.slayerLevel) === null) continue;
+
+    const group = BOSS_GROUPS[boss.slug];
+    if (group) {
+      if (groups.has(group.id)) continue;
+      groups.add(group.id);
+    }
 
     const viability = bossViabilityFromSimpleBank(input.bank, boss, input.stats);
     // "ready" only. A test trip at a boss the player has already outlevelled is
     // not worth the slot.
     if (!viability || viability.tone !== "ready") continue;
-    found.push({ boss, gate, ttk: viability.ttk });
+    found.push({
+      boss,
+      gate,
+      ttk: viability.ttk,
+      accessLine: accessNeedsLine(accessVerdict),
+      accessMultiplier: accessScoreMultiplier(accessVerdict)
+    });
   }
 
   // Highest entry bar first — the closest thing to a real step up.
   found.sort((left, right) => right.gate - left.gate);
 
-  return found.slice(0, 2).map(({ boss, ttk }, index) => ({
+  return found.slice(0, 2).map(({ boss, ttk, accessLine, accessMultiplier }, index) => ({
     id: `boss:${boss.slug}`,
     kind: "boss" as const,
     title: `Try ${boss.name}`,
-    why: "Nothing at your combat level is a fight this bank wins yet. This one is.",
+    // About the bank, which is the true cause. The earlier phrasing claimed the
+    // engine had measured every boss at the player's level, which is not what
+    // the flag above establishes — several are dropped for gear or access
+    // before any DPS is computed.
+    why: "Your bank is behind the bosses at your combat level. This one it handles.",
     payoff: boss.avgLootGp
       ? `Estimated long-run loot: ~${Math.round(boss.avgLootGp / 1000)}k per kill.`
       : boss.notes,
     decisionReason: ttk
-      ? `Your stats and bank kill it in about ${ttk < 90 ? `${Math.round(ttk)} sec` : `${Math.round(ttk / 60)} min`}, where the bosses at your level do not go down at all.`
-      : "Your stats and bank handle this one, where the bosses at your level do not go down at all.",
+      ? `Your stats and bank kill it in about ${ttk < 90 ? `${Math.round(ttk)} sec` : `${Math.round(ttk / 60)} min`} — measured, not guessed from a combat-level gate.`
+      : "Your stats and bank handle this one, measured rather than guessed from a combat-level gate.",
     // Scored in the same band as an in-window boss, not beneath it. The
     // evidence here is strictly stronger: every in-window rec is a guess from a
     // combat-level gate, while this one has a kill time computed from the
@@ -433,7 +477,8 @@ function reachableBossFallback(input: {
     // The runner-up drops ten points so the pair cannot take two of the three
     // headline slots between them. Obor and Bryophyta are close to the same
     // suggestion twice; one competes, the other is a backup.
-    score: index === 0 ? 58 : 48,
+    score: (index === 0 ? 58 : 48) * accessMultiplier,
+    needs: accessLine ? [accessLine] : undefined,
     link: "/dps",
     iconItemId: boss.iconItemId,
     bossSlug: boss.slug,
