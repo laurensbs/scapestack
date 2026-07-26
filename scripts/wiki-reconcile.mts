@@ -9,7 +9,7 @@
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { BOSSES } from "../src/lib/bosses.ts";
+import { BOSSES, bossHasAttribute } from "../src/lib/bosses.ts";
 import { GEAR } from "../src/lib/gear.ts";
 
 const ROOT = process.cwd();
@@ -72,15 +72,17 @@ for (const boss of BOSSES) {
   compare("def.ranged", boss.defenceBonuses?.ranged, "range_defence_bonus");
   compare("magicLevel", boss.magicLevel, "magic_level");
 
-  // The Salve check. dps.ts decides "undead" with a regex over the boss NAME —
-  // /vorkath|skotizo|barrows|zombi/i — which is a guess dressed as a rule. The
-  // wiki carries the real attribute, so this compares one against the other.
+  // The Salve check. This used to compare the wiki against a regex over the
+  // boss NAME; that regex is gone and Boss.attributes carries the wiki value,
+  // so the comparison is now a check that the overlay landed rather than a
+  // record of an old bug. Left in because a silent regression here puts the
+  // Salve amulet back on the wrong bosses.
   const attributes = new Set(
     rows.flatMap((row) => (Array.isArray(row.attribute) ? row.attribute : [row.attribute]))
       .filter(Boolean)
       .map((value) => String(value).toLowerCase())
   );
-  const oursUndead = /vorkath|skotizo|barrows|zombi/i.test(boss.name);
+  const oursUndead = bossHasAttribute(boss, "undead");
   const wikiUndead = attributes.has("undead");
   if (oursUndead !== wikiUndead) {
     diffs.push({ subject: boss.name, field: "undead", ours: oursUndead, wiki: wikiUndead });

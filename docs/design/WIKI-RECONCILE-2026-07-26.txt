@@ -1,8 +1,5 @@
 
-BOSSES — 3 disagreements across 59 entries
-  Vet'ion                    undead          ours    false   wiki true
-  Calvar'ion                 undead          ours    false   wiki true
-  Skotizo                    undead          ours     true   wiki false
+BOSSES — 0 disagreements across 59 entries
 
   no wiki row for: Grotesque Guardians, Demonic Gorillas, Barrows, Chambers of Xeric, Theatre of Blood, Tombs of Amascut, Wintertodt, Tempoross, Guardians of the Rift, Moons of Peril
 
