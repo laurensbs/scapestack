@@ -1,10 +1,25 @@
 // Boss / monster definitions for the DPS calculator and boss-tag generator.
-// Stats sourced from oldschool.runescape.wiki monster articles.
 //
-// Coverage: every boss that appears on the OSRS Hiscores boss leaderboards,
-// plus a handful of high-traffic slayer bosses. Defence bonuses define what
-// a player needs to roll above to hit; weaknesses guide the DPS picker.
+// The numbers are NOT typed here any more. "Stats sourced from
+// oldschool.runescape.wiki" used to be a comment; it is now a join. Every
+// hitpoint, defence level, magic level and attribute below is overlaid at
+// module load from data/wiki/derived/boss-stats.json, which
+// scripts/wiki-project.mjs generates from the wiki's own Bucket API.
+//
+// The reconciliation that forced this: 232 disagreements across 48 of these 59
+// entries. Callisto at 470 HP against a real 1000. Araxxor at 460 against
+// 1020. The Hueycoatl at 700 against 2500. Skotizo marked undead when it is a
+// demon, while Vet'ion and Calvar'ion — which are undead — were not. A kill
+// time built on any of those is not slightly off, it is a different fight.
+//
+// What stays ours, and should: the roster itself, the category, the weakness
+// hint that drives the style picker, the player-facing note, and the ten
+// entries with no wiki row at all. Those ten are multi-NPC encounters — raids,
+// Barrows, Wintertodt, Tempoross, Guardians of the Rift, Moons of Peril,
+// Grotesque Guardians, Demonic Gorillas — that no single monster infobox
+// describes. Their numbers are a model, not a fact, and they are marked.
 
+import bossStats from "../../data/wiki/derived/boss-stats.json";
 import type { CombatStyle } from "./gear";
 
 export interface Boss {
@@ -36,6 +51,18 @@ export interface Boss {
   // For multi-room encounters (raids), sub-rooms are listed here so we can
   // show one Boss tile in the UI but still calculate per-room setups in DPS.
   rooms?: BossRoom[];
+  /** Wiki attributes — "undead", "demon", "dragon". Replaces a regex over the
+   *  boss's NAME that applied the Salve amulet to Skotizo (a demon) and denied
+   *  it to Vet'ion and Calvar'ion (both undead). Empty when we model the
+   *  encounter ourselves. */
+  attributes?: readonly string[];
+  /** Tiles across. The Scythe of vitur's extra hits only land on targets 2x2
+   *  or larger; the engine used to apply its 1.75x to everything. */
+  size?: number;
+  /** Where the numbers on this row came from. "manual" means no wiki row
+   *  exists and the values are our model — say so rather than let a reader
+   *  assume the whole table is sourced. */
+  factsSource: "wiki" | "manual";
 }
 
 export interface BossRoom {
@@ -67,7 +94,9 @@ export function isNonCombatBossActivity(boss: Boss): boolean {
   return boss.hp <= 0 || boss.weaknesses.length === 0;
 }
 
-export const BOSSES: Boss[] = [
+/** The roster as written: judgement, plus fallback numbers for the ten
+ *  encounters the wiki does not describe as a single monster. */
+const ROSTER: Array<Omit<Boss, "factsSource">> = [
   // ── God Wars Dungeon ─────────────────────────────────────────────────────
   { slug: "graardor", name: "General Graardor", emoji: "👺", iconItemId: 11812, category: "gwd",
     hp: 255, defenceLevel: 250, defenceBonuses: { stab: 60, slash: 50, crush: 60, magic: 198, ranged: 100 },
@@ -340,6 +369,49 @@ export const BOSSES: Boss[] = [
     weaknesses: ["slash", "stab", "magic", "ranged"], avgLootGp: 350_000, killsPerHourCap: 12,
     notes: "Three moons — style swap per moon." }
 ];
+
+/**
+ * Wiki facts overlaid on the roster.
+ *
+ * Deliberately an overlay rather than a merge: where the wiki has a row, its
+ * numbers win outright, including when ours look more plausible. The whole
+ * point is that nobody adjudicates a hitpoint by hand any more. Where it has
+ * no row, the entry keeps its own numbers and is marked "manual" so a reader
+ * can tell a fact from a model.
+ */
+type WikiBossStats = {
+  hp: number | null;
+  defenceLevel: number | null;
+  magicLevel: number | null;
+  size: number | null;
+  attributes: string[];
+  defenceBonuses: { stab: number; slash: number; crush: number; magic: number; ranged: number };
+};
+
+const WIKI_STATS = bossStats as unknown as Record<string, WikiBossStats>;
+
+export const BOSSES: Boss[] = ROSTER.map((boss) => {
+  const wiki = WIKI_STATS[boss.slug];
+  if (!wiki || wiki.hp === null) {
+    return { ...boss, attributes: [], factsSource: "manual" as const };
+  }
+  return {
+    ...boss,
+    hp: wiki.hp,
+    defenceLevel: wiki.defenceLevel ?? boss.defenceLevel,
+    defenceBonuses: wiki.defenceBonuses,
+    magicLevel: wiki.magicLevel ?? boss.magicLevel,
+    size: wiki.size ?? undefined,
+    attributes: wiki.attributes,
+    factsSource: "wiki" as const
+  };
+});
+
+/** Wiki attribute rather than a guess at the name. */
+export function bossHasAttribute(boss: Boss, attribute: string): boolean {
+  return (boss.attributes ?? []).includes(attribute);
+}
+
 
 export const BOSS_BY_SLUG = new Map(BOSSES.map((b) => [b.slug, b]));
 

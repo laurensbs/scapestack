@@ -65,7 +65,12 @@ describe("boss viability", () => {
       { id: 11230, name: "Dragon dart" }
     ], boss("vorkath"));
 
-    expect(viability?.tone).toBe("test");
+    // "test" was pinned to a wrong number: the hand-typed table gave Vorkath a
+    // ranged defence bonus of 26, and the wiki has 0 — which is precisely why
+    // Vorkath is the ranged boss everyone recommends. A blowpipe-and-Masori
+    // account really is ready for it, and the old verdict understated the most
+    // popular method in the game against it.
+    expect(viability?.tone).toBe("ready");
     expect(viability?.canKill).toBe(true);
     // "owned" claimed a completeness the engine never had: it reads the bank,
     // and worn equipment is never sent. The wording says which one it means.

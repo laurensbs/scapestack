@@ -16,7 +16,7 @@
 // maxed account and says so — see MAXED_STATS below. No salve / slayer helm
 // bonus unless detected.
 
-import type { Boss } from "./bosses";
+import { bossHasAttribute, type Boss } from "./bosses";
 import type { CombatStyle, GearItem } from "./gear";
 import { isRangedAmmo } from "./gear";
 
@@ -329,13 +329,25 @@ function applyWeaponSpecial(setup: Setup, style: CombatStyle, max: number, hc: n
     return { max: Math.floor(max * 3), hc: Math.min(1, hc * 1.5) };
   }
 
-  // Scythe of vitur — 3 hits per swing
+  // Scythe of vitur — up to 3 hits per swing.
+  //
+  // The extra hits only land on targets at least 2x2. Against a 1x1 the scythe
+  // hits once, and this used to hand out 1.75x regardless — a flat 75% damage
+  // overstatement on every small target in the roster. Target size now comes
+  // from the wiki (Boss.size), so the branch is a fact rather than a habit.
   if (name.includes("scythe of vitur")) {
-    // Wiki: hit 1 full, hit 2 half, hit 3 quarter. Total ~1.75x max effective.
-    return { max: Math.floor(max * 1.75), hc };
+    // Wiki: hit 1 full, hit 2 half, hit 3 quarter.
+    const size = boss.size ?? 1;
+    const multiplier = size >= 3 ? 1.75 : size === 2 ? 1.5 : 1;
+    return { max: Math.floor(max * multiplier), hc };
   }
 
-  // Salve (ei) vs undead — doubles damage and accuracy
+  // Salve (ei) vs undead.
+  //
+  // This used to read /vorkath|skotizo|barrows|zombi/i over the boss NAME,
+  // which is a guess wearing a regex. It gave the bonus to Skotizo — a demon —
+  // and withheld it from Vet'ion and Calvar'ion, which are undead. The wiki
+  // publishes the attribute; Boss.attributes carries it.
   if (setup.neck?.name.toLowerCase().includes("salve amulet(ei)") && isUndead(boss)) {
     return { max: Math.floor(max * 1.20), hc: Math.min(1, hc * 1.20) };
   }
@@ -344,7 +356,7 @@ function applyWeaponSpecial(setup: Setup, style: CombatStyle, max: number, hc: n
 }
 
 function isUndead(boss: Boss): boolean {
-  return /vorkath|skotizo|barrows|zombi/i.test(boss.name);
+  return bossHasAttribute(boss, "undead");
 }
 
 // Calculate DPS for a setup against a boss in a given style.

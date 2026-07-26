@@ -1,0 +1,3524 @@
+{
+ "Abyssal whip": {
+  "page": "Abyssal whip",
+  "variants": 1,
+  "itemIds": [
+   4151
+  ],
+  "slot": "weapon",
+  "speed": 4,
+  "combatStyle": "Whip",
+  "attack": {
+   "stab": 0,
+   "slash": 82,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 82,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Abyssal tentacle": {
+  "page": "Abyssal tentacle",
+  "variants": 1,
+  "itemIds": [
+   12006
+  ],
+  "slot": "weapon",
+  "speed": 4,
+  "combatStyle": "Whip",
+  "attack": {
+   "stab": 0,
+   "slash": 90,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 86,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Blade of Saeldor": {
+  "page": "Blade of saeldor",
+  "variants": 2,
+  "itemIds": [
+   23995,
+   23997
+  ],
+  "slot": "weapon",
+  "speed": 4,
+  "combatStyle": "Slash Sword",
+  "attack": {
+   "stab": 55,
+   "slash": 100,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 93,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Ghrazi rapier": {
+  "page": "Ghrazi rapier",
+  "variants": 1,
+  "itemIds": [
+   22324
+  ],
+  "slot": "weapon",
+  "speed": 4,
+  "combatStyle": "Stab Sword",
+  "attack": {
+   "stab": 100,
+   "slash": 55,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 93,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Osmumten's fang": {
+  "page": "Osmumten's fang",
+  "variants": 1,
+  "itemIds": [
+   26219
+  ],
+  "slot": "weapon",
+  "speed": 5,
+  "combatStyle": "Stab Sword",
+  "attack": {
+   "stab": 105,
+   "slash": 75,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 103,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Scythe of vitur": {
+  "page": "Scythe of vitur",
+  "variants": 2,
+  "itemIds": [
+   22325,
+   22486
+  ],
+  "slot": "2h",
+  "speed": 5,
+  "combatStyle": "Scythe",
+  "attack": {
+   "stab": 70,
+   "slash": 125,
+   "crush": 30,
+   "magic": -6,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": -2,
+   "slash": 8,
+   "crush": 10,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 75,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Bandos godsword": {
+  "page": "Bandos godsword",
+  "variants": 1,
+  "itemIds": [
+   11804
+  ],
+  "slot": "2h",
+  "speed": 6,
+  "combatStyle": "2h Sword",
+  "attack": {
+   "stab": 0,
+   "slash": 132,
+   "crush": 80,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 132,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 8
+  }
+ },
+ "Armadyl godsword": {
+  "page": "Armadyl godsword",
+  "variants": 1,
+  "itemIds": [
+   11802
+  ],
+  "slot": "2h",
+  "speed": 6,
+  "combatStyle": "2h Sword",
+  "attack": {
+   "stab": 0,
+   "slash": 132,
+   "crush": 80,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 132,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 8
+  }
+ },
+ "Dragon claws": {
+  "page": "Dragon claws",
+  "variants": 1,
+  "itemIds": [
+   13652
+  ],
+  "slot": "2h",
+  "speed": 4,
+  "combatStyle": "Claw",
+  "attack": {
+   "stab": 41,
+   "slash": 57,
+   "crush": -4,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 13,
+   "slash": 26,
+   "crush": 7,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 56,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Voidwaker": {
+  "page": "Voidwaker",
+  "variants": 1,
+  "itemIds": [
+   27690
+  ],
+  "slot": "weapon",
+  "speed": 4,
+  "combatStyle": "Slash Sword",
+  "attack": {
+   "stab": 70,
+   "slash": 80,
+   "crush": -2,
+   "magic": 5,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 1,
+   "crush": 0,
+   "magic": 2,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 80,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Dragon scimitar": {
+  "page": "Dragon scimitar",
+  "variants": 1,
+  "itemIds": [
+   4587
+  ],
+  "slot": "weapon",
+  "speed": 4,
+  "combatStyle": "Slash Sword",
+  "attack": {
+   "stab": 8,
+   "slash": 67,
+   "crush": -2,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 1,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 66,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Rune scimitar": {
+  "page": "Rune scimitar",
+  "variants": 1,
+  "itemIds": [
+   1333
+  ],
+  "slot": "weapon",
+  "speed": 4,
+  "combatStyle": "Slash Sword",
+  "attack": {
+   "stab": 7,
+   "slash": 45,
+   "crush": -2,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 1,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 44,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Elder maul": {
+  "page": "Elder maul",
+  "variants": 1,
+  "itemIds": [
+   21003
+  ],
+  "slot": "2h",
+  "speed": 6,
+  "combatStyle": "Blunt",
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 135,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 147,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Twisted bow": {
+  "page": "Twisted bow",
+  "variants": 1,
+  "itemIds": [
+   20997
+  ],
+  "slot": "2h",
+  "speed": 6,
+  "combatStyle": "Bow",
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 70
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 20,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Bow of Faerdhinen": {
+  "page": "Bow of faerdhinen",
+  "variants": 2,
+  "itemIds": [
+   25865,
+   25862
+  ],
+  "slot": "2h",
+  "speed": 5,
+  "combatStyle": "Bow",
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 128
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 106,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Zaryte crossbow": {
+  "page": "Zaryte crossbow",
+  "variants": 1,
+  "itemIds": [
+   26374
+  ],
+  "slot": "weapon",
+  "speed": 6,
+  "combatStyle": "Crossbow",
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 110
+  },
+  "defence": {
+   "stab": 14,
+   "slash": 14,
+   "crush": 12,
+   "magic": 15,
+   "ranged": 16
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 1
+  }
+ },
+ "Toxic blowpipe": {
+  "page": "Toxic blowpipe",
+  "variants": 2,
+  "itemIds": [
+   12926,
+   12924
+  ],
+  "slot": "2h",
+  "speed": 3,
+  "combatStyle": "Thrown",
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 30
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 20,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Blazing blowpipe": {
+  "page": "Blazing blowpipe",
+  "variants": 2,
+  "itemIds": [
+   28688,
+   28687
+  ],
+  "slot": "2h",
+  "speed": 3,
+  "combatStyle": "Thrown",
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 30
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 20,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Rune crossbow": {
+  "page": "Rune crossbow",
+  "variants": 1,
+  "itemIds": [
+   9185
+  ],
+  "slot": "weapon",
+  "speed": 6,
+  "combatStyle": "Crossbow",
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 90
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Karil's crossbow": {
+  "page": "Karil's crossbow",
+  "variants": 6,
+  "itemIds": [
+   4938,
+   4934,
+   4937,
+   4936,
+   4935,
+   4734
+  ],
+  "slot": "2h",
+  "speed": 4,
+  "combatStyle": "Crossbow",
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 84
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Dark bow": {
+  "page": "Dark bow",
+  "variants": 5,
+  "itemIds": [
+   12766,
+   12765,
+   11235,
+   12768,
+   12767
+  ],
+  "slot": "2h",
+  "speed": 9,
+  "combatStyle": "Bow",
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 95
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Tonalztics of ralos": {
+  "page": "Tonalztics of ralos",
+  "variants": 2,
+  "itemIds": [
+   28922,
+   28919
+  ],
+  "slot": "weapon",
+  "speed": 7,
+  "combatStyle": "Thrown",
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 115
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 55,
+   "magicDamage": 0,
+   "prayer": 2
+  }
+ },
+ "Burning claws": {
+  "page": "Burning claws",
+  "variants": 1,
+  "itemIds": [
+   29577
+  ],
+  "slot": "2h",
+  "speed": 4,
+  "combatStyle": "Claw",
+  "attack": {
+   "stab": 43,
+   "slash": 54,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 3,
+   "slash": 6,
+   "crush": 1,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 32,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Soulreaper axe": {
+  "page": "Soulreaper axe",
+  "variants": 1,
+  "itemIds": [
+   28338
+  ],
+  "slot": "2h",
+  "speed": 5,
+  "combatStyle": "Axe",
+  "attack": {
+   "stab": 28,
+   "slash": 134,
+   "crush": 66,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 125,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Twinflame staff": {
+  "page": "Twinflame staff",
+  "variants": 1,
+  "itemIds": [
+   30634
+  ],
+  "slot": "weapon",
+  "speed": 6,
+  "combatStyle": "Staff",
+  "attack": {
+   "stab": 7,
+   "slash": -1,
+   "crush": 28,
+   "magic": 12,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 2,
+   "slash": 3,
+   "crush": 1,
+   "magic": 12,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 22,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Tumeken's shadow": {
+  "page": "Tumeken's shadow",
+  "variants": 2,
+  "itemIds": [
+   27275,
+   27277
+  ],
+  "slot": "2h",
+  "speed": 5,
+  "combatStyle": "Powered Staff",
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 35,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 20,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 1
+  }
+ },
+ "Sanguinesti staff": {
+  "page": "Sanguinesti staff",
+  "variants": 2,
+  "itemIds": [
+   22323,
+   22481
+  ],
+  "slot": "weapon",
+  "speed": 4,
+  "combatStyle": "Powered Staff",
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 25,
+   "ranged": -4
+  },
+  "defence": {
+   "stab": 2,
+   "slash": 3,
+   "crush": 1,
+   "magic": 15,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Harmonised nightmare staff": {
+  "page": "Harmonised nightmare staff",
+  "variants": 1,
+  "itemIds": [
+   24423
+  ],
+  "slot": "weapon",
+  "speed": 5,
+  "combatStyle": "Staff",
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 16,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 14,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0.15,
+   "prayer": 0
+  }
+ },
+ "Trident of the seas": {
+  "page": "Trident of the seas",
+  "variants": 3,
+  "itemIds": [
+   11905,
+   11907,
+   11908
+  ],
+  "slot": "weapon",
+  "speed": 4,
+  "combatStyle": "Powered Staff",
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 15,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 2,
+   "slash": 3,
+   "crush": 1,
+   "magic": 15,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Trident of the swamp": {
+  "page": "Trident of the swamp",
+  "variants": 2,
+  "itemIds": [
+   12899,
+   12900
+  ],
+  "slot": "weapon",
+  "speed": 4,
+  "combatStyle": "Powered Staff",
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 25,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 2,
+   "slash": 3,
+   "crush": 1,
+   "magic": 15,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Kodai wand": {
+  "page": "Kodai wand",
+  "variants": 1,
+  "itemIds": [
+   21006
+  ],
+  "slot": "weapon",
+  "speed": 4,
+  "combatStyle": "Staff",
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 28,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 3,
+   "crush": 3,
+   "magic": 20,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0.15,
+   "prayer": 0
+  }
+ },
+ "Ancient sceptre": {
+  "page": "Ancient sceptre",
+  "variants": 2,
+  "itemIds": [
+   27626,
+   33827,
+   33829,
+   27624
+  ],
+  "slot": "weapon",
+  "speed": 4,
+  "combatStyle": "Staff",
+  "attack": {
+   "stab": 20,
+   "slash": -1,
+   "crush": 50,
+   "magic": 20,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 2,
+   "slash": 3,
+   "crush": 1,
+   "magic": 15,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 60,
+   "rangedStrength": 0,
+   "magicDamage": 0.1,
+   "prayer": -1
+  }
+ },
+ "Slayer helmet (i)": {
+  "page": "Slayer helmet (i)",
+  "variants": 3,
+  "itemIds": [
+   26674,
+   11865,
+   25177
+  ],
+  "slot": "head",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 3,
+   "ranged": 3
+  },
+  "defence": {
+   "stab": 30,
+   "slash": 32,
+   "crush": 27,
+   "magic": 10,
+   "ranged": 30
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Slayer helmet": {
+  "page": "Slayer helmet",
+  "variants": 1,
+  "itemIds": [
+   11864
+  ],
+  "slot": "head",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": -6,
+   "ranged": -2
+  },
+  "defence": {
+   "stab": 30,
+   "slash": 32,
+   "crush": 27,
+   "magic": -1,
+   "ranged": 30
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Helm of neitiznot": {
+  "page": "Helm of neitiznot",
+  "variants": 1,
+  "itemIds": [
+   10828
+  ],
+  "slot": "head",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 31,
+   "slash": 29,
+   "crush": 34,
+   "magic": 3,
+   "ranged": 30
+  },
+  "other": {
+   "strength": 3,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 3
+  }
+ },
+ "Neitiznot faceguard": {
+  "page": "Neitiznot faceguard",
+  "variants": 1,
+  "itemIds": [
+   24271
+  ],
+  "slot": "head",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 36,
+   "slash": 34,
+   "crush": 38,
+   "magic": 3,
+   "ranged": 34
+  },
+  "other": {
+   "strength": 6,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 3
+  }
+ },
+ "Serpentine helm": {
+  "page": "Serpentine helm",
+  "variants": 2,
+  "itemIds": [
+   12931,
+   12929
+  ],
+  "slot": "head",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": -5,
+   "ranged": -5
+  },
+  "defence": {
+   "stab": 52,
+   "slash": 55,
+   "crush": 58,
+   "magic": 0,
+   "ranged": 50
+  },
+  "other": {
+   "strength": 5,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Torva full helm": {
+  "page": "Torva full helm",
+  "variants": 1,
+  "itemIds": [
+   26376,
+   26382
+  ],
+  "slot": "head",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": -5,
+   "ranged": -5
+  },
+  "defence": {
+   "stab": 59,
+   "slash": 60,
+   "crush": 62,
+   "magic": -2,
+   "ranged": 57
+  },
+  "other": {
+   "strength": 8,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 1
+  }
+ },
+ "Masori mask (f)": {
+  "page": "Masori mask (f)",
+  "variants": 1,
+  "itemIds": [
+   27235
+  ],
+  "slot": "head",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": -1,
+   "ranged": 12
+  },
+  "defence": {
+   "stab": 8,
+   "slash": 10,
+   "crush": 12,
+   "magic": 12,
+   "ranged": 9
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 2,
+   "magicDamage": 0,
+   "prayer": 1
+  }
+ },
+ "Masori mask": {
+  "page": "Masori mask",
+  "variants": 1,
+  "itemIds": [
+   27226
+  ],
+  "slot": "head",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": -1,
+   "ranged": 12
+  },
+  "defence": {
+   "stab": 3,
+   "slash": 4,
+   "crush": 3,
+   "magic": 6,
+   "ranged": 4
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 2,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Ancestral hat": {
+  "page": "Ancestral hat",
+  "variants": 1,
+  "itemIds": [
+   21018
+  ],
+  "slot": "head",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 8,
+   "ranged": -2
+  },
+  "defence": {
+   "stab": 12,
+   "slash": 11,
+   "crush": 13,
+   "magic": 5,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0.03,
+   "prayer": 0
+  }
+ },
+ "Virtus mask": {
+  "page": "Virtus mask",
+  "variants": 1,
+  "itemIds": [
+   26241
+  ],
+  "slot": "head",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 8,
+   "ranged": -3
+  },
+  "defence": {
+   "stab": 15,
+   "slash": 14,
+   "crush": 16,
+   "magic": 6,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0.02,
+   "prayer": 1
+  }
+ },
+ "Void mage helm": {
+  "page": "Void mage helm",
+  "variants": 3,
+  "itemIds": [
+   20477,
+   24183,
+   33468,
+   33470,
+   11663
+  ],
+  "slot": "head",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 6,
+   "slash": 6,
+   "crush": 6,
+   "magic": 6,
+   "ranged": 6
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Void ranger helm": {
+  "page": "Void ranger helm",
+  "variants": 3,
+  "itemIds": [
+   20479,
+   24184,
+   33472,
+   33474,
+   11664
+  ],
+  "slot": "head",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 6,
+   "slash": 6,
+   "crush": 6,
+   "magic": 6,
+   "ranged": 6
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Void melee helm": {
+  "page": "Void melee helm",
+  "variants": 3,
+  "itemIds": [
+   20481,
+   24185,
+   33464,
+   33466,
+   11665
+  ],
+  "slot": "head",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 6,
+   "slash": 6,
+   "crush": 6,
+   "magic": 6,
+   "ranged": 6
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Infernal cape": {
+  "page": "Infernal cape",
+  "variants": 2,
+  "itemIds": [
+   21287,
+   24224,
+   33500,
+   33502,
+   21295
+  ],
+  "slot": "cape",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 4,
+   "slash": 4,
+   "crush": 4,
+   "magic": 1,
+   "ranged": 1
+  },
+  "defence": {
+   "stab": 12,
+   "slash": 12,
+   "crush": 12,
+   "magic": 12,
+   "ranged": 12
+  },
+  "other": {
+   "strength": 8,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 2
+  }
+ },
+ "Fire cape": {
+  "page": "Fire cape",
+  "variants": 3,
+  "itemIds": [
+   20445,
+   24223,
+   6570
+  ],
+  "slot": "cape",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 1,
+   "slash": 1,
+   "crush": 1,
+   "magic": 1,
+   "ranged": 1
+  },
+  "defence": {
+   "stab": 11,
+   "slash": 11,
+   "crush": 11,
+   "magic": 11,
+   "ranged": 11
+  },
+  "other": {
+   "strength": 4,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 2
+  }
+ },
+ "Imbued saradomin cape": {
+  "page": "Imbued saradomin cape",
+  "variants": 3,
+  "itemIds": [
+   24236,
+   24248,
+   21791
+  ],
+  "slot": "cape",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 15,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 3,
+   "slash": 3,
+   "crush": 3,
+   "magic": 15,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0.02,
+   "prayer": 0
+  }
+ },
+ "Imbued guthix cape": {
+  "page": "Imbued guthix cape",
+  "variants": 3,
+  "itemIds": [
+   24240,
+   24249,
+   21793
+  ],
+  "slot": "cape",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 15,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 3,
+   "slash": 3,
+   "crush": 3,
+   "magic": 15,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0.02,
+   "prayer": 0
+  }
+ },
+ "Ava's assembler": {
+  "page": "Ava's assembler",
+  "variants": 3,
+  "itemIds": [
+   21914,
+   24222,
+   22109
+  ],
+  "slot": "cape",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 8
+  },
+  "defence": {
+   "stab": 1,
+   "slash": 1,
+   "crush": 1,
+   "magic": 8,
+   "ranged": 2
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 2,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Masori assembler": {
+  "page": "Masori assembler",
+  "variants": 3,
+  "itemIds": [
+   27359,
+   27376,
+   27374
+  ],
+  "slot": "cape",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 8
+  },
+  "defence": {
+   "stab": 1,
+   "slash": 1,
+   "crush": 1,
+   "magic": 8,
+   "ranged": 2
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 2,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Ardougne cloak 4": {
+  "page": "Ardougne cloak 4",
+  "variants": 1,
+  "itemIds": [
+   13124
+  ],
+  "slot": "cape",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 6,
+   "slash": 0,
+   "crush": 0,
+   "magic": 6,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 6,
+   "slash": 0,
+   "crush": 0,
+   "magic": 6,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 6
+  }
+ },
+ "Amulet of torture": {
+  "page": "Amulet of torture",
+  "variants": 1,
+  "itemIds": [
+   19553
+  ],
+  "slot": "neck",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 15,
+   "slash": 15,
+   "crush": 15,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 10,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 2
+  }
+ },
+ "Amulet of fury": {
+  "page": "Amulet of fury",
+  "variants": 1,
+  "itemIds": [
+   6585
+  ],
+  "slot": "neck",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 10,
+   "slash": 10,
+   "crush": 10,
+   "magic": 10,
+   "ranged": 10
+  },
+  "defence": {
+   "stab": 15,
+   "slash": 15,
+   "crush": 15,
+   "magic": 15,
+   "ranged": 15
+  },
+  "other": {
+   "strength": 8,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 5
+  }
+ },
+ "Necklace of anguish": {
+  "page": "Necklace of anguish",
+  "variants": 1,
+  "itemIds": [
+   19547
+  ],
+  "slot": "neck",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 15
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 5,
+   "magicDamage": 0,
+   "prayer": 2
+  }
+ },
+ "Occult necklace": {
+  "page": "Occult necklace",
+  "variants": 1,
+  "itemIds": [
+   12002
+  ],
+  "slot": "neck",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 12,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0.05,
+   "prayer": 2
+  }
+ },
+ "Amulet of rancour": {
+  "page": "Amulet of rancour",
+  "variants": 1,
+  "itemIds": [
+   29801
+  ],
+  "slot": "neck",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 25,
+   "slash": 25,
+   "crush": 25,
+   "magic": -6,
+   "ranged": -8
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 12,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 2
+  }
+ },
+ "Amulet of glory": {
+  "page": "Amulet of glory",
+  "variants": 7,
+  "itemIds": [
+   1706,
+   1708,
+   1710,
+   1712,
+   11976,
+   11978,
+   1704
+  ],
+  "slot": "neck",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 10,
+   "slash": 10,
+   "crush": 10,
+   "magic": 10,
+   "ranged": 10
+  },
+  "defence": {
+   "stab": 3,
+   "slash": 3,
+   "crush": 3,
+   "magic": 3,
+   "ranged": 3
+  },
+  "other": {
+   "strength": 6,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 3
+  }
+ },
+ "Salve amulet(ei)": {
+  "page": "Salve amulet(ei)",
+  "variants": 3,
+  "itemIds": [
+   26782,
+   12018,
+   25278
+  ],
+  "slot": "neck",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 3,
+   "slash": 3,
+   "crush": 3,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 3
+  }
+ },
+ "Bandos chestplate": {
+  "page": "Bandos chestplate",
+  "variants": 1,
+  "itemIds": [
+   11832
+  ],
+  "slot": "body",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": -15,
+   "ranged": -10
+  },
+  "defence": {
+   "stab": 98,
+   "slash": 93,
+   "crush": 105,
+   "magic": -6,
+   "ranged": 133
+  },
+  "other": {
+   "strength": 4,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 1
+  }
+ },
+ "Torva platebody": {
+  "page": "Torva platebody",
+  "variants": 1,
+  "itemIds": [
+   26378,
+   26384
+  ],
+  "slot": "body",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": -18,
+   "ranged": -14
+  },
+  "defence": {
+   "stab": 117,
+   "slash": 111,
+   "crush": 117,
+   "magic": -11,
+   "ranged": 142
+  },
+  "other": {
+   "strength": 6,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 1
+  }
+ },
+ "Ancestral robe top": {
+  "page": "Ancestral robe top",
+  "variants": 1,
+  "itemIds": [
+   21021
+  ],
+  "slot": "body",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 35,
+   "ranged": -8
+  },
+  "defence": {
+   "stab": 42,
+   "slash": 31,
+   "crush": 51,
+   "magic": 28,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0.03,
+   "prayer": 0
+  }
+ },
+ "Virtus robe top": {
+  "page": "Virtus robe top",
+  "variants": 1,
+  "itemIds": [
+   26243
+  ],
+  "slot": "body",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 35,
+   "ranged": -11
+  },
+  "defence": {
+   "stab": 47,
+   "slash": 36,
+   "crush": 56,
+   "magic": 31,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0.02,
+   "prayer": 2
+  }
+ },
+ "Masori body (f)": {
+  "page": "Masori body (f)",
+  "variants": 1,
+  "itemIds": [
+   27238
+  ],
+  "slot": "body",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": -4,
+   "ranged": 43
+  },
+  "defence": {
+   "stab": 59,
+   "slash": 52,
+   "crush": 64,
+   "magic": 74,
+   "ranged": 60
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 4,
+   "magicDamage": 0,
+   "prayer": 1
+  }
+ },
+ "Masori body": {
+  "page": "Masori body",
+  "variants": 1,
+  "itemIds": [
+   27229
+  ],
+  "slot": "body",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": -4,
+   "ranged": 43
+  },
+  "defence": {
+   "stab": 37,
+   "slash": 35,
+   "crush": 38,
+   "magic": 25,
+   "ranged": 33
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 4,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Armadyl chestplate": {
+  "page": "Armadyl chestplate",
+  "variants": 1,
+  "itemIds": [
+   11828
+  ],
+  "slot": "body",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": -7,
+   "slash": -7,
+   "crush": -7,
+   "magic": -15,
+   "ranged": 33
+  },
+  "defence": {
+   "stab": 56,
+   "slash": 48,
+   "crush": 61,
+   "magic": 70,
+   "ranged": 57
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 1
+  }
+ },
+ "Fighter torso": {
+  "page": "Fighter torso",
+  "variants": 3,
+  "itemIds": [
+   20513,
+   24175,
+   33520,
+   33522,
+   10551
+  ],
+  "slot": "body",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": -40,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 62,
+   "slash": 85,
+   "crush": 62,
+   "magic": -10,
+   "ranged": 67
+  },
+  "other": {
+   "strength": 4,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Elite void top": {
+  "page": "Elite void top",
+  "variants": 3,
+  "itemIds": [
+   20467,
+   24178,
+   33480,
+   33482,
+   13072
+  ],
+  "slot": "body",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 45,
+   "slash": 45,
+   "crush": 45,
+   "magic": 45,
+   "ranged": 45
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 3
+  }
+ },
+ "Bandos tassets": {
+  "page": "Bandos tassets",
+  "variants": 1,
+  "itemIds": [
+   11834
+  ],
+  "slot": "legs",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": -21,
+   "ranged": -7
+  },
+  "defence": {
+   "stab": 71,
+   "slash": 63,
+   "crush": 66,
+   "magic": -4,
+   "ranged": 93
+  },
+  "other": {
+   "strength": 2,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 1
+  }
+ },
+ "Torva platelegs": {
+  "page": "Torva platelegs",
+  "variants": 1,
+  "itemIds": [
+   26380,
+   26386
+  ],
+  "slot": "legs",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": -24,
+   "ranged": -11
+  },
+  "defence": {
+   "stab": 87,
+   "slash": 78,
+   "crush": 79,
+   "magic": -9,
+   "ranged": 102
+  },
+  "other": {
+   "strength": 4,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 1
+  }
+ },
+ "Ancestral robe bottom": {
+  "page": "Ancestral robe bottom",
+  "variants": 1,
+  "itemIds": [
+   21024
+  ],
+  "slot": "legs",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 26,
+   "ranged": -7
+  },
+  "defence": {
+   "stab": 27,
+   "slash": 24,
+   "crush": 30,
+   "magic": 20,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0.03,
+   "prayer": 0
+  }
+ },
+ "Masori chaps (f)": {
+  "page": "Masori chaps (f)",
+  "variants": 1,
+  "itemIds": [
+   27241
+  ],
+  "slot": "legs",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": -2,
+   "ranged": 27
+  },
+  "defence": {
+   "stab": 35,
+   "slash": 30,
+   "crush": 39,
+   "magic": 46,
+   "ranged": 37
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 2,
+   "magicDamage": 0,
+   "prayer": 1
+  }
+ },
+ "Masori chaps": {
+  "page": "Masori chaps",
+  "variants": 1,
+  "itemIds": [
+   27232
+  ],
+  "slot": "legs",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": -2,
+   "ranged": 27
+  },
+  "defence": {
+   "stab": 26,
+   "slash": 24,
+   "crush": 29,
+   "magic": 19,
+   "ranged": 22
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 2,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Armadyl chainskirt": {
+  "page": "Armadyl chainskirt",
+  "variants": 1,
+  "itemIds": [
+   11830
+  ],
+  "slot": "legs",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": -6,
+   "slash": -6,
+   "crush": -6,
+   "magic": -10,
+   "ranged": 20
+  },
+  "defence": {
+   "stab": 32,
+   "slash": 26,
+   "crush": 34,
+   "magic": 40,
+   "ranged": 33
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 1
+  }
+ },
+ "Elite void robe": {
+  "page": "Elite void robe",
+  "variants": 3,
+  "itemIds": [
+   20471,
+   24180,
+   33488,
+   33490,
+   13073
+  ],
+  "slot": "legs",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 30,
+   "slash": 30,
+   "crush": 30,
+   "magic": 30,
+   "ranged": 30
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 3
+  }
+ },
+ "Barrows gloves": {
+  "page": "Barrows gloves",
+  "variants": 1,
+  "itemIds": [
+   7462
+  ],
+  "slot": "hands",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 12,
+   "slash": 12,
+   "crush": 12,
+   "magic": 6,
+   "ranged": 12
+  },
+  "defence": {
+   "stab": 12,
+   "slash": 12,
+   "crush": 12,
+   "magic": 6,
+   "ranged": 12
+  },
+  "other": {
+   "strength": 12,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Ferocious gloves": {
+  "page": "Ferocious gloves",
+  "variants": 1,
+  "itemIds": [
+   22981
+  ],
+  "slot": "hands",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 16,
+   "slash": 16,
+   "crush": 16,
+   "magic": -16,
+   "ranged": -16
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 14,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Zaryte vambraces": {
+  "page": "Zaryte vambraces",
+  "variants": 1,
+  "itemIds": [
+   26235
+  ],
+  "slot": "hands",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": -8,
+   "slash": -8,
+   "crush": -8,
+   "magic": 0,
+   "ranged": 18
+  },
+  "defence": {
+   "stab": 8,
+   "slash": 8,
+   "crush": 8,
+   "magic": 5,
+   "ranged": 8
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 2,
+   "magicDamage": 0,
+   "prayer": 1
+  }
+ },
+ "Black d'hide vambraces": {
+  "page": "Black d'hide vambraces",
+  "variants": 1,
+  "itemIds": [
+   2491
+  ],
+  "slot": "hands",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": -10,
+   "ranged": 11
+  },
+  "defence": {
+   "stab": 4,
+   "slash": 5,
+   "crush": 5,
+   "magic": 8,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Void knight gloves": {
+  "page": "Void knight gloves",
+  "variants": 3,
+  "itemIds": [
+   20475,
+   24182,
+   33492,
+   33494,
+   8842
+  ],
+  "slot": "hands",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 6,
+   "slash": 6,
+   "crush": 6,
+   "magic": 4,
+   "ranged": 6
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Mithril gloves": {
+  "page": "Mithril gloves",
+  "variants": 1,
+  "itemIds": [
+   7458
+  ],
+  "slot": "hands",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 6,
+   "slash": 6,
+   "crush": 6,
+   "magic": 3,
+   "ranged": 6
+  },
+  "defence": {
+   "stab": 6,
+   "slash": 6,
+   "crush": 6,
+   "magic": 3,
+   "ranged": 6
+  },
+  "other": {
+   "strength": 6,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Primordial boots": {
+  "page": "Primordial boots",
+  "variants": 1,
+  "itemIds": [
+   13239
+  ],
+  "slot": "feet",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 2,
+   "slash": 2,
+   "crush": 2,
+   "magic": -4,
+   "ranged": -1
+  },
+  "defence": {
+   "stab": 22,
+   "slash": 22,
+   "crush": 22,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 5,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Pegasian boots": {
+  "page": "Pegasian boots",
+  "variants": 1,
+  "itemIds": [
+   13237
+  ],
+  "slot": "feet",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": -12,
+   "ranged": 12
+  },
+  "defence": {
+   "stab": 5,
+   "slash": 5,
+   "crush": 5,
+   "magic": 5,
+   "ranged": 5
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 1,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Eternal boots": {
+  "page": "Eternal boots",
+  "variants": 1,
+  "itemIds": [
+   13235
+  ],
+  "slot": "feet",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 8,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 5,
+   "slash": 5,
+   "crush": 5,
+   "magic": 8,
+   "ranged": 5
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0.01,
+   "prayer": 0
+  }
+ },
+ "Dragon boots": {
+  "page": "Dragon boots",
+  "variants": 1,
+  "itemIds": [
+   11840
+  ],
+  "slot": "feet",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": -3,
+   "ranged": -1
+  },
+  "defence": {
+   "stab": 16,
+   "slash": 17,
+   "crush": 18,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 4,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Ranger boots": {
+  "page": "Ranger boots",
+  "variants": 1,
+  "itemIds": [
+   2577
+  ],
+  "slot": "feet",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": -10,
+   "ranged": 8
+  },
+  "defence": {
+   "stab": 2,
+   "slash": 3,
+   "crush": 4,
+   "magic": 2,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Ultor ring": {
+  "page": "Ultor ring",
+  "variants": 1,
+  "itemIds": [
+   28307
+  ],
+  "slot": "ring",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 12,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Magus ring": {
+  "page": "Magus ring",
+  "variants": 1,
+  "itemIds": [
+   28313
+  ],
+  "slot": "ring",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 15,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0.02,
+   "prayer": 0
+  }
+ },
+ "Venator ring": {
+  "page": "Venator ring",
+  "variants": 1,
+  "itemIds": [
+   28310
+  ],
+  "slot": "ring",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 10
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 2,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Bellator ring": {
+  "page": "Bellator ring",
+  "variants": 1,
+  "itemIds": [
+   28316
+  ],
+  "slot": "ring",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 20,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 6,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Lightbearer": {
+  "page": "Lightbearer",
+  "variants": 1,
+  "itemIds": [
+   25975
+  ],
+  "slot": "ring",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Berserker ring (i)": {
+  "page": "Berserker ring (i)",
+  "variants": 3,
+  "itemIds": [
+   26770,
+   11773,
+   25264
+  ],
+  "slot": "ring",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 8,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 8,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Berserker ring": {
+  "page": "Berserker ring",
+  "variants": 1,
+  "itemIds": [
+   6737
+  ],
+  "slot": "ring",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 4,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 4,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Archers ring (i)": {
+  "page": "Archers ring (i)",
+  "variants": 3,
+  "itemIds": [
+   26768,
+   11771,
+   25260
+  ],
+  "slot": "ring",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 8
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 8
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Archers ring": {
+  "page": "Archers ring",
+  "variants": 1,
+  "itemIds": [
+   6733
+  ],
+  "slot": "ring",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 4
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 4
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Seers ring (i)": {
+  "page": "Seers ring (i)",
+  "variants": 3,
+  "itemIds": [
+   26767,
+   11770,
+   25258
+  ],
+  "slot": "ring",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 12,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 12,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0.01,
+   "prayer": 0
+  }
+ },
+ "Seers ring": {
+  "page": "Seers ring",
+  "variants": 1,
+  "itemIds": [
+   6731
+  ],
+  "slot": "ring",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 6,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 6,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Brimstone ring": {
+  "page": "Brimstone ring",
+  "variants": 1,
+  "itemIds": [
+   22975
+  ],
+  "slot": "ring",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 4,
+   "slash": 4,
+   "crush": 4,
+   "magic": 6,
+   "ranged": 4
+  },
+  "defence": {
+   "stab": 4,
+   "slash": 4,
+   "crush": 4,
+   "magic": 6,
+   "ranged": 4
+  },
+  "other": {
+   "strength": 4,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Warrior ring (i)": {
+  "page": "Warrior ring (i)",
+  "variants": 3,
+  "itemIds": [
+   26769,
+   11772,
+   25262
+  ],
+  "slot": "ring",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 8,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 8,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Warrior ring": {
+  "page": "Warrior ring",
+  "variants": 1,
+  "itemIds": [
+   6735
+  ],
+  "slot": "ring",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 4,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 4,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Avernic defender": {
+  "page": "Avernic defender",
+  "variants": 3,
+  "itemIds": [
+   22441,
+   24186,
+   22322
+  ],
+  "slot": "shield",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 30,
+   "slash": 29,
+   "crush": 28,
+   "magic": -5,
+   "ranged": -4
+  },
+  "defence": {
+   "stab": 30,
+   "slash": 29,
+   "crush": 28,
+   "magic": -5,
+   "ranged": -4
+  },
+  "other": {
+   "strength": 8,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Dragon defender": {
+  "page": "Dragon defender",
+  "variants": 3,
+  "itemIds": [
+   20463,
+   24143,
+   12954
+  ],
+  "slot": "shield",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 25,
+   "slash": 24,
+   "crush": 23,
+   "magic": -3,
+   "ranged": -2
+  },
+  "defence": {
+   "stab": 25,
+   "slash": 24,
+   "crush": 23,
+   "magic": -3,
+   "ranged": -2
+  },
+  "other": {
+   "strength": 6,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Elysian spirit shield": {
+  "page": "Elysian spirit shield",
+  "variants": 1,
+  "itemIds": [
+   12817
+  ],
+  "slot": "shield",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 63,
+   "slash": 65,
+   "crush": 75,
+   "magic": 2,
+   "ranged": 57
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 3
+  }
+ },
+ "Dragonfire shield": {
+  "page": "Dragonfire shield",
+  "variants": 2,
+  "itemIds": [
+   11283,
+   11284
+  ],
+  "slot": "shield",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": -10,
+   "ranged": -5
+  },
+  "defence": {
+   "stab": 70,
+   "slash": 75,
+   "crush": 72,
+   "magic": 10,
+   "ranged": 72
+  },
+  "other": {
+   "strength": 7,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Dragonfire ward": {
+  "page": "Dragonfire ward",
+  "variants": 2,
+  "itemIds": [
+   22002,
+   22003
+  ],
+  "slot": "shield",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": -10,
+   "slash": -10,
+   "crush": -10,
+   "magic": -10,
+   "ranged": 15
+  },
+  "defence": {
+   "stab": 25,
+   "slash": 30,
+   "crush": 28,
+   "magic": 28,
+   "ranged": 68
+  },
+  "other": {
+   "strength": -2,
+   "rangedStrength": 8,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Elidinis' ward (f)": {
+  "page": "Elidinis' ward (f)",
+  "variants": 1,
+  "itemIds": [
+   27251
+  ],
+  "slot": "shield",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 25,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 53,
+   "slash": 55,
+   "crush": 73,
+   "magic": 2,
+   "ranged": 52
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0.05,
+   "prayer": 4
+  }
+ },
+ "Dragon arrow": {
+  "page": "Dragon arrow",
+  "variants": 4,
+  "itemIds": [
+   11227,
+   11228,
+   11229,
+   11212
+  ],
+  "slot": "ammo",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 60,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Ruby dragon bolts (e)": {
+  "page": "Ruby dragon bolts (e)",
+  "variants": 1,
+  "itemIds": [
+   21944
+  ],
+  "slot": "ammo",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 122,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Diamond dragon bolts (e)": {
+  "page": "Diamond dragon bolts (e)",
+  "variants": 1,
+  "itemIds": [
+   21946
+  ],
+  "slot": "ammo",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 122,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Dragon dart": {
+  "page": "Dragon dart",
+  "variants": 4,
+  "itemIds": [
+   11231,
+   11233,
+   11234,
+   11230
+  ],
+  "slot": "weapon",
+  "speed": 3,
+  "combatStyle": "Thrown",
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 35,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Amethyst dart": {
+  "page": "Amethyst dart",
+  "variants": 4,
+  "itemIds": [
+   25851,
+   25855,
+   25857,
+   25849
+  ],
+  "slot": "weapon",
+  "speed": 3,
+  "combatStyle": "Thrown",
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 28,
+   "magicDamage": 0,
+   "prayer": 0
+  }
+ },
+ "Rada's blessing 4": {
+  "page": "Rada's blessing 4",
+  "variants": 1,
+  "itemIds": [
+   22947
+  ],
+  "slot": "ammo",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 2
+  }
+ },
+ "Rada's blessing 3": {
+  "page": "Rada's blessing 3",
+  "variants": 1,
+  "itemIds": [
+   22945
+  ],
+  "slot": "ammo",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 1
+  }
+ },
+ "Rada's blessing 2": {
+  "page": "Rada's blessing 2",
+  "variants": 1,
+  "itemIds": [
+   22943
+  ],
+  "slot": "ammo",
+  "speed": null,
+  "combatStyle": null,
+  "attack": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "defence": {
+   "stab": 0,
+   "slash": 0,
+   "crush": 0,
+   "magic": 0,
+   "ranged": 0
+  },
+  "other": {
+   "strength": 0,
+   "rangedStrength": 0,
+   "magicDamage": 0,
+   "prayer": 1
+  }
+ }
+}

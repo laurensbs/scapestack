@@ -671,7 +671,14 @@ describe("next-up action plans", () => {
 
     expect(result.headline?.id).toBe("kc:Vardorvis:first-50");
     expect(result.headline?.decisionReason).toContain("50 KC is a clean stop point");
-    expect(result.headline?.decisionReason).toContain("check the kill setup");
+    // Was: "...check the kill setup before camping it", which only appears when
+    // the bank reads as too weak for the boss. Vardorvis's defence bonuses were
+    // a flat 70 across every style in the hand-typed table; the wiki has stab
+    // 215, slash 65, crush 85, magic 580, ranged 0 — it is a pure slash boss.
+    // A whip account is no longer judged under-geared for it, so the weak-setup
+    // branch correctly stops firing. Asserting the KC framing that this test is
+    // actually about, rather than a gear verdict it was never testing.
+    expect(result.headline?.decisionReason).toContain("Vardorvis KC");
   });
 
   it("adds practical account routes beyond generic boss and diary picks", async () => {
