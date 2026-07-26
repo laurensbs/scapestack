@@ -29,7 +29,8 @@ the log was not opened, opened without item slots, or loaded correctly.
 ## Data contract
 
 Sent after opt-in: RSN, plugin version, account type, skill levels and XP, quest and diary completion,
-loaded collection-log item IDs, boss KC RuneLite has already observed, Slayer state, bank item IDs/names/quantities when bank checks are on,
+loaded collection-log item IDs, boss KC RuneLite has already observed, Slayer state, Combat Achievement points and highest completed tier,
+bank item IDs/names/quantities when bank checks are on,
 and the local install token only as the Authorization bearer on claim/sync requests.
 
 Boss KC is intentionally sparse: RuneLite only knows a count after it has seen that boss in the
@@ -39,6 +40,10 @@ reported as zero.
 Never sent: RuneScape password, inventory, equipment, GE offers, chat,
 friends list, clicks, key presses, screenshots, local files, or RuneLite
 config folders, IP address, or machine fingerprint.
+
+Equipment stays on that list in 0.4.0. The snapshot contract has a slot for
+it, and the plugin fills that slot with `unsupported` rather than leaving it
+out — so the absence is a stated choice a reader can check, not an omission.
 
 The server stores `sha256(token) → RSN` first-wins. The raw token stays
 local except for HTTPS claim and sync requests where it is sent as

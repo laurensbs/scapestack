@@ -185,9 +185,13 @@ tasks.register('pluginE2e', Test) {
 
 tasks.register('writeSyncContractFixture', JavaExec) {
     group = 'verification'
-    description = 'Regenerate the v3 plugin sync fixture through the production serializer'
+    // Writes the CURRENT contract only. plugin-sync-v3.json is frozen: it is
+    // the byte-real payload the published 0.3.0 plugin sends, and the server
+    // must keep parsing it unchanged for as long as anyone runs that build.
+    // Pointing this task at it silently rewrote it as v4 once.
+    description = 'Regenerate the current plugin sync fixture through the production serializer'
     dependsOn 'testClasses'
     classpath = sourceSets.test.runtimeClasspath
     mainClass = 'app.scapestack.runelite.SyncPayloadFixtureWriter'
-    args = [file('../tests/fixtures/plugin-sync-v3.json').absolutePath]
+    args = [file('../tests/fixtures/plugin-sync-v4.json').absolutePath]
 }

@@ -69,6 +69,7 @@ public final class SyncPayloadFixtureWriter {
             "2026-07-18T12:32:00Z",
             0
         );
+        snapshot.combatAchievements = new GameStateReader.CombatAchievements(431, "hard");
         snapshot.coverage = PluginSnapshotContract.observedCoverage(snapshot);
         return ScapestackSyncPlugin.buildSyncPayload("Iron Lynx", snapshot, new Gson());
     }
@@ -76,7 +77,7 @@ public final class SyncPayloadFixtureWriter {
     public static void main(String[] args) throws Exception {
         Path destination = args.length > 0
             ? Paths.get(args[0])
-            : Paths.get("..", "tests", "fixtures", "plugin-sync-v3.json");
+            : Paths.get("..", "tests", "fixtures", "plugin-sync-v4.json");
         Files.createDirectories(destination.toAbsolutePath().getParent());
         String json = new GsonBuilder().setPrettyPrinting().create().toJson(fixturePayload()) + System.lineSeparator();
         Files.write(destination, json.getBytes(StandardCharsets.UTF_8));

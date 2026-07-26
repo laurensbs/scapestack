@@ -134,17 +134,17 @@ public class ScapestackSyncPluginTest {
         assertEquals(3, collectionLogStatus.get("obtainedItemCount").getAsInt());
         assertTrue(payload.getAsJsonObject("bankStatus").get("enabled").getAsBoolean());
         assertEquals(2, payload.getAsJsonObject("bankStatus").get("itemCount").getAsInt());
-        assertEquals(3, payload.get("contractVersion").getAsInt());
+        assertEquals(PluginSnapshotContract.VERSION, payload.get("contractVersion").getAsInt());
         assertEquals(48, payload.getAsJsonObject("bossKc").get("Vorkath").getAsInt());
         assertEquals("available", payload.getAsJsonObject("coverage").getAsJsonObject("bossKc").get("state").getAsString());
         assertEquals("available", payload.getAsJsonObject("coverage").getAsJsonObject("skills").get("state").getAsString());
     }
 
     @Test
-    public void committedV3FixtureMatchesProductionSerializer() throws Exception {
-        Path fixture = Paths.get("..", "tests", "fixtures", "plugin-sync-v3.json");
+    public void committedFixtureMatchesProductionSerializer() throws Exception {
+        Path fixture = Paths.get("..", "tests", "fixtures", "plugin-sync-v4.json");
         if (!Files.isRegularFile(fixture)) {
-            fixture = Paths.get("src", "test", "resources", "fixtures", "plugin-sync-v3.json");
+            fixture = Paths.get("src", "test", "resources", "fixtures", "plugin-sync-v4.json");
         }
 
         try (Reader reader = Files.newBufferedReader(
@@ -153,6 +153,27 @@ public class ScapestackSyncPluginTest {
         )) {
             JsonObject committed = new Gson().fromJson(reader, JsonObject.class);
             assertEquals(SyncPayloadFixtureWriter.fixturePayload(), committed);
+        }
+    }
+
+    /**
+     * The published 0.3.0 plugin is still installed on real machines and still
+     * sends contract 3. That payload is frozen here so the website keeps a
+     * byte-real example of it to parse against for as long as anyone runs that
+     * build — regenerating it from a newer serializer would erase the only
+     * record of what the shipped plugin sends.
+     */
+    @Test
+    public void publishedV3FixtureStaysFrozenAtV3() throws Exception {
+        Path fixture = Paths.get("..", "tests", "fixtures", "plugin-sync-v3.json");
+        if (!Files.isRegularFile(fixture)) return;
+        try (Reader reader = Files.newBufferedReader(
+            fixture,
+            java.nio.charset.StandardCharsets.UTF_8
+        )) {
+            JsonObject frozen = new Gson().fromJson(reader, JsonObject.class);
+            assertEquals(3, frozen.get("contractVersion").getAsInt());
+            assertEquals(8, frozen.getAsJsonObject("coverage").size());
         }
     }
 

@@ -116,7 +116,7 @@ public class ScapestackSyncPlugin extends Plugin {
     private ScapestackSyncPanel panel;
     private NavigationButton navigationButton;
     private static final MediaType JSON = MediaType.parse("application/json");
-    private static final String PLUGIN_VERSION = "0.3.0";
+    private static final String PLUGIN_VERSION = "0.4.0";
     private static final String USER_AGENT = "scapestack-plugin/" + PLUGIN_VERSION;
     private static final String OPT_IN_HINT = "Scapestack is ready. Turn on Sync on login to keep your planner updated.";
     private static final long MANUAL_SYNC_COOLDOWN_MS = 2_500L;
@@ -800,6 +800,19 @@ public class ScapestackSyncPlugin extends Plugin {
             slayer.add("blocks", gson.toJsonTree(snap.slayer.blocks));
             slayer.add("blockNames", gson.toJsonTree(new ArrayList<>(snap.slayer.blockNames)));
             body.add("slayer", slayer);
+        }
+        if (snap.combatAchievements != null) {
+            JsonObject ca = new JsonObject();
+            ca.addProperty("points", snap.combatAchievements.points);
+            // Explicit null, not an omitted key: "no tier finished yet" is a
+            // real state and the server's schema accepts it, where a missing
+            // field would be indistinguishable from a serializer bug.
+            if (snap.combatAchievements.tier != null) {
+                ca.addProperty("tier", snap.combatAchievements.tier);
+            } else {
+                ca.add("tier", com.google.gson.JsonNull.INSTANCE);
+            }
+            body.add("combatAchievements", ca);
         }
         return body;
     }

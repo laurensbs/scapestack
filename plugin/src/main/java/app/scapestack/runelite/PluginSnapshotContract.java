@@ -11,7 +11,12 @@ import java.util.Map;
 
 /** Versioned metadata that keeps missing RuneLite domains explicit. */
 final class PluginSnapshotContract {
-    static final int VERSION = 3;
+    // Must equal candidate.contractVersion in release-manifest.json; a check
+    // in scripts/check-plugin-release.mjs enforces it. Drift here is the one
+    // mistake with no recovery: the Plugin Hub builds one immutable commit,
+    // and a plugin claiming a version the server does not accept breaks every
+    // synced player permanently.
+    static final int VERSION = 4;
     static final List<String> DOMAINS = Arrays.asList(
         "skills",
         "quests",
@@ -20,7 +25,13 @@ final class PluginSnapshotContract {
         "bossKc",
         "slayer",
         "accountMode",
-        "bank"
+        "bank",
+        // Contract v4. Every one of these must appear in a v4 payload — the
+        // server requires it — but "appearing" includes saying plainly that
+        // this build cannot provide them, which is what coverage is for.
+        "equipment",
+        "farming",
+        "combatAchievements"
     );
 
     static final class Domain {
@@ -90,6 +101,19 @@ final class PluginSnapshotContract {
             ? Domain.available(capturedAt)
             : Domain.unavailable("account-mode-unavailable"));
         coverage.put("bank", bankCoverage(snapshot, capturedAt));
+
+        // Worn equipment is deliberately not read. Both READMEs list it under
+        // "Never sent", and that promise is not ours to quietly withdraw — it
+        // is a product decision, and until it is made this build declares the
+        // domain unsupported rather than silently omitting it.
+        coverage.put("equipment", Domain.unsupported("equipment-not-collected-by-design"));
+        // Farming timers need per-patch growth state tracked across sessions,
+        // which this build does not do yet. Saying so beats sending an empty
+        // list that would read as "no crops planted".
+        coverage.put("farming", Domain.unsupported("farming-timers-not-implemented"));
+        coverage.put("combatAchievements", snapshot.combatAchievements != null
+            ? Domain.available(capturedAt)
+            : Domain.unavailable("combat-achievement-vars-unavailable"));
         return coverage;
     }
 

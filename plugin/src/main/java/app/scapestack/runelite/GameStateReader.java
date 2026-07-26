@@ -63,7 +63,30 @@ public class GameStateReader {
         public Map<String, Integer> bossKc = null;
         BossKillCountReader.Result bossKcStatus = null;
         public String accountType = "normal";
+        public CombatAchievements combatAchievements = null;
         public Map<String, PluginSnapshotContract.Domain> coverage = new LinkedHashMap<>();
+    }
+
+    /**
+     * Total Combat Achievement points and the highest tier fully completed.
+     *
+     * These two numbers are on neither the OSRS Hiscores nor Wise Old Man —
+     * checked, in July 2026: the hiscores lite response is 25 skills and 90
+     * activities and carries neither, and WOM's metric list is a strict subset
+     * plus EHP/EHB. The plugin is the only way to know them.
+     *
+     * They live in VarPlayers, so they populate on login without the player
+     * opening any interface. That makes this a more reliable domain than the
+     * collection log, which stays unknown until its window is opened.
+     */
+    public static class CombatAchievements {
+        public final int points;
+        /** Lowercase tier name, or null when not one tier is complete yet. */
+        public final String tier;
+        public CombatAchievements(int points, String tier) {
+            this.points = points;
+            this.tier = tier;
+        }
     }
 
     public static class BankItem {
@@ -278,6 +301,7 @@ public class GameStateReader {
         s.bankItems = bank.items;
         s.bankStatus = bank.status;
         s.slayer = readSlayer(client);
+        s.combatAchievements = readCombatAchievements(client);
         readBossKillCounts(s);
         s.accountType = readAccountType(client);
         s.coverage = PluginSnapshotContract.observedCoverage(s);
@@ -371,6 +395,48 @@ public class GameStateReader {
             case NORMAL:
             default:
                 return "normal";
+        }
+    }
+
+    /**
+     * Tier status varbits, lowest to highest. Value 2 means that tier's tasks
+     * are all complete; anything else means it is not.
+     *
+     * IDs read off runelite-api 1.12.33 — the exact release pinned in
+     * gradle.lockfile — rather than recalled: CA_TIER_STATUS_EASY is 12863
+     * through CA_TIER_STATUS_GRANDMASTER at 12868, and CA_POINTS is 14815.
+     */
+    private static final String[] CA_TIERS = {
+        "easy", "medium", "hard", "elite", "master", "grandmaster"
+    };
+    private static final int[] CA_TIER_STATUS_VARBITS = {
+        VarbitID.CA_TIER_STATUS_EASY,
+        VarbitID.CA_TIER_STATUS_MEDIUM,
+        VarbitID.CA_TIER_STATUS_HARD,
+        VarbitID.CA_TIER_STATUS_ELITE,
+        VarbitID.CA_TIER_STATUS_MASTER,
+        VarbitID.CA_TIER_STATUS_GRANDMASTER
+    };
+    /** The value the tier-status varbit takes once that tier is finished. */
+    private static final int CA_TIER_COMPLETE = 2;
+
+    private CombatAchievements readCombatAchievements(Client client) {
+        try {
+            int points = client.getVarbitValue(VarbitID.CA_POINTS);
+            // Zero points is a real answer — a fresh account has none — but a
+            // negative reading means the varbit was not resolved, and inventing
+            // "0 completed" from that is the kind of false zero this codebase
+            // has been bitten by before (boss KC, quest points).
+            if (points < 0) return null;
+            String tier = null;
+            for (int i = 0; i < CA_TIER_STATUS_VARBITS.length; i++) {
+                if (client.getVarbitValue(CA_TIER_STATUS_VARBITS[i]) == CA_TIER_COMPLETE) {
+                    tier = CA_TIERS[i];
+                }
+            }
+            return new CombatAchievements(points, tier);
+        } catch (RuntimeException ignored) {
+            return null;
         }
     }
 

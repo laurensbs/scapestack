@@ -233,6 +233,47 @@ function checkVersions(manifest) {
     if (version !== expected) fail(`${source} is ${version}, expected ${expected}`);
   }
 
+  // The one drift with no recovery. The Plugin Hub builds a single immutable
+  // commit, so a plugin whose Java constant claims a version the manifest —
+  // and therefore the server — does not expect breaks every synced player
+  // permanently. Nothing tied these two numbers together until now; the Java
+  // constant could be bumped, shipped, and rejected by the server on every
+  // request, with the release check happily green.
+  const javaContract = match(
+    "plugin/src/main/java/app/scapestack/runelite/PluginSnapshotContract.java",
+    /static final int VERSION\s*=\s*(\d+);/,
+    "Java snapshot contract version"
+  );
+  if (Number(javaContract) !== manifest.candidate.contractVersion) {
+    fail(`PluginSnapshotContract.VERSION is ${javaContract}, expected ${manifest.candidate.contractVersion}`);
+  }
+
+  // Every domain the Java contract sends must be one the website accepts,
+  // and vice versa. A domain on one side only is rejected at the door.
+  // Comments are stripped first: the lists carry explanatory prose, and a
+  // quoted word inside a comment is not a domain. The first version of this
+  // check failed on the word "appearing" from its own neighbouring comment.
+  const stripComments = (text) => text.replace(/\/\/[^\n]*/g, "");
+  const javaDomains = new Set(
+    [...stripComments(read("plugin/src/main/java/app/scapestack/runelite/PluginSnapshotContract.java")
+      .match(/static final List<String> DOMAINS = Arrays\.asList\(([\s\S]+?)\);/)[1])
+      .matchAll(/"([a-zA-Z]+)"/g)].map((m) => m[1])
+  );
+  const website = read("src/lib/plugin-snapshot-contract.ts");
+  const websiteDomains = new Set(
+    [...website.matchAll(/PLUGIN_SNAPSHOT_(?:V4_)?DOMAINS = \[([\s\S]+?)\] as const;/g)]
+      .flatMap((block) => [...stripComments(block[1]).matchAll(/"([a-zA-Z]+)"/g)].map((m) => m[1]))
+  );
+  if (javaDomains.size < 8 || websiteDomains.size < 8) {
+    fail(`Domain extraction found ${javaDomains.size} plugin / ${websiteDomains.size} website domains — the lists moved`);
+  }
+  for (const domain of javaDomains) {
+    if (!websiteDomains.has(domain)) fail(`Plugin sends coverage domain "${domain}" the website does not know`);
+  }
+  for (const domain of websiteDomains) {
+    if (!javaDomains.has(domain)) fail(`Website expects coverage domain "${domain}" the plugin never sends`);
+  }
+
   expectContains("src/lib/plugin-sync.ts", 'import releaseManifest from "../../plugin/release-manifest.json"');
   expectContains("src/lib/plugin-sync.ts", "releaseManifest.candidate.version");
   expectContains("src/lib/plugin-sync.ts", "releaseManifest.published.version");

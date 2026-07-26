@@ -42,7 +42,11 @@ Sync is **off by default**. The player has to enable `Sync on login` themselves.
 
 Password, inventory, equipment, GE offers, chat, friends list, clicks, key
 presses, screenshots, local files, RuneLite config, IP address, machine
-fingerprint. Progress and bank items only. Full contract in
+fingerprint. Progress and bank items only.
+
+Equipment is still on that list. The v4 contract reserves a slot for it and
+the plugin fills it with `unsupported`, so the choice is visible rather than
+silent. Full contract in
 [`plugin/README.md`](plugin/README.md).
 
 ## Pages

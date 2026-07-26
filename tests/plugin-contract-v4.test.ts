@@ -427,3 +427,46 @@ describe("the bank does not leave the server on the quest route either", () => {
     expect(page).not.toContain("syncedBankItems={syncedPlayer?.bankItems ?? []}");
   });
 });
+
+describe("the payload the Java serializer actually writes", () => {
+  it("parses as v4 without the server being told what to expect", async () => {
+    // Not a hand-built object: tests/fixtures/plugin-sync-v4.json comes out of
+    // ScapestackSyncPlugin.buildSyncPayload through the same Gson the RuneLite
+    // client uses, written by plugin/build.gradle's writeSyncContractFixture.
+    // Every earlier version of this contract has been checked this way, and it
+    // is the only check that catches the two sides drifting.
+    const payload = (await import("./fixtures/plugin-sync-v4.json")).default as Record<string, unknown>;
+    const result = parsePluginSnapshotContract(payload, Date.parse("2026-07-18T15:00:00Z"));
+    expect(result).toMatchObject({ ok: true });
+    if (!result.ok) throw new Error("unreachable");
+    expect(result.value.kind).toBe("v4");
+  });
+
+  it("declares equipment unsupported rather than omitting it", async () => {
+    // The README promises equipment is never sent. A slot filled with
+    // "unsupported" makes that a stated choice a reader can verify, where a
+    // missing key would be indistinguishable from an oversight.
+    const payload = (await import("./fixtures/plugin-sync-v4.json")).default as Record<string, unknown>;
+    const coverage = payload.coverage as Record<string, { state: string; reason?: string }>;
+    expect(coverage.equipment.state).toBe("unsupported");
+    expect(coverage.equipment.reason).toContain("by-design");
+    expect("equipment" in payload).toBe(false);
+    expect(coverage.farming.state).toBe("unsupported");
+  });
+
+  it("sends Combat Achievement points and tier", async () => {
+    const payload = (await import("./fixtures/plugin-sync-v4.json")).default as Record<string, unknown>;
+    expect(payload.combatAchievements).toEqual({ points: 431, tier: "hard" });
+    expect((payload.coverage as Record<string, { state: string }>).combatAchievements.state).toBe("available");
+  });
+
+  it("keeps the v3 fixture frozen at v3", async () => {
+    // It is the byte-real payload the published 0.3.0 plugin sends, and the
+    // server must keep parsing it unchanged for as long as anyone runs that
+    // build. The fixture-writer Gradle task rewrote it as v4 once, because it
+    // was pointed at the v3 path while the source had already moved.
+    const v3 = (await import("./fixtures/plugin-sync-v3.json")).default as Record<string, unknown>;
+    expect(v3.contractVersion).toBe(3);
+    expect(Object.keys(v3.coverage as object)).toHaveLength(8);
+  });
+});
