@@ -2061,7 +2061,7 @@ function BankGapsRail({ progress }: { progress: SetCompletion[] }) {
             <div key={completion.setId} className="py-2">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[12px] font-bold text-[var(--color-text)]">{set.name}</span>
-                <span className="scapestack-status-badge" data-tone="prep">
+                <span className="shrink-0 text-[11.5px] font-semibold tabular-nums text-[var(--color-text-dim)]">
                   {norm.progress}/{norm.max}
                 </span>
               </div>

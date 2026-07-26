@@ -10,8 +10,11 @@ describe("bank export feedback", () => {
     expect(source).toContain('aria-label="Tonight\'s RuneLite bank setup"');
     expect(source).toContain("Tonight&apos;s bank setup");
     expect(source).toContain("{decision.title}");
-    expect(source).toContain("Bank loaded");
-    expect(source).toContain("Bank needs a paste");
+    // The header line used to be five amber pills, four of which held counts.
+    // The verdict now rides the site-wide gate ramp and the counts are figures.
+    expect(source).toContain('className="scape-verdict" data-gate={READY_GATE[readiness.status]}');
+    expect(source).toContain("Paste your bank to start");
+    expect(source).not.toContain("scapestack-status-badge");
     expect(source).toContain("Choose tab style");
     expect(source).toContain("Preview tabs");
     expect(source).toContain("Smart tidy");

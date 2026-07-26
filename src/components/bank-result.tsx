@@ -58,7 +58,7 @@ import { bestStyleAndSetup, combatStatsFromSkills, type CombatStats } from "@/li
 import { exportTag } from "@/lib/bank-tags";
 import { DiscordWebhookCard } from "./discord-webhook-card";
 import { SupportCard } from "./support-card";
-import type { ReadyToLeaveItem, ReadyToLeaveStatus } from "./ready-to-leave";
+import { READY_GATE, type ReadyToLeaveItem, type ReadyToLeaveStatus } from "./ready-to-leave";
 import { buildItemVerdict, type ItemVerdictTone } from "@/lib/item-action";
 import { copyText } from "@/lib/clipboard";
 import { buildBankActionLoop, type BankActionLoopInput, type BankActionLoopStep } from "@/lib/bank-action-loop";
@@ -423,13 +423,16 @@ function BankDecisionHero({
   onTidy: () => void;
   onEditInput: () => void;
 }) {
-  const statusLabel = totalItems > 0 ? "Bank loaded" : "Bank needs a paste";
-  const chips = [
-    `${totalItems} items`,
-    weaponCount > 0 ? `${weaponCount} weapon${weaponCount === 1 ? "" : "s"}` : null,
-    hasPrices && totalValue > 0 ? formatGp(totalValue) : null,
-    tipCount > 0 ? `${tipCount} cleanup move${tipCount === 1 ? "" : "s"}` : null
-  ].filter((chip): chip is string => Boolean(chip));
+  // Four counts about the bank. They were badges; badges say "state", and a
+  // count is not a state — it is a measurement, so it is set as figures.
+  const facts = totalItems > 0
+    ? [
+        `${totalItems} items`,
+        weaponCount > 0 ? `${weaponCount} weapon${weaponCount === 1 ? "" : "s"}` : null,
+        hasPrices && totalValue > 0 ? formatGp(totalValue) : null,
+        tipCount > 0 ? `${tipCount} cleanup move${tipCount === 1 ? "" : "s"}` : null
+      ].filter((fact): fact is string => Boolean(fact))
+    : ["Paste your bank to start"];
   const setupSteps = [
     {
       label: "Choose tab style",
@@ -497,13 +500,20 @@ function BankDecisionHero({
               </h1>
             </div>
           </div>
-          <div className="mt-3 flex max-w-full flex-wrap items-center gap-2">
-            <span className="scapestack-status-badge" data-tone={totalItems > 0 ? "ready" : "blocked"}>{statusLabel}</span>
-            <span className="scapestack-status-badge" data-tone="prep">{readiness.status}</span>
-            {chips.slice(0, 3).map((chip) => (
-              <span key={chip} className="scapestack-status-badge" data-tone="prep">{chip}</span>
+          {/* Was five amber pills in a row. Four of them held counts and one
+              held the verdict, and the pill shape flattened that difference —
+              everything looked equally like a warning, on the one line that
+              should tell a player at a glance whether this bank is worth a
+              trip. The verdict keeps the shared ramp; the counts are figures. */}
+          <p className="mt-3 flex max-w-full flex-wrap items-baseline gap-x-2 gap-y-1 text-[12.5px] tabular-nums text-[var(--color-text-dim)]">
+            <span className="scape-verdict" data-gate={READY_GATE[readiness.status]}>{readiness.status}</span>
+            {facts.map((fact) => (
+              <span key={fact}>
+                <span aria-hidden="true" className="mr-2 text-[var(--color-border-strong)]">·</span>
+                {fact}
+              </span>
             ))}
-          </div>
+          </p>
           <p className="mt-3 max-w-3xl text-[13px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
             {decision.why}
           </p>
@@ -566,7 +576,7 @@ function BankDecisionHero({
           <tbody>
             {checkRows.map((row) => (
               <tr key={row.label}>
-                <th scope="row" className="w-[136px]">{row.label}</th>
+                <th scope="row" className="w-[100px] sm:w-[136px]">{row.label}</th>
                 <td>{row.value}</td>
               </tr>
             ))}
@@ -772,7 +782,7 @@ function SmartTidyWizard({
                   Ironman bank
                 </span>
               )}
-              <span className="scapestack-status-badge" data-tone="ready">{proposedTabs.length} tabs</span>
+              <span className="text-[11.5px] font-semibold tabular-nums text-[var(--color-text-dim)]">{proposedTabs.length} tabs</span>
             </div>
             <div className="mb-3 rounded-md border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-2.5 py-2">
               <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">

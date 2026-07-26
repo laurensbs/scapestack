@@ -15,6 +15,27 @@ export type ReadyToLeaveStatus =
   | "UIM setup"
   | "Check items";
 
+/**
+ * Each status placed on the site-wide verdict ramp.
+ *
+ * A verdict colour has to mean the same thing on /bank as it does on /dps and
+ * on the homepage, or a player learns the ramp twice. It lives beside the union
+ * rather than beside its one caller so that adding a status here fails the
+ * build instead of quietly rendering grey.
+ */
+export const READY_GATE: Record<ReadyToLeaveStatus, "ready" | "test" | "blocked"> = {
+  "Good first trip": "ready",
+  "Worth doing": "ready",
+  "Good AFK loop": "ready",
+  "Bank first": "test",
+  "Bring food": "test",
+  "Pick a teleport": "test",
+  "UIM setup": "test",
+  "Check items": "test",
+  "Skip for now": "blocked",
+  "Unlock first": "blocked"
+};
+
 export type ReadyToLeaveTone = "good" | "warn" | "neutral";
 
 export interface ReadyToLeaveItem {
