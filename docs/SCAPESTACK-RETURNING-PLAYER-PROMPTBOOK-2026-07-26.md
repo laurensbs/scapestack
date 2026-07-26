@@ -125,6 +125,31 @@ In the plugin it is nearly free: `VarbitID.CA_POINTS` and the six `CA_TIER_STATU
 
 ---
 
+## Wave 2.2 — the plugin batch, assembled but not submitted · 2026-07-26
+
+Candidate `0.4.0` / contract `4`. **Published stays `0.3.0` / contract `3`** — nothing has gone to the Plugin Hub, and nothing will until the equipment decision is made. The point of this step is that the decision becomes the only thing left.
+
+**Combat Achievements are the one v4 domain this build collects.** Points and highest completed tier, from `VarbitID.CA_POINTS` (14815) and the six `CA_TIER_STATUS_*` varbits (12863–12868) — IDs read out of the pinned runelite-api 1.12.33 jar rather than recalled. They live in VarPlayers, so they populate on login without the player opening any interface: a more reliable domain than the collection log.
+
+**Equipment and farming ship as `unsupported` with a stated reason.** That is what coverage is for, and both alternatives are worse: omitting them fails the server's own v4 validation, and empty arrays would claim we looked and found nothing. Equipment reads `equipment-not-collected-by-design`, and both READMEs now say the contract reserves a slot the plugin declines to fill.
+
+### The open decision — equipment
+
+Both READMEs list equipment under **"Never sent"**, and that is published: it is in the Plugin Hub PR and visible to everyone who installed the plugin. It is a promise to users, not an implementation detail, so it is not mine to withdraw.
+
+Flipping it is now a one-line change — `Domain.unsupported(...)` becomes a real read, plus the README lists. **Everything else in the batch is ready.**
+
+The case for saying yes: equipment is what makes "can I kill this?" honest for a player whose best gear is worn rather than banked, and it is strictly less sensitive than the bank contents already synced. The case for saying no: the promise was made in those words, and a plugin that quietly starts sending a category it named as never-sent is exactly the thing that costs a Hub plugin its trust.
+
+### Two checks the release tooling was missing
+
+- `PluginSnapshotContract.VERSION` must equal `candidate.contractVersion`. Nothing tied them together, so the Java constant could be bumped, shipped and rejected by the server on every request with the check green — and the Hub cannot roll back. Verified by setting the manifest to contract 9: passes without the check, fails with it.
+- Every coverage domain the plugin sends must be one the website knows, and the reverse. It caught a word out of its own neighbouring comment on the first run, which is how it earned a comment-stripping pass.
+
+`tests/fixtures/plugin-sync-v3.json` is frozen, with a Java test saying so. It is the byte-real payload the published plugin sends and the server must keep parsing it for as long as anyone runs that build. The Gradle fixture writer rewrote it as v4 once — it was pointed at the v3 path while the source had already moved.
+
+---
+
 ## Wave 2.1 — the server accepts contract v4 · shipped 2026-07-26
 
 The server now parses `contractVersion` 3 **and** 4, with `equipment`, `farming` and `combatAchievements` as three new coverage domains, each validated to the same standard as the v3 payloads. The published constant stays at 3: release checks pin against it, and it moves only when a plugin actually ships. Nothing in the plugin changed.
