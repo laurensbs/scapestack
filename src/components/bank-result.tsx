@@ -429,7 +429,11 @@ function BankDecisionHero({
     ? [
         `${totalItems} items`,
         weaponCount > 0 ? `${weaponCount} weapon${weaponCount === 1 ? "" : "s"}` : null,
-        hasPrices && totalValue > 0 ? formatGp(totalValue) : null,
+        // "gp" on purpose: the pill sat under a "bank value" reading and could
+        // get away with a bare 220.03M. On a line that also says "16 items"
+        // and "3 weapons" it is a fourth count of something unnamed, and a
+        // screen reader announces it as one.
+        hasPrices && totalValue > 0 ? `${formatGp(totalValue)} gp` : null,
         tipCount > 0 ? `${tipCount} cleanup move${tipCount === 1 ? "" : "s"}` : null
       ].filter((fact): fact is string => Boolean(fact))
     : ["Paste your bank to start"];
