@@ -34,6 +34,13 @@ ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS bank_status JSONB NOT NULL DEFA
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS slayer JSONB;
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS plugin_version TEXT NOT NULL DEFAULT 'unknown';
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS snapshot_coverage JSONB;
+-- Contract v4 domains. Nullable on purpose and NOT backfilled on purpose:
+-- NULL here means "no plugin has ever sent this", which is exactly what is
+-- true for every pre-v4 row. A default of '[]' would instead claim we
+-- observed an empty state we never observed.
+ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS equipment JSONB;
+ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS farming JSONB;
+ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS combat_achievements JSONB;
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS sync_summary JSONB;
 ALTER TABLE player_sync ADD COLUMN IF NOT EXISTS synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 CREATE INDEX IF NOT EXISTS player_sync_synced_at_idx ON player_sync(synced_at DESC);

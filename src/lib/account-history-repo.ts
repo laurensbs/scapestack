@@ -31,6 +31,19 @@ export interface PersistSyncInput {
   syncSummary: unknown;
   previousSnapshot?: ComparableAccountSnapshot | null;
   capturedAt?: string;
+  /**
+   * Contract v4 domains. Deliberately OUTSIDE ImmutableSnapshotState: that
+   * type feeds the history ledger's checksum, and folding new fields into it
+   * would change the canonical form of every future snapshot and break dedup
+   * against existing rows. They live in the player_sync latest-state
+   * projection only; history support is its own decision, made when a plugin
+   * actually sends the data.
+   */
+  v4?: {
+    equipment: Array<{ id: number; name: string; quantity: number }> | null;
+    farming: Array<{ patch: string; crop: string | null; state: string; readyAt: string | null }> | null;
+    combatAchievements: { points: number; tier: string | null } | null;
+  } | null;
 }
 
 export interface PersistSyncResult {
@@ -69,10 +82,11 @@ WITH identity AS (
   INSERT INTO player_sync (
     rsn, display_name, account_type, skills, quests_completed, diaries_completed,
     collection_log_item_ids, boss_kc, bank_items, bank_status, slayer, plugin_version,
-    snapshot_coverage, sync_summary, synced_at
+    snapshot_coverage, sync_summary, equipment, farming, combat_achievements, synced_at
   )
   VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6::jsonb, $7::integer[],
           $8::jsonb, $9::jsonb, $10::jsonb, $11::jsonb, $12, $20::jsonb, $13::jsonb,
+          $21::jsonb, $22::jsonb, $23::jsonb,
           $19::timestamptz)
   ON CONFLICT (rsn) DO UPDATE SET
     display_name = EXCLUDED.display_name,
@@ -108,6 +122,18 @@ WITH identity AS (
     slayer = CASE
       WHEN ($17::jsonb ->> 'slayer') = 'available' THEN EXCLUDED.slayer
       ELSE player_sync.slayer
+    END,
+    equipment = CASE
+      WHEN ($17::jsonb ->> 'equipment') = 'available' THEN EXCLUDED.equipment
+      ELSE player_sync.equipment
+    END,
+    farming = CASE
+      WHEN ($17::jsonb ->> 'farming') = 'available' THEN EXCLUDED.farming
+      ELSE player_sync.farming
+    END,
+    combat_achievements = CASE
+      WHEN ($17::jsonb ->> 'combatAchievements') = 'available' THEN EXCLUDED.combat_achievements
+      ELSE player_sync.combat_achievements
     END,
     plugin_version = EXCLUDED.plugin_version,
     snapshot_coverage = EXCLUDED.snapshot_coverage,
@@ -160,7 +186,10 @@ export async function persistSyncAndSnapshot(input: PersistSyncInput): Promise<P
     JSON.stringify(availability),
     JSON.stringify(accountDelta),
     capturedAt,
-    input.state.snapshotCoverage ? JSON.stringify(input.state.snapshotCoverage) : null
+    input.state.snapshotCoverage ? JSON.stringify(input.state.snapshotCoverage) : null,
+    input.v4?.equipment ? JSON.stringify(input.v4.equipment) : null,
+    input.v4?.farming ? JSON.stringify(input.v4.farming) : null,
+    input.v4?.combatAchievements ? JSON.stringify(input.v4.combatAchievements) : null
   ]);
   const row = rows[0];
   if (!row?.synced_at) throw new Error("Sync persistence returned no timestamp");

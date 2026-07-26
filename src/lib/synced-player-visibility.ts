@@ -22,11 +22,22 @@
 import type { SyncedPlayer } from "./sync-repo";
 
 /** The snapshot as a non-owner may see it: shape-compatible, contents removed. */
-export type PublicSyncedPlayer = Omit<SyncedPlayer, "bankItems" | "collectionLogItemIds" | "skills" | "slayer"> & {
+export type PublicSyncedPlayer = Omit<
+  SyncedPlayer,
+  "bankItems" | "collectionLogItemIds" | "skills" | "slayer" | "equipment" | "farming" | "combatAchievements"
+> & {
   bankItems: [];
   collectionLogItemIds: [];
   skills: Array<{ name: string; level: number }>;
   slayer: null;
+  // The contract v4 domains start fully redacted, and loosening any of them
+  // later is a deliberate decision like slayerTaskProjection was — never a
+  // default. Equipment is the player's gear worth, same class as the bank.
+  // Farming readyAt timestamps reveal when someone plays. Combat Achievement
+  // points are published on no public API, so we do not become the first.
+  equipment: null;
+  farming: null;
+  combatAchievements: null;
   /** True when fields were withheld, so the UI can say so instead of implying emptiness. */
   redacted: true;
   /** Counts survive redaction — they drive "RuneLite bank: 812 items" style copy. */
@@ -34,6 +45,9 @@ export type PublicSyncedPlayer = Omit<SyncedPlayer, "bankItems" | "collectionLog
     bankItems: number;
     collectionLogItemIds: number;
     hasSlayerTask: boolean;
+    equipmentItems: number;
+    farmingPatches: number;
+    hasCombatAchievements: boolean;
   };
 };
 
@@ -59,11 +73,17 @@ export function redactSyncedPlayer(player: SyncedPlayer): PublicSyncedPlayer {
     collectionLogItemIds: [],
     skills: player.skills.map((skill) => ({ name: skill.name, level: skill.level })),
     slayer: null,
+    equipment: null,
+    farming: null,
+    combatAchievements: null,
     redacted: true,
     redactedCounts: {
       bankItems: player.bankItems.length,
       collectionLogItemIds: player.collectionLogItemIds.length,
-      hasSlayerTask: Boolean(player.slayer)
+      hasSlayerTask: Boolean(player.slayer),
+      equipmentItems: player.equipment?.length ?? 0,
+      farmingPatches: player.farming?.length ?? 0,
+      hasCombatAchievements: Boolean(player.combatAchievements)
     }
   };
 }

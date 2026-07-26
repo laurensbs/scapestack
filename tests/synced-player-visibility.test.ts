@@ -71,7 +71,12 @@ describe("synced player visibility", () => {
     expect(seen.redactedCounts).toEqual({
       bankItems: 2,
       collectionLogItemIds: 2,
-      hasSlayerTask: true
+      hasSlayerTask: true,
+      // Contract v4 domains — zero until a v4 plugin has synced this account,
+      // and redacted like the bank once one has.
+      equipmentItems: 0,
+      farmingPatches: 0,
+      hasCombatAchievements: false
     });
     // Status, freshness and account type are not secrets — they drive copy.
     expect(seen.bankStatus.enabled).toBe(true);

@@ -49,6 +49,10 @@ interface SyncBody {
   bankStatus?: unknown;
   slayer?: unknown;
   pluginVersion?: unknown;
+  equipment?: unknown;
+  farming?: unknown;
+  combatAchievements?: unknown;
+  syncTrigger?: unknown;
 }
 
 function withCors(init: ResponseInit = {}): ResponseInit {
@@ -282,11 +286,43 @@ export async function POST(req: Request): Promise<Response> {
     }
   }
 
+  // Contract v4 payloads. Read only from a body the parser stamped as v4 —
+  // the shapes were validated there, and a legacy body carrying these fields
+  // has bypassed that validation entirely, so it does not get to use them.
+  const isV4 = snapshotContract.kind === "v4";
+  const equipment = isV4 && Array.isArray(body.equipment)
+    ? (body.equipment as Array<{ id: number; name: string; quantity?: number }>)
+        .map((item) => ({
+          id: Math.floor(item.id),
+          name: item.name.trim().slice(0, 100),
+          quantity: typeof item.quantity === "number" && Number.isFinite(item.quantity)
+            ? Math.max(1, Math.min(2_147_483_647, Math.floor(item.quantity)))
+            : 1
+        }))
+        .slice(0, 16)
+    : null;
+  const farming = isV4 && Array.isArray(body.farming)
+    ? (body.farming as Array<{ patch: string; crop?: string | null; state: string; readyAt?: string | null }>)
+        .map((row) => ({
+          patch: row.patch.trim().slice(0, 64),
+          crop: typeof row.crop === "string" && row.crop.trim() ? row.crop.trim().slice(0, 64) : null,
+          state: row.state,
+          readyAt: typeof row.readyAt === "string" ? new Date(row.readyAt).toISOString() : null
+        }))
+        .slice(0, 64)
+    : null;
+  const combatAchievements = isV4 && body.combatAchievements && typeof body.combatAchievements === "object"
+    ? {
+        points: Math.floor((body.combatAchievements as { points: number }).points),
+        tier: (body.combatAchievements as { tier: string | null }).tier ?? null
+      }
+    : null;
+
   let syncedAt: string;
   let syncSummary: unknown = null;
   let newOutcomes: Array<{ status: string; title: string; detail: string }> = [];
   try {
-    const availability = snapshotContract.kind === "v3"
+    const availability = snapshotContract.coverage !== null
       ? snapshotAvailabilityFromCoverage(snapshotContract.coverage)
       : legacySnapshotAvailability({
           body,
@@ -310,7 +346,10 @@ export async function POST(req: Request): Promise<Response> {
       slayer,
       pluginVersion,
       snapshotCoverage: snapshotContract.coverage,
-      availability
+      availability,
+      equipment,
+      farming,
+      combatAchievements
     });
     syncedAt = result.syncedAt;
     syncSummary = result.syncSummary;

@@ -44,6 +44,15 @@ export interface SyncedPlayer {
   pluginVersion: string;
   snapshotCoverage?: PluginSnapshotCoverage | null;
   availability?: Partial<SnapshotAvailability>;
+  /**
+   * Contract v4 domains. Null or absent means no v4 plugin has ever synced
+   * this account — which is every account until one ships. These reach the
+   * public /next payload only through synced-player-visibility, which redacts
+   * all three for anyone but the paired owner.
+   */
+  equipment?: Array<{ id: number; name: string; quantity: number }> | null;
+  farming?: Array<{ patch: string; crop: string | null; state: string; readyAt: string | null }> | null;
+  combatAchievements?: { points: number; tier: string | null } | null;
   lastSyncSummary: SyncDeltaSummary | null;
   syncedAt: string;        // ISO timestamp
 }
@@ -117,7 +126,8 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
     // still guaranteed by sync writes, pairing and the explicit DB migration.
     const rows = await sql()`
       SELECT rsn, display_name, skills, quests_completed, diaries_completed,
-             account_type, collection_log_item_ids, boss_kc, bank_items, bank_status, slayer, plugin_version, snapshot_coverage, sync_summary, synced_at
+             account_type, collection_log_item_ids, boss_kc, bank_items, bank_status, slayer, plugin_version, snapshot_coverage, sync_summary,
+             equipment, farming, combat_achievements, synced_at
       FROM player_sync
       WHERE rsn = ${norm}
       LIMIT 1
@@ -144,6 +154,9 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
       plugin_version: string;
       snapshot_coverage: unknown;
       sync_summary: unknown;
+      equipment: unknown;
+      farming: unknown;
+      combat_achievements: unknown;
       synced_at: string;
     }>;
     const row = rows[0];
@@ -170,6 +183,9 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
       availability: snapshotCoverage
         ? snapshotAvailabilityFromCoverage(snapshotCoverage)
         : undefined,
+      equipment: normalizeEquipment(row.equipment),
+      farming: normalizeFarming(row.farming),
+      combatAchievements: normalizeCombatAchievements(row.combat_achievements),
       lastSyncSummary: normalizeSyncDeltaSummary(row.sync_summary),
       syncedAt: typeof row.synced_at === "string" ? row.synced_at : new Date(row.synced_at).toISOString()
     };
@@ -278,6 +294,11 @@ export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt" | "las
       slayer: normalizeSlayer(p.slayer),
       snapshotCoverage: p.snapshotCoverage ?? null,
       availability: p.availability
+    },
+    v4: {
+      equipment: normalizeEquipment(p.equipment),
+      farming: normalizeFarming(p.farming),
+      combatAchievements: normalizeCombatAchievements(p.combatAchievements) ?? null
     },
     previousSnapshot: previousComparable
   });
@@ -402,12 +423,59 @@ function normalizeSnapshotAvailability(value: unknown): Partial<SnapshotAvailabi
   if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
   const allowed = new Set(["available", "unavailable", "permission-off", "not-loaded", "unsupported", "unknown"]);
   const row = value as Record<string, unknown>;
-  const keys: Array<keyof SnapshotAvailability> = ["skills", "quests", "diaries", "collectionLog", "bossKc", "slayer", "bank"];
+  const keys: Array<keyof SnapshotAvailability> = [
+    "skills", "quests", "diaries", "collectionLog", "bossKc", "slayer", "bank",
+    "equipment", "farming", "combatAchievements"
+  ];
   const result: Partial<SnapshotAvailability> = {};
   for (const key of keys) if (typeof row[key] === "string" && allowed.has(row[key])) {
     result[key] = row[key] as SnapshotAvailability[typeof key];
   }
   return Object.keys(result).length > 0 ? result : undefined;
+}
+
+/** Same shape and caps as the contract validator; the DB is not trusted either. */
+function normalizeEquipment(value: unknown): NonNullable<SyncedPlayer["equipment"]> | null {
+  if (!Array.isArray(value)) return null;
+  const items: NonNullable<SyncedPlayer["equipment"]> = [];
+  for (const raw of value.slice(0, 16)) {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) continue;
+    const row = raw as Record<string, unknown>;
+    if (!Number.isInteger(row.id) || (row.id as number) <= 0 || (row.id as number) >= 1_000_000) continue;
+    if (typeof row.name !== "string" || !row.name.trim()) continue;
+    const quantity = Number.isInteger(row.quantity) && (row.quantity as number) > 0
+      ? Math.min(2_147_483_647, row.quantity as number)
+      : 1;
+    items.push({ id: row.id as number, name: row.name.trim().slice(0, 100), quantity });
+  }
+  return items;
+}
+
+function normalizeFarming(value: unknown): NonNullable<SyncedPlayer["farming"]> | null {
+  if (!Array.isArray(value)) return null;
+  const states = new Set(["growing", "ready", "diseased", "dead", "empty"]);
+  const rows: NonNullable<SyncedPlayer["farming"]> = [];
+  for (const raw of value.slice(0, 64)) {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) continue;
+    const row = raw as Record<string, unknown>;
+    if (typeof row.patch !== "string" || !row.patch.trim()) continue;
+    if (typeof row.state !== "string" || !states.has(row.state)) continue;
+    const crop = typeof row.crop === "string" && row.crop.trim() ? row.crop.trim().slice(0, 64) : null;
+    const readyAt = typeof row.readyAt === "string" && Number.isFinite(Date.parse(row.readyAt))
+      ? new Date(row.readyAt).toISOString()
+      : null;
+    rows.push({ patch: row.patch.trim().slice(0, 64), crop, state: row.state, readyAt });
+  }
+  return rows;
+}
+
+function normalizeCombatAchievements(value: unknown): SyncedPlayer["combatAchievements"] {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const row = value as Record<string, unknown>;
+  if (!Number.isInteger(row.points) || (row.points as number) < 0 || (row.points as number) > 10_000) return null;
+  const tiers = new Set(["easy", "medium", "hard", "elite", "master", "grandmaster"]);
+  const tier = typeof row.tier === "string" && tiers.has(row.tier) ? row.tier : null;
+  return { points: row.points as number, tier };
 }
 
 function normalizeDiariesCompleted(diaries: unknown): SyncedPlayer["diariesCompleted"] {

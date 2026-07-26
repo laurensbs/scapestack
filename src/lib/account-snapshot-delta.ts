@@ -19,6 +19,10 @@ export interface SnapshotAvailability {
   bossKc: SnapshotDataAvailability;
   slayer: SnapshotDataAvailability;
   bank: SnapshotDataAvailability;
+  /** Contract v4 domains. Absent on every snapshot taken before v4. */
+  equipment?: SnapshotDataAvailability;
+  farming?: SnapshotDataAvailability;
+  combatAchievements?: SnapshotDataAvailability;
 }
 
 export interface ComparableAccountSnapshot {
