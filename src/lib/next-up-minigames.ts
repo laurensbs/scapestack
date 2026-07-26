@@ -77,16 +77,24 @@ const MINIGAMES: Minigame[] = [
     payoff: "Prospector outfit (+2.5% Mining XP) + nuggets for upgrades", iconItemId: 12012 },
   // Combat 40 and 500 total, per the wiki — not Attack 40, which was never a
   // Soul Wars requirement and gated the minigame on the wrong number.
-  { slug: "soul-wars", name: "Soul Wars", gateSkill: "Combat", gateLevel: 40, relevantUntil: 100, totalLevelRequired: 500,
+  { slug: "soul-wars", name: "Soul Wars", gateSkill: "Combat", gateLevel: 40, relevantUntil: 126, totalLevelRequired: 500,
     why: "Tradeable XP across combat skills and an iconic cosmetic cape.",
     payoff: "Soul cape (+huge prayer bonus) + Ectoplasmator", iconItemId: 25346 },
   // The wiki is explicit: "There are no requirements to play". The invented
   // Hitpoints 40 bar plus the 25-level window made the Fighter torso — the best
   // mid-game body in the game — invisible to every account above 65 Hitpoints.
-  { slug: "barbarian-assault", name: "Barbarian Assault", gateSkill: "Combat", gateLevel: 3, relevantUntil: 100,
+  { slug: "barbarian-assault", name: "Barbarian Assault", gateSkill: "Combat", gateLevel: 3, relevantUntil: 126,
     why: "Best free-to-mid-game body slot — Fighter torso beats every Rune body.",
     payoff: "Fighter torso + Penance horn + Granite body", iconItemId: 10551 }
 ];
+
+/** What the game actually asks for, or null when it asks for nothing. */
+function entryLine(mg: Minigame): string | null {
+  const parts: string[] = [];
+  if (mg.gateLevel > 3) parts.push(`${mg.gateSkill} ${mg.gateLevel}`);
+  if (mg.totalLevelRequired !== undefined) parts.push(`${mg.totalLevelRequired} total`);
+  return parts.length > 0 ? `You meet the ${parts.join(" and ")} entry point` : null;
+}
 
 export function minigameRecs(skills: HiscoreSkill[], access?: AccessContext): Recommendation[] {
   if (skills.length === 0) return [];
@@ -144,7 +152,12 @@ export function minigameRecs(skills: HiscoreSkill[], access?: AccessContext): Re
       },
       planSeed: {
         timebox: "30-90 min",
-        prep: `You meet the ${mg.gateSkill} ${mg.gateLevel} entry point; make this a reward-target session, not an endless queue.`,
+        // Barbarian Assault has no entry requirement at all, so naming one was
+        // inventing a bar the game does not have; Soul Wars has two, and naming
+        // only the combat half understated it.
+        prep: entryLine(mg)
+          ? `${entryLine(mg)}; make this a reward-target session, not an endless queue.`
+          : "Nothing gates this; make it a reward-target session, not an endless queue.",
         steps: [
           `Set one ${mg.name} target before starting: one reward roll, outfit piece, or level bracket.`,
           "Bank stamina/teleports/supplies for just that target so the session stays bounded.",

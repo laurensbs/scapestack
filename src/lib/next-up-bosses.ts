@@ -63,6 +63,8 @@ const BOSS_GROUPS: Record<string, { id: string; title: string; iconItemId?: numb
 export const BOSS_GEAR_GATES: Record<string, {
   needs: string[];
   slayerLevel?: number;
+  /** Non-combat skill bars the fight itself imposes, checked off the Hiscores. */
+  skillLevels?: Partial<Record<string, number>>;
 } | null> = {
   // Free entry — combat-level only. Beginners-friendly bosses.
   "obor": null,
@@ -101,12 +103,12 @@ export const BOSS_GEAR_GATES: Record<string, {
   // DT2 — wants real upgrades. Listing a few BiS-adjacent options each.
   "vardorvis":     { needs: ["scythe of vitur", "soulreaper axe", "abyssal whip", "osmumten's fang"] },
   "leviathan":     { needs: ["twisted bow", "bow of faerdhinen", "toxic blowpipe", "armadyl crossbow"] },
-  "whisperer":     { needs: ["shadow of tumeken", "trident of the swamp", "kodai", "sanguinesti staff"] },
+  "whisperer":     { needs: ["tumeken's shadow", "trident of the swamp", "kodai", "sanguinesti staff"] },
   "duke-sucellus": { needs: ["scythe of vitur", "soulreaper axe", "osmumten's fang", "abyssal whip"] },
   "araxxor":       { needs: ["scythe of vitur", "abyssal whip", "soulreaper axe", "osmumten's fang"], slayerLevel: 92 },
 
   // Endgame — Nex needs a team and BiS-ish kit.
-  "nex": { needs: ["twisted bow", "bow of faerdhinen", "scythe of vitur", "shadow of tumeken", "armadyl crossbow", "zaryte crossbow"] },
+  "nex": { needs: ["twisted bow", "bow of faerdhinen", "scythe of vitur", "tumeken's shadow", "armadyl crossbow", "zaryte crossbow"] },
 
   // Wilderness: null on purpose. These are fought in gear chosen for what the
   // player is willing to lose, so a "you must own X" list would suppress the
@@ -117,7 +119,11 @@ export const BOSS_GEAR_GATES: Record<string, {
   "deranged-archaeologist": null,
 
   // Gated by something other than gear.
-  "hespori": null,        // 65 Farming
+  // 65 Farming is the fight's actual entry bar — the patch is in the Farming
+  // Guild's west wing and the fight starts by planting the seed. It was a
+  // comment here and enforced nowhere, so a 30-Farming account got sent to a
+  // boss it cannot begin.
+  "hespori": { needs: [], skillLevels: { Farming: 65 } },
   "mimic": null,          // a master or elite clue casket
   "galvek": null,         // Dragon Slayer II
   "moons-of-peril": null, // Perilous Moons
@@ -165,6 +171,12 @@ export function matchedGearForBoss(slug: string, bank: CompletionItem[], slayerL
   if (gate === undefined) return { item: "" }; // boss not in the table — let it through
   if (gate === null) return { item: "" };       // explicit "no gate"
   if (gate.slayerLevel !== undefined && slayerLevel < gate.slayerLevel) return null;
+  // An empty needs list is a gate with only the checks above, not an
+  // unpassable one. Amoxliatl shipped as { needs: [], slayerLevel: 48 } and the
+  // fall-through below read that as "no gear matches" — which suppressed the
+  // boss for every account that pasted a bank, the exact population the gate
+  // work was done for, while an account with no bank sailed past.
+  if (gate.needs.length === 0) return { item: "" };
   const lowered = bank.map((it) => it.name.toLowerCase());
   for (const need of gate.needs) {
     if (lowered.some((n) => n.includes(need))) return { item: need };
@@ -263,6 +275,8 @@ export function bossRecs(
     // with 80 Slayer, on a boss that needs 91.
     const gearGate = BOSS_GEAR_GATES[boss.slug];
     if (gearGate?.slayerLevel !== undefined && slayerLevel < gearGate.slayerLevel) continue;
+    if (gearGate?.skillLevels && Object.entries(gearGate.skillLevels)
+      .some(([skill, required]) => required !== undefined && lvl(skills, skill) < required)) continue;
     const match = bank.length > 0
       ? matchedGearForBoss(boss.slug, bank, slayerLevel)
       : { item: "" };
@@ -454,6 +468,8 @@ function reachableBossFallback(input: {
     if (accessVerdict.state === "locked") continue;
     const gearGate = BOSS_GEAR_GATES[boss.slug];
     if (gearGate?.slayerLevel !== undefined && input.slayerLevel < gearGate.slayerLevel) continue;
+    if (gearGate?.skillLevels && input.accessContext.skills && Object.entries(gearGate.skillLevels)
+      .some(([skill, required]) => required !== undefined && lvl(input.accessContext.skills!, skill) < required)) continue;
     // The same gear-name gate the main pass applies. Skipping it let the
     // fallback recommend bosses the main pass had deliberately suppressed for
     // this exact bank.

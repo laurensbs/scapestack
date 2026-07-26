@@ -86,6 +86,26 @@ describe("the two gates that were invented rather than sourced", () => {
     expect(ids(eligible)).toContain("soul-wars");
   });
 
+  it("does not retire either of them at combat 100", () => {
+    // relevantUntil 100 made both vanish for any account past it. The Fighter
+    // torso is still the best non-Bandos body long after that, and Soul Wars is
+    // tradeable XP at any level — the decay should rank them down, not hide
+    // them.
+    expect(ids(uniform(80))).toContain("barbarian-assault");
+    expect(ids(uniform(80))).toContain("soul-wars");
+  });
+
+  it("does not claim an entry requirement that does not exist", () => {
+    const ba = minigameRecs(uniform(70), { skills: uniform(70) })
+      .find((rec) => rec.id === "minigame:barbarian-assault");
+    expect(ba?.planSeed?.prep).not.toMatch(/Combat 3/);
+    expect(ba?.planSeed?.prep).toContain("Nothing gates this");
+    const sw = minigameRecs(uniform(70), { skills: uniform(70) })
+      .find((rec) => rec.id === "minigame:soul-wars");
+    // Both halves of the real bar, not just the combat one.
+    expect(sw?.planSeed?.prep).toContain("500 total");
+  });
+
   it("puts no requirement on Barbarian Assault, because the game puts none", () => {
     // "There are no requirements to play." The invented Hitpoints 40 bar plus
     // the 25-level window made the Fighter torso — the best mid-game body slot

@@ -14,6 +14,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { BOSSES, isNonCombatBossActivity } from "@/lib/bosses";
 import { BOSS_CL_GATE } from "@/lib/boss-gates";
+import { BOSS_GEAR_GATES, matchedGearForBoss } from "@/lib/next-up-bosses";
 import { nextUpSource } from "./helpers/next-up-source";
 
 const SRC = nextUpSource();
@@ -107,5 +108,47 @@ describe("every boss the roster shows is reachable by the engine", () => {
     const roster = readFileSync(join(process.cwd(), "src/components/boss-roster.tsx"), "utf8");
     expect(roster).toContain('from "@/lib/boss-gates"');
     expect(roster).not.toMatch(/const COMBAT_GATE[^=]*=\s*\{/);
+  });
+});
+
+describe("a gear gate names items that exist", () => {
+  it("matches every BOSS_GEAR_GATES needs entry against the real item list", () => {
+    // matchedGearForBoss compares these strings against the player's bank, so a
+    // typo does not error — it matches nothing, and the boss is then suppressed
+    // for every account that pasted a bank. Silent, and indistinguishable from
+    // the gate working.
+    //
+    // Imported directly, not parsed out of the source. The first version of
+    // this test regexed for the table, anchored on a header comment that
+    // mentions BOSS_GEAR_GATES, captured BOSS_GROUPS instead, and validated
+    // exactly zero names — which is how "shadow of tumeken" (the item is
+    // called Tumeken's shadow) survived it.
+    const items: string[] = Object.values(
+      JSON.parse(readFileSync(join(process.cwd(), "data/items.json"), "utf8")) as Record<string, string>
+    ).map((name) => String(name).toLowerCase());
+
+    const unknown: string[] = [];
+    for (const [slug, gate] of Object.entries(BOSS_GEAR_GATES)) {
+      if (!gate) continue;
+      for (const need of gate.needs) {
+        if (!items.some((name) => name.includes(need.toLowerCase()))) {
+          unknown.push(`${slug}: "${need}"`);
+        }
+      }
+    }
+    expect(unknown, unknown.join(" | ")).toEqual([]);
+  });
+
+  it("lets an empty needs list through instead of blocking every bank", () => {
+    // Amoxliatl shipped as { needs: [], slayerLevel: 48 } and the matcher read
+    // the empty list as "no gear matches" — invisible for every account that
+    // pasted a bank, visible for accounts that did not.
+    expect(matchedGearForBoss("amoxliatl", [{ id: 4151, name: "Abyssal whip" }], 99)).toEqual({ item: "" });
+    expect(matchedGearForBoss("amoxliatl", [{ id: 4151, name: "Abyssal whip" }], 40)).toBeNull();
+  });
+
+  it("enforces Hespori's Farming bar, which used to live only in a comment", () => {
+    const gate = BOSS_GEAR_GATES["hespori"];
+    expect(gate?.skillLevels?.Farming).toBe(65);
   });
 });

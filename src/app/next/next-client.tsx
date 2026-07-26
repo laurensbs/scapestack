@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useMemo, useEffect } from "react";
+import { useState, useTransition, useMemo, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -1290,6 +1290,14 @@ function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOp
   // What WhatToDo actually put on screen. Falls back to the engine's headline
   // for the first paint, before the child has reported.
   const [shownRec, setShownRec] = useState<Recommendation | null>(null);
+  // Compared by id, not identity. The memo above removes the churn this guards
+  // against, but a re-render loop driven by a child's callback is the kind of
+  // failure that takes the page down entirely, so it does not rely on one fix.
+  // Id is the product's own notion of rec identity — it is what suppressions,
+  // feedback and lastHeadlineId all key on.
+  const handleActivePick = useCallback((rec: Recommendation | null) => {
+    setShownRec((previous) => (previous?.id === rec?.id ? previous : rec));
+  }, []);
   const explainedRec = shownRec ?? headline;
 
   const basisNote =
@@ -1301,10 +1309,21 @@ function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOp
   // Alle recommendations voor de What-to-do track. Mood-laag herrangschikt
   // ze; "Also worth knowing" is verdwenen — niet-getoonde recs blijven
   // beschikbaar via de drill-in cards in Where-you-are.
-  const focusedUnlock = goalRouteFocus ? recommendationForGoalRoute(goalRouteFocus, activeRsn) : null;
-  const allRecs = focusedUnlock
-    ? [focusedUnlock, ...(headline ? [headline, ...rest] : rest).filter((rec) => rec.id !== focusedUnlock.id)]
-    : headline ? [headline, ...rest] : rest;
+  // Memoised, and it has to be. recommendationForGoalRoute builds a fresh
+  // object literal, so on the Unlocks deep link every render produced a new
+  // rec identity, a new allRecs array, and a new pick all the way down — which
+  // the "what is on screen" callback below then turned into a state update, and
+  // that into another render.
+  const focusedUnlock = useMemo(
+    () => (goalRouteFocus ? recommendationForGoalRoute(goalRouteFocus, activeRsn) : null),
+    [goalRouteFocus, activeRsn]
+  );
+  const allRecs = useMemo(
+    () => (focusedUnlock
+      ? [focusedUnlock, ...(headline ? [headline, ...rest] : rest).filter((rec) => rec.id !== focusedUnlock.id)]
+      : headline ? [headline, ...rest] : rest),
+    [focusedUnlock, headline, rest]
+  );
 
   // Track-stagger: elke sectie fade'd binnen met 150ms verschil zodat
   // de pagina vouwt-open ipv pop-in. Gebruikt CSS animation-delay
@@ -1325,7 +1344,7 @@ function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOp
       <div style={trackAnim(0)}>
         <WhatToDo
           allRecs={allRecs}
-          onActivePickChange={setShownRec}
+          onActivePickChange={handleActivePick}
           activeRsn={activeRsn}
           accountStage={summary.accountStage}
           accountType={summary.accountType}
