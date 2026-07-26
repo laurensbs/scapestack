@@ -34,6 +34,16 @@ describe("the reference account stays worth demonstrating with", () => {
     expect(weapons.size, `only ${[...weapons].join(", ")}`).toBeGreaterThan(1);
   });
 
+  it("shows more than one setup ON THE PAGE, not merely in the pool", () => {
+    // This assertion is the one that was missing. Correcting the boss stats
+    // against the wiki moved the best answer to one weapon for every rendered
+    // row, and the homepage shipped five identical setups while the test above
+    // stayed green because the 32-row pool still held two weapons. The pool is
+    // not what anybody sees.
+    const shownWeapons = new Set(shown.map((row) => row.weaponName));
+    expect(shownWeapons.size, `only ${[...shownWeapons].join(", ")}`).toBeGreaterThan(1);
+  });
+
   it("produces a real spread of verdicts, not one flat answer", () => {
     const tones = new Set(scored.map((row) => row.tone));
     expect(tones.size).toBeGreaterThan(1);

@@ -66,9 +66,39 @@ export function boundaryRows(all: BossViability[]): BossViability[] {
   const test = slowest(all.filter((row) => row.tone === "test")).reverse().slice(0, ROWS - ready.length);
   // If one side is thin, fill from the other rather than shipping a short table.
   const rows = [...ready, ...test];
-  if (rows.length >= ROWS) return rows.slice(0, ROWS);
-  const seen = new Set(rows.map((row) => row.boss.slug));
-  return [...rows, ...slowest(all).filter((row) => !seen.has(row.boss.slug))].slice(0, ROWS);
+  const filled = rows.length >= ROWS
+    ? rows.slice(0, ROWS)
+    : (() => {
+        const seen = new Set(rows.map((row) => row.boss.slug));
+        return [...rows, ...slowest(all).filter((row) => !seen.has(row.boss.slug))].slice(0, ROWS);
+      })();
+  return withTwoSetups(filled, all);
+}
+
+/**
+ * Make sure the Setup column says more than one thing.
+ *
+ * Correcting the boss stats against the wiki moved the reference account's best
+ * answer to the same weapon for every row, and the homepage shipped five
+ * identical setups — a table whose whole argument is "look, real answers"
+ * printing one answer five times. The tone spread was still fine, so nothing
+ * caught it: the guard checked the pool of scored rows rather than the five
+ * that render.
+ *
+ * So the last row gives way to the best row using a different weapon. It is
+ * the slowest of the five, which is the one a reader learns least from, and
+ * the swap keeps every number real — it changes which true row is shown, not
+ * what any row says.
+ */
+function withTwoSetups(rows: BossViability[], all: BossViability[]): BossViability[] {
+  const weapons = new Set(rows.map((row) => row.weaponName));
+  if (weapons.size > 1 || rows.length === 0) return rows;
+  const shown = new Set(rows.map((row) => row.boss.slug));
+  const alternative = all
+    .filter((row) => !shown.has(row.boss.slug) && row.weaponName !== rows[0].weaponName)
+    .sort((left, right) => (right.ttk ?? 0) - (left.ttk ?? 0))[0];
+  if (!alternative) return rows;
+  return [...rows.slice(0, -1), alternative];
 }
 
 export function HomeSpecimen() {
