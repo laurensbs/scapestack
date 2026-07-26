@@ -60,6 +60,17 @@ exactly like a refutation.
 
 **A migration that reads a new column backfills it in the same commit.**
 
+**The browser pane can report `document.visibilityState === "hidden"`, and a
+React streaming reveal will not have painted.** A DOM query then finds nothing
+and reads exactly like a broken page. Force a paint — navigate again, or wait
+for the content rather than for the load event — before believing an empty
+result. This cost one round of "the plan does not render" that was wrong.
+
+**One scale per meaning.** Two colour languages for "how good is this" — the
+nine-step gate ramp and a three-tone status pill — ran side by side for months,
+and the pill ended up painting an item count as an amber warning. A second way
+to say the same thing is a bug in the design system, not a variant.
+
 ## The plugin ships one way
 
 The Plugin Hub builds a single immutable commit and cannot be rolled back. The
