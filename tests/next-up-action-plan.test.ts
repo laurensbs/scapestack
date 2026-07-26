@@ -457,7 +457,7 @@ describe("next-up action plans", () => {
     expect(result.headline?.id).toBe("kc:Vardorvis:first-50");
     expect(result.headline?.title).toBe("Push Vardorvis to 50 KC");
     expect(result.headline?.decisionReason).toBe("You already have 15 Vardorvis KC, so 50 KC is a clean stop point.");
-    expect(result.headline?.actionPlan?.prep).toContain("Best owned setup: Abyssal whip");
+    expect(result.headline?.actionPlan?.prep).toContain("Best setup in your bank: Abyssal whip");
     expect(result.headline?.actionPlan?.prep).toContain("Keep it short");
     expect(result.headline?.needs?.join(" ")).toContain("Abyssal whip setup");
   });

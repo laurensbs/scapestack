@@ -67,7 +67,9 @@ describe("boss viability", () => {
 
     expect(viability?.tone).toBe("test");
     expect(viability?.canKill).toBe(true);
-    expect(viability?.summary).toContain("Best owned setup: Toxic blowpipe");
+    // "owned" claimed a completeness the engine never had: it reads the bank,
+    // and worn equipment is never sent. The wording says which one it means.
+    expect(viability?.summary).toContain("Best setup in your bank: Toxic blowpipe");
     expect(viability?.summary).toContain("missing Salve makes it worse");
     expect(viability?.missing).toContain("Salve amulet(ei)");
     expect(viability?.summary).toContain("DPS");

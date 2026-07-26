@@ -133,13 +133,16 @@ Candidate `0.4.0` / contract `4`. **Published stays `0.3.0` / contract `3`** —
 
 **Equipment and farming ship as `unsupported` with a stated reason.** That is what coverage is for, and both alternatives are worse: omitting them fails the server's own v4 validation, and empty arrays would claim we looked and found nothing. Equipment reads `equipment-not-collected-by-design`, and both READMEs now say the contract reserves a slot the plugin declines to fill.
 
-### The open decision — equipment
+### The equipment decision — decided: no · 2026-07-26
 
-Both READMEs list equipment under **"Never sent"**, and that is published: it is in the Plugin Hub PR and visible to everyone who installed the plugin. It is a promise to users, not an implementation detail, so it is not mine to withdraw.
+Equipment stays unread. Four reasons, in the order that decided it:
 
-Flipping it is now a one-line change — `Domain.unsupported(...)` becomes a real read, plus the README lists. **Everything else in the batch is ready.**
+1. **The promise is published where reviewers read it.** It is in Plugin Hub PR #12536, not only in a repo file. A sync plugin that names a category as never-sent and later sends it spends the one kind of credit it cannot re-earn — and it would be spent on a marginal data improvement.
+2. **It contradicts the pattern the rest of the work established.** Everything shipped in Waves 0 and 1 was about saying what we do not know: `assumedMaxed`, *"Scapestack cannot confirm this without a RuneLite sync"*, *"No XP recorded on this account"*. Taking more data specifically to avoid having to say "I don't know" inverts that.
+3. **The gap is cheaper to state than to close.** The verdict said *"Best owned setup"*, which claimed a completeness the engine never had. It now reads *"Best setup in your bank"*, and the qualifier says worn gear is not counted. That is the whole remedy, at zero privacy cost, and it is honest for the player it actually misled: the one who banks in their combat gear.
+4. **A Hub review cycle is scarce and better spent.** Farming and birdhouse timers are the strongest returning hook in the audit — the only reason to come back unprompted — and they break no promise. If anything joins Combat Achievements in this batch, it should be those.
 
-The case for saying yes: equipment is what makes "can I kill this?" honest for a player whose best gear is worn rather than banked, and it is strictly less sensitive than the bank contents already synced. The case for saying no: the promise was made in those words, and a plugin that quietly starts sending a category it named as never-sent is exactly the thing that costs a Hub plugin its trust.
+Revisit this if two things change: worn gear turning out to be the deciding factor for a measurable share of accounts, and an explicit opt-in toggle shipping alongside it, defaulted off, the way bank sync already works. Neither is true today.
 
 ### Two checks the release tooling was missing
 

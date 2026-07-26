@@ -481,8 +481,8 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
             <p className="text-[10.5px] text-[var(--color-text-muted)] italic pt-3 border-t border-[var(--color-border)]">
               {singleDps
                 ? stats
-                  ? `Solo DPS uses your levels (${stats.attack}/${stats.strength}/${stats.ranged}/${stats.magic}, ${stats.prayer} Prayer) and the best prayer they allow. Mechanics can change real kill speed.`
-                  : "Solo DPS assumes level 99 stats and their prayers, because this account's levels are unknown. Add your RSN for your own numbers."
+                  ? `Solo DPS uses your levels (${stats.attack}/${stats.strength}/${stats.ranged}/${stats.magic}, ${stats.prayer} Prayer) and the best prayer they allow, against gear in your bank — worn gear is not counted. Mechanics can change real kill speed.`
+                  : "Solo DPS assumes level 99 stats and their prayers, because this account's levels are unknown, and only reads gear in your bank. Add your RSN for your own numbers."
                 : "No single DPS or GP/hour is shown here because roles, rooms or the full run decide the result."}
             </p>
           )}

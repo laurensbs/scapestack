@@ -470,3 +470,34 @@ describe("the payload the Java serializer actually writes", () => {
     expect(Object.keys(v3.coverage as object)).toHaveLength(8);
   });
 });
+
+describe("the decision not to read worn equipment, made visible", () => {
+  it("keeps equipment on the never-sent list in both READMEs", () => {
+    // The promise is published — it is in the Plugin Hub PR that reviewers
+    // read, not just in a repo file. Withdrawing it would buy a marginal data
+    // improvement at the cost of the one thing a sync plugin cannot rebuy.
+    // The two files phrase it differently — "never sends" in the top-level
+    // README's heading, "Never sent:" in the plugin's list — so match both.
+    for (const file of ["README.md", "plugin/README.md"]) {
+      const text = readFileSync(join(process.cwd(), file), "utf8");
+      expect(text, file).toMatch(/[Nn]ever sen[dt]s?[^.]{0,120}equipment/s);
+    }
+  });
+
+  it("says the verdict only sees the bank, rather than sounding complete", () => {
+    // The remedy for a gap you have chosen not to close is to state it. Same
+    // move as assumedMaxed: "Best owned setup" claimed a completeness the
+    // engine never had, and it misleads exactly the player who banks in their
+    // combat gear — whose best weapon is then invisible.
+    const source = readFileSync(join(process.cwd(), "src/lib/boss-viability.ts"), "utf8");
+    expect(source).toContain("Best setup in your bank");
+    expect(source).not.toContain("Best owned setup");
+    expect(source).toContain("Worn gear is not counted");
+  });
+
+  it("qualifies the modal's numbers on both gear and levels", () => {
+    const modal = readFileSync(join(process.cwd(), "src/components/boss-detail-modal.tsx"), "utf8");
+    expect(modal).toContain("worn gear is not counted");
+    expect(modal).toContain("only reads gear in your bank");
+  });
+});

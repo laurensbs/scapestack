@@ -213,7 +213,7 @@ export function bossViabilityFromGear(
       style,
       weaponName,
       verdict: "Can kill",
-      summary: `Best owned setup: ${weaponName} (${styleText}) at ${dpsText} DPS${ttkText ? `, ~${ttkText} kill` : ""}.`,
+      summary: `Best setup in your bank: ${weaponName} (${styleText}) at ${dpsText} DPS${ttkText ? `, ~${ttkText} kill` : ""}.`,
       firstTrip: "Do one 3-5 kill trip, then decide if it becomes a block.",
       missing: [],
       assumedMaxed
@@ -230,7 +230,7 @@ export function bossViabilityFromGear(
       style,
       weaponName,
       verdict: "Test trip",
-      summary: `Best owned setup: ${weaponName} (${styleText}) at ${dpsText} DPS${ttkText ? `, ~${ttkText} kill` : ""}. Keep it short.`,
+      summary: `Best setup in your bank: ${weaponName} (${styleText}) at ${dpsText} DPS${ttkText ? `, ~${ttkText} kill` : ""}. Keep it short.`,
       firstTrip: "Test 1-2 kills before calling it tonight's grind.",
       missing: ["stronger setup for longer trips"],
       assumedMaxed
@@ -281,11 +281,24 @@ export function bossViabilityScoreMultiplier(viability: BossViability | null): n
   return 0.18;
 }
 
-/** The one-line qualifier, or null when the numbers are the player's own. */
+/**
+ * The one-line qualifier under a verdict.
+ *
+ * Two different gaps, and both are worth stating because "Can kill" is the
+ * most load-bearing claim in the product:
+ *
+ * - Levels may be assumed. Fixable by adding an RSN, so the line says how.
+ * - Gear is only ever what is in the bank. The plugin does not read worn
+ *   equipment and, by a promise in both READMEs, will not — so this one is
+ *   permanent, and saying it is the whole remedy. It matters most for exactly
+ *   the player who banks in their combat setup, whose best weapon is then
+ *   invisible to a verdict that sounds complete.
+ */
 export function bossViabilityBasis(viability: BossViability): string | null {
+  const wornGear = "Worn gear is not counted \u2014 Scapestack only sees your bank.";
   return viability.assumedMaxed
-    ? "Assumes maxed combat stats \u2014 add your RSN for your own numbers."
-    : null;
+    ? `Assumes maxed combat stats \u2014 add your RSN for your own numbers. ${wornGear}`
+    : wornGear;
 }
 
 export function bossViabilityDecisionLine(viability: BossViability): string {
