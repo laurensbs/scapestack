@@ -40,6 +40,7 @@ import { exportAction } from "@/app/actions";
 import { SuggestionsPanel } from "./suggestions-panel";
 import { DiffBanner } from "./diff-banner";
 import { TipsCard } from "./tips-card";
+import { BankAffordabilityPanel } from "./bank-affordability-panel";
 import { ItemSprite } from "./item-sprite";
 import { computeTips, type BankTip } from "@/lib/tips";
 import { track } from "@/lib/analytics";
@@ -1508,6 +1509,13 @@ export function BankResult({
   }, [activeTab, prefs.showStale, itemHistory, STALE_PROTECTED]);
 
   const allItems = useMemo(() => visibleTabs.flatMap((t) => t.items), [visibleTabs]);
+  // Narrowed to what the affordability engine reads, and memoised: the panel
+  // refetches prices whenever this identity changes, and passing allItems
+  // straight through would refetch on every unrelated tab edit.
+  const affordabilityItems = useMemo(
+    () => allItems.map((item) => ({ id: item.id, name: item.name, quantity: item.quantity })),
+    [allItems]
+  );
   const totalSearchMatches = useMemo(() => {
     if (!search.trim()) return 0;
     return visibleTabs.reduce((sum, tab) => sum + countBankSearchMatches(tab, search), 0);
@@ -2077,6 +2085,12 @@ export function BankResult({
         onTidy={openSmartTidyWizard}
         onEditInput={onEditInput}
       />
+      {/* Above the tab preview on purpose. A player who can close a Barrows set
+          for 1.5m tonight cares about that before they care about tab layout,
+          and it is the one answer on this site that no other OSRS tool can
+          give — the wiki, WOM, Temple and Jagex's own Activity Adviser all
+          cannot see a bank. */}
+      <BankAffordabilityPanel items={affordabilityItems} />
       <div id="smart-tidy-setup">
         <SmartTidyWizard
           stage={smartTidyStage}
