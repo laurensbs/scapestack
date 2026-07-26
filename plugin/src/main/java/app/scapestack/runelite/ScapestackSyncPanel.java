@@ -76,11 +76,19 @@ final class ScapestackSyncPanel extends PluginPanel {
     private final StatusRow accountModeValue = new StatusRow("Account mode", "Unknown");
     private final StatusRow playerValue = new StatusRow("Player", "Log in to detect");
     private final StatusRow bankValue = new StatusRow("Bank", "Off");
+    private final StatusRow farmingValue = new StatusRow("Farming", "Not read yet");
+    // Was keyed "Clog" — the only jargon in the panel — because the value it
+    // carried was the instruction "Open Collection Log once, then sync again",
+    // and "Collection Log: Open Collection Log once" stuttered. The value is
+    // now state, like every other row, so the stutter is gone and there is no
+    // longer a reason to make a first-time installer decode an abbreviation.
+    // Instructions live in one place only: Next action.
+    private final StatusRow collectionLogValue = new StatusRow("Collection log", "Not opened");
+    // Next action is the only row that tells the player to do something. Every
+    // other row reports state. When two things are blocking, Next action names
+    // the first one and the rows show the rest — the previous pass printed the
+    // same sentence twice instead.
     private final StatusRow nextActionValue = new StatusRow("Next action", "Press Sync now");
-    // Keyed "Clog" because the value it carries already says "Collection Log"
-    // in full — "Collection Log: Open Collection Log once" is a stutter, and
-    // clog is what players call it anyway.
-    private final StatusRow collectionLogValue = new StatusRow("Clog", "");
     private final JButton bankToggle = button("Bank off");
     private final JPanel troubleshootingBody = new JPanel();
 
@@ -160,13 +168,11 @@ final class ScapestackSyncPanel extends PluginPanel {
     }
 
     void setCollectionLogStatus(String collectionLogStatus) {
-        SwingUtilities.invokeLater(() -> {
-            String text = collectionLogStatus == null ? "" : collectionLogStatus.trim();
-            collectionLogValue.setValue(text.isBlank() ? "-" : text);
-            collectionLogValue.setVisible(shouldShowCollectionLogInstruction(text));
-            revalidate();
-            repaint();
-        });
+        setValue(collectionLogValue, collectionLogStatus);
+    }
+
+    void setFarmingStatus(String farmingStatus) {
+        setValue(farmingValue, farmingStatus);
     }
 
     void setNextAction(String nextAction) {
@@ -226,7 +232,6 @@ final class ScapestackSyncPanel extends PluginPanel {
             refresh();
         });
 
-        collectionLogValue.setVisible(false);
         stack(
             panel,
             statusValue,
@@ -235,8 +240,9 @@ final class ScapestackSyncPanel extends PluginPanel {
             lastSyncValue,
             autoRefreshValue,
             bankValue,
-            nextActionValue,
             collectionLogValue,
+            farmingValue,
+            nextActionValue,
             syncButton,
             recommendedButton,
             bankToggle
@@ -249,7 +255,7 @@ final class ScapestackSyncPanel extends PluginPanel {
         stack(
             panel,
             heading("What gets sent"),
-            copy("Skills, XP, quests, diaries, boss KC RuneLite has seen, Slayer task and bank items."),
+            copy("Skills, XP, quests, diaries, boss KC RuneLite has seen, Slayer task, farm and birdhouse timers, and bank items."),
             copy("Auto update refreshes after login and then every 15 minutes while you play."),
             copy("Bank off sends everything except your bank.")
         );
@@ -421,11 +427,5 @@ final class ScapestackSyncPanel extends PluginPanel {
 
     private static void setValue(StatusRow row, String text) {
         SwingUtilities.invokeLater(() -> row.setValue(text));
-    }
-
-    private static boolean shouldShowCollectionLogInstruction(String text) {
-        return text != null
-            && !text.isBlank()
-            && !"Collection Log synced.".equals(text);
     }
 }

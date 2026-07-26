@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /** Writes the contract fixture through the same serializer used by RuneLite. */
@@ -70,6 +71,24 @@ public final class SyncPayloadFixtureWriter {
             0
         );
         snapshot.combatAchievements = new GameStateReader.CombatAchievements(431, "hard");
+        // Four rows in the order the reader emits them: ready first, then what
+        // is on a clock soonest, then what has no clock at all. The readyAt
+        // values sit inside the server's [now-30d, now+8d] window relative to
+        // the fixture's capturedAt.
+        List<FarmingTimerReader.Row> farming = Arrays.asList(
+            new FarmingTimerReader.Row("herb-catherby", "Ranarr", "ready", null),
+            new FarmingTimerReader.Row("birdhouse-mushroom-meadow-north", "Yew Bird House", "growing", "2026-07-18T13:14:00Z"),
+            new FarmingTimerReader.Row("tree-falador", "Yew", "growing", "2026-07-19T04:00:00Z"),
+            new FarmingTimerReader.Row("allotment-ardougne-north", null, "empty", null)
+        );
+        snapshot.farmingStatus = FarmingTimerReader.Result.available(
+            farming,
+            4,
+            107,
+            "2026-07-18T12:33:00Z",
+            false
+        );
+        snapshot.farming = farming;
         snapshot.coverage = PluginSnapshotContract.observedCoverage(snapshot);
         return ScapestackSyncPlugin.buildSyncPayload("Iron Lynx", snapshot, new Gson());
     }

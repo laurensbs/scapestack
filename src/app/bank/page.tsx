@@ -316,7 +316,7 @@ function SavedBankOpeningState({
           <Check className="size-5" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="font-serif text-[23px] font-bold leading-tight text-[var(--color-text)]">
+          <p className="text-[23px] font-bold leading-tight text-[var(--color-text)]">
             Setting up your RuneLite tabs
           </p>
           <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-dim)]">

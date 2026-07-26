@@ -44,8 +44,9 @@
       "reason": "equipment-not-collected-by-design"
     },
     "farming": {
-      "state": "unsupported",
-      "reason": "farming-timers-not-implemented"
+      "state": "available",
+      "capturedAt": "2026-07-18T12:33:00Z",
+      "reason": "runelite-timetracking-observed-patches"
     },
     "combatAchievements": {
       "state": "available",
@@ -124,6 +125,29 @@
       "Black demons"
     ]
   },
+  "farming": [
+    {
+      "patch": "herb-catherby",
+      "state": "ready",
+      "crop": "Ranarr"
+    },
+    {
+      "patch": "birdhouse-mushroom-meadow-north",
+      "state": "growing",
+      "crop": "Yew Bird House",
+      "readyAt": "2026-07-18T13:14:00Z"
+    },
+    {
+      "patch": "tree-falador",
+      "state": "growing",
+      "crop": "Yew",
+      "readyAt": "2026-07-19T04:00:00Z"
+    },
+    {
+      "patch": "allotment-ardougne-north",
+      "state": "empty"
+    }
+  ],
   "combatAchievements": {
     "points": 431,
     "tier": "hard"

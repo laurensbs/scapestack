@@ -662,6 +662,156 @@ public class ScapestackSyncPluginTest {
         );
     }
 
+    /**
+     * The panel used to print the same sentence twice whenever the collection
+     * log was the blocker: once as the "Clog" row, once as "Next action". The
+     * rule that fixes it is structural, not a one-off string change — status
+     * rows carry state, Next action carries the one instruction — so this test
+     * checks the rule, not the two strings that broke.
+     */
+    @Test
+    public void statusRowsReportStateAndLeaveInstructionsToNextAction() {
+        GameStateReader.BankStatus bankUnread =
+            new GameStateReader.BankStatus(true, 0, null, "bank-not-opened-this-session");
+        CollectionLogReader.Status logUnopened = CollectionLogReader.Status.notOpened();
+        CollectionLogReader.Status logNoCategory = new CollectionLogReader.Status(true, 1, 0, 0);
+        CollectionLogReader.Status logRead = new CollectionLogReader.Status(true, 1, 100, 612);
+
+        // Both are blocking at once. Next action names the first; the rows say
+        // what they are, and neither of them repeats it.
+        String nextAction = ScapestackSyncPlugin.panelNextAction(bankUnread, logUnopened, "Synced");
+        assertEquals("Open your bank once, then sync again", nextAction);
+
+        String[] rowValues = {
+            ScapestackSyncPlugin.panelBankStatus(bankUnread),
+            ScapestackSyncPlugin.panelCollectionLogStatus(logUnopened),
+            ScapestackSyncPlugin.panelCollectionLogStatus(logNoCategory),
+            ScapestackSyncPlugin.panelCollectionLogStatus(logRead),
+            ScapestackSyncPlugin.panelFarmingStatus(null, 0L)
+        };
+        for (String value : rowValues) {
+            assertFalse("a status row must not carry an instruction: " + value, value.contains("sync again"));
+            assertFalse("a status row must not carry an instruction: " + value, value.startsWith("Open "));
+            assertFalse("a status row must not carry an instruction: " + value, value.startsWith("Click "));
+            assertFalse("a status row must not repeat Next action: " + value, value.equals(nextAction));
+        }
+
+        assertEquals("Not opened this session", ScapestackSyncPlugin.panelBankStatus(bankUnread));
+        assertEquals("Not opened", ScapestackSyncPlugin.panelCollectionLogStatus(logUnopened));
+        assertEquals("No category loaded", ScapestackSyncPlugin.panelCollectionLogStatus(logNoCategory));
+        assertEquals("612 slots", ScapestackSyncPlugin.panelCollectionLogStatus(logRead));
+    }
+
+    @Test
+    public void farmingRowSeparatesUnknownFromNothingPlanted() {
+        long now = java.time.Instant.parse("2026-07-18T12:00:00Z").toEpochMilli();
+
+        assertEquals("Not read yet", ScapestackSyncPlugin.panelFarmingStatus(null, now));
+        assertEquals(
+            "No patches seen yet",
+            ScapestackSyncPlugin.panelFarmingStatus(
+                FarmingTimerReader.Result.notLoaded(111, "farming-patches-not-observed"),
+                now
+            )
+        );
+        assertEquals(
+            "Unavailable",
+            ScapestackSyncPlugin.panelFarmingStatus(
+                FarmingTimerReader.Result.unavailable("runelite-timetracking-model-unavailable"),
+                now
+            )
+        );
+        assertEquals(
+            "Nothing growing",
+            ScapestackSyncPlugin.panelFarmingStatus(
+                FarmingTimerReader.Result.available(
+                    Collections.singletonList(new FarmingTimerReader.Row("herb-catherby", null, "empty", null)),
+                    1,
+                    111,
+                    "2026-07-18T12:00:00Z",
+                    false
+                ),
+                now
+            )
+        );
+        assertEquals(
+            "2 patches ready, next in 1h 20m",
+            ScapestackSyncPlugin.panelFarmingStatus(
+                FarmingTimerReader.Result.available(
+                    Arrays.asList(
+                        new FarmingTimerReader.Row("herb-catherby", "Ranarr", "ready", null),
+                        new FarmingTimerReader.Row("herb-falador", "Ranarr", "ready", null),
+                        new FarmingTimerReader.Row("tree-falador", "Yew", "growing", "2026-07-18T13:20:00Z"),
+                        new FarmingTimerReader.Row("tree-lumbridge", "Yew", "growing", "2026-07-19T13:20:00Z")
+                    ),
+                    4,
+                    111,
+                    "2026-07-18T12:00:00Z",
+                    false
+                ),
+                now
+            )
+        );
+    }
+
+    @Test
+    public void countdownsAreCountedInWhatPlayersCountIn() {
+        assertEquals("1 min", ScapestackSyncPlugin.formatCountdown(1_000L));
+        assertEquals("42 min", ScapestackSyncPlugin.formatCountdown(42 * 60_000L));
+        assertEquals("1h", ScapestackSyncPlugin.formatCountdown(60 * 60_000L));
+        assertEquals("1h 20m", ScapestackSyncPlugin.formatCountdown(80 * 60_000L));
+        assertEquals("2d", ScapestackSyncPlugin.formatCountdown(48 * 60 * 60_000L));
+        // Redwood, the longest thing in the game to grow.
+        assertEquals("4d 11h", ScapestackSyncPlugin.formatCountdown(107L * 60 * 60_000L));
+    }
+
+    /**
+     * The payload and the coverage row are two halves of one claim. The server
+     * rejects a body that carries farming data while coverage denies it, and —
+     * worse — silently believes an empty list when coverage says available.
+     */
+    @Test
+    public void farmingDataIsSentExactlyWhenCoverageSaysAvailable() {
+        GameStateReader.Snapshot unobserved = new GameStateReader.Snapshot();
+        unobserved.farmingStatus = FarmingTimerReader.Result.notLoaded(111, "farming-patches-not-observed");
+        JsonObject unobservedBody = ScapestackSyncPlugin.buildSyncPayload("Iron Lynx", unobserved, new Gson());
+        assertFalse(unobservedBody.has("farming"));
+        assertEquals(
+            "not-loaded",
+            unobservedBody.getAsJsonObject("coverage").getAsJsonObject("farming").get("state").getAsString()
+        );
+
+        GameStateReader.Snapshot observed = new GameStateReader.Snapshot();
+        observed.farming = Collections.singletonList(
+            new FarmingTimerReader.Row("herb-catherby", "Ranarr", "growing", "2026-07-18T13:50:00Z")
+        );
+        observed.farmingStatus = FarmingTimerReader.Result.available(
+            observed.farming,
+            1,
+            111,
+            "2026-07-18T12:33:00Z",
+            false
+        );
+        JsonObject observedBody = ScapestackSyncPlugin.buildSyncPayload("Iron Lynx", observed, new Gson());
+        assertEquals(
+            "available",
+            observedBody.getAsJsonObject("coverage").getAsJsonObject("farming").get("state").getAsString()
+        );
+        assertEquals(1, observedBody.getAsJsonArray("farming").size());
+        JsonObject row = observedBody.getAsJsonArray("farming").get(0).getAsJsonObject();
+        assertEquals("herb-catherby", row.get("patch").getAsString());
+        assertEquals("growing", row.get("state").getAsString());
+        assertEquals("2026-07-18T13:50:00Z", row.get("readyAt").getAsString());
+
+        GameStateReader.Snapshot broken = new GameStateReader.Snapshot();
+        JsonObject brokenBody = ScapestackSyncPlugin.buildSyncPayload("Iron Lynx", broken, new Gson());
+        assertFalse("no farming read means no farming data", brokenBody.has("farming"));
+        assertEquals(
+            "not-loaded",
+            brokenBody.getAsJsonObject("coverage").getAsJsonObject("farming").get("state").getAsString()
+        );
+    }
+
     @Test
     public void syncWorkerIsDaemonAndNamedForReviewability() {
         Thread thread = ScapestackSyncPlugin.newSyncThread(() -> {});

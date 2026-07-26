@@ -557,13 +557,21 @@ function BankDecisionHero({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-3" data-testid="bank-tonight-trip">
-        {checkRows.map((row) => (
-          <div key={row.label} className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/30 p-3">
-            <div className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--color-accent)]">{row.label}</div>
-            <p className="mt-1 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">{row.value}</p>
-          </div>
-        ))}
+      {/* Three labelled sentences, drawn as three bordered boxes on a page
+          that is already almost entirely boxes. Direction B: it is a
+          measure/value list, so it takes the shared table and the labels
+          become real row headers. */}
+      <div className="scape-table-wrap mt-4" data-testid="bank-tonight-trip">
+        <table className="scape-table" aria-label="This trip">
+          <tbody>
+            {checkRows.map((row) => (
+              <tr key={row.label}>
+                <th scope="row" className="w-[136px]">{row.label}</th>
+                <td>{row.value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       <div className="mt-4 grid gap-2 sm:hidden" aria-label="RuneLite bank setup steps">

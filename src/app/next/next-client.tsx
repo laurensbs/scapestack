@@ -1046,15 +1046,16 @@ function NextIntake({
         </div>
       )}
 
-      {/* Hero input — premium-voelt: gecentreerd, oversized, accent-glow
-          op focus. Submit-button leeft binnen het input-frame zodat het
-          één geheel is, geen formuliertje. */}
+      {/* One field, one button, one rule around them. The 4px accent glow on
+          focus became a full-strength accent border: a rule states a boundary,
+          a glow implies a depth this product does not have, and the border was
+          already carrying the focus state anyway. */}
       <form onSubmit={submitRsn}>
         <div className={cn(
-          "group relative rounded-2xl bg-[var(--color-panel)] border transition-all",
+          "group relative rounded-[3px] bg-[var(--color-panel)] border transition-colors",
           loading
-            ? "border-[var(--color-accent)]/60 shadow-[0_0_0_4px_rgba(200, 154, 61,0.10)]"
-            : "border-[var(--color-border)] focus-within:border-[var(--color-accent)]/60 focus-within:shadow-[0_0_0_4px_rgba(200, 154, 61,0.10)]"
+            ? "border-[var(--color-accent)]"
+            : "border-[var(--color-border)] focus-within:border-[var(--color-accent)]"
         )}>
           <div className="flex flex-col sm:flex-row sm:items-center">
             <input
@@ -1372,7 +1373,7 @@ function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOp
       />
 
       <div style={trackAnim(150)}>
-        <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-4 sm:p-5">
+        <details className="border-y border-[var(--color-border-strong)] py-4">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)] marker:hidden">
             <span>More routes</span>
             <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
@@ -1396,7 +1397,7 @@ function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOp
       </div>
 
       <div style={trackAnim(300)}>
-        <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-4 sm:p-5">
+        <details className="border-y border-[var(--color-border-strong)] py-4">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)] marker:hidden">
             <span>Why this trip?</span>
             <span className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">
@@ -1600,81 +1601,73 @@ function NextBestActionsPanel({ actions }: { actions: NextBestAction[] }) {
   if (actions.length === 0) return null;
 
   return (
-    <section className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/78 p-4 sm:p-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">Closest unlocks</div>
-          <h2 className="mt-1 text-[18px] font-semibold leading-tight text-[var(--color-text)]">
-            More unlock moves
-          </h2>
-        </div>
-        <span className="scapestack-status-badge" data-tone="prep">
-          Skills · quests · bank · mode
-        </span>
-      </div>
+    <section>
+      <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">Closest unlocks</div>
+      <h2 className="mt-1 text-[18px] font-semibold leading-tight text-[var(--color-text)]">
+        More unlock moves
+      </h2>
 
-      <div className="mt-4 divide-y divide-[var(--color-border)]/70">
-        {actions.slice(0, 5).map((action) => {
-          const body = (
-            <div className="group grid gap-3 py-3 sm:grid-cols-[42px_minmax(0,1fr)_auto] sm:items-start">
-              <div className="flex size-10 items-center justify-center rounded-md border border-[var(--color-border)] bg-black/20">
-                {action.iconItemId ? (
-                  <ItemSprite id={action.iconItemId} alt="" className="pixelated max-h-8 max-w-8" />
-                ) : (
-                  <Target className="size-4 text-[var(--color-accent)]" />
-                )}
-              </div>
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-[14px] font-semibold leading-snug text-[var(--color-text)]">{action.title}</h3>
-                  <span className="scapestack-status-badge" data-tone={action.kind === "do-quest" || action.kind === "do-diary" ? "ready" : "prep"}>
-                    {action.preparation} prep
+      {/* Each row used to carry two pill badges, two bordered snippet boxes and
+          a chevron — five containers around four facts. The unlock score is a
+          number out of a hundred and it now sits in a right-aligned column
+          where five of them can be compared, which is the only reason the
+          engine computes it. */}
+      <div className="scape-table-wrap mt-4">
+        <table className="scape-table" aria-label="Unlock moves ranked by what they open">
+          <thead>
+            <tr>
+              <th scope="col">Move</th>
+              <th scope="col" className="hidden md:table-cell">Missing</th>
+              <th scope="col" className="hidden sm:table-cell">Prep</th>
+              <th scope="col" data-num>Unlock</th>
+            </tr>
+          </thead>
+          <tbody>
+            {actions.slice(0, 5).map((action) => {
+              const title = (
+                <span className="flex min-h-11 items-center gap-2.5 text-left">
+                  <span className="flex size-7 shrink-0 items-center justify-center overflow-hidden">
+                    {action.iconItemId
+                      ? <ItemSprite id={action.iconItemId} alt="" className="pixelated max-h-7 max-w-7" />
+                      : <Target className="size-4 text-[var(--color-text-muted)]" />}
                   </span>
-                  <span className="scapestack-status-badge">
-                    Unlock {action.unlockValue}/100
+                  <span className="min-w-0">
+                    <span className="block truncate text-[13.5px] font-semibold text-[var(--color-text)]">
+                      {action.title}
+                    </span>
+                    <span className="block truncate text-[11px] text-[var(--color-text-muted)]">
+                      {action.reason}
+                    </span>
                   </span>
-                </div>
-                <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-muted)]">{action.reason}</p>
-                <div className="mt-2 grid gap-2 text-[11.5px] text-[var(--color-text-muted)] sm:grid-cols-2">
-                  <ActionSnippet
-                    label="Missing"
-                    value={action.missingRequirements.length > 0 ? action.missingRequirements.slice(0, 3).join(", ") : "None visible"}
-                  />
-                  <ActionSnippet
-                    label="Items"
-                    value={action.requiredItems.length > 0 ? action.requiredItems.slice(0, 3).join(", ") : "No required items flagged"}
-                  />
-                </div>
-                {action.accountTypeNote && (
-                  <p className="mt-2 text-[11.5px] leading-relaxed text-[var(--color-accent)]">{action.accountTypeNote}</p>
-                )}
-              </div>
-              <div className="flex items-center gap-2 sm:justify-end">
-                <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">{action.relevantQuestOrUnlock}</span>
-                <ChevronRight className="size-4 text-[var(--color-text-muted)] transition-transform group-hover:translate-x-0.5" />
-              </div>
-            </div>
-          );
-
-          return action.link ? (
-            <Link key={action.id} href={action.link} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]">
-              {body}
-            </Link>
-          ) : (
-            <div key={action.id}>{body}</div>
-          );
-        })}
+                </span>
+              );
+              const missing = action.missingRequirements.length > 0
+                ? action.missingRequirements.slice(0, 3).join(", ")
+                : "None visible";
+              return (
+                <tr key={action.id}>
+                  <td className="w-full max-w-0">
+                    {action.link ? <Link href={action.link} className="block">{title}</Link> : title}
+                    <span className="mt-0.5 block truncate text-[11px] text-[var(--color-text-muted)] md:hidden">
+                      {missing}
+                    </span>
+                  </td>
+                  <td className="hidden md:table-cell" title={missing}>
+                    <span className="block w-[13rem] truncate lg:w-[18rem]">{missing}</span>
+                  </td>
+                  <td className="hidden whitespace-nowrap capitalize sm:table-cell">{action.preparation}</td>
+                  <td data-num>{action.unlockValue}/100</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
+      <p className="scape-table-note">
+        Unlock is how much of the account this opens, out of a hundred. Missing lists
+        only requirements Scapestack can see — anything it cannot read stays off the row.
+      </p>
     </section>
-  );
-}
-
-function ActionSnippet({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0 rounded-md border border-[var(--color-border)]/70 bg-black/10 px-3 py-2">
-      <div className="text-[9.5px] font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">{label}</div>
-      <div className="mt-0.5 truncate font-medium text-[var(--color-text)]" title={value}>{value}</div>
-    </div>
   );
 }
 
@@ -1890,7 +1883,7 @@ function RouteProgressBoard({
   const questRecs = allRecs.filter((rec) => rec.kind === "quest" || rec.kind === "diary").slice(0, 3);
   const bankGaps = readiness.slice(0, 3);
   return (
-    <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/60 p-4 sm:p-5">
+    <section>
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
@@ -1906,59 +1899,81 @@ function RouteProgressBoard({
         <AccountModeBadge accountMode={accountMode} compact showSourceCopy />
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        {SESSION_ROUTE_LANES.map((definition) => {
-          const rec = routeLaneMatch(definition, allRecs);
-          const status = routeLaneStatus({ definition, rec, bankItems, pathData, accountType });
-          const accountNote = routeLaneAccountNote(definition.id, accountType);
-          const href = status.href ? recommendationHrefWithContext(status.href, actionContext) : undefined;
-          return (
-            <article
-              key={definition.id}
-              className={cn(
-                "scapestack-route-row min-h-[150px] p-3",
-                status.tone === "good"
-                  ? "border-[var(--color-good)]/25"
-                  : status.tone === "warn"
-                    ? "border-[var(--color-warning)]/28"
-                    : "border-[var(--color-border)]"
-              )}
-            >
-              <div className="flex items-start gap-2.5">
-                <div className="grid size-10 shrink-0 place-items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45">
-                  <ItemSprite id={definition.iconItemId} alt="" size={26} />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <h3 className="text-[13px] font-bold leading-snug text-[var(--color-text)]">{definition.title}</h3>
+      {/* Eight lanes, each of which was a 150px card in a four-column grid
+          carrying a title, a payoff, a status pill, a sentence and sometimes a
+          link — with the card's own border tinted green or amber on top. That
+          border was an invented traffic light next to a pill that already said
+          the same thing, and the eight of them tiled into a wall the eye had
+          to sweep rather than read down. The status is a verdict now, on the
+          game's own ramp, and it lines up in one column. */}
+      <div className="scape-table-wrap">
+        <table className="scape-table" aria-label="Unlock routes and what is blocking each one">
+          <thead>
+            <tr>
+              <th scope="col">Route</th>
+              <th scope="col" className="hidden md:table-cell">Next</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {SESSION_ROUTE_LANES.map((definition) => {
+              const rec = routeLaneMatch(definition, allRecs);
+              const status = routeLaneStatus({ definition, rec, bankItems, pathData, accountType });
+              const accountNote = routeLaneAccountNote(definition.id, accountType);
+              const href = status.href ? recommendationHrefWithContext(status.href, actionContext) : undefined;
+              const title = (
+                <span className="flex min-h-11 items-center gap-2.5 text-left">
+                  <span className="flex size-7 shrink-0 items-center justify-center overflow-hidden">
+                    <ItemSprite id={definition.iconItemId} alt="" size={26} />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-[13.5px] font-semibold text-[var(--color-text)]">
+                      {definition.title}
+                    </span>
+                    <span className="block truncate text-[11px] text-[var(--color-text-muted)]">
+                      {definition.payoff}
+                    </span>
+                  </span>
+                </span>
+              );
+              return (
+                <tr key={definition.id}>
+                  <td className="w-full max-w-0">
+                    {href ? <Link href={href} className="block">{title}</Link> : title}
+                    {/* The Next column is what the player acts on, so below
+                        768px it moves in here rather than being dropped with
+                        the column. */}
+                    <span className="mt-0.5 line-clamp-2 block text-[11px] text-[var(--color-text-muted)] md:hidden">
+                      {status.detail}
+                    </span>
+                  </td>
+                  {/* The fixed width lives on the block inside the cell, not
+                      on the cell: the Route cell is w-full/max-w-0 so it takes
+                      every spare pixel, and a table column only reserves room
+                      for prose if something inside it insists on a width. */}
+                  <td className="hidden md:table-cell">
+                    <span className="line-clamp-2 block w-[19rem] lg:w-[24rem]">{status.detail}</span>
+                    {accountNote && (
+                      <span className="mt-0.5 block w-[19rem] text-[11px] text-[var(--color-text-muted)] lg:w-[24rem]">{accountNote}</span>
+                    )}
+                  </td>
+                  <td>
+                    {/* "good" is comfortably inside reach, "warn" is the even
+                        fight that needs a step first, and a lane the engine
+                        cannot score carries no gate and stays neutral — the
+                        same three-of-nine the boss verdict uses. */}
                     <span
-                      className="scapestack-status-badge"
-                      data-tone={status.tone === "good" ? "ready" : status.tone === "warn" ? "prep" : undefined}
+                      className="scape-verdict"
+                      data-gate={status.tone === "good" ? "ready" : status.tone === "warn" ? "test" : undefined}
                     >
                       {status.label}
                     </span>
-                  </div>
-                  <p className="mt-1 text-[11px] leading-snug text-[var(--color-text-muted)]">{definition.payoff}</p>
-                </div>
-              </div>
-              <p className="mt-3 line-clamp-3 border-t border-[var(--color-border)] pt-2 text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-                {status.detail}
-              </p>
-              {accountNote && (
-                <p className="mt-2 rounded-md border border-[var(--color-border)]/70 bg-[var(--color-bg)]/25 px-2 py-1.5 text-[10.5px] font-semibold leading-snug text-[var(--color-warning)]">{accountNote}</p>
-              )}
-              {href && (
-                <Link
-                  href={href}
-                  className="mt-2 inline-flex items-center gap-1.5 text-[11.5px] font-bold text-[var(--color-accent)] hover:underline"
-                >
-                  Open route
-                  <ArrowRight className="size-3" />
-                </Link>
-              )}
-            </article>
-          );
-        })}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
       {(questRecs.length > 0 || bankGaps.length > 0) && (
@@ -2092,7 +2107,7 @@ function MakePlanSmarter({
   const contextCopy = makePlanSmarterCopy(headline);
 
   return (
-    <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/65 p-4 sm:p-5">
+    <details className="border-y border-[var(--color-border-strong)] py-4">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden">
         <span>
           <span className="block text-[13px] font-bold text-[var(--color-text)]">{contextCopy.title}</span>
@@ -2106,27 +2121,45 @@ function MakePlanSmarter({
       </summary>
 
       <div className="mt-4 space-y-4">
-        <div className="grid gap-2 sm:grid-cols-3">
-          <PlanInputTile
-            label="OSRS name"
-            value={hasRsn ? activeRsn : "Add name"}
-            helper={hasRsn ? "Stats, combat and KC are in the plan." : "Adds skills, combat and KC."}
-            tone={hasRsn ? "good" : "muted"}
-          />
-          <PlanInputTile
-            label={contextCopy.bankLabel}
-            value={hasBank ? "Loaded" : "Optional"}
-            helper={hasBank ? contextCopy.loadedHelper : contextCopy.emptyHelper}
-            tone={hasBank ? "good" : "muted"}
-          />
-          <PlanInputTile
-            label="RuneLite"
-            value={pluginSyncState === "live" ? "Helping" : pluginSyncState ? "Refresh" : "Optional"}
-            helper={pluginSyncState === "live"
-              ? "Skips finished quests, diaries, clog slots and Slayer mistakes."
-              : "Use it when finished progress would change the pick."}
-            tone={pluginSyncState === "live" ? "good" : pluginSyncState ? "warn" : "muted"}
-          />
+        {/* Three inputs, three states. Was three tinted tiles side by side —
+            green when present, grey when not — which is a traffic light for a
+            question that has no difficulty in it. What is actually feeding the
+            plan is a list, so it is a list. */}
+        <div className="scape-table-wrap">
+          <table className="scape-table" aria-label="What is feeding this plan">
+            <thead>
+              <tr>
+                <th scope="col">Input</th>
+                <th scope="col">State</th>
+                <th scope="col" className="hidden sm:table-cell">What it changes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row" className="whitespace-nowrap">OSRS name</th>
+                <td className="max-w-[9rem] truncate text-[var(--color-text)]">{hasRsn ? activeRsn : "Add name"}</td>
+                <td className="hidden sm:table-cell">
+                  {hasRsn ? "Stats, combat and KC are in the plan." : "Adds skills, combat and KC."}
+                </td>
+              </tr>
+              <tr>
+                <th scope="row" className="whitespace-nowrap">{contextCopy.bankLabel}</th>
+                <td className="text-[var(--color-text)]">{hasBank ? "Loaded" : "Optional"}</td>
+                <td className="hidden sm:table-cell">{hasBank ? contextCopy.loadedHelper : contextCopy.emptyHelper}</td>
+              </tr>
+              <tr>
+                <th scope="row" className="whitespace-nowrap">RuneLite</th>
+                <td className="text-[var(--color-text)]">
+                  {pluginSyncState === "live" ? "Helping" : pluginSyncState ? "Refresh" : "Optional"}
+                </td>
+                <td className="hidden sm:table-cell">
+                  {pluginSyncState === "live"
+                    ? "Skips finished quests, diaries, clog slots and Slayer mistakes."
+                    : "Use it when finished progress would change the pick."}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -2185,40 +2218,6 @@ function MakePlanSmarter({
         />
       </div>
     </details>
-  );
-}
-
-function PlanInputTile({
-  label,
-  value,
-  helper,
-  tone
-}: {
-  label: string;
-  value: string;
-  helper: string;
-  tone: "good" | "warn" | "muted";
-}) {
-  return (
-    <div className={cn(
-      "rounded-xl border px-3 py-2.5",
-      tone === "good"
-        ? "border-[var(--color-good)]/25 bg-[var(--color-good)]/10"
-        : tone === "warn"
-          ? "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10"
-          : "border-[var(--color-border)] bg-[var(--color-bg)]/35"
-    )}>
-      <div className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-        {label}
-      </div>
-      <div className={cn(
-        "mt-0.5 text-[12px] font-bold",
-        tone === "good" ? "text-[var(--color-good)]" : tone === "warn" ? "text-[var(--color-warning)]" : "text-[var(--color-text-dim)]"
-      )}>
-        {value}
-      </div>
-      <p className="mt-1 text-[11px] leading-snug text-[var(--color-text-muted)]">{helper}</p>
-    </div>
   );
 }
 
@@ -2397,82 +2396,41 @@ function HeroStrip({ summary, basisNote, onEdit }: {
   basisNote: string;
   onEdit: () => void;
 }) {
-  return (
-    // Premium hero-card: lichte gradient, accent top-stripe, route sweep
-    // van links naar rechts elke 6s. Voelt mee met de loader-vibe.
-    <div
-      className="relative overflow-hidden rounded-xl border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] p-5 sm:p-6"
-    >
-      {/* Subtiele accent top-line — zelfde signature als de SyncedBadge
-          en headline-card. Bindt het visueel aan de rest van /next. */}
-      <div
-        className="absolute inset-x-0 top-0 h-px"
-        style={{ background: "linear-gradient(to right, transparent, rgba(200, 154, 61,0.55), transparent)" }}
-      />
-      {/* Sweep — zachte route-tint die elke 6s van links naar rechts wandelt.
-          Subtieler dan de loader-spotlight (we zijn klaar met laden),
-          maar geeft de card leven. */}
-      <div
-        className="pointer-events-none absolute inset-y-0 -inset-x-1/2 opacity-60"
-        style={{
-          background: "linear-gradient(90deg, transparent 0%, transparent 35%, rgba(200, 154, 61,0.06) 50%, transparent 65%, transparent 100%)",
-          animation: "hero-sweep 6s linear infinite"
-        }}
-      />
+  // Four labelled numbers. That is a table, and it was a gradient card with a
+  // tinted stripe across the top and a soft accent band that swept across it
+  // every six seconds, forever. The sweep was the clearest thing on the page
+  // that told the player nothing: a loop, over the 300ms ceiling by a factor
+  // of twenty, running under the numbers it was meant to flatter. The
+  // 28px figures came down to the table's own scale because size was standing
+  // in for importance on values nobody scans from across the room.
+  const stats: Array<{ label: string; value: string }> = [
+    ...(summary.combatLevel !== null ? [{ label: "Combat", value: String(summary.combatLevel) }] : []),
+    ...(summary.totalLevel !== null ? [{ label: "Total", value: String(summary.totalLevel) }] : []),
+    { label: "Mode", value: accountModeVisual(summary.accountMode.type, summary.accountMode.confidence).shortLabel },
+    ...(summary.goalPercent !== null ? [{ label: "Goals", value: `${summary.goalPercent}%` }] : [])
+  ];
 
-      <div className="relative flex flex-wrap items-start justify-between gap-4">
-        <div className="space-y-3">
-          {/* Vier metrics als één rij — primary stat per metric. */}
-          <div className="flex flex-wrap gap-x-7 gap-y-3">
-            {summary.combatLevel !== null && (
-              <HeroStat icon={<Sword className="size-4 opacity-60" />} label="Combat" value={summary.combatLevel} />
-            )}
-            {summary.totalLevel !== null && (
-              <HeroStat icon={<TrendingUp className="size-4 opacity-60" />} label="Total" value={summary.totalLevel} />
-            )}
-            <HeroStat
-              icon={<Shield className="size-4 opacity-60" />}
-              label="Mode"
-              value={accountModeVisual(summary.accountMode.type, summary.accountMode.confidence).shortLabel}
-            />
-            {summary.goalPercent !== null && (
-              <HeroStat
-                icon={<Target className="size-4" />}
-                label="Goals"
-                value={`${summary.goalPercent}%`}
-                accent
-              />
-            )}
+  return (
+    <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div className="min-w-0 sm:max-w-sm sm:flex-1">
+          <div className="scape-table-wrap">
+            <table className="scape-table" aria-label="This account">
+              <tbody>
+                {stats.map((stat) => (
+                  <tr key={stat.label}>
+                    <th scope="row">{stat.label}</th>
+                    <td data-num>{stat.value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <p className="text-[11.5px] text-[var(--color-text-muted)]">{basisNote}</p>
+          <p className="scape-table-note">{basisNote}</p>
         </div>
-        <button type="button" onClick={onEdit} className="btn-ghost relative z-10">
+        <button type="button" onClick={onEdit} className="btn-ghost w-fit shrink-0">
           <Edit3 className="size-3.5" /> Change input
         </button>
-      </div>
-    </div>
-  );
-}
-
-function HeroStat({ icon, label, value, accent }: {
-  icon: React.ReactNode;
-  label: string;
-  value: number | string;
-  accent?: boolean;
-}) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-        {icon}
-        {label}
-      </div>
-      <div
-        className={cn(
-          "text-[24px] sm:text-[28px] font-bold tabular-nums leading-none",
-          accent ? "text-[var(--color-accent)]" : "text-[var(--color-text)]"
-        )}
-      >
-        {value}
       </div>
     </div>
   );
@@ -2501,10 +2459,12 @@ function KcPortrait({ rec, size, prominent = false }: {
       : <KindGlyph kind={rec.kind} size={size * 0.72} tone="accent" />;
   }
   return (
-    <div
-      className="size-full flex items-center justify-center rounded-md overflow-hidden transition-transform duration-200 group-hover:[animation:boss-rumble_0.4s_ease-in-out]"
-      style={prominent ? { animation: "boss-halo 2.4s ease-in-out infinite" } : undefined}
-    >
+    // The halo pulsed forever and the rumble shook the portrait on hover.
+    // Neither said anything about the boss, and a loop on the one image the
+    // player is trying to read is the opposite of what a reference document
+    // does. `prominent` is kept on the signature because callers pass it and
+    // it still names which portrait is the headline one.
+    <div className="size-full flex items-center justify-center rounded-md overflow-hidden">
       <BossSprite boss={boss} size={size} />
     </div>
   );
@@ -2669,15 +2629,21 @@ function RandomizeRoll({ active }: { active: boolean }) {
   if (!active) return null;
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-md border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-2 py-1"
+      className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] px-2 py-1"
       data-randomize-roll-state="rolling"
       aria-hidden="true"
     >
+      {/* Local because globals.css belongs to another pass and this is the
+          only consumer. If a second one appears, it should move there. */}
+      <style>{"@keyframes roll-fade { from { opacity: 0.35 } to { opacity: 1 } }"}</style>
       {RANDOMIZE_ROLL_IDS.slice(0, 5).map((id, index) => (
         <span
           key={`${id}:${index}`}
           className="inline-flex min-w-[30px] flex-col items-center gap-0.5 rounded border border-[var(--color-border)] bg-[var(--color-bg)]/65 px-1 py-0.5"
-          style={{ animation: `pop-in 0.48s ease-out ${index * 85}ms infinite alternate` }}
+          // Busy indicator, so it does have to repeat — but on opacity, which
+          // WCAG 2.3.3 does not count as motion animation, instead of the
+          // 480ms scale it used to run.
+          style={{ animation: `roll-fade 0.24s ease-out ${index * 85}ms infinite alternate` }}
         >
           <ItemSprite id={id} alt="" size={15} className="pixelated" />
           <span className="text-[7.5px] font-black leading-none text-[var(--color-text-muted)] tabular-nums">
@@ -4264,7 +4230,7 @@ function RouteChainScroll({
         data-calculable-route="true"
       >
         <div className="mb-4">
-          <p className="font-serif text-[18px] font-semibold text-[var(--color-text)]">Your route</p>
+          <p className="text-[18px] font-semibold text-[var(--color-text)]">Your route</p>
           <p className="mt-1 text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
             {calculable.bankSummary} About {calculable.estimatedSessions} session{calculable.estimatedSessions === 1 ? "" : "s"} to level {calculable.targetLevel}.
           </p>
@@ -4558,35 +4524,44 @@ function BankProgressSection({ progress }: { progress: SetCompletion[] }) {
       <p className="text-[11.5px] text-[var(--color-text-muted)] mb-3">
         Sets you're closest to completing — click for what's still missing.
       </p>
-      <div className="flex flex-wrap gap-2">
-        {progress.map((c) => {
-          const set = GOAL_SETS.find((s) => s.id === c.setId);
-          if (!set) return null;
-          const norm = normaliseCompletion(c, set);
-          const missing = norm.max - norm.progress;
-          const active = openId === c.setId;
-          return (
-            <button
-              key={c.setId}
-              type="button"
-              onClick={() => setOpenId(active ? null : c.setId)}
-              className={cn(
-                "px-3 py-1.5 rounded-md border text-[11.5px] transition-colors flex items-center gap-2 tabular-nums",
-                active
-                  ? "border-[var(--color-accent)]/60 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
-                  : "border-[var(--color-border)] bg-[var(--color-panel)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
-              )}
-            >
-              <span className="font-semibold">{set.name}</span>
-              <span className="text-[10px] opacity-70">
-                {norm.progress}/{norm.max}
-              </span>
-              {missing > 0 && (
-                <span className="text-[10px] opacity-60">· {missing} short</span>
-              )}
-            </button>
-          );
-        })}
+      {/* A wrapping row of chips, each carrying a fraction. Chips wrap, so the
+          fractions landed at a different x on every line and the one thing the
+          section is for — which set is closest — could not be read down. */}
+      <div className="scape-table-wrap">
+        <table className="scape-table" aria-label="Sets closest to complete">
+          <thead>
+            <tr>
+              <th scope="col">Set</th>
+              <th scope="col" data-num>Have</th>
+              <th scope="col" data-num>Short</th>
+            </tr>
+          </thead>
+          <tbody>
+            {progress.map((c) => {
+              const set = GOAL_SETS.find((s) => s.id === c.setId);
+              if (!set) return null;
+              const norm = normaliseCompletion(c, set);
+              const missing = norm.max - norm.progress;
+              const active = openId === c.setId;
+              return (
+                <tr key={c.setId} className={cn(active && "bg-[var(--color-accent)]/[0.07]")}>
+                  <td className="w-full max-w-0">
+                    <button
+                      type="button"
+                      onClick={() => setOpenId(active ? null : c.setId)}
+                      aria-expanded={active}
+                      className="flex min-h-11 w-full items-center text-left"
+                    >
+                      <span className="truncate font-semibold text-[var(--color-text)]">{set.name}</span>
+                    </button>
+                  </td>
+                  <td data-num>{norm.progress}/{norm.max}</td>
+                  <td data-num>{missing}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
       {/* Expanded panel — toont missende goals voor de open set. */}
       {openId && (() => {
@@ -5403,82 +5378,73 @@ function RouteNeeds({
             Pick the route with the smallest missing step.
           </p>
         </div>
-        <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
+        <span className="text-[10.5px] font-bold tabular-nums text-[var(--color-text-muted)]">
           {pathData.overallPercent}% mapped
         </span>
       </div>
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {routes.map((route) => (
-          <article key={route.id} className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/82 p-4">
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45">
-                {route.iconItemId ? (
-                  <ItemSprite id={route.iconItemId} alt={route.title} size={28} />
-                ) : (
-                  <MapIcon className="size-5 text-[var(--color-accent)]" />
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h4 className="text-[14px] font-bold leading-tight text-[var(--color-text)]">{route.title}</h4>
-                  <span className={cn(
-                    "rounded-full border px-2 py-0.5 text-[10px] font-bold",
-                    route.blockersLeft === 0
-                      ? "border-[var(--color-good)]/30 bg-[var(--color-good)]/10 text-[var(--color-good)]"
-                      : "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
-                  )}>
-                    {route.primaryLabel}
+      {/* Nine cards, each repeating the same four labels down its own left
+          edge, in a three-column grid — so the same label appeared up to nine
+          times and the two numbers that let you compare routes (steps left,
+          percent mapped) never lined up with each other. One header row and
+          nine rows says it once. The blocker chips went with the cards: the
+          first blocker is the Need first column, and chips two to four were
+          the ones the player was explicitly told not to do yet. */}
+      <div className="scape-table-wrap">
+        <table className="scape-table" aria-label="Unlock routes by size of the next step">
+          <thead>
+            <tr>
+              {/* No status column. The engine's primaryLabel for an unfinished
+                  route is the next blocker's own title, so on screen it was
+                  the First action column again in yellow — the same sentence
+                  twice, one of them coloured. Steps already answers "how far",
+                  and 0 steps is the ready state. */}
+              <th scope="col">Route</th>
+              <th scope="col" className="hidden sm:table-cell">First action</th>
+              <th scope="col" data-num>Steps</th>
+              <th scope="col" data-num className="hidden lg:table-cell">Mapped</th>
+            </tr>
+          </thead>
+          <tbody>
+            {routes.map((route) => (
+              <tr key={route.id}>
+                <td className="w-full max-w-0">
+                  <span className="flex min-h-11 items-center gap-2.5">
+                    <span className="flex size-7 shrink-0 items-center justify-center overflow-hidden">
+                      {route.iconItemId
+                        ? <ItemSprite id={route.iconItemId} alt="" size={26} />
+                        : <MapIcon className="size-4 text-[var(--color-text-muted)]" />}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-[13.5px] font-semibold text-[var(--color-text)]">
+                        {route.title}
+                      </span>
+                      <span className="block truncate text-[11px] text-[var(--color-text-muted)]">
+                        {route.payoff}
+                      </span>
+                    </span>
                   </span>
-                </div>
-                <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">{route.why}</p>
-              </div>
-            </div>
-
-            <div className="mt-3 grid gap-2 text-[11.5px]">
-              <RoutePlanLine label="Need first" value={route.nextBlocker} />
-              <RoutePlanLine label="First action" value={route.nextAction} strong />
-              <RoutePlanLine label="Prep" value={`${route.prepLevel} · ${route.blockersLeft} step${route.blockersLeft === 1 ? "" : "s"}`} />
-              <RoutePlanLine label="Stop" value={route.stopPoint} />
-            </div>
-
-            {route.blockers.length > 1 && (
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {route.blockers.slice(1, 4).map((blocker, index) => (
-                  <span
-                    key={`${route.id}:${blocker.type}:${blocker.label}:${index}`}
-                    className="rounded border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2 py-1 text-[10px] font-semibold text-[var(--color-text-muted)]"
-                  >
-                    {blocker.label}
+                  <span className="mt-0.5 line-clamp-2 block text-[11px] text-[var(--color-text-muted)] sm:hidden">
+                    {route.nextAction}
                   </span>
-                ))}
-              </div>
-            )}
-
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--color-border)]/60 pt-3 text-[10.5px] text-[var(--color-text-dim)]">
-              <span>{route.payoff}</span>
-              <span className="tabular-nums">{route.progressPercent}% mapped</span>
-            </div>
-            {route.accountTypeNote && (
-              <p className="mt-2 text-[10.5px] leading-relaxed text-[var(--color-text-muted)]">{route.accountTypeNote}</p>
-            )}
-          </article>
-        ))}
+                </td>
+                <td className="hidden sm:table-cell">
+                  <span className="line-clamp-2 block w-[15rem] text-[var(--color-text)] lg:w-[22rem]">{route.nextAction}</span>
+                  <span className="mt-0.5 block w-[15rem] truncate text-[11px] text-[var(--color-text-muted)] lg:w-[22rem]">
+                    {route.accountTypeNote ?? route.nextBlocker}
+                  </span>
+                </td>
+                <td data-num>{route.blockersLeft}</td>
+                <td data-num className="hidden lg:table-cell">{route.progressPercent}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
+      <p className="scape-table-note">
+        Steps is what is still in the way on that route. Anything Scapestack cannot
+        read stays unknown instead of being counted as done.
+      </p>
     </section>
-  );
-}
-
-function RoutePlanLine({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
-  return (
-    <div className="grid grid-cols-[76px_minmax(0,1fr)] gap-2">
-      <span className="text-[10px] uppercase tracking-[0.16em] text-[var(--color-text-dim)]">{label}</span>
-      <span className={cn(
-        "min-w-0 leading-snug",
-        strong ? "font-semibold text-[var(--color-text)]" : "text-[var(--color-text-muted)]"
-      )}>
-        {value}
-      </span>
-    </div>
   );
 }
 
@@ -5518,7 +5484,7 @@ function DiaryReadinessDetail({ rec, rsn }: { rec: Recommendation; rsn?: string 
       <div className="flex items-center gap-3 border-b border-[var(--color-border)] px-3 py-3">
         <ItemSprite id={progress.rewardItemId} alt={progress.rewardName} size={42} />
         <div className="min-w-0 flex-1">
-          <p className="font-serif text-[17px] font-semibold text-[var(--color-text)]">{progress.rewardName}</p>
+          <p className="text-[17px] font-semibold text-[var(--color-text)]">{progress.rewardName}</p>
           <p className="text-[11.5px] text-[var(--color-text-muted)]">
             {progress.completionEvidence
               ? `Already complete · proven by ${progress.completionEvidence === "runelite" ? "RuneLite" : "the reward in your bank"}`
@@ -5589,7 +5555,7 @@ function QuestRouteDetail({ rec }: { rec: Recommendation }) {
       <div className="flex items-center gap-3 border-b border-[var(--color-border)] px-3 py-3">
         <ItemSprite id={9813} alt="Quest route" size={42} />
         <div className="min-w-0 flex-1">
-          <p className="font-serif text-[17px] font-semibold text-[var(--color-text)]">{route.activeQuestName}</p>
+          <p className="text-[17px] font-semibold text-[var(--color-text)]">{route.activeQuestName}</p>
           <p className="text-[11.5px] text-[var(--color-text-muted)]">
             {route.activeIsTarget ? route.payoff : `Toward ${route.targetQuestName} · ${route.payoff}`}
           </p>
@@ -5604,21 +5570,32 @@ function QuestRouteDetail({ rec }: { rec: Recommendation }) {
             Check RuneLite before committing to the full chain; completed prerequisites are not guessed.
           </p>
         )}
-        {route.skillPreparation.length > 0 && (
-          <RoutePlanLine label="Train" value={route.skillPreparation.slice(0, 2).join(" · ")} strong />
-        )}
-        {route.ownedItems.length > 0 && (
-          <RoutePlanLine label="From bank" value={route.ownedItems.slice(0, 3).join(" · ")} />
-        )}
-        {route.missingItems.length > 0 && (
-          <RoutePlanLine label="Get first" value={route.missingItems.slice(0, 3).join(" · ")} strong />
-        )}
-        {route.ownedItems.length === 0 && route.missingItems.length === 0 && (
-          <RoutePlanLine label="Bank" value={route.bankNote} />
-        )}
-        <RoutePlanLine label="Boosts" value={route.boostAssumption} />
-        <RoutePlanLine label="Stop" value={route.stopPoint} strong />
-        {route.nextQuestName && <RoutePlanLine label="Next" value={route.nextQuestName} />}
+        {/* Was a bespoke 76px-label grid. It is the same shape as every other
+            measure/value list on the site, so it uses the shared table and a
+            real row header instead. */}
+        <div className="scape-table-wrap">
+          <table className="scape-table">
+            <tbody>
+              {route.skillPreparation.length > 0 && (
+                <tr><th scope="row" className="w-[92px]">Train</th><td>{route.skillPreparation.slice(0, 2).join(" · ")}</td></tr>
+              )}
+              {route.ownedItems.length > 0 && (
+                <tr><th scope="row">From bank</th><td>{route.ownedItems.slice(0, 3).join(" · ")}</td></tr>
+              )}
+              {route.missingItems.length > 0 && (
+                <tr><th scope="row">Get first</th><td>{route.missingItems.slice(0, 3).join(" · ")}</td></tr>
+              )}
+              {route.ownedItems.length === 0 && route.missingItems.length === 0 && (
+                <tr><th scope="row">Bank</th><td>{route.bankNote}</td></tr>
+              )}
+              <tr><th scope="row">Boosts</th><td>{route.boostAssumption}</td></tr>
+              <tr><th scope="row">Stop</th><td>{route.stopPoint}</td></tr>
+              {route.nextQuestName && (
+                <tr><th scope="row">Next</th><td>{route.nextQuestName}</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   );

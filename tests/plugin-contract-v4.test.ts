@@ -11,6 +11,7 @@ import {
   PLUGIN_SNAPSHOT_CONTRACT_VERSION_V4
 } from "@/lib/plugin-snapshot-contract";
 import { redactSyncedPlayer, syncedPlayerForViewer } from "@/lib/synced-player-visibility";
+import { signalCoverageForSyncedPlayer } from "@/lib/plugin-sync-diagnostics";
 import type { SyncedPlayer } from "@/lib/sync-repo";
 
 const NOW = Date.parse("2026-07-18T15:00:00Z");
@@ -451,7 +452,54 @@ describe("the payload the Java serializer actually writes", () => {
     expect(coverage.equipment.state).toBe("unsupported");
     expect(coverage.equipment.reason).toContain("by-design");
     expect("equipment" in payload).toBe(false);
-    expect(coverage.farming.state).toBe("unsupported");
+  });
+
+  it("sends farming and birdhouse timers with available coverage", async () => {
+    // The plugin reads RuneLite's own Time Tracking store, so coverage is
+    // "available" only once that store has actually seen a patch. The fixture
+    // is the observed case; the unobserved one is asserted below, because it
+    // is the one that must never come out as an empty farm.
+    const payload = (await import("./fixtures/plugin-sync-v4.json")).default as Record<string, unknown>;
+    const coverage = payload.coverage as Record<string, { state: string; reason?: string }>;
+    expect(coverage.farming.state).toBe("available");
+    expect(coverage.farming.reason).toContain("runelite-timetracking");
+
+    const farming = payload.farming as Array<Record<string, unknown>>;
+    expect(farming.length).toBeGreaterThan(0);
+    expect(farming.length).toBeLessThanOrEqual(64);
+    // Bird houses are a separate game mechanism riding the same domain.
+    expect(farming.some((row) => String(row.patch).startsWith("birdhouse-"))).toBe(true);
+    // A ready patch carries no readyAt; a growing one does, in the future.
+    const ready = farming.find((row) => row.state === "ready");
+    expect(ready?.readyAt ?? null).toBeNull();
+    const growing = farming.filter((row) => row.state === "growing");
+    expect(growing.length).toBeGreaterThan(0);
+    for (const row of growing) {
+      expect(Date.parse(row.readyAt as string)).toBeGreaterThan(Date.parse(payload.capturedAt as string));
+    }
+  });
+
+  it("rejects the fixture if farming data and coverage ever disagree", async () => {
+    // The two halves of one claim. A payload carrying rows while coverage
+    // denies them, or claiming available with no rows at all, is the shape of
+    // the bug that would have the website plan around a farm that is not
+    // there.
+    const base = (await import("./fixtures/plugin-sync-v4.json")).default as Record<string, unknown>;
+    const now = Date.parse("2026-07-18T15:00:00Z");
+
+    const dataWithoutCoverage = structuredClone(base) as Record<string, unknown> & {
+      coverage: Record<string, unknown>;
+    };
+    dataWithoutCoverage.coverage.farming = { state: "not-loaded", reason: "farming-patches-not-observed" };
+    const denied = parsePluginSnapshotContract(dataWithoutCoverage, now);
+    expect(denied.ok).toBe(false);
+    if (denied.ok) throw new Error("unreachable");
+    expect(denied.error).toContain("farming");
+
+    // And the mirror image: coverage claiming available with the rows gone.
+    const coverageWithoutData = structuredClone(base) as Record<string, unknown>;
+    delete coverageWithoutData.farming;
+    expect(parsePluginSnapshotContract(coverageWithoutData, now).ok).toBe(false);
   });
 
   it("sends Combat Achievement points and tier", async () => {
@@ -499,5 +547,59 @@ describe("the decision not to read worn equipment, made visible", () => {
     const modal = readFileSync(join(process.cwd(), "src/components/boss-detail-modal.tsx"), "utf8");
     expect(modal).toContain("worn gear is not counted");
     expect(modal).toContain("only reads gear in your bank");
+  });
+});
+
+describe("farm timers say unseen, never empty", () => {
+  const base: SyncedPlayer = {
+    rsn: "t", displayName: "T", accountType: "normal",
+    skills: [], questsCompleted: [], diariesCompleted: [], collectionLogItemIds: [],
+    bossKc: null, bankItems: [],
+    bankStatus: { enabled: false, itemCount: 0, capturedAt: null, unavailableReason: "opt-in-off" },
+    slayer: null, pluginVersion: "0.4.0", lastSyncSummary: null,
+    syncedAt: new Date().toISOString()
+  };
+  const row = (player: SyncedPlayer) =>
+    signalCoverageForSyncedPlayer(player).find((entry) => entry.label === "Farm timers");
+
+  it("distinguishes an unobserved farm from an empty one", () => {
+    // RuneLite's Time Tracking only knows a patch once the player has walked
+    // past it, so an account with a full farm reads as unobserved until then.
+    // Telling that player their farm is empty is the same class of false zero
+    // as reporting an unread boss log as zero KC.
+    const unseen = row({ ...base, farming: null, availability: { farming: "not-loaded" } });
+    expect(unseen?.summary).toBe("No patches seen yet");
+    expect(unseen?.detail).toContain("unseen, not empty");
+    expect(unseen?.status).not.toBe("exact");
+  });
+
+  it("counts what is ready and when the next one lands", () => {
+    const soon = new Date(Date.now() + 80 * 60_000).toISOString();
+    const seen = row({
+      ...base,
+      availability: { farming: "available" },
+      farming: [
+        { patch: "herb-catherby", crop: "Ranarr weed", state: "ready", readyAt: null },
+        { patch: "herb-falador", crop: "Ranarr weed", state: "growing", readyAt: soon }
+      ]
+    });
+    expect(seen?.summary).toContain("1 ready");
+    expect(seen?.summary).toMatch(/next in 1h 2\dm/);
+  });
+
+  it("surfaces a patch that will be lost if it is left", () => {
+    const hurt = row({
+      ...base,
+      availability: { farming: "available" },
+      farming: [{ patch: "herb-falador", crop: "Ranarr weed", state: "diseased", readyAt: null }]
+    });
+    expect(hurt?.summary).toContain("needs attention");
+    expect(hurt?.detail).toContain("spreads");
+  });
+
+  it("says so plainly when the build cannot read timers at all", () => {
+    const off = row({ ...base, farming: null, availability: { farming: "unsupported" } });
+    expect(off?.status).toBe("missing");
+    expect(off?.summary).toBe("Not available");
   });
 });

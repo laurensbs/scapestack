@@ -169,9 +169,14 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("Add bank for GP");
     expect(source).toContain("Check RuneLite");
     expect(source).not.toContain("Used for this route");
-    expect(source).toContain('label="OSRS name"');
-    expect(source).toContain("label={contextCopy.bankLabel}");
-    expect(source).toContain('label="RuneLite"');
+    // Was three `<PlanInputTile label=... />` props. The three tiles were
+    // tinted green when an input was present and grey when it was not — a
+    // traffic light for a question with no difficulty in it — so direction B
+    // made them three rows of the shared table. The three inputs and their
+    // labels are what this case guards, and all three are still named here.
+    expect(source).toContain('<th scope="row" className="whitespace-nowrap">OSRS name</th>');
+    expect(source).toContain('<th scope="row" className="whitespace-nowrap">{contextCopy.bankLabel}</th>');
+    expect(source).toContain('<th scope="row" className="whitespace-nowrap">RuneLite</th>');
     expect(source).not.toContain('label: "Public checks"');
     expect(source).not.toContain("<EvidenceLedger summary={summary} pathData={pathData} bankItems={bankItems} />");
     expect(source).toContain("Use it when finished progress would change the pick.");

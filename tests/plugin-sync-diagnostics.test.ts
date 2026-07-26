@@ -85,7 +85,11 @@ describe("plugin sync diagnostics", () => {
       ["Diaries", "exact"],
       ["Collection log", "exact"],
       ["Bank", "exact"],
-      ["Slayer", "exact"]
+      ["Slayer", "exact"],
+      // Contract v4. This fixture is a v3 sync, so the plugin has said nothing
+      // about farm timers — which reads as "not seen yet", never as an empty
+      // farm. The distinction is the whole point of the row.
+      ["Farm timers", "partial"]
     ]);
 
     vi.useRealTimers();

@@ -9,6 +9,7 @@ import net.runelite.api.ItemContainer;
 import net.runelite.api.Quest;
 import net.runelite.api.QuestState;
 import net.runelite.api.Skill;
+import net.runelite.api.WorldType;
 import net.runelite.api.vars.AccountType;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
@@ -22,6 +23,7 @@ import javax.inject.Singleton;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +66,9 @@ public class GameStateReader {
         BossKillCountReader.Result bossKcStatus = null;
         public String accountType = "normal";
         public CombatAchievements combatAchievements = null;
+        /** Non-null only when the farming domain is genuinely available. */
+        public List<FarmingTimerReader.Row> farming = null;
+        FarmingTimerReader.Result farmingStatus = null;
         public Map<String, PluginSnapshotContract.Domain> coverage = new LinkedHashMap<>();
     }
 
@@ -303,9 +308,44 @@ public class GameStateReader {
         s.slayer = readSlayer(client);
         s.combatAchievements = readCombatAchievements(client);
         readBossKillCounts(s);
+        readFarmingTimers(s, client);
         s.accountType = readAccountType(client);
         s.coverage = PluginSnapshotContract.observedCoverage(s);
         return s;
+    }
+
+    /**
+     * Farming and bird-house timers, out of the stock Time Tracking store.
+     *
+     * Same contract as the boss-KC read above: the reader answers "unknown"
+     * rather than "empty" when RuneLite has never seen a patch, because an
+     * empty farming list under available coverage would tell the website the
+     * player has nothing planted.
+     */
+    private void readFarmingTimers(Snapshot snapshot, Client client) {
+        FarmingTimerReader.Result result;
+        try {
+            result = FarmingTimerReader.read(configManager, isSeasonalWorld(client), snapshot.capturedAt);
+        } catch (Throwable ex) {
+            // Includes NoClassDefFoundError if RuneLite's timetracking model
+            // ever moves out from under us.
+            log.debug("Farming timer read failed", ex);
+            result = null;
+        }
+        snapshot.farmingStatus = result;
+        snapshot.farming = result != null && result.isAvailable() ? result.rows : null;
+    }
+
+    /** Leagues worlds tick farming at 1 minute instead of 5. */
+    private boolean isSeasonalWorld(Client client) {
+        try {
+            EnumSet<WorldType> types = client.getWorldType();
+            return types != null
+                && types.contains(WorldType.SEASONAL)
+                && !types.contains(WorldType.DEADMAN);
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
     private void readBossKillCounts(Snapshot snapshot) {

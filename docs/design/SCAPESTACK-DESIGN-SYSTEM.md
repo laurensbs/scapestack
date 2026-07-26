@@ -309,6 +309,55 @@ prohibits a session planner.
 
 ---
 
+## 6b. Direction B — the chosen system
+
+Laurens picked **B, "Wiki"** from the four in [`directions.html`](directions.html)
+on 2026-07-26. His words for it: *"Tabel, hairline, bron erbij, verder niets.
+Geen chrome, geen sfeer — de data is de vormgeving."*
+
+The objection raised against it at the time — *this exists already, and better* —
+was wrong and is recorded here so it does not get re-raised. The wiki is a
+**reference**; Scapestack is a **recommendation**. Same form, different job.
+Borrowing a trusted form for a new job is not duplication, it is the shortest
+route to credibility.
+
+### What B decides
+
+| | |
+|---|---|
+| **Ground** | `#0D0D0C`, warm-neutral. Warm on purpose: a cold ground casts OSRS item sprites, which are heavily brown and gold, as garish. |
+| **Colour** | Data only, using the game's hexes. The interface is drab so the numbers can shout. |
+| **Type** | One family. Hierarchy is weight and size — a reference tool has no editorial headline face. |
+| **Separation** | A hairline rule. A rule states a boundary; a shadow implies a depth this product does not have. |
+| **Links** | Underlined ink, not tinted. Tinting is for data. |
+| **Radius** | 3px on controls, 0 in tables. |
+| **Verdicts** | Three of the game's nine ramp steps, symmetric about the centre: blocked `#FF3000`, test `#FFFF00`, ready `#40FF00`. |
+
+Not the ramp's endpoints, because the engine never claims a boss is impossible
+or trivial, and an encounter it refuses to score carries no gate at all. That is
+why no fourth colour was needed. `#FF3000` rather than pure red because pure red
+measures **4.49:1** on `--color-panel` — a fail.
+
+### The homepage shows data rather than describing it
+
+`src/components/home-specimen.tsx` runs the real engine over
+`src/lib/reference-account.ts` at build time. Two rules keep it honest, both
+learned by getting it wrong:
+
+- **Never best-in-slot.** At BiS the engine picks Tumeken's shadow for all 59
+  bosses and every row is identical.
+- **Only encounters the engine will answer with one number.** Sorting by
+  slowest-winnable pulled raids to the top and the homepage printed *"Theatre of
+  Blood — Abyssal whip — 15m — Can kill"*. A raid is rooms, roles and a team.
+  `bossKnowledge.dpsModel` already carries that judgement; use it.
+
+The table shows the **boundary** — the hardest fights that are still clean, then
+the easiest that are not. That is what a player wants to know, and it makes the
+verdict column span more than one step of the ramp, so the design argues for
+itself instead of being explained.
+
+---
+
 ## 7. How to use this
 
 Any design work on Scapestack — site or plugin — is checked against this file

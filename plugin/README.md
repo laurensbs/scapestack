@@ -30,12 +30,22 @@ the log was not opened, opened without item slots, or loaded correctly.
 
 Sent after opt-in: RSN, plugin version, account type, skill levels and XP, quest and diary completion,
 loaded collection-log item IDs, boss KC RuneLite has already observed, Slayer state, Combat Achievement points and highest completed tier,
+farming-patch and bird-house timers RuneLite's own Time Tracking plugin has recorded,
 bank item IDs/names/quantities when bank checks are on,
 and the local install token only as the Authorization bearer on claim/sync requests.
 
 Boss KC is intentionally sparse: RuneLite only knows a count after it has seen that boss in the
 adventure log or after a new kill. Missing bosses stay unknown and are never
 reported as zero.
+
+Farm timers are read, never written. The stock Time Tracking plugin already
+stores what it sees per RS profile in the `timetracking` config group — patch
+varbit plus the time it was seen, and the same for the four Fossil Island
+bird-house spaces. Growth durations come from RuneLite's own patch tables, so
+they follow the game. A patch RuneLite has never observed is reported as
+unknown, not as an empty patch: the domain says `not-loaded` until the player
+has actually stood next to something. Turning the Time Tracking plugin off
+turns this off with it.
 
 Never sent: RuneScape password, inventory, equipment, GE offers, chat,
 friends list, clicks, key presses, screenshots, local files, or RuneLite

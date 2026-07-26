@@ -107,10 +107,7 @@ final class PluginSnapshotContract {
         // is a product decision, and until it is made this build declares the
         // domain unsupported rather than silently omitting it.
         coverage.put("equipment", Domain.unsupported("equipment-not-collected-by-design"));
-        // Farming timers need per-patch growth state tracked across sessions,
-        // which this build does not do yet. Saying so beats sending an empty
-        // list that would read as "no crops planted".
-        coverage.put("farming", Domain.unsupported("farming-timers-not-implemented"));
+        coverage.put("farming", farmingCoverage(snapshot, capturedAt));
         coverage.put("combatAchievements", snapshot.combatAchievements != null
             ? Domain.available(capturedAt)
             : Domain.unavailable("combat-achievement-vars-unavailable"));
@@ -155,6 +152,26 @@ final class PluginSnapshotContract {
             return Domain.unavailable(status.unavailableReason);
         }
         return Domain.available(firstTimestamp(status.capturedAt, fallbackCapturedAt));
+    }
+
+    /**
+     * Farming timers come out of RuneLite's Time Tracking store, which only
+     * knows a patch after the player has stood next to it. Three outcomes, and
+     * the middle one is the one that matters: a patch nobody has ever observed
+     * is unknown, never empty. Sending an empty list under available coverage
+     * would tell the website "nothing is planted", and the website would then
+     * plan around a farm run that is already growing.
+     */
+    private static Domain farmingCoverage(GameStateReader.Snapshot snapshot, String fallbackCapturedAt) {
+        FarmingTimerReader.Result status = snapshot.farmingStatus;
+        if (status == null) return Domain.notLoaded("farming-timers-not-read");
+        if (status.isAvailable()) {
+            return Domain.available(firstTimestamp(status.capturedAt, fallbackCapturedAt), status.reason);
+        }
+        if ("not-loaded".equals(status.state)) {
+            return Domain.notLoaded(status.reason);
+        }
+        return Domain.unavailable(status.reason);
     }
 
     private static Domain bossKcCoverage(GameStateReader.Snapshot snapshot, String fallbackCapturedAt) {

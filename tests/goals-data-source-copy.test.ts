@@ -9,8 +9,10 @@ describe("Goals unlock companion", () => {
     expect(source).toContain("Unlock this next");
     expect(source).toContain("Best next unlock");
     expect(source).toContain("One reward worth chasing now");
-    expect(source).toContain("Start:");
-    expect(source).toContain("Stop:");
+    // See tests/trip-flow-contract.test.ts: the Start/Stop pair is a
+    // two-column table now, so the labels are row headers.
+    expect(source).toContain('<th scope="row" className="w-[64px]">Start</th>');
+    expect(source).toContain('<th scope="row">Stop</th>');
     expect(source).not.toContain("rewards found");
     expect(source).not.toContain("Untradeable progress");
     expect(source).not.toContain("Add more context");
@@ -25,7 +27,13 @@ describe("Goals unlock companion", () => {
     expect(source).toContain('aria-describedby="goals-search-status"');
     expect(source).toContain('role="status"');
     expect(source).toContain('htmlFor="goal-category"');
-    expect(source).toContain("function UnlockBrowserTile");
+    // Was `function UnlockBrowserTile`. The browser was a three-column grid of
+    // 164px tiles and is a table now, for the same reason /dps stopped being a
+    // grid of boss cards: the fraction that decides whether a set is worth
+    // opening has to read down a column. The row still owns the pressed state,
+    // which is what this case is really guarding.
+    expect(source).toContain("function UnlockBrowserRow");
+    expect(source).toContain('className="scape-table"');
     expect(source).toContain("aria-pressed={selected}");
   });
 

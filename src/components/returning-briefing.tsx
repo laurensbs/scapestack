@@ -47,9 +47,14 @@ export function ReturningBriefing({
   const name = displayName?.trim();
 
   return (
+    // Direction B: no tinted panel and no rounded card. A returning player is
+    // reading a change log, and the form for that is a ruled block of the page
+    // itself — the rule states where it starts and ends, and nothing else has
+    // to. The accent wash this used to carry said "notice me" about content
+    // that is already the first thing on the page.
     <section
       aria-labelledby="returning-briefing-heading"
-      className="mx-auto mb-6 max-w-3xl rounded-2xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/[0.04] px-4 py-5 sm:px-6"
+      className="mx-auto mb-6 max-w-3xl border-y border-[var(--color-border-strong)] py-5"
     >
       <p className="eyebrow text-[var(--color-accent)]">
         {name ? `Welcome back, ${name}` : "Welcome back"}
@@ -75,30 +80,46 @@ export function ReturningBriefing({
         Requirements are listed so you can see what is actually open to you.
       </p>
 
+      {/* Was a two-column grid of tinted cards. The three things a returning
+          player checks per entry — what kind of thing it is, what it is called,
+          and whether it is open to them — are three columns, so they read down
+          instead of being hunted for inside four separate boxes. The
+          requirement column drops below 640px; the name and the blurb are what
+          decide whether it is worth reading the rest. */}
       {headline.length > 0 && (
-        <ul className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {headline.map((update) => (
-            <li
-              key={update.id}
-              className="rounded-xl border border-[var(--color-accent)]/15 bg-[var(--color-bg)]/50 px-3.5 py-3"
-            >
-              <span className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">
-                {KIND_LABEL[update.kind]}
-              </span>
-              <span className="mt-1 block text-[14px] font-semibold text-[var(--color-text)]">
-                {update.name}
-              </span>
-              <span className="mt-1 block text-[12.5px] leading-snug text-[var(--color-text-dim)]">
-                {update.blurb}
-              </span>
-              {update.requirement && (
-                <span className="mt-1.5 block text-[11.5px] text-[var(--color-text-dim)]">
-                  {update.requirement}
-                </span>
-              )}
-            </li>
-          ))}
-        </ul>
+        <div className="scape-table-wrap mt-4">
+          <table className="scape-table" aria-label="What landed while you were away">
+            <thead>
+              <tr>
+                <th scope="col">Kind</th>
+                <th scope="col">What</th>
+                <th scope="col" className="hidden sm:table-cell">Needs</th>
+              </tr>
+            </thead>
+            <tbody>
+              {headline.map((update) => (
+                <tr key={update.id}>
+                  <td className="whitespace-nowrap align-top">{KIND_LABEL[update.kind]}</td>
+                  <td className="w-full max-w-0 align-top">
+                    <span className="block font-semibold text-[var(--color-text)]">{update.name}</span>
+                    <span className="mt-0.5 block text-[12px] leading-snug text-[var(--color-text-muted)]">
+                      {update.blurb}
+                    </span>
+                    {/* The requirement is the whole point of the row on a
+                        phone, so it moves into this cell rather than being
+                        dropped with the column. */}
+                    {update.requirement && (
+                      <span className="mt-0.5 block text-[12px] leading-snug text-[var(--color-text-muted)] sm:hidden">
+                        {update.requirement}
+                      </span>
+                    )}
+                  </td>
+                  <td className="hidden align-top sm:table-cell">{update.requirement ?? "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {quests.length > 0 && (

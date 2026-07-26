@@ -31,8 +31,14 @@ describe("trip flow contract", () => {
 
     expect(goals).toContain("Unlock this next");
     expect(goals).toContain("Best next unlock");
-    expect(goals).toContain("Start:");
-    expect(goals).toContain("Stop:");
+    // Was `toContain("Start:")` / `toContain("Stop:")`. Direction B moved the
+    // pair into the shared measure/value table, so the labels are real row
+    // headers now — which is what makes a screen reader announce "Stop, after
+    // the set changes" instead of two loose sentences. The thing this case
+    // guards, that the companion states where to begin and where to stop
+    // before it shows anything else, is unchanged.
+    expect(goals).toContain('<th scope="row" className="w-[64px]">Start</th>');
+    expect(goals).toContain('<th scope="row">Stop</th>');
     expect(goals).toContain("Make this my route");
     expect(goals).toContain("Why this unlock?");
     expect(goals).toContain("Browse other unlocks");
@@ -54,10 +60,14 @@ describe("trip flow contract", () => {
     const slayer = read("src/app/slayer/slayer-client.tsx");
 
     expect(slayer).toContain("function SlayerTaskRoute");
-    expect(slayer).toContain('label="Start"');
-    expect(slayer).toContain('label="Bring"');
-    expect(slayer).toContain('label="Stop at"');
-    expect(slayer).toContain('label="Points"');
+    // The four route lines were an icon-plus-label list; each icon restated
+    // the word beside it. Direction B made them rows of the shared table, so
+    // the labels are row headers rather than props on a RouteLine component.
+    // Same four facts, same order, one fewer component.
+    expect(slayer).toContain('<th scope="row" className="w-[112px]">Start</th>');
+    expect(slayer).toContain('<th scope="row">Bring</th>');
+    expect(slayer).toContain('<th scope="row">Stop at</th>');
+    expect(slayer).toContain('<th scope="row">Points</th>');
     expect(slayer).toContain("Compare Slayer masters");
     expect(slayer).toContain("Only when you need a new assignment.");
     expect(slayer.indexOf("<SlayerTaskRoute")).toBeLessThan(slayer.indexOf("<ScapestackReadinessRail"));

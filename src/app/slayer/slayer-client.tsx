@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
-import { ArrowRight, Backpack, Ban, Check, ChevronDown, Coins, MapPin, RotateCw, Search, Swords } from "lucide-react";
+import { ArrowRight, ChevronDown, RotateCw, Search, Swords } from "lucide-react";
 import { hiscoresAction, slayerTaskAction, syncedPlayerAction } from "@/app/actions";
 import { ItemSprite } from "@/components/item-sprite";
 import { ScapestackReadinessRail } from "@/components/scapestack-readiness-rail";
@@ -238,7 +238,7 @@ function RsnLookup({
 }) {
   return (
     <section className="border-b border-[var(--color-border)] pb-5">
-      <label htmlFor="slayer-rsn-input" className="mb-2 block font-serif text-[22px] font-bold text-[var(--color-text)]">
+      <label htmlFor="slayer-rsn-input" className="mb-2 block text-[22px] font-bold text-[var(--color-text)]">
         Load your Slayer task
       </label>
       <div className="flex flex-col gap-2 sm:flex-row">
@@ -302,7 +302,11 @@ function SlayerTaskRoute({
   const primaryLabel = decision.verdict === "refresh" ? "Sync again" : decision.bossVariant ? "Build boss setup" : "Open task guide";
 
   return (
-    <article className="overflow-hidden rounded-xl border border-[var(--color-accent)]/55 bg-[var(--color-panel)] shadow-[0_24px_80px_-58px_rgba(0,0,0,0.95)]">
+    // The accent border, the panel fill and the 80px drop shadow were all
+    // saying "this is the important one" about the only thing on screen.
+    // Direction B: a hairline states the boundary and the task name carries
+    // the weight.
+    <article className="overflow-hidden border border-[var(--color-border-strong)]">
       <div className="p-5 sm:p-7">
         <div className="flex gap-4 sm:gap-5">
           <div className="flex size-20 shrink-0 items-center justify-center rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-bg)] sm:size-28">
@@ -310,29 +314,56 @@ function SlayerTaskRoute({
           </div>
           <div className="min-w-0 flex-1">
             <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--color-accent)]">{decision.verdictLabel}</div>
-            <h2 className="mt-1 font-serif text-[27px] font-bold leading-tight text-[var(--color-text)] sm:text-[38px]">
+            <h2 className="mt-1 text-[27px] font-bold leading-tight text-[var(--color-text)] sm:text-[38px]">
               {decision.remaining.toLocaleString()} {decision.task.name}{decision.remaining === 1 ? "" : "s"}
             </h2>
             <p className="mt-2 max-w-3xl text-[13px] font-semibold leading-relaxed text-[var(--color-text-dim)] sm:text-[14px]">{decision.why}</p>
           </div>
         </div>
 
-        <div className="mt-6 divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
-          <RouteLine icon={Swords} label="Start" value={decision.firstStep} />
-          <RouteLine icon={Backpack} label="Bring" value={inventoryCopy(decision)} />
-          <RouteLine icon={MapPin} label="Stop at" value={decision.stopPoint} />
-          <RouteLine icon={Coins} label="Points" value={decision.pointsConsequence} />
-          {decision.avoid && <RouteLine icon={Ban} label="Skip for now" value={decision.avoid} />}
+        {/* The five route lines were an icon-plus-label list. Each icon
+            restated the word beside it — a sword next to "Start" — so they are
+            gone and the labels are real row headers, which is also what makes
+            a screen reader announce "Stop at, 30 kills in". */}
+        <div className="scape-table-wrap mt-6">
+          <table className="scape-table" aria-label="How to run this task">
+            <tbody>
+              <tr><th scope="row" className="w-[112px]">Start</th><td>{decision.firstStep}</td></tr>
+              <tr><th scope="row">Bring</th><td>{inventoryCopy(decision)}</td></tr>
+              <tr><th scope="row">Stop at</th><td>{decision.stopPoint}</td></tr>
+              <tr><th scope="row">Points</th><td>{decision.pointsConsequence}</td></tr>
+              {decision.avoid && (
+                <tr><th scope="row">Skip for now</th><td>{decision.avoid}</td></tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
+        {/* Owned versus missing is a "can I do this" answer, so it takes the
+            game's own ramp rather than the accent-and-amber pills it used to
+            wear. The word says it too — colour is never the only signal. */}
         {decision.inventory.length > 0 && decision.bankUsed && (
-          <div className="mt-5 flex flex-wrap gap-2" aria-label="Task items checked in bank">
-            {decision.inventory.slice(0, 6).map((item) => (
-              <span key={item.label} className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold ${item.owned ? "border-[var(--color-accent)]/45 text-[var(--color-accent)]" : "border-[var(--color-warning)]/35 text-[var(--color-warning)]"}`}>
-                {item.owned ? <Check className="size-3" /> : <Ban className="size-3" />}
-                {item.itemName ?? item.label}
-              </span>
-            ))}
+          <div className="scape-table-wrap mt-5">
+            <table className="scape-table" aria-label="Task items checked against your bank">
+              <thead>
+                <tr>
+                  <th scope="col">Item</th>
+                  <th scope="col">In bank</th>
+                </tr>
+              </thead>
+              <tbody>
+                {decision.inventory.slice(0, 6).map((item) => (
+                  <tr key={item.label}>
+                    <td className="w-full max-w-0 truncate">{item.itemName ?? item.label}</td>
+                    <td>
+                      <span className="scape-verdict" data-gate={item.owned ? "ready" : "blocked"}>
+                        {item.owned ? "Found" : "Missing"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
 
@@ -365,15 +396,6 @@ function SlayerTaskRoute({
   );
 }
 
-function RouteLine({ icon: Icon, label, value }: { icon: typeof Swords; label: string; value: string }) {
-  return (
-    <div className="grid gap-1 py-4 sm:grid-cols-[120px_1fr] sm:gap-4">
-      <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.16em] text-[var(--color-accent)]"><Icon className="size-3.5" />{label}</div>
-      <p className="text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)] sm:text-[13px]">{value}</p>
-    </div>
-  );
-}
-
 function inventoryCopy(decision: SlayerTaskDecision): string {
   if (!decision.bankUsed) return "Add bank for an owned-item check; keep the first trip short until then.";
   const owned = decision.inventory.filter((item) => item.owned).map((item) => item.itemName ?? item.label);
@@ -399,7 +421,7 @@ function NoCurrentTask({
     <section className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-5 sm:p-7">
       <div className="max-w-2xl">
         <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--color-accent)]">Next Slayer move</div>
-        <h2 className="mt-2 font-serif text-[28px] font-bold text-[var(--color-text)]">
+        <h2 className="mt-2 text-[28px] font-bold text-[var(--color-text)]">
           {unresolvedRemaining > 0
             ? "Refresh the task name once."
             : hasSync
@@ -428,21 +450,47 @@ function MasterRoutes({ masters }: { masters: ReturnType<typeof rankMasters> }) 
     <details className="group border-y border-[var(--color-border)] py-1">
       <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 py-3">
         <div>
-          <div className="font-serif text-[19px] font-bold text-[var(--color-text)]">Compare Slayer masters</div>
+          <div className="text-[19px] font-bold text-[var(--color-text)]">Compare Slayer masters</div>
           <div className="mt-0.5 text-[11.5px] text-[var(--color-text-muted)]">Only when you need a new assignment.</div>
         </div>
         <ChevronDown className="size-4 text-[var(--color-text-muted)] transition-transform group-open:rotate-180" />
       </summary>
-      <div className="divide-y divide-[var(--color-border)] pb-3">
-        {masters.length > 0 ? masters.map((simulation, index) => (
-          <div key={simulation.master.id} className="flex items-center justify-between gap-4 py-3">
-            <div>
-              <div className="text-[13px] font-bold text-[var(--color-text)]">{simulation.master.name}{index === 0 ? " · best available" : ""}</div>
-              <div className="mt-0.5 text-[11.5px] text-[var(--color-text-muted)]">{simulation.master.location} · {simulation.eligibleTaskCount} possible tasks</div>
-            </div>
-            <span className="text-[11px] font-bold text-[var(--color-accent)]">Combat {simulation.master.combatRequirement}+</span>
+      {/* Comparing masters is comparing two numbers — how many tasks each can
+          give you and what combat level it wants — so it is a table. The old
+          layout buried both inside a run-on subtitle where they could not be
+          read down the column. */}
+      <div className="pb-3">
+        {masters.length > 0 ? (
+          <div className="scape-table-wrap">
+            <table className="scape-table" aria-label="Slayer masters ranked for this account">
+              <thead>
+                <tr>
+                  <th scope="col">Master</th>
+                  <th scope="col" className="hidden sm:table-cell">Location</th>
+                  <th scope="col" data-num>Tasks</th>
+                  <th scope="col" data-num>Combat</th>
+                </tr>
+              </thead>
+              <tbody>
+                {masters.map((simulation, index) => (
+                  <tr key={simulation.master.id}>
+                    <td className="w-full max-w-0">
+                      <span className="block truncate font-semibold text-[var(--color-text)]">
+                        {simulation.master.name}
+                      </span>
+                      {index === 0 && (
+                        <span className="block text-[11px] text-[var(--color-text-muted)]">Best available</span>
+                      )}
+                    </td>
+                    <td className="hidden max-w-[12rem] truncate sm:table-cell">{simulation.master.location}</td>
+                    <td data-num>{simulation.eligibleTaskCount}</td>
+                    <td data-num>{simulation.master.combatRequirement}+</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )) : (
+        ) : (
           <p className="py-4 text-[12.5px] text-[var(--color-text-muted)]">No master can be verified from the known levels and quest gates yet.</p>
         )}
       </div>

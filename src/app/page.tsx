@@ -1,4 +1,5 @@
 import { HeroIntake } from "@/components/hero-intake";
+import { HomeSpecimen } from "@/components/home-specimen";
 import { BOSSES } from "@/lib/bosses";
 
 // This page has no server data. Keeping it as one immutable deployment
@@ -63,6 +64,13 @@ export default function HomePage() {
         >
           <HeroIntake />
         </div>
+
+        {/* Direction B argues that the data is the design, so the homepage has
+            to show data rather than describe it. Every number in this table is
+            the real engine answering about the reference account Scapestack
+            already ships behind "Try a sample plan", computed at build time.
+            The account is named on the page so nobody reads it as their own. */}
+        <HomeSpecimen />
 
         {/* The specimen's closing note: what the numbers are computed from and
             what they cannot see. The worn-gear clause is the same sentence the

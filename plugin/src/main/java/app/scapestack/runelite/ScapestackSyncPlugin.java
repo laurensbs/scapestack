@@ -496,7 +496,8 @@ public class ScapestackSyncPlugin extends Plugin {
         GameStateReader.BankStatus bankStatus = effectiveBankStatus(snap);
         CollectionLogReader.Status collectionLogStatus = effectiveCollectionLogStatus(snap);
         panel.setBankStatus(panelBankStatus(bankStatus));
-        panel.setCollectionLogStatus(CollectionLogReader.playerInstruction(collectionLogStatus));
+        panel.setCollectionLogStatus(panelCollectionLogStatus(collectionLogStatus));
+        panel.setFarmingStatus(panelFarmingStatus(snap.farmingStatus, System.currentTimeMillis()));
         panel.setNextAction(panelNextAction(bankStatus, collectionLogStatus, status));
         if ("Synced".equals(status)) {
             panel.setLastSync("Just now");
@@ -801,6 +802,24 @@ public class ScapestackSyncPlugin extends Plugin {
             slayer.add("blockNames", gson.toJsonTree(new ArrayList<>(snap.slayer.blockNames)));
             body.add("slayer", slayer);
         }
+        // Present exactly when coverage.farming says available — the server
+        // rejects the payload outright if those two disagree.
+        if (snap.farming != null) {
+            JsonArray farming = new JsonArray();
+            for (FarmingTimerReader.Row row : snap.farming) {
+                JsonObject patch = new JsonObject();
+                patch.addProperty("patch", row.patch);
+                patch.addProperty("state", row.state);
+                // Omitted rather than sent as null: the shared Gson drops
+                // JsonNull from a tree anyway, and the server reads an absent
+                // crop or readyAt as null. Writing the null would be a lie
+                // about what actually goes over the wire.
+                if (row.crop != null) patch.addProperty("crop", row.crop);
+                if (row.readyAt != null) patch.addProperty("readyAt", row.readyAt);
+                farming.add(patch);
+            }
+            body.add("farming", farming);
+        }
         if (snap.combatAchievements != null) {
             JsonObject ca = new JsonObject();
             ca.addProperty("points", snap.combatAchievements.points);
@@ -879,8 +898,9 @@ public class ScapestackSyncPlugin extends Plugin {
     }
 
     // Lands in a panel row already labelled "Bank", so the value never repeats
-    // the word: "Bank: Bank off" read as a stutter.
-    private static String panelBankStatus(GameStateReader.BankStatus status) {
+    // the word: "Bank: Bank off" read as a stutter. These rows report state;
+    // the instruction that goes with it belongs to Next action, once.
+    static String panelBankStatus(GameStateReader.BankStatus status) {
         if (status.itemCount > 0) {
             return formatCount(status.itemCount, "item stack", "item stacks");
         }
@@ -888,12 +908,72 @@ public class ScapestackSyncPlugin extends Plugin {
             return "Off";
         }
         if ("bank-not-opened-this-session".equals(status.unavailableReason)) {
-            return "Open your bank once";
+            return "Not opened this session";
         }
         if ("no-items-captured".equals(status.unavailableReason)) {
             return "No items captured";
         }
         return "Unavailable";
+    }
+
+    /** State, not an instruction — Next action already carries the instruction. */
+    static String panelCollectionLogStatus(CollectionLogReader.Status status) {
+        if (status == null || !status.opened) {
+            return "Not opened";
+        }
+        if (!status.hasLoadedItemSlots()) {
+            return "No category loaded";
+        }
+        return formatCount(status.obtainedItemCount, "slot", "slots");
+    }
+
+    /**
+     * One row for the whole farming domain: what is waiting, and how long the
+     * next thing has left. Counted in what the player counts in — patches and
+     * minutes — and it says "not seen yet" rather than "0 patches" when
+     * RuneLite has never observed one, because those are different facts.
+     */
+    static String panelFarmingStatus(FarmingTimerReader.Result status, long nowMs) {
+        if (status == null) return "Not read yet";
+        if ("not-loaded".equals(status.state)) return "No patches seen yet";
+        if (!status.isAvailable()) return "Unavailable";
+
+        int ready = 0;
+        long soonestMs = Long.MAX_VALUE;
+        for (FarmingTimerReader.Row row : status.rows) {
+            if (FarmingTimerReader.READY.equals(row.state)) ready++;
+            if (row.readyAt == null) continue;
+            try {
+                long at = java.time.Instant.parse(row.readyAt).toEpochMilli();
+                if (at > nowMs && at < soonestMs) soonestMs = at;
+            } catch (RuntimeException ignored) {
+                // A row we cannot read is not a row we count.
+            }
+        }
+        String next = soonestMs == Long.MAX_VALUE ? null : formatCountdown(soonestMs - nowMs);
+        if (ready > 0 && next != null) {
+            return formatCount(ready, "patch ready", "patches ready") + ", next in " + next;
+        }
+        if (ready > 0) {
+            return formatCount(ready, "patch ready", "patches ready");
+        }
+        if (next != null) {
+            return "Next in " + next;
+        }
+        return "Nothing growing";
+    }
+
+    static String formatCountdown(long millis) {
+        long minutes = Math.max(1, millis / 60_000L);
+        if (minutes < 60) return minutes + " min";
+        long hours = minutes / 60;
+        if (hours < 24) {
+            long rest = minutes % 60;
+            return rest == 0 ? hours + "h" : hours + "h " + rest + "m";
+        }
+        long days = hours / 24;
+        long restHours = hours % 24;
+        return restHours == 0 ? days + "d" : days + "d " + restHours + "h";
     }
 
     static String panelNextAction(

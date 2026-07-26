@@ -123,8 +123,76 @@ export function signalCoverageForSyncedPlayer(player: SyncedPlayer): PluginSigna
       detail: player.slayer
         ? "Current task, points, streak and blocks can shape /next and /slayer."
         : "Without Slayer state, task recommendations stay inferred."
-    }
+    },
+    farmingCoverage(player)
   ];
+}
+
+/**
+ * Farm and birdhouse timers, contract v4.
+ *
+ * The distinction that matters here is "we have not looked" versus "there is
+ * nothing planted", and only one of those is a reason to change what you do
+ * next. RuneLite's Time Tracking only knows a patch once the player has walked
+ * past it, so an account with a full farm reads as unobserved until then —
+ * telling that player their farm is empty would be the same class of false
+ * zero as reporting an unread boss log as zero KC.
+ */
+function farmingCoverage(player: SyncedPlayer): PluginSignalCoverage {
+  const patches = player.farming;
+  const state = player.availability?.farming;
+
+  // Order matters. "This build cannot read timers" is a stronger statement than
+  // "no rows arrived", and both come with farming === null — so the explicit
+  // state is checked first or it never gets reached.
+  if (state === "unavailable" || state === "unsupported") {
+    return {
+      label: "Farm timers",
+      status: "missing",
+      summary: "Not available",
+      detail: "This plugin build cannot read Time Tracking, so farm runs stay out of the plan."
+    };
+  }
+  if (!patches || state === "not-loaded") {
+    return {
+      label: "Farm timers",
+      status: "partial",
+      summary: "No patches seen yet",
+      detail: "RuneLite only knows a patch once you have walked past it with Time Tracking on. Nothing here means unseen, not empty."
+    };
+  }
+
+  const ready = patches.filter((patch) => patch.state === "ready").length;
+  const growing = patches
+    .filter((patch) => patch.state === "growing" && patch.readyAt)
+    .map((patch) => Date.parse(patch.readyAt as string))
+    .filter((at) => Number.isFinite(at))
+    .sort((left, right) => left - right);
+  const lost = patches.filter((patch) => patch.state === "diseased" || patch.state === "dead").length;
+
+  const parts: string[] = [];
+  if (ready > 0) parts.push(`${ready} ready`);
+  if (growing.length > 0) parts.push(`next in ${untilLabel(growing[0])}`);
+  if (lost > 0) parts.push(`${lost} needs attention`);
+
+  return {
+    label: "Farm timers",
+    status: patches.length > 0 ? "exact" : "partial",
+    summary: parts.join(" · ") || `${patches.length} patches, nothing growing`,
+    detail: lost > 0
+      ? "A diseased patch spreads and a dead one has to be cleared before you replant."
+      : "Ready patches and the next timer can pull a farm run into the plan instead of waiting for you to remember."
+  };
+}
+
+/** "1h 20m" / "40m" / "now" — the way a player reads a timer. */
+function untilLabel(at: number, now: number = Date.now()): string {
+  const minutes = Math.round((at - now) / 60_000);
+  if (minutes <= 0) return "now";
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest === 0 ? `${hours}h` : `${hours}h ${rest}m`;
 }
 
 export function actionQueueForSyncedPlayer(player: SyncedPlayer, context: PluginSyncDiagnosticContext = {}): PluginSyncActionQueueItem[] {

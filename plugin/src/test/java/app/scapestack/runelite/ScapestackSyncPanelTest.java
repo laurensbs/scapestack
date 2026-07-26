@@ -31,20 +31,35 @@ public class ScapestackSyncPanelTest {
         assertTrue(source.contains("Next action"));
         assertTrue(source.contains("Turn everything on"));
         assertTrue(source.contains("What gets sent"));
-        assertTrue(source.contains("Skills, XP, quests, diaries, boss KC RuneLite has seen, Slayer task and bank items"));
+        assertTrue(source.contains("Skills, XP, quests, diaries, boss KC RuneLite has seen, Slayer task, farm and birdhouse timers, and bank items"));
         assertTrue(source.contains("Auto update refreshes after login and then every 15 minutes while you play"));
         assertTrue(source.contains("Bank off sends everything except your bank"));
-        assertTrue(source.contains("Collection Log"));
+        assertTrue(source.contains("Collection log"));
+        assertTrue(source.contains("Farming"));
         assertTrue(source.contains("Troubleshooting"));
         assertTrue(source.contains("Connect this browser"));
         assertTrue(source.contains("Get a code on Scapestack"));
-        assertTrue(source.contains("shouldShowCollectionLogInstruction"));
 
         String lower = source.toLowerCase();
         assertFalse(lower.contains("paste endpoint"));
         assertFalse(lower.contains("sync url"));
         assertFalse(lower.contains("payload"));
         assertFalse(lower.contains("http status"));
+    }
+
+    /**
+     * "Clog" was the one piece of jargon in the panel, and it only existed to
+     * stop "Collection Log: Open Collection Log once" from stuttering. The
+     * value is state now, so the abbreviation has nothing left to buy — and a
+     * first-time installer should not have to decode a row label.
+     */
+    @Test
+    public void panelRowLabelsAreNotJargon() throws Exception {
+        String source = panelSource();
+
+        assertFalse("panel row label \"Clog\" is jargon", source.contains("new StatusRow(\"Clog\""));
+        assertTrue(source.contains("new StatusRow(\"Collection log\""));
+        assertTrue(source.contains("new StatusRow(\"Farming\""));
     }
 
     /**

@@ -227,7 +227,7 @@ export function GoalsClient() {
       <section className="mx-auto max-w-3xl">
         <div className="mb-5">
           <p className="eyebrow text-[var(--color-accent)]">Unlock companion</p>
-          <h2 className="mt-2 font-serif text-[34px] font-bold leading-tight text-[var(--color-text)] sm:text-[46px]">
+          <h2 className="mt-2 text-[34px] font-bold leading-tight text-[var(--color-text)] sm:text-[46px]">
             What should you unlock next?
           </h2>
           <p className="mt-2 max-w-xl text-[14px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
@@ -242,11 +242,15 @@ export function GoalsClient() {
 
   // ── Result view ──
   return (
-    <div className="animate-[slide-up_0.35s_ease-out]">
+    // No entry animation. This is the answer the player asked for by name, and
+    // slide-up moved it 8px on first paint at 350ms — over the 300ms ceiling,
+    // and transform rather than opacity, so it also needed a reduced-motion
+    // substitute it never had.
+    <div>
       <section className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="eyebrow text-[var(--color-accent)]">For {activeRsn || "this account"}</p>
-          <h2 className="mt-1 font-serif text-[34px] font-bold leading-none text-[var(--color-text)]">Unlock this next</h2>
+          <h2 className="mt-1 text-[34px] font-bold leading-none text-[var(--color-text)]">Unlock this next</h2>
           <p className="mt-2 max-w-xl text-[13.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
             One reward worth chasing now. Open it for the exact next step.
           </p>
@@ -286,7 +290,7 @@ export function GoalsClient() {
           className="group flex min-h-14 w-full items-center justify-between gap-4 text-left"
         >
           <span>
-            <span className="block font-serif text-[24px] font-bold text-[var(--color-text)]">Browse other unlocks</span>
+            <span className="block text-[24px] font-bold text-[var(--color-text)]">Browse other unlocks</span>
             <span className="mt-0.5 block text-[12.5px] font-semibold text-[var(--color-text-muted)]">
               Quests, diaries, capes, outfits and useful grinds.
             </span>
@@ -295,7 +299,7 @@ export function GoalsClient() {
         </button>
 
         {browserOpen && (
-          <div className="mt-4 animate-[slide-up_0.25s_ease-out]">
+          <div className="mt-4 animate-[fade-in_0.18s_cubic-bezier(0.05,0.7,0.1,1)_both]">
             <div className="mb-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_220px]">
               <div className="relative">
                 <label htmlFor="goals-search" className="sr-only">Search unlocks</label>
@@ -330,18 +334,35 @@ export function GoalsClient() {
               {filteredSets.length} unlocks shown.
             </p>
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredSets.map(({ set, completion }) => (
-                <UnlockBrowserTile
-                  key={set.id}
-                  set={set}
-                  completion={completion}
-                  selected={(selectedSetId ?? spotlight?.setId) === set.id}
-                  onSelect={() => chooseUnlock(set.id, true)}
-                />
-              ))}
-            </div>
-            {filteredSets.length === 0 && (
+            {/* This was a three-column grid of 164px tiles. Every tile carried
+                the same four facts in four different places, and the one that
+                decides whether a set is worth opening — how much of it you
+                already have — was not on the tile at all. It is a table now,
+                and the fraction reads down the column. */}
+            {filteredSets.length > 0 ? (
+              <div className="scape-table-wrap">
+                <table className="scape-table" aria-label="Unlock sets">
+                  <thead>
+                    <tr>
+                      <th scope="col">Unlock</th>
+                      <th scope="col" className="hidden md:table-cell">Where</th>
+                      <th scope="col" data-num>Have</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredSets.map(({ set, completion }) => (
+                      <UnlockBrowserRow
+                        key={set.id}
+                        set={set}
+                        completion={completion}
+                        selected={(selectedSetId ?? spotlight?.setId) === set.id}
+                        onSelect={() => chooseUnlock(set.id, true)}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
               <p className="py-10 text-center text-[13px] font-semibold text-[var(--color-text-muted)]">
                 No unlock matches that search.
               </p>
@@ -669,7 +690,7 @@ function NextUnlockCompanion({
         </div>
         <div className="min-w-0">
           <p className="eyebrow text-[var(--color-accent)]">Best next unlock</p>
-          <h3 className="mt-1 font-serif text-[30px] font-bold leading-tight text-[var(--color-text)] sm:text-[38px]">
+          <h3 className="mt-1 text-[30px] font-bold leading-tight text-[var(--color-text)] sm:text-[38px]">
             {guideTarget}
           </h3>
           <p className="mt-1 text-[12px] font-bold text-[var(--color-accent)]">{set.name}</p>
@@ -681,12 +702,17 @@ function NextUnlockCompanion({
           </p>
 
           <div className="mt-4 border-t border-[var(--color-border)] pt-4">
-            <p className="text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-              <span className="font-bold text-[var(--color-text)]">Start:</span> {beforeLine}
-            </p>
-            <p className="mt-1 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
-              <span className="font-bold text-[var(--color-text)]">Stop:</span> {finishLine}
-            </p>
+            {/* Two labelled values are a two-column table, which is also what
+                makes a screen reader announce "Stop, after the set changes"
+                instead of two loose sentences. */}
+            <div className="scape-table-wrap">
+              <table className="scape-table">
+                <tbody>
+                  <tr><th scope="row" className="w-[64px]">Start</th><td>{beforeLine}</td></tr>
+                  <tr><th scope="row">Stop</th><td>{finishLine}</td></tr>
+                </tbody>
+              </table>
+            </div>
             <button
               type="button"
               onClick={onOpenSteps}
@@ -792,7 +818,7 @@ function GoalUnlockModal({
             </span>
             <div className="min-w-0">
               <p className="eyebrow text-[var(--color-accent)]">Your next unlock</p>
-              <h2 id="goal-unlock-modal-title" className="mt-1 font-serif text-[28px] font-bold leading-tight text-[var(--color-text)] sm:text-[36px]">
+              <h2 id="goal-unlock-modal-title" className="mt-1 text-[28px] font-bold leading-tight text-[var(--color-text)] sm:text-[36px]">
                 {target?.name ?? set.name}
               </h2>
               <p className="mt-1 text-[13px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
@@ -822,17 +848,21 @@ function GoalUnlockModal({
 
           <section className="border-y border-[var(--color-border)] py-4">
             <p className="eyebrow text-[var(--color-accent)]">Do this</p>
-            <ol className="mt-3 space-y-3">
-              {planSteps.map((step, index) => (
-                <li key={`${step.title}:${step.body}`} className="grid grid-cols-[28px_minmax(0,1fr)] gap-3">
-                  <span className="flex size-7 items-center justify-center rounded-full border border-[var(--color-accent)]/40 bg-black/25 text-[11px] font-bold text-[var(--color-accent)]">{index + 1}</span>
-                  <div>
-                    <p className="text-[12px] font-bold text-[var(--color-text)]">{step.title}</p>
-                    <p className="mt-0.5 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">{step.body}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
+            {/* The numbered accent discs were counting to three next to steps
+                already called Start, Then and Stop. The words carry the order,
+                so the discs are gone and the titles are row headers. */}
+            <div className="scape-table-wrap mt-3">
+              <table className="scape-table">
+                <tbody>
+                  {planSteps.map((step) => (
+                    <tr key={`${step.title}:${step.body}`}>
+                      <th scope="row" className="w-[84px] whitespace-nowrap">{step.title}</th>
+                      <td>{step.body}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             <p className="mt-4 text-[12px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
               <span className="font-bold text-[var(--color-text)]">Before you start:</span> {unlockRequirementLine(set, target)}
             </p>
@@ -920,7 +950,12 @@ function GoalUnlockModal({
   );
 }
 
-function UnlockBrowserTile({
+// One unlock set, one row. The sprite stays at 26px because the item art is
+// the OSRS identity here — the wiki's own reward tables carry a thumbnail
+// column exactly like this — and everything else that used to be a card is a
+// cell. The clickable target is a real button filling the name cell, not the
+// row, because the other cells are data a screen reader should read as data.
+function UnlockBrowserRow({
   set,
   completion,
   selected,
@@ -942,34 +977,36 @@ function UnlockBrowserTile({
     : iconForGoal(target.id, completion.perGoal[target.id]) ?? set.iconItemId;
 
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      aria-pressed={selected}
-      className={cn(
-        "scape-route-choice group min-h-[164px] p-4 text-left",
-        selected
-          ? "border-[var(--color-accent)] bg-[#342613]"
-          : "border-[var(--color-border)] bg-[#17130c]/80 hover:border-[var(--color-accent)]/55"
-      )}
-    >
-      <span className="flex h-full gap-4">
-        <span className="flex size-20 shrink-0 items-center justify-center rounded-lg border border-[var(--color-accent)]/25 bg-black/25">
-          {iconId ? <ItemSprite id={iconId} alt="" size={56} className="pixelated" /> : <Compass className="size-8 text-[var(--color-accent)]" />}
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="flex items-start justify-between gap-2">
-            <span className="font-serif text-[20px] font-bold leading-tight text-[var(--color-text)]">{set.name}</span>
-            <ArrowRight className="mt-1 size-4 shrink-0 text-[var(--color-text-muted)] transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--color-accent)]" />
+    <tr className={cn(selected && "bg-[var(--color-accent)]/[0.07]")}>
+      {/* w-full + max-w-0 is what lets the truncate fire: without a definite
+          width a cell sizes to its content and pushes the fraction column off
+          the right edge of a phone. */}
+      <td className="w-full max-w-0">
+        <button
+          type="button"
+          onClick={onSelect}
+          aria-pressed={selected}
+          className="flex min-h-11 w-full items-center gap-2.5 text-left"
+        >
+          <span className="flex size-7 shrink-0 items-center justify-center overflow-hidden">
+            {iconId
+              ? <ItemSprite id={iconId} alt="" size={26} className="pixelated" />
+              : <Compass className="size-4 text-[var(--color-text-muted)]" />}
           </span>
-          <span className="mt-2 block text-[12px] font-bold leading-snug text-[var(--color-accent)]">
-            {norm.complete ? "Finished on this account" : `Next: ${target.name}`}
+          <span className="min-w-0">
+            <span className="block truncate text-[13.5px] font-semibold text-[var(--color-text)]">
+              {set.name}
+            </span>
+            <span className="block truncate text-[11px] text-[var(--color-text-muted)]">
+              {norm.complete ? "Finished on this account" : `Next: ${target.name}`}
+            </span>
           </span>
-          <span className="mt-2 line-clamp-2 block text-[11.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
-            {norm.complete ? "Open it to review what already counts." : sourceHintForGoal(set, target)}
-          </span>
-        </span>
-      </span>
-    </button>
+        </button>
+      </td>
+      <td className="hidden max-w-[20rem] truncate md:table-cell">
+        {norm.complete ? "Open it to review what already counts." : sourceHintForGoal(set, target)}
+      </td>
+      <td data-num>{norm.progress}/{norm.max}</td>
+    </tr>
   );
 }
