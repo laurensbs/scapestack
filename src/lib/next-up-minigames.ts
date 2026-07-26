@@ -128,7 +128,7 @@ export function minigameRecs(skills: HiscoreSkill[], access?: AccessContext): Re
       title: `Try ${mg.name}`,
       why: `${mg.gateSkill} ${level} — ${mg.why}`,
       payoff: mg.payoff,
-      decisionReason: `${mg.name} is open at your ${mg.gateSkill} level and has a clear one-session reward target.`,
+      decisionReason: `${mg.name} is open at your ${mg.gateSkill} level, and there is a reward worth stopping at.`,
       needs: accessLine ? [accessLine] : undefined,
       // Minigames sit between freshly-unlocked bosses and skill-pushes.
       score: (55 + freshness * 2) * relevance * accessScoreMultiplier(accessVerdict),
@@ -156,11 +156,11 @@ export function minigameRecs(skills: HiscoreSkill[], access?: AccessContext): Re
         // inventing a bar the game does not have; Soul Wars has two, and naming
         // only the combat half understated it.
         prep: entryLine(mg)
-          ? `${entryLine(mg)}; make this a reward-target session, not an endless queue.`
-          : "Nothing gates this; make it a reward-target session, not an endless queue.",
+          ? `${entryLine(mg)}; go in for one reward, not an endless queue.`
+          : "Nothing gates this; go in for one reward, not an endless queue.",
         steps: [
           `Set one ${mg.name} target before starting: one reward roll, outfit piece, or level bracket.`,
-          "Bank stamina/teleports/supplies for just that target so the session stays bounded.",
+          "Bank stams, tabs and food for just that target, so you know when to stop.",
           "Stop at the target and check your plan again; minigame unlocks often change the best follow-up."
         ]
       }

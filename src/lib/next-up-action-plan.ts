@@ -115,7 +115,7 @@ function actionPlanFor(rec: Recommendation, ctx: ActionPlanContext): Recommendat
     case "kc":
       return mergePlanSeed(rec, ctx, {
         timebox: "45-120 min",
-        prep: "This is a drop-chance session: decide the KC block before you start so dryness doesn't tilt the plan.",
+        prep: "This one is pure drop chance: pick the KC block before you start, so going dry does not tilt the plan.",
         steps: [
           "Open the boss detail and sanity-check the owned setup.",
           "Run a fixed KC block (10, 25 or 50 kills depending on boss length).",
@@ -128,7 +128,7 @@ function actionPlanFor(rec: Recommendation, ctx: ActionPlanContext): Recommendat
         prep: "Minigames are unlock engines: do a small token/reward target, not an endless queue.",
         steps: [
           "Check the world/activity requirements before gearing.",
-          "Set a one-session target: one reward roll, one outfit piece, or one level bracket.",
+          "Pick one thing to finish: a reward roll, an outfit piece, or a level bracket.",
           "Stop after the target and let your plan re-rank the account."
         ]
       });
@@ -157,7 +157,7 @@ function actionPlanFor(rec: Recommendation, ctx: ActionPlanContext): Recommendat
         timebox: "30-120 min",
         prep: "Push the unlock level, not random XP — stop when the account state changes.",
         steps: [
-          "Choose the fastest method you can tolerate for this session length.",
+          "Take the fastest method you can stand for as long as you have.",
           "Bank or buy the supplies for exactly the levels needed to unlock the milestone.",
           "Check your plan again once the level lands so quests, diaries and bosses unlock immediately."
         ]

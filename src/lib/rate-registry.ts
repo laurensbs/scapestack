@@ -100,7 +100,7 @@ export function bossProfitEstimate(
     assumptions: [
       "Solo encounter with the selected bank setup",
       "Includes movement, banking and mechanics rather than uninterrupted attacking",
-      `Never exceeds the curated ${boss.killsPerHourCap} kills/hour encounter ceiling`
+      `Never exceeds the ${boss.killsPerHourCap} kills/hour ceiling for this boss`
     ],
     inputs: {
       modelledTtkSeconds: Math.round(dps.ttk * 10) / 10,
