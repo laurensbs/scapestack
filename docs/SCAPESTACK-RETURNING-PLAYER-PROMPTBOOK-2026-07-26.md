@@ -109,6 +109,10 @@ Two gates in that file were invented rather than sourced. Soul Wars is 40 combat
 
 **"Why this trip?" explained a trip that was not on screen.** The panel read `result.headline` while the card rendered `WhatToDo`'s own pick, re-ranked by mood, time budget, route lens, shuffle, saved feedback and explicit selection. They diverge on the first render for most accounts and always after any interaction.
 
+**The adversarial pass on this batch: 26 claims, 16 refuted, 4 real after deduplication — all four mine.** The worst was an infinite render loop on the `/goals → /next` deep link: `recommendationForGoalRoute` built a fresh object every render, the new on-screen-pick callback turned that into a state update, and React aborted at "Maximum update depth exceeded" — reproduced in a headless browser against the committed code, and verified fixed live on production afterwards. The others: Amoxliatl's `{ needs: [] }` suppressed it for every bank-pasting account (an empty list now means "no gear gate"), Hespori's 65 Farming bar lived in a comment and was enforced nowhere, and the two combat-gated minigames vanished above combat 100. Plus one meta-defect: the new gear-gate name test validated *zero* names — its regex anchored on a header comment and captured the wrong table, which is how a misnamed item survived it. The test imports the table directly now.
+
+That is two passes in a row where a guard I wrote to catch a failure was itself broken in a way that made it pass vacuously (`audit:next`'s dead main-guard, then this). **A new gate's first test is that it can fail.**
+
 ### 1.3 Combat Achievements — deliberately not built here
 
 They belong in Wave 2, and the reason is worth writing down so nobody relitigates it.
