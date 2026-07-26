@@ -137,7 +137,26 @@ describe("RecommendationDecision contract", () => {
   });
 
   it("keeps internal honesty terminology out of player copy", () => {
-    const playerCopy = JSON.stringify(recommendationDecisionCopy(build())).toLowerCase();
+    // The VALUES, not the keys. This used to stringify the whole object, so it
+    // fired the moment the copy gained a `confidence` field — a field name a
+    // player never sees. Checking what renders is the point; checking the
+    // shape of the object was an accident of how it was written.
+    // Every string this module can put in front of a player, not just the ones
+    // one fixture happens to produce. The first version of this looked at a
+    // single `build()` and therefore never saw the source lines at all —
+    // proven by pasting "Confidence payload data quality" into one of them and
+    // watching the suite stay green.
+    const copies = [
+      recommendationDecisionCopy(build()),
+      // No bank, no RuneLite: the two states that carry a source line.
+      recommendationDecisionCopy(build({ hasBank: false, hasRuneLite: false })),
+      recommendationDecisionCopy(build({ hasBank: false, hasRuneLite: false, hasPublicStats: false }))
+    ];
+    const playerCopy = copies
+      .flatMap((copy) => Object.values(copy).flat())
+      .filter((value) => typeof value === "string")
+      .join(" ")
+      .toLowerCase();
 
     expect(playerCopy).not.toContain("confidence");
     expect(playerCopy).not.toContain("data quality");

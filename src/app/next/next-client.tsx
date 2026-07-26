@@ -4105,7 +4105,18 @@ function NextTripCard({
         </div>
 
         <div className="min-w-0">
-          <p className="eyebrow mb-2 text-[var(--color-accent)]">Do this first</p>
+          {/* The eyebrow states how much we know, because the size of the
+              heading underneath cannot. "Do this first" over a guess is what
+              told Lynx Titan — 200m XP in every skill — to finish his skill
+              capes. Structural on purpose: a different word and a source line,
+              not a third colour language on top of the gate ramp. */}
+          <p className="eyebrow mb-2 text-[var(--color-accent)]">
+            {decisionCopy.confidence === "measured"
+              ? "Do this first"
+              : decisionCopy.confidence === "likely"
+                ? "Best fit for your levels"
+                : "Best guess"}
+          </p>
 
           <h2 className="min-w-0 break-words text-[23px] font-black leading-[1.08] tracking-normal text-[var(--color-text)] sm:text-[32px]">
             {decisionCopy.title}
@@ -4113,6 +4124,11 @@ function NextTripCard({
           <p className="mt-2 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)] sm:text-[13.5px]">
             {decisionCopy.why}
           </p>
+          {decisionCopy.sourceLine && (
+            <p className="mt-1.5 text-[12px] leading-snug text-[var(--color-text-muted)]">
+              {decisionCopy.sourceLine}
+            </p>
+          )}
         </div>
 
         <dl className="col-span-2 grid gap-3 border-t border-[var(--color-border)] pt-4 sm:grid-cols-3">

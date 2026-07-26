@@ -122,7 +122,52 @@ export interface RecommendationDecisionCopy {
   stopPoint: string;
   timebox: string;
   requiredSetup: string[];
+  /** How much of this is known versus inferred. See decisionConfidence. */
+  confidence: RecommendationConfidence;
+  /** Where the pick came from, in the player's words. Null when measured —
+   *  a fact that cites itself does not need a footnote. */
+  sourceLine: string | null;
 }
+
+/**
+ * How much the engine actually knows about this pick.
+ *
+ * The site had no notation for this and it cost it its credibility on the one
+ * account anyone would test it with: /next told Lynx Titan, 200m XP in every
+ * skill, to "Finish Skill capes" and to "Get Ava's device" — in the same 32px
+ * bold as a fact, under the eyebrow "DO THIS FIRST". The sentence underneath
+ * was "This best matches your visible account progress", which is the LAST
+ * case in reasonCopy: the string emitted when there is nothing to cite. The
+ * most confident-sounding line on the page appeared precisely when the engine
+ * knew least.
+ *
+ * This is derived, not asserted. Every fact already carries a provenance, so
+ * the confidence is a read of what evidence exists — there is nothing here for
+ * a future edit to forget to set.
+ *
+ *   measured  something from the bank or a RuneLite sync backs this
+ *   likely    public Hiscores stats only — real, but blind to quests,
+ *             diaries and worn gear
+ *   guess     nothing but "it fits your visible progress", which is what the
+ *             engine says when it has no fact at all
+ */
+export type RecommendationConfidence = "measured" | "likely" | "guess";
+
+export function decisionConfidence(decision: RecommendationDecision): RecommendationConfidence {
+  const facts = decision.reasons.filter((reason) => reason.provenance !== "preference");
+  if (facts.some((fact) => fact.provenance === "bank" || fact.provenance === "runelite")) return "measured";
+  const substantive = facts.filter((fact) => fact.code !== "visible_progress_fit");
+  return substantive.length > 0 ? "likely" : "guess";
+}
+
+const SOURCE_LINE: Record<RecommendationConfidence, string | null> = {
+  measured: null,
+  likely: "From your Hiscores. Quests, diaries and worn gear are not visible there.",
+  // Says the quiet part. A player who has finished the quest we are offering
+  // needs to know why we asked, or the whole page reads as broken rather than
+  // as uninformed.
+  guess: "No finished-quest or bank data for this account, so this is a guess. Connect RuneLite and it stops guessing."
+};
 
 const RUNELITE_RELEVANT_KINDS = new Set<RecKind>(["quest", "diary", "slayer", "kc"]);
 const TEXT_LIMIT = 500;
@@ -365,13 +410,16 @@ export function recommendationDecisionCopy(decision: RecommendationDecision): Re
     .filter((fact, index, list): fact is RecommendationDecisionFact => Boolean(fact) && list.findIndex((candidate) => candidate?.code === fact?.code) === index)
     .map(reasonCopy)
     .join(". ");
+  const confidence = decisionConfidence(decision);
   return {
     title: decision.goal.label,
     why: sentence(why || decision.fallback.action),
     firstStep: decision.firstStep.label,
     stopPoint: decision.stopPoint.label,
     timebox: decision.timebox.label,
-    requiredSetup: decision.setup.required.map((requirement) => requirement.item)
+    requiredSetup: decision.setup.required.map((requirement) => requirement.item),
+    confidence,
+    sourceLine: SOURCE_LINE[confidence]
   };
 }
 
