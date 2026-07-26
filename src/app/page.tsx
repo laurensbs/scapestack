@@ -14,7 +14,7 @@ export default function HomePage() {
           <div className="home-hero-intro min-w-0 space-y-5 text-center lg:col-start-1 lg:row-start-1 lg:text-left">
             <div
               className="eyebrow"
-              style={{ animation: "hero-fade 0.55s cubic-bezier(0.22,1,0.36,1) 0.02s both" }}
+              style={{ animation: "hero-fade 240ms cubic-bezier(0.05,0.7,0.1,1) both" }}
             >
               OSRS trip picker
             </div>
@@ -22,18 +22,21 @@ export default function HomePage() {
               aria-label="Stop bankstanding. Pick the next trip."
               className="mx-auto max-w-[320px] break-words text-[30px] font-semibold leading-[0.98] text-[var(--color-text)] sm:max-w-[820px] sm:text-[62px] lg:mx-0 lg:text-[76px]"
             >
+              {/* Opacity only, and it ends. WCAG 2.3.3 does not class an
+                  opacity change as motion animation, so this needs no
+                  reduced-motion substitute — and nothing here loops. A
+                  seven-second shimmer used to run over the second line
+                  forever, on a page whose whole job is answering a question
+                  once. */}
               <span
                 className="block text-[var(--color-text)]"
-                style={{ animation: "hero-fade 0.65s cubic-bezier(0.22,1,0.36,1) 0.12s both" }}
+                style={{ animation: "hero-fade 260ms cubic-bezier(0.05,0.7,0.1,1) 60ms both" }}
               >
                 Stop bankstanding.
               </span>
               <span
                 className="block text-route-gradient"
-                style={{
-                  animation: "route-shimmer 7s linear 1.8s infinite",
-                  backgroundSize: "200% 100%"
-                }}
+                style={{ animation: "hero-fade 260ms cubic-bezier(0.05,0.7,0.1,1) 140ms both" }}
               >
                 Pick the next trip.
               </span>
@@ -42,7 +45,7 @@ export default function HomePage() {
             <p
               className="mx-auto max-w-[610px] text-[16px] leading-[1.6] text-[var(--color-text-secondary)] sm:text-[18px] lg:mx-0"
               style={{
-                animation: "hero-mask-reveal 1s cubic-bezier(0.22,1,0.36,1) 0.85s both",
+                animation: "hero-fade 260ms cubic-bezier(0.05,0.7,0.1,1) 220ms both",
                 clipPath: "inset(0 0 100% 0)"
               }}
             >
@@ -53,14 +56,14 @@ export default function HomePage() {
 
           <div
             className="home-hero-boss relative order-3 mx-auto -my-2 w-full max-w-[240px] sm:max-w-[390px] lg:order-none lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mx-0 lg:max-w-[460px]"
-            style={{ animation: "hero-boss-in 1.1s cubic-bezier(0.22,1,0.36,1) 0.65s both" }}
+            style={{ animation: "hero-fade 280ms cubic-bezier(0.05,0.7,0.1,1) 300ms both" }}
           >
             <HeroBossTripPreview />
           </div>
 
           <div
             className="home-hero-intake order-2 mx-auto w-full max-w-[720px] lg:order-none lg:col-start-1 lg:row-start-2 lg:mx-0"
-            style={{ animation: "hero-scale-in 0.9s cubic-bezier(0.22,1,0.36,1) 0.95s both" }}
+            style={{ animation: "hero-fade 280ms cubic-bezier(0.05,0.7,0.1,1) 380ms both" }}
           >
             <HeroIntake />
           </div>

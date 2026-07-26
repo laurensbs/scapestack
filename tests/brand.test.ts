@@ -141,17 +141,25 @@ describe("Scapestack branding", () => {
     expect(layoutSource).toContain("{BRAND_TAGLINE}");
     expect(layoutSource).toContain("Made for Gielinor");
     expect(globalsSource).toContain('--font-sans: "Atkinson Hyperlegible"');
-    expect(globalsSource).toContain('--font-display: "Iowan Old Style"');
+    // Was pinned to a serif display face. Direction B (2026-07-26) removed
+    // the second typeface entirely — a reference tool does not carry an
+    // editorial headline face, and it was the loudest generic signal in the
+    // old palette. The token stays as a seam; it resolves to the body stack.
+    expect(globalsSource).toContain("--font-display:");
+    expect(globalsSource).not.toContain('"Iowan Old Style"');
+    // These used to assert three sentences of prose describing the old
+    // palette, which guarded nothing but the description. What the test is
+    // actually for — the global chrome being Scapestack's own, with named
+    // components rather than borrowed framework classes — is carried by the
+    // class assertions below and by the direction marker here.
     expect(globalsSource).toContain("Scapestack style lock");
-    expect(globalsSource).toContain("black/gold OSRS companion system");
-    expect(globalsSource).toContain("Chantlings/Wayfinder black canvas");
+    expect(globalsSource).toContain("direction B");
     expect(globalsSource).toContain(".scapestack-lock-panel");
     expect(globalsSource).toContain(".scapestack-lock-card");
     expect(globalsSource).toContain(".scapestack-lock-list");
     expect(globalsSource).toContain(".scapestack-command-button");
     expect(globalsSource).toContain(".scapestack-plan-panel");
     expect(globalsSource).toContain(".scapestack-session-list");
-    expect(globalsSource).toContain("moonlit black, warm gold and parchment focus surfaces");
     expect(globalsSource).toContain(".scapestack-modal");
     expect(globalsSource).toContain(".scapestack-route-card");
     expect(globalsSource).toContain(".scapestack-boss-tile");

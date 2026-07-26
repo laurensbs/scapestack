@@ -1,8 +1,20 @@
 @import "tailwindcss";
 
-/*  Scapestack — moonlit black, warm gold and parchment focus surfaces.
-    The app should feel like an OSRS companion: black canvas, cream text,
-    quiet near-black app chrome, and gold only where the player can act.
+/*  Scapestack — direction B, "Wiki". Chosen 2026-07-26.
+    See docs/design/SCAPESTACK-DESIGN-SYSTEM.md; four directions were built
+    and compared in docs/design/directions.html.
+
+    The form players already trust: a reference document. Rules instead of
+    shadows, weight instead of ornament, and no atmosphere at all. The one
+    rule that decides every other choice here comes from the game itself —
+    the interface is drab so the numbers can shout. Saturated colour is
+    DATA ONLY, and the hexes for it are Jagex's own, measured pixel by pixel
+    from the client (see the design system for the sampling).
+
+    Two things deliberately removed with this change: the display serif on
+    headings, which made the site read as a fashion magazine rather than a
+    tool, and coloured links, because a reference document underlines rather
+    than tints. Both were the loudest generic signals in the old palette.
 
     Critical implementation note: every accent-aware animation in the
     keyframes below uses literal rgba(...) calls, not CSS variables.
@@ -12,36 +24,63 @@
 
 @theme {
   /* Surfaces — black app chrome, parchment reserved for focused dialogs */
-  --color-bg: #030201;
-  --color-bg-2: #070604;
-  --color-panel: #0E0B07;
-  --color-panel-2: #151008;
-  --color-surface: #120E09;
-  --color-border: #342918;
-  --color-border-strong: #7E6538;
+  --color-bg: #0D0D0C;
+  --color-bg-2: #131312;
+  --color-panel: #171715;
+  --color-panel-2: #1D1D1A;
+  --color-surface: #191917;
+  --color-border: #26261F;
+  --color-border-strong: #3B3B32;
   --color-parchment: #2A2115;
   --color-parchment-2: #372B1B;
   --color-parchment-dark: #151008;
   --color-parchment-edge: #8A7142;
 
   /* Text */
-  --color-text: #F7EFE1;
-  --color-text-secondary: #DDCFB8;
-  --color-text-dim: #B4A58D;
-  --color-text-muted: #8A7D69;
+  --color-text: #EDEBE6;
+  --color-text-secondary: #C4C1B8;
+  --color-text-dim: #A29E94;
+  --color-text-muted: #8A877F;
 
   /* Brass is identity and primary action. No green success theme. */
-  --color-gold: #E0AE37;
-  --color-gold-soft: #F3D27A;
-  --color-gold-deep: #8D641A;
-  --color-accent: #E0AE37;
-  --color-accent-soft: #F3D27A;
-  --color-rune: #E0AE37;
+  --color-gold: #FF981F;
+  --color-gold-soft: #FFB65C;
+  --color-gold-deep: #B26100;
+  --color-accent: #FF981F;
+  --color-accent-soft: #FFB65C;
+  --color-rune: #FF981F;
 
-  --color-good: #E0AE37;
-  --color-warning: #E0AE37;
+  --color-good: #FF981F;
+  --color-warning: #FF981F;
   --color-danger: #B76A57;
   --color-bad: #B76A57;
+
+  /* ── Data colours ───────────────────────────────────────────────────
+     Jagex's own, sampled pixel by pixel from the client and cross-checked
+     against RuneLite's JagexColors. Players read these without a legend:
+     a green number is millions. Breaking that is worse than not using it.
+
+     These are the ONLY saturated colours in the system, and they may only
+     ever land on a real number or a real verdict — never on chrome. */
+  --color-data-head: #FF981F;    /* interface heading — 100% of sampled pixels */
+  --color-data-level: #FFFF00;   /* levels, and stacks under 100K */
+  --color-data-k: #FFFFFF;       /* stacks 100K-9.9M, suffix K */
+  --color-data-m: #00FF80;       /* stacks 10M+, suffix M */
+  --color-data-item: #FF9040;    /* item name, per JagexColors.MENU_TARGET */
+
+  /* The game's own nine-step answer to "can I do this", by combat-level
+     difference. It ramps through hue at full saturation, never through
+     lightness. Scapestack's whole product asks this question; the game
+     already shipped the vocabulary, so we do not invent a traffic light. */
+  --color-gate-far-above: #FF0000;   /* +10 or more */
+  --color-gate-above: #FF3000;       /* +7 to +9 */
+  --color-gate-over: #FF7000;        /* +4 to +6 */
+  --color-gate-close: #FFB000;       /* +1 to +3 */
+  --color-gate-even: #FFFF00;        /* equal */
+  --color-gate-under: #C0FF00;       /* -1 to -3 */
+  --color-gate-below: #80FF00;       /* -4 to -6 */
+  --color-gate-easy: #40FF00;        /* -7 to -9 */
+  --color-gate-trivial: #00FF00;     /* -10 or more */
 
   /* Slot palette — readable OSRS inventory energy without heavy skeuomorphism */
   --color-slot: #121212;
@@ -69,18 +108,23 @@
 
   /* Fonts — mature app typography with a restrained OSRS-adjacent serif accent. */
   --font-sans: "Atkinson Hyperlegible", "Avenir Next", "Inter", "Segoe UI", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: "Iowan Old Style", "Georgia", "Charter", serif;
+  /* Headings share the body face. The serif display made every page read
+     as editorial; weight and size carry hierarchy instead. */
+  --font-display: "Atkinson Hyperlegible", "Avenir Next", "Inter", "Segoe UI", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, Consolas, monospace;
   --font-rs-small: "RuneScape Small", "Trebuchet MS", ui-sans-serif, system-ui, sans-serif;
 
   /* Shadows */
-  --shadow-glow: 0 18px 48px -32px rgba(224, 174, 55, 0.38);
-  --shadow-deep: 0 24px 70px -42px rgba(0, 0, 0, 0.78);
+  /* A rule states a boundary; a shadow implies a depth this product does not
+     have. Both tokens survive so their consumers keep working, but they now
+     draw a hairline instead of a glow. */
+  --shadow-glow: 0 0 0 1px var(--color-border);
+  --shadow-deep: 0 0 0 1px var(--color-border-strong);
 
   /* Interface lock — shared geometry and reading widths. */
-  --radius-control: 8px;
-  --radius-surface: 8px;
-  --radius-focus: 10px;
+  --radius-control: 3px;
+  --radius-surface: 3px;
+  --radius-focus: 4px;
   --width-page: 72rem;
   --width-reading: 45rem;
   --width-dialog: 42rem;
@@ -589,11 +633,13 @@ html, body {
   }
 }
 
-/* Serif display headings give Scapestack a hand-authored OSRS character. */
+/* Hierarchy comes from weight and size, not from a second typeface. */
 h1, h2, h3 {
   font-family: var(--font-display);
-  letter-spacing: 0;
+  letter-spacing: -0.011em;
+  font-weight: 650;
   font-feature-settings: "tnum";
+  text-wrap: balance;
 }
 code, pre, .font-mono {
   font-feature-settings: "tnum", "zero";
@@ -630,18 +676,12 @@ body {
    te schuiven heeft. background-size = 200% van de container; de
    keyframe schuift de gradient van 0% naar 200% zodat de highlight
    band 1x volledig over de tekst loopt. */
+/* Was a five-stop gold gradient across the headline. Direction B reserves
+   saturated colour for data, so a headline is ink — the emphasis is carried
+   by the sentence, not by tinting it. Kept as a class so its consumers do
+   not need a sweep; it now simply sets the text colour. */
 .text-route-gradient {
-  background: linear-gradient(
-    100deg,
-    #E9DDC5 0%,
-    #E0BE72 34%,
-    #C89A3D 54%,
-    #E0BE72 72%,
-    #E9DDC5 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--color-text);
 }
 
 /* Coin marker — OSRS route marker, not a SaaS status dot */
@@ -682,11 +722,11 @@ body {
     linear-gradient(180deg, color-mix(in srgb, var(--color-panel-2) 84%, var(--color-accent) 16%) 0%, var(--color-panel) 100%);
 }
 
-/* Scapestack style lock — black/gold OSRS companion system.
-   Reference synthesis: Chantlings/Wayfinder black canvas and immersive
-   negative space, Krea restraint, Inngest amber discipline. OSRS identity
-   comes from sprites, player copy and deliberate parchment modals, not noisy
-   dashboard chrome. */
+/* Scapestack style lock — direction B, the reference-document system.
+   OSRS identity comes from sprites, player copy and the game's own data
+   colours, not from chrome. Surfaces are separated by a hairline rule, never
+   by a shadow or a glow: a rule states a boundary, a shadow implies depth
+   this product does not have. */
 .scapestack-lock-panel,
 .scapestack-plan-panel,
 .scapestack-board-panel,
@@ -723,7 +763,7 @@ body {
 
 .scapestack-lock-card[data-interactive="true"]:hover {
   border-color: color-mix(in srgb, var(--color-accent) 44%, var(--color-border));
-  background: rgba(224, 174, 55, 0.06);
+  background: rgb(255 152 31 / 0.05);
 }
 
 .scapestack-lock-list {
@@ -815,7 +855,7 @@ body {
 
 .scapestack-command-button:hover {
   border-color: color-mix(in srgb, var(--color-accent) 48%, var(--color-border));
-  background: rgba(224, 174, 55, 0.08);
+  background: rgb(255 152 31 / 0.07);
   color: var(--color-text);
   transform: translateY(-1px);
 }

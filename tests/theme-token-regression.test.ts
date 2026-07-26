@@ -47,18 +47,59 @@ describe("theme token regressions", () => {
     }
   });
 
-  it("keeps the canonical warning token on the gold brand palette", () => {
-    expect(globalsCss).toContain("--color-warning: #E0AE37;");
+  it("keeps the canonical warning token on the accent", () => {
+    expect(globalsCss).toContain("--color-warning: #FF981F;");
     expect(globalsCss).not.toContain("--color-warn:");
   });
 
-  it("keeps the visual system on black, cream and gold instead of green success branding", () => {
-    expect(globalsCss).toContain("--color-bg: #030201;");
-    expect(globalsCss).toContain("--color-text: #F7EFE1;");
-    expect(globalsCss).toContain("--color-accent: #E0AE37;");
-    expect(globalsCss).toContain("--color-good: #E0AE37;");
+  it("keeps the visual system on the sourced palette instead of generic SaaS branding", () => {
+    // The original of this test pinned #030201 / #E0AE37. That palette was
+    // replaced deliberately on 2026-07-26 (direction B, see
+    // docs/design/SCAPESTACK-DESIGN-SYSTEM.md): the old gold-on-black read as
+    // generic epic fantasy rather than as OSRS, and was darker than any
+    // surface RuneLite itself uses.
+    //
+    // What this test was really guarding is unchanged and still guarded
+    // below: no drift toward a green-success SaaS palette.
+    expect(globalsCss).toContain("--color-bg: #0D0D0C;");
+    expect(globalsCss).toContain("--color-text: #EDEBE6;");
+    expect(globalsCss).toContain("--color-accent: #FF981F;");
     expect(globalsCss).not.toContain("#00E29A");
-    expect(globalsCss).not.toMatch(/--color-good:\s*#(?:10|16|22|34|59|00)/i);
+    expect(globalsCss).not.toMatch(/--color-good:\s*#(?:10|16|22|34|59)/i);
+  });
+
+  it("uses the game's own colours for data, not invented ones", () => {
+    // Sampled from the client and cross-checked against RuneLite's
+    // JagexColors. Players read magnitude by colour with no legend — a green
+    // number is millions — so these are vocabulary we inherit, not choices.
+    expect(globalsCss).toContain("--color-data-head: #FF981F;");
+    expect(globalsCss).toContain("--color-data-level: #FFFF00;");
+    expect(globalsCss).toContain("--color-data-m: #00FF80;");
+    expect(globalsCss).toContain("--color-data-item: #FF9040;");
+  });
+
+  it("carries the game's nine-step difficulty ramp rather than a traffic light", () => {
+    // Scapestack's entire product answers "can I do this right now". OSRS
+    // already ships that colour language, derived from combat-level
+    // difference, ramping through hue at full saturation.
+    for (const step of ["#FF0000", "#FF3000", "#FF7000", "#FFB000", "#FFFF00",
+                        "#C0FF00", "#80FF00", "#40FF00", "#00FF00"]) {
+      expect(globalsCss, `ramp step ${step}`).toContain(step);
+    }
+  });
+
+  it("has no second typeface for headings", () => {
+    // The display serif made every page read as editorial. Hierarchy is
+    // weight and size now; --font-display remains as a seam so a future
+    // decision has somewhere to land, but it resolves to the body stack.
+    const display = globalsCss.match(/--font-display:\s*([^;]+);/);
+    expect(display, "--font-display should still be declared").toBeTruthy();
+    // Checked by naming the serif faces, not by matching /serif$/ — every
+    // sans stack ends in "sans-serif" and would trip that.
+    for (const face of ["Iowan Old Style", "Georgia", "Charter"]) {
+      expect(display![1], face).not.toContain(face);
+    }
+    expect(display![1]).toContain("Atkinson Hyperlegible");
   });
 
   it("defines the shared visual primitives for the reset", () => {
