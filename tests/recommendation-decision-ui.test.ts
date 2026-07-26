@@ -10,7 +10,9 @@ describe("/next RecommendationDecision adoption", () => {
     expect(source).toContain("moodEligibleRecs.find((rec) => rec.id === startedId)");
     expect(source).toContain("!recentRejectedMemory.some((entry) => entry.id === rememberedStartedId)");
     expect(source).toContain("moodEligibleRecs.find((rec) => rec.id === selectedRecommendationId)");
-    expect(source).toContain("const decisionCopy = recommendationDecisionCopy(decision)");
+    // Takes the sources argument now: the reason list cannot express "a bank
+    // was loaded" when the bank did not change the pick, and the page can.
+    expect(source).toContain("recommendationDecisionCopy(decision, { hasBank: hasBankContext })");
     expect(source).toContain('{ label: "Start", value: decisionCopy.firstStep }');
     expect(source).toContain('{ label: "Stop at", value: decisionCopy.stopPoint }');
     expect(source).toContain("{decisionCopy.why}");

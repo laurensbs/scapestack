@@ -153,8 +153,26 @@ export interface RecommendationDecisionCopy {
  */
 export type RecommendationConfidence = "measured" | "likely" | "guess";
 
-export function decisionConfidence(decision: RecommendationDecision): RecommendationConfidence {
+export function decisionConfidence(
+  decision: RecommendationDecision,
+  /**
+   * What the caller knows about the sources, for the case the reason list
+   * cannot express.
+   *
+   * `bank_context_used` is only recorded when the bank would CHANGE the plan,
+   * because that list answers "why this pick" rather than "what did we read".
+   * So a pick titled "Finish Ahrim's set" — derived from the bank — carries no
+   * bank fact, and reading the list alone would call it a guess. Measured on
+   * production before this parameter existed.
+   *
+   * Under-claiming is the safe direction for this notation and over-claiming
+   * is the dangerous one, so the default is the cautious read and a caller has
+   * to positively assert a source.
+   */
+  sources: { hasBank?: boolean; hasRuneLite?: boolean } = {}
+): RecommendationConfidence {
   const facts = decision.reasons.filter((reason) => reason.provenance !== "preference");
+  if (sources.hasBank || sources.hasRuneLite) return "measured";
   if (facts.some((fact) => fact.provenance === "bank" || fact.provenance === "runelite")) return "measured";
   const substantive = facts.filter((fact) => fact.code !== "visible_progress_fit");
   return substantive.length > 0 ? "likely" : "guess";
@@ -403,14 +421,17 @@ function reasonCopy(fact: RecommendationDecisionFact): string {
   }
 }
 
-export function recommendationDecisionCopy(decision: RecommendationDecision): RecommendationDecisionCopy {
+export function recommendationDecisionCopy(
+  decision: RecommendationDecision,
+  sources: { hasBank?: boolean; hasRuneLite?: boolean } = {}
+): RecommendationDecisionCopy {
   const primary = decision.reasons.find((reason) => reason.code !== "session_preference_fit") ?? decision.reasons[0];
   const preference = decision.reasons.find((reason) => reason.code === "session_preference_fit");
   const why = [primary, preference]
     .filter((fact, index, list): fact is RecommendationDecisionFact => Boolean(fact) && list.findIndex((candidate) => candidate?.code === fact?.code) === index)
     .map(reasonCopy)
     .join(". ");
-  const confidence = decisionConfidence(decision);
+  const confidence = decisionConfidence(decision, sources);
   return {
     title: decision.goal.label,
     why: sentence(why || decision.fallback.action),

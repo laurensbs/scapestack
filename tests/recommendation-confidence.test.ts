@@ -77,6 +77,26 @@ describe("the engine says how much it knows", () => {
     }
   });
 
+  it("counts a loaded bank the reason list never mentions", () => {
+    // bank_context_used is only recorded when the bank would CHANGE the plan,
+    // so a pick titled "Finish Ahrim's set" — derived from the bank — carries
+    // no bank fact. Measured on production: the reason list said only
+    // visible_progress_fit while the bank was plainly driving the pick.
+    const only = decision([fact("visible_progress_fit", "public_stats")]);
+    expect(decisionConfidence(only)).toBe("guess");
+    expect(decisionConfidence(only, { hasBank: true })).toBe("measured");
+    expect(recommendationDecisionCopy(only, { hasBank: true }).sourceLine).toBeNull();
+  });
+
+  it("defaults to the cautious read, so a caller has to assert a source", () => {
+    // Under-claiming is the safe direction here and over-claiming is the one
+    // that cost this page its credibility. An omitted argument must not
+    // upgrade anything.
+    const only = decision([fact("visible_progress_fit", "public_stats")]);
+    expect(decisionConfidence(only, {})).toBe("guess");
+    expect(decisionConfidence(only, { hasBank: false, hasRuneLite: false })).toBe("guess");
+  });
+
   it("is derived from provenance, so a new reason code cannot forget to set it", () => {
     // There is no `confidence` field anyone can leave out — it is a read of
     // evidence that already has to exist. This guards that property.

@@ -4074,7 +4074,9 @@ function NextTripCard({
   const primaryAction = primaryActionForRecommendation(rec, actionContext);
   const actionLabel = nextTripCtaLabel(rec, isBossWithDetail ? "Check kill" : primaryAction.label);
   const actionHref = isBossWithDetail ? undefined : primaryAction.href;
-  const decisionCopy = recommendationDecisionCopy(decision);
+  // The page knows whether a bank is loaded; the reason list does not always
+  // say so. See decisionConfidence.
+  const decisionCopy = recommendationDecisionCopy(decision, { hasBank: hasBankContext });
   const bringLine = (hasBankContext ? nextTripLines({ rec, hasBankContext, bankItems, accountMode }) : [])
     .find((line) => line.label === "Grab from bank" || line.label === "Stage for UIM");
   const planLines = [
