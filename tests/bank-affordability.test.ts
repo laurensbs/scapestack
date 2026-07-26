@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   affordabilityLine,
@@ -209,5 +211,51 @@ describe("what the bank can actually finish tonight", () => {
     expect(coinsIn([{ id: 995, name: "Coins" }])).toBe(0);
     expect(coinsIn([{ id: 4151, name: "Abyssal whip", quantity: 1 }])).toBe(0);
     expect(formatGpExact(1_843_201)).toBe("1,843,201 gp");
+  });
+});
+
+describe("an Ironman is not told to buy things", () => {
+  const ironBank = [
+    coins(2_150_000),
+    { id: 4708, name: "Ahrim's hood" },
+    { id: 4710, name: "Ahrim's staff" }
+  ];
+
+  it("still computes a report — the panel decides what to render, not the engine", () => {
+    // The split matters: buildAffordabilityReport has no idea what account it
+    // is looking at, and giving it one would put an account-type branch inside
+    // the pricing. The panel takes cannotBuy and shows notForSale instead.
+    const report = buildAffordabilityReport(ironBank, prices, TRADEABLE, [AHRIMS]);
+    expect(report.buyableNow.length + report.shortBy.length).toBeGreaterThan(0);
+  });
+
+  it("has a not-for-sale list worth showing an Ironman", () => {
+    // This is the list the panel discarded on the day it shipped, while
+    // rendering "Buy now" against a Karil's leatherskirt.
+    const report = buildAffordabilityReport(
+      [coins(2_150_000), { id: 4708, name: "Ahrim's hood" }], prices, TRADEABLE, [MIXED]
+    );
+    expect(report.notForSale.length).toBeGreaterThan(0);
+    expect(report.notForSale[0]?.cost).toBeNull();
+  });
+});
+
+describe("the panel refuses to price for an account that cannot buy", () => {
+  const source = readFileSync(join(process.cwd(), "src/components/bank-affordability-panel.tsx"), "utf8");
+
+  it("drops the cost and verdict columns and the gp headline when cannotBuy", () => {
+    expect(source).toContain("cannotBuy = false");
+    expect(source).toContain("report.notForSale.slice");
+    expect(source).toContain("{!cannotBuy && <th scope=\"col\" data-num>Cost</th>}");
+    expect(source).toContain("Nothing here is for sale to you");
+    // The flagship gp sentence must be unreachable in that mode.
+    expect(source).toContain("const best = cannotBuy ? null : report.buyableNow[0]");
+  });
+
+  it("is not wired to a signal that does not mean account type", () => {
+    // smartTidyPrefs.playstyle is a bank layout preset the player chooses. A
+    // main who picks the Ironman layout must not lose their gp column.
+    const caller = readFileSync(join(process.cwd(), "src/components/bank-result.tsx"), "utf8");
+    expect(caller).not.toContain('cannotBuy={playstyle === "ironman"}');
   });
 });

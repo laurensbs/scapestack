@@ -2085,11 +2085,12 @@ export function BankResult({
         onTidy={openSmartTidyWizard}
         onEditInput={onEditInput}
       />
-      {/* Above the tab preview on purpose. A player who can close a Barrows set
-          for 1.5m tonight cares about that before they care about tab layout,
-          and it is the one answer on this site that no other OSRS tool can
-          give — the wiki, WOM, Temple and Jagex's own Activity Adviser all
-          cannot see a bank. */}
+      {/* Above the tab preview: closing a set for 1.5m beats tab layout, and
+          no other OSRS tool can see a bank to say it. */}
+      {/* cannotBuy is supported and tested but deliberately not passed: the
+          only "ironman" in scope is a bank TIDY PRESET the player picks, and
+          wiring a money claim to the wrong signal is the same error as
+          printing one. Needs the synced accountType threaded to /bank. */}
       <BankAffordabilityPanel items={affordabilityItems} />
       <div id="smart-tidy-setup">
         <SmartTidyWizard

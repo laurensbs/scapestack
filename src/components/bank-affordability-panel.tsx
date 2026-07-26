@@ -32,7 +32,24 @@ type State =
    *  reads as "you cannot afford anything". */
   | { kind: "offline" };
 
-export function BankAffordabilityPanel({ items }: { items: AffordabilityBankItem[] }) {
+export function BankAffordabilityPanel({
+  items,
+  /**
+   * An Ironman cannot buy anything, so every column this panel was built
+   * around is a lie to them.
+   *
+   * Shipped wrong today: the panel rendered `buyableNow` and `shortBy` — both
+   * pure Grand Exchange concepts — and discarded `notForSale`, which is the
+   * only list that means anything to an account that has to source its own
+   * gear. It put "Buy now" against a Karil's leatherskirt and a gp headline
+   * above it, which is the flagship sentence of the whole feature and the
+   * single most wrong thing that account type could read.
+   */
+  cannotBuy = false
+}: {
+  items: AffordabilityBankItem[];
+  cannotBuy?: boolean;
+}) {
   const [state, setState] = useState<State>({ kind: "loading" });
 
   useEffect(() => {
@@ -78,10 +95,12 @@ export function BankAffordabilityPanel({ items }: { items: AffordabilityBankItem
   }
 
   const { report } = state;
-  const rows = [...report.buyableNow.slice(0, 4), ...report.shortBy.slice(0, 2)];
+  const rows = cannotBuy
+    ? report.notForSale.slice(0, 6)
+    : [...report.buyableNow.slice(0, 4), ...report.shortBy.slice(0, 2)];
   if (rows.length === 0) return null;
 
-  const best = report.buyableNow[0];
+  const best = cannotBuy ? null : report.buyableNow[0];
 
   return (
     <section className="mt-6" aria-labelledby="afford-heading">
@@ -89,13 +108,18 @@ export function BankAffordabilityPanel({ items }: { items: AffordabilityBankItem
         id="afford-heading"
         className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[var(--color-text-muted)]"
       >
-        What this bank can finish tonight
+        {cannotBuy ? "Sets you have started" : "What this bank can finish tonight"}
       </h2>
 
       {/* The sentence first, the table underneath. A player who reads only one
           line should get the whole answer, and the exact figure is the one
           they type into the Grand Exchange — not a rounded headline. */}
-      {best ? (
+      {cannotBuy ? (
+        <p className="mt-1 text-[13px] text-[var(--color-text-dim)]">
+          Nothing here is for sale to you. These are the sets your bank has pieces of, and what is
+          still missing.
+        </p>
+      ) : best ? (
         <p className="mt-1 text-[14px] leading-snug text-[var(--color-text)]">
           <span className="font-semibold tabular-nums">{formatGpExact(report.gp)}</span> banked.{" "}
           {best.missing.length === 1
@@ -117,8 +141,8 @@ export function BankAffordabilityPanel({ items }: { items: AffordabilityBankItem
             <tr>
               <th scope="col">Set</th>
               <th scope="col">Missing</th>
-              <th scope="col" data-num>Cost</th>
-              <th scope="col">Verdict</th>
+              {!cannotBuy && <th scope="col" data-num>Cost</th>}
+              {!cannotBuy && <th scope="col">Verdict</th>}
             </tr>
           </thead>
           <tbody>
@@ -133,14 +157,16 @@ export function BankAffordabilityPanel({ items }: { items: AffordabilityBankItem
                 <td className="w-full max-w-0 truncate">
                   {row.missing.map((piece) => piece.name).join(", ")}
                 </td>
-                <td data-num>{formatGpExact(row.cost ?? 0)}</td>
-                <td>
-                  <span className="scape-verdict" data-gate={row.affordable ? "ready" : "test"}>
-                    {row.affordable
-                      ? "Buy now"
-                      : `Short ${formatGpExact(-(row.remainingGp ?? 0))}`}
-                  </span>
-                </td>
+                {!cannotBuy && <td data-num>{formatGpExact(row.cost ?? 0)}</td>}
+                {!cannotBuy && (
+                  <td>
+                    <span className="scape-verdict" data-gate={row.affordable ? "ready" : "test"}>
+                      {row.affordable
+                        ? "Buy now"
+                        : `Short ${formatGpExact(-(row.remainingGp ?? 0))}`}
+                    </span>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
@@ -148,8 +174,10 @@ export function BankAffordabilityPanel({ items }: { items: AffordabilityBankItem
       </div>
 
       <p className="scape-table-note mt-2">
-        Live Grand Exchange prices, insta-buy side. Only pieces you do not already have are costed.
-        Sets that need something untradeable are left out — money will not finish those.
+        {cannotBuy
+          ? "Prices are not shown for an Ironman bank. Sourcing is the whole game and a gp figure is not an answer."
+          : "Live Grand Exchange prices, insta-buy side. Only pieces you do not already have are costed. "
+            + "Sets that need something untradeable are left out — money will not finish those."}
       </p>
     </section>
   );
