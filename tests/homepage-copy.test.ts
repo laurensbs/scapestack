@@ -2,22 +2,26 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const source = [
-  readFileSync(join(process.cwd(), "src/app/page.tsx"), "utf8"),
-  readFileSync(join(process.cwd(), "src/components/hero-boss-trip-preview.tsx"), "utf8")
-].join("\n");
+// hero-boss-trip-preview.tsx was deleted with direction B. It rotated five
+// boss illustrations on a 3.6s interval, forever, on a page whose whole job is
+// answering a question once — the same loop the token pass had already removed
+// from the headline shimmer — and it was the reason the hero needed a 440px
+// second column and a 100vh section. Direction B keeps no atmosphere.
+const source = readFileSync(join(process.cwd(), "src/app/page.tsx"), "utf8");
 
 describe("homepage first-impression copy", () => {
-  it("opens with the simple boss-led trip picker", () => {
+  it("opens with the simple trip picker, and nothing above the intake", () => {
     expect(source).not.toContain("BRAND_SECONDARY_TAGLINE");
-    expect(source).toContain("OSRS trip picker");
     expect(source).toContain("Stop bankstanding.");
     expect(source).toContain("Pick the next trip.");
     expect(source).toContain("Type your OSRS name. Scapestack opens one clean trip and tells you when to stop.");
-    expect(source).toContain("<HeroBossTripPreview />");
-    expect(source).toContain('aria-label="Rotating OSRS bosses"');
-    expect(source).toContain('src={`/sprites/bosses/${active.boss}.png`}');
-    expect(source).toContain("priority={activeIndex === 0}");
+    // A reference document gets to the point: no full-viewport hero, no
+    // display-size headline, and no eyebrow label above a headline that
+    // already says the same thing.
+    expect(source).not.toContain("min-h-[calc(100vh");
+    expect(source).not.toContain("OSRS trip picker");
+    expect(source).not.toContain("text-[76px]");
+    expect(source).not.toContain("HeroBossTripPreview");
     expect(source).not.toContain("Quest readiness");
     expect(source).not.toContain("Near-ready unlocks first");
     expect(source).not.toContain("Bank gaps");
@@ -30,13 +34,15 @@ describe("homepage first-impression copy", () => {
     expect(source).not.toContain("bank standing");
   });
 
-  it("uses a boss visual instead of a route dashboard", () => {
-    expect(source).toContain("HeroBossTripPreview");
-    expect(source).toContain("Vardorvis");
-    expect(source).toContain("Vorkath");
-    expect(source).toContain("Zulrah");
-    expect(source).toContain("Alchemical Hydra");
-    expect(source).toContain("Nex");
+  it("states its basis instead of decorating, and never a route dashboard", () => {
+    // The specimen's closing note: what the numbers are computed from and what
+    // they cannot see. The worn-gear clause is the same sentence the verdict
+    // engine puts under every boss, and it is permanent — the plugin does not
+    // read worn equipment and, by a promise in both READMEs, will not.
+    expect(source).toContain("Worn gear is not counted");
+    expect(source).toContain("Scapestack only sees your bank");
+    // Counted from the engine's own table so the claim cannot drift.
+    expect(source).toContain("BOSSES.length");
     expect(source).not.toContain('import { ItemSprite } from "@/components/item-sprite";');
     expect(source).not.toContain("Unlock board");
     expect(source).not.toContain("Barrows gloves");
@@ -71,26 +77,30 @@ describe("homepage first-impression copy", () => {
     expect(source).not.toContain("PreviewLine");
   });
 
-  it("keeps the first screen in one clean order with the intake before the visual on mobile", () => {
-    const boardIndex = source.indexOf("Pick the next trip.");
+  // Was "keeps the first screen in one clean order with the intake before the
+  // visual on mobile" — an ordering rule for a two-column hero that no longer
+  // exists. What matters now is stronger and simpler: the intake is the second
+  // thing in the document, right under the masthead, on every width. There is
+  // no column to reorder because there is only one.
+  it("puts the intake directly under the masthead in one column", () => {
+    const headlineIndex = source.indexOf("Pick the next trip.");
     const intakeIndex = source.indexOf("<HeroIntake />");
-    const bossIndex = source.indexOf("<HeroBossTripPreview />");
+    const basisIndex = source.indexOf("Worn gear is not counted");
 
-    expect(source).toContain("lg:grid-cols-[minmax(0,1fr)_440px]");
-    expect(source).toContain("className=\"home-hero-boss relative order-3");
-    expect(source).toContain("className=\"home-hero-intake order-2");
-    expect(source).toContain("lg:row-span-2");
-    expect(boardIndex).toBeGreaterThan(-1);
+    expect(headlineIndex).toBeGreaterThan(-1);
     expect(intakeIndex).toBeGreaterThan(-1);
-    expect(bossIndex).toBeGreaterThan(-1);
-    expect(boardIndex).toBeLessThan(bossIndex);
-    expect(bossIndex).toBeLessThan(intakeIndex);
+    expect(basisIndex).toBeGreaterThan(-1);
+    expect(headlineIndex).toBeLessThan(intakeIndex);
+    expect(intakeIndex).toBeLessThan(basisIndex);
+    // No second column, at any breakpoint.
+    expect(source).not.toContain("lg:grid-cols-");
+    expect(source).not.toContain("home-hero-boss");
+    expect(source).not.toContain("lg:row-span-2");
     expect(source).not.toContain("lg:grid-cols-[minmax(0,0.98fr)_minmax(340px,0.72fr)]");
   });
 
   it("uses one object-led oldschool canvas instead of generic black cards", () => {
     expect(source).toContain('className="scape-page');
-    expect(source).toContain("<HeroBossTripPreview />");
     expect(source).not.toContain("Help keep Scapestack running");
     expect(source).not.toContain("<BuyMeCoffee");
     expect(source).not.toContain('bg-[#090909]');

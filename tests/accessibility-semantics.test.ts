@@ -65,8 +65,14 @@ describe("accessibility semantics", () => {
     const dps = read("src/app/dps/dps-client.tsx");
     const bank = read("src/components/bank-result.tsx");
 
-    expect(dps).toContain('role="list" aria-label="Bosses matching this bank"');
-    expect(dps).toContain('role="listitem"');
+    // The DPS browser was a role="list" of role="listitem" tiles. It is a real
+    // <table> now (direction B — the data is the design), which carries
+    // stronger semantics than the ARIA shim did: rows and columns are native,
+    // the column headers are announced with each cell, and the table itself
+    // still carries the accessible name. What this test guards is unchanged —
+    // a named collection whose entries are real, described controls.
+    expect(dps).toContain('<table className="scape-table" aria-label="Bosses matching this bank">');
+    expect(dps).toContain('<th scope="col">Boss</th>');
     expect(dps).toContain("aria-describedby={`${statusId} ${reasonId}`}");
     expect(bank).toContain('role="list" aria-label="Bosses matching this bank"');
     expect(bank).toContain('<div key={b.slug} role="listitem">');

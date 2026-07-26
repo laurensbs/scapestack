@@ -9,6 +9,27 @@ import {
 
 export type BossViabilityTone = "ready" | "test" | "blocked";
 
+/**
+ * The value for `data-gate` on a verdict element.
+ *
+ * OSRS already ships the colour language for "can I do this": a nine-step
+ * red→green ramp keyed on combat-level difference, ramping through hue at full
+ * saturation. Scapestack's verdict has three steps, so it takes three of the
+ * nine, symmetric about the centre — see the `.scape-verdict` block in
+ * globals.css for the hexes and the measured contrast.
+ *
+ * `null` is a real answer and the reason there is no fourth colour: an
+ * encounter the engine refuses to score — a raid, a wave, an activity with no
+ * combat DPS — carries no gate at all and renders in neutral ink.
+ */
+export type BossVerdictGate = BossViabilityTone | null;
+
+/** A verdict string with the ramp step it answers on. */
+export interface BossVerdictLabel {
+  label: string;
+  gate: BossVerdictGate;
+}
+
 export interface BossViability {
   boss: Boss;
   tone: BossViabilityTone;

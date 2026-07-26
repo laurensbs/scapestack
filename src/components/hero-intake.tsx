@@ -357,7 +357,10 @@ export function HeroIntake() {
             aria-describedby="hero-plan-disabled-help"
             className={cn(
               "h-13 w-full min-w-0 rounded-lg border border-transparent bg-[var(--color-bg)]/72 px-3.5 outline-none",
-              "text-[16px] font-semibold text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]/72",
+              // Placeholder was --color-text-muted at 72%, which measures
+              // 3.2:1 on the field — under the 4.5:1 floor, on the one control
+              // the homepage now exists for. At full strength it is 5.3:1.
+              "text-[16px] font-semibold text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]",
               "transition-all duration-200 focus:bg-[var(--color-bg)] focus:shadow-[inset_0_0_0_1px_rgba(200, 154, 61,0.16)]",
               "sm:h-12 sm:text-[15px]"
             )}

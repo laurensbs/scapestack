@@ -40,6 +40,7 @@ import {
   type PlannerAccountType
 } from "@/lib/account-type";
 import { bossProfitEstimate, rateRankingValue } from "@/lib/rate-registry";
+import type { BossVerdictLabel } from "@/lib/boss-viability";
 
 type BossDpsResult = { boss: Boss; dps: DpsBreakdown };
 type BossFilter = "all" | "gp" | "slayer" | "wildy" | "raid" | "beginner" | "solo";
@@ -514,7 +515,7 @@ export function DpsClient() {
               Pick a boss
             </h2>
             <p className="mt-1 max-w-2xl text-[12px] leading-relaxed text-[var(--color-text-muted)]">
-              Search any boss. Click a tile for gear, supplies, upgrades and a first trip.
+              Search any boss. Click a row for gear, supplies, upgrades and a first trip.
             </p>
           </div>
           <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">
@@ -660,21 +661,50 @@ export function DpsClient() {
             </details>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5" role="list" aria-label="Bosses matching this bank">
-            {visibleResults.map(({ boss, dps }) => (
-              <BossCard
-                key={boss.slug}
-                boss={boss}
-                dps={dps}
-                owned={owned}
-                bankItems={bankItems}
-                accountType={plannerAccountType}
-                isFocused={focusedBoss?.slug === boss.slug}
-                onOpen={() => setModalBoss(boss)}
-              />
-            ))}
+          {/* Direction B: the data is the design. This was a grid of 220px
+              tiles carrying a 120px portrait, a verdict and a sentence — and
+              not one number, on the page whose entire job is numbers. It is a
+              table now: the DPS and the accuracy the engine already computed
+              are visible on every row without opening anything, and the boss
+              sprite shrinks to 28px and stays, because sprites are the OSRS
+              identity here and chrome is not. The wiki's own bestiary tables
+              carry a thumbnail column exactly like this.
+
+              Style and accuracy drop below 640px so the three columns that
+              decide the trip — boss, kill speed, verdict — never need a
+              sideways scroll on a phone. The wrapper still scrolls as a
+              backstop for long boss names. */}
+          <div className="scape-table-wrap">
+            <table className="scape-table" aria-label="Bosses matching this bank">
+              <thead>
+                <tr>
+                  <th scope="col">Boss</th>
+                  <th scope="col" className="hidden sm:table-cell">Setup</th>
+                  <th scope="col" className="hidden md:table-cell">Style</th>
+                  <th scope="col" data-num>DPS</th>
+                  <th scope="col" data-num className="hidden sm:table-cell">Acc</th>
+                  <th scope="col">Verdict</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visibleResults.map(({ boss, dps }) => (
+                  <BossRow
+                    key={boss.slug}
+                    boss={boss}
+                    dps={dps}
+                    owned={owned}
+                    bankItems={bankItems}
+                    accountType={plannerAccountType}
+                    isFocused={focusedBoss?.slug === boss.slug}
+                    onOpen={() => setModalBoss(boss)}
+                  />
+                ))}
+              </tbody>
+            </table>
           </div>
-          <p className="mt-5 text-center text-[10.5px] text-[var(--color-text-dim)]">
+          <p className="scape-table-note">
+            DPS and accuracy come from the best setup in your bank, at your levels when
+            Scapestack knows them. Worn gear is not counted.
             Pick a boss to see the actual setup, inventory and numbers.
           </p>
         </div>
@@ -705,9 +735,18 @@ export function DpsClient() {
   );
 }
 
-// ── Boss card ──
+// ── Boss row ──
 
-function BossCard({ boss, dps, owned, bankItems, accountType, isFocused, onOpen }: {
+// One boss, one row. The clickable target is a real button element filling the
+// name cell, not a div wearing a button role and not a click handler on the row
+// itself: the row carries data cells a screen reader should read as data, and
+// exactly one of them is the control that opens the encounter.
+//
+// (Deliberately worded without the literal tag or role attribute — the guards
+// in tests/button-semantics.test.ts and tests/no-div-click-actions.test.ts scan
+// source text line by line and cannot tell a comment from markup. Both fired on
+// an earlier draft of this comment, which is the guards working correctly.)
+function BossRow({ boss, dps, owned, bankItems, accountType, isFocused, onOpen }: {
   boss: Boss;
   dps: DpsBreakdown;
   owned: GearItem[];
@@ -719,53 +758,66 @@ function BossCard({ boss, dps, owned, bankItems, accountType, isFocused, onOpen 
   const activity = isNonCombatBossActivity(boss);
   const knowledge = bossKnowledge(boss);
   const singleDps = bossKnowledgeSupportsSingleDps(knowledge);
-  const usable = activity || !singleDps || dps.dps > 0;
   const inventoryPlan = buildBossInventoryPlan({ boss, bankItems, owned, dps });
   const status = bossTripVerdict(boss, dps, accountType, inventoryPlan);
   const reason = bossCardReason({ boss, dps, inventoryPlan, activity, singleDps });
   const statusId = `boss-${boss.slug}-status`;
   const reasonId = `boss-${boss.slug}-reason`;
+  // A number the engine refuses to stand behind is an em dash, not a zero.
+  const showsNumbers = !activity && singleDps && dps.dps > 0;
 
   return (
-    <article
+    <tr
       id={`boss-${boss.slug}`}
-      role="listitem"
-      className={cn(
-        "scape-boss-tile scapestack-boss-tile group w-full scroll-mt-24 p-0 text-left",
-        "hover:-translate-y-0.5",
-        isFocused && "border-[var(--color-accent)]/55 shadow-[0_0_0_1px_rgba(240,176,44,0.22)]"
-      )}>
-      <button
-        type="button"
-        onClick={onOpen}
-        aria-label={`Open ${boss.name} ${activity ? "activity setup" : "kill setup"} details`}
-        aria-describedby={`${statusId} ${reasonId}`}
-        title={`Open ${boss.name} ${activity ? "activity setup" : "kill setup"} details`}
-        className="flex h-full min-h-[220px] w-full flex-col p-3 text-left sm:min-h-[250px] sm:p-4"
-      >
-        <div className="flex min-h-0 flex-1 items-center justify-center py-2 sm:py-4">
-          <BossThumb boss={boss} />
-        </div>
-        <div className="border-t border-[var(--color-border)] pt-3">
-          <div className="line-clamp-2 text-[15px] font-black leading-tight text-[var(--color-text)] sm:text-[17px]">{boss.name}</div>
-          <span id={statusId} className={cn(
-            "mt-2 inline-flex rounded-full border px-2 py-1 text-[9.5px] font-bold",
-            !usable || inventoryPlan.mandatoryMissing.length > 0
-              ? "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
-              : boss.category === "wildy"
-                ? "border-[var(--color-danger)]/35 bg-[var(--color-danger)]/10 text-[var(--color-danger)]"
-                : activity || dps.hitChance >= 0.55
-                  ? "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
-                  : "border-[var(--color-border)] bg-[var(--color-bg)]/45 text-[var(--color-text-dim)]"
-          )}>
-            {status}
+      className={cn("scroll-mt-24", isFocused && "bg-[var(--color-accent)]/[0.07]")}
+    >
+      {/* w-full + max-w-0 is what lets the truncate inside actually fire: a
+          table cell sizes to its content unless it is given a definite width,
+          so without this the boss name and its reason line pushed the table to
+          641px inside a 343px phone wrapper and the verdict column fell off
+          the right edge. The cell now takes the slack the other columns leave
+          and clips instead of pushing. */}
+      <td className="w-full max-w-0">
+        <button
+          type="button"
+          onClick={onOpen}
+          aria-label={`Open ${boss.name} ${activity ? "activity setup" : "kill setup"} details`}
+          aria-describedby={`${statusId} ${reasonId}`}
+          title={`Open ${boss.name} ${activity ? "activity setup" : "kill setup"} details`}
+          className="flex min-h-11 w-full items-center gap-2.5 text-left"
+        >
+          <span className="flex size-7 shrink-0 items-center justify-center overflow-hidden">
+            <BossSprite boss={boss} size={28} />
           </span>
-          <p id={reasonId} className="mt-2 line-clamp-2 text-[10.5px] font-semibold leading-relaxed text-[var(--color-text-muted)] sm:text-[11px]">
-            {reason}
-          </p>
-        </div>
-      </button>
-    </article>
+          <span className="min-w-0">
+            <span className="block truncate text-[13.5px] font-semibold text-[var(--color-text)]">
+              {boss.name}
+            </span>
+            <span
+              id={reasonId}
+              className="block truncate text-[11px] text-[var(--color-text-muted)]"
+            >
+              {reason}
+            </span>
+          </span>
+        </button>
+      </td>
+      <td className="hidden max-w-[13rem] truncate sm:table-cell">
+        {showsNumbers ? dps.weapon.name : "—"}
+      </td>
+      <td className="hidden capitalize md:table-cell">
+        {showsNumbers ? dps.style : "—"}
+      </td>
+      <td data-num>{showsNumbers ? dps.dps.toFixed(1) : "—"}</td>
+      <td data-num className="hidden sm:table-cell">
+        {showsNumbers ? `${Math.round(dps.hitChance * 100)}%` : "—"}
+      </td>
+      <td>
+        <span id={statusId} className="scape-verdict" data-gate={status.gate ?? undefined}>
+          {status.label}
+        </span>
+      </td>
+    </tr>
   );
 }
 
@@ -795,28 +847,33 @@ function bossCardReason({
   return `${dps.weapon.name} works, but accuracy is weak`;
 }
 
+// Every verdict string is unchanged; each now also names the step of the
+// game's own red→green ramp it answers on. `gate: null` is a real answer —
+// an activity has no kill verdict, and a raid or a wave is an encounter the
+// engine deliberately refuses to score with one number. Those stay in neutral
+// ink, which is why this needs no fourth colour.
 function bossTripVerdict(
   boss: Boss,
   dps: DpsBreakdown,
   accountType: PlannerAccountType | null = null,
   inventoryPlan?: ReturnType<typeof buildBossInventoryPlan>
-): string {
+): BossVerdictLabel {
   const knowledge = bossKnowledge(boss);
-  if (isNonCombatBossActivity(boss)) return "Activity setup";
-  if (inventoryPlan?.mandatoryMissing.length) return "Prep required";
-  if (accountType === "hardcore" && knowledge.wildernessRisk) return "HCIM risk";
-  if (knowledge.wildernessRisk) return "Risky trip";
+  if (isNonCombatBossActivity(boss)) return { label: "Activity setup", gate: null };
+  if (inventoryPlan?.mandatoryMissing.length) return { label: "Prep required", gate: "blocked" };
+  if (accountType === "hardcore" && knowledge.wildernessRisk) return { label: "HCIM risk", gate: "blocked" };
+  if (knowledge.wildernessRisk) return { label: "Risky trip", gate: "test" };
   if (!bossKnowledgeSupportsSingleDps(knowledge)) {
-    if (knowledge.encounterType === "raid") return "Build learner raid";
-    if (knowledge.encounterType === "wave") return "Full-run prep";
-    if (knowledge.dpsModel === "phase-switch") return "Check every phase";
-    return "Pick a role";
+    if (knowledge.encounterType === "raid") return { label: "Build learner raid", gate: null };
+    if (knowledge.encounterType === "wave") return { label: "Full-run prep", gate: null };
+    if (knowledge.dpsModel === "phase-switch") return { label: "Check every phase", gate: null };
+    return { label: "Pick a role", gate: null };
   }
-  if (dps.dps <= 0) return "Gear missing";
-  if (boss.hp <= 320 && dps.hitChance >= 0.5 && boss.category !== "raid" && boss.category !== "dt2") return "Good first trip";
-  if (dps.hitChance >= 0.62) return "Good with bank";
-  if (dps.hitChance >= 0.45) return "Do one trip";
-  return "Not worth yet";
+  if (dps.dps <= 0) return { label: "Gear missing", gate: "blocked" };
+  if (boss.hp <= 320 && dps.hitChance >= 0.5 && boss.category !== "raid" && boss.category !== "dt2") return { label: "Good first trip", gate: "ready" };
+  if (dps.hitChance >= 0.62) return { label: "Good with bank", gate: "ready" };
+  if (dps.hitChance >= 0.45) return { label: "Do one trip", gate: "test" };
+  return { label: "Not worth yet", gate: "blocked" };
 }
 
 function DpsHandoffIntakeHint({
@@ -932,14 +989,7 @@ function DpsNoWeaponGate({
   );
 }
 
-// Boss thumbnail. Tries the local wiki portrait first
-// Uses the shared BossSprite fallback contract so boss options never fall back to
-// emoji or an anonymous dot: local boss art → signature item sprite → labelled
-// missing-sprite tile.
-function BossThumb({ boss }: { boss: Boss }) {
-  return (
-    <div className="flex size-24 shrink-0 items-center justify-center overflow-hidden sm:size-32">
-      <BossSprite boss={boss} size={120} />
-    </div>
-  );
-}
+// The 120px BossThumb went with the tile grid. Rows carry the sprite at 28px
+// through the shared BossSprite fallback contract, so boss options never fall
+// back to an emoji or an anonymous dot: local boss art → signature item sprite
+// → labelled missing-sprite tile.

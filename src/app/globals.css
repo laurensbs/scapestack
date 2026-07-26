@@ -1133,6 +1133,130 @@ body {
   background: var(--color-slot);
 }
 
+/* ── Data table ───────────────────────────────────────────────────────
+   Direction B's whole claim is that the data is the design, and the form
+   players already read every day is a wiki table: a hairline rule states
+   the boundary, the header row is quiet enough that it never competes
+   with the figures under it, and numbers sit right-aligned in tabular
+   figures so digits line up down the column instead of drifting.
+
+   No zebra striping, no cell borders, no shadow. A rule is enough; the
+   OSRS Wiki's own monster tables do not do more than this either.
+
+   Contrast on --color-bg #0D0D0C, measured not assumed:
+     header  --color-text-muted     #8A877F   5.4:1
+     cell    --color-text-secondary #C4C1B8  11.5:1
+     number  --color-text           #EDEBE6  16.0:1 */
+.scape-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.scape-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  line-height: 1.35;
+}
+
+.scape-table th {
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid var(--color-border-strong);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.scape-table td {
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+  vertical-align: middle;
+}
+
+/* A two-column measure/value table wants a real <th scope="row"> so a screen
+   reader announces "DPS, 12.3" instead of two loose cells. It should read as a
+   label, though, not as a second column heading — so it takes the body cell's
+   treatment and only the column headers stay in the quiet uppercase. */
+.scape-table tbody th[scope="row"] {
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: 13.5px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: normal;
+}
+
+.scape-table tbody tr:last-child th[scope="row"] {
+  border-bottom: 0;
+}
+
+.scape-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* Numbers right-align so the column reads as a magnitude, and take the
+   full-strength ink because they are the reason the table exists. */
+.scape-table [data-num] {
+  text-align: right;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.scape-table tbody tr:hover td {
+  background: rgb(255 152 31 / 0.045);
+}
+
+/* The specimen's closing line: what the numbers were computed from, and
+   what they cannot see. A reference document cites; it does not reassure. */
+.scape-table-note {
+  margin-top: 0.85rem;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ── Verdict ──────────────────────────────────────────────────────────
+   OSRS already answers "can I do this" with a nine-step red→green ramp
+   keyed on combat-level difference, ramping through hue at full
+   saturation. Scapestack's verdict has three steps, so it takes three of
+   the nine, symmetric about the centre:
+
+     blocked  +7 to +9   #FF3000   clearly above you right now
+     test     equal      #FFFF00   an even fight — keep the trip short
+     ready    -7 to -9   #40FF00   comfortably inside your range
+
+   Deliberately not the endpoints. This engine never claims a boss is
+   impossible (+10) or trivial (-10), only that it is out of reach or
+   comfortable with the gear currently in the bank.
+
+   An encounter the engine refuses to score — a raid, a wave, an activity
+   with no combat DPS — carries no gate attribute at all and stays in
+   neutral ink. That is the whole reason there is no fourth colour.
+
+   The word carries the meaning on its own, so colour is never the only
+   signal (WCAG 1.4.1). Contrast on #0D0D0C: 5.3:1, 18.1:1, 14.4:1. */
+.scape-verdict {
+  color: var(--color-text-dim);
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.scape-verdict[data-gate="ready"]   { color: var(--color-gate-easy); }
+.scape-verdict[data-gate="test"]    { color: var(--color-gate-even); }
+.scape-verdict[data-gate="blocked"] { color: var(--color-gate-above); }
+
 .scape-checklist {
   border-block: 1px solid var(--color-border);
 }
@@ -1278,29 +1402,18 @@ body {
   background: linear-gradient(90deg, transparent, var(--color-border-strong), transparent);
 }
 
-/* Returning players should see account value before the acquisition hero.
-   Fresh visitors keep the large rotating boss scene. */
-.home-hero-grid:has([data-return-home="true"]) {
-  grid-template-columns: minmax(0, 720px) !important;
-  justify-content: center;
-  padding-block: clamp(2.5rem, 8vh, 5rem);
-}
-
-.home-hero:has([data-return-home="true"]) {
-  min-height: auto;
-  align-items: flex-start;
-}
-
-.home-hero-grid:has([data-return-home="true"]) .home-hero-intro,
-.home-hero-grid:has([data-return-home="true"]) .home-hero-boss {
+/* A returning player is told what changed on their account, not what the
+   product is. The acquisition masthead and its basis note are for a first
+   visit; the Welcome-back panel states its own basis. Done in CSS rather than
+   in the component because this page is force-static — a client branch here
+   would render one tree on the server and another on hydration. */
+.home-hero:has([data-return-home="true"]) .home-hero-intro,
+.home-hero:has([data-return-home="true"]) .home-hero-basis {
   display: none !important;
 }
 
-.home-hero-grid:has([data-return-home="true"]) .home-hero-intake {
-  grid-column: 1 !important;
-  grid-row: 1 !important;
-  max-width: 720px;
-  margin-inline: auto !important;
+.home-hero:has([data-return-home="true"]) .home-hero-intake {
+  margin-top: 0;
 }
 
 /* ── Global interactive affordance ──────────────────────────────────────

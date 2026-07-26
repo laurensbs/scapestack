@@ -24,7 +24,11 @@ describe("Scapestack anti-bankstanding product contract", () => {
 
     expect(homepage).toContain("Stop bankstanding.");
     expect(homepage).toContain("Pick the next trip.");
-    expect(homepage).toContain("HeroBossTripPreview");
+    // Was `toContain("HeroBossTripPreview")`. The rotating boss illustration
+    // went with direction B; the promise this case guards is the copy, and the
+    // homepage now states its basis instead of decorating around it.
+    expect(homepage).not.toContain("HeroBossTripPreview");
+    expect(homepage).toContain("Worn gear is not counted");
     expect(homepage).not.toContain("Quest readiness");
     expect(homepage).not.toContain("Bank gaps");
     expect(homepage).not.toContain("Unlock board");

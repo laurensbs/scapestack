@@ -27,6 +27,7 @@ import {
 import type { PlannerAccountType } from "@/lib/account-type";
 import { buildBossUpgradePlan } from "@/lib/boss-upgrade-plan";
 import { bossProfitEstimate, formatRateRange } from "@/lib/rate-registry";
+import type { BossVerdictGate } from "@/lib/boss-viability";
 
 interface Props {
   boss: Boss;
@@ -218,12 +219,11 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
                   {verdict.body}
                 </p>
               </div>
-              <span className={cn(
-                "inline-flex shrink-0 rounded-full border px-2.5 py-1 text-[10.5px] font-black",
-                verdict.tone === "good" && "border-[var(--color-good)]/35 bg-[var(--color-good)]/10 text-[var(--color-good)]",
-                verdict.tone === "warn" && "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 text-[var(--color-warning)]",
-                verdict.tone === "risk" && "border-[var(--color-danger)]/35 bg-[var(--color-danger)]/10 text-[var(--color-danger)]"
-              )}>
+              {/* Was a tinted pill with a border and a radius. The ramp step
+                  is the whole signal and the word carries the meaning without
+                  it, so the pill came off — direction B has no chrome to put
+                  a verdict inside. */}
+              <span className="scape-verdict shrink-0" data-gate={verdict.gate ?? undefined}>
                 {verdict.badge}
               </span>
             </div>
@@ -418,24 +418,56 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
                     <p className="mb-3 text-[13px] text-[var(--color-text-dim)]">
                       Use <span className="font-semibold uppercase text-[var(--color-accent)]">{dps.style}</span> with <span className="font-semibold text-[var(--color-text)]">{dps.weapon.name}</span>.
                     </p>
-                    <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-                      <Stat label="DPS" value={dps.dps.toFixed(1)} />
-                      <Stat label="Max hit" value={String(dps.maxHit)} />
-                      <Stat label="Accuracy" value={`${Math.round(dps.hitChance * 100)}%`} />
-                      {profitEstimate && (
-                        <Stat label="Kills/hr est." value={formatRateRange(profitEstimate.killsPerHour.range, (value) => String(Math.round(value)))} />
-                      )}
+                    {/* Four bordered metric boxes became four rows. The
+                        figures line up in one right-aligned tabular column,
+                        which is the only way a player can compare them at a
+                        glance, and the boxes were four surfaces doing the work
+                        of one rule. */}
+                    <div className="scape-table-wrap">
+                      <table className="scape-table">
+                        <thead>
+                          <tr>
+                            <th scope="col">Measure</th>
+                            <th scope="col" data-num>Your bank</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <th scope="row">DPS</th>
+                            <td data-num>{dps.dps.toFixed(1)}</td>
+                          </tr>
+                          <tr>
+                            <th scope="row">Max hit</th>
+                            <td data-num>{dps.maxHit}</td>
+                          </tr>
+                          <tr>
+                            <th scope="row">Accuracy</th>
+                            <td data-num>{Math.round(dps.hitChance * 100)}%</td>
+                          </tr>
+                          {profitEstimate && (
+                            <>
+                              <tr>
+                                <th scope="row">Kills/hr</th>
+                                <td data-num>{formatRateRange(profitEstimate.killsPerHour.range, (value) => String(Math.round(value)))}</td>
+                              </tr>
+                              <tr>
+                                <th scope="row">{profitEstimate.displayLabel}</th>
+                                <td data-num>{formatRateRange(profitEstimate.grossGpPerHour.range, formatGp)}</td>
+                              </tr>
+                            </>
+                          )}
+                        </tbody>
+                      </table>
                     </div>
                     {profitEstimate && (
-                      <div className="mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12px] text-[var(--color-text-dim)]">
-                        <TrendingUp className="size-3.5 text-[var(--color-accent)]" />
-                        {profitEstimate.displayLabel}{" "}
-                        <span className="font-mono tabular-nums text-[var(--color-text)]">{formatRateRange(profitEstimate.grossGpPerHour.range, formatGp)} GP/hr</span>
+                      <p className="scape-table-note">
+                        <TrendingUp className="mr-1 inline-block size-3.5 align-[-2px]" />
+                        Loot rate from{" "}
                         <a href={profitEstimate.grossGpPerHour.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted underline-offset-2 hover:text-[var(--color-accent)]">
                           {profitEstimate.sourceLabel}
                         </a>
-                        {!profitEstimate.spendable && <span className="basis-full text-[var(--color-text-muted)]">Iron account: useful drops matter; GE value is not spendable profit.</span>}
-                      </div>
+                        {!profitEstimate.spendable && " · Iron account: useful drops matter; GE value is not spendable profit."}
+                      </p>
                     )}
                   </>
                 ) : (
@@ -506,7 +538,9 @@ interface BossTripVerdict {
   title: string;
   body: string;
   badge: string;
-  tone: "good" | "warn" | "risk";
+  /** Which step of the game's own red→green ramp this answers on. `null` for
+   *  an encounter the engine refuses to score with a single verdict. */
+  gate: BossVerdictGate;
 }
 
 function bossTripVerdict({
@@ -531,7 +565,7 @@ function bossTripVerdict({
         ? `${missingInventory} activity items are missing. Fill those before starting.`
         : "Your bank has the key activity items. Copy the tab, do one round, then adjust after the reward.",
       badge: "No combat DPS",
-      tone: missingInventory > 0 ? "warn" : "good"
+      gate: missingInventory > 0 ? "test" : "ready"
     };
   }
   if (inventoryPlan.mandatoryMissing.length > 0) {
@@ -539,7 +573,7 @@ function bossTripVerdict({
       title: "Do not leave yet",
       body: `Your bank is missing ${inventoryPlan.mandatoryMissing.join(", ")}. Add those before this can be a real first trip.`,
       badge: "Required prep",
-      tone: "warn"
+      gate: "blocked"
     };
   }
   if (knowledge.wildernessRisk) {
@@ -549,7 +583,9 @@ function bossTripVerdict({
         ? `${dps.weapon.name} works, but this is Wildy. Bring only what you are willing to lose and test one kill.`
         : "Wildy boss with no clear weapon in this bank. Add gear before risking a trip.",
       badge: "Wildy risk",
-      tone: "risk"
+      // The copy says "test one kill", so it sits on the even step, not on
+      // blocked. The risk here is what you lose, not whether you can kill it.
+      gate: "test"
     };
   }
   if (!bossKnowledgeSupportsSingleDps(knowledge)) {
@@ -563,7 +599,9 @@ function bossTripVerdict({
     return {
       ...encounterCopy,
       body: `${knowledge.playerLine} ${knowledge.stopPoint}`,
-      tone: "warn"
+      // Rooms, roles or the full run decide this, not one DPS figure. The
+      // engine refuses to score it, so it takes no step on the ramp.
+      gate: null
     };
   }
   if (dps.dps <= 0) {
@@ -571,7 +609,7 @@ function bossTripVerdict({
       title: "Gear missing",
       body: "This bank does not show a usable weapon for this boss yet. Add a combat tab before buying supplies.",
       badge: "Need weapon",
-      tone: "warn"
+      gate: "blocked"
     };
   }
   if (dps.hitChance < 0.38 || (upgradePlan && upgradePlan.gain > dps.dps * 0.4)) {
@@ -579,7 +617,7 @@ function bossTripVerdict({
       title: "Not worth yet",
       body: `${dps.weapon.name} is detected, but the hit chance is low. Check upgrades before camping this boss.`,
       badge: "Upgrade first",
-      tone: "warn"
+      gate: "blocked"
     };
   }
   if (missingInventory > 2) {
@@ -587,14 +625,14 @@ function bossTripVerdict({
       title: "Prep missing",
       body: `${dps.weapon.name} works, but ${inventoryPlan.missingLine ?? "some supplies"} are missing. Fill those before the trip.`,
       badge: "Prep first",
-      tone: "warn"
+      gate: "test"
     };
   }
   return {
     title: "Do one trip",
     body: `${dps.weapon.name} is your best banked weapon here. ${inventoryPlan.firstTrip}`,
     badge: "Bank can start",
-    tone: "good"
+    gate: "ready"
   };
 }
 

@@ -2771,10 +2771,18 @@ function bossViabilityBadgeText(viability: BossViability): string {
   return viability.verdict;
 }
 
-function bossViabilityBadgeClass(viability: BossViability): string {
-  if (viability.tone === "ready") return "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[var(--color-accent)]";
-  if (viability.tone === "test") return "border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 text-[var(--color-accent)]";
-  return "border-red-400/30 bg-red-400/10 text-red-200";
+/**
+ * Paired with `data-gate={viability.tone}` — see the `.scape-verdict` block in
+ * globals.css.
+ *
+ * This used to paint "ready" and "test" the same accent, which said the two
+ * verdicts mean the same thing, and reached for Tailwind's `red-400`/`red-200`
+ * for the third, which is not a token in this system at all. The game's own
+ * red→green ramp already answers "can I do this", so the verdict now takes a
+ * step on that ramp and nothing here needs to invent a colour.
+ */
+function bossViabilityBadgeClass(_viability: BossViability): string {
+  return "scape-verdict";
 }
 
 function bankIncludes(items: BankHandoffItem[], keywords: readonly string[]): boolean {

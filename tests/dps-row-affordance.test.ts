@@ -22,22 +22,41 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("aria-label={`Sort boss rows by ${opt.label}`}");
   });
 
-  it("renders bosses as explicit clickable cards instead of dashboard rows", () => {
-    expect(source).toContain("function BossCard");
-    expect(source).toContain("<article\n      id={`boss-${boss.slug}`}");
-    expect(source).toContain("<button\n        type=\"button\"\n        onClick={onOpen}");
+  // This case was called "renders bosses as explicit clickable cards instead
+  // of dashboard rows" and pinned the tile grid's exact Tailwind columns.
+  // Direction B reverses that on purpose: its whole claim is that the data is
+  // the design, and the tile grid showed a 120px portrait, a verdict and a
+  // sentence — not one number, on the page whose entire job is numbers. The
+  // rows are back as a real table, with DPS and accuracy on every row.
+  //
+  // The affordance this file exists to guard is unchanged and still asserted:
+  // one real, explicitly-typed control per boss, carrying an accessible name,
+  // a title and a description — never a bare clickable row or a div shim.
+  it("renders every boss as one explicitly labelled control in a data table", () => {
+    expect(source).toContain("function BossRow");
+    expect(source).toContain("<tr\n      id={`boss-${boss.slug}`}");
+    expect(source).toContain("<button\n          type=\"button\"\n          onClick={onOpen}");
     expect(source).toContain("aria-label={`Open ${boss.name} ${activity ? \"activity setup\" : \"kill setup\"} details`}");
     expect(source).toContain("title={`Open ${boss.name} ${activity ? \"activity setup\" : \"kill setup\"} details`}");
-    expect(source).toContain("scapestack-boss-tile group w-full");
     expect(source).not.toContain('<span className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">{boss.slug}</span>');
-    expect(source).toContain("grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5");
+    expect(source).toContain('<table className="scape-table" aria-label="Bosses matching this bank">');
+    // The tile grid must not come back beside the table.
+    expect(source).not.toContain("grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5");
+    expect(source).not.toContain("scapestack-boss-tile group w-full");
+    // The numbers the tile hid are visible on every row now, and the row's
+    // control still clears the 44px touch target.
+    expect(source).toContain('<th scope="col" data-num>DPS</th>');
+    expect(source).toContain("dps.dps.toFixed(1)");
+    expect(source).toContain("Math.round(dps.hitChance * 100)");
+    expect(source).toContain("min-h-11 w-full items-center");
     expect(source).not.toContain("Open details");
     expect(source).toContain("No usable weapon found in this bank");
     expect(source).toContain('import { Edit3, Sword, Search, X, Sparkles, ExternalLink } from "lucide-react";');
     expect(source).toContain("function bossTripVerdict");
     expect(source).toContain("const status = bossTripVerdict(boss, dps, accountType, inventoryPlan);");
     expect(source).toContain("buildBossInventoryPlan({ boss, bankItems, owned, dps })");
-    expect(source).toContain('className="flex h-full min-h-[220px] w-full flex-col p-3 text-left sm:min-h-[250px] sm:p-4"');
+    // Every verdict string survived the layout change word for word; each one
+    // now also names the ramp step it answers on.
     expect(source).toContain('"Do one trip"');
     expect(source).toContain('"Good with bank"');
     expect(source).toContain('"Good first trip"');
@@ -75,7 +94,7 @@ describe("DPS boss row affordance", () => {
     expect(source).not.toContain("function pickBestBossTrip");
     expect(source).toContain("window.scrollTo({ top: 0, behavior: \"instant\" });");
     expect(source).toContain("Pick a boss");
-    expect(source).toContain("Search any boss. Click a tile for gear, supplies, upgrades and a first trip.");
+    expect(source).toContain("Search any boss. Click a row for gear, supplies, upgrades and a first trip.");
     expect(source).toContain("Pick a boss to see the actual setup, inventory and numbers.");
     expect(source).toContain("Missing ${inventoryPlan.mandatoryMissing[0]}");
     expect(source).toContain("supports a test trip");

@@ -23,12 +23,15 @@ describe("mobile-first interface contract", () => {
     expect(mood).toContain("scape-sheet flex w-full max-w-xl flex-col");
   });
 
-  it("keeps carousel, search and route actions at least 44px tall", () => {
-    const heroBoss = read("src/components/hero-boss-trip-preview.tsx");
+  it("keeps search and route actions at least 44px tall", () => {
     const dps = read("src/app/dps/dps-client.tsx");
     const next = read("src/app/next/next-client.tsx");
 
-    expect(heroBoss).toContain('className="group grid size-11 place-items-center rounded-md"');
+    // The hero boss carousel and its size-11 dots are gone — direction B has
+    // no atmosphere to keep, and a 3.6s loop had no business on a page whose
+    // job is answering a question once. The boss row's control replaces it as
+    // the thing this case has to hold to 44px.
+    expect(dps).toContain("min-h-11 w-full items-center");
     expect(dps).toContain("mobile-scroll-row mt-3 sm:flex-wrap");
     expect(dps).toContain("min-h-11 shrink-0");
     expect(dps).toContain("flex size-11 -translate-y-1/2");

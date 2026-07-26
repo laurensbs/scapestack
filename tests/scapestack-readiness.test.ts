@@ -325,7 +325,9 @@ describe("Scapestack readiness rail", () => {
     const dpsSource = readFileSync(join(process.cwd(), "src/app/dps/dps-client.tsx"), "utf8");
     expect(dpsSource).not.toContain("ScapestackReadinessRail");
     expect(dpsSource).toContain("Pick a boss");
-    expect(dpsSource).toContain("Search any boss. Click a tile for gear, supplies, upgrades and a first trip.");
+    // "tile" → "row": the boss browser is a table now, and the copy has to
+    // name the thing the player actually clicks.
+    expect(dpsSource).toContain("Search any boss. Click a row for gear, supplies, upgrades and a first trip.");
     expect(dpsSource).toContain("function bossCardReason");
     expect(dpsSource).toContain("Pick a boss to see the actual setup, inventory and numbers.");
     expect(dpsSource).toContain("buildBossInventoryPlan({ boss, bankItems, owned, dps })");

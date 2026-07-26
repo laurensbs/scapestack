@@ -29,7 +29,14 @@ describe("Scapestack interface lock", () => {
       ".scape-route-choice",
       ".scape-inventory",
       ".scape-checklist",
-      ".scape-primary-action"
+      ".scape-primary-action",
+      // Direction B's two additions: the reference table the app's rows of
+      // numbers live in, and the verdict, which takes its colour from the
+      // game's own difficulty ramp instead of an invented traffic light.
+      ".scape-table",
+      ".scape-table-wrap",
+      ".scape-table-note",
+      ".scape-verdict"
     ]) {
       expect(css, primitive).toContain(primitive);
     }
@@ -64,7 +71,12 @@ describe("Scapestack interface lock", () => {
     expect(read("src/components/boss-detail-modal.tsx")).toContain('className="scape-sheet');
     expect(read("src/components/add-bank-modal.tsx")).toContain('className="scape-dialog');
     expect(read("src/components/connect-browser-modal.tsx")).toContain('className="scape-dialog');
-    expect(read("src/app/dps/dps-client.tsx")).toContain("scape-boss-tile scapestack-boss-tile");
+    // The /dps boss browser was a grid of .scape-boss-tile cards. Direction B
+    // made it a table, so the shared primitive it must use is the table one —
+    // the point of this assertion is that the route composes from the locked
+    // vocabulary rather than inventing a surface, and it still does.
+    expect(read("src/app/dps/dps-client.tsx")).toContain('className="scape-table"');
+    expect(read("src/app/dps/dps-client.tsx")).toContain('className="scape-table-wrap"');
     expect(read("src/app/next/next-client.tsx")).toContain('className="scape-focus');
   });
 });

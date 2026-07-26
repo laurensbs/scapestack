@@ -1,76 +1,78 @@
-import { HeroBossTripPreview } from "@/components/hero-boss-trip-preview";
 import { HeroIntake } from "@/components/hero-intake";
+import { BOSSES } from "@/lib/bosses";
 
 // This page has no server data. Keeping it as one immutable deployment
 // artifact prevents an ISR regeneration from rendering pathname-dependent
 // client chrome differently from the client bundle during hydration.
 export const dynamic = "force-static";
 
+// Counted at build from the engine's own table so the claim cannot drift away
+// from what the tool actually checks.
+const BOSS_COUNT = BOSSES.length;
+
 export default function HomePage() {
   return (
-    <main className="scape-page pb-18 pt-10 sm:px-8 sm:pt-14">
-      <section className="home-hero relative flex min-h-[calc(100vh-6rem)] min-w-0 items-center overflow-hidden">
-        <div className="home-hero-grid mx-auto grid w-full min-w-0 items-center gap-8 py-8 lg:grid-cols-[minmax(0,1fr)_440px] lg:gap-x-12 lg:gap-y-5">
-          <div className="home-hero-intro min-w-0 space-y-5 text-center lg:col-start-1 lg:row-start-1 lg:text-left">
-            <div
-              className="eyebrow"
-              style={{ animation: "hero-fade 240ms cubic-bezier(0.05,0.7,0.1,1) both" }}
-            >
-              OSRS trip picker
-            </div>
-            <h1
-              aria-label="Stop bankstanding. Pick the next trip."
-              className="mx-auto max-w-[320px] break-words text-[30px] font-semibold leading-[0.98] text-[var(--color-text)] sm:max-w-[820px] sm:text-[62px] lg:mx-0 lg:text-[76px]"
-            >
-              {/* Opacity only, and it ends. WCAG 2.3.3 does not class an
-                  opacity change as motion animation, so this needs no
-                  reduced-motion substitute — and nothing here loops. A
-                  seven-second shimmer used to run over the second line
-                  forever, on a page whose whole job is answering a question
-                  once. */}
-              <span
-                className="block text-[var(--color-text)]"
-                style={{ animation: "hero-fade 260ms cubic-bezier(0.05,0.7,0.1,1) 60ms both" }}
-              >
-                Stop bankstanding.
-              </span>
-              <span
-                className="block text-route-gradient"
-                style={{ animation: "hero-fade 260ms cubic-bezier(0.05,0.7,0.1,1) 140ms both" }}
-              >
-                Pick the next trip.
-              </span>
-            </h1>
+    <main className="scape-page pb-16 pt-8 sm:px-8 sm:pt-12">
+      {/* Direction B: a reference document gets to the point. The masthead is
+          a heading, one line and a rule — the specimen's own structure — and
+          the intake is the next thing on the page, not the thing you scroll
+          to. Three elements came out to get here and none went in: the
+          full-viewport hero, the category eyebrow above a headline that already
+          said the same thing, and the rotating boss illustration.
 
-            <p
-              className="mx-auto max-w-[610px] text-[16px] leading-[1.6] text-[var(--color-text-secondary)] sm:text-[18px] lg:mx-0"
-              style={{
-                animation: "hero-fade 260ms cubic-bezier(0.05,0.7,0.1,1) 220ms both",
-                clipPath: "inset(0 0 100% 0)"
-              }}
-            >
-              Type your OSRS name. Scapestack opens one clean trip and tells you when to stop.
-            </p>
-
-          </div>
-
-          <div
-            className="home-hero-boss relative order-3 mx-auto -my-2 w-full max-w-[240px] sm:max-w-[390px] lg:order-none lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mx-0 lg:max-w-[460px]"
-            style={{ animation: "hero-fade 280ms cubic-bezier(0.05,0.7,0.1,1) 300ms both" }}
+          The illustration is the one worth naming. It cycled five bosses on a
+          3.6s interval, forever, on a page whose whole job is answering a
+          question once — the same loop the token pass already removed from
+          the headline shimmer. It was also the reason the layout needed a
+          440px second column and a 100vh section. Direction B has no
+          atmosphere to keep, so it went. */}
+      <section className="home-hero mx-auto w-full min-w-0 max-w-[46rem]">
+        <div className="home-hero-intro min-w-0 border-b border-[var(--color-border)] pb-5">
+          <h1
+            aria-label="Stop bankstanding. Pick the next trip."
+            className="max-w-[20ch] break-words text-[30px] font-semibold leading-[1.04] text-[var(--color-text)] sm:text-[40px]"
           >
-            <HeroBossTripPreview />
-          </div>
+            {/* Opacity only, and it ends. WCAG 2.3.3 does not class an opacity
+                change as motion animation, so this needs no reduced-motion
+                substitute — and nothing here loops. */}
+            <span
+              className="block"
+              style={{ animation: "hero-fade 220ms cubic-bezier(0.05,0.7,0.1,1) both" }}
+            >
+              Stop bankstanding.
+            </span>
+            <span
+              className="block text-route-gradient"
+              style={{ animation: "hero-fade 220ms cubic-bezier(0.05,0.7,0.1,1) 60ms both" }}
+            >
+              Pick the next trip.
+            </span>
+          </h1>
 
-          <div
-            className="home-hero-intake order-2 mx-auto w-full max-w-[720px] lg:order-none lg:col-start-1 lg:row-start-2 lg:mx-0"
-            style={{ animation: "hero-fade 280ms cubic-bezier(0.05,0.7,0.1,1) 380ms both" }}
+          <p
+            className="mt-3 max-w-[52ch] text-[15px] leading-[1.55] text-[var(--color-text-secondary)] sm:text-[16px]"
+            style={{ animation: "hero-fade 220ms cubic-bezier(0.05,0.7,0.1,1) 120ms both" }}
           >
-            <HeroIntake />
-          </div>
+            Type your OSRS name. Scapestack opens one clean trip and tells you when to stop.
+          </p>
         </div>
+
+        <div
+          className="home-hero-intake mt-5 min-w-0"
+          style={{ animation: "hero-fade 240ms cubic-bezier(0.05,0.7,0.1,1) 180ms both" }}
+        >
+          <HeroIntake />
+        </div>
+
+        {/* The specimen's closing note: what the numbers are computed from and
+            what they cannot see. The worn-gear clause is the same sentence the
+            verdict engine puts under every boss — the plugin does not read worn
+            equipment and, by a promise in both READMEs, will not. */}
+        <p className="scape-table-note home-hero-basis mt-6 border-t border-[var(--color-border)] pt-4">
+          {BOSS_COUNT} bosses, checked against the gear in your bank.{" "}
+          Worn gear is not counted — Scapestack only sees your bank.
+        </p>
       </section>
-
-
     </main>
   );
 }
