@@ -29,7 +29,12 @@ describe("ready to leave UX", () => {
     expect(component).toContain('"Cash out"');
     expect(component).toContain('"Task"');
     expect(component).toContain('"Stop at"');
-    expect(component).toContain('"mt-3 bg-transparent"');
+    // The wrapper used to tint its border --color-good or --color-warning on a
+    // conditional; both are #FF981F. It draws a plain rule now and the verdict
+    // rides the shared ramp, which is what this file's own READY_GATE export
+    // says must happen.
+    expect(component).toContain("border-t border-[var(--color-border)]");
+    expect(component).toContain('className="scape-verdict" data-gate={gate}');
     expect(component).toContain("displayLabel");
     expect(component).toContain("divide-y divide-[var(--color-border)]/45");
     expect(component).toContain("ArrowRight");

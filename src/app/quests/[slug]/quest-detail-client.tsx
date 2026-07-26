@@ -44,9 +44,9 @@ function RequirementPill({ met }: { met: boolean }) {
     <span
       className={cn(
         "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10.5px] font-bold",
-        met
-          ? "border-[var(--color-good)]/35 bg-[var(--color-good)]/10 text-[var(--color-good)]"
-          : "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
+        // Met and unmet rendered the same colour. CheckCircle2 vs Circle
+        // below carries it, and a requirement list is read by shape.
+        "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
       )}
     >
       {met ? <CheckCircle2 className="size-3" /> : <Circle className="size-3" />}
@@ -126,9 +126,9 @@ function RouteStep({
       {!last && <span className="absolute left-[11px] top-6 h-[calc(100%-12px)] w-px bg-[var(--color-border)]" />}
       <span className={cn(
         "relative z-10 mt-0.5 flex size-6 items-center justify-center rounded-full border bg-[var(--color-panel)]",
-        tone === "good" && "border-[var(--color-good)]/45 text-[var(--color-good)]",
-        tone === "warning" && "border-[var(--color-warning)]/45 text-[var(--color-warning)]",
-        tone === "default" && "border-[var(--color-accent)]/45 text-[var(--color-accent)]"
+        // Three tones, one colour: good and warning resolve to the same hex as
+        // default. The icon below is the whole distinction and always was.
+        "border-[var(--color-accent)]/45 text-[var(--color-accent)]"
       )}>
         {tone === "good" ? <CheckCircle2 className="size-3.5" /> : tone === "warning" ? <AlertTriangle className="size-3.5" /> : <ArrowRight className="size-3.5" />}
       </span>
@@ -296,7 +296,13 @@ export function QuestDetailClient({
                 {evaluation.skillRequirements.map((req) => (
                   <li key={req.skill} className="flex items-center justify-between gap-3 py-2.5 text-[12.5px]">
                     <span>{req.skill} {req.level}</span>
-                    <span className={req.met ? "text-[var(--color-good)]" : "text-[var(--color-warning)]"}>{req.currentLevel}/{req.level}</span>
+                    {/* The worst of the set: colour was the ONLY signal here,
+                        and both branches were #FF981F, so a player could not
+                        tell a met requirement from an unmet one at all. This
+                        is a verdict, so it takes the shared ramp. */}
+                    <span className="scape-verdict" data-gate={req.met ? "ready" : "blocked"}>
+                      {req.currentLevel}/{req.level}
+                    </span>
                   </li>
                 ))}
               </ul>

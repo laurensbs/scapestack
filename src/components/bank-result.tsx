@@ -2498,9 +2498,9 @@ export function BankResult({
             <div
               className={cn(
                 "mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-lg border",
-                sourceReceipt.confidenceTone === "good"
-                  ? "border-[var(--color-good)]/35 bg-[var(--color-good)]/10 text-[var(--color-good)]"
-                  : "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
+                // Was a ternary between two identical hexes. Shield vs
+                // AlertCircle below is the actual signal.
+                "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
               )}
             >
               {sourceReceipt.confidenceTone === "good" ? <Shield className="size-4" /> : <AlertCircle className="size-4" />}
@@ -2511,9 +2511,8 @@ export function BankResult({
               <p
                 className={cn(
                   "mt-1 inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold",
-                  sourceReceipt.confidenceTone === "good"
-                    ? "border-[var(--color-good)]/30 bg-[var(--color-good)]/10 text-[var(--color-good)]"
-                    : "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
+                  // confidenceLabel already says which one this is.
+                  "border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
                 )}
               >
                 {sourceReceipt.confidenceLabel}
@@ -2537,14 +2536,13 @@ export function BankResult({
               data-testid="bank-id-sprite-health"
               className={cn(
                 "mt-1 rounded-lg border px-3 py-2",
-                idSpriteHealth.tone === "good"
-                  ? "border-[var(--color-good)]/25 bg-[var(--color-good)]/8"
-                  : "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/8"
+                // Identical hexes; CheckCircle2 vs AlertCircle below is the signal.
+                "border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8"
               )}
             >
               <p className={cn(
                 "flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.16em]",
-                idSpriteHealth.tone === "good" ? "text-[var(--color-good)]" : "text-[var(--color-warning)]"
+                "text-[var(--color-accent)]"
               )}>
                 {idSpriteHealth.tone === "good" ? <CheckCircle2 className="size-3.5" /> : <AlertCircle className="size-3.5" />}
                 {idSpriteHealth.label}
@@ -5418,9 +5416,12 @@ function ItemDetailDialog({
 
 function ItemVerdictPanel({ verdict }: { verdict: ReturnType<typeof buildItemVerdict> }) {
   const toneClass: Record<ItemVerdictTone, string> = {
-    keep: "border-[var(--color-good)]/25 bg-[var(--color-good)]/8 text-[var(--color-good)]",
-    review: "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/8 text-[var(--color-warning)]",
-    sell: "border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8 text-[var(--color-danger)]",
+    // Keep / review / sell is a verdict, so it belongs on the gate ramp rather
+    // than on aliases where keep and review resolve to the same hex and the
+    // panel silently stopped distinguishing them.
+    keep: "border-[var(--color-gate-easy)]/25 bg-[var(--color-gate-easy)]/8 text-[var(--color-gate-easy)]",
+    review: "border-[var(--color-gate-even)]/25 bg-[var(--color-gate-even)]/8 text-[var(--color-gate-even)]",
+    sell: "border-[var(--color-gate-above)]/25 bg-[var(--color-gate-above)]/8 text-[var(--color-gate-above)]",
     info: "border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 text-[var(--color-accent)]"
   };
 

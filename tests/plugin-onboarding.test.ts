@@ -105,7 +105,12 @@ describe("bank plugin onboarding", () => {
     expect(source).toContain("bankPluginOnboardingActions(pluginHubReadinessState)");
     expect(source).toContain('pluginHubReadinessState === "merged"');
     expect(source).toContain("const SignalIcon = isPluginHubLive ? CheckCircle2 : Clock3");
-    expect(source).toContain('isPluginHubLive ? "text-[var(--color-good)]" : "text-[var(--color-warning)]"');
+    // Was pinned to a ternary between --color-good and --color-warning, two
+    // byte-identical hexes, so it guarded a branch that rendered the same
+    // pixel either way. What matters is that the two states are told apart at
+    // all, and here that is the signal text and the icon.
+    expect(source).toContain("isPluginHubLive");
+    expect(source).toContain("{signal}");
     expect(source).toContain("RuneLite can skip");
     expect(source).toContain("RuneLite is helping");
     expect(source).not.toContain("Exact signals Scapestack Sync can unlock");

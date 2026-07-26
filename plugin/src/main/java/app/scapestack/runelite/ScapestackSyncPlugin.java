@@ -283,7 +283,14 @@ public class ScapestackSyncPlugin extends Plugin {
         } else {
             lastAutoSyncAtMs = now;
         }
-        notifyChat("Scapestack is syncing your progress...");
+        // Only when the player asked for it.
+        //
+        // This fired before EVERY sync, and the scheduler runs on a 15-minute
+        // delay with chatFeedback defaulting to true. A four-hour session
+        // printed roughly sixteen game messages announcing a background HTTP
+        // request, in the same chatbox a player is reading for drops and clan
+        // chat. Nobody installs a plugin to be told it is working.
+        if (manual) notifyChat("Scapestack is syncing your progress...");
         Thread thread = newSyncThread(() -> {
             try {
                 String syncUrl = configuredSyncUrl();

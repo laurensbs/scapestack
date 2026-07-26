@@ -2288,9 +2288,9 @@ function NextBankContextStrip({
             {hasPluginSync && (
               <div className={cn(
                 "mt-1 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-[0.12em]",
-                hasLivePluginSync
-                  ? "border-[var(--color-good)]/25 bg-[var(--color-good)]/10 text-[var(--color-good)]"
-                  : "border-[var(--color-warning)]/25 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
+                // Identical either way. The label already reads "Bank +
+                // RuneLite" or "Refresh RuneLite", which is the difference.
+                "border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
               )}>
                 <CheckCircle2 className="size-3" />
                 {hasLivePluginSync ? "Bank + RuneLite" : pluginSyncState === "outdated" ? "Update RuneLite" : "Refresh RuneLite"}

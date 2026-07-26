@@ -50,6 +50,21 @@
   --color-accent-soft: #FFB65C;
   --color-rune: #FF981F;
 
+  /* good == warning == accent, and danger == bad, ON PURPOSE. The line above
+     says it: no green success theme. Saturated colour is data only, so status
+     chrome gets the brass and nothing else.
+
+     That makes these four names ALIASES, not a scale, and the danger is code
+     that branches between them as though they differ. ready-to-leave.tsx did
+     exactly that — a good/warn conditional painting --color-good against
+     --color-warning, two identical hexes, inside the same file that exports
+     READY_GATE with a comment forbidding a second verdict language. The branch
+     had no visible effect and read like a working traffic light.
+
+     Judgement belongs on .scape-verdict[data-gate], which uses the nine-step
+     gate ramp. These stay for chrome that needs the accent under another name.
+     tests/one-scale-per-meaning.test.ts fails the build if a component starts
+     choosing between two of them again. */
   --color-good: #FF981F;
   --color-warning: #FF981F;
   --color-danger: #B76A57;

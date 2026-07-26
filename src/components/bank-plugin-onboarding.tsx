@@ -93,8 +93,9 @@ export function BankPluginOnboarding() {
                     <div className="flex items-center gap-2 text-[11px] font-bold text-[var(--color-text)]">
                       <StepIcon
                         className={cn(
-                          "size-3.5 shrink-0",
-                          step.state === "ready" ? "text-[var(--color-good)]" : "text-[var(--color-warning)]"
+                          // Both branches painted #FF981F. The icon already
+                          // differs; the colour said nothing.
+                          "size-3.5 shrink-0 text-[var(--color-accent)]"
                         )}
                       />
                       <span className="rounded-full bg-[var(--color-bg)] px-2 py-0.5 text-[9.5px] uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
@@ -136,8 +137,8 @@ export function BankPluginOnboarding() {
                 )}
               >
                 <SignalIcon className={cn(
-                  "size-4 shrink-0",
-                  isPluginHubLive ? "text-[var(--color-good)]" : "text-[var(--color-warning)]"
+                  // Same colour on both sides; the signal text differs.
+                  "size-4 shrink-0 text-[var(--color-accent)]"
                 )} />
                 {signal}
               </div>

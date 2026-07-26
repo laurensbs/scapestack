@@ -78,11 +78,14 @@ export function ReadyToLeave({
   items: ReadyToLeaveItem[];
   compact?: boolean;
 }) {
-  const good =
-    status === "Good first trip" ||
-    status === "Worth doing" ||
-    status === "Good AFK loop";
-  const Icon = good ? CheckCircle2 : AlertCircle;
+  // READY_GATE is exported from this very file, twenty lines up, with a comment
+  // saying a verdict colour has to mean the same thing everywhere "or a player
+  // learns the ramp twice". This component then ignored it and painted a pill
+  // in --color-good / --color-warning — two tokens that are byte-identical
+  // (#FF981F), so the whole conditional produced the same pixel either way. A
+  // branch with no visible effect, inside the file that forbids the branch.
+  const gate = READY_GATE[status];
+  const Icon = gate === "ready" ? CheckCircle2 : AlertCircle;
   const displayLabel = (label: ReadyToLeaveItem["label"]): string => {
     switch (label) {
       case "Skill":
@@ -117,21 +120,15 @@ export function ReadyToLeave({
   return (
     <div
       className={cn(
-        "mt-3 bg-transparent",
-        good ? "border-[var(--color-good)]/22" : "border-[var(--color-warning)]/24",
+        "mt-3 border-t border-[var(--color-border)] bg-transparent",
         compact ? "py-2" : "py-3"
       )}
     >
-      <div
-        className={cn(
-          "mb-2 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold",
-          good
-            ? "border-[var(--color-good)]/35 bg-[var(--color-good)]/10 text-[var(--color-good)]"
-            : "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
-        )}
-      >
-        <Icon className="size-3.5" />
-        {status}
+      {/* The shared verdict primitive: word first, one colour scale, and the
+          icon carries the same meaning in shape so it does not depend on hue. */}
+      <div className="mb-2 inline-flex items-center gap-1.5">
+        <Icon className="size-3.5 text-[var(--color-text-muted)]" />
+        <span className="scape-verdict" data-gate={gate}>{status}</span>
       </div>
       <dl className="divide-y divide-[var(--color-border)]/45 border-y border-[var(--color-border)]/45">
         {items.map((item) => (
@@ -146,8 +143,9 @@ export function ReadyToLeave({
             <dd
               className={cn(
                 "text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]",
-                item.tone === "good" && "text-[var(--color-good)]",
-                item.tone === "warn" && "text-[var(--color-warning)]"
+                // Same rule one level down: an item tone is a verdict too.
+                item.tone === "good" && "text-[var(--color-gate-easy)]",
+                item.tone === "warn" && "text-[var(--color-gate-even)]"
               )}
               title={item.value}
             >
