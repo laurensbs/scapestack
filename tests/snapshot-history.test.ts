@@ -120,7 +120,6 @@ describe("snapshot history", () => {
     expect(summary.itemCount).toBe(1);
     expect(summary.totalQuantity).toBe(2);
     expect(summary.totalValue).toBe(5000);
-    expect(summary.stackScore).toBeGreaterThanOrEqual(0);
     expect(summary.topItems[0].name).toBe("Abyssal whip");
   });
 });

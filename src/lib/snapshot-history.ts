@@ -7,7 +7,6 @@
 
 import type { BankSnapshot } from "./diff";
 import type { OrganizedTab } from "./organizer";
-import { computeStackScore } from "./stack-score";
 import { computeTips } from "./tips";
 
 const KEY = "scapestack-bank:rsn-snapshots";
@@ -148,7 +147,6 @@ export interface SnapshotSummary {
   totalQuantity: number;
   totalValue: number;
   tipCount: number;
-  stackScore: number;
   topItems: Array<{ id: number; name: string; quantity: number; stackValue: number }>;
 }
 
@@ -160,7 +158,6 @@ export function summarizeTabsForSnapshot(tabs: OrganizedTab[]): SnapshotSummary 
     totalQuantity: items.reduce((sum, item) => sum + item.quantity, 0),
     totalValue: items.reduce((sum, item) => sum + item.stackValue, 0),
     tipCount: computeTips(tabs).length,
-    stackScore: computeStackScore(tabs).total,
     topItems: sorted.slice(0, 5).map((item) => ({
       id: item.id,
       name: item.name,

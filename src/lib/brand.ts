@@ -55,16 +55,18 @@ export const BRAND_PUBLIC_ROUTES = [
   { path: "/plugin", priority: 0.85, changeFrequency: "weekly" },
   { path: "/dps", priority: 0.8, changeFrequency: "weekly" },
   { path: "/slayer", priority: 0.8, changeFrequency: "weekly" },
-  { path: "/goals", priority: 0.75, changeFrequency: "weekly" },
-  { path: "/hiscore", priority: 0.7, changeFrequency: "monthly" }
+  { path: "/goals", priority: 0.75, changeFrequency: "weekly" }
 ] as const;
 
+// All six 308 from next.config.ts now — no route components pretend to be
+// product surfaces any more.
 export const BRAND_LEGACY_REDIRECT_ROUTES = [
   "/gp",
   "/ge",
   "/skills",
   "/quests",
-  "/diary"
+  "/diary",
+  "/hiscore"
 ] as const;
 
 export const BRAND_POSITIONING = {

@@ -3,17 +3,15 @@
 import { useState } from "react";
 import { TrendingUp, TrendingDown, Plus, Minus, ChevronDown, X } from "lucide-react";
 import type { BankDiff } from "@/lib/diff";
-import type { ScorePoint } from "@/lib/score-history";
 import { cn, formatGp, formatQty } from "@/lib/utils";
 import { ItemSprite } from "@/components/item-sprite";
 
 interface Props {
   diff: BankDiff;
-  history?: ScorePoint[];
   onDismiss: () => void;
 }
 
-export function DiffBanner({ diff, history = [], onDismiss }: Props) {
+export function DiffBanner({ diff, onDismiss }: Props) {
   const [expanded, setExpanded] = useState(false);
 
   if (
@@ -81,14 +79,6 @@ export function DiffBanner({ diff, history = [], onDismiss }: Props) {
               </span>
             </div>
           </div>
-          {history.length >= 2 && (
-            <div className="hidden sm:flex items-center gap-2 mr-1 shrink-0">
-              <Sparkline points={history} up={up} />
-              <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider font-medium">
-                Score · {history.length}pt
-              </span>
-            </div>
-          )}
           <ChevronDown
             className={cn(
               "size-4 text-[var(--color-text-dim)] transition-transform shrink-0",
@@ -198,52 +188,4 @@ function DiffColumn({ title, tone, empty, items }: { title: string; tone: "up" |
   );
 }
 
-// Compact SVG sparkline of the user's stack-score series. Shows the most
-// recent ~30 organize sessions as a single line + endpoint dot.
-function Sparkline({ points, up }: { points: ScorePoint[]; up: boolean }) {
-  const W = 80;
-  const H = 28;
-  const PAD = 2;
-  if (points.length < 2) return null;
-  const min = Math.min(...points.map((p) => p.s));
-  const max = Math.max(...points.map((p) => p.s));
-  const span = max - min || 1;
-  const stepX = (W - PAD * 2) / (points.length - 1);
-  const norm = (s: number) => H - PAD - ((s - min) / span) * (H - PAD * 2);
-  const path = points
-    .map((p, i) => `${i === 0 ? "M" : "L"}${PAD + i * stepX},${norm(p.s)}`)
-    .join(" ");
-  const lastX = PAD + (points.length - 1) * stepX;
-  const lastY = norm(points[points.length - 1].s);
-  const stroke = up ? "var(--color-good)" : "var(--color-danger)";
-  return (
-    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="opacity-90">
-      <defs>
-        <linearGradient id="spark-fill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={stroke} stopOpacity="0.35" />
-          <stop offset="100%" stopColor={stroke} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path
-        d={`${path} L${lastX},${H - PAD} L${PAD},${H - PAD} Z`}
-        fill="url(#spark-fill)"
-      />
-      <path
-        d={path}
-        fill="none"
-        stroke={stroke}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx={lastX} cy={lastY} r={2.2} fill={stroke}>
-        <animate
-          attributeName="r"
-          values="2.2;3.4;2.2"
-          dur="1.8s"
-          repeatCount="indefinite"
-        />
-      </circle>
-    </svg>
-  );
-}
+

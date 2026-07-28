@@ -84,7 +84,9 @@ describe("Scapestack branding", () => {
     expect(routePaths).toContain("/next");
     expect(routePaths).toContain("/plugin");
     expect(routePaths).toContain("/dps");
-    expect(routePaths).toContain("/hiscore");
+    // /hiscore is retired: the official Hiscores, WOM and TempleOSRS all do
+    // lookup better, and the route existed to feed the registry that fed it.
+    expect(routePaths).not.toContain("/hiscore");
     expect(routePaths).not.toContain("/api/sync");
     expect(routePaths).not.toContain("/dev/layout");
     expect(routePaths).not.toContain("/bank/share/[code]");

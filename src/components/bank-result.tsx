@@ -44,9 +44,6 @@ import { BankAffordabilityPanel } from "./bank-affordability-panel";
 import { ItemSprite } from "./item-sprite";
 import { computeTips, type BankTip } from "@/lib/tips";
 import { track } from "@/lib/analytics";
-import { StackScoreBadge } from "./stack-score-badge";
-import { computeStackScore } from "@/lib/stack-score";
-import { pushScorePoint, type ScorePoint } from "@/lib/score-history";
 import { isJunkCandidate, summarizeJunk, listJunkItems } from "@/lib/junk";
 import { recordSnapshot, daysSinceChanged, type ItemHistory } from "@/lib/item-history";
 import { matchGoals, summarizeGoalProgress, type GoalMatch } from "@/lib/goal-match";
@@ -1184,12 +1181,10 @@ export function BankResult({
   const [diffDismissed, setDiffDismissed] = useState(false);
   const [activePreset, setActivePreset] = useState<Preset | null>(null);
   const [actionSearch, setActionSearch] = useState<{ query: string; sourceLabel: string } | null>(null);
-  const [previousScore, setPreviousScore] = useState<number | undefined>(undefined);
   const [reorgFlash, setReorgFlash] = useState<string | null>(null);
   // Last reorganize strategy that was applied — used to re-sort items inside
   // each (use-case) tab after bucketing, so the user actually sees the change.
   const [viewSort, setViewSort] = useState<ReorganizeStrategy | null>(null);
-  const [scoreHistory, setScoreHistory] = useState<ScorePoint[]>([]);
   const [itemHistory, setItemHistory] = useState<ItemHistory>({});
   const [rsnSnapshots, setRsnSnapshots] = useState<BankSnapshot[]>([]);
   const [compareSnapshot, setCompareSnapshot] = useState<BankSnapshot | null>(null);
@@ -1278,19 +1273,13 @@ export function BankResult({
     // Snapshot history. RSN if known, otherwise local/manual history.
     setRsnSnapshots(appendSnapshot(inferredRsn, next));
 
-    // Stack Score delta
     try {
-      const SCORE_KEY = "scapestack-bank:last-score";
-      const prevScoreRaw = localStorage.getItem(SCORE_KEY);
-      if (prevScoreRaw) {
-        const parsed = parseInt(prevScoreRaw, 10);
-        if (Number.isFinite(parsed)) setPreviousScore(parsed);
-      }
-      const currentScore = computeStackScore(initial.tabs).total;
-      localStorage.setItem(SCORE_KEY, String(currentScore));
-      // Push to historical series for the sparkline.
-      const hist = pushScorePoint(currentScore);
-      setScoreHistory(hist);
+      // The Stack Score used to be computed and stored here. Retired: 30% of
+      // its weight was wealth on a log scale, 25% item count, 20% million-gp
+      // slots — three quarters of it measured bank SIZE, on exactly the axis
+      // where WOM's EHP/EHB already does the job properly. A number that goes
+      // up when you get richer is not an insight, and it was the second scale
+      // for "how good is this" the design system forbids.
     } catch {}
 
     // Discord webhook fire-and-forget — only when something changed.
@@ -2596,7 +2585,7 @@ export function BankResult({
 
       {/* Diff vs previous bank snapshot, if any */}
       {diff && !diffDismissed && (
-        <DiffBanner diff={diff} history={scoreHistory} onDismiss={() => setDiffDismissed(true)} />
+        <DiffBanner diff={diff} onDismiss={() => setDiffDismissed(true)} />
       )}
 
       {/* Junk banner */}
@@ -2987,8 +2976,7 @@ function SnapshotHistoryPanel({
           </div>
           <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-dim)]">
             Current bank: <strong className="text-[var(--color-text)]">{currentSummary.itemCount}</strong> items ·{" "}
-            <strong className="text-[var(--color-accent)]">{formatGp(currentSummary.totalValue)}</strong> · Stack Score{" "}
-            <strong className="text-[var(--color-text)]">{currentSummary.stackScore}</strong>
+            <strong className="text-[var(--color-accent)]">{formatGp(currentSummary.totalValue)}</strong>
             {currentSummary.tipCount > 0 && <> · <strong className="text-[var(--color-warning)]">{currentSummary.tipCount}</strong> tip{currentSummary.tipCount === 1 ? "" : "s"}</>}
           </p>
           {currentSummary.topItems.length > 0 && (

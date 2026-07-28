@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { GOAL_SETS } from "@/lib/goals";
@@ -78,13 +78,16 @@ describe("/slayer states requirements, not conclusions, before there is input", 
 });
 
 describe("routes that deliberately have no catalogue", () => {
-  it("keeps /skills, /quests, /diary, /gp and /ge as redirects into /next", () => {
-    // STRATEGY.md folded these into /next as recommendation kinds. They are
-    // 308s so cached links and search results keep working — filling them with
-    // content would resurrect tools that were deliberately retired.
-    for (const route of ["skills", "quests", "diary", "gp", "ge"]) {
-      const page = source(`src/app/${route}/page.tsx`);
-      expect(page, route).toMatch(/redirect|permanentRedirect/);
+  it("keeps the retired routes as config redirects, not route components", () => {
+    // STRATEGY.md folded these into /next as recommendation kinds. They used
+    // to be page.tsx files whose whole body was permanentRedirect(), which
+    // made them look like product surfaces in the tree — a nav promising six
+    // tools where three did not exist. The bounce lives in next.config.ts
+    // now; a route directory reappearing here would resurrect a retired tool.
+    const config = source("next.config.ts");
+    for (const route of ["skills", "quests", "diary", "gp", "ge", "hiscore"]) {
+      expect(existsSync(join(process.cwd(), `src/app/${route}/page.tsx`)), route).toBe(false);
+      expect(config).toContain(`source: "/${route}"`);
     }
   });
 });

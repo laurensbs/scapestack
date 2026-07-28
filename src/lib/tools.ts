@@ -54,28 +54,12 @@ export const TOOLS: Tool[] = [
     status: "live",
     accent: "amber"
   },
-  // GP Tracker and GE Price Tracker removed per docs/STRATEGY.md — Wiki
-  // Prices + ge-tracker.com do that better, no moat for us. The /gp and
-  // /ge routes are kept as 308 permanent-redirects to /next (in
-  // src/app/{gp,ge}/page.tsx) so cached external links don't 404.
-  // Hiscore Lookup — no longer rendered on the homepage but still
-  // registered here so ToolHeader on /hiscore can read its metadata
-  // via getTool(). Surfaced nowhere else (header + sidebar filter
-  // bank/dps/goals).
-  {
-    slug: "hiscore",
-    href: "/hiscore",
-    name: "Hiscore Lookup",
-    navLabel: "Hiscores",
-    short: "Look up a player's stats",
-    tagline: "Stats, ranks, all skills at a glance",
-    description:
-      "Enter a username, get a polished card with all 24 skills, combat level, XP, total level, and ranks. Live data from the official OSRS Hiscores.",
-    icon: Trophy,
-    iconItemId: 13342,
-    status: "live",
-    accent: "violet"
-  },
+  // GP Tracker, GE Price Tracker and Hiscore Lookup are gone. The first two
+  // per docs/STRATEGY.md (Wiki Prices and ge-tracker do it better); the
+  // lookup because the official Hiscores, WOM and TempleOSRS all serve it,
+  // and its registry entry's own comment admitted it existed "so ToolHeader
+  // on /hiscore can read its metadata" — a page feeding the registry feeding
+  // the page. All six old URLs 308 from next.config.ts now.
   {
     slug: "goals",
     href: "/goals",
