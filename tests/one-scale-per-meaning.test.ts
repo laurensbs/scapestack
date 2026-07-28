@@ -94,3 +94,22 @@ describe("the design system does not say the same thing twice", () => {
     expect(source).not.toContain("var(--color-warning)");
   });
 });
+
+describe("the accent has a budget", () => {
+  it("keeps section labels quiet — the accent is for the wordmark, the primary action and links", () => {
+    // Wise Old Man's grammar, adopted deliberately: labels are small quiet
+    // grey, and the accent appears in three or four places per screen at
+    // most. This site had 26 orange uppercase eyebrows — when the accent is
+    // everywhere, there is no accent. The .eyebrow base class is already
+    // muted; this stops call sites from painting over it.
+    const offenders: string[] = [];
+    for (const dir of ["src/components", "src/app"]) {
+      for (const file of walk(join(process.cwd(), dir))) {
+        if (readFileSync(file, "utf8").includes("eyebrow text-[var(--color-accent)]")) {
+          offenders.push(file.replace(process.cwd() + "/", ""));
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+});

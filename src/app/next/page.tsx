@@ -87,7 +87,7 @@ function NextPlanLoadingShell() {
       aria-live="polite"
     >
       <div>
-        <p className="eyebrow text-[var(--color-accent)]">Checking your account</p>
+        <p className="eyebrow">Checking your account</p>
         <h1 className="mt-3 text-[30px] font-semibold leading-tight text-[var(--color-text)] sm:text-[42px]">
           Picking your next trip...
         </h1>

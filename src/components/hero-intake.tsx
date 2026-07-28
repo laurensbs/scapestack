@@ -297,7 +297,7 @@ export function HeroIntake() {
             at reading size, detail, one plain action. The second eyebrow is
             gone — two stacked eyebrows both saying "since your last visit"
             was the card announcing itself twice. */}
-        <p className="eyebrow text-[var(--color-accent)]">Welcome back, {rememberedRsn}</p>
+        <p className="eyebrow">Welcome back, {rememberedRsn}</p>
         <h2
           aria-live="polite"
           className="mt-2 max-w-2xl text-[22px] font-semibold leading-[1.15] text-[var(--color-text)] sm:text-[28px]"
@@ -503,7 +503,7 @@ export function HeroIntake() {
           >
             <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-5 py-4 sm:px-6">
               <div>
-                <p className="eyebrow text-[var(--color-accent)]">RuneLite</p>
+                <p className="eyebrow">RuneLite</p>
                 <h2 id="hero-runelite-guide-title" className="mt-1 text-[22px] font-semibold leading-tight text-[var(--color-text)]">
                   Let Scapestack skip finished stuff.
                 </h2>

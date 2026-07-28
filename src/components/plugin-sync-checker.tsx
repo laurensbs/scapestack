@@ -202,7 +202,7 @@ export function PluginSyncChecker() {
       <div className="px-5 py-5 sm:px-7 sm:py-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="eyebrow text-[var(--color-accent)]">RuneLite</p>
+            <p className="eyebrow">RuneLite</p>
             <h2 className="mt-1 font-serif text-[28px] font-bold leading-tight text-[var(--color-text)] sm:text-[34px]">
               {normalized ? `For ${normalized}` : "Connect your account"}
             </h2>

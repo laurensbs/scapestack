@@ -56,7 +56,7 @@ export function ReturningBriefing({
       aria-labelledby="returning-briefing-heading"
       className="mx-auto mb-6 max-w-3xl border-y border-[var(--color-border-strong)] py-5"
     >
-      <p className="eyebrow text-[var(--color-accent)]">
+      <p className="eyebrow">
         {name ? `Welcome back, ${name}` : "Welcome back"}
       </p>
       <h2

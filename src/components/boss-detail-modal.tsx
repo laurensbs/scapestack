@@ -211,7 +211,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
           <section className="scapestack-lock-card border-[var(--color-accent)]/30 bg-[var(--color-bg)]/30 p-3.5" data-testid="boss-trip-verdict">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
-                <h3 className="eyebrow text-[var(--color-accent)]">Can I do this?</h3>
+                <h3 className="eyebrow">Can I do this?</h3>
                 <div className="mt-1 text-[19px] font-black leading-tight text-[var(--color-text)]">
                   {verdict.title}
                 </div>

@@ -137,7 +137,7 @@ export function AddBankModal({
       >
         <div className="osrs-title-bar flex items-start justify-between gap-4 px-5 py-4 sm:px-6">
           <div>
-            <p className="eyebrow text-[var(--color-accent)]">Bank setup</p>
+            <p className="eyebrow">Bank setup</p>
             <h2 id="add-bank-modal-title" className="mt-1 text-[25px] font-semibold leading-tight text-[var(--color-text)]">
               Add bank
             </h2>

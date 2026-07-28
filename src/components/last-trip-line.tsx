@@ -33,7 +33,7 @@ export function LastTripLine({ outcome }: { outcome: LastTripOutcome | null }) {
       aria-label="Your previous trip"
       className="mx-auto mb-5 max-w-3xl border-y border-[var(--color-border)] py-3"
     >
-      <p className="eyebrow text-[var(--color-accent)]">Last trip · {STATUS_WORD[outcome.status]}</p>
+      <p className="eyebrow">Last trip · {STATUS_WORD[outcome.status]}</p>
       <p className="mt-1 text-[13.5px] leading-relaxed text-[var(--color-text)]">
         <span className="font-semibold">{outcome.title}.</span>{" "}
         <span className="text-[var(--color-text-dim)]">{outcome.detail}</span>

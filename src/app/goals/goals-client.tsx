@@ -226,7 +226,7 @@ export function GoalsClient() {
     return (
       <section className="mx-auto max-w-3xl">
         <div className="mb-5">
-          <p className="eyebrow text-[var(--color-accent)]">Unlock companion</p>
+          <p className="eyebrow">Unlock companion</p>
           <h2 className="mt-2 text-[34px] font-bold leading-tight text-[var(--color-text)] sm:text-[46px]">
             What should you unlock next?
           </h2>
@@ -249,7 +249,7 @@ export function GoalsClient() {
     <div>
       <section className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="eyebrow text-[var(--color-accent)]">For {activeRsn || "this account"}</p>
+          <p className="eyebrow">For {activeRsn || "this account"}</p>
           <h2 className="mt-1 text-[34px] font-bold leading-none text-[var(--color-text)]">Unlock this next</h2>
           <p className="mt-2 max-w-xl text-[13.5px] font-semibold leading-relaxed text-[var(--color-text-dim)]">
             One reward worth chasing now. Open it for the exact next step.
@@ -689,7 +689,7 @@ function NextUnlockCompanion({
           )}
         </div>
         <div className="min-w-0">
-          <p className="eyebrow text-[var(--color-accent)]">Best next unlock</p>
+          <p className="eyebrow">Best next unlock</p>
           <h3 className="mt-1 text-[30px] font-bold leading-tight text-[var(--color-text)] sm:text-[38px]">
             {guideTarget}
           </h3>
@@ -817,7 +817,7 @@ function GoalUnlockModal({
               )}
             </span>
             <div className="min-w-0">
-              <p className="eyebrow text-[var(--color-accent)]">Your next unlock</p>
+              <p className="eyebrow">Your next unlock</p>
               <h2 id="goal-unlock-modal-title" className="mt-1 text-[28px] font-bold leading-tight text-[var(--color-text)] sm:text-[36px]">
                 {target?.name ?? set.name}
               </h2>
@@ -841,13 +841,13 @@ function GoalUnlockModal({
 
         <div className="osrs-body space-y-5 p-5 sm:p-6">
           <section>
-            <p className="eyebrow text-[var(--color-accent)]">Why it matters</p>
+            <p className="eyebrow">Why it matters</p>
             <p className="mt-2 text-[14px] font-semibold leading-relaxed text-[var(--color-text)]">{intel.reward}</p>
             <p className="mt-1 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-muted)]">{intel.watchOut}</p>
           </section>
 
           <section className="border-y border-[var(--color-border)] py-4">
-            <p className="eyebrow text-[var(--color-accent)]">Do this</p>
+            <p className="eyebrow">Do this</p>
             {/* The numbered accent discs were counting to three next to steps
                 already called Start, Then and Stop. The words carry the order,
                 so the discs are gone and the titles are row headers. */}
@@ -871,7 +871,7 @@ function GoalUnlockModal({
           <section>
             <div className="flex flex-wrap items-end justify-between gap-2">
               <div>
-                <p className="eyebrow text-[var(--color-accent)]">Reward path</p>
+                <p className="eyebrow">Reward path</p>
                 <p className="mt-1 text-[12px] font-semibold text-[var(--color-text-muted)]">Tap only steps Scapestack cannot confirm yet. Saved for {activeRsn || "this device"}.</p>
               </div>
             </div>

@@ -1159,7 +1159,7 @@ function NextIntake({
           >
             <div className="osrs-title-bar flex items-start justify-between gap-4 px-5 py-4 sm:px-6">
               <div>
-                <p className="eyebrow text-[var(--color-accent)]">Before we pick</p>
+                <p className="eyebrow">Before we pick</p>
                 <h2 id="next-route-popup-title" className="mt-1 text-[24px] font-semibold leading-tight text-[var(--color-text)]">
                   What do you feel like doing?
                 </h2>
@@ -1514,7 +1514,7 @@ function FirstPlanSharpening({
           >
             <div className="osrs-title-bar flex items-start justify-between gap-4 px-5 py-4">
               <div>
-                <p className="eyebrow text-[var(--color-accent)]">Optional</p>
+                <p className="eyebrow">Optional</p>
                 <h2 id="first-plan-sharpen-title" className="mt-1 text-[22px] font-semibold leading-tight text-[var(--color-text)]">
                   Make the next pick sharper
                 </h2>
@@ -5363,7 +5363,7 @@ function RouteNeeds({
     <section>
       <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h3 className="eyebrow text-[var(--color-accent)]">Routes to inspect</h3>
+          <h3 className="eyebrow">Routes to inspect</h3>
           <p className="mt-1 text-[12px] text-[var(--color-text-muted)]">
             Pick the route with the smallest missing step.
           </p>
@@ -5776,7 +5776,7 @@ function RecHeadlineExpandable({
           >
             <header className="osrs-title-bar sticky top-0 z-10 flex items-start justify-between gap-4 px-5 py-4">
               <div className="min-w-0">
-                <p className="eyebrow text-[var(--color-accent)]">Trip details</p>
+                <p className="eyebrow">Trip details</p>
                 <h2 id="trip-details-title" className="mt-1 break-words text-[22px] font-semibold leading-tight text-[var(--color-text)]">
                   {rec.title}
                 </h2>

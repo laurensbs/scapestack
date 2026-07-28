@@ -219,7 +219,7 @@ function BankPageContent() {
         >
           <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-5 py-4 sm:px-6">
             <div>
-              <p className="eyebrow text-[var(--color-accent)]">Bank setup</p>
+              <p className="eyebrow">Bank setup</p>
               <h1 id="bank-popup-title" className="mt-1 text-[28px] font-semibold leading-none text-[var(--color-text)] sm:text-[34px]">
                 {openingSavedBank ? "Opening bank organizer" : "Add bank"}
               </h1>

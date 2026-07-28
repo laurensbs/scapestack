@@ -208,7 +208,7 @@ export function QuestDetailClient({
           <ItemSprite id={9813} alt="Quest point cape" size={54} />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="eyebrow text-[var(--color-accent)]">
+          <div className="eyebrow">
             {initialRoute.activeIsTarget ? "Quest block" : `On route to ${initialRoute.targetQuestName}`}
           </div>
           <h1 className="mt-1 text-[28px] font-black leading-tight tracking-normal text-[var(--color-text)] sm:text-[38px]">
@@ -236,7 +236,7 @@ export function QuestDetailClient({
         <div className="border-b border-[var(--color-border)] px-4 py-4 sm:px-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <div className="eyebrow text-[var(--color-accent)]">Do this first</div>
+              <div className="eyebrow">Do this first</div>
               <h2 className="mt-1 text-[22px] font-black leading-tight tracking-normal text-[var(--color-text)] sm:text-[28px]">
                 {initialSkills.length === 0 ? "Add your RSN first" : decision.title}
               </h2>

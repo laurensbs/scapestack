@@ -69,7 +69,7 @@ export function DropCelebration({ items }: Props) {
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="eyebrow text-[var(--color-accent)] mb-0.5">New since last visit</div>
+        <div className="eyebrow mb-0.5">New since last visit</div>
         <h3 className="text-[16px] font-bold text-[var(--color-text)] tracking-normal">
           {headline.displayName}
           {extra > 0 && (

@@ -499,7 +499,7 @@ function BankDecisionHero({
               {/* Was a time-of-day word. "Evening is not tool vocabulary" —
                   the design system's own finding — and GE prices do not know
                   what time it is. */}
-              <div className="eyebrow text-[var(--color-accent)]">This bank setup</div>
+              <div className="eyebrow">This bank setup</div>
               <h1 className="mt-1 max-w-full text-[23px] font-semibold leading-[1.02] tracking-normal text-[var(--color-text)] sm:text-[31px]">
                 {decision.title}
               </h1>
@@ -719,7 +719,7 @@ function SmartTidyWizard({
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <div className="eyebrow text-[var(--color-accent)]">Choose style</div>
+          <div className="eyebrow">Choose style</div>
           <h2 className="mt-1 text-[19px] font-semibold leading-tight text-[var(--color-text)] sm:text-[22px]">
             Pick the bank setup you want
           </h2>

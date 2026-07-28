@@ -89,7 +89,7 @@ export default function PluginPage() {
   return (
     <main className="scape-page scape-page--reading pb-28 pt-10 sm:px-8 sm:pt-16">
       <header className="mb-8 border-b border-[var(--color-border)] pb-6">
-        <p className="eyebrow text-[var(--color-accent)]">RuneLite connection</p>
+        <p className="eyebrow">RuneLite connection</p>
         <h1 className="mt-2 max-w-2xl font-serif text-[42px] font-bold leading-[1.02] text-[var(--color-text)] sm:text-[58px]">
           Keep your next trip current.
         </h1>
