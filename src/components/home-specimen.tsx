@@ -111,7 +111,7 @@ export function HomeSpecimen() {
   );
 
   return (
-    <section className="mt-8" aria-labelledby="home-specimen-heading">
+    <section className="home-specimen mt-8" aria-labelledby="home-specimen-heading">
       <h2
         id="home-specimen-heading"
         className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[var(--color-text-muted)]"

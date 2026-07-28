@@ -745,6 +745,15 @@ body {
 .scapestack-lock-panel,
 .scapestack-plan-panel,
 .scapestack-board-panel,
+/* Known-account homepage: the pitch and the build-time demo table are for
+   strangers. hero-intake stamps this attribute after hydration; the server
+   keeps rendering both for the logged-out state and for crawlers. */
+.home-hero[data-known-account="true"] .home-hero-intro,
+.home-hero[data-known-account="true"] .home-specimen,
+.home-hero[data-known-account="true"] .home-hero-basis {
+  display: none;
+}
+
 .osrs-frame {
   position: relative;
   overflow: hidden;

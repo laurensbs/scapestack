@@ -105,6 +105,12 @@ describe("homepage first-impression copy", () => {
     expect(source).not.toContain("<BuyMeCoffee");
     expect(source).not.toContain('bg-[#090909]');
     expect(source).not.toContain("osrs-frame");
+    // The guard above passed for months while the frame lived one component
+    // down, in hero-intake's remembered branch — the most-seen state of the
+    // page. Guard the component too.
+    const heroIntake = readFileSync(join(process.cwd(), "src/components/hero-intake.tsx"), "utf8");
+    expect(heroIntake).not.toContain("osrs-frame");
+    expect(heroIntake).not.toContain("osrs-title-bar");
     expect(source).not.toContain("osrs-body");
   });
 

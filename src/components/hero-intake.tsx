@@ -252,6 +252,21 @@ export function HeroIntake() {
     return () => window.removeEventListener("pagehide", rememberReturnMoment);
   }, [rememberReturnMoment]);
 
+  // A known account does not get the pitch. "Stop bankstanding" is a line for
+  // someone deciding whether to type their name, and the demo specimen exists
+  // to show a stranger what an answer looks like — showing it to an account
+  // whose real answer the site already has was the homepage at its most
+  // dashboard: a lobby of things about other people. The server still renders
+  // both (the page is force-static and the logged-out state needs them); this
+  // hides them after hydration for the account that has outgrown them.
+  useEffect(() => {
+    const hero = document.querySelector(".home-hero");
+    if (!hero) return;
+    if (isRememberedRun) hero.setAttribute("data-known-account", "true");
+    else hero.removeAttribute("data-known-account");
+    return () => hero.removeAttribute("data-known-account");
+  }, [isRememberedRun]);
+
   if (isRememberedRun) {
     const encodedRsn = encodeURIComponent(rememberedRsn);
     const planHref = accountSnapshot?.planHref ?? `/next?rsn=${encodedRsn}`;
@@ -265,60 +280,69 @@ export function HeroIntake() {
             ? "RuneLite check failed. Try again."
             : null;
     return (
-      <div className="osrs-frame overflow-hidden text-left" data-return-home="true">
-        <div className="osrs-title-bar px-5 py-4 sm:px-6">
-          <p className="eyebrow text-[var(--color-accent)]">Welcome back, {rememberedRsn}</p>
-        </div>
-        <div className="osrs-body px-5 py-5 sm:px-6 sm:py-6" aria-live="polite">
-          <p className="eyebrow text-[var(--color-text-muted)]">{returnSummary.eyebrow}</p>
-          <h2 className="mt-2 max-w-2xl text-[clamp(26px,4vw,38px)] font-semibold leading-[1.08] text-[var(--color-text)]">
-            {returnSummary.headline}
-          </h2>
-          <p className="mt-3 max-w-2xl text-[14px] font-medium leading-relaxed text-[var(--color-text-dim)]">
-            {returnSummary.detail}
+      <div className="border-b border-[var(--color-border)] pb-6 text-left" data-return-home="true">
+        {/* This branch was the last surface still wearing the parchment
+            title-bar frame direction B replaced everywhere else. The homepage
+            guard asserted the frame class was absent from page.tsx while the
+            frame lived one component down, here, and dodged it — the guard
+            now reads this file too, so the class name is not repeated in
+            this comment.
+
+            It also had the hierarchy upside down: "Since last scan: +18k XP"
+            — a metric worth about five minutes of play — set at 38px as the
+            page's biggest line, with the actual answer ("Push Sarachnis to
+            50 KC now uses this progress") in small grey under it, above a
+            58px glowing button. A metric as a poster is dashboard thinking in
+            one image. Same words now, document order: account line, heading
+            at reading size, detail, one plain action. The second eyebrow is
+            gone — two stacked eyebrows both saying "since your last visit"
+            was the card announcing itself twice. */}
+        <p className="eyebrow text-[var(--color-accent)]">Welcome back, {rememberedRsn}</p>
+        <h2
+          aria-live="polite"
+          className="mt-2 max-w-2xl text-[22px] font-semibold leading-[1.15] text-[var(--color-text)] sm:text-[28px]"
+        >
+          {returnSummary.headline}
+        </h2>
+        <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-[var(--color-text-dim)]">
+          {returnSummary.detail}
+        </p>
+        {returnSummary.stopPoint && (
+          <p className="mt-2 max-w-2xl text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">
+            {returnSummary.stopPoint}
           </p>
+        )}
 
-          {returnSummary.stopPoint && (
-            <p className="mt-4 flex items-start gap-2 border-l-2 border-[var(--color-accent)] pl-3 text-[12.5px] font-bold leading-relaxed text-[var(--color-text)]">
-              <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[var(--color-accent)]" />
-              {returnSummary.stopPoint}
-            </p>
-          )}
+        <Link
+          href={planHref}
+          onClick={rememberReturnMoment}
+          className="scape-primary-action mt-5 w-full sm:w-auto sm:min-w-[220px]"
+        >
+          Plan next trip
+          <ArrowRight className="size-4" />
+        </Link>
 
-          <Link
-            href={planHref}
-            onClick={rememberReturnMoment}
-            className="btn-primary mt-6 min-h-[58px] w-full justify-between px-4 py-4 text-[15px] sm:max-w-sm"
+        {shouldRefreshRunelite && (
+          <button
+            type="button"
+            onClick={refreshRunelite}
+            disabled={runeliteRefresh === "checking"}
+            className="mt-4 inline-flex min-h-10 items-center gap-2 text-[12px] font-semibold text-[var(--color-text-muted)] underline decoration-dotted underline-offset-4 transition-colors hover:text-[var(--color-accent)] disabled:opacity-60"
+            aria-label={`Refresh RuneLite sync for ${rememberedRsn}`}
           >
-            Plan next trip
-            <ArrowRight className="size-4" />
-          </Link>
-
-          {shouldRefreshRunelite && (
-            <button
-              type="button"
-              onClick={refreshRunelite}
-              disabled={runeliteRefresh === "checking"}
-              className="mt-4 inline-flex min-h-10 items-center gap-2 text-[12px] font-bold text-[var(--color-warning)] transition-colors hover:text-[var(--color-accent)] disabled:opacity-60"
-              aria-label={`Refresh RuneLite sync for ${rememberedRsn}`}
-            >
-              <RefreshCw className={cn("size-4", runeliteRefresh === "checking" && "animate-spin")} />
-              Refresh RuneLite before a long trip
-            </button>
-          )}
-          {runeliteRefreshMessage && (
-            <p
-              role="status"
-              aria-live="polite"
-              className={cn(
-                "mt-2 text-[12px] font-semibold leading-relaxed",
-                runeliteRefresh === "found" ? "text-[var(--color-accent)]" : "text-[var(--color-warning)]"
-              )}
-            >
-              {runeliteRefreshMessage}
-            </p>
-          )}
-        </div>
+            <RefreshCw className={cn("size-4", runeliteRefresh === "checking" && "animate-spin")} />
+            Refresh RuneLite before a long trip
+          </button>
+        )}
+        {runeliteRefreshMessage && (
+          <p
+            role="status"
+            aria-live="polite"
+            className="mt-2 text-[12px] leading-relaxed text-[var(--color-text-muted)]"
+          >
+            {runeliteRefreshMessage}
+          </p>
+        )}
       </div>
     );
   }
@@ -474,10 +498,10 @@ export function HeroIntake() {
           <div
             ref={runeliteGuideRef}
             tabIndex={-1}
-            className="osrs-frame w-full max-w-xl text-left"
+            className="w-full max-w-xl border border-[var(--color-border-strong)] bg-[var(--color-panel)] text-left"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="osrs-title-bar flex items-start justify-between gap-4 px-5 py-4 sm:px-6">
+            <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-5 py-4 sm:px-6">
               <div>
                 <p className="eyebrow text-[var(--color-accent)]">RuneLite</p>
                 <h2 id="hero-runelite-guide-title" className="mt-1 text-[22px] font-semibold leading-tight text-[var(--color-text)]">
@@ -497,13 +521,13 @@ export function HeroIntake() {
               </button>
             </div>
 
-            <div className="osrs-body space-y-3 p-5 sm:p-6">
+            <div className="space-y-3 p-5 sm:p-6">
               {[
                 "Open RuneLite.",
                 "Search Plugin Hub for Scapestack Sync.",
                 "Press Sync now, then check the same RSN."
               ].map((step, index) => (
-                <div key={step} className="flex items-center gap-3 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-3 py-3">
+                <div key={step} className="flex items-center gap-3 border-b border-[var(--color-border)] px-1 py-3 last:border-b-0">
                   <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[13px] font-bold text-[var(--color-accent)]">
                     {index + 1}
                   </span>
@@ -512,7 +536,7 @@ export function HeroIntake() {
               ))}
             </div>
 
-            <div className="osrs-body border-t border-[var(--color-parchment-edge)] px-5 pb-5 sm:px-6 sm:pb-6">
+            <div className="border-t border-[var(--color-border)] px-5 pb-5 pt-5 sm:px-6 sm:pb-6">
               <RuneliteOpenButton className="w-full" />
               <button
                 type="button"
