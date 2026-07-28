@@ -3,6 +3,8 @@ import { fetchCollectionLog, type CollectionLog } from "@/lib/collection-log";
 import { fetchHiscores, type PlayerHiscores } from "@/lib/hiscores";
 import { computeNextUp, type NextUpResult } from "@/lib/next-up";
 import { buildNextUpInputFromSources } from "@/lib/planning-input";
+import { latestTripOutcome, type LastTripOutcome } from "@/lib/recommendation-outcome-repo";
+import { normalizeRsn } from "@/lib/rsn";
 import { getSyncedPlayer, type SyncedPlayer } from "@/lib/sync-repo";
 import { syncedPlayerForViewer, type VisibleSyncedPlayer } from "@/lib/synced-player-visibility";
 import { fetchWom, type WomPlayer } from "@/lib/wom";
@@ -72,6 +74,13 @@ export interface PlanningContextPayload {
   /** Redacted for anyone who is not the account owner. See synced-player-visibility.ts. */
   scapestackSync: VisibleSyncedPlayer | null;
   initialPlan: NextUpResult | null;
+  /**
+   * The reconciled verdict on the trip the owner accepted last time, or null.
+   * OWNER-ONLY, same rule as the unredacted snapshot: the write half derives
+   * it from synced quests, KC and bank movement, so shipping it to a stranger
+   * would leak through the summary what the redaction withholds in the raw.
+   */
+  lastTripOutcome: LastTripOutcome | null;
   timing: PlanningContextTiming;
 }
 
@@ -108,6 +117,7 @@ export async function assemblePlanningPayload(input: {
   collectionLog: CollectionLog | null;
   scapestack: SyncedPlayer | null;
   viewerRsn: string | null;
+  lastTripOutcome?: LastTripOutcome | null;
   timing: PlanningContextTiming;
 }): Promise<PlanningContextPayload> {
   // Redact FIRST, then plan.
@@ -131,12 +141,16 @@ export async function assemblePlanningPayload(input: {
     collectionLog: input.collectionLog,
     scapestackSync: visible
   });
+  // Same gate as the snapshot: the outcome summarises synced progress, so a
+  // non-owner gets null even when a caller passed one in.
+  const isOwner = Boolean(input.viewerRsn && input.viewerRsn === normalizeRsn(input.rsn));
   return {
     hiscores: input.hiscores,
     wom: input.wom,
     collectionLog: collectionLogPayload(input.collectionLog),
     scapestackSync: visible,
     initialPlan,
+    lastTripOutcome: isOwner ? input.lastTripOutcome ?? null : null,
     timing: input.timing
   };
 }
@@ -174,11 +188,15 @@ export async function loadPlanningContext(
   options: PlanningContextOptions = {}
 ): Promise<PlanningContextPayload> {
   const startedAt = performance.now();
-  const [scapestack, hiscores, wom, collectionLog] = await Promise.all([
+  const viewerIsOwner = Boolean(options.viewerRsn && options.viewerRsn === normalizeRsn(rsn));
+  const [scapestack, hiscores, wom, collectionLog, lastTrip] = await Promise.all([
     loadScapestackContext(rsn, options.preferScapestack === true),
     runBoundedSource("hiscores", PLANNING_SOURCE_DEADLINES_MS.hiscores, (signal) => fetchHiscores(rsn, { signal })),
     runBoundedSource("wom", PLANNING_SOURCE_DEADLINES_MS.wom, (signal) => fetchWom(rsn, { signal })),
-    runBoundedSource("collection_log", PLANNING_SOURCE_DEADLINES_MS.collectionLog, (signal) => fetchCollectionLog(rsn, { signal }))
+    runBoundedSource("collection_log", PLANNING_SOURCE_DEADLINES_MS.collectionLog, (signal) => fetchCollectionLog(rsn, { signal })),
+    // Owner-only, and never on the critical path: a missing outcome line must
+    // not cost the plan anything.
+    viewerIsOwner ? latestTripOutcome(rsn).catch(() => null) : Promise.resolve(null)
   ]);
 
   const sources = [scapestack.timing, hiscores.timing, wom.timing, collectionLog.timing];
@@ -190,6 +208,7 @@ export async function loadPlanningContext(
     collectionLog: collectionLog.value,
     scapestack: scapestack.value,
     viewerRsn: options.viewerRsn ?? null,
+    lastTripOutcome: lastTrip,
     // Filled in below; the planner has to run before we can time it.
     timing: EMPTY_TIMING
   });

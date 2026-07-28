@@ -174,6 +174,34 @@ describe("/next?rsn= does not ship the account's bank to a stranger", () => {
   });
 });
 
+describe("the last-trip outcome obeys the same owner gate", () => {
+  // The outcome summarises synced progress — quest names, KC movement, bank
+  // deltas — so shipping it to a stranger leaks through the summary what the
+  // snapshot redaction withholds in the raw.
+  const OUTCOME = {
+    title: "Push Vardorvis to 50 KC",
+    detail: "KC 47 of 50. 3 to go.",
+    nextStopPoint: "Stop at 50 KC.",
+    status: "progressed" as const,
+    progress: { before: 41, after: 47, target: 50, unit: "KC" },
+    matchedAt: new Date().toISOString()
+  };
+
+  it("drops it for a stranger and keeps it for the owner", async () => {
+    const base = {
+      rsn: "leaktest", hiscores: null, wom: null, collectionLog: null,
+      scapestack: PLAYER, lastTripOutcome: OUTCOME, timing: TIMING
+    };
+    const stranger = await assemblePlanningPayload({ ...base, viewerRsn: null });
+    expect(stranger.lastTripOutcome).toBeNull();
+    const other = await assemblePlanningPayload({ ...base, viewerRsn: "someone-else" });
+    expect(other.lastTripOutcome).toBeNull();
+    // And the owner check proves the gate is a gate, not a constant null.
+    const owner = await assemblePlanningPayload({ ...base, viewerRsn: "leaktest" });
+    expect(owner.lastTripOutcome?.detail).toBe("KC 47 of 50. 3 to go.");
+  });
+});
+
 describe("/quests/[slug]?rsn= does not ship the account's bank to a stranger", () => {
   // The exact quests the audit found leaking a coin balance.
   const SLUGS = ["dragon-slayer-i", "demon-slayer", "the-feud", "tree-gnome-village"];

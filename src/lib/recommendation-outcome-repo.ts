@@ -121,3 +121,66 @@ export async function reconcileActiveRecommendationOutcomes(input: {
   }
   return created;
 }
+
+/** What /next shows the owner about their previous trip. Strings only. */
+export interface LastTripOutcome {
+  title: string;
+  detail: string;
+  nextStopPoint: string;
+  status: RecommendationOutcome["status"];
+  progress: { before: number; after: number; target: number; unit: string } | null;
+  matchedAt: string;
+}
+
+/**
+ * The newest reconciled outcome for an account, if it is worth a sentence.
+ *
+ * The write half of this loop has existed for a while: every plugin sync runs
+ * reconcileActiveRecommendationOutcomes and stores a verdict about the stop
+ * point the player accepted. The read half did not — the outcome landed on the
+ * /u/[rsn] timeline and nowhere else, so the plan page greeted a returning
+ * player as though nothing had happened. This is the read half.
+ *
+ * "unknown" outcomes are skipped: "Boss KC was not available in this scan" is
+ * a diagnostic, not a greeting. Fourteen days is the cutoff — beyond that the
+ * returning-player briefing owns the moment.
+ */
+export async function latestTripOutcome(rsn: string): Promise<LastTripOutcome | null> {
+  const normalized = normalizeRsn(rsn);
+  if (!normalized) return null;
+  const rows = await client().query<{ evidence: unknown; matched_at: string }>(`
+    SELECT om.evidence, om.matched_at
+    FROM outcome_match om
+    JOIN account_identity ai ON ai.account_id = om.account_id
+    WHERE ai.rsn = $1
+      AND om.status IS DISTINCT FROM 'unknown'
+      AND om.matched_at > NOW() - INTERVAL '14 days'
+    ORDER BY om.matched_at DESC, om.outcome_id DESC
+    LIMIT 1
+  `, [normalized]);
+  const row = rows[0];
+  if (!row) return null;
+  const raw = typeof row.evidence === "string" ? JSON.parse(row.evidence) : row.evidence;
+  if (!raw || typeof raw !== "object") return null;
+  const value = raw as Partial<RecommendationOutcome>;
+  if (typeof value.title !== "string" || typeof value.detail !== "string") return null;
+  const progress = value.progress
+    && typeof value.progress.before === "number"
+    && typeof value.progress.after === "number"
+    && typeof value.progress.target === "number"
+      ? {
+          before: value.progress.before,
+          after: value.progress.after,
+          target: value.progress.target,
+          unit: String(value.progress.unit ?? "")
+        }
+      : null;
+  return {
+    title: value.title,
+    detail: value.detail,
+    nextStopPoint: typeof value.nextStopPoint === "string" ? value.nextStopPoint : "",
+    status: (value.status ?? "unchanged") as RecommendationOutcome["status"],
+    progress,
+    matchedAt: String(row.matched_at)
+  };
+}

@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { updatesSince } from "@/lib/game-updates";
 import { loadPlanningContext } from "@/lib/planning-context";
+import { LastTripLine } from "@/components/last-trip-line";
 import { classifyAbsence, isReturningAbsence, latestActivity } from "@/lib/returning-player";
 import { resolveViewerRsn } from "@/lib/viewer-account";
 import { ReturningBriefing } from "@/components/returning-briefing";
@@ -69,6 +70,7 @@ async function NextPlanBootstrap({
           displayName={initialPlanningContext?.wom?.displayName}
         />
       )}
+      <LastTripLine outcome={initialPlanningContext?.lastTripOutcome ?? null} />
       <NextClient
         initialQueryString={queryString}
         initialPlanningContext={initialPlanningContext}
