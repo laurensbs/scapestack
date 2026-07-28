@@ -69,10 +69,14 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).not.toContain("After that");
     expect(next).toContain("Plan my next move");
     expect(next).toContain("Choose a session instead");
-    expect(next).toContain("Want a different kind of session?");
+    expect(next).toContain("Want a different kind of trip?");
     expect(next).not.toContain("Another route");
-    expect(next).toContain("Choose a different vibe");
-    expect(next).toContain("Two different session routes.");
+    // Was "Choose a different vibe" + "Two different session routes." — three
+    // heading lines restating each other in banned vocabulary. The
+    // alternatives are one ruled table block now.
+    expect(next).toContain("Not this?");
+    expect(next).not.toContain("Choose a different vibe");
+    expect(next).not.toContain("Two different session routes.");
     expect(next).toContain("const activePick = useMemo(() =>");
     expect(next).toContain("const fallbackRecs = activePick ? activePick.alternatives.slice(0, 2) : [];");
     expect(next).not.toContain("Backup moves");

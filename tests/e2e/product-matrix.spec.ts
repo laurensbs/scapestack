@@ -49,7 +49,7 @@ test.describe("Scapestack product story matrix", () => {
     await expect(page.locator("[data-next-trip-card=true]").getByText(/do this first/i).first()).toBeVisible();
     await expect(page.locator("[data-route-card=true]").first()).toBeVisible();
     await expect.poll(async () => page.locator("[data-route-card=true]").count()).toBeGreaterThanOrEqual(2);
-    await expect(page.getByText("Want a different kind of session?")).toBeVisible();
+    await expect(page.getByText("Want a different kind of trip?")).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 
@@ -57,7 +57,7 @@ test.describe("Scapestack product story matrix", () => {
     await page.goto("/next?sample=1&intent=afk&time=60");
     await expect(page.locator("[data-next-trip-card=true]")).toBeVisible();
     await expect(page.locator("[data-next-trip-card=true]").getByText(/afk/i).first()).toBeVisible();
-    await page.getByText("Want a different kind of session?").click();
+    await page.getByText("Want a different kind of trip?").click();
     await page.getByRole("button", { name: /surprise me/i }).click();
     await expect(page.locator("[data-next-trip-card=true]").getByText(/afk/i).first()).toBeVisible();
   });

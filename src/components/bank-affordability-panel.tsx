@@ -1,6 +1,6 @@
 "use client";
 
-// What this bank can finish tonight, priced at live GE rates.
+// What this bank can finish, priced at live GE rates.
 //
 // The prices are fetched by the BROWSER, not the server. /bank promises
 // "Saved on this device only" and a pasted bank has never touched Postgres;
@@ -9,8 +9,8 @@
 // CORS, so the device can do the whole thing itself.
 //
 // Deliberately placed above the tab preview: a player who can finish a set for
-// 1.5m tonight cares about that more than about tab layout, and this is the
-// only sentence on the site that no other OSRS tool can print.
+// 1.5m cares about that more than about tab layout, and this is the only
+// sentence on the site that no other OSRS tool can print.
 
 import { useEffect, useState } from "react";
 import {
@@ -108,7 +108,7 @@ export function BankAffordabilityPanel({
         id="afford-heading"
         className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[var(--color-text-muted)]"
       >
-        {cannotBuy ? "Sets you have started" : "What this bank can finish tonight"}
+        {cannotBuy ? "Sets you have started" : "What this bank can finish"}
       </h2>
 
       {/* The sentence first, the table underneath. A player who reads only one

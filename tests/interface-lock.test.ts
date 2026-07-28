@@ -77,6 +77,12 @@ describe("Scapestack interface lock", () => {
     // vocabulary rather than inventing a surface, and it still does.
     expect(read("src/app/dps/dps-client.tsx")).toContain('className="scape-table"');
     expect(read("src/app/dps/dps-client.tsx")).toContain('className="scape-table-wrap"');
-    expect(read("src/app/next/next-client.tsx")).toContain('className="scape-focus');
+    // The /next hero was a .scape-focus card: a bordered box holding a second
+    // bordered box (the sprite tile), a dl grid and full-width buttons.
+    // Direction B reads it as the top of a document instead — the locked
+    // primitive it composes from now is the table, and the assertion guards
+    // that the route still builds from the locked vocabulary.
+    expect(read("src/app/next/next-client.tsx")).toContain('data-next-trip-card="true"');
+    expect(read("src/app/next/next-client.tsx")).toContain('className="scape-table"');
   });
 });

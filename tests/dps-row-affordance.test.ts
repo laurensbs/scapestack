@@ -97,7 +97,14 @@ describe("DPS boss row affordance", () => {
     expect(source).toContain("Search any boss. Click a row for gear, supplies, upgrades and a first trip.");
     expect(source).toContain("Pick a boss to see the actual setup, inventory and numbers.");
     expect(source).toContain("Missing ${inventoryPlan.mandatoryMissing[0]}");
-    expect(source).toContain("supports a test trip");
+    // The per-row subtitle used to restate the Setup column verbatim on every
+    // scoreable row ("Strong accuracy with {weapon}", "{weapon} supports a
+    // test trip") while the blocking item clipped in a 119px cell. The line
+    // now only exists when it says something the columns do not, and it
+    // wraps so the missing item is never the truncated part.
+    expect(source).not.toContain("Strong accuracy with");
+    expect(source).not.toContain("supports a test trip");
+    expect(source).toContain("return null;");
     expect(source).not.toContain("Before you leave");
     expect(source).not.toContain("Still missing");
     expect(source).not.toContain("Finish after");

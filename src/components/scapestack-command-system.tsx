@@ -30,7 +30,7 @@ export function ScapestackCommandSystem() {
             id="command-system-title"
             className="text-[24px] font-black leading-tight tracking-normal text-[var(--color-text)] sm:text-[30px]"
           >
-            Pick the kind of session you want.
+            Pick the kind of trip you want.
           </h2>
           <p className="mt-2 text-[13px] leading-relaxed text-[var(--color-text-dim)]">
             Same account, different mood. Let /next bias the plan without turning this into setup.

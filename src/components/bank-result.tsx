@@ -370,7 +370,7 @@ function buildBankDecision({
       why: hasPrices && totalValue > 0
         ? `Gear, supplies and ${formatGp(totalValue)} GP are now part of the next recommendation.`
         : "Gear and supplies are now part of the next recommendation.",
-      firstStep: "Open the next trip plan that fits tonight.",
+      firstStep: "Open the next trip plan.",
       stopPoint: "Finish after you have one trip, unlock or AFK goal picked.",
       avoid: "Avoid comparing every tab before deciding what to do.",
       primaryAction: "next",
@@ -488,7 +488,7 @@ function BankDecisionHero({
   const SecondaryIcon = secondaryQuickAction.icon;
 
   return (
-    <section className="scapestack-board-panel scapestack-lock-panel mb-4 w-full max-w-full px-4 py-4 sm:px-5" aria-label="Tonight's RuneLite bank setup">
+    <section className="scapestack-board-panel scapestack-lock-panel mb-4 w-full max-w-full px-4 py-4 sm:px-5" aria-label="RuneLite bank setup">
       <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
           <div className="flex min-w-0 items-center gap-2">
@@ -496,7 +496,10 @@ function BankDecisionHero({
               <ItemSprite id={decision.iconItemId} alt="" size={30} />
             </span>
             <div className="min-w-0">
-              <div className="eyebrow text-[var(--color-accent)]">Tonight&apos;s bank setup</div>
+              {/* Was a time-of-day word. "Evening is not tool vocabulary" —
+                  the design system's own finding — and GE prices do not know
+                  what time it is. */}
+              <div className="eyebrow text-[var(--color-accent)]">This bank setup</div>
               <h1 className="mt-1 max-w-full text-[23px] font-semibold leading-[1.02] tracking-normal text-[var(--color-text)] sm:text-[31px]">
                 {decision.title}
               </h1>

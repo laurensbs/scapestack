@@ -18,13 +18,17 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("Verified RuneLite payload");
   });
 
-  it("makes compact recommendation rows visibly and accessibly clickable", () => {
+  // The alternatives were two rounded cards with sprite tiles, chips and
+  // arrows under three lines of heading that restated each other in words the
+  // voice section bans ("vibe", "session"). They are table rows now — name,
+  // one dry line, where it leads — and the row is still one real button.
+  it("makes alternative route rows visibly and accessibly clickable", () => {
     expect(source).toContain("onSelect: (rec: Recommendation) => void;");
     expect(source).toContain("onClick={() => onSelect(rec)}");
     expect(source).toContain("aria-label={`Choose ${rec.title}`}");
-    expect(source).toContain("Two different session routes.");
     expect(source).toContain('type="button"');
-    expect(source).toContain("group min-h-[136px] w-full");
+    expect(source).not.toContain("Two different session routes.");
+    expect(source).not.toContain("Choose a different vibe");
     expect(source).not.toContain('role="button"');
     expect(source).not.toContain("tabIndex={0}");
     expect(source).not.toContain("div-as-button pattern");
@@ -274,7 +278,7 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Buy or gather one usable stack before committing.");
     expect(source).not.toContain("INTAKE_ROUTE_LENSES.map");
     expect(source).toContain("Choose a session instead");
-    expect(source).toContain("Want a different kind of session?");
+    expect(source).toContain("Want a different kind of trip?");
     expect(source).toContain("INTAKE_SESSION_CHOICES");
     expect(source).toContain("What do you feel like doing?");
     expect(source).toContain("Intense");
@@ -310,12 +314,13 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("What are you in the mood for?");
     expect(source).toContain("Same mood, different route.");
     expect(source).toContain('label: "Surprise me"');
-    expect(source).toContain("Same vibe, different route.");
+    // "vibe" is on the never-list in the design system's voice section.
+    expect(source).not.toContain("vibe");
     expect(source).toContain("onSurprise={moveToAnotherPlan}");
     expect(source).toContain("onPick={applySessionIntent}");
     expect(source).toContain("pickForRoute(visibleRecs, mood, minutes, routeLens, 0, routePickOptions)");
     expect(source).not.toContain("Change time or pace");
-    expect(source).toContain("Choose a different vibe");
+    expect(source).toContain("Not this?");
     expect(source).toContain("onSelect={selectAlternative}");
     expect(source).toContain("const fallbackRecs = activePick ? activePick.alternatives.slice(0, 2) : [];");
     expect(source).not.toContain("Use these when the main move is blocked or not the session you want.");
@@ -367,11 +372,17 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("Trust level");
   });
 
-  it("makes backup cards feel like real alternatives instead of tiny rows", () => {
-    expect(source).toContain("function RecRow");
-    expect(source).toContain("min-h-[136px]");
-    expect(source).toContain("size-16");
-    expect(source).toContain("Choose a different vibe");
+  // Was "makes backup cards feel like real alternatives instead of tiny
+  // rows", pinning the 136px rounded cards with sprite tiles and chips.
+  // Direction B reverses that on purpose: the alternatives are table rows —
+  // name, one dry line, where it leads — under one ruled "Not this?" block.
+  it("renders the alternatives as table rows under one ruled block", () => {
+    expect(source).toContain("function AltRouteRow");
+    expect(source).not.toContain("function RecRow(");
+    expect(source).not.toContain("function RecRowExpandable");
+    expect(source).not.toContain("min-h-[136px]");
+    expect(source).toContain("Not this?");
+    expect(source).toContain('aria-label="Alternative routes"');
     expect(source).toContain("const fallbackRecs = activePick ? activePick.alternatives.slice(0, 2) : [];");
     expect(source).toContain("onClick={() => onSelect(rec)}");
     expect(source).toContain("aria-label={`Choose ${rec.title}`}");

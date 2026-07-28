@@ -524,13 +524,9 @@ export function DpsClient() {
         </div>
         <div>
           <div className="mb-3">
-            <h2 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)] mb-2">
-              Find a boss
-            </h2>
             {/* Live search. Filters the rows below on every keystroke;
-                ESC clears. The dropdown BossPicker is gone — for a table
-                with 50+ rows, a real input field reads more directly than
-                'click to open a hidden menu.' */}
+                ESC clears. One heading for this whole block — "Pick a boss"
+                above; a second h2 ("Find a boss") restated it. */}
             <div className="relative">
               <label htmlFor="dps-boss-search" className="sr-only">
                 Search bosses for a kill setup
@@ -710,7 +706,7 @@ export function DpsClient() {
         </div>
       </section>
 
-      <SupportCard context="Helped pick your gear for tonight's trip?" />
+      <SupportCard context="Helped pick your gear for this trip?" />
 
       {/* Boss detail modal — big portrait + best gear + per-boss
           upgrades + inventory loadout. Replaces the row-expand interaction
@@ -762,7 +758,7 @@ function BossRow({ boss, dps, owned, bankItems, accountType, isFocused, onOpen }
   const status = bossTripVerdict(boss, dps, accountType, inventoryPlan);
   const reason = bossCardReason({ boss, dps, inventoryPlan, activity, singleDps });
   const statusId = `boss-${boss.slug}-status`;
-  const reasonId = `boss-${boss.slug}-reason`;
+  const reasonId = reason ? `boss-${boss.slug}-reason` : null;
   // A number the engine refuses to stand behind is an em dash, not a zero.
   const showsNumbers = !activity && singleDps && dps.dps > 0;
 
@@ -782,7 +778,7 @@ function BossRow({ boss, dps, owned, bankItems, accountType, isFocused, onOpen }
           type="button"
           onClick={onOpen}
           aria-label={`Open ${boss.name} ${activity ? "activity setup" : "kill setup"} details`}
-          aria-describedby={`${statusId} ${reasonId}`}
+          aria-describedby={reasonId ? `${statusId} ${reasonId}` : statusId}
           title={`Open ${boss.name} ${activity ? "activity setup" : "kill setup"} details`}
           className="flex min-h-11 w-full items-center gap-2.5 text-left"
         >
@@ -793,12 +789,18 @@ function BossRow({ boss, dps, owned, bankItems, accountType, isFocused, onOpen }
             <span className="block truncate text-[13.5px] font-semibold text-[var(--color-text)]">
               {boss.name}
             </span>
-            <span
-              id={reasonId}
-              className="block truncate text-[11px] text-[var(--color-text-muted)]"
-            >
-              {reason}
-            </span>
+            {/* The line only exists when it says something the columns do
+                not — a blocking item, a risk, a refused score. It wraps
+                instead of truncating: "Missing Anti-dr…" clipped the one
+                word that was the answer. */}
+            {reason && reasonId && (
+              <span
+                id={reasonId}
+                className="block text-[11px] leading-snug text-[var(--color-text-muted)]"
+              >
+                {reason}
+              </span>
+            )}
           </span>
         </button>
       </td>
@@ -833,7 +835,7 @@ function bossCardReason({
   inventoryPlan: ReturnType<typeof buildBossInventoryPlan>;
   activity: boolean;
   singleDps: boolean;
-}): string {
+}): string | null {
   const knowledge = bossKnowledge(boss);
   if (inventoryPlan.mandatoryMissing.length > 0) {
     return `Missing ${inventoryPlan.mandatoryMissing[0]}`;
@@ -842,9 +844,10 @@ function bossCardReason({
   if (activity) return "Tools and supplies checked from your bank";
   if (!singleDps) return knowledge.playerLine;
   if (dps.dps <= 0) return "No usable weapon found in this bank";
-  if (dps.hitChance >= 0.62) return `Strong accuracy with ${dps.weapon.name}`;
-  if (dps.hitChance >= 0.45) return `${dps.weapon.name} supports a test trip`;
-  return `${dps.weapon.name} works, but accuracy is weak`;
+  // A scoreable row gets no subtitle. The old accuracy lines restated the
+  // Setup and Acc columns verbatim on every one of 59 rows; the columns and
+  // the verdict already answer it.
+  return null;
 }
 
 // Every verdict string is unchanged; each now also names the step of the

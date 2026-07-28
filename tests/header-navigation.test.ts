@@ -41,15 +41,18 @@ describe("global header navigation", () => {
     expect(source).not.toContain('aria-label="Primary Scapestack tools"');
   });
 
-  it("surfaces the core Today → Bank → Kill loop as clickable navigation", () => {
-    expect(source).toContain("LOOP_STEPS");
-    expect(source).toContain('{ label: "Trip", href: "/next" }');
-    expect(source).toContain('{ label: "Setup", href: "/bank" }');
-    expect(source).toContain('{ label: "Boss", href: "/dps" }');
+  // Was pinned to LOOP_STEPS — a 3-column tile grid of four destinations in
+  // the phone drawer that then printed Trip, Setup and Boss again as full-width
+  // rows directly below it. The drawer now lists each destination exactly
+  // once; Slayer keeps its place in that single list.
+  it("lists every drawer destination exactly once, Slayer included", () => {
+    expect(source).toContain("DRAWER_NAV_SLUGS");
+    expect(source).toContain('["next", "slayer", "bank", "dps"]');
+    expect(source).not.toContain("LOOP_STEPS");
+    expect(source).not.toContain("in Scapestack loop");
     expect(source).toContain("Your account");
     expect(source).toContain("<AccountSwitcher activeRsn={activeRsn} onActiveRsnChange={setActiveRsn} compact />");
     expect(source).toContain("Saved once. Used for the next trip.");
-    expect(source).toContain('aria-label={`${step.label} in Scapestack loop`}');
   });
 
   it("connects the mobile menu button to the mobile drawer state", () => {

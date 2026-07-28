@@ -13,12 +13,21 @@ describe("RSN profile handoffs", () => {
     expect(source).toContain('pluginVerifyUrlForSyncedRsn(hi.name, "profile")');
     expect(source).toContain('bankOrganizerHref(hi.name, "profile")');
     expect(source).toContain("getSyncedPlayer(hi.name)");
-    expect(source).toContain("AccountHomeBoard");
+    // The page opened with a "Welcome back" card plus three chore tiles as
+    // its largest block, then drew 24 skills as bordered boxes that dropped
+    // XP and rank. Direction B: the page IS the account — a skills table with
+    // level, XP and rank, and the chores as plain links at the foot. The
+    // data-account-home-board hook survives on the skills section because
+    // scripts/audit-production-outcomes.mjs polls it as the readiness signal.
     expect(source).toContain('data-account-home-board="true"');
+    expect(source).not.toContain("Welcome back, {rsn}.");
+    expect(source).not.toContain("Start here every login.");
+    expect(source).toContain('<table className="scape-table"');
+    expect(source).toContain('<th scope="col" data-num>Level</th>');
+    expect(source).toContain('<th scope="col" data-num>XP</th>');
+    expect(source).toContain('<th scope="col" data-num>Rank</th>');
     expect(source).toContain("AccountTimeline");
     expect(source).toContain("<AccountTimeline expectedRsn={hi.name}");
-    expect(source).toContain("Welcome back, {rsn}.");
-    expect(source).toContain("Start here every login.");
     expect(source).toContain("Plan next trip");
     expect(source).not.toContain("profileWhatChangedLines");
     expect(source).not.toContain("No new RuneLite changes yet");

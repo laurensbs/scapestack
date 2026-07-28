@@ -9,7 +9,7 @@ describe("Scapestack command system UI", () => {
     expect(source).toContain("BRAND_PLAYER_PROMPTS");
     expect(source).toContain("PLAYER_VIBE_PROMPTS");
     expect(source).toContain("Session vibe");
-    expect(source).toContain("Pick the kind of session you want.");
+    expect(source).toContain("Pick the kind of trip you want.");
     expect(source).toContain('aria-label="OSRS session vibe prompts"');
     expect(source).toContain("PROMPT_ICONS");
     expect(source).toContain("focus-visible:border-[var(--color-accent)]/65");

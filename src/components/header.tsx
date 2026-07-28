@@ -9,22 +9,19 @@ import { ACCOUNT_EVENT, getActiveAccount, loadAccountStore, removeAccount, setAc
 import { loadAccountSnapshot } from "@/lib/account-context";
 import { contextualNavHref } from "@/lib/nav-context";
 import { clearSavedRsn, loadSavedRsn, saveSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
-import { getPrimaryNavTools } from "@/lib/tools";
+import { getPrimaryNavTools, getTool, type Tool } from "@/lib/tools";
 import { cn } from "@/lib/utils";
 import { AddBankModal } from "./add-bank-modal";
 import { BuyMeCoffee } from "./buy-me-coffee";
 import { ConnectBrowserModal } from "./connect-browser-modal";
 
-// "Is this task worth it?" is the question a Slayer player asks several times
-// a session, and it is the one Scapestack can answer better than anything else
-// — it needs the exact task, blocks, points and bank that only the plugin
-// knows. It belongs in the nav, not two clicks deep.
-const LOOP_STEPS = [
-  { label: "Trip", href: "/next" },
-  { label: "Task", href: "/slayer" },
-  { label: "Setup", href: "/bank" },
-  { label: "Boss", href: "/dps" }
-];
+// The phone drawer lists every destination exactly once. It used to print
+// Trip/Task/Setup/Boss as a 3-column tile grid (four entries, so row two was
+// one orphan tile) and then print Trip, Setup and Boss AGAIN as full rows
+// below it — the same three destinations twice in two shapes. Slayer stays in
+// this list on purpose: "is this task worth it?" needs the exact task, blocks,
+// points and bank that only the plugin knows, so it belongs one tap deep.
+const DRAWER_NAV_SLUGS = ["next", "slayer", "bank", "dps"] as const;
 
 export function Header() {
   const pathname = usePathname();
@@ -184,24 +181,11 @@ export function Header() {
               <div className="mt-2">
                 <AccountSwitcher activeRsn={activeRsn} onActiveRsnChange={setActiveRsn} compact />
               </div>
-              <div className="mt-2 grid grid-cols-3 gap-1.5">
-                {LOOP_STEPS.map((step) => (
-                  <Link
-                    key={step.href}
-                    href={contextualNavHref(step.href, pathname, contextQuery, activeRsn)}
-                    onClick={() => setMobileOpen(false)}
-                    aria-label={`${step.label} in Scapestack loop`}
-                    className="flex min-h-11 items-center justify-center rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 px-2 py-2 text-center text-[11.5px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
-                  >
-                    {step.label}
-                  </Link>
-                ))}
-              </div>
               <p className="mt-2 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
                 Saved once. Used for the next trip.
               </p>
             </div>
-            {navTools.map((tool) => {
+            {DRAWER_NAV_SLUGS.map(getTool).filter((tool): tool is Tool => Boolean(tool)).map((tool) => {
               const Icon = tool.icon;
               const href = contextualNavHref(tool.href, pathname, contextQuery, activeRsn);
               const active = currentTool?.slug === tool.slug;

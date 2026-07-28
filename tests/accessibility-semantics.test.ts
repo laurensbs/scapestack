@@ -73,7 +73,9 @@ describe("accessibility semantics", () => {
     // a named collection whose entries are real, described controls.
     expect(dps).toContain('<table className="scape-table" aria-label="Bosses matching this bank">');
     expect(dps).toContain('<th scope="col">Boss</th>');
-    expect(dps).toContain("aria-describedby={`${statusId} ${reasonId}`}");
+    // The reason line no longer exists on rows whose columns already answer
+    // it, so the description only references the ids that render.
+    expect(dps).toContain("aria-describedby={reasonId ? `${statusId} ${reasonId}` : statusId}");
     expect(bank).toContain('role="list" aria-label="Bosses matching this bank"');
     expect(bank).toContain('<div key={b.slug} role="listitem">');
   });

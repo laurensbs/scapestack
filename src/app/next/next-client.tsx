@@ -1730,7 +1730,7 @@ const SESSION_ROUTE_LANES: RouteLaneDefinition[] = [
     iconItemId: 9813,
     query: /quest cape|quest|diary|unlock/i,
     ownedItemIds: [9813],
-    fallback: "Pick the closest quest gap, not another generic XP session."
+    fallback: "Pick the closest quest gap, not another generic XP grind."
   },
   {
     id: "raids-prep",
@@ -2647,8 +2647,8 @@ function playerChoiceTag(rec: Recommendation): { label: string; helper: string }
   if (rec.kind === "money") return { label: "GP", helper: "Pick this when you want cash or the next upgrade." };
   if (rec.kind === "boss" || rec.kind === "kc") return { label: "Bossing", helper: "Pick this when you want a PvM trip." };
   if (rec.kind === "skill") return { label: "AFK", helper: "Pick this when you want a low-pressure grind." };
-  if (rec.kind === "bank" || rec.kind === "minigame") return { label: "Chill", helper: "Pick this when you want a lighter session." };
-  if (rec.kind === "slayer") return { label: "Slayer", helper: "Pick this when the task should drive the session." };
+  if (rec.kind === "bank" || rec.kind === "minigame") return { label: "Chill", helper: "Pick this when you want a lighter trip." };
+  if (rec.kind === "slayer") return { label: "Slayer", helper: "Pick this when the task should drive the trip." };
   return { label: "Unlock", helper: "Pick this when you want quests, diary progress or account unlocks." };
 }
 
@@ -3224,7 +3224,7 @@ function recommendationAvoidance(rec: Recommendation): string {
       return "Finish after the unlock unless you actually want an AFK grind.";
     case "quest":
     case "diary":
-      return "Do not start if the prereq chain makes this a long session.";
+      return "Do not start if the prereq chain makes this a long trip.";
     case "slayer":
       return "Check points before skipping, blocking or extending the task.";
     case "money":
@@ -4075,104 +4075,101 @@ function NextTripCard({
 
   const actionClass = "scapestack-command-button scapestack-primary-action px-4 text-[12.5px] font-black";
 
+  // The top of a document, not a widget: no outer border, no sprite tile in
+  // its own box, no dl-in-a-card. The sprite rides inline with the heading at
+  // item scale, the Start/Bring/Stop lines take the shared table, and there is
+  // exactly one primary action.
   return (
-    <article className="scape-focus min-w-0 max-w-full overflow-hidden p-4 sm:p-6" data-next-trip-card="true">
-      <div className="grid min-w-0 grid-cols-[88px_minmax(0,1fr)] gap-4 sm:grid-cols-[128px_minmax(0,1fr)] sm:gap-6">
-        <div className="grid size-[88px] shrink-0 place-items-center overflow-hidden rounded-lg border border-[var(--color-accent)]/32 bg-black/30 text-[var(--color-accent)] sm:size-[128px]">
+    <article className="min-w-0 max-w-full border-b border-[var(--color-border)] pb-5" data-next-trip-card="true">
+      {/* The eyebrow states how much we know, because the size of the
+          heading underneath cannot. "Do this first" over a guess is what
+          told Lynx Titan — 200m XP in every skill — to finish his skill
+          capes. Structural on purpose: a different word and a source line,
+          not a third colour language on top of the gate ramp. */}
+      <p className="eyebrow mb-2 text-[var(--color-accent)]">
+        {decisionCopy.confidence === "measured"
+          ? "Do this first"
+          : decisionCopy.confidence === "likely"
+            ? "Best fit for your levels"
+            : "Best guess"}
+      </p>
+
+      <h2 className="flex min-w-0 items-center gap-3 text-[23px] font-black leading-[1.08] tracking-normal text-[var(--color-text)] sm:text-[32px]">
+        <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden sm:size-10" aria-hidden="true">
           {rec.kind === "kc" && rec.bossSlug ? (
-            <KcPortrait rec={rec} size={104} />
+            <KcPortrait rec={rec} size={38} />
           ) : rec.iconItemId ? (
             <ItemSprite
               id={rec.iconItemId}
               alt=""
               className="pixelated"
-              size={82}
+              size={34}
               style={{ imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
             />
           ) : (
-            <KindGlyph kind={rec.kind} size={48} tone="accent" />
+            <KindGlyph kind={rec.kind} size={26} tone="accent" />
           )}
-        </div>
+        </span>
+        <span className="min-w-0 break-words">{decisionCopy.title}</span>
+      </h2>
+      <p className="mt-2 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)] sm:text-[13.5px]">
+        {decisionCopy.why}
+      </p>
+      {decisionCopy.sourceLine && (
+        <p className="mt-1.5 text-[12px] leading-snug text-[var(--color-text-muted)]">
+          {decisionCopy.sourceLine}
+        </p>
+      )}
 
-        <div className="min-w-0">
-          {/* The eyebrow states how much we know, because the size of the
-              heading underneath cannot. "Do this first" over a guess is what
-              told Lynx Titan — 200m XP in every skill — to finish his skill
-              capes. Structural on purpose: a different word and a source line,
-              not a third colour language on top of the gate ramp. */}
-          <p className="eyebrow mb-2 text-[var(--color-accent)]">
-            {decisionCopy.confidence === "measured"
-              ? "Do this first"
-              : decisionCopy.confidence === "likely"
-                ? "Best fit for your levels"
-                : "Best guess"}
-          </p>
+      <div className="scape-table-wrap mt-4">
+        <table className="scape-table" aria-label="This trip">
+          <tbody>
+            {planLines.map((line) => (
+              <tr key={`${line.label}:${line.value}`}>
+                <th scope="row" className="w-[84px] align-top sm:w-[104px]">{line.label}</th>
+                <td className="[overflow-wrap:anywhere]">{line.value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-          <h2 className="min-w-0 break-words text-[23px] font-black leading-[1.08] tracking-normal text-[var(--color-text)] sm:text-[32px]">
-            {decisionCopy.title}
-          </h2>
-          <p className="mt-2 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)] sm:text-[13.5px]">
-            {decisionCopy.why}
-          </p>
-          {decisionCopy.sourceLine && (
-            <p className="mt-1.5 text-[12px] leading-snug text-[var(--color-text-muted)]">
-              {decisionCopy.sourceLine}
-            </p>
-          )}
-        </div>
-
-        <dl className="col-span-2 grid gap-3 border-t border-[var(--color-border)] pt-4 sm:grid-cols-3">
-          {planLines.map((line) => (
-            <div key={`${line.label}:${line.value}`} className="min-w-0">
-              <dt className="text-[10.5px] font-black uppercase tracking-[0.14em] text-[var(--color-accent)]">
-                {line.label}
-              </dt>
-              <dd className="mt-1 min-w-0 break-words text-[12.5px] font-semibold leading-relaxed text-[var(--color-text)] [overflow-wrap:anywhere]">
-                {line.value}
-              </dd>
-            </div>
-          ))}
-        </dl>
-
-        <div className="col-span-2">
-          <div className="flex flex-wrap items-center gap-2">
-            {isBossWithDetail && rec.bossSlug ? (
-              <button
-                type="button"
-                onClick={() => {
-                  onStart(rec);
-                  onBossOpen(rec.bossSlug!);
-                }}
-                className={cn(actionClass, "min-h-11 w-full justify-center sm:w-auto")}
-                aria-label={`${actionLabel}: ${rec.title}`}
-              >
-                {actionLabel} <ArrowRight className="size-4" />
-              </button>
-            ) : actionHref ? (
-              primaryAction.external ? (
-                <a
-                  href={actionHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => onStart(rec)}
-                  className={cn(actionClass, "min-h-11 w-full justify-center sm:w-auto")}
-                  aria-label={`${actionLabel}: ${rec.title}`}
-                >
-                  {actionLabel} <ExternalLink className="size-3.5" />
-                </a>
-              ) : (
-                <Link
-                  href={actionHref}
-                  onClick={() => onStart(rec)}
-                  className={cn(actionClass, "min-h-11 w-full justify-center sm:w-auto")}
-                  aria-label={`${actionLabel}: ${rec.title}`}
-                >
-                  {actionLabel} <ArrowRight className="size-4" />
-                </Link>
-              )
-            ) : null}
-          </div>
-        </div>
+      <div className="mt-4">
+        {isBossWithDetail && rec.bossSlug ? (
+          <button
+            type="button"
+            onClick={() => {
+              onStart(rec);
+              onBossOpen(rec.bossSlug!);
+            }}
+            className={cn(actionClass, "min-h-11 w-full justify-center sm:w-auto")}
+            aria-label={`${actionLabel}: ${rec.title}`}
+          >
+            {actionLabel} <ArrowRight className="size-4" />
+          </button>
+        ) : actionHref ? (
+          primaryAction.external ? (
+            <a
+              href={actionHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => onStart(rec)}
+              className={cn(actionClass, "min-h-11 w-full justify-center sm:w-auto")}
+              aria-label={`${actionLabel}: ${rec.title}`}
+            >
+              {actionLabel} <ExternalLink className="size-3.5" />
+            </a>
+          ) : (
+            <Link
+              href={actionHref}
+              onClick={() => onStart(rec)}
+              className={cn(actionClass, "min-h-11 w-full justify-center sm:w-auto")}
+              aria-label={`${actionLabel}: ${rec.title}`}
+            >
+              {actionLabel} <ArrowRight className="size-4" />
+            </Link>
+          )
+        ) : null}
       </div>
     </article>
   );
@@ -4337,8 +4334,9 @@ function RouteChainScroll({
   );
 }
 
-// One checklist row — compact, with explicit links/buttons.
-function RecRow({
+// One alternative as one table row: name, one dry line, where it leads.
+// No chip, no sprite tile, no arrow — the row itself is the control.
+function AltRouteRow({
   rec,
   onSelect,
   backupPrompt
@@ -4349,53 +4347,30 @@ function RecRow({
 }) {
   const choice = playerChoiceTag(rec);
   return (
-    <button
-      type="button"
-      onClick={() => onSelect(rec)}
-      data-route-card="true"
-      className="group min-h-[136px] w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-4 text-left transition-colors hover:border-[var(--color-accent)]/55 hover:bg-[var(--color-accent)]/8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
-      aria-label={`Choose ${rec.title}`}
-    >
-      <div className="flex min-h-12 items-start gap-4">
-        <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)] text-[var(--color-accent)]">
-          {rec.kind === "kc" && rec.bossSlug ? (
-            <KcPortrait rec={rec} size={54} />
-          ) : rec.iconItemId ? (
-            <ItemSprite
-              id={rec.iconItemId}
-              alt=""
-              className="pixelated"
-              style={{ maxWidth: "82%", maxHeight: "82%", imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
-            />
-          ) : (
-            <KindGlyph kind={rec.kind} size={32} tone="accent" />
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-            <span
-              className="shrink-0 rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-0.5 text-[10px] font-bold text-[var(--color-accent)]"
-              title={backupPrompt?.helper ?? choice.helper}
-            >
-              {backupPrompt?.label ?? choice.label}
-            </span>
-            <h4 className="min-w-0 text-[17px] font-black leading-snug tracking-normal text-[var(--color-text)]">
-              {rec.title}
-            </h4>
-          </div>
-          <p className="mt-2 text-[12px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+    <tr>
+      <td className="w-full max-w-0">
+        <button
+          type="button"
+          onClick={() => onSelect(rec)}
+          aria-label={`Choose ${rec.title}`}
+          className="block min-h-11 w-full py-1 text-left"
+        >
+          <span className="block truncate text-[13.5px] font-semibold text-[var(--color-text)]">
+            {rec.title}
+          </span>
+          <span className="block text-[11px] leading-snug text-[var(--color-text-muted)]">
             {backupPrompt?.helper ?? choice.helper}
-          </p>
-        </div>
-        <ArrowRight className="mt-5 size-5 shrink-0 text-[var(--color-accent)] transition-transform group-hover:translate-x-1" />
-      </div>
-    </button>
+          </span>
+        </button>
+      </td>
+      <td className="whitespace-nowrap align-middle">{choice.label}</td>
+    </tr>
   );
 }
 
 // ── Mood section ───────────────────────────────────────────────────────────
-// "Wat heb je zin in?" — kies een vibe, kies een tijdsbudget, krijg
-// één concrete suggestie + 2 alternatieven. Optioneel; "Tonight's pick"
+// "Wat heb je zin in?" — kies een mood, kies een tijdsbudget, krijg
+// één concrete suggestie + 2 alternatieven. Optioneel; de hoofdpick
 // hierboven blijft de objectief-beste anchor voor wie deze keuze wil
 // overslaan. Engine zit in src/lib/mood.ts (pickForMood).
 
@@ -4419,7 +4394,7 @@ const SESSION_MOOD_GRID_CHOICES: Array<{
   { id: "unlock", label: "Unlock", helper: "Quest, diary or account gate.", mood: "unlock", minutes: 120 },
   { id: "afk", label: "AFK", helper: "Progress while doing something else.", mood: "afk", minutes: 60 },
   { id: "short", label: "Short", helper: "One clean stop point.", mood: "short", minutes: 15 },
-  { id: "surprise", label: "Surprise me", helper: "Same vibe, different route." }
+  { id: "surprise", label: "Surprise me", helper: "Same mood, different route." }
 ];
 
 function moodForRouteLens(lens: RouteLens, currentMood: Mood): Mood {
@@ -4638,7 +4613,7 @@ function SessionMoodGrid({
     <section
       className="min-w-0 max-w-full overflow-hidden border-y border-[var(--color-border)] py-4"
       data-session-mood-grid="true"
-      aria-label="Pick a session mood"
+      aria-label="Pick a mood"
     >
       <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
         <p className="min-w-0 text-[12px] font-black text-[var(--color-text)]">What are you in the mood for?</p>
@@ -4856,7 +4831,7 @@ function WhatToDo({
     }
   };
 
-  // Reset shuffle wanneer mood/time veranderen — een nieuwe vibe begint
+  // Reset shuffle wanneer mood/time veranderen — een nieuwe mood begint
   // op de top-pick, anders blijven we stiekem op een oude alternative.
   useEffect(() => {
     setShuffleIdx(0);
@@ -5293,30 +5268,39 @@ function WhatToDo({
             />
             {fallbackRecs.length > 0 && (
               <section className="pt-2" aria-labelledby="next-alternatives-title">
-                <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
-                  <div>
-                    <p className="eyebrow text-[var(--color-accent)]">Not your trip?</p>
-                    <h3 id="next-alternatives-title" className="mt-1 text-[18px] font-black text-[var(--color-text)]">
-                      Choose a different vibe
-                    </h3>
-                  </div>
-                  <p className="text-[11.5px] font-semibold text-[var(--color-text-muted)]">Two different session routes.</p>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {fallbackRecs.map((rec) => (
-                    <RecRowExpandable
-                      key={rec.id}
-                      rec={rec}
-                      onSelect={selectAlternative}
-                      backupPrompt={backupChoicePrompt(rec, activePick.headline)}
-                    />
-                  ))}
+                {/* Was an eyebrow, a heading and a note — three lines
+                    restating each other, two of them in words the voice
+                    section bans — over two rounded cards with sprite tiles,
+                    chips and arrows. Direction B form: one ruled block, the
+                    alternatives as table rows. */}
+                <h3 id="next-alternatives-title" className="text-[13px] font-semibold text-[var(--color-text)]">
+                  Not this?
+                </h3>
+                <div className="scape-table-wrap mt-2">
+                  <table className="scape-table" aria-label="Alternative routes">
+                    <thead>
+                      <tr>
+                        <th scope="col">Route</th>
+                        <th scope="col">Goal</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {fallbackRecs.map((rec) => (
+                        <AltRouteRow
+                          key={rec.id}
+                          rec={rec}
+                          onSelect={selectAlternative}
+                          backupPrompt={backupChoicePrompt(rec, activePick.headline)}
+                        />
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </section>
             )}
             <details className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/35 px-3.5 py-3">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[12px] font-bold text-[var(--color-text-dim)] marker:hidden [&::-webkit-details-marker]:hidden">
-                <span>Want a different kind of session?</span>
+                <span>Want a different kind of trip?</span>
                 <span className="inline-flex items-center gap-1.5 text-[var(--color-accent)]">
                   {MOOD_LABEL[visibleMood(mood)].name}
                   <ChevronRight className="size-3.5 transition-transform group-open:rotate-90" />
@@ -5353,7 +5337,7 @@ function WhatToDo({
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-8 text-center text-[var(--color-text-muted)] text-[13px]">
             {hiddenCount > 0
               ? "Everything matching this mood is hidden. Restore hidden picks or change mood/time."
-              : "No safe trip fits this exact mood and time yet. Pick another vibe or a longer session."}
+              : "No safe trip fits this exact mood and time yet. Pick another mood or more time."}
           </div>
         )}
       </div>
@@ -5454,12 +5438,10 @@ function RouteNeeds({
   );
 }
 
-// ── RecHeadlineExpandable + RecRowExpandable ───────────────────────────────
-// Wrappers rond NextTripCard / RecRow die een details-paneel toevoegen.
-// Klik op de "Show details" toggle → expand inline (geen navigatie weg).
-// Details bevat: payoff, needs[], details-tekst, en de link-naar-tool.
-// Werkt voor zowel hero als alt-rows (zelfde details, andere
-// presentation density).
+// ── RecHeadlineExpandable ──────────────────────────────────────────────────
+// Wrapper rond NextTripCard die een details-paneel toevoegt.
+// Klik op de "Trip details" toggle → dialog met payoff, needs[],
+// details-tekst en de link-naar-tool.
 
 function DiaryReadinessDetail({ rec, rsn }: { rec: Recommendation; rsn?: string }) {
   const progress = rec.diaryProgress;
@@ -5843,20 +5825,3 @@ function RecHeadlineExpandable({
   );
 }
 
-function RecRowExpandable({
-  rec,
-  onSelect,
-  backupPrompt
-}: {
-  rec: Recommendation;
-  onSelect: (rec: Recommendation) => void;
-  backupPrompt?: { label: string; helper: string };
-}) {
-  return (
-    <RecRow
-      rec={rec}
-      onSelect={onSelect}
-      backupPrompt={backupPrompt}
-    />
-  );
-}

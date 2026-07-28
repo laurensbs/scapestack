@@ -489,7 +489,7 @@ function unlockPlanSteps(set: GoalSetModel, completion: SetCompletion, missing: 
   const target = missing[0];
   if (!target) {
     return [
-      { title: "Done", body: "Pick another unlock or use /next for tonight's trip." }
+      { title: "Done", body: "Pick another unlock or use /next for the next trip." }
     ];
   }
   if (set.category === "diary") {

@@ -7,8 +7,12 @@ const source = readFileSync(join(process.cwd(), "src/components/bank-result.tsx"
 describe("bank export feedback", () => {
   it("starts the bank result with a clear setup board before technical details", () => {
     expect(source).toContain("function BankDecisionHero");
-    expect(source).toContain('aria-label="Tonight\'s RuneLite bank setup"');
-    expect(source).toContain("Tonight&apos;s bank setup");
+    // "Tonight" left the headings — "Evening is not tool vocabulary" is the
+    // design system's own recorded finding, and GE prices do not know what
+    // time it is.
+    expect(source).toContain('aria-label="RuneLite bank setup"');
+    expect(source).toContain("This bank setup");
+    expect(source).not.toContain("Tonight");
     expect(source).toContain("{decision.title}");
     // The header line used to be five amber pills, four of which held counts.
     // The verdict now rides the site-wide gate ramp and the counts are figures.
@@ -23,7 +27,7 @@ describe("bank export feedback", () => {
     expect(source).toContain("Open the kill check, lock a setup, then do one short trip.");
     expect(source).toContain("Check one boss trip before buying upgrades");
     expect(source).toContain("Use this bank for one clear trip");
-    expect(source).toContain("Open the next trip plan that fits tonight.");
+    expect(source).toContain("Open the next trip plan.");
     expect(source).toContain("function buildBankReadyToLeave");
     expect(source).toContain("ReadyToLeaveStatus");
     expect(source).toContain('"Good first trip"');
