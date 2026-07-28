@@ -52,7 +52,11 @@ describe("ready to leave UX", () => {
 
   it("keeps /next simple and makes Bank use its own player prompts", () => {
     expect(read("src/app/next/next-client.tsx")).not.toContain("<ReadyToLeave status={readyToLeave.status} items={readyToLeave.items}");
-    expect(read("src/app/next/next-client.tsx")).toContain("Start here");
+    // Was pinned to "Start here" — the eyebrow of the FABRICATED result card
+    // on the not-found screen. The assertion was holding invented account data
+    // in place. What this test is actually about is that /next does not render
+    // the shared ReadyToLeave panel, which the lines around it check.
+    expect(read("src/app/next/next-client.tsx")).toContain('setView("not-found")');
     expect(read("src/components/bank-result.tsx")).not.toContain("<ReadyToLeave status={readiness.status} items={readiness.items} compact");
     expect(read("src/components/bank-result.tsx")).toContain("RuneLite setup steps");
     expect(read("src/components/bank-result.tsx")).toContain("First");

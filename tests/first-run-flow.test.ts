@@ -24,7 +24,14 @@ describe("first-run value flow", () => {
 
   it("keeps invalid and slow lookups understandable", () => {
     expect(next).toContain('setView("not-found")');
-    expect(next).toContain("We couldn&apos;t find");
+    expect(next).toContain("No Hiscores entry for");
+    // The not-found screen must not invent an account to fill the space. It
+    // used to render a faded card reading "Your visible stats clear the Hard
+    // skill gates" and "Your Abyssal Whip fits — and CL 89 clears the gate",
+    // under the real name, on the one screen whose job is saying we cannot
+    // see any of that.
+    expect(next).not.toContain("What you&apos;d see if your name had been on the list");
+    expect(next).not.toContain("Your Abyssal Whip fits");
     expect(loader).toContain('role="status"');
     expect(loader).toContain('aria-busy="true"');
     expect(loader).toContain("Building your next trip…");

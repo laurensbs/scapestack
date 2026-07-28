@@ -805,66 +805,54 @@ export function NextClient({
 // faded sample-result + a 'try a different name' CTA. The point is
 // to keep the user oriented: this tool works, your name didn't.
 function NotFoundPreview({ rsn, onRetry }: { rsn: string; onRetry: () => void }) {
+  // This screen exists to say we have no data, and it used to answer that by
+  // inventing some: a faded card that named a specific weapon, a specific
+  // combat level and a specific diary tier as though they belonged to the
+  // player whose name is in the heading — on the one screen whose whole job is
+  // admitting we cannot see any of it. The strings are not repeated here on
+  // purpose; tests/first-run-flow.test.ts asserts this file does not contain
+  // them, and a comment quoting them would defeat that.
+  //
+  // It also carried the chrome direction B removed — rounded-xl, a gradient
+  // overlay, a backdrop blur and a slide-up — to make the fabrication look
+  // like a real result behind glass.
+  //
+  // What is left is the three things a player can act on. No sample, because
+  // "here is what someone else's account looks like" is not why anyone typed
+  // their own name.
   return (
-    <section className="animate-[slide-up_0.35s_ease-out] max-w-2xl mx-auto">
-      <header className="mb-6">
-        <h2 className="text-[22px] sm:text-[26px] font-bold text-[var(--color-text)] tracking-normal leading-tight">
-          We couldn&apos;t find <span className="text-[var(--color-accent)]">{rsn}</span> on Hiscores.
-        </h2>
-        <p className="mt-2 text-[14px] text-[var(--color-text-dim)] leading-relaxed">
-          Either it&apos;s a typo, or the account isn&apos;t ranked yet (low combat /
-          new account). Try again, or have a look at what a found account looks like.
-        </p>
-      </header>
+    <section className="mx-auto max-w-2xl">
+      <h2 className="text-[22px] font-bold leading-tight tracking-normal text-[var(--color-text)] sm:text-[26px]">
+        No Hiscores entry for <span className="text-[var(--color-accent)]">{rsn}</span>.
+      </h2>
+      <p className="mt-2 text-[14px] leading-relaxed text-[var(--color-text-dim)]">
+        That is all we know. Scapestack reads the public Hiscores, and an account only appears there
+        once it is ranked in something.
+      </p>
 
-      {/* Faded sample-result preview — same shape as a real result page,
-          but greyed out and overlaid with a 'try again' CTA. Tells the
-          user 'this tool produces something useful' without forcing them
-          through the sample-flow detour. */}
-      <div className="relative rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/40 p-6 overflow-hidden">
-        <div className="opacity-40 pointer-events-none select-none" aria-hidden="true">
-          <div className="eyebrow text-[var(--color-accent)] mb-1">Start here</div>
-          <h3 className="text-[17px] font-bold text-[var(--color-text)] tracking-normal leading-tight">
-            Karamja Diary — Hard
-          </h3>
-          <p className="mt-1.5 text-[13px] text-[var(--color-text-dim)] leading-relaxed">
-            Your visible stats clear the Hard skill gates in this region.
-          </p>
-          <p className="mt-2 text-[12px] text-[var(--color-text-secondary)] border-t border-[var(--color-border)] pt-2">
-            Step toward the tier-4 reward; Hard unlocks its tier perks.
-          </p>
-          <div className="mt-4 grid sm:grid-cols-2 gap-2.5">
-            <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] p-3 text-[12px] text-[var(--color-text-dim)]">
-              <div className="font-semibold text-[var(--color-text)]">Try the Dagannoth Kings</div>
-              Your Abyssal Whip fits — and CL 89 clears the gate.
-            </div>
-            <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] p-3 text-[12px] text-[var(--color-text-dim)]">
-              <div className="font-semibold text-[var(--color-text)]">Monkey Madness II</div>
-              Grandmaster · Very Long
-            </div>
-          </div>
-        </div>
-
-        {/* Overlay CTA */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-transparent via-[var(--color-bg)]/40 to-[var(--color-bg)]/70 backdrop-blur-[1px]">
-          <button
-            type="button"
-            onClick={onRetry}
-            className="btn-primary group"
-          >
-            Try a different name
-            <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform" />
-          </button>
-          <p className="mt-3 text-[11.5px] text-[var(--color-text-muted)]">
-            What you&apos;d see if your name had been on the list.
-          </p>
-        </div>
+      <div className="scape-table-wrap mt-5">
+        <table className="scape-table" aria-label="Why a name is not found">
+          <tbody>
+            <tr>
+              <th scope="row" className="w-[124px] sm:w-[150px]">Spelling</th>
+              <td>Hiscores names are case-sensitive. Spaces and underscores both work.</td>
+            </tr>
+            <tr>
+              <th scope="row">Not ranked yet</th>
+              <td>A new or low-level account has no entry until it ranks in a skill.</td>
+            </tr>
+            <tr>
+              <th scope="row">Jagex is slow</th>
+              <td>The Hiscores lag a fresh account by a while. Nothing to fix on your side.</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      <p className="mt-6 text-[11.5px] text-[var(--color-text-muted)] text-center leading-relaxed">
-        Tip: Hiscores names are case-sensitive in some Jagex regions.
-        Try &ldquo;Lynx Titan&rdquo; (capital L, T) if you&apos;re testing.
-      </p>
+      <button type="button" onClick={onRetry} className="scape-primary-action mt-5 w-full sm:w-auto">
+        Try a different name
+        <ArrowRight className="size-4" />
+      </button>
     </section>
   );
 }
