@@ -45,6 +45,7 @@ describe("the engine says how much it knows", () => {
     const only = decision([fact("visible_progress_fit", "public_stats")]);
     expect(decisionConfidence(only)).toBe("guess");
     const copy = recommendationDecisionCopy(only);
+    expect(copy.why).not.toContain("This best matches your visible account progress");
     expect(copy.sourceLine).toContain("this is a guess");
     expect(copy.sourceLine).toContain("Connect RuneLite");
   });

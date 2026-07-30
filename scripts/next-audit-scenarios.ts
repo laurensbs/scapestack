@@ -187,7 +187,7 @@ export const NEXT_AUDIT_SCENARIOS: NextAuditScenario[] = [
       ...commonHeadlineRules,
       rule("bank-only-basis", "The engine is honest that it only has a bank.", { type: "basis-is", basis: "bank-only" }),
       rule("ask-for-rsn", "The primary recommendation asks for an RSN instead of inventing account progress.", { type: "headline-matches", matcher: { ids: ["meta:add-rsn"] } }),
-      rule("starter-quest", "At least one safe starter quest is visible.", { type: "visible-any", matcher: { ids: ["quest:Cook's Assistant", "quest:Sheep Shearer", "quest:Romeo & Juliet"] } }),
+      rule("no-unverified-starter-quest", "No starter quest is invented from a bank-only account.", { type: "visible-none", matcher: { kinds: ["quest"] } }),
       rule("no-boss-without-stats", "No boss or KC route is shown without stats.", { type: "visible-none", matcher: { kinds: ["boss", "kc"] } })
     ]
   },
@@ -214,7 +214,7 @@ export const NEXT_AUDIT_SCENARIOS: NextAuditScenario[] = [
       ...commonHeadlineRules,
       rule("early-full-basis", "The early account uses its stats and starter bank.", { type: "basis-is", basis: "full" }),
       rule("early-no-boss", "An early account is not pushed into bossing.", { type: "visible-none", matcher: { kinds: ["boss", "kc"] } }),
-      rule("early-progress", "A quest, skill or beginner route remains visible.", { type: "visible-any", matcher: { kinds: ["quest", "skill", "milestone"] } })
+      rule("early-quest-questions", "Unknown quest state becomes one to three questions.", { type: "quest-question-count", min: 1, max: 3 })
     ]
   },
   {

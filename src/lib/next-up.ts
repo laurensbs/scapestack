@@ -67,6 +67,8 @@ export type {
   NextBestActionKind,
   NextBestActionPreparation,
   NextBestAction,
+  QuestCompletionAnswer,
+  QuestCompletionQuestion,
   NextUpInput,
   NextUpResult
 } from "./next-up-types";
@@ -418,6 +420,7 @@ function starterQuestRecs(hasHiscores: boolean, bank: CompletionItem[]): Recomme
     {
       id: "quest:Cook's Assistant",
       kind: "quest",
+      questName: "Cook's Assistant",
       title: "Cook's Assistant",
       why: "Fast starter quest · no combat",
       payoff: "Quick quest point and unlocks the habit of quest-first progression.",
@@ -438,6 +441,7 @@ function starterQuestRecs(hasHiscores: boolean, bank: CompletionItem[]): Recomme
     {
       id: "quest:Sheep Shearer",
       kind: "quest",
+      questName: "Sheep Shearer",
       title: "Sheep Shearer",
       why: "Fast starter quest · no combat",
       payoff: "Easy quest point and basic skilling loop near Lumbridge.",
@@ -458,6 +462,7 @@ function starterQuestRecs(hasHiscores: boolean, bank: CompletionItem[]): Recomme
     {
       id: "quest:Romeo & Juliet",
       kind: "quest",
+      questName: "Romeo & Juliet",
       title: "Romeo & Juliet",
       why: "Fast starter quest · no combat",
       payoff: "Five quest points very early, useful for unlocking broader quest chains.",
@@ -510,6 +515,7 @@ function accountRouteRecs(input: {
     recs.push({
       id: "quest:Druidic Ritual",
       kind: "quest",
+      questName: "Druidic Ritual",
       title: "Unlock Herblore",
       why: "Druidic Ritual opens potions, quest gates and ironman supply routes.",
       payoff: "Herblore unlocks quest chains, diary steps and better supplies.",
@@ -600,6 +606,7 @@ function accountRouteRecs(input: {
     recs.push({
       id: "quest:Animal Magnetism",
       kind: "quest",
+      questName: "Animal Magnetism",
       title: "Get Ava's device",
       why: "Your stats fit Animal Magnetism; Ava's saves ammo on every ranged trip.",
       payoff: "Ava's accumulator and a cleaner ranged setup forever.",
@@ -690,6 +697,7 @@ function accountRouteRecs(input: {
     recs.push({
       id: "quest:fairy-rings-route",
       kind: "quest",
+      questName: "Fairytale II - Cure a Queen",
       title: "Unlock fairy rings",
       why: "Fairy rings make quests, clues, herb runs and Slayer routes massively shorter.",
       payoff: "Travel upgrade: less walking, faster trips, better daily loops.",
@@ -1045,6 +1053,46 @@ function buildReturnPlan(input: {
 
 // ── Engine ──────────────────────────────────────────────────────────────────
 
+function normalizedQuestName(name: string): string {
+  return name.trim().toLowerCase();
+}
+
+function recommendationQuestName(rec: Recommendation): string | null {
+  if (rec.questName?.trim()) return rec.questName.trim();
+  if (rec.completionTarget?.kind === "quest_completed") return rec.completionTarget.quest.trim();
+  return null;
+}
+
+function questStatusAllowsAction(input: {
+  questName: string | null | undefined;
+  authoritative: boolean;
+  completed: ReadonlySet<string>;
+  verifiedIncomplete: ReadonlySet<string>;
+}): boolean {
+  if (!input.questName) return true;
+  const key = normalizedQuestName(input.questName);
+  if (input.completed.has(key)) return false;
+  return input.authoritative || input.verifiedIncomplete.has(key);
+}
+
+function appendUnknownQuestQuestions(
+  names: Array<string | null | undefined>,
+  questions: NextUpResult["questQuestions"],
+  answered: ReadonlySet<string>,
+  completed: ReadonlySet<string>
+): void {
+  const queued = new Set(questions.map((question) => normalizedQuestName(question.quest)));
+  for (const candidate of names) {
+    const quest = candidate?.trim();
+    if (!quest) continue;
+    const key = normalizedQuestName(quest);
+    if (answered.has(key) || completed.has(key) || queued.has(key)) continue;
+    questions.push({ quest, prompt: `Have you done ${quest}?` });
+    queued.add(key);
+    if (questions.length === 3) return;
+  }
+}
+
 export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
   const skills = input.skills ?? [];
   const bank = input.bank ?? [];
@@ -1100,8 +1148,25 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     ? new Set(input.collectionLogOwnedItemIds)
     : undefined;
 
-  const completedQuestNames = input.scapestackSync?.questsCompleted
-    ? new Set(input.scapestackSync.questsCompleted.map((q) => q.toLowerCase()))
+  const hasAuthoritativeQuestCompletion = input.scapestackSync?.questsCompleted !== undefined;
+  const questAnswers = new Map<string, { quest: string; completed: boolean }>();
+  for (const answer of input.questCompletionAnswers ?? []) {
+    if (!answer || typeof answer.quest !== "string" || typeof answer.completed !== "boolean") continue;
+    const quest = answer.quest.trim();
+    if (!quest || quest.length > 300) continue;
+    questAnswers.set(normalizedQuestName(quest), { quest, completed: answer.completed });
+  }
+  const completedQuestNames = hasAuthoritativeQuestCompletion || questAnswers.size > 0
+    ? new Set((input.scapestackSync?.questsCompleted ?? []).map(normalizedQuestName))
+    : undefined;
+  const verifiedIncompleteQuestNames = new Set<string>();
+  for (const [key, answer] of questAnswers) {
+    if (answer.completed) completedQuestNames?.add(key);
+    else verifiedIncompleteQuestNames.add(key);
+  }
+  const completedQuestLookup = completedQuestNames ?? new Set<string>();
+  const authoritativeCompletedQuestNames = hasAuthoritativeQuestCompletion
+    ? completedQuestNames
     : undefined;
   const completedDiaryTierKeys = input.scapestackSync?.diariesCompleted
     ? new Set(input.scapestackSync.diariesCompleted.map((d) => diaryTierKey(d.region, d.tier)))
@@ -1151,11 +1216,11 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     )
   });
 
-  // What the player can actually reach. Quest and diary sets are undefined
-  // without an exact source, which the evaluator reads as "unknown" — it
-  // hedges the copy rather than hiding content it cannot verify.
+  // What the player can actually reach. Local yes answers join the exact same
+  // completed-quest set as RuneLite. Local no answers are narrower: they only
+  // permit that named quest to become an action.
   const accessContext: AccessContext = {
-    completedQuestNames,
+    completedQuestNames: authoritativeCompletedQuestNames,
     completedDiaryTierKeys,
     skills
   };
@@ -1167,7 +1232,7 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
   // verdict then declares rather than papering over with 99s.
   const combatStats = combatStatsFromSkills(skills);
 
-  const rawRecs = applyBossViability([
+  const candidateRawRecs = applyBossViability([
     ...goalRecs(completions),
     ...(combatLevel !== null ? bossRecs(combatLevel, bank, skills, mergedBossKc, accountMeta?.accountType ?? null, accessContext, combatStats) : []),
     ...slayerTaskRecs(input.scapestackSync?.slayer, {
@@ -1185,13 +1250,13 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
       completedQuestNames,
       bank,
       accountMeta?.accountType ?? null,
-      input.scapestackSync?.questsCompleted ? "runelite" : completedQuestNames ? "tracker" : undefined
+      hasAuthoritativeQuestCompletion ? "runelite" : completedQuestNames ? "tracker" : undefined
     ),
     ...activeBossKcRecs(mergedBossKc, bank, skills, accountMeta?.accountType ?? null),
     ...diaryRecs(diaries, skills, {
       bank,
       accountType: accountMeta?.accountType ?? null,
-      completedQuestNames,
+      completedQuestNames: authoritativeCompletedQuestNames,
       completedDiaryTiers: completedDiaryTierKeys,
       // A Map iterator, which was the bug: diary-requirements spreads it into
       // a Set per tier, so the first tier drained it and the other 47 got an
@@ -1216,11 +1281,26 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     // your RSN" rather than letting "Tidy your bank" become the headline.
     ...(!hasHiscores && hasBank ? [noHiscoresNudge()] : [])
   ], bank, combatStats);
-  const sortedRecs = rankRecommendations(rawRecs, {
+  const rankedCandidateRecs = rankRecommendations(candidateRawRecs, {
     hasBank,
     accountStage,
     accountMeta
   });
+  const sortedRecs = rankedCandidateRecs.filter((rec) => questStatusAllowsAction({
+    questName: recommendationQuestName(rec),
+    authoritative: hasAuthoritativeQuestCompletion,
+    completed: completedQuestLookup,
+    verifiedIncomplete: verifiedIncompleteQuestNames
+  }));
+  const questQuestions: NextUpResult["questQuestions"] = [];
+  if (hasHiscores && !hasAuthoritativeQuestCompletion) {
+    appendUnknownQuestQuestions(
+      rankedCandidateRecs.filter((rec) => rec.kind === "quest").map(recommendationQuestName),
+      questQuestions,
+      new Set(questAnswers.keys()),
+      completedQuestLookup
+    );
+  }
   const recs: Recommendation[] = withActionPlans(prioritizeVisibleRecommendations(sortedRecs), {
     hasHiscores,
     hasBank,
@@ -1271,15 +1351,31 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
   const maxEstimate = hasHiscores
     ? hoursToMax(skills.map((s) => ({ name: s.name, level: s.level, xp: s.xp })))
     : { totalHours: 0, perSkill: [] };
-  const actionQueue = nextBestActions({
+  const candidateActionQueue = nextBestActions({
     quests,
     diaries,
     skills,
     bank,
     accountType: accountMeta?.accountType ?? null,
     completedQuestNames,
+    completedQuestNamesForRequirements: authoritativeCompletedQuestNames,
+    questCompletionEvidence: hasAuthoritativeQuestCompletion ? "runelite" : undefined,
     completedDiaryTiers: completedDiaryTierKeys
   });
+  const actionQueue = candidateActionQueue.filter((action) => questStatusAllowsAction({
+    questName: action.questName,
+    authoritative: hasAuthoritativeQuestCompletion,
+    completed: completedQuestLookup,
+    verifiedIncomplete: verifiedIncompleteQuestNames
+  }));
+  if (hasHiscores && !hasAuthoritativeQuestCompletion && questQuestions.length < 3) {
+    appendUnknownQuestQuestions(
+      candidateActionQueue.map((action) => action.questName),
+      questQuestions,
+      new Set(questAnswers.keys()),
+      completedQuestLookup
+    );
+  }
   const returnPlan = buildReturnPlan({
     headline: recs[0] ?? null,
     nextBestActions: actionQueue,
@@ -1293,6 +1389,7 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     headline: recs[0] ?? null,
     rest: recs.slice(1),
     nextBestActions: actionQueue,
+    questQuestions,
     summary: {
       combatLevel,
       totalLevel,

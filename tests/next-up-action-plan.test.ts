@@ -187,8 +187,6 @@ describe("next-up action plans", () => {
     const result = await computeNextUp({ bank: [{ id: 995, name: "Coins" }] });
     const recs = [result.headline, ...result.rest].filter(Boolean);
     const addRsnSteps = result.headline?.actionPlan?.steps.join(" ") ?? "";
-    const romeo = recs.find((rec) => rec?.id === "quest:Romeo & Juliet");
-    const romeoSteps = romeo?.actionPlan?.steps.join(" ") ?? "";
 
     expect(result.summary.basis).toBe("bank-only");
     expect(result.headline?.id).toBe("meta:add-rsn");
@@ -198,10 +196,8 @@ describe("next-up action plans", () => {
     expect(result.headline?.actionPlan?.steps[0]).toContain("Enter your OSRS name");
     expect(addRsnSteps).toContain("suggests quests, diary tiers, collection-log slots or Slayer tasks");
     expect(addRsnSteps).not.toContain("exact quest/diary");
-    expect(recs.some((rec) => rec?.id === "quest:Cook's Assistant")).toBe(true);
-    expect(romeo).toBeTruthy();
-    expect(romeoSteps).toContain("Scapestack can use Hiscores instead of a starter-account default");
-    expect(romeoSteps).not.toContain("stops guessing");
+    expect(recs.some((rec) => rec?.kind === "quest")).toBe(false);
+    expect(result.questQuestions).toEqual([]);
   });
 
   it("uses goal-specific missing pieces when a set is close", async () => {
@@ -227,6 +223,33 @@ describe("next-up action plans", () => {
     const recs = [result.headline, ...result.rest].filter(Boolean);
 
     expect(recs.some((rec) => rec?.kind === "quest")).toBe(false);
+  });
+
+  it("does not offer unverifiable quests to a maxed account without plugin data", async () => {
+    const result = await computeNextUp({
+      skills: skillsAt(99),
+      questPoints: null
+    });
+    const recs = [result.headline, ...result.rest].filter(Boolean);
+
+    expect(recs.filter((rec) => rec?.kind === "quest")).toEqual([]);
+    expect(result.questQuestions).toHaveLength(3);
+    expect(result.questQuestions.every((question) => question.prompt === `Have you done ${question.quest}?`)).toBe(true);
+
+    const quest = result.questQuestions[0]!.quest;
+    const completed = await computeNextUp({
+      skills: skillsAt(99),
+      questPoints: null,
+      questCompletionAnswers: [{ quest, completed: true }]
+    });
+    const unfinished = await computeNextUp({
+      skills: skillsAt(99),
+      questPoints: null,
+      questCompletionAnswers: [{ quest, completed: false }]
+    });
+
+    expect([completed.headline, ...completed.rest].some((rec) => rec?.questName === quest)).toBe(false);
+    expect([unfinished.headline, ...unfinished.rest].some((rec) => rec?.questName === quest)).toBe(true);
   });
 
   it("does not recommend quests that exact sync data marks complete", async () => {
@@ -557,7 +580,8 @@ describe("next-up action plans", () => {
         { id: 1127, name: "Rune platebody" },
         { id: 2503, name: "Black d'hide body" },
         { id: 4091, name: "Mystic robe top" }
-      ]
+      ],
+      questCompletionAnswers: [{ quest: "Animal Magnetism", completed: false }]
     });
 
     const visible = [result.headline, ...result.rest.slice(0, 7)].filter(Boolean);
@@ -691,7 +715,8 @@ describe("next-up action plans", () => {
         Herblore: 20, Agility: 35, Thieving: 35, Farming: 38,
         Runecraft: 30, Hunter: 20, Construction: 30
       }),
-      questPoints: 45
+      questPoints: 45,
+      questCompletionAnswers: [{ quest: "Fairytale II - Cure a Queen", completed: false }]
     });
     const recs = [result.headline, ...result.rest].filter(Boolean);
 

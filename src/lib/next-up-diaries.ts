@@ -137,6 +137,7 @@ function buildDiaryAction(evaluation: DiaryRequirementEvaluation): NextBestActio
     return {
       id: `nba:diary-prereq:${evaluation.region}:${evaluation.tier}`,
       kind,
+      ...(missingQuests[0] ? { questName: missingQuests[0].name } : {}),
       title: `Complete ${nextBlocker} for ${unlockLabel}`,
       reason: `${unlockLabel} is close, but prerequisite progress blocks the payoff: ${evaluation.payoff}`,
       missingRequirements: diaryMissingRequirementLines(evaluation),

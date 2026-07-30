@@ -43,6 +43,7 @@ export interface QuestRouteBuildResult {
 interface QuestRouteContext {
   skills?: HiscoreSkill[];
   completedQuestNames?: Iterable<string>;
+  completionCoverage?: "complete" | "partial";
   completionEvidence?: Exclude<QuestRouteEvidence, "unknown">;
   bankItems?: QuestBankItem[];
   accountType?: PlannerAccountType | null;
@@ -175,7 +176,8 @@ export function buildQuestRoute(
   quests: Map<string, QuestRecord>,
   context: QuestRouteContext
 ): QuestRouteBuildResult {
-  const completionKnown = context.completedQuestNames !== undefined;
+  // A partial local set proves its yes answers, never that every absence is unfinished.
+  const completionKnown = context.completedQuestNames !== undefined && context.completionCoverage !== "partial";
   const completed = completedQuestSet(context.completedQuestNames);
   const remainingPrerequisites = unresolvedPrerequisites(target, completed, completionKnown);
   const activeQuest = pickExecutableQuest(target, quests, completed, completionKnown);

@@ -17,6 +17,7 @@ import { ItemSprite } from "@/components/item-sprite";
 import { AccountModeBadge } from "@/components/account-mode-badge";
 import { XpDropLoader } from "@/components/xp-drop-loader";
 import { ShuffleLoader } from "@/components/shuffle-loader";
+import { QuestCompletionQuestions } from "@/components/quest-completion-questions";
 import { BOSSES, type Boss } from "@/lib/bosses";
 import { organizeAction, nextUpAction, planningContextAction } from "@/app/actions";
 import { type HiscoreSkill } from "@/lib/hiscores";
@@ -26,7 +27,7 @@ import { getActiveAccount, markAccountPluginBankStatus, markAccountRuneliteProgr
 import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib/saved-bank";
 import { track, type AnalyticsContext } from "@/lib/analytics";
 import { trackRouteEngagement } from "@/lib/route-engagement";
-import type { Recommendation, RecKind, NextUpResult, NextBestAction } from "@/lib/next-up";
+import type { Recommendation, RecKind, NextUpInput, NextUpResult, NextBestAction } from "@/lib/next-up";
 import type { PlanningContextPayload } from "@/lib/planning-context";
 import { buildNextUpInputFromSources } from "@/lib/planning-input";
 import {
@@ -131,6 +132,10 @@ import {
   loadDiaryTaskChecks,
   setDiaryTaskChecked
 } from "@/lib/diary-progress-storage";
+import {
+  loadQuestCompletionAnswers,
+  saveQuestCompletionAnswer
+} from "@/lib/quest-completion-answers";
 
 const LazyBossDetailModal = dynamic(() => import("@/components/lazy-boss-detail-modal"), {
   ssr: false,
@@ -371,6 +376,7 @@ export function NextClient({
 }) {
   const [view, setView] = useState<"intake" | "result" | "not-found">("intake");
   const [result, setResult] = useState<NextUpResult | null>(null);
+  const [activePlannerInput, setActivePlannerInput] = useState<NextUpInput | null>(null);
   const [error, setError] = useState<string | null>(null);
   // When we land on the not-found view, remember what the user typed so
   // we can show 'Lynx Titan didn't return any data' and offer a retry.
@@ -487,7 +493,7 @@ export function NextClient({
         } catch {
           // Demo still works in /next if storage is unavailable; DPS handoff is best-effort.
         }
-        setResult(await nextUpAction({
+        const sampleInput: NextUpInput = {
           skills: sampleSkills(),
           bank,
           questPoints: 180,
@@ -508,7 +514,9 @@ export function NextClient({
             collectionLog: false,
             scapestack: null
           }
-        }));
+        };
+        setActivePlannerInput(sampleInput);
+        setResult(await nextUpAction(sampleInput));
         setView("result");
         return;
       }
@@ -589,13 +597,15 @@ export function NextClient({
       // — better than a red error blob next to the button which is
       // where v0.4 lost people. A player who submitted nothing gets
       // the original 'fill something in' nudge.
+      const questCompletionAnswers = rsn ? loadQuestCompletionAnswers(rsn) : [];
       const plannerInput = buildNextUpInputFromSources({
         rsn,
         hiscores,
         wom,
         collectionLogOwnedItemIds: collectionLog?.ownedItemIds,
         scapestackSync,
-        bankOverride: bank
+        bankOverride: bank,
+        questCompletionAnswers
       });
       if (!plannerInput) {
         if (rsn) {
@@ -606,11 +616,12 @@ export function NextClient({
         }
         return;
       }
+      setActivePlannerInput(plannerInput);
 
       // The RSN-only path already carries the computed plan, so it avoids a
       // second network round trip. Explicit bank overrides still recalculate
       // from the same shared input builder.
-      const nextResult = !hasManualBankOverride && planningContext?.initialPlan
+      const nextResult = !hasManualBankOverride && questCompletionAnswers.length === 0 && planningContext?.initialPlan
         ? planningContext.initialPlan
         : await nextUpAction(plannerInput);
       setResult(nextResult);
@@ -629,6 +640,23 @@ export function NextClient({
       // Remember the RSN for next time — independent of bank-save. If the
       // user is in the session opt-out (shared device), this is a no-op.
       if (rsn) saveSavedRsn(rsn);
+    });
+  };
+
+  const answerQuest = (quest: string, completed: boolean) => {
+    if (!activePlannerInput) return;
+    const answers = activeRsn
+      ? saveQuestCompletionAnswer(activeRsn, { quest, completed })
+      : [
+          ...(activePlannerInput.questCompletionAnswers ?? [])
+            .filter((answer) => answer.quest.toLowerCase() !== quest.toLowerCase()),
+          { quest, completed }
+        ];
+    const nextInput: NextUpInput = { ...activePlannerInput, questCompletionAnswers: answers };
+    setActivePlannerInput(nextInput);
+    setPlanRequestedAt(Date.now());
+    startTransition(async () => {
+      setResult(await nextUpAction(nextInput));
     });
   };
 
@@ -782,6 +810,8 @@ export function NextClient({
         initialRouteChoice={initialRouteChoice}
         planRequestedAt={planRequestedAt}
         isFirstRun={isFirstRun}
+        questAnswerPending={pending}
+        onQuestAnswer={answerQuest}
         onBossOpen={(slug) => setModalBossSlug(slug)}
       />
       {modalBossSlug && (
@@ -1258,7 +1288,7 @@ function NextIntake({
   );
 }
 
-function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOpen, onClearStoredBankHandoff, expectedPluginSync, routeIntent, goalRouteFocus, initialRouteChoice, planRequestedAt, isFirstRun }: {
+function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOpen, onClearStoredBankHandoff, expectedPluginSync, routeIntent, goalRouteFocus, initialRouteChoice, planRequestedAt, isFirstRun, questAnswerPending, onQuestAnswer }: {
   result: NextUpResult;
   bankItems: BankHandoffItem[];
   bankSource: NextBankSource;
@@ -1274,6 +1304,8 @@ function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOp
   initialRouteChoice: InitialRouteChoice | null;
   planRequestedAt: number | null;
   isFirstRun: boolean;
+  questAnswerPending: boolean;
+  onQuestAnswer: (quest: string, completed: boolean) => void;
 }) {
   const { headline, rest, summary } = result;
   // What WhatToDo actually put on screen. Falls back to the engine's headline
@@ -1329,6 +1361,13 @@ function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOp
 
   return (
     <div className="space-y-6">
+      {result.questQuestions.length > 0 && (
+        <QuestCompletionQuestions
+          questions={result.questQuestions}
+          pending={questAnswerPending}
+          onAnswer={onQuestAnswer}
+        />
+      )}
       {/* The first screen is the product: one clean trip first, options later. */}
       <div style={trackAnim(0)}>
         <WhatToDo
@@ -5824,4 +5863,3 @@ function RecHeadlineExpandable({
     </div>
   );
 }
-

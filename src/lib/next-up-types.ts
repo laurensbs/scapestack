@@ -170,6 +170,7 @@ export interface Recommendation {
   /** Exact Wiki diary tasks plus honest completion evidence. The client may
    *  merge account-local manual checks without changing server ranking. */
   diaryProgress?: DiaryTierProgress;
+  questName?: string;
   /** The shortest executable quest block toward a larger unlock. Full guides
    *  stay on the Wiki; this contract only carries the current session. */
   questRoute?: QuestRouteProgress;
@@ -218,6 +219,17 @@ export interface NextBestAction {
   link?: string;
   iconItemId?: number;
   accountTypeNote?: string;
+  questName?: string;
+}
+
+export interface QuestCompletionAnswer {
+  quest: string;
+  completed: boolean;
+}
+
+export interface QuestCompletionQuestion {
+  quest: string;
+  prompt: string;
 }
 
 export interface NextUpInput {
@@ -246,6 +258,7 @@ export interface NextUpInput {
    *  Used to skip KC-recs whose iconic drop the player already has —
    *  exact data instead of bank-paste guesswork. */
   collectionLogOwnedItemIds?: number[];
+  questCompletionAnswers?: QuestCompletionAnswer[];
   /** Scapestack-plugin sync data — our own RuneLite plugin. Highest
    *  priority signal: exact quest + diary + CL state straight from the
    *  player's game client. */
@@ -298,6 +311,7 @@ export interface NextUpResult {
   /** Specific action queue built from skills, quest state, bank items,
    *  account type and unlock value. */
   nextBestActions: NextBestAction[];
+  questQuestions: QuestCompletionQuestion[];
   /** Quick account read-out for the hub header. */
   summary: {
     combatLevel: number | null;

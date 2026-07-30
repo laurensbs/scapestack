@@ -20,6 +20,7 @@ export type AuditRule =
   | { id: string; level: AuditRuleLevel; description: string; type: "visible-none"; matcher: RecommendationMatcher }
   | { id: string; level: AuditRuleLevel; description: string; type: "headline-has-decision-reason" }
   | { id: string; level: AuditRuleLevel; description: string; type: "headline-is-not-scout-kc" }
+  | { id: string; level: AuditRuleLevel; description: string; type: "quest-question-count"; min: number; max: number }
   | {
       id: string;
       level: AuditRuleLevel;
@@ -125,6 +126,10 @@ export function evaluateAuditRule(rule: AuditRule, context: AuditRuleContext): A
       break;
     case "headline-is-not-scout-kc":
       passed = !isScoutKc(context.headline);
+      break;
+    case "quest-question-count":
+      passed = context.result.questQuestions.length >= rule.min && context.result.questQuestions.length <= rule.max;
+      actual = `questQuestions=${context.result.questQuestions.length} (allowed ${rule.min}-${rule.max})`;
       break;
     case "path-percent-range": {
       const percent = pathPercent(context.result, rule.path);

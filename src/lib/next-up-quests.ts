@@ -55,7 +55,7 @@ export function questRecs(
   const recs: Recommendation[] = [];
   const bankItems = bank.map((item) => ({ id: item.id, name: item.name, quantity: item.quantity }));
   for (const q of quests.values()) {
-    if (completedQuestNames?.has(q.name.toLowerCase())) continue;
+    if (completedQuestNames && completedQuestNames.has(q.name.toLowerCase())) continue;
     // Filter to recommendation-worthy difficulty. "Special" covers RFD and
     // a handful of other big multi-part quests.
     if (q.difficulty !== "Master" && q.difficulty !== "Grandmaster" && q.difficulty !== "Special") continue;
@@ -76,6 +76,7 @@ export function questRecs(
     const route = buildQuestRoute(q, quests, {
       skills,
       completedQuestNames,
+      completionCoverage: completedQuestNames && !completionEvidence ? "partial" : "complete",
       completionEvidence,
       bankItems,
       accountType,
@@ -101,6 +102,7 @@ export function questRecs(
     recs.push({
       id: `quest:${q.name}`,
       kind: "quest",
+      questName: activeQuest.name,
       title: `Do ${activeQuest.name}`,
       why: `${progress.expectedBlock} toward ${unlock.label}.`,
       payoff: progress.activeIsTarget ? `Unlocks ${unlock.label}.` : `${q.name} remains the larger unlock route.`,
@@ -216,6 +218,7 @@ function buildQuestAction(
     return {
       id: `nba:quest:${questSlug(quest.name)}`,
       kind: "do-quest",
+      questName: quest.name,
       title: `Do ${quest.name}`,
       reason: `All visible requirements are met; unlocks ${unlock.label}.`,
       missingRequirements: [],
@@ -234,6 +237,7 @@ function buildQuestAction(
     return {
       id: `nba:items:${questSlug(quest.name)}`,
       kind: "collect-items",
+      questName: quest.name,
       title: `Collect ${itemCount} item${itemCount === 1 ? "" : "s"} for ${quest.name}`,
       reason: `${quest.name} is blocked mostly by bank prep; finishing the item list unlocks ${unlock.label}.`,
       missingRequirements: missingItems.map(missingItemLabel),
@@ -256,6 +260,7 @@ function buildQuestAction(
       return {
         id: `nba:skill:${questSlug(quest.name)}:${closest.skill}`,
         kind: "train-skill",
+        questName: quest.name,
         title: `Train ${closest.skill} to ${closest.level} for ${quest.name}`,
         reason: `${closest.skill} is ${closest.gap} level${closest.gap === 1 ? "" : "s"} short; that is the cleanest step before ${unlock.label}.`,
         missingRequirements: missingSkills.map((req) => `${req.skill} ${req.currentLevel}/${req.level}`),
@@ -275,6 +280,7 @@ function buildQuestAction(
     return {
       id: `nba:prereq:${questSlug(quest.name)}`,
       kind: "complete-prereq",
+      questName: nextQuest.name,
       title: `Complete ${nextQuest.name} for ${quest.name}`,
       reason: `${quest.name} is close, but the prereq chain blocks ${unlock.label}.`,
       missingRequirements: missingQuests.map((req) => req.name),
@@ -298,6 +304,8 @@ export function nextBestActions(input: {
   bank: CompletionItem[];
   accountType: PlannerAccountType | null;
   completedQuestNames?: Set<string>;
+  completedQuestNamesForRequirements?: Set<string>;
+  questCompletionEvidence?: Exclude<QuestRouteEvidence, "unknown">;
   completedDiaryTiers?: Set<string>;
 }): NextBestAction[] {
   const bankItems = input.bank.map((item) => ({
@@ -313,7 +321,8 @@ export function nextBestActions(input: {
       const route = buildQuestRoute(quest, input.quests, {
         skills: input.skills,
         completedQuestNames: input.completedQuestNames,
-        completionEvidence: input.completedQuestNames ? "tracker" : undefined,
+        completionCoverage: input.completedQuestNames && !input.questCompletionEvidence ? "partial" : "complete",
+        completionEvidence: input.questCompletionEvidence,
         bankItems,
         accountType: input.accountType,
         payoff: unlock.label
@@ -340,7 +349,7 @@ export function nextBestActions(input: {
     skills: input.skills,
     bankItems,
     accountType: input.accountType,
-    completedQuestNames: input.completedQuestNames,
+    completedQuestNames: input.completedQuestNamesForRequirements,
     completedDiaryTiers: input.completedDiaryTiers
   });
 

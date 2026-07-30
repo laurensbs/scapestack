@@ -136,8 +136,7 @@ export interface RecommendationDecisionCopy {
  * account anyone would test it with: /next told Lynx Titan, 200m XP in every
  * skill, to "Finish Skill capes" and to "Get Ava's device" — in the same 32px
  * bold as a fact, under the eyebrow "DO THIS FIRST". The sentence underneath
- * was "This best matches your visible account progress", which is the LAST
- * case in reasonCopy: the string emitted when there is nothing to cite. The
+ * claimed an account-specific fit even though there was nothing to cite. The
  * most confident-sounding line on the page appeared precisely when the engine
  * knew least.
  *
@@ -329,8 +328,6 @@ export function buildRecommendationDecision(input: BuildRecommendationDecisionIn
   const reasons: RecommendationDecisionFact[] = [];
   if (winner.kind === "kc" && winner.kcMeta && input.hasPublicStats) {
     reasons.push({ code: "boss_kc_progress", provenance: "public_stats", subject: winner.bossSlug ?? winner.title, value: winner.kcMeta.kc });
-  } else if (input.hasPublicStats) {
-    reasons.push({ code: "visible_progress_fit", provenance: "public_stats", subject: winner.kind });
   }
   if (input.hasBank && honesty.bankWouldChangePlan) {
     reasons.push({ code: "bank_context_used", provenance: "bank", subject: winner.kind });
@@ -406,7 +403,9 @@ function sentence(value: string): string {
   return clean ? `${clean}.` : "";
 }
 
-function reasonCopy(fact: RecommendationDecisionFact): string {
+function reasonCopy(fact: RecommendationDecisionFact): string | null {
+  // Kept in the v1 parser for stored decisions, but never generated or shown.
+  if (fact.code === "visible_progress_fit") return null;
   switch (fact.code) {
     case "boss_kc_progress":
       return `${fact.subject} is already at ${fact.value} KC`;
@@ -416,8 +415,6 @@ function reasonCopy(fact: RecommendationDecisionFact): string {
       return "RuneLite filtered finished work";
     case "session_preference_fit":
       return `This fits ${fact.subject} and ${fact.value} minutes`;
-    case "visible_progress_fit":
-      return "This best matches your visible account progress";
   }
 }
 
@@ -430,6 +427,7 @@ export function recommendationDecisionCopy(
   const why = [primary, preference]
     .filter((fact, index, list): fact is RecommendationDecisionFact => Boolean(fact) && list.findIndex((candidate) => candidate?.code === fact?.code) === index)
     .map(reasonCopy)
+    .filter((value): value is string => Boolean(value))
     .join(". ");
   const confidence = decisionConfidence(decision, sources);
   return {

@@ -25,7 +25,8 @@ describe("next best actions", () => {
   it("surfaces a ready quest action with unlock value", async () => {
     const result = await computeNextUp({
       skills: skillsFromLevels({}),
-      bank: [{ id: 1511, name: "Logs", quantity: 6 }]
+      bank: [{ id: 1511, name: "Logs", quantity: 6 }],
+      questCompletionAnswers: [{ quest: "Tree Gnome Village", completed: false }]
     });
 
     const action = result.nextBestActions.find((candidate) => candidate.title === "Do Tree Gnome Village");
@@ -79,7 +80,8 @@ describe("next best actions", () => {
 
   it("can build quest item actions from bank-only context", async () => {
     const result = await computeNextUp({
-      bank: [{ id: 1511, name: "Logs", quantity: 6 }]
+      bank: [{ id: 1511, name: "Logs", quantity: 6 }],
+      questCompletionAnswers: [{ quest: "Tree Gnome Village", completed: false }]
     });
 
     expect(result.summary.basis).toBe("bank-only");
@@ -102,7 +104,8 @@ describe("next best actions", () => {
         { id: 1539, name: "Steel nails", quantity: 60 },
         { id: 960, name: "Plank", quantity: 2 },
         { id: 1939, name: "Swamp tar", quantity: 1 }
-      ]
+      ],
+      questCompletionAnswers: [{ quest: "Horror from the Deep", completed: false }]
     });
 
     const action = result.nextBestActions.find((candidate) => candidate.title === "Train Agility to 35 for Horror from the Deep");

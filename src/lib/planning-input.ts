@@ -13,6 +13,7 @@ interface PlanningInputSources {
   collectionLogOwnedItemIds?: number[];
   scapestackSync: SyncedPlayer | null;
   bankOverride?: NextUpInput["bank"];
+  questCompletionAnswers?: NextUpInput["questCompletionAnswers"];
 }
 
 function domainAvailable(
@@ -122,6 +123,7 @@ export function buildNextUpInputFromSources(sources: PlanningInputSources): Next
     womBossKills: wom?.bossKills,
     accountMeta,
     collectionLogOwnedItemIds: sources.collectionLogOwnedItemIds,
+    questCompletionAnswers: sources.questCompletionAnswers,
     scapestackSync: scapestackSync
       ? {
           displayName: scapestackSync.displayName,
