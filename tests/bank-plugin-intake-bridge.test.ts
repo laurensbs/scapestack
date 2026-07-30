@@ -41,10 +41,11 @@ describe("bank plugin intake bridge", () => {
   });
 
   it("keeps the bank page focused on the paste popup", () => {
-    const pageSource = readFileSync(join(process.cwd(), "src/app/bank/page.tsx"), "utf8");
+    const pageSource = readFileSync(join(process.cwd(), "src/app/bank/bank-intake-only.tsx"), "utf8");
 
-    expect(pageSource).toContain('data-testid="bank-save-popup"');
-    expect(pageSource).toContain("Paste once. Save. Better trips everywhere.");
+    expect(pageSource).toContain("<Intake");
+    expect(pageSource).toContain("Add bank once");
+    expect(pageSource).toContain("askRsn");
     expect(pageSource).not.toContain('data-testid="plugin-bank-intake-bridge"');
     expect(pageSource).not.toContain('returnContext?.source === "plugin"');
     expect(pageSource).not.toContain("buildBankPluginIntakeBridge(rsn)");

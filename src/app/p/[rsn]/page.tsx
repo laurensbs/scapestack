@@ -1,24 +1,31 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BankAffordabilityPanel } from "@/components/bank-affordability-panel";
 import { BankObservationsPanel } from "@/components/bank-observations-panel";
 import { LastTripLine } from "@/components/last-trip-line";
-import { MoneyMethodsPanel } from "@/components/money-methods-panel";
 import { PlayerHubShell } from "@/components/player-hub-shell";
 import { PlayerPlanPanel } from "@/components/player-plan-panel";
 import { PlayerSkillsTable } from "@/components/player-skills-table";
+import { PlayerToolsSections } from "@/components/player-tools-sections";
 import {
   isIronPlannerAccount,
   plannerAccountTypeLabel,
   scapestackAccountTypeToPlannerType
 } from "@/lib/account-type";
+import { buildAffordabilityReport, tradeableIndex } from "@/lib/bank-affordability";
+import { BOSSES, isNonCombatBossActivity } from "@/lib/bosses";
+import { bossViabilityFromSimpleBank } from "@/lib/boss-viability";
+import { combatStatsFromSkills } from "@/lib/dps";
 import { fetchHiscores, formatXp, computeCombatLevel, computeTotalLevel, totalXp } from "@/lib/hiscores";
 import { buildMoneyMethodFilter } from "@/lib/money-methods";
 import { loadPlanningContext } from "@/lib/planning-context";
+import { pluginSyncHealth } from "@/lib/plugin-sync";
 import { pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
-import { getPriceSnapshot } from "@/lib/prices";
 import { cleanRsnInput, normalizeRsn } from "@/lib/rsn";
+import { decideSlayerTask } from "@/lib/slayer-task-decision";
+import { MONSTERS_BY_ID } from "@/lib/slayer/monsters";
+import { resolveSlayerTaskMonsterId } from "@/lib/slayer/task-ids";
 import { resolveViewerRsn } from "@/lib/viewer-account";
+import { getLatestPrices, getWikiItemMapping } from "@/lib/wiki";
 
 interface Props {
   params: Promise<{ rsn: string }>;
@@ -51,15 +58,18 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   const fromValue = query.from;
   const source = (Array.isArray(sourceValue) ? sourceValue[0] : sourceValue)?.trim().toLowerCase();
   const from = (Array.isArray(fromValue) ? fromValue[0] : fromValue)?.trim().toLowerCase();
-  const [context, priceSnapshot] = await Promise.all([
+  const isOwner = viewerRsn === normalizeRsn(decoded);
+  const [context, latestPrices, wikiMapping] = await Promise.all([
     loadPlanningContext(decoded, {
       viewerRsn,
       preferScapestack: source === "plugin-sync" || from === "plugin"
     }).catch(() => null),
-    viewerRsn === normalizeRsn(decoded) ? getPriceSnapshot().catch(() => null) : Promise.resolve(null)
+    isOwner ? getLatestPrices().catch(() => new Map()) : Promise.resolve(new Map()),
+    isOwner ? getWikiItemMapping().catch(() => new Map()) : Promise.resolve(new Map())
   ]);
   const hi = context?.hiscores;
   if (!context || !hi) notFound();
+  const taskProjection = context.slayerTask;
 
   const displayName = hi.name;
   const accountMode = context.initialPlan?.summary.accountMode.type
@@ -68,15 +78,53 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   const syncedAt = context.scapestackSync?.syncedAt ?? null;
   const bankItems = context.scapestackSync?.bankItems ?? [];
   const cannotBuy = isIronPlannerAccount(accountMode);
+  const simpleBank = bankItems.map((item) => ({ id: item.id, name: item.name, quantity: item.quantity }));
+  const numericPrices = new Map(
+    [...latestPrices].map(([id, price]) => [id, price.value] as const)
+  );
+  const bosses = bankItems.length > 0
+    ? BOSSES
+        .filter((boss) => !isNonCombatBossActivity(boss))
+        .map((boss) => bossViabilityFromSimpleBank(simpleBank, boss, combatStatsFromSkills(hi.skills)))
+        .filter((boss): boss is NonNullable<typeof boss> => boss !== null)
+    : null;
+  const sets = bankItems.length > 0
+    ? buildAffordabilityReport(simpleBank, latestPrices, tradeableIndex(wikiMapping))
+    : null;
   const moneyMethods = bankItems.length > 0
     ? buildMoneyMethodFilter({
         skills: hi.skills,
         questsCompleted: context.scapestackSync?.questsCompleted ?? [],
         bank: bankItems,
-        prices: priceSnapshot?.prices ?? new Map(),
+        prices: numericPrices,
         cannotBuy
       })
     : null;
+  const slayerState = taskProjection?.slayer ?? null;
+  const slayerSlug = slayerState
+    ? resolveSlayerTaskMonsterId(slayerState.taskName, slayerState.currentTaskId)
+    : null;
+  const slayerMonster = slayerSlug ? MONSTERS_BY_ID.get(slayerSlug) ?? null : null;
+  const slayerDecision = slayerState && slayerState.taskRemaining > 0 && slayerMonster
+    ? decideSlayerTask({
+        task: slayerMonster,
+        state: slayerState,
+        bank: simpleBank,
+        accountType: accountMode,
+        combatLevel: computeCombatLevel(hi.skills),
+        slayerLevel: hi.skills.find((skill) => skill.name.toLowerCase() === "slayer")?.level ?? 1,
+        syncHealth: pluginSyncHealth({
+          pluginVersion: taskProjection?.pluginVersion,
+          syncedAt: taskProjection?.syncedAt,
+          staleAfterHours: 6
+        })
+      })
+    : null;
+  const emptyTaskReason = !taskProjection
+    ? "No RuneLite Slayer scan is available for this player."
+    : !slayerState || slayerState.taskRemaining <= 0
+      ? "RuneLite is connected, but no active Slayer task was found."
+      : "RuneLite found a current task, but this older scan does not include a task name Scapestack can resolve yet.";
   const syncHref = pluginVerifyUrlForSyncedRsn(displayName, "profile", {
     hasBankContext: bankItems.length > 0
   });
@@ -105,18 +153,26 @@ export default async function PlayerPage({ params, searchParams }: Props) {
         Your bank
       </h2>
       <BankObservationsPanel result={context.bankObservations} />
-      {bankItems.length > 0 ? (
-        <BankAffordabilityPanel
-          items={bankItems.map((item) => ({ id: item.id, name: item.name, quantity: item.quantity }))}
-          cannotBuy={cannotBuy}
-        />
-      ) : (
+      {bankItems.length === 0 && (
         <p className="mt-2 text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">
           Bank details stay private. Pair this browser and sync RuneLite to use your bank here.
         </p>
       )}
-      <MoneyMethodsPanel report={moneyMethods} cannotBuy={cannotBuy} />
     </section>
+  );
+
+  const tools = (
+    <PlayerToolsSections
+      rsn={displayName}
+      skills={hi.skills}
+      questsCompleted={context.scapestackSync?.questsCompleted ?? []}
+      cannotBuy={cannotBuy}
+      bosses={bosses}
+      sets={sets}
+      task={slayerDecision}
+      emptyTaskReason={emptyTaskReason}
+      money={moneyMethods}
+    />
   );
 
   return (
@@ -125,6 +181,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
       lastTrip={<LastTripLine outcome={context.lastTripOutcome} />}
       plan={<PlayerPlanPanel rsn={displayName} initialContext={context} />}
       bank={bank}
+      tools={tools}
       account={<PlayerSkillsTable displayName={displayName} skills={hi.skills} />}
     />
   );

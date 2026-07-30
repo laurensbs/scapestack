@@ -5,12 +5,14 @@ export function PlayerHubShell({
   lastTrip,
   plan,
   bank,
+  tools,
   account
 }: {
   header: ReactNode;
   lastTrip: ReactNode;
   plan: ReactNode;
   bank: ReactNode;
+  tools: ReactNode;
   account: ReactNode;
 }) {
   return (
@@ -19,6 +21,7 @@ export function PlayerHubShell({
       <div data-player-hub-section="last-trip">{lastTrip}</div>
       <div data-player-hub-section="plan">{plan}</div>
       <div data-player-hub-section="bank">{bank}</div>
+      <div data-player-hub-section="tools">{tools}</div>
       <div data-player-hub-section="account">{account}</div>
     </main>
   );

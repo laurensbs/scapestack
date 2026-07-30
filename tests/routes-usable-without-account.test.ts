@@ -11,18 +11,15 @@ const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8")
 // asked "Can I kill this?" and showed no bosses; /goals asked "What unlock
 // next?" and showed none of the forty-two sets. Content stands on its own and
 // the account makes it personal — never the other way round.
-describe("catalogue routes show their catalogue without an account", () => {
-  it("renders the boss roster outside the Suspense boundary", () => {
-    // dps-client.tsx calls useSearchParams, which excludes everything inside
-    // the page's Suspense from the prerendered HTML. With the roster in there,
-    // production served 219 characters and no boss names at all — visible to a
-    // browser after hydration, invisible to anything that does not run JS.
-    // Outside the boundary a real production build serves 1,625.
+describe("the former catalogue routes hand off to the player page", () => {
+  it("renders the full boss roster from the canonical profile section", () => {
     const page = source("src/app/dps/page.tsx");
-    const client = source("src/app/dps/dps-client.tsx");
-    expect(page).toContain("<BossRoster />");
-    expect(page).toMatch(/<\/Suspense>[\s\S]*<BossRoster \/>/);
-    expect(client).not.toContain("BossRoster");
+    const profile = source("src/app/p/[rsn]/page.tsx");
+    const sections = source("src/components/player-tools-sections.tsx");
+    expect(page).toContain('playerToolSectionPath(rsn, "bosses")');
+    expect(profile).toContain("BOSSES");
+    expect(profile).toContain("<PlayerToolsSections");
+    expect(sections).toContain("<PlayerBossesSection");
     expect(BOSSES.length).toBeGreaterThan(40);
   });
 
@@ -107,9 +104,10 @@ describe("the bank is optional where the page already works", () => {
   });
 
   it("leaves /bank its real sequence", () => {
-    // Install Bank Memory, copy, paste, save is a genuine flow and says so.
-    const bank = source("src/app/bank/page.tsx");
+    // A nameless player gets one real paste flow; a known player is redirected.
+    const bank = source("src/app/bank/bank-intake-only.tsx");
     expect(bank).toContain("compactSave");
+    expect(bank).toContain("askRsn");
     expect(bank).not.toMatch(/<Intake[^>]*optional/);
   });
 });

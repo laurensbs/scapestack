@@ -1,16 +1,16 @@
-import { ToolHeader } from "@/components/tool-header";
-import { SlayerClient } from "./slayer-client";
+import { redirect } from "next/navigation";
+import { bankIntakeForSection, playerToolSectionPath, rsnFromToolQuery } from "@/lib/player-tool-route";
+import { resolveViewerRsn } from "@/lib/viewer-account";
 
 export const metadata = {
-  title: "Task Check",
-  description: "Decide whether this Slayer task is worth killing, skipping, extending, bursting or cannoning."
+  title: "Task",
+  description: "See the current Slayer task on the player's Scapestack page."
 };
 
-export default function SlayerPage() {
-  return (
-    <main className="relative z-10 mx-auto max-w-5xl px-5 py-7 pb-20">
-      <ToolHeader slug="slayer" />
-      <SlayerClient />
-    </main>
-  );
+type SearchParams = Record<string, string | string[] | undefined>;
+
+export default async function SlayerPage({ searchParams }: { searchParams?: Promise<SearchParams> }) {
+  const query = await (searchParams ?? Promise.resolve({} as SearchParams));
+  const rsn = rsnFromToolQuery(query) || await resolveViewerRsn();
+  redirect(rsn ? playerToolSectionPath(rsn, "task") : bankIntakeForSection("task"));
 }

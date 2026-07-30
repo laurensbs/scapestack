@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { bankReturnContextFromSource } from "@/lib/bank-return-context";
+import { playerToolSectionPath, sectionFromBankQuery } from "@/lib/player-tool-route";
 
 describe("bank return context", () => {
   it("explains why DPS users should refresh bank gear", () => {
@@ -26,37 +27,22 @@ describe("bank return context", () => {
     expect(bankReturnContextFromSource("unknown")).toBeNull();
   });
 
-  it("renders the bank intake as a save popup instead of a full return page", () => {
-    const source = readFileSync(join(process.cwd(), "src/app/bank/page.tsx"), "utf8");
+  it("renders only the nameless bank intake instead of a result destination", () => {
+    const source = readFileSync(join(process.cwd(), "src/app/bank/bank-intake-only.tsx"), "utf8");
 
-    expect(source).toContain('role="dialog"');
-    expect(source).toContain('data-testid="bank-save-popup"');
-    expect(source).toContain("Add bank");
-    expect(source).toContain("Paste once. Save. Better trips everywhere.");
+    expect(source).toContain('className="scape-dialog');
+    expect(source).toContain("Add bank once");
+    expect(source).toContain("<Intake");
     expect(source).toContain("compactSave");
-    expect(source).toContain('saveLabel="Save bank"');
-    expect(source).toContain("SavedBankOpeningState");
-    expect(source).toContain("Opening bank organizer");
-    expect(source).toContain('data-testid="saved-bank-auto-open"');
-    expect(source).toContain("Paste different bank");
-    expect(source).not.toContain("Use saved bank");
-    expect(source).not.toContain("Back to plan");
-    expect(source).toContain("autoLoadedSavedBank");
-    expect(source).toContain("setSavedBank(loadSavedBank(initialRsn))");
-    expect(source).toContain("onIntakeSubmit(savedBank.banktags, false, prefilledRsn)");
-    expect(source).toContain("bankCloseHref");
-    expect(source).not.toContain("<SavedBankBanner");
-    expect(source).not.toContain("<BankReturnContextBanner");
-    expect(source).not.toContain('data-testid="bank-return-context-banner"');
+    expect(source).toContain("askRsn");
+    expect(source).toContain('saveLabel="Open player page"');
+    expect(source).not.toContain("<BankResult");
+    expect(source).not.toContain("<BankAffordabilityPanel");
   });
 
-  it("keeps a DPS boss target while setup is added on the bank page", () => {
-    const source = readFileSync(join(process.cwd(), "src/app/bank/page.tsx"), "utf8");
-
-    expect(source).toContain("function bossFromUrl()");
-    expect(source).toContain('new URLSearchParams(window.location.search).get("boss")');
-    expect(source).toContain("const [returnBossSlug, setReturnBossSlug] = useState<string | null>(null);");
-    expect(source).toContain("setReturnBossSlug(bossFromUrl());");
-    expect(source).toContain("returnBossSlug={returnBossSlug}");
+  it("keeps the matching profile section while a nameless DPS visitor adds a bank", () => {
+    expect(sectionFromBankQuery({ from: "dps" })).toBe("bosses");
+    expect(playerToolSectionPath("Lynx Titan", sectionFromBankQuery({ from: "dps" })))
+      .toBe("/p/Lynx%20Titan#bosses");
   });
 });

@@ -55,14 +55,13 @@ describe("Scapestack interface lock", () => {
     for (const file of [
       "src/app/page.tsx",
       "src/app/next/page.tsx",
-      "src/app/bank/page.tsx",
-      "src/app/dps/page.tsx",
-      "src/app/goals/page.tsx",
+      "src/app/bank/bank-intake-only.tsx",
       "src/app/plugin/page.tsx",
       "src/components/player-hub-shell.tsx"
     ]) {
       expect(read(file), file).toContain('className="scape-page');
     }
+    expect(read("src/app/p/[rsn]/page.tsx")).toContain("<PlayerHubShell");
   });
 
   it("uses focused sheets and object-led choices instead of bespoke modal cards", () => {

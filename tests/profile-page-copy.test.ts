@@ -14,7 +14,7 @@ describe("RSN profile handoffs", () => {
     expect(page).toContain("viewerRsn");
     expect(page).toContain('pluginVerifyUrlForSyncedRsn(displayName, "profile"');
     expect(page).toContain("<PlayerPlanPanel");
-    expect(page).toContain("<BankAffordabilityPanel");
+    expect(page).toContain("<PlayerToolsSections");
     expect(page).toContain("<PlayerSkillsTable");
     expect(page).not.toContain("<AccountTimeline");
     expect(answer).toContain('data-next-trip-card="true"');

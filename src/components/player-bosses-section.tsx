@@ -1,0 +1,67 @@
+import type { BossViability } from "@/lib/boss-viability";
+import { bossViabilityDecisionLine } from "@/lib/boss-viability";
+import { wikiSearchUrl } from "@/lib/wiki";
+
+function orderedBosses(bosses: readonly BossViability[]): BossViability[] {
+  const toneRank = { ready: 0, test: 1, blocked: 2 } as const;
+  return [...bosses].sort((left, right) =>
+    Number(right.canKill) - Number(left.canKill)
+    || toneRank[left.tone] - toneRank[right.tone]
+    || left.boss.name.localeCompare(right.boss.name)
+  );
+}
+
+export function PlayerBossesSection({ bosses }: { bosses: readonly BossViability[] | null }) {
+  const ordered = bosses ? orderedBosses(bosses) : [];
+  const killable = ordered.filter((boss) => boss.canKill).length;
+  return (
+    <section id="bosses" data-player-tool-section="bosses" className="scroll-mt-20 border-t border-[var(--color-border)] pt-6" aria-labelledby="player-bosses-title">
+      <p className="eyebrow">Bosses</p>
+      <h2 id="player-bosses-title" className="mt-1 text-[22px] font-semibold text-[var(--color-text)]">
+        Which bosses can this bank kill?
+      </h2>
+      {bosses ? (
+        <>
+          <p data-testid="boss-startable-count" className="mt-2 text-[14px] leading-relaxed text-[var(--color-text)]">
+            Of {ordered.length.toLocaleString()} combat bosses, {killable.toLocaleString()} are a kill or test trip with these levels and this bank.
+          </p>
+          <div className="scape-table-wrap mt-3 overflow-x-hidden">
+            <table className="scape-table table-fixed" aria-label="Boss viability from this bank">
+              <colgroup>
+                <col className="w-[34%]" />
+                <col className="w-[66%]" />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th scope="col">Boss</th>
+                  <th scope="col">Answer</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ordered.map((boss) => (
+                  <tr key={boss.boss.slug}>
+                    <th scope="row" className="break-words align-top">
+                      <a href={wikiSearchUrl(boss.boss.name)} target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--color-text)] hover:text-[var(--color-accent)] hover:underline">
+                        {boss.boss.name}
+                      </a>
+                    </th>
+                    <td data-boss-answer={boss.boss.slug} className="whitespace-normal break-words align-top">
+                      <span className="scape-verdict" data-gate={boss.tone}>{boss.verdict}</span>
+                      <span className="mt-1 block leading-relaxed">{bossViabilityDecisionLine(boss)}</span>
+                      <span className="mt-1 block text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
+                        {boss.missing.length > 0 ? `Missing: ${boss.missing.join(", ")}.` : "Missing: nothing."}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="scape-table-note">Worn gear is not counted. Every answer uses the combat levels above and items in the synced bank.</p>
+        </>
+      ) : (
+        <p className="mt-2 text-[13px] leading-relaxed text-[var(--color-text-muted)]">No synced bank is available for a boss answer.</p>
+      )}
+    </section>
+  );
+}

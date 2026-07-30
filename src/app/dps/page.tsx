@@ -1,28 +1,16 @@
-import { Suspense } from "react";
-import { ToolHeader } from "@/components/tool-header";
-import { DpsClient } from "./dps-client";
-import { BossRoster } from "@/components/boss-roster";
+import { redirect } from "next/navigation";
+import { bankIntakeForSection, playerToolSectionPath, rsnFromToolQuery } from "@/lib/player-tool-route";
+import { resolveViewerRsn } from "@/lib/viewer-account";
 
 export const metadata = {
-  title: "Can I kill this?",
-  description: "Add bank and get one boss verdict: best gear, first trip, stop point and upgrade check from your bank."
+  title: "Bosses",
+  description: "See which bosses this bank can kill on the player's Scapestack page."
 };
 
-// Suspense wrapper required by Next.js 16 for any child that calls
-// useSearchParams — without one, the production build refuses to
-// prerender. Same pattern we use on /bank.
-export default function DpsPage() {
-  return (
-    <main className="scape-page">
-      <ToolHeader slug="dps" />
-      <Suspense fallback={null}>
-        <DpsClient />
-      </Suspense>
-      {/* Outside the boundary on purpose. DpsClient calls useSearchParams,
-          which keeps everything inside the Suspense out of the prerendered
-          HTML — so a roster rendered in there is invisible to anything that
-          does not run JavaScript. */}
-      <BossRoster />
-    </main>
-  );
+type SearchParams = Record<string, string | string[] | undefined>;
+
+export default async function DpsPage({ searchParams }: { searchParams?: Promise<SearchParams> }) {
+  const query = await (searchParams ?? Promise.resolve({} as SearchParams));
+  const rsn = rsnFromToolQuery(query) || await resolveViewerRsn();
+  redirect(rsn ? playerToolSectionPath(rsn, "bosses") : bankIntakeForSection("bosses"));
 }

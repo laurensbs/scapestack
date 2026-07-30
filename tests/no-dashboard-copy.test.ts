@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const playerFacingFiles = [
   "src/app/bank/page.tsx",
+  "src/app/bank/bank-intake-only.tsx",
   "src/components/bank-result.tsx",
   "src/app/dps/dps-client.tsx",
   "src/app/goals/goals-client.tsx",
@@ -19,7 +20,7 @@ const playerFacingFiles = [
 ];
 
 const source = playerFacingFiles.map((file) => readFileSync(join(process.cwd(), file), "utf8")).join("\n");
-const bankPageSource = readFileSync(join(process.cwd(), "src/app/bank/page.tsx"), "utf8");
+const bankPageSource = readFileSync(join(process.cwd(), "src/app/bank/bank-intake-only.tsx"), "utf8");
 
 describe("player-facing copy avoids dashboard language", () => {
   it("keeps bank, DPS, Slayer and RuneLite surfaces in player language", () => {
@@ -55,7 +56,8 @@ describe("player-facing copy avoids dashboard language", () => {
   });
 
   it("keeps the replacement copy concrete and OSRS-native", () => {
-    expect(source).toContain("Paste once. Save. Better trips everywhere.");
+    expect(source).toContain("Add bank once");
+    expect(source).toContain("The answer opens on that player page.");
     expect(bankPageSource).not.toContain("ScapestackReadinessRail");
     expect(source).toContain("Paste check");
     expect(source).toContain("Pick a boss");

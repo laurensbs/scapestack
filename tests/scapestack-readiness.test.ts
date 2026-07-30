@@ -312,7 +312,7 @@ describe("Scapestack readiness rail", () => {
     expect(slayerSource).toContain("ScapestackReadinessRail");
     expect(slayerSource).toContain('surface="slayer"');
 
-    const bankSource = readFileSync(join(process.cwd(), "src/app/bank/page.tsx"), "utf8");
+    const bankSource = readFileSync(join(process.cwd(), "src/app/bank/bank-intake-only.tsx"), "utf8");
     expect(bankSource).not.toContain("ScapestackReadinessRail");
     expect(bankSource).toContain('className="scape-dialog');
 
@@ -371,10 +371,11 @@ describe("Scapestack readiness rail", () => {
     expect(source).not.toContain("Open:");
   });
 
-  it("persists parsed bank handoff before the bank readiness rail links away", () => {
-    const source = readFileSync(join(process.cwd(), "src/app/bank/page.tsx"), "utf8");
+  it("persists the pasted bank before the intake opens the player page", () => {
+    const source = readFileSync(join(process.cwd(), "src/components/intake.tsx"), "utf8");
 
-    expect(source).toContain('import { persistBankHandoffPayload } from "@/lib/next-bank-handoff";');
-    expect(source).toContain("persistBankHandoffPayload(res.result.tabs, window)");
+    expect(source).toContain('import { saveSavedBank, saveSavedRsn } from "@/lib/saved-bank";');
+    expect(source).toContain("saveSavedBank(value, cleanedRsn || null);");
+    expect(source).toContain("onSaveOnly?.(value, cleanedRsn);");
   });
 });

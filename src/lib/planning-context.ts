@@ -11,7 +11,12 @@ import { buildNextUpInputFromSources } from "@/lib/planning-input";
 import { latestTripOutcome, type LastTripOutcome } from "@/lib/recommendation-outcome-repo";
 import { normalizeRsn } from "@/lib/rsn";
 import { getSyncedPlayer, type SyncedPlayer } from "@/lib/sync-repo";
-import { syncedPlayerForViewer, type VisibleSyncedPlayer } from "@/lib/synced-player-visibility";
+import {
+  slayerTaskProjection,
+  syncedPlayerForViewer,
+  type SlayerTaskProjection,
+  type VisibleSyncedPlayer
+} from "@/lib/synced-player-visibility";
 import { fetchWom, type WomPlayer } from "@/lib/wom";
 
 export const PLANNING_SOURCE_DEADLINES_MS = {
@@ -79,6 +84,8 @@ export interface PlanningContextPayload {
   collectionLog: CollectionLogPayload | null;
   /** Redacted for anyone who is not the account owner. See synced-player-visibility.ts. */
   scapestackSync: VisibleSyncedPlayer | null;
+  /** Public, narrow projection already used by the former /slayer surface. */
+  slayerTask: SlayerTaskProjection | null;
   initialPlan: NextUpResult | null;
   /**
    * The reconciled verdict on the trip the owner accepted last time, or null.
@@ -158,6 +165,7 @@ export async function assemblePlanningPayload(input: {
     wom: input.wom,
     collectionLog: collectionLogPayload(input.collectionLog),
     scapestackSync: visible,
+    slayerTask: slayerTaskProjection(input.scapestack),
     initialPlan,
     lastTripOutcome: isOwner ? input.lastTripOutcome ?? null : null,
     // An observation is bank data in sentence form. Keep it behind the exact

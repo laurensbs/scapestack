@@ -7,6 +7,7 @@ import { CheckCircle2, ClipboardPaste, PlugZap, RefreshCw, Skull, Sparkles } fro
 import { ACCOUNT_EVENT } from "@/lib/account-storage";
 import { loadAccountSnapshot, type AccountSnapshot } from "@/lib/account-context";
 import { SAVED_BANK_EVENT } from "@/lib/saved-bank";
+import { playerToolSectionPath } from "@/lib/player-tool-route";
 import { cn } from "@/lib/utils";
 import { SessionMoodPicker } from "./session-mood-picker";
 
@@ -33,9 +34,9 @@ export function MobileActionBar() {
   const hasBank = Boolean(snapshot?.hasBankContext);
   const hasRunelite = Boolean(snapshot?.hasRunelite);
   const nextHref = snapshot?.planHref ?? (rsn ? `/next?rsn=${encodeURIComponent(rsn)}` : "/next");
-  const bankHref = rsn ? `/bank?rsn=${encodeURIComponent(rsn)}&from=mobile` : "/bank?from=mobile";
+  const bankHref = rsn ? playerToolSectionPath(rsn, "sets") : "/bank?from=mobile";
   const pluginHref = rsn ? `/plugin?rsn=${encodeURIComponent(rsn)}&from=mobile#verify-sync` : "/plugin?from=mobile#verify-sync";
-  const slayerHref = rsn ? `/slayer?rsn=${encodeURIComponent(rsn)}&from=mobile` : "/slayer?from=mobile";
+  const slayerHref = rsn ? playerToolSectionPath(rsn, "task") : "/slayer?from=mobile";
   const isPlanningPath = pathname === "/next" || pathname.startsWith("/p/");
   const actions = [
     {

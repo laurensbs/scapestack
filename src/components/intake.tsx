@@ -99,6 +99,7 @@ export function Intake({
   onSubmit,
   loading,
   error,
+  askRsn = false,
   initialRsn = "",
   compactSave = false,
   optional = false,
@@ -347,6 +348,27 @@ export function Intake({
         )}
       </div>
 
+      {askRsn && (
+        <div className="mb-4">
+          <label htmlFor="bank-rsn-input" className="text-[12px] font-semibold text-[var(--color-text)]">
+            OSRS name
+          </label>
+          <input
+            id="bank-rsn-input"
+            name="rsn"
+            value={rsn}
+            onChange={(event) => setRsn(event.target.value.slice(0, 12))}
+            placeholder="Type your OSRS name"
+            maxLength={12}
+            autoComplete="off"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            className="mt-1 min-h-11 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)] px-3 py-2 text-[16px] text-[var(--color-text)] outline-none focus:border-[var(--color-accent)] sm:text-[13.5px]"
+          />
+        </div>
+      )}
+
       {showEmptyState && !compactSave && (
         <div className="mb-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]/50 px-4 py-3 flex flex-col gap-3 animate-[fade-in_0.3s_ease-out] sm:flex-row sm:items-center">
           <div className="flex -space-x-2 overflow-hidden pb-0.5 sm:shrink-0">
@@ -417,15 +439,16 @@ export function Intake({
       )}
 
       {showPasteEditor && (
-        <div
-          className={cn(
-            "relative rounded-lg transition-all",
-            dragOver && "ring-2 ring-[var(--color-accent)] ring-offset-2 ring-offset-transparent"
-          )}
-          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={onDrop}
-        >
+        <>
+          <div
+            className={cn(
+              "relative rounded-lg transition-all",
+              dragOver && "ring-2 ring-[var(--color-accent)] ring-offset-2 ring-offset-transparent"
+            )}
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={onDrop}
+          >
           <label htmlFor="bank-paste-input" className="sr-only">
             Paste RuneLite Bank Memory, Bank Tags or item IDs
           </label>
@@ -471,7 +494,8 @@ export function Intake({
               </div>
             </div>
           )}
-        </div>
+          </div>
+        </>
       )}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">

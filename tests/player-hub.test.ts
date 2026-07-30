@@ -35,7 +35,7 @@ describe("the canonical player hub", () => {
     });
   });
 
-  it("keeps the six player blocks in the brief's document order", async () => {
+  it("keeps the player blocks in the brief's document order", async () => {
     const { PlayerHubShell } = await import("@/components/player-hub-shell");
     const { PlayerPlanAnswer, PlayerPlanAlternatives } = await import("@/components/player-plan-answer");
     const answer: Recommendation = {
@@ -85,6 +85,7 @@ describe("the canonical player hub", () => {
         })
       ),
       bank: createElement("p", null, "Your bank"),
+      tools: createElement("p", null, "Bank questions"),
       account: createElement("p", null, "Account skills")
     }));
     const positions = [
@@ -93,6 +94,7 @@ describe("the canonical player hub", () => {
       "The answer",
       "Not this?",
       "Your bank",
+      "Bank questions",
       "Account skills"
     ].map((label) => html.indexOf(label));
 

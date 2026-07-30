@@ -127,15 +127,16 @@ describe("bank intake UX affordances", () => {
     expect(intakeSource).toContain("Unsupported file — choose a .tsv, .txt or .csv bank export.");
   });
 
-  it("attaches bank saves to the active account without asking for RSN again", () => {
+  it("reuses a known account and can ask only the nameless /bank intake for an RSN", () => {
     expect(intakeSource).toContain("import { getActiveAccount } from \"@/lib/account-storage\";");
     expect(intakeSource).toContain("const activeRsn = cleanRsn(getActiveAccount()?.rsn);");
     expect(intakeSource).toContain("const urlRsn = cleanInitialRsn || rsnFromCurrentUrl() || activeRsn;");
     expect(intakeSource).toContain("const targetRsn = cleanRsn(rsn) || handoffRsn || rsnFromCurrentUrl() || cleanRsn(getActiveAccount()?.rsn);");
     expect(intakeSource).toContain("const cleanedRsn = targetRsn;");
-    expect(intakeSource).not.toContain('htmlFor="bank-rsn-input"');
+    expect(intakeSource).toContain("askRsn && (");
+    expect(intakeSource).toContain('htmlFor="bank-rsn-input"');
     expect(intakeSource).not.toContain("OSRS name for bank layout personalization");
-    expect(intakeSource).not.toContain('id="bank-rsn-input"');
+    expect(intakeSource).toContain('id="bank-rsn-input"');
     expect(intakeSource).not.toContain('id="bank-rsn-help"');
     expect(intakeSource).not.toContain("Keeps this bank attached to the right account.");
   });
