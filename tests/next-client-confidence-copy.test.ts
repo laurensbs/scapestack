@@ -2,7 +2,10 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const source = readFileSync(join(process.cwd(), "src/app/next/next-client.tsx"), "utf8");
+const source = [
+  "src/app/next/next-client.tsx",
+  "src/components/player-plan-answer.tsx"
+].map((path) => readFileSync(join(process.cwd(), path), "utf8")).join("\n");
 const bankedXpSource = readFileSync(join(process.cwd(), "src/lib/banked-xp.ts"), "utf8");
 const planSurfaceSource = readFileSync(join(process.cwd(), "src/lib/next-plan-surface.ts"), "utf8");
 const planningInputSource = readFileSync(join(process.cwd(), "src/lib/planning-input.ts"), "utf8");
@@ -115,9 +118,9 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("function recommendationStopPointValue");
     expect(source).toContain("function nextTripLines");
     expect(source).toContain("function buildRecommendationTrip");
-    expect(source).toContain('{ label: "Start", value: decisionCopy.firstStep }');
-    expect(source).toContain('...(bringLine ? [{ label: "Bring", value: bringLine.value }] : [])');
-    expect(source).toContain('{ label: "Stop at", value: decisionCopy.stopPoint }');
+    expect(source).toContain('{ label: "Start" as const, value: decisionCopy.firstStep }');
+    expect(source).toContain('...(bringLine ? [{ label: "Bring" as const, value: bringLine.value }] : [])');
+    expect(source).toContain('{ label: "Stop at" as const, value: decisionCopy.stopPoint }');
     expect(source).toContain("function NextTripCard");
     expect(source).toContain("function RouteChainScroll");
     expect(source).toContain('data-route-chain-scroll="true"');
@@ -199,8 +202,8 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("One move, two backups, the prep, blockers, bank signal and stop point.");
     expect(source).not.toContain("function SessionBoardStrip");
     expect(source).not.toContain("function sessionBoardBankSignal");
-    expect(source).toContain('{ label: "Start", value: decisionCopy.firstStep }');
-    expect(source).toContain('{ label: "Stop at", value: decisionCopy.stopPoint }');
+    expect(source).toContain('{ label: "Start" as const, value: decisionCopy.firstStep }');
+    expect(source).toContain('{ label: "Stop at" as const, value: decisionCopy.stopPoint }');
     expect(source).toContain("Start this trip");
     expect(source).toContain("Open quest");
     expect(source).toContain("Set up bank");
@@ -377,7 +380,7 @@ describe("/next confidence UI copy", () => {
   // Direction B reverses that on purpose: the alternatives are table rows —
   // name, one dry line, where it leads — under one ruled "Not this?" block.
   it("renders the alternatives as table rows under one ruled block", () => {
-    expect(source).toContain("function AltRouteRow");
+    expect(source).toContain("export function PlayerPlanAlternatives");
     expect(source).not.toContain("function RecRow(");
     expect(source).not.toContain("function RecRowExpandable");
     expect(source).not.toContain("min-h-[136px]");
@@ -520,9 +523,9 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Want chill?");
     expect(source).toContain("Want action?");
     expect(source).toContain("Prefer unlock?");
-    expect(source).toContain("backupPrompt={backupChoicePrompt(rec, activePick.headline)}");
+    expect(source).toContain("backupChoicePrompt(rec, headline)");
     expect(source).toContain("onSelect={selectAlternative}");
-    expect(source).toContain("backupPrompt?: { label: string; helper: string }");
+    expect(source).not.toContain("backupPrompt?: { label: string; helper: string }");
   });
 
   it("keeps top actions focused without copy-plan or screenshot controls", () => {

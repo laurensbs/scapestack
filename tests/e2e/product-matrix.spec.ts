@@ -103,7 +103,7 @@ test.describe("Scapestack product story matrix", () => {
 
   test("9. returning player history can show recap and open next trip", async ({ page }) => {
     await mockConnectedTimeline(page);
-    await page.goto("/u/Lauky");
+    await page.goto("/p/Lauky");
     await expect(page.locator("[data-return-recap=true]")).toBeVisible();
     await expect(page.getByRole("link", { name: /find the next unlock|pick the next kc block|replan/i })).toBeVisible();
   });

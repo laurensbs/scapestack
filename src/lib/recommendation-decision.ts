@@ -152,6 +152,12 @@ export interface RecommendationDecisionCopy {
  */
 export type RecommendationConfidence = "measured" | "likely" | "guess";
 
+export function recommendationConfidenceEyebrow(confidence: RecommendationConfidence): string {
+  if (confidence === "measured") return "Do this first";
+  if (confidence === "likely") return "Best fit for your levels";
+  return "Best guess";
+}
+
 export function decisionConfidence(
   decision: RecommendationDecision,
   /**

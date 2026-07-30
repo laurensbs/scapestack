@@ -18,7 +18,10 @@ const playerFacingSources = [
 describe("Scapestack anti-bankstanding product contract", () => {
   it("keeps the core promise simple and OSRS-native", () => {
     const homepage = read("src/app/page.tsx");
-    const next = read("src/app/next/next-client.tsx");
+    const next = [
+      read("src/app/next/next-client.tsx"),
+      read("src/components/player-plan-answer.tsx")
+    ].join("\n");
     const plugin = read("src/app/plugin/page.tsx");
     const direction = read("docs/scapestack-product-direction.md");
 

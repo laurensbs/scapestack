@@ -120,7 +120,7 @@ describe("plugin page copy constants", () => {
       title: "Back to profile",
       body: "Sync RuneLite, then return with finished progress removed.",
       cta: "Return to profile",
-      href: "/u/Lynx%20Titan?from=plugin&bank=none"
+      href: "/p/Lynx%20Titan?from=plugin&bank=none"
     });
   });
 

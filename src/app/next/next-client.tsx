@@ -18,6 +18,7 @@ import { AccountModeBadge } from "@/components/account-mode-badge";
 import { XpDropLoader } from "@/components/xp-drop-loader";
 import { ShuffleLoader } from "@/components/shuffle-loader";
 import { QuestCompletionQuestions } from "@/components/quest-completion-questions";
+import { PlayerPlanAlternatives, PlayerPlanAnswer, type PlayerPlanLine } from "@/components/player-plan-answer";
 import { BOSSES, type Boss } from "@/lib/bosses";
 import { organizeAction, nextUpAction, planningContextAction } from "@/app/actions";
 import { type HiscoreSkill } from "@/lib/hiscores";
@@ -4097,120 +4098,25 @@ function NextTripCard({
   bankItems: BankHandoffItem[];
   accountMode: NextUpResult["summary"]["accountMode"];
 }) {
-  const isBossWithDetail = (rec.kind === "kc" || rec.kind === "boss") && !!rec.bossSlug;
-  const primaryAction = primaryActionForRecommendation(rec, actionContext);
-  const actionLabel = nextTripCtaLabel(rec, isBossWithDetail ? "Check kill" : primaryAction.label);
-  const actionHref = isBossWithDetail ? undefined : primaryAction.href;
   // The page knows whether a bank is loaded; the reason list does not always
   // say so. See decisionConfidence.
   const decisionCopy = recommendationDecisionCopy(decision, { hasBank: hasBankContext });
   const bringLine = (hasBankContext ? nextTripLines({ rec, hasBankContext, bankItems, accountMode }) : [])
     .find((line) => line.label === "Grab from bank" || line.label === "Stage for UIM");
-  const planLines = [
-    { label: "Start", value: decisionCopy.firstStep },
-    ...(bringLine ? [{ label: "Bring", value: bringLine.value }] : []),
-    { label: "Stop at", value: decisionCopy.stopPoint }
+  const planLines: PlayerPlanLine[] = [
+    { label: "Start" as const, value: decisionCopy.firstStep },
+    ...(bringLine ? [{ label: "Bring" as const, value: bringLine.value }] : []),
+    { label: "Stop at" as const, value: decisionCopy.stopPoint }
   ];
-
-  const actionClass = "scapestack-command-button scapestack-primary-action px-4 text-[12.5px] font-black";
-
-  // The top of a document, not a widget: no outer border, no sprite tile in
-  // its own box, no dl-in-a-card. The sprite rides inline with the heading at
-  // item scale, the Start/Bring/Stop lines take the shared table, and there is
-  // exactly one primary action.
   return (
-    <article className="min-w-0 max-w-full border-b border-[var(--color-border)] pb-5" data-next-trip-card="true">
-      {/* The eyebrow states how much we know, because the size of the
-          heading underneath cannot. "Do this first" over a guess is what
-          told Lynx Titan — 200m XP in every skill — to finish his skill
-          capes. Structural on purpose: a different word and a source line,
-          not a third colour language on top of the gate ramp. */}
-      <p className="eyebrow mb-2 text-[var(--color-accent)]">
-        {decisionCopy.confidence === "measured"
-          ? "Do this first"
-          : decisionCopy.confidence === "likely"
-            ? "Best fit for your levels"
-            : "Best guess"}
-      </p>
-
-      <h2 className="flex min-w-0 items-center gap-3 text-[23px] font-black leading-[1.08] tracking-normal text-[var(--color-text)] sm:text-[32px]">
-        <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden sm:size-10" aria-hidden="true">
-          {rec.kind === "kc" && rec.bossSlug ? (
-            <KcPortrait rec={rec} size={38} />
-          ) : rec.iconItemId ? (
-            <ItemSprite
-              id={rec.iconItemId}
-              alt=""
-              className="pixelated"
-              size={34}
-              style={{ imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
-            />
-          ) : (
-            <KindGlyph kind={rec.kind} size={26} tone="accent" />
-          )}
-        </span>
-        <span className="min-w-0 break-words">{decisionCopy.title}</span>
-      </h2>
-      <p className="mt-2 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)] sm:text-[13.5px]">
-        {decisionCopy.why}
-      </p>
-      {decisionCopy.sourceLine && (
-        <p className="mt-1.5 text-[12px] leading-snug text-[var(--color-text-muted)]">
-          {decisionCopy.sourceLine}
-        </p>
-      )}
-
-      <div className="scape-table-wrap mt-4">
-        <table className="scape-table" aria-label="This trip">
-          <tbody>
-            {planLines.map((line) => (
-              <tr key={`${line.label}:${line.value}`}>
-                <th scope="row" className="w-[84px] align-top sm:w-[104px]">{line.label}</th>
-                <td className="[overflow-wrap:anywhere]">{line.value}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="mt-4">
-        {isBossWithDetail && rec.bossSlug ? (
-          <button
-            type="button"
-            onClick={() => {
-              onStart(rec);
-              onBossOpen(rec.bossSlug!);
-            }}
-            className={cn(actionClass, "min-h-11 w-full justify-center sm:w-auto")}
-            aria-label={`${actionLabel}: ${rec.title}`}
-          >
-            {actionLabel} <ArrowRight className="size-4" />
-          </button>
-        ) : actionHref ? (
-          primaryAction.external ? (
-            <a
-              href={actionHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => onStart(rec)}
-              className={cn(actionClass, "min-h-11 w-full justify-center sm:w-auto")}
-              aria-label={`${actionLabel}: ${rec.title}`}
-            >
-              {actionLabel} <ExternalLink className="size-3.5" />
-            </a>
-          ) : (
-            <Link
-              href={actionHref}
-              onClick={() => onStart(rec)}
-              className={cn(actionClass, "min-h-11 w-full justify-center sm:w-auto")}
-              aria-label={`${actionLabel}: ${rec.title}`}
-            >
-              {actionLabel} <ArrowRight className="size-4" />
-            </Link>
-          )
-        ) : null}
-      </div>
-    </article>
+    <PlayerPlanAnswer
+      rec={rec}
+      decisionCopy={decisionCopy}
+      planLines={planLines}
+      actionContext={actionContext}
+      onBossOpen={onBossOpen}
+      onStart={onStart}
+    />
   );
 }
 
@@ -4370,40 +4276,6 @@ function RouteChainScroll({
         ))}
       </ol>
     </section>
-  );
-}
-
-// One alternative as one table row: name, one dry line, where it leads.
-// No chip, no sprite tile, no arrow — the row itself is the control.
-function AltRouteRow({
-  rec,
-  onSelect,
-  backupPrompt
-}: {
-  rec: Recommendation;
-  onSelect: (rec: Recommendation) => void;
-  backupPrompt?: { label: string; helper: string };
-}) {
-  const choice = playerChoiceTag(rec);
-  return (
-    <tr>
-      <td className="w-full max-w-0">
-        <button
-          type="button"
-          onClick={() => onSelect(rec)}
-          aria-label={`Choose ${rec.title}`}
-          className="block min-h-11 w-full py-1 text-left"
-        >
-          <span className="block truncate text-[13.5px] font-semibold text-[var(--color-text)]">
-            {rec.title}
-          </span>
-          <span className="block text-[11px] leading-snug text-[var(--color-text-muted)]">
-            {backupPrompt?.helper ?? choice.helper}
-          </span>
-        </button>
-      </td>
-      <td className="whitespace-nowrap align-middle">{choice.label}</td>
-    </tr>
   );
 }
 
@@ -5305,38 +5177,11 @@ function WhatToDo({
               accountMode={accountMode}
               pluginSyncState={pluginSyncState}
             />
-            {fallbackRecs.length > 0 && (
-              <section className="pt-2" aria-labelledby="next-alternatives-title">
-                {/* Was an eyebrow, a heading and a note — three lines
-                    restating each other, two of them in words the voice
-                    section bans — over two rounded cards with sprite tiles,
-                    chips and arrows. Direction B form: one ruled block, the
-                    alternatives as table rows. */}
-                <h3 id="next-alternatives-title" className="text-[13px] font-semibold text-[var(--color-text)]">
-                  Not this?
-                </h3>
-                <div className="scape-table-wrap mt-2">
-                  <table className="scape-table" aria-label="Alternative routes">
-                    <thead>
-                      <tr>
-                        <th scope="col">Route</th>
-                        <th scope="col">Goal</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {fallbackRecs.map((rec) => (
-                        <AltRouteRow
-                          key={rec.id}
-                          rec={rec}
-                          onSelect={selectAlternative}
-                          backupPrompt={backupChoicePrompt(rec, activePick.headline)}
-                        />
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-            )}
+            <PlayerPlanAlternatives
+              headline={activePick.headline}
+              alternatives={fallbackRecs}
+              onSelect={selectAlternative}
+            />
             <details className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/35 px-3.5 py-3">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[12px] font-bold text-[var(--color-text-dim)] marker:hidden [&::-webkit-details-marker]:hidden">
                 <span>Want a different kind of trip?</span>

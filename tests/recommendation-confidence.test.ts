@@ -108,10 +108,14 @@ describe("the engine says how much it knows", () => {
 });
 
 describe("the page shows it", () => {
-  const client = readFileSync(join(process.cwd(), "src/app/next/next-client.tsx"), "utf8");
+  const client = [
+    "src/app/next/next-client.tsx",
+    "src/components/player-plan-answer.tsx",
+    "src/lib/recommendation-decision.ts"
+  ].map((path) => readFileSync(join(process.cwd(), path), "utf8")).join("\n");
 
   it("stops printing 'Do this first' over a guess", () => {
-    expect(client).toContain('decisionCopy.confidence === "measured"');
+    expect(client).toContain('confidence === "measured"');
     expect(client).toContain('"Best guess"');
     expect(client).toContain('"Best fit for your levels"');
     expect(client).toContain("decisionCopy.sourceLine");

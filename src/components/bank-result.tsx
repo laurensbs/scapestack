@@ -63,7 +63,6 @@ import { buildBankActionLoop, type BankActionLoopInput, type BankActionLoopStep 
 import { buildItemIdentity } from "@/lib/item-identity";
 import type { PluginHubStatus } from "@/lib/plugin-hub-status";
 import { persistBankHandoffPayload } from "@/lib/next-bank-handoff";
-import { rsnSlug } from "@/lib/hiscores";
 import { loadWebhookConfig, sendBankUpdate } from "@/lib/discord";
 import {
   diffSnapshots,
@@ -2369,7 +2368,7 @@ export function BankResult({
           {inferredRsn && (
             <div className="mt-3 flex justify-end">
               <Link
-                href={`/u/${encodeURIComponent(rsnSlug(inferredRsn))}`}
+                href={`/p/${encodeURIComponent(inferredRsn.trim())}`}
                 className="text-[11px] font-semibold text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:underline"
                 title={`Open ${inferredRsn}'s Scapestack profile`}
               >

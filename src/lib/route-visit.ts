@@ -49,7 +49,7 @@ export function analyticsRouteFor(pathname: string): AnalyticsRoute | null {
   if (pathname.startsWith("/bank")) return "bank";
   if (pathname.startsWith("/goals")) return "goals";
   if (pathname.startsWith("/plugin")) return "plugin";
-  if (pathname.startsWith("/u/")) return "profile";
+  if (pathname.startsWith("/p/") || pathname.startsWith("/u/")) return "profile";
   return null;
 }
 

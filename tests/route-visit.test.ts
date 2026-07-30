@@ -27,6 +27,7 @@ describe("route mapping", () => {
     expect(analyticsRouteFor("/next?rsn=Lynx%20Titan")).toBe("next");
     expect(analyticsRouteFor("/slayer")).toBe("slayer");
     expect(analyticsRouteFor("/dps")).toBe("dps");
+    expect(analyticsRouteFor("/p/lynx-titan")).toBe("profile");
     expect(analyticsRouteFor("/u/lynx-titan")).toBe("profile");
   });
 

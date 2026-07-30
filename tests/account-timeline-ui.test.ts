@@ -2,16 +2,16 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 describe("shared account timeline UI", () => {
-  it("keeps full history on the profile instead of crowding home or next", () => {
+  it("keeps the timeline out of the consolidated player document", () => {
     const home = readFileSync("src/app/page.tsx", "utf8");
     const hero = readFileSync("src/components/hero-intake.tsx", "utf8");
-    const profile = readFileSync("src/app/u/[rsn]/page.tsx", "utf8");
+    const profile = readFileSync("src/app/p/[rsn]/page.tsx", "utf8");
     const next = readFileSync("src/app/next/next-client.tsx", "utf8");
 
     expect(home).not.toContain("<AccountTimeline");
     expect(hero).toContain('data-return-home="true"');
     expect(hero).toContain('fetch("/api/account/timeline?limit=10"');
-    expect(profile).toContain("<AccountTimeline expectedRsn={hi.name}");
+    expect(profile).not.toContain("<AccountTimeline");
     expect(next).not.toContain("<AccountTimeline");
     expect(profile).not.toContain("<WeeklyRecap");
     expect(next).not.toContain("JourneyRecapCard");

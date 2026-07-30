@@ -3,46 +3,27 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("RSN profile handoffs", () => {
-  it("keeps player profiles action-oriented instead of a static hiscore page", () => {
-    const source = readFileSync(join(process.cwd(), "src/app/u/[rsn]/page.tsx"), "utf8");
+  it("consolidates the old profile into the canonical player hub", () => {
+    const legacy = readFileSync(join(process.cwd(), "src/app/u/[rsn]/page.tsx"), "utf8");
+    const page = readFileSync(join(process.cwd(), "src/app/p/[rsn]/page.tsx"), "utf8");
+    const skills = readFileSync(join(process.cwd(), "src/components/player-skills-table.tsx"), "utf8");
+    const answer = readFileSync(join(process.cwd(), "src/components/player-plan-answer.tsx"), "utf8");
 
-    expect(source).toContain("nextUrlForProfile(hi.name)");
-    expect(source).toContain('params.set("from", "profile")');
-    expect(source).not.toContain("nextUrlForSyncedRsn");
-    expect(source).not.toContain('params.set("source", "plugin-sync")');
-    expect(source).toContain('pluginVerifyUrlForSyncedRsn(hi.name, "profile")');
-    expect(source).toContain('bankOrganizerHref(hi.name, "profile")');
-    expect(source).toContain("getSyncedPlayer(hi.name)");
-    // The page opened with a "Welcome back" card plus three chore tiles as
-    // its largest block, then drew 24 skills as bordered boxes that dropped
-    // XP and rank. Direction B: the page IS the account — a skills table with
-    // level, XP and rank, and the chores as plain links at the foot. The
-    // data-account-home-board hook survives on the skills section because
-    // scripts/audit-production-outcomes.mjs polls it as the readiness signal.
-    expect(source).toContain('data-account-home-board="true"');
-    expect(source).not.toContain("Welcome back, {rsn}.");
-    expect(source).not.toContain("Start here every login.");
-    expect(source).toContain('<table className="scape-table"');
-    expect(source).toContain('<th scope="col" data-num>Level</th>');
-    expect(source).toContain('<th scope="col" data-num>XP</th>');
-    expect(source).toContain('<th scope="col" data-num>Rank</th>');
-    expect(source).toContain("AccountTimeline");
-    expect(source).toContain("<AccountTimeline expectedRsn={hi.name}");
-    expect(source).toContain("Plan next trip");
-    expect(source).not.toContain("profileWhatChangedLines");
-    expect(source).not.toContain("No new RuneLite changes yet");
-    expect(source).not.toContain("ProfileActionRail");
-    expect(source).not.toContain("ProfileActionCard");
-    expect(source).not.toContain("<ProfileReadinessRail rsn={hi.name} />");
-    expect(source).not.toContain("Hiscores als startpunt");
-    expect(source).not.toContain("labelen wat exact is");
-    expect(source).not.toContain("Plan exact /next");
-    expect(source).toContain("Refresh RuneLite");
-    expect(source).not.toContain("Verify the plugin setup");
-    expect(source).toContain("Add bank");
-    expect(source).toContain("Bank Memory");
-    expect(source).toContain("Bank Tags");
-    expect(source).toContain("account for gear, supplies and unlocks");
+    expect(legacy).toContain("redirect(playerPath(decodeURIComponent(rsn)))");
+    expect(page).toContain("loadPlanningContext(decoded");
+    expect(page).toContain("viewerRsn");
+    expect(page).toContain('pluginVerifyUrlForSyncedRsn(displayName, "profile"');
+    expect(page).toContain("<PlayerPlanPanel");
+    expect(page).toContain("<BankAffordabilityPanel");
+    expect(page).toContain("<PlayerSkillsTable");
+    expect(page).not.toContain("<AccountTimeline");
+    expect(answer).toContain('data-next-trip-card="true"');
+    expect(answer).toContain("Not this?");
+    expect(skills).toContain('data-account-home-board="true"');
+    expect(skills).toContain('<table className="scape-table"');
+    expect(skills).toContain('<th scope="col" data-num>Level</th>');
+    expect(skills).toContain('<th scope="col" data-num>XP</th>');
+    expect(skills).toContain('<th scope="col" data-num>Rank</th>');
   });
 
   it("uses the connected account timeline and hides it when history is empty", () => {

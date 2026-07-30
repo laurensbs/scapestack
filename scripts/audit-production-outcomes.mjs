@@ -24,7 +24,7 @@ const ROUTES = [
     ready: "[aria-label='RuneLite connection']",
     readyText: /RuneLite is connected|Update Scapestack Sync|Refresh RuneLite|Press Sync now|Could not check RuneLite|Ready to check RuneLite/i
   },
-  { id: "account", path: "/u/Lauky", ready: "[data-account-home-board='true']" }
+  { id: "account", path: "/p/Lauky", ready: "[data-account-home-board='true']" }
 ];
 const ROUTE_FILTER = new Set(
   (process.env.SCAPESTACK_AUDIT_ROUTES ?? "")

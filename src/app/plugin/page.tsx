@@ -53,7 +53,7 @@ export function pluginContextFromSearchParams(searchParams: SearchParams) {
       title: "Back to profile",
       body: "Sync RuneLite, then return with finished progress removed.",
       cta: "Return to profile",
-      href: rsn ? `/u/${encodeURIComponent(rsn)}?${profileParams.toString()}` : `/?${profileParams.toString()}`
+      href: rsn ? `/p/${encodeURIComponent(rsn)}?${profileParams.toString()}` : `/?${profileParams.toString()}`
     };
   }
 

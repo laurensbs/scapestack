@@ -1,10 +1,12 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { updatesSince } from "@/lib/game-updates";
 import { loadPlanningContext } from "@/lib/planning-context";
 import { LastTripLine } from "@/components/last-trip-line";
 import { classifyAbsence, isReturningAbsence, latestActivity } from "@/lib/returning-player";
 import { resolveViewerRsn } from "@/lib/viewer-account";
 import { ReturningBriefing } from "@/components/returning-briefing";
+import { playerPath } from "@/lib/player-route";
 import { NextClient } from "./next-client";
 
 export const metadata = {
@@ -107,6 +109,7 @@ export default async function NextPage({
   const queryString = queryStringFromSearchParams(resolvedSearchParams);
   const rsnValue = resolvedSearchParams.rsn;
   const rsn = (Array.isArray(rsnValue) ? rsnValue[0] : rsnValue)?.trim().slice(0, 12) ?? "";
+  if (rsn) redirect(playerPath(rsn, resolvedSearchParams));
   const sourceValue = resolvedSearchParams.source;
   const fromValue = resolvedSearchParams.from;
   const source = (Array.isArray(sourceValue) ? sourceValue[0] : sourceValue)?.trim().toLowerCase();

@@ -41,7 +41,7 @@ export function MobileActionBar() {
       href: nextHref,
       label: "Trip",
       icon: Sparkles,
-      selected: pathname === "/next",
+      selected: pathname === "/next" || pathname.startsWith("/p/"),
       complete: false
     },
     {

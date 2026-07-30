@@ -20,7 +20,7 @@ describe("trip flow contract", () => {
     expect(globals).toContain("--mobile-action-bar-height: 4.75rem;");
     expect(globals).toContain("env(safe-area-inset-bottom)");
     expect(mobileBar).toContain('label: "Trip"');
-    expect(mobileBar).toContain('selected: pathname === "/next"');
+    expect(mobileBar).toContain('selected: pathname === "/next" || pathname.startsWith("/p/")');
     expect(mobileBar).toContain("complete: hasBank");
     expect(mobileBar).not.toContain("action.helper");
     expect(mobileBar).not.toContain('label: "Plan"');

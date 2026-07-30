@@ -59,7 +59,7 @@ describe("Scapestack interface lock", () => {
       "src/app/dps/page.tsx",
       "src/app/goals/page.tsx",
       "src/app/plugin/page.tsx",
-      "src/app/u/[rsn]/page.tsx"
+      "src/components/player-hub-shell.tsx"
     ]) {
       expect(read(file), file).toContain('className="scape-page');
     }
@@ -82,7 +82,7 @@ describe("Scapestack interface lock", () => {
     // Direction B reads it as the top of a document instead — the locked
     // primitive it composes from now is the table, and the assertion guards
     // that the route still builds from the locked vocabulary.
-    expect(read("src/app/next/next-client.tsx")).toContain('data-next-trip-card="true"');
-    expect(read("src/app/next/next-client.tsx")).toContain('className="scape-table"');
+    expect(read("src/components/player-plan-answer.tsx")).toContain('data-next-trip-card="true"');
+    expect(read("src/components/player-plan-answer.tsx")).toContain('className="scape-table"');
   });
 });

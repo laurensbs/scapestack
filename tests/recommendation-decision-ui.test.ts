@@ -1,7 +1,10 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const source = readFileSync("src/app/next/next-client.tsx", "utf8");
+const source = [
+  "src/app/next/next-client.tsx",
+  "src/components/player-plan-answer.tsx"
+].map((path) => readFileSync(path, "utf8")).join("\n");
 
 describe("/next RecommendationDecision adoption", () => {
   it("builds the contract after mood routing and renders boundary copy in the headline", () => {
@@ -13,8 +16,8 @@ describe("/next RecommendationDecision adoption", () => {
     // Takes the sources argument now: the reason list cannot express "a bank
     // was loaded" when the bank did not change the pick, and the page can.
     expect(source).toContain("recommendationDecisionCopy(decision, { hasBank: hasBankContext })");
-    expect(source).toContain('{ label: "Start", value: decisionCopy.firstStep }');
-    expect(source).toContain('{ label: "Stop at", value: decisionCopy.stopPoint }');
+    expect(source).toContain('{ label: "Start" as const, value: decisionCopy.firstStep }');
+    expect(source).toContain('{ label: "Stop at" as const, value: decisionCopy.stopPoint }');
     expect(source).toContain("{decisionCopy.why}");
   });
 
@@ -29,7 +32,7 @@ describe("/next RecommendationDecision adoption", () => {
   it("only renders bank claims when bank and completion facts support them", () => {
     expect(source).toContain("const bringLine = (hasBankContext ? nextTripLines");
     expect(source).toContain('line.label === "Grab from bank" || line.label === "Stage for UIM"');
-    expect(source).toContain('...(bringLine ? [{ label: "Bring", value: bringLine.value }] : [])');
+    expect(source).toContain('...(bringLine ? [{ label: "Bring" as const, value: bringLine.value }] : [])');
     expect(source).toContain('unknown.code === "runelite_completion"');
   });
 });
