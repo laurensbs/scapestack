@@ -1,4 +1,9 @@
 import { runBoundedSource, type BoundedSourceTiming } from "@/lib/bounded-source";
+import { getAccountSnapshotHistory } from "@/lib/account-history-repo";
+import {
+  buildSyncedBankObservations,
+  type BankObservationResult
+} from "@/lib/bank-observations";
 import { fetchCollectionLog, type CollectionLog } from "@/lib/collection-log";
 import { fetchHiscores, type PlayerHiscores } from "@/lib/hiscores";
 import { computeNextUp, type NextUpResult } from "@/lib/next-up";
@@ -14,7 +19,8 @@ export const PLANNING_SOURCE_DEADLINES_MS = {
   scapestackHandoffRetry: 1_200,
   hiscores: 900,
   wom: 300,
-  collectionLog: 300
+  collectionLog: 300,
+  bankObservations: 350
 } as const;
 
 export interface PlanningContextOptions {
@@ -81,6 +87,8 @@ export interface PlanningContextPayload {
    * would leak through the summary what the redaction withholds in the raw.
    */
   lastTripOutcome: LastTripOutcome | null;
+  /** Owner-only arithmetic derived from the synced bank series. */
+  bankObservations: BankObservationResult | null;
   timing: PlanningContextTiming;
 }
 
@@ -118,6 +126,7 @@ export async function assemblePlanningPayload(input: {
   scapestack: SyncedPlayer | null;
   viewerRsn: string | null;
   lastTripOutcome?: LastTripOutcome | null;
+  bankObservations?: BankObservationResult | null;
   timing: PlanningContextTiming;
 }): Promise<PlanningContextPayload> {
   // Redact FIRST, then plan.
@@ -151,6 +160,9 @@ export async function assemblePlanningPayload(input: {
     scapestackSync: visible,
     initialPlan,
     lastTripOutcome: isOwner ? input.lastTripOutcome ?? null : null,
+    // An observation is bank data in sentence form. Keep it behind the exact
+    // same gate as the raw snapshot and the plan derived from that snapshot.
+    bankObservations: isOwner ? input.bankObservations ?? null : null,
     timing: input.timing
   };
 }
@@ -189,17 +201,46 @@ export async function loadPlanningContext(
 ): Promise<PlanningContextPayload> {
   const startedAt = performance.now();
   const viewerIsOwner = Boolean(options.viewerRsn && options.viewerRsn === normalizeRsn(rsn));
-  const [scapestack, hiscores, wom, collectionLog, lastTrip] = await Promise.all([
+  const [scapestack, hiscores, wom, collectionLog, lastTrip, snapshotHistory] = await Promise.all([
     loadScapestackContext(rsn, options.preferScapestack === true),
     runBoundedSource("hiscores", PLANNING_SOURCE_DEADLINES_MS.hiscores, (signal) => fetchHiscores(rsn, { signal })),
     runBoundedSource("wom", PLANNING_SOURCE_DEADLINES_MS.wom, (signal) => fetchWom(rsn, { signal })),
     runBoundedSource("collection_log", PLANNING_SOURCE_DEADLINES_MS.collectionLog, (signal) => fetchCollectionLog(rsn, { signal })),
     // Owner-only, and never on the critical path: a missing outcome line must
     // not cost the plan anything.
-    viewerIsOwner ? latestTripOutcome(rsn).catch(() => null) : Promise.resolve(null)
+    viewerIsOwner ? latestTripOutcome(rsn).catch(() => null) : Promise.resolve(null),
+    viewerIsOwner
+      ? runBoundedSource(
+          "bank_observations",
+          PLANNING_SOURCE_DEADLINES_MS.bankObservations,
+          () => getAccountSnapshotHistory(rsn, 50)
+        )
+      : Promise.resolve({
+          value: null,
+          timing: { source: "bank_observations", elapsedMs: 0, state: "miss" as const }
+        })
   ]);
 
-  const sources = [scapestack.timing, hiscores.timing, wom.timing, collectionLog.timing];
+  const sources = [
+    scapestack.timing,
+    hiscores.timing,
+    wom.timing,
+    collectionLog.timing,
+    ...(viewerIsOwner ? [snapshotHistory.timing] : [])
+  ];
+  const bankObservations = viewerIsOwner
+    && scapestack.value?.bankStatus.enabled
+    && scapestack.value.bankStatus.unavailableReason === null
+    && snapshotHistory.value
+    ? buildSyncedBankObservations({
+        currentBank: scapestack.value.bankItems,
+        snapshots: snapshotHistory.value.map((snapshot) => ({
+          checksum: snapshot.checksum,
+          capturedAt: snapshot.capturedAt,
+          delta: snapshot.delta
+        }))
+      })
+    : null;
   const plannerStartedAt = performance.now();
   const payload = await assemblePlanningPayload({
     rsn,
@@ -209,6 +250,7 @@ export async function loadPlanningContext(
     scapestack: scapestack.value,
     viewerRsn: options.viewerRsn ?? null,
     lastTripOutcome: lastTrip,
+    bankObservations,
     // Filled in below; the planner has to run before we can time it.
     timing: EMPTY_TIMING
   });
@@ -216,7 +258,7 @@ export async function loadPlanningContext(
   const timing: PlanningContextTiming = {
     totalMs: Math.max(0, Math.round(performance.now() - startedAt)),
     criticalMs: Math.max(scapestack.timing.elapsedMs, hiscores.timing.elapsedMs),
-    optionalMs: Math.max(wom.timing.elapsedMs, collectionLog.timing.elapsedMs),
+    optionalMs: Math.max(wom.timing.elapsedMs, collectionLog.timing.elapsedMs, snapshotHistory.timing.elapsedMs),
     plannerMs,
     timeoutCount: sources.filter((source) => source.state === "timeout").length,
     sources

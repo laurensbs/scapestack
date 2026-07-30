@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BankAffordabilityPanel } from "@/components/bank-affordability-panel";
+import { BankObservationsPanel } from "@/components/bank-observations-panel";
 import { LastTripLine } from "@/components/last-trip-line";
 import { PlayerHubShell } from "@/components/player-hub-shell";
 import { PlayerPlanPanel } from "@/components/player-plan-panel";
@@ -82,6 +83,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
       <h2 id="player-bank-title" className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-text-muted)]">
         Your bank
       </h2>
+      <BankObservationsPanel result={context.bankObservations} />
       {bankItems.length > 0 ? (
         <BankAffordabilityPanel
           items={bankItems.map((item) => ({ id: item.id, name: item.name, quantity: item.quantity }))}

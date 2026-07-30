@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { BankObservationResult } from "@/lib/bank-observations";
 import { assemblePlanningPayload } from "@/lib/planning-context";
 import { evaluateQuestRequirements } from "@/lib/quest-requirements";
 import { buildQuestRoute } from "@/lib/quest-route";
@@ -128,6 +129,23 @@ const TIMING = {
   totalMs: 0, criticalMs: 0, optionalMs: 0, plannerMs: 0, timeoutCount: 0, sources: []
 };
 
+const BANK_OBSERVATIONS: BankObservationResult = {
+  state: "ready",
+  explanation: null,
+  observations: [{
+    id: "habit:11212",
+    kind: "real-habit",
+    sentence: "Your Dragon arrow stock dropped 4,242 since Tuesday.",
+    actionability: 80,
+    arithmetic: {
+      itemId: 11212,
+      beforeQuantity: 8_484,
+      afterQuantity: 4_242,
+      quantityChange: -4_242
+    }
+  }]
+};
+
 describe("/next?rsn= does not ship the account's bank to a stranger", () => {
   it("keeps every bank item out of the payload when nobody is signed in", async () => {
     const payload = await assemblePlanningPayload({
@@ -136,9 +154,11 @@ describe("/next?rsn= does not ship the account's bank to a stranger", () => {
       wom: null,
       collectionLog: null,
       scapestack: PLAYER,
+      bankObservations: BANK_OBSERVATIONS,
       viewerRsn: null,
       timing: TIMING
     });
+    expect(payload.bankObservations).toBeNull();
     expect(leaks(payload), "leaked into the RSC payload").toEqual([]);
   });
 
@@ -149,9 +169,11 @@ describe("/next?rsn= does not ship the account's bank to a stranger", () => {
       wom: null,
       collectionLog: null,
       scapestack: PLAYER,
+      bankObservations: BANK_OBSERVATIONS,
       viewerRsn: "someone-else",
       timing: TIMING
     });
+    expect(payload.bankObservations).toBeNull();
     expect(leaks(payload)).toEqual([]);
   });
 
@@ -162,10 +184,14 @@ describe("/next?rsn= does not ship the account's bank to a stranger", () => {
       wom: null,
       collectionLog: null,
       scapestack: PLAYER,
+      bankObservations: BANK_OBSERVATIONS,
       viewerRsn: "leaktest",
       timing: TIMING
     });
     expect(payload.scapestackSync?.bankItems).toHaveLength(SECRET_BANK.length);
+    expect(payload.bankObservations?.observations[0]?.sentence).toBe(
+      "Your Dragon arrow stock dropped 4,242 since Tuesday."
+    );
     // The load-bearing assertion. `scapestackSync` alone would satisfy a plain
     // leaks() check, so this looks at the PLAN specifically: the owner's plan
     // must be bank-aware, which proves the two tests above are watching a path

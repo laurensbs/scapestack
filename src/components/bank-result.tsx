@@ -41,6 +41,7 @@ import { SuggestionsPanel } from "./suggestions-panel";
 import { DiffBanner } from "./diff-banner";
 import { TipsCard } from "./tips-card";
 import { BankAffordabilityPanel } from "./bank-affordability-panel";
+import { BankObservationsPanel } from "./bank-observations-panel";
 import { ItemSprite } from "./item-sprite";
 import { computeTips, type BankTip } from "@/lib/tips";
 import { track } from "@/lib/analytics";
@@ -64,6 +65,7 @@ import { buildItemIdentity } from "@/lib/item-identity";
 import type { PluginHubStatus } from "@/lib/plugin-hub-status";
 import { persistBankHandoffPayload } from "@/lib/next-bank-handoff";
 import { loadWebhookConfig, sendBankUpdate } from "@/lib/discord";
+import { buildLocalBankPriceObservations } from "@/lib/bank-observations";
 import {
   diffSnapshots,
   loadSnapshot,
@@ -2955,6 +2957,10 @@ function SnapshotHistoryPanel({
   compareSummaryCopied: boolean;
 }) {
   const recent = snapshots.slice(-5).reverse();
+  const localPriceObservations = useMemo(
+    () => buildLocalBankPriceObservations(snapshots),
+    [snapshots]
+  );
   const latest = snapshots[snapshots.length - 1] ?? null;
   const recommendedBaseline = !compareSnapshot
     ? recent.find((snap) => hasSnapshotDelta(diffSnapshots(snap, currentSnapshot))) ?? null
@@ -3020,6 +3026,8 @@ function SnapshotHistoryPanel({
           )}
         </div>
       </div>
+
+      <BankObservationsPanel result={localPriceObservations} showInsufficient={false} />
 
       {deletedSnapshot && (
         <div
