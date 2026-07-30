@@ -31,6 +31,9 @@ const load = (file) => JSON.parse(readFileSync(join(WIKI_DIR, file), "utf8")).ro
 const monsters = load("monsters.json");
 const equipment = load("equipment.json");
 const items = load("items.json");
+const quests = load("quests.json");
+const moneyMakingGuide = load("money-making-guide.json");
+const recommendedEquipment = load("recommended-equipment.json");
 
 const int = (value) => (typeof value === "number" && Number.isFinite(value) ? Math.round(value) : null);
 const lower = (value) => String(value ?? "").toLowerCase();
@@ -169,6 +172,219 @@ export function projectEquipment(pageName) {
   };
 }
 
+function list(value) {
+  return Array.isArray(value) ? value : value === undefined || value === null ? [] : [value];
+}
+
+function positiveNumber(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+}
+
+function wikiLinks(value) {
+  const links = [];
+  const source = String(value ?? "");
+  const pattern = /\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|[^\]]*)?\]\]/g;
+  for (const match of source.matchAll(pattern)) {
+    const page = match[1].trim();
+    if (!page || /^File:/i.test(page)) continue;
+    links.push(page);
+  }
+  return [...new Set(links)];
+}
+
+function plainWikiText(value) {
+  return String(value ?? "")
+    .replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, "$2")
+    .replace(/\[\[([^\]]+)\]\]/g, "$1")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function methodId(pageName) {
+  return String(pageName ?? "")
+    .replace(/^Money making guide\//i, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function idsFromItemRow(row) {
+  return list(row.item_id)
+    .flatMap((value) => String(value ?? "").split(/[;,]/))
+    .map((value) => Number.parseInt(value.trim(), 10))
+    .filter((value) => Number.isFinite(value) && value > 0);
+}
+
+function isTradeable(row) {
+  // Bucket booleans are presence markers: true is an empty string, false is
+  // an absent key. This is the same representation as default_version.
+  return row.tradeable !== undefined && row.tradeable !== null;
+}
+
+const itemFactsByName = new Map();
+for (const row of items) {
+  const facts = {
+    itemIds: idsFromItemRow(row),
+    tradeable: isTradeable(row)
+  };
+  for (const name of [row.item_name, row.page_name]) {
+    const key = lower(name).trim();
+    if (!key) continue;
+    const current = itemFactsByName.get(key) ?? { itemIds: [], tradeable: false };
+    itemFactsByName.set(key, {
+      itemIds: [...new Set([...current.itemIds, ...facts.itemIds])].sort((a, b) => a - b),
+      tradeable: current.tradeable || facts.tradeable
+    });
+  }
+}
+
+function itemFact(name) {
+  return itemFactsByName.get(lower(name).trim()) ?? { itemIds: [], tradeable: false };
+}
+
+function projectItemAmount(entry, killsPerHour) {
+  const name = String(entry?.name ?? "").trim();
+  if (!name) return null;
+  const quantity = positiveNumber(entry.qty);
+  const perHour = entry.isph === true;
+  const perAction = perHour && killsPerHour > 0 ? quantity / killsPerHour : quantity;
+  const fact = itemFact(name);
+  return {
+    name,
+    itemIds: fact.itemIds,
+    tradeable: fact.tradeable,
+    quantity,
+    perHour,
+    requiredToStart: Math.max(1, Math.ceil(perAction || 1)),
+    wikiUnitValue: positiveNumber(entry.value),
+    priceType: String(entry.pricetype ?? "") || null
+  };
+}
+
+function projectSkillRequirements(value) {
+  const source = String(value ?? "");
+  const requirements = [];
+  const spanPattern = /<span\b([^>]*)>[\s\S]*?<\/span>/gi;
+  const spans = [...source.matchAll(spanPattern)];
+  for (let index = 0; index < spans.length; index += 1) {
+    const match = spans[index];
+    const attributes = match[1];
+    const skill = attributes.match(/data-skill=["']([^"']+)["']/i)?.[1]?.trim();
+    const levelText = attributes.match(/data-level=["']([^"']+)["']/i)?.[1];
+    const level = Number.parseInt(String(levelText ?? ""), 10);
+    if (!skill || !Number.isFinite(level) || level <= 0) continue;
+    const afterStart = (match.index ?? 0) + match[0].length;
+    const afterEnd = spans[index + 1]?.index ?? source.length;
+    const immediate = plainWikiText(source.slice(afterStart, afterEnd).split("\n")[0]);
+    // The wiki distinguishes `44 (91 recommended)` from `70 recommended`.
+    // Only the latter makes the data-level itself advisory.
+    if (/^(?:recommended|or higher recommended)\b/i.test(immediate)) continue;
+    requirements.push({ skill, level });
+  }
+  const strongest = new Map();
+  for (const requirement of requirements) {
+    const key = lower(requirement.skill);
+    const current = strongest.get(key);
+    if (!current || requirement.level > current.level) strongest.set(key, requirement);
+  }
+  return [...strongest.values()].sort((left, right) => left.skill.localeCompare(right.skill));
+}
+
+const questNameByPage = new Map(quests.map((row) => [lower(row.page_name).trim(), row.page_name]));
+
+function projectQuestRequirements(value) {
+  // The Bucket field is prose, not a structured quest array. Keep only links
+  // that resolve to the live quest Bucket, and honor the Wiki's explicit
+  // optional/recommended labels at their comma-or-line clause boundary.
+  const source = String(value ?? "").replace(/<br\s*\/?\s*>/gi, "\n");
+  const requirements = [];
+  for (const line of source.split("\n")) {
+    for (const clause of line.split(",")) {
+      const plain = plainWikiText(clause);
+      if (!plain || /^\*?\s*none\b/i.test(plain)) continue;
+      if (/\b(?:strongly |highly )?recommended\b|\boptional(?:ly)?\b/i.test(plain)) continue;
+      for (const link of wikiLinks(clause)) {
+        const quest = questNameByPage.get(lower(link).trim());
+        if (quest) requirements.push(quest);
+      }
+    }
+  }
+  return [...new Set(requirements)].sort((left, right) => left.localeCompare(right));
+}
+
+const recommendedByPage = new Map();
+for (const row of recommendedEquipment) {
+  const key = lower(row.page_name);
+  const rows = recommendedByPage.get(key) ?? [];
+  rows.push(row);
+  recommendedByPage.set(key, rows);
+}
+
+function projectLoadout(row) {
+  let body;
+  try {
+    body = JSON.parse(row.json);
+  } catch {
+    return null;
+  }
+  const slots = body?.["Recommended Equipment"];
+  if (!slots || typeof slots !== "object" || Array.isArray(slots)) return null;
+  const projectedSlots = Object.entries(slots).map(([slot, entries]) => {
+    const names = [...new Set(list(entries).flatMap(wikiLinks))];
+    const alternatives = names.map((name) => ({ name, ...itemFact(name) }));
+    return { slot, alternatives };
+  }).filter((slot) => slot.alternatives.length > 0);
+  if (!projectedSlots.length) return null;
+  return {
+    page: row.page_name,
+    style: String(body.style ?? "").trim() || null,
+    slots: projectedSlots
+  };
+}
+
+function loadoutsForMethod(method) {
+  const activityLinks = wikiLinks(method.activity);
+  const candidatePages = new Set();
+  for (const link of activityLinks) {
+    candidatePages.add(lower(link));
+    candidatePages.add(lower(`${link}/Strategies`));
+    candidatePages.add(lower(`${link}/Strategy`));
+  }
+  return [...candidatePages]
+    .flatMap((page) => recommendedByPage.get(page) ?? [])
+    .map(projectLoadout)
+    .filter(Boolean);
+}
+
+export function projectMoneyMethod(row) {
+  let body;
+  try {
+    body = JSON.parse(row.json);
+  } catch {
+    return null;
+  }
+  const activity = String(body.activity ?? row.page_name?.replace(/^Money making guide\//i, "") ?? "").trim();
+  const killsPerHour = positiveNumber(body.prices?.default_kph);
+  return {
+    id: methodId(row.page_name),
+    page: row.page_name,
+    activity: plainWikiText(activity),
+    category: String(body.category ?? "").trim() || null,
+    intensity: String(body.intensity ?? "").trim() || null,
+    members: body.members === true,
+    wikiGpPerHour: Math.round(positiveNumber(row.value) || positiveNumber(body.prices?.default_value)),
+    killsPerHour,
+    skillRequirements: projectSkillRequirements(body.skill),
+    questRequirements: projectQuestRequirements(body.quest),
+    inputs: list(body.inputs).map((entry) => projectItemAmount(entry, killsPerHour)).filter(Boolean),
+    outputs: list(body.outputs).map((entry) => projectItemAmount(entry, killsPerHour)).filter(Boolean),
+    loadouts: loadoutsForMethod({ ...body, activity })
+  };
+}
+
 // Run as a script: project everything the current roster names, so the output
 // is exactly what the app imports and nothing more.
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split("/").pop())) {
@@ -193,10 +409,17 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split("/").pop()
     gearStats[page] = projected;
   }
 
+  const moneyMethods = moneyMakingGuide
+    .map(projectMoneyMethod)
+    .filter(Boolean)
+    .sort((left, right) => left.page.localeCompare(right.page));
+
   writeFileSync(join(OUT_DIR, "boss-stats.json"), `${JSON.stringify(bossStats, null, 1)}\n`);
   writeFileSync(join(OUT_DIR, "gear-stats.json"), `${JSON.stringify(gearStats, null, 1)}\n`);
+  writeFileSync(join(OUT_DIR, "money-methods.json"), `${JSON.stringify(moneyMethods, null, 1)}\n`);
   console.log(`  wrote derived/boss-stats.json (${Object.keys(bossStats).length} bosses)`);
   console.log(`  wrote derived/gear-stats.json (${Object.keys(gearStats).length} items)`);
+  console.log(`  wrote derived/money-methods.json (${moneyMethods.length} methods)`);
   if (missingBosses.length) console.log(`  no wiki row: ${missingBosses.join(", ")}`);
   if (missingGear.length) console.log(`  no wiki row: ${missingGear.join(", ")}`);
 }

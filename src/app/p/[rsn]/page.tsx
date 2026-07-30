@@ -3,14 +3,21 @@ import { notFound } from "next/navigation";
 import { BankAffordabilityPanel } from "@/components/bank-affordability-panel";
 import { BankObservationsPanel } from "@/components/bank-observations-panel";
 import { LastTripLine } from "@/components/last-trip-line";
+import { MoneyMethodsPanel } from "@/components/money-methods-panel";
 import { PlayerHubShell } from "@/components/player-hub-shell";
 import { PlayerPlanPanel } from "@/components/player-plan-panel";
 import { PlayerSkillsTable } from "@/components/player-skills-table";
-import { isIronPlannerAccount, plannerAccountTypeLabel } from "@/lib/account-type";
+import {
+  isIronPlannerAccount,
+  plannerAccountTypeLabel,
+  scapestackAccountTypeToPlannerType
+} from "@/lib/account-type";
 import { fetchHiscores, formatXp, computeCombatLevel, computeTotalLevel, totalXp } from "@/lib/hiscores";
+import { buildMoneyMethodFilter } from "@/lib/money-methods";
 import { loadPlanningContext } from "@/lib/planning-context";
 import { pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
-import { cleanRsnInput } from "@/lib/rsn";
+import { getPriceSnapshot } from "@/lib/prices";
+import { cleanRsnInput, normalizeRsn } from "@/lib/rsn";
 import { resolveViewerRsn } from "@/lib/viewer-account";
 
 interface Props {
@@ -44,18 +51,32 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   const fromValue = query.from;
   const source = (Array.isArray(sourceValue) ? sourceValue[0] : sourceValue)?.trim().toLowerCase();
   const from = (Array.isArray(fromValue) ? fromValue[0] : fromValue)?.trim().toLowerCase();
-  const context = await loadPlanningContext(decoded, {
-    viewerRsn,
-    preferScapestack: source === "plugin-sync" || from === "plugin"
-  }).catch(() => null);
+  const [context, priceSnapshot] = await Promise.all([
+    loadPlanningContext(decoded, {
+      viewerRsn,
+      preferScapestack: source === "plugin-sync" || from === "plugin"
+    }).catch(() => null),
+    viewerRsn === normalizeRsn(decoded) ? getPriceSnapshot().catch(() => null) : Promise.resolve(null)
+  ]);
   const hi = context?.hiscores;
   if (!context || !hi) notFound();
 
   const displayName = hi.name;
-  const accountMode = context.initialPlan?.summary.accountMode.type ?? null;
+  const accountMode = context.initialPlan?.summary.accountMode.type
+    ?? (context.scapestackSync ? scapestackAccountTypeToPlannerType(context.scapestackSync.accountType) : null);
   const accountType = accountMode ? plannerAccountTypeLabel(accountMode) : "Account type unknown";
   const syncedAt = context.scapestackSync?.syncedAt ?? null;
   const bankItems = context.scapestackSync?.bankItems ?? [];
+  const cannotBuy = isIronPlannerAccount(accountMode);
+  const moneyMethods = bankItems.length > 0
+    ? buildMoneyMethodFilter({
+        skills: hi.skills,
+        questsCompleted: context.scapestackSync?.questsCompleted ?? [],
+        bank: bankItems,
+        prices: priceSnapshot?.prices ?? new Map(),
+        cannotBuy
+      })
+    : null;
   const syncHref = pluginVerifyUrlForSyncedRsn(displayName, "profile", {
     hasBankContext: bankItems.length > 0
   });
@@ -87,13 +108,14 @@ export default async function PlayerPage({ params, searchParams }: Props) {
       {bankItems.length > 0 ? (
         <BankAffordabilityPanel
           items={bankItems.map((item) => ({ id: item.id, name: item.name, quantity: item.quantity }))}
-          cannotBuy={isIronPlannerAccount(accountMode)}
+          cannotBuy={cannotBuy}
         />
       ) : (
         <p className="mt-2 text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">
           Bank details stay private. Pair this browser and sync RuneLite to use your bank here.
         </p>
       )}
+      <MoneyMethodsPanel report={moneyMethods} cannotBuy={cannotBuy} />
     </section>
   );
 

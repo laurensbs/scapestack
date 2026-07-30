@@ -28,7 +28,7 @@
    "attack_speed",
    "max_hit"
   ],
-  "rows": 3234
+  "rows": 3236
  },
  "rows": [
   {
@@ -33175,7 +33175,7 @@
    "defence_level": 40,
    "magic_defence_bonus": 0,
    "max_hit": [
-    "17"
+    "6"
    ],
    "ranged_level": 1,
    "elemental_weakness_percent": 100,
@@ -33201,7 +33201,7 @@
    "defence_level": 40,
    "magic_defence_bonus": 0,
    "max_hit": [
-    "17"
+    "6"
    ],
    "ranged_level": 1,
    "elemental_weakness_percent": 50,
@@ -39761,6 +39761,57 @@
    "stab_defence_bonus": 24,
    "combat_level": 21,
    "size": 1
+  },
+  {
+   "strength_level": 230,
+   "crush_defence_bonus": 40,
+   "slash_defence_bonus": 80,
+   "magic_level": 150,
+   "default_version": "",
+   "attack_level": 150,
+   "elemental_weakness": "Earth",
+   "combat_level": 588,
+   "size": 3,
+   "page_name": "Mad Angel",
+   "defence_level": 175,
+   "magic_defence_bonus": 185,
+   "max_hit": [
+    "31"
+   ],
+   "ranged_level": 250,
+   "attack_speed": 6,
+   "elemental_weakness_percent": 15,
+   "version_anchor": "Post-quest",
+   "attribute": [
+    "golem"
+   ],
+   "stab_defence_bonus": 60,
+   "hitpoints": 755
+  },
+  {
+   "strength_level": 160,
+   "crush_defence_bonus": 20,
+   "slash_defence_bonus": 60,
+   "magic_level": 100,
+   "attack_level": 100,
+   "elemental_weakness": "Earth",
+   "combat_level": 270,
+   "size": 3,
+   "page_name": "Mad Angel",
+   "defence_level": 125,
+   "magic_defence_bonus": 165,
+   "max_hit": [
+    "31"
+   ],
+   "ranged_level": 170,
+   "attack_speed": 6,
+   "elemental_weakness_percent": 15,
+   "version_anchor": "Quest",
+   "attribute": [
+    "golem"
+   ],
+   "stab_defence_bonus": 40,
+   "hitpoints": 565
   },
   {
    "strength_level": 250,
@@ -59305,7 +59356,7 @@
    "crush_defence_bonus": 98,
    "attack_speed": 4,
    "max_hit": [
-    "115% of targeted player's max hit'\"`UNIQ--ref-00000000-QINU`\"'"
+    "115% of targeted player's max hit'\"`UNIQ--ref-00000007-QINU`\"'"
    ],
    "slash_defence_bonus": 93,
    "hitpoints": 80,
@@ -62261,8 +62312,7 @@
    "defence_level": 30,
    "magic_defence_bonus": 200,
    "max_hit": [
-    "10 Ranged",
-    "9 Melee(?)"
+    "6"
    ],
    "ranged_level": 60,
    "attack_speed": 7,
@@ -64366,7 +64416,7 @@
    "defence_level": 260,
    "magic_defence_bonus": 350,
    "max_hit": [
-    "148&thinsp;'\"`UNIQ--ref-0000004C-QINU`\"'"
+    "148&thinsp;'\"`UNIQ--ref-00000142-QINU`\"'"
    ],
    "ranged_level": 400,
    "attack_speed": 7,
@@ -64392,7 +64442,7 @@
    "defence_level": 260,
    "magic_defence_bonus": 350,
    "max_hit": [
-    "148&thinsp;'\"`UNIQ--ref-0000004C-QINU`\"'"
+    "148&thinsp;'\"`UNIQ--ref-00000142-QINU`\"'"
    ],
    "ranged_level": 400,
    "attack_speed": 10,
@@ -65917,7 +65967,7 @@
   {
    "strength_level": 0,
    "slayer_category": [
-    "Vampyres'\"`UNIQ--ref-00000003-QINU`\"'"
+    "Vampyres'\"`UNIQ--ref-00000021-QINU`\"'"
    ],
    "crush_defence_bonus": 34,
    "slash_defence_bonus": 34,
@@ -66156,7 +66206,8 @@
   {
    "strength_level": 200,
    "slayer_category": [
-    "Vampyres"
+    "Vampyres",
+    "Venators"
    ],
    "crush_defence_bonus": 90,
    "slash_defence_bonus": 20,
@@ -66184,7 +66235,8 @@
   {
    "strength_level": 200,
    "slayer_category": [
-    "Vampyres"
+    "Vampyres",
+    "Venators"
    ],
    "crush_defence_bonus": 90,
    "slash_defence_bonus": 20,
@@ -66211,7 +66263,8 @@
   {
    "strength_level": 200,
    "slayer_category": [
-    "Vampyres"
+    "Vampyres",
+    "Venators"
    ],
    "crush_defence_bonus": 90,
    "slash_defence_bonus": 20,
@@ -66238,7 +66291,8 @@
   {
    "strength_level": 200,
    "slayer_category": [
-    "Vampyres"
+    "Vampyres",
+    "Venators"
    ],
    "crush_defence_bonus": 90,
    "slash_defence_bonus": 20,
@@ -66265,7 +66319,8 @@
   {
    "strength_level": 200,
    "slayer_category": [
-    "Vampyres"
+    "Vampyres",
+    "Venators"
    ],
    "crush_defence_bonus": 90,
    "slash_defence_bonus": 20,
@@ -73488,7 +73543,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "10",
    "attribute": [
@@ -73516,7 +73571,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "11",
    "attribute": [
@@ -73544,7 +73599,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "12",
    "attribute": [
@@ -73572,7 +73627,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "13",
    "attribute": [
@@ -73600,7 +73655,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "14",
    "attribute": [
@@ -73628,7 +73683,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "15",
    "attribute": [
@@ -73656,7 +73711,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "16",
    "attribute": [
@@ -73684,7 +73739,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "17",
    "attribute": [
@@ -73712,7 +73767,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "18",
    "attribute": [
@@ -73740,7 +73795,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "19",
    "attribute": [
@@ -73768,7 +73823,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "2",
    "attribute": [
@@ -73796,7 +73851,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "20",
    "attribute": [
@@ -73824,7 +73879,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "21",
    "attribute": [
@@ -73852,7 +73907,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "22",
    "attribute": [
@@ -73880,7 +73935,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "23",
    "attribute": [
@@ -73908,7 +73963,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "24",
    "attribute": [
@@ -73936,7 +73991,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "25",
    "attribute": [
@@ -73964,7 +74019,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "26",
    "attribute": [
@@ -73992,7 +74047,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "3",
    "attribute": [
@@ -74020,7 +74075,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "4",
    "attribute": [
@@ -74048,7 +74103,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "5",
    "attribute": [
@@ -74076,7 +74131,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "6",
    "attribute": [
@@ -74104,7 +74159,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "7",
    "attribute": [
@@ -74132,7 +74187,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "8",
    "attribute": [
@@ -74160,7 +74215,7 @@
     "6"
    ],
    "ranged_level": 1,
-   "attack_speed": 4,
+   "attack_speed": 3,
    "elemental_weakness_percent": 50,
    "version_anchor": "9",
    "attribute": [

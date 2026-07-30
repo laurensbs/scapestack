@@ -10,7 +10,7 @@
    "default_version",
    "tradeable"
   ],
-  "rows": 16527
+  "rows": 16612
  },
  "rows": [
   {
@@ -2956,6 +2956,14 @@
    "item_name": "Aga paste"
   },
   {
+   "page_name": "Aggy",
+   "default_version": "",
+   "item_id": [
+    "34042"
+   ],
+   "item_name": "Aggy"
+  },
+  {
    "page_name": "Agility arena ticket",
    "default_version": "",
    "item_id": [
@@ -5599,6 +5607,14 @@
    "item_name": "Ancient stole"
   },
   {
+   "page_name": "Ancient sunstone core",
+   "default_version": "",
+   "item_id": [
+    "34054"
+   ],
+   "item_name": "Ancient sunstone core"
+  },
+  {
    "page_name": "Ancient symbol",
    "default_version": "",
    "item_id": [
@@ -7684,6 +7700,15 @@
    ],
    "tradeable": "",
    "item_name": "Arctic pyre logs"
+  },
+  {
+   "page_name": "Ardeaglais teleport",
+   "default_version": "",
+   "item_id": [
+    "34033"
+   ],
+   "tradeable": "",
+   "item_name": "Ardeaglais teleport"
   },
   {
    "page_name": "Arder mushroom",
@@ -46289,15 +46314,6 @@
    "version_anchor": "Raging Echoes League"
   },
   {
-   "page_name": "Desert goat horn",
-   "default_version": "",
-   "item_id": [
-    "9735"
-   ],
-   "tradeable": "",
-   "item_name": "Desert goat horn"
-  },
-  {
    "page_name": "Desert habitat (interface item)",
    "default_version": "",
    "item_id": [
@@ -50470,6 +50486,14 @@
     "32865"
    ],
    "item_name": "Dull knife"
+  },
+  {
+   "page_name": "Dull sunstone core",
+   "default_version": "",
+   "item_id": [
+    "34056"
+   ],
+   "item_name": "Dull sunstone core"
   },
   {
    "page_name": "Dummy portal",
@@ -56285,6 +56309,14 @@
    "item_name": "Fillets"
   },
   {
+   "page_name": "Final letter",
+   "default_version": "",
+   "item_id": [
+    "34057"
+   ],
+   "item_name": "Final letter"
+  },
+  {
    "page_name": "Fine cloth",
    "default_version": "",
    "item_id": [
@@ -60893,6 +60925,15 @@
    "item_name": "Goat dung"
   },
   {
+   "page_name": "Goat horn",
+   "default_version": "",
+   "item_id": [
+    "9735"
+   ],
+   "tradeable": "",
+   "item_name": "Goat horn"
+  },
+  {
    "page_name": "Goat horn dust",
    "default_version": "",
    "item_id": [
@@ -61663,6 +61704,14 @@
     "776"
    ],
    "item_name": "Goldsmith gauntlets"
+  },
+  {
+   "page_name": "Golem primer",
+   "default_version": "",
+   "item_id": [
+    "34053"
+   ],
+   "item_name": "Golem primer"
   },
   {
    "page_name": "Golem program",
@@ -66634,6 +66683,15 @@
    ],
    "item_name": "Halloween wig",
    "version_anchor": "Style 6"
+  },
+  {
+   "page_name": "Hallowfell",
+   "default_version": "",
+   "item_id": [
+    "34027"
+   ],
+   "tradeable": "",
+   "item_name": "Hallowfell"
   },
   {
    "page_name": "Ham boots",
@@ -72516,6 +72574,14 @@
    "item_name": "Jar of feathers"
   },
   {
+   "page_name": "Jar of light",
+   "default_version": "",
+   "item_id": [
+    "34030"
+   ],
+   "item_name": "Jar of light"
+  },
+  {
    "page_name": "Jar of miasma",
    "default_version": "",
    "item_id": [
@@ -72694,6 +72760,14 @@
    ],
    "item_name": "Jewel shard",
    "version_anchor": "Pillar"
+  },
+  {
+   "page_name": "Jeweller's chisel",
+   "default_version": "",
+   "item_id": [
+    "34024"
+   ],
+   "item_name": "Jeweller's chisel"
   },
   {
    "page_name": "Jewellery (item)",
@@ -75395,6 +75469,14 @@
    ],
    "item_name": "Large fur pouch (open)",
    "version_anchor": "Open"
+  },
+  {
+   "page_name": "Large hat",
+   "default_version": "",
+   "item_id": [
+    "34044"
+   ],
+   "item_name": "Large hat"
   },
   {
    "page_name": "Large iron keel parts",
@@ -84683,6 +84765,14 @@
    "item_name": "Moxi"
   },
   {
+   "page_name": "Mr mcgroot",
+   "default_version": "",
+   "item_id": [
+    "34040"
+   ],
+   "item_name": "Mr mcgroot"
+  },
+  {
    "page_name": "Mucky note",
    "default_version": "",
    "item_id": [
@@ -86686,6 +86776,70 @@
    "item_name": "No eggs"
   },
   {
+   "page_name": "Noble robe top",
+   "item_id": [
+    "33851"
+   ],
+   "tradeable": "",
+   "item_name": "Noble robe top",
+   "version_anchor": "Black"
+  },
+  {
+   "page_name": "Noble robe top",
+   "item_id": [
+    "33839"
+   ],
+   "tradeable": "",
+   "item_name": "Noble robe top",
+   "version_anchor": "Blue"
+  },
+  {
+   "page_name": "Noble robe top",
+   "default_version": "",
+   "item_id": [
+    "33836"
+   ],
+   "tradeable": "",
+   "item_name": "Noble robe top",
+   "version_anchor": "Green"
+  },
+  {
+   "page_name": "Noble robe top",
+   "item_id": [
+    "33854"
+   ],
+   "tradeable": "",
+   "item_name": "Noble robe top",
+   "version_anchor": "Pink"
+  },
+  {
+   "page_name": "Noble robe top",
+   "item_id": [
+    "33842"
+   ],
+   "tradeable": "",
+   "item_name": "Noble robe top",
+   "version_anchor": "Red"
+  },
+  {
+   "page_name": "Noble robe top",
+   "item_id": [
+    "33848"
+   ],
+   "tradeable": "",
+   "item_name": "Noble robe top",
+   "version_anchor": "White"
+  },
+  {
+   "page_name": "Noble robe top",
+   "item_id": [
+    "33845"
+   ],
+   "tradeable": "",
+   "item_name": "Noble robe top",
+   "version_anchor": "Yellow"
+  },
+  {
    "page_name": "Noon",
    "item_id": [
     "21750"
@@ -87864,6 +88018,14 @@
     "interface21788"
    ],
    "item_name": "Obelisk"
+  },
+  {
+   "page_name": "Observations",
+   "default_version": "",
+   "item_id": [
+    "34051"
+   ],
+   "item_name": "Observations"
   },
   {
    "page_name": "Observatory lens",
@@ -96060,6 +96222,15 @@
    "item_name": "Raging echoes adamant trophy"
   },
   {
+   "page_name": "Raging echoes astral contact scroll",
+   "default_version": "",
+   "item_id": [
+    "30457"
+   ],
+   "tradeable": "",
+   "item_name": "Raging echoes astral contact scroll"
+  },
+  {
    "page_name": "Raging echoes banner",
    "default_version": "",
    "item_id": [
@@ -96189,15 +96360,6 @@
    ],
    "tradeable": "",
    "item_name": "Raging echoes nexus scroll"
-  },
-  {
-   "page_name": "Raging echoes npc contact scroll",
-   "default_version": "",
-   "item_id": [
-    "30457"
-   ],
-   "tradeable": "",
-   "item_name": "Raging echoes npc contact scroll"
   },
   {
    "page_name": "Raging echoes portal scroll",
@@ -106494,6 +106656,31 @@
    "item_name": "Schematics"
   },
   {
+   "page_name": "Scorched note",
+   "default_version": "",
+   "item_id": [
+    "34048"
+   ],
+   "item_name": "Scorched note",
+   "version_anchor": "1"
+  },
+  {
+   "page_name": "Scorched note",
+   "item_id": [
+    "34049"
+   ],
+   "item_name": "Scorched note",
+   "version_anchor": "2"
+  },
+  {
+   "page_name": "Scorched note",
+   "item_id": [
+    "34050"
+   ],
+   "item_name": "Scorched note",
+   "version_anchor": "3"
+  },
+  {
    "page_name": "Scorching bow",
    "default_version": "",
    "item_id": [
@@ -106649,6 +106836,14 @@
     "19511"
    ],
    "item_name": "Scrawled note"
+  },
+  {
+   "page_name": "Scrawled notebook",
+   "default_version": "",
+   "item_id": [
+    "34046"
+   ],
+   "item_name": "Scrawled notebook"
   },
   {
    "page_name": "Scrawled notes",
@@ -118147,6 +118342,14 @@
    "item_name": "Stained journal"
   },
   {
+   "page_name": "Staircase key",
+   "default_version": "",
+   "item_id": [
+    "34055"
+   ],
+   "item_name": "Staircase key"
+  },
+  {
    "page_name": "Stake",
    "default_version": "",
    "item_id": [
@@ -121665,6 +121868,30 @@
     "33722"
    ],
    "item_name": "Sunspear"
+  },
+  {
+   "page_name": "Sunstone",
+   "default_version": "",
+   "item_id": [
+    "34020"
+   ],
+   "item_name": "Sunstone"
+  },
+  {
+   "page_name": "Sunstone core",
+   "default_version": "",
+   "item_id": [
+    "34022"
+   ],
+   "item_name": "Sunstone core"
+  },
+  {
+   "page_name": "Sunstone crystal",
+   "default_version": "",
+   "item_id": [
+    "34032"
+   ],
+   "item_name": "Sunstone crystal"
   },
   {
    "page_name": "Super antifire mix",
@@ -134111,6 +134338,14 @@
    "item_name": "Warning note"
   },
   {
+   "page_name": "Warning note (Fallen From Grace)",
+   "default_version": "",
+   "item_id": [
+    "34052"
+   ],
+   "item_name": "Warning note"
+  },
+  {
    "page_name": "Warped extract",
    "default_version": "",
    "item_id": [
@@ -136939,6 +137174,14 @@
    "item_name": "Wooden shield"
   },
   {
+   "page_name": "Wooden spikes",
+   "default_version": "",
+   "item_id": [
+    "34016"
+   ],
+   "item_name": "Wooden spikes"
+  },
+  {
    "page_name": "Wooden spoon",
    "default_version": "",
    "item_id": [
@@ -137056,6 +137299,14 @@
     "10515"
    ],
    "item_name": "Worms"
+  },
+  {
+   "page_name": "Worn journal",
+   "default_version": "",
+   "item_id": [
+    "34045"
+   ],
+   "item_name": "Worn journal"
   },
   {
    "page_name": "Worn key",
@@ -137350,6 +137601,507 @@
    ],
    "tradeable": "",
    "item_name": "Wyrmling bones"
+  },
+  {
+   "page_name": "Wyrmscraig boots",
+   "default_version": "",
+   "item_id": [
+    "33881"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig boots"
+  },
+  {
+   "page_name": "Wyrmscraig goat fur",
+   "default_version": "",
+   "item_id": [
+    "34017"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig goat fur"
+  },
+  {
+   "page_name": "Wyrmscraig goat hoof",
+   "default_version": "",
+   "item_id": [
+    "33835"
+   ],
+   "item_name": "Wyrmscraig goat hoof"
+  },
+  {
+   "page_name": "Wyrmscraig noble skirt",
+   "item_id": [
+    "33872"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig noble skirt",
+   "version_anchor": "Black"
+  },
+  {
+   "page_name": "Wyrmscraig noble skirt",
+   "item_id": [
+    "33860"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig noble skirt",
+   "version_anchor": "Blue"
+  },
+  {
+   "page_name": "Wyrmscraig noble skirt",
+   "default_version": "",
+   "item_id": [
+    "33857"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig noble skirt",
+   "version_anchor": "Green"
+  },
+  {
+   "page_name": "Wyrmscraig noble skirt",
+   "item_id": [
+    "33875"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig noble skirt",
+   "version_anchor": "Pink"
+  },
+  {
+   "page_name": "Wyrmscraig noble skirt",
+   "item_id": [
+    "33863"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig noble skirt",
+   "version_anchor": "Red"
+  },
+  {
+   "page_name": "Wyrmscraig noble skirt",
+   "item_id": [
+    "33869"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig noble skirt",
+   "version_anchor": "White"
+  },
+  {
+   "page_name": "Wyrmscraig noble skirt",
+   "item_id": [
+    "33866"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig noble skirt",
+   "version_anchor": "Yellow"
+  },
+  {
+   "page_name": "Wyrmscraig shoes",
+   "default_version": "",
+   "item_id": [
+    "33878"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig shoes"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe bottom (A)",
+   "item_id": [
+    "33923"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe bottom",
+   "version_anchor": "Black"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe bottom (A)",
+   "item_id": [
+    "33911"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe bottom",
+   "version_anchor": "Blue"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe bottom (A)",
+   "default_version": "",
+   "item_id": [
+    "33908"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe bottom",
+   "version_anchor": "Green"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe bottom (A)",
+   "item_id": [
+    "33926"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe bottom",
+   "version_anchor": "Pink"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe bottom (A)",
+   "item_id": [
+    "33914"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe bottom",
+   "version_anchor": "Red"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe bottom (A)",
+   "item_id": [
+    "33920"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe bottom",
+   "version_anchor": "White"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe bottom (A)",
+   "item_id": [
+    "33917"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe bottom",
+   "version_anchor": "Yellow"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe bottom (B)",
+   "item_id": [
+    "33944"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe bottom",
+   "version_anchor": "Black"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe bottom (B)",
+   "item_id": [
+    "33932"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe bottom",
+   "version_anchor": "Blue"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe bottom (B)",
+   "default_version": "",
+   "item_id": [
+    "33929"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe bottom",
+   "version_anchor": "Green"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe bottom (B)",
+   "item_id": [
+    "33947"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe bottom",
+   "version_anchor": "Pink"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe bottom (B)",
+   "item_id": [
+    "33935"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe bottom",
+   "version_anchor": "Red"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe bottom (B)",
+   "item_id": [
+    "33941"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe bottom",
+   "version_anchor": "White"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe bottom (B)",
+   "item_id": [
+    "33938"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe bottom",
+   "version_anchor": "Yellow"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe top (A)",
+   "item_id": [
+    "33905"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe top",
+   "version_anchor": "Beige"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe top (A)",
+   "item_id": [
+    "33899"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe top",
+   "version_anchor": "Black"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe top (A)",
+   "item_id": [
+    "33887"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe top",
+   "version_anchor": "Blue"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe top (A)",
+   "default_version": "",
+   "item_id": [
+    "33884"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe top",
+   "version_anchor": "Green"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe top (A)",
+   "item_id": [
+    "33902"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe top",
+   "version_anchor": "Pink"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe top (A)",
+   "item_id": [
+    "33890"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe top",
+   "version_anchor": "Red"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe top (A)",
+   "item_id": [
+    "33896"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe top",
+   "version_anchor": "White"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe top (A)",
+   "item_id": [
+    "33893"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe top",
+   "version_anchor": "Yellow"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe top (B)",
+   "item_id": [
+    "33965"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe top",
+   "version_anchor": "Black"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe top (B)",
+   "item_id": [
+    "33953"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe top",
+   "version_anchor": "Blue"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe top (B)",
+   "default_version": "",
+   "item_id": [
+    "33950"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe top",
+   "version_anchor": "Green"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe top (B)",
+   "item_id": [
+    "33968"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe top",
+   "version_anchor": "Pink"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe top (B)",
+   "item_id": [
+    "33956"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe top",
+   "version_anchor": "Red"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe top (B)",
+   "item_id": [
+    "33962"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe top",
+   "version_anchor": "White"
+  },
+  {
+   "page_name": "Wyrmscraig villager robe top (B)",
+   "item_id": [
+    "33959"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager robe top",
+   "version_anchor": "Yellow"
+  },
+  {
+   "page_name": "Wyrmscraig villager skirt",
+   "item_id": [
+    "33986"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager skirt",
+   "version_anchor": "Black"
+  },
+  {
+   "page_name": "Wyrmscraig villager skirt",
+   "item_id": [
+    "33974"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager skirt",
+   "version_anchor": "Blue"
+  },
+  {
+   "page_name": "Wyrmscraig villager skirt",
+   "default_version": "",
+   "item_id": [
+    "33971"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager skirt",
+   "version_anchor": "Green"
+  },
+  {
+   "page_name": "Wyrmscraig villager skirt",
+   "item_id": [
+    "33989"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager skirt",
+   "version_anchor": "Pink"
+  },
+  {
+   "page_name": "Wyrmscraig villager skirt",
+   "item_id": [
+    "33977"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager skirt",
+   "version_anchor": "Red"
+  },
+  {
+   "page_name": "Wyrmscraig villager skirt",
+   "item_id": [
+    "33983"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager skirt",
+   "version_anchor": "White"
+  },
+  {
+   "page_name": "Wyrmscraig villager skirt",
+   "item_id": [
+    "33980"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager skirt",
+   "version_anchor": "Yellow"
+  },
+  {
+   "page_name": "Wyrmscraig villager work skirt",
+   "item_id": [
+    "34013"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager work skirt",
+   "version_anchor": "Beige"
+  },
+  {
+   "page_name": "Wyrmscraig villager work skirt",
+   "item_id": [
+    "34007"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager work skirt",
+   "version_anchor": "Black"
+  },
+  {
+   "page_name": "Wyrmscraig villager work skirt",
+   "item_id": [
+    "33995"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager work skirt",
+   "version_anchor": "Blue"
+  },
+  {
+   "page_name": "Wyrmscraig villager work skirt",
+   "default_version": "",
+   "item_id": [
+    "33992"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager work skirt",
+   "version_anchor": "Green"
+  },
+  {
+   "page_name": "Wyrmscraig villager work skirt",
+   "item_id": [
+    "34010"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager work skirt",
+   "version_anchor": "Pink"
+  },
+  {
+   "page_name": "Wyrmscraig villager work skirt",
+   "item_id": [
+    "33998"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager work skirt",
+   "version_anchor": "Red"
+  },
+  {
+   "page_name": "Wyrmscraig villager work skirt",
+   "item_id": [
+    "34004"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager work skirt",
+   "version_anchor": "White"
+  },
+  {
+   "page_name": "Wyrmscraig villager work skirt",
+   "item_id": [
+    "34001"
+   ],
+   "tradeable": "",
+   "item_name": "Wyrmscraig villager work skirt",
+   "version_anchor": "Yellow"
   },
   {
    "page_name": "Wyvern bonemeal",

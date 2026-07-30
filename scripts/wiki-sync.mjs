@@ -140,6 +140,25 @@ const SOURCES = [
       "ironman_concerns", "description"
     ],
     key: (row) => row.page_name
+  },
+  {
+    file: "money-making-guide.json",
+    bucket: "money_making_guide",
+    // Bucket:Money making guide declares value/recurring/json. page_name is
+    // the Bucket origin key exposed by the API and is what lets the derived
+    // projection retain a stable Wiki URL for every method.
+    fields: ["page_name", "value", "recurring", "json"],
+    key: (row) => row.page_name
+  },
+  {
+    file: "recommended-equipment.json",
+    bucket: "recommended_equipment",
+    // Bucket:Recommended equipment declares only json. As above, page_name
+    // is the API's origin key; one page can publish several named loadouts.
+    fields: ["page_name", "json"],
+    // Duplicate page/style pairs exist on the live wiki. The full declared
+    // payload is therefore the only non-invented stable discriminator.
+    key: (row) => `${row.page_name} ${row.json}`
   }
 ];
 
