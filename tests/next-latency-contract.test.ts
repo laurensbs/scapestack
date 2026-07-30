@@ -62,8 +62,10 @@ describe("first plan latency contract", () => {
     expect(nextClient).toContain('track("plan:context_ready"');
   });
 
-  it("keeps homepage HTML and its client bundle on one static deployment", () => {
-    expect(home).toContain('export const dynamic = "force-static";');
+  it("checks the browser session before rendering the homepage", () => {
+    expect(home).toContain('export const dynamic = "force-dynamic";');
+    expect(home).toContain("await resolveViewerRsn()");
+    expect(home).toContain("redirect(playerPath(viewerRsn))");
     expect(home).not.toContain("export const revalidate");
   });
 });

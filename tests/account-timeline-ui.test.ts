@@ -9,8 +9,8 @@ describe("shared account timeline UI", () => {
     const next = readFileSync("src/app/next/next-client.tsx", "utf8");
 
     expect(home).not.toContain("<AccountTimeline");
-    expect(hero).toContain('data-return-home="true"');
-    expect(hero).toContain('fetch("/api/account/timeline?limit=10"');
+    expect(hero).not.toContain('data-return-home="true"');
+    expect(hero).not.toContain('fetch("/api/account/timeline?limit=10"');
     expect(profile).not.toContain("<AccountTimeline");
     expect(next).not.toContain("<AccountTimeline");
     expect(profile).not.toContain("<WeeklyRecap");

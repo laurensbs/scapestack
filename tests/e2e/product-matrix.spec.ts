@@ -28,9 +28,9 @@ test.describe("Scapestack product story matrix", () => {
 
   test("1. first-time player sees RSN -> one plan promise", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByLabel("Stop bankstanding. Pick the next trip.")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Stop bankstanding and pick the next trip." })).toBeVisible();
     await expect(page.getByPlaceholder(/type your osrs name/i)).toBeVisible();
-    await expect(page.getByRole("button", { name: /plan my next trip with osrs name|plan my next move/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Track" })).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 

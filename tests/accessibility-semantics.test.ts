@@ -22,7 +22,6 @@ describe("accessibility semantics", () => {
       "src/components/session-mood-picker.tsx",
       "src/components/connect-browser-modal.tsx",
       "src/components/boss-detail-modal.tsx",
-      "src/components/hero-intake.tsx",
       "src/components/path-detail-modal.tsx",
       "src/app/next/next-client.tsx",
       "src/app/goals/goals-client.tsx"
@@ -48,7 +47,7 @@ describe("accessibility semantics", () => {
     expect(read("src/components/session-mood-picker.tsx")).toContain('aria-describedby="session-mood-description"');
     expect(read("src/components/connect-browser-modal.tsx")).toContain('aria-describedby="connect-browser-description"');
     expect(read("src/components/connect-browser-modal.tsx")).toContain('role="alert"');
-    expect(read("src/components/hero-intake.tsx")).toContain('aria-describedby="hero-runelite-guide-description"');
+    expect(read("src/components/hero-intake.tsx")).not.toContain('role="dialog"');
     expect(read("src/app/next/next-client.tsx")).not.toContain('aria-describedby="next-route-popup-description"');
     expect(read("src/app/next/next-client.tsx")).toContain('aria-describedby="trip-details-description"');
     expect(read("src/app/goals/goals-client.tsx")).toContain('aria-describedby="goal-unlock-modal-description"');

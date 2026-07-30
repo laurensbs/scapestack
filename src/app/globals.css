@@ -744,13 +744,7 @@ body {
    this product does not have. */
 .scapestack-lock-panel,
 .scapestack-plan-panel,
-.scapestack-board-panel,
-/* Known-account homepage: the pitch and the build-time demo table are for
-   strangers. hero-intake stamps this attribute after hydration; the server
-   keeps rendering both for the logged-out state and for crawlers. */
-.home-hero[data-known-account="true"] .home-hero-intro,
-.home-hero[data-known-account="true"] .home-specimen,
-.home-hero[data-known-account="true"] .home-hero-basis {
+.scapestack-board-panel {
   display: none;
 }
 
@@ -1398,20 +1392,6 @@ body {
 .section-divider {
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--color-border-strong), transparent);
-}
-
-/* A returning player is told what changed on their account, not what the
-   product is. The acquisition masthead and its basis note are for a first
-   visit; the Welcome-back panel states its own basis. Done in CSS rather than
-   in the component because this page is force-static — a client branch here
-   would render one tree on the server and another on hydration. */
-.home-hero:has([data-return-home="true"]) .home-hero-intro,
-.home-hero:has([data-return-home="true"]) .home-hero-basis {
-  display: none !important;
-}
-
-.home-hero:has([data-return-home="true"]) .home-hero-intake {
-  margin-top: 0;
 }
 
 /* ── Global interactive affordance ──────────────────────────────────────

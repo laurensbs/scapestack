@@ -12,9 +12,8 @@ const source = readFileSync(join(process.cwd(), "src/app/page.tsx"), "utf8");
 describe("homepage first-impression copy", () => {
   it("opens with the simple trip picker, and nothing above the intake", () => {
     expect(source).not.toContain("BRAND_SECONDARY_TAGLINE");
-    expect(source).toContain("Stop bankstanding.");
-    expect(source).toContain("Pick the next trip.");
-    expect(source).toContain("Type your OSRS name. Scapestack opens one clean trip and tells you when to stop.");
+    expect(source).toContain("Stop bankstanding and pick the next trip.");
+    expect(source).toContain("Enter your OSRS name for one bank-aware answer and a clear stop point.");
     // A reference document gets to the point: no full-viewport hero, no
     // display-size headline, and no eyebrow label above a headline that
     // already says the same thing.
@@ -34,15 +33,11 @@ describe("homepage first-impression copy", () => {
     expect(source).not.toContain("bank standing");
   });
 
-  it("states its basis instead of decorating, and never a route dashboard", () => {
-    // The specimen's closing note: what the numbers are computed from and what
-    // they cannot see. The worn-gear clause is the same sentence the verdict
-    // engine puts under every boss, and it is permanent — the plugin does not
-    // read worn equipment and, by a promise in both READMEs, will not.
-    expect(source).toContain("Worn gear is not counted");
-    expect(source).toContain("Scapestack only sees your bank");
-    // Counted from the engine's own table so the claim cannot drift.
-    expect(source).toContain("BOSSES.length");
+  it("removes the build-time demo and never becomes a route dashboard", () => {
+    expect(source).not.toContain("HomeSpecimen");
+    expect(source).not.toContain("BOSSES");
+    expect(source).not.toContain("Worn gear is not counted");
+    expect(source).not.toContain("Scapestack only sees your bank");
     expect(source).not.toContain('import { ItemSprite } from "@/components/item-sprite";');
     expect(source).not.toContain("Unlock board");
     expect(source).not.toContain("Barrows gloves");
@@ -83,15 +78,15 @@ describe("homepage first-impression copy", () => {
   // thing in the document, right under the masthead, on every width. There is
   // no column to reorder because there is only one.
   it("puts the intake directly under the masthead in one column", () => {
-    const headlineIndex = source.indexOf("Pick the next trip.");
+    const headlineIndex = source.indexOf("Stop bankstanding and pick the next trip.");
+    const explanationIndex = source.indexOf("Enter your OSRS name for one bank-aware answer and a clear stop point.");
     const intakeIndex = source.indexOf("<HeroIntake />");
-    const basisIndex = source.indexOf("Worn gear is not counted");
 
     expect(headlineIndex).toBeGreaterThan(-1);
+    expect(explanationIndex).toBeGreaterThan(-1);
     expect(intakeIndex).toBeGreaterThan(-1);
-    expect(basisIndex).toBeGreaterThan(-1);
-    expect(headlineIndex).toBeLessThan(intakeIndex);
-    expect(intakeIndex).toBeLessThan(basisIndex);
+    expect(headlineIndex).toBeLessThan(explanationIndex);
+    expect(explanationIndex).toBeLessThan(intakeIndex);
     // No second column, at any breakpoint.
     expect(source).not.toContain("lg:grid-cols-");
     expect(source).not.toContain("home-hero-boss");

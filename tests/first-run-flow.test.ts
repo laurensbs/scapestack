@@ -7,11 +7,12 @@ const next = readFileSync(join(process.cwd(), "src/app/next/next-client.tsx"), "
 const loader = readFileSync(join(process.cwd(), "src/components/shuffle-loader.tsx"), "utf8");
 
 describe("first-run value flow", () => {
-  it("saves a fresh RSN and opens a plan without blocking setup", () => {
-    expect(hero).toContain("saveSavedRsn(trimmed)");
-    expect(hero).toContain("markAccountFirstSetupSeen(trimmed)");
-    expect(hero).toContain('params.set("first", "1")');
-    expect(hero).toContain("openPlan({ firstRun });");
+  it("saves a fresh RSN and opens its canonical answer without setup", () => {
+    expect(hero).toContain("saveSavedRsn(cleanRsn)");
+    expect(hero).toContain("router.push(playerPath(cleanRsn))");
+    expect(hero).not.toContain("markAccountFirstSetupSeen");
+    expect(hero).not.toContain('params.set("first", "1")');
+    expect(hero).not.toContain("openPlan");
     expect(hero).not.toContain("setShowFirstSetup(true)");
     expect(hero).not.toContain('aria-labelledby="hero-first-setup-title"');
   });
