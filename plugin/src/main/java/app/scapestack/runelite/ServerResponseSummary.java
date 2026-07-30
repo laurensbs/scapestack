@@ -7,6 +7,9 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 final class ServerResponseSummary {
 
@@ -25,6 +28,32 @@ final class ServerResponseSummary {
             this.diaries = diaries;
             this.collectionLogItems = collectionLogItems;
             this.bankItems = bankItems;
+        }
+    }
+
+    static final class PanelAnswer {
+        final String title;
+        final String detail;
+        final String stopAt;
+        final String current;
+        final String left;
+
+        PanelAnswer(String title, String detail, String stopAt, String current, String left) {
+            this.title = title;
+            this.detail = detail;
+            this.stopAt = stopAt;
+            this.current = current;
+            this.left = left;
+        }
+    }
+
+    static final class PanelReceipt {
+        final List<PanelAnswer> answers;
+        final String bankInsight;
+
+        PanelReceipt(List<PanelAnswer> answers, String bankInsight) {
+            this.answers = Collections.unmodifiableList(new ArrayList<>(answers));
+            this.bankInsight = bankInsight;
         }
     }
 
@@ -103,6 +132,37 @@ final class ServerResponseSummary {
         }
     }
 
+    static PanelReceipt panelReceipt(String body) {
+        if (body == null || body.isBlank()) return null;
+        try {
+            JsonElement parsed = new JsonParser().parse(body);
+            if (!parsed.isJsonObject()) return null;
+            JsonElement panelElement = parsed.getAsJsonObject().get("panel");
+            if (panelElement == null || !panelElement.isJsonObject()) return null;
+            JsonObject panel = panelElement.getAsJsonObject();
+            List<PanelAnswer> answers = new ArrayList<>();
+            JsonElement answersElement = panel.get("answers");
+            if (answersElement != null && answersElement.isJsonArray()) {
+                for (JsonElement element : answersElement.getAsJsonArray()) {
+                    if (!element.isJsonObject() || answers.size() >= 3) continue;
+                    JsonObject answer = element.getAsJsonObject();
+                    String title = stringField(answer, "title", 70);
+                    String detail = stringField(answer, "detail", 150);
+                    String stopAt = stringField(answer, "stopAt", 80);
+                    String current = stringField(answer, "current", 40);
+                    String left = stringField(answer, "left", 40);
+                    if (title.isEmpty() || detail.isEmpty()) continue;
+                    answers.add(new PanelAnswer(title, detail, stopAt, current, left));
+                }
+            }
+            String bankInsight = stringField(panel, "bankInsight", 220);
+            if (answers.isEmpty() && bankInsight.isEmpty()) return null;
+            return new PanelReceipt(answers, bankInsight.isEmpty() ? null : bankInsight);
+        } catch (RuntimeException ex) {
+            return null;
+        }
+    }
+
     private static boolean arrayHasItems(JsonObject object, String key) {
         JsonElement element = object.get(key);
         return element != null && element.isJsonArray() && element.getAsJsonArray().size() > 0;
@@ -117,6 +177,12 @@ final class ServerResponseSummary {
         } catch (RuntimeException ex) {
             return null;
         }
+    }
+
+    private static String stringField(JsonObject object, String key, int max) {
+        JsonElement element = object.get(key);
+        if (element == null || !element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString()) return "";
+        return limit(element.getAsString(), max);
     }
 
     private static String limit(String value, int max) {

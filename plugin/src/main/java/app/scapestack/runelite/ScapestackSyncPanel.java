@@ -26,71 +26,48 @@ import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
-/**
- * Sidebar panel.
- *
- * Every surface, colour and font here comes from RuneLite's own
- * {@link ColorScheme} and {@link FontManager} rather than from Scapestack's
- * web palette. A plugin panel that brings its own browns reads as bolted on
- * next to the twenty stock panels a player already has open; the client's
- * greys are the only ones that sit right beside them. Same reason every arc
- * is zero: RuneLite's look-and-feel sets Button.arc, Component.arc and
- * CheckBox.arc to 0, so a rounded corner is the fastest tell that a panel is
- * foreign.
- */
+/** RuneLite-native sidebar that answers “what should I do now?” in 225px. */
 final class ScapestackSyncPanel extends PluginPanel {
-    private static final Color PAGE = ColorScheme.DARK_GRAY_COLOR;            // #282828
-    private static final Color CARD = ColorScheme.DARKER_GRAY_COLOR;          // #1E1E1E
-    private static final Color CONTROL = ColorScheme.DARK_GRAY_COLOR;         // #282828
-    private static final Color CONTROL_HOVER = ColorScheme.DARKER_GRAY_HOVER_COLOR; // #3C3C3C
-    private static final Color KEY = ColorScheme.LIGHT_GRAY_COLOR;            // #A5A5A5
+    private static final Color PAGE = ColorScheme.DARK_GRAY_COLOR;
+    private static final Color CARD = ColorScheme.DARKER_GRAY_COLOR;
+    private static final Color CONTROL = ColorScheme.DARK_GRAY_COLOR;
+    private static final Color CONTROL_HOVER = ColorScheme.DARKER_GRAY_HOVER_COLOR;
+    private static final Color KEY = ColorScheme.LIGHT_GRAY_COLOR;
     private static final Color VALUE = Color.WHITE;
-    private static final Color ACCENT = ColorScheme.BRAND_ORANGE;             // #DC8A00
+    private static final Color ACCENT = ColorScheme.BRAND_ORANGE;
 
     private static final int CARD_PADDING = 10;
     private static final int CARD_GAP = 5;
-    private static final int ROW_GAP = 3;
+    private static final int ROW_GAP = 4;
     private static final int CONTROL_HEIGHT = 30;
+    // Swing HTML maps px to 1.3pt. PluginPanel has 193 real content pixels,
+    // so pt is required here or the final word on wrapped rows gets clipped.
+    private static final String WRAP = "width:"
+        + (PANEL_WIDTH - (BORDER_OFFSET * 2) - (CARD_PADDING * 2)) + "pt";
 
-    /**
-     * PluginPanel is exactly PANEL_WIDTH (225px) and hard-disables horizontal
-     * scrolling, so anything wider than this is silently clipped: 193px here.
-     *
-     * The unit below is pt, not px, and that is load-bearing. Swing's HTML CSS
-     * maps px to 1.3pt, so a label declared width:193px lays its text out at
-     * 250 and then paints it into a 193px slot — every wrapped line loses its
-     * last word or two mid-word. pt maps 1:1. Measured, not assumed.
-     */
-    private static final String WRAP = "width:" + (PANEL_WIDTH - (BORDER_OFFSET * 2) - (CARD_PADDING * 2)) + "pt";
-
-    private final ScapestackSyncConfig config;
-    private final ConfigManager configManager;
+    private final BooleanSupplier syncOnLogin;
+    private final Consumer<Boolean> setSyncOnLogin;
     private final Runnable syncNow;
     private final Consumer<String> connectBrowser;
 
-    private final StatusRow statusValue = new StatusRow("Status", "Ready");
-    private final StatusRow lastSyncValue = new StatusRow("Last update", "Not synced yet");
-    private final StatusRow autoRefreshValue = new StatusRow("Auto update", "Off");
-    private final StatusRow accountModeValue = new StatusRow("Account mode", "Unknown");
-    private final StatusRow playerValue = new StatusRow("Player", "Log in to detect");
-    private final StatusRow bankValue = new StatusRow("Bank", "Off");
-    private final StatusRow farmingValue = new StatusRow("Farming", "Not read yet");
-    // Was keyed "Clog" — the only jargon in the panel — because the value it
-    // carried was the instruction "Open Collection Log once, then sync again",
-    // and "Collection Log: Open Collection Log once" stuttered. The value is
-    // now state, like every other row, so the stutter is gone and there is no
-    // longer a reason to make a first-time installer decode an abbreviation.
-    // Instructions live in one place only: Next action.
-    private final StatusRow collectionLogValue = new StatusRow("Collection log", "Not opened");
-    // Next action is the only row that tells the player to do something. Every
-    // other row reports state. When two things are blocking, Next action names
-    // the first one and the rows show the rest — the previous pass printed the
-    // same sentence twice instead.
-    private final StatusRow nextActionValue = new StatusRow("Next action", "Press Sync now");
-    private final JButton bankToggle = button("Bank off");
-    private final JPanel troubleshootingBody = new JPanel();
+    private final JLabel answerTitle = heading("Sync once for your next trip");
+    private final WrappedLabel answerDetail = copy("RuneLite will send the data you enabled and put the answer here.");
+    private final StatusRow stopAt = new StatusRow("Stop at", "One useful trip");
+    private final StatusRow current = new StatusRow("Now", "Not measured yet");
+    private final StatusRow left = new StatusRow("Left", "Sync to measure");
+    private final WrappedLabel timers = copy("");
+    private final WrappedLabel bankInsight = copy("");
+    private final WrappedLabel status = copy("Not synced yet");
+    private final JButton anotherButton = primaryButton("Get answer");
+    private final JButton loginToggle = button("Sync on login: off");
+    private final JPanel pairingBody = new JPanel();
+    private final List<ServerResponseSummary.PanelAnswer> answers = new ArrayList<>();
+    private int answerIndex;
 
     ScapestackSyncPanel(
         ScapestackSyncConfig config,
@@ -98,8 +75,27 @@ final class ScapestackSyncPanel extends PluginPanel {
         Runnable syncNow,
         Consumer<String> connectBrowser
     ) {
-        this.config = config;
-        this.configManager = configManager;
+        this(
+            config::autoSync,
+            enabled -> configManager.setConfiguration(
+                ScapestackSyncPlugin.CONFIG_GROUP,
+                ScapestackSyncPlugin.KEY_AUTO_SYNC,
+                enabled
+            ),
+            syncNow,
+            connectBrowser
+        );
+    }
+
+    /** Narrow constructor makes the actual Swing behavior testable without ConfigManager. */
+    ScapestackSyncPanel(
+        BooleanSupplier syncOnLogin,
+        Consumer<Boolean> setSyncOnLogin,
+        Runnable syncNow,
+        Consumer<String> connectBrowser
+    ) {
+        this.syncOnLogin = syncOnLogin;
+        this.setSyncOnLogin = setSyncOnLogin;
         this.syncNow = syncNow;
         this.connectBrowser = connectBrowser;
 
@@ -110,159 +106,91 @@ final class ScapestackSyncPanel extends PluginPanel {
         JPanel content = new JPanel();
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.setBackground(PAGE);
-
-        // The title sits on the page, not in a card. RuneLite has one type size
-        // in three styles — there is no heading scale to reach for — so white
-        // bold on the page is the only hierarchy the client actually has.
-        content.add(heading("Scapestack Sync"));
+        content.add(heading("Scapestack"));
         content.add(Box.createVerticalStrut(ROW_GAP));
-        content.add(copy("Sends your progress to scapestack.org."));
+        content.add(copy("Your next trip from scapestack.org and live RuneLite data."));
         content.add(Box.createVerticalStrut(CARD_GAP));
-        content.add(syncCard());
+        content.add(answerCard());
         content.add(Box.createVerticalStrut(CARD_GAP));
-        content.add(connectBrowserCard());
-        content.add(Box.createVerticalStrut(CARD_GAP));
-        content.add(whatSyncsCard());
-        content.add(Box.createVerticalStrut(CARD_GAP));
-        content.add(troubleshootingCard());
-
+        content.add(controlCard());
         add(content, BorderLayout.NORTH);
+
+        anotherButton.addActionListener(event -> showAnotherAnswer());
+        loginToggle.addActionListener(event -> {
+            setSyncOnLogin.accept(!syncOnLogin.getAsBoolean());
+            refresh();
+        });
         refresh();
     }
 
     static BufferedImage createIcon() {
         BufferedImage image = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = image.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        // ClientUI downscales every sidebar icon to 16x16, so the mark is a bare
-        // glyph in the client's own accent — no plate, no rounded corner.
-        g.setColor(ACCENT);
-        g.setFont(FontManager.getRunescapeBoldFont().deriveFont(28f));
-        FontMetrics metrics = g.getFontMetrics();
-        String mark = "S";
-        int x = (32 - metrics.stringWidth(mark)) / 2;
+        Graphics2D graphics = image.createGraphics();
+        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        graphics.setColor(ACCENT);
+        graphics.setFont(FontManager.getRunescapeBoldFont().deriveFont(28f));
+        FontMetrics metrics = graphics.getFontMetrics();
+        int x = (32 - metrics.stringWidth("S")) / 2;
         int y = (32 - metrics.getHeight()) / 2 + metrics.getAscent();
-        g.drawString(mark, x, y);
-        g.dispose();
+        graphics.drawString("S", x, y);
+        graphics.dispose();
         return image;
     }
 
-    void setStatus(String status) {
-        setValue(statusValue, status);
+    void setStatus(String value) {
+        SwingUtilities.invokeLater(() -> status.setCopy(value));
     }
 
-    void setLastSync(String lastSync) {
-        setValue(lastSyncValue, lastSync);
+    void setLastSync(String value) {
+        setStatus(value == null || value.isBlank() ? "Not synced yet" : value);
     }
 
-    void setAccountMode(String accountMode) {
-        setValue(accountModeValue, accountMode);
+    void setTimers(String value) {
+        SwingUtilities.invokeLater(() -> timers.setCopy(value));
     }
 
-    void setPlayerName(String playerName) {
-        setValue(playerValue, playerName == null || playerName.isBlank() ? "Log in to detect" : playerName);
-    }
-
-    void setBankStatus(String bankStatus) {
-        setValue(bankValue, bankStatus);
-    }
-
-    void setCollectionLogStatus(String collectionLogStatus) {
-        setValue(collectionLogValue, collectionLogStatus);
-    }
-
-    void setFarmingStatus(String farmingStatus) {
-        setValue(farmingValue, farmingStatus);
-    }
-
-    void setNextAction(String nextAction) {
-        setValue(nextActionValue, nextAction);
-    }
-
-    void refresh() {
+    void setReceipt(ServerResponseSummary.PanelReceipt receipt) {
         SwingUtilities.invokeLater(() -> {
-            bankToggle.setText(config.syncBankItems() ? "Bank on" : "Bank off");
-            autoRefreshValue.setValue(config.autoSync()
-                ? "Every " + ScapestackSyncPlugin.normalizedAutoSyncIntervalMinutes(config.autoSyncIntervalMinutes()) + " min"
-                : "Off");
+            answers.clear();
+            if (receipt != null) answers.addAll(receipt.answers);
+            answerIndex = 0;
+            if (!answers.isEmpty()) renderAnswer(answers.get(0));
+            bankInsight.setCopy(receipt == null ? "" : receipt.bankInsight);
+            anotherButton.setText(answers.size() > 1 ? "Something else" : "Refresh answer");
             revalidate();
             repaint();
         });
     }
 
-    private JPanel syncCard() {
-        JPanel panel = card();
-        JButton syncButton = primaryButton("Sync now");
-        syncButton.addActionListener(e -> syncNow.run());
-        bankToggle.setToolTipText("Send bank items with every sync");
-        bankToggle.addActionListener(e -> {
-            configManager.setConfiguration(
-                ScapestackSyncPlugin.CONFIG_GROUP,
-                ScapestackSyncPlugin.KEY_SYNC_BANK_ITEMS,
-                !config.syncBankItems()
-            );
-            refresh();
+    void refresh() {
+        SwingUtilities.invokeLater(() -> {
+            loginToggle.setText("Sync on login: " + (syncOnLogin.getAsBoolean() ? "on" : "off"));
+            revalidate();
+            repaint();
         });
-        // Names what it switches on rather than calling itself recommended —
-        // one of the four is "send my bank", which the player should see coming.
-        JButton recommendedButton = button("Turn everything on");
-        recommendedButton.setToolTipText("Sync on login, every 15 min, bank items, chat updates");
-        recommendedButton.addActionListener(e -> {
-            configManager.setConfiguration(
-                ScapestackSyncPlugin.CONFIG_GROUP,
-                ScapestackSyncPlugin.KEY_AUTO_SYNC,
-                true
-            );
-            configManager.setConfiguration(
-                ScapestackSyncPlugin.CONFIG_GROUP,
-                ScapestackSyncPlugin.KEY_SYNC_BANK_ITEMS,
-                true
-            );
-            configManager.setConfiguration(
-                ScapestackSyncPlugin.CONFIG_GROUP,
-                ScapestackSyncPlugin.KEY_AUTO_SYNC_INTERVAL_MINUTES,
-                ScapestackSyncPlugin.DEFAULT_AUTO_SYNC_INTERVAL_MINUTES
-            );
-            configManager.setConfiguration(
-                ScapestackSyncPlugin.CONFIG_GROUP,
-                ScapestackSyncPlugin.KEY_CHAT_FEEDBACK,
-                true
-            );
-            setStatus("Everything on");
-            refresh();
-        });
+    }
 
+    private JPanel answerCard() {
+        JPanel panel = card();
         stack(
             panel,
-            statusValue,
-            playerValue,
-            accountModeValue,
-            lastSyncValue,
-            autoRefreshValue,
-            bankValue,
-            collectionLogValue,
-            farmingValue,
-            nextActionValue,
-            syncButton,
-            recommendedButton,
-            bankToggle
+            eyebrow("NOW"),
+            answerTitle,
+            answerDetail,
+            Box.createVerticalStrut(ROW_GAP),
+            stopAt,
+            current,
+            left,
+            Box.createVerticalStrut(ROW_GAP),
+            timers,
+            bankInsight,
+            Box.createVerticalStrut(ROW_GAP),
+            anotherButton
         );
         return panel;
     }
 
-    private JPanel whatSyncsCard() {
-        JPanel panel = card();
-        stack(
-            panel,
-            heading("What gets sent"),
-            copy("Skills, XP, quests, diaries, boss KC RuneLite has seen, Slayer task, farm and birdhouse timers, and bank items."),
-            copy("Auto update refreshes after login and then every 15 minutes while you play."),
-            copy("Bank off sends everything except your bank.")
-        );
-        return panel;
-    }
-
-    private JPanel connectBrowserCard() {
+    private JPanel controlCard() {
         JPanel panel = card();
         JTextField code = new JTextField();
         code.setToolTipText("Scapestack connection code");
@@ -272,8 +200,8 @@ final class ScapestackSyncPanel extends PluginPanel {
         code.setForeground(VALUE);
         code.setCaretColor(VALUE);
 
-        JButton approve = button("Connect browser");
-        approve.addActionListener(e -> {
+        JButton approve = button("Approve connection");
+        approve.addActionListener(event -> {
             String value = code.getText();
             if (PairingClient.normalizeCode(value).length() != 8) {
                 setStatus("Enter the 8-character code");
@@ -282,44 +210,40 @@ final class ScapestackSyncPanel extends PluginPanel {
             connectBrowser.accept(value);
         });
 
-        stack(
-            panel,
-            heading("Connect this browser"),
-            copy("Get a code on Scapestack, enter it here, then continue on that browser."),
-            code,
-            approve
-        );
+        pairingBody.setLayout(new BoxLayout(pairingBody, BoxLayout.Y_AXIS));
+        pairingBody.setBackground(CARD);
+        pairingBody.setAlignmentX(Component.LEFT_ALIGNMENT);
+        stack(pairingBody, copy("Get a code on Scapestack, then enter it here."), code, approve);
+        pairingBody.setVisible(false);
+
+        JButton connect = button("Connect browser");
+        connect.addActionListener(event -> {
+            pairingBody.setVisible(!pairingBody.isVisible());
+            panel.revalidate();
+            panel.repaint();
+        });
+        stack(panel, loginToggle, status, connect, pairingBody);
         return panel;
     }
 
-    private JPanel troubleshootingCard() {
-        JPanel wrapper = card();
-        JButton toggle = button("Troubleshooting");
-        // These used to be three conditional workarounds the player had to
-        // match against their own situation. Scapestack already knows which
-        // one applies — it receives per-domain coverage on every sync and says
-        // so on the page, at the moment it matters. Point there instead of
-        // making the player diagnose the plugin.
-        troubleshootingBody.setLayout(new BoxLayout(troubleshootingBody, BoxLayout.Y_AXIS));
-        troubleshootingBody.setBackground(CARD);
-        troubleshootingBody.setAlignmentX(Component.LEFT_ALIGNMENT);
-        stack(
-            troubleshootingBody,
-            copy("Scapestack shows what it could and could not read on your plan page."),
-            copy("Open scapestack.org/plugin for the current state of this install."),
-            copy("Changed your RSN? Turn on Reconnect player, then sync once.")
-        );
-        troubleshootingBody.setVisible(false);
-        toggle.addActionListener(e -> {
-            troubleshootingBody.setVisible(!troubleshootingBody.isVisible());
-            wrapper.revalidate();
-            wrapper.repaint();
-        });
-        stack(wrapper, toggle, troubleshootingBody);
-        return wrapper;
+    private void showAnotherAnswer() {
+        if (answers.size() < 2) {
+            setStatus("Refreshing answer");
+            syncNow.run();
+            return;
+        }
+        answerIndex = (answerIndex + 1) % answers.size();
+        renderAnswer(answers.get(answerIndex));
     }
 
-    /** The stock RuneLite card: DARKER_GRAY block, 10px padding, no border, no arc. */
+    private void renderAnswer(ServerResponseSummary.PanelAnswer answer) {
+        answerTitle.setText(answer.title);
+        answerDetail.setCopy(answer.detail);
+        stopAt.setValue(answer.stopAt);
+        current.setValue(answer.current);
+        left.setValue(answer.left);
+    }
+
     private static JPanel card() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -330,11 +254,9 @@ final class ScapestackSyncPanel extends PluginPanel {
     }
 
     private static void stack(JPanel parent, Component... children) {
-        for (int i = 0; i < children.length; i++) {
-            if (i > 0) {
-                parent.add(Box.createVerticalStrut(ROW_GAP));
-            }
-            parent.add(children[i]);
+        for (int index = 0; index < children.length; index++) {
+            if (index > 0) parent.add(Box.createVerticalStrut(ROW_GAP));
+            parent.add(children[index]);
         }
     }
 
@@ -346,20 +268,41 @@ final class ScapestackSyncPanel extends PluginPanel {
         return label;
     }
 
-    private static JLabel copy(String text) {
-        JLabel label = new JLabel("<html><body style='" + WRAP + "'>" + text + "</body></html>");
-        label.setForeground(KEY);
-        label.setFont(FontManager.getRunescapeSmallFont());
-        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+    private static JLabel eyebrow(String text) {
+        JLabel label = heading(text);
+        label.setForeground(ACCENT);
         return label;
     }
 
-    /**
-     * RuneLite's status line, used verbatim in InfoPanel and XpInfoBox: a grey
-     * key and a white value in one wrapped HTML label. Wrapping is the point —
-     * "Open Collection Log once, then sync again" does not fit on one 193px row,
-     * and a fixed-height row would silently truncate it to an ellipsis.
-     */
+    private static WrappedLabel copy(String text) {
+        return new WrappedLabel(text);
+    }
+
+    private static String html(String value) {
+        if (value == null) return "";
+        return value
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;")
+            .replace("'", "&#39;");
+    }
+
+    private static final class WrappedLabel extends JLabel {
+        WrappedLabel(String value) {
+            setForeground(KEY);
+            setFont(FontManager.getRunescapeSmallFont());
+            setAlignmentX(Component.LEFT_ALIGNMENT);
+            setCopy(value);
+        }
+
+        void setCopy(String value) {
+            boolean shown = value != null && !value.isBlank();
+            setText(shown ? "<html><body style='" + WRAP + "'>" + html(value) + "</body></html>" : "");
+            setVisible(shown);
+        }
+    }
+
     private static final class StatusRow extends JLabel {
         private final String key;
 
@@ -373,8 +316,8 @@ final class ScapestackSyncPanel extends PluginPanel {
         void setValue(String value) {
             String shown = value == null || value.isBlank() ? "-" : value;
             setText("<html><body style='" + WRAP + "'>"
-                + "<span style='color:#A5A5A5'>" + key + ":</span> "
-                + "<span style='color:#FFFFFF'>" + shown + "</span>"
+                + "<span style='color:#A5A5A5'>" + html(key) + ":</span> "
+                + "<span style='color:#FFFFFF'>" + html(shown) + "</span>"
                 + "</body></html>");
         }
     }
@@ -390,31 +333,24 @@ final class ScapestackSyncPanel extends PluginPanel {
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseEntered(MouseEvent e) {
+            public void mouseEntered(MouseEvent event) {
                 button.setBackground(CONTROL_HOVER);
             }
 
             @Override
-            public void mouseExited(MouseEvent e) {
+            public void mouseExited(MouseEvent event) {
                 button.setBackground(CONTROL);
             }
         });
         return button;
     }
 
-    /**
-     * The one accented thing in the panel, and it differs from every other
-     * button by exactly one pixel row. RuneLite spends BRAND_ORANGE in a single
-     * place in a stock panel — the 1px underline on a selected MaterialTab — so
-     * a 1px underline is the emphasis the client already owns.
-     */
     private static JButton primaryButton(String text) {
         JButton button = button(text);
         button.setBorder(edge(ACCENT));
         return button;
     }
 
-    /** RuneLiteLAF's own control edge: 1px BORDER_COLOR, arc 0. */
     private static Border edge(Color bottom) {
         return BorderFactory.createCompoundBorder(
             BorderFactory.createCompoundBorder(
@@ -423,9 +359,5 @@ final class ScapestackSyncPanel extends PluginPanel {
             ),
             new EmptyBorder(5, 10, 4, 10)
         );
-    }
-
-    private static void setValue(StatusRow row, String text) {
-        SwingUtilities.invokeLater(() -> row.setValue(text));
     }
 }

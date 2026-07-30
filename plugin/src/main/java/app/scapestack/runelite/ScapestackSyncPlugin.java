@@ -11,6 +11,7 @@ import net.runelite.api.GameState;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.WidgetLoaded;
+import net.runelite.api.widgets.WidgetID;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
@@ -35,6 +36,7 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -211,6 +213,11 @@ public class ScapestackSyncPlugin extends Plugin {
 
     @Subscribe
     public void onWidgetLoaded(WidgetLoaded e) {
+        if (shouldSyncAfterBankOpen(e.getGroupId(), config.autoSync(), config.syncBankItems())) {
+            updatePanelStatus("Reading bank");
+            clientThread.invokeLater(() -> triggerSync(false));
+            return;
+        }
         if (e.getGroupId() != COLLECTION_LOG_GROUP_ID) return;
         // Defer one tick — the widget tree isn't fully populated the
         // instant WidgetLoaded fires. invokeLater puts us at the end
@@ -224,6 +231,10 @@ public class ScapestackSyncPlugin extends Plugin {
                     added, collectionLogReader.snapshot().size());
             }
         });
+    }
+
+    static boolean shouldSyncAfterBankOpen(int groupId, boolean autoSync, boolean bankEnabled) {
+        return groupId == WidgetID.BANK_GROUP_ID && autoSync && bankEnabled;
     }
 
 
@@ -370,6 +381,9 @@ public class ScapestackSyncPlugin extends Plugin {
                                 snap.collectionLogItemIds.size());
                             rememberLastSync(System.currentTimeMillis());
                             updatePanelSnapshot(rsn, snap, "Synced");
+                            if (panel != null) {
+                                panel.setReceipt(ServerResponseSummary.panelReceipt(bodyText));
+                            }
                             notifyChat(buildSyncSuccessMessage(rsn, snap, syncUrl, bodyText));
                         } else if (res.code() == 401 || res.code() == 403) {
                             // Local cache may be stale (token rotated, claim
@@ -438,9 +452,7 @@ public class ScapestackSyncPlugin extends Plugin {
             .build();
         clientToolbar.addNavigation(navigationButton);
         panel.setStatus("Ready");
-        panel.setAccountMode(accountModeLabel(null));
         panel.setLastSync(formatLastSync(readLastSyncAtMs(), System.currentTimeMillis()));
-        panel.setNextAction("Press Sync now");
         panel.refresh();
     }
 
@@ -498,14 +510,7 @@ public class ScapestackSyncPlugin extends Plugin {
     private void updatePanelSnapshot(String rsn, GameStateReader.Snapshot snap, String status) {
         if (panel == null) return;
         panel.setStatus(status);
-        panel.setPlayerName(rsn);
-        panel.setAccountMode(accountModeLabel(snap.accountType));
-        GameStateReader.BankStatus bankStatus = effectiveBankStatus(snap);
-        CollectionLogReader.Status collectionLogStatus = effectiveCollectionLogStatus(snap);
-        panel.setBankStatus(panelBankStatus(bankStatus));
-        panel.setCollectionLogStatus(panelCollectionLogStatus(collectionLogStatus));
-        panel.setFarmingStatus(panelFarmingStatus(snap.farmingStatus, System.currentTimeMillis()));
-        panel.setNextAction(panelNextAction(bankStatus, collectionLogStatus, status));
+        panel.setTimers(panelTimerStatus(snap.farmingStatus, System.currentTimeMillis()));
         if ("Synced".equals(status)) {
             panel.setLastSync("Just now");
         }
@@ -968,6 +973,43 @@ public class ScapestackSyncPlugin extends Plugin {
             return "Next in " + next;
         }
         return "Nothing growing";
+    }
+
+    /** The two Time Tracking loops players decide on between trips. */
+    static String panelTimerStatus(FarmingTimerReader.Result status, long nowMs) {
+        if (status == null || !status.isAvailable()) return "";
+        String herbs = panelTimerGroup(status.rows, "herb-", "herbs", nowMs);
+        String birdhouses = panelTimerGroup(status.rows, "birdhouse-", "birdhouses", nowMs);
+        if (herbs.isEmpty()) return birdhouses;
+        if (birdhouses.isEmpty()) return herbs;
+        return herbs + " · " + birdhouses;
+    }
+
+    private static String panelTimerGroup(
+        List<FarmingTimerReader.Row> rows,
+        String prefix,
+        String label,
+        long nowMs
+    ) {
+        boolean observed = false;
+        boolean ready = false;
+        long soonestMs = Long.MAX_VALUE;
+        for (FarmingTimerReader.Row row : rows) {
+            if (row.patch == null || !row.patch.startsWith(prefix)) continue;
+            observed = true;
+            if (FarmingTimerReader.READY.equals(row.state)) ready = true;
+            if (row.readyAt == null) continue;
+            try {
+                long at = java.time.Instant.parse(row.readyAt).toEpochMilli();
+                if (at > nowMs && at < soonestMs) soonestMs = at;
+            } catch (RuntimeException ignored) {
+                // One malformed timer must not hide the rest of the panel.
+            }
+        }
+        if (!observed) return "";
+        if (ready) return label + " ready";
+        if (soonestMs != Long.MAX_VALUE) return label + " ready in " + formatCountdown(soonestMs - nowMs);
+        return label + " idle";
     }
 
     static String formatCountdown(long millis) {

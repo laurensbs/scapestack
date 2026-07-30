@@ -755,6 +755,27 @@ public class ScapestackSyncPluginTest {
     }
 
     @Test
+    public void panelTimerStatusSeparatesHerbsAndBirdhouses() {
+        long now = java.time.Instant.parse("2026-07-18T13:00:00Z").toEpochMilli();
+        assertEquals(
+            "herbs ready in 12 min · birdhouses ready",
+            ScapestackSyncPlugin.panelTimerStatus(
+                FarmingTimerReader.Result.available(
+                    Arrays.asList(
+                        new FarmingTimerReader.Row("herb-catherby", "Ranarr", "growing", "2026-07-18T13:12:00Z"),
+                        new FarmingTimerReader.Row("birdhouse-mushroom-meadow-north", "Yew Bird House", "ready", null)
+                    ),
+                    2,
+                    111,
+                    "2026-07-18T13:00:00Z",
+                    false
+                ),
+                now
+            )
+        );
+    }
+
+    @Test
     public void countdownsAreCountedInWhatPlayersCountIn() {
         assertEquals("1 min", ScapestackSyncPlugin.formatCountdown(1_000L));
         assertEquals("42 min", ScapestackSyncPlugin.formatCountdown(42 * 60_000L));
@@ -839,6 +860,26 @@ public class ScapestackSyncPluginTest {
         assertFalse(ScapestackSyncPlugin.shouldSyncAfterQuestComplete(questComplete, true, false));
         assertFalse(ScapestackSyncPlugin.shouldSyncAfterQuestComplete("Quest complete!", true, true));
         assertFalse(ScapestackSyncPlugin.shouldSyncAfterQuestComplete(null, true, true));
+    }
+
+    @Test
+    public void openingBankRefreshesAnswerOnlyAfterExplicitSyncAndBankOptIn() {
+        assertTrue(ScapestackSyncPlugin.shouldSyncAfterBankOpen(
+            net.runelite.api.widgets.WidgetID.BANK_GROUP_ID,
+            true,
+            true
+        ));
+        assertFalse(ScapestackSyncPlugin.shouldSyncAfterBankOpen(
+            net.runelite.api.widgets.WidgetID.BANK_GROUP_ID,
+            false,
+            true
+        ));
+        assertFalse(ScapestackSyncPlugin.shouldSyncAfterBankOpen(
+            net.runelite.api.widgets.WidgetID.BANK_GROUP_ID,
+            true,
+            false
+        ));
+        assertFalse(ScapestackSyncPlugin.shouldSyncAfterBankOpen(621, true, true));
     }
 
     private static ConfigChanged configChange(String group, String key, String newValue) {

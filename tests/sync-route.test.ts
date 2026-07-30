@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import releaseManifest from "../plugin/release-manifest.json";
 import syncPayloadV3 from "./fixtures/plugin-sync-v3.json";
+import syncPayloadV4 from "./fixtures/plugin-sync-v4.json";
 
 const state = vi.hoisted(() => ({
   allowed: true,
@@ -16,7 +17,17 @@ const state = vi.hoisted(() => ({
     accountDelta: null
   } as Record<string, unknown>,
   reconciled: [] as unknown[],
-  outcomeResult: [] as unknown[]
+  outcomeResult: [] as unknown[],
+  panelReceipt: {
+    answers: [{
+      title: "Vorkath",
+      detail: "Your bank has the trip covered.",
+      stopAt: "20 kills",
+      current: "7 / 20",
+      left: "~34 min"
+    }],
+    bankInsight: "14,500,000 gp banked. Ahrim's robeskirt — 1,572,490 gp. That finishes Ahrim's."
+  } as unknown
 }));
 
 vi.mock("@/lib/sync-auth", () => ({
@@ -40,6 +51,10 @@ vi.mock("@/lib/recommendation-outcome-repo", () => ({
     state.reconciled.push(input);
     return state.outcomeResult;
   }
+}));
+
+vi.mock("@/lib/plugin-panel-answer", () => ({
+  buildPluginPanelReceipt: async () => state.panelReceipt
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -88,6 +103,16 @@ beforeEach(() => {
   };
   state.reconciled = [];
   state.outcomeResult = [];
+  state.panelReceipt = {
+    answers: [{
+      title: "Vorkath",
+      detail: "Your bank has the trip covered.",
+      stopAt: "20 kills",
+      current: "7 / 20",
+      left: "~34 min"
+    }],
+    bankInsight: "14,500,000 gp banked. Ahrim's robeskirt — 1,572,490 gp. That finishes Ahrim's."
+  };
   vi.resetModules();
 });
 
@@ -219,6 +244,7 @@ describe("POST /api/sync", () => {
       }
     });
     await expect(response.json()).resolves.toMatchObject({
+      panel: null,
       plugin: { version: "0.3.0", contractVersion: 3 },
       accepted: {
         claim: { status: "verified", rsn: "iron lynx" },
@@ -231,6 +257,17 @@ describe("POST /api/sync", () => {
           bank: { state: "available" }
         }
       }
+    });
+  });
+
+  it("returns the additive in-client answer receipt only to contract-4 plugins", async () => {
+    const { POST } = await loadRoute();
+    const response = await POST(syncRequest(syncPayloadV4));
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      panel: state.panelReceipt,
+      plugin: { version: "0.4.0", contractVersion: 4 }
     });
   });
 

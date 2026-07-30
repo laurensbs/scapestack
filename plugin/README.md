@@ -14,9 +14,17 @@ with item IDs/names/quantities when your bank has been opened; turn off
 Use `Sync now` when you want to refresh the planner on demand; the toggle
 resets automatically after the sync starts.
 
-When sync succeeds, RuneLite chat stays compact: it confirms that the Scapestack
-planner was updated and tells the player to open `/next`. It does not show or ask
-for a sync URL. The public plugin always uses the official
+When sync succeeds, the RuneLite panel shows the next trip itself: what to do,
+the stop point, current progress, expected time left, live herb/bird-house
+timers, and (when the live GE feed can price it) the closest bank set the
+player can finish. `Something else` cycles through the next two measured
+options. Opening the bank refreshes this answer when both `Sync on login` and
+bank checks are enabled. The panel's `Sync on login` control changes that one
+setting only.
+
+RuneLite chat stays compact. The old “is syncing” line fires only for manual
+syncs; background login, bank-open, quest and interval refreshes do not regress
+to periodic chat noise. The plugin does not show or ask for a sync URL. The public plugin always uses the official
 Scapestack endpoint automatically; normal players do not paste or configure a
 sync URL. Local development can override it with the hidden
 `-Dscapestack.syncUrl=http://127.0.0.1:4173/api/sync` JVM property.
@@ -33,6 +41,8 @@ loaded collection-log item IDs, boss KC RuneLite has already observed, Slayer st
 farming-patch and bird-house timers RuneLite's own Time Tracking plugin has recorded,
 bank item IDs/names/quantities when bank checks are on,
 and the local install token only as the Authorization bearer on claim/sync requests.
+As with every HTTPS request, the Scapestack server can see the connection's IP
+address. The plugin does not add the IP address to its JSON snapshot.
 
 Boss KC is intentionally sparse: RuneLite only knows a count after it has seen that boss in the
 adventure log or after a new kill. Missing bosses stay unknown and are never
@@ -49,7 +59,7 @@ turns this off with it.
 
 Never sent: RuneScape password, inventory, equipment, GE offers, chat,
 friends list, clicks, key presses, screenshots, local files, or RuneLite
-config folders, IP address, or machine fingerprint.
+config folders, or a machine fingerprint.
 
 Equipment stays on that list in 0.4.0. The snapshot contract has a slot for
 it, and the plugin fills that slot with `unsupported` rather than leaving it
@@ -59,6 +69,11 @@ The server stores `sha256(token) → RSN` first-wins. The raw token stays
 local except for HTTPS claim and sync requests where it is sent as
 `Authorization: Bearer <token>` to `/api/sync/claim` and `/api/sync`.
 Claim and sync requests both carry the token as `Authorization: Bearer <token>`.
+
+The optional `panel` member in a successful sync response is additive and
+backward-compatible. It contains at most three compact answers and one bank
+affordability sentence. It does not add a transmitted field and therefore does
+not change snapshot contract 4.
 
 ## Web app merge contract
 

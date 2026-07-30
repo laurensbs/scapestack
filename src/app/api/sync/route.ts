@@ -20,6 +20,9 @@ import { normalizeScapestackAccountType } from "@/lib/account-type";
 import { RSN_MAX_LENGTH, cleanRsnInput, isValidRsn, normalizeRsn } from "@/lib/rsn";
 import { normalizePluginBankStatus } from "@/lib/plugin-bank-status";
 import { reconcileActiveRecommendationOutcomes } from "@/lib/recommendation-outcome-repo";
+import { buildPluginPanelReceipt, type PluginPanelReceipt } from "@/lib/plugin-panel-answer";
+import type { SnapshotAvailability } from "@/lib/account-snapshot-delta";
+import type { SyncDeltaSummary, SyncedPlayer } from "@/lib/sync-repo";
 import {
   parsePluginSnapshotContract,
   snapshotAvailabilityFromCoverage
@@ -319,10 +322,11 @@ export async function POST(req: Request): Promise<Response> {
     : null;
 
   let syncedAt: string;
-  let syncSummary: unknown = null;
+  let syncSummary: SyncDeltaSummary | null = null;
+  let availability: Partial<SnapshotAvailability>;
   let newOutcomes: Array<{ status: string; title: string; detail: string }> = [];
   try {
-    const availability = snapshotContract.coverage !== null
+    availability = snapshotContract.coverage !== null
       ? snapshotAvailabilityFromCoverage(snapshotContract.coverage)
       : legacySnapshotAvailability({
           body,
@@ -381,6 +385,42 @@ export async function POST(req: Request): Promise<Response> {
     );
   }
 
+  let panel: PluginPanelReceipt | null = null;
+  // Published 0.3.0 clients cannot render this receipt. Keep their hot path
+  // unchanged; only the prepared contract-4 plugin pays for panel planning.
+  if ((snapshotContract.contractVersion ?? 0) >= 4) {
+    try {
+      const syncedPlayer: SyncedPlayer = {
+        rsn: normalizedRsn,
+        displayName,
+        accountType,
+        skills,
+        questsCompleted,
+        diariesCompleted,
+        collectionLogItemIds,
+        bossKc,
+        bankItems,
+        bankStatus,
+        slayer,
+        pluginVersion,
+        snapshotCoverage: snapshotContract.coverage,
+        availability,
+        equipment,
+        farming,
+        combatAchievements,
+        lastSyncSummary: syncSummary,
+        syncedAt
+      };
+      panel = await buildPluginPanelReceipt(syncedPlayer);
+    } catch (error) {
+      // The answer is an additive receipt. A planner or price-feed failure must
+      // never turn a successful account snapshot into a failed sync.
+      console.error("Plugin panel receipt failed", {
+        name: error instanceof Error ? error.name : "UnknownError"
+      });
+    }
+  }
+
   return json({
     ok: true,
     syncedAt,
@@ -398,6 +438,7 @@ export async function POST(req: Request): Promise<Response> {
         : null
     },
     syncSummary,
+    panel,
     outcomes: newOutcomes,
     player: {
       rsn: normalizedRsn,

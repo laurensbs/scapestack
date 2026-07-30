@@ -69,4 +69,28 @@ public class ServerResponseSummaryTest {
         );
         assertEquals(false, ServerResponseSummary.hasNewProgress("not json"));
     }
+
+    @Test
+    public void parsesBoundedPanelReceiptWithoutRequiringItFromOlderServers() {
+        ServerResponseSummary.PanelReceipt receipt = ServerResponseSummary.panelReceipt(
+            "{\"ok\":true,\"panel\":{\"answers\":[{"
+                + "\"title\":\"Vorkath\","
+                + "\"detail\":\"Blowpipe + dragon darts are in your bank.\","
+                + "\"stopAt\":\"20 kills\","
+                + "\"current\":\"7 / 20\","
+                + "\"left\":\"~34 min\"}],"
+                + "\"bankInsight\":\"14,500,000 gp banked. Ahrim's robeskirt — 1,572,490 gp. That finishes Ahrim's.\"}}"
+        );
+
+        assertEquals(1, receipt.answers.size());
+        assertEquals("Vorkath", receipt.answers.get(0).title);
+        assertEquals("20 kills", receipt.answers.get(0).stopAt);
+        assertEquals("7 / 20", receipt.answers.get(0).current);
+        assertEquals("~34 min", receipt.answers.get(0).left);
+        assertEquals(
+            "14,500,000 gp banked. Ahrim's robeskirt — 1,572,490 gp. That finishes Ahrim's.",
+            receipt.bankInsight
+        );
+        assertEquals(null, ServerResponseSummary.panelReceipt("{\"ok\":true}"));
+    }
 }
