@@ -91,6 +91,7 @@ describe("the four bank questions live on the canonical player page", () => {
       skills: [],
       questsCompleted: [],
       cannotBuy: false,
+      canShareBank: false,
       bosses: [boss],
       sets,
       task: null,

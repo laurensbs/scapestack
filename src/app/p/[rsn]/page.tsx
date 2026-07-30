@@ -167,6 +167,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
       skills={hi.skills}
       questsCompleted={context.scapestackSync?.questsCompleted ?? []}
       cannotBuy={cannotBuy}
+      canShareBank={isOwner && sets !== null && !cannotBuy}
       bosses={bosses}
       sets={sets}
       task={slayerDecision}

@@ -4,6 +4,7 @@ import {
   type AffordabilityReport,
   type AffordableSet
 } from "@/lib/bank-affordability";
+import { BankShareControl } from "@/components/bank-share-control";
 
 function allStartedSets(report: AffordabilityReport): AffordableSet[] {
   const seen = new Set<string>();
@@ -16,10 +17,12 @@ function allStartedSets(report: AffordabilityReport): AffordableSet[] {
 
 export function PlayerSetsSection({
   report,
-  cannotBuy
+  cannotBuy,
+  canShare
 }: {
   report: AffordabilityReport | null;
   cannotBuy: boolean;
+  canShare: boolean;
 }) {
   const rows = report ? allStartedSets(report) : [];
   const headline = report && !cannotBuy ? affordabilityLine(report) : null;
@@ -65,6 +68,7 @@ export function PlayerSetsSection({
           )}
         </>
       )}
+      {canShare && rows.length > 0 && !report?.pricesUnavailable && <BankShareControl />}
     </section>
   );
 }

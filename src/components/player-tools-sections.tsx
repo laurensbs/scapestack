@@ -41,6 +41,7 @@ export function PlayerToolsSections({
   skills,
   questsCompleted,
   cannotBuy,
+  canShareBank,
   bosses,
   sets,
   task,
@@ -51,6 +52,7 @@ export function PlayerToolsSections({
   skills: ReadonlyArray<{ name: string; level: number }>;
   questsCompleted: readonly string[];
   cannotBuy: boolean;
+  canShareBank: boolean;
   bosses: readonly BossViability[] | null;
   sets: AffordabilityReport | null;
   task: SlayerTaskDecision | null;
@@ -127,7 +129,11 @@ export function PlayerToolsSections({
             </p>
           )}
           <PlayerBossesSection bosses={local?.bosses ?? bosses} />
-          <PlayerSetsSection report={local?.sets ?? sets} cannotBuy={cannotBuy} />
+          <PlayerSetsSection
+            report={local?.sets ?? sets}
+            cannotBuy={cannotBuy}
+            canShare={canShareBank && local === null}
+          />
           <PlayerTaskSection decision={task} emptyReason={emptyTaskReason} />
           <MoneyMethodsPanel report={local?.money ?? money} cannotBuy={cannotBuy} />
         </>

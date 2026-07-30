@@ -33,7 +33,7 @@ describe("route mapping", () => {
 
   it("ignores routes that are not part of the question", () => {
     expect(analyticsRouteFor("/api/sync")).toBeNull();
-    expect(analyticsRouteFor("/share/trip/abc")).toBeNull();
+    expect(analyticsRouteFor("/share/bank/abcdefghijklmnopqrstuvwx")).toBeNull();
   });
 });
 

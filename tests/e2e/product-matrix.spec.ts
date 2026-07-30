@@ -135,7 +135,9 @@ test.describe("Scapestack product story matrix", () => {
   });
 
   test("12. social share image renders as a standalone decision", async ({ page, isMobile }) => {
-    await page.goto("/share/trip/opengraph-image?result=My+bank+supports+this+Vorkath+trip&why=Salve+would+improve+the+trip&stop=Stop+at+50+KC&item=21907");
+    const shareId = process.env.SCAPESTACK_E2E_PUBLIC_BANK_SHARE_ID;
+    test.skip(!shareId, "requires a real owner-published bank affordability image");
+    await page.goto(`/share/bank/${shareId}/opengraph-image`);
     await expect(page.locator("body")).toBeVisible();
     if (!isMobile) {
       await expectNoHorizontalOverflow(page);

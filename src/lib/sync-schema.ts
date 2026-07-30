@@ -268,6 +268,24 @@ CREATE TABLE IF NOT EXISTS account_retention (
   delete_after TIMESTAMPTZ,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- One frozen, bank-derived answer. The raw bank never enters this table.
+-- Creation is private; only an owner-scoped UPDATE may set published_at.
+CREATE TABLE IF NOT EXISTS bank_affordability_share (
+  share_id TEXT PRIMARY KEY,
+  account_id UUID NOT NULL REFERENCES account_identity(account_id) ON DELETE CASCADE,
+  snapshot JSONB NOT NULL,
+  source_synced_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  published_at TIMESTAMPTZ,
+  revoked_at TIMESTAMPTZ,
+  CHECK (share_id ~ '^[A-Za-z0-9_-]{24}$')
+);
+CREATE INDEX IF NOT EXISTS bank_affordability_share_owner_idx ON bank_affordability_share(account_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS bank_affordability_share_public_idx ON bank_affordability_share(share_id) WHERE published_at IS NOT NULL AND revoked_at IS NULL;
+CREATE OR REPLACE FUNCTION prevent_bank_share_snapshot_update() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.snapshot IS DISTINCT FROM OLD.snapshot OR NEW.account_id IS DISTINCT FROM OLD.account_id OR NEW.source_synced_at IS DISTINCT FROM OLD.source_synced_at THEN RAISE EXCEPTION 'bank share snapshot is immutable'; END IF; RETURN NEW; END; $$;
+DROP TRIGGER IF EXISTS bank_affordability_share_snapshot_no_update ON bank_affordability_share;
+CREATE TRIGGER bank_affordability_share_snapshot_no_update BEFORE UPDATE ON bank_affordability_share FOR EACH ROW EXECUTE FUNCTION prevent_bank_share_snapshot_update();
 `;
 
 export function syncSchemaStatements(): string[] {
