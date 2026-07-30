@@ -71,8 +71,9 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).not.toContain("First this");
     expect(next).not.toContain("After that");
     expect(next).toContain("Plan my next move");
-    expect(next).toContain("Choose a session instead");
-    expect(next).toContain("Want a different kind of trip?");
+    expect(next).not.toContain("Choose a session instead");
+    expect(next).not.toContain("Want a different kind of trip?");
+    expect(next).not.toContain("What are you in the mood for?");
     expect(next).not.toContain("Another route");
     // Was "Choose a different vibe" + "Two different session routes." — three
     // heading lines restating each other in banned vocabulary. The
@@ -114,7 +115,7 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).not.toContain("Copy plan");
     expect(next).toContain("Last scan:");
     expect(next).toContain("Trip details");
-    expect(next).toContain("Chill now");
+    expect(next).not.toContain("Chill now");
     expect(next).toContain("accountStage={summary.accountStage}");
     expect(next).not.toContain("Bossing stays backup while this route has the cleaner stop point.");
     expect(plugin).toContain("Keep your next trip current.");

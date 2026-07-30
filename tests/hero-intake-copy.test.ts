@@ -87,7 +87,8 @@ describe("hero intake copy and routing", () => {
     expect(source).not.toContain("FIRST_SETUP_INTENTS");
     expect(source).not.toContain("Plan this session");
     expect(nextSource).toContain("runWithRoute();");
-    expect(nextSource).toContain("Choose a session instead");
+    expect(nextSource).not.toContain("Choose a session instead");
+    expect(nextSource).not.toContain("What do you feel like doing?");
     expect(nextSource).toContain("Your first plan is ready.");
     expect(nextSource).toContain("Sharpen next plan");
     expect(nextSource).toContain("Make the next pick sharper");

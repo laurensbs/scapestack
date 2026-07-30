@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { nextUpAction } from "@/app/actions";
 import { PlayerPlanAnswer, PlayerPlanAlternatives, type PlayerPlanLine } from "@/components/player-plan-answer";
 import { QuestCompletionQuestions } from "@/components/quest-completion-questions";
@@ -14,7 +14,13 @@ import {
   recommendationDecisionCopy,
   type RecommendationDecisionCopy
 } from "@/lib/recommendation-decision";
-import { recordRecommendationMemory } from "@/lib/recommendation-feedback";
+import {
+  hidePlayerPlanRecommendation,
+  loadRecommendationFeedback,
+  recordRecommendationMemory,
+  RECOMMENDATION_FEEDBACK_CHANGE_EVENT,
+  type RecommendationFeedback
+} from "@/lib/recommendation-feedback";
 import {
   loadQuestCompletionAnswers,
   saveQuestCompletionAnswer
@@ -50,6 +56,11 @@ export function PlayerPlanPanel({
 }) {
   const [result, setResult] = useState<NextUpResult | null>(initialContext.initialPlan);
   const [selectedRecommendationId, setSelectedRecommendationId] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<RecommendationFeedback>(() => ({
+    version: 1,
+    suppressed: {},
+    recent: []
+  }));
   const [pending, startTransition] = useTransition();
   const bankItems = initialContext.scapestackSync?.bankItems ?? [];
   const hasBank = bankItems.length > 0;
@@ -60,16 +71,20 @@ export function PlayerPlanPanel({
       ? [result.headline, ...result.rest]
       : result.rest
     : [], [result]);
+  const visibleRecs = useMemo(
+    () => allRecs.filter((rec) => !feedback.suppressed[rec.id]),
+    [allRecs, feedback]
+  );
   const basePick = useMemo(() => result ? pickForRoute(
-    allRecs,
+    visibleRecs,
     PLAYER_MOOD,
     PLAYER_MINUTES,
     PLAYER_ROUTE,
     0,
     { honestyContext: { hasPublicStats, hasBank, hasRuneLite } }
-  ) : null, [allRecs, hasBank, hasPublicStats, hasRuneLite, result]);
+  ) : null, [hasBank, hasPublicStats, hasRuneLite, result, visibleRecs]);
   const activeRec = selectedRecommendationId
-    ? allRecs.find((rec) => rec.id === selectedRecommendationId) ?? basePick?.headline ?? null
+    ? visibleRecs.find((rec) => rec.id === selectedRecommendationId) ?? basePick?.headline ?? null
     : basePick?.headline ?? null;
   const alternatives = activeRec && basePick
     ? [basePick.headline, ...basePick.alternatives]
@@ -100,6 +115,17 @@ export function PlayerPlanPanel({
         { label: "Stop at", value: decisionCopy.stopPoint }
       ]
     : [];
+
+  useEffect(() => {
+    const refreshFeedback = () => setFeedback(loadRecommendationFeedback());
+    refreshFeedback();
+    window.addEventListener(RECOMMENDATION_FEEDBACK_CHANGE_EVENT, refreshFeedback);
+    window.addEventListener("storage", refreshFeedback);
+    return () => {
+      window.removeEventListener(RECOMMENDATION_FEEDBACK_CHANGE_EVENT, refreshFeedback);
+      window.removeEventListener("storage", refreshFeedback);
+    };
+  }, []);
 
   const answerQuest = (quest: string, completed: boolean) => {
     const answers = saveQuestCompletionAnswer(rsn, { quest, completed });
@@ -141,6 +167,17 @@ export function PlayerPlanPanel({
     });
   };
 
+  const hideAlternative = (rec: Recommendation) => {
+    setFeedback(hidePlayerPlanRecommendation({
+      recommendation: rec,
+      mood: PLAYER_MOOD,
+      routeLens: PLAYER_ROUTE,
+      rsn,
+      minutes: PLAYER_MINUTES
+    }));
+    setSelectedRecommendationId(null);
+  };
+
   if (!result || !activeRec || !decisionCopy) {
     return (
       <section className="border-y border-[var(--color-border)] py-5" data-player-plan-answer="empty">
@@ -175,6 +212,7 @@ export function PlayerPlanPanel({
           setSelectedRecommendationId(rec.id);
           document.querySelector("[data-player-plan-answer='true']")?.scrollIntoView({ behavior: "smooth", block: "start" });
         }}
+        onHide={hideAlternative}
       />
     </div>
   );

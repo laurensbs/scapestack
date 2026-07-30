@@ -16,9 +16,13 @@ describe("first-run value flow", () => {
     expect(hero).not.toContain('aria-labelledby="hero-first-setup-title"');
   });
 
-  it("uses Best now immediately and keeps route choice optional", () => {
+  it("renders the default answer without asking for a route choice", () => {
     expect(next).toMatch(/const submitRsn[\s\S]*?runWithRoute\(\);/);
-    expect(next).toContain("Choose a session instead");
+    expect(next).not.toContain("Choose a session instead");
+    expect(next).not.toContain("What do you feel like doing?");
+    expect(next).toContain('routeLens: "smart"');
+    expect(next).toContain("mood: DEFAULT_MOOD");
+    expect(next).toContain("minutes: DEFAULT_TIME");
     expect(next).not.toContain("Pick today&apos;s trip");
   });
 

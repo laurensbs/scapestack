@@ -1,6 +1,8 @@
 // Local feedback loop for /next recommendations. This is deliberately
 // localStorage-only for v1: no account, no auth, no server profile needed.
 
+import type { Recommendation } from "@/lib/next-up";
+
 const KEY = "scapestack:recommendation-feedback:v1";
 const MAX_RECENT_MEMORY = 40;
 const RECENT_MEMORY_WINDOW_MS = 6 * 60 * 60 * 1000;
@@ -105,6 +107,29 @@ export function suppressRecommendation(input: {
   };
   saveRecommendationFeedback(next);
   return next;
+}
+
+export function hidePlayerPlanRecommendation(input: {
+  recommendation: Recommendation;
+  mood?: string;
+  routeLens?: string;
+  rsn?: string;
+  minutes?: number;
+  attention?: RecommendationMemoryEntry["attention"];
+  wilderness?: boolean;
+}): RecommendationFeedback {
+  return suppressRecommendation({
+    id: input.recommendation.id,
+    kind: input.recommendation.kind,
+    title: input.recommendation.title,
+    reason: "not_my_style",
+    mood: input.mood,
+    routeLens: input.routeLens,
+    rsn: input.rsn,
+    minutes: input.minutes,
+    attention: input.attention,
+    wilderness: input.wilderness
+  });
 }
 
 export function restoreRecommendation(id: string): RecommendationFeedback {

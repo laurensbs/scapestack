@@ -80,7 +80,8 @@ describe("the canonical player hub", () => {
         createElement(PlayerPlanAlternatives, {
           headline: answer,
           alternatives: [alternative],
-          onSelect: vi.fn()
+          onSelect: vi.fn(),
+          onHide: vi.fn()
         })
       ),
       bank: createElement("p", null, "Your bank"),

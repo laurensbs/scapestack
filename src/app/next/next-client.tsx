@@ -42,7 +42,6 @@ import {
   recommendationDiversityFamily,
   recommendationDiversityFamilyForKind,
   recommendationMoodEligibility,
-  MOOD_LABEL,
   ROUTE_LENS_LABEL,
   ROUTE_LENS_ORDER,
   type Mood,
@@ -52,6 +51,7 @@ import {
 import { saveMood, loadMood, relativeSince, type MoodSession } from "@/lib/mood-storage";
 import {
   clearLearnedRecommendationPreferences,
+  hidePlayerPlanRecommendation,
   latestRecommendationFeedback,
   latestStartedRecommendationMemory,
   latestRecommendationMemory,
@@ -305,24 +305,6 @@ function recommendationForGoalRoute(focus: GoalRouteFocus, rsn: string): Recomme
     }
   };
 }
-
-const INTAKE_SESSION_CHOICES: Array<{
-  id: string;
-  label: string;
-  helper: string;
-  routeLens: RouteLens;
-  mood: Mood;
-  minutes: TimeBudget;
-}> = [
-  { id: "best", label: "Best now", helper: "Let Scapestack pick the cleanest route.", routeLens: "smart", mood: "unlock", minutes: 60 },
-  { id: "chill", label: "Chill", helper: "Low effort progress, no sweaty trip.", routeLens: "fun", mood: "chill", minutes: 30 },
-  { id: "gp", label: "GP", helper: "Fund supplies or your next upgrade.", routeLens: "gp-upgrade", mood: "cash", minutes: 60 },
-  { id: "intense", label: "Intense", helper: "Bossing, KC or a harder unlock block.", routeLens: "boss-log", mood: "bossing", minutes: 120 },
-  { id: "unlock", label: "Unlock", helper: "Quest, diary or account gates.", routeLens: "unlock-chain", mood: "unlock", minutes: 120 },
-  { id: "afk", label: "AFK", helper: "Progress while doing something else.", routeLens: "afk-progress", mood: "afk", minutes: 60 },
-  { id: "short", label: "Short", helper: "One clean stop point before logout.", routeLens: "short-login", mood: "short", minutes: 15 },
-  { id: "maxing", label: "Maxing", helper: "Longer account route toward 99s.", routeLens: "maxing", mood: "unlock", minutes: 120 }
-];
 
 // Render a kind's signature glyph: OSRS sprite first (with a mounted-fade-in
 // so the wiki round-trip doesn't pop), Lucide icon as a fallback when the
@@ -913,10 +895,7 @@ function NextIntake({
   // might have one without the other.
   const [rsn, setRsn] = useState(savedRsn ?? "");
   const [showBankField, setShowBankField] = useState(false);
-  const [showRoutePicker, setShowRoutePicker] = useState(false);
-  const routePickerRef = useDialogA11y<HTMLDivElement>(showRoutePicker, () => setShowRoutePicker(false));
   const [bank, setBank] = useState("");
-  const [selectedRouteLens, setSelectedRouteLens] = useState<RouteLens>("smart");
   const handoffSummary = fromBank ? summarizeBankHandoff(fromBank.items) : null;
   const attachedBank = bank.trim() || (!fromBank ? savedBank?.banktags.trim() ?? "" : "");
   const hasAttachedBank = Boolean(fromBank || attachedBank);
@@ -924,25 +903,18 @@ function NextIntake({
     hasBankContext: hasAttachedBank
   });
 
-  const runWithRoute = (choice?: {
-    routeLens: RouteLens;
-    mood: Mood;
-    minutes: TimeBudget;
-  }) => {
+  const runWithRoute = () => {
     const clean = rsn.trim();
-    const routeLens = choice?.routeLens ?? selectedRouteLens;
-    const routeDefaultTime = defaultTimeForRouteLens(routeLens);
     if (clean) saveSavedRsn(clean);
-    setShowRoutePicker(false);
     onRun({
       rsn: clean,
       input: attachedBank || undefined,
       // If the user came from /bank, ride that bank along so /next can
       // give gear-aware recs even before they type their RSN.
       bankItems: fromBank?.items,
-      routeLens,
-      mood: choice?.mood ?? moodForRouteLens(routeLens, DEFAULT_MOOD),
-      minutes: choice?.minutes ?? routeDefaultTime ?? DEFAULT_TIME
+      routeLens: "smart",
+      mood: DEFAULT_MOOD,
+      minutes: DEFAULT_TIME
     });
   };
 
@@ -1038,15 +1010,7 @@ function NextIntake({
           <div className="flex shrink-0 flex-wrap gap-2 sm:flex-col sm:items-stretch">
             <button
               type="button"
-              onClick={() => {
-                const routeDefaultTime = defaultTimeForRouteLens(selectedRouteLens);
-                onRun({
-                  bankItems: fromBank.items,
-                  routeLens: selectedRouteLens,
-                  mood: moodForRouteLens(selectedRouteLens, DEFAULT_MOOD),
-                  minutes: routeDefaultTime ?? DEFAULT_TIME
-                });
-              }}
+              onClick={runWithRoute}
               disabled={loading}
               className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15 disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -1146,16 +1110,6 @@ function NextIntake({
             <ClipboardPaste className="size-3.5" />
             {hasAttachedBank ? "Bank added" : "Add bank"}
           </button>
-          <button
-            type="button"
-            onClick={() => setShowRoutePicker(true)}
-            disabled={loading}
-            aria-haspopup="dialog"
-            aria-expanded={showRoutePicker}
-            className="inline-flex items-center gap-1.5 rounded-full border border-transparent px-3 py-1.5 text-[12.5px] font-semibold text-[var(--color-text-dim)] underline decoration-dotted underline-offset-4 transition-colors hover:text-[var(--color-accent)] disabled:opacity-50"
-          >
-            Choose a session instead
-          </button>
           {bank.trim() && (
             <button
               type="button"
@@ -1172,92 +1126,6 @@ function NextIntake({
           <p className="mt-3 text-[12px] text-[var(--color-warning)] text-center">{error}</p>
         )}
       </form>
-
-      {showRoutePicker && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="next-route-popup-title"
-          aria-describedby="next-route-popup-description"
-          className="fixed inset-0 z-[110] overflow-y-auto bg-black/72 px-4 pb-8 pt-20 backdrop-blur-sm sm:grid sm:place-items-center sm:py-8"
-          onClick={() => setShowRoutePicker(false)}
-        >
-          <div
-            ref={routePickerRef}
-            tabIndex={-1}
-            className="osrs-frame w-full max-w-2xl text-left"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="osrs-title-bar flex items-start justify-between gap-4 px-5 py-4 sm:px-6">
-              <div>
-                <p className="eyebrow">Before we pick</p>
-                <h2 id="next-route-popup-title" className="mt-1 text-[24px] font-semibold leading-tight text-[var(--color-text)]">
-                  What do you feel like doing?
-                </h2>
-                <p id="next-route-popup-description" className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
-                  Pick the session. Bank and RuneLite can make the route sharper later.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowRoutePicker(false)}
-                aria-label="Close route picker"
-                className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-
-            <div className="osrs-body grid grid-cols-2 gap-2 p-5 sm:grid-cols-4 sm:p-6">
-              {INTAKE_SESSION_CHOICES.map((choice) => {
-                const selected = selectedRouteLens === choice.routeLens;
-                return (
-                  <button
-                    key={choice.id}
-                    type="button"
-                    aria-pressed={selected}
-                    onClick={() => {
-                      setSelectedRouteLens(choice.routeLens);
-                      runWithRoute(choice);
-                    }}
-                    className={cn(
-                      "min-h-[82px] rounded-lg border px-3 py-3 text-left transition-colors",
-                      selected
-                        ? "border-[var(--color-accent)] bg-[var(--color-accent)]/16 text-[var(--color-text)]"
-                        : "border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 text-[var(--color-text-dim)] hover:border-[var(--color-accent)] hover:text-[var(--color-text)]"
-                    )}
-                  >
-                    <span className="block text-[14px] font-bold text-[var(--color-text)]">{choice.label}</span>
-                    <span className="mt-1 block text-[11.5px] leading-snug text-[var(--color-text-muted)]">{choice.helper}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="osrs-body flex flex-col gap-2 border-t border-[var(--color-parchment-edge)] px-5 pb-5 sm:flex-row sm:px-6 sm:pb-6">
-              <button
-                type="button"
-                onClick={() => runWithRoute()}
-                className="btn-primary h-11 flex-1 justify-center px-4 text-[14px]"
-              >
-                Plan best route
-                <ArrowRight className="size-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowRoutePicker(false);
-                  setShowBankField(true);
-                }}
-                className="btn-ghost h-11 justify-center px-4 text-[13px] font-bold"
-              >
-                <ClipboardPaste className="size-4" />
-                {hasAttachedBank ? "Review bank" : "Add bank first"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <AddBankModal
         open={showBankField}
@@ -4279,34 +4147,11 @@ function RouteChainScroll({
   );
 }
 
-// ── Mood section ───────────────────────────────────────────────────────────
-// "Wat heb je zin in?" — kies een mood, kies een tijdsbudget, krijg
-// één concrete suggestie + 2 alternatieven. Optioneel; de hoofdpick
-// hierboven blijft de objectief-beste anchor voor wie deze keuze wil
-// overslaan. Engine zit in src/lib/mood.ts (pickForMood).
+// The engine still ranks against mood and timebox inputs, including legacy
+// intent links and remembered account context. Those inputs are deliberately
+// not a visible prerequisite for getting the answer.
 
 const MOODS: Mood[] = ["chill", "cash", "bossing", "unlock", "afk", "short"];
-const TIME_OPTIONS: { value: TimeBudget; label: string }[] = [
-  { value: 15,  label: "15 min" },
-  { value: 30,  label: "30 min" },
-  { value: 60,  label: "1 hour" },
-  { value: 120, label: "2 hours" },
-];
-const SESSION_MOOD_GRID_CHOICES: Array<{
-  id: Mood | "surprise";
-  label: string;
-  helper: string;
-  mood?: Mood;
-  minutes?: TimeBudget;
-}> = [
-  { id: "chill", label: "Chill", helper: "Easy progress, no sweaty trip.", mood: "chill", minutes: 30 },
-  { id: "cash", label: "GP", helper: "Money or supplies for the next upgrade.", mood: "cash", minutes: 60 },
-  { id: "bossing", label: "Bossing", helper: "KC, drops or a real PvM trip.", mood: "bossing", minutes: 120 },
-  { id: "unlock", label: "Unlock", helper: "Quest, diary or account gate.", mood: "unlock", minutes: 120 },
-  { id: "afk", label: "AFK", helper: "Progress while doing something else.", mood: "afk", minutes: 60 },
-  { id: "short", label: "Short", helper: "One clean stop point.", mood: "short", minutes: 15 },
-  { id: "surprise", label: "Surprise me", helper: "Same mood, different route." }
-];
 
 function moodForRouteLens(lens: RouteLens, currentMood: Mood): Mood {
   switch (lens) {
@@ -4507,63 +4352,6 @@ function visibleMood(mood: Mood): Mood {
   if (mood === "focused") return "bossing";
   if (mood === "quest") return "unlock";
   return MOODS.includes(mood) ? mood : DEFAULT_MOOD;
-}
-
-function SessionMoodGrid({
-  mood,
-  onPick,
-  onSurprise
-}: {
-  mood: Mood;
-  onPick: (mood: Mood, minutes?: TimeBudget) => void;
-  onSurprise: () => void;
-}) {
-  const activeMood = visibleMood(mood);
-
-  return (
-    <section
-      className="min-w-0 max-w-full overflow-hidden border-y border-[var(--color-border)] py-4"
-      data-session-mood-grid="true"
-      aria-label="Pick a mood"
-    >
-      <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
-        <p className="min-w-0 text-[12px] font-black text-[var(--color-text)]">What are you in the mood for?</p>
-        <p className="min-w-0 max-w-full text-[11px] font-semibold leading-snug text-[var(--color-text-muted)]">Same mood, different route.</p>
-      </div>
-      <div className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
-        {SESSION_MOOD_GRID_CHOICES.map((choice) => {
-          const active = choice.mood ? visibleMood(choice.mood) === activeMood : false;
-          return (
-            <button
-              key={choice.id}
-              type="button"
-              aria-pressed={choice.id === "surprise" ? undefined : active}
-              onClick={() => {
-                if (choice.id === "surprise") {
-                  onSurprise();
-                  return;
-                }
-                onPick(choice.mood!, choice.minutes);
-              }}
-              className={cn(
-                "scape-route-choice min-h-[72px] min-w-0 px-3 py-2.5 text-left",
-                active
-                  ? "border-[var(--color-accent)] bg-[var(--color-accent)]/16 text-[var(--color-text)] shadow-[0_0_0_1px_var(--color-accent)]"
-                  : choice.id === "surprise"
-                    ? "border-[var(--color-accent)]/45 bg-[var(--color-accent)]/10 text-[var(--color-text)] hover:bg-[var(--color-accent)]/16"
-                    : "border-[var(--color-border)] bg-[var(--color-bg)]/34 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/55 hover:text-[var(--color-text)]"
-              )}
-            >
-              <span className="block min-w-0 break-words text-[13px] font-black">{choice.label}</span>
-              <span className="mt-1 block min-w-0 break-words text-[10.5px] font-semibold leading-snug text-[var(--color-text-muted)]">
-                {choice.helper}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
 }
 
 function WhatToDo({
@@ -4899,23 +4687,6 @@ function WhatToDo({
   }, [initialRouteChoice, minutes, mood, planRequestedAt, routeIntent]);
 
   if (allRecs.length === 0) return null;
-  const applySessionIntent = (
-    nextMood: Mood,
-    nextMinutes?: TimeBudget,
-    source: "picker" | "feedback" | "completion" | "onboarding" = "picker"
-  ) => {
-    setMood(nextMood);
-    const defaultTime = nextMinutes ?? defaultTimeForMood(nextMood);
-    if (defaultTime) setMinutes(defaultTime);
-    track("mood:changed", {
-      mood: nextMood,
-      sessionMinutes: defaultTime ?? minutes,
-      source
-    });
-    setShuffleIdx(0);
-    setLastSuppressed(null);
-    setLastCompleted(null);
-  };
   const startRecommendation = (rec: Recommendation) => {
     const analytics = recommendationAnalytics(rec);
     track("recommendation:accepted", analytics);
@@ -4941,11 +4712,8 @@ function WhatToDo({
       ...recommendationAnalytics(rec),
       reason: "not_my_style"
     });
-    setFeedback(recordRecommendationMemory({
-      id: rec.id,
-      kind: rec.kind,
-      title: rec.title,
-      action: "not_my_style",
+    setFeedback(hidePlayerPlanRecommendation({
+      recommendation: rec,
       mood,
       routeLens,
       rsn: activeRsn,
@@ -4997,27 +4765,6 @@ function WhatToDo({
     setLastSuppressed(null);
     setShuffleIdx(0);
   };
-  const markLastSuppressedTooHard = () => {
-    if (!lastSuppressed) return;
-    const suppressedRec = allRecs.find((rec) => rec.id === lastSuppressed.id);
-    setFeedback(suppressRecommendation({
-      id: lastSuppressed.id,
-      kind: lastSuppressed.kind,
-      title: lastSuppressed.title,
-      reason: "too_hard",
-      mood,
-      routeLens,
-      rsn: activeRsn,
-      ...(suppressedRec ? recommendationPreferenceContext(suppressedRec, minutes) : {})
-    }));
-    if (suppressedRec) {
-      track("recommendation:skipped", {
-        ...recommendationAnalytics(suppressedRec),
-        reason: "too_hard"
-      });
-    }
-    applySessionIntent("chill", 30, "feedback");
-  };
   const restoreLastCompleted = () => {
     if (!lastCompleted) return;
     setFeedback(restoreRecommendation(lastCompleted.id));
@@ -5054,9 +4801,6 @@ function WhatToDo({
     }
     setShuffleIdx((roll) => roll + 1);
   };
-  const moveToChillPlan = () => {
-    applySessionIntent("chill", 30, "completion");
-  };
   const resetLearnedChoices = () => {
     setFeedback(clearLearnedRecommendationPreferences());
     setSessionSkipped({});
@@ -5090,28 +4834,7 @@ function WhatToDo({
           <span className="text-[var(--color-text-dim)]">
             Hidden for now: <span className="font-semibold text-[var(--color-text)]">{lastSuppressed.title}</span>.
           </span>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => applySessionIntent("cash", 60)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-warning)] transition-colors hover:bg-[var(--color-warning)]/10"
-            >
-              Need GP
-            </button>
-            <button
-              type="button"
-              onClick={() => applySessionIntent("afk", 60)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-warning)] transition-colors hover:bg-[var(--color-warning)]/10"
-            >
-              Want AFK
-            </button>
-            <button
-              type="button"
-              onClick={markLastSuppressedTooHard}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-warning)] transition-colors hover:bg-[var(--color-warning)]/10"
-            >
-              Too hard
-            </button>
+          <div>
             <button
               type="button"
               onClick={restoreLastSuppressed}
@@ -5139,13 +4862,6 @@ function WhatToDo({
               className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-good)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-good)] transition-colors hover:bg-[var(--color-good)]/10"
             >
               Next trip
-            </button>
-            <button
-              type="button"
-              onClick={moveToChillPlan}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-good)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-good)] transition-colors hover:bg-[var(--color-good)]/10"
-            >
-              Chill now
             </button>
             <button
               type="button"
@@ -5181,23 +4897,8 @@ function WhatToDo({
               headline={activePick.headline}
               alternatives={fallbackRecs}
               onSelect={selectAlternative}
+              onHide={hideRecommendation}
             />
-            <details className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/35 px-3.5 py-3">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[12px] font-bold text-[var(--color-text-dim)] marker:hidden [&::-webkit-details-marker]:hidden">
-                <span>Want a different kind of trip?</span>
-                <span className="inline-flex items-center gap-1.5 text-[var(--color-accent)]">
-                  {MOOD_LABEL[visibleMood(mood)].name}
-                  <ChevronRight className="size-3.5 transition-transform group-open:rotate-90" />
-                </span>
-              </summary>
-              <div className="mt-3">
-                <SessionMoodGrid
-                  mood={mood}
-                  onPick={applySessionIntent}
-                  onSurprise={moveToAnotherPlan}
-                />
-              </div>
-            </details>
             {lastStarted && !lastSuppressed && !lastCompleted && (
               <div
                 role="status"
@@ -5220,8 +4921,8 @@ function WhatToDo({
         ) : (
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-8 text-center text-[var(--color-text-muted)] text-[13px]">
             {hiddenCount > 0
-              ? "Everything matching this mood is hidden. Restore hidden picks or change mood/time."
-              : "No safe trip fits this exact mood and time yet. Pick another mood or more time."}
+              ? "Every available route is hidden. Restore one to see it again."
+              : "No safe trip is available from this account data yet."}
           </div>
         )}
       </div>

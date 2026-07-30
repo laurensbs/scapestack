@@ -49,14 +49,15 @@ describe("accessibility semantics", () => {
     expect(read("src/components/connect-browser-modal.tsx")).toContain('aria-describedby="connect-browser-description"');
     expect(read("src/components/connect-browser-modal.tsx")).toContain('role="alert"');
     expect(read("src/components/hero-intake.tsx")).toContain('aria-describedby="hero-runelite-guide-description"');
-    expect(read("src/app/next/next-client.tsx")).toContain('aria-describedby="next-route-popup-description"');
+    expect(read("src/app/next/next-client.tsx")).not.toContain('aria-describedby="next-route-popup-description"');
     expect(read("src/app/next/next-client.tsx")).toContain('aria-describedby="trip-details-description"');
     expect(read("src/app/goals/goals-client.tsx")).toContain('aria-describedby="goal-unlock-modal-description"');
   });
 
   it("marks choice controls as selected state, not just styled state", () => {
     expect(read("src/components/session-mood-picker.tsx")).toContain("aria-pressed={selected}");
-    expect(read("src/app/next/next-client.tsx")).toContain("aria-pressed={selected}");
+    expect(read("src/components/player-plan-answer.tsx")).toContain("aria-label={`Choose ${rec.title}`}");
+    expect(read("src/components/player-plan-answer.tsx")).toContain("aria-label={`Hide ${rec.title}`}");
     expect(read("src/app/dps/dps-client.tsx")).toContain("aria-pressed={bossFilter === filter.key}");
     expect(read("src/components/bank-result.tsx")).toContain("aria-pressed={isSelected}");
   });

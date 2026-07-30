@@ -34,32 +34,38 @@ test.describe("Scapestack product story matrix", () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test("2. first-time route picker offers mood right after planning", async ({ page }) => {
+  test("2. first-time player gets an answer before any refinement", async ({ page }) => {
     await page.goto("/next");
     await page.getByPlaceholder(/type your osrs name/i).fill("Lauky");
     await page.getByRole("button", { name: /plan my next move/i }).click();
     await expect(page.locator("[data-next-trip-card=true]")).toBeVisible();
-    await expect(page.getByRole("region", { name: /choose a different vibe/i })).toBeVisible();
-    await expect(page.getByRole("button", { name: /want chill|choose .*farming|choose/i }).first()).toBeVisible();
+    await expect(page.getByRole("region", { name: /not this/i })).toBeVisible();
+    await expect(page.getByText("Want a different kind of trip?")).toHaveCount(0);
+    await expect(page.getByText("What are you in the mood for?")).toHaveCount(0);
   });
 
-  test("3. sample next plan renders one primary trip and bigger backups", async ({ page }) => {
+  test("3. sample next plan renders one primary trip and concrete alternatives", async ({ page }) => {
     await page.goto("/next?sample=1");
     await expect(page.locator("[data-next-trip-card=true]")).toBeVisible();
     await expect(page.locator("[data-next-trip-card=true]").getByText(/do this first/i).first()).toBeVisible();
-    await expect(page.locator("[data-route-card=true]").first()).toBeVisible();
-    await expect.poll(async () => page.locator("[data-route-card=true]").count()).toBeGreaterThanOrEqual(2);
-    await expect(page.getByText("Want a different kind of trip?")).toBeVisible();
+    const alternatives = page.getByRole("table", { name: "Alternative routes" });
+    await expect(alternatives).toBeVisible();
+    await expect.poll(async () => alternatives.getByRole("row").count()).toBeGreaterThanOrEqual(2);
+    await expect.poll(async () => alternatives.getByRole("button", { name: /^Hide / }).count()).toBeGreaterThanOrEqual(1);
     await expectNoHorizontalOverflow(page);
   });
 
-  test("4. Chill mood randomize keeps the visible mood lane", async ({ page }) => {
-    await page.goto("/next?sample=1&intent=afk&time=60");
+  test("4. hiding an alternative survives a reload", async ({ page }) => {
+    await page.goto("/next?sample=1");
     await expect(page.locator("[data-next-trip-card=true]")).toBeVisible();
-    await expect(page.locator("[data-next-trip-card=true]").getByText(/afk/i).first()).toBeVisible();
-    await page.getByText("Want a different kind of trip?").click();
-    await page.getByRole("button", { name: /surprise me/i }).click();
-    await expect(page.locator("[data-next-trip-card=true]").getByText(/afk/i).first()).toBeVisible();
+    const alternatives = page.getByRole("table", { name: "Alternative routes" });
+    const firstHide = alternatives.getByRole("button", { name: /^Hide / }).first();
+    const hiddenTitle = (await firstHide.getAttribute("aria-label"))!.replace(/^Hide /, "");
+    await firstHide.click();
+    await expect(alternatives.getByText(hiddenTitle, { exact: true })).toHaveCount(0);
+    await page.reload();
+    await expect(page.locator("[data-next-trip-card=true]")).toBeVisible();
+    await expect(page.getByRole("table", { name: "Alternative routes" }).getByText(hiddenTitle, { exact: true })).toHaveCount(0);
   });
 
   test("5. player adds bank once and bank organizer opens", async ({ page }) => {

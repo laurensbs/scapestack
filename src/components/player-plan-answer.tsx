@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, ExternalLink, Target } from "lucide-react";
+import { ArrowRight, EyeOff, ExternalLink, Target } from "lucide-react";
 import { BossSprite } from "@/components/boss-picker";
 import { ItemSprite } from "@/components/item-sprite";
 import { BOSSES } from "@/lib/bosses";
@@ -160,11 +160,13 @@ export function PlayerPlanAnswer({
 export function PlayerPlanAlternatives({
   headline,
   alternatives,
-  onSelect
+  onSelect,
+  onHide
 }: {
   headline: Recommendation;
   alternatives: Recommendation[];
   onSelect: (rec: Recommendation) => void;
+  onHide: (rec: Recommendation) => void;
 }) {
   if (alternatives.length === 0) return null;
   return (
@@ -178,6 +180,7 @@ export function PlayerPlanAlternatives({
             <tr>
               <th scope="col">Route</th>
               <th scope="col">Goal</th>
+              <th scope="col"><span className="sr-only">Action</span></th>
             </tr>
           </thead>
           <tbody>
@@ -202,6 +205,17 @@ export function PlayerPlanAlternatives({
                     </button>
                   </td>
                   <td className="whitespace-nowrap align-middle">{choice.label}</td>
+                  <td className="whitespace-nowrap align-middle">
+                    <button
+                      type="button"
+                      onClick={() => onHide(rec)}
+                      aria-label={`Hide ${rec.title}`}
+                      className="inline-flex min-h-11 items-center gap-1.5 px-1.5 text-[11px] font-semibold text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-danger)]"
+                    >
+                      <EyeOff className="size-3.5" />
+                      Hide
+                    </button>
+                  </td>
                 </tr>
               );
             })}

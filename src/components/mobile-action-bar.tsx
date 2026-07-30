@@ -36,6 +36,7 @@ export function MobileActionBar() {
   const bankHref = rsn ? `/bank?rsn=${encodeURIComponent(rsn)}&from=mobile` : "/bank?from=mobile";
   const pluginHref = rsn ? `/plugin?rsn=${encodeURIComponent(rsn)}&from=mobile#verify-sync` : "/plugin?from=mobile#verify-sync";
   const slayerHref = rsn ? `/slayer?rsn=${encodeURIComponent(rsn)}&from=mobile` : "/slayer?from=mobile";
+  const isPlanningPath = pathname === "/next" || pathname.startsWith("/p/");
   const actions = [
     {
       href: nextHref,
@@ -74,7 +75,7 @@ export function MobileActionBar() {
       aria-label="Mobile quick actions"
       className="mobile-action-bar fixed inset-x-0 bottom-0 z-40 border-t border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/94 px-2 pt-2 shadow-[0_-18px_50px_-36px_rgba(0,0,0,0.95)] backdrop-blur-md sm:hidden"
     >
-      <div className="mx-auto grid max-w-md grid-cols-5 gap-1.5">
+      <div className={cn("mx-auto grid max-w-md gap-1.5", isPlanningPath ? "grid-cols-4" : "grid-cols-5")}>
         {actions.map((action) => {
           const Icon = action.icon;
           return (
@@ -97,7 +98,9 @@ export function MobileActionBar() {
             </Link>
           );
         })}
-        <SessionMoodPicker rsn={rsn} label={snapshot?.moodLabel ?? "Mood"} mobileTile />
+        {!isPlanningPath && (
+          <SessionMoodPicker rsn={rsn} label={snapshot?.moodLabel ?? "Mood"} mobileTile />
+        )}
       </div>
     </nav>
   );

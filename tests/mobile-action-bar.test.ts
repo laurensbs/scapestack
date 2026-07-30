@@ -18,10 +18,12 @@ describe("mobile action bar", () => {
     expect(source).toContain("complete: hasRunelite");
     expect(source).toContain("Mood");
     expect(source).toContain("SessionMoodPicker");
+    expect(source).toContain('const isPlanningPath = pathname === "/next" || pathname.startsWith("/p/");');
     expect(source).toContain("loadAccountSnapshot");
     expect(source).toContain("const [snapshot, setSnapshot] = useState<AccountSnapshot | null>(null);");
     expect(source).toContain("setSnapshot(loadAccountSnapshot());");
     expect(source).toContain("const nextHref = snapshot?.planHref");
+    expect(source).toContain("{!isPlanningPath && (");
     expect(source).toContain('<SessionMoodPicker rsn={rsn} label={snapshot?.moodLabel ?? "Mood"} mobileTile />');
     expect(source).toContain("SAVED_BANK_EVENT");
     expect(source).toContain("fixed inset-x-0 bottom-0");
