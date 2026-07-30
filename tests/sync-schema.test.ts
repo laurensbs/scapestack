@@ -111,15 +111,20 @@ describe("sync schema migrations", () => {
   });
 
   it("creates immutable, private-first affordability share snapshots", () => {
+    const tableStart = SCHEMA_SQL.indexOf("CREATE TABLE IF NOT EXISTS bank_affordability_share");
+    const tableEnd = SCHEMA_SQL.indexOf(";", tableStart);
+    const shareTable = SCHEMA_SQL.slice(tableStart, tableEnd);
+
     expect(SCHEMA_SQL).toContain("CREATE TABLE IF NOT EXISTS bank_affordability_share");
-    expect(SCHEMA_SQL).toContain("share_id TEXT PRIMARY KEY");
-    expect(SCHEMA_SQL).toContain("CHECK (share_id ~ '^[A-Za-z0-9_-]{24}$')");
-    expect(SCHEMA_SQL).toContain("snapshot JSONB NOT NULL");
-    expect(SCHEMA_SQL).toContain("published_at TIMESTAMPTZ");
-    expect(SCHEMA_SQL).toContain("revoked_at TIMESTAMPTZ");
+    expect(shareTable).toContain("share_id TEXT PRIMARY KEY");
+    expect(shareTable).toContain("CHECK (share_id ~ '^[A-Za-z0-9_-]{24}$')");
+    expect(shareTable).toContain("snapshot JSONB NOT NULL");
+    expect(shareTable).toContain("published_at TIMESTAMPTZ,");
+    expect(shareTable).not.toMatch(/published_at\s+TIMESTAMPTZ\s+(?:NOT NULL|DEFAULT)/);
+    expect(shareTable).toContain("revoked_at TIMESTAMPTZ");
+    expect(shareTable).not.toMatch(/bank_items|item_ids|quantit(?:y|ies)/i);
     expect(SCHEMA_SQL).toContain("prevent_bank_share_snapshot_update");
     expect(SCHEMA_SQL).toContain("NEW.snapshot IS DISTINCT FROM OLD.snapshot");
     expect(SCHEMA_SQL).toContain("WHERE published_at IS NOT NULL AND revoked_at IS NULL");
-    expect(SCHEMA_SQL).not.toMatch(/bank_affordability_share[\s\S]{0,500}bank_items/i);
   });
 });

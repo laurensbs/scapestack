@@ -7,6 +7,7 @@ import {
   BRAND_NAME
 } from "@/lib/brand";
 import { formatGpExact } from "@/lib/bank-affordability";
+import type { BankShareSnapshot } from "@/lib/bank-share";
 import { loadPublicBankShare } from "./data";
 
 export const alt = "What this OSRS bank can finish";
@@ -23,9 +24,12 @@ export default async function BankShareOpenGraphImage({
   if (!share) notFound();
   const { snapshot } = share;
 
-  return new ImageResponse(
-    (
-      <div
+  return new ImageResponse(<BankShareCard snapshot={snapshot} />, size);
+}
+
+export function BankShareCard({ snapshot }: { snapshot: BankShareSnapshot }) {
+  return (
+    <div
         style={{
           width: "100%",
           height: "100%",
@@ -69,9 +73,7 @@ export default async function BankShareOpenGraphImage({
           <div style={{ display: "flex" }}>Exact insta-buy prices frozen for this image</div>
           <div style={{ display: "flex" }}>No raw bank is published</div>
         </div>
-      </div>
-    ),
-    size
+    </div>
   );
 }
 
