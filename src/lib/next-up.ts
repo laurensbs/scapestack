@@ -1325,6 +1325,7 @@ export async function computeNextUp(input: NextUpInput): Promise<NextUpResult> {
     diaries,
     bossKc: mergedBossKc,
     questPoints: qp,
+    bankItems: bank, hasBankData: hasBank,
     womBossKills: input.womBossKills,
     accountMeta,
     collectionLogOwnedItemIds: clOwned,

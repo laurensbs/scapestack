@@ -90,10 +90,13 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(next).not.toContain('aria-label="Randomize another OSRS plan"');
     expect(next).not.toContain("More unlock moves and routes");
     expect(next).toContain("More routes");
-    expect(next).toContain("Closest unlocks");
-    expect(next).toContain("Routes to inspect");
+    expect(next).toContain("Closest unlock");
+    expect(next).toContain("Next unlock path");
+    expect(next).toContain("Your routes");
+    expect(next).toContain("Unlock paths");
     expect(next).toContain("Why this trip?");
-    expect(next).toContain("Unlock gaps");
+    expect(next).toContain("<UnlockRoutePath");
+    expect(next).not.toContain("Unlock gaps");
     expect(next).not.toContain("Why is this recommended?");
     expect(next).not.toContain("Next best actions");
     expect(next).not.toContain("Specific unlock moves");

@@ -27,6 +27,13 @@ import { evaluateItemAvailability } from "./item-availability";
 import type { PluginBankStatus } from "./plugin-bank-status";
 import type { SyncDeltaSummary } from "./sync-repo";
 import { UNLOCK_GOAL_DEFINITIONS } from "./unlock-goal-catalog";
+import type { CompletionItem } from "./goals";
+import {
+  assignUnlockRouteNodeStates,
+  buildRfdRouteNodes,
+  type UnlockRouteNode,
+  type UnlockRouteNodeEvidence
+} from "./unlock-route-path";
 
 export interface PathStep {
   /** Display title (e.g. "Push Slayer to 70" or "Karamja Diary — Hard"). */
@@ -89,10 +96,11 @@ export interface UnlockRoutePlan {
   blockersLeft: number;
   progressPercent: number;
   blockers: UnlockRouteBlocker[];
+  pathNodes: UnlockRouteNode[];
   requiredQuests: string[];
   requiredSkills: Array<{ skill: string; level: number; currentLevel: number; met: boolean }>;
   requiredDiaryTiers: Array<{ region: string; tier: DiaryTier; met: boolean }>;
-  requiredItems: Array<{ name: string; quantity: number; availabilityCopy: string }>;
+  requiredItems: Array<{ name: string; quantity: number; availabilityCopy: string; ownedInBank: boolean | null }>;
   accountTypeNote?: string;
 }
 
@@ -840,6 +848,13 @@ function normalizeRouteName(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
 }
 
+function bankQuantityForRoute(bankItems: readonly CompletionItem[], name: string): number {
+  const normalized = normalizeRouteName(name);
+  return bankItems
+    .filter((item) => normalizeRouteName(item.name) === normalized)
+    .reduce((sum, item) => sum + Math.max(1, item.quantity ?? 1), 0);
+}
+
 function skillLevelForRoute(skills: HiscoreSkill[], skill: string): number {
   if (skill === "Combat") return skills.length > 0 ? computeCombatLevel(skills) : 0;
   return skills.find((row) => row.name.toLowerCase() === skill.toLowerCase())?.level ?? 1;
@@ -891,6 +906,9 @@ function buildStaticUnlockRoute(input: {
   questPoints: number | null;
   /** Quests an exact source actually reported. Empty without a plugin sync. */
   exactCompletedQuests: Set<string> | null;
+  hasRuneliteData: boolean;
+  bankItems: readonly CompletionItem[];
+  hasBankData: boolean;
   accountType: PlannerAccountType | null | undefined;
 }): UnlockRoutePlan {
   const def = input.definition;
@@ -973,13 +991,16 @@ function buildStaticUnlockRoute(input: {
   }
 
   const requiredItems = (def.requiredItems ?? []).map((item) => {
+    const ownedInBank = input.hasBankData
+      ? bankQuantityForRoute(input.bankItems, item.name) >= item.quantity
+      : null;
     const availability = evaluateItemAvailability({
       name: item.name,
       quantity: item.quantity,
-      ownedInBank: false,
+      ownedInBank: ownedInBank === true,
       accountType: input.accountType ?? null
     });
-    return { ...item, availabilityCopy: availability.copy };
+    return { ...item, availabilityCopy: availability.copy, ownedInBank };
   });
 
   if (blockers.length === 0) {
@@ -1037,6 +1058,71 @@ function buildStaticUnlockRoute(input: {
     ? Math.round((completedTrackable / totalTrackable) * 100)
     : blockers.length === 0 ? 100 : 0;
 
+  const pathEvidence: UnlockRouteNodeEvidence[] = [
+    ...(def.requiredQuests ?? []).map((questName) => {
+      const done = completedQuests.has(normalizeRouteName(questName));
+      return {
+        id: `quest:${normalizeRouteName(questName).replace(/ /g, "-")}`,
+        title: questName,
+        requirement: done
+          ? "Completed — verified by RuneLite."
+          : input.exactCompletedQuests === null
+            ? "Needs RuneLite to verify this quest."
+            : `Complete ${questName}.`,
+        evidence: done ? "done" as const : input.exactCompletedQuests === null ? "unknown" as const : "open" as const
+      };
+    }),
+    ...requiredSkills.map((skill) => ({
+      id: `skill:${normalizeRouteName(skill.skill).replace(/ /g, "-")}:${skill.level}`,
+      title: `${skill.skill} ${skill.level}`,
+      requirement: skill.met
+        ? `${skill.currentLevel}/${skill.level} — met from Hiscores.`
+        : `${skill.currentLevel}/${skill.level} — train ${skill.skill} to ${skill.level}.`,
+      evidence: skill.met ? "done" as const : "open" as const
+    })),
+    ...requiredDiaryTiers.map((diary) => ({
+      id: `diary:${normalizeRouteName(`${diary.region}-${diary.tier}`).replace(/ /g, "-")}`,
+      title: `${diary.region} ${diary.tier} diary`,
+      requirement: diary.met
+        ? "Completed — verified by RuneLite."
+        : input.hasRuneliteData
+          ? `Complete ${diary.region} ${diary.tier} diary.`
+          : "Needs RuneLite to verify this diary tier.",
+      evidence: diary.met ? "done" as const : input.hasRuneliteData ? "open" as const : "unknown" as const
+    })),
+    ...(def.minQuestPoints ? [{
+      id: `qp:${def.minQuestPoints}`,
+      title: `${def.minQuestPoints} Quest points`,
+      requirement: input.questPoints === null
+        ? "Quest points are not available from Hiscores."
+        : input.questPoints >= def.minQuestPoints
+          ? `${input.questPoints}/${def.minQuestPoints} — met.`
+          : `${input.questPoints}/${def.minQuestPoints} — earn ${def.minQuestPoints - input.questPoints} more.`,
+      evidence: input.questPoints === null
+        ? "unknown" as const
+        : input.questPoints >= def.minQuestPoints ? "done" as const : "open" as const
+    }] : []),
+    ...requiredItems.map((item) => ({
+      id: `item:${normalizeRouteName(item.name).replace(/ /g, "-")}`,
+      title: `${item.quantity}x ${item.name}`,
+      requirement: item.ownedInBank === null
+        ? "Add your bank to verify this item."
+        : item.ownedInBank
+          ? "In your bank."
+          : item.availabilityCopy,
+      evidence: item.ownedInBank === null ? "unknown" as const : item.ownedInBank ? "done" as const : "open" as const
+    })),
+    ...(def.activityRequirements ?? []).map((activity) => ({
+      id: `activity:${normalizeRouteName(activity).replace(/ /g, "-")}`,
+      title: activity,
+      requirement: "Manual activity check; RuneLite cannot prove this yet.",
+      evidence: "unknown" as const
+    }))
+  ];
+  const pathNodes = def.id === "barrows-gloves"
+    ? buildRfdRouteNodes(input.exactCompletedQuests)
+    : assignUnlockRouteNodeStates(pathEvidence);
+
   const first = blockers[0];
   return {
     id: def.id,
@@ -1052,6 +1138,7 @@ function buildStaticUnlockRoute(input: {
     blockersLeft: blockers.length,
     progressPercent,
     blockers,
+    pathNodes,
     requiredQuests: def.requiredQuests ?? [],
     requiredSkills,
     requiredDiaryTiers,
@@ -1127,7 +1214,8 @@ function buildDiaryUnlockRoute(input: {
         items: evaluation.itemRequirements.map((req) => ({
           name: req.name,
           quantity: req.quantity,
-          availabilityCopy: req.availabilityCopy
+          availabilityCopy: req.availabilityCopy,
+          ownedInBank: req.ownedInBank
         }))
       };
       if (!best || blockers.length < best.blockers.length || (blockers.length === best.blockers.length && progressPercent > best.progressPercent)) {
@@ -1153,6 +1241,12 @@ function buildDiaryUnlockRoute(input: {
     blockersLeft: blockers.length,
     progressPercent: best?.progressPercent ?? 0,
     blockers,
+    pathNodes: assignUnlockRouteNodeStates(blockers.map((blocker, index) => ({
+      id: `${blocker.type}:${index}:${normalizeRouteName(blocker.label).replace(/ /g, "-")}`,
+      title: blocker.label,
+      requirement: blocker.detail,
+      evidence: blocker.type === "activity" ? "unknown" as const : "open" as const
+    }))),
     requiredQuests: [],
     requiredSkills: [],
     requiredDiaryTiers: best ? [{ region: best.region, tier: best.tier, met: false }] : [],
@@ -1170,6 +1264,9 @@ function buildUnlockRoutes(input: {
   /** null = unknown; never read as zero. */
   questPoints: number | null;
   exactCompletedQuests: Set<string> | null;
+  hasRuneliteData: boolean;
+  bankItems: readonly CompletionItem[];
+  hasBankData: boolean;
   accountType: PlannerAccountType | null | undefined;
 }): UnlockRoutePlan[] {
   const staticRoutes = UNLOCK_ROUTE_DEFINITIONS.map((definition) => buildStaticUnlockRoute({
@@ -1180,6 +1277,9 @@ function buildUnlockRoutes(input: {
     completedDiaryTiers: input.completedDiaryTiers,
     questPoints: input.questPoints,
     exactCompletedQuests: input.exactCompletedQuests,
+    hasRuneliteData: input.hasRuneliteData,
+    bankItems: input.bankItems,
+    hasBankData: input.hasBankData,
     accountType: input.accountType
   }));
   return [
@@ -1248,6 +1348,8 @@ export interface ComputePathProgressInput {
   bossKc: Record<string, number>;
   /** null = unknown; never read as zero. */
   questPoints: number | null;
+  bankItems?: readonly CompletionItem[];
+  hasBankData?: boolean;
   /** WOM-derived enrichment. Optional — when missing we fall back to
    *  Hiscores-only data and don't surface the synced badge. */
   womBossKills?: Record<string, number>;
@@ -1324,6 +1426,9 @@ export function computePathProgress(input: ComputePathProgressInput): PathOvervi
     exactCompletedQuests: input.scapestackSync?.questsCompleted
       ? new Set([...input.scapestackSync.questsCompleted].map(normalizeRouteName))
       : null,
+    hasRuneliteData: Boolean(input.scapestackSync),
+    bankItems: input.bankItems ?? [],
+    hasBankData: input.hasBankData ?? false,
     accountType: input.accountMeta?.accountType ?? null
   });
   const overallPercent = Math.round(

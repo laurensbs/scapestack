@@ -15,6 +15,7 @@ import { SavedBankBanner } from "@/components/saved-bank-banner";
 import { BossSprite } from "@/components/boss-picker";
 import { ItemSprite } from "@/components/item-sprite";
 import { JournalItemSprite } from "@/components/journal-primitives";
+import { UnlockRoutePath } from "@/components/unlock-route-path";
 import { AccountModeBadge } from "@/components/account-mode-badge";
 import { XpDropLoader } from "@/components/xp-drop-loader";
 import { ShuffleLoader } from "@/components/shuffle-loader";
@@ -30,6 +31,7 @@ import { loadSavedBank, loadSavedRsn, saveSavedRsn, type SavedBank } from "@/lib
 import { track, type AnalyticsContext } from "@/lib/analytics";
 import { trackRouteEngagement } from "@/lib/route-engagement";
 import type { Recommendation, RecKind, NextUpInput, NextUpResult, NextBestAction } from "@/lib/next-up";
+import type { UnlockRouteNode } from "@/lib/unlock-route-path";
 import type { PlanningContextPayload } from "@/lib/planning-context";
 import { buildNextUpInputFromSources } from "@/lib/planning-input";
 import {
@@ -1282,9 +1284,7 @@ function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOp
             <RouteProgressBoard
               allRecs={allRecs}
               pathData={result.pathProgress}
-              bankItems={bankItems}
               readiness={result.readiness}
-              accountType={summary.accountType}
               accountMode={summary.accountMode}
               actionContext={{ from: "next", hasBankContext: bankItems.length > 0, rsn: activeRsn }}
               onBossOpen={onBossOpen}
@@ -1309,10 +1309,6 @@ function ResultView({ result, bankItems, bankSource, activeRsn, onEdit, onBossOp
               />
             )}
             <HeroStrip summary={summary} basisNote={basisNote} onEdit={onEdit} />
-            <RouteNeeds
-              pathData={result.pathProgress}
-              maxEstimate={result.maxEstimate}
-            />
             <BankProgressSection progress={result.readiness} />
             <MakePlanSmarter
               headline={explainedRec}
@@ -1497,282 +1493,62 @@ function FirstPlanSharpening({
 function NextBestActionsPanel({ actions }: { actions: NextBestAction[] }) {
   if (actions.length === 0) return null;
 
+  const action = actions[0];
+  const missingNodes: UnlockRouteNode[] = action.missingRequirements.map((requirement, index) => ({
+    id: `${action.id}:requirement:${index}`,
+    title: requirement,
+    requirement: `Clear this before ${action.title}.`,
+    state: index === 0 ? "current" : "future"
+  }));
+  const nodes: UnlockRouteNode[] = missingNodes.length > 0
+    ? [
+        ...missingNodes,
+        {
+          id: `${action.id}:reward`,
+          title: action.title,
+          requirement: action.reason,
+          state: "future",
+          href: action.link
+        }
+      ]
+    : [{
+        id: `${action.id}:current`,
+        title: action.title,
+        requirement: action.reason,
+        state: "current",
+        href: action.link
+      }];
+
   return (
     <section>
-      <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">Closest unlocks</div>
+      <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">Closest unlock</div>
       <h2 className="mt-1 text-[18px] font-semibold leading-tight text-[var(--color-text)]">
-        More unlock moves
+        Next unlock path
       </h2>
-
-      {/* Each row used to carry two pill badges, two bordered snippet boxes and
-          a chevron — five containers around four facts. The unlock score is a
-          number out of a hundred and it now sits in a right-aligned column
-          where five of them can be compared, which is the only reason the
-          engine computes it. */}
-      <div className="scape-table-wrap mt-4">
-        <table className="scape-table" aria-label="Unlock moves ranked by what they open">
-          <thead>
-            <tr>
-              <th scope="col">Move</th>
-              <th scope="col" className="hidden md:table-cell">Missing</th>
-              <th scope="col" className="hidden sm:table-cell">Prep</th>
-              <th scope="col" data-num>Unlock</th>
-            </tr>
-          </thead>
-          <tbody>
-            {actions.slice(0, 5).map((action) => {
-              const title = (
-                <span className="flex min-h-11 items-center gap-2.5 text-left">
-                  <span className="flex size-7 shrink-0 items-center justify-center overflow-hidden">
-                    {action.iconItemId
-                      ? <ItemSprite id={action.iconItemId} alt="" className="pixelated max-h-7 max-w-7" />
-                      : <Target className="size-4 text-[var(--color-text-muted)]" />}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block truncate text-[13.5px] font-semibold text-[var(--color-text)]">
-                      {action.title}
-                    </span>
-                    <span className="block truncate text-[11px] text-[var(--color-text-muted)]">
-                      {action.reason}
-                    </span>
-                  </span>
-                </span>
-              );
-              const missing = action.missingRequirements.length > 0
-                ? action.missingRequirements.slice(0, 3).join(", ")
-                : "None visible";
-              return (
-                <tr key={action.id}>
-                  <td className="w-full max-w-0">
-                    {action.link ? <Link href={action.link} className="block">{title}</Link> : title}
-                    <span className="mt-0.5 block truncate text-[11px] text-[var(--color-text-muted)] md:hidden">
-                      {missing}
-                    </span>
-                  </td>
-                  <td className="hidden md:table-cell" title={missing}>
-                    <span className="block w-[13rem] truncate lg:w-[18rem]">{missing}</span>
-                  </td>
-                  <td className="hidden whitespace-nowrap capitalize sm:table-cell">{action.preparation}</td>
-                  <td data-num>{action.unlockValue}/100</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+      <div className="mt-3">
+        <UnlockRoutePath
+          id={`next-action-${action.id}`}
+          title={action.relevantQuestOrUnlock}
+          payoff={action.reason}
+          iconItemId={action.iconItemId}
+          nodes={nodes}
+        />
       </div>
-      <p className="scape-table-note">
-        Unlock is how much of the account this opens, out of a hundred. Missing lists
-        only requirements Scapestack can see — anything it cannot read stays off the row.
-      </p>
     </section>
   );
-}
-
-type RouteLaneId =
-  | "barrows-gloves"
-  | "fairy-rings"
-  | "piety"
-  | "avas-assembler"
-  | "dragon-defender"
-  | "quest-cape"
-  | "raids-prep"
-  | "slayer-unlocks";
-
-type RouteLaneDefinition = {
-  id: RouteLaneId;
-  title: string;
-  payoff: string;
-  iconItemId: number;
-  query: RegExp;
-  ownedItemIds?: number[];
-  fallback: string;
-};
-
-const SESSION_ROUTE_LANES: RouteLaneDefinition[] = [
-  {
-    id: "barrows-gloves",
-    title: "Barrows gloves route",
-    payoff: "Best mid-game glove slot and a major quest-account spine.",
-    iconItemId: 7462,
-    query: /barrows|recipe for disaster|gloves/i,
-    ownedItemIds: [7462],
-    fallback: "Open the quest route before committing to random skilling."
-  },
-  {
-    id: "fairy-rings",
-    title: "Fairy rings route",
-    payoff: "Cuts travel time for quests, clues, herb runs and Slayer.",
-    iconItemId: 772,
-    query: /fairy rings|fairytale|fairy/i,
-    fallback: "Check Fairytale I/II gaps, then unlock ring access."
-  },
-  {
-    id: "piety",
-    title: "Piety route",
-    payoff: "Permanent melee DPS upgrade for quests, Slayer and bossing.",
-    iconItemId: 2413,
-    query: /piety|prayer.*70|protection prayers|prayer/i,
-    fallback: "Check Prayer and Knight Waves gaps before a long combat grind."
-  },
-  {
-    id: "avas-assembler",
-    title: "Ava's assembler route",
-    payoff: "Cleaner ranged trips and less ammo waste.",
-    iconItemId: 22109,
-    query: /ava|animal magnetism|assembler|accumulator|vorkath/i,
-    ownedItemIds: [10499, 22109],
-    fallback: "Get Ava's device first; assembler comes after Vorkath's head."
-  },
-  {
-    id: "dragon-defender",
-    title: "Dragon defender route",
-    payoff: "Core melee off-hand for Slayer and early bossing.",
-    iconItemId: 12954,
-    query: /dragon defender|defender|warriors'? guild/i,
-    ownedItemIds: [12954],
-    fallback: "Get the defender before upgrading small melee pieces."
-  },
-  {
-    id: "quest-cape",
-    title: "Quest cape route",
-    payoff: "Unlocks large chunks of the account and cleans up route gaps.",
-    iconItemId: 9813,
-    query: /quest cape|quest|diary|unlock/i,
-    ownedItemIds: [9813],
-    fallback: "Pick the closest quest gap, not another generic XP grind."
-  },
-  {
-    id: "raids-prep",
-    title: "Raids prep route",
-    payoff: "Turns gear, prayers and quest unlocks into team-ready PvM.",
-    iconItemId: 20997,
-    query: /raid|cox|xeric|toa|tombs|chambers|olm|bowfa|trident|zulrah|vorkath|boss/i,
-    fallback: "Confirm prayers, gear and one boss-readiness step before raids."
-  },
-  {
-    id: "slayer-unlocks",
-    title: "Slayer unlock route",
-    payoff: "Tasks, points and unlocks that feed PvM progression.",
-    iconItemId: 11864,
-    query: /slayer|task|kurask|abyssal|kraken|hydra/i,
-    fallback: "Check task, points and next Slayer level before skipping."
-  }
-];
-
-function routeLaneAccountNote(id: RouteLaneId, accountType: PlannerAccountType | null): string | null {
-  if (!accountType) return null;
-  if (isUltimatePlannerAccount(accountType)) {
-    if (id === "barrows-gloves" || id === "fairy-rings" || id === "quest-cape") {
-      return "UIM route: stage/carry items before starting; do not treat bank checks as ready.";
-    }
-    return "UIM route: shorter staging actions beat long bank-dependent plans.";
-  }
-  if (accountType === "hardcore") {
-    if (id === "raids-prep") return "HCIM route: risky PvM stays lower unless the payoff is worth it.";
-    return "HCIM route: source safely first; avoid risky gaps when a safer unlock is close.";
-  }
-  if (accountType === "group") {
-    return "GIM route: own bank is checked; group storage is not verified.";
-  }
-  if (accountType === "ironman") {
-    if (id === "piety" || id === "raids-prep") return "Iron route: source supplies and prayer/gear upgrades yourself.";
-    if (id === "fairy-rings") return "Iron route: travel unlocks beat buying convenience.";
-    return "Iron route: missing items need source hints, not GE assumptions.";
-  }
-  return null;
-}
-
-function bankHasAnyItem(bankItems: BankHandoffItem[], ids: number[] | undefined): boolean {
-  if (!ids?.length) return false;
-  const owned = new Set(bankItems.map((item) => item.id));
-  return ids.some((id) => owned.has(id));
-}
-
-function routeLaneMatch(definition: RouteLaneDefinition, recs: Recommendation[]): Recommendation | null {
-  return recs.find((rec) => definition.query.test(`${rec.id} ${rec.title} ${rec.why} ${rec.payoff ?? ""}`)) ?? null;
-}
-
-function routeLaneStatus({
-  definition,
-  rec,
-  bankItems,
-  pathData,
-  accountType
-}: {
-  definition: RouteLaneDefinition;
-  rec: Recommendation | null;
-  bankItems: BankHandoffItem[];
-  pathData: NextUpResult["pathProgress"];
-  accountType: PlannerAccountType | null;
-}): { label: string; detail: string; tone: "good" | "warn" | "neutral"; href?: string } {
-  if (bankHasAnyItem(bankItems, definition.ownedItemIds)) {
-    if (isUltimatePlannerAccount(accountType)) {
-      return {
-        label: "Stage it",
-        detail: "Key item is owned; treat it as carry/storage prep, not a normal bank pull.",
-        tone: "good"
-      };
-    }
-    return {
-      label: accountType === "group" ? "Own bank" : accountType === "ironman" || accountType === "hardcore" ? "Self-sourced" : "In bank",
-      detail: accountType === "group"
-        ? "Key item is in your synced bank; group storage is not counted."
-        : accountType === "ironman" || accountType === "hardcore"
-          ? "Key item is already sourced in this bank."
-          : "Key item is in this bank.",
-      tone: "good"
-    };
-  }
-
-  if (rec) {
-    return {
-      label: "Next action",
-      detail: rec.decisionReason || rec.why,
-      tone: "warn",
-      href: rec.link
-    };
-  }
-
-  if (definition.id === "quest-cape") {
-    const quests = pathData.paths.find((path) => path.kind === "quests");
-    if (quests && quests.percent >= 98) {
-      return {
-        label: "Nearly done",
-        detail: quests.nextSteps[0]?.title ?? "Finish the last visible quest gap.",
-        tone: "good"
-      };
-    }
-    if (quests) {
-      return {
-        label: `${quests.done}/${quests.total} quests`,
-        detail: quests.nextSteps[0]?.title ?? definition.fallback,
-        tone: "neutral"
-      };
-    }
-  }
-
-  return {
-    label: "Check gaps",
-    detail: definition.fallback,
-    tone: "neutral"
-  };
 }
 
 function RouteProgressBoard({
   allRecs,
   pathData,
-  bankItems,
   readiness,
-  accountType,
   accountMode,
   actionContext,
   onBossOpen
 }: {
   allRecs: Recommendation[];
   pathData: NextUpResult["pathProgress"];
-  bankItems: BankHandoffItem[];
   readiness: SetCompletion[];
-  accountType: PlannerAccountType | null;
   accountMode: NextUpResult["summary"]["accountMode"];
   actionContext: RecommendationActionContext;
   onBossOpen: (slug: string) => void;
@@ -1784,91 +1560,51 @@ function RouteProgressBoard({
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-            Routes to inspect
+            Your routes
           </div>
           <h2 className="mt-1 text-[21px] font-bold tracking-normal text-[var(--color-text)]">
-            Unlock gaps
+            Unlock paths
           </h2>
           <p className="mt-1 max-w-2xl text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">
-            Barrows gloves, fairy rings, Piety, Ava&apos;s, defender, quest cape, raids prep and Slayer.
+            A tick is done. The marked node is next. A question mark means RuneLite has not verified it.
           </p>
         </div>
         <AccountModeBadge accountMode={accountMode} compact showSourceCopy />
       </div>
 
-      {/* Eight lanes, each of which was a 150px card in a four-column grid
-          carrying a title, a payoff, a status pill, a sentence and sometimes a
-          link — with the card's own border tinted green or amber on top. That
-          border was an invented traffic light next to a pill that already said
-          the same thing, and the eight of them tiled into a wall the eye had
-          to sweep rather than read down. The status is a verdict now, on the
-          game's own ramp, and it lines up in one column. */}
-      <div className="scape-table-wrap">
-        <table className="scape-table" aria-label="Unlock routes and what is blocking each one">
-          <thead>
-            <tr>
-              <th scope="col">Route</th>
-              <th scope="col" className="hidden md:table-cell">Next</th>
-              <th scope="col">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {SESSION_ROUTE_LANES.map((definition) => {
-              const rec = routeLaneMatch(definition, allRecs);
-              const status = routeLaneStatus({ definition, rec, bankItems, pathData, accountType });
-              const accountNote = routeLaneAccountNote(definition.id, accountType);
-              const href = status.href ? recommendationHrefWithContext(status.href, actionContext) : undefined;
-              const title = (
-                <span className="flex min-h-11 items-center gap-2.5 text-left">
-                  <JournalItemSprite id={definition.iconItemId} />
-                  <span className="min-w-0">
-                    <span className="block truncate text-[13.5px] font-semibold text-[var(--color-text)]">
-                      {definition.title}
-                    </span>
-                    <span className="block truncate text-[11px] text-[var(--color-text-muted)]">
-                      {definition.payoff}
-                    </span>
+      <div className="divide-y divide-[var(--color-border)] border-y border-[var(--color-border-strong)]">
+        {pathData.unlockRoutes.map((route, index) => {
+          const current = route.pathNodes.find((node) => node.state === "current");
+          const unknownCount = route.pathNodes.filter((node) => node.state === "unknown").length;
+          return (
+            <details key={route.id} open={index === 0} className="group py-1">
+              <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 py-2 marker:hidden [&::-webkit-details-marker]:hidden">
+                {route.iconItemId ? <JournalItemSprite id={route.iconItemId} /> : null}
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[13.5px] font-semibold text-[var(--color-text)]">{route.title}</span>
+                  <span className="mt-0.5 block text-[11px] leading-snug text-[var(--color-text-muted)]">
+                    {current
+                      ? `Current: ${current.title}`
+                      : unknownCount > 0
+                        ? `${unknownCount} step${unknownCount === 1 ? "" : "s"} not verified`
+                        : "Route complete"}
                   </span>
                 </span>
-              );
-              return (
-                <tr key={definition.id}>
-                  <td className="w-full max-w-0">
-                    {href ? <Link href={href} className="block">{title}</Link> : title}
-                    {/* The Next column is what the player acts on, so below
-                        768px it moves in here rather than being dropped with
-                        the column. */}
-                    <span className="mt-0.5 line-clamp-2 block text-[11px] text-[var(--color-text-muted)] md:hidden">
-                      {status.detail}
-                    </span>
-                  </td>
-                  {/* The fixed width lives on the block inside the cell, not
-                      on the cell: the Route cell is w-full/max-w-0 so it takes
-                      every spare pixel, and a table column only reserves room
-                      for prose if something inside it insists on a width. */}
-                  <td className="hidden md:table-cell">
-                    <span className="line-clamp-2 block w-[19rem] lg:w-[24rem]">{status.detail}</span>
-                    {accountNote && (
-                      <span className="mt-0.5 block w-[19rem] text-[11px] text-[var(--color-text-muted)] lg:w-[24rem]">{accountNote}</span>
-                    )}
-                  </td>
-                  <td>
-                    {/* "good" is comfortably inside reach, "warn" is the even
-                        fight that needs a step first, and a lane the engine
-                        cannot score carries no gate and stays neutral — the
-                        same three-of-nine the boss verdict uses. */}
-                    <span
-                      className="scape-verdict"
-                      data-gate={status.tone === "good" ? "ready" : status.tone === "warn" ? "test" : undefined}
-                    >
-                      {status.label}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                <ChevronRight className="size-4 shrink-0 text-[var(--color-text-muted)] transition-transform group-open:rotate-90" />
+              </summary>
+              <div className="pb-3 pl-[3.75rem]">
+                <UnlockRoutePath
+                  id={route.id}
+                  title={route.title}
+                  payoff={route.payoff}
+                  iconItemId={route.iconItemId}
+                  nodes={route.pathNodes}
+                  showHeader={false}
+                />
+              </div>
+            </details>
+          );
+        })}
       </div>
 
       {(questRecs.length > 0 || bankGaps.length > 0) && (
@@ -4929,88 +4665,6 @@ function WhatToDo({
       </div>
 
       </div>
-    </section>
-  );
-}
-
-// ── RouteNeeds ──────────────────────────────────────────────────────────────
-// Collapsed evidence layer for the Session Board. Every lane is framed as an
-// unlock planner: missing step, first action, prep and stop point.
-
-function RouteNeeds({
-  pathData
-}: {
-  pathData: NextUpResult["pathProgress"];
-  maxEstimate: NextUpResult["maxEstimate"];
-}) {
-  const routes = pathData.unlockRoutes.slice(0, 9);
-
-  return (
-    <section>
-      <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h3 className="eyebrow">Routes to inspect</h3>
-          <p className="mt-1 text-[12px] text-[var(--color-text-muted)]">
-            Pick the route with the smallest missing step.
-          </p>
-        </div>
-      </div>
-      {/* Nine cards, each repeating the same four labels down its own left
-          edge, in a three-column grid — so the same label appeared up to nine
-          times and the two numbers that let you compare routes (steps left,
-          percent mapped) never lined up with each other. One header row and
-          nine rows says it once. The blocker chips went with the cards: the
-          first blocker is the Need first column, and chips two to four were
-          the ones the player was explicitly told not to do yet. */}
-      <div className="scape-table-wrap">
-        <table className="scape-table" aria-label="Unlock routes by size of the next step">
-          <thead>
-            <tr>
-              {/* No status column. The engine's primaryLabel for an unfinished
-                  route is the next blocker's own title, so on screen it was
-                  the First action column again in yellow — the same sentence
-                  twice, one of them coloured. Steps already answers "how far",
-                  and 0 steps is the ready state. */}
-              <th scope="col">Route</th>
-              <th scope="col" className="hidden sm:table-cell">First action</th>
-              <th scope="col" data-num>Steps</th>
-            </tr>
-          </thead>
-          <tbody>
-            {routes.map((route) => (
-              <tr key={route.id}>
-                <td className="w-full max-w-0">
-                  <span className="flex min-h-11 items-center gap-2.5">
-                    {route.iconItemId ? <JournalItemSprite id={route.iconItemId} /> : null}
-                    <span className="min-w-0">
-                      <span className="block truncate text-[13.5px] font-semibold text-[var(--color-text)]">
-                        {route.title}
-                      </span>
-                      <span className="block truncate text-[11px] text-[var(--color-text-muted)]">
-                        {route.payoff}
-                      </span>
-                    </span>
-                  </span>
-                  <span className="mt-0.5 line-clamp-2 block text-[11px] text-[var(--color-text-muted)] sm:hidden">
-                    {route.nextAction}
-                  </span>
-                </td>
-                <td className="hidden sm:table-cell">
-                  <span className="line-clamp-2 block w-[15rem] text-[var(--color-text)] lg:w-[22rem]">{route.nextAction}</span>
-                  <span className="mt-0.5 block w-[15rem] truncate text-[11px] text-[var(--color-text-muted)] lg:w-[22rem]">
-                    {route.accountTypeNote ?? route.nextBlocker}
-                  </span>
-                </td>
-                <td data-num>{route.blockersLeft}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p className="scape-table-note">
-        Steps is what is still in the way on that route. Anything Scapestack cannot
-        read stays unknown instead of being counted as done.
-      </p>
     </section>
   );
 }
