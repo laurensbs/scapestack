@@ -4,11 +4,20 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { nextUpAction } from "@/app/actions";
 import { PlayerPlanAnswer, PlayerPlanAlternatives, type PlayerPlanLine } from "@/components/player-plan-answer";
 import { QuestCompletionQuestions } from "@/components/quest-completion-questions";
+import { usePinnedGoals } from "@/components/use-pinned-goals";
 import { markAccountTrip } from "@/lib/account-storage";
 import { pickForRoute } from "@/lib/mood";
 import type { NextUpResult, Recommendation } from "@/lib/next-up";
 import { buildNextUpInputFromSources } from "@/lib/planning-input";
 import type { PlanningContextPayload } from "@/lib/planning-context";
+import {
+  activePinnedGoal,
+  goalTripWhy,
+  orderRecommendationsForGoal,
+  recommendationMovesPinnedGoal,
+  type PinnedGoalBossSource
+} from "@/lib/pinned-goal-orientation";
+import type { PinnedGoalProgressEvidence } from "@/lib/pinned-goals";
 import {
   buildRecommendationDecision,
   recommendationDecisionCopy,
@@ -49,10 +58,14 @@ function planBringLine(
 
 export function PlayerPlanPanel({
   rsn,
-  initialContext
+  initialContext,
+  goalEvidence,
+  goalBossSources
 }: {
   rsn: string;
   initialContext: PlanningContextPayload;
+  goalEvidence: PinnedGoalProgressEvidence;
+  goalBossSources: readonly PinnedGoalBossSource[];
 }) {
   const [result, setResult] = useState<NextUpResult | null>(initialContext.initialPlan);
   const [selectedRecommendationId, setSelectedRecommendationId] = useState<string | null>(null);
@@ -66,6 +79,11 @@ export function PlayerPlanPanel({
   const hasBank = bankItems.length > 0;
   const hasRuneLite = Boolean(initialContext.scapestackSync);
   const hasPublicStats = Boolean(initialContext.hiscores);
+  const pinnedGoals = usePinnedGoals(rsn);
+  const activeGoal = useMemo(
+    () => activePinnedGoal(pinnedGoals, goalEvidence),
+    [goalEvidence, pinnedGoals]
+  );
   const allRecs = useMemo(() => result
     ? result.headline
       ? [result.headline, ...result.rest]
@@ -75,19 +93,39 @@ export function PlayerPlanPanel({
     () => allRecs.filter((rec) => !feedback.suppressed[rec.id]),
     [allRecs, feedback]
   );
-  const basePick = useMemo(() => result ? pickForRoute(
+  const goalMovingRecs = useMemo(
+    () => activeGoal
+      ? visibleRecs.filter((rec) => recommendationMovesPinnedGoal(rec, activeGoal, goalBossSources))
+      : [],
+    [activeGoal, goalBossSources, visibleRecs]
+  );
+  const candidateRecs = goalMovingRecs.length > 0 ? goalMovingRecs : visibleRecs;
+  const preferredPick = useMemo(() => result ? pickForRoute(
+    candidateRecs,
+    PLAYER_MOOD,
+    PLAYER_MINUTES,
+    PLAYER_ROUTE,
+    0,
+    { honestyContext: { hasPublicStats, hasBank, hasRuneLite } }
+  ) : null, [candidateRecs, hasBank, hasPublicStats, hasRuneLite, result]);
+  const fallbackPick = useMemo(() => result && goalMovingRecs.length > 0 ? pickForRoute(
     visibleRecs,
     PLAYER_MOOD,
     PLAYER_MINUTES,
     PLAYER_ROUTE,
     0,
     { honestyContext: { hasPublicStats, hasBank, hasRuneLite } }
-  ) : null, [hasBank, hasPublicStats, hasRuneLite, result, visibleRecs]);
+  ) : null, [goalMovingRecs.length, hasBank, hasPublicStats, hasRuneLite, result, visibleRecs]);
+  const basePick = preferredPick ?? fallbackPick;
   const activeRec = selectedRecommendationId
     ? visibleRecs.find((rec) => rec.id === selectedRecommendationId) ?? basePick?.headline ?? null
     : basePick?.headline ?? null;
   const alternatives = activeRec && basePick
-    ? [basePick.headline, ...basePick.alternatives]
+    ? orderRecommendationsForGoal(
+        [basePick.headline, ...basePick.alternatives, ...visibleRecs],
+        activeGoal,
+        goalBossSources
+      )
         .filter((rec, index, list) => rec.id !== activeRec.id && list.findIndex((candidate) => candidate.id === rec.id) === index)
         .slice(0, 2)
     : [];
@@ -105,9 +143,12 @@ export function PlayerPlanPanel({
         hasRuneLite
       })
     : null;
-  const decisionCopy = decision
+  const baseDecisionCopy = decision
     ? recommendationDecisionCopy(decision, { hasBank, hasRuneLite })
     : null;
+  const decisionCopy = baseDecisionCopy && activeRec && activeGoal
+    ? { ...baseDecisionCopy, why: goalTripWhy(activeRec, activeGoal, goalBossSources) }
+    : baseDecisionCopy;
   const planLines: PlayerPlanLine[] = activeRec && decisionCopy && result
     ? [
         { label: "Start", value: decisionCopy.firstStep },

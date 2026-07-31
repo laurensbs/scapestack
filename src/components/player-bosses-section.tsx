@@ -1,5 +1,10 @@
 import type { BossViability } from "@/lib/boss-viability";
 import { bossViabilityDecisionLine } from "@/lib/boss-viability";
+import {
+  orderBossesForGoal,
+  type PinnedGoalBossSource
+} from "@/lib/pinned-goal-orientation";
+import type { PinnedGoal } from "@/lib/pinned-goals";
 import { wikiSearchUrl } from "@/lib/wiki";
 
 function orderedBosses(bosses: readonly BossViability[]): BossViability[] {
@@ -11,18 +16,36 @@ function orderedBosses(bosses: readonly BossViability[]): BossViability[] {
   );
 }
 
-export function PlayerBossesSection({ bosses }: { bosses: readonly BossViability[] | null }) {
-  const ordered = bosses ? orderedBosses(bosses) : [];
+export function PlayerBossesSection({
+  bosses,
+  activeGoal = null,
+  goalBossSources = []
+}: {
+  bosses: readonly BossViability[] | null;
+  activeGoal?: PinnedGoal | null;
+  goalBossSources?: readonly PinnedGoalBossSource[];
+}) {
+  const ordered = bosses ? orderBossesForGoal(orderedBosses(bosses), activeGoal, goalBossSources) : [];
   const killable = ordered.filter((boss) => boss.canKill).length;
+  const exactSources = activeGoal
+    ? goalBossSources.filter((source) => source.goalKey === activeGoal.key && ordered.some((boss) =>
+        source.bossSlug === boss.boss.slug
+        || source.bossName.toLowerCase() === boss.boss.name.toLowerCase()))
+    : [];
   return (
     <section id="bosses" data-player-tool-section="bosses" className="scroll-mt-20 border-t border-[var(--color-border)] pt-6" aria-labelledby="player-bosses-title">
       <p className="eyebrow">Bosses</p>
       <h2 id="player-bosses-title" className="mt-1 text-[22px] font-semibold text-[var(--color-text)]">
-        Which bosses can this bank kill?
+        {activeGoal ? `Which bosses move ${activeGoal.target}?` : "Which bosses can this bank kill?"}
       </h2>
       {bosses ? (
         <>
           <p data-testid="boss-startable-count" className="mt-2 text-[14px] leading-relaxed text-[var(--color-text)]">
+            {activeGoal
+              ? exactSources.length > 0
+                ? `${exactSources.length.toLocaleString()} exact Wiki drop source${exactSources.length === 1 ? " is" : "s are"} listed first. `
+                : `No exact boss drop source is recorded here for ${activeGoal.target}. The full kill list stays below. `
+              : ""}
             Of {ordered.length.toLocaleString()} combat bosses, {killable.toLocaleString()} are a kill or test trip with these levels and this bank.
           </p>
           <div className="scape-table-wrap mt-3 overflow-x-hidden">
@@ -38,22 +61,32 @@ export function PlayerBossesSection({ bosses }: { bosses: readonly BossViability
                 </tr>
               </thead>
               <tbody>
-                {ordered.map((boss) => (
-                  <tr key={boss.boss.slug}>
-                    <th scope="row" className="break-words align-top">
-                      <a href={wikiSearchUrl(boss.boss.name)} target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--color-text)] hover:text-[var(--color-accent)] hover:underline">
-                        {boss.boss.name}
-                      </a>
-                    </th>
-                    <td data-boss-answer={boss.boss.slug} className="whitespace-normal break-words align-top">
-                      <span className="scape-verdict" data-gate={boss.tone}>{boss.verdict}</span>
-                      <span className="mt-1 block leading-relaxed">{bossViabilityDecisionLine(boss)}</span>
-                      <span className="mt-1 block text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
-                        {boss.missing.length > 0 ? `Missing: ${boss.missing.join(", ")}.` : "Missing: nothing."}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {ordered.map((boss) => {
+                  const source = exactSources.find((candidate) =>
+                    candidate.bossSlug === boss.boss.slug
+                    || candidate.bossName.toLowerCase() === boss.boss.name.toLowerCase());
+                  return (
+                    <tr key={boss.boss.slug}>
+                      <th scope="row" className="break-words align-top">
+                        <a href={wikiSearchUrl(boss.boss.name)} target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--color-text)] hover:text-[var(--color-accent)] hover:underline">
+                          {boss.boss.name}
+                        </a>
+                      </th>
+                      <td data-boss-answer={boss.boss.slug} className="whitespace-normal break-words align-top">
+                        {source && activeGoal && (
+                          <span className="mb-1 block font-semibold text-[var(--color-text)]">
+                            {source.dropName} {source.rarity} from {source.bossName} moves {activeGoal.target}.
+                          </span>
+                        )}
+                        <span className="scape-verdict" data-gate={boss.tone}>{boss.verdict}</span>
+                        <span className="mt-1 block leading-relaxed">{bossViabilityDecisionLine(boss)}</span>
+                        <span className="mt-1 block text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
+                          {boss.missing.length > 0 ? `Missing: ${boss.missing.join(", ")}.` : "Missing: nothing."}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

@@ -5,6 +5,11 @@ import {
   type AffordableSet
 } from "@/lib/bank-affordability";
 import { BankShareControl } from "@/components/bank-share-control";
+import {
+  orderAffordableSetsForGoal,
+  type PinnedGoalBankFact
+} from "@/lib/pinned-goal-orientation";
+import type { PinnedGoal } from "@/lib/pinned-goals";
 
 function allStartedSets(report: AffordabilityReport): AffordableSet[] {
   const seen = new Set<string>();
@@ -18,13 +23,17 @@ function allStartedSets(report: AffordabilityReport): AffordableSet[] {
 export function PlayerSetsSection({
   report,
   cannotBuy,
-  canShare
+  canShare,
+  activeGoal = null,
+  goalBankFact = null
 }: {
   report: AffordabilityReport | null;
   cannotBuy: boolean;
   canShare: boolean;
+  activeGoal?: PinnedGoal | null;
+  goalBankFact?: PinnedGoalBankFact | null;
 }) {
-  const rows = report ? allStartedSets(report) : [];
+  const rows = report ? orderAffordableSetsForGoal(allStartedSets(report), activeGoal) : [];
   const headline = report && !cannotBuy ? affordabilityLine(report) : null;
   return (
     <section id="sets" data-player-tool-section="sets" className="scroll-mt-20 border-t border-[var(--color-border)] pt-6" aria-labelledby="player-sets-title">
@@ -32,6 +41,21 @@ export function PlayerSetsSection({
       <h2 id="player-sets-title" className="mt-1 text-[22px] font-semibold text-[var(--color-text)]">
         What can this bank finish?
       </h2>
+      {activeGoal && (
+        <div className="mt-3 border-y border-[var(--color-border)] py-3" data-pinned-goal-bank-answer={activeGoal.key}>
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
+            For {activeGoal.target}
+          </p>
+          <p className="mt-1 text-[13.5px] leading-relaxed text-[var(--color-text)]">
+            {goalBankFact?.line ?? `No exact bank price is available for ${activeGoal.target}. The started sets stay below.`}
+          </p>
+          {goalBankFact && (
+            <p className="mt-1 text-[12px]">
+              <span className="scape-verdict" data-gate={goalBankFact.gate}>{goalBankFact.verdict}</span>
+            </p>
+          )}
+        </div>
+      )}
       {!report ? (
         <p className="mt-2 text-[13px] leading-relaxed text-[var(--color-text-muted)]">No synced bank is available for a set answer.</p>
       ) : report.pricesUnavailable && !cannotBuy ? (

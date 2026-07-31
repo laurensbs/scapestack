@@ -21,8 +21,13 @@ import { buildMoneyMethodFilter } from "@/lib/money-methods";
 import { loadPlanningContext } from "@/lib/planning-context";
 import { pluginSyncHealth } from "@/lib/plugin-sync";
 import { shouldUsePluginBank } from "@/lib/plugin-bank-status";
+import { getDropRates } from "@/lib/drop-rates-db";
 import { pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
 import { buildPinnedGoalEvidence } from "@/lib/pinned-goal-evidence";
+import {
+  buildPinnedGoalBankFacts,
+  buildPinnedGoalBossSources
+} from "@/lib/pinned-goal-orientation";
 import { getQuests } from "@/lib/quest-db";
 import { cleanRsnInput, normalizeRsn } from "@/lib/rsn";
 import { decideSlayerTask } from "@/lib/slayer-task-decision";
@@ -64,14 +69,15 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   const source = (Array.isArray(sourceValue) ? sourceValue[0] : sourceValue)?.trim().toLowerCase();
   const from = (Array.isArray(fromValue) ? fromValue[0] : fromValue)?.trim().toLowerCase();
   const isOwner = viewerRsn === normalizeRsn(decoded);
-  const [context, latestPrices, wikiMapping, quests] = await Promise.all([
+  const [context, latestPrices, wikiMapping, quests, dropRates] = await Promise.all([
     loadPlanningContext(decoded, {
       viewerRsn,
       preferScapestack: source === "plugin-sync" || from === "plugin"
     }).catch(() => null),
     isOwner ? getLatestPrices().catch(() => new Map()) : Promise.resolve(new Map()),
     isOwner ? getWikiItemMapping().catch(() => new Map()) : Promise.resolve(new Map()),
-    getQuests()
+    getQuests(),
+    getDropRates().catch(() => new Map())
   ]);
   const hi = context?.hiscores;
   if (!context || !hi) notFound();
@@ -104,6 +110,10 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   });
   const cannotBuy = isIronPlannerAccount(accountMode);
   const simpleBank = bankItems.map((item) => ({ id: item.id, name: item.name, quantity: item.quantity }));
+  const goalBankFacts = exactBank
+    ? buildPinnedGoalBankFacts(exactBank, latestPrices, wikiMapping, cannotBuy)
+    : {};
+  const goalBossSources = buildPinnedGoalBossSources(dropRates);
   const numericPrices = new Map(
     [...latestPrices].map(([id, price]) => [id, price.value] as const)
   );
@@ -198,6 +208,9 @@ export default async function PlayerPage({ params, searchParams }: Props) {
       task={slayerDecision}
       emptyTaskReason={emptyTaskReason}
       money={moneyMethods}
+      goalEvidence={goalEvidence}
+      goalBankFacts={goalBankFacts}
+      goalBossSources={goalBossSources}
     />
   );
 
@@ -206,7 +219,12 @@ export default async function PlayerPage({ params, searchParams }: Props) {
       header={header}
       lastTrip={<LastTripLine outcome={context.lastTripOutcome} />}
       goals={<PinnedGoalsPanel rsn={displayName} evidence={goalEvidence} canSync={isOwner} />}
-      plan={<PlayerPlanPanel rsn={displayName} initialContext={context} />}
+      plan={<PlayerPlanPanel
+        rsn={displayName}
+        initialContext={context}
+        goalEvidence={goalEvidence}
+        goalBossSources={goalBossSources}
+      />}
       bank={bank}
       tools={tools}
       account={<PlayerSkillsTable displayName={displayName} skills={hi.skills} />}

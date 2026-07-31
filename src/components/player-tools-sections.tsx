@@ -7,6 +7,7 @@ import { PlayerBossesSection } from "@/components/player-bosses-section";
 import { PlayerSetsSection } from "@/components/player-sets-section";
 import { PlayerTaskSection } from "@/components/player-task-section";
 import { PlayerToolNav } from "@/components/player-tool-nav";
+import { usePinnedGoals } from "@/components/use-pinned-goals";
 import {
   buildAffordabilityReport,
   tradeableIndex,
@@ -17,6 +18,13 @@ import { bossViabilityFromSimpleBank, type BossViability } from "@/lib/boss-viab
 import { combatStatsFromSkills } from "@/lib/dps";
 import { localBankItemsFromPaste } from "@/lib/local-bank-items";
 import { buildMoneyMethodFilter, type MoneyMethodFilterReport } from "@/lib/money-methods";
+import {
+  activePinnedGoal,
+  buildPinnedGoalBankFacts,
+  type PinnedGoalBankFact,
+  type PinnedGoalBossSource
+} from "@/lib/pinned-goal-orientation";
+import type { PinnedGoalProgressEvidence } from "@/lib/pinned-goals";
 import { loadSavedBank } from "@/lib/saved-bank";
 import type { SlayerTaskDecision } from "@/lib/slayer-task-decision";
 import { parseLatestPrices, parseWikiMapping } from "@/lib/wiki";
@@ -28,6 +36,7 @@ interface LocalAnswers {
   bosses: BossViability[];
   sets: AffordabilityReport;
   money: MoneyMethodFilterReport;
+  goalBankFacts: Record<string, PinnedGoalBankFact>;
 }
 
 type LocalState =
@@ -46,7 +55,10 @@ export function PlayerToolsSections({
   sets,
   task,
   emptyTaskReason,
-  money
+  money,
+  goalEvidence = { skills },
+  goalBankFacts = {},
+  goalBossSources = []
 }: {
   rsn: string;
   skills: ReadonlyArray<{ name: string; level: number }>;
@@ -58,9 +70,14 @@ export function PlayerToolsSections({
   task: SlayerTaskDecision | null;
   emptyTaskReason: string;
   money: MoneyMethodFilterReport | null;
+  goalEvidence?: PinnedGoalProgressEvidence;
+  goalBankFacts?: Record<string, PinnedGoalBankFact>;
+  goalBossSources?: readonly PinnedGoalBossSource[];
 }) {
   const hasSyncedBankAnswers = bosses !== null && sets !== null && money !== null;
   const [localState, setLocalState] = useState<LocalState>({ kind: "idle" });
+  const pinnedGoals = usePinnedGoals(rsn);
+  const activeGoal = activePinnedGoal(pinnedGoals, goalEvidence);
 
   useEffect(() => {
     if (hasSyncedBankAnswers) return;
@@ -96,6 +113,7 @@ export function PlayerToolsSections({
             .map((boss) => bossViabilityFromSimpleBank(bank, boss, stats))
             .filter((boss): boss is BossViability => boss !== null),
           sets: buildAffordabilityReport(bank, latest, tradeableIndex(mapping)),
+          goalBankFacts: buildPinnedGoalBankFacts(bank, latest, mapping, cannotBuy),
           money: buildMoneyMethodFilter({
             skills,
             questsCompleted,
@@ -113,6 +131,23 @@ export function PlayerToolsSections({
   }, [cannotBuy, hasSyncedBankAnswers, questsCompleted, rsn, skills]);
 
   const local = localState.kind === "ready" ? localState.answers : null;
+  const effectiveGoalBankFacts = local?.goalBankFacts ?? goalBankFacts;
+  const setsSection = (
+    <PlayerSetsSection
+      report={local?.sets ?? sets}
+      cannotBuy={cannotBuy}
+      canShare={canShareBank && local === null}
+      activeGoal={activeGoal}
+      goalBankFact={activeGoal ? effectiveGoalBankFacts[activeGoal.key] ?? null : null}
+    />
+  );
+  const bossesSection = (
+    <PlayerBossesSection
+      bosses={local?.bosses ?? bosses}
+      activeGoal={activeGoal}
+      goalBossSources={goalBossSources}
+    />
+  );
   return (
     <div className="space-y-8">
       <PlayerToolNav />
@@ -128,12 +163,7 @@ export function PlayerToolsSections({
               The bank saved on this device could not be read. Paste it again on the bank intake.
             </p>
           )}
-          <PlayerBossesSection bosses={local?.bosses ?? bosses} />
-          <PlayerSetsSection
-            report={local?.sets ?? sets}
-            cannotBuy={cannotBuy}
-            canShare={canShareBank && local === null}
-          />
+          {activeGoal ? <>{setsSection}{bossesSection}</> : <>{bossesSection}{setsSection}</>}
           <PlayerTaskSection decision={task} emptyReason={emptyTaskReason} />
           <MoneyMethodsPanel report={local?.money ?? money} cannotBuy={cannotBuy} />
         </>

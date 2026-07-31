@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ItemSprite } from "@/components/item-sprite";
 import {
   ITEM_GOAL_CHOICES,
@@ -17,6 +17,7 @@ import {
   type PinnedGoalProgressEvidence
 } from "@/lib/pinned-goals";
 import { UNLOCK_GOAL_DEFINITIONS, type UnlockGoalId } from "@/lib/unlock-goal-catalog";
+import { claimPinnedGoalCompletionNotice } from "@/lib/pinned-goal-orientation";
 
 type PickerKind = PinnedGoal["kind"];
 
@@ -55,6 +56,8 @@ export function PinnedGoalsPanel({
 }) {
   const [goals, setGoals] = useState<PinnedGoal[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [completionNotice, setCompletionNotice] = useState<PinnedGoal | null>(null);
+  const checkedCompletionSignature = useRef("");
   const [kind, setKind] = useState<PickerKind>("item");
   const [itemGoalId, setItemGoalId] = useState(ITEM_GOAL_CHOICES[0]?.goalId ?? "");
   const [skill, setSkill] = useState(LEVEL_GOAL_SKILLS.includes("Slayer") ? "Slayer" : LEVEL_GOAL_SKILLS[0] ?? "Attack");
@@ -81,6 +84,15 @@ export function PinnedGoalsPanel({
     return () => { active = false; };
   }, [canSync, rsn]);
 
+  useEffect(() => {
+    if (!loaded) return;
+    const signature = goals.map((goal) => `${goal.key}@${goal.pinnedAt}`).join("|");
+    if (signature === checkedCompletionSignature.current) return;
+    checkedCompletionSignature.current = signature;
+    const completed = claimPinnedGoalCompletionNotice(localStorage, rsn, goals, evidence);
+    if (completed) setCompletionNotice(completed);
+  }, [evidence, goals, loaded, rsn]);
+
   const chosen = useMemo(() => {
     if (kind === "item") return createPinnedGoal({ kind, goalId: itemGoalId });
     if (kind === "level") return createPinnedGoal({ kind, skill, targetLevel });
@@ -106,6 +118,22 @@ export function PinnedGoalsPanel({
       <h2 id="pinned-goals-title" className="mt-1 text-2xl font-semibold text-[var(--color-text)]">
         What are you working toward?
       </h2>
+
+      {completionNotice && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-y border-[var(--color-border)] py-3" data-pinned-goal-complete={completionNotice.key}>
+          <p className="text-[13px] text-[var(--color-text)]">
+            <span className="scape-verdict" data-gate="ready">Goal complete</span>
+            <span> — {completionNotice.target}.</span>
+          </p>
+          <button
+            type="button"
+            className="btn-ghost min-h-11 px-3 text-[12px] font-bold"
+            onClick={() => document.getElementById("pinned-goal-kind")?.focus()}
+          >
+            Pin next
+          </button>
+        </div>
+      )}
 
       {loaded && goals.length > 0 ? (
         <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -141,10 +169,10 @@ export function PinnedGoalsPanel({
         </p>
       )}
 
-      <div className="mt-4 grid gap-3 border-t border-[var(--color-border)] pt-4 sm:grid-cols-[10rem_minmax(0,1fr)_auto] sm:items-end">
+      <div id="pinned-goal-picker" className="mt-4 grid gap-3 border-t border-[var(--color-border)] pt-4 sm:grid-cols-[10rem_minmax(0,1fr)_auto] sm:items-end">
         <label className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
           Goal type
-          <select aria-label="Goal type" className="mt-1 min-h-11 w-full border border-[var(--color-border)] bg-[var(--color-bg)] px-3 text-[13px] normal-case tracking-normal text-[var(--color-text)]" value={kind} onChange={(event) => setKind(event.target.value as PickerKind)}>
+          <select id="pinned-goal-kind" aria-label="Goal type" className="mt-1 min-h-11 w-full border border-[var(--color-border)] bg-[var(--color-bg)] px-3 text-[13px] normal-case tracking-normal text-[var(--color-text)]" value={kind} onChange={(event) => setKind(event.target.value as PickerKind)}>
             <option value="item">Item</option>
             <option value="level">Level</option>
             <option value="unlock">Unlock</option>
