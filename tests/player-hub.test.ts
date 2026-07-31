@@ -57,6 +57,7 @@ describe("the canonical player hub", () => {
     const html = renderToStaticMarkup(createElement(PlayerHubShell, {
       header: createElement("p", null, "Identity header"),
       lastTrip: createElement("p", null, "Last trip"),
+      goals: createElement("p", null, "Player goals"),
       plan: createElement("div", null,
         createElement(PlayerPlanAnswer, {
           rec: answer,
@@ -91,6 +92,7 @@ describe("the canonical player hub", () => {
     const positions = [
       "Identity header",
       "Last trip",
+      "Player goals",
       "The answer",
       "Not this?",
       "Your bank",

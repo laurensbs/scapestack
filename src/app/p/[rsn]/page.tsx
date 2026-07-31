@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { BankObservationsPanel } from "@/components/bank-observations-panel";
 import { LastTripLine } from "@/components/last-trip-line";
 import { PlayerHubShell } from "@/components/player-hub-shell";
+import { PinnedGoalsPanel } from "@/components/pinned-goals-panel";
 import { PlayerPlanPanel } from "@/components/player-plan-panel";
 import { PlayerSkillsTable } from "@/components/player-skills-table";
 import { PlayerToolsSections } from "@/components/player-tools-sections";
@@ -19,13 +20,17 @@ import { fetchHiscores, formatXp, computeCombatLevel, computeTotalLevel, totalXp
 import { buildMoneyMethodFilter } from "@/lib/money-methods";
 import { loadPlanningContext } from "@/lib/planning-context";
 import { pluginSyncHealth } from "@/lib/plugin-sync";
+import { shouldUsePluginBank } from "@/lib/plugin-bank-status";
 import { pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
+import { buildPinnedGoalEvidence } from "@/lib/pinned-goal-evidence";
+import { getQuests } from "@/lib/quest-db";
 import { cleanRsnInput, normalizeRsn } from "@/lib/rsn";
 import { decideSlayerTask } from "@/lib/slayer-task-decision";
 import { MONSTERS_BY_ID } from "@/lib/slayer/monsters";
 import { resolveSlayerTaskMonsterId } from "@/lib/slayer/task-ids";
 import { resolveViewerRsn } from "@/lib/viewer-account";
 import { getLatestPrices, getWikiItemMapping } from "@/lib/wiki";
+import { isRedactedSyncedPlayer } from "@/lib/synced-player-visibility";
 
 interface Props {
   params: Promise<{ rsn: string }>;
@@ -59,13 +64,14 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   const source = (Array.isArray(sourceValue) ? sourceValue[0] : sourceValue)?.trim().toLowerCase();
   const from = (Array.isArray(fromValue) ? fromValue[0] : fromValue)?.trim().toLowerCase();
   const isOwner = viewerRsn === normalizeRsn(decoded);
-  const [context, latestPrices, wikiMapping] = await Promise.all([
+  const [context, latestPrices, wikiMapping, quests] = await Promise.all([
     loadPlanningContext(decoded, {
       viewerRsn,
       preferScapestack: source === "plugin-sync" || from === "plugin"
     }).catch(() => null),
     isOwner ? getLatestPrices().catch(() => new Map()) : Promise.resolve(new Map()),
-    isOwner ? getWikiItemMapping().catch(() => new Map()) : Promise.resolve(new Map())
+    isOwner ? getWikiItemMapping().catch(() => new Map()) : Promise.resolve(new Map()),
+    getQuests()
   ]);
   const hi = context?.hiscores;
   if (!context || !hi) notFound();
@@ -77,6 +83,25 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   const accountType = accountMode ? plannerAccountTypeLabel(accountMode) : "Account type unknown";
   const syncedAt = context.scapestackSync?.syncedAt ?? null;
   const bankItems = context.scapestackSync?.bankItems ?? [];
+  const exactSync = isOwner && context.scapestackSync && !isRedactedSyncedPlayer(context.scapestackSync)
+    ? context.scapestackSync
+    : null;
+  const exactDomain = (domain: "quests" | "diaries") => {
+    const availability = exactSync?.availability?.[domain];
+    return Boolean(exactSync && (availability === undefined || availability === "available"));
+  };
+  const exactBank = exactSync && shouldUsePluginBank({
+    status: exactSync.bankStatus,
+    itemCount: exactSync.bankItems.length,
+    availability: exactSync.availability?.bank
+  }) ? exactSync.bankItems : undefined;
+  const goalEvidence = buildPinnedGoalEvidence({
+    skills: hi.skills,
+    quests,
+    questsCompleted: exactDomain("quests") ? exactSync?.questsCompleted : undefined,
+    diariesCompleted: exactDomain("diaries") ? exactSync?.diariesCompleted : undefined,
+    bankItems: exactBank
+  });
   const cannotBuy = isIronPlannerAccount(accountMode);
   const simpleBank = bankItems.map((item) => ({ id: item.id, name: item.name, quantity: item.quantity }));
   const numericPrices = new Map(
@@ -180,6 +205,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
     <PlayerHubShell
       header={header}
       lastTrip={<LastTripLine outcome={context.lastTripOutcome} />}
+      goals={<PinnedGoalsPanel rsn={displayName} evidence={goalEvidence} canSync={isOwner} />}
       plan={<PlayerPlanPanel rsn={displayName} initialContext={context} />}
       bank={bank}
       tools={tools}

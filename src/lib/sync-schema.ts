@@ -286,6 +286,17 @@ CREATE INDEX IF NOT EXISTS bank_affordability_share_public_idx ON bank_affordabi
 CREATE OR REPLACE FUNCTION prevent_bank_share_snapshot_update() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.snapshot IS DISTINCT FROM OLD.snapshot OR NEW.account_id IS DISTINCT FROM OLD.account_id OR NEW.source_synced_at IS DISTINCT FROM OLD.source_synced_at THEN RAISE EXCEPTION 'bank share snapshot is immutable'; END IF; RETURN NEW; END; $$;
 DROP TRIGGER IF EXISTS bank_affordability_share_snapshot_no_update ON bank_affordability_share;
 CREATE TRIGGER bank_affordability_share_snapshot_no_update BEFORE UPDATE ON bank_affordability_share FOR EACH ROW EXECUTE FUNCTION prevent_bank_share_snapshot_update();
+
+-- Goals are private account state chosen by the player, not derived recommendations.
+CREATE TABLE IF NOT EXISTS account_pinned_goal (
+  account_id UUID NOT NULL REFERENCES account_identity(account_id) ON DELETE CASCADE,
+  goal_key TEXT NOT NULL,
+  goal JSONB NOT NULL,
+  pinned_at TIMESTAMPTZ NOT NULL,
+  PRIMARY KEY (account_id, goal_key),
+  CHECK (goal_key ~ '^(item|level|unlock):[a-z0-9:-]{1,90}$')
+);
+CREATE INDEX IF NOT EXISTS account_pinned_goal_account_idx ON account_pinned_goal(account_id, pinned_at ASC);
 `;
 
 export function syncSchemaStatements(): string[] {

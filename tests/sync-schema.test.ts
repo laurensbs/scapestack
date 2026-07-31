@@ -127,4 +127,16 @@ describe("sync schema migrations", () => {
     expect(SCHEMA_SQL).toContain("NEW.snapshot IS DISTINCT FROM OLD.snapshot");
     expect(SCHEMA_SQL).toContain("WHERE published_at IS NOT NULL AND revoked_at IS NULL");
   });
+
+  it("stores pinned goals as private account-owned rows", () => {
+    const tableStart = SCHEMA_SQL.indexOf("CREATE TABLE IF NOT EXISTS account_pinned_goal");
+    const tableEnd = SCHEMA_SQL.indexOf(";", tableStart);
+    const goalTable = SCHEMA_SQL.slice(tableStart, tableEnd);
+
+    expect(goalTable).toContain("account_id UUID NOT NULL REFERENCES account_identity(account_id) ON DELETE CASCADE");
+    expect(goalTable).toContain("goal JSONB NOT NULL");
+    expect(goalTable).toContain("pinned_at TIMESTAMPTZ NOT NULL");
+    expect(goalTable).toContain("PRIMARY KEY (account_id, goal_key)");
+    expect(goalTable).not.toMatch(/public|published|rsn/i);
+  });
 });
