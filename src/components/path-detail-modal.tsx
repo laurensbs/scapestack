@@ -2,15 +2,27 @@
 
 import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { X, Check, Circle, Search } from "lucide-react";
+import { X, Search } from "lucide-react";
+import { BossSprite } from "@/components/boss-picker";
+import { JournalItemSprite, JournalSpriteSlot, JournalStatusMark } from "@/components/journal-primitives";
+import { BOSSES } from "@/lib/bosses";
 import { cn } from "@/lib/utils";
 import type { PathProgress } from "@/lib/path-progress";
-import { ItemSprite } from "./item-sprite";
 import { useDialogA11y } from "@/lib/use-dialog-a11y";
 
 interface Props {
   path: PathProgress;
   onClose: () => void;
+}
+
+function PathDetailSprite({ step }: { step: PathProgress["allSteps"][number] }) {
+  if (step.iconItemId) return <JournalItemSprite id={step.iconItemId} />;
+  const boss = step.bossSlug ? BOSSES.find((candidate) => candidate.slug === step.bossSlug) : null;
+  return boss ? (
+    <JournalSpriteSlot>
+      <BossSprite boss={boss} size={40} />
+    </JournalSpriteSlot>
+  ) : null;
 }
 
 // One focused route sheet: title, search and a plain checklist.
@@ -77,7 +89,7 @@ export function PathDetailModal({ path, onClose }: Props) {
                 {path.label}
               </h2>
               <p id={descriptionId} className="mt-1 text-[13px] text-[var(--color-text-dim)] leading-snug">
-                {path.tagline} · <span className="tabular-nums text-[var(--color-text)]">{path.done} of {path.total} done ({path.percent}%)</span>
+                {path.tagline} · <span className="tabular-nums text-[var(--color-text)]">{path.done}/{path.total} done</span>
               </p>
           </div>
         </header>
@@ -144,33 +156,8 @@ export function PathDetailModal({ path, onClose }: Props) {
                       : ""
                   )}
                 >
-                  <div className="shrink-0 mt-0.5">
-                    {step.status === "done" ? (
-                      <Check className="size-4 text-[var(--color-good)]" />
-                    ) : (
-                      <Circle className="size-4 text-[var(--color-text-muted)]" />
-                    )}
-                  </div>
-                  {step.iconItemId ? (
-                    <ItemSprite
-                      id={step.iconItemId}
-                      alt=""
-                      size={18}
-                      className="pixelated shrink-0 mt-0.5"
-                      style={{
-                        opacity: step.status === "done" ? 0.55 : 1
-                      }}
-                    />
-                  ) : step.bossSlug ? (
-                    <img
-                      src={`/sprites/bosses/${step.bossSlug}.png`}
-                      alt=""
-                      width={22}
-                      height={22}
-                      className="shrink-0 mt-0.5 object-contain"
-                      style={{ opacity: step.status === "done" ? 0.55 : 1 }}
-                    />
-                  ) : null}
+                  <JournalStatusMark done={step.status === "done"} />
+                  <PathDetailSprite step={step} />
                   <div className="flex-1 min-w-0">
                     <div className={cn(
                       "text-[13px] font-semibold leading-snug",

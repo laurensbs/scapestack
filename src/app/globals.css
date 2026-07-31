@@ -1,54 +1,41 @@
 @import "tailwindcss";
 
-/*  Scapestack — direction B, "Wiki". Chosen 2026-07-26.
-    See docs/design/SCAPESTACK-DESIGN-SYSTEM.md; four directions were built
-    and compared in docs/design/directions.html.
+/*  Scapestack — Journal skin. Chosen 2026-07-31.
+    See docs/SCAPESTACK-JOURNAL-PROMPTBOOK-2026-07-31.md and
+    docs/design/SCAPESTACK-DESIGN-SYSTEM.md.
 
-    The form players already trust: a reference document. Rules instead of
-    shadows, weight instead of ornament, and no atmosphere at all. The one
-    rule that decides every other choice here comes from the game itself —
-    the interface is drab so the numbers can shout. Saturated colour is
-    DATA ONLY, and the hexes for it are Jagex's own, measured pixel by pixel
-    from the client (see the design system for the sampling).
-
-    Two things deliberately removed with this change: the display serif on
-    headings, which made the site read as a fashion magazine rather than a
-    tool, and coloured links, because a reference document underlines rather
-    than tints. Both were the loudest generic signals in the old palette.
-
-    Critical implementation note: every accent-aware animation in the
-    keyframes below uses literal rgba(...) calls, not CSS variables.
-    Those literals were updated in lockstep — if you touch
-    --color-accent here, grep the file for the old colour to make sure
-    the keyframe rgba values still match. */
+    The trusted family is the quest journal, achievement diary and collection
+    log: warm ground, exact fractions, inventory slots and explicit marks.
+    Chrome stays quiet so saturated Jagex colour can remain data: headings,
+    levels, stack magnitudes, item names and verdicts. */
 
 @theme {
-  /* Surfaces — black app chrome, parchment reserved for focused dialogs */
-  --color-bg: #0D0D0C;
-  --color-bg-2: #131312;
-  --color-panel: #171715;
-  --color-panel-2: #1D1D1A;
-  --color-surface: #191917;
-  --color-border: #26261F;
-  --color-border-strong: #3B3B32;
-  --color-parchment: #2A2115;
-  --color-parchment-2: #372B1B;
-  --color-parchment-dark: #151008;
+  /* Journal surfaces — sampled warm ground, panel, slot and rules. */
+  --color-bg: #1C1811;
+  --color-bg-2: #151009;
+  --color-panel: #2A2318;
+  --color-panel-2: #2A2318;
+  --color-surface: #2A2318;
+  --color-border: #3A3226;
+  --color-border-strong: #5A4E3C;
+  --color-parchment: #2A2318;
+  --color-parchment-2: #2A2318;
+  --color-parchment-dark: #151009;
   --color-parchment-edge: #8A7142;
 
   /* Text */
   --color-text: #EDEBE6;
   --color-text-secondary: #C4C1B8;
   --color-text-dim: #A29E94;
-  --color-text-muted: #8A877F;
+  --color-text-muted: #A29E94;
 
-  /* Brass is identity and primary action. No green success theme. */
-  --color-gold: #FF981F;
-  --color-gold-soft: #FFB65C;
-  --color-gold-deep: #B26100;
-  --color-accent: #FF981F;
-  --color-accent-soft: #FFB65C;
-  --color-rune: #FF981F;
+  /* Chrome stays neutral. Saturated Jagex colour lives in data tokens below. */
+  --color-gold: #C4C1B8;
+  --color-gold-soft: #EDEBE6;
+  --color-gold-deep: #8A7142;
+  --color-accent: #C4C1B8;
+  --color-accent-soft: #EDEBE6;
+  --color-rune: #C4C1B8;
 
   /* good == warning == accent, and danger == bad, ON PURPOSE. The line above
      says it: no green success theme. Saturated colour is data only, so status
@@ -65,10 +52,10 @@
      gate ramp. These stay for chrome that needs the accent under another name.
      tests/one-scale-per-meaning.test.ts fails the build if a component starts
      choosing between two of them again. */
-  --color-good: #FF981F;
-  --color-warning: #FF981F;
-  --color-danger: #B76A57;
-  --color-bad: #B76A57;
+  --color-good: #C4C1B8;
+  --color-warning: #C4C1B8;
+  --color-danger: #C4C1B8;
+  --color-bad: #C4C1B8;
 
   /* ── Data colours ───────────────────────────────────────────────────
      Jagex's own, sampled pixel by pixel from the client and cross-checked
@@ -76,7 +63,8 @@
      a green number is millions. Breaking that is worse than not using it.
 
      These are the ONLY saturated colours in the system, and they may only
-     ever land on a real number or a real verdict — never on chrome. */
+     ever land on a heading, a real number, a real item name or a verdict —
+     never on chrome. */
   --color-data-head: #FF981F;    /* interface heading — 100% of sampled pixels */
   --color-data-level: #FFFF00;   /* levels, and stacks under 100K */
   --color-data-k: #FFFFFF;       /* stacks 100K-9.9M, suffix K */
@@ -98,27 +86,27 @@
   --color-gate-trivial: #00FF00;     /* -10 or more */
 
   /* Slot palette — readable OSRS inventory energy without heavy skeuomorphism */
-  --color-slot: #121212;
-  --color-slot-edge: #464646;
+  --color-slot: #151009;
+  --color-slot-edge: #5A4E3C;
 
   /* Bank skeumorphic vars — tuned dark so bank/DPS stop feeling like
      separate products. */
-  --color-osrs-wood-dark: #151008;
-  --color-osrs-wood: #2A2115;
-  --color-osrs-wood-light: #372B1B;
+  --color-osrs-wood-dark: #151009;
+  --color-osrs-wood: #2A2318;
+  --color-osrs-wood-light: #3A3226;
   --color-osrs-wood-edge: #8A7142;
-  --color-osrs-bank-bg: #070604;
-  --color-osrs-bank-inner: #030201;
-  --color-osrs-slot: #121212;
-  --color-osrs-slot-edge: #464646;
-  --color-osrs-slot-empty: #080808;
-  --color-osrs-slot-hover: #E0AE37;
-  --color-osrs-tab-active: #1B1B1B;
-  --color-osrs-tab-inactive: #101010;
-  --color-osrs-title: #E0AE37;
+  --color-osrs-bank-bg: #151009;
+  --color-osrs-bank-inner: #151009;
+  --color-osrs-slot: #151009;
+  --color-osrs-slot-edge: #5A4E3C;
+  --color-osrs-slot-empty: #151009;
+  --color-osrs-slot-hover: #8A7142;
+  --color-osrs-tab-active: #2A2318;
+  --color-osrs-tab-inactive: #1C1811;
+  --color-osrs-title: #FF981F;
   --color-osrs-qty-yellow: #F3D27A;
   --color-osrs-qty-white: #F5F1E8;
-  --color-osrs-qty-green: #E0AE37;
+  --color-osrs-qty-green: #00FF80;
   --color-osrs-btn-red: #EF6A3A;
 
   /* Fonts — mature app typography with a restrained OSRS-adjacent serif accent. */
@@ -194,12 +182,6 @@
   @keyframes intake-lift {
     0%   { transform: translateY(0)    scale(1); }
     100% { transform: translateY(-4px) scale(1.005); }
-  }
-  /* Bar fill — gaat van width:0 naar het inline-style width over een
-     beat. Gebruikt voor de Path-axes balken in WhereYouAre. */
-  @keyframes bar-fill {
-    from { transform: scaleX(0); transform-origin: left; }
-    to   { transform: scaleX(1); transform-origin: left; }
   }
   /* Track-stagger — fade + lift voor elk van de result-tracks zodat
      ze niet allemaal tegelijk verschijnen. Delay per track via inline
@@ -661,9 +643,8 @@ code, pre, .font-mono {
 }
 
 body {
-  /* Flat app canvas. Boss, reward and item art supply the atmosphere. */
-  background: linear-gradient(180deg, #050403 0%, var(--color-bg) 38%, #050403 100%);
-  background-attachment: fixed;
+  /* Flat Journal ground. Item art supplies the detail; chrome stays quiet. */
+  background: var(--color-bg);
   height: auto;
   min-height: 100dvh;
   width: 100%;
@@ -781,7 +762,7 @@ body {
 
 .scapestack-lock-card[data-interactive="true"]:hover {
   border-color: color-mix(in srgb, var(--color-accent) 44%, var(--color-border));
-  background: rgb(255 152 31 / 0.05);
+  background: rgb(196 193 184 / 0.05);
 }
 
 .scapestack-lock-list {
@@ -847,7 +828,7 @@ body {
 
 .scapestack-command-button:hover {
   border-color: color-mix(in srgb, var(--color-accent) 48%, var(--color-border));
-  background: rgb(255 152 31 / 0.07);
+  background: rgb(196 193 184 / 0.07);
   color: var(--color-text);
   transform: translateY(-1px);
 }
@@ -857,9 +838,7 @@ body {
   border-color: color-mix(in srgb, var(--color-gold-deep) 72%, black 28%);
   background: var(--color-accent);
   color: #0B0906;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 241, 168, 0.32),
-    0 12px 30px -24px rgba(214, 166, 58, 0.95);
+  box-shadow: none;
 }
 
 .scapestack-command-button[data-variant="primary"]:hover,
@@ -946,19 +925,13 @@ body {
   background: var(--color-accent);
   color: #0B0906;
   border: 1px solid color-mix(in srgb, var(--color-gold-deep) 70%, black 30%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 241, 168, 0.38),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.26),
-    0 10px 26px -20px rgba(214, 166, 58, 0.8);
+  box-shadow: none;
   transition: background 160ms ease, transform 120ms ease, box-shadow 160ms ease;
 }
 .btn-primary:hover {
   background: var(--color-accent-soft);
   transform: translateY(-1px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 241, 168, 0.45),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.24),
-    0 14px 30px -20px rgba(214, 166, 58, 0.95);
+  box-shadow: none;
 }
 .btn-primary:active {
   transform: translateY(0);
@@ -1135,10 +1108,10 @@ body {
    No zebra striping, no cell borders, no shadow. A rule is enough; the
    OSRS Wiki's own monster tables do not do more than this either.
 
-   Contrast on --color-bg #0D0D0C, measured not assumed:
-     header  --color-text-muted     #8A877F   5.4:1
-     cell    --color-text-secondary #C4C1B8  11.5:1
-     number  --color-text           #EDEBE6  16.0:1 */
+   Contrast on --color-panel #2A2318, measured not assumed:
+     header  --color-text-muted     #A29E94  5.8:1
+     cell    --color-text-secondary #C4C1B8  8.6:1
+     number  --color-text           #EDEBE6 13.0:1 */
 .scape-table-wrap {
   width: 100%;
   max-width: 100%;
@@ -1206,7 +1179,7 @@ body {
 }
 
 .scape-table tbody tr:hover td {
-  background: rgb(255 152 31 / 0.045);
+  background: rgb(196 193 184 / 0.045);
 }
 
 /* The specimen's closing line: what the numbers were computed from, and
@@ -1237,8 +1210,14 @@ body {
    neutral ink. That is the whole reason there is no fourth colour.
 
    The word carries the meaning on its own, so colour is never the only
-   signal (WCAG 1.4.1). Contrast on #0D0D0C: 5.3:1, 18.1:1, 14.4:1. */
+   signal (WCAG 1.4.1). Each word sits on --color-slot #151009; the three
+   rendered steps measure 5.1:1, 17.6:1 and 14.0:1. */
 .scape-verdict {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  background: var(--color-slot);
+  padding: 0.1rem 0.3rem;
   color: var(--color-text-dim);
   font-size: 11.5px;
   font-weight: 700;
@@ -1248,6 +1227,28 @@ body {
 .scape-verdict[data-gate="ready"]   { color: var(--color-gate-easy); }
 .scape-verdict[data-gate="test"]    { color: var(--color-gate-even); }
 .scape-verdict[data-gate="blocked"] { color: var(--color-gate-above); }
+
+.journal-status-mark {
+  display: inline-flex;
+  width: 1.35rem;
+  height: 1.35rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-slot);
+  font-size: 0.875rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.journal-status-mark[data-state="done"] {
+  color: var(--color-gate-easy);
+}
+
+.journal-status-mark[data-state="not-done"] {
+  color: var(--color-gate-over);
+}
 
 .scape-checklist {
   border-block: 1px solid var(--color-border);
@@ -1386,7 +1387,7 @@ body {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--color-text-muted);
+  color: var(--color-data-head);
 }
 
 .section-divider {

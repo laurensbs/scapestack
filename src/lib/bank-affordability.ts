@@ -42,6 +42,7 @@ export interface MissingPiece {
 export interface AffordableSet {
   setId: string;
   setName: string;
+  iconItemId?: number;
   owned: number;
   total: number;
   missing: MissingPiece[];
@@ -176,6 +177,7 @@ function analyseSet(
   return {
     setId: set.id,
     setName: set.name,
+    iconItemId: set.iconItemId,
     owned,
     total: set.goals.length,
     missing,

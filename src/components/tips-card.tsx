@@ -18,10 +18,10 @@ interface TipsCardProps {
 // Per-kind metadata: icon, label, colour accent. Used by both individual tips
 // and the group-row headers.
 const KIND_META: Record<BankTip["kind"], { icon: typeof Lightbulb; label: string; accent: string }> = {
-  decant:              { icon: Coins,    label: "Decant",  accent: "text-amber-400" },
-  "stack-merge":       { icon: Wrench,   label: "Merge",   accent: "text-sky-400" },
-  "outfit-incomplete": { icon: Sparkles, label: "Outfit",  accent: "text-violet-400" },
-  "untradeable-pickup":{ icon: Trophy,   label: "Pickup",  accent: "text-amber-300" }
+  decant:              { icon: Coins,    label: "Decant",  accent: "text-[var(--color-text-secondary)]" },
+  "stack-merge":       { icon: Wrench,   label: "Merge",   accent: "text-[var(--color-text-secondary)]" },
+  "outfit-incomplete": { icon: Sparkles, label: "Outfit",  accent: "text-[var(--color-text-secondary)]" },
+  "untradeable-pickup":{ icon: Trophy,   label: "Pickup",  accent: "text-[var(--color-text-secondary)]" }
 };
 
 // A grouped tip entry — either a single standalone tip or a header for a

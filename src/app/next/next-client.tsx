@@ -14,6 +14,7 @@ import { AddBankModal } from "@/components/add-bank-modal";
 import { SavedBankBanner } from "@/components/saved-bank-banner";
 import { BossSprite } from "@/components/boss-picker";
 import { ItemSprite } from "@/components/item-sprite";
+import { JournalItemSprite } from "@/components/journal-primitives";
 import { AccountModeBadge } from "@/components/account-mode-badge";
 import { XpDropLoader } from "@/components/xp-drop-loader";
 import { ShuffleLoader } from "@/components/shuffle-loader";
@@ -1743,7 +1744,7 @@ function routeLaneStatus({
     }
     if (quests) {
       return {
-        label: `${quests.percent}% route`,
+        label: `${quests.done}/${quests.total} quests`,
         detail: quests.nextSteps[0]?.title ?? definition.fallback,
         tone: "neutral"
       };
@@ -1819,9 +1820,7 @@ function RouteProgressBoard({
               const href = status.href ? recommendationHrefWithContext(status.href, actionContext) : undefined;
               const title = (
                 <span className="flex min-h-11 items-center gap-2.5 text-left">
-                  <span className="flex size-7 shrink-0 items-center justify-center overflow-hidden">
-                    <ItemSprite id={definition.iconItemId} alt="" size={26} />
-                  </span>
+                  <JournalItemSprite id={definition.iconItemId} />
                   <span className="min-w-0">
                     <span className="block truncate text-[13.5px] font-semibold text-[var(--color-text)]">
                       {definition.title}
@@ -1954,18 +1953,21 @@ function BankGapsRail({ progress }: { progress: SetCompletion[] }) {
           const norm = normaliseCompletion(completion, set);
           const missing = set.goals.filter((goal) => !completion.perGoal[goal.id]?.satisfied);
           return (
-            <div key={completion.setId} className="py-2">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[12px] font-bold text-[var(--color-text)]">{set.name}</span>
-                <span className="shrink-0 text-[11.5px] font-semibold tabular-nums text-[var(--color-text-dim)]">
-                  {norm.progress}/{norm.max}
-                </span>
+            <div key={completion.setId} className="flex items-start gap-3 py-2">
+              {set.iconItemId ? <JournalItemSprite id={set.iconItemId} /> : null}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[12px] font-bold text-[var(--color-text)]">{set.name}</span>
+                  <span className="shrink-0 text-[11.5px] font-semibold tabular-nums text-[var(--color-text-dim)]">
+                    {norm.progress}/{norm.max}
+                  </span>
+                </div>
+                <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-[var(--color-text-muted)]">
+                  {missing.length > 0
+                    ? `Still missing: ${missing.slice(0, 3).map((goal) => goal.name).join(", ")}`
+                    : "Looks complete in this bank."}
+                </p>
               </div>
-              <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-[var(--color-text-muted)]">
-                {missing.length > 0
-                  ? `Still missing: ${missing.slice(0, 3).map((goal) => goal.name).join(", ")}`
-                  : "Looks complete in this bank."}
-              </p>
             </div>
           );
         })}
@@ -2302,8 +2304,7 @@ function HeroStrip({ summary, basisNote, onEdit }: {
   const stats: Array<{ label: string; value: string }> = [
     ...(summary.combatLevel !== null ? [{ label: "Combat", value: String(summary.combatLevel) }] : []),
     ...(summary.totalLevel !== null ? [{ label: "Total", value: String(summary.totalLevel) }] : []),
-    { label: "Mode", value: accountModeVisual(summary.accountMode.type, summary.accountMode.confidence).shortLabel },
-    ...(summary.goalPercent !== null ? [{ label: "Goals", value: `${summary.goalPercent}%` }] : [])
+    { label: "Mode", value: accountModeVisual(summary.accountMode.type, summary.accountMode.confidence).shortLabel }
   ];
 
   return (
@@ -4953,9 +4954,6 @@ function RouteNeeds({
             Pick the route with the smallest missing step.
           </p>
         </div>
-        <span className="text-[10.5px] font-bold tabular-nums text-[var(--color-text-muted)]">
-          {pathData.overallPercent}% mapped
-        </span>
       </div>
       {/* Nine cards, each repeating the same four labels down its own left
           edge, in a three-column grid — so the same label appeared up to nine
@@ -4976,7 +4974,6 @@ function RouteNeeds({
               <th scope="col">Route</th>
               <th scope="col" className="hidden sm:table-cell">First action</th>
               <th scope="col" data-num>Steps</th>
-              <th scope="col" data-num className="hidden lg:table-cell">Mapped</th>
             </tr>
           </thead>
           <tbody>
@@ -4984,11 +4981,7 @@ function RouteNeeds({
               <tr key={route.id}>
                 <td className="w-full max-w-0">
                   <span className="flex min-h-11 items-center gap-2.5">
-                    <span className="flex size-7 shrink-0 items-center justify-center overflow-hidden">
-                      {route.iconItemId
-                        ? <ItemSprite id={route.iconItemId} alt="" size={26} />
-                        : <MapIcon className="size-4 text-[var(--color-text-muted)]" />}
-                    </span>
+                    {route.iconItemId ? <JournalItemSprite id={route.iconItemId} /> : null}
                     <span className="min-w-0">
                       <span className="block truncate text-[13.5px] font-semibold text-[var(--color-text)]">
                         {route.title}
@@ -5009,7 +5002,6 @@ function RouteNeeds({
                   </span>
                 </td>
                 <td data-num>{route.blockersLeft}</td>
-                <td data-num className="hidden lg:table-cell">{route.progressPercent}%</td>
               </tr>
             ))}
           </tbody>

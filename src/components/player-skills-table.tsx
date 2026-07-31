@@ -1,3 +1,5 @@
+import Image from "next/image";
+import { JournalSpriteSlot } from "@/components/journal-primitives";
 import { formatXp, type HiscoreSkill } from "@/lib/hiscores";
 import { skillSpriteUrl } from "@/lib/sprites";
 
@@ -43,21 +45,23 @@ function SkillTableRow({ skill }: { skill: HiscoreSkill }) {
   return (
     <tr>
       <th scope="row" className="whitespace-nowrap">
-        <span className="flex items-center gap-2">
+        <span className="flex items-center gap-3">
           {spriteUrl && (
-            <img
-              src={spriteUrl}
-              alt=""
-              width={14}
-              height={14}
-              className="pixelated shrink-0"
-              style={{ imageRendering: "pixelated" }}
-            />
+            <JournalSpriteSlot>
+              <Image
+                src={spriteUrl}
+                alt=""
+                width={40}
+                height={40}
+                className="pixelated"
+                style={{ imageRendering: "pixelated" }}
+              />
+            </JournalSpriteSlot>
           )}
           {skill.name}
         </span>
       </th>
-      <td data-num style={level === 99 ? { color: "var(--color-gold)" } : undefined}>{level}</td>
+      <td data-num style={{ color: "var(--color-data-level)" }}>{level}</td>
       <td data-num>{skill.xp > 0 ? formatXp(skill.xp) : "—"}</td>
       <td data-num>{skill.rank > 0 ? `#${skill.rank.toLocaleString()}` : "—"}</td>
     </tr>

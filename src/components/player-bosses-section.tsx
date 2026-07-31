@@ -1,5 +1,7 @@
 import type { BossViability } from "@/lib/boss-viability";
 import { bossViabilityDecisionLine } from "@/lib/boss-viability";
+import { BossSprite } from "@/components/boss-picker";
+import { JournalSpriteSlot } from "@/components/journal-primitives";
 import {
   orderBossesForGoal,
   type PinnedGoalBossSource
@@ -68,9 +70,14 @@ export function PlayerBossesSection({
                   return (
                     <tr key={boss.boss.slug}>
                       <th scope="row" className="break-words align-top">
-                        <a href={wikiSearchUrl(boss.boss.name)} target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--color-text)] hover:text-[var(--color-accent)] hover:underline">
-                          {boss.boss.name}
-                        </a>
+                        <span className="flex min-w-0 items-start gap-3">
+                          <JournalSpriteSlot>
+                            <BossSprite boss={boss.boss} size={40} />
+                          </JournalSpriteSlot>
+                          <a href={wikiSearchUrl(boss.boss.name)} target="_blank" rel="noopener noreferrer" className="min-w-0 break-words font-semibold text-[var(--color-text)] hover:underline">
+                            {boss.boss.name}
+                          </a>
+                        </span>
                       </th>
                       <td data-boss-answer={boss.boss.slug} className="whitespace-normal break-words align-top">
                         {source && activeGoal && (

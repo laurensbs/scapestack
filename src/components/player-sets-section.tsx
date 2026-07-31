@@ -5,6 +5,7 @@ import {
   type AffordableSet
 } from "@/lib/bank-affordability";
 import { BankShareControl } from "@/components/bank-share-control";
+import { JournalItemSprite } from "@/components/journal-primitives";
 import {
   orderAffordableSetsForGoal,
   type PinnedGoalBankFact
@@ -42,18 +43,21 @@ export function PlayerSetsSection({
         What can this bank finish?
       </h2>
       {activeGoal && (
-        <div className="mt-3 border-y border-[var(--color-border)] py-3" data-pinned-goal-bank-answer={activeGoal.key}>
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
-            For {activeGoal.target}
-          </p>
-          <p className="mt-1 text-[13.5px] leading-relaxed text-[var(--color-text)]">
-            {goalBankFact?.line ?? `No exact bank price is available for ${activeGoal.target}. The started sets stay below.`}
-          </p>
-          {goalBankFact && (
-            <p className="mt-1 text-[12px]">
-              <span className="scape-verdict" data-gate={goalBankFact.gate}>{goalBankFact.verdict}</span>
+        <div className="mt-3 flex gap-3 border-y border-[var(--color-border)] py-3" data-pinned-goal-bank-answer={activeGoal.key}>
+          {activeGoal.spriteItemId ? <JournalItemSprite id={activeGoal.spriteItemId} /> : null}
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
+              For {activeGoal.target}
             </p>
-          )}
+            <p className="mt-1 text-[13.5px] leading-relaxed text-[var(--color-text)]">
+              {goalBankFact?.line ?? `No exact bank price is available for ${activeGoal.target}. The started sets stay below.`}
+            </p>
+            {goalBankFact && (
+              <p className="mt-1 text-[12px]">
+                <span className="scape-verdict" data-gate={goalBankFact.gate}>{goalBankFact.verdict}</span>
+              </p>
+            )}
+          </div>
         </div>
       )}
       {!report ? (
@@ -70,20 +74,27 @@ export function PlayerSetsSection({
           {rows.length > 0 ? (
             <ul className="mt-3 divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]" aria-label="Sets started by this bank">
               {rows.map((row) => (
-                <li key={row.setId} className="grid min-w-0 gap-1 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-x-4">
-                  <div className="min-w-0">
-                    <p className="break-words text-[13.5px] font-semibold text-[var(--color-text)]">
-                      {row.setName} <span className="font-normal text-[var(--color-text-muted)]">{row.owned}/{row.total}</span>
-                    </p>
-                    <p data-set-answer={row.setId} className="mt-1 whitespace-normal break-words text-[12px] leading-relaxed text-[var(--color-text-dim)]">
-                      Missing: {row.missing.map((piece) => piece.name).join(", ")}.
-                    </p>
+                <li key={row.setId} className="flex min-w-0 items-start gap-3 py-3">
+                  {row.iconItemId ? <JournalItemSprite id={row.iconItemId} /> : null}
+                  <div className="grid min-w-0 flex-1 gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-x-4">
+                    <div className="min-w-0">
+                      <p className="break-words text-[13.5px] font-semibold text-[var(--color-text)]">
+                        {row.setName} <span className="font-normal tabular-nums text-[var(--color-text-muted)]">{row.owned}/{row.total}</span>
+                      </p>
+                      <p data-set-answer={row.setId} className="mt-1 whitespace-normal break-words text-[12px] leading-relaxed text-[var(--color-text-dim)]">
+                        Missing: {row.missing.map((piece, index) => (
+                          <span key={piece.goalId} className="text-[var(--color-data-item)]">
+                            {index > 0 ? ", " : ""}{piece.name}
+                          </span>
+                        ))}.
+                      </p>
+                    </div>
+                    {!cannotBuy && (
+                      <p className="self-start whitespace-nowrap text-[12px] font-semibold tabular-nums text-[var(--color-text)]">
+                        {row.cost === null ? "Not for sale" : formatGpExact(row.cost)}
+                      </p>
+                    )}
                   </div>
-                  {!cannotBuy && (
-                    <p className="self-start whitespace-nowrap text-[12px] font-semibold tabular-nums text-[var(--color-text)]">
-                      {row.cost === null ? "Not for sale" : formatGpExact(row.cost)}
-                    </p>
-                  )}
                 </li>
               ))}
             </ul>

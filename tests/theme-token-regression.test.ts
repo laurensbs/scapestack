@@ -48,7 +48,7 @@ describe("theme token regressions", () => {
   });
 
   it("keeps the canonical warning token on the accent", () => {
-    expect(globalsCss).toContain("--color-warning: #FF981F;");
+    expect(globalsCss).toContain("--color-warning: #C4C1B8;");
     expect(globalsCss).not.toContain("--color-warn:");
   });
 
@@ -61,9 +61,10 @@ describe("theme token regressions", () => {
     //
     // What this test was really guarding is unchanged and still guarded
     // below: no drift toward a green-success SaaS palette.
-    expect(globalsCss).toContain("--color-bg: #0D0D0C;");
+    expect(globalsCss).toContain("--color-bg: #1C1811;");
+    expect(globalsCss).toContain("--color-panel: #2A2318;");
     expect(globalsCss).toContain("--color-text: #EDEBE6;");
-    expect(globalsCss).toContain("--color-accent: #FF981F;");
+    expect(globalsCss).toContain("--color-accent: #C4C1B8;");
     expect(globalsCss).not.toContain("#00E29A");
     expect(globalsCss).not.toMatch(/--color-good:\s*#(?:10|16|22|34|59)/i);
   });

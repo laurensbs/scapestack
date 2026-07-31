@@ -43,6 +43,7 @@ import { TipsCard } from "./tips-card";
 import { BankAffordabilityPanel } from "./bank-affordability-panel";
 import { BankObservationsPanel } from "./bank-observations-panel";
 import { ItemSprite } from "./item-sprite";
+import { JournalItemSprite } from "./journal-primitives";
 import { computeTips, type BankTip } from "@/lib/tips";
 import { track } from "@/lib/analytics";
 import { isJunkCandidate, summarizeJunk, listJunkItems } from "@/lib/junk";
@@ -2722,29 +2723,11 @@ export function BankResult({
           </div>
           <div className="grid sm:grid-cols-2 gap-1.5">
             {goalSetProgress.map((p) => {
-              const pct = Math.round((p.owned / p.total) * 100);
               return (
-                <div key={p.set.id} className="flex items-center gap-2">
-                  {p.set.iconItemId ? (
-                    <span className="size-5 shrink-0 rounded bg-[var(--color-bg-2)] border border-[var(--color-border)] flex items-center justify-center">
-                      <ItemSprite
-                        id={p.set.iconItemId}
-                        alt=""
-                        className="pixelated"
-                        style={{
-                          maxWidth: "78%",
-                          maxHeight: "78%"
-                        }}
-                      />
-                    </span>
-                  ) : (
-                    <span aria-hidden="true" className="size-3 shrink-0 rounded-full bg-[var(--color-text-muted)] inline-block" />
-                  )}
+                <div key={p.set.id} className="flex items-center gap-3">
+                  {p.set.iconItemId ? <JournalItemSprite id={p.set.iconItemId} /> : null}
                   <span className="text-[var(--color-text-dim)] flex-1 min-w-0 truncate">{p.set.name}</span>
                   <span className="font-mono tabular-nums text-[var(--color-accent)] font-semibold shrink-0">{p.owned}/{p.total}</span>
-                  <div className="w-16 h-1.5 rounded-full bg-[var(--color-border)] overflow-hidden shrink-0">
-                    <div className="h-full bg-[var(--color-accent)]" style={{ width: `${pct}%` }} />
-                  </div>
                 </div>
               );
             })}

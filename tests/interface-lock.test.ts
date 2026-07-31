@@ -47,7 +47,7 @@ describe("Scapestack interface lock", () => {
     const commandButton = css.slice(css.indexOf(".scapestack-command-button {"), css.indexOf(".scapestack-command-button:hover"));
     expect(primaryButton).toContain("border-radius: var(--radius-control)");
     expect(commandButton).toContain("border-radius: var(--radius-control)");
-    expect(css).toContain("Flat app canvas. Boss, reward and item art supply the atmosphere.");
+    expect(css).toContain("Flat Journal ground. Item art supplies the detail; chrome stays quiet.");
     expect(css).not.toContain("radial-gradient(circle at 50% 14%");
   });
 

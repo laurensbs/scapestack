@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ItemSprite } from "@/components/item-sprite";
+import { JournalItemSprite, JournalStatusMark } from "@/components/journal-primitives";
 import {
   ITEM_GOAL_CHOICES,
   LEVEL_GOAL_SKILLS,
@@ -141,16 +141,18 @@ export function PinnedGoalsPanel({
             const progress = pinnedGoalProgress(goal, evidence);
             return (
               <li key={goal.key} className="flex min-w-0 items-center gap-3 border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
-                <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden border border-[var(--color-border)] bg-[var(--color-bg)]">
-                  {goal.spriteItemId
-                    ? <ItemSprite id={goal.spriteItemId} alt="" size={32} />
-                    : <span aria-hidden="true" className="text-[14px] text-[var(--color-text-muted)]">•</span>}
-                </span>
+                {goal.spriteItemId ? <JournalItemSprite id={goal.spriteItemId} /> : null}
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13px] font-semibold text-[var(--color-text)]">{goal.target}</span>
+                  <span className={goal.kind === "item"
+                    ? "block truncate text-[13px] font-semibold text-[var(--color-data-item)]"
+                    : "block truncate text-[13px] font-semibold text-[var(--color-text)]"}
+                  >
+                    {goal.target}
+                  </span>
                   {progress.fraction ? (
-                    <span className="mt-0.5 block tabular-nums text-[12px] text-[var(--color-text-dim)]">
-                      {progress.fraction}{progress.done ? <span className="scape-verdict ml-2" data-gate="ready">Done</span> : null}
+                    <span className="mt-1 flex items-center gap-2 tabular-nums text-[12px] text-[var(--color-text-dim)]">
+                      <JournalStatusMark done={progress.done} />
+                      {progress.fraction}
                     </span>
                   ) : (
                     <span className="mt-0.5 block text-[11.5px] leading-snug text-[var(--color-text-muted)]">{progress.note}</span>

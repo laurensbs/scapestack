@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, EyeOff, ExternalLink, Target } from "lucide-react";
 import { BossSprite } from "@/components/boss-picker";
-import { ItemSprite } from "@/components/item-sprite";
+import { JournalItemSprite, JournalSpriteSlot } from "@/components/journal-primitives";
 import { BOSSES } from "@/lib/bosses";
 import type { Recommendation } from "@/lib/next-up";
 import { backupChoicePrompt, playerChoiceTag } from "@/lib/player-plan-copy";
@@ -38,20 +38,20 @@ function RecommendationGlyph({ rec }: { rec: Recommendation }) {
     ? BOSSES.find((candidate) => candidate.slug === rec.bossSlug)
     : null;
   if ((rec.kind === "kc" || rec.kind === "boss") && boss) {
-    return <BossSprite boss={boss} size={38} />;
-  }
-  if (rec.iconItemId) {
     return (
-      <ItemSprite
-        id={rec.iconItemId}
-        alt=""
-        className="pixelated"
-        size={34}
-        style={{ imageRendering: "pixelated", filter: "drop-shadow(1px 1px 0 rgb(0 0 0 / 0.9))" }}
-      />
+      <JournalSpriteSlot>
+        <BossSprite boss={boss} size={40} />
+      </JournalSpriteSlot>
     );
   }
-  return <Target className="size-6 text-[var(--color-accent)]" strokeWidth={1.75} />;
+  if (rec.iconItemId) {
+    return <JournalItemSprite id={rec.iconItemId} />;
+  }
+  return (
+    <JournalSpriteSlot>
+      <Target className="size-6 text-[var(--color-text-secondary)]" strokeWidth={1.75} />
+    </JournalSpriteSlot>
+  );
 }
 
 export function PlayerPlanAnswer({
@@ -86,12 +86,7 @@ export function PlayerPlanAnswer({
         {recommendationConfidenceEyebrow(decisionCopy.confidence)}
       </p>
       <h2 className="flex min-w-0 items-center gap-3 text-[23px] font-black leading-[1.08] tracking-normal text-[var(--color-text)] sm:text-[32px]">
-        <span
-          className="flex size-9 shrink-0 items-center justify-center overflow-hidden sm:size-10"
-          aria-hidden="true"
-        >
-          <RecommendationGlyph rec={rec} />
-        </span>
+        <RecommendationGlyph rec={rec} />
         <span className="min-w-0 break-words">{decisionCopy.title}</span>
       </h2>
       <p className="mt-2 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)] sm:text-[13.5px]">
@@ -196,11 +191,16 @@ export function PlayerPlanAlternatives({
                       aria-label={`Choose ${rec.title}`}
                       className="block min-h-11 w-full py-1 text-left"
                     >
-                      <span className="block truncate text-[13.5px] font-semibold text-[var(--color-text)]">
-                        {rec.title}
-                      </span>
-                      <span className="block text-[11px] leading-snug text-[var(--color-text-muted)]">
-                        {prompt.helper}
+                      <span className="flex min-w-0 items-center gap-3">
+                        <RecommendationGlyph rec={rec} />
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-[13.5px] font-semibold text-[var(--color-text)]">
+                            {rec.title}
+                          </span>
+                          <span className="block text-[11px] leading-snug text-[var(--color-text-muted)]">
+                            {prompt.helper}
+                          </span>
+                        </span>
                       </span>
                     </button>
                   </td>

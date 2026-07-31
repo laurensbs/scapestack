@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, ArrowRight, CheckCircle2, Circle, ExternalLink, Shield } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, ExternalLink, Shield } from "lucide-react";
 import { type PlannerAccountType } from "@/lib/account-type";
 import { AccountModeBadge } from "@/components/account-mode-badge";
 import { ItemSprite } from "@/components/item-sprite";
+import { JournalStatusMark } from "@/components/journal-primitives";
 import type { QuestRecord } from "@/lib/quest-db";
 import type { QuestRouteProgress } from "@/lib/quest-route";
 import {
@@ -41,15 +42,8 @@ function bankItemFromHandoff(item: BankHandoffItem): QuestBankItem {
 
 function RequirementPill({ met }: { met: boolean }) {
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10.5px] font-bold",
-        // Met and unmet rendered the same colour. CheckCircle2 vs Circle
-        // below carries it, and a requirement list is read by shape.
-        "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
-      )}
-    >
-      {met ? <CheckCircle2 className="size-3" /> : <Circle className="size-3" />}
+    <span className="inline-flex items-center gap-1.5 text-[10.5px] font-bold text-[var(--color-text-secondary)]">
+      <JournalStatusMark done={met} />
       {met ? "Done" : "Needed"}
     </span>
   );
