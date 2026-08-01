@@ -74,7 +74,7 @@ export function buildPinnedGoalRoute(
             ? "Not verified"
             : "Later",
       state: node.state,
-      iconItemId
+      iconItemId: node.iconItemId ?? iconItemId
     }))
   };
 }

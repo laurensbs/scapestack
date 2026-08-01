@@ -20,7 +20,20 @@ describe("companion routes", () => {
     }]);
     expect(pinned).toMatchObject({ kind: "pinned-goal", title: "Route to Barrows gloves" });
     expect(pinned?.nodes).toHaveLength(10);
-    expect(pinned?.nodes.every((node) => node.state === "unknown" && node.iconItemId === 7462)).toBe(true);
+    expect(pinned?.nodes.every((node) => node.state === "unknown")).toBe(true);
+    expect(pinned?.nodes.map((node) => node.iconItemId)).toEqual([
+      7497,
+      7509,
+      7511,
+      7530,
+      7477,
+      7479,
+      7230,
+      7476,
+      7579,
+      7462
+    ]);
+    expect(new Set(pinned?.nodes.map((node) => node.iconItemId)).size).toBe(10);
 
     const max = buildMaxRoute([
       { skill: "Mining", currentLevel: 95, targetLevel: 99, xpRemaining: 2_000_000 },

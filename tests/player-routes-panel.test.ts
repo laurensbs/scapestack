@@ -24,4 +24,25 @@ describe("the player route surface", () => {
     expect(component).toContain("<JournalStatusMark");
     expect(component).not.toMatch(/progressbar|totalHours|hours to max|Unlock \d+\/100/i);
   });
+
+  it("uses Archivo weights by meaning and tabular figures for route numbers", () => {
+    const component = read("src/components/player-routes-panel.tsx");
+    const trackedClassLists = [...component.matchAll(/className="([^"]*\btracking-[^"]*)"/g)]
+      .map((match) => match[1]);
+    const metricClasses = component.match(
+      /<span className="([^"]*)">\{node\.metric\}<\/span>/
+    )?.[1] ?? "";
+    const detailClasses = component.match(
+      /<span className="([^"]*)">\{node\.detail\}<\/span>/
+    )?.[1] ?? "";
+
+    expect(component).toContain("font-semibold");
+    expect(component).not.toMatch(/\bfont-(?:medium|bold|extrabold|black)\b/);
+    expect(trackedClassLists.length).toBeGreaterThan(0);
+    for (const classes of trackedClassLists) {
+      expect(classes).toContain("uppercase");
+    }
+    expect(metricClasses).toContain("tabular-nums");
+    expect(detailClasses).toContain("tabular-nums");
+  });
 });
