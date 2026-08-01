@@ -49,8 +49,10 @@ describe("Phase 6 homepage intake", () => {
     expect(pageMarkup).not.toContain("HomeSpecimen");
 
     expect(source).toContain("router.push(playerPath(cleanRsn))");
-    expect(source).toContain("router.replace(playerPath(knownRsn))");
-    expect(source).toContain("getActiveAccount()?.rsn || loadSavedRsn()");
+    expect(source).not.toContain("router.replace(");
+    expect(source).not.toContain("getActiveAccount");
+    expect(source).not.toContain("loadSavedRsn");
+    expect(source).not.toContain("useEffect");
     expect(source).not.toContain("rememberedRsn");
     expect(source).not.toContain("Welcome back");
     expect(source).not.toContain("AddBankModal");

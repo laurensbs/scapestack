@@ -1,19 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { getActiveAccount } from "@/lib/account-storage";
 import { playerPath } from "@/lib/player-route";
-import { loadSavedRsn, saveSavedRsn } from "@/lib/saved-bank";
+import { saveSavedRsn } from "@/lib/saved-bank";
 
 export function HeroIntake() {
   const router = useRouter();
   const [rsn, setRsn] = useState("");
-
-  useEffect(() => {
-    const knownRsn = getActiveAccount()?.rsn || loadSavedRsn();
-    if (knownRsn) router.replace(playerPath(knownRsn));
-  }, [router]);
 
   const submit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
