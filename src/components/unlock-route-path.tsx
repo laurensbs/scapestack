@@ -10,7 +10,7 @@ function RouteNodeMarker({ node }: { node: UnlockRouteNode }) {
       <span
         role="img"
         aria-label="Current step"
-        className="inline-flex size-[1.35rem] items-center justify-center border border-[var(--color-parchment-edge)] bg-[var(--color-slot)] text-[11px] font-black text-[var(--color-text)]"
+        className="inline-flex size-[1.35rem] items-center justify-center border border-[var(--color-parchment-edge)] bg-[var(--color-slot)] text-[length:var(--text-label)] font-black text-[var(--color-text)]"
       >
         <span aria-hidden="true">▶</span>
       </span>
@@ -20,7 +20,7 @@ function RouteNodeMarker({ node }: { node: UnlockRouteNode }) {
     <span
       role="img"
       aria-label="Not verified"
-      className="inline-flex size-[1.35rem] items-center justify-center border border-[var(--color-border-strong)] bg-[var(--color-slot)] text-[12px] font-black text-[var(--color-text-secondary)]"
+      className="inline-flex size-[1.35rem] items-center justify-center border border-[var(--color-border-strong)] bg-[var(--color-slot)] text-[length:var(--text-micro)] font-black text-[var(--color-text-secondary)]"
     >
       <span aria-hidden="true">?</span>
     </span>
@@ -62,8 +62,8 @@ export function UnlockRoutePath({
         <header className="flex items-center gap-3">
           {iconItemId ? <JournalItemSprite id={iconItemId} /> : null}
           <span className="min-w-0">
-            <h3 id={titleId} className="text-[16px] font-semibold text-[var(--color-text)]">{title}</h3>
-            <span className="mt-0.5 block text-[11.5px] leading-snug text-[var(--color-text-muted)]">{payoff}</span>
+            <h3 id={titleId} className="text-[length:var(--text-subject)] font-semibold text-[var(--color-text)]">{title}</h3>
+            <span className="mt-0.5 block text-[length:var(--text-micro)] leading-snug text-[var(--color-text-muted)]">{payoff}</span>
           </span>
         </header>
       ) : (
@@ -85,17 +85,17 @@ export function UnlockRoutePath({
             <span className="min-w-0">
               <span className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
                 {node.href ? (
-                  <Link href={node.href} className="text-[13px] font-semibold leading-snug text-[var(--color-text)] underline-offset-4 hover:underline">
+                  <Link href={node.href} className="text-[length:var(--text-body)] font-semibold leading-snug text-[var(--color-text)] underline-offset-4 hover:underline">
                     {node.title}
                   </Link>
                 ) : (
-                  <span className="text-[13px] font-semibold leading-snug text-[var(--color-text)]">{node.title}</span>
+                  <span className="text-[length:var(--text-body)] font-semibold leading-snug text-[var(--color-text)]">{node.title}</span>
                 )}
-                <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--color-text-muted)]">
+                <span className="text-[length:var(--text-label)] font-bold uppercase tracking-[0.12em] text-[var(--color-text-muted)]">
                   {routeNodeLabel(node)}
                 </span>
               </span>
-              <span className="mt-0.5 block text-[11.5px] leading-snug text-[var(--color-text-muted)]">{node.requirement}</span>
+              <span className="mt-0.5 block text-[length:var(--text-micro)] leading-snug text-[var(--color-text-muted)]">{node.requirement}</span>
             </span>
           </li>
         ))}

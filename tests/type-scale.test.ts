@@ -26,7 +26,7 @@ const SCALE = ["11px", "12px", "14px", "19px", "28px", "40px"];
  * is a ceiling that stops meaning anything, which is the failure mode of every
  * ratchet ever written.
  */
-const CEILING = 723;
+const CEILING = 717;
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const entry of readdirSync(dir)) {

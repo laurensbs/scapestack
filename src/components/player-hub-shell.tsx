@@ -5,6 +5,7 @@ export function PlayerHubShell({
   lastTrip,
   goals,
   plan,
+  routes,
   bank,
   tools,
   account
@@ -13,6 +14,7 @@ export function PlayerHubShell({
   lastTrip: ReactNode;
   goals?: ReactNode;
   plan: ReactNode;
+  routes?: ReactNode;
   bank: ReactNode;
   tools: ReactNode;
   account: ReactNode;
@@ -23,6 +25,7 @@ export function PlayerHubShell({
       <div data-player-hub-section="last-trip">{lastTrip}</div>
       {goals !== undefined && <div data-player-hub-section="goals">{goals}</div>}
       <div data-player-hub-section="plan">{plan}</div>
+      {routes !== undefined && <div data-player-hub-section="routes">{routes}</div>}
       <div data-player-hub-section="bank">{bank}</div>
       <div data-player-hub-section="tools">{tools}</div>
       <div data-player-hub-section="account">{account}</div>

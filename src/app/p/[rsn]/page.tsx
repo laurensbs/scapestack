@@ -6,6 +6,7 @@ import { PlayerHubShell } from "@/components/player-hub-shell";
 import { PlayerIdentityBand } from "@/components/player-identity-band";
 import { PinnedGoalsPanel } from "@/components/pinned-goals-panel";
 import { PlayerPlanPanel } from "@/components/player-plan-panel";
+import { PlayerRoutesPanel } from "@/components/player-routes-panel";
 import { PlayerSkillsTable } from "@/components/player-skills-table";
 import { PlayerToolsSections } from "@/components/player-tools-sections";
 import {
@@ -23,6 +24,7 @@ import { loadPlanningContext } from "@/lib/planning-context";
 import { pluginSyncHealth } from "@/lib/plugin-sync";
 import { shouldUsePluginBank } from "@/lib/plugin-bank-status";
 import { getDropRates } from "@/lib/drop-rates-db";
+import { getItems } from "@/lib/item-db";
 import { pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
 import { buildPinnedGoalEvidence } from "@/lib/pinned-goal-evidence";
 import { pinnedGoalSuggestionsFromPlan } from "@/lib/pinned-goal-suggestions";
@@ -39,6 +41,7 @@ import { resolveSlayerTaskMonsterId } from "@/lib/slayer/task-ids";
 import { resolveViewerRsn } from "@/lib/viewer-account";
 import { getLatestPrices, getWikiItemMapping } from "@/lib/wiki";
 import { isRedactedSyncedPlayer } from "@/lib/synced-player-visibility";
+import { buildCollectionLogRoute, buildMaxRoute } from "@/lib/companion-routes";
 
 interface Props {
   params: Promise<{ rsn: string }>;
@@ -72,7 +75,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   const source = (Array.isArray(sourceValue) ? sourceValue[0] : sourceValue)?.trim().toLowerCase();
   const from = (Array.isArray(fromValue) ? fromValue[0] : fromValue)?.trim().toLowerCase();
   const isOwner = viewerRsn === normalizeRsn(decoded);
-  const [context, latestPrices, wikiMapping, quests, diaries, dropRates] = await Promise.all([
+  const [context, latestPrices, wikiMapping, quests, diaries, dropRates, items] = await Promise.all([
     loadPlanningContext(decoded, {
       viewerRsn,
       preferScapestack: source === "plugin-sync" || from === "plugin"
@@ -81,7 +84,8 @@ export default async function PlayerPage({ params, searchParams }: Props) {
     isOwner ? getWikiItemMapping().catch(() => new Map()) : Promise.resolve(new Map()),
     getQuests(),
     getDiaries(),
-    getDropRates().catch(() => new Map())
+    getDropRates().catch(() => new Map()),
+    getItems().catch(() => new Map())
   ]);
   const hi = context?.hiscores;
   if (!context || !hi) notFound();
@@ -143,6 +147,24 @@ export default async function PlayerPage({ params, searchParams }: Props) {
     bankItems: exactBank
   });
   const suggestedGoals = pinnedGoalSuggestionsFromPlan(context.initialPlan);
+  const maxRoute = buildMaxRoute(context.initialPlan?.maxEstimate.perSkill ?? []);
+  const collectionRoute = buildCollectionLogRoute({
+    dropRates,
+    items,
+    bosses: BOSSES,
+    ownedItemIds: exactDomain("collectionLog")
+      ? new Set(exactSync?.collectionLogItemIds ?? [])
+      : context.collectionLog
+        ? new Set(context.collectionLog.ownedItemIds)
+        : null
+  });
+  const unlockRoutes = (context.initialPlan?.pathProgress.unlockRoutes ?? []).map((route) => ({
+    id: route.id,
+    title: route.title,
+    payoff: route.payoff,
+    iconItemId: route.iconItemId,
+    pathNodes: route.pathNodes
+  }));
   const cannotBuy = isIronPlannerAccount(accountMode);
   const simpleBank = bankItems.map((item) => ({ id: item.id, name: item.name, quantity: item.quantity }));
   const goalBankFacts = exactBank
@@ -266,6 +288,12 @@ export default async function PlayerPage({ params, searchParams }: Props) {
         initialContext={context}
         goalEvidence={goalEvidence}
         goalBossSources={goalBossSources}
+      />}
+      routes={<PlayerRoutesPanel
+        rsn={displayName}
+        maxRoute={maxRoute}
+        collectionRoute={collectionRoute}
+        unlockRoutes={unlockRoutes}
       />}
       bank={bank}
       tools={tools}
