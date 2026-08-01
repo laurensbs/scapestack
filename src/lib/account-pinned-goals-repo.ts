@@ -1,5 +1,6 @@
 import { sql } from "./db";
 import { parsePinnedGoal, type PinnedGoal } from "./pinned-goals";
+import { normalizeRsn } from "./rsn";
 import { ensureSyncSchema } from "./sync-repo";
 
 interface QueryClient {
@@ -18,6 +19,21 @@ export async function getAccountPinnedGoals(accountId: string): Promise<PinnedGo
     WHERE account_id = $1::uuid
     ORDER BY pinned_at ASC, goal_key ASC
   `, [accountId]);
+  return rows.map((row) => parsePinnedGoal(row.goal)).filter((goal): goal is PinnedGoal => goal !== null);
+}
+
+/** Private goal lookup for the authenticated plugin sync response. */
+export async function getAccountPinnedGoalsByRsn(rsn: string): Promise<PinnedGoal[]> {
+  const normalized = normalizeRsn(rsn);
+  if (!normalized) return [];
+  await ensureSyncSchema();
+  const rows = await client().query<{ goal: unknown }>(`
+    SELECT goal
+    FROM account_pinned_goal pinned
+    JOIN account_identity identity ON identity.account_id = pinned.account_id
+    WHERE identity.rsn = $1
+    ORDER BY pinned.pinned_at ASC, pinned.goal_key ASC
+  `, [normalized]);
   return rows.map((row) => parsePinnedGoal(row.goal)).filter((goal): goal is PinnedGoal => goal !== null);
 }
 

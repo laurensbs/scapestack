@@ -21,6 +21,7 @@ import { RSN_MAX_LENGTH, cleanRsnInput, isValidRsn, normalizeRsn } from "@/lib/r
 import { normalizePluginBankStatus } from "@/lib/plugin-bank-status";
 import { reconcileActiveRecommendationOutcomes } from "@/lib/recommendation-outcome-repo";
 import { buildPluginPanelReceipt, type PluginPanelReceipt } from "@/lib/plugin-panel-answer";
+import { getAccountPinnedGoalsByRsn } from "@/lib/account-pinned-goals-repo";
 import type { SnapshotAvailability } from "@/lib/account-snapshot-delta";
 import type { SyncDeltaSummary, SyncedPlayer } from "@/lib/sync-repo";
 import {
@@ -411,7 +412,8 @@ export async function POST(req: Request): Promise<Response> {
         lastSyncSummary: syncSummary,
         syncedAt
       };
-      panel = await buildPluginPanelReceipt(syncedPlayer);
+      const pinnedGoals = await getAccountPinnedGoalsByRsn(normalizedRsn).catch(() => []);
+      panel = await buildPluginPanelReceipt(syncedPlayer, pinnedGoals);
     } catch (error) {
       // The answer is an additive receipt. A planner or price-feed failure must
       // never turn a successful account snapshot into a failed sync.

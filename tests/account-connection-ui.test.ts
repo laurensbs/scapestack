@@ -16,8 +16,10 @@ describe("progressive account connection UI", () => {
 
   it("uses RuneLite as proof without exposing developer auth language", () => {
     expect(modal).toContain("RuneLite confirms the player");
-    expect(pluginPanel).toContain("Connect browser");
-    expect(pluginPanel).toContain("Get a code on Scapestack");
+    expect(pluginPanel).toContain('primaryButton("Connect")');
+    expect(pluginPanel).toContain("Browser blocked? Get a code on Scapestack");
+    expect(pluginPanel).toContain("Enter code instead");
+    expect(pluginPanel).not.toContain('button("Connect browser")');
     expect(modal).not.toContain("bearer");
     expect(modal).not.toContain("token_hash");
     expect(modal).not.toContain("account_id");

@@ -53,13 +53,15 @@ final class ScapestackSyncPanel extends PluginPanel {
     private final BooleanSupplier syncOnLogin;
     private final Consumer<Boolean> setSyncOnLogin;
     private final Runnable syncNow;
-    private final Consumer<String> connectBrowser;
+    private final Runnable openBrowser;
+    private final Consumer<String> approveBrowserCode;
+    private final ItemSpriteLoader spriteLoader;
 
+    private final JLabel answerSprite = new JLabel();
     private final JLabel answerTitle = heading("Sync once for your next trip");
     private final WrappedLabel answerDetail = copy("RuneLite will send the data you enabled and put the answer here.");
     private final StatusRow stopAt = new StatusRow("Stop at", "One useful trip");
-    private final StatusRow current = new StatusRow("Now", "Not measured yet");
-    private final StatusRow left = new StatusRow("Left", "Sync to measure");
+    private final StatusRow goal = new StatusRow("Goal", "Not measured yet");
     private final WrappedLabel timers = copy("");
     private final WrappedLabel bankInsight = copy("");
     private final WrappedLabel status = copy("Not synced yet");
@@ -73,7 +75,9 @@ final class ScapestackSyncPanel extends PluginPanel {
         ScapestackSyncConfig config,
         ConfigManager configManager,
         Runnable syncNow,
-        Consumer<String> connectBrowser
+        Runnable openBrowser,
+        Consumer<String> approveBrowserCode,
+        ItemSpriteLoader spriteLoader
     ) {
         this(
             config::autoSync,
@@ -83,7 +87,9 @@ final class ScapestackSyncPanel extends PluginPanel {
                 enabled
             ),
             syncNow,
-            connectBrowser
+            openBrowser,
+            approveBrowserCode,
+            spriteLoader
         );
     }
 
@@ -92,12 +98,16 @@ final class ScapestackSyncPanel extends PluginPanel {
         BooleanSupplier syncOnLogin,
         Consumer<Boolean> setSyncOnLogin,
         Runnable syncNow,
-        Consumer<String> connectBrowser
+        Runnable openBrowser,
+        Consumer<String> approveBrowserCode,
+        ItemSpriteLoader spriteLoader
     ) {
         this.syncOnLogin = syncOnLogin;
         this.setSyncOnLogin = setSyncOnLogin;
         this.syncNow = syncNow;
-        this.connectBrowser = connectBrowser;
+        this.openBrowser = openBrowser;
+        this.approveBrowserCode = approveBrowserCode;
+        this.spriteLoader = spriteLoader;
 
         setLayout(new BorderLayout());
         setBackground(PAGE);
@@ -107,8 +117,6 @@ final class ScapestackSyncPanel extends PluginPanel {
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.setBackground(PAGE);
         content.add(heading("Scapestack"));
-        content.add(Box.createVerticalStrut(ROW_GAP));
-        content.add(copy("Your next trip from scapestack.org and live RuneLite data."));
         content.add(Box.createVerticalStrut(CARD_GAP));
         content.add(answerCard());
         content.add(Box.createVerticalStrut(CARD_GAP));
@@ -149,6 +157,10 @@ final class ScapestackSyncPanel extends PluginPanel {
         SwingUtilities.invokeLater(() -> timers.setCopy(value));
     }
 
+    void setBankInsight(String value) {
+        SwingUtilities.invokeLater(() -> bankInsight.setCopy(value));
+    }
+
     void setReceipt(ServerResponseSummary.PanelReceipt receipt) {
         SwingUtilities.invokeLater(() -> {
             answers.clear();
@@ -172,15 +184,24 @@ final class ScapestackSyncPanel extends PluginPanel {
 
     private JPanel answerCard() {
         JPanel panel = card();
+        JPanel answer = new JPanel(new BorderLayout(CARD_GAP, 0));
+        answer.setOpaque(false);
+        answer.setAlignmentX(Component.LEFT_ALIGNMENT);
+        answer.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
+        answerSprite.setVisible(false);
+        JPanel words = new JPanel();
+        words.setLayout(new BoxLayout(words, BoxLayout.Y_AXIS));
+        words.setOpaque(false);
+        stack(words, answerTitle, answerDetail);
+        answer.add(answerSprite, BorderLayout.WEST);
+        answer.add(words, BorderLayout.CENTER);
         stack(
             panel,
             eyebrow("NOW"),
-            answerTitle,
-            answerDetail,
+            answer,
             Box.createVerticalStrut(ROW_GAP),
             stopAt,
-            current,
-            left,
+            goal,
             Box.createVerticalStrut(ROW_GAP),
             timers,
             bankInsight,
@@ -207,22 +228,24 @@ final class ScapestackSyncPanel extends PluginPanel {
                 setStatus("Enter the 8-character code");
                 return;
             }
-            connectBrowser.accept(value);
+            approveBrowserCode.accept(value);
         });
 
         pairingBody.setLayout(new BoxLayout(pairingBody, BoxLayout.Y_AXIS));
         pairingBody.setBackground(CARD);
         pairingBody.setAlignmentX(Component.LEFT_ALIGNMENT);
-        stack(pairingBody, copy("Get a code on Scapestack, then enter it here."), code, approve);
+        stack(pairingBody, copy("Browser blocked? Get a code on Scapestack and enter it here."), code, approve);
         pairingBody.setVisible(false);
 
-        JButton connect = button("Connect browser");
-        connect.addActionListener(event -> {
+        JButton connect = primaryButton("Connect");
+        connect.addActionListener(event -> openBrowser.run());
+        JButton fallback = button("Enter code instead");
+        fallback.addActionListener(event -> {
             pairingBody.setVisible(!pairingBody.isVisible());
             panel.revalidate();
             panel.repaint();
         });
-        stack(panel, loginToggle, status, connect, pairingBody);
+        stack(panel, loginToggle, status, connect, fallback, pairingBody);
         return panel;
     }
 
@@ -240,8 +263,10 @@ final class ScapestackSyncPanel extends PluginPanel {
         answerTitle.setText(answer.title);
         answerDetail.setCopy(answer.detail);
         stopAt.setValue(answer.stopAt);
-        current.setValue(answer.current);
-        left.setValue(answer.left);
+        goal.setValue(answer.current);
+        answerSprite.setIcon(null);
+        answerSprite.setVisible(answer.spriteItemId != null);
+        if (answer.spriteItemId != null) spriteLoader.load(answer.spriteItemId, answerSprite);
     }
 
     private static JPanel card() {
@@ -359,5 +384,10 @@ final class ScapestackSyncPanel extends PluginPanel {
             ),
             new EmptyBorder(5, 10, 4, 10)
         );
+    }
+
+    @FunctionalInterface
+    interface ItemSpriteLoader {
+        void load(int itemId, JLabel label);
     }
 }

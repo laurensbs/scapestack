@@ -3,10 +3,13 @@ package app.scapestack.runelite;
 import org.junit.Test;
 
 import javax.swing.AbstractButton;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.image.BufferedImage;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,6 +31,9 @@ public class ScapestackSyncPanelTest {
         AtomicBoolean syncOnLogin = new AtomicBoolean(false);
         List<Boolean> settingWrites = new ArrayList<>();
         AtomicInteger manualSyncs = new AtomicInteger();
+        AtomicInteger browserOpens = new AtomicInteger();
+        List<String> approvedCodes = new ArrayList<>();
+        List<Integer> spriteIds = new ArrayList<>();
         ScapestackSyncPanel[] holder = new ScapestackSyncPanel[1];
         SwingUtilities.invokeAndWait(() -> holder[0] = new ScapestackSyncPanel(
             syncOnLogin::get,
@@ -36,7 +42,12 @@ public class ScapestackSyncPanelTest {
                 syncOnLogin.set(enabled);
             },
             manualSyncs::incrementAndGet,
-            code -> { }
+            browserOpens::incrementAndGet,
+            approvedCodes::add,
+            (itemId, label) -> {
+                spriteIds.add(itemId);
+                label.setIcon(new ImageIcon(new BufferedImage(36, 32, BufferedImage.TYPE_INT_ARGB)));
+            }
         ));
         ScapestackSyncPanel panel = holder[0];
 
@@ -48,14 +59,16 @@ public class ScapestackSyncPanelTest {
                     "Blowpipe + dragon darts are in your bank.",
                     "20 kills",
                     "7 / 20",
-                    "~34 min"
+                    "~34 min",
+                    7462
                 ),
                 new ServerResponseSummary.PanelAnswer(
                     "Barrows",
                     "One chest run fits the supplies RuneLite saw.",
                     "5 chests",
                     "0 / 5",
-                    "~25 min"
+                    "~25 min",
+                    4710
                 )
             ),
             "14,500,000 gp banked. Ahrim's robeskirt — 1,572,490 gp. That finishes Ahrim's."
@@ -69,12 +82,27 @@ public class ScapestackSyncPanelTest {
         assertTrue(visible.contains("Stop at"));
         assertTrue(visible.contains("20 kills"));
         assertTrue(visible.contains("7 / 20"));
-        assertTrue(visible.contains("~34 min"));
+        assertTrue(visible.contains("Goal"));
         assertTrue(visible.contains("herbs ready in 12 min · birdhouses ready"));
         assertTrue(visible.contains("That finishes Ahrim&#39;s."));
         assertFalse(visible.contains("Turn everything on"));
         assertFalse(visible.contains("Bank on"));
         assertFalse(visible.contains("Bank off"));
+        assertEquals(List.of(7462), spriteIds);
+
+        AbstractButton connect = findButton(panel, "Connect");
+        assertNotNull(connect);
+        SwingUtilities.invokeAndWait(connect::doClick);
+        assertEquals(1, browserOpens.get());
+
+        AbstractButton fallback = findButton(panel, "Enter code instead");
+        assertNotNull(fallback);
+        SwingUtilities.invokeAndWait(fallback::doClick);
+        JTextField code = findTextField(panel);
+        assertNotNull(code);
+        SwingUtilities.invokeAndWait(() -> code.setText("abcd-efgh"));
+        SwingUtilities.invokeAndWait(findButton(panel, "Approve connection")::doClick);
+        assertEquals(List.of("abcd-efgh"), approvedCodes);
 
         AbstractButton another = findButton(panel, "Something else");
         assertNotNull(another);
@@ -117,6 +145,17 @@ public class ScapestackSyncPanelTest {
         if (component instanceof Container) {
             for (Component child : ((Container) component).getComponents()) {
                 AbstractButton found = findButton(child, text);
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
+
+    private static JTextField findTextField(Component component) {
+        if (component instanceof JTextField) return (JTextField) component;
+        if (component instanceof Container) {
+            for (Component child : ((Container) component).getComponents()) {
+                JTextField found = findTextField(child);
                 if (found != null) return found;
             }
         }

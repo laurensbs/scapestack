@@ -25,6 +25,8 @@ vi.mock("@/lib/db", () => ({
       if (query.includes("SELECT goal")) {
         const rows = query.includes("WHERE account_id = $1::uuid")
           ? state.rows.filter((row) => row.account_id === params[0])
+          : query.includes("JOIN account_identity") && query.includes("WHERE identity.rsn = $1")
+            ? state.rows.filter((row) => row.account_id === (params[0] === "lynx titan" ? "account-1" : "account-2"))
           : state.rows;
         return rows.map((row) => ({ goal: row.goal }));
       }
@@ -51,6 +53,8 @@ describe("account pinned goal repository", () => {
 
     await expect(repo.getAccountPinnedGoals("account-1")).resolves.toEqual([goal]);
     await expect(repo.getAccountPinnedGoals("account-2")).resolves.toEqual([]);
+    await expect(repo.getAccountPinnedGoalsByRsn("Lynx Titan")).resolves.toEqual([goal]);
+    await expect(repo.getAccountPinnedGoalsByRsn("Other Player")).resolves.toEqual([]);
     await expect(repo.deleteAccountPinnedGoal("account-2", goal.key)).resolves.toBe(false);
     await expect(repo.getAccountPinnedGoals("account-1")).resolves.toEqual([goal]);
   });

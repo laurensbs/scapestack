@@ -14,13 +14,20 @@ with item IDs/names/quantities when your bank has been opened; turn off
 Use `Sync now` when you want to refresh the planner on demand; the toggle
 resets automatically after the sync starts.
 
-When sync succeeds, the RuneLite panel shows the next trip itself: what to do,
-the stop point, current progress, expected time left, live herb/bird-house
-timers, and (when the live GE feed can price it) the closest bank set the
-player can finish. `Something else` cycles through the next two measured
-options. Opening the bank refreshes this answer when both `Sync on login` and
-bank checks are enabled. The panel's `Sync on login` control changes that one
+When sync succeeds, the RuneLite panel shows the next step under the player's
+pinned goal: its sprite, stop point and goal fraction, plus live herb/bird-house
+timers. `Something else` cycles through the next two measured options. Opening
+the bank also checks one exact local result without contacting Scapestack: if a
+normal account is one affordable piece short of Ahrim's, the panel names the
+piece, RuneLite price, coins in the bank and completed set. Unknown prices,
+iron accounts and banks more than one piece short produce no buying claim. If
+both `Sync on login` and bank checks are enabled, bank-open still refreshes the
+broader server answer. The panel's `Sync on login` control changes that one
 setting only.
+
+`Connect` creates a short-lived Scapestack link and opens it with RuneLite's
+browser helper. If that browser open is blocked, `Enter code instead` keeps the
+typed-code approval flow available.
 
 RuneLite chat stays compact. The old “is syncing” line fires only for manual
 syncs; background login, bank-open, quest and interval refreshes do not regress
@@ -71,9 +78,9 @@ local except for HTTPS claim and sync requests where it is sent as
 Claim and sync requests both carry the token as `Authorization: Bearer <token>`.
 
 The optional `panel` member in a successful sync response is additive and
-backward-compatible. It contains at most three compact answers and one bank
-affordability sentence. It does not add a transmitted field and therefore does
-not change snapshot contract 4.
+backward-compatible. It contains at most three compact answers, an optional
+pinned-goal sprite ID and one bank-affordability sentence. It does not add a
+transmitted request field and therefore does not change snapshot contract 4.
 
 ## Web app merge contract
 

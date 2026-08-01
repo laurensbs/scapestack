@@ -18,6 +18,9 @@ const state = vi.hoisted(() => ({
   } as Record<string, unknown>,
   reconciled: [] as unknown[],
   outcomeResult: [] as unknown[],
+  pinnedGoals: [] as unknown[],
+  pinnedGoalRsns: [] as string[],
+  panelGoalInputs: [] as unknown[][],
   panelReceipt: {
     answers: [{
       title: "Vorkath",
@@ -54,7 +57,17 @@ vi.mock("@/lib/recommendation-outcome-repo", () => ({
 }));
 
 vi.mock("@/lib/plugin-panel-answer", () => ({
-  buildPluginPanelReceipt: async () => state.panelReceipt
+  buildPluginPanelReceipt: async (_player: unknown, goals: unknown[] = []) => {
+    state.panelGoalInputs.push(goals);
+    return state.panelReceipt;
+  }
+}));
+
+vi.mock("@/lib/account-pinned-goals-repo", () => ({
+  getAccountPinnedGoalsByRsn: async (rsn: string) => {
+    state.pinnedGoalRsns.push(rsn);
+    return state.pinnedGoals;
+  }
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -103,6 +116,9 @@ beforeEach(() => {
   };
   state.reconciled = [];
   state.outcomeResult = [];
+  state.pinnedGoals = [];
+  state.pinnedGoalRsns = [];
+  state.panelGoalInputs = [];
   state.panelReceipt = {
     answers: [{
       title: "Vorkath",
@@ -261,6 +277,7 @@ describe("POST /api/sync", () => {
   });
 
   it("returns the additive in-client answer receipt only to contract-4 plugins", async () => {
+    state.pinnedGoals = [{ key: "unlock:barrows-gloves", target: "Barrows gloves" }];
     const { POST } = await loadRoute();
     const response = await POST(syncRequest(syncPayloadV4));
 
@@ -269,6 +286,8 @@ describe("POST /api/sync", () => {
       panel: state.panelReceipt,
       plugin: { version: "0.4.0", contractVersion: 4 }
     });
+    expect(state.pinnedGoalRsns).toEqual(["iron lynx"]);
+    expect(state.panelGoalInputs).toEqual([state.pinnedGoals]);
   });
 
   it("stores a not-loaded collection log as unknown coverage, never as an empty completed log", async () => {

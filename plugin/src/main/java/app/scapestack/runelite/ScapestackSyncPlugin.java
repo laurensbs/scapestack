@@ -18,10 +18,12 @@ import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.util.LinkBrowser;
 import okhttp3.Call;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -82,6 +84,7 @@ public class ScapestackSyncPlugin extends Plugin {
     @Inject private ConfigManager configManager;
     @Inject private ChatMessageManager chatMessageManager;
     @Inject private ClientToolbar clientToolbar;
+    @Inject private ItemManager itemManager;
 
     // Shared resources — RuneLite Plugin Hub policy: never construct
     // your own OkHttpClient/Gson, always reuse the injected one. Keeps
@@ -213,9 +216,18 @@ public class ScapestackSyncPlugin extends Plugin {
 
     @Subscribe
     public void onWidgetLoaded(WidgetLoaded e) {
-        if (shouldSyncAfterBankOpen(e.getGroupId(), config.autoSync(), config.syncBankItems())) {
-            updatePanelStatus("Reading bank");
-            clientThread.invokeLater(() -> triggerSync(false));
+        if (shouldReadLocalBankInsight(e.getGroupId())) {
+            boolean syncAfterRead = shouldSyncAfterBankOpen(e.getGroupId(), config.autoSync(), config.syncBankItems());
+            clientThread.invokeLater(() -> {
+                GameStateReader.LocalBankSnapshot bank = reader.readLocalBankSnapshot(client);
+                if (panel != null) {
+                    panel.setBankInsight(LocalBankInsight.describe(bank.accountType, bank.items, itemManager));
+                }
+                if (syncAfterRead) {
+                    updatePanelStatus("Reading bank");
+                    triggerSync(false);
+                }
+            });
             return;
         }
         if (e.getGroupId() != COLLECTION_LOG_GROUP_ID) return;
@@ -235,6 +247,10 @@ public class ScapestackSyncPlugin extends Plugin {
 
     static boolean shouldSyncAfterBankOpen(int groupId, boolean autoSync, boolean bankEnabled) {
         return groupId == WidgetID.BANK_GROUP_ID && autoSync && bankEnabled;
+    }
+
+    static boolean shouldReadLocalBankInsight(int groupId) {
+        return groupId == WidgetID.BANK_GROUP_ID;
     }
 
 
@@ -442,7 +458,9 @@ public class ScapestackSyncPlugin extends Plugin {
             config,
             configManager,
             this::requestPanelSync,
-            this::requestBrowserPairing
+            this::openBrowserPairing,
+            this::approveBrowserPairing,
+            (itemId, label) -> itemManager.getImage(itemId).addTo(label)
         );
         navigationButton = NavigationButton.builder()
             .tooltip("Scapestack Sync")
@@ -469,7 +487,29 @@ public class ScapestackSyncPlugin extends Plugin {
         updatePanelStatus("Sync requested");
     }
 
-    private void requestBrowserPairing(String code) {
+    private void openBrowserPairing() {
+        String rsn = normalizeRsn(client.getLocalPlayer() != null ? client.getLocalPlayer().getName() : null);
+        if (rsn == null || rsn.isBlank() || client.getGameState() != GameState.LOGGED_IN) {
+            updatePanelStatus("Log in to connect");
+            notifyChat("Log in, then connect this browser again.");
+            return;
+        }
+        updatePanelStatus("Opening browser");
+        Thread thread = newSyncThread(() -> {
+            String syncUrl = configuredSyncUrl();
+            String token = InstallToken.getOrCreate(configManager);
+            if (!ensureClaimed(rsn, syncUrl, token)) return;
+            if (!pairingClient.openBrowserLink(syncUrl, rsn, token, USER_AGENT, LinkBrowser::browse)) {
+                updatePanelStatus("Could not open browser");
+                notifyChat("Scapestack could not create a browser link. Use Enter code instead.");
+                return;
+            }
+            updatePanelStatus("Approve in browser");
+        });
+        thread.start();
+    }
+
+    private void approveBrowserPairing(String code) {
         String rsn = normalizeRsn(client.getLocalPlayer() != null ? client.getLocalPlayer().getName() : null);
         if (rsn == null || rsn.isBlank() || client.getGameState() != GameState.LOGGED_IN) {
             updatePanelStatus("Log in to connect");
@@ -480,16 +520,7 @@ public class ScapestackSyncPlugin extends Plugin {
         Thread thread = newSyncThread(() -> {
             String syncUrl = configuredSyncUrl();
             String token = InstallToken.getOrCreate(configManager);
-            String claimedRsn = InstallToken.claimedRsn(configManager);
-            if (claimedRsn == null || !claimedRsn.equalsIgnoreCase(rsn)) {
-                String claimUrl = ClaimClient.claimUrlFromSyncUrl(syncUrl);
-                if (!claimClient.claim(claimUrl, rsn, token, USER_AGENT, currentAccountHash())) {
-                    updatePanelStatus("Sync player first");
-                    notifyChat("Sync this player once, then connect the browser again.");
-                    return;
-                }
-                InstallToken.rememberClaimedRsn(configManager, rsn);
-            }
+            if (!ensureClaimed(rsn, syncUrl, token)) return;
             if (pairingClient.approve(syncUrl, rsn, code, token, USER_AGENT)) {
                 updatePanelStatus("Browser connected");
                 notifyChat("Scapestack connected this browser to " + rsn + ".");
@@ -499,6 +530,19 @@ public class ScapestackSyncPlugin extends Plugin {
             }
         });
         thread.start();
+    }
+
+    private boolean ensureClaimed(String rsn, String syncUrl, String token) {
+        String claimedRsn = InstallToken.claimedRsn(configManager);
+        if (claimedRsn != null && claimedRsn.equalsIgnoreCase(rsn)) return true;
+        String claimUrl = ClaimClient.claimUrlFromSyncUrl(syncUrl);
+        if (!claimClient.claim(claimUrl, rsn, token, USER_AGENT, currentAccountHash())) {
+            updatePanelStatus("Sync player first");
+            notifyChat("Sync this player once, then connect the browser again.");
+            return false;
+        }
+        InstallToken.rememberClaimedRsn(configManager, rsn);
+        return true;
     }
 
     private void updatePanelStatus(String status) {

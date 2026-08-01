@@ -98,8 +98,9 @@ write_standalone_readme() {
 Syncs your OSRS account mode, skills and XP, quests, diaries,
 observed boss kill counts, collection log, Slayer state and optional bank context to
 [scapestack.org](https://www.scapestack.org). Use `Sync now` for a manual
-refresh or opt in to `Sync on login` for automatic snapshots, so the session
-planner can use RuneLite state instead of guessing from Hiscores alone.
+refresh or opt in to `Sync on login` for automatic snapshots, so the RuneLite
+panel can show the next step under your pinned goal instead of guessing from
+Hiscores alone.
 
 The plugin does not POST progress by default. Enable `Sync on login`
 in RuneLite settings to send login snapshots. Bank readiness is included by default
@@ -109,10 +110,20 @@ with item IDs/names/quantities when your bank has been opened; turn off
 Use `Sync now` when you want to refresh the planner on demand; the toggle
 resets automatically after the sync starts.
 
-When sync succeeds, RuneLite chat stays compact: it confirms that Scapestack
-was updated and tells the player to open `/next`. It does not print the sync
-URL or a long query string. Local/self-hosted endpoints, including localhost, still keep the verified
-`/next?rsn=...&source=plugin-sync&bank=none` web state available for testers.
+When sync succeeds, the panel shows the next step, its item sprite, stop point,
+pinned-goal fraction and live herb/bird-house timers. `Something else` cycles
+through measured alternatives. Opening the bank also checks one exact local
+result without contacting Scapestack: a normal account one affordable piece
+short of Ahrim's gets the missing piece, RuneLite price, banked coins and the
+completed-set result. Unknown prices, iron accounts and banks more than one
+piece short produce no buying claim.
+
+`Connect` creates a short-lived `/link?code=XXXXXXXX` URL and opens it with
+RuneLite's browser helper. `Enter code instead` preserves the typed-code flow
+for players whose browser open is blocked. RuneLite chat stays compact: the
+“is syncing” line appears only for a manual sync, not background refreshes.
+Local/self-hosted endpoints, including localhost, keep the verified
+`/next?rsn=...&source=plugin-sync&bank=none` state available for testers.
 
 For collection-log accuracy, open the in-game Collection Log once and click the
 relevant tabs/categories before syncing. RuneLite only exposes collection-log
@@ -123,9 +134,10 @@ the log was not opened, opened without item slots, or loaded correctly.
 
 Sent after a manual sync or automatic-sync opt-in: RSN, account type, plugin
 and contract version, skill levels and XP, quest and diary completion, observed
-boss kill counts, loaded collection-log item IDs, Slayer state,
-bank item IDs/names/quantities when bank checks are on, and the local install token
-only as the Authorization bearer on claim/sync requests.
+boss kill counts, loaded collection-log item IDs, Slayer state, Combat
+Achievement progress, farming-patch and bird-house timers, bank item IDs/names/quantities
+when bank checks are on, and the local install token only as the Authorization
+bearer on claim/sync requests.
 
 Never sent: RuneScape password, inventory, equipment, GE offers, chat,
 friends list, clicks, key presses, screenshots, local files, or RuneLite

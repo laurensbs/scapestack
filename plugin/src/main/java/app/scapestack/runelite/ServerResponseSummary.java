@@ -37,13 +37,15 @@ final class ServerResponseSummary {
         final String stopAt;
         final String current;
         final String left;
+        final Integer spriteItemId;
 
-        PanelAnswer(String title, String detail, String stopAt, String current, String left) {
+        PanelAnswer(String title, String detail, String stopAt, String current, String left, Integer spriteItemId) {
             this.title = title;
             this.detail = detail;
             this.stopAt = stopAt;
             this.current = current;
             this.left = left;
+            this.spriteItemId = spriteItemId;
         }
     }
 
@@ -151,8 +153,12 @@ final class ServerResponseSummary {
                     String stopAt = stringField(answer, "stopAt", 80);
                     String current = stringField(answer, "current", 40);
                     String left = stringField(answer, "left", 40);
+                    Integer spriteItemId = integerField(answer, "spriteItemId");
+                    if (spriteItemId != null && (spriteItemId <= 0 || spriteItemId >= 1_000_000)) {
+                        spriteItemId = null;
+                    }
                     if (title.isEmpty() || detail.isEmpty()) continue;
-                    answers.add(new PanelAnswer(title, detail, stopAt, current, left));
+                    answers.add(new PanelAnswer(title, detail, stopAt, current, left, spriteItemId));
                 }
             }
             String bankInsight = stringField(panel, "bankInsight", 220);

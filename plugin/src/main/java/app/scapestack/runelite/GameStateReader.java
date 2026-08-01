@@ -133,6 +133,16 @@ public class GameStateReader {
         }
     }
 
+    public static class LocalBankSnapshot {
+        public final List<BankItem> items;
+        public final String accountType;
+
+        LocalBankSnapshot(List<BankItem> items, String accountType) {
+            this.items = items;
+            this.accountType = accountType;
+        }
+    }
+
     public static class SkillLevel {
         public final String name;
         public final int level;
@@ -408,6 +418,12 @@ public class GameStateReader {
                 new BankStatus(true, 0, null, "bank-not-opened-this-session")
             );
         }
+    }
+
+    /** Reads the visible bank for local panel value; nothing here is serialized. */
+    public LocalBankSnapshot readLocalBankSnapshot(Client client) {
+        BankSnapshot bank = readBankSnapshot(client);
+        return new LocalBankSnapshot(bank.items, readAccountType(client));
     }
 
     private String readAccountType(Client client) {

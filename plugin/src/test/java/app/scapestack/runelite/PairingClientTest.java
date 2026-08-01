@@ -60,4 +60,45 @@ public class PairingClientTest {
             PairingClient.pairingUrlFromSyncUrl("http://127.0.0.1:4173/api/sync")
         );
     }
+
+    @Test
+    public void createsOneClickBrowserLinkWithInstallTokenOutsideJsonBody() {
+        final String[] url = new String[1];
+        final String[] authorization = new String[1];
+        final String[] body = new String[1];
+        final String[] opened = new String[1];
+        OkHttpClient http = new OkHttpClient.Builder()
+            .addInterceptor(chain -> {
+                url[0] = chain.request().url().toString();
+                authorization[0] = chain.request().header("Authorization");
+                Buffer buffer = new Buffer();
+                chain.request().body().writeTo(buffer);
+                body[0] = buffer.readUtf8();
+                return new Response.Builder()
+                    .request(chain.request())
+                    .protocol(Protocol.HTTP_1_1)
+                    .code(200)
+                    .message("OK")
+                    .body(ResponseBody.create(
+                        MediaType.parse("application/json"),
+                        "{\"ok\":true,\"pairing\":{\"linkUrl\":\"https://www.scapestack.org/link?code=ABCDEFGH\"}}"
+                    ))
+                    .build();
+            })
+            .build();
+
+        PairingClient client = new PairingClient(http);
+        assertTrue(client.openBrowserLink(
+            "https://www.scapestack.org/api/sync",
+            "Lynx Titan",
+            "11111111-2222-3333-4444-555555555555",
+            "scapestack-test",
+            link -> opened[0] = link
+        ));
+        assertEquals("https://www.scapestack.org/link?code=ABCDEFGH", opened[0]);
+        assertEquals("https://www.scapestack.org/api/account/pair/open", url[0]);
+        assertEquals("Bearer 11111111-2222-3333-4444-555555555555", authorization[0]);
+        assertTrue(body[0].contains("\"rsn\":\"Lynx Titan\""));
+        assertFalse(body[0].contains("token"));
+    }
 }

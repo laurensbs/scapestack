@@ -209,7 +209,7 @@ function firstStepFor(rec: Recommendation): string {
   );
 }
 
-function stopPointFor(rec: Recommendation): string {
+export function recommendationStopPoint(rec: Recommendation): string {
   const planStop = rec.actionPlan?.steps.at(-1);
   const routeStop = rec.routeChain?.steps.find((step) => step.label === "After that")?.text;
   return cleanText(planStop ?? routeStop, fallbackStopPoint(rec));
@@ -321,7 +321,7 @@ export function buildRecommendationDecision(input: BuildRecommendationDecisionIn
   const winner = input.winner;
   const honesty = assessRecommendationHonesty(winner, input);
   const firstStep = honesty.firstCheck ?? firstStepFor(winner);
-  const stopPoint = stopPointFor(winner);
+  const stopPoint = recommendationStopPoint(winner);
   const unknowns: RecommendationDecisionUnknown[] = [];
   if (!input.hasPublicStats) unknowns.push({ code: "public_progress", subject: "levels and KC", impact: "ranking" });
   if (!input.hasBank && honesty.bankWouldChangePlan) {

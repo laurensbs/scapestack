@@ -864,6 +864,10 @@ public class ScapestackSyncPluginTest {
 
     @Test
     public void openingBankRefreshesAnswerOnlyAfterExplicitSyncAndBankOptIn() {
+        assertTrue(ScapestackSyncPlugin.shouldReadLocalBankInsight(
+            net.runelite.api.widgets.WidgetID.BANK_GROUP_ID
+        ));
+        assertFalse(ScapestackSyncPlugin.shouldReadLocalBankInsight(621));
         assertTrue(ScapestackSyncPlugin.shouldSyncAfterBankOpen(
             net.runelite.api.widgets.WidgetID.BANK_GROUP_ID,
             true,

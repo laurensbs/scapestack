@@ -1,6 +1,16 @@
 import { affordabilityLine, affordabilityReport } from "./bank-affordability";
+import { getDropRates } from "./drop-rates-db";
 import { computeNextUp, type NextUpInput, type Recommendation } from "./next-up";
+import { buildPinnedGoalEvidence } from "./pinned-goal-evidence";
+import {
+  activePinnedGoal,
+  buildPinnedGoalBossSources,
+  orderRecommendationsForGoal
+} from "./pinned-goal-orientation";
+import { pinnedGoalProgress, type PinnedGoal, type PinnedGoalProgress } from "./pinned-goals";
 import { buildNextUpInputFromSources } from "./planning-input";
+import { getQuests } from "./quest-db";
+import { recommendationStopPoint } from "./recommendation-decision";
 import type { SyncedPlayer } from "./sync-repo";
 
 export interface PluginPanelAnswer {
@@ -9,6 +19,7 @@ export interface PluginPanelAnswer {
   stopAt: string;
   current: string;
   left: string;
+  spriteItemId: number | null;
 }
 
 export interface PluginPanelReceipt {
@@ -97,15 +108,20 @@ function stopAndCurrent(rec: Recommendation, input: NextUpInput): { stopAt: stri
 
 export function recommendationToPluginPanelAnswer(
   rec: Recommendation,
-  input: NextUpInput
+  input: NextUpInput,
+  goal: PinnedGoal | null = null,
+  goalProgress: PinnedGoalProgress | null = null
 ): PluginPanelAnswer {
   const progress = stopAndCurrent(rec, input);
   return {
     title: compact(rec.title, "Your next trip", 70),
-    detail: compact(rec.decisionReason ?? rec.why, "This is the cleanest useful stop from the data RuneLite just read."),
-    stopAt: progress.stopAt,
-    current: progress.current,
-    left: compact(rec.actionPlan?.timebox, "One trip", 40)
+    detail: goal
+      ? compact(`toward ${goal.target}`, `toward ${goal.target}`)
+      : compact(rec.decisionReason ?? rec.why, "This is the cleanest useful stop from the data RuneLite just read."),
+    stopAt: compact(recommendationStopPoint(rec), progress.stopAt, 80),
+    current: goalProgress?.fraction ?? progress.current,
+    left: compact(rec.actionPlan?.timebox, "One trip", 40),
+    spriteItemId: goal?.spriteItemId ?? null
   };
 }
 
@@ -114,7 +130,10 @@ export function recommendationToPluginPanelAnswer(
  * It changes only the sync response: the contract-4 request remains byte-for-byte
  * the same, and old plugins ignore this additional response member.
  */
-export async function buildPluginPanelReceipt(player: SyncedPlayer): Promise<PluginPanelReceipt | null> {
+export async function buildPluginPanelReceipt(
+  player: SyncedPlayer,
+  pinnedGoals: readonly PinnedGoal[] = []
+): Promise<PluginPanelReceipt | null> {
   const input = buildNextUpInputFromSources({
     rsn: player.rsn,
     hiscores: null,
@@ -126,18 +145,39 @@ export async function buildPluginPanelReceipt(player: SyncedPlayer): Promise<Plu
   });
   if (!input) return null;
 
-  const [result, bankInsight] = await Promise.all([
+  const [result, bankInsight, quests] = await Promise.all([
     computeNextUp(input),
     player.accountType === "normal" && player.bankItems.length > 0
       ? beforeDeadline(affordabilityReport(player.bankItems).then(affordabilityLine).catch(() => null), null)
-      : Promise.resolve(null)
+      : Promise.resolve(null),
+    getQuests()
   ]);
-  const recommendations = [result.headline, ...result.rest]
-    .filter((rec): rec is Recommendation => rec !== null)
-    .slice(0, 3);
+  const evidence = buildPinnedGoalEvidence({
+    skills: player.skills.map((skill, id) => ({
+      id,
+      name: skill.name,
+      rank: -1,
+      level: skill.level,
+      xp: skill.xp ?? 0
+    })),
+    quests,
+    questsCompleted: player.availability?.quests === "available" ? player.questsCompleted : undefined,
+    diariesCompleted: player.availability?.diaries === "available" ? player.diariesCompleted : undefined,
+    bankItems: player.availability?.bank === "available" ? player.bankItems : undefined
+  });
+  const goal = activePinnedGoal(pinnedGoals, evidence);
+  const goalProgress = goal ? pinnedGoalProgress(goal, evidence) : null;
+  const goalSources = goal?.kind === "item"
+    ? buildPinnedGoalBossSources(await getDropRates().catch(() => new Map()))
+    : [];
+  const recommendations = orderRecommendationsForGoal(
+    [result.headline, ...result.rest].filter((rec): rec is Recommendation => rec !== null),
+    goal,
+    goalSources
+  ).slice(0, 3);
   if (recommendations.length === 0 && bankInsight === null) return null;
   return {
-    answers: recommendations.map((rec) => recommendationToPluginPanelAnswer(rec, input)),
+    answers: recommendations.map((rec) => recommendationToPluginPanelAnswer(rec, input, goal, goalProgress)),
     bankInsight
   };
 }
