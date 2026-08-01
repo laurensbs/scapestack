@@ -65,7 +65,10 @@ describe("the plain-language RuneLite connection", () => {
     expect(plugin).toContain("<DeleteAccountDataButton");
     expect(deleteControl).toContain('fetch("/api/account/delete", { method: "DELETE" })');
     expect(deleteControl).toContain("window.confirm");
-    expect(profile).toContain("From your Hiscores only — connect RuneLite to include quests and your bank.");
+    expect(profile).toMatch(
+      /Hiscores only —\s*<Link[^>]+>connect RuneLite for quests, diaries and your bank<\/Link>/
+    );
+    expect(profile).not.toContain("From your Hiscores only");
 
     const playerCopy = ["src/lib", "src/components", "src/app"]
       .flatMap(sourceFiles)

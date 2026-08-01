@@ -1,0 +1,111 @@
+import type { ReactNode } from "react";
+
+interface PlayerIdentityBandProps {
+  totalLevel: number;
+  combatLevel: number;
+  totalXp: number;
+  questProgress: number | null;
+  questTotal: number;
+  diaryProgress: number | null;
+  diaryTotal: number;
+  collectionLogProgress: number | null;
+  collectionLogTotal: number;
+  coverage?: ReactNode;
+  unknownReasons?: Partial<Record<"quests" | "diaries" | "collection-log", string>>;
+}
+
+const DEFAULT_UNKNOWN_REASONS = {
+  quests: "Quest completion is not visible in Hiscores. Connect RuneLite to reveal it.",
+  diaries: "Diary completion is not visible in Hiscores. Connect RuneLite to reveal it.",
+  "collection-log": "Collection-log completion is not visible in Hiscores. Connect RuneLite to reveal it."
+} as const;
+
+function number(value: number): string {
+  return new Intl.NumberFormat("en-US").format(value);
+}
+
+function fraction(progress: number | null, total: number): string {
+  return progress === null ? "—" : `${number(progress)} / ${number(total)}`;
+}
+
+export function PlayerIdentityBand({
+  totalLevel,
+  combatLevel,
+  totalXp,
+  questProgress,
+  questTotal,
+  diaryProgress,
+  diaryTotal,
+  collectionLogProgress,
+  collectionLogTotal,
+  coverage,
+  unknownReasons
+}: PlayerIdentityBandProps) {
+  const stats = [
+    { key: "total-level", label: "Total level", value: number(totalLevel), tone: "level", reason: null },
+    { key: "combat", label: "Combat", value: number(combatLevel), tone: "level", reason: null },
+    { key: "total-xp", label: "Total XP", value: number(totalXp), tone: totalXp >= 10_000_000 ? "millions" : null, reason: null },
+    {
+      key: "quests",
+      label: "Quests",
+      value: fraction(questProgress, questTotal),
+      tone: questProgress === null ? "unknown" : null,
+      reason: questProgress === null ? unknownReasons?.quests ?? DEFAULT_UNKNOWN_REASONS.quests : null
+    },
+    {
+      key: "diaries",
+      label: "Diaries",
+      value: fraction(diaryProgress, diaryTotal),
+      tone: diaryProgress === null ? "unknown" : null,
+      reason: diaryProgress === null ? unknownReasons?.diaries ?? DEFAULT_UNKNOWN_REASONS.diaries : null
+    },
+    {
+      key: "collection-log",
+      label: "Collection log",
+      value: fraction(collectionLogProgress, collectionLogTotal),
+      tone: collectionLogProgress === null ? "unknown" : null,
+      reason: collectionLogProgress === null
+        ? unknownReasons?.["collection-log"] ?? DEFAULT_UNKNOWN_REASONS["collection-log"]
+        : null
+    }
+  ];
+
+  return (
+    <div className="mt-5" data-player-identity-band="true">
+      <dl className="grid grid-cols-3 gap-x-4 gap-y-4 md:grid-cols-6 md:gap-x-6">
+        {stats.map((stat) => (
+          <div
+            key={stat.key}
+            className="min-w-0 text-right"
+            title={stat.reason ?? undefined}
+            aria-label={stat.reason ? `${stat.label}: unknown. ${stat.reason}` : undefined}
+            data-player-identity-stat={stat.key}
+          >
+            <dt className="truncate text-[length:var(--text-label)] font-extrabold uppercase tracking-[0.1em] text-[var(--color-text-muted)]">
+              {stat.label}
+            </dt>
+            <dd
+              className={`mt-1 whitespace-nowrap tabular-nums text-[length:var(--text-subject)] font-bold leading-none ${
+                stat.tone === "level"
+                  ? "text-[var(--color-data-level)]"
+                  : stat.tone === "millions"
+                    ? "text-[var(--color-data-m)]"
+                    : stat.tone === "unknown"
+                      ? "font-medium text-[var(--color-text-muted)]"
+                      : "text-[var(--color-text)]"
+              }`}
+              data-player-identity-value={stat.key}
+            >
+              {stat.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      {coverage ? (
+        <p className="mt-4 max-w-[65ch] text-[length:var(--text-micro)] leading-relaxed text-[var(--color-text-muted)]" data-account-coverage="true">
+          {coverage}
+        </p>
+      ) : null}
+    </div>
+  );
+}
