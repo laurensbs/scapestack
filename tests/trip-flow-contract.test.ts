@@ -12,7 +12,7 @@ describe("trip flow contract", () => {
 
     expect(layout).toContain("mobile-content-safe");
     expect(layout).toContain("mobile-footer-safe");
-    expect(layout).toContain('<html lang="en" className="min-h-full">');
+    expect(layout).toMatch(/<html lang="en" className=\{`[^`]*min-h-full/);
     expect(layout).toContain('<body className="min-h-full');
     expect(layout).not.toContain('<body className="h-full');
     expect(globals).toContain("overflow-x: clip;");

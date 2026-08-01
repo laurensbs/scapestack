@@ -40,7 +40,9 @@ export function pinnedGoalSuggestionsFromPlan(plan: NextUpResult | null): NewPin
   }
 
   for (const route of plan.pathProgress.unlockRoutes) {
-    if (route.id !== "diary-unlocks") add({ kind: "unlock", unlockId: route.id });
+    if (route.id !== "diary-unlocks" && route.progressPercent < 100) {
+      add({ kind: "unlock", unlockId: route.id });
+    }
   }
 
   return [...suggestions.values()].slice(0, 6);

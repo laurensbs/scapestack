@@ -97,7 +97,19 @@ export interface UpsertSyncedPlayerResult {
   snapshotId: number | null;
   snapshotCreated: boolean;
   accountDelta: AccountSnapshotDelta;
+  progress: Pick<SyncedPlayer, "questsCompleted" | "diariesCompleted" | "collectionLogItemIds">;
 }
+
+export type UpsertSyncedPlayerInput = Omit<
+  SyncedPlayer,
+  "syncedAt" | "lastSyncSummary" | "questsCompleted" | "diariesCompleted" | "collectionLogItemIds"
+> & {
+  questsCompleted?: SyncedPlayer["questsCompleted"] | null;
+  diariesCompleted?: SyncedPlayer["diariesCompleted"] | null;
+  collectionLogItemIds?: SyncedPlayer["collectionLogItemIds"] | null;
+  contractVersion?: number | null;
+  fullResync?: boolean;
+};
 
 let schemaReady: Promise<void> | null = null;
 
@@ -195,7 +207,7 @@ export async function getSyncedPlayer(rsn: string): Promise<SyncedPlayer | null>
   }
 }
 
-export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt" | "lastSyncSummary">): Promise<UpsertSyncedPlayerResult> {
+export async function upsertSyncedPlayer(p: UpsertSyncedPlayerInput): Promise<UpsertSyncedPlayerResult> {
   if (!hasDatabase()) {
     throw new Error("Database not configured");
   }
@@ -241,9 +253,29 @@ export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt" | "las
   }>;
   const previousRow = previousRows[0];
   const previousSnapshot = previousRow ? snapshotFromRow(previousRow) : null;
-  const questsCompleted = normalizeQuestNames(p.questsCompleted);
-  const diariesCompleted = normalizeDiariesCompleted(p.diariesCompleted);
-  const collectionLogItemIds = normalizeCollectionLogItemIds(p.collectionLogItemIds);
+  if (p.fullResync && (!Array.isArray(p.questsCompleted)
+    || !Array.isArray(p.diariesCompleted)
+    || !Array.isArray(p.collectionLogItemIds))) {
+    throw new Error("fullResync requires every append-only progress field");
+  }
+  const questsCompleted = resolveAppendOnlyProgress(
+    previousRow?.quests_completed,
+    p.questsCompleted,
+    p,
+    normalizeQuestNames
+  );
+  const diariesCompleted = resolveAppendOnlyProgress(
+    previousRow?.diaries_completed,
+    p.diariesCompleted,
+    p,
+    normalizeDiariesCompleted
+  );
+  const collectionLogItemIds = resolveAppendOnlyProgress(
+    previousRow?.collection_log_item_ids,
+    p.collectionLogItemIds,
+    p,
+    normalizeCollectionLogItemIds
+  );
   const accountType = normalizeScapestackAccountType(p.accountType);
   const skills = normalizeSkills(p.skills);
   const bossKc = normalizeBossKc(p.bossKc);
@@ -313,8 +345,27 @@ export async function upsertSyncedPlayer(p: Omit<SyncedPlayer, "syncedAt" | "las
     syncSummary,
     snapshotId: persisted.snapshotId,
     snapshotCreated: persisted.snapshotCreated,
-    accountDelta: persisted.accountDelta
+    accountDelta: persisted.accountDelta,
+    progress: { questsCompleted, diariesCompleted, collectionLogItemIds }
   };
+}
+
+function resolveAppendOnlyProgress<T>(
+  previous: unknown,
+  incoming: T[] | null | undefined,
+  options: Pick<UpsertSyncedPlayerInput, "contractVersion" | "fullResync">,
+  normalizeValues: (value: unknown) => T[]
+): T[] {
+  const previousValues = normalizeValues(previous);
+  if (incoming === null || incoming === undefined) return previousValues;
+  const incomingValues = normalizeValues(incoming);
+  if (options.fullResync) return incomingValues;
+  if (typeof options.contractVersion === "number"
+    && options.contractVersion <= 3
+    && incoming.length === 0) {
+    return previousValues;
+  }
+  return normalizeValues([...previousValues, ...incomingValues]);
 }
 
 function normalizeBankItems(items: unknown): SyncedPlayer["bankItems"] {

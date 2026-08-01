@@ -57,6 +57,7 @@ interface SyncBody {
   farming?: unknown;
   combatAchievements?: unknown;
   syncTrigger?: unknown;
+  fullResync?: unknown;
 }
 
 function withCors(init: ResponseInit = {}): ResponseInit {
@@ -159,6 +160,15 @@ export async function POST(req: Request): Promise<Response> {
   const contractResult = parsePluginSnapshotContract(body as Record<string, unknown>);
   if (!contractResult.ok) return badRequest(contractResult.error);
   const snapshotContract = contractResult.value;
+  if (body.fullResync !== undefined && typeof body.fullResync !== "boolean") {
+    return badRequest("fullResync must be a boolean");
+  }
+  const fullResync = body.fullResync === true;
+  if (fullResync && (!Array.isArray(body.questsCompleted)
+    || !Array.isArray(body.diariesCompleted)
+    || !Array.isArray(body.collectionLogItemIds))) {
+    return badRequest("fullResync requires questsCompleted, diariesCompleted and collectionLogItemIds arrays");
+  }
 
   // Skills — optional RuneLite real levels. Hiscores may still enrich
   // rank/xp later, but plugin levels let /next plan from live account data.
@@ -182,35 +192,44 @@ export async function POST(req: Request): Promise<Response> {
     : [];
 
   // Quests — array of strings, capped at 500 entries.
-  if (!Array.isArray(body.questsCompleted)) return badRequest("questsCompleted must be an array");
-  const questsReceived = body.questsCompleted.length;
-  const questsCompleted = body.questsCompleted
-    .filter((x): x is string => typeof x === "string")
-    .map((x) => x.slice(0, 100))
-    .slice(0, 500);
+  if (body.questsCompleted !== undefined && body.questsCompleted !== null
+    && !Array.isArray(body.questsCompleted)) return badRequest("questsCompleted must be an array or null");
+  const questsReceived = Array.isArray(body.questsCompleted) ? body.questsCompleted.length : 0;
+  const questsCompleted = Array.isArray(body.questsCompleted)
+    ? body.questsCompleted
+        .filter((x): x is string => typeof x === "string")
+        .map((x) => x.slice(0, 100))
+        .slice(0, 500)
+    : null;
 
   // Diaries — array of { region, tier }, capped at 64 entries (12 regions × 4 tiers + slack).
-  if (!Array.isArray(body.diariesCompleted)) return badRequest("diariesCompleted must be an array");
-  const diariesReceived = body.diariesCompleted.length;
-  const diariesCompleted = body.diariesCompleted
-    .filter((x): x is { region: string; tier: string } =>
-      typeof x === "object" && x !== null &&
-      typeof (x as { region?: unknown }).region === "string" &&
-      typeof (x as { tier?: unknown }).tier === "string" &&
-      ALLOWED_DIARY_TIERS.has((x as { tier: string }).tier))
-    .map((x) => ({
-      region: x.region.slice(0, 64),
-      tier: x.tier as "Easy" | "Medium" | "Hard" | "Elite"
-    }))
-    .slice(0, 64);
+  if (body.diariesCompleted !== undefined && body.diariesCompleted !== null
+    && !Array.isArray(body.diariesCompleted)) return badRequest("diariesCompleted must be an array or null");
+  const diariesReceived = Array.isArray(body.diariesCompleted) ? body.diariesCompleted.length : 0;
+  const diariesCompleted = Array.isArray(body.diariesCompleted)
+    ? body.diariesCompleted
+        .filter((x): x is { region: string; tier: string } =>
+          typeof x === "object" && x !== null &&
+          typeof (x as { region?: unknown }).region === "string" &&
+          typeof (x as { tier?: unknown }).tier === "string" &&
+          ALLOWED_DIARY_TIERS.has((x as { tier: string }).tier))
+        .map((x) => ({
+          region: x.region.slice(0, 64),
+          tier: x.tier as "Easy" | "Medium" | "Hard" | "Elite"
+        }))
+        .slice(0, 64)
+    : null;
 
   // Collection log item IDs — array of positive integers, capped at 2000.
-  if (!Array.isArray(body.collectionLogItemIds)) return badRequest("collectionLogItemIds must be an array");
-  const collectionLogItemsReceived = body.collectionLogItemIds.length;
-  const collectionLogItemIds = body.collectionLogItemIds
-    .filter((x): x is number => typeof x === "number" && Number.isFinite(x) && x > 0 && x < 1_000_000)
-    .map((x) => Math.floor(x))
-    .slice(0, 2000);
+  if (body.collectionLogItemIds !== undefined && body.collectionLogItemIds !== null
+    && !Array.isArray(body.collectionLogItemIds)) return badRequest("collectionLogItemIds must be an array or null");
+  const collectionLogItemsReceived = Array.isArray(body.collectionLogItemIds) ? body.collectionLogItemIds.length : 0;
+  const collectionLogItemIds = Array.isArray(body.collectionLogItemIds)
+    ? body.collectionLogItemIds
+        .filter((x): x is number => typeof x === "number" && Number.isFinite(x) && x > 0 && x < 1_000_000)
+        .map((x) => Math.floor(x))
+        .slice(0, 2000)
+    : null;
 
   // Optional forward-compatible boss KC map. Current plugin versions may omit
   // it; omission remains unknown rather than being treated as zero KC.
@@ -325,6 +344,11 @@ export async function POST(req: Request): Promise<Response> {
   let syncedAt: string;
   let syncSummary: SyncDeltaSummary | null = null;
   let availability: Partial<SnapshotAvailability>;
+  let storedProgress = {
+    questsCompleted: questsCompleted ?? [],
+    diariesCompleted: diariesCompleted ?? [],
+    collectionLogItemIds: collectionLogItemIds ?? []
+  };
   let newOutcomes: Array<{ status: string; title: string; detail: string }> = [];
   try {
     availability = snapshotContract.coverage !== null
@@ -332,11 +356,25 @@ export async function POST(req: Request): Promise<Response> {
       : legacySnapshotAvailability({
           body,
           skillsCount: skills.length,
-          collectionLogItemsCount: collectionLogItemIds.length,
+          collectionLogItemsCount: collectionLogItemIds?.length ?? 0,
           bossKc,
           slayerAccepted: slayerStatus === "accepted",
           bankStatus
         });
+    const progressRead = {
+      quests: fullResync || (Array.isArray(body.questsCompleted)
+        && !((snapshotContract.contractVersion ?? Number.POSITIVE_INFINITY) <= 3 && body.questsCompleted.length === 0)),
+      diaries: fullResync || (Array.isArray(body.diariesCompleted)
+        && !((snapshotContract.contractVersion ?? Number.POSITIVE_INFINITY) <= 3 && body.diariesCompleted.length === 0)),
+      collectionLog: fullResync || (Array.isArray(body.collectionLogItemIds)
+        && !((snapshotContract.contractVersion ?? Number.POSITIVE_INFINITY) <= 3 && body.collectionLogItemIds.length === 0))
+    };
+    availability = {
+      ...availability,
+      quests: progressRead.quests ? "available" : "not-loaded",
+      diaries: progressRead.diaries ? "available" : "not-loaded",
+      collectionLog: progressRead.collectionLog ? "available" : "not-loaded"
+    };
     const result = await upsertSyncedPlayer({
       rsn,
       displayName,
@@ -345,6 +383,8 @@ export async function POST(req: Request): Promise<Response> {
       questsCompleted,
       diariesCompleted,
       collectionLogItemIds,
+      contractVersion: snapshotContract.contractVersion,
+      fullResync,
       bossKc,
       bankItems,
       bankStatus,
@@ -358,6 +398,7 @@ export async function POST(req: Request): Promise<Response> {
     });
     syncedAt = result.syncedAt;
     syncSummary = result.syncSummary;
+    storedProgress = result.progress ?? storedProgress;
     if (result.snapshotId) {
       try {
         const outcomes = await reconcileActiveRecommendationOutcomes({
@@ -396,9 +437,9 @@ export async function POST(req: Request): Promise<Response> {
         displayName,
         accountType,
         skills,
-        questsCompleted,
-        diariesCompleted,
-        collectionLogItemIds,
+        questsCompleted: storedProgress.questsCompleted,
+        diariesCompleted: storedProgress.diariesCompleted,
+        collectionLogItemIds: storedProgress.collectionLogItemIds,
         bossKc,
         bankItems,
         bankStatus,
@@ -429,6 +470,7 @@ export async function POST(req: Request): Promise<Response> {
     accepted: {
       claim: { status: "verified", rsn: normalizedRsn },
       contractVersion: snapshotContract.contractVersion,
+      fullResync,
       pluginVersion,
       syncedAt,
       coverage: snapshotContract.coverage
@@ -458,10 +500,10 @@ export async function POST(req: Request): Promise<Response> {
       bank: bankStatus
     },
     counts: {
-      quests: questsCompleted.length,
+      quests: storedProgress.questsCompleted.length,
       skills: skills.length,
-      diaries: diariesCompleted.length,
-      collectionLogItems: collectionLogItemIds.length,
+      diaries: storedProgress.diariesCompleted.length,
+      collectionLogItems: storedProgress.collectionLogItemIds.length,
       bankItems: bankItems.length
     },
     diagnostics: {
@@ -475,9 +517,9 @@ export async function POST(req: Request): Promise<Response> {
       },
       truncated: {
         skills: skills.length >= 32 && skillsReceived > skills.length,
-        quests: questsCompleted.length >= 500 && questsReceived > questsCompleted.length,
-        diaries: diariesCompleted.length >= 64 && diariesReceived > diariesCompleted.length,
-        collectionLogItems: collectionLogItemIds.length >= 2000 && collectionLogItemsReceived > collectionLogItemIds.length,
+        quests: (questsCompleted?.length ?? 0) >= 500 && questsReceived > (questsCompleted?.length ?? 0),
+        diaries: (diariesCompleted?.length ?? 0) >= 64 && diariesReceived > (diariesCompleted?.length ?? 0),
+        collectionLogItems: (collectionLogItemIds?.length ?? 0) >= 2000 && collectionLogItemsReceived > (collectionLogItemIds?.length ?? 0),
         bankItems: bankItems.length >= SYNC_SERVICE_LIMITS.bankItems && bankItemsReceived > bankItems.length
       }
     }

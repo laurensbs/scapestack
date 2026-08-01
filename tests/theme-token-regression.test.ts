@@ -93,14 +93,17 @@ describe("theme token regressions", () => {
     // The display serif made every page read as editorial. Hierarchy is
     // weight and size now; --font-display remains as a seam so a future
     // decision has somewhere to land, but it resolves to the body stack.
+    const sans = globalsCss.match(/--font-sans:\s*([^;]+);/);
     const display = globalsCss.match(/--font-display:\s*([^;]+);/);
+    expect(sans, "--font-sans should still be declared").toBeTruthy();
     expect(display, "--font-display should still be declared").toBeTruthy();
     // Checked by naming the serif faces, not by matching /serif$/ — every
     // sans stack ends in "sans-serif" and would trip that.
     for (const face of ["Iowan Old Style", "Georgia", "Charter"]) {
       expect(display![1], face).not.toContain(face);
     }
-    expect(display![1]).toContain("Atkinson Hyperlegible");
+    expect(display![1]).toBe(sans![1]);
+    expect(display![1]).toContain("var(--font-archivo)");
   });
 
   it("defines the shared visual primitives for the reset", () => {

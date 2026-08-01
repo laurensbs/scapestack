@@ -345,21 +345,27 @@ function validateV3PayloadConsistency(
   body: Record<string, unknown>,
   coverage: PluginSnapshotCoverage
 ): string | null {
-  if (!Array.isArray(body.questsCompleted) || body.questsCompleted.length > 500
-    || body.questsCompleted.some((quest) => typeof quest !== "string" || !quest.trim() || quest.length > 100)) {
+  const questsCompleted = body.questsCompleted;
+  if (questsCompleted !== undefined && questsCompleted !== null
+    && (!Array.isArray(questsCompleted) || questsCompleted.length > 500
+      || questsCompleted.some((quest) => typeof quest !== "string" || !quest.trim() || quest.length > 100))) {
     return "questsCompleted contains malformed or excessive values";
   }
-  if (!Array.isArray(body.diariesCompleted) || body.diariesCompleted.length > 64
-    || body.diariesCompleted.some((diary) => {
-      if (!diary || typeof diary !== "object" || Array.isArray(diary)) return true;
-      const row = diary as Record<string, unknown>;
-      return typeof row.region !== "string" || !row.region.trim() || row.region.length > 64
-        || typeof row.tier !== "string" || !DIARY_TIERS.has(row.tier);
-    })) {
+  const diariesCompleted = body.diariesCompleted;
+  if (diariesCompleted !== undefined && diariesCompleted !== null
+    && (!Array.isArray(diariesCompleted) || diariesCompleted.length > 64
+      || diariesCompleted.some((diary) => {
+        if (!diary || typeof diary !== "object" || Array.isArray(diary)) return true;
+        const row = diary as Record<string, unknown>;
+        return typeof row.region !== "string" || !row.region.trim() || row.region.length > 64
+          || typeof row.tier !== "string" || !DIARY_TIERS.has(row.tier);
+      }))) {
     return "diariesCompleted contains malformed or excessive values";
   }
-  if (!Array.isArray(body.collectionLogItemIds) || body.collectionLogItemIds.length > 2000
-    || body.collectionLogItemIds.some((id) => !Number.isInteger(id) || (id as number) <= 0 || (id as number) >= 1_000_000)) {
+  const collectionLogItemIds = body.collectionLogItemIds;
+  if (collectionLogItemIds !== undefined && collectionLogItemIds !== null
+    && (!Array.isArray(collectionLogItemIds) || collectionLogItemIds.length > 2000
+      || collectionLogItemIds.some((id) => !Number.isInteger(id) || (id as number) <= 0 || (id as number) >= 1_000_000))) {
     return "collectionLogItemIds contains malformed or excessive values";
   }
   if (coverage.skills.state === "available") {

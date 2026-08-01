@@ -142,7 +142,8 @@ describe("Scapestack branding", () => {
     expect(layoutSource).toContain("publisher: BRAND_NAME");
     expect(layoutSource).toContain("{BRAND_TAGLINE}");
     expect(layoutSource).toContain("Made for Gielinor");
-    expect(globalsSource).toContain('--font-sans: "Atkinson Hyperlegible"');
+    expect(layoutSource).toContain('import { Archivo } from "next/font/google"');
+    expect(globalsSource).toContain("--font-sans: var(--font-archivo)");
     // Was pinned to a serif display face. Direction B (2026-07-26) removed
     // the second typeface entirely — a reference tool does not carry an
     // editorial headline face, and it was the loudest generic signal in the
@@ -171,7 +172,6 @@ describe("Scapestack branding", () => {
     expect(globalsSource).toContain(".osrs-frame");
     expect(globalsSource).toContain(".osrs-title-bar");
     expect(globalsSource).toContain(".osrs-body");
-    expect(layoutSource).not.toContain("next/font/google");
     expect(layoutSource).not.toContain("GeistSans.variable");
     expect(globalsSource).not.toContain("--font-geist-sans");
     expect(globalsSource).not.toContain("--font-inter");
