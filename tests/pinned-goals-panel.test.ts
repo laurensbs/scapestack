@@ -20,4 +20,27 @@ describe("pinned goal picker", () => {
     expect(source).not.toContain("Pin goal");
     expect(source).not.toContain("progressbar");
   });
+
+  it("uses Archivo weights by meaning and tracks uppercase labels only", () => {
+    const source = readFileSync(
+      join(process.cwd(), "src/components/pinned-goals-panel.tsx"),
+      "utf8"
+    );
+    const trackedClassLists = [...source.matchAll(/className="([^"]*\btracking-[^"]*)"/g)]
+      .map((match) => match[1]);
+
+    expect(source).toContain("font-normal");
+    expect(source).toContain("font-semibold");
+    expect(source).not.toMatch(/\bfont-(?:medium|bold|extrabold)\b/);
+    expect(trackedClassLists.length).toBeGreaterThan(0);
+    for (const classes of trackedClassLists) {
+      expect(classes).toContain("uppercase");
+    }
+
+    const progressColumnClasses = source.match(
+      /<span className="([^"]*tabular-nums[^"]*)">\s*<JournalStatusMark/
+    )?.[1] ?? "";
+    expect(progressColumnClasses).toContain("tabular-nums");
+    expect(progressColumnClasses).toContain("font-semibold");
+  });
 });
