@@ -1,21 +1,23 @@
-import { createElement } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { PinnedGoalsPanel } from "@/components/pinned-goals-panel";
+import { searchPinnedGoalChoices } from "@/lib/pinned-goals";
 
 describe("pinned goal picker", () => {
-  it("starts with the player choosing among item, level and unlock", () => {
-    const html = renderToStaticMarkup(createElement(PinnedGoalsPanel, {
-      rsn: "Lynx Titan",
-      evidence: { skills: [{ name: "Slayer", level: 94 }] },
-      canSync: false
-    }));
+  it("searches in player language and pins directly from 64px tiles", () => {
+    const source = readFileSync(
+      join(process.cwd(), "src/components/pinned-goals-panel.tsx"),
+      "utf8"
+    );
 
-    expect(html).toContain("Nothing pinned. Choose an item, level or unlock below.");
-    expect(html).toContain('<option value="item" selected="">Item</option>');
-    expect(html).toContain('<option value="level">Level</option>');
-    expect(html).toContain('<option value="unlock">Unlock</option>');
-    expect(html).toContain("Pin goal");
-    expect(html).not.toContain("progressbar");
+    expect(searchPinnedGoalChoices("barrows")[0]?.target).toBe("Barrows gloves");
+    expect(searchPinnedGoalChoices("bgloves")[0]?.target).toBe("Barrows gloves");
+    expect(searchPinnedGoalChoices("99 slay")[0]?.target).toBe("99 Slayer");
+    expect(searchPinnedGoalChoices("fairy")[0]?.target).toBe("Fairy rings");
+    expect(source).toContain('type="search"');
+    expect(source).toContain("size-16");
+    expect(source).toContain("onClick={() => onPin(choice)}");
+    expect(source).not.toContain("Pin goal");
+    expect(source).not.toContain("progressbar");
   });
 });

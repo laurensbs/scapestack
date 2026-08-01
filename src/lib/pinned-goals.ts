@@ -61,6 +61,16 @@ export interface ItemGoalChoice {
   group: string;
 }
 
+export interface PinnedGoalChoice {
+  key: string;
+  kind: PinnedGoal["kind"];
+  kindLabel: "Item" | "Level" | "Unlock";
+  target: string;
+  group: string;
+  spriteItemId: number | null;
+  input: NewPinnedGoal;
+}
+
 export const ITEM_GOAL_CHOICES: ItemGoalChoice[] = GOAL_SETS.flatMap((set) =>
   set.goals.map((goal) => ({
     goalId: goal.id,
@@ -71,6 +81,100 @@ export const ITEM_GOAL_CHOICES: ItemGoalChoice[] = GOAL_SETS.flatMap((set) =>
 );
 
 export const LEVEL_GOAL_SKILLS = Object.keys(SKILL_CAPE_IDS);
+
+function normalizeGoalSearch(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function searchAliases(value: string): string[] {
+  const words = normalizeGoalSearch(value).split(" ").filter(Boolean);
+  if (words.length === 0) return [];
+  const compact = words.join("");
+  const initials = words.map((word) => word[0]).join("");
+  const playerShorthand = words.length > 1
+    ? `${words.slice(0, -1).map((word) => word[0]).join("")}${words.at(-1)}`
+    : compact;
+  return [compact, initials, playerShorthand];
+}
+
+const unlockTargets = new Set(UNLOCK_GOAL_DEFINITIONS.map((definition) => normalizeGoalSearch(definition.title)));
+
+export const PINNED_GOAL_CHOICES: PinnedGoalChoice[] = [
+  ...ITEM_GOAL_CHOICES
+    .filter((choice) => !unlockTargets.has(normalizeGoalSearch(choice.target)) && !/skill capes/i.test(choice.group))
+    .map((choice) => ({
+      key: `item:${choice.goalId}`,
+      kind: "item" as const,
+      kindLabel: "Item" as const,
+      target: choice.target,
+      group: choice.group,
+      spriteItemId: choice.spriteItemId,
+      input: { kind: "item" as const, goalId: choice.goalId }
+    })),
+  ...LEVEL_GOAL_SKILLS.map((skill) => ({
+    key: `level:${normalizedKeyPart(skill)}:99`,
+    kind: "level" as const,
+    kindLabel: "Level" as const,
+    target: `99 ${skill}`,
+    group: "Skill cape",
+    spriteItemId: SKILL_CAPE_IDS[skill] ?? null,
+    input: { kind: "level" as const, skill, targetLevel: 99 }
+  })),
+  ...UNLOCK_GOAL_DEFINITIONS.map((definition) => ({
+    key: `unlock:${definition.id}`,
+    kind: "unlock" as const,
+    kindLabel: "Unlock" as const,
+    target: definition.title,
+    group: "Account unlock",
+    spriteItemId: definition.iconItemId ?? null,
+    input: { kind: "unlock" as const, unlockId: definition.id }
+  }))
+];
+
+export function pinnedGoalChoiceFromInput(input: NewPinnedGoal): PinnedGoalChoice | null {
+  if (input.kind === "item") {
+    return PINNED_GOAL_CHOICES.find((choice) => choice.kind === "item" && choice.input.kind === "item" && choice.input.goalId === input.goalId) ?? null;
+  }
+  if (input.kind === "unlock") {
+    return PINNED_GOAL_CHOICES.find((choice) => choice.kind === "unlock" && choice.input.kind === "unlock" && choice.input.unlockId === input.unlockId) ?? null;
+  }
+  const skill = LEVEL_GOAL_SKILLS.find((name) => name.toLowerCase() === input.skill.trim().toLowerCase());
+  const targetLevel = Math.floor(input.targetLevel);
+  if (!skill || !Number.isFinite(targetLevel) || targetLevel < 2 || targetLevel > 99) return null;
+  return {
+    key: `level:${normalizedKeyPart(skill)}:${targetLevel}`,
+    kind: "level",
+    kindLabel: "Level",
+    target: `${targetLevel} ${skill}`,
+    group: targetLevel === 99 ? "Skill cape" : "Skill milestone",
+    spriteItemId: SKILL_CAPE_IDS[skill] ?? null,
+    input: { kind: "level", skill, targetLevel }
+  };
+}
+
+export function searchPinnedGoalChoices(query: string, limit = 12): PinnedGoalChoice[] {
+  const normalizedQuery = normalizeGoalSearch(query);
+  if (!normalizedQuery) return [];
+  const requestedLevel = normalizedQuery.match(/(?:^|\s)([2-9]|[1-9][0-9])(?:\s|$)/)?.[1];
+  const targetLevel = requestedLevel ? Number(requestedLevel) : null;
+  const choices = targetLevel
+    ? PINNED_GOAL_CHOICES.map((choice) => choice.kind === "level" && choice.input.kind === "level"
+      ? pinnedGoalChoiceFromInput({ ...choice.input, targetLevel }) ?? choice
+      : choice)
+    : PINNED_GOAL_CHOICES;
+  const queryTerms = normalizedQuery.split(" ");
+  const compactQuery = queryTerms.join("");
+  return choices.filter((choice) => {
+    const searchable = normalizeGoalSearch(`${choice.target} ${choice.group} ${choice.kindLabel}`);
+    const aliases = [
+      ...searchAliases(choice.target),
+      ...searchAliases(choice.group),
+      ...searchAliases(`${choice.target} ${choice.group}`)
+    ];
+    return queryTerms.every((term) => searchable.includes(term))
+      || aliases.some((alias) => alias.includes(compactQuery));
+  }).slice(0, limit);
+}
 
 function cleanTimestamp(value: string | undefined): string | null {
   const parsed = value ? Date.parse(value) : Date.now();

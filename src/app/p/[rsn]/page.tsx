@@ -25,6 +25,7 @@ import { shouldUsePluginBank } from "@/lib/plugin-bank-status";
 import { getDropRates } from "@/lib/drop-rates-db";
 import { pluginVerifyUrlForSyncedRsn } from "@/lib/plugin-sync-actions";
 import { buildPinnedGoalEvidence } from "@/lib/pinned-goal-evidence";
+import { pinnedGoalSuggestionsFromPlan } from "@/lib/pinned-goal-suggestions";
 import {
   buildPinnedGoalBankFacts,
   buildPinnedGoalBossSources
@@ -141,6 +142,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
     diariesCompleted: exactDomain("diaries") ? exactSync?.diariesCompleted : undefined,
     bankItems: exactBank
   });
+  const suggestedGoals = pinnedGoalSuggestionsFromPlan(context.initialPlan);
   const cannotBuy = isIronPlannerAccount(accountMode);
   const simpleBank = bankItems.map((item) => ({ id: item.id, name: item.name, quantity: item.quantity }));
   const goalBankFacts = exactBank
@@ -258,7 +260,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
     <PlayerHubShell
       header={header}
       lastTrip={<LastTripLine outcome={context.lastTripOutcome} />}
-      goals={<PinnedGoalsPanel rsn={displayName} evidence={goalEvidence} canSync={isOwner} />}
+      goals={<PinnedGoalsPanel rsn={displayName} evidence={goalEvidence} canSync={isOwner} suggestions={suggestedGoals} />}
       plan={<PlayerPlanPanel
         rsn={displayName}
         initialContext={context}
