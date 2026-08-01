@@ -172,13 +172,48 @@ are navigation. The bank is a footer. That order is not decoration — it is the
 
 ---
 
+## 0c. The rendered target
+
+`docs/design/player-page-target.html` is the player page as it must look. Open it in a
+browser before writing a line, and open it again when you think a phase is done.
+
+It exists because prose has failed here five times running. Each promptbook described
+hierarchy correctly and each result came back flat, because a sentence like "rank
+everything, then render the rank" leaves the resolution to whoever implements it — and an
+implementer resolves ambiguity toward what they already know.
+
+The file is not a component and nothing imports it. Its colours and sizes are copied from
+`globals.css`; if the two ever disagree the tokens win and the file is stale, so fix it in
+the same commit.
+
+What it asserts, in the order these get broken:
+
+1. **One loud thing.** The answer is 28px. Nothing else on the page is.
+2. **One solid button.** Everything else is an outline or a link.
+3. **The identity band is chrome** — small quiet labels — but its **numbers** carry the
+   Jagex data colours, because a number is data and a label is not.
+4. **Sprites are 40px in a slot**, and the answer's is 64px. Below 32px an OSRS sprite is
+   decoration; at 40px it is recognisable at a glance.
+5. **Long sentences get their own measure** (~65ch) inside the wide column. The column is
+   1024px; the sentence is not.
+6. **Dismissal is quieter than what it dismisses.**
+7. **Fractions**, never percentages, never a progress bar.
+8. **An unknown is an em dash.** Never a zero.
+
+Verified in the file itself: exactly one element uses `--text-answer`, exactly one uses
+the solid `.btn`, and it contains zero hardcoded `font-size` values outside the six
+tokens. Hold your output to the same three counts.
+
+---
+
 ## Phase A — the identity band
 
 **Why first.** It is the answer to "who am I" and it is the reason a page feels like
 *yours* within half a second. Every number already exists.
 
 ```
-Read docs/SCAPESTACK-COMPANION-SHELL-PROMPTBOOK-2026-08-01.md sections 0 and 0b first, and
+Read docs/SCAPESTACK-COMPANION-SHELL-PROMPTBOOK-2026-08-01.md sections 0, 0b and 0c first, open
+docs/design/player-page-target.html in a browser, and read
 docs/SCAPESTACK-JOURNAL-PROMPTBOOK-2026-07-31.md for the standing rules. Repo: git dir is
 `.repo-git`, so every git command needs `--git-dir=.repo-git --work-tree=.`. The gate is
 `npm run ci:check`.

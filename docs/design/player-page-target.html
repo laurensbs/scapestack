@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scapestack — player page, rendered target</title>
+
+<!--
+  THE TARGET. Open this in a browser and build /p/[rsn] until it looks like this.
+
+  This is not a component and nothing imports it. It exists because five
+  promptbooks in a row described hierarchy in prose and five times the result
+  came back as a flat grey dashboard. Prose leaves room; a rendering does not.
+
+  Every colour and every font size below is copied from src/app/globals.css.
+  If a value here disagrees with the tokens, the tokens win and this file is
+  stale — fix it in the same commit.
+
+  Item ids are illustrative and hit the live sprite endpoint, so this needs
+  internet to render the sprites. The real page reads ids from the data.
+
+  What this file is asserting, in order of how often it gets broken:
+
+  1. ONE loud thing. The answer is 28px. Nothing else on the page is.
+  2. ONE solid button. Everything else is an outline or a link.
+  3. The identity band is CHROME — small, quiet labels — but its NUMBERS use
+     the Jagex data colours, because a number is data and a label is not.
+  4. Sprites are 40px in a slot, and the answer's sprite is 64px. Below 32px
+     an OSRS sprite is decoration; at 40px it is recognisable at a glance.
+  5. Long sentences get their own measure (~65ch) inside the wide column. The
+     column is 1024px; the sentence is not.
+  6. Dismissal is quieter than what it dismisses.
+  7. Fractions, never percentages, never a progress bar.
+  8. An unknown is an em dash. Never a zero.
+-->
+
+<style>
+  /* ── copied from globals.css ───────────────────────────────────── */
+  :root {
+    --color-bg: #1C1811;
+    --color-bg-2: #151009;
+    --color-panel: #2A2318;
+    --color-border: #3A3226;
+    --color-border-strong: #5A4E3C;
+    --color-parchment-edge: #8A7142;
+
+    --color-text: #EDEBE6;
+    --color-text-secondary: #C4C1B8;
+    --color-text-dim: #A29E94;
+    --color-text-muted: #A29E94;
+    --color-accent: #C4C1B8;
+
+    --color-data-head: #FF981F;
+    --color-data-level: #FFFF00;
+    --color-data-m: #00FF80;
+    --color-data-item: #FF9040;
+
+    --color-gate-above: #FF3000;
+    --color-gate-even: #FFFF00;
+    --color-gate-easy: #40FF00;
+
+    --text-label: 11px;
+    --text-micro: 12px;
+    --text-body: 14px;
+    --text-subject: 19px;
+    --text-answer: 28px;
+    --text-page: 40px;
+
+    --radius-control: 3px;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: "Atkinson Hyperlegible", "Avenir Next", Inter, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+    font-size: var(--text-body);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 64rem; margin: 0 auto; padding: 1.25rem 1.25rem 5rem; }
+  @media (max-width: 640px) { .page { padding: 1rem 1rem 4rem; } }
+
+  /* The one measure rule that keeps a 1024px column readable. */
+  .measure { max-width: 65ch; }
+
+  /* ── top bar ───────────────────────────────────────────────────── */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .8rem 0 .9rem; border-bottom: 1px solid var(--color-border);
+    font-size: var(--text-micro);
+  }
+  .wordmark { font-size: var(--text-subject); font-weight: 800; letter-spacing: -.02em; }
+  .wordmark span { color: var(--color-data-head); }   /* accent place 1 of 3 */
+  .topnav { display: flex; gap: 1.1rem; color: var(--color-text-dim); }
+  .topnav a { color: inherit; text-decoration: none; }
+  .topnav a[aria-current] { color: var(--color-text); font-weight: 700; }
+
+  /* ── identity ──────────────────────────────────────────────────── */
+  .identity { padding: 1.4rem 0 1rem; border-bottom: 1px solid var(--color-border); }
+  .identity h1 {
+    margin: 0; font-size: var(--text-page); font-weight: 800;
+    letter-spacing: -.025em; line-height: 1.02;
+  }
+  .identity .meta {
+    margin: .35rem 0 0; font-size: var(--text-micro); color: var(--color-text-dim);
+  }
+
+  .band {
+    display: grid; gap: .1rem 1.6rem; margin-top: 1.1rem;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  @media (max-width: 720px) { .band { grid-template-columns: repeat(3, minmax(0,1fr)); gap: .9rem 1rem; } }
+  .band dt {
+    font-size: var(--text-label); font-weight: 800; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--color-text-muted);
+  }
+  .band dd {
+    margin: .15rem 0 0; font-size: var(--text-subject); font-weight: 700;
+    font-variant-numeric: tabular-nums; line-height: 1.15;
+  }
+  /* Numbers are data, so they may take the Jagex colours. Labels may not. */
+  .band dd.level { color: var(--color-data-level); }
+  .band dd.mil   { color: var(--color-data-m); }
+  .band dd.none  { color: var(--color-text-muted); font-weight: 500; }
+  .band-note {
+    margin: 1rem 0 0; font-size: var(--text-micro); color: var(--color-text-muted);
+  }
+  .band-note a { color: var(--color-text-secondary); }
+
+  /* ── section grammar: ONE construction, used everywhere ────────── */
+  section { padding-top: 1.6rem; margin-top: 1.6rem; border-top: 1px solid var(--color-border); }
+  section:first-of-type { border-top: 0; }
+  h2 {
+    margin: 0 0 .8rem; font-size: var(--text-label); font-weight: 800;
+    text-transform: uppercase; letter-spacing: .1em; color: var(--color-text-muted);
+  }
+
+  /* ── slots and rows ────────────────────────────────────────────── */
+  .slot {
+    width: 40px; height: 40px; flex: 0 0 40px; display: grid; place-items: center;
+    background: var(--color-bg-2); border: 1px solid var(--color-border-strong);
+    border-radius: 2px;
+  }
+  .slot.lg { width: 64px; height: 64px; flex-basis: 64px; }
+  .slot img { image-rendering: pixelated; max-width: 34px; max-height: 34px; }
+  .slot.lg img { max-width: 52px; max-height: 52px; }
+
+  .row {
+    display: flex; gap: .8rem; align-items: center;
+    padding: .7rem 0; border-bottom: 1px solid var(--color-border);
+  }
+  .row:last-child { border-bottom: 0; }
+  .row .grow { flex: 1; min-width: 0; }
+  .row .name { display: block; font-size: var(--text-subject); font-weight: 700; line-height: 1.2; }
+  .row .sub { display: block; font-size: var(--text-micro); color: var(--color-text-dim); margin-top: .1rem; }
+  .frac {
+    font-size: var(--text-subject); font-weight: 800; font-variant-numeric: tabular-nums;
+    white-space: nowrap; color: var(--color-data-level);
+  }
+  .frac.done { color: var(--color-data-m); }
+  .item { color: var(--color-data-item); }
+
+  /* Dismissal is quieter than what it dismisses. */
+  .dismiss {
+    background: none; border: 0; padding: .3rem .1rem; cursor: pointer;
+    font-size: var(--text-micro); color: var(--color-text-muted);
+    font-family: inherit;
+  }
+  .dismiss:hover { color: var(--color-text-secondary); }
+
+  /* ── the answer: the ONE loud thing ────────────────────────────── */
+  .answer-head { display: flex; gap: 1rem; align-items: flex-start; }
+  .answer-title {
+    margin: 0; font-size: var(--text-answer); font-weight: 800;
+    letter-spacing: -.02em; line-height: 1.08;
+  }
+  .answer-why {
+    margin: .3rem 0 0; font-size: var(--text-body); color: var(--color-text-dim);
+  }
+  .plan { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+  .plan th, .plan td {
+    text-align: left; padding: .55rem .9rem .55rem 0;
+    border-bottom: 1px solid var(--color-border); vertical-align: top;
+    font-size: var(--text-body); font-weight: 400;
+  }
+  .plan th {
+    width: 96px; color: var(--color-text-muted); font-size: var(--text-label);
+    font-weight: 800; text-transform: uppercase; letter-spacing: .1em;
+    padding-top: .72rem;
+  }
+  .plan td { max-width: 65ch; }
+
+  .actions { display: flex; gap: .6rem; align-items: center; margin-top: 1.1rem; flex-wrap: wrap; }
+  /* Exactly one of these per page. */
+  .btn {
+    display: inline-flex; align-items: center; gap: .45rem; min-height: 44px;
+    padding: 0 1.15rem; border-radius: var(--radius-control);
+    background: var(--color-data-head); color: #150E03;   /* accent place 2 of 3 */
+    font-size: var(--text-body); font-weight: 800; border: 0; cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-ghost {
+    display: inline-flex; align-items: center; min-height: 44px; padding: 0 1rem;
+    border-radius: var(--radius-control); background: none;
+    border: 1px solid var(--color-border-strong); color: var(--color-text-secondary);
+    font-size: var(--text-body); font-weight: 700; cursor: pointer; font-family: inherit;
+  }
+
+  /* ── routes ────────────────────────────────────────────────────── */
+  .route {
+    display: flex; align-items: center; gap: .8rem; width: 100%;
+    padding: .75rem 0; border: 0; border-bottom: 1px solid var(--color-border);
+    background: none; color: inherit; text-align: left; cursor: pointer;
+    font-family: inherit; font-size: var(--text-body);
+  }
+  .route:last-child { border-bottom: 0; }
+  .route .name { display: block; font-size: var(--text-subject); font-weight: 700; }
+  .route .arrow { color: var(--color-text-muted); }
+
+  /* ── empty state: the SMALLEST state ───────────────────────────── */
+  .empty { font-size: var(--text-body); color: var(--color-text-dim); }
+  .tiles { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .7rem; }
+  .tile {
+    display: flex; flex-direction: column; align-items: center; gap: .35rem;
+    width: 84px; padding: .5rem .25rem; cursor: pointer; font-family: inherit;
+    background: none; border: 1px solid var(--color-border); border-radius: 2px;
+    color: var(--color-text-secondary); font-size: var(--text-micro);
+  }
+  .tile:hover { border-color: var(--color-parchment-edge); color: var(--color-text); }
+  .tile img { image-rendering: pixelated; width: 32px; height: 32px; object-fit: contain; }
+
+  .note { font-size: var(--text-micro); color: var(--color-text-muted); margin: .7rem 0 0; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="topbar">
+    <span class="wordmark">scape<span>stack</span></span>
+    <nav class="topnav">
+      <a href="#" aria-current="page">Today</a>
+      <a href="#">Setup</a>
+      <a href="#">Boss</a>
+      <a href="#">lauky</a>
+    </nav>
+  </div>
+
+  <!-- IDENTITY. The band is chrome: quiet labels, data-coloured numbers.
+       "Collection log —" is an em dash because this account has not synced
+       one. Never a zero: a zero is a claim we cannot make. -->
+  <header class="identity">
+    <h1>lauky</h1>
+    <p class="meta">Ironman · synced 18 minutes ago</p>
+
+    <dl class="band">
+      <div><dt>Total</dt><dd class="level">2202</dd></div>
+      <div><dt>Combat</dt><dd class="level">123</dd></div>
+      <div><dt>Total XP</dt><dd class="mil">421.8m</dd></div>
+      <div><dt>Quests</dt><dd>158/158</dd></div>
+      <div><dt>Diaries</dt><dd>44/48</dd></div>
+      <div><dt>Collection</dt><dd class="none">—</dd></div>
+    </dl>
+
+    <p class="band-note">
+      Collection log needs RuneLite. <a href="#">Connect</a> — one button in the game, one here.
+    </p>
+  </header>
+
+  <!-- GOALS. The subject of the page. Sprite, name, one line, fraction. -->
+  <section>
+    <h2>Your goals</h2>
+
+    <div class="row">
+      <span class="slot"><img src="https://www.scapestack.org/api/sprite/item/7462.png" alt=""></span>
+      <span class="grow">
+        <span class="name">Barrows gloves</span>
+        <span class="sub">Recipe for Disaster · 3 subquests left</span>
+      </span>
+      <span class="frac">7/10</span>
+    </div>
+
+    <div class="row">
+      <span class="slot"><img src="https://www.scapestack.org/api/sprite/item/4714.png" alt=""></span>
+      <span class="grow">
+        <span class="name">Ahrim's set</span>
+        <span class="sub">Missing <span class="item">robeskirt</span></span>
+      </span>
+      <span class="frac">3/4</span>
+    </div>
+
+    <div class="row">
+      <span class="slot"><img src="https://www.scapestack.org/api/sprite/item/20997.png" alt=""></span>
+      <span class="grow">
+        <span class="name">Twisted bow</span>
+        <span class="sub">Chambers of Xeric · no KC yet</span>
+      </span>
+      <span class="frac">0/1</span>
+    </div>
+
+    <p class="note"><button class="dismiss">+ Add goal</button></p>
+  </section>
+
+  <!-- THE ANSWER. The only 28px on the page, the only solid button, and the
+       only 64px sprite. It carries the GOAL's sprite, because it exists to
+       serve the goal. -->
+  <section>
+    <h2>Do this first</h2>
+    <div class="answer-head">
+      <span class="slot lg"><img src="https://www.scapestack.org/api/sprite/item/7462.png" alt=""></span>
+      <div class="grow">
+        <h3 class="answer-title">Monkey Madness I</h3>
+        <p class="answer-why measure">The next gate to Barrows gloves.</p>
+      </div>
+    </div>
+
+    <table class="plan">
+      <tbody>
+        <tr><th>Start</th><td>Talk to King Narnode in the Grand Tree.</td></tr>
+        <tr><th>Bring</th><td><span class="item">Monkey greegree</span> — it is in your bank.</td></tr>
+        <tr><th>Stop at</th><td>After the Jungle Demon. That is the long half, and the rest keeps.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="actions">
+      <button class="btn">Open quest ⟶</button>
+      <button class="btn-ghost">Something else</button>
+    </div>
+  </section>
+
+  <!-- ALTERNATIVES. Same row grammar as goals. Hide is quieter than the name. -->
+  <section>
+    <h2>Not this?</h2>
+
+    <div class="row">
+      <span class="slot"><img src="https://www.scapestack.org/api/sprite/item/4151.png" alt=""></span>
+      <span class="grow">
+        <span class="name">Slayer task</span>
+        <span class="sub">Lower pressure, and it moves 99 Slayer.</span>
+      </span>
+      <button class="dismiss">Hide</button>
+    </div>
+
+    <div class="row">
+      <span class="slot"><img src="https://www.scapestack.org/api/sprite/item/21907.png" alt=""></span>
+      <span class="grow">
+        <span class="name">Vorkath, 20 kills</span>
+        <span class="sub">Blowpipe and dragon darts are in your bank.</span>
+      </span>
+      <button class="dismiss">Hide</button>
+    </div>
+  </section>
+
+  <!-- ROUTES. Navigation, so quieter than the answer and louder than the bank. -->
+  <section>
+    <h2>Routes</h2>
+
+    <button class="route">
+      <span class="grow"><span class="name">To Barrows gloves</span></span>
+      <span class="frac">7/10</span>
+      <span class="arrow">⟶</span>
+    </button>
+
+    <button class="route">
+      <span class="grow">
+        <span class="name">To max</span>
+        <span class="sub">Cooking is nearest — 300k XP</span>
+      </span>
+      <span class="frac">21/23</span>
+      <span class="arrow">⟶</span>
+    </button>
+
+    <button class="route">
+      <span class="grow">
+        <span class="name">To the collection log</span>
+        <span class="sub">Needs RuneLite before this can be counted</span>
+      </span>
+      <span class="frac" style="color: var(--color-text-muted)">—</span>
+      <span class="arrow">⟶</span>
+    </button>
+  </section>
+
+  <!-- BANK. A footer. One sentence with the exact figure a player types into
+       the GE, and no table until they ask for one. -->
+  <section>
+    <h2>Your bank</h2>
+    <p class="measure" style="margin:0">
+      812 items · <span class="frac done" style="font-size:var(--text-body)">14,500,000 gp</span>
+    </p>
+    <p class="measure" style="margin:.4rem 0 0; color: var(--color-text-dim)">
+      <span class="item">Ahrim's robeskirt</span> is 1,572,490 gp. That finishes Ahrim's set.
+    </p>
+    <p class="note">Live Grand Exchange prices, insta-buy side.</p>
+  </section>
+
+  <!-- EMPTY STATE, shown here for reference. It is the SMALLEST state on the
+       page — one line and six tiles, never a form with three dropdowns. -->
+  <section>
+    <h2>Your goals — empty state</h2>
+    <p class="empty measure" style="margin:0">Nothing pinned yet. These are closest.</p>
+    <div class="tiles">
+      <button class="tile"><img src="https://www.scapestack.org/api/sprite/item/7462.png" alt="">Barrows gloves</button>
+      <button class="tile"><img src="https://www.scapestack.org/api/sprite/item/4714.png" alt="">Ahrim's set</button>
+      <button class="tile"><img src="https://www.scapestack.org/api/sprite/item/11832.png" alt="">Bandos set</button>
+      <button class="tile"><img src="https://www.scapestack.org/api/sprite/item/12926.png" alt="">Blowpipe</button>
+      <button class="tile"><img src="https://www.scapestack.org/api/sprite/item/21907.png" alt="">Vorkath</button>
+      <button class="tile"><img src="https://www.scapestack.org/api/sprite/item/20997.png" alt="">Twisted bow</button>
+    </div>
+    <p class="note">Or search — one field across items, levels and unlocks.</p>
+  </section>
+
+</div>
+</body>
+</html>
