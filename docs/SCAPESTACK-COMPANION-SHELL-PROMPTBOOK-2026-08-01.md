@@ -52,13 +52,115 @@ Not gradients and not animation. Four things, all measurable:
 
 ---
 
+## 0b. Why the UI does not work — the craft, measured
+
+Section 0 is about what is *missing*. This is about what is *wrong* with what is there.
+All of it measured on `/p/lauky`, 2026-08-01.
+
+### There is no type scale, only two sizes
+
+The name renders at `text-4xl sm:text-6xl` — 60px. Everything under it is `text-[12px]`
+or `text-[11px]`. A 5× jump with nothing in between is not a hierarchy; it is a headline
+and a footnote. Nothing on the page occupies the middle, which is where a companion does
+its work — the goal names, the route steps, the answer.
+
+A scale means at least five steps that are each used for one thing: page title, section,
+subject, body, label. Right now there are two, and a 60px account name is the loudest
+element on a page whose job is to tell you what to do.
+
+### Three heading patterns on one screen
+
+```
+YOUR GOALS            uppercase label + large question heading
+DO THIS FIRST         uppercase label + large title
+Not this?             small bold, sentence case, no label
+YOUR BANK             uppercase label
+```
+
+Four sections, three different constructions. A reader learns a pattern in the first two
+sections and then has to relearn it. Pick one and use it everywhere.
+
+### The empty state outweighs the content
+
+"Nothing pinned" plus the picker occupies more vertical space than the actual answer
+below it. The loudest, largest, most colourful thing on a returning player's page is a
+form asking them to configure something. An empty state should be the smallest state, not
+the biggest.
+
+### Two solid buttons compete, and the wrong one wins
+
+`Pin goal` renders as a solid light block. `Open unlocks` renders as a solid light block.
+They are the same weight, so the page has two primary actions — which means it has none.
+Worse, `Pin goal` sits higher, so the visually dominant action on the page is the
+secondary one.
+
+One primary action per screen, solid. Everything else is a link or an outline.
+
+### Dismissal competes with content
+
+In "Not this?", each row's `Hide` control carries the same visual weight as the route name
+beside it. An action whose entire purpose is to make something disappear should never draw
+the eye as hard as the thing itself.
+
+### The measure is blown
+
+`player-hub-shell.tsx:21` sets `max-w-5xl` — 64rem, about 1024px. The Start / Bring /
+Stop values run the full width of that column as single lines. At 1024px and 13px type
+that is roughly 160 characters per line, against a comfortable 60–75. The eye loses the
+line on the return sweep, which is exactly the feeling of "this is dense and I do not want
+to read it".
+
+Long-form values need their own measure inside the wide column. The column being wide is
+fine; the sentence spanning it is not.
+
+### Everything is 13px grey on black
+
+The goal picker, the Start/Bring/Stop table, the route rows and the bank line are all
+rendered at the same size, weight and colour. Nothing is emphasised because everything is
+equal. When a design has no contrast in weight, every element competes and the page reads
+as noise even when the information is good — which is a fair description of what the
+screenshot looks like.
+
+### The accent budget guard was walked past for three days
+
+`one-scale-per-meaning.test.ts:108` matched the literal string
+`"eyebrow text-[var(--color-accent)]"`. The code writes
+`eyebrow mb-2 text-[var(--color-accent)]`. One utility class in between and the guard
+sees nothing. Two orange eyebrows shipped and the suite stayed green.
+
+Fixed on 2026-08-01 — the guard now parses the class list rather than one spelling of it,
+and the two offenders are gone. Recorded here because it is the sixth guard in this repo
+that could not fail, and because the rule it protects is one of the few that keeps the
+page from turning orange again.
+
+### What a player experiences, in order
+
+1. A 60px name — information they already had.
+2. A form asking them to make a decision before the page has told them anything.
+3. An answer in the same visual weight as the form.
+4. Two competing solid buttons.
+5. Rows where the dismiss control is as loud as the content.
+
+None of those steps is a rendering bug. Every one is a hierarchy decision, and that is
+why re-skinning has not fixed it and will not.
+
+### The rule the phases below encode
+
+**Rank everything, then render the rank.** A companion shows more than a tool does, so it
+lives or dies on whether the ranking is visible. Size, weight, colour and position each
+carry one step of that rank, and if they disagree the page reads as noise. The identity
+band is quiet chrome. The goals are the subject. The answer is the one loud thing. Routes
+are navigation. The bank is a footer. That order is not decoration — it is the product.
+
+---
+
 ## Phase A — the identity band
 
 **Why first.** It is the answer to "who am I" and it is the reason a page feels like
 *yours* within half a second. Every number already exists.
 
 ```
-Read docs/SCAPESTACK-COMPANION-SHELL-PROMPTBOOK-2026-08-01.md section 0 first, and
+Read docs/SCAPESTACK-COMPANION-SHELL-PROMPTBOOK-2026-08-01.md sections 0 and 0b first, and
 docs/SCAPESTACK-JOURNAL-PROMPTBOOK-2026-07-31.md for the standing rules. Repo: git dir is
 `.repo-git`, so every git command needs `--git-dir=.repo-git --work-tree=.`. The gate is
 `npm run ci:check`.

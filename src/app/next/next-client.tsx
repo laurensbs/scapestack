@@ -3994,7 +3994,7 @@ function BankProgressSection({ progress }: { progress: SetCompletion[] }) {
 
   return (
     <section className="mb-10">
-      <h3 className="eyebrow mb-1 text-[var(--color-accent)]">Almost there</h3>
+      <h3 className="eyebrow mb-1">Almost there</h3>
       <p className="text-[11.5px] text-[var(--color-text-muted)] mb-3">
         Sets you're closest to completing — click for what's still missing.
       </p>

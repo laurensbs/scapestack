@@ -105,8 +105,16 @@ describe("the accent has a budget", () => {
     const offenders: string[] = [];
     for (const dir of ["src/components", "src/app"]) {
       for (const file of walk(join(process.cwd(), dir))) {
-        if (readFileSync(file, "utf8").includes("eyebrow text-[var(--color-accent)]")) {
-          offenders.push(file.replace(process.cwd() + "/", ""));
+        // Matched the literal string "eyebrow text-[var(--color-accent)]" for
+        // three days, which any utility class in between walks straight past:
+        // `eyebrow mb-2 text-[var(--color-accent)]` shipped twice while this
+        // test stayed green. Match the class list, not one spelling of it.
+        const source = readFileSync(file, "utf8");
+        const eyebrowClasses = source.matchAll(/className="([^"]*\beyebrow\b[^"]*)"/g);
+        for (const [, classes] of eyebrowClasses) {
+          if (classes.includes("text-[var(--color-accent)]")) {
+            offenders.push(`${file.replace(process.cwd() + "/", "")}: ${classes}`);
+          }
         }
       }
     }

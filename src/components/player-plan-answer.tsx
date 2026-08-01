@@ -82,7 +82,7 @@ export function PlayerPlanAnswer({
       data-next-trip-card="true"
       data-player-plan-answer="true"
     >
-      <p className="eyebrow mb-2 text-[var(--color-accent)]">
+      <p className="eyebrow mb-2">
         {recommendationConfidenceEyebrow(decisionCopy.confidence)}
       </p>
       <h2 className="flex min-w-0 items-center gap-3 text-[23px] font-black leading-[1.08] tracking-normal text-[var(--color-text)] sm:text-[32px]">
