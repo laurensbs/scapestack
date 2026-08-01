@@ -64,9 +64,27 @@ or `text-[11px]`. A 5× jump with nothing in between is not a hierarchy; it is a
 and a footnote. Nothing on the page occupies the middle, which is where a companion does
 its work — the goal names, the route steps, the answer.
 
-A scale means at least five steps that are each used for one thing: page title, section,
-subject, body, label. Right now there are two, and a 60px account name is the loudest
-element on a page whose job is to tell you what to do.
+Measured across `src/`: **twenty-six distinct font sizes**, nine of them between 9px and
+14px in half-pixel steps. `11px` (170 uses), `11.5px` (132), `12px` (165), `12.5px` (125)
+and `13px` (134) alone are **726 usages that no eye can separate**. The page reads as one
+flat grey mass because it is one weight.
+
+**The scale is now defined and enforced**, because a principle in a document does not
+survive translation into code — five promptbooks in a row proved that here. Six tokens in
+`globals.css`, each with one job:
+
+| token | size | job |
+|---|---|---|
+| `--text-label` | 11px | uppercase section marker, table headers |
+| `--text-micro` | 12px | secondary and dim body — notes, sources, counts |
+| `--text-body` | 14px | the default: table cells, sentences, values |
+| `--text-subject` | 19px | what a player scans: goal names, route steps, boss names |
+| `--text-answer` | 28px | the ONE loud element per screen |
+| `--text-page` | 40px | the page title. Rare — most screens do not have one |
+
+`tests/type-scale.test.ts` holds a ratchet at **735 off-scale usages** and fails if that
+number goes up. Every phase below lowers it; lower the `CEILING` constant in the same
+commit that earns it. A 60px account name is not on the scale, which is the point.
 
 ### Three heading patterns on one screen
 

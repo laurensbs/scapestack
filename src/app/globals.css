@@ -109,6 +109,29 @@
   --color-osrs-qty-green: #00FF80;
   --color-osrs-btn-red: #EF6A3A;
 
+  /* ── Type scale ──────────────────────────────────────────────────────
+     Six steps, each with one job. Measured 2026-08-01: the app used TWENTY-SIX
+     distinct sizes, nine of them between 9px and 14px in half-pixel steps —
+     11px (170 uses), 11.5px (132), 12px (165), 12.5px (125), 13px (134). Those
+     five are 726 usages that no eye can tell apart, which is the whole reason
+     the page reads as one flat grey mass: it IS one weight.
+
+     A scale is not a suggestion. Every font-size on a Scapestack surface is one
+     of these six, and a size that is not on the list is a bug, not a variant.
+
+     label    the uppercase section marker, table headers
+     micro    secondary and dim body — notes, sources, counts
+     body     the default. Table cells, sentences, values
+     subject  the things a player scans: goal names, route steps, boss names
+     answer   the ONE loud element per screen
+     page     the page title. Rare — most screens do not have one */
+  --text-label: 11px;
+  --text-micro: 12px;
+  --text-body: 14px;
+  --text-subject: 19px;
+  --text-answer: 28px;
+  --text-page: 40px;
+
   /* Fonts — mature app typography with a restrained OSRS-adjacent serif accent. */
   --font-sans: "Atkinson Hyperlegible", "Avenir Next", "Inter", "Segoe UI", ui-sans-serif, system-ui, -apple-system, sans-serif;
   /* Headings share the body face. The serif display made every page read
