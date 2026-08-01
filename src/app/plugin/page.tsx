@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ChevronDown, ShieldCheck } from "lucide-react";
+import { DeleteAccountDataButton } from "@/components/delete-account-data-button";
 import { PluginSyncChecker } from "@/components/plugin-sync-checker";
 import { PLUGIN_VERIFY_SYNC_HASH } from "@/lib/plugin-bank-bridge";
 
@@ -100,20 +100,67 @@ export default function PluginPage() {
 
       <PluginSyncChecker />
 
-      <details className="group mt-5 border-y border-[var(--color-border)] py-4">
-        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text-dim)] marker:hidden">
-          <span className="inline-flex items-center gap-2">
-            <ShieldCheck className="size-4 text-[var(--color-accent)]" />
-            What RuneLite shares
-          </span>
-          <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
-        </summary>
-        <div className="grid gap-3 pt-3 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-muted)] sm:grid-cols-2">
-          <p>Skills, XP, completed quests, diary tiers, clog items, Slayer and optional bank stacks.</p>
-          <p>Sync on login is optional and off by default. Bank can be turned off at any time.</p>
-          <p className="sm:col-span-2">No RuneScape password, chat, screenshots, clicks, inventory or equipped items.</p>
+      <section className="mt-8 border-y border-[var(--color-border-strong)] py-6" aria-labelledby="plugin-explanation-title">
+        <h2 id="plugin-explanation-title" className="font-serif text-[28px] font-bold leading-tight text-[var(--color-text)]">
+          How Scapestack and the plugin work together
+        </h2>
+        <dl className="mt-6 divide-y divide-[var(--color-border)]">
+          <div className="py-4 first:pt-0">
+            <dt className="text-[13px] font-bold text-[var(--color-text)]">What Scapestack is</dt>
+            <dd className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
+              Scapestack remembers what you are working toward and tells you the next step.
+            </dd>
+          </div>
+          <div className="py-4">
+            <dt className="text-[13px] font-bold text-[var(--color-text)]">What the plugin does</dt>
+            <dd className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
+              The plugin reads your account from RuneLite and sends it to Scapestack. That is how the site knows which quests you have finished, what is in your bank and what your KC is — things the Hiscores do not show.
+            </dd>
+          </div>
+          <div className="py-4">
+            <dt className="text-[13px] font-bold text-[var(--color-text)]">Without the plugin</dt>
+            <dd className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
+              Scapestack only sees your Hiscores: levels and KC. Quests, diaries and your bank stay invisible, so the site guesses. It says so when it does.
+            </dd>
+          </div>
+          <div className="py-4">
+            <dt className="text-[13px] font-bold text-[var(--color-text)]">Connecting</dt>
+            <dd className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
+              Connecting takes one button in the game and one in your browser.
+            </dd>
+          </div>
+          <div className="py-4">
+            <dt className="text-[13px] font-bold text-[var(--color-text)]">What it sends</dt>
+            <dd className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
+              Your name, your levels, finished quests and diaries, your collection log, your Slayer task, and your bank if you switch that on.
+              <span className="mt-1 block">Sync on login is optional and off by default. Bank can be turned off at any time.</span>
+            </dd>
+          </div>
+          <div className="py-4">
+            <dt className="text-[13px] font-bold text-[var(--color-text)]">What it does not send</dt>
+            <dd className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
+              Your password. Your inventory. Your chat. Where you are standing. Screenshots.
+            </dd>
+          </div>
+          <div className="py-4 last:pb-0">
+            <dt className="text-[13px] font-bold text-[var(--color-text)]">Turning it off</dt>
+            <dd className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
+              Uninstall the plugin, or press Delete my data on Scapestack. Both stop it.
+              <DeleteAccountDataButton />
+            </dd>
+          </div>
+        </dl>
+
+        <div className="mt-6 border-t border-[var(--color-border-strong)] pt-5">
+          <h3 className="text-[13px] font-bold text-[var(--color-text)]">The RuneLite warning</h3>
+          <blockquote className="mt-2 border-l border-[var(--color-parchment-edge)] pl-4 text-[12.5px] leading-relaxed text-[var(--color-text-secondary)]">
+            “submits your IP address and comprehensive account data to a 3rd-party server not controlled or verified by RuneLite developers.”
+          </blockquote>
+          <p className="mt-3 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
+            RuneLite shows that warning because the plugin sends account data to a server they do not run. That is accurate. The list above is exactly what it sends.
+          </p>
         </div>
-      </details>
+      </section>
     </main>
   );
 }

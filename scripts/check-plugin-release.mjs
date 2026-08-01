@@ -339,14 +339,17 @@ function checkReviewCopy() {
   for (const path of [
     "plugin/README.md",
     "plugin/PUBLISHING.md",
-    "scripts/extract-plugin.sh",
-    "src/app/plugin/page.tsx"
+    "scripts/extract-plugin.sh"
   ]) {
     expectContains(path, "RuneScape password");
     expectContains(path, "bank");
     expectContains(path, "inventory");
     expectContains(path, "chat");
   }
+  expectContains("src/app/plugin/page.tsx", "Your password.");
+  expectContains("src/app/plugin/page.tsx", "bank");
+  expectContains("src/app/plugin/page.tsx", "inventory");
+  expectContains("src/app/plugin/page.tsx", "chat");
 }
 
 function listFiles(dir, base = dir) {

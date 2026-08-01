@@ -60,9 +60,29 @@ function literals(source: string): string[] {
   return found;
 }
 
+/** Visible JSX text is player copy too; quoted-literal extraction misses it. */
+function jsxText(source: string): string[] {
+  const stripped = source
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
+  const found: string[] = [];
+  for (const match of stripped.matchAll(/>([^<>{}]+)</g)) {
+    const text = (match[1] ?? "").replace(/\s+/g, " ").trim();
+    if (!/[a-z]{3}\s+[a-z]{3}/i.test(text)) continue;
+    found.push(text);
+  }
+  return found;
+}
+
 const ALL = COPY_DIRS.flatMap(sourceFiles)
   .filter((path) => !path.includes("/dev/"))
-  .map((path) => ({ path: path.replace(`${ROOT}/`, ""), literals: literals(readFileSync(path, "utf8")) }));
+  .map((path) => {
+    const source = readFileSync(path, "utf8");
+    return {
+      path: path.replace(`${ROOT}/`, ""),
+      literals: [...literals(source), ...(path.endsWith(".tsx") ? jsxText(source) : [])]
+    };
+  });
 
 function hits(pattern: RegExp): string[] {
   const out: string[] = [];
@@ -109,6 +129,23 @@ describe("copy sounds like a player wrote it", () => {
     // like a browser session, which is why only the copy phrasings are listed.
     const found = hits(/\b(?:one-session|this session length|reward-target session|session stays bounded|drop-chance session)\b/i);
     expect(found, `"Session" used where "trip" belongs:\n${found.join("\n")}`).toEqual([]);
+  });
+
+  it("lints the Phase 5 plugin and connection copy without privacy-policy reassurance", () => {
+    const phaseFive = ALL.filter((file) => [
+      "src/app/plugin/page.tsx",
+      "src/app/link/page.tsx",
+      "src/components/link-account-form.tsx"
+    ].includes(file.path));
+    expect(phaseFive.map((file) => file.path).toSorted()).toEqual([
+      "src/app/plugin/page.tsx",
+      "src/app/link/page.tsx",
+      "src/components/link-account-form.tsx"
+    ].toSorted());
+    const copy = phaseFive.flatMap((file) => file.literals).join("\n");
+    expect(copy).toContain("What Scapestack is");
+    expect(copy).toContain("Approve connection");
+    expect(copy).not.toMatch(/we take your privacy seriously|industry-standard encryption|your data is safe|trust us/i);
   });
 
   it("has copy to lint at all", () => {

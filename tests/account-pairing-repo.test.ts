@@ -6,6 +6,7 @@ const database = vi.hoisted(() => ({
   pairingApproved: true,
   recentPairings: 0,
   completeConnected: false,
+  pluginLinkConnected: false,
   sessionConnected: true,
   queries: [] as Array<{ query: string; params: unknown[] }>,
   query: vi.fn(async (query: string, params: unknown[] = []) => {
@@ -15,6 +16,9 @@ const database = vi.hoisted(() => ({
     if (query.includes("INSERT INTO account_pairing")) return [];
     if (query.includes("UPDATE account_pairing pairing")) return database.pairingApproved ? [{ pairing_id: "pair-1" }] : [];
     if (query.includes("WITH consumed AS")) return database.completeConnected ? [{
+      account_id: "account-1", rsn: "lynx titan", display_name: "Lynx Titan", last_seen_at: "2026-07-15T12:00:00.000Z"
+    }] : [];
+    if (query.includes("WITH linked AS")) return database.pluginLinkConnected ? [{
       account_id: "account-1", rsn: "lynx titan", display_name: "Lynx Titan", last_seen_at: "2026-07-15T12:00:00.000Z"
     }] : [];
     if (query.includes("SELECT status, expires_at")) return [{
@@ -34,11 +38,13 @@ vi.mock("@/lib/sync-repo", () => ({ ensureSyncSchema: async () => undefined }));
 
 import {
   approveAccountPairing,
+  completeApprovedAccountPairingByCode,
   completeAccountPairing,
   getConnectedAccount,
   hashAccountSecret,
   revokeBrowserSession,
-  startAccountPairing
+  startAccountPairing,
+  startApprovedAccountPairing
 } from "@/lib/account-pairing";
 
 beforeEach(() => {
@@ -47,6 +53,7 @@ beforeEach(() => {
   database.pairingApproved = true;
   database.recentPairings = 0;
   database.completeConnected = false;
+  database.pluginLinkConnected = false;
   database.sessionConnected = true;
   database.queries = [];
   database.query.mockClear();
@@ -94,6 +101,28 @@ describe("account pairing repository", () => {
     const persistence = database.queries.filter((entry) => entry.query.includes("WITH consumed AS")).at(-1);
     expect(JSON.stringify(persistence?.params)).not.toContain(connected.sessionToken);
     expect(persistence?.params[3]).toBe(hashAccountSecret(connected.sessionToken));
+  });
+
+  it("lets an authenticated plugin mint one short link that the browser consumes by code", async () => {
+    const now = new Date("2026-07-15T12:00:00.000Z");
+    const pairing = await startApprovedAccountPairing("Lynx Titan", now);
+    expect(pairing).toMatchObject({ status: "created", expiresAt: "2026-07-15T12:10:00.000Z" });
+    if (pairing.status !== "created") throw new Error("expected approved pairing");
+    expect(pairing).not.toHaveProperty("browserSecret");
+    const insert = database.queries.find((entry) => entry.query.includes("INSERT INTO account_pairing") && entry.query.includes("'approved'"));
+    expect(insert?.params[3]).toBe(hashAccountSecret(pairing.code.replace("-", "")));
+
+    database.pluginLinkConnected = true;
+    const connected = await completeApprovedAccountPairingByCode(pairing.code, now);
+    expect(connected).toMatchObject({
+      status: "connected",
+      account: { accountId: "account-1", displayName: "Lynx Titan" }
+    });
+    if (connected.status !== "connected") throw new Error("expected linked browser");
+    const link = database.queries.find((entry) => entry.query.includes("WITH linked AS"));
+    expect(link?.params[0]).toBe(hashAccountSecret(pairing.code.replace("-", "")));
+    expect(link?.query).toContain("AND status = 'approved'");
+    expect(JSON.stringify(link?.params)).not.toContain(connected.sessionToken);
   });
 
   it("loads and revokes only the presented browser session", async () => {

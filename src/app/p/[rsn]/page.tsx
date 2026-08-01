@@ -101,6 +101,13 @@ export default async function PlayerPage({ params, searchParams }: Props) {
     itemCount: exactSync.bankItems.length,
     availability: exactSync.availability?.bank
   }) ? exactSync.bankItems : undefined;
+  const accountCoverage = !exactSync
+    ? "From your Hiscores only — connect RuneLite to include quests and your bank."
+    : exactDomain("quests") && exactBank
+      ? "From your Hiscores and RuneLite — quests and your bank included."
+      : exactDomain("quests")
+        ? "From your Hiscores and RuneLite — quests included; your bank is off or not opened."
+        : "From your Hiscores and RuneLite — quests and your bank are not available in this scan.";
   const goalEvidence = buildPinnedGoalEvidence({
     skills: hi.skills,
     quests,
@@ -173,6 +180,9 @@ export default async function PlayerPage({ params, searchParams }: Props) {
           </h1>
           <p className="mt-2 text-[12.5px] text-[var(--color-text-muted)]">
             {accountType} · {formatSyncAge(syncedAt)}
+          </p>
+          <p className="mt-1 max-w-xl text-[12px] leading-relaxed text-[var(--color-text-muted)]" data-account-coverage="true">
+            {accountCoverage}
           </p>
         </div>
         <Link href={syncHref} className="btn-ghost min-h-11 w-fit shrink-0 px-4 text-[12px] font-bold">

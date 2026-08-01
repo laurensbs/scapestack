@@ -363,7 +363,7 @@ function warningsFor(accountType: PlannerAccountType | null, hasItemRequirements
     return [`Hardcore Ironman: ${accountModeSourceCopy(accountType)}; route combat or Wilderness diary tasks conservatively.`];
   }
   if (isIronPlannerAccount(accountType) && hasItemRequirements) {
-    return [`${plannerAccountTypeLabel(accountType)}: ${accountModeSourceCopy(accountType)}; Grand Exchange buying is not assumed.`];
+    return [`${plannerAccountTypeLabel(accountType)}: ${accountModeSourceCopy(accountType)}.`];
   }
   return [];
 }

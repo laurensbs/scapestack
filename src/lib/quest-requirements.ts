@@ -192,7 +192,7 @@ function accountWarningsFor(
   } else if (accountType === "hardcore" && hasItemRequirements) {
     warnings.push(`Hardcore Ironman: ${accountModeSourceCopy(accountType)}; self-source items safely.`);
   } else if (isIronPlannerAccount(accountType) && hasItemRequirements) {
-    warnings.push(`${plannerAccountTypeLabel(accountType)}: ${accountModeSourceCopy(accountType)}; Grand Exchange buying is not assumed.`);
+    warnings.push(`${plannerAccountTypeLabel(accountType)}: ${accountModeSourceCopy(accountType)}.`);
   }
   for (const note of quest.ironmanNotes.slice(0, 6)) {
     warnings.push(`Ironman note: ${note}`);

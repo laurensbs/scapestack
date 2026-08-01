@@ -27,6 +27,11 @@ export type StartPairingResult =
   | { status: "rate-limited" }
   | { status: "unclaimed" };
 
+export type StartApprovedPairingResult =
+  | { status: "created"; code: string; expiresAt: string }
+  | { status: "rate-limited" }
+  | { status: "unclaimed" };
+
 export type CompletePairingResult =
   | { status: "connected"; sessionToken: string; expiresAt: string; account: ConnectedAccount }
   | { status: "pending" | "expired" | "invalid" };
@@ -101,6 +106,51 @@ export async function startAccountPairing(rsn: string, now = new Date()): Promis
   `, [pairingId, accountId, normalizedRsn, hashAccountSecret(code),
     hashAccountSecret(browserSecret), now.toISOString(), expiresAt]);
   return { status: "created", pairingId, code: formatPairingCode(code), browserSecret, expiresAt };
+}
+
+/**
+ * Starts the inverse pairing flow used by RuneLite's browser-open button.
+ * The authenticated route verifies the install token before calling this;
+ * the returned code is the short-lived capability carried by /link.
+ */
+export async function startApprovedAccountPairing(
+  rsn: string,
+  now = new Date()
+): Promise<StartApprovedPairingResult> {
+  const normalizedRsn = normalizeRsn(rsn);
+  if (!normalizedRsn) return { status: "unclaimed" };
+  await ensureSyncSchema();
+  const accounts = await client().query<{ account_id: string; recent_pairings: number | string }>(`
+    SELECT identity.account_id,
+           (SELECT COUNT(*) FROM account_pairing recent
+            WHERE recent.account_id = identity.account_id
+              AND recent.created_at > $2::timestamptz - INTERVAL '1 minute') AS recent_pairings
+    FROM account_identity identity
+    JOIN player_claim claim ON claim.account_id = identity.account_id
+    WHERE identity.rsn = $1 AND claim.token_hash <> ''
+    LIMIT 1
+  `, [normalizedRsn, now.toISOString()]);
+  const accountId = accounts[0]?.account_id;
+  if (!accountId) return { status: "unclaimed" };
+  if (Number(accounts[0]?.recent_pairings ?? 0) >= 5) return { status: "rate-limited" };
+
+  await client().query(`
+    DELETE FROM account_pairing
+    WHERE account_id = $1 AND expires_at <= $2::timestamptz
+  `, [accountId, now.toISOString()]);
+
+  const pairingId = randomUUID();
+  const code = generatePairingCode();
+  const unusedBrowserSecret = randomBytes(32).toString("base64url");
+  const expiresAt = new Date(now.getTime() + PAIRING_TTL_MS).toISOString();
+  await client().query(`
+    INSERT INTO account_pairing (
+      pairing_id, account_id, rsn, code_hash, browser_secret_hash,
+      status, created_at, expires_at, approved_at
+    ) VALUES ($1, $2, $3, $4, $5, 'approved', $6::timestamptz, $7::timestamptz, $6::timestamptz)
+  `, [pairingId, accountId, normalizedRsn, hashAccountSecret(code),
+    hashAccountSecret(unusedBrowserSecret), now.toISOString(), expiresAt]);
+  return { status: "created", code: formatPairingCode(code), expiresAt };
 }
 
 export async function approveAccountPairing(
@@ -178,6 +228,69 @@ export async function completeAccountPairing(
     return { status: "expired" };
   }
   return { status: state[0].status === "pending" ? "pending" : "invalid" };
+}
+
+/** Consume a RuneLite-created link once and mint the browser session. */
+export async function completeApprovedAccountPairingByCode(
+  code: string,
+  now = new Date()
+): Promise<CompletePairingResult> {
+  const normalizedCode = normalizePairingCode(code);
+  if (normalizedCode.length !== 8) return { status: "invalid" };
+  await ensureSyncSchema();
+  const sessionId = randomUUID();
+  const sessionToken = randomBytes(32).toString("base64url");
+  const expiresAt = new Date(now.getTime() + SESSION_TTL_MS).toISOString();
+  const codeHash = hashAccountSecret(normalizedCode);
+  const rows = await client().query<{
+    account_id: string;
+    rsn: string;
+    display_name: string;
+    last_seen_at: string;
+  }>(`
+    WITH linked AS (
+      UPDATE account_pairing
+      SET status = 'consumed', consumed_at = $4::timestamptz
+      WHERE pairing_id = (
+        SELECT pairing_id
+        FROM account_pairing
+        WHERE code_hash = $1
+          AND status = 'approved'
+          AND expires_at > $4::timestamptz
+        ORDER BY created_at DESC
+        LIMIT 1
+      )
+        AND status = 'approved'
+        AND expires_at > $4::timestamptz
+      RETURNING account_id
+    ), session AS (
+      INSERT INTO account_browser_session (
+        session_id, account_id, token_hash, created_at, last_used_at, expires_at
+      )
+      SELECT $2::uuid, account_id, $3, $4::timestamptz, $4::timestamptz, $5::timestamptz
+      FROM linked
+      RETURNING account_id
+    )
+    SELECT identity.account_id, identity.rsn, identity.display_name, identity.last_seen_at
+    FROM account_identity identity
+    JOIN session ON session.account_id = identity.account_id
+  `, [codeHash, sessionId, hashAccountSecret(sessionToken), now.toISOString(), expiresAt]);
+  if (rows[0]) {
+    return { status: "connected", sessionToken, expiresAt, account: accountFromRow(rows[0]) };
+  }
+
+  const state = await client().query<{ status: string; expires_at: string }>(`
+    SELECT status, expires_at
+    FROM account_pairing
+    WHERE code_hash = $1
+    ORDER BY created_at DESC
+    LIMIT 1
+  `, [codeHash]);
+  if (!state[0]) return { status: "invalid" };
+  if (new Date(state[0].expires_at).getTime() <= now.getTime() || state[0].status === "expired") {
+    return { status: "expired" };
+  }
+  return { status: "invalid" };
 }
 
 export async function getConnectedAccount(sessionToken: string, now = new Date()): Promise<ConnectedAccount | null> {

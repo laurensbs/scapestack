@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const state = vi.hoisted(() => ({
   pairing: { status: "created", pairingId: "11111111-2222-4333-8444-555555555555", code: "ABCD-EFGH", browserSecret: "browser-secret", expiresAt: "2026-07-15T12:10:00.000Z" } as Record<string, unknown>,
+  approvedPairing: { status: "created", code: "ABCD-EFGH", expiresAt: "2026-07-15T12:10:00.000Z" } as Record<string, unknown>,
   approved: "approved" as "approved" | "not-found",
   verified: true,
   completed: { status: "pending" } as Record<string, unknown>,
@@ -10,7 +11,9 @@ const state = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/account-pairing", () => ({
+  normalizePairingCode: (code: string) => code.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8),
   startAccountPairing: async () => state.pairing,
+  startApprovedAccountPairing: async () => state.approvedPairing,
   approveAccountPairing: async () => state.approved,
   completeAccountPairing: async () => state.completed,
   getConnectedAccount: async () => state.connectedAccount,
@@ -24,6 +27,7 @@ vi.mock("@/lib/sync-auth", () => ({
 
 beforeEach(() => {
   state.pairing = { status: "created", pairingId: "11111111-2222-4333-8444-555555555555", code: "ABCD-EFGH", browserSecret: "browser-secret", expiresAt: "2026-07-15T12:10:00.000Z" };
+  state.approvedPairing = { status: "created", code: "ABCD-EFGH", expiresAt: "2026-07-15T12:10:00.000Z" };
   state.approved = "approved";
   state.verified = true;
   state.completed = { status: "pending" };
@@ -78,6 +82,31 @@ describe("progressive account pairing routes", () => {
       body: JSON.stringify({ rsn: "Lynx Titan", code: "ABCD-EFGH" })
     }));
     expect(approved.status).toBe(200);
+  });
+
+  it("lets only the matching RuneLite claim create the one-button browser link", async () => {
+    const { POST } = await import("@/app/api/account/pair/open/route");
+    const request = () => new Request("https://www.scapestack.org/api/account/pair/open", {
+      method: "POST",
+      headers: { authorization: "Bearer plugin-token", "content-type": "application/json" },
+      body: JSON.stringify({ rsn: "Lynx Titan" })
+    });
+
+    state.verified = false;
+    expect((await POST(request())).status).toBe(403);
+
+    state.verified = true;
+    const response = await POST(request());
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body).toMatchObject({
+      ok: true,
+      pairing: {
+        code: "ABCD-EFGH",
+        linkUrl: "https://www.scapestack.org/link?code=ABCDEFGH"
+      }
+    });
+    expect(body.pairing).not.toHaveProperty("browserSecret");
   });
 
   it("keeps polling pending and sets an HttpOnly session only after approval", async () => {

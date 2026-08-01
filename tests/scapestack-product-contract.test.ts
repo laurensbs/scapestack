@@ -124,7 +124,7 @@ describe("Scapestack anti-bankstanding product contract", () => {
     expect(plugin).toContain("Scapestack checks your active account automatically.");
     expect(plugin).toContain("Sync on login is optional and off by default.");
     expect(plugin).toContain("Bank can be turned off");
-    expect(plugin).toContain("No RuneScape password, chat, screenshots, clicks, inventory or equipped items.");
+    expect(plugin).toContain("Your password. Your inventory. Your chat. Where you are standing. Screenshots.");
     expect(direction).toContain("anti-bankstanding");
     expect(direction).toContain("one thing to do first");
     expect(direction).toContain("Critical Audit");

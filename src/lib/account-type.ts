@@ -128,7 +128,7 @@ export function isUltimatePlannerAccount(type: PlannerAccountType | null | undef
 export function accountModeImpactNote(type: PlannerAccountType | null | undefined): string {
   switch (type) {
     case "ironman":
-      return "Self-source missing items; Grand Exchange buying is not assumed.";
+      return "Self-source missing items.";
     case "hardcore":
       return "Risky combat is weighted down unless the unlock payoff is strong.";
     case "ultimate":

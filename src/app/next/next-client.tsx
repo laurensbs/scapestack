@@ -842,7 +842,7 @@ function NotFoundPreview({ rsn, onRetry }: { rsn: string; onRetry: () => void })
         No Hiscores entry for <span className="text-[var(--color-accent)]">{rsn}</span>.
       </h2>
       <p className="mt-2 text-[14px] leading-relaxed text-[var(--color-text-dim)]">
-        That is all we know. Scapestack reads the public Hiscores, and an account only appears there
+        That is all Scapestack knows. Scapestack reads the public Hiscores, and an account only appears there
         once it is ranked in something.
       </p>
 
