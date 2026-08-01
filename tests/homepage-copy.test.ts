@@ -10,7 +10,7 @@ import { describe, expect, it } from "vitest";
 const source = readFileSync(join(process.cwd(), "src/app/page.tsx"), "utf8");
 
 describe("homepage first-impression copy", () => {
-  it("opens as an OSRS companion with one boss subject and one intake", () => {
+  it("opens as an OSRS companion with one intake", () => {
     expect(source).not.toContain("BRAND_SECONDARY_TAGLINE");
     expect(source).toContain("Your OSRS companion.");
     expect(source).toContain("Scapestack remembers what you are working toward and tells you the next step.");
@@ -72,19 +72,16 @@ describe("homepage first-impression copy", () => {
     expect(source).not.toContain("PreviewLine");
   });
 
-  it("ranks subject, promise, intake and proof in that order", () => {
-    const subjectIndex = source.indexOf('data-home-boss-subject="true"');
+  it("ranks promise, intake and proof in that order", () => {
     const headlineIndex = source.indexOf("Your OSRS companion.");
     const explanationIndex = source.indexOf("Scapestack remembers what you are working toward and tells you the next step.");
     const intakeIndex = source.indexOf("<HeroIntake />");
     const proofIndex = source.indexOf('aria-label="What Scapestack checks"');
 
-    expect(subjectIndex).toBeGreaterThan(-1);
     expect(headlineIndex).toBeGreaterThan(-1);
     expect(explanationIndex).toBeGreaterThan(-1);
     expect(intakeIndex).toBeGreaterThan(-1);
     expect(proofIndex).toBeGreaterThan(-1);
-    expect(subjectIndex).toBeLessThan(headlineIndex);
     expect(headlineIndex).toBeLessThan(explanationIndex);
     expect(explanationIndex).toBeLessThan(intakeIndex);
     expect(intakeIndex).toBeLessThan(proofIndex);

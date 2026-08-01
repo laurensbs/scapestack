@@ -1,13 +1,12 @@
 import itemMeta from "../../data/item-meta.json";
 import quests from "../../data/quests.json";
-import { BOSSES, type Boss } from "@/lib/bosses";
+import { BOSSES } from "@/lib/bosses";
 
 interface PricedItem {
   value?: number | null;
 }
 
 export interface HomepageProof {
-  boss: Boss;
   bossesChecked: number;
   questsTracked: number;
   itemsPriced: number;
@@ -25,13 +24,8 @@ export function dailyBossIndex(now: Date, count: number): number {
   return utcDay % count;
 }
 
-export function buildHomepageProof(now = new Date()): HomepageProof {
-  const spriteBosses = BOSSES.filter((boss) => typeof boss.iconItemId === "number");
-  const boss = spriteBosses[dailyBossIndex(now, spriteBosses.length)];
-  if (!boss) throw new Error("The boss roster has no sprite-backed subject.");
-
+export function buildHomepageProof(): HomepageProof {
   return {
-    boss,
     bossesChecked: BOSSES.length,
     questsTracked: Object.keys(quests).length,
     itemsPriced: Object.values(itemMeta as Record<string, PricedItem>)

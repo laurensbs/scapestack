@@ -84,7 +84,7 @@ export function Header() {
             aria-label="Scapestack home"
             className={cn(
               "group flex min-h-11 shrink-0 items-center leading-none",
-              "text-[18px] font-semibold tracking-normal lowercase drop-shadow-[1px_1px_0_rgba(0,0,0,0.85)]"
+              "text-[length:var(--text-subject)] font-semibold tracking-normal lowercase drop-shadow-[1px_1px_0_rgba(0,0,0,0.85)]"
             )}
           >
             <span
