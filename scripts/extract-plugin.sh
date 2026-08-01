@@ -66,6 +66,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PLUGIN_DIR="$ROOT/plugin"
 SYNC_FIXTURE_SOURCE="$ROOT/tests/fixtures/plugin-sync-v3.json"
 SYNC_FIXTURE_RELATIVE="src/test/resources/fixtures/plugin-sync-v3.json"
+SYNC_FIXTURE_V4_SOURCE="$ROOT/tests/fixtures/plugin-sync-v4.json"
+SYNC_FIXTURE_V4_RELATIVE="src/test/resources/fixtures/plugin-sync-v4.json"
 
 if [[ ! -d "$PLUGIN_DIR" ]]; then
   echo "Plugin dir not found at $PLUGIN_DIR" >&2
@@ -205,6 +207,13 @@ if [[ "$DRY_RUN" == "true" ]]; then
       echo ">f.st.... $SYNC_FIXTURE_RELATIVE (copied contract fixture)"
     fi
   fi
+  if [[ -f "$SYNC_FIXTURE_V4_SOURCE" ]]; then
+    if [[ ! -f "$TARGET/$SYNC_FIXTURE_V4_RELATIVE" ]]; then
+      echo ">f+++++++++ $SYNC_FIXTURE_V4_RELATIVE (copied contract fixture)"
+    elif ! cmp -s "$SYNC_FIXTURE_V4_SOURCE" "$TARGET/$SYNC_FIXTURE_V4_RELATIVE"; then
+      echo ">f.st.... $SYNC_FIXTURE_V4_RELATIVE (copied contract fixture)"
+    fi
+  fi
   if [[ -f "$TARGET/README.md.published" ]]; then
     echo "*deleting   README.md.published (legacy generated file)"
   fi
@@ -232,12 +241,16 @@ fi
 
 rsync "${RSYNC_ARGS[@]}" "$PLUGIN_DIR/" "$TARGET/"
 
-# The v3 payload fixture is shared with the website contract tests. Mirror it
-# into standalone test resources so the extracted repository is independently
-# buildable instead of relying on the monorepo's ../tests directory.
+# The published v3 and candidate v4 payload fixtures are shared with the website
+# contract tests. Mirror both so the standalone suite is independently buildable
+# instead of relying on the monorepo's ../tests directory.
 if [[ -f "$SYNC_FIXTURE_SOURCE" ]]; then
   mkdir -p "$TARGET/$(dirname "$SYNC_FIXTURE_RELATIVE")"
   cp "$SYNC_FIXTURE_SOURCE" "$TARGET/$SYNC_FIXTURE_RELATIVE"
+fi
+if [[ -f "$SYNC_FIXTURE_V4_SOURCE" ]]; then
+  mkdir -p "$TARGET/$(dirname "$SYNC_FIXTURE_V4_RELATIVE")"
+  cp "$SYNC_FIXTURE_V4_SOURCE" "$TARGET/$SYNC_FIXTURE_V4_RELATIVE"
 fi
 
 # Generate a top-level README from this canonical release template so

@@ -326,7 +326,8 @@ describe("plugin release check", () => {
       "README.md",
       "src/main/java/app/scapestack/runelite/ScapestackSyncPlugin.java",
       "src/test/java/app/scapestack/runelite/ScapestackSyncPluginTest.java",
-      "src/test/resources/fixtures/plugin-sync-v3.json"
+      "src/test/resources/fixtures/plugin-sync-v3.json",
+      "src/test/resources/fixtures/plugin-sync-v4.json"
     ])).toEqual([]);
 
     expect(helper.disallowedStandalonePluginFiles([
@@ -382,6 +383,8 @@ describe("plugin release check", () => {
       expect(output).toContain("Removed legacy");
       expect(existsSync(join(target, "README.md"))).toBe(true);
       expect(readFileSync(join(target, "README.md"), "utf8")).toContain("Sync on login");
+      expect(existsSync(join(target, "src/test/resources/fixtures/plugin-sync-v3.json"))).toBe(true);
+      expect(existsSync(join(target, "src/test/resources/fixtures/plugin-sync-v4.json"))).toBe(true);
       expect(existsSync(join(target, "README.md.published"))).toBe(false);
     } finally {
       rmSync(target, { force: true, recursive: true });

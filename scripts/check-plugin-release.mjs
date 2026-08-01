@@ -378,7 +378,7 @@ export function disallowedStandalonePluginFiles(files) {
     /^gradle\/wrapper\/gradle-wrapper\.(jar|properties)$/,
     /^src\/main\/java\/app\/scapestack\/runelite\/[A-Za-z0-9_$]+\.java$/,
     /^src\/test\/java\/app\/scapestack\/runelite\/[A-Za-z0-9_$]+\.java$/,
-    /^src\/test\/resources\/fixtures\/plugin-sync-v3\.json$/
+    /^src\/test\/resources\/fixtures\/plugin-sync-v[34]\.json$/
   ];
   const forbiddenPathPatterns = [
     /(^|\/)\.gradle(\/|$)/,
