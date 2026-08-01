@@ -31,6 +31,7 @@ public class ScapestackSyncPanelTest {
         AtomicBoolean syncOnLogin = new AtomicBoolean(false);
         List<Boolean> settingWrites = new ArrayList<>();
         AtomicInteger manualSyncs = new AtomicInteger();
+        AtomicInteger fullResyncs = new AtomicInteger();
         AtomicInteger browserOpens = new AtomicInteger();
         List<String> approvedCodes = new ArrayList<>();
         List<Integer> spriteIds = new ArrayList<>();
@@ -42,6 +43,7 @@ public class ScapestackSyncPanelTest {
                 syncOnLogin.set(enabled);
             },
             manualSyncs::incrementAndGet,
+            fullResyncs::incrementAndGet,
             browserOpens::incrementAndGet,
             approvedCodes::add,
             (itemId, label) -> {
@@ -50,8 +52,19 @@ public class ScapestackSyncPanelTest {
             }
         ));
         ScapestackSyncPanel panel = holder[0];
+        String beforeFirstSync = visibleText(panel);
+        assertTrue(beforeFirstSync.contains("Quests"));
+        assertTrue(beforeFirstSync.contains("not read yet"));
+        assertTrue(beforeFirstSync.contains("Collection log"));
+        assertTrue(beforeFirstSync.contains("not opened this session — open it once to include it"));
+        assertTrue(beforeFirstSync.contains("Bank"));
 
         panel.setTimers("herbs ready in 12 min · birdhouses ready");
+        panel.setProgressStatus(
+            "180 read",
+            "not opened this session — open it once to include it",
+            "read 4 minutes ago"
+        );
         panel.setReceipt(new ServerResponseSummary.PanelReceipt(
             Arrays.asList(
                 new ServerResponseSummary.PanelAnswer(
@@ -84,6 +97,12 @@ public class ScapestackSyncPanelTest {
         assertTrue(visible.contains("7 / 20"));
         assertTrue(visible.contains("Goal"));
         assertTrue(visible.contains("herbs ready in 12 min · birdhouses ready"));
+        assertTrue(visible.contains("Quests"));
+        assertTrue(visible.contains("180 read"));
+        assertTrue(visible.contains("Collection log"));
+        assertTrue(visible.contains("not opened this session — open it once to include it"));
+        assertTrue(visible.contains("Bank"));
+        assertTrue(visible.contains("read 4 minutes ago"));
         assertTrue(visible.contains("That finishes Ahrim&#39;s."));
         assertFalse(visible.contains("Turn everything on"));
         assertFalse(visible.contains("Bank on"));
@@ -116,6 +135,11 @@ public class ScapestackSyncPanelTest {
         assertEquals(List.of(true), settingWrites);
         assertEquals(0, manualSyncs.get());
         assertNotNull(findButton(panel, "Sync on login: on"));
+
+        AbstractButton fullResync = findButton(panel, "Full resync");
+        assertNotNull(fullResync);
+        SwingUtilities.invokeAndWait(fullResync::doClick);
+        assertEquals(1, fullResyncs.get());
         assertEquals(225, ScapestackSyncPanel.PANEL_WIDTH);
     }
 

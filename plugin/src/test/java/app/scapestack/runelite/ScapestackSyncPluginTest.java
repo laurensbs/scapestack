@@ -14,6 +14,7 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -138,6 +139,80 @@ public class ScapestackSyncPluginTest {
         assertEquals(48, payload.getAsJsonObject("bossKc").get("Vorkath").getAsInt());
         assertEquals("available", payload.getAsJsonObject("coverage").getAsJsonObject("bossKc").get("state").getAsString());
         assertEquals("available", payload.getAsJsonObject("coverage").getAsJsonObject("skills").get("state").getAsString());
+    }
+
+    @Test
+    public void unreadProgressIsOmittedWhileObservedEmptyProgressStaysExplicit() {
+        GameStateReader.Snapshot unread = new GameStateReader.Snapshot();
+        unread.questsCompleted = null;
+        unread.collectionLogItemIds = new ArrayList<>();
+        unread.collectionLogStatus = CollectionLogReader.Status.notOpened();
+
+        JsonObject unreadPayload = ScapestackSyncPlugin.buildSyncPayload("Lynx Titan", unread, new Gson());
+        assertFalse(unreadPayload.has("questsCompleted"));
+        assertFalse(unreadPayload.has("collectionLogItemIds"));
+        assertEquals(
+            "not-loaded",
+            unreadPayload.getAsJsonObject("coverage").getAsJsonObject("quests").get("state").getAsString()
+        );
+        assertEquals(
+            "not-loaded",
+            unreadPayload.getAsJsonObject("coverage").getAsJsonObject("collectionLog").get("state").getAsString()
+        );
+        assertTrue(ScapestackSyncPlugin.buildSyncSuccessMessage(unread).contains(
+            "Diary progress synced. Quest progress was not ready."
+        ));
+
+        GameStateReader.Snapshot observedEmpty = new GameStateReader.Snapshot();
+        observedEmpty.questsCompleted = new ArrayList<>();
+        observedEmpty.collectionLogItemIds = new ArrayList<>();
+        observedEmpty.collectionLogStatus = new CollectionLogReader.Status(true, 1, 100, 0);
+
+        JsonObject observedPayload = ScapestackSyncPlugin.buildSyncPayload("Lynx Titan", observedEmpty, new Gson());
+        assertEquals(0, observedPayload.getAsJsonArray("questsCompleted").size());
+        assertEquals(0, observedPayload.getAsJsonArray("collectionLogItemIds").size());
+    }
+
+    @Test
+    public void loginQuestReadinessPollRepeatsUntilReadyButIsBounded() {
+        assertFalse(ScapestackSyncPlugin.loginQuestPollComplete(GameState.LOGGED_IN, true, false, 1));
+        assertFalse(ScapestackSyncPlugin.loginQuestPollComplete(
+            GameState.LOGGED_IN,
+            true,
+            false,
+            ScapestackSyncPlugin.MAX_QUEST_READINESS_ATTEMPTS - 1
+        ));
+        assertTrue(ScapestackSyncPlugin.loginQuestPollComplete(GameState.LOGGED_IN, true, true, 1));
+        assertTrue(ScapestackSyncPlugin.loginQuestPollComplete(
+            GameState.LOGGED_IN,
+            true,
+            false,
+            ScapestackSyncPlugin.MAX_QUEST_READINESS_ATTEMPTS
+        ));
+        assertTrue(ScapestackSyncPlugin.loginQuestPollComplete(GameState.LOGIN_SCREEN, true, false, 1));
+        assertTrue(ScapestackSyncPlugin.loginQuestPollComplete(GameState.LOGGED_IN, false, false, 1));
+    }
+
+    @Test
+    public void fullResyncRequiresCompleteProgressAndSetsTheEscapeHatchFlag() {
+        GameStateReader.Snapshot complete = new GameStateReader.Snapshot();
+        complete.questsCompleted = new ArrayList<>();
+        complete.diariesCompleted = new ArrayList<>();
+        complete.collectionLogItemIds = new ArrayList<>();
+        complete.collectionLogStatus = new CollectionLogReader.Status(true, 1, 100, 0);
+
+        assertTrue(ScapestackSyncPlugin.canFullResync(complete));
+        JsonObject body = ScapestackSyncPlugin.buildSyncPayload("Lynx Titan", complete, new Gson(), true);
+        assertTrue(body.get("fullResync").getAsBoolean());
+        assertEquals(0, body.getAsJsonArray("questsCompleted").size());
+        assertEquals(0, body.getAsJsonArray("diariesCompleted").size());
+        assertEquals(0, body.getAsJsonArray("collectionLogItemIds").size());
+
+        complete.questsCompleted = null;
+        assertFalse(ScapestackSyncPlugin.canFullResync(complete));
+        complete.questsCompleted = new ArrayList<>();
+        complete.collectionLogStatus = CollectionLogReader.Status.notOpened();
+        assertFalse(ScapestackSyncPlugin.canFullResync(complete));
     }
 
     @Test
@@ -662,44 +737,34 @@ public class ScapestackSyncPluginTest {
         );
     }
 
-    /**
-     * The panel used to print the same sentence twice whenever the collection
-     * log was the blocker: once as the "Clog" row, once as "Next action". The
-     * rule that fixes it is structural, not a one-off string change — status
-     * rows carry state, Next action carries the one instruction — so this test
-     * checks the rule, not the two strings that broke.
-     */
     @Test
-    public void statusRowsReportStateAndLeaveInstructionsToNextAction() {
+    public void progressRowsSayExactlyWhatThePluginReadInPlayerWords() {
         GameStateReader.BankStatus bankUnread =
             new GameStateReader.BankStatus(true, 0, null, "bank-not-opened-this-session");
         CollectionLogReader.Status logUnopened = CollectionLogReader.Status.notOpened();
         CollectionLogReader.Status logNoCategory = new CollectionLogReader.Status(true, 1, 0, 0);
         CollectionLogReader.Status logRead = new CollectionLogReader.Status(true, 1, 100, 612);
+        long now = java.time.Instant.parse("2026-08-01T12:04:30Z").toEpochMilli();
 
-        // Both are blocking at once. Next action names the first; the rows say
-        // what they are, and neither of them repeats it.
-        String nextAction = ScapestackSyncPlugin.panelNextAction(bankUnread, logUnopened, "Synced");
-        assertEquals("Open your bank once, then sync again", nextAction);
-
-        String[] rowValues = {
-            ScapestackSyncPlugin.panelBankStatus(bankUnread),
-            ScapestackSyncPlugin.panelCollectionLogStatus(logUnopened),
-            ScapestackSyncPlugin.panelCollectionLogStatus(logNoCategory),
-            ScapestackSyncPlugin.panelCollectionLogStatus(logRead),
-            ScapestackSyncPlugin.panelFarmingStatus(null, 0L)
-        };
-        for (String value : rowValues) {
-            assertFalse("a status row must not carry an instruction: " + value, value.contains("sync again"));
-            assertFalse("a status row must not carry an instruction: " + value, value.startsWith("Open "));
-            assertFalse("a status row must not carry an instruction: " + value, value.startsWith("Click "));
-            assertFalse("a status row must not repeat Next action: " + value, value.equals(nextAction));
-        }
-
-        assertEquals("Not opened this session", ScapestackSyncPlugin.panelBankStatus(bankUnread));
-        assertEquals("Not opened", ScapestackSyncPlugin.panelCollectionLogStatus(logUnopened));
-        assertEquals("No category loaded", ScapestackSyncPlugin.panelCollectionLogStatus(logNoCategory));
-        assertEquals("612 slots", ScapestackSyncPlugin.panelCollectionLogStatus(logRead));
+        assertEquals("180 read", ScapestackSyncPlugin.panelQuestStatus(Collections.nCopies(180, "quest")));
+        assertEquals("not read this sync", ScapestackSyncPlugin.panelQuestStatus(null));
+        assertEquals(
+            "not opened this session — open it once to include it",
+            ScapestackSyncPlugin.panelCollectionLogStatus(logUnopened)
+        );
+        assertEquals(
+            "opened, but no category loaded — open one to include it",
+            ScapestackSyncPlugin.panelCollectionLogStatus(logNoCategory)
+        );
+        assertEquals("612 read", ScapestackSyncPlugin.panelCollectionLogStatus(logRead));
+        assertEquals(
+            "read 4 minutes ago",
+            ScapestackSyncPlugin.panelBankReadStatus(
+                new GameStateReader.BankStatus(true, 42, "2026-08-01T12:00:00Z", null),
+                now
+            )
+        );
+        assertEquals("not read this sync", ScapestackSyncPlugin.panelBankReadStatus(bankUnread, now));
     }
 
     @Test

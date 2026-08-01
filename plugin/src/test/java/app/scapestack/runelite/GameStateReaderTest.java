@@ -4,6 +4,8 @@ import net.runelite.api.vars.AccountType;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class GameStateReaderTest {
     @Test
@@ -15,5 +17,13 @@ public class GameStateReaderTest {
         assertEquals("group_ironman", GameStateReader.normalizeAccountType(AccountType.GROUP_IRONMAN));
         assertEquals("hardcore_group_ironman", GameStateReader.normalizeAccountType(AccountType.HARDCORE_GROUP_IRONMAN));
         assertEquals("normal", GameStateReader.normalizeAccountType(null));
+    }
+
+    @Test
+    public void allNotStartedQuestVarsAreUnavailableRatherThanAnEmptyReading() {
+        assertFalse(GameStateReader.questReadingAvailable(170, 0));
+        assertFalse(GameStateReader.questReadingAvailable(0, 0));
+        assertTrue(GameStateReader.questReadingAvailable(170, 1));
+        assertTrue(GameStateReader.questReadingAvailable(169, 42));
     }
 }

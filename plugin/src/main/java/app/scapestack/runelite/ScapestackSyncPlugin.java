@@ -128,6 +128,7 @@ public class ScapestackSyncPlugin extends Plugin {
     static final int DEFAULT_AUTO_SYNC_INTERVAL_MINUTES = 15;
     private static final int MIN_AUTO_SYNC_INTERVAL_MINUTES = 5;
     private static final int MAX_AUTO_SYNC_INTERVAL_MINUTES = 60;
+    static final int MAX_QUEST_READINESS_ATTEMPTS = 20;
 
     @Override
     protected void startUp() {
@@ -169,10 +170,48 @@ public class ScapestackSyncPlugin extends Plugin {
         // LOGGING_IN fires once when the world handshake settles. We wait
         // for LOGGED_IN since widgets aren't readable before that.
         if (e.getGameState() == GameState.LOGGED_IN) {
-            // Delay the read so the quest-list widget has time to populate.
-            // 3s is RuneLite-community standard for this kind of poll.
-            clientThread.invokeLater(() -> triggerSync(false));
+            scheduleLoginSyncWhenQuestVarsReady();
         }
+    }
+
+    private void scheduleLoginSyncWhenQuestVarsReady() {
+        final int[] attempts = {0};
+        clientThread.invokeLater(() -> {
+            GameState state = client.getGameState();
+            boolean autoSync = config.autoSync();
+            if (state != GameState.LOGGED_IN || !autoSync) {
+                return true;
+            }
+
+            attempts[0]++;
+            boolean ready = reader.areQuestVarsReady(client);
+            if (!loginQuestPollComplete(state, autoSync, ready, attempts[0])) {
+                // RuneLite repeats BooleanSupplier callbacks that return
+                // false on following client ticks.
+                return false;
+            }
+
+            if (!ready) {
+                log.warn(
+                    "Quest vars were still unavailable after {} client ticks; syncing with quests absent",
+                    attempts[0]
+                );
+            }
+            triggerSync(false);
+            return true;
+        });
+    }
+
+    static boolean loginQuestPollComplete(
+        GameState state,
+        boolean autoSync,
+        boolean questVarsReady,
+        int attempts
+    ) {
+        return state != GameState.LOGGED_IN
+            || !autoSync
+            || questVarsReady
+            || attempts >= MAX_QUEST_READINESS_ATTEMPTS;
     }
 
     @Subscribe
@@ -259,6 +298,10 @@ public class ScapestackSyncPlugin extends Plugin {
     }
 
     private void triggerSync(boolean manual) {
+        triggerSync(manual, false);
+    }
+
+    private void triggerSync(boolean manual, boolean fullResync) {
         String rsn = normalizeRsn(client.getLocalPlayer() != null ? client.getLocalPlayer().getName() : null);
         if (rsn == null || rsn.isBlank()) {
             log.debug("triggerSync called but RSN unknown — skipping");
@@ -275,10 +318,9 @@ public class ScapestackSyncPlugin extends Plugin {
 
         GameStateReader.Snapshot snap;
         try {
-            // CL items come from the accumulator we've been filling on
-            // WidgetLoaded. If the player hasn't opened the CL this
-            // session the list is empty — falls back to website's
-            // collectionlog.net integration for that subset.
+            // CL items come from the session accumulator filled by
+            // WidgetLoaded. Until its item slots have actually rendered the
+            // serializer omits the field, and the server retains its union.
             snap = reader.readSnapshot(
                 client,
                 collectionLogReader.snapshot(),
@@ -291,9 +333,16 @@ public class ScapestackSyncPlugin extends Plugin {
             updatePanelStatus("Try again");
             return;
         }
+
+        if (fullResync && !canFullResync(snap)) {
+            String instruction = fullResyncInstruction(snap);
+            updatePanelSnapshot(rsn, snap, instruction);
+            notifyChat(instruction + ".");
+            return;
+        }
         updatePanelSnapshot(rsn, snap, "Syncing");
 
-        JsonObject body = buildSyncPayload(rsn, snap, gson);
+        JsonObject body = buildSyncPayload(rsn, snap, gson, fullResync);
 
         // Token bootstrap + claim-if-needed + sync POST all run on a
         // background thread. Claim involves an HTTP round-trip and a
@@ -392,9 +441,11 @@ public class ScapestackSyncPlugin extends Plugin {
                         String bodyText = ServerResponseSummary.readBody(res);
                         if (res.isSuccessful()) {
                             log.info("Synced to Scapestack: {} quests, {} diaries, {} CL items",
-                                snap.questsCompleted.size(),
+                                snap.questsCompleted != null ? snap.questsCompleted.size() : "not read",
                                 snap.diariesCompleted.size(),
-                                snap.collectionLogItemIds.size());
+                                effectiveCollectionLogStatus(snap).hasLoadedItemSlots()
+                                    ? snap.collectionLogItemIds.size()
+                                    : "not read");
                             rememberLastSync(System.currentTimeMillis());
                             updatePanelSnapshot(rsn, snap, "Synced");
                             if (panel != null) {
@@ -458,6 +509,7 @@ public class ScapestackSyncPlugin extends Plugin {
             config,
             configManager,
             this::requestPanelSync,
+            this::requestPanelFullResync,
             this::openBrowserPairing,
             this::approveBrowserPairing,
             (itemId, label) -> itemManager.getImage(itemId).addTo(label)
@@ -485,6 +537,16 @@ public class ScapestackSyncPlugin extends Plugin {
     private void requestPanelSync() {
         configManager.setConfiguration(CONFIG_GROUP, KEY_SYNC_NOW, true);
         updatePanelStatus("Sync requested");
+    }
+
+    private void requestPanelFullResync() {
+        if (client.getGameState() != GameState.LOGGED_IN) {
+            updatePanelStatus("Log in to fully resync");
+            notifyChat("Log in, then press Full resync.");
+            return;
+        }
+        updatePanelStatus("Checking full resync");
+        clientThread.invokeLater(() -> triggerSync(true, true));
     }
 
     private void openBrowserPairing() {
@@ -554,7 +616,13 @@ public class ScapestackSyncPlugin extends Plugin {
     private void updatePanelSnapshot(String rsn, GameStateReader.Snapshot snap, String status) {
         if (panel == null) return;
         panel.setStatus(status);
-        panel.setTimers(panelTimerStatus(snap.farmingStatus, System.currentTimeMillis()));
+        long now = System.currentTimeMillis();
+        panel.setProgressStatus(
+            panelQuestStatus(snap.questsCompleted),
+            panelCollectionLogStatus(effectiveCollectionLogStatus(snap)),
+            panelBankReadStatus(effectiveBankStatus(snap), now)
+        );
+        panel.setTimers(panelTimerStatus(snap.farmingStatus, now));
         if ("Synced".equals(status)) {
             panel.setLastSync("Just now");
         }
@@ -659,6 +727,9 @@ public class ScapestackSyncPlugin extends Plugin {
             bankStatus = new GameStateReader.BankStatus(true, acceptedCounts.bankItems, bankStatus.capturedAt, null);
         }
         CollectionLogReader.Status collectionLogStatus = effectiveCollectionLogStatus(snap);
+        String progressMessage = snap.questsCompleted == null
+            ? "Diary progress synced. Quest progress was not ready."
+            : "Quest and diary progress synced.";
 
         String message;
         if (hasNewProgress) {
@@ -669,11 +740,13 @@ public class ScapestackSyncPlugin extends Plugin {
             && "bank-not-opened-this-session".equals(bankStatus.unavailableReason)) {
             message = "Open your bank once, then sync again.";
         } else if (collectionLogStatus == null || !collectionLogStatus.opened) {
-            message = "Quest and diary progress synced. " + CollectionLogReader.playerInstruction(collectionLogStatus);
+            message = progressMessage + " " + CollectionLogReader.playerInstruction(collectionLogStatus);
         } else if (!collectionLogStatus.hasLoadedItemSlots()) {
-            message = CollectionLogReader.playerInstruction(collectionLogStatus);
+            message = snap.questsCompleted == null
+                ? progressMessage + " " + CollectionLogReader.playerInstruction(collectionLogStatus)
+                : CollectionLogReader.playerInstruction(collectionLogStatus);
         } else {
-            message = "Quest and diary progress synced.";
+            message = progressMessage;
         }
 
         String accountMode = accountModeDetectedMessage(snap.accountType);
@@ -779,15 +852,27 @@ public class ScapestackSyncPlugin extends Plugin {
     }
 
     static JsonObject buildSyncPayload(String rsn, GameStateReader.Snapshot snap, Gson gson) {
+        return buildSyncPayload(rsn, snap, gson, false);
+    }
+
+    static JsonObject buildSyncPayload(
+        String rsn,
+        GameStateReader.Snapshot snap,
+        Gson gson,
+        boolean fullResync
+    ) {
         JsonObject body = new JsonObject();
         body.addProperty("rsn", rsn);
         body.addProperty("displayName", rsn);
         body.addProperty("pluginVersion", PLUGIN_VERSION);
         body.addProperty("contractVersion", PluginSnapshotContract.VERSION);
         body.addProperty("capturedAt", snap.capturedAt);
+        if (fullResync) body.addProperty("fullResync", true);
         body.add("coverage", PluginSnapshotContract.coverageJson(snap));
         body.addProperty("accountType", snap.accountType != null && !snap.accountType.isBlank() ? snap.accountType : "normal");
-        body.add("questsCompleted", gson.toJsonTree(snap.questsCompleted));
+        if (snap.questsCompleted != null) {
+            body.add("questsCompleted", gson.toJsonTree(snap.questsCompleted));
+        }
         JsonArray skills = new JsonArray();
         for (GameStateReader.SkillLevel s : snap.skills) {
             JsonObject row = new JsonObject();
@@ -805,8 +890,10 @@ public class ScapestackSyncPlugin extends Plugin {
             diaries.add(row);
         }
         body.add("diariesCompleted", diaries);
-        body.add("collectionLogItemIds", gson.toJsonTree(snap.collectionLogItemIds));
         CollectionLogReader.Status collectionLogStatus = effectiveCollectionLogStatus(snap);
+        if (collectionLogStatus.hasLoadedItemSlots() && snap.collectionLogItemIds != null) {
+            body.add("collectionLogItemIds", gson.toJsonTree(snap.collectionLogItemIds));
+        }
         JsonObject collectionLogStatusJson = new JsonObject();
         collectionLogStatusJson.addProperty("opened", collectionLogStatus.opened);
         collectionLogStatusJson.addProperty("widgetLoads", collectionLogStatus.widgetLoads);
@@ -892,6 +979,24 @@ public class ScapestackSyncPlugin extends Plugin {
         return body;
     }
 
+    static boolean canFullResync(GameStateReader.Snapshot snap) {
+        return snap != null
+            && snap.questsCompleted != null
+            && snap.diariesCompleted != null
+            && snap.collectionLogItemIds != null
+            && effectiveCollectionLogStatus(snap).hasLoadedItemSlots();
+    }
+
+    private static String fullResyncInstruction(GameStateReader.Snapshot snap) {
+        if (snap.questsCompleted == null) {
+            return "Quest progress is not ready yet — try Full resync again in a moment";
+        }
+        if (!effectiveCollectionLogStatus(snap).hasLoadedItemSlots()) {
+            return "Open Collection Log once, then press Full resync";
+        }
+        return "Progress is not ready for a full resync";
+    }
+
     private static GameStateReader.BankStatus effectiveBankStatus(GameStateReader.Snapshot snap) {
         int bankCount = snap.bankItems != null ? snap.bankItems.size() : 0;
         if (snap.bankStatus != null
@@ -954,8 +1059,7 @@ public class ScapestackSyncPlugin extends Plugin {
     }
 
     // Lands in a panel row already labelled "Bank", so the value never repeats
-    // the word: "Bank: Bank off" read as a stutter. These rows report state;
-    // the instruction that goes with it belongs to Next action, once.
+    // the word: "Bank: Bank off" read as a stutter.
     static String panelBankStatus(GameStateReader.BankStatus status) {
         if (status.itemCount > 0) {
             return formatCount(status.itemCount, "item stack", "item stacks");
@@ -972,15 +1076,40 @@ public class ScapestackSyncPlugin extends Plugin {
         return "Unavailable";
     }
 
-    /** State, not an instruction — Next action already carries the instruction. */
+    static String panelQuestStatus(List<String> questsCompleted) {
+        return questsCompleted == null ? "not read this sync" : questsCompleted.size() + " read";
+    }
+
     static String panelCollectionLogStatus(CollectionLogReader.Status status) {
         if (status == null || !status.opened) {
-            return "Not opened";
+            return "not opened this session — open it once to include it";
         }
         if (!status.hasLoadedItemSlots()) {
-            return "No category loaded";
+            return "opened, but no category loaded — open one to include it";
         }
-        return formatCount(status.obtainedItemCount, "slot", "slots");
+        return status.obtainedItemCount + " read";
+    }
+
+    static String panelBankReadStatus(GameStateReader.BankStatus status, long nowMs) {
+        if (status == null) return "not read this sync";
+        if (!status.enabled) return "off";
+        if (status.capturedAt == null || status.capturedAt.isBlank()) {
+            return status.itemCount > 0 ? "read this sync" : "not read this sync";
+        }
+        try {
+            long capturedAtMs = java.time.Instant.parse(status.capturedAt).toEpochMilli();
+            long minutes = Math.max(0L, (nowMs - capturedAtMs) / 60_000L);
+            if (minutes < 1) return "read just now";
+            if (minutes == 1) return "read 1 minute ago";
+            if (minutes < 60) return "read " + minutes + " minutes ago";
+            long hours = minutes / 60;
+            if (hours == 1) return "read 1 hour ago";
+            if (hours < 24) return "read " + hours + " hours ago";
+            long days = hours / 24;
+            return "read " + days + (days == 1 ? " day ago" : " days ago");
+        } catch (RuntimeException ex) {
+            return status.itemCount > 0 ? "read this sync" : "not read this sync";
+        }
     }
 
     /**

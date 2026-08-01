@@ -42,8 +42,9 @@ import java.util.Map;
  * the world map menu.
  *
  * Collection log: same problem — the CL widget is the source of truth.
- * v0 scrapes only when the widget is loaded. Players will need to open
- * the CL once for the data to populate.
+ * The plugin can only scrape it while it is loaded. One successful read
+ * is retained by Scapestack's server, so the player does not have to open
+ * it again in later RuneLite sessions.
  */
 @Slf4j
 @Singleton
@@ -219,21 +220,56 @@ public class GameStateReader {
      * Reads quest completion via RuneLite's Quest enum + QuestState API.
      * This is the cleanest of the three signals — no widget scraping.
      */
-    private List<String> readQuests(Client client) {
+    List<String> readQuests(Client client) {
         List<String> out = new ArrayList<>();
+        int readable = 0;
+        int startedOrFinished = 0;
+        int failed = 0;
         for (Quest q : Quest.values()) {
             try {
                 QuestState state = q.getState(client);
+                readable++;
+                if (state != QuestState.NOT_STARTED) {
+                    startedOrFinished++;
+                }
                 if (state == QuestState.FINISHED) {
                     out.add(q.getName());
                 }
             } catch (Exception ex) {
-                // Some quests aren't in the player's quest list yet
-                // (newer content can throw). Skip silently.
+                // A single newer or unavailable quest must not discard the
+                // rest of a valid reading. Count it so a partial read is
+                // visible in logs instead of being silently swallowed.
+                failed++;
             }
+        }
+        if (!questReadingAvailable(readable, startedOrFinished)) {
+            log.debug(
+                "Quest vars not ready: {} readable quests all reported NOT_STARTED; {} reads failed",
+                readable,
+                failed
+            );
+            return null;
+        }
+        if (failed > 0) {
+            log.debug("Skipped {} quest reads that threw; {} quests remained readable", failed, readable);
         }
         log.debug("Read {} completed quests", out.size());
         return out;
+    }
+
+    /**
+     * A real account can have zero finished quests, but once its quest vars
+     * are populated RuneLite will still report at least one quest in progress.
+     * Immediately after login every quest reporting NOT_STARTED is the known
+     * varp race, not a trustworthy empty reading.
+     */
+    static boolean questReadingAvailable(int readable, int startedOrFinished) {
+        return readable > 0 && startedOrFinished > 0;
+    }
+
+    /** Cheap readiness probe used by the bounded login poll. */
+    boolean areQuestVarsReady(Client client) {
+        return readQuests(client) != null;
     }
 
     /**
@@ -262,9 +298,9 @@ public class GameStateReader {
      * The plugin holds the accumulator across the session — we just
      * return its current snapshot.
      *
-     * Limitation: the player must open the CL at least once per
-     * session for non-empty data. RuneLite only loads widgets the
-     * player actually views.
+     * Limitation: RuneLite only loads widgets the player actually views.
+     * This in-memory reading is session-scoped; after it reaches the server,
+     * contract 4 retains the union for later sessions.
      */
     private List<Integer> readCollectionLog(Client client) {
         // Threading through the CollectionLogReader singleton is done in

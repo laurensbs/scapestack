@@ -53,6 +53,7 @@ final class ScapestackSyncPanel extends PluginPanel {
     private final BooleanSupplier syncOnLogin;
     private final Consumer<Boolean> setSyncOnLogin;
     private final Runnable syncNow;
+    private final Runnable fullResync;
     private final Runnable openBrowser;
     private final Consumer<String> approveBrowserCode;
     private final ItemSpriteLoader spriteLoader;
@@ -62,11 +63,18 @@ final class ScapestackSyncPanel extends PluginPanel {
     private final WrappedLabel answerDetail = copy("RuneLite will send the data you enabled and put the answer here.");
     private final StatusRow stopAt = new StatusRow("Stop at", "One useful trip");
     private final StatusRow goal = new StatusRow("Goal", "Not measured yet");
+    private final StatusRow quests = new StatusRow("Quests", "not read yet");
+    private final StatusRow collectionLog = new StatusRow(
+        "Collection log",
+        "not opened this session — open it once to include it"
+    );
+    private final StatusRow bank = new StatusRow("Bank", "not read yet");
     private final WrappedLabel timers = copy("");
     private final WrappedLabel bankInsight = copy("");
     private final WrappedLabel status = copy("Not synced yet");
     private final JButton anotherButton = primaryButton("Get answer");
     private final JButton loginToggle = button("Sync on login: off");
+    private final JButton fullResyncButton = button("Full resync");
     private final JPanel pairingBody = new JPanel();
     private final List<ServerResponseSummary.PanelAnswer> answers = new ArrayList<>();
     private int answerIndex;
@@ -75,6 +83,7 @@ final class ScapestackSyncPanel extends PluginPanel {
         ScapestackSyncConfig config,
         ConfigManager configManager,
         Runnable syncNow,
+        Runnable fullResync,
         Runnable openBrowser,
         Consumer<String> approveBrowserCode,
         ItemSpriteLoader spriteLoader
@@ -87,6 +96,7 @@ final class ScapestackSyncPanel extends PluginPanel {
                 enabled
             ),
             syncNow,
+            fullResync,
             openBrowser,
             approveBrowserCode,
             spriteLoader
@@ -98,6 +108,7 @@ final class ScapestackSyncPanel extends PluginPanel {
         BooleanSupplier syncOnLogin,
         Consumer<Boolean> setSyncOnLogin,
         Runnable syncNow,
+        Runnable fullResync,
         Runnable openBrowser,
         Consumer<String> approveBrowserCode,
         ItemSpriteLoader spriteLoader
@@ -105,6 +116,7 @@ final class ScapestackSyncPanel extends PluginPanel {
         this.syncOnLogin = syncOnLogin;
         this.setSyncOnLogin = setSyncOnLogin;
         this.syncNow = syncNow;
+        this.fullResync = fullResync;
         this.openBrowser = openBrowser;
         this.approveBrowserCode = approveBrowserCode;
         this.spriteLoader = spriteLoader;
@@ -128,6 +140,10 @@ final class ScapestackSyncPanel extends PluginPanel {
             setSyncOnLogin.accept(!syncOnLogin.getAsBoolean());
             refresh();
         });
+        fullResyncButton.setToolTipText(
+            "Replace saved quest, diary and collection-log progress with this reading"
+        );
+        fullResyncButton.addActionListener(event -> fullResync.run());
         refresh();
     }
 
@@ -159,6 +175,16 @@ final class ScapestackSyncPanel extends PluginPanel {
 
     void setBankInsight(String value) {
         SwingUtilities.invokeLater(() -> bankInsight.setCopy(value));
+    }
+
+    void setProgressStatus(String questValue, String collectionLogValue, String bankValue) {
+        SwingUtilities.invokeLater(() -> {
+            quests.setValue(questValue);
+            collectionLog.setValue(collectionLogValue);
+            bank.setValue(bankValue);
+            revalidate();
+            repaint();
+        });
     }
 
     void setReceipt(ServerResponseSummary.PanelReceipt receipt) {
@@ -245,7 +271,18 @@ final class ScapestackSyncPanel extends PluginPanel {
             panel.revalidate();
             panel.repaint();
         });
-        stack(panel, loginToggle, status, connect, fallback, pairingBody);
+        stack(
+            panel,
+            quests,
+            collectionLog,
+            bank,
+            loginToggle,
+            status,
+            fullResyncButton,
+            connect,
+            fallback,
+            pairingBody
+        );
         return panel;
     }
 

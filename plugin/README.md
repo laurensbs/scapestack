@@ -37,9 +37,23 @@ sync URL. Local development can override it with the hidden
 `-Dscapestack.syncUrl=http://127.0.0.1:4173/api/sync` JVM property.
 
 For collection-log accuracy, open the in-game Collection Log once and click the
-relevant tabs/categories before syncing. RuneLite only exposes collection-log
-item widgets after the game has loaded them, so the plugin now tells you whether
-the log was not opened, opened without item slots, or loaded correctly.
+relevant tabs/categories before syncing. RuneLite cannot read the log passively:
+it only exposes collection-log item widgets after the game has rendered them.
+After one successful read, Scapestack retains the combined progress on the
+server, so you do not have to open it again in every RuneLite session. The panel
+says whether the log was not opened this session, opened without item slots, or
+loaded correctly.
+
+Quest variables are polled for a bounded number of client ticks after login.
+If they are still unavailable, the plugin omits quest progress instead of
+sending an empty list. It likewise omits collection-log item IDs until the
+widget has exposed real item slots. An explicit empty list is reserved for a
+successful read that found nothing.
+
+`Full resync` is the repair action for progress stored incorrectly in an older
+snapshot. It replaces the saved quest, diary and collection-log progress only
+after all three have been read; otherwise the panel says what must be opened or
+retried first.
 
 ## Data contract
 

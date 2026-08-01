@@ -78,7 +78,9 @@ final class PluginSnapshotContract {
         coverage.put("skills", snapshot.skills != null && !snapshot.skills.isEmpty()
             ? Domain.available(capturedAt)
             : Domain.unavailable("skills-unavailable"));
-        coverage.put("quests", Domain.available(capturedAt));
+        coverage.put("quests", snapshot.questsCompleted != null
+            ? Domain.available(capturedAt)
+            : Domain.notLoaded("quest-vars-not-ready"));
         coverage.put("diaries", Domain.available(capturedAt));
 
         CollectionLogReader.Status collectionLog = snapshot.collectionLogStatus;

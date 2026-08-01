@@ -20,8 +20,9 @@ import java.util.Set;
  * containing every possible drop with a quantity (0 = not obtained).
  *
  * We snapshot the union of obtained-item-IDs across every category the
- * widget has loaded. The player has to open the log once per session
- * for full data — RuneLite memory only holds what was actually rendered.
+ * widget has loaded. RuneLite memory only holds what was actually rendered;
+ * Scapestack's server retains the union after one successful opening, so the
+ * player does not have to open it again in every later session.
  *
  * State is held in memory by the plugin between syncs. Each time a new
  * CL category loads we merge it in. On sync we emit the current union.
