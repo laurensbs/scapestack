@@ -39,9 +39,9 @@ describe("mobile-first interface contract", () => {
   });
 
   it("uses mobile keyboard hints without triggering input zoom", () => {
+    const hero = read("src/components/hero-intake.tsx");
     const sources = [
       read("src/components/header.tsx"),
-      read("src/components/hero-intake.tsx"),
       read("src/app/next/next-client.tsx"),
       read("src/components/plugin-sync-checker.tsx")
     ];
@@ -53,6 +53,11 @@ describe("mobile-first interface contract", () => {
       expect(source).toContain('enterKeyHint="go"');
       expect(source).toContain("text-[16px]");
     }
+    expect(hero).toContain('autoCapitalize="none"');
+    expect(hero).toContain('autoCorrect="off"');
+    expect(hero).toContain('enterKeyHint="go"');
+    expect(hero).toContain("text-[length:var(--text-subject)]");
+    expect(hero).not.toContain("text-[16px]");
     expect(dps).toContain('inputMode="search"');
     expect(dps).toContain('enterKeyHint="search"');
     expect(dps).toContain("min-h-12 w-full");

@@ -33,14 +33,14 @@ describe("Phase 6 homepage intake", () => {
     vi.clearAllMocks();
   });
 
-  it("renders the component as exactly one RSN field and one Track button", async () => {
+  it("renders the component as exactly one RSN field and one Open my page button", async () => {
     const heroMarkup = renderToStaticMarkup(createElement(HeroIntake));
     const pageMarkup = renderToStaticMarkup(await HomePage());
 
     expect(heroMarkup.match(/<form\b/g)).toHaveLength(1);
     expect(heroMarkup.match(/<input\b/g)).toHaveLength(1);
     expect(heroMarkup.match(/<button\b/g)).toHaveLength(1);
-    expect(heroMarkup).toContain(">Track</button>");
+    expect(heroMarkup).toContain(">Open my page</button>");
     expect(heroMarkup).toContain('name="rsn"');
     expect(heroMarkup).toContain('required=""');
     expect(heroMarkup).not.toContain('role="dialog"');

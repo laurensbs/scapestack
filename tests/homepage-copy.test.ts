@@ -10,10 +10,10 @@ import { describe, expect, it } from "vitest";
 const source = readFileSync(join(process.cwd(), "src/app/page.tsx"), "utf8");
 
 describe("homepage first-impression copy", () => {
-  it("opens with the simple trip picker, and nothing above the intake", () => {
+  it("opens as an OSRS companion with one boss subject and one intake", () => {
     expect(source).not.toContain("BRAND_SECONDARY_TAGLINE");
-    expect(source).toContain("Stop bankstanding and pick the next trip.");
-    expect(source).toContain("Enter your OSRS name for one bank-aware answer and a clear stop point.");
+    expect(source).toContain("Your OSRS companion.");
+    expect(source).toContain("Scapestack remembers what you are working toward and tells you the next step.");
     // A reference document gets to the point: no full-viewport hero, no
     // display-size headline, and no eyebrow label above a headline that
     // already says the same thing.
@@ -72,26 +72,22 @@ describe("homepage first-impression copy", () => {
     expect(source).not.toContain("PreviewLine");
   });
 
-  // Was "keeps the first screen in one clean order with the intake before the
-  // visual on mobile" — an ordering rule for a two-column hero that no longer
-  // exists. What matters now is stronger and simpler: the intake is the second
-  // thing in the document, right under the masthead, on every width. There is
-  // no column to reorder because there is only one.
-  it("puts the intake directly under the masthead in one column", () => {
-    const headlineIndex = source.indexOf("Stop bankstanding and pick the next trip.");
-    const explanationIndex = source.indexOf("Enter your OSRS name for one bank-aware answer and a clear stop point.");
+  it("ranks subject, promise, intake and proof in that order", () => {
+    const subjectIndex = source.indexOf('data-home-boss-subject="true"');
+    const headlineIndex = source.indexOf("Your OSRS companion.");
+    const explanationIndex = source.indexOf("Scapestack remembers what you are working toward and tells you the next step.");
     const intakeIndex = source.indexOf("<HeroIntake />");
+    const proofIndex = source.indexOf('aria-label="What Scapestack checks"');
 
+    expect(subjectIndex).toBeGreaterThan(-1);
     expect(headlineIndex).toBeGreaterThan(-1);
     expect(explanationIndex).toBeGreaterThan(-1);
     expect(intakeIndex).toBeGreaterThan(-1);
+    expect(proofIndex).toBeGreaterThan(-1);
+    expect(subjectIndex).toBeLessThan(headlineIndex);
     expect(headlineIndex).toBeLessThan(explanationIndex);
     expect(explanationIndex).toBeLessThan(intakeIndex);
-    // No second column, at any breakpoint.
-    expect(source).not.toContain("lg:grid-cols-");
-    expect(source).not.toContain("home-hero-boss");
-    expect(source).not.toContain("lg:row-span-2");
-    expect(source).not.toContain("lg:grid-cols-[minmax(0,0.98fr)_minmax(340px,0.72fr)]");
+    expect(intakeIndex).toBeLessThan(proofIndex);
   });
 
   it("uses one object-led oldschool canvas instead of generic black cards", () => {

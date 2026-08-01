@@ -25,7 +25,8 @@ describe("Scapestack anti-bankstanding product contract", () => {
     const plugin = read("src/app/plugin/page.tsx");
     const direction = read("docs/scapestack-product-direction.md");
 
-    expect(homepage).toContain("Stop bankstanding and pick the next trip.");
+    expect(homepage).toContain("Your OSRS companion.");
+    expect(homepage).toContain("Scapestack remembers what you are working toward and tells you the next step.");
     // Was `toContain("HeroBossTripPreview")`. The rotating boss illustration
     // went with direction B; the promise this case guards is the copy, and the
     // homepage now goes directly from its promise to the one-field intake.

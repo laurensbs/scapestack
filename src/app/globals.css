@@ -1377,6 +1377,19 @@ body {
 }
 
 @media (max-width: 639px) {
+  body:has(main[data-home-page="true"]) .mobile-content-safe {
+    padding-bottom: 0;
+  }
+
+  body:has(main[data-home-page="true"]) .mobile-footer-safe {
+    margin-bottom: 0;
+  }
+
+  main[data-home-page="true"] {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
   .scape-page {
     padding-top: 1.25rem;
     padding-bottom: 2rem;

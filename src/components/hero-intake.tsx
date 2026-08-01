@@ -28,7 +28,7 @@ export function HeroIntake() {
         type="text"
         value={rsn}
         onChange={(event) => setRsn(event.target.value)}
-        placeholder="Type your OSRS name"
+        placeholder="Your OSRS name"
         maxLength={12}
         required
         autoComplete="off"
@@ -36,14 +36,14 @@ export function HeroIntake() {
         autoCorrect="off"
         enterKeyHint="go"
         spellCheck={false}
-        className="h-13 min-w-0 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3.5 text-[16px] font-semibold text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)] sm:h-12"
+        className="h-13 min-w-0 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3.5 text-[length:var(--text-subject)] font-semibold text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)] sm:h-12"
       />
       <button
         type="submit"
         disabled={!rsn.trim()}
-        className="inline-flex h-13 items-center justify-center rounded-lg bg-[var(--color-accent)] px-6 text-[14px] font-bold text-[#0B0906] transition-colors hover:bg-[var(--color-accent-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)] disabled:cursor-not-allowed disabled:bg-[var(--color-border-strong)] disabled:text-[var(--color-text-secondary)] sm:h-12"
+        className="inline-flex h-13 items-center justify-center rounded-lg bg-[var(--color-accent)] px-6 text-[length:var(--text-body)] font-bold text-[#0B0906] transition-colors hover:bg-[var(--color-accent-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)] disabled:cursor-not-allowed disabled:bg-[var(--color-border-strong)] disabled:text-[var(--color-text-secondary)] sm:h-12"
       >
-        Track
+        Open my page
       </button>
     </form>
   );
