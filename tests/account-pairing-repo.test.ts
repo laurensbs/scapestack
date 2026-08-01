@@ -121,7 +121,7 @@ describe("account pairing repository", () => {
     if (connected.status !== "connected") throw new Error("expected linked browser");
     const link = database.queries.find((entry) => entry.query.includes("WITH linked AS"));
     expect(link?.params[0]).toBe(hashAccountSecret(pairing.code.replace("-", "")));
-    expect(link?.query).toContain("AND status = 'approved'");
+    expect(link?.query.match(/AND status = 'approved'/g)).toHaveLength(2);
     expect(JSON.stringify(link?.params)).not.toContain(connected.sessionToken);
   });
 
