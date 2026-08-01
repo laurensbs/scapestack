@@ -74,7 +74,7 @@ export function PlayerPlanAnswer({
     onBossOpen && (rec.kind === "kc" || rec.kind === "boss") && rec.bossSlug
   );
   const actionLabel = actionLabelFor(rec, opensBossDetail ? "Check kill" : primaryAction.label);
-  const actionClass = "scapestack-command-button scapestack-primary-action px-4 text-[12.5px] font-black";
+  const actionClass = "scapestack-command-button scapestack-primary-action px-4";
 
   return (
     <article
@@ -85,15 +85,15 @@ export function PlayerPlanAnswer({
       <p className="eyebrow mb-2">
         {recommendationConfidenceEyebrow(decisionCopy.confidence)}
       </p>
-      <h2 className="flex min-w-0 items-center gap-3 text-[23px] font-black leading-[1.08] tracking-normal text-[var(--color-text)] sm:text-[32px]">
+      <h2 className="flex min-w-0 items-center gap-3 text-[length:var(--text-answer)] font-extrabold! leading-[1.08] text-[var(--color-text)]">
         <RecommendationGlyph rec={rec} />
         <span className="min-w-0 break-words">{decisionCopy.title}</span>
       </h2>
-      <p className="mt-2 text-[12.5px] font-semibold leading-relaxed text-[var(--color-text-dim)] sm:text-[13.5px]">
+      <p className="mt-2 max-w-[65ch] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text-dim)]">
         {decisionCopy.why}
       </p>
       {decisionCopy.sourceLine && (
-        <p className="mt-1.5 text-[12px] leading-snug text-[var(--color-text-muted)]">
+        <p className="mt-1.5 max-w-[65ch] text-[length:var(--text-micro)] font-normal leading-snug text-[var(--color-text-muted)]">
           {decisionCopy.sourceLine}
         </p>
       )}
@@ -166,7 +166,7 @@ export function PlayerPlanAlternatives({
   if (alternatives.length === 0) return null;
   return (
     <section className="pt-4" aria-labelledby="next-alternatives-title" data-player-plan-alternatives="true">
-      <h3 id="next-alternatives-title" className="text-[13px] font-semibold text-[var(--color-text)]">
+      <h3 id="next-alternatives-title" className="text-[length:var(--text-subject)] font-semibold text-[var(--color-text)]">
         Not this?
       </h3>
       <div className="scape-table-wrap mt-2">
@@ -194,10 +194,10 @@ export function PlayerPlanAlternatives({
                       <span className="flex min-w-0 items-center gap-3">
                         <RecommendationGlyph rec={rec} />
                         <span className="min-w-0 flex-1">
-                          <span className="block truncate text-[13.5px] font-semibold text-[var(--color-text)]">
+                          <span className="block truncate text-[length:var(--text-subject)] font-semibold text-[var(--color-text)]">
                             {rec.title}
                           </span>
-                          <span className="block text-[11px] leading-snug text-[var(--color-text-muted)]">
+                          <span className="block max-w-[65ch] text-[length:var(--text-micro)] font-normal leading-snug text-[var(--color-text-muted)]">
                             {prompt.helper}
                           </span>
                         </span>
@@ -210,7 +210,7 @@ export function PlayerPlanAlternatives({
                       type="button"
                       onClick={() => onHide(rec)}
                       aria-label={`Hide ${rec.title}`}
-                      className="inline-flex min-h-11 items-center gap-1.5 px-1.5 text-[11px] font-semibold text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-danger)]"
+                      className="inline-flex min-h-11 items-center gap-1.5 px-1.5 text-[length:var(--text-micro)] font-normal text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-danger)]"
                     >
                       <EyeOff className="size-3.5" />
                       Hide

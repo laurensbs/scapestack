@@ -44,7 +44,7 @@ export function ItemSprite({
         data-sprite-fallback="missing"
         data-sprite-missing-id={cleanId || undefined}
         className={cn(
-          "inline-flex items-center justify-center rounded-sm border border-[var(--color-border)] bg-[var(--color-bg)]/80 text-[9px] font-black leading-none text-[var(--color-accent)] shadow-[0_0_10px_rgba(200,154,61,0.16)]",
+          "inline-flex items-center justify-center rounded-sm border border-[var(--color-border)] bg-[var(--color-slot)] text-[length:var(--text-label)] font-semibold leading-none text-[var(--color-text-muted)]",
           className
         )}
         style={{

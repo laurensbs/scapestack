@@ -154,12 +154,12 @@ export function PlayerToolsSections({
       {localState.kind === "loading" ? (
         <div data-player-tools-loading="true" className="flex min-h-28 items-center gap-3 border-y border-[var(--color-border)] py-5 text-[var(--color-text-muted)]">
           <Loader2 className="size-4 shrink-0 animate-spin text-[var(--color-accent)]" />
-          <p className="text-[13px]">Loading all four answers from the bank saved on this device…</p>
+          <p className="text-[length:var(--text-body)] font-normal">Loading all four answers from the bank saved on this device…</p>
         </div>
       ) : (
         <>
           {localState.kind === "error" && (
-            <p className="border-y border-[var(--color-border)] py-4 text-[12.5px] text-[var(--color-text-muted)]">
+            <p className="max-w-[65ch] border-y border-[var(--color-border)] py-4 text-[length:var(--text-micro)] font-normal text-[var(--color-text-muted)]">
               The bank saved on this device could not be read. Paste it again on the bank intake.
             </p>
           )}

@@ -12,7 +12,7 @@ export function PlayerSkillsTable({
 }) {
   return (
     <section className="mt-10" data-account-home-board="true">
-      <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-text-muted)]">
+      <h2 className="mb-3 text-[length:var(--text-label)] font-semibold uppercase tracking-[0.1em] text-[var(--color-text-muted)]">
         Account
       </h2>
       <div className="scape-table-wrap">

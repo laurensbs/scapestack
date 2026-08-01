@@ -39,21 +39,21 @@ export function PlayerSetsSection({
   return (
     <section id="sets" data-player-tool-section="sets" className="scroll-mt-20 border-t border-[var(--color-border)] pt-6" aria-labelledby="player-sets-title">
       <p className="eyebrow">Sets</p>
-      <h2 id="player-sets-title" className="mt-1 text-[22px] font-semibold text-[var(--color-text)]">
+      <h2 id="player-sets-title" className="mt-1 text-[length:var(--text-subject)] font-semibold text-[var(--color-text)]">
         What can this bank finish?
       </h2>
       {activeGoal && (
         <div className="mt-3 flex gap-3 border-y border-[var(--color-border)] py-3" data-pinned-goal-bank-answer={activeGoal.key}>
           {activeGoal.spriteItemId ? <JournalItemSprite id={activeGoal.spriteItemId} /> : null}
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
+            <p className="text-[length:var(--text-label)] font-semibold uppercase tracking-[0.1em] text-[var(--color-text-muted)]">
               For {activeGoal.target}
             </p>
-            <p className="mt-1 text-[13.5px] leading-relaxed text-[var(--color-text)]">
+            <p className="mt-1 max-w-[65ch] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text)]">
               {goalBankFact?.line ?? `No exact bank price is available for ${activeGoal.target}. The started sets stay below.`}
             </p>
             {goalBankFact && (
-              <p className="mt-1 text-[12px]">
+              <p className="mt-1 text-[length:var(--text-micro)] font-normal">
                 <span className="scape-verdict" data-gate={goalBankFact.gate}>{goalBankFact.verdict}</span>
               </p>
             )}
@@ -61,12 +61,12 @@ export function PlayerSetsSection({
         </div>
       )}
       {!report ? (
-        <p className="mt-2 text-[13px] leading-relaxed text-[var(--color-text-muted)]">No synced bank is available for a set answer.</p>
+        <p className="mt-2 max-w-[65ch] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text-muted)]">No synced bank is available for a set answer.</p>
       ) : report.pricesUnavailable && !cannotBuy ? (
-        <p className="mt-2 text-[13px] leading-relaxed text-[var(--color-text-muted)]">Grand Exchange prices are unavailable, so no set is called affordable.</p>
+        <p className="mt-2 max-w-[65ch] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text-muted)]">Grand Exchange prices are unavailable, so no set is called affordable.</p>
       ) : (
         <>
-          <p className="mt-2 text-[14px] leading-relaxed text-[var(--color-text)]">
+          <p className="mt-2 max-w-[65ch] tabular-nums text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text)]">
             {cannotBuy
               ? `${rows.length.toLocaleString()} unfinished sets already have at least one piece in this bank. GE purchases are excluded.`
               : headline ?? `${report.buyableNow.length.toLocaleString()} sets can be finished with banked coins.`}
@@ -78,10 +78,10 @@ export function PlayerSetsSection({
                   {row.iconItemId ? <JournalItemSprite id={row.iconItemId} /> : null}
                   <div className="grid min-w-0 flex-1 gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-x-4">
                     <div className="min-w-0">
-                      <p className="break-words text-[13.5px] font-semibold text-[var(--color-text)]">
-                        {row.setName} <span className="font-normal tabular-nums text-[var(--color-text-muted)]">{row.owned}/{row.total}</span>
+                      <p className="break-words text-[length:var(--text-subject)] font-semibold text-[var(--color-text)]">
+                        {row.setName} <span className="tabular-nums font-semibold text-[var(--color-text-muted)]">{row.owned}/{row.total}</span>
                       </p>
-                      <p data-set-answer={row.setId} className="mt-1 whitespace-normal break-words text-[12px] leading-relaxed text-[var(--color-text-dim)]">
+                      <p data-set-answer={row.setId} className="mt-1 max-w-[65ch] whitespace-normal break-words text-[length:var(--text-micro)] font-normal leading-relaxed text-[var(--color-text-dim)]">
                         Missing: {row.missing.map((piece, index) => (
                           <span key={piece.goalId} className="text-[var(--color-data-item)]">
                             {index > 0 ? ", " : ""}{piece.name}
@@ -90,7 +90,7 @@ export function PlayerSetsSection({
                       </p>
                     </div>
                     {!cannotBuy && (
-                      <p className="self-start whitespace-nowrap text-[12px] font-semibold tabular-nums text-[var(--color-text)]">
+                      <p className="self-start whitespace-nowrap tabular-nums text-[length:var(--text-body)] font-semibold text-[var(--color-text)]">
                         {row.cost === null ? "Not for sale" : formatGpExact(row.cost)}
                       </p>
                     )}
@@ -99,7 +99,7 @@ export function PlayerSetsSection({
               ))}
             </ul>
           ) : (
-            <p className="mt-3 text-[12.5px] text-[var(--color-text-muted)]">No unfinished set has a banked piece yet.</p>
+            <p className="mt-3 text-[length:var(--text-micro)] font-normal text-[var(--color-text-muted)]">No unfinished set has a banked piece yet.</p>
           )}
         </>
       )}

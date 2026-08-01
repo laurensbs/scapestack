@@ -37,12 +37,12 @@ export function PlayerBossesSection({
   return (
     <section id="bosses" data-player-tool-section="bosses" className="scroll-mt-20 border-t border-[var(--color-border)] pt-6" aria-labelledby="player-bosses-title">
       <p className="eyebrow">Bosses</p>
-      <h2 id="player-bosses-title" className="mt-1 text-[22px] font-semibold text-[var(--color-text)]">
+      <h2 id="player-bosses-title" className="mt-1 text-[length:var(--text-subject)] font-semibold text-[var(--color-text)]">
         {activeGoal ? `Which bosses move ${activeGoal.target}?` : "Which bosses can this bank kill?"}
       </h2>
       {bosses ? (
         <>
-          <p data-testid="boss-startable-count" className="mt-2 text-[14px] leading-relaxed text-[var(--color-text)]">
+          <p data-testid="boss-startable-count" className="mt-2 max-w-[65ch] tabular-nums text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text)]">
             {activeGoal
               ? exactSources.length > 0
                 ? `${exactSources.length.toLocaleString()} exact Wiki drop source${exactSources.length === 1 ? " is" : "s are"} listed first. `
@@ -87,7 +87,7 @@ export function PlayerBossesSection({
                         )}
                         <span className="scape-verdict" data-gate={boss.tone}>{boss.verdict}</span>
                         <span className="mt-1 block leading-relaxed">{bossViabilityDecisionLine(boss)}</span>
-                        <span className="mt-1 block text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
+                        <span className="mt-1 block max-w-[65ch] text-[length:var(--text-micro)] font-normal leading-relaxed text-[var(--color-text-muted)]">
                           {boss.missing.length > 0 ? `Missing: ${boss.missing.join(", ")}.` : "Missing: nothing."}
                         </span>
                       </td>
@@ -100,7 +100,7 @@ export function PlayerBossesSection({
           <p className="scape-table-note">Worn gear is not counted. Every answer uses the combat levels above and items in the synced bank.</p>
         </>
       ) : (
-        <p className="mt-2 text-[13px] leading-relaxed text-[var(--color-text-muted)]">No synced bank is available for a boss answer.</p>
+        <p className="mt-2 max-w-[65ch] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text-muted)]">No synced bank is available for a boss answer.</p>
       )}
     </section>
   );

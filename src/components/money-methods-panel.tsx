@@ -18,22 +18,22 @@ export function MoneyMethodsPanel({
   return (
     <section id="money" data-player-tool-section="money" className="scroll-mt-20 border-t border-[var(--color-border)] pt-6" aria-labelledby="money-methods-title">
       <p className="eyebrow">Money</p>
-      <h2 id="money-methods-title" className="mt-1 text-[22px] font-semibold text-[var(--color-text)]">
+      <h2 id="money-methods-title" className="mt-1 text-[length:var(--text-subject)] font-semibold text-[var(--color-text)]">
         Which Wiki methods can this bank start?
       </h2>
       {!report ? (
-        <p className="mt-2 text-[13px] leading-relaxed text-[var(--color-text-muted)]">No synced bank is available for a money-method answer.</p>
+        <p className="mt-2 max-w-[65ch] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text-muted)]">No synced bank is available for a money-method answer.</p>
       ) : (
         <>
           <p
             data-testid="money-method-startable-count"
             data-startable-count={report.startableCount}
-            className="mt-2 text-[15px] leading-relaxed text-[var(--color-text)]"
+            className="mt-2 max-w-[65ch] tabular-nums text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text)]"
           >
             {moneyMethodCountLine(report)}
           </p>
           {cannotBuy && (
-            <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-text-muted)]">
+            <p className="mt-1 max-w-[65ch] text-[length:var(--text-micro)] font-normal leading-relaxed text-[var(--color-text-muted)]">
               Grand Exchange purchases are excluded for this account; only levels, quests and items already banked count.
             </p>
           )}
@@ -51,10 +51,10 @@ export function MoneyMethodsPanel({
                     rel="noopener noreferrer"
                     className="block rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/55 px-3 py-2.5 transition-colors hover:border-[var(--color-accent)]/45"
                   >
-                    <p className="text-[13px] font-semibold text-[var(--color-text)]">
+                    <p className="tabular-nums text-[length:var(--text-body)] font-semibold text-[var(--color-text)]">
                       {method.activity} · {formatGp(method.gpPerHour)}/hr
                     </p>
-                    <p className="mt-1 whitespace-normal break-words text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
+                    <p className="mt-1 max-w-[65ch] whitespace-normal break-words tabular-nums text-[length:var(--text-micro)] font-normal leading-relaxed text-[var(--color-text-dim)]">
                       {banked.length > 0
                         ? `${banked.join(", ")}${remainingBanked > 0 ? ` +${remainingBanked} more` : ""} in bank.`
                         : "No item input required from the bank."}
@@ -66,7 +66,7 @@ export function MoneyMethodsPanel({
               })}
             </div>
           )}
-          <p className="mt-2 text-[10.5px] text-[var(--color-text-muted)]">
+          <p className="mt-2 max-w-[65ch] text-[length:var(--text-micro)] font-normal text-[var(--color-text-muted)]">
             Requirements and methods: OSRS Wiki Bucket snapshot. GP/hour uses the live Wiki price feed when available.
           </p>
         </>

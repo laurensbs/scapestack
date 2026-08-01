@@ -13,7 +13,7 @@ export function BankObservationsPanel({
     return (
       <p
         data-testid="bank-observations-too-short"
-        className="mt-3 text-[12.5px] leading-relaxed text-[var(--color-text-muted)]"
+        className="mt-3 max-w-[65ch] text-[length:var(--text-micro)] font-normal leading-relaxed text-[var(--color-text-muted)]"
       >
         {result.explanation}
       </p>
@@ -26,7 +26,7 @@ export function BankObservationsPanel({
       {result.observations.map((observation) => (
         <p
           key={observation.id}
-          className="rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-3 py-2.5 text-[13px] leading-relaxed text-[var(--color-text)]"
+          className="max-w-[65ch] border-y border-[var(--color-border)] bg-[var(--color-panel)] px-3 py-2.5 text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text)]"
         >
           {observation.sentence}
         </p>

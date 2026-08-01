@@ -248,12 +248,12 @@ export default async function PlayerPage({ params, searchParams }: Props) {
 
   const bank = (
     <section className="mt-10 border-t border-[var(--color-border)] pt-6" aria-labelledby="player-bank-title">
-      <h2 id="player-bank-title" className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-text-muted)]">
+      <h2 id="player-bank-title" className="text-[length:var(--text-label)] font-semibold uppercase tracking-[0.1em] text-[var(--color-text-muted)]">
         Your bank
       </h2>
       <BankObservationsPanel result={context.bankObservations} />
       {bankItems.length === 0 && (
-        <p className="mt-2 text-[12.5px] leading-relaxed text-[var(--color-text-muted)]">
+        <p className="mt-2 max-w-[65ch] text-[length:var(--text-micro)] font-normal leading-relaxed text-[var(--color-text-muted)]">
           Bank details stay private. Pair this browser and sync RuneLite to use your bank here.
         </p>
       )}

@@ -223,7 +223,7 @@ export function PlayerPlanPanel({
     return (
       <section className="border-y border-[var(--color-border)] py-5" data-player-plan-answer="empty">
         <p className="eyebrow">The answer</p>
-        <p className="mt-2 text-[13px] text-[var(--color-text-dim)]">
+        <p className="mt-2 max-w-[65ch] text-[length:var(--text-body)] font-normal text-[var(--color-text-dim)]">
           Scapestack could not build a safe trip from the public account data yet.
         </p>
       </section>

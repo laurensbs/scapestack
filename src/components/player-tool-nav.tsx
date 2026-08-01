@@ -16,8 +16,8 @@ export function PlayerToolNav() {
           href={`#${section.id}`}
           className="min-w-0 bg-[var(--color-panel)] px-3 py-3 text-left transition-colors hover:bg-[var(--color-panel-2)]"
         >
-          <span className="block text-[12.5px] font-bold text-[var(--color-text)]">{section.label}</span>
-          <span className="mt-1 block text-[10.5px] leading-snug text-[var(--color-text-muted)]">{section.question}</span>
+          <span className="block text-[length:var(--text-body)] font-semibold text-[var(--color-text)]">{section.label}</span>
+          <span className="mt-1 block text-[length:var(--text-micro)] font-normal leading-snug text-[var(--color-text-muted)]">{section.question}</span>
         </a>
       ))}
     </nav>
