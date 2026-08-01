@@ -74,7 +74,7 @@
     margin: 0;
     background: var(--color-bg);
     color: var(--color-text);
-    font-family: "Atkinson Hyperlegible", "Avenir Next", Inter, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+    font-family: Archivo, "Arial Narrow", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
     font-size: var(--text-body);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
@@ -100,8 +100,7 @@
   /* ── identity ──────────────────────────────────────────────────── */
   .identity { padding: 1.4rem 0 1rem; border-bottom: 1px solid var(--color-border); }
   .identity h1 {
-    margin: 0; font-size: var(--text-page); font-weight: 800;
-    letter-spacing: -.025em; line-height: 1.02;
+    margin: 0; font-size: var(--text-page); font-weight: 600; line-height: 1.02;
   }
   .identity .meta {
     margin: .35rem 0 0; font-size: var(--text-micro); color: var(--color-text-dim);
@@ -111,19 +110,20 @@
     display: grid; gap: .1rem 1.6rem; margin-top: 1.1rem;
     grid-template-columns: repeat(6, minmax(0, 1fr));
   }
+  .band > div { text-align: right; }
   @media (max-width: 720px) { .band { grid-template-columns: repeat(3, minmax(0,1fr)); gap: .9rem 1rem; } }
   .band dt {
-    font-size: var(--text-label); font-weight: 800; text-transform: uppercase;
+    font-size: var(--text-label); font-weight: 600; text-transform: uppercase;
     letter-spacing: .1em; color: var(--color-text-muted);
   }
   .band dd {
-    margin: .15rem 0 0; font-size: var(--text-subject); font-weight: 700;
+    margin: .15rem 0 0; font-size: var(--text-subject); font-weight: 600;
     font-variant-numeric: tabular-nums; line-height: 1.15;
   }
   /* Numbers are data, so they may take the Jagex colours. Labels may not. */
   .band dd.level { color: var(--color-data-level); }
   .band dd.mil   { color: var(--color-data-m); }
-  .band dd.none  { color: var(--color-text-muted); font-weight: 500; }
+  .band dd.none  { color: var(--color-text-muted); font-weight: 400; }
   .band-note {
     margin: 1rem 0 0; font-size: var(--text-micro); color: var(--color-text-muted);
   }

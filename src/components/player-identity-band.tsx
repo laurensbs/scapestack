@@ -81,18 +81,18 @@ export function PlayerIdentityBand({
             aria-label={stat.reason ? `${stat.label}: unknown. ${stat.reason}` : undefined}
             data-player-identity-stat={stat.key}
           >
-            <dt className="truncate text-[length:var(--text-label)] font-extrabold uppercase tracking-[0.1em] text-[var(--color-text-muted)]">
+            <dt className="truncate text-[length:var(--text-label)] font-semibold uppercase tracking-[0.1em] text-[var(--color-text-muted)]">
               {stat.label}
             </dt>
             <dd
-              className={`mt-1 whitespace-nowrap tabular-nums text-[length:var(--text-subject)] font-bold leading-none ${
-                stat.tone === "level"
-                  ? "text-[var(--color-data-level)]"
-                  : stat.tone === "millions"
-                    ? "text-[var(--color-data-m)]"
-                    : stat.tone === "unknown"
-                      ? "font-medium text-[var(--color-text-muted)]"
-                      : "text-[var(--color-text)]"
+              className={`mt-1 whitespace-nowrap tabular-nums text-[length:var(--text-subject)] leading-none ${
+                stat.tone === "unknown"
+                  ? "font-normal text-[var(--color-text-muted)]"
+                  : stat.tone === "level"
+                    ? "font-semibold text-[var(--color-data-level)]"
+                    : stat.tone === "millions"
+                      ? "font-semibold text-[var(--color-data-m)]"
+                      : "font-semibold text-[var(--color-text)]"
               }`}
               data-player-identity-value={stat.key}
             >

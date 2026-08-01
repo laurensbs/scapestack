@@ -220,7 +220,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   const unknownIdentityReason = "This was not available in the latest RuneLite scan.";
   const header = (
     <header className="mb-5 border-b border-[var(--color-border)] pb-5">
-      <h1 className="break-words text-[length:var(--text-page)] font-extrabold leading-none tracking-[-0.025em] text-[var(--color-text)]">
+      <h1 className="break-words text-[length:var(--text-page)] font-semibold leading-none text-[var(--color-text)]">
         {displayName}
       </h1>
       <p className="mt-2 text-[length:var(--text-micro)] text-[var(--color-text-muted)]">

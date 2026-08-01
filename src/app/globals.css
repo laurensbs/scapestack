@@ -656,8 +656,7 @@ html, body {
 /* Hierarchy comes from weight and size, not from a second typeface. */
 h1, h2, h3 {
   font-family: var(--font-display);
-  letter-spacing: -0.011em;
-  font-weight: 650;
+  font-weight: 600;
   font-feature-settings: "tnum";
   text-wrap: balance;
 }
