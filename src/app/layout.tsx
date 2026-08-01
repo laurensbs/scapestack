@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Archivo } from "next/font/google";
 import Script from "next/script";
 import { Header } from "@/components/header";
 import { MobileActionBar } from "@/components/mobile-action-bar";
@@ -18,6 +19,34 @@ import "./globals.css";
 // ignored by Plausible by default. We load with `defer` so it never blocks
 // first paint and gate on NODE_ENV=production so dev iteration doesn't
 // pollute the dashboard.
+/**
+ * The typeface, actually delivered.
+ *
+ * Measured 2026-08-01: the site loaded ZERO webfonts. --font-sans named
+ * "Atkinson Hyperlegible", "Avenir Next", "Inter" and "Segoe UI", and on a
+ * live page none of the first three resolved — the site rendered in Avenir
+ * Next on macOS, Segoe UI on Windows and Roboto on Android. Three faces, none
+ * chosen, two of them the literal system UI font of their platform. A product
+ * cannot read as anything but a generic web app while that is true.
+ *
+ * Atkinson Hyperlegible was the wrong ask even if it had loaded: it is the
+ * Braille Institute's accessibility face, engineered so low-vision readers
+ * cannot confuse letterforms. Deliberately characterless — a road sign.
+ *
+ * Archivo is a grotesque built for dense interfaces: sturdy at 11px, confident
+ * at 40px, real tabular figures, and not the face every product reaches for.
+ * Self-hosted by next/font at build time, so there is no external request and
+ * no flash of fallback. Swapping it is one line here.
+ */
+const archivo = Archivo({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-archivo",
+  // 400 body, 600 subject, 800 the answer and the wordmark. Hierarchy is
+  // carried by weight and size, never by a second family.
+  weight: ["400", "600", "800"]
+});
+
 const PLAUSIBLE_DOMAIN = "scapestack.org";
 
 export const metadata: Metadata = {
@@ -78,7 +107,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="min-h-full">
+    <html lang="en" className={`min-h-full ${archivo.variable}`}>
       <body className="min-h-full subpixel-antialiased font-sans">
         {process.env.NODE_ENV === "production" && (
           <>

@@ -120,4 +120,20 @@ describe("the accent has a budget", () => {
     }
     expect(offenders).toEqual([]);
   });
+
+  it("keeps the .eyebrow base class itself off the saturated colours", () => {
+    // The call-site guard above stayed green while five orange labels shipped,
+    // because the violation moved INTO the base class: .eyebrow was set to
+    // --color-data-head in globals.css. Guarding one spelling of a rule just
+    // moves the rule-breaking somewhere else, which is the seventh time that
+    // has happened in this repo. Watch the rendered outcome.
+    const css = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
+    const rule = css.match(/^\.eyebrow\s*\{([^}]*)\}/m);
+    expect(rule, ".eyebrow rule not found").toBeTruthy();
+    const declared = rule![1];
+    for (const banned of ["--color-data-head", "--color-data-level", "--color-data-m",
+                          "--color-data-item", "--color-accent"]) {
+      expect(declared, `.eyebrow paints itself with ${banned}`).not.toContain(banned);
+    }
+  });
 });

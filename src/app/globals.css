@@ -133,10 +133,10 @@
   --text-page: 40px;
 
   /* Fonts — mature app typography with a restrained OSRS-adjacent serif accent. */
-  --font-sans: "Atkinson Hyperlegible", "Avenir Next", "Inter", "Segoe UI", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, -apple-system, sans-serif;
   /* Headings share the body face. The serif display made every page read
      as editorial; weight and size carry hierarchy instead. */
-  --font-display: "Atkinson Hyperlegible", "Avenir Next", "Inter", "Segoe UI", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-archivo), ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, Consolas, monospace;
   --font-rs-small: "RuneScape Small", "Trebuchet MS", ui-sans-serif, system-ui, sans-serif;
 
@@ -1418,12 +1418,17 @@ body {
 }
 
 /* ── Eyebrow / labels ─────────────────────────────────────────────────── */
+/* A section marker is chrome. It names what follows; it is not the thing.
+   This carried --color-data-head, which put five saturated orange labels on
+   the player page while the accent-budget guard stayed green — the guard
+   watches CALL SITES and the violation had moved into the base class.
+   Saturated colour is data only, and a label is not data. */
 .eyebrow {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-data-head);
+  color: var(--color-text-muted);
 }
 
 .section-divider {
