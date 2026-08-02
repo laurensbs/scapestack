@@ -28,6 +28,13 @@ const BOSS_RENDER_CACHE_HEADERS = [
   }
 ];
 
+const STAT_SPRITE_CACHE_HEADERS = [
+  {
+    key: "Cache-Control",
+    value: "public, max-age=604800, stale-while-revalidate=2592000"
+  }
+];
+
 const config: NextConfig = {
   turbopack: { root },
   allowedDevOrigins: ["127.0.0.1"],
@@ -66,6 +73,10 @@ const config: NextConfig = {
       {
         source: "/api/sprite/item/:path*",
         headers: PUBLIC_ASSET_CACHE_HEADERS
+      },
+      {
+        source: "/api/sprite/stat/:path*",
+        headers: STAT_SPRITE_CACHE_HEADERS
       },
       {
         source: "/api/sprite/boss/:path*",

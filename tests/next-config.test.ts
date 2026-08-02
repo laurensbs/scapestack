@@ -31,6 +31,7 @@ describe("Next deployment config", () => {
 
     expect(cachedSources).toEqual([
       "/api/sprite/item/:path*",
+      "/api/sprite/stat/:path*",
       "/api/sprite/boss/:path*",
       "/icon",
       "/apple-icon",
@@ -46,6 +47,10 @@ describe("Next deployment config", () => {
     expect(headers?.find((entry) => entry.source === "/api/sprite/boss/:path*")?.headers).toContainEqual({
       key: "Cache-Control",
       value: "public, max-age=2592000, stale-while-revalidate=31536000"
+    });
+    expect(headers?.find((entry) => entry.source === "/api/sprite/stat/:path*")?.headers).toContainEqual({
+      key: "Cache-Control",
+      value: "public, max-age=604800, stale-while-revalidate=2592000"
     });
   });
 });

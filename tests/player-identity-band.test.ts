@@ -20,11 +20,43 @@ function renderIdentityBand(): string {
 }
 
 describe("the player identity band", () => {
+  it("uses the five verified game marks and leaves Total XP iconless", () => {
+    const html = renderIdentityBand();
+    const expectedIcons = new Map([
+      ["total-level", "/api/sprite/stat/total-level.png"],
+      ["combat", "/api/sprite/stat/combat.png"],
+      ["quests", "/api/sprite/stat/quests.png"],
+      ["diaries", "/api/sprite/stat/diaries.png"],
+      ["collection-log", "/api/sprite/stat/collection-log.png"]
+    ]);
+
+    expect(html.match(/<img /g)).toHaveLength(expectedIcons.size);
+    for (const [stat, src] of expectedIcons) {
+      const cell = html.match(new RegExp(
+        `<div[^>]+data-player-identity-stat="${stat}"[\\s\\S]*?<\\/div>`
+      ))?.[0] ?? "";
+      expect(cell, stat).toContain(`src="${src}"`);
+      expect(cell, stat).toContain('alt=""');
+      expect(cell, stat).toContain('aria-hidden="true"');
+      expect(cell, stat).toContain('width="20"');
+      expect(cell, stat).toContain('height="20"');
+      expect(cell, stat).toContain("pixelated");
+    }
+
+    const totalXpCell = html.match(
+      /<div[^>]+data-player-identity-stat="total-xp"[\s\S]*?<\/div>/
+    )?.[0] ?? "";
+    expect(totalXpCell).not.toContain("<img");
+  });
+
   it("renders unknown synced progress as em dashes rather than zero fractions", () => {
     const html = renderIdentityBand();
 
     for (const domain of ["quests", "diaries", "collection-log"]) {
-      expect(html).toContain(`data-player-identity-value="${domain}">—</dd>`);
+      const cell = html.match(new RegExp(
+        `<div[^>]+data-player-identity-stat="${domain}"[\\s\\S]*?<\\/div>`
+      ))?.[0] ?? "";
+      expect(cell, domain).toContain("<span>—</span>");
     }
     expect(html).not.toMatch(/>0\s*\/\s*(158|48|1,600)</);
     expect(html).toContain("Quest completion is not visible in Hiscores");

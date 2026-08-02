@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 interface PlayerIdentityBandProps {
@@ -19,6 +20,23 @@ const DEFAULT_UNKNOWN_REASONS = {
   diaries: "Diary completion is not visible in Hiscores. Connect RuneLite to reveal it.",
   "collection-log": "Collection-log completion is not visible in Hiscores. Connect RuneLite to reveal it."
 } as const;
+
+type IdentityStatIcon = "total-level" | "combat" | "quests" | "diaries" | "collection-log";
+
+function StatIcon({ icon }: { icon: IdentityStatIcon }) {
+  return (
+    <Image
+      src={`/api/sprite/stat/${icon}.png`}
+      alt=""
+      aria-hidden="true"
+      width={20}
+      height={20}
+      unoptimized
+      className="pixelated size-5 shrink-0 object-contain"
+      data-player-identity-icon={icon}
+    />
+  );
+}
 
 function number(value: number): string {
   return new Intl.NumberFormat("en-US").format(value);
@@ -42,22 +60,24 @@ export function PlayerIdentityBand({
   unknownReasons
 }: PlayerIdentityBandProps) {
   const stats = [
-    { key: "total-level", label: "Total level", value: number(totalLevel), tone: "level", reason: null },
-    { key: "combat", label: "Combat", value: number(combatLevel), tone: "level", reason: null },
-    { key: "total-xp", label: "Total XP", value: number(totalXp), tone: totalXp >= 10_000_000 ? "millions" : null, reason: null },
+    { key: "total-level", label: "Total level", value: number(totalLevel), tone: "level", reason: null, icon: "total-level" },
+    { key: "combat", label: "Combat", value: number(combatLevel), tone: "level", reason: null, icon: "combat" },
+    { key: "total-xp", label: "Total XP", value: number(totalXp), tone: totalXp >= 10_000_000 ? "millions" : null, reason: null, icon: null },
     {
       key: "quests",
       label: "Quests",
       value: fraction(questProgress, questTotal),
       tone: questProgress === null ? "unknown" : null,
-      reason: questProgress === null ? unknownReasons?.quests ?? DEFAULT_UNKNOWN_REASONS.quests : null
+      reason: questProgress === null ? unknownReasons?.quests ?? DEFAULT_UNKNOWN_REASONS.quests : null,
+      icon: "quests"
     },
     {
       key: "diaries",
       label: "Diaries",
       value: fraction(diaryProgress, diaryTotal),
       tone: diaryProgress === null ? "unknown" : null,
-      reason: diaryProgress === null ? unknownReasons?.diaries ?? DEFAULT_UNKNOWN_REASONS.diaries : null
+      reason: diaryProgress === null ? unknownReasons?.diaries ?? DEFAULT_UNKNOWN_REASONS.diaries : null,
+      icon: "diaries"
     },
     {
       key: "collection-log",
@@ -66,7 +86,8 @@ export function PlayerIdentityBand({
       tone: collectionLogProgress === null ? "unknown" : null,
       reason: collectionLogProgress === null
         ? unknownReasons?.["collection-log"] ?? DEFAULT_UNKNOWN_REASONS["collection-log"]
-        : null
+        : null,
+      icon: "collection-log"
     }
   ];
 
@@ -96,7 +117,10 @@ export function PlayerIdentityBand({
               }`}
               data-player-identity-value={stat.key}
             >
-              {stat.value}
+              <span className="inline-flex items-baseline justify-end gap-2">
+                {stat.icon ? <StatIcon icon={stat.icon as IdentityStatIcon} /> : null}
+                <span>{stat.value}</span>
+              </span>
             </dd>
           </div>
         ))}
