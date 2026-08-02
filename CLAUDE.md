@@ -58,6 +58,21 @@ defects in fresh code, including two criticals. When one reports "0 confirmed",
 check for agents that died — a killed agent returns null and is filtered out
 exactly like a refutation.
 
+**A page has a budget, and prose has never once enforced one.** Eight phases of
+promptbook shipped in full and `/p/[rsn]` came out at 6.5 screens for 3,478
+characters, with 39 empty `<img>` and 55% of the text semibold. Every additive
+instruction landed; every paragraph about how it should feel did not. Sort this
+repo's history by "was a number with a failing test attached" and it separates
+cleanly — type scale, the missing typeface and the monotonic merge all stuck,
+and nothing described in prose ever has. So: `/p/[rsn]` holds **three sections**,
+and a new one may only land in a commit that removes one. See
+`docs/SCAPESTACK-REBUILD-2026-08-02.md`.
+
+**The gate must open the page.** `ci:check` typechecks, unit-tests, smokes,
+audits and builds — 273 test files, none of which render anything. Playwright
+was installed and configured and `npm run e2e` was simply never added to the
+chain, which is how 39 broken images reached production with everything green.
+
 **A migration that reads a new column backfills it in the same commit.**
 
 **The browser pane can report `document.visibilityState === "hidden"`, and a
