@@ -11,7 +11,7 @@ import net.runelite.api.GameState;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.WidgetLoaded;
-import net.runelite.api.widgets.WidgetID;
+import net.runelite.api.widgets.InterfaceID;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
@@ -92,10 +92,9 @@ public class ScapestackSyncPlugin extends Plugin {
     @Inject private OkHttpClient http;
     @Inject private Gson gson;
 
-    // OSRS collection-log widget group ID. Documented on the RuneLite
-    // WidgetID enum; pinning the constant here to keep this file
-    // dependency-light for the unit tests.
-    private static final int COLLECTION_LOG_GROUP_ID = 621;
+    // RuneLite's generated interface constant is the source of truth; the
+    // legacy WidgetID surface is terminally deprecated by Plugin Hub.
+    private static final int COLLECTION_LOG_GROUP_ID = InterfaceID.COLLECTION_LOG;
     static final String CONFIG_GROUP = "scapestackSync";
     private static final String KEY_SYNC_URL = "syncUrl";
     static final String KEY_SYNC_NOW = "syncNow";
@@ -285,11 +284,11 @@ public class ScapestackSyncPlugin extends Plugin {
     }
 
     static boolean shouldSyncAfterBankOpen(int groupId, boolean autoSync, boolean bankEnabled) {
-        return groupId == WidgetID.BANK_GROUP_ID && autoSync && bankEnabled;
+        return groupId == InterfaceID.BANK && autoSync && bankEnabled;
     }
 
     static boolean shouldReadLocalBankInsight(int groupId) {
-        return groupId == WidgetID.BANK_GROUP_ID;
+        return groupId == InterfaceID.BANK;
     }
 
 

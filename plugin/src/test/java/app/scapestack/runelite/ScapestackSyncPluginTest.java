@@ -930,21 +930,21 @@ public class ScapestackSyncPluginTest {
     @Test
     public void openingBankRefreshesAnswerOnlyAfterExplicitSyncAndBankOptIn() {
         assertTrue(ScapestackSyncPlugin.shouldReadLocalBankInsight(
-            net.runelite.api.widgets.WidgetID.BANK_GROUP_ID
+            net.runelite.api.widgets.InterfaceID.BANK
         ));
         assertFalse(ScapestackSyncPlugin.shouldReadLocalBankInsight(621));
         assertTrue(ScapestackSyncPlugin.shouldSyncAfterBankOpen(
-            net.runelite.api.widgets.WidgetID.BANK_GROUP_ID,
+            net.runelite.api.widgets.InterfaceID.BANK,
             true,
             true
         ));
         assertFalse(ScapestackSyncPlugin.shouldSyncAfterBankOpen(
-            net.runelite.api.widgets.WidgetID.BANK_GROUP_ID,
+            net.runelite.api.widgets.InterfaceID.BANK,
             false,
             true
         ));
         assertFalse(ScapestackSyncPlugin.shouldSyncAfterBankOpen(
-            net.runelite.api.widgets.WidgetID.BANK_GROUP_ID,
+            net.runelite.api.widgets.InterfaceID.BANK,
             true,
             false
         ));

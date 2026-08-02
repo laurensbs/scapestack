@@ -352,6 +352,26 @@ function checkReviewCopy() {
   expectContains("src/app/plugin/page.tsx", "chat");
 }
 
+function checkTerminalRuneLiteApis() {
+  const javaRoot = join(root, "plugin/src");
+  const forbidden = /\b(?:WidgetID|WidgetInfo)\b/;
+  const offenders = listFiles(javaRoot)
+    .filter((path) => path.endsWith(".java"))
+    .filter((path) => {
+      const source = readFileSync(join(javaRoot, path), "utf8")
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/\/\/[^\n]*/g, "");
+      return forbidden.test(source);
+    });
+
+  if (offenders.length > 0) {
+    fail(
+      "Plugin Hub rejects terminally deprecated WidgetID/WidgetInfo APIs; "
+      + `use ComponentID or InterfaceID in: ${offenders.join(", ")}`
+    );
+  }
+}
+
 function listFiles(dir, base = dir) {
   return readdirSync(dir)
     .flatMap((entry) => {
@@ -681,6 +701,7 @@ async function main() {
   const candidate = checkVersions(manifest);
   checkOptInDefaults();
   checkReviewCopy();
+  checkTerminalRuneLiteApis();
   checkStandaloneExtractSurface();
 
   const evidence = {
@@ -704,7 +725,7 @@ async function main() {
   if (!jsonOutput) {
     console.log(`Offline Plugin Hub release checks passed for candidate v${candidate.version}`);
     console.log(`Offline contract: v${candidate.contractVersion}, website minimum=${candidate.minimumWebsiteContractVersion}, RuneLite=${candidate.verifiedRuneLiteRelease} locked`);
-    console.log("Offline checks: manifest ownership, candidate version parity, dependency lock, opt-in defaults, review copy, standalone extract surface");
+    console.log("Offline checks: manifest ownership, candidate version parity, dependency lock, opt-in defaults, review copy, RuneLite API policy, standalone extract surface");
   }
   if (releasePlan && !jsonOutput) printReleasePlan(candidate.version);
 
