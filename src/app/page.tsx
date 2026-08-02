@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { HeroIntake } from "@/components/hero-intake";
 import { buildHomepageProof } from "@/lib/homepage-proof";
@@ -10,25 +11,51 @@ export default async function HomePage() {
   const viewerRsn = await resolveViewerRsn();
   if (viewerRsn) redirect(playerPath(viewerRsn));
   const proof = buildHomepageProof();
+  const boss = proof.boss;
 
   return (
     <main data-home-page="true" className="scape-page pb-2 pt-2 sm:px-8 sm:pb-10 sm:pt-10">
-      <section className="home-hero mx-auto w-full min-w-0 max-w-[52rem]">
-        <div className="min-w-0 max-w-[36rem]">
-          <h1 className="max-w-[20ch] text-[length:var(--text-page)] font-extrabold! leading-[1.04] text-[var(--color-text)]">
-            Your OSRS companion.
-          </h1>
-          <p className="mt-3 max-w-[52ch] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text-secondary)]">
-            Scapestack remembers what you are working toward and tells you the next step.
-          </p>
-          <div className="mt-4 min-w-0">
-            <HeroIntake />
+      <section className="home-hero relative mx-auto w-full min-w-0 max-w-[var(--width-page)] overflow-hidden">
+        <div className="grid min-w-0 items-center sm:min-h-[32rem] sm:grid-cols-[minmax(0,32rem)_minmax(23.75rem,32.5rem)] sm:gap-8">
+          <div className="relative z-10 min-w-0 max-w-[32rem] py-8 sm:py-12">
+            <h1 className="max-w-[20ch] text-[length:var(--text-page)] font-extrabold! leading-[1.04] text-[var(--color-text)]">
+              Your OSRS companion.
+            </h1>
+            <p className="mt-3 max-w-[52ch] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text-secondary)]">
+              Scapestack remembers what you are working toward and tells you the next step.
+            </p>
+            <div className="mt-4 min-w-0">
+              <HeroIntake />
+            </div>
           </div>
+
+          <figure
+            data-home-boss-subject="true"
+            className="pointer-events-none absolute -right-32 top-0 z-0 flex h-80 w-[26rem] flex-col items-center justify-end sm:relative sm:right-auto sm:h-[32rem] sm:w-auto"
+          >
+            <span className="relative flex h-full w-full items-end justify-center opacity-[0.16] sm:opacity-100">
+              <span aria-hidden="true" className="absolute inset-4 bg-[radial-gradient(ellipse_at_center,rgba(42,35,24,0.92)_0%,rgba(28,24,17,0.48)_48%,transparent_74%)]" />
+              <span aria-hidden="true" className="absolute bottom-8 h-10 w-[68%] rounded-[50%] bg-black/45 blur-xl" />
+              <Image
+                src={`/api/sprite/boss/${boss.slug}`}
+                alt=""
+                aria-hidden="true"
+                width={boss.width}
+                height={boss.height}
+                priority
+                sizes="(max-width: 639px) 420px, (max-width: 1199px) 40vw, 520px"
+                className="relative z-10 h-[22rem] w-[26rem] object-contain object-bottom sm:h-[32rem] sm:w-[clamp(23.75rem,40vw,32.5rem)]"
+              />
+            </span>
+            <figcaption className="absolute bottom-0 right-36 whitespace-nowrap text-center text-[length:var(--text-micro)] font-normal text-[var(--color-text-muted)] sm:left-1/2 sm:right-auto sm:-translate-x-1/2">
+              Today&apos;s boss · {boss.name}
+            </figcaption>
+          </figure>
         </div>
 
         <ul
           aria-label="What Scapestack checks"
-          className="mt-3 grid grid-cols-3 border-y border-[var(--color-border)] py-3 text-center sm:mt-6 sm:py-4"
+          className="relative z-10 mt-3 grid grid-cols-3 border-y border-[var(--color-border)] py-3 text-center sm:mt-4 sm:py-4"
         >
           <li className="border-r border-[var(--color-border)] px-2">
             <strong className="block tabular-nums text-[length:var(--text-subject)] font-semibold text-[var(--color-data-level)]">{proof.bossesChecked}</strong>

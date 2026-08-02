@@ -21,6 +21,13 @@ const PUBLIC_ASSET_CACHE_HEADERS = [
   }
 ];
 
+const BOSS_RENDER_CACHE_HEADERS = [
+  {
+    key: "Cache-Control",
+    value: "public, max-age=2592000, stale-while-revalidate=31536000"
+  }
+];
+
 const config: NextConfig = {
   turbopack: { root },
   allowedDevOrigins: ["127.0.0.1"],
@@ -59,6 +66,10 @@ const config: NextConfig = {
       {
         source: "/api/sprite/item/:path*",
         headers: PUBLIC_ASSET_CACHE_HEADERS
+      },
+      {
+        source: "/api/sprite/boss/:path*",
+        headers: BOSS_RENDER_CACHE_HEADERS
       },
       {
         source: "/icon",
