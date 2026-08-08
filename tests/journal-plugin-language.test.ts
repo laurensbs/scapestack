@@ -65,10 +65,19 @@ describe("the plain-language RuneLite connection", () => {
     expect(plugin).toContain("<DeleteAccountDataButton");
     expect(deleteControl).toContain('fetch("/api/account/delete", { method: "DELETE" })');
     expect(deleteControl).toContain("window.confirm");
-    expect(profile).toMatch(
-      /Hiscores only —\s*<Link[^>]+>connect RuneLite for quests, diaries and your bank<\/Link>/
+    // The coverage sentence moved out of both routes into
+    // AccountCoverageLine on 2026-08-08 — /p and /u each composed their own
+    // version and they had drifted into contradicting each other. The plain
+    // language promise is unchanged, so the guard follows it to its new home
+    // and checks all three states, including the one that was missing.
+    const coverageLine = readFileSync(join(process.cwd(), "src/components/account-coverage-line.tsx"), "utf8");
+    expect(coverageLine).toMatch(
+      /Hiscores only — <Link[^>]+>connect RuneLite for quests, diaries and your bank<\/Link>/
     );
-    expect(profile).not.toContain("From your Hiscores only");
+    expect(coverageLine).toContain("This is me");
+    expect(coverageLine).toContain("This browser is not connected to it");
+    expect(coverageLine).not.toContain("From your Hiscores only");
+    expect(profile).toContain("<AccountCoverageLine");
 
     const playerCopy = ["src/lib", "src/components", "src/app"]
       .flatMap(sourceFiles)

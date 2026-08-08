@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AccountCoverageLine, type AccountCoverageState } from "@/components/account-coverage-line";
+import { FarmTimersLine } from "@/components/farm-timers-line";
 import { HiscoresUnavailable } from "@/components/hiscores-unavailable";
 import { LastTripLine } from "@/components/last-trip-line";
 import { PlayerHubShell } from "@/components/player-hub-shell";
@@ -153,6 +155,29 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   const goalBossSources = buildPinnedGoalBossSources(dropRates);
   const profileHref = `/u/${encodeURIComponent(displayName)}`;
 
+  // Three states, not two. "A row exists but this browser is not the paired
+  // one" had no representation at all, which is why the page could say "synced
+  // 9 days ago" and "Hiscores only" in the same breath.
+  const coverage: AccountCoverageState = !context.scapestackSync
+    ? { kind: "hiscores-only", syncHref }
+    : !exactSync
+      ? { kind: "synced-unpaired", syncedLabel: formatSyncAge(syncedAt) }
+      : {
+          kind: "paired",
+          syncedLabel: formatSyncAge(syncedAt),
+          missing: [
+            !exactDomain("quests") ? "quests" : null,
+            !exactDomain("diaries") ? "diaries" : null,
+            !exactDomain("collectionLog") ? "collection log" : null,
+            !exactBank ? "bank" : null
+          ].filter((domain): domain is string => domain !== null)
+        };
+  // Owner-only by construction: redactSyncedPlayer strips `farming` for anyone
+  // who is not the paired browser, so exactSync is the only source.
+  const farmPatches = exactSync?.availability?.farming === "available"
+    ? exactSync.farming ?? []
+    : [];
+
   // Identity is the credential that makes the answer trustworthy, not the
   // answer — one line, not a screen. The six-cell band lives on /u/[rsn].
   const header = (
@@ -171,18 +196,21 @@ export default async function PlayerPage({ params, searchParams }: Props) {
           Full profile
         </Link>
       </div>
-      {!exactSync && (
-        <p className="mt-1 text-[length:var(--text-micro)] font-normal text-[var(--color-text-muted)]">
-          Hiscores only — <Link href={syncHref}>connect RuneLite for quests, diaries and your bank</Link>
-        </p>
-      )}
+      <div className="mt-1">
+        <AccountCoverageLine rsn={displayName} state={coverage} />
+      </div>
     </header>
   );
 
   return (
     <PlayerHubShell
       header={header}
-      lastTrip={<LastTripLine outcome={context.lastTripOutcome} />}
+      lastTrip={
+        <>
+          {farmPatches.length > 0 && <FarmTimersLine patches={farmPatches} rsn={displayName} />}
+          <LastTripLine outcome={context.lastTripOutcome} />
+        </>
+      }
       plan={<PlayerPlanPanel
         rsn={displayName}
         initialContext={context}

@@ -125,10 +125,15 @@ export function PlayerIdentityBand({
           </div>
         ))}
       </dl>
+      {/* A div, not a <p>: the coverage node brings its own paragraph since
+          2026-08-08. A <p> inside a <p> is auto-closed by the parser, so the
+          server HTML and the client DOM disagreed and React threw a hydration
+          error (#418) on every /u render — invisible to 1,738 unit tests and
+          caught immediately by the e2e that opens the page. */}
       {coverage ? (
-        <p className="mt-4 max-w-[65ch] text-[length:var(--text-micro)] leading-relaxed text-[var(--color-text-muted)]" data-account-coverage="true">
+        <div className="mt-4 max-w-[65ch] leading-relaxed" data-account-coverage="true">
           {coverage}
-        </p>
+        </div>
       ) : null}
     </div>
   );

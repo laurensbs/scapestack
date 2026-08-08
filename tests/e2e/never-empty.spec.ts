@@ -38,6 +38,12 @@ test.describe("never empty", () => {
     // The plan section answers — either a real recommendation or the honest
     // no-plan state; both carry the marker, neither is a wall.
     await expect(page.locator("[data-player-plan-answer]")).toBeVisible();
-    await expect(page.getByText(/connect RuneLite/i).first()).toBeVisible();
+    // The page says what Scapestack knows and what would change it. Which of
+    // the three coverage states applies depends on whether anyone has ever
+    // synced this RSN — asserting one state's copy made this test a hostage to
+    // the contents of the database. The promise is that the line is there.
+    const coverage = page.locator("[data-account-coverage]");
+    await expect(coverage).toBeVisible();
+    await expect(coverage).toHaveText(/connect RuneLite|This is me|Hiscores \+ RuneLite/);
   });
 });

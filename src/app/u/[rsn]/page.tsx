@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AccountCoverageLine, type AccountCoverageState } from "@/components/account-coverage-line";
 import { AccountTimeline } from "@/components/account-timeline";
 import { HiscoresUnavailable } from "@/components/hiscores-unavailable";
 import { BankObservationsPanel } from "@/components/bank-observations-panel";
@@ -126,15 +127,14 @@ export default async function PlayerProfilePage({ params }: Props) {
         !exactBank ? "bank" : null
       ].filter((domain): domain is string => domain !== null)
     : [];
-  const accountCoverage = !exactSync
-    ? (
-        <>
-          Hiscores only — <Link href={syncHref}>connect RuneLite for quests, diaries and your bank</Link>
-        </>
-      )
-    : unavailableIdentityDomains.length === 0
-      ? "Hiscores + RuneLite — private progress included"
-      : `Hiscores + RuneLite — unavailable this scan: ${unavailableIdentityDomains.join(", ")}`;
+  // Same three states as /p, from the same component — the contradiction was
+  // that these two routes each told their own version of what is known.
+  const coverage: AccountCoverageState = !context.scapestackSync
+    ? { kind: "hiscores-only", syncHref }
+    : !exactSync
+      ? { kind: "synced-unpaired", syncedLabel: formatSyncAge(syncedAt) }
+      : { kind: "paired", syncedLabel: formatSyncAge(syncedAt), missing: unavailableIdentityDomains };
+  const accountCoverage = <AccountCoverageLine rsn={displayName} state={coverage} />;
   const questProgress = exactDomain("quests")
     ? countCompletedQuests(quests, exactSync?.questsCompleted ?? [])
     : null;
