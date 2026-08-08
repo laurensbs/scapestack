@@ -1564,24 +1564,36 @@ body.scapestack-clean-shot main {
    Curation was not available (only three of twelve cleared 3:1), so the fix is
    a treatment. The game itself outlines NPCs on hover; layered drop-shadows in
    the accent gold do the same to a transparent PNG, and they work regardless of
-   how dark the sprite's own pixels are. The brightness lift is deliberately
-   small — enough to separate the mass from the ground, not enough to wash the
-   render out. */
+   how dark the sprite's own pixels are. */
 .boss-render {
   filter:
-    drop-shadow(0 0 1px rgba(201, 169, 97, 0.75))
-    drop-shadow(0 0 3px rgba(201, 169, 97, 0.4))
-    drop-shadow(0 0 10px rgba(201, 169, 97, 0.16))
-    brightness(1.18) contrast(1.06);
+    drop-shadow(0 0 1px rgba(201, 169, 97, 1))
+    drop-shadow(0 0 2px rgba(201, 169, 97, 0.9))
+    drop-shadow(0 0 6px rgba(201, 169, 97, 0.55));
 }
 
-/* The plate the render stands on. Lifting the ground under the subject buys
-   contrast for every boss at once, which a per-boss rule cannot. */
+/* The brightness lift goes only to the renders that measured under 3:1
+   (data/boss-contrast.json, applied per slug) — a global lift would wash out
+   Zulrah and Corporeal Beast, which already read. Measured on the live page
+   with the rim and lift together: Phantom Muspah 1.93:1 -> 4.32:1, and the
+   share of its silhouette that clears 3:1 went 11% -> 61%. */
+[data-boss-dark="true"] .boss-render {
+  filter:
+    drop-shadow(0 0 1px rgba(201, 169, 97, 1))
+    drop-shadow(0 0 2px rgba(201, 169, 97, 0.9))
+    drop-shadow(0 0 6px rgba(201, 169, 97, 0.55))
+    brightness(1.5) contrast(1.1);
+}
+
+/* The plate stays DARK. Lightening the ground under the subject was the
+   obvious move and it measured backwards — it lifts the background as much as
+   the silhouette, and Phantom Muspah went 2.85:1 down to 2.36:1. Contrast is a
+   difference, not a brightness. */
 .boss-plate {
   background: radial-gradient(
     ellipse at center,
-    rgba(58, 50, 38, 0.95) 0%,
-    rgba(42, 35, 24, 0.66) 46%,
-    transparent 74%
+    rgba(28, 24, 17, 0.9) 0%,
+    rgba(12, 10, 7, 0.55) 52%,
+    transparent 76%
   );
 }
