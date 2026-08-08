@@ -229,7 +229,7 @@ export default async function PlayerProfilePage({ params }: Props) {
           account history is /u's job. */}
       <AccountTimeline expectedRsn={displayName} className="mt-8" />
       <section className="mt-10 border-t border-[var(--color-border)] pt-6" aria-labelledby="player-bank-title">
-        <h2 id="player-bank-title" className="text-[length:var(--text-label)] font-semibold uppercase tracking-[0.1em] text-[var(--color-text-muted)]">
+        <h2 id="player-bank-title" className="scape-section-name">
           Your bank
         </h2>
         <BankObservationsPanel result={context.bankObservations} />

@@ -34,7 +34,7 @@ function RouteNodeList({ nodes, start = 1, plain = false }: { nodes: readonly Co
   return (
     <ol start={start} className="mt-3" aria-label="Route steps">
       {nodes.map((node, index) => (
-        <li key={node.id} data-route-node-state={node.state} aria-current={node.state === "current" ? "step" : undefined} className={plain ? "relative grid grid-cols-[1.25rem_minmax(0,1fr)] gap-3 pb-3 last:pb-0" : "relative grid min-h-16 grid-cols-[3rem_1.25rem_minmax(0,1fr)] gap-3 pb-4 last:min-h-0 last:pb-0"}>
+        <li key={node.id} data-route-node-state={node.state} aria-current={node.state === "current" ? "step" : undefined} className={plain ? "relative grid grid-cols-[1.25rem_minmax(0,1fr)] gap-3 pb-3 last:pb-0" : "relative grid min-h-14 grid-cols-[3rem_1.25rem_minmax(0,1fr)] gap-3 pb-3 last:min-h-0 last:pb-0"}>
           {!plain && index < nodes.length - 1 && <span aria-hidden="true" className="absolute bottom-0 left-[3.6rem] top-5 border-l border-[var(--color-border-strong)]" />}
           {!plain && <JournalItemSprite id={node.iconItemId} />}
           <span className="relative z-10"><RouteNodeMarker node={node} /></span>
@@ -58,7 +58,7 @@ function RouteCard({ route }: { route: CompanionRoute }) {
   const firstNodes = route.nodes.slice(0, 3);
   const remainingNodes = route.nodes.slice(3);
   return (
-    <article className="border-b border-[var(--color-border)] py-5 last:border-b-0" data-companion-route-kind={route.kind}>
+    <article className="border-b border-[var(--color-border)] py-4 last:border-b-0" data-companion-route-kind={route.kind}>
       <h3 className="text-[length:var(--text-subject)] font-semibold text-[var(--color-text)]">{route.title}</h3>
       <p className="mt-1 max-w-[65ch] tabular-nums text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text-dim)]">{route.summary}</p>
       {firstNodes.length > 0 ? <RouteNodeList nodes={firstNodes} /> : (
@@ -97,8 +97,8 @@ export function PlayerRoutesPanel({
   }, [pinnedGoals, unlockRoutes]);
 
   return (
-    <section className="mt-8 border-t border-[var(--color-border)] pt-6" aria-labelledby="player-routes-title" data-player-routes="true">
-      <h2 id="player-routes-title" className="text-[length:var(--text-label)] font-normal uppercase tracking-[0.1em] text-[var(--color-text-muted)]">Your routes</h2>
+    <section className="mt-6 border-t border-[var(--color-border)] pt-4" aria-labelledby="player-routes-title" data-player-routes="true">
+      <h2 id="player-routes-title" className="scape-section-name">Your routes</h2>
       {!pinnedRoute && (
         <p className="mt-2 max-w-[65ch] text-[length:var(--text-body)] font-normal text-[var(--color-text-muted)]">Pin an unlock goal to put its quest chain here.</p>
       )}

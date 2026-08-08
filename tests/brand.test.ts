@@ -45,7 +45,8 @@ describe("Scapestack branding", () => {
     expect(BRAND_POSITIONING.antiPattern).toContain("player-facing screens about choices");
     expect(BRAND_VOICE_RULES.join(" ")).toContain("practical OSRS player language");
     expect(BRAND_VOICE_RULES.join(" ")).not.toContain("AI-powered");
-    expect(BRAND_THEME_COLOR).toBe("#030201");
+    // The Journal ground — browser chrome matches the page it frames.
+    expect(BRAND_THEME_COLOR).toBe("#1C1811");
   });
 
   it("defines player-facing routes and prompt chips", () => {

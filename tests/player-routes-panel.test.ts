@@ -40,7 +40,10 @@ describe("the player route surface", () => {
 
     expect(component).toContain("font-semibold");
     expect(component).not.toMatch(/\bfont-(?:medium|bold|extrabold|black)\b/);
-    expect(trackedClassLists.length).toBeGreaterThan(0);
+    // Section names moved to .scape-section-name (Quill Caps carries its own
+    // capitals — no tracking, no uppercase transform); any tracking-* class
+    // that remains must still be uppercase-only, checked below.
+    expect(component).toContain('className="scape-section-name"');
     for (const classes of trackedClassLists) {
       expect(classes).toContain("uppercase");
     }

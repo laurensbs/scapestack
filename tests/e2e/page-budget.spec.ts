@@ -29,10 +29,11 @@ import { expect, test, type Page } from "@playwright/test";
 
 const PAGE_PATH = "/p/lauky";
 
-// The six tokens from globals.css, exactly. Task 6 extends this set with 16px
-// and 32px for the RuneStar faces IN THE SAME COMMIT that adds those tokens —
-// widening it earlier would be a budget that passes before the work is done.
-const ALLOWED_FONT_SIZES = new Set(["11px", "12px", "14px", "19px", "28px", "40px"]);
+// The six Archivo tokens plus the two RuneStar sizes (--text-rs 16px,
+// --text-rs-display 32px), added in the same commit as those tokens — the
+// bitmap faces are pixel-crisp only at multiples of 16, so these two are the
+// only sizes they exist at.
+const ALLOWED_FONT_SIZES = new Set(["11px", "12px", "14px", "16px", "19px", "28px", "32px", "40px"]);
 const MAX_SECTIONS = 3;
 const MAX_IMAGES = 20;
 const MAX_TEXT_COLOURS = 5;

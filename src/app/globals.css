@@ -25,15 +25,17 @@
 
   /* Text */
   --color-text: #EDEBE6;
-  --color-text-secondary: #C4C1B8;
+  /* Merged into muted 2026-08-08: two neutral greys was a sixth text colour
+     on a page budgeted to five, saying nothing muted did not already say. */
+  --color-text-secondary: #A29E94;
   --color-text-dim: #A29E94;
   --color-text-muted: #A29E94;
 
   /* Chrome stays neutral. Saturated Jagex colour lives in data tokens below. */
-  --color-gold: #C4C1B8;
+  --color-gold: #C9A961;
   --color-gold-soft: #EDEBE6;
   --color-gold-deep: #8A7142;
-  --color-accent: #C4C1B8;
+  --color-accent: #C9A961;
   --color-accent-soft: #EDEBE6;
   --color-rune: #C4C1B8;
 
@@ -131,6 +133,11 @@
   --text-subject: 19px;
   --text-answer: 28px;
   --text-page: 40px;
+  /* The game's own faces are bitmap grids — unitsPerEm 16 (Quill Caps: 32) —
+     and are pixel-crisp ONLY at multiples of 16px. These two sizes are the
+     only ones they may render at; the page-budget spec enforces the set. */
+  --text-rs: 16px;
+  --text-rs-display: 32px;
 
   /* Fonts — mature app typography with a restrained OSRS-adjacent serif accent. */
   --font-sans: var(--font-archivo), ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -147,9 +154,17 @@
   --shadow-glow: 0 0 0 1px var(--color-border);
   --shadow-deep: 0 0 0 1px var(--color-border-strong);
 
+  /* OSRS interface grammar: a raised edge is two inset strokes, not a drop
+     shadow. Values verbatim from runescapecn's button.json (MIT), verified
+     against the live registry 2026-08-08. Active states invert the pair. */
+  --bevel-raised: inset 1px 1px 0 rgba(255, 255, 255, 0.25), inset -1px -1px 0 rgba(0, 0, 0, 0.6);
+  --bevel-sunken: inset -1px -1px 0 rgba(255, 255, 255, 0.1), inset 1px 1px 0 rgba(0, 0, 0, 0.7);
+
   /* Interface lock — shared geometry and reading widths. */
-  --radius-control: 3px;
-  --radius-surface: 3px;
+  /* Zero: the OSRS interface has no rounded corner. The focus ring keeps its
+     radius — it is an a11y affordance, not surface geometry. */
+  --radius-control: 0px;
+  --radius-surface: 0px;
   --radius-focus: 4px;
   --width-page: 72rem;
   --width-reading: 45rem;
@@ -839,13 +854,22 @@ body {
   justify-content: center;
   gap: 0.375rem;
   border-radius: var(--radius-control);
-  border: 1px solid color-mix(in srgb, var(--color-border) 76%, var(--color-accent) 24%);
+  /* The game's button: hard black edge, bevelled face, Bold 12 at its native
+     grid size. Weight 400 — the face is already bold; faux-bolding a bitmap
+     face smears it. */
+  border: 2px solid #000;
+  box-shadow: var(--bevel-raised);
   background: rgba(7, 6, 4, 0.5);
   padding: 0.5rem 0.9rem;
-  font-size: var(--text-body);
-  font-weight: 600;
+  font-family: var(--font-rs-bold), "Trebuchet MS", var(--font-sans);
+  font-size: var(--text-rs);
+  font-weight: 400;
   color: var(--color-text-dim);
   transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 120ms ease;
+}
+
+.scapestack-command-button:active {
+  box-shadow: var(--bevel-sunken);
 }
 
 .scapestack-command-button:hover {
@@ -857,15 +881,15 @@ body {
 
 .scapestack-command-button[data-variant="primary"],
 .scapestack-primary-action {
-  border-color: color-mix(in srgb, var(--color-gold-deep) 72%, black 28%);
-  background: var(--color-accent);
+  border-color: #000;
+  background: #8A7340;
   color: #0B0906;
-  box-shadow: none;
+  box-shadow: var(--bevel-raised);
 }
 
 .scapestack-command-button[data-variant="primary"]:hover,
 .scapestack-primary-action:hover {
-  background: var(--color-accent-soft);
+  background: #9A8350;
   color: #0B0906;
 }
 
@@ -941,10 +965,13 @@ body {
   gap: 0.5rem;
   padding: 0.6rem 1rem;
   border-radius: var(--radius-control);
-  font-size: var(--text-body);
-  font-weight: 600;
+  border: 2px solid #000;
+  box-shadow: var(--bevel-raised);
+  font-family: var(--font-rs-bold), "Trebuchet MS", var(--font-sans);
+  font-size: var(--text-rs);
+  font-weight: 400;
   letter-spacing: 0;
-  background: var(--color-accent);
+  background: #8A7340;
   color: #0B0906;
   border: 1px solid color-mix(in srgb, var(--color-gold-deep) 70%, black 30%);
   box-shadow: none;
@@ -1503,4 +1530,24 @@ body.scapestack-clean-shot main {
   z-index: 80;
   max-width: none;
   padding: 0;
+}
+
+/* The sprite slot sits sunken, like an inventory square. The class lives on
+   JournalSpriteSlot (journal-primitives.tsx); this is its first CSS rule. */
+.journal-sprite-slot {
+  border-color: #000 !important;
+  box-shadow: var(--bevel-sunken);
+}
+
+/* A section name in the game's own display face. Weight 400 (the face is the
+   emphasis), no tracking, no text-transform — Quill Caps carries its own
+   capitals. Only at --text-rs-display: the grid breaks at any other size. */
+.scape-section-name {
+  font-family: var(--font-rs-quill-caps), var(--font-display);
+  font-size: var(--text-rs-display);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-text-muted);
+  line-height: 1.1;
 }

@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { searchPinnedGoalChoices } from "@/lib/pinned-goals";
 
 describe("pinned goal picker", () => {
-  it("searches in player language and pins directly from 64px tiles", () => {
+  it("searches in player language and pins directly from 48px tiles", () => {
     const source = readFileSync(
       join(process.cwd(), "src/components/pinned-goals-panel.tsx"),
       "utf8"
@@ -15,7 +15,10 @@ describe("pinned goal picker", () => {
     expect(searchPinnedGoalChoices("99 slay")[0]?.target).toBe("99 Slayer");
     expect(searchPinnedGoalChoices("fairy")[0]?.target).toBe("Fairy rings");
     expect(source).toContain('type="search"');
-    expect(source).toContain("size-16");
+    // 48px slot for a 32px sprite: chisel serves 16-30px natives, so 48/32 is
+    // the honest pairing — 64px slots forced the upscale that read as empty
+    // boxes.
+    expect(source).toContain("size-12");
     expect(source).toContain("onClick={() => onPin(choice)}");
     expect(source).not.toContain("Pin goal");
     expect(source).not.toContain("progressbar");

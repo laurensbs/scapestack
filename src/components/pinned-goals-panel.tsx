@@ -49,12 +49,12 @@ function GoalChoiceTile({ choice, onPin }: { choice: PinnedGoalChoice; onPin: (c
   return (
     <button
       type="button"
-      className="group flex min-w-0 flex-col items-center gap-2 border border-[var(--color-border)] bg-transparent px-2 py-3 text-center transition-colors hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface)]"
+      className="group flex min-w-0 flex-col items-center gap-1.5 border border-[var(--color-border)] bg-transparent px-2 py-2 text-center transition-colors hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface)]"
       onClick={() => onPin(choice)}
       aria-label={`Pin ${choice.target}`}
       data-goal-choice={choice.key}
     >
-      <span className="flex size-16 items-center justify-center overflow-hidden border border-[var(--color-border-strong)] bg-[var(--color-slot)]">
+      <span className="flex size-12 items-center justify-center overflow-hidden border border-[var(--color-border-strong)] bg-[var(--color-slot)]">
         {choice.spriteItemId ? (
           // 32px, not 52: chisel serves these at 16-30px native, and 52 was a
           // 3.25x non-integer upscale — the "empty box" look. 32 is an exact
@@ -152,8 +152,8 @@ export function PinnedGoalsPanel({
   }
 
   return (
-    <section className="mt-5 border-y border-[var(--color-border)] py-5" aria-labelledby="pinned-goals-title" data-pinned-goals="true">
-      <h2 id="pinned-goals-title" className="text-[length:var(--text-label)] font-normal uppercase tracking-[0.1em] text-[var(--color-text-muted)]">
+    <section className="mt-4 border-y border-[var(--color-border)] py-4" aria-labelledby="pinned-goals-title" data-pinned-goals="true">
+      <h2 id="pinned-goals-title" className="scape-section-name">
         Your goals
       </h2>
 

@@ -184,8 +184,12 @@ describe("the Journal skin", () => {
     const eyebrowRule = globals.match(/\.eyebrow\s*\{[^}]*\}/s)?.[0] ?? "";
     expect(tableRule).toContain("font-size: var(--text-body);");
     expect(tableCellRule).toContain("font-variant-numeric: tabular-nums;");
-    expect(commandRule).toContain("font-size: var(--text-body);");
-    expect(commandRule).toContain("font-weight: 600;");
+    // The command button speaks RuneScape Bold 12 at its native grid size.
+    // Weight 400: the face is already bold, and faux-bolding a bitmap smears.
+    expect(commandRule).toContain("font-size: var(--text-rs);");
+    expect(commandRule).toContain("font-weight: 400;");
+    expect(commandRule).toContain("var(--font-rs-bold)");
+    expect(commandRule).toContain("box-shadow: var(--bevel-raised);");
     expect(statusRule).toContain("font-weight: 600;");  // the mark glyph itself
     // Chrome carries no weight: the eyebrow distinguishes itself with case
     // and tracking, and the page budget caps semibold at 35% of elements.

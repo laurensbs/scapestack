@@ -106,7 +106,7 @@ export function PlayerIdentityBand({
               {stat.label}
             </dt>
             <dd
-              className={`mt-1 whitespace-nowrap tabular-nums text-[length:var(--text-subject)] leading-none ${
+              className={`mt-1 whitespace-nowrap tabular-nums font-[family-name:var(--font-rs)] text-[length:var(--text-rs)] leading-none ${
                 stat.tone === "unknown"
                   ? "font-normal text-[var(--color-text-muted)]"
                   : stat.tone === "level"

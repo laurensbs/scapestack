@@ -64,7 +64,9 @@ describe("theme token regressions", () => {
     expect(globalsCss).toContain("--color-bg: #1C1811;");
     expect(globalsCss).toContain("--color-panel: #2A2318;");
     expect(globalsCss).toContain("--color-text: #EDEBE6;");
-    expect(globalsCss).toContain("--color-accent: #C4C1B8;");
+    // rs-gold from the runescapecn registry (verified 2026-08-08): the accent
+    // tier went from neutral grey to the game's gold in the Task 6 skin.
+    expect(globalsCss).toContain("--color-accent: #C9A961;");
     expect(globalsCss).not.toContain("#00E29A");
     expect(globalsCss).not.toMatch(/--color-good:\s*#(?:10|16|22|34|59)/i);
   });

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo } from "next/font/google";
+import localFont from "next/font/local";
 import Script from "next/script";
 import { Header } from "@/components/header";
 import { MobileActionBar } from "@/components/mobile-action-bar";
@@ -45,6 +46,34 @@ const archivo = Archivo({
   // 400 body, 600 subject, 800 the answer and the wordmark. Hierarchy is
   // carried by weight and size, never by a second family.
   weight: ["400", "600", "800"]
+});
+
+/**
+ * The game's own faces — RuneStar's CC0 recreations of the OSRS interface
+ * fonts (release 1.103-0, licence "Public Domain" in each name-table; see
+ * src/fonts/README.md). Three, not five: Plain 12 for identity numbers,
+ * Bold 12 for buttons, Quill Caps for section names. ~70KB total.
+ *
+ * These are bitmap-grid faces with unitsPerEm 16 (Quill Caps: 32). They are
+ * pixel-crisp ONLY at multiples of 16px — the two tokens --text-rs (16px) and
+ * --text-rs-display (32px) are the only legal sizes, enforced by the
+ * page-budget spec's exact-size assertion. Archivo remains the body face;
+ * a bitmap face at paragraph length is a novelty, not an interface.
+ */
+const rsPlain = localFont({
+  src: "../fonts/RuneScape-Plain-12.ttf",
+  display: "swap",
+  variable: "--font-rs"
+});
+const rsBold = localFont({
+  src: "../fonts/RuneScape-Bold-12.ttf",
+  display: "swap",
+  variable: "--font-rs-bold"
+});
+const rsQuillCaps = localFont({
+  src: "../fonts/RuneScape-Quill-Caps.ttf",
+  display: "swap",
+  variable: "--font-rs-quill-caps"
 });
 
 const PLAUSIBLE_DOMAIN = "scapestack.org";
@@ -107,7 +136,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`min-h-full ${archivo.variable}`}>
+    <html lang="en" className={`min-h-full ${archivo.variable} ${rsPlain.variable} ${rsBold.variable} ${rsQuillCaps.variable}`}>
       <body className="min-h-full subpixel-antialiased font-sans">
         {process.env.NODE_ENV === "production" && (
           <>
