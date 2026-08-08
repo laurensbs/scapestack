@@ -7,6 +7,8 @@ findings were mostly right. Their *method* was wrong, and this document exists
 because the method is the thing that has to change.
 **Source:** `scapestack.org/p/lauky` on production, measured 2026-08-02, after
 Codex executed all eight phases of the last promptbook.
+**Extended:** 2026-08-08 — §11–13, after an external research report was
+verified claim by claim. Tasks 0–5 are unchanged and still run first.
 
 ---
 
@@ -401,7 +403,130 @@ Gate: `npm run ci:check`.
 
 ---
 
-## 11. What not to do
+## 11. The research report, verified (2026-08-08)
+
+An external research report arrived proposing a rebuild: runescapecn skin,
+RuneStar fonts, a panel dashboard at `/`, WOM and TempleOSRS integration.
+Every claim in it that could be checked was checked, against the repo and
+against the live services, before any of it was allowed into this document.
+
+| Claim | Verdict |
+|---|---|
+| runescapecn registry, quoted tokens | **True.** Lives on `www.runescapecn.com` (naked domain 307s — follow redirects). `runescape.json` 2,543b; `button.json` carries `#8a7340`, `border-2 border-black`, the corner rivets and both bevel insets verbatim. Repo licence MIT (GitHub API). |
+| RuneStar fonts 1.103-0, CC0 | **True — downloaded.** `RuneScape-Fonts.zip`: 10 families as ttf+otf, ~6KB each, name-table reads `Public Domain`, families named exactly `RuneScape Plain 12` etc. This unblocks §0d of the previous book: the earlier 404s were guessed raw paths; the real distribution is the release zip. |
+| "crispest at multiples of 16px" | **True, and now explained**: `unitsPerEm=16` in the head table (Quill: 32). At any other size the glyph grid misses the pixel grid. Consequence below, in Task 6. |
+| Dev/start on port 4173 | True. |
+| Route map | **Partly.** `/diary`, `/skills`, `/ge`, `/gp`, `/hiscore` do not exist. Real: `bank dps goals link next p plugin quests share slayer u`. |
+| "Mood" control | **True** — a real subsystem: `src/lib/mood.ts`, 77 references in `next-client.tsx`. |
+| Plugin opens `/next?rsn=…&source=plugin-sync&bank=none` | True — `ScapestackSyncPlugin.java:776`. |
+| `/api/sync/claim`, sha256, first-wins | True — the route exists as described. |
+| WOM v2, 20 req/60s | **True, measured live**: `ratelimit-limit: 20`, reset 60s. `lauky` resolves with combat 123 — matches the page. |
+| Prices `/api/v1` vs `/api/v2` | Both return 200 today. |
+| "The app currently feels empty" | **False for `/p/[rsn]`** — measured at 6.5 screens. True only for a first visit without an RSN, and the demo account the report prescribes already exists: `src/lib/reference-account.ts`. |
+| Add `osrs-json-hiscores` | **Rejected** — `src/lib/hiscores.ts` already parses hiscores server-side. No new dependency for a solved problem. |
+
+**Adopted:** the skin and the fonts (Task 6), the never-empty check (Task 7).
+
+**Rejected, with reasons:**
+
+- **Phase 1, the "Overarching Player dashboard".** A grid of six panels — orbs,
+  XP chart, bank value, CL bar, Slayer, hero card — is the dashboard look by
+  construction, and "it feels like a dashboard" is the complaint this entire
+  document exists to fix. The report optimises "never empty"; this page's
+  measured disease is "never chosen". The three-section budget stands.
+- **The tier-ladder component.** The header already carries "Hiscores only —
+  connect RuneLite for quests, diaries and your bank". That is the ladder, in
+  one line. A persistent three-row unlock component is a fourth section.
+- **WOM, TempleOSRS, GE alerts.** Deferred, not refused — WOM is verified live
+  and viable. New data sources pointed at a page that is over budget make it
+  more over budget. They queue behind a green budget spec.
+- **A route conflict the report exposed, recorded but not solved here:**
+  `/next` and `/p/[rsn]` both answer "what should I do", and the plugin opens
+  `/next`. After the rebuild one of them redirects to the other; until that
+  decision, build nothing new on both. "Mood" lives on `/next` and waits for
+  the same decision.
+
+---
+
+## 12. Task 6 — the skin, as a replacement
+
+The meta-diagnosis in §3 said every intervention so far was a prohibition, and
+prohibitions cannot produce rightness. This is the first task that is a
+positive visual idea: the game's own interface grammar — stone, gold, bevels,
+zero radius, the game's own faces. It is also the only part of the report that
+answers what five promptbooks of "premium companion feel" prose were reaching
+for, and it comes with checkable numbers.
+
+```
+Task 6: apply the OSRS interface grammar. Replacement only.
+
+Run AFTER Task 1 is green. This task swaps styling; it adds no section, no
+component and no height. The budget spec stays green throughout.
+
+1. Fonts. Commit the ttfs from RuneStar release 1.103-0 (RuneScape-Fonts.zip —
+   licence Public Domain, verified in the name-table): Plain 11, Plain 12,
+   Bold 12, Quill, Quill Caps. ~6KB each; no conversion needed; load via
+   next/font/local. unitsPerEm is 16 (Quill: 32), so these faces are
+   pixel-crisp ONLY at 16/32/48px. Two new tokens: --text-rs: 16px and
+   --text-rs-display: 32px, added to SCALE in tests/type-scale.test.ts in the
+   same commit. The RS faces take: identity-band numbers, buttons (Bold 12),
+   section names (Quill Caps at 32px). Archivo keeps: body prose, tables,
+   everything under 16px. An RS face at any size other than 16/32/48 is a bug.
+
+2. Tokens. Vendor them by hand from
+   https://www.runescapecn.com/r/styles/runescape.json (use www — the naked
+   domain 307s) into globals.css. Do NOT run shadcn init against this repo: it
+   wants to own globals.css, and three ratchet tests read that file. Verified
+   values: primary 45 65% 58%, ring 30 100% 56%, border pure black,
+   radius 0px, rs-gold #C9A961.
+
+3. Bevels, verbatim from button.json: border-2 border-black; raised
+   `inset 1px 1px 0 rgba(255,255,255,0.25), inset -1px -1px 0 rgba(0,0,0,0.6)`;
+   active inverts it; fill #8a7340, hover #9a8350. Buttons and panels only.
+   Zero border-radius everywhere.
+
+4. One scale per meaning, restated for the new ground: chrome is stone and
+   gold — the runescape.json tokens. The OSRS text colours (yellow, green,
+   red, cyan, white) are DATA ONLY, exactly as the game's own interfaces use
+   them. The accent-budget and eyebrow guards will start failing during this
+   task; update each in the commit that breaks it, and prove each can still
+   fail before moving on.
+
+5. theme-color moves off #030201 onto the new ground colour.
+
+Gate: npm run ci:check including the budget spec. Page height may not grow by
+a single assertion — a skin adds zero pixels. If height grows, the skin
+smuggled in a section.
+```
+
+**Why after the deletion and not before.** Skinning seven sections produces a
+prettier seven sections; that is precisely what happened between 07-31 and
+08-02. The grammar goes onto the three sections that survive Task 1.
+
+---
+
+## 13. Task 7 — never empty, for the price of a check
+
+The one product principle from the report worth keeping, and it is nearly free:
+the demo account already exists (`src/lib/reference-account.ts`, rendered by
+`home-specimen.tsx`).
+
+```
+Task 7: assert the product is never blank.
+
+1. / without an RSN shows the demo answer and the day boss. Already built —
+   assert it.
+2. /p/[rsn] for a valid RSN that has never synced renders an answer-shaped
+   page from hiscores alone (Task 2 behaviour), never a connect-wall, never
+   an empty state.
+
+Both as Playwright assertions next to the budget spec. No new UI in this task;
+if either assertion fails, fix the state, not the assertion.
+```
+
+---
+
+## 14. What not to do
 
 **Do not add a section.** Three is the budget. If something new is worth adding,
 name what comes off in the same commit.
@@ -425,7 +550,7 @@ passed before any work was done, the thresholds are wrong.
 
 ---
 
-## 12. The order
+## 15. The order
 
 ```
 0  budget in the gate, failing            no components touched
@@ -433,7 +558,9 @@ passed before any work was done, the thresholds are wrong.
 2  the answer becomes the page
 3  the quiz becomes three questions
 4  the 39 empty images
-5  the weight budget
+6  the skin, as a replacement             after 1; adds zero height
+5  the weight budget                      after 6 — measured against the new faces
+7  never empty                            any time after 1
 ```
 
 0 and 1 are the whole point. If only those two ship, the page is better than it
