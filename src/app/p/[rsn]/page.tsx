@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { HiscoresUnavailable } from "@/components/hiscores-unavailable";
 import { LastTripLine } from "@/components/last-trip-line";
 import { PlayerHubShell } from "@/components/player-hub-shell";
 import { PinnedGoalsPanel } from "@/components/pinned-goals-panel";
@@ -11,7 +12,7 @@ import {
 } from "@/lib/account-type";
 import { BOSSES } from "@/lib/bosses";
 import { fetchHiscores, formatXp, computeCombatLevel, computeTotalLevel, totalXp } from "@/lib/hiscores";
-import { loadPlanningContext } from "@/lib/planning-context";
+import { loadPlanningContext, PLANNING_SOURCE_DEADLINES_MS } from "@/lib/planning-context";
 import { shouldUsePluginBank } from "@/lib/plugin-bank-status";
 import { getDropRates } from "@/lib/drop-rates-db";
 import { getItems } from "@/lib/item-db";
@@ -45,7 +46,12 @@ interface Props {
 export async function generateMetadata({ params }: Props) {
   const { rsn } = await params;
   const decoded = cleanRsnInput(decodeURIComponent(rsn));
-  const hi = await fetchHiscores(decoded);
+  // Same deadline as the page body's lookup. Unbounded, a black-holed
+  // hiscores connection holds the whole response open on this fetch while
+  // the body's bounded one has long since rendered the retry state.
+  const hi = await fetchHiscores(decoded, {
+    signal: AbortSignal.timeout(PLANNING_SOURCE_DEADLINES_MS.hiscores)
+  });
   if (!hi) return { title: `${decoded} · Scapestack` };
   const combat = computeCombatLevel(hi.skills);
   const total = computeTotalLevel(hi.skills);
@@ -73,14 +79,29 @@ export default async function PlayerPage({ params, searchParams }: Props) {
     loadPlanningContext(decoded, {
       viewerRsn,
       preferScapestack: source === "plugin-sync" || from === "plugin"
-    }).catch(() => null),
+    }).catch((error: unknown) => {
+      // The hiscores cannot reject this promise — they are bounded and
+      // classified inside the loader. A rejection here is Scapestack's own
+      // failure, so it must reach the logs and must not be told as a Jagex
+      // story (cause="internal" below).
+      console.error("scapestack.planning_context_failed", error);
+      return null;
+    }),
     getQuests(),
     getDiaries(),
     getDropRates().catch(() => new Map()),
     getItems().catch(() => new Map())
   ]);
-  const hi = context?.hiscores;
-  if (!context || !hi) notFound();
+  // notFound() is reserved for Jagex answering 404 — the only proof the player
+  // does not exist. A context that failed to load, or loaded without an answer
+  // from the hiscores, is an unanswered question: render the retry state.
+  // (Observed 2026-08-08: a transient hiscores failure right after a deploy
+  // rendered /p/lauky as "this page does not exist" for a player who did.)
+  if (!context || context.hiscoresState === "unavailable") {
+    return <HiscoresUnavailable rsn={decoded} cause={context ? "hiscores" : "internal"} />;
+  }
+  const hi = context.hiscores;
+  if (!hi) notFound();
 
   const displayName = hi.name;
   const accountMode = context.initialPlan?.summary.accountMode.type

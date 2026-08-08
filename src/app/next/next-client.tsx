@@ -594,7 +594,17 @@ export function NextClient({
         questCompletionAnswers
       });
       if (!plannerInput) {
-        if (rsn) {
+        if (rsn && planningContext?.hiscoresState === "unavailable") {
+          // The lookup failed; it did not answer. The not-found preview below
+          // asserts "no Hiscores entry for {rsn}", which is only true when
+          // Jagex itself said 404 — during an outage that assertion is the
+          // lie /p and /u stopped telling on 2026-08-08.
+          // "not your name" rather than "not yours": the only thing this
+          // player typed was a name, and the view this replaces told them the
+          // name had no Hiscores entry. That is the misconception to kill, in
+          // the fewest words an inline slot next to the button can hold.
+          setError("The hiscores didn't answer — that is Jagex's end, not your name. Try again in a moment.");
+        } else if (rsn) {
           setNotFoundRsn(rsn);
           setView("not-found");
         } else {

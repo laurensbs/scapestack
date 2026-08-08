@@ -31,6 +31,10 @@ test.describe("never empty", () => {
     // Lynx Titan: permanently on the hiscores, never synced with Scapestack.
     await page.goto("/p/Lynx%20Titan");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(
+      page.locator("[data-hiscores-retry]"),
+      "the hiscores retry state is on screen — Jagex did not answer during this run, so the never-empty promise is unmeasurable; rerun when the hiscores are up"
+    ).toHaveCount(0);
     // The plan section answers — either a real recommendation or the honest
     // no-plan state; both carry the marker, neither is a wall.
     await expect(page.locator("[data-player-plan-answer]")).toBeVisible();

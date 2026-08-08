@@ -21,6 +21,19 @@ const SAMPLE_BANK = [
   "383\tRaw shark\t600"
 ].join("\n");
 
+/**
+ * Player pages depend on the live Jagex hiscores. When those don't answer,
+ * /p and /u render the retry state instead of their content — and without
+ * this anchor the failures read as missing tool sections or a missing recap,
+ * sending whoever debugs them into the wrong code entirely.
+ */
+async function expectHiscoresAnswered(page: Page) {
+  await expect(
+    page.locator("[data-hiscores-retry]"),
+    "the hiscores retry state is on screen — Jagex did not answer during this run; rerun when the hiscores are up"
+  ).toHaveCount(0);
+}
+
 test.describe("Scapestack product story matrix", () => {
   test.beforeEach(async ({ page }) => {
     failOnConsoleErrors(page);
@@ -85,6 +98,7 @@ test.describe("Scapestack product story matrix", () => {
     // content: per-boss answers only render when the saved bank parsed.
     await page.goto("/dps?rsn=lauky&from=e2e");
     await expect(page).toHaveURL(/\/u\/lauky#bosses/);
+    await expectHiscoresAnswered(page);
     await expect(page.locator("[data-player-tool-section]")).toHaveCount(4);
     await expect(page.locator("[data-player-tools-loading=true]")).toHaveCount(0, { timeout: 15_000 });
     await expect(page.locator("[data-boss-answer]").first()).toBeVisible({ timeout: 15_000 });
@@ -92,6 +106,7 @@ test.describe("Scapestack product story matrix", () => {
 
   test("7. without a bank, /u explains what RuneLite adds instead of pretending", async ({ page }) => {
     await page.goto("/u/lauky");
+    await expectHiscoresAnswered(page);
     await expect(page.locator("[data-player-tool-section]")).toHaveCount(4);
     await expect(page.getByText(/RuneLite/).first()).toBeVisible();
   });
@@ -115,6 +130,7 @@ test.describe("Scapestack product story matrix", () => {
     // The recap lives on /u since 2026-08-08 — account history is the detail
     // page's job; /p holds only the answer, the goals and the routes.
     await page.goto("/u/Lauky");
+    await expectHiscoresAnswered(page);
     await expect(page.locator("[data-return-recap=true]")).toBeVisible();
     await expect(page.getByRole("link", { name: /find the next unlock|pick the next kc block|replan/i })).toBeVisible();
   });

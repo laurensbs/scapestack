@@ -61,10 +61,30 @@ export async function fetchHiscores(rsn: string, options: FetchHiscoresOptions =
       }
       return null;
     }
-    const data = await res.json();
+    let data;
+    try {
+      data = await res.json();
+    } catch (parseErr) {
+      // Evidence for the open question of whether Jagex ever serves 200
+      // non-JSON on this endpoint (a body like that would sit in the Data
+      // Cache for up to 300s). RSN-free, safe for server logs.
+      console.warn("scapestack.hiscores_unparseable_200", JSON.stringify({
+        contentType: res.headers.get("content-type")
+      }));
+      throw parseErr;
+    }
+    if (!Array.isArray(data?.skills) || data.skills.length === 0) {
+      // A 200 without the hiscores table is not an answer about the player —
+      // an incident page shaped like JSON must not become a "found" profile
+      // showing 0 total. Every ranked player has a non-empty skills array.
+      console.warn("scapestack.hiscores_invalid_200", JSON.stringify({
+        contentType: res.headers.get("content-type")
+      }));
+      throw new Error("Hiscores 200 without skills");
+    }
     return {
       name: data.name || cleaned,
-      skills: Array.isArray(data.skills) ? data.skills : [],
+      skills: data.skills,
       activities: Array.isArray(data.activities) ? data.activities : []
     };
   } catch (err) {

@@ -23,4 +23,21 @@ describe("fetchHiscores", () => {
 
     await expect(fetchHiscores("Lynx Titan")).resolves.toBeNull();
   });
+
+  it("treats a 200 without a skills table as a failure, not an answer", async () => {
+    // An incident page shaped like JSON used to become a "found" player with
+    // zero skills. Every ranked player has a non-empty skills array.
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({}));
+
+    await expect(fetchHiscores("Lynx Titan", { strict: true }))
+      .rejects.toThrow("Hiscores 200 without skills");
+  });
+
+  it("folds a skill-less 200 to null outside strict mode, like every failure", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ name: "x" }));
+
+    await expect(fetchHiscores("Lynx Titan")).resolves.toBeNull();
+  });
 });

@@ -56,6 +56,15 @@ interface PageAudit {
 async function auditPage(page: Page): Promise<PageAudit> {
   await page.goto(PAGE_PATH);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  // The retry state also has an h1 and passes every budget below trivially —
+  // 0 sections, 0 images, one screen tall. Without this anchor a hiscores
+  // blip greens the audit against the wrong page, which is the exact
+  // "a deploy check that polls for HTTP 200 approves the previous build"
+  // failure this repo already shipped once.
+  await expect(
+    page.locator("[data-hiscores-retry]"),
+    "the hiscores retry state is on screen — Jagex did not answer during this audit, so every budget number would measure the wrong page; rerun when the hiscores are up"
+  ).toHaveCount(0);
   // Let fonts and images settle before measuring — with bounded waits, not
   // networkidle: that one can hang past the test timeout and kill the
   // evaluate mid-flight, which reads as a budget failure that isn't one.

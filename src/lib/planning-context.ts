@@ -78,8 +78,20 @@ const EMPTY_TIMING: PlanningContextTiming = {
   sources: []
 };
 
+/**
+ * Why the hiscores half of the payload is missing, when it is. "not_on_hiscores"
+ * is Jagex answering 404 — the only proof a player does not exist. Everything
+ * else (5xx, dead socket, deadline) is "unavailable": the question went
+ * unanswered, and a page that renders it as a 404 is lying. Observed on
+ * production 2026-08-08: /p/lauky 404'd for a few seconds after a deploy while
+ * the player existed the whole time.
+ */
+export type HiscoresAvailability = "found" | "not_on_hiscores" | "unavailable";
+
 export interface PlanningContextPayload {
   hiscores: PlayerHiscores | null;
+  /** Distinguishes a proven-missing player from an unanswered lookup. */
+  hiscoresState: HiscoresAvailability;
   wom: WomPlayer | null;
   collectionLog: CollectionLogPayload | null;
   /** Redacted for anyone who is not the account owner. See synced-player-visibility.ts. */
@@ -128,6 +140,8 @@ async function computeInitialPlan(input: {
 export async function assemblePlanningPayload(input: {
   rsn: string;
   hiscores: PlayerHiscores | null;
+  /** Omitted only by callers that never saw the network (guards, fixtures). */
+  hiscoresState?: HiscoresAvailability;
   wom: WomPlayer | null;
   collectionLog: CollectionLog | null;
   scapestack: SyncedPlayer | null;
@@ -162,6 +176,7 @@ export async function assemblePlanningPayload(input: {
   const isOwner = Boolean(input.viewerRsn && input.viewerRsn === normalizeRsn(input.rsn));
   return {
     hiscores: input.hiscores,
+    hiscoresState: input.hiscoresState ?? (input.hiscores ? "found" : "not_on_hiscores"),
     wom: input.wom,
     collectionLog: collectionLogPayload(input.collectionLog),
     scapestackSync: visible,
@@ -211,7 +226,10 @@ export async function loadPlanningContext(
   const viewerIsOwner = Boolean(options.viewerRsn && options.viewerRsn === normalizeRsn(rsn));
   const [scapestack, hiscores, wom, collectionLog, lastTrip, snapshotHistory] = await Promise.all([
     loadScapestackContext(rsn, options.preferScapestack === true),
-    runBoundedSource("hiscores", PLANNING_SOURCE_DEADLINES_MS.hiscores, (signal) => fetchHiscores(rsn, { signal })),
+    // Strict, so a transport failure surfaces as timing state "error" instead
+    // of impersonating the null that means "Jagex said 404". The distinction
+    // feeds hiscoresState below; the non-strict default would erase it here.
+    runBoundedSource("hiscores", PLANNING_SOURCE_DEADLINES_MS.hiscores, (signal) => fetchHiscores(rsn, { signal, strict: true })),
     runBoundedSource("wom", PLANNING_SOURCE_DEADLINES_MS.wom, (signal) => fetchWom(rsn, { signal })),
     runBoundedSource("collection_log", PLANNING_SOURCE_DEADLINES_MS.collectionLog, (signal) => fetchCollectionLog(rsn, { signal })),
     // Owner-only, and never on the critical path: a missing outcome line must
@@ -249,10 +267,19 @@ export async function loadPlanningContext(
         }))
       })
     : null;
+  // "miss" is the strict fetch resolving null, which it only does for a Jagex
+  // 404 (or an empty RSN — equally a page that should not exist). "error" and
+  // "timeout" are unanswered questions, not answers.
+  const hiscoresState: HiscoresAvailability = hiscores.value
+    ? "found"
+    : hiscores.timing.state === "miss"
+      ? "not_on_hiscores"
+      : "unavailable";
   const plannerStartedAt = performance.now();
   const payload = await assemblePlanningPayload({
     rsn,
     hiscores: hiscores.value,
+    hiscoresState,
     wom: wom.value,
     collectionLog: collectionLog.value,
     scapestack: scapestack.value,

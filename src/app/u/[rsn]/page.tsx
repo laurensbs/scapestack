@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AccountTimeline } from "@/components/account-timeline";
+import { HiscoresUnavailable } from "@/components/hiscores-unavailable";
 import { BankObservationsPanel } from "@/components/bank-observations-panel";
 import { PlayerIdentityBand } from "@/components/player-identity-band";
 import { PlayerSkillsTable } from "@/components/player-skills-table";
@@ -73,15 +74,27 @@ export default async function PlayerProfilePage({ params }: Props) {
   const decoded = cleanRsnInput(decodeURIComponent(rsn)).slice(0, 12);
   const isOwner = viewerRsn === normalizeRsn(decoded);
   const [context, latestPrices, wikiMapping, quests, diaries, dropRates] = await Promise.all([
-    loadPlanningContext(decoded, { viewerRsn }).catch(() => null),
+    loadPlanningContext(decoded, { viewerRsn }).catch((error: unknown) => {
+      // Same rule as /p: a rejection here is never the hiscores (those are
+      // bounded and classified inside the loader) — log it and render the
+      // internal-cause retry state, not a Jagex story.
+      console.error("scapestack.planning_context_failed", error);
+      return null;
+    }),
     isOwner ? getLatestPrices().catch(() => new Map()) : Promise.resolve(new Map()),
     isOwner ? getWikiItemMapping().catch(() => new Map()) : Promise.resolve(new Map()),
     getQuests(),
     getDiaries(),
     getDropRates().catch(() => new Map())
   ]);
-  const hi = context?.hiscores;
-  if (!context || !hi) notFound();
+  // Same rule as /p: notFound() only on Jagex's own 404. A failed or
+  // unanswered hiscores lookup renders the retry state instead of claiming
+  // the page does not exist.
+  if (!context || context.hiscoresState === "unavailable") {
+    return <HiscoresUnavailable rsn={decoded} cause={context ? "hiscores" : "internal"} />;
+  }
+  const hi = context.hiscores;
+  if (!hi) notFound();
   const taskProjection = context.slayerTask;
 
   const displayName = hi.name;

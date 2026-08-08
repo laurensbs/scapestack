@@ -1,7 +1,8 @@
 import { ImageResponse } from "next/og";
 import {
   fetchHiscores, computeCombatLevel, computeTotalLevel,
-  totalXp, topSkills, formatXp, normalizeRsn
+  totalXp, topSkills, formatXp, normalizeRsn,
+  type PlayerHiscores
 } from "@/lib/hiscores";
 import { BRAND_IMAGE_FONT_FAMILY, BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
 
@@ -20,7 +21,52 @@ interface Props {
 export default async function OpenGraphImage({ params }: Props) {
   const { rsn } = await params;
   const decoded = normalizeRsn(decodeURIComponent(rsn));
-  const hi = await fetchHiscores(decoded);
+  // Strict and bounded, because this image is cached by whoever embeds it:
+  // a Discord or Slack crawler that fetches during a hiscores outage would
+  // otherwise keep showing "{rsn} not found" long after the outage ends.
+  // Only Jagex's own 404 may say that. 900ms matches
+  // PLANNING_SOURCE_DEADLINES_MS.hiscores — not imported, because
+  // planning-context pulls server-only modules into this edge bundle.
+  let hi: PlayerHiscores | null = null;
+  let unanswered = false;
+  try {
+    hi = await fetchHiscores(decoded, { strict: true, signal: AbortSignal.timeout(900) });
+  } catch {
+    unanswered = true;
+  }
+
+  if (unanswered) {
+    // Two lines, and neither is a claim about the account. This card gets
+    // cached by whoever's Discord fetched it, so it has to still be true in a
+    // week: the name is what the URL says, and the lookup did not answer.
+    // Nothing about levels, nothing about existing. A bare name on a gradient
+    // would meet that bar too, but reads as a broken image rather than a
+    // deliberate one — the second line is what makes it look on purpose.
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "linear-gradient(135deg, #5B4632, #28201A)",
+            fontFamily: BRAND_IMAGE_FONT_FAMILY
+          }}
+        >
+          <div style={{ display: "flex", fontSize: 72, fontWeight: 900, color: "#FF981F", lineHeight: 1 }}>
+            <span>{decoded}</span>
+          </div>
+          <div style={{ display: "flex", fontSize: 28, color: "#b8a382", marginTop: 20 }}>
+            <span>Hiscores didn&apos;t answer</span>
+          </div>
+        </div>
+      ),
+      size
+    );
+  }
 
   if (!hi) {
     return new ImageResponse(
