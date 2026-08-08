@@ -575,29 +575,46 @@ the game outlines an NPC, on a lifted plate.
 **The rule:** a design token changed under existing art is a change to the art.
 The ground moved to `#1C1811` in Task 6 and nothing re-checked what stood on it.
 
-### 16c. Still open, and honest about it
+### 16c. Closed on 2026-08-08 — all three
 
-- **The owner is treated as a stranger.** In the owner's own browser, with the
-  account in the nav and "synced 9 days ago" in the header, the page still says
-  "Hiscores only" and shows em dashes, because `resolveViewerRsn()` needs the
-  `scapestack_account` cookie and nothing on `/p` or `/u` offers to set it. The
-  pairing step is reachable only from `/plugin`. **Next task: an inline "this is
-  me" on the page that already knows the RSN.**
-- **Three vertical trust claims.** "synced 9 days ago" / "Hiscores only" /
-  "RuneLite filtered finished work" appear within 200px of each other because
-  the planner (server-side, pre-redaction) and identity (owner-gated) have
-  different gates. A player reads that as a confused product.
-  `signalCoverageForSyncedPlayer` in `plugin-sync-diagnostics.ts` already
-  produces the honest one-liner and **is imported by zero files under `src/`**.
-- **The return reason is built and dark.** Farming and birdhouse timers are
-  plumbed end-to-end — plugin reader, contract, DB column, redaction, and a
-  finished presenter (`farmingCoverage`, which emits exactly
-  "2 ready · next in 1h 20m") — and rendered nowhere. It cannot light up yet:
-  contract 4 ships with plugin 0.4.0, which is deliberately unsubmitted, so no
-  production row carries farming today. **The server must accept it first —
-  it does — and the surface should be built before 0.4.0 goes out, not after.**
-  "Your herbs are ready in 40 minutes" is the only sentence in this product
-  with a clock in it, and a clock is what brings people back.
+Each was a missing surface over machinery that already worked.
+
+**The owner was a stranger** because there were two coverage states where the
+product needed three. "A row exists but this browser is not the paired one" had
+no representation, so `/p` said "synced 9 days ago" and "Hiscores only" in the
+same breath. `AccountCoverageLine` carries all three and the unpaired state
+offers the step that was actually missing — `ConnectBrowserModal` did the whole
+handshake already and nothing outside the site header could reach it. Checked
+before shipping the button: `/api/account/pair/approve` requires the plugin's
+install token, so a stranger clicking "This is me" gets a code nobody approves.
+
+**The three trust claims** are one line, on both routes, from one component.
+
+**The clock is on.** `FarmTimersLine` renders in the existing `lastTrip` slot as
+an `<aside>` — no fourth section — and formats its countdown in the browser on a
+30-second tick, because a server-rendered "next in 1h 20m" is correct for one
+minute and a lie for the rest of the session. Owner-only by construction. It
+stays dark until a contract-4 row exists, which is correct: the surface is
+built *before* plugin 0.4.0 ships, not after.
+
+**What the gate caught that I did not.** `AccountCoverageLine` renders its own
+`<p>` and `PlayerIdentityBand` wrapped it in another. A `<p>` inside a `<p>` is
+auto-closed by the parser, so server HTML and client DOM disagreed and React
+threw hydration error #418 on every `/u` render. 1,738 unit tests saw nothing.
+Third time in this batch that only the rendered page found the defect — which is
+the argument for §3b restated in its strongest form.
+
+### 16d. What is still open
+
+- **The engine still answers from generators, not from the account.** Task 16a
+  fixed the skill ladder; the same shape exists in every other generator —
+  each reads a hand-written constant. The next pinned goal class that has no
+  matching constant will fail the same way, and the catalogue test only covers
+  skills.
+- **Plugin 0.4.0 is prepared and unsubmitted.** The farm surface is live and
+  dark. Shipping the plugin is the step that turns the clock on, and the Plugin
+  Hub builds one immutable commit — so the release should carry every batched
+  plugin change at once.
 
 ---
 
