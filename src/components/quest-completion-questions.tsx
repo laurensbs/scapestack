@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { QuestCompletionQuestion } from "@/lib/next-up";
 
 export function QuestCompletionQuestions({
@@ -17,7 +18,8 @@ export function QuestCompletionQuestions({
         Check finished quests
       </h3>
       <p className="mt-1 max-w-[65ch] text-[length:var(--text-micro)] font-normal leading-relaxed text-[var(--color-text-muted)]">
-        Hiscores do not show quest completion. Answer these before a quest can become your next action.
+        Hiscores do not show quest completion — these three block your nearest goal. Each answer sharpens the plan above.{" "}
+        <Link href="/plugin" className="underline underline-offset-2">RuneLite fills these in automatically.</Link>
       </p>
       <div className="mt-3 divide-y divide-[var(--color-border)]">
         {questions.slice(0, 3).map((question) => (

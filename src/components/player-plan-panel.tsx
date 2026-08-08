@@ -220,25 +220,27 @@ export function PlayerPlanPanel({
   };
 
   if (!result || !activeRec || !decisionCopy) {
+    // Even with nothing to go on, the page answers — it does not become a
+    // connect-wall. Say what would change the answer, in one line each.
     return (
       <section className="border-y border-[var(--color-border)] py-5" data-player-plan-answer="empty">
-        <p className="eyebrow">The answer</p>
+        <p className="eyebrow">Tonight</p>
         <p className="mt-2 max-w-[65ch] text-[length:var(--text-body)] font-normal text-[var(--color-text-dim)]">
           Scapestack could not build a safe trip from the public account data yet.
+        </p>
+        <p className="mt-1 max-w-[65ch] text-[length:var(--text-micro)] font-normal text-[var(--color-text-muted)]">
+          Check the spelling of the name, or sync RuneLite once — quests, diaries and your bank turn a guess into a plan.
         </p>
       </section>
     );
   }
 
+  // The answer is the page. The quiz refines it and sits BELOW it — a
+  // returning player deciding whether to log in tonight reads the verdict
+  // first and answers questions only if they care to sharpen it. The quiz
+  // above the answer was a form as a front door.
   return (
     <section aria-label="Tonight" className="min-w-0 max-w-full">
-      {result.questQuestions.length > 0 && (
-        <QuestCompletionQuestions
-          questions={result.questQuestions}
-          pending={pending}
-          onAnswer={answerQuest}
-        />
-      )}
       <PlayerPlanAnswer
         rec={activeRec}
         decisionCopy={decisionCopy}
@@ -255,6 +257,13 @@ export function PlayerPlanPanel({
         }}
         onHide={hideAlternative}
       />
+      {result.questQuestions.length > 0 && (
+        <QuestCompletionQuestions
+          questions={result.questQuestions}
+          pending={pending}
+          onAnswer={answerQuest}
+        />
+      )}
     </section>
   );
 }
