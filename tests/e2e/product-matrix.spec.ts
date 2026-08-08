@@ -28,9 +28,9 @@ test.describe("Scapestack product story matrix", () => {
 
   test("1. first-time player sees RSN -> one plan promise", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "Stop bankstanding and pick the next trip." })).toBeVisible();
-    await expect(page.getByPlaceholder(/type your osrs name/i)).toBeVisible();
-    await expect(page.getByRole("button", { name: "Track" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Your OSRS companion." })).toBeVisible();
+    await expect(page.getByPlaceholder(/your osrs name/i)).toBeVisible();
+    await expect(page.getByRole("button", { name: /open my page/i })).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 
@@ -76,21 +76,19 @@ test.describe("Scapestack product story matrix", () => {
     await expect(page.getByText(/bank ready|bank detected|opening organizer|runeLite tabs|plan/i).first()).toBeVisible();
   });
 
-  test("6. saved bank makes Check Kill a clickable boss grid", async ({ page }) => {
+  test("6. saved bank makes the four bank answers usable on /u", async ({ page }) => {
     await seedSavedBank(page, "lauky");
-    await page.goto("/dps?rsn=lauky&from=e2e");
-    await expect(page.getByPlaceholder(/search bosses/i)).toBeVisible();
-    await page.getByPlaceholder(/search bosses/i).fill("Vorkath");
-    await page.keyboard.press("Enter");
-    await expect(page.getByTestId("boss-trip-verdict")).toBeVisible();
-    await expect(page.getByTestId("boss-inventory-setup")).toBeVisible();
+    await page.goto("/u/lauky");
+    // The device-saved bank feeds bosses, sets, task and money on the account
+    // detail page; all four sections must materialise and settle.
+    await expect(page.locator("[data-player-tool-section]")).toHaveCount(4);
+    await expect(page.locator("[data-player-tools-loading=true]")).toHaveCount(0, { timeout: 15_000 });
   });
 
-  test("7. Check Kill empty state asks for bank before trusting setup", async ({ page }) => {
-    await page.goto("/dps?rsn=lauky&from=e2e-empty");
-    await expect(page.getByText(/add bank/i).first()).toBeVisible();
-    await expect(page.getByRole("button", { name: /load sample bank/i })).toBeVisible();
-    await expect(page.getByTestId("bank-paste-input")).toBeVisible();
+  test("7. without a bank, /u explains what RuneLite adds instead of pretending", async ({ page }) => {
+    await page.goto("/u/lauky");
+    await expect(page.locator("[data-player-tool-section]")).toHaveCount(4);
+    await expect(page.getByText(/RuneLite/).first()).toBeVisible();
   });
 
   test("8. RuneLite page shows check, status and fix without developer panels", async ({ page }) => {
@@ -109,7 +107,9 @@ test.describe("Scapestack product story matrix", () => {
 
   test("9. returning player history can show recap and open next trip", async ({ page }) => {
     await mockConnectedTimeline(page);
-    await page.goto("/p/Lauky");
+    // The recap lives on /u since 2026-08-08 — account history is the detail
+    // page's job; /p holds only the answer, the goals and the routes.
+    await page.goto("/u/Lauky");
     await expect(page.locator("[data-return-recap=true]")).toBeVisible();
     await expect(page.getByRole("link", { name: /find the next unlock|pick the next kc block|replan/i })).toBeVisible();
   });

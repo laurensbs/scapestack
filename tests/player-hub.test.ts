@@ -19,23 +19,34 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("the canonical player hub", () => {
-  it("redirects both legacy player URLs to the same encoded /p URL", async () => {
+  it("redirects the legacy /next URL to the encoded /p URL", async () => {
     const NextPage = (await import("@/app/next/page")).default;
-    const LegacyProfilePage = (await import("@/app/u/[rsn]/page")).default;
 
     await expect(NextPage({
       searchParams: Promise.resolve({ rsn: "Lynx Titan", source: "plugin-sync" })
     })).rejects.toMatchObject({
       destination: "/p/Lynx%20Titan?source=plugin-sync"
     });
-    await expect(LegacyProfilePage({
-      params: Promise.resolve({ rsn: "Lynx%20Titan" })
-    })).rejects.toMatchObject({
-      destination: "/p/Lynx%20Titan"
-    });
   });
 
-  it("keeps the player blocks in the brief's document order", async () => {
+  it("keeps /u/[rsn] as a real page, not a redirect", async () => {
+    // /u was a redirect to /p from 2026-07-30 to 2026-08-08. When /p went on
+    // a three-section budget, the account detail (identity band, skill table,
+    // bank, bank answers) needed a home again — /u is that home, and this
+    // test stops it quietly becoming a redirect a second time.
+    const module = await import("@/app/u/[rsn]/page");
+    const source = (await import("node:fs")).readFileSync(
+      (await import("node:path")).join(process.cwd(), "src/app/u/[rsn]/page.tsx"),
+      "utf8"
+    );
+    expect(module.default).toBeTypeOf("function");
+    expect(source).not.toContain("redirect(");
+    for (const detail of ["PlayerIdentityBand", "PlayerSkillsTable", "PlayerToolsSections", "BankObservationsPanel"]) {
+      expect(source, `${detail} must live on /u`).toContain(detail);
+    }
+  });
+
+  it("keeps the player blocks in the brief's document order — the answer before everything", async () => {
     const { PlayerHubShell } = await import("@/components/player-hub-shell");
     const { PlayerPlanAnswer, PlayerPlanAlternatives } = await import("@/components/player-plan-answer");
     const answer: Recommendation = {
@@ -57,7 +68,6 @@ describe("the canonical player hub", () => {
     const html = renderToStaticMarkup(createElement(PlayerHubShell, {
       header: createElement("p", null, "Identity header"),
       lastTrip: createElement("p", null, "Last trip"),
-      goals: createElement("p", null, "Player goals"),
       plan: createElement("div", null,
         createElement(PlayerPlanAnswer, {
           rec: answer,
@@ -85,19 +95,16 @@ describe("the canonical player hub", () => {
           onHide: vi.fn()
         })
       ),
-      bank: createElement("p", null, "Your bank"),
-      tools: createElement("p", null, "Bank questions"),
-      account: createElement("p", null, "Account skills")
+      goals: createElement("p", null, "Player goals"),
+      routes: createElement("p", null, "Player routes")
     }));
     const positions = [
       "Identity header",
       "Last trip",
-      "Player goals",
       "The answer",
       "Not this?",
-      "Your bank",
-      "Bank questions",
-      "Account skills"
+      "Player goals",
+      "Player routes"
     ].map((label) => html.indexOf(label));
 
     expect(positions.every((position) => position >= 0)).toBe(true);

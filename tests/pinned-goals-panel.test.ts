@@ -41,6 +41,8 @@ describe("pinned goal picker", () => {
       /<span className="([^"]*tabular-nums[^"]*)">\s*<JournalStatusMark/
     )?.[1] ?? "";
     expect(progressColumnClasses).toContain("tabular-nums");
-    expect(progressColumnClasses).toContain("font-semibold");
+    // The progress number is data, not a name — it reads at 400 with its
+    // data colour; semibold is budgeted to names (page-budget.spec.ts).
+    expect(progressColumnClasses).toContain("font-normal");
   });
 });

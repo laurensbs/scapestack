@@ -27,7 +27,8 @@ describe("package scripts", () => {
       "npm run audit:next",
       "npm run audit:controller",
       "npm run plugin:release-check",
-      "npm run build"
+      "npm run build",
+      "npm run e2e"
     ].join(" && "));
     expect(packageJson.scripts?.["plugin:review-handoff-command"]).toBe(
       "tsx scripts/print-plugin-review-packet.ts --handoff-command"

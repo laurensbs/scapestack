@@ -87,7 +87,7 @@ export function SessionMoodPicker({
         ) : (
           <>
             <Sword className={mobileTile ? "size-4" : "size-3.5"} />
-            <span className={mobileTile ? "mt-1.5 max-w-full truncate text-[11.5px] font-bold leading-none" : ""}>
+            <span className={mobileTile ? "mt-1.5 max-w-full truncate text-[length:var(--text-label)] font-normal leading-none" : ""}>
               {picked}
             </span>
           </>

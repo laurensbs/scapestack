@@ -95,7 +95,7 @@ export function MobileActionBar() {
               {action.complete && (
                 <CheckCircle2 className="absolute right-1.5 top-1.5 size-3.5 text-[var(--color-accent)]" />
               )}
-              <span className="mt-1.5 max-w-full truncate text-[11.5px] font-bold leading-none">{action.label}</span>
+              <span className="mt-1.5 max-w-full truncate text-[length:var(--text-label)] font-normal leading-none">{action.label}</span>
             </Link>
           );
         })}

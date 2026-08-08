@@ -14,7 +14,7 @@ const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8")
 describe("the former catalogue routes hand off to the player page", () => {
   it("renders the full boss roster from the canonical profile section", () => {
     const page = source("src/app/dps/page.tsx");
-    const profile = source("src/app/p/[rsn]/page.tsx");
+    const profile = source("src/app/u/[rsn]/page.tsx");
     const sections = source("src/components/player-tools-sections.tsx");
     expect(page).toContain('playerToolSectionPath(rsn, "bosses")');
     expect(profile).toContain("BOSSES");

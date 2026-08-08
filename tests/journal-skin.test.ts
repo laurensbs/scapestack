@@ -78,9 +78,11 @@ describe("the Journal skin", () => {
   it("gives named Journal rows a pixelated 40px sprite in one shared slot", () => {
     const primitives = read("src/components/journal-primitives.tsx");
     expect(primitives).toContain('data-journal-sprite-slot="true"');
-    expect(primitives).toContain("size={40}");
+    // 32, not 40: chisel serves 16-30px natives; 32 is an exact 2x
+    // for the small ones where 40 was a 2.5x smear.
+    expect(primitives).toContain("size={32}");
     expect(primitives).toContain('className="pixelated"');
-    expect(primitives).toContain("[&>img]:!max-h-10 [&>img]:!max-w-10");
+    expect(primitives).toContain("[&>img]:!max-h-8 [&>img]:!max-w-8");
 
     const expectedConsumers = [
       ["src/components/pinned-goals-panel.tsx", "<JournalItemSprite"],
@@ -184,7 +186,9 @@ describe("the Journal skin", () => {
     expect(tableCellRule).toContain("font-variant-numeric: tabular-nums;");
     expect(commandRule).toContain("font-size: var(--text-body);");
     expect(commandRule).toContain("font-weight: 600;");
-    expect(statusRule).toContain("font-weight: 600;");
-    expect(eyebrowRule).toContain("font-weight: 600;");
+    expect(statusRule).toContain("font-weight: 600;");  // the mark glyph itself
+    // Chrome carries no weight: the eyebrow distinguishes itself with case
+    // and tracking, and the page budget caps semibold at 35% of elements.
+    expect(eyebrowRule).toContain("font-weight: 400;");
   });
 });

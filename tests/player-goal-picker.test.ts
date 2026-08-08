@@ -25,10 +25,7 @@ describe("the player goal picker", () => {
       header: createElement("p", null, "Identity"),
       lastTrip: null,
       goals: picker,
-      plan: null,
-      bank: null,
-      tools: null,
-      account: null
+      plan: null
     }));
 
     expect(source.match(/<select\b/g) ?? []).toHaveLength(0);

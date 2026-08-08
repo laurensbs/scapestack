@@ -134,7 +134,7 @@ export function Header() {
                 // Staggered fade-in, starting after the wordmark.
                 style={{ animation: `hero-fade 0.5s cubic-bezier(0.22,1,0.36,1) ${0.4 + i * 0.07}s both` }}
                 className={cn(
-                  "group/tool inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12.5px] font-medium transition-colors",
+                  "group/tool inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[length:var(--text-micro)] font-medium transition-colors",
                   active
                     ? "bg-[var(--color-accent)]/13 text-[var(--color-text)] ring-1 ring-[var(--color-accent)]/35"
                     : "text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-parchment)]/70"
@@ -371,7 +371,7 @@ function AccountSwitcher({
                   <button
                     type="button"
                     onClick={() => pickAccount(account.rsn)}
-                    className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:text-[var(--color-text)]"
+                    className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-[length:var(--text-micro)] font-semibold text-[var(--color-text-dim)] transition-colors hover:text-[var(--color-text)]"
                   >
                     <span className="truncate">{account.rsn}</span>
                     {account.rsn === activeRsn && <CheckCircle2 className="size-3.5 text-[var(--color-good)]" />}
@@ -391,7 +391,7 @@ function AccountSwitcher({
           )}
 
           {activeRsn && (
-            <div className="mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text-muted)]">
+            <div className="mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[length:var(--text-label)] font-semibold text-[var(--color-text-muted)]">
               <span className="text-[var(--color-text)]">{activeRsn}</span>
               <span className="mx-1.5 text-[var(--color-border-strong)]">·</span>
               <span title={bankFreshness} className="inline-flex items-center gap-1">

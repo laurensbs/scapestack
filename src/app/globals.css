@@ -1154,7 +1154,7 @@ body {
   border-bottom: 1px solid var(--color-border-strong);
   color: var(--color-text-muted);
   font-size: var(--text-label);
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0.07em;
   text-align: left;
   text-transform: uppercase;
@@ -1178,7 +1178,7 @@ body {
   border-bottom: 1px solid var(--color-border);
   color: var(--color-text-secondary);
   font-size: var(--text-body);
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
   white-space: normal;
@@ -1270,8 +1270,11 @@ body {
   color: var(--color-gate-easy);
 }
 
+/* Not-done is carried by the mark's SHAPE (x against the check); painting it
+   in a gate colour was a second colour language for the same fact, and the
+   page holds five text colours (tests/e2e/page-budget.spec.ts). */
 .journal-status-mark[data-state="not-done"] {
-  color: var(--color-gate-over);
+  color: var(--color-text-muted);
 }
 
 .scape-checklist {
@@ -1426,7 +1429,7 @@ body {
    Saturated colour is data only, and a label is not data. */
 .eyebrow {
   font-size: var(--text-label);
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-text-muted);

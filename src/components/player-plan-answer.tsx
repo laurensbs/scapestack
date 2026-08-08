@@ -165,7 +165,7 @@ export function PlayerPlanAlternatives({
 }) {
   if (alternatives.length === 0) return null;
   return (
-    <section className="pt-4" aria-labelledby="next-alternatives-title" data-player-plan-alternatives="true">
+    <div role="region" className="pt-4" aria-labelledby="next-alternatives-title" data-player-plan-alternatives="true">
       <h3 id="next-alternatives-title" className="text-[length:var(--text-subject)] font-semibold text-[var(--color-text)]">
         Not this?
       </h3>
@@ -222,6 +222,6 @@ export function PlayerPlanAlternatives({
           </tbody>
         </table>
       </div>
-    </section>
+    </div>
   );
 }

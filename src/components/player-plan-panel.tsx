@@ -231,7 +231,7 @@ export function PlayerPlanPanel({
   }
 
   return (
-    <div className="min-w-0 max-w-full">
+    <section aria-label="Tonight" className="min-w-0 max-w-full">
       {result.questQuestions.length > 0 && (
         <QuestCompletionQuestions
           questions={result.questQuestions}
@@ -255,6 +255,6 @@ export function PlayerPlanPanel({
         }}
         onHide={hideAlternative}
       />
-    </div>
+    </section>
   );
 }

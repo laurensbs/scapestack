@@ -56,7 +56,10 @@ function GoalChoiceTile({ choice, onPin }: { choice: PinnedGoalChoice; onPin: (c
     >
       <span className="flex size-16 items-center justify-center overflow-hidden border border-[var(--color-border-strong)] bg-[var(--color-slot)]">
         {choice.spriteItemId ? (
-          <ItemSprite id={choice.spriteItemId} alt="" size={52} className="pixelated" style={{ filter: "none" }} />
+          // 32px, not 52: chisel serves these at 16-30px native, and 52 was a
+          // 3.25x non-integer upscale — the "empty box" look. 32 is an exact
+          // 2x for the 16px sources and near-native for the rest.
+          <ItemSprite id={choice.spriteItemId} alt="" size={32} className="pixelated" style={{ filter: "none" }} />
         ) : (
           <span aria-hidden="true" className="text-[length:var(--text-subject)] text-[var(--color-text-muted)]">?</span>
         )}
@@ -64,7 +67,7 @@ function GoalChoiceTile({ choice, onPin }: { choice: PinnedGoalChoice; onPin: (c
       <span className="line-clamp-2 text-[length:var(--text-micro)] font-semibold leading-tight text-[var(--color-text)]">
         {choice.target}
       </span>
-      <span className="text-[length:var(--text-label)] font-semibold uppercase tracking-[0.1em] text-[var(--color-text-muted)]">
+      <span className="text-[length:var(--text-label)] font-normal uppercase tracking-[0.1em] text-[var(--color-text-muted)]">
         {choice.kindLabel}
       </span>
     </button>
@@ -150,7 +153,7 @@ export function PinnedGoalsPanel({
 
   return (
     <section className="mt-5 border-y border-[var(--color-border)] py-5" aria-labelledby="pinned-goals-title" data-pinned-goals="true">
-      <h2 id="pinned-goals-title" className="text-[length:var(--text-label)] font-semibold uppercase tracking-[0.1em] text-[var(--color-text-muted)]">
+      <h2 id="pinned-goals-title" className="text-[length:var(--text-label)] font-normal uppercase tracking-[0.1em] text-[var(--color-text-muted)]">
         Your goals
       </h2>
 
@@ -160,7 +163,7 @@ export function PinnedGoalsPanel({
             <span className="scape-verdict" data-gate="ready">Goal complete</span>
             <span> — {completionNotice.target}.</span>
           </p>
-          <button type="button" className="min-h-11 text-[length:var(--text-micro)] font-semibold text-[var(--color-text-secondary)] underline underline-offset-4" onClick={openPicker}>
+          <button type="button" className="min-h-11 text-[length:var(--text-micro)] font-normal text-[var(--color-text-secondary)] underline underline-offset-4" onClick={openPicker}>
             Pin next
           </button>
         </div>
@@ -176,7 +179,7 @@ export function PinnedGoalsPanel({
                   {goal.spriteItemId ? <JournalItemSprite id={goal.spriteItemId} /> : null}
                   <span className="min-w-0 flex-1">
                     <span className={goal.kind === "item"
-                      ? "block truncate text-[length:var(--text-subject)] font-semibold text-[var(--color-data-item)]"
+                      ? "block truncate text-[length:var(--text-subject)] font-semibold text-[var(--color-text)]"
                       : "block truncate text-[length:var(--text-subject)] font-semibold text-[var(--color-text)]"}
                     >
                       {goal.target}
@@ -186,7 +189,7 @@ export function PinnedGoalsPanel({
                     )}
                   </span>
                   {progress.fraction && (
-                    <span className="flex items-center gap-2 whitespace-nowrap tabular-nums text-[length:var(--text-subject)] font-semibold text-[var(--color-data-level)]">
+                    <span className="flex items-center gap-2 whitespace-nowrap tabular-nums text-[length:var(--text-subject)] font-normal text-[var(--color-data-level)]">
                       <JournalStatusMark done={progress.done} />
                       {progress.fraction}
                     </span>
@@ -210,7 +213,7 @@ export function PinnedGoalsPanel({
         <div className="mt-4 border-t border-[var(--color-border)] pt-4" data-goal-picker="true">
           <div className="flex items-start justify-between gap-3">
             <label className="min-w-0 flex-1">
-              <span className="block text-[length:var(--text-label)] font-semibold uppercase tracking-[0.1em] text-[var(--color-text-muted)]">
+              <span className="block text-[length:var(--text-label)] font-normal uppercase tracking-[0.1em] text-[var(--color-text-muted)]">
                 Find a goal
               </span>
               <input
@@ -234,7 +237,7 @@ export function PinnedGoalsPanel({
               Nothing pinned. Pick one of the closest routes below, or search.
             </p>
           )}
-          <p className="mt-3 tabular-nums text-[length:var(--text-label)] font-semibold uppercase tracking-[0.1em] text-[var(--color-text-muted)]">
+          <p className="mt-3 tabular-nums text-[length:var(--text-label)] font-normal uppercase tracking-[0.1em] text-[var(--color-text-muted)]">
             {query.trim() ? `${visibleChoices.length} matches` : "Closest for this account"}
           </p>
           {visibleChoices.length > 0 ? (

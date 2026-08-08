@@ -1,7 +1,6 @@
 import { createElement, type ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
-import { PlayerHubShell } from "@/components/player-hub-shell";
 import { PlayerToolsSections } from "@/components/player-tools-sections";
 import type { AffordabilityReport } from "@/lib/bank-affordability";
 import type { BossViability } from "@/lib/boss-viability";
@@ -98,14 +97,15 @@ describe("the four bank questions live on the canonical player page", () => {
       emptyTaskReason: "No current task.",
       money: null
     });
-    const html = renderToStaticMarkup(createElement(PlayerHubShell, {
-      header: createElement("h1", { "data-player-identity": "true" }, "Lynx Titan"),
-      lastTrip: null,
-      plan: null,
-      bank: createElement("p", null, "Your bank"),
-      tools,
-      account: null
-    }));
+    // PlayerToolsSections moved off the /p shell to /u/[rsn] on 2026-08-08 —
+    // render it the way /u composes it: a plain main with the identity above.
+    const html = renderToStaticMarkup(createElement(
+      "main",
+      null,
+      createElement("h1", { "data-player-identity": "true" }, "Lynx Titan"),
+      createElement("p", null, "Your bank"),
+      tools
+    ));
 
     expect(html.match(/data-player-identity=/g)).toHaveLength(1);
     expect(html.match(/data-player-tool-section=/g)).toHaveLength(4);

@@ -9,13 +9,19 @@ describe("RSN profile handoffs", () => {
     const skills = readFileSync(join(process.cwd(), "src/components/player-skills-table.tsx"), "utf8");
     const answer = readFileSync(join(process.cwd(), "src/components/player-plan-answer.tsx"), "utf8");
 
-    expect(legacy).toContain("redirect(playerPath(decodeURIComponent(rsn)))");
+    // /u/[rsn] carries the account detail; /p/[rsn] carries the answer and
+    // nothing else. The split happened 2026-08-08 when /p went on a
+    // three-section budget (tests/e2e/page-budget.spec.ts).
+    expect(legacy).not.toContain("redirect(");
+    expect(legacy).toContain("<PlayerToolsSections");
+    expect(legacy).toContain("<PlayerSkillsTable");
+    expect(legacy).toContain("<PlayerIdentityBand");
     expect(page).toContain("loadPlanningContext(decoded");
     expect(page).toContain("viewerRsn");
     expect(page).toContain('pluginVerifyUrlForSyncedRsn(displayName, "profile"');
     expect(page).toContain("<PlayerPlanPanel");
-    expect(page).toContain("<PlayerToolsSections");
-    expect(page).toContain("<PlayerSkillsTable");
+    expect(page).not.toContain("<PlayerToolsSections");
+    expect(page).not.toContain("<PlayerSkillsTable");
     expect(page).not.toContain("<AccountTimeline");
     expect(answer).toContain('data-next-trip-card="true"');
     expect(answer).toContain("Not this?");

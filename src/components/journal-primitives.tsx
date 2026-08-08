@@ -13,7 +13,7 @@ export function JournalSpriteSlot({
     <span
       data-journal-sprite-slot="true"
       className={cn(
-        "journal-sprite-slot flex size-12 shrink-0 items-center justify-center overflow-hidden border border-[var(--color-border-strong)] bg-[var(--color-slot)] [&>img]:!max-h-10 [&>img]:!max-w-10",
+        "journal-sprite-slot flex size-12 shrink-0 items-center justify-center overflow-hidden border border-[var(--color-border-strong)] bg-[var(--color-slot)] [&>img]:!max-h-8 [&>img]:!max-w-8",
         className
       )}
     >
@@ -25,7 +25,7 @@ export function JournalSpriteSlot({
 export function JournalItemSprite({ id, alt = "" }: { id: number; alt?: string }) {
   return (
     <JournalSpriteSlot>
-      <ItemSprite id={id} alt={alt} size={40} className="pixelated" style={{ filter: "none" }} />
+      <ItemSprite id={id} alt={alt} size={32} className="pixelated" style={{ filter: "none" }} />
     </JournalSpriteSlot>
   );
 }

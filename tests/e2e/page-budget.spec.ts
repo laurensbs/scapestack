@@ -54,12 +54,24 @@ interface PageAudit {
 async function auditPage(page: Page): Promise<PageAudit> {
   await page.goto(PAGE_PATH);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  // Let streamed content and images settle before measuring.
-  await page.waitForLoadState("networkidle").catch(() => undefined);
+  // Let fonts and images settle before measuring — with bounded waits, not
+  // networkidle: that one can hang past the test timeout and kill the
+  // evaluate mid-flight, which reads as a budget failure that isn't one.
+  await page.waitForFunction(() => document.fonts.status === "loaded", undefined, { timeout: 8_000 }).catch(() => undefined);
+  await page.waitForFunction(
+    () => [...document.images].every((img) => img.complete || img.loading === "lazy"),
+    undefined,
+    { timeout: 8_000 }
+  ).catch(() => undefined);
   return page.evaluate(() => {
     const textBearing: Element[] = [];
     for (const el of document.querySelectorAll("body *")) {
       if (el.closest("script,style,noscript")) continue;
+      // Chrome keeps layout boxes for content inside a closed <details>
+      // (content-visibility), so a rect check alone counts text nobody can
+      // see. The reader's page is what is open.
+      const details = el.closest("details:not([open])");
+      if (details && !el.closest("summary")) continue;
       const rect = el.getBoundingClientRect();
       if (rect.width === 0 && rect.height === 0) continue;
       const hasText = [...el.childNodes].some(

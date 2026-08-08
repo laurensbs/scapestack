@@ -14,8 +14,10 @@ describe("the player route surface", () => {
     const shell = read("src/components/player-hub-shell.tsx");
 
     expect(page).toContain("<PlayerRoutesPanel");
-    expect(shell.indexOf('data-player-hub-section="routes"')).toBeGreaterThan(shell.indexOf('data-player-hub-section="plan"'));
-    expect(shell.indexOf('data-player-hub-section="routes"')).toBeLessThan(shell.indexOf('data-player-hub-section="bank"'));
+    expect(shell.indexOf('data-player-hub-section="routes"')).toBeGreaterThan(shell.indexOf('data-player-hub-section="goals"'));
+    // The shell holds exactly three sections — the answer, the goals, the
+    // routes. Bank and tools moved to /u/[rsn] on 2026-08-08.
+    expect(shell).not.toContain('data-player-hub-section="bank"');
     expect(component).toContain('data-companion-route-kind={route.kind}');
     expect(component).toContain("<ol");
     expect(component).toContain("<details");
