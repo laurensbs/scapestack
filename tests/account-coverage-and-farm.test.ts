@@ -24,6 +24,14 @@ describe("one coverage line, three honest states", () => {
     expect(html).toContain("This is me");
     expect(html).toContain("data-pair-this-browser");
     expect(html).toContain("synced 9 days ago");
+    // formatSyncAge already carries the verb — the sentence must not add a
+    // second one. "RuneLite synced this account synced 9 days ago" shipped for
+    // one deploy. Strip the markup first: the data attribute legitimately
+    // contains "synced-unpaired" and made the first version of this guard
+    // match itself.
+    const sentence = html.replace(/<[^>]+>/g, " ");
+    expect(sentence, "the sync verb appears twice in one sentence")
+      .not.toMatch(/synced[^.]*\bsynced\b/);
     // It must not tell a synced player to go install the plugin again.
     expect(html).not.toContain("Hiscores only");
   });

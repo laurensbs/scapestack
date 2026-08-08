@@ -58,7 +58,10 @@ export function AccountCoverageLine({
     return (
       <>
         <p className="text-[length:var(--text-micro)] font-normal text-[var(--color-text-muted)]" data-account-coverage="synced-unpaired">
-          RuneLite synced this account {state.syncedLabel}. This browser is not connected to it, so quests,
+          {/* The label already carries its own verb ("synced 9 days ago"), so
+              the sentence must not add a second one. It read "RuneLite synced
+              this account synced 9 days ago" on production for one deploy. */}
+          RuneLite {state.syncedLabel}. This browser is not connected to it, so quests,
           diaries and your bank stay hidden.{" "}
           <button
             type="button"
