@@ -22,7 +22,7 @@ export function MoneyMethodsPanel({
         Which Wiki methods can this bank start?
       </h2>
       {!report ? (
-        <p className="mt-2 max-w-[65ch] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text-muted)]">No synced bank is available for a money-method answer.</p>
+        <p className="mt-2 max-w-[65ch] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text-muted)]">Waiting on your bank.</p>
       ) : (
         <>
           <p

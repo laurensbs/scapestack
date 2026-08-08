@@ -1,10 +1,14 @@
 import type { PlayerToolSection } from "@/lib/player-tool-route";
 
-const SECTIONS: Array<{ id: PlayerToolSection; label: string; question: string }> = [
-  { id: "bosses", label: "Bosses", question: "What can this bank kill?" },
-  { id: "sets", label: "Sets", question: "What can this bank finish?" },
-  { id: "task", label: "Task", question: "What is the current task?" },
-  { id: "money", label: "Money", question: "What can this bank start?" }
+// Labels only. Each question used to appear here AND as the heading of the
+// section it links to — "What can this bank finish?" was on screen twice,
+// character for character. The anchors are load-bearing (/dps, /goals,
+// /slayer and /bank?section= all redirect into them), the questions were not.
+const SECTIONS: Array<{ id: PlayerToolSection; label: string }> = [
+  { id: "bosses", label: "Bosses" },
+  { id: "sets", label: "Sets" },
+  { id: "task", label: "Task" },
+  { id: "money", label: "Money" }
 ];
 
 export function PlayerToolNav() {
@@ -17,7 +21,6 @@ export function PlayerToolNav() {
           className="min-w-0 bg-[var(--color-panel)] px-3 py-3 text-left transition-colors hover:bg-[var(--color-panel-2)]"
         >
           <span className="block text-[length:var(--text-body)] font-semibold text-[var(--color-text)]">{section.label}</span>
-          <span className="mt-1 block text-[length:var(--text-micro)] font-normal leading-snug text-[var(--color-text-muted)]">{section.question}</span>
         </a>
       ))}
     </nav>

@@ -31,7 +31,17 @@ describe("the homepage companion face", () => {
     expect(page).toContain('sizes="(max-width: 639px) 420px, (max-width: 1199px) 40vw, 520px"');
     expect(page).toContain("opacity-[0.16] sm:opacity-100");
     expect(page).toContain("sm:relative sm:right-auto");
-    expect(page).toContain("radial-gradient");
+    // The plate moved into globals.css as .boss-plate when the render got its
+    // rim-light: measured 2026-08-08, nine of the twelve homepage bosses sat
+    // under 3:1 against the ground and were effectively invisible.
+    expect(page).toContain("boss-plate");
+    expect(page).toContain("boss-render");
+    const globals = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
+    expect(globals).toContain(".boss-plate");
+    expect(globals).toContain("radial-gradient");
+    // The rim is what makes a dark render legible at all — drop-shadow layers
+    // outline a transparent PNG the way the game outlines an NPC.
+    expect(globals).toMatch(/\.boss-render[\s\S]{0,200}drop-shadow/);
     expect(page).toContain("blur-xl");
     expect(page).not.toContain("/api/sprite/item/");
     expect(page).not.toContain("unoptimized");

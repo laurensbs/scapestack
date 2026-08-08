@@ -61,7 +61,7 @@ export function PlayerSetsSection({
         </div>
       )}
       {!report ? (
-        <p className="mt-2 max-w-[65ch] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text-muted)]">No synced bank is available for a set answer.</p>
+        <p className="mt-2 max-w-[65ch] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text-muted)]">Waiting on your bank.</p>
       ) : report.pricesUnavailable && !cannotBuy ? (
         <p className="mt-2 max-w-[65ch] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text-muted)]">Grand Exchange prices are unavailable, so no set is called affordable.</p>
       ) : (

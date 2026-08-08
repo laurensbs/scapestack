@@ -80,7 +80,13 @@ describe("companion routes", () => {
 
     const unknown = buildCollectionLogRoute({ dropRates, items, bosses, ownedItemIds: null });
     expect(unknown.nodes.every((node) => node.state === "unknown")).toBe(true);
-    expect(unknown.nodes.every((node) => node.metric.startsWith("—"))).toBe(true);
-    expect(unknown.nodes.every((node) => node.detail.includes("Needs RuneLite"))).toBe(true);
+    // Unverified rows carry a fact each, not three copies of the same caveat.
+    // The "RuneLite is needed" sentence belongs to the route summary and is
+    // stated exactly once — it used to be repeated on every row, so the page
+    // said it four times and the rows told the player nothing.
+    expect(unknown.summary).toContain("RuneLite is needed");
+    expect(unknown.nodes.every((node) => node.metric.match(/^\d+ tracked$/))).toBe(true);
+    expect(unknown.nodes.every((node) => node.detail.startsWith("Rarest tracked:"))).toBe(true);
+    expect(unknown.nodes.some((node) => node.detail.includes("Needs RuneLite"))).toBe(false);
   });
 });

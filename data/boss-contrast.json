@@ -1,0 +1,443 @@
+{
+  "ground": "#1C1811",
+  "note": "contrast is the sprite's mean luminance against the ground; lostShare is the fraction of visible pixels under 3:1. `homepage` covers the twelve curated wiki renders the front page rotates through — those are what a visitor sees.",
+  "homepage": {
+    "vorkath": {
+      "contrast": 2.19,
+      "lostShare": 0.74,
+      "coverage": 1
+    },
+    "zulrah": {
+      "contrast": 4.36,
+      "lostShare": 0.48,
+      "coverage": 0.35
+    },
+    "cerberus": {
+      "contrast": 1.07,
+      "lostShare": 0.98,
+      "coverage": 1
+    },
+    "nex": {
+      "contrast": 1.6,
+      "lostShare": 0.86,
+      "coverage": 1
+    },
+    "araxxor": {
+      "contrast": 1.73,
+      "lostShare": 0.94,
+      "coverage": 0.25
+    },
+    "vardorvis": {
+      "contrast": 1.36,
+      "lostShare": 0.94,
+      "coverage": 1
+    },
+    "corporeal-beast": {
+      "contrast": 3.62,
+      "lostShare": 0.48,
+      "coverage": 0.46
+    },
+    "kraken": {
+      "contrast": 2.65,
+      "lostShare": 0.57,
+      "coverage": 1
+    },
+    "alchemical-hydra": {
+      "contrast": 2.26,
+      "lostShare": 0.87,
+      "coverage": 0.36
+    },
+    "phantom-muspah": {
+      "contrast": 2.22,
+      "lostShare": 0.81,
+      "coverage": 0.46
+    },
+    "general-graardor": {
+      "contrast": 2.02,
+      "lostShare": 0.81,
+      "coverage": 1
+    },
+    "duke-sucellus": {
+      "contrast": 3.31,
+      "lostShare": 0.45,
+      "coverage": 0.75
+    }
+  },
+  "bosses": {
+    "akkha": {
+      "contrast": 5.38,
+      "lostShare": 0.28,
+      "coverage": 0.45
+    },
+    "amoxliatl": {
+      "contrast": 8.38,
+      "lostShare": 0.1,
+      "coverage": 0.23
+    },
+    "araxxor": {
+      "contrast": 1.72,
+      "lostShare": 0.95,
+      "coverage": 0.25
+    },
+    "artio": {
+      "contrast": 2.2,
+      "lostShare": 0.87,
+      "coverage": 0.63
+    },
+    "ba-ba": {
+      "contrast": 2.7,
+      "lostShare": 0.72,
+      "coverage": 0.55
+    },
+    "barrows": {
+      "contrast": 1.47,
+      "lostShare": 0.99,
+      "coverage": 1
+    },
+    "bloat": {
+      "contrast": 4.93,
+      "lostShare": 0.21,
+      "coverage": 0.36
+    },
+    "bryophyta": {
+      "contrast": 2.39,
+      "lostShare": 0.81,
+      "coverage": 0.38
+    },
+    "callisto": {
+      "contrast": 2.2,
+      "lostShare": 0.87,
+      "coverage": 0.63
+    },
+    "calvarion": {
+      "contrast": 2.65,
+      "lostShare": 0.72,
+      "coverage": 0.46
+    },
+    "cerberus": {
+      "contrast": 1.43,
+      "lostShare": 0.94,
+      "coverage": 0.38
+    },
+    "chaos-elemental": {
+      "contrast": 2.34,
+      "lostShare": 0.82,
+      "coverage": 0.44
+    },
+    "chaos-fanatic": {
+      "contrast": 6.05,
+      "lostShare": 0.28,
+      "coverage": 0.41
+    },
+    "corp": {
+      "contrast": 3.59,
+      "lostShare": 0.49,
+      "coverage": 0.46
+    },
+    "cox": {
+      "contrast": 4.67,
+      "lostShare": 0.6,
+      "coverage": 0.5
+    },
+    "crazy-archaeologist": {
+      "contrast": 3.2,
+      "lostShare": 0.68,
+      "coverage": 0.56
+    },
+    "demonic-gorillas": {
+      "contrast": 2.84,
+      "lostShare": 0.75,
+      "coverage": 0.27
+    },
+    "deranged-archaeologist": {
+      "contrast": 3.04,
+      "lostShare": 0.59,
+      "coverage": 0.52
+    },
+    "dks-prime": {
+      "contrast": 2.16,
+      "lostShare": 0.93,
+      "coverage": 0.37
+    },
+    "dks-rex": {
+      "contrast": 2.48,
+      "lostShare": 0.81,
+      "coverage": 0.43
+    },
+    "dks-supreme": {
+      "contrast": 2.04,
+      "lostShare": 0.93,
+      "coverage": 0.37
+    },
+    "duke-sucellus": {
+      "contrast": 3.29,
+      "lostShare": 0.45,
+      "coverage": 0.75
+    },
+    "fortis-colosseum": {
+      "contrast": 4.71,
+      "lostShare": 0.32,
+      "coverage": 0.34
+    },
+    "galvek": {
+      "contrast": 2.08,
+      "lostShare": 0.91,
+      "coverage": 0.36
+    },
+    "giant-mole": {
+      "contrast": 2.1,
+      "lostShare": 0.89,
+      "coverage": 0.54
+    },
+    "graardor": {
+      "contrast": 2.02,
+      "lostShare": 0.81,
+      "coverage": 1
+    },
+    "grotesque-guardians": {
+      "contrast": 1.85,
+      "lostShare": 0.98,
+      "coverage": 0.27
+    },
+    "guardians-of-the-rift": {
+      "contrast": 4.6,
+      "lostShare": 0.29,
+      "coverage": 0.51
+    },
+    "hespori": {
+      "contrast": 4.2,
+      "lostShare": 0.1,
+      "coverage": 0.34
+    },
+    "hueycoatl": {
+      "contrast": 4.57,
+      "lostShare": 0.24,
+      "coverage": 0.61
+    },
+    "hydra": {
+      "contrast": 2.25,
+      "lostShare": 0.88,
+      "coverage": 0.37
+    },
+    "kalphite-queen": {
+      "contrast": 2.73,
+      "lostShare": 0.74,
+      "coverage": 0.37
+    },
+    "kbd": {
+      "contrast": 1.31,
+      "lostShare": 0.96,
+      "coverage": 0.49
+    },
+    "kephri": {
+      "contrast": 2.54,
+      "lostShare": 0.79,
+      "coverage": 0.4
+    },
+    "king-black-dragon": {
+      "contrast": 1.31,
+      "lostShare": 0.96,
+      "coverage": 0.49
+    },
+    "kraken": {
+      "contrast": 4.53,
+      "lostShare": 0.12,
+      "coverage": 0.49
+    },
+    "kree": {
+      "contrast": 2.88,
+      "lostShare": 0.6,
+      "coverage": 0.44
+    },
+    "kril": {
+      "contrast": 1.86,
+      "lostShare": 0.89,
+      "coverage": 0.35
+    },
+    "leviathan": {
+      "contrast": 2.72,
+      "lostShare": 0.66,
+      "coverage": 0.51
+    },
+    "maiden": {
+      "contrast": 1.82,
+      "lostShare": 0.94,
+      "coverage": 1
+    },
+    "mimic": {
+      "contrast": 2.16,
+      "lostShare": 0.79,
+      "coverage": 0.57
+    },
+    "moons-of-peril": {
+      "contrast": 3.39,
+      "lostShare": 0.32,
+      "coverage": 0.76
+    },
+    "muttadile": {
+      "contrast": 2.96,
+      "lostShare": 0.62,
+      "coverage": 0.48
+    },
+    "nex": {
+      "contrast": 3.42,
+      "lostShare": 0.52,
+      "coverage": 0.3
+    },
+    "nylo": {
+      "contrast": 1.8,
+      "lostShare": 0.9,
+      "coverage": 1
+    },
+    "obor": {
+      "contrast": 3.06,
+      "lostShare": 0.61,
+      "coverage": 1
+    },
+    "olm": {
+      "contrast": 4.67,
+      "lostShare": 0.6,
+      "coverage": 0.5
+    },
+    "phantom-muspah": {
+      "contrast": 2.2,
+      "lostShare": 0.81,
+      "coverage": 0.46
+    },
+    "sarachnis": {
+      "contrast": 1.4,
+      "lostShare": 0.97,
+      "coverage": 0.23
+    },
+    "scorpia": {
+      "contrast": 1.95,
+      "lostShare": 0.9,
+      "coverage": 0.3
+    },
+    "sire": {
+      "contrast": 1,
+      "lostShare": 0.99,
+      "coverage": 1
+    },
+    "skotizo": {
+      "contrast": 1.33,
+      "lostShare": 0.99,
+      "coverage": 0.45
+    },
+    "sotetseg": {
+      "contrast": 1.28,
+      "lostShare": 0.97,
+      "coverage": 0.59
+    },
+    "spindel": {
+      "contrast": 1.43,
+      "lostShare": 0.98,
+      "coverage": 0.31
+    },
+    "tekton": {
+      "contrast": 1.45,
+      "lostShare": 0.93,
+      "coverage": 1
+    },
+    "tempoross": {
+      "contrast": 6.3,
+      "lostShare": 0.03,
+      "coverage": 0.46
+    },
+    "thermonuclear": {
+      "contrast": 4.27,
+      "lostShare": 0.45,
+      "coverage": 0.31
+    },
+    "toa": {
+      "contrast": 2.4,
+      "lostShare": 0.76,
+      "coverage": 0.53
+    },
+    "tob": {
+      "contrast": 2.71,
+      "lostShare": 0.8,
+      "coverage": 0.39
+    },
+    "tzkal-zuk": {
+      "contrast": 1.4,
+      "lostShare": 0.99,
+      "coverage": 0.5
+    },
+    "tztok-jad": {
+      "contrast": 1.29,
+      "lostShare": 1,
+      "coverage": 0.65
+    },
+    "vardorvis": {
+      "contrast": 2.28,
+      "lostShare": 0.82,
+      "coverage": 0.36
+    },
+    "vasa": {
+      "contrast": 2.96,
+      "lostShare": 0.53,
+      "coverage": 0.36
+    },
+    "venenatis": {
+      "contrast": 1.43,
+      "lostShare": 0.98,
+      "coverage": 0.31
+    },
+    "verzik": {
+      "contrast": 2.71,
+      "lostShare": 0.8,
+      "coverage": 0.39
+    },
+    "vespula": {
+      "contrast": 2.08,
+      "lostShare": 0.87,
+      "coverage": 0.23
+    },
+    "vetion": {
+      "contrast": 2.65,
+      "lostShare": 0.72,
+      "coverage": 0.46
+    },
+    "vorkath": {
+      "contrast": 4.36,
+      "lostShare": 0.3,
+      "coverage": 0.39
+    },
+    "warden": {
+      "contrast": 2.4,
+      "lostShare": 0.76,
+      "coverage": 0.53
+    },
+    "whisperer": {
+      "contrast": 1.98,
+      "lostShare": 0.84,
+      "coverage": 0.41
+    },
+    "xarpus": {
+      "contrast": 1.97,
+      "lostShare": 0.78,
+      "coverage": 0.55
+    },
+    "zalcano": {
+      "contrast": 1.71,
+      "lostShare": 0.98,
+      "coverage": 0.41
+    },
+    "zebak": {
+      "contrast": 2.76,
+      "lostShare": 0.68,
+      "coverage": 0.54
+    },
+    "zilyana": {
+      "contrast": 4.27,
+      "lostShare": 0.41,
+      "coverage": 0.49
+    },
+    "zulrah": {
+      "contrast": 4.34,
+      "lostShare": 0.49,
+      "coverage": 0.35
+    }
+  }
+}

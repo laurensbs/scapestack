@@ -163,6 +163,14 @@ export function PlayerToolsSections({
               The bank saved on this device could not be read. Paste it again on the bank intake.
             </p>
           )}
+          {!hasSyncedBankAnswers && local === null && (
+            // Said once, here. It used to appear four times on one screen —
+            // three hardcoded inside the sections and a fourth from /u's own
+            // bank block — because one boolean gates all four answers.
+            <p data-bank-answers-empty="true" className="max-w-[65ch] border-y border-[var(--color-border)] py-4 text-[length:var(--text-body)] font-normal text-[var(--color-text-muted)]">
+              These four answers need your bank. Sync RuneLite once and they fill in — bank contents stay private to your paired browser.
+            </p>
+          )}
           {activeGoal ? <>{setsSection}{bossesSection}</> : <>{bossesSection}{setsSection}</>}
           <PlayerTaskSection decision={task} emptyReason={emptyTaskReason} />
           <MoneyMethodsPanel report={local?.money ?? money} cannotBuy={cannotBuy} />

@@ -88,10 +88,15 @@ export function PinnedGoalsPanel({
   const [goals, setGoals] = useState<PinnedGoal[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [completionNotice, setCompletionNotice] = useState<PinnedGoal | null>(null);
+  // One click re-renders the plan above and the routes below; without a
+  // confirmation the page just teleports under the cursor. Same inline shape
+  // as the completion notice, so no new surface and no new section.
+  const [pinNotice, setPinNotice] = useState<PinnedGoal | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [query, setQuery] = useState("");
   const checkedCompletionSignature = useRef("");
   const searchRef = useRef<HTMLInputElement>(null);
+  const addGoalRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     let active = true;
@@ -143,6 +148,10 @@ export function PinnedGoalsPanel({
     setGoals(pinGoalLocally(rsn, goal));
     setQuery("");
     setPickerOpen(false);
+    setPinNotice(goal);
+    // The picker unmounts on the same tick and takes the clicked button —
+    // and the keyboard focus — with it. Hand focus to what replaces it.
+    requestAnimationFrame(() => addGoalRef.current?.focus());
     if (canSync) void saveServerGoal(goal);
   }
 
@@ -156,6 +165,18 @@ export function PinnedGoalsPanel({
       <h2 id="pinned-goals-title" className="scape-section-name">
         Your goals
       </h2>
+
+      {pinNotice && !completionNotice && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-y border-[var(--color-border)] py-3" data-pinned-goal-added={pinNotice.key}>
+          <p className="text-[length:var(--text-body)] text-[var(--color-text)]">
+            <span className="scape-verdict" data-gate="ready">Pinned</span>
+            <span> — {pinNotice.target}. Tonight&apos;s plan is about this now.</span>
+          </p>
+          <button type="button" className="min-h-11 text-[length:var(--text-micro)] font-normal text-[var(--color-text-secondary)] underline underline-offset-4" onClick={() => setPinNotice(null)}>
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {completionNotice && (
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-y border-[var(--color-border)] py-3" data-pinned-goal-complete={completionNotice.key}>
@@ -200,7 +221,7 @@ export function PinnedGoalsPanel({
             })}
           </ul>
           {!showPicker && (
-            <button type="button" className="mt-3 min-h-11 text-[length:var(--text-body)] text-[var(--color-text-secondary)] hover:underline" onClick={openPicker}>
+            <button ref={addGoalRef} type="button" className="mt-3 min-h-11 text-[length:var(--text-body)] text-[var(--color-text-secondary)] hover:underline" onClick={openPicker}>
               + Add goal
             </button>
           )}

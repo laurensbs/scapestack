@@ -100,7 +100,7 @@ export function PlayerBossesSection({
           <p className="scape-table-note">Worn gear is not counted. Every answer uses the combat levels above and items in the synced bank.</p>
         </>
       ) : (
-        <p className="mt-2 max-w-[65ch] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text-muted)]">No synced bank is available for a boss answer.</p>
+        <p className="mt-2 max-w-[65ch] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text-muted)]">Waiting on your bank.</p>
       )}
     </section>
   );

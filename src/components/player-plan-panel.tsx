@@ -8,6 +8,7 @@ import { usePinnedGoals } from "@/components/use-pinned-goals";
 import { markAccountTrip } from "@/lib/account-storage";
 import { pickForRoute } from "@/lib/mood";
 import type { NextUpResult, Recommendation } from "@/lib/next-up";
+import { buildPinnedGoalTrip } from "@/lib/pinned-goal-trip";
 import { buildNextUpInputFromSources } from "@/lib/planning-input";
 import type { PlanningContextPayload } from "@/lib/planning-context";
 import {
@@ -93,12 +94,28 @@ export function PlayerPlanPanel({
     () => allRecs.filter((rec) => !feedback.suppressed[rec.id]),
     [allRecs, feedback]
   );
-  const goalMovingRecs = useMemo(
-    () => activeGoal
-      ? visibleRecs.filter((rec) => recommendationMovesPinnedGoal(rec, activeGoal, goalBossSources))
-      : [],
-    [activeGoal, goalBossSources, visibleRecs]
-  );
+  // A pinned level goal the catalogue cannot serve gets a trip built for it.
+  // Without this the panel used to fall back to a general pick and tell the
+  // player "nothing in this 60-minute list moves <your goal>" — the product
+  // refusing the intention it just invited them to state.
+  const goalTrip = useMemo(() => {
+    if (!activeGoal) return null;
+    const skills = initialContext.hiscores?.skills;
+    if (!skills?.length) return null;
+    return buildPinnedGoalTrip({
+      goal: activeGoal,
+      skills,
+      bank: bankItems.length > 0 ? bankItems : undefined,
+      accountType: result?.summary.accountMode.type ?? null,
+      sessionMinutes: PLAYER_MINUTES
+    });
+  }, [activeGoal, bankItems, initialContext.hiscores?.skills, result]);
+  const goalMovingRecs = useMemo(() => {
+    if (!activeGoal) return [];
+    const matching = visibleRecs.filter((rec) => recommendationMovesPinnedGoal(rec, activeGoal, goalBossSources));
+    if (matching.length > 0) return matching;
+    return goalTrip && !feedback.suppressed[goalTrip.id] ? [goalTrip] : [];
+  }, [activeGoal, feedback, goalBossSources, goalTrip, visibleRecs]);
   const candidateRecs = goalMovingRecs.length > 0 ? goalMovingRecs : visibleRecs;
   const preferredPick = useMemo(() => result ? pickForRoute(
     candidateRecs,
@@ -117,12 +134,16 @@ export function PlayerPlanPanel({
     { honestyContext: { hasPublicStats, hasBank, hasRuneLite } }
   ) : null, [goalMovingRecs.length, hasBank, hasPublicStats, hasRuneLite, result, visibleRecs]);
   const basePick = preferredPick ?? fallbackPick;
+  const selectableRecs = useMemo(
+    () => (goalTrip ? [goalTrip, ...visibleRecs] : visibleRecs),
+    [goalTrip, visibleRecs]
+  );
   const activeRec = selectedRecommendationId
-    ? visibleRecs.find((rec) => rec.id === selectedRecommendationId) ?? basePick?.headline ?? null
+    ? selectableRecs.find((rec) => rec.id === selectedRecommendationId) ?? basePick?.headline ?? null
     : basePick?.headline ?? null;
   const alternatives = activeRec && basePick
     ? orderRecommendationsForGoal(
-        [basePick.headline, ...basePick.alternatives, ...visibleRecs],
+        [basePick.headline, ...basePick.alternatives, ...selectableRecs],
         activeGoal,
         goalBossSources
       )

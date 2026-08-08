@@ -1555,3 +1555,33 @@ body.scapestack-clean-shot main {
   color: var(--color-text-muted);
   line-height: 1.1;
 }
+
+/* A boss render that can actually be seen.
+   Measured 2026-08-08 against this ground: nine of the twelve curated homepage
+   renders sat under 3:1 — Cerberus at 1.07:1 is the same luminance as the page
+   behind it. Three days out of four the front page's subject was an empty
+   rectangle with a caption under it.
+   Curation was not available (only three of twelve cleared 3:1), so the fix is
+   a treatment. The game itself outlines NPCs on hover; layered drop-shadows in
+   the accent gold do the same to a transparent PNG, and they work regardless of
+   how dark the sprite's own pixels are. The brightness lift is deliberately
+   small — enough to separate the mass from the ground, not enough to wash the
+   render out. */
+.boss-render {
+  filter:
+    drop-shadow(0 0 1px rgba(201, 169, 97, 0.75))
+    drop-shadow(0 0 3px rgba(201, 169, 97, 0.4))
+    drop-shadow(0 0 10px rgba(201, 169, 97, 0.16))
+    brightness(1.18) contrast(1.06);
+}
+
+/* The plate the render stands on. Lifting the ground under the subject buys
+   contrast for every boss at once, which a per-boss rule cannot. */
+.boss-plate {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(58, 50, 38, 0.95) 0%,
+    rgba(42, 35, 24, 0.66) 46%,
+    transparent 74%
+  );
+}

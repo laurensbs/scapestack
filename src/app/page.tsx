@@ -34,7 +34,7 @@ export default async function HomePage() {
             className="pointer-events-none absolute -right-32 top-0 z-0 flex h-80 w-[26rem] flex-col items-center justify-end sm:relative sm:right-auto sm:h-[32rem] sm:w-auto"
           >
             <span className="relative flex h-full w-full items-end justify-center opacity-[0.16] sm:opacity-100">
-              <span aria-hidden="true" className="absolute inset-4 bg-[radial-gradient(ellipse_at_center,rgba(42,35,24,0.92)_0%,rgba(28,24,17,0.48)_48%,transparent_74%)]" />
+              <span aria-hidden="true" className="boss-plate absolute inset-4" />
               <span aria-hidden="true" className="absolute bottom-8 h-10 w-[68%] rounded-[50%] bg-black/45 blur-xl" />
               <Image
                 src={`/api/sprite/boss/${boss.slug}`}
@@ -44,7 +44,7 @@ export default async function HomePage() {
                 height={boss.height}
                 priority
                 sizes="(max-width: 639px) 420px, (max-width: 1199px) 40vw, 520px"
-                className="relative z-10 h-[22rem] w-[26rem] object-contain object-bottom sm:h-[32rem] sm:w-[clamp(23.75rem,40vw,32.5rem)]"
+                className="boss-render relative z-10 h-[22rem] w-[26rem] object-contain object-bottom sm:h-[32rem] sm:w-[clamp(23.75rem,40vw,32.5rem)]"
               />
             </span>
             <figcaption className="absolute bottom-0 right-36 whitespace-nowrap text-center text-[length:var(--text-micro)] font-normal text-[var(--color-text-muted)] sm:left-1/2 sm:right-auto sm:-translate-x-1/2">

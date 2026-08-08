@@ -38,10 +38,13 @@ export function HeroIntake() {
         spellCheck={false}
         className="h-13 min-w-0 rounded-none border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3.5 text-[length:var(--text-subject)] font-normal text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)] sm:h-12"
       />
+      {/* Not disabled: on first paint rsn is always "" — SSR and pre-hydration
+          both — so the page's only call to action rendered grey-on-grey and
+          read as broken. The submit handler already returns early on an empty
+          name, so the button can stay alive and just do nothing. */}
       <button
         type="submit"
-        disabled={!rsn.trim()}
-        className="inline-flex h-13 items-center justify-center rounded-none bg-[var(--color-accent)] px-6 text-[length:var(--text-body)] font-semibold text-[#0B0906] transition-colors hover:bg-[var(--color-accent-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)] disabled:cursor-not-allowed disabled:bg-[var(--color-border-strong)] disabled:text-[var(--color-text-secondary)] sm:h-12"
+        className="inline-flex h-13 items-center justify-center rounded-none bg-[var(--color-accent)] px-6 text-[length:var(--text-body)] font-semibold text-[#0B0906] transition-colors hover:bg-[var(--color-accent-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)] sm:h-12"
       >
         Open my page
       </button>

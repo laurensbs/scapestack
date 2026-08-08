@@ -171,12 +171,17 @@ export function buildCollectionLogRoute(input: {
       return {
         id: `collection:${entry.boss.slug}`,
         title: entry.boss.name,
+        // Unverified rows say the rarest drop and nothing else. The caveat
+        // ("RuneLite is needed…") is the route summary's job and is stated
+        // once; it used to be repeated verbatim on all three rows, so the
+        // page said the same sentence four times in a row and the rows
+        // carried no information the player could act on.
         detail: verified
           ? `Rarest missing: ${entry.rarest.name} · ${entry.rarest.rarity}.`
-          : `Needs RuneLite to count this boss's missing slots. Rarest tracked: ${entry.rarest.name} · ${entry.rarest.rarity}.`,
+          : `Rarest tracked: ${entry.rarest.name} · ${entry.rarest.rarity}.`,
         metric: verified
           ? `${missingCount} slot${missingCount === 1 ? "" : "s"} missing`
-          : "— slots missing",
+          : `${entry.slots.length} tracked`,
         state: verified ? index === 0 ? "current" : "future" : "unknown",
         iconItemId: entry.boss.iconItemId!
       };
