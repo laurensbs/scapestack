@@ -526,6 +526,81 @@ if either assertion fails, fix the state, not the assertion.
 
 ---
 
+## 16. Driven in Chrome, 2026-08-08 — what a returning player actually meets
+
+The budget work made the page short. This section is what was still wrong when
+someone used it, as the account owner, in a real browser.
+
+### 16a. The product refused the goal it had just invited
+
+Pinning "95 Fletching" at 94/95 produced:
+
+> Nothing in this 60-minute list moves 95 Fletching. Here is something else
+> worth doing.
+
+Structural, not a missing row. Every generator in `next-up.ts` reads a
+hand-written constant; the skill generator reads `SKILL_MILESTONES` — **eight
+skills, fifteen levels, no Fletching, never 95** — while the goal picker offers
+`[70, 80, 85, 90, 92, 95, 99]` across **all twenty-four**. The picker and the
+engine were built against different ladders, so the app has been suggesting
+goals it structurally cannot answer.
+
+Fixed by building the trip from the goal (`src/lib/pinned-goal-trip.ts`);
+`buildSkillRoute` already did the work for any skill at any level. The test
+that matters walks the picker's own catalogue and fails when it offers a goal
+the engine cannot serve — the assertion that would have caught this.
+
+**The general rule this exposes:** any catalogue the UI can index into must be
+tested against the UI's own index, not against a sample.
+
+### 16b. The homepage subject was invisible three days out of four
+
+"Today's boss · Phantom Muspah" over an empty rectangle. The PNG had loaded and
+nothing was dimming it — the render is dark on a `#1C1811` ground. Measured
+across all twelve curated renders:
+
+| | contrast vs ground |
+|---|---|
+| Cerberus | **1.07:1** — the same luminance as the page |
+| Vardorvis | 1.36:1 |
+| Nex | 1.60:1 |
+| Vorkath | 2.19:1 |
+| Zulrah | 4.36:1 |
+
+**Nine of twelve under 3:1.** Curation was not available — only three clear it —
+so the fix is a treatment: layered gold drop-shadows outline the sprite the way
+the game outlines an NPC, on a lifted plate.
+`scripts/measure-boss-contrast.mjs` commits the numbers.
+
+**The rule:** a design token changed under existing art is a change to the art.
+The ground moved to `#1C1811` in Task 6 and nothing re-checked what stood on it.
+
+### 16c. Still open, and honest about it
+
+- **The owner is treated as a stranger.** In the owner's own browser, with the
+  account in the nav and "synced 9 days ago" in the header, the page still says
+  "Hiscores only" and shows em dashes, because `resolveViewerRsn()` needs the
+  `scapestack_account` cookie and nothing on `/p` or `/u` offers to set it. The
+  pairing step is reachable only from `/plugin`. **Next task: an inline "this is
+  me" on the page that already knows the RSN.**
+- **Three vertical trust claims.** "synced 9 days ago" / "Hiscores only" /
+  "RuneLite filtered finished work" appear within 200px of each other because
+  the planner (server-side, pre-redaction) and identity (owner-gated) have
+  different gates. A player reads that as a confused product.
+  `signalCoverageForSyncedPlayer` in `plugin-sync-diagnostics.ts` already
+  produces the honest one-liner and **is imported by zero files under `src/`**.
+- **The return reason is built and dark.** Farming and birdhouse timers are
+  plumbed end-to-end — plugin reader, contract, DB column, redaction, and a
+  finished presenter (`farmingCoverage`, which emits exactly
+  "2 ready · next in 1h 20m") — and rendered nowhere. It cannot light up yet:
+  contract 4 ships with plugin 0.4.0, which is deliberately unsubmitted, so no
+  production row carries farming today. **The server must accept it first —
+  it does — and the surface should be built before 0.4.0 goes out, not after.**
+  "Your herbs are ready in 40 minutes" is the only sentence in this product
+  with a clock in it, and a clock is what brings people back.
+
+---
+
 ## 14. What not to do
 
 **Do not add a section.** Three is the budget. If something new is worth adding,
