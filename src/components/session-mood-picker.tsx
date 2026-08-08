@@ -60,11 +60,11 @@ export function SessionMoodPicker({
         aria-expanded={open}
         className={cn(
           wide
-            ? "group flex min-h-[68px] w-full items-center justify-between gap-3 rounded-lg border border-[var(--color-parchment-edge)] bg-[var(--color-parchment-dark)]/42 px-3 py-3 text-left shadow-[inset_0_1px_0_rgba(245,236,221,0.05)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-parchment)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/45"
+            ? "group flex min-h-[68px] w-full items-center justify-between gap-3 rounded-none border border-[var(--color-parchment-edge)] bg-[var(--color-parchment-dark)]/42 px-3 py-3 text-left shadow-[inset_0_1px_0_rgba(245,236,221,0.05)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-parchment)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/45"
             : mobileTile
-              ? "flex min-h-14 flex-col items-center justify-center rounded-lg border border-transparent px-1.5 text-center text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)]"
+              ? "flex min-h-14 flex-col items-center justify-center rounded-none border border-transparent px-1.5 text-center text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)]"
               : "inline-flex items-center gap-1 whitespace-nowrap rounded-full px-1.5 py-1 transition-colors hover:text-[var(--color-accent)]",
-          compact && !mobileTile && !wide && "rounded-lg border border-[var(--color-border)] px-2 py-1.5",
+          compact && !mobileTile && !wide && "rounded-none border border-[var(--color-border)] px-2 py-1.5",
           className
         )}
       >
@@ -78,7 +78,7 @@ export function SessionMoodPicker({
                 Tap to pick Chill, GP, Bossing, Unlock, AFK or Short.
               </span>
             </span>
-            <span className="inline-flex shrink-0 items-center gap-2 rounded-md border border-[var(--color-gold-deep)] bg-[var(--color-accent)] px-3 py-2 text-[13px] font-extrabold text-[#0B0906] shadow-[inset_0_1px_0_rgba(255,241,168,0.32),inset_0_-2px_0_rgba(0,0,0,0.22)]">
+            <span className="inline-flex shrink-0 items-center gap-2 rounded-none border border-[var(--color-gold-deep)] bg-[var(--color-accent)] px-3 py-2 text-[13px] font-extrabold text-[#0B0906] shadow-[inset_0_1px_0_rgba(255,241,168,0.32),inset_0_-2px_0_rgba(0,0,0,0.22)]">
               <Sword className="size-3.5 text-[#0B0906]" />
               <span className="max-w-[92px] truncate">{picked}</span>
               <ChevronRight className="size-3.5 text-[#0B0906] transition-transform group-hover:translate-x-0.5" />
@@ -140,10 +140,10 @@ export function SessionMoodPicker({
                     type="button"
                     onClick={() => chooseMood(mood, minutes)}
                     aria-pressed={selected}
-                    className="min-h-[88px] rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/58 px-3 py-3 text-left shadow-[inset_0_1px_0_rgba(245,236,221,0.04)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-parchment)]"
+                    className="min-h-[88px] rounded-none border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/58 px-3 py-3 text-left shadow-[inset_0_1px_0_rgba(245,236,221,0.04)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-parchment)]"
                   >
                     <span className="flex items-center gap-2">
-                      <span className="inline-flex size-8 items-center justify-center rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10">
+                      <span className="inline-flex size-8 items-center justify-center rounded-none border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10">
                         <ItemSprite id={meta.itemId} alt="" size={22} />
                       </span>
                       <span className="text-[14px] font-bold text-[var(--color-text)]">{meta.name}</span>

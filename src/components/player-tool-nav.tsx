@@ -9,7 +9,7 @@ const SECTIONS: Array<{ id: PlayerToolSection; label: string; question: string }
 
 export function PlayerToolNav() {
   return (
-    <nav aria-label="Questions about this bank" className="mb-2 mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-border)] sm:grid-cols-4">
+    <nav aria-label="Questions about this bank" className="mb-2 mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-none border border-[var(--color-border)] bg-[var(--color-border)] sm:grid-cols-4">
       {SECTIONS.map((section) => (
         <a
           key={section.id}

@@ -28,7 +28,25 @@ function player(overrides: Partial<SyncedPlayer> = {}): SyncedPlayer {
       taskName: "Abyssal demons", taskLocation: "Catacombs", blocks: []
     },
     pluginVersion: "0.3.0",
-    lastSyncSummary: null,
+    // A REAL summary, not null: the 2026-08-08 adversarial pass found the
+    // never-leaks test below passing vacuously because this field was null
+    // while redactSyncedPlayer spread it straight through to strangers —
+    // collection-log item names and exact xpGained included.
+    lastSyncSummary: {
+      previousSyncedAt: "2026-07-20T12:00:00.000Z",
+      questsCompleted: ["Desert Treasure II"],
+      diariesCompleted: [{ region: "Kandarin", tier: "Elite" }],
+      collectionLogItemIds: [27277],
+      collectionLogItems: [{ id: 27277, name: "Tumeken's shadow (uncharged)" }],
+      skills: [{ name: "Slayer", previousLevel: 98, currentLevel: 99, xpGained: 1234567 }],
+      bank: {
+        previousItemCount: 1,
+        currentItemCount: 2,
+        previousUnavailableReason: null,
+        currentUnavailableReason: null,
+        enabledChanged: false
+      }
+    },
     syncedAt: "2026-07-25T12:00:00.000Z",
     ...overrides
   } as SyncedPlayer;
@@ -58,6 +76,13 @@ describe("synced player visibility", () => {
     expect(serialised).not.toContain("2147000000");
     expect(serialised).not.toContain("Abyssal demons");
     expect(serialised).not.toContain("Catacombs");
+    // The four fields the old spread passed through untouched:
+    expect(serialised, "summary leaks item names").not.toContain("Tumeken");
+    expect(serialised, "summary leaks exact XP").not.toContain("1234567");
+    expect(serialised, "quest list leaks").not.toContain("Dragon Slayer II");
+    expect(serialised, "summary quest list leaks").not.toContain("Desert Treasure II");
+    expect(serialised, "diary list leaks").not.toContain("Varrock");
+    expect(serialised, "boss KC leaks").not.toContain("Vorkath");
   });
 
   it("drops exact XP but keeps the levels the Hiscores already publish", () => {
@@ -76,7 +101,9 @@ describe("synced player visibility", () => {
       // and redacted like the bank once one has.
       equipmentItems: 0,
       farmingPatches: 0,
-      hasCombatAchievements: false
+      hasCombatAchievements: false,
+      questsCompleted: 1,
+      diariesCompleted: 1
     });
     // Status, freshness and account type are not secrets — they drive copy.
     expect(seen.bankStatus.enabled).toBe(true);

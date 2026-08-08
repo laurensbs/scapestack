@@ -14,7 +14,10 @@ function first(value: string | string[] | undefined): string {
 }
 
 export function playerToolSectionPath(rsn: string, section: PlayerToolSection): string {
-  return `${playerPath(rsn)}#${section}`;
+  // /u, not /p: the four tool sections moved to the account detail page on
+  // 2026-08-08 (found by the adversarial pass — every /dps, /goals, /slayer
+  // and mobile-bar entry pointed at an anchor that no longer existed).
+  return `/u/${encodeURIComponent(rsn)}#${section}`;
 }
 
 export function bankIntakeForSection(section: PlayerToolSection): string {

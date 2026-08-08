@@ -24,12 +24,25 @@ import type { SyncedPlayer } from "./sync-repo";
 /** The snapshot as a non-owner may see it: shape-compatible, contents removed. */
 export type PublicSyncedPlayer = Omit<
   SyncedPlayer,
-  "bankItems" | "collectionLogItemIds" | "skills" | "slayer" | "equipment" | "farming" | "combatAchievements"
+  | "bankItems" | "collectionLogItemIds" | "skills" | "slayer" | "equipment"
+  | "farming" | "combatAchievements" | "questsCompleted" | "diariesCompleted"
+  | "bossKc" | "lastSyncSummary"
 > & {
   bankItems: [];
   collectionLogItemIds: [];
   skills: Array<{ name: string; level: number }>;
   slayer: null;
+  /* Found by the 2026-08-08 adversarial pass: the spread in redactSyncedPlayer
+     passed these four straight through, and lastSyncSummary alone carried
+     collection-log item NAMES and exact per-skill xpGained — the two classes
+     this file documents as deliberately stripped. The guard test never caught
+     it because its fixture set lastSyncSummary to null. Quest and diary
+     completion are on no public API; boss KC below the hiscores threshold is
+     not either. Strangers get the counts, never the lists. */
+  questsCompleted: [];
+  diariesCompleted: [];
+  bossKc: null;
+  lastSyncSummary: null;
   // The contract v4 domains start fully redacted, and loosening any of them
   // later is a deliberate decision like slayerTaskProjection was — never a
   // default. Equipment is the player's gear worth, same class as the bank.
@@ -48,6 +61,8 @@ export type PublicSyncedPlayer = Omit<
     equipmentItems: number;
     farmingPatches: number;
     hasCombatAchievements: boolean;
+    questsCompleted: number;
+    diariesCompleted: number;
   };
 };
 
@@ -76,6 +91,10 @@ export function redactSyncedPlayer(player: SyncedPlayer): PublicSyncedPlayer {
     equipment: null,
     farming: null,
     combatAchievements: null,
+    questsCompleted: [],
+    diariesCompleted: [],
+    bossKc: null,
+    lastSyncSummary: null,
     redacted: true,
     redactedCounts: {
       bankItems: player.bankItems.length,
@@ -83,7 +102,9 @@ export function redactSyncedPlayer(player: SyncedPlayer): PublicSyncedPlayer {
       hasSlayerTask: Boolean(player.slayer),
       equipmentItems: player.equipment?.length ?? 0,
       farmingPatches: player.farming?.length ?? 0,
-      hasCombatAchievements: Boolean(player.combatAchievements)
+      hasCombatAchievements: Boolean(player.combatAchievements),
+      questsCompleted: player.questsCompleted.length,
+      diariesCompleted: player.diariesCompleted.length
     }
   };
 }

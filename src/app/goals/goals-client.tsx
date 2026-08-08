@@ -263,7 +263,7 @@ export function GoalsClient() {
             setSkipHandoff(true);
           }}
           className={cn(
-            "flex min-h-11 items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12.5px]",
+            "flex min-h-11 items-center gap-1.5 rounded-none px-3 py-1.5 text-[12.5px]",
             "bg-transparent border border-[var(--color-border)] text-[var(--color-text-dim)]",
             "hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)] transition-colors"
           )}
@@ -314,7 +314,7 @@ export function GoalsClient() {
                   autoComplete="off"
                   spellCheck={false}
                   aria-describedby="goals-search-status"
-                  className="min-h-12 w-full rounded-xl border border-[var(--color-border)] bg-[#15120c] pl-10 pr-3 text-[13px] font-semibold text-[var(--color-text)] outline-none transition-colors placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)]"
+                  className="min-h-12 w-full rounded-none border border-[var(--color-border)] bg-[#15120c] pl-10 pr-3 text-[13px] font-semibold text-[var(--color-text)] outline-none transition-colors placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)]"
                 />
               </div>
               <label className="sr-only" htmlFor="goal-category">Unlock type</label>
@@ -322,7 +322,7 @@ export function GoalsClient() {
                 id="goal-category"
                 value={categoryFilter}
                 onChange={(event) => setCategoryFilter(event.target.value as GoalCategory | "all")}
-                className="min-h-12 rounded-xl border border-[var(--color-border)] bg-[#15120c] px-3 text-[13px] font-bold text-[var(--color-text)] outline-none focus:border-[var(--color-accent)]"
+                className="min-h-12 rounded-none border border-[var(--color-border)] bg-[#15120c] px-3 text-[13px] font-bold text-[var(--color-text)] outline-none focus:border-[var(--color-accent)]"
               >
                 <option value="all">Every unlock type</option>
                 {Object.entries(GOAL_CATEGORIES)
@@ -681,7 +681,7 @@ function NextUnlockCompanion({
   return (
     <section className="scape-focus overflow-hidden">
       <div className="grid gap-5 p-4 sm:p-6 md:grid-cols-[112px_minmax(0,1fr)]">
-        <div className="flex size-24 items-center justify-center self-start rounded-lg border border-[var(--color-accent)]/30 bg-black/30 sm:size-28">
+        <div className="flex size-24 items-center justify-center self-start rounded-none border border-[var(--color-accent)]/30 bg-black/30 sm:size-28">
           {rewardIconId ? (
             <ItemSprite id={rewardIconId} alt="" size={76} loading="eager" className="pixelated" />
           ) : (
@@ -809,7 +809,7 @@ function GoalUnlockModal({
       <section className="osrs-frame relative mx-auto w-full max-w-2xl overflow-hidden text-left shadow-[0_32px_90px_-22px_rgba(0,0,0,0.95)]">
         <header className="osrs-title-bar flex items-start justify-between gap-4 px-5 py-4 sm:px-6">
           <div className="flex min-w-0 gap-4">
-            <span className="grid size-20 shrink-0 place-items-center rounded-xl border border-[var(--color-accent)]/35 bg-black/35">
+            <span className="grid size-20 shrink-0 place-items-center rounded-none border border-[var(--color-accent)]/35 bg-black/35">
               {rewardIconId ? (
                 <ItemSprite id={rewardIconId} alt="" size={58} loading="eager" className="pixelated" />
               ) : (
@@ -893,7 +893,7 @@ function GoalUnlockModal({
                     onClick={() => onToggleManualCheck(key)}
                     aria-pressed={confirmed}
                     className={cn(
-                      "flex min-h-14 w-full items-center gap-3 rounded-xl border px-3 py-2 text-left transition-colors",
+                      "flex min-h-14 w-full items-center gap-3 rounded-none border px-3 py-2 text-left transition-colors",
                       confirmed
                         ? "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[var(--color-text)]"
                         : "border-[var(--color-border)] bg-black/15 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/35"
@@ -937,7 +937,7 @@ function GoalUnlockModal({
               href={wikiSearchUrl(target?.name ?? set.name)}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-12 flex-1 items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] px-4 text-[13px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-text)]"
+              className="inline-flex min-h-12 flex-1 items-center justify-center gap-1.5 rounded-none border border-[var(--color-border)] px-4 text-[13px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-text)]"
             >
               Open Wiki
               <ExternalLink className="size-3.5" />

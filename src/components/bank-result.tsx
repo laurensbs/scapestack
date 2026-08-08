@@ -494,7 +494,7 @@ function BankDecisionHero({
       <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
           <div className="flex min-w-0 items-center gap-2">
-            <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45">
+            <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45">
               <ItemSprite id={decision.iconItemId} alt="" size={30} />
             </span>
             <div className="min-w-0">
@@ -550,12 +550,12 @@ function BankDecisionHero({
               More
               <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" />
             </summary>
-            <div className="absolute right-0 z-20 mt-2 hidden w-52 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-2 shadow-[0_18px_55px_rgba(0,0,0,0.28)] group-open:block">
+            <div className="absolute right-0 z-20 mt-2 hidden w-52 rounded-none border border-[var(--color-border)] bg-[var(--color-panel)] p-2 shadow-[0_18px_55px_rgba(0,0,0,0.28)] group-open:block">
               <button
                 type="button"
                 onClick={() => onSecondary(decision.secondaryAction)}
                 aria-label={`${decision.secondaryLabel}: ${decision.title}`}
-                className="flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-accent)]"
+                className="flex w-full items-center justify-between gap-2 rounded-none px-2.5 py-2 text-left text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-accent)]"
               >
                 {decision.secondaryLabel}
                 <ArrowRight className="size-3.5" />
@@ -564,7 +564,7 @@ function BankDecisionHero({
                 type="button"
                 onClick={onEditInput}
                 aria-label="Edit pasted bank input"
-                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-accent)]"
+                className="flex w-full items-center gap-2 rounded-none px-2.5 py-2 text-left text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-bg)]/60 hover:text-[var(--color-accent)]"
               >
                 <Edit3 className="size-3.5" />
                 Replace bank
@@ -597,9 +597,9 @@ function BankDecisionHero({
           return (
             <span
               key={step.label}
-              className="inline-flex min-w-0 items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/28 px-3 py-2 text-[12px] font-bold text-[var(--color-text)]"
+              className="inline-flex min-w-0 items-center gap-2 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/28 px-3 py-2 text-[12px] font-bold text-[var(--color-text)]"
             >
-              <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[10px] font-black text-[var(--color-accent)]">
+              <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[10px] font-black text-[var(--color-accent)]">
                 {index + 1}
               </span>
               <Icon className="size-3.5 text-[var(--color-accent)]" />
@@ -716,7 +716,7 @@ function SmartTidyWizard({
 
   return (
     <section
-      className="mb-3 rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-panel)]/82 p-3 shadow-[0_24px_70px_-36px_rgba(0,0,0,0.75)] sm:p-4"
+      className="mb-3 rounded-none border border-[var(--color-accent)]/30 bg-[var(--color-panel)]/82 p-3 shadow-[0_24px_70px_-36px_rgba(0,0,0,0.75)] sm:p-4"
       aria-label="Smart Tidy setup"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -732,7 +732,7 @@ function SmartTidyWizard({
         <button
           type="button"
           onClick={() => setStage("closed")}
-          className="inline-flex min-h-9 shrink-0 self-start items-center justify-center rounded-lg border border-[var(--color-border)] px-3 py-2 text-[12px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)] sm:self-auto"
+          className="inline-flex min-h-9 shrink-0 self-start items-center justify-center rounded-none border border-[var(--color-border)] px-3 py-2 text-[12px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)] sm:self-auto"
           aria-label="Close Smart Tidy setup"
         >
           Close
@@ -772,7 +772,7 @@ function SmartTidyWizard({
             />
           </div>
 
-          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/28 p-3">
+          <div className="rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/28 p-3">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <div>
                 <div className="text-[12px] font-bold text-[var(--color-text)]">Preview tabs</div>
@@ -791,7 +791,7 @@ function SmartTidyWizard({
               )}
               <span className="text-[11.5px] font-semibold tabular-nums text-[var(--color-text-dim)]">{proposedTabs.length} tabs</span>
             </div>
-            <div className="mb-3 rounded-md border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-2.5 py-2">
+            <div className="mb-3 rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-2.5 py-2">
               <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
                 Suggested first tabs
               </div>
@@ -816,7 +816,7 @@ function SmartTidyWizard({
               <button
                 type="button"
                 onClick={applyLayout}
-                className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-black text-[#0b0906] transition-all hover:brightness-110"
+                className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-none bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-black text-[#0b0906] transition-all hover:brightness-110"
               >
                 <Sparkles className="size-3.5" />
                 Apply layout
@@ -824,7 +824,7 @@ function SmartTidyWizard({
               <button
                 type="button"
                 onClick={() => setStage("choosing")}
-                className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-transparent px-3.5 py-2 text-[12.5px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]"
+                className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-none border border-[var(--color-border)] bg-transparent px-3.5 py-2 text-[12.5px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]"
               >
                 Try another setup
               </button>
@@ -834,9 +834,9 @@ function SmartTidyWizard({
       )}
 
       {stage === "applying" && (
-        <div className="mt-4 rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 p-4">
+        <div className="mt-4 rounded-none border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 p-4">
           <div className="flex items-center gap-3">
-            <span className="inline-flex size-10 items-center justify-center rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10">
+            <span className="inline-flex size-10 items-center justify-center rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10">
               <Sparkles className="size-5 animate-pulse text-[var(--color-accent)]" />
             </span>
             <div>
@@ -850,7 +850,7 @@ function SmartTidyWizard({
             {proposedTabs.flatMap((tab) => tab.items.slice(0, 3)).slice(0, 16).map((item, index) => (
               <span
                 key={`${item.id}-${index}`}
-                className="flex aspect-square items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] animate-[pop-in_0.2s_ease-out]"
+                className="flex aspect-square items-center justify-center rounded-none border border-[var(--color-border)] bg-[var(--color-bg)] animate-[pop-in_0.2s_ease-out]"
                 style={{ animationDelay: `${index * 18}ms` }}
               >
                 <ItemSprite id={spriteIdForItem(item.id, item.quantity)} alt="" size={24} />
@@ -861,7 +861,7 @@ function SmartTidyWizard({
       )}
 
       {stage === "applied" && (
-        <div className="mt-4 rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/8 p-4">
+        <div className="mt-4 rounded-none border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/8 p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="text-[13px] font-bold text-[var(--color-text)]">Layout applied</div>
@@ -872,7 +872,7 @@ function SmartTidyWizard({
             <button
               type="button"
               onClick={onCopy}
-              className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-black text-[#0b0906] transition-all hover:brightness-110"
+              className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-none bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-black text-[#0b0906] transition-all hover:brightness-110"
             >
               {copied === "all" ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
               {copied === "all" ? "Copied" : "Copy tabs to RuneLite"}
@@ -886,7 +886,7 @@ function SmartTidyWizard({
 
 function RuneLiteTabStripPreview({ tabs }: { tabs: OrganizedTab[] }) {
   return (
-    <div className="mb-3 rounded-md border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/40 p-2" data-testid="runelite-tab-strip-preview">
+    <div className="mb-3 rounded-none border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/40 p-2" data-testid="runelite-tab-strip-preview">
       <div className="mb-2 flex items-center justify-between gap-2">
         <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-accent)]">
           RuneLite tab order
@@ -899,7 +899,7 @@ function RuneLiteTabStripPreview({ tabs }: { tabs: OrganizedTab[] }) {
         {tabs.slice(0, 8).map((tab, index) => (
           <div
             key={`runelite-strip-${String(tab.name)}-${index}`}
-            className="flex min-w-[82px] shrink-0 flex-col items-center gap-1 rounded-md border border-[var(--color-border)] bg-[var(--color-panel)]/70 px-2 py-2"
+            className="flex min-w-[82px] shrink-0 flex-col items-center gap-1 rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]/70 px-2 py-2"
             title={`${index + 1}. ${String(tab.name)} - ${tab.items.length} items`}
           >
             <span className="font-mono text-[9px] font-black text-[var(--color-text-muted)]">{index + 1}</span>
@@ -925,7 +925,7 @@ function SmartTidyChoiceGroup<T extends string>({
   onChange: (value: T) => void;
 }) {
   return (
-    <fieldset className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/24 p-3">
+    <fieldset className="rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/24 p-3">
       <legend className="px-1 text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
         {label}
       </legend>
@@ -939,13 +939,13 @@ function SmartTidyChoiceGroup<T extends string>({
               onClick={() => onChange(choice.id)}
               aria-pressed={active}
               className={cn(
-                "flex min-h-12 items-center gap-2 rounded-lg border px-2 py-2 text-left transition-colors sm:px-2.5",
+                "flex min-h-12 items-center gap-2 rounded-none border px-2 py-2 text-left transition-colors sm:px-2.5",
                 active
                   ? "border-[var(--color-accent)] bg-[var(--color-accent)]/12 text-[var(--color-text)]"
                   : "border-[var(--color-border)] bg-[var(--color-panel)]/45 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/40 hover:text-[var(--color-text)]"
               )}
             >
-              <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]">
+              <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]">
                 <ItemSprite id={choice.iconItemId} alt="" size={24} />
               </span>
               <span className="min-w-0">
@@ -962,7 +962,7 @@ function SmartTidyChoiceGroup<T extends string>({
 
 function SmartTidyTabPreview({ title, tabs, tone }: { title: string; tabs: OrganizedTab[]; tone: "muted" | "accent" }) {
   return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-2.5">
+    <div className="rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-2.5">
       <div className={cn(
         "mb-2 text-[10.5px] font-bold uppercase tracking-[0.14em]",
         tone === "accent" ? "text-[var(--color-accent)]" : "text-[var(--color-text-muted)]"
@@ -971,7 +971,7 @@ function SmartTidyTabPreview({ title, tabs, tone }: { title: string; tabs: Organ
       </div>
       <div className="space-y-2">
         {tabs.slice(0, 4).map((tab) => (
-          <div key={`${title}-${String(tab.name)}`} className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-2">
+          <div key={`${title}-${String(tab.name)}`} className="rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-2">
             <div className="mb-1.5 flex items-center justify-between gap-2">
               <div className="flex min-w-0 items-center gap-1.5">
                 <ItemSprite id={tab.iconItemId} alt="" size={18} />
@@ -2117,7 +2117,7 @@ export function BankResult({
         <div
           id="bank-handoff-warning"
           role="alert"
-          className="mb-3 rounded-xl border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-4 py-3"
+          className="mb-3 rounded-none border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-4 py-3"
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
@@ -2133,7 +2133,7 @@ export function BankResult({
               <button
                 type="button"
                 onClick={copyAll}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[12px] font-bold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[12px] font-bold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-colors"
               >
                 Copy export instead
                 <Copy className="size-3.5" />
@@ -2141,7 +2141,7 @@ export function BankResult({
               <button
                 type="button"
                 onClick={openBlockedHandoffWithoutBank}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[12px] font-bold text-[var(--color-text)] hover:border-[var(--color-warning)]/45 hover:text-[var(--color-warning)] transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[12px] font-bold text-[var(--color-text)] hover:border-[var(--color-warning)]/45 hover:text-[var(--color-warning)] transition-colors"
               >
                 Open without bank
                 <ArrowRight className="size-3.5" />
@@ -2160,7 +2160,7 @@ export function BankResult({
           id="bank-view-panel"
           key={reorgFlash ?? "stable"}
           className={cn(
-            "group/frame relative mt-3 min-w-0 overflow-hidden rounded-lg",
+            "group/frame relative mt-3 min-w-0 overflow-hidden rounded-none",
             "transition-[border-color,box-shadow] duration-300 ease-out",
             "hover:border-[var(--color-accent)]/30 hover:shadow-[0_28px_70px_-28px_rgb(0_0_0/0.75),0_0_0_1px_rgba(134, 166, 217,0.18)]",
             reorgFlash && "animate-[reshuffle_0.55s_cubic-bezier(0.22,1,0.36,1),mint-sweep_0.7s_ease-out]"
@@ -2244,7 +2244,7 @@ export function BankResult({
               <div
                 role="status"
                 aria-live="polite"
-                className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-3 py-2 text-[11.5px] text-[var(--color-text-dim)]"
+                className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-none border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-3 py-2 text-[11.5px] text-[var(--color-text-dim)]"
               >
                 <span>
                   Showing{" "}
@@ -2259,7 +2259,7 @@ export function BankResult({
                 <button
                   type="button"
                   onClick={clearActionSearch}
-                  className="inline-flex items-center gap-1 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 transition-colors"
+                  className="inline-flex items-center gap-1 rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 transition-colors"
                 >
                   Clear action search
                   <X className="size-3" />
@@ -2271,7 +2271,7 @@ export function BankResult({
                 role="status"
                 aria-live="polite"
                 data-testid="bank-search-visible-status"
-                className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)]/35 px-3 py-2 text-[11.5px] text-[var(--color-text-dim)]"
+                className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)]/35 px-3 py-2 text-[11.5px] text-[var(--color-text-dim)]"
               >
                 <span>
                   Search shows{" "}
@@ -2284,7 +2284,7 @@ export function BankResult({
                 <button
                   type="button"
                   onClick={clearActionSearch}
-                  className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-text-dim)] hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)] transition-colors"
+                  className="inline-flex items-center gap-1 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-text-dim)] hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)] transition-colors"
                   aria-label="Clear visible bank search results"
                 >
                   Clear search
@@ -2318,7 +2318,7 @@ export function BankResult({
           {dragging && (
             <div
               className={cn(
-                "rounded-md flex items-center justify-center",
+                "rounded-none flex items-center justify-center",
                 "bg-[var(--color-osrs-slot)] border-2 border-[var(--color-accent)]",
                 "shadow-[0_12px_28px_-8px_rgb(0_0_0/0.7),0_0_0_4px_rgba(134, 166, 217,0.15)]",
                 "animate-[pop-in_0.16s_cubic-bezier(0.22,1,0.36,1)] cursor-grabbing"
@@ -2349,7 +2349,7 @@ export function BankResult({
       </DropFlashContext.Provider>
       </PinContext.Provider>
 
-      <details className="group mt-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-3 py-2">
+      <details className="group mt-4 rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-3 py-2">
         <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 marker:hidden [&::-webkit-details-marker]:hidden">
           <span className="inline-flex items-center gap-2 text-[12px] font-bold text-[var(--color-text)]">
             <SlidersHorizontal className="size-3.5 text-[var(--color-accent)]" />
@@ -2401,7 +2401,7 @@ export function BankResult({
       />
 
       {(initial.importWarnings.fallbackItemCount > 0 || initial.importWarnings.duplicateItemCount > 0) && (
-        <details className="mt-4 rounded-xl border border-[var(--color-warning)]/25 bg-[var(--color-warning)]/8 p-3">
+        <details className="mt-4 rounded-none border border-[var(--color-warning)]/25 bg-[var(--color-warning)]/8 p-3">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden [&::-webkit-details-marker]:hidden">
             <span className="inline-flex items-center gap-2 text-[12.5px] font-semibold text-[var(--color-warning)]">
               <AlertCircle className="size-3.5" />
@@ -2431,7 +2431,7 @@ export function BankResult({
                 <button
                   type="button"
                   onClick={() => searchSuggestionItems(fallbackItemSearchQuery, "fallback item IDs")}
-                  className="inline-flex items-center gap-1 rounded-md border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-warning)] hover:bg-[var(--color-warning)]/15 transition-colors"
+                  className="inline-flex items-center gap-1 rounded-none border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-warning)] hover:bg-[var(--color-warning)]/15 transition-colors"
                   aria-label="Show fallback item IDs in the bank grid"
                 >
                   Show in bank
@@ -2441,7 +2441,7 @@ export function BankResult({
                   href={wikiSearchUrl(`OSRS item ID ${initial.importWarnings.fallbackItemIds[0]}`)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-warning)] hover:border-[var(--color-warning)]/45 transition-colors"
+                  className="inline-flex items-center gap-1 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-warning)] hover:border-[var(--color-warning)]/45 transition-colors"
                 >
                   Check first ID on Wiki
                   <ExternalLink className="size-3" />
@@ -2452,7 +2452,7 @@ export function BankResult({
         </details>
       )}
 
-      <details className="mt-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-3">
+      <details className="mt-4 rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-3">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-semibold text-[var(--color-text)] marker:hidden">
           <span>Saved banks</span>
           <span className="text-[11px] font-medium text-[var(--color-text-muted)]">compare or restore later</span>
@@ -2480,19 +2480,19 @@ export function BankResult({
         </div>
       </details>
 
-      <details className="mt-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-3">
+      <details className="mt-4 rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-3">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-semibold text-[var(--color-text)] marker:hidden">
           <span>Import details</span>
           <span className="text-[11px] font-medium text-[var(--color-text-muted)]">source, quantities and item IDs</span>
         </summary>
         <div
           data-testid="bank-source-receipt"
-          className="mt-3 grid gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-2)]/70 p-3.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]"
+          className="mt-3 grid gap-3 rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)]/70 p-3.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]"
         >
           <div className="flex items-start gap-3">
             <div
               className={cn(
-                "mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-lg border",
+                "mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-none border",
                 // Was a ternary between two identical hexes. Shield vs
                 // AlertCircle below is the actual signal.
                 "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
@@ -2530,7 +2530,7 @@ export function BankResult({
             <div
               data-testid="bank-id-sprite-health"
               className={cn(
-                "mt-1 rounded-lg border px-3 py-2",
+                "mt-1 rounded-none border px-3 py-2",
                 // Identical hexes; CheckCircle2 vs AlertCircle below is the signal.
                 "border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8"
               )}
@@ -2562,7 +2562,7 @@ export function BankResult({
       <details
         id="bank-insights-panel"
         open={bankTips.length > 0 || undefined}
-        className="group mt-8 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/40 overflow-hidden"
+        className="group mt-8 rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]/40 overflow-hidden"
       >
         <summary className="cursor-pointer list-none flex items-center justify-between gap-3 px-4 py-3 hover:bg-[var(--color-panel)]/60 transition-colors">
           <div className="flex items-center gap-3 min-w-0">
@@ -2595,7 +2595,7 @@ export function BankResult({
 
       {/* Junk banner */}
       {prefs.showJunk && (
-        <div className="mt-3 rounded-lg border border-[var(--color-danger)]/30 bg-[var(--color-danger)]/8 text-[12.5px] overflow-hidden">
+        <div className="mt-3 rounded-none border border-[var(--color-danger)]/30 bg-[var(--color-danger)]/8 text-[12.5px] overflow-hidden">
           <button
             type="button"
             onClick={() => junkSummaryAll.count > 0 && setJunkListOpen((v) => !v)}
@@ -2666,7 +2666,7 @@ export function BankResult({
 
       {/* Hiscores-aware upgrade suggestions */}
       {upgradeSuggestions.length > 0 && (
-        <div className="mt-3 rounded-lg border border-[var(--color-accent)]/25 bg-gradient-to-br from-[var(--color-accent)]/10 to-transparent px-4 py-3 animate-[fade-in_0.3s_ease-out]">
+        <div className="mt-3 rounded-none border border-[var(--color-accent)]/25 bg-gradient-to-br from-[var(--color-accent)]/10 to-transparent px-4 py-3 animate-[fade-in_0.3s_ease-out]">
           <div className="flex items-center gap-2 mb-2.5">
             <Sparkles className="size-3.5 text-[var(--color-accent)]" />
             <span className="text-[12.5px] font-medium text-[var(--color-text)]">Next upgrades for {inferredRsn || "your account"}</span>
@@ -2678,7 +2678,7 @@ export function BankResult({
               return (
                 <div
                   key={s.upgrade.id}
-                  className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)] p-2.5 hover:border-[var(--color-accent)]/40 transition-colors group"
+                  className="rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)] p-2.5 hover:border-[var(--color-accent)]/40 transition-colors group"
                 >
                   <div className="flex items-start gap-2.5">
                     <div className="size-10 rounded bg-[var(--color-bg)] border border-[var(--color-border)] flex items-center justify-center shrink-0 group-hover:border-[var(--color-accent)]/30 transition-colors">
@@ -2716,7 +2716,7 @@ export function BankResult({
 
       {/* Goals progress banner */}
       {prefs.showGoals && goalSetProgress.length > 0 && (
-        <div className="mt-3 rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/8 px-3.5 py-2.5 text-[12.5px] animate-[fade-in_0.25s_ease-out]">
+        <div className="mt-3 rounded-none border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/8 px-3.5 py-2.5 text-[12.5px] animate-[fade-in_0.25s_ease-out]">
           <div className="flex items-center gap-2 mb-2">
             <Target className="size-3.5 text-[var(--color-accent)]" />
             <span className="text-[var(--color-text)] font-medium">Closest goal sets &mdash; chase what&apos;s nearest done</span>
@@ -2737,7 +2737,7 @@ export function BankResult({
 
       {/* Bank diet banner */}
       {prefs.showStale && (
-        <div className="mt-3 flex items-center gap-3 rounded-lg border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/8 px-3.5 py-2.5 text-[12.5px] animate-[fade-in_0.25s_ease-out]">
+        <div className="mt-3 flex items-center gap-3 rounded-none border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/8 px-3.5 py-2.5 text-[12.5px] animate-[fade-in_0.25s_ease-out]">
           <Hourglass className="size-3.5 text-[var(--color-warning)] shrink-0" />
           <div className="flex-1 min-w-0">
             {staleSummary.count > 0 ? (
@@ -2782,7 +2782,7 @@ export function BankResult({
             type="button"
             onClick={copyAll}
             className={cn(
-              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium",
+              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-none text-[12px] font-medium",
               "bg-[var(--color-accent)] text-[#0B1116] hover:brightness-110 transition-all"
             )}
           >
@@ -2799,7 +2799,7 @@ export function BankResult({
           role="status"
           aria-live="polite"
           className={cn(
-            "mb-4 min-h-[34px] rounded-md border px-3 py-2 text-[11.5px] transition-colors",
+            "mb-4 min-h-[34px] rounded-none border px-3 py-2 text-[11.5px] transition-colors",
             exportCopyMessage
               ? copied === "copy-error"
                 ? "border-[var(--color-danger)]/35 bg-[var(--color-danger)]/10 text-[var(--color-danger)]"
@@ -2810,7 +2810,7 @@ export function BankResult({
           {exportCopyMessage ?? "Copy an export string, then paste it into RuneLite Bank Tags."}
         </div>
         {copied === "copy-error" && (
-          <div className="mb-4 rounded-md border border-[var(--color-danger)]/25 bg-[var(--color-bg-2)]/50 p-3">
+          <div className="mb-4 rounded-none border border-[var(--color-danger)]/25 bg-[var(--color-bg-2)]/50 p-3">
             <label
               htmlFor="manual-banktags-export"
               className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-danger)]"
@@ -2835,7 +2835,7 @@ export function BankResult({
           {tabs.map((tab, i) => (
             <li
               key={tab.name}
-              className="grid grid-cols-[28px_28px_1fr_auto] items-center gap-3 p-3 rounded-md bg-[var(--color-bg-2)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] transition-colors"
+              className="grid grid-cols-[28px_28px_1fr_auto] items-center gap-3 p-3 rounded-none bg-[var(--color-bg-2)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] transition-colors"
             >
               <span className="text-center text-[11px] font-mono font-medium text-[var(--color-text-muted)] tabular-nums">
                 {i + 1}
@@ -2953,7 +2953,7 @@ function SnapshotHistoryPanel({
     : null;
 
   return (
-    <section className="mb-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/55 px-4 py-3">
+    <section className="mb-4 rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]/55 px-4 py-3">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
@@ -2978,7 +2978,7 @@ function SnapshotHistoryPanel({
               {currentSummary.topItems.slice(0, 3).map((item) => (
                 <span
                   key={item.id}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 px-1.5 py-1 text-[10.5px] text-[var(--color-text-dim)]"
+                  className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 px-1.5 py-1 text-[10.5px] text-[var(--color-text-dim)]"
                   title={`${item.name} · ${formatGp(item.stackValue)} gp`}
                 >
                   <span className="size-5 rounded bg-[var(--color-bg)] border border-[var(--color-border)] flex items-center justify-center">
@@ -3016,7 +3016,7 @@ function SnapshotHistoryPanel({
         <div
           role="status"
           aria-live="polite"
-          className="mt-3 flex flex-wrap items-center gap-2 rounded-md border border-[var(--color-danger)]/30 bg-[var(--color-danger)]/10 px-3 py-2 text-[11.5px] text-[var(--color-text)]"
+          className="mt-3 flex flex-wrap items-center gap-2 rounded-none border border-[var(--color-danger)]/30 bg-[var(--color-danger)]/10 px-3 py-2 text-[11.5px] text-[var(--color-text)]"
         >
           <Trash2 className="size-3.5 text-[var(--color-danger)]" />
           <span className="flex-1 min-w-[180px]">
@@ -3038,7 +3038,7 @@ function SnapshotHistoryPanel({
           {snapshots.length === 1 && !compareSnapshot && (
             <div
               data-testid="snapshot-single-compare-hint"
-              className="mt-3 flex flex-wrap items-center gap-2 rounded-md border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-3 py-2 text-[11.5px] text-[var(--color-text)]"
+              className="mt-3 flex flex-wrap items-center gap-2 rounded-none border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-3 py-2 text-[11.5px] text-[var(--color-text)]"
             >
               <ArrowUpDown className="size-3.5 text-[var(--color-accent)]" />
               <span className="flex-1 min-w-[210px]">
@@ -3059,7 +3059,7 @@ function SnapshotHistoryPanel({
           {recommendedBaseline && recommendedBaselineDiff && (
             <div
               data-testid="snapshot-baseline-recommendation"
-              className="mt-3 flex flex-wrap items-center gap-2 rounded-md border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-3 py-2 text-[11.5px] text-[var(--color-text)]"
+              className="mt-3 flex flex-wrap items-center gap-2 rounded-none border border-[var(--color-good)]/25 bg-[var(--color-good)]/10 px-3 py-2 text-[11.5px] text-[var(--color-text)]"
             >
               <Target className="size-3.5 text-[var(--color-good)]" />
               <span className="flex-1 min-w-[220px]">
@@ -3097,7 +3097,7 @@ function SnapshotHistoryPanel({
                 <div
                   key={snap.ts}
                   className={cn(
-                    "rounded-md border px-2.5 py-2 text-[11.5px] min-w-[220px]",
+                    "rounded-none border px-2.5 py-2 text-[11.5px] min-w-[220px]",
                     active
                       ? "border-[var(--color-accent)]/45 bg-[var(--color-accent)]/10"
                       : "border-[var(--color-border)] bg-[var(--color-bg-2)]/45"
@@ -3196,7 +3196,7 @@ function SnapshotHistoryPanel({
           </div>
         </>
       ) : (
-        <p className="mt-3 rounded-md border border-dashed border-[var(--color-border)] bg-[var(--color-bg-2)]/30 px-3 py-2 text-[11.5px] text-[var(--color-text-muted)]">
+        <p className="mt-3 rounded-none border border-dashed border-[var(--color-border)] bg-[var(--color-bg-2)]/30 px-3 py-2 text-[11.5px] text-[var(--color-text-muted)]">
           Organize again later and Scapestack will show what changed. Use “Save snapshot” after manual drag/drop changes.
         </p>
       )}
@@ -3273,7 +3273,7 @@ function SnapshotCompareActionRail({
   return (
     <div
       data-testid="snapshot-compare-action-rail"
-      className="mt-3 rounded-md border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 px-3 py-2"
+      className="mt-3 rounded-none border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 px-3 py-2"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-[220px] flex-1">
@@ -3413,7 +3413,7 @@ function SnapshotCompareInsight({ summary }: { summary: ReturnType<typeof summar
   return (
     <div
       className={cn(
-        "mt-3 rounded-md border px-3 py-2",
+        "mt-3 rounded-none border px-3 py-2",
         summary.tone === "good" && "border-[var(--color-good)]/25 bg-[var(--color-good)]/8",
         summary.tone === "danger" && "border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8",
         summary.tone === "neutral" && "border-[var(--color-border)] bg-[var(--color-bg-2)]/30"
@@ -3448,7 +3448,7 @@ function SnapshotItemList({
   onSearchItems?: (query: string, sourceLabel?: string) => void;
 }) {
   return (
-    <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)]/30 px-3 py-2">
+    <div className="rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)]/30 px-3 py-2">
       <div
         className={cn(
           "text-[9.5px] uppercase tracking-[0.16em] font-bold",
@@ -3524,7 +3524,7 @@ function SnapshotItemList({
 
 function SnapshotDelta({ label, value, tone }: { label: string; value: number | string; tone?: "good" | "danger" }) {
   return (
-    <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)]/35 px-2.5 py-2">
+    <div className="rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)]/35 px-2.5 py-2">
       <div className="text-[9.5px] uppercase tracking-[0.16em] text-[var(--color-text-muted)]">{label}</div>
       <div
         className={cn(
@@ -3593,7 +3593,7 @@ function BankActionLoopRail({
   };
 
   return (
-    <details className="group mt-4 mb-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-3 sm:p-4">
+    <details className="group mt-4 mb-3 rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]/55 p-3 sm:p-4">
       <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 marker:hidden [&::-webkit-details-marker]:hidden">
         <div>
           <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
@@ -3625,7 +3625,7 @@ function BankActionLoopRail({
               aria-label={`${step.cta}: ${step.destination}`}
               data-testid="bank-action-loop-card"
               className={cn(
-                "group/bank-action rounded-lg border p-3 text-left transition-all hover:-translate-y-0.5 focus:outline-none focus-visible:border-[var(--color-accent)]/60 focus-visible:shadow-[0_0_0_3px_rgba(134, 166, 217,0.13)]",
+                "group/bank-action rounded-none border p-3 text-left transition-all hover:-translate-y-0.5 focus:outline-none focus-visible:border-[var(--color-accent)]/60 focus-visible:shadow-[0_0_0_3px_rgba(134, 166, 217,0.13)]",
                 step.state === "attention"
                   ? "border-[var(--color-warning)]/35 bg-[var(--color-warning)]/8 hover:border-[var(--color-warning)]/55"
                   : step.state === "ready"
@@ -3662,7 +3662,7 @@ function BankActionLoopRail({
                 </div>
               </div>
               <span
-                className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-bg-2)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors group-hover/bank-action:border-[var(--color-accent)]/50 group-hover/bank-action:text-[var(--color-accent)]"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border-strong)] bg-[var(--color-bg-2)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors group-hover/bank-action:border-[var(--color-accent)]/50 group-hover/bank-action:text-[var(--color-accent)]"
               >
                 {isCopiedExport ? "Copied" : step.cta}
                 {isCopiedExport ? <CheckCheck className="size-3.5" /> : <ArrowRight className="size-3.5" />}
@@ -3675,7 +3675,7 @@ function BankActionLoopRail({
         <button
           type="button"
           onClick={onNext}
-          className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
+          className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
         >
           Open next trip
           <Sparkles className="size-3.5" />
@@ -3683,7 +3683,7 @@ function BankActionLoopRail({
         <button
           type="button"
           onClick={onDps}
-          className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+          className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
         >
           Check kill
           <Sword className="size-3.5" />
@@ -3691,7 +3691,7 @@ function BankActionLoopRail({
         <button
           type="button"
           onClick={onPlugin}
-          className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+          className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
         >
           RuneLite sync
           <PlugZap className="size-3.5" />
@@ -3771,7 +3771,7 @@ function PreferencesBar({
     (prefs.showStale ? 1 : 0) + (prefs.showGoals ? 1 : 0);
 
   return (
-    <div className="rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)]">
+    <div className="rounded-none bg-[var(--color-panel)] border border-[var(--color-border)]">
       {/* Essential row — tabs / playstyle / sort / density, always visible. */}
       <div className="flex flex-wrap items-center gap-3 px-3.5 py-2.5">
         <SlidersHorizontal className="size-3.5 text-[var(--color-text-muted)]" />
@@ -3825,7 +3825,7 @@ function PreferencesBar({
           onClick={() => setMoreOpen((v) => !v)}
           aria-expanded={moreOpen}
           className={cn(
-            "ml-auto inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[12px] font-medium border transition-colors",
+            "ml-auto inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-none text-[12px] font-medium border transition-colors",
             moreOpen || activeFilters > 0
               ? "bg-[var(--color-accent)]/12 text-[var(--color-accent)] border-[var(--color-accent)]/35"
               : "bg-transparent text-[var(--color-text-dim)] border-[var(--color-border)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
@@ -3895,7 +3895,7 @@ function LayoutPopup({
       aria-label="Bank layout preferences"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="w-full max-w-md rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-[0_30px_80px_-20px_rgb(0_0_0/0.85)] overflow-hidden animate-[pop-in_0.22s_cubic-bezier(0.22,1,0.36,1)]">
+      <div className="w-full max-w-md rounded-none border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-[0_30px_80px_-20px_rgb(0_0_0/0.85)] overflow-hidden animate-[pop-in_0.22s_cubic-bezier(0.22,1,0.36,1)]">
         <header className="flex items-center justify-between px-5 py-3 border-b border-[var(--color-border)]">
           <div className="flex items-center gap-2">
             <GripVertical className="size-4 text-[var(--color-accent)]" />
@@ -3904,7 +3904,7 @@ function LayoutPopup({
           <button
             type="button"
             onClick={onClose}
-            className="size-7 rounded-md flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-panel-2)]"
+            className="size-7 rounded-none flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-panel-2)]"
             aria-label="Close"
           >
             <X className="size-3.5" />
@@ -3934,7 +3934,7 @@ function LayoutPopup({
             {tabNames.map((name, i) => (
               <div
                 key={name}
-                className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-[var(--color-bg-2)] border border-[var(--color-border)]"
+                className="flex items-center gap-2 px-2 py-1.5 rounded-none bg-[var(--color-bg-2)] border border-[var(--color-border)]"
               >
                 <span className="text-[10px] font-mono tabular-nums text-[var(--color-text-muted)] w-4 text-right">
                   {i + 1}
@@ -3978,7 +3978,7 @@ function LayoutPopup({
                   {pinnedNames.map((p) => (
                     <div
                       key={p.id}
-                      className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-[var(--color-bg-2)] border border-[var(--color-border)]"
+                      className="flex items-center gap-2 px-2 py-1.5 rounded-none bg-[var(--color-bg-2)] border border-[var(--color-border)]"
                     >
                       <span className="size-6 shrink-0 rounded bg-[var(--color-bg)] border border-[var(--color-border)] flex items-center justify-center">
                         <ItemSprite
@@ -4039,14 +4039,14 @@ function SegmentedControl({ value, onChange, options }: {
   options: SegOpt[];
 }) {
   return (
-    <div className="inline-flex bg-[var(--color-bg-2)] border border-[var(--color-border)] rounded-md p-0.5">
+    <div className="inline-flex bg-[var(--color-bg-2)] border border-[var(--color-border)] rounded-none p-0.5">
       {options.map((opt) => (
         <button
           type="button"
           key={opt.value}
           onClick={() => onChange(opt.value)}
           className={cn(
-            "flex items-center gap-1 px-2 py-1 rounded-sm text-[11px] font-medium transition-colors",
+            "flex items-center gap-1 px-2 py-1 rounded-none text-[11px] font-medium transition-colors",
             value === opt.value
               ? "bg-[var(--color-panel-2)] text-[var(--color-text)] shadow-[inset_0_0_0_1px_var(--color-border-strong)]"
               : "text-[var(--color-text-dim)] hover:text-[var(--color-text)]"
@@ -4071,7 +4071,7 @@ function Toggle({ on, onChange, label, icon: Icon }: {
       type="button"
       onClick={() => onChange(!on)}
       className={cn(
-        "flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-colors border",
+        "flex items-center gap-1 px-2 py-1 rounded-none text-[11px] font-medium transition-colors border",
         on
           ? "bg-[var(--color-panel-2)] text-[var(--color-accent)] border-[var(--color-accent)]/30"
           : "bg-transparent text-[var(--color-text-dim)] border-[var(--color-border)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
@@ -4211,7 +4211,7 @@ function TabButton({ tab, num, total, active, hovered, draggingTo, onClick, sear
           className="fixed z-[100] pointer-events-none animate-[tooltip-in_0.16s_cubic-bezier(0.22,1,0.36,1)]"
           style={{ left: tipPos.x, top: tipPos.y, transform: "translateX(-50%)" }}
         >
-          <div className="rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-[0_12px_30px_-10px_rgb(0_0_0/0.7)] px-3 py-2.5 w-[220px]">
+          <div className="rounded-none border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-[0_12px_30px_-10px_rgb(0_0_0/0.7)] px-3 py-2.5 w-[220px]">
             <div className="flex items-center justify-between gap-2 mb-1.5">
               <span className="text-[12px] font-semibold text-[var(--color-text)] truncate">{tab.name}</span>
               <span className="text-[10px] text-[var(--color-text-muted)] tabular-nums shrink-0">
@@ -4270,7 +4270,7 @@ function PresetChipRow({ tabName, active, onChange }: {
         type="button"
         onClick={() => onChange(null)}
         className={cn(
-          "px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors border whitespace-nowrap",
+          "px-2.5 py-1 rounded-none text-[11px] font-medium transition-colors border whitespace-nowrap",
           active === null
             ? "bg-[var(--color-accent)]/10 text-[var(--color-accent)] border-[var(--color-accent)]/40"
             : "bg-[var(--color-bg-2)] text-[var(--color-text-dim)] border-[var(--color-border)] hover:text-[var(--color-text)]"
@@ -4284,7 +4284,7 @@ function PresetChipRow({ tabName, active, onChange }: {
           key={p.slug}
           onClick={() => onChange(active?.slug === p.slug ? null : p)}
           className={cn(
-            "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors border whitespace-nowrap",
+            "flex items-center gap-1.5 px-2.5 py-1 rounded-none text-[11px] font-medium transition-colors border whitespace-nowrap",
             active?.slug === p.slug
               ? "bg-[var(--color-accent)]/10 text-[var(--color-accent)] border-[var(--color-accent)]/40"
               : "bg-[var(--color-bg-2)] text-[var(--color-text-dim)] border-[var(--color-border)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
@@ -4339,7 +4339,7 @@ function SubtabFilterRow({ subtabs, active, onChange, search, onSearchChange, it
           spellCheck={false}
           aria-describedby="bank-grid-search-help bank-grid-search-status"
           className={cn(
-            "w-full pl-7 pr-16 py-1.5 rounded-md text-[12px]",
+            "w-full pl-7 pr-16 py-1.5 rounded-none text-[12px]",
             "bg-[var(--color-bg-2)] border border-[var(--color-border)]",
             "text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]",
             "focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(134, 166, 217,0.12)]"
@@ -4398,7 +4398,7 @@ function FilterChip({ active, onClick, count, children }: {
       aria-label={`Show ${label} bank items${count !== undefined ? ` (${count})` : ""}`}
       onClick={onClick}
       className={cn(
-        "px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors border whitespace-nowrap",
+        "px-2.5 py-1 rounded-none text-[11px] font-medium transition-colors border whitespace-nowrap",
         active
           ? "bg-[var(--color-accent)]/10 text-[var(--color-accent)] border-[var(--color-accent)]/40"
           : "bg-[var(--color-bg-2)] text-[var(--color-text-dim)] border-[var(--color-border)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
@@ -4429,7 +4429,7 @@ function BankBody({ tab, hasPrices, hasQty, sort, density, activeSubtab, matches
 
   if (!tab) {
     return (
-      <div className="rounded-lg p-10 text-center text-[var(--color-text-dim)]" ref={setNodeRef}>
+      <div className="rounded-none p-10 text-center text-[var(--color-text-dim)]" ref={setNodeRef}>
         Nothing to show — try toggling Hide Misc.
       </div>
     );
@@ -4450,7 +4450,7 @@ function BankBody({ tab, hasPrices, hasQty, sort, density, activeSubtab, matches
     <div
       ref={setNodeRef}
       className={cn(
-        "rounded-md p-3 transition-all",
+        "rounded-none p-3 transition-all",
         compactSparseBankBody ? "min-h-[220px]" : "min-h-[460px]",
         "bg-[var(--color-bg)]",
         "border border-[var(--color-border)]",
@@ -4540,7 +4540,7 @@ function BankGrid({ tab, items, hasPrices, hasQty, density, junkIds, staleIds, g
   return (
     <div
       className={cn(
-        "grid rounded-md overflow-hidden",
+        "grid rounded-none overflow-hidden",
         "bg-[var(--color-bg)]",
         "border border-[var(--color-border)]"
       )}
@@ -4612,7 +4612,7 @@ function BankList({ items, sort, hasPrices, hasQty, density, junkIds, staleIds, 
   return (
     <div
       className={cn(
-        "grid rounded-md overflow-hidden",
+        "grid rounded-none overflow-hidden",
         "bg-[var(--color-bg)]",
         "border border-[var(--color-border)]"
       )}
@@ -5002,7 +5002,7 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
         onClick={openDetailButton}
         className={cn(
           "absolute right-0 top-0 z-20 flex size-3 opacity-75 group-hover:opacity-100 group-focus-within:opacity-100",
-          "items-center justify-center overflow-hidden rounded-sm border border-[var(--color-border)]",
+          "items-center justify-center overflow-hidden rounded-none border border-[var(--color-border)]",
           "bg-[rgba(7,9,12,0.86)] p-0 text-[0px] font-semibold",
           "text-[var(--color-text-dim)] shadow-[0_8px_18px_-10px_rgb(0_0_0/0.9)]",
           "hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
@@ -5020,7 +5020,7 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
         onClick={openWiki}
         className={cn(
           "absolute right-0 bottom-0 z-20 flex size-3 sm:hidden sm:group-hover:flex sm:group-focus-within:flex",
-          "items-center justify-center overflow-hidden rounded-sm border border-[var(--color-accent)]/35",
+          "items-center justify-center overflow-hidden rounded-none border border-[var(--color-accent)]/35",
           "bg-[rgba(7,9,12,0.86)] p-0 text-[0px] font-semibold",
           "text-[var(--color-accent)] shadow-[0_8px_18px_-10px_rgb(0_0_0/0.9)]",
           "hover:bg-[var(--color-accent)]/15"
@@ -5043,7 +5043,7 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
           <div
             className={cn(
               "bg-[var(--color-panel)] border border-[var(--color-border-strong)]",
-              "px-3 py-2.5 rounded-lg text-[11.5px] whitespace-nowrap",
+              "px-3 py-2.5 rounded-none text-[11.5px] whitespace-nowrap",
               "shadow-[0_14px_30px_-10px_rgb(0_0_0/0.7)]",
               "min-w-[220px]"
             )}
@@ -5229,11 +5229,11 @@ function ItemDetailDialog({
         onClick={onClose}
       />
       <section
-        className="relative w-full max-w-lg rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-[0_28px_90px_-24px_rgb(0_0_0/0.85)] overflow-hidden animate-[pop-in_0.2s_cubic-bezier(0.22,1,0.36,1)]"
+        className="relative w-full max-w-lg rounded-none border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-[0_28px_90px_-24px_rgb(0_0_0/0.85)] overflow-hidden animate-[pop-in_0.2s_cubic-bezier(0.22,1,0.36,1)]"
         onClick={(event) => event.stopPropagation()}
       >
         <header className="flex items-start gap-3 p-4 border-b border-[var(--color-border)] bg-[var(--color-bg-2)]/35">
-          <div className="size-14 rounded-lg border border-[var(--color-border)] bg-[var(--color-osrs-slot)] flex items-center justify-center shrink-0">
+          <div className="size-14 rounded-none border border-[var(--color-border)] bg-[var(--color-osrs-slot)] flex items-center justify-center shrink-0">
             <ItemSprite
               id={identity.spriteId}
               alt=""
@@ -5262,7 +5262,7 @@ function ItemDetailDialog({
           <button
             type="button"
             onClick={onClose}
-            className="size-8 rounded-md flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg)]"
+            className="size-8 rounded-none flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg)]"
             aria-label="Close item details"
           >
             <X className="size-4" />
@@ -5290,14 +5290,14 @@ function ItemDetailDialog({
 
           <ItemVerdictPanel verdict={verdict} />
 
-          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]/35 px-3 py-2.5">
+          <div className="rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)]/35 px-3 py-2.5">
             <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] font-bold text-[var(--color-accent)]">
               <Hash className="size-3" />
               Item identity
             </div>
             <div className="mt-2 grid gap-1.5 sm:grid-cols-3">
               {identity.facts.map((fact) => (
-                <div key={fact} className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1.5 font-mono text-[10.5px] leading-relaxed text-[var(--color-text-dim)]">
+                <div key={fact} className="rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1.5 font-mono text-[10.5px] leading-relaxed text-[var(--color-text-dim)]">
                   {fact}
                 </div>
               ))}
@@ -5305,7 +5305,7 @@ function ItemDetailDialog({
           </div>
 
           {goals && goals.length > 0 && (
-            <div className="rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3 py-2.5">
+            <div className="rounded-none border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3 py-2.5">
               <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] font-bold text-[var(--color-accent)]">
                 <Target className="size-3" />
                 Goal item
@@ -5376,7 +5376,7 @@ function ItemDetailDialog({
             </button>
           </div>
           {copied === "error" && manualItemCopy && (
-            <div className="rounded-lg border border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8 p-2" aria-live="polite">
+            <div className="rounded-none border border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8 p-2" aria-live="polite">
               <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-danger)]">
                 Clipboard failed — copy {manualItemCopy.label} manually
               </label>
@@ -5408,7 +5408,7 @@ function ItemVerdictPanel({ verdict }: { verdict: ReturnType<typeof buildItemVer
   };
 
   return (
-    <div className={cn("rounded-lg border px-3 py-2.5", toneClass[verdict.tone])}>
+    <div className={cn("rounded-none border px-3 py-2.5", toneClass[verdict.tone])}>
       <div className="text-[10px] uppercase tracking-[0.16em] font-bold">
         Scapestack verdict
       </div>
@@ -5432,7 +5432,7 @@ function ItemVerdictPanel({ verdict }: { verdict: ReturnType<typeof buildItemVer
 
 function ItemStat({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]/35 px-2.5 py-2">
+    <div className="rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)]/35 px-2.5 py-2">
       <div className="text-[9.5px] uppercase tracking-[0.14em] text-[var(--color-text-muted)]">{label}</div>
       <div className={cn("mt-0.5 text-[12px] font-semibold tabular-nums", accent ? "text-[var(--color-accent)]" : "text-[var(--color-text)]")}>
         {value}
@@ -5495,7 +5495,7 @@ function JunkTile({ item, tab }: { item: OrganizedItem; tab: string }) {
           boxSizing: "border-box"
         }}
         className={cn(
-          "rounded-md flex items-center justify-center relative cursor-default",
+          "rounded-none flex items-center justify-center relative cursor-default",
           "bg-[var(--color-bg-2)] border border-[var(--color-danger)]/25",
           "hover:border-[var(--color-danger)]/60 hover:bg-[var(--color-danger)]/10",
           "focus:outline-none focus-visible:border-[var(--color-danger)] focus-visible:ring-2 focus-visible:ring-[var(--color-danger)]/30",
@@ -5528,7 +5528,7 @@ function JunkTile({ item, tab }: { item: OrganizedItem; tab: string }) {
           style={{ left: tipPos.x, top: tipPos.y }}
           className={cn(
             "fixed z-[100] -translate-x-1/2 pointer-events-none",
-            "rounded-md border border-[var(--color-border-strong)] bg-[var(--color-panel)]",
+            "rounded-none border border-[var(--color-border-strong)] bg-[var(--color-panel)]",
             "px-2.5 py-1.5 shadow-[0_8px_24px_-8px_rgb(0_0_0/0.7)]",
             "animate-[tooltip-in_0.16s_cubic-bezier(0.22,1,0.36,1)]"
           )}
@@ -5564,7 +5564,7 @@ function QtyColorLegend() {
         <span className="text-[var(--color-osrs-qty-green)] font-semibold">10M</span>
       </button>
       <div className="absolute right-0 top-full mt-2 z-40 pointer-events-none opacity-0 group-hover/legend:opacity-100 group-hover/legend:translate-y-0 translate-y-[-4px] transition-all duration-150 delay-100">
-        <div className="rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-[0_12px_30px_-10px_rgb(0_0_0/0.7)] px-3 py-2.5 w-[210px]">
+        <div className="rounded-none border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-[0_12px_30px_-10px_rgb(0_0_0/0.7)] px-3 py-2.5 w-[210px]">
           <div className="text-[10.5px] uppercase tracking-wider text-[var(--color-text-muted)] font-semibold mb-1.5">Stack colours</div>
           <ul className="space-y-1 text-[11.5px]">
             <li className="flex items-center justify-between">
@@ -5792,7 +5792,7 @@ function BossTagSection({ items, flash, copied, onOpenDps, hiscoreSkills }: {
                   setShowAllBosses(false);
                 }}
                 className={cn(
-                  "rounded-lg border px-3 py-2 text-[12px] font-bold transition-colors",
+                  "rounded-none border px-3 py-2 text-[12px] font-bold transition-colors",
                   activeFilter === filter.key && !query
                     ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-black"
                     : "border-[var(--color-border)] bg-[var(--color-bg)]/35 text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/45 hover:text-[var(--color-text)]"
@@ -5811,7 +5811,7 @@ function BossTagSection({ items, flash, copied, onOpenDps, hiscoreSkills }: {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search boss..."
-              className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)] py-2 pl-8 pr-8 text-[12.5px] text-[var(--color-text)] outline-none transition-all placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(134,166,217,0.12)]"
+              className="w-full rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)] py-2 pl-8 pr-8 text-[12.5px] text-[var(--color-text)] outline-none transition-all placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(134,166,217,0.12)]"
             />
             {query && (
               <button
@@ -5827,7 +5827,7 @@ function BossTagSection({ items, flash, copied, onOpenDps, hiscoreSkills }: {
 
           <div className="grid grid-cols-[repeat(auto-fill,minmax(54px,1fr))] gap-2" role="list" aria-label="Bosses matching this bank" data-testid="boss-quick-picks">
             {visibleBosses.length === 0 ? (
-              <div className="col-span-full rounded-md border border-dashed border-[var(--color-border)] px-3 py-6 text-center text-[12px] text-[var(--color-text-muted)]">
+              <div className="col-span-full rounded-none border border-dashed border-[var(--color-border)] px-3 py-6 text-center text-[12px] text-[var(--color-text-muted)]">
                 No bosses match &ldquo;{query}&rdquo;.
               </div>
             ) : visibleBosses.map((b) => {
@@ -5840,7 +5840,7 @@ function BossTagSection({ items, flash, copied, onOpenDps, hiscoreSkills }: {
                     aria-pressed={isSelected}
                     title={b.name + (b.notes ? ` - ${b.notes}` : "")}
                     className={cn(
-                      "group flex min-h-[64px] w-full flex-col items-center justify-center gap-1 rounded-lg border px-1.5 py-2 text-center transition-all",
+                      "group flex min-h-[64px] w-full flex-col items-center justify-center gap-1 rounded-none border px-1.5 py-2 text-center transition-all",
                       isSelected
                         ? "scale-[1.02] border-[var(--color-accent)] bg-[var(--color-accent)]/12 shadow-[0_0_0_3px_rgba(134,166,217,0.16)]"
                         : "border-[var(--color-border)] bg-[var(--color-bg-2)] hover:-translate-y-0.5 hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-panel-2)]"
@@ -5860,7 +5860,7 @@ function BossTagSection({ items, flash, copied, onOpenDps, hiscoreSkills }: {
             <button
               type="button"
               onClick={() => setShowAllBosses((value) => !value)}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
               aria-expanded={showAllBosses}
             >
               {showAllBosses ? "Show fewer bosses" : "Show all bosses"}
@@ -5869,12 +5869,12 @@ function BossTagSection({ items, flash, copied, onOpenDps, hiscoreSkills }: {
           )}
         </div>
 
-        <div className="min-w-0 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/30 p-3 sm:p-4">
+        <div className="min-w-0 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/30 p-3 sm:p-4">
           {boss && best ? (
             <div className="animate-[pop-in_0.18s_ease-out]">
               <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex min-w-0 gap-3">
-                  <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]">
+                  <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)]">
                     <BossSprite boss={boss} size={44} />
                   </div>
                   <div className="min-w-0">
@@ -5908,7 +5908,7 @@ function BossTagSection({ items, flash, copied, onOpenDps, hiscoreSkills }: {
                   <div
                     key={key}
                     className={cn(
-                      "aspect-square rounded-md border flex items-center justify-center relative",
+                      "aspect-square rounded-none border flex items-center justify-center relative",
                       item
                         ? "border-[var(--color-border)] bg-[var(--color-bg-2)]"
                         : "border-dashed border-[var(--color-border)] bg-[var(--color-bg)]/50"
@@ -5930,17 +5930,17 @@ function BossTagSection({ items, flash, copied, onOpenDps, hiscoreSkills }: {
               </div>
 
               <div className="grid gap-2 sm:grid-cols-3">
-                <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-2.5">
+                <div className="rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-2.5">
                   <div className="text-[9.5px] font-bold uppercase tracking-[0.15em] text-[var(--color-text-muted)]">Owned setup slots</div>
                   <div className="mt-1 text-[13px] font-bold text-[var(--color-text)]">{haveGearCount}/{setupSlots.length}</div>
                 </div>
-                <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-2.5">
+                <div className="rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-2.5">
                   <div className="text-[9.5px] font-bold uppercase tracking-[0.15em] text-[var(--color-text-muted)]">Missing upgrades</div>
                   <div className="mt-1 text-[12px] font-semibold text-[var(--color-text)]">
                     {missingSlots.length > 0 ? missingSlots.map((slot) => slot.key).join(", ") : "No empty gear slots"}
                   </div>
                 </div>
-                <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-2.5">
+                <div className="rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]/45 p-2.5">
                   <div className="text-[9.5px] font-bold uppercase tracking-[0.15em] text-[var(--color-text-muted)]">Inventory prep</div>
                   <div className="mt-1 flex flex-wrap gap-1">
                     {inventoryPrep.map((slot) => (
@@ -5968,7 +5968,7 @@ function BossTagSection({ items, flash, copied, onOpenDps, hiscoreSkills }: {
                   onClick={onCopyBossTag}
                   disabled={!tagString}
                   className={cn(
-                    "inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-[12.5px] font-bold transition-all",
+                    "inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-none px-3 py-2 text-[12.5px] font-bold transition-all",
                     tagString
                       ? "bg-[var(--color-accent)] text-[#0B1116] hover:brightness-110"
                       : "cursor-not-allowed bg-[var(--color-panel-2)] text-[var(--color-text-muted)]"
@@ -5980,7 +5980,7 @@ function BossTagSection({ items, flash, copied, onOpenDps, hiscoreSkills }: {
                 <button
                   type="button"
                   onClick={() => onOpenDps(boss.slug)}
-                  className="inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-bg-2)] px-3 py-2 text-[12.5px] font-bold text-[var(--color-accent)] transition-all hover:border-[var(--color-accent)]/60 hover:bg-[var(--color-accent)]/10"
+                  className="inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-bg-2)] px-3 py-2 text-[12.5px] font-bold text-[var(--color-accent)] transition-all hover:border-[var(--color-accent)]/60 hover:bg-[var(--color-accent)]/10"
                   aria-label={`Check ${boss.name} kill setup with this bank`}
                   title={`/dps?boss=${boss.slug}`}
                 >
@@ -5993,7 +5993,7 @@ function BossTagSection({ items, flash, copied, onOpenDps, hiscoreSkills }: {
                 Built from owned gear in this bank. Copy the tab to RuneLite, then test one trip before buying upgrades.
               </p>
               {copied === "boss-tag-error" && manualBossTag && (
-                <div className="mt-3 rounded-lg border border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8 p-2" aria-live="polite">
+                <div className="mt-3 rounded-none border border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8 p-2" aria-live="polite">
                   <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-danger)]">
                     Clipboard failed — copy boss tag manually
                   </label>
@@ -6008,10 +6008,10 @@ function BossTagSection({ items, flash, copied, onOpenDps, hiscoreSkills }: {
               )}
             </div>
           ) : (
-            <div className="flex min-h-[260px] flex-col items-center justify-center rounded-lg border border-dashed border-[var(--color-border)] bg-[var(--color-bg)]/25 px-4 py-8 text-center">
+            <div className="flex min-h-[260px] flex-col items-center justify-center rounded-none border border-dashed border-[var(--color-border)] bg-[var(--color-bg)]/25 px-4 py-8 text-center">
               <div className="mb-3 flex -space-x-2">
                 {visibleBosses.slice(0, 4).map((candidate) => (
-                  <span key={candidate.slug} className="inline-flex size-10 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]">
+                  <span key={candidate.slug} className="inline-flex size-10 items-center justify-center rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)]">
                     <BossSprite boss={candidate} size={34} />
                   </span>
                 ))}

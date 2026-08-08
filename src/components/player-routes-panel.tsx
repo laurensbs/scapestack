@@ -40,7 +40,7 @@ function RouteNodeList({ nodes, start = 1, plain = false }: { nodes: readonly Co
           <span className="relative z-10"><RouteNodeMarker node={node} /></span>
           <span className="min-w-0">
             <span className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-              <span className="text-[length:var(--text-subject)] font-semibold leading-tight text-[var(--color-text)]">{node.title}</span>
+              <span className={plain ? "text-[length:var(--text-body)] font-normal leading-tight text-[var(--color-text)]" : "text-[length:var(--text-subject)] font-semibold leading-tight text-[var(--color-text)]"}>{node.title}</span>
               <span className="tabular-nums text-[length:var(--text-body)] font-normal text-[var(--color-data-level)]">{node.metric}</span>
             </span>
             <span className="mt-1 block max-w-[65ch] tabular-nums text-[length:var(--text-micro)] font-normal leading-relaxed text-[var(--color-text-muted)]">{node.detail}</span>
@@ -66,7 +66,7 @@ function RouteCard({ route }: { route: CompanionRoute }) {
       )}
       {remainingNodes.length > 0 && (
         <details className="mt-3 border-t border-[var(--color-border)] pt-3">
-          <summary className="min-h-11 cursor-pointer tabular-nums text-[length:var(--text-body)] font-normal text-[var(--color-text-secondary)]">
+          <summary className="min-h-10 cursor-pointer tabular-nums text-[length:var(--text-body)] font-normal text-[var(--color-text-secondary)]">
             Show {remainingNodes.length} more step{remainingNodes.length === 1 ? "" : "s"}
           </summary>
           <RouteNodeList nodes={remainingNodes} start={4} plain />
@@ -97,7 +97,7 @@ export function PlayerRoutesPanel({
   }, [pinnedGoals, unlockRoutes]);
 
   return (
-    <section className="mt-6 border-t border-[var(--color-border)] pt-4" aria-labelledby="player-routes-title" data-player-routes="true">
+    <section className="mt-5 border-t border-[var(--color-border)] pt-3" aria-labelledby="player-routes-title" data-player-routes="true">
       <h2 id="player-routes-title" className="scape-section-name">Your routes</h2>
       {!pinnedRoute && (
         <p className="mt-2 max-w-[65ch] text-[length:var(--text-body)] font-normal text-[var(--color-text-muted)]">Pin an unlock goal to put its quest chain here.</p>

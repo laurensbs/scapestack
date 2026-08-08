@@ -18,7 +18,7 @@ export function ScapestackCommandSystem() {
     <section
       id="command-system"
       aria-labelledby="command-system-title"
-      className="mb-20 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)]/68 p-4 shadow-[0_20px_70px_rgba(0,0,0,0.22)] sm:p-5"
+      className="mb-20 rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]/68 p-4 shadow-[0_20px_70px_rgba(0,0,0,0.22)] sm:p-5"
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-sm">
@@ -44,9 +44,9 @@ export function ScapestackCommandSystem() {
               <Link
                 key={prompt.label}
                 href={prompt.href}
-                className="group/prompt flex min-h-[72px] items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/42 px-3 py-2.5 transition-colors hover:border-[var(--color-accent)]/45 hover:bg-[var(--color-bg)]/65 focus:outline-none focus-visible:border-[var(--color-accent)]/65 focus-visible:shadow-[0_0_0_3px_rgba(134, 166, 217,0.14)]"
+                className="group/prompt flex min-h-[72px] items-center gap-3 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/42 px-3 py-2.5 transition-colors hover:border-[var(--color-accent)]/45 hover:bg-[var(--color-bg)]/65 focus:outline-none focus-visible:border-[var(--color-accent)]/65 focus-visible:shadow-[0_0_0_3px_rgba(134, 166, 217,0.14)]"
               >
-                <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 text-[var(--color-accent)]">
+                <span className="grid size-9 shrink-0 place-items-center rounded-none border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 text-[var(--color-accent)]">
                   <Icon className="size-4" aria-hidden="true" />
                 </span>
                 <span className="min-w-0">

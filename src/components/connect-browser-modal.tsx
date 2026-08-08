@@ -111,7 +111,7 @@ export function ConnectBrowserModal({
               <p className="text-sm leading-relaxed text-[var(--color-text-secondary)]">
                 Open <strong className="text-[var(--color-text)]">Scapestack Sync</strong> in RuneLite, enter this code under <strong className="text-[var(--color-text)]">Connect this browser</strong>, then press Connect browser.
               </p>
-              <div className="my-6 rounded-lg border border-[var(--color-gold)]/55 bg-[var(--color-bg)] px-4 py-5 text-center font-mono text-3xl font-bold tracking-[0.16em] text-[var(--color-gold)]">
+              <div className="my-6 rounded-none border border-[var(--color-gold)]/55 bg-[var(--color-bg)] px-4 py-5 text-center font-mono text-3xl font-bold tracking-[0.16em] text-[var(--color-gold)]">
                 {pairing.code}
               </div>
               <div className="flex items-center justify-center gap-2 text-sm text-[var(--color-text-muted)]">
@@ -122,7 +122,7 @@ export function ConnectBrowserModal({
           ) : (
             <div>
               <div className="flex gap-3">
-                <div className="grid size-11 shrink-0 place-items-center rounded-lg border border-[var(--color-parchment-edge)] bg-[var(--color-bg)]">
+                <div className="grid size-11 shrink-0 place-items-center rounded-none border border-[var(--color-parchment-edge)] bg-[var(--color-bg)]">
                   <PlugZap className="size-5 text-[var(--color-gold)]" />
                 </div>
                 <div>
@@ -132,7 +132,7 @@ export function ConnectBrowserModal({
                   </p>
                 </div>
               </div>
-              {error && <p role="alert" className="mt-4 rounded-md border border-[var(--color-danger)]/35 bg-[var(--color-danger)]/10 px-3 py-2 text-sm text-[var(--color-text)]">{error}</p>}
+              {error && <p role="alert" className="mt-4 rounded-none border border-[var(--color-danger)]/35 bg-[var(--color-danger)]/10 px-3 py-2 text-sm text-[var(--color-text)]">{error}</p>}
               <button type="button" onClick={() => void start()} disabled={!rsn || state === "starting"} className="btn-primary mt-5 w-full justify-center disabled:opacity-50">
                 {state === "starting" && <Loader2 className="size-4 animate-spin" />}
                 Get connection code

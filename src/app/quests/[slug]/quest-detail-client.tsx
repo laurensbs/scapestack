@@ -198,7 +198,7 @@ export function QuestDetailClient({
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 pb-20 sm:px-6 sm:py-9">
       <header className="mb-6 flex items-start gap-4">
-        <div className="flex size-16 shrink-0 items-center justify-center rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-panel)] sm:size-20">
+        <div className="flex size-16 shrink-0 items-center justify-center rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-panel)] sm:size-20">
           <ItemSprite id={9813} alt="Quest point cape" size={54} />
         </div>
         <div className="min-w-0 flex-1">
@@ -226,7 +226,7 @@ export function QuestDetailClient({
         </div>
       )}
 
-      <section className="mb-5 overflow-hidden rounded-xl border border-[var(--color-accent)]/35 bg-[var(--color-panel)]/84">
+      <section className="mb-5 overflow-hidden rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-panel)]/84">
         <div className="border-b border-[var(--color-border)] px-4 py-4 sm:px-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -258,7 +258,7 @@ export function QuestDetailClient({
             href={wikiSearchUrl(quest.name)}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-[var(--color-accent)]/40 bg-[var(--color-accent)] px-4 text-[12.5px] font-black text-[var(--color-bg)]"
+            className="inline-flex min-h-11 items-center gap-2 rounded-none border border-[var(--color-accent)]/40 bg-[var(--color-accent)] px-4 text-[12.5px] font-black text-[var(--color-bg)]"
           >
             Open Wiki guide <ExternalLink className="size-4" />
           </a>
@@ -266,7 +266,7 @@ export function QuestDetailClient({
       </section>
 
       {evaluation.accountWarnings.length > 0 && (
-        <details className="mb-4 rounded-xl border border-[var(--color-warning)]/25 bg-[var(--color-warning)]/8 p-3">
+        <details className="mb-4 rounded-none border border-[var(--color-warning)]/25 bg-[var(--color-warning)]/8 p-3">
           <summary className="flex cursor-pointer list-none items-center gap-1.5 text-[12px] font-bold text-[var(--color-warning)] marker:hidden [&::-webkit-details-marker]:hidden">
             <Shield className="size-4" />
             Account note
@@ -277,7 +277,7 @@ export function QuestDetailClient({
         </details>
       )}
 
-      <details className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55">
+      <details className="rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]/55">
         <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4 text-[13px] font-bold text-[var(--color-text)] marker:hidden sm:px-5 [&::-webkit-details-marker]:hidden">
           Check exact requirements
           <span className="text-[11px] font-semibold text-[var(--color-text-dim)]">Skills, quests and items</span>

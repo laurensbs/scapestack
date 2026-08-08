@@ -16,7 +16,7 @@ describe("mobile-first interface contract", () => {
     expect(css).toContain("width: 44px;");
     expect(css).toContain("height: 44px;");
     expect(css).toContain("max-height: calc(100dvh - 0.75rem)");
-    expect(header).toContain("size-11 rounded-md");
+    expect(header).toContain("size-11 rounded-none");
     expect(header).toContain("max-h-[calc(100dvh-3.5rem)]");
     expect(header).toContain("env(safe-area-inset-bottom)+6rem");
     expect(mood).toContain('className="icon-btn"');

@@ -71,7 +71,7 @@ function bossRiskPenaltyForAccount(boss: Boss, accountType: PlannerAccountType |
 
 function DpsIntakeHero() {
   return (
-    <section className="mb-5 rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-panel)] px-4 py-4">
+    <section className="mb-5 rounded-none border border-[var(--color-accent)]/25 bg-[var(--color-panel)] px-4 py-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <div className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-gold-soft)]">
@@ -128,7 +128,7 @@ function DpsMissingSetupState({
     <section className="scape-focus mx-auto max-w-2xl px-4 py-5 sm:px-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 gap-3">
-          <span className="inline-flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/50">
+          <span className="inline-flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-none border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/50">
             {boss ? <BossSprite boss={boss} size={42} /> : <ItemSprite id={20594} alt="" size={30} />}
           </span>
           <div className="min-w-0">
@@ -146,7 +146,7 @@ function DpsMissingSetupState({
         <button
           type="button"
           onClick={() => setBankModalOpen(true)}
-          className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-4 py-3 text-[13px] font-bold text-[#0B0906] transition-all hover:brightness-110 sm:w-auto"
+          className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-none bg-[var(--color-accent)] px-4 py-3 text-[13px] font-bold text-[#0B0906] transition-all hover:brightness-110 sm:w-auto"
         >
           Add bank
           <ExternalLink className="size-3.5" />
@@ -463,7 +463,7 @@ export function DpsClient() {
     return (
       <>
         {pendingBossName && (
-          <div className="mb-4 rounded-lg border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/8 px-4 py-3 flex flex-col gap-3 animate-[fade-in_0.3s_ease-out] sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-4 rounded-none border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/8 px-4 py-3 flex flex-col gap-3 animate-[fade-in_0.3s_ease-out] sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3">
             <Sword className="size-4 text-[var(--color-accent)] shrink-0" />
             <p className="text-[13px] text-[var(--color-text)] leading-relaxed">
@@ -482,7 +482,7 @@ export function DpsClient() {
             </div>
             <Link
               href={setupBankHref}
-              className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-bold text-[#0B0906] transition-all hover:brightness-110 sm:w-auto"
+              className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-none bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-bold text-[#0B0906] transition-all hover:brightness-110 sm:w-auto"
             >
               Add bank
               <ExternalLink className="size-3.5" />
@@ -566,7 +566,7 @@ export function DpsClient() {
                   type="button"
                   onClick={clearBossFilter}
                   aria-label="Clear boss search"
-                  className="absolute right-1 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-bg-2)] hover:text-[var(--color-text)]"
+                  className="absolute right-1 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-none text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-bg-2)] hover:text-[var(--color-text)]"
                 >
                   <X className="size-4" />
                 </button>
@@ -576,8 +576,8 @@ export function DpsClient() {
               Type a boss name, press Enter to open the first match, or Esc to clear.
             </p>
             {focusedBoss && search.trim().toLowerCase() === focusedBoss.name.toLowerCase() && (
-              <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3 py-2">
-                <span className="inline-flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/60">
+              <div className="mt-2 flex flex-wrap items-center gap-2 rounded-none border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3 py-2">
+                <span className="inline-flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/60">
                   <BossSprite boss={focusedBoss} size={22} />
                 </span>
                 <p className="min-w-0 flex-1 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
@@ -587,7 +587,7 @@ export function DpsClient() {
                 <button
                   type="button"
                   onClick={clearBossFilter}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+                  className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
                 >
                   Show all bosses
                   <X className="size-3.5" />
@@ -892,7 +892,7 @@ function DpsHandoffIntakeHint({
 }) {
   if (bankless) {
     return (
-      <div className="mb-4 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-4 rounded-none border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-start gap-3">
           <Sparkles className="mt-0.5 size-4 shrink-0 text-[var(--color-warning)]" />
           <p className="text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
@@ -905,7 +905,7 @@ function DpsHandoffIntakeHint({
         </div>
         <Link
           href={setupHref}
-          className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-warning)] px-3.5 py-2 text-[12.5px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110 sm:w-auto"
+          className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-none bg-[var(--color-warning)] px-3.5 py-2 text-[12.5px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110 sm:w-auto"
         >
           Add bank
           <ExternalLink className="size-3.5" />
@@ -917,7 +917,7 @@ function DpsHandoffIntakeHint({
   if (!slayerTask) return null;
 
   return (
-    <div className="mb-4 rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-panel)]/70 px-4 py-3 flex items-start gap-3">
+    <div className="mb-4 rounded-none border border-[var(--color-accent)]/25 bg-[var(--color-panel)]/70 px-4 py-3 flex items-start gap-3">
       <Sparkles className="mt-0.5 size-4 shrink-0 text-[var(--color-accent)]" />
       <p className="text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
         Task picked. Add bank before trusting the first trip.
@@ -945,7 +945,7 @@ function DpsNoWeaponGate({
   return (
     <section
       data-testid="dps-no-weapon-gate"
-      className="mb-7 rounded-xl border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/8 px-4 py-4"
+      className="mb-7 rounded-none border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/8 px-4 py-4"
     >
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="min-w-0">
@@ -962,7 +962,7 @@ function DpsNoWeaponGate({
             {weaponExamples.map((item) => (
               <span
                 key={item.id}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1 text-[11px] font-semibold text-[var(--color-text-dim)]"
+                className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1 text-[11px] font-semibold text-[var(--color-text-dim)]"
               >
                 <ItemSprite id={item.id} alt="" size={18} />
                 {item.name}
@@ -974,14 +974,14 @@ function DpsNoWeaponGate({
           <button
             type="button"
             onClick={onEditInput}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-warning)] px-3.5 py-2 text-[12.5px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110"
+            className="inline-flex items-center justify-center gap-1.5 rounded-none bg-[var(--color-warning)] px-3.5 py-2 text-[12.5px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110"
           >
             Add bank here
             <Edit3 className="size-3.5" />
           </button>
           <Link
             href={setupHref}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+            className="inline-flex items-center justify-center gap-1.5 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
           >
             Add bank
             <Sparkles className="size-3.5" />

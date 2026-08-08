@@ -13,7 +13,7 @@ export function QuestCompletionQuestions({
   return (
     // A div, not a section: this block lives inside the plan section, and the
     // page holds three sections total (tests/e2e/page-budget.spec.ts).
-    <div aria-labelledby="quest-check-title" className="border-y border-[var(--color-border-strong)] py-4">
+    <div aria-labelledby="quest-check-title" className="border-y border-[var(--color-border-strong)] py-3">
       <h3 id="quest-check-title" className="text-[length:var(--text-subject)] font-semibold text-[var(--color-text)]">
         Check finished quests
       </h3>
@@ -23,7 +23,7 @@ export function QuestCompletionQuestions({
       </p>
       <div className="mt-3 divide-y divide-[var(--color-border)]">
         {questions.slice(0, 3).map((question) => (
-          <div key={question.quest} className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+          <div key={question.quest} className="flex flex-wrap items-center justify-between gap-3 py-2 first:pt-0 last:pb-0">
             <p className="min-w-0 flex-1 text-[length:var(--text-body)] font-normal text-[var(--color-text)]">
               {question.prompt}
             </p>
@@ -32,7 +32,7 @@ export function QuestCompletionQuestions({
                 type="button"
                 disabled={pending}
                 onClick={() => onAnswer(question.quest, true)}
-                className="btn-ghost min-h-10 px-3 text-[length:var(--text-body)] font-normal disabled:opacity-50"
+                className="btn-ghost min-h-9 px-3 text-[length:var(--text-body)] font-normal disabled:opacity-50"
               >
                 Yes
               </button>
@@ -40,7 +40,7 @@ export function QuestCompletionQuestions({
                 type="button"
                 disabled={pending}
                 onClick={() => onAnswer(question.quest, false)}
-                className="btn-ghost min-h-10 px-3 text-[length:var(--text-body)] font-normal disabled:opacity-50"
+                className="btn-ghost min-h-9 px-3 text-[length:var(--text-body)] font-normal disabled:opacity-50"
               >
                 No
               </button>

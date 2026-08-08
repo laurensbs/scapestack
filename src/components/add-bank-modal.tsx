@@ -156,8 +156,8 @@ export function AddBankModal({
         </div>
 
         <div className="osrs-body p-5 sm:p-6">
-          <div className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-3 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/35 p-3 sm:grid-cols-[136px_minmax(0,1fr)]">
-            <div className="flex min-h-[80px] items-center justify-center overflow-hidden rounded-md border border-[var(--color-border)] bg-black p-1.5 sm:min-h-[92px]">
+          <div className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-3 rounded-none border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/35 p-3 sm:grid-cols-[136px_minmax(0,1fr)]">
+            <div className="flex min-h-[80px] items-center justify-center overflow-hidden rounded-none border border-[var(--color-border)] bg-black p-1.5 sm:min-h-[92px]">
               <img
                 src={BANK_MEMORY_EXAMPLE}
                 alt="Bank Memory saved bank in RuneLite"
@@ -181,7 +181,7 @@ export function AddBankModal({
 
           <div
             className={cn(
-              "mt-4 rounded-lg border bg-[var(--color-bg)] p-2 transition-colors",
+              "mt-4 rounded-none border bg-[var(--color-bg)] p-2 transition-colors",
               dragActive ? "border-[var(--color-accent)] bg-[var(--color-accent)]/5" : "border-[var(--color-border)]"
             )}
             onDragEnter={(event) => {

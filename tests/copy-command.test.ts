@@ -8,7 +8,7 @@ describe("CopyCommand fallback UX", () => {
   it("keeps long reviewer packets compact and accessible", () => {
     expect(source).toContain('const longValue = value.length > 120 || value.includes("\\n")');
     expect(source).toContain("max-h-44 overflow-auto whitespace-pre-wrap break-words");
-    expect(source).toContain('longValue ? "m-2 w-fit rounded-md border px-3 py-2" : "border-l px-3"');
+    expect(source).toContain('longValue ? "m-2 w-fit rounded-none border px-3 py-2" : "border-l px-3"');
     expect(source).toContain("aria-label={longValue ? label : `${label}: ${value}`}");
   });
 

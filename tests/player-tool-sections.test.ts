@@ -32,13 +32,13 @@ describe("the four bank questions live on the canonical player page", () => {
     const BankPage = (await import("@/app/bank/page")).default;
 
     await expect(DpsPage({ searchParams: Promise.resolve({ rsn: "Lynx Titan" }) }))
-      .rejects.toMatchObject({ destination: "/p/Lynx%20Titan#bosses" });
+      .rejects.toMatchObject({ destination: "/u/Lynx%20Titan#bosses" });
     await expect(GoalsPage({ searchParams: Promise.resolve({ rsn: "Lynx Titan" }) }))
-      .rejects.toMatchObject({ destination: "/p/Lynx%20Titan#sets" });
+      .rejects.toMatchObject({ destination: "/u/Lynx%20Titan#sets" });
     await expect(SlayerPage({ searchParams: Promise.resolve({ rsn: "Lynx Titan" }) }))
-      .rejects.toMatchObject({ destination: "/p/Lynx%20Titan#task" });
+      .rejects.toMatchObject({ destination: "/u/Lynx%20Titan#task" });
     await expect(BankPage({ searchParams: Promise.resolve({ rsn: "Lynx Titan", section: "money" }) }))
-      .rejects.toMatchObject({ destination: "/p/Lynx%20Titan#money" });
+      .rejects.toMatchObject({ destination: "/u/Lynx%20Titan#money" });
 
     await expect(DpsPage({ searchParams: Promise.resolve({}) }))
       .rejects.toMatchObject({ destination: "/bank?section=bosses" });

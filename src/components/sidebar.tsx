@@ -52,7 +52,7 @@ export function Sidebar() {
         <button
           type="button"
           onClick={() => setMobileOpen((v) => !v)}
-          className="size-9 rounded-md flex items-center justify-center border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
+          className="size-9 rounded-none flex items-center justify-center border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
         >
           {mobileOpen ? <X className="size-4" /> : <Menu className="size-4" />}
@@ -127,7 +127,7 @@ export function Sidebar() {
 function BrandMark() {
   return (
     <div
-      className="size-8 shrink-0 rounded-md flex items-center justify-center font-bold text-[14px]"
+      className="size-8 shrink-0 rounded-none flex items-center justify-center font-bold text-[14px]"
       style={{
         background: "linear-gradient(135deg, var(--color-accent-soft) 0%, var(--color-accent) 54%, var(--color-gold-deep) 100%)",
         color: "#FFFCF6",
@@ -161,7 +161,7 @@ function SidebarNav({
 
           const inner = (
             <div className={cn(
-              "group/nav flex items-center gap-2.5 rounded-md px-2.5 py-1.5 relative",
+              "group/nav flex items-center gap-2.5 rounded-none px-2.5 py-1.5 relative",
               "transition-colors duration-200",
               active && "bg-[var(--color-panel-2)] text-[var(--color-text)]",
               !active && !disabled && "text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-panel-2)]/60",

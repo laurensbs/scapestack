@@ -63,7 +63,7 @@ export function SupportCard({ context = "Saved you a minute?" }: Props) {
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
-              "inline-flex min-h-10 items-center gap-1.5 rounded-md px-3.5 py-2 text-[13px] font-semibold",
+              "inline-flex min-h-10 items-center gap-1.5 rounded-none px-3.5 py-2 text-[13px] font-semibold",
               "bg-[var(--color-accent)] text-[#0B0906]",
               "hover:brightness-110 transition-all"
             )}
@@ -74,7 +74,7 @@ export function SupportCard({ context = "Saved you a minute?" }: Props) {
           <button
             type="button"
             onClick={dismiss}
-            className="size-8 rounded-md flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-panel-2)] transition-colors"
+            className="size-8 rounded-none flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-panel-2)] transition-colors"
             title="Hide for 30 days"
             aria-label="Dismiss"
           >

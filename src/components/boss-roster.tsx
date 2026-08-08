@@ -78,7 +78,7 @@ export function BossRoster({ onPick }: { onPick?: (boss: Boss) => void }) {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search bosses"
-            className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)]/60 py-2.5 pl-9 pr-3 text-[13px] text-[var(--color-text)] placeholder:text-[var(--color-text-dim)] focus:border-[var(--color-accent)]/50 focus:outline-none"
+            className="w-full rounded-none border border-[var(--color-accent)]/20 bg-[var(--color-bg)]/60 py-2.5 pl-9 pr-3 text-[13px] text-[var(--color-text)] placeholder:text-[var(--color-text-dim)] focus:border-[var(--color-accent)]/50 focus:outline-none"
           />
         </label>
       </div>
@@ -94,10 +94,10 @@ export function BossRoster({ onPick }: { onPick?: (boss: Boss) => void }) {
             return (
               <li key={boss.slug}>
                 {(() => {
-                  const tileClass = "flex h-full w-full items-center gap-2.5 rounded-xl border border-[var(--color-accent)]/15 bg-[var(--color-bg)]/40 px-3 py-2.5 text-left transition-all hover:border-[var(--color-accent)]/45 hover:bg-[var(--color-accent)]/5";
+                  const tileClass = "flex h-full w-full items-center gap-2.5 rounded-none border border-[var(--color-accent)]/15 bg-[var(--color-bg)]/40 px-3 py-2.5 text-left transition-all hover:border-[var(--color-accent)]/45 hover:bg-[var(--color-accent)]/5";
                   const inner = (
                     <>
-                      <span className="inline-flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)]/60">
+                      <span className="inline-flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-none border border-[var(--color-accent)]/20 bg-[var(--color-bg)]/60">
                         <BossSprite boss={boss} size={28} />
                       </span>
                       <span className="min-w-0">

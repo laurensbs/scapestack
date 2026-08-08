@@ -42,7 +42,7 @@ export default async function SharedBankPage({ params }: Props) {
   return (
     <main className="relative z-10 mx-auto max-w-6xl px-5 py-7 pb-20">
       {/* Shared-banner */}
-      <div className="mb-5 flex items-center justify-between gap-3 p-3 rounded-xl bg-gradient-to-br from-[oklch(0.22_0.03_55)] to-[oklch(0.16_0.018_50)] border border-[var(--color-gold-soft)]/30">
+      <div className="mb-5 flex items-center justify-between gap-3 p-3 rounded-none bg-gradient-to-br from-[oklch(0.22_0.03_55)] to-[oklch(0.16_0.018_50)] border border-[var(--color-gold-soft)]/30">
         <div className="flex items-center gap-3 min-w-0">
           <Layers className="size-4 text-[var(--color-gold-soft)] shrink-0" />
           <div className="min-w-0">
@@ -56,7 +56,7 @@ export default async function SharedBankPage({ params }: Props) {
         </div>
         <Link
           href="/bank"
-          className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold bg-gradient-to-b from-[oklch(0.92_0.14_85)] to-[oklch(0.62_0.16_65)] text-[oklch(0.15_0.02_50)] border border-[oklch(0.46_0.13_60)] shadow-[0_2px_0_oklch(0_0_0/0.4)] hover:brightness-110"
+          className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-none text-[12.5px] font-semibold bg-gradient-to-b from-[oklch(0.92_0.14_85)] to-[oklch(0.62_0.16_65)] text-[oklch(0.15_0.02_50)] border border-[oklch(0.46_0.13_60)] shadow-[0_2px_0_oklch(0_0_0/0.4)] hover:brightness-110"
         >
           <ArrowLeft className="size-3.5" /> My bank
         </Link>

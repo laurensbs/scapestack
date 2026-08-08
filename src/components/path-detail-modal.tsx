@@ -111,13 +111,13 @@ export function PathDetailModal({ path, onClose }: Props) {
               autoComplete="off"
               spellCheck={false}
               aria-describedby={searchStatusId}
-              className="w-full pl-10 pr-3 py-2 rounded-md bg-[var(--color-bg-2)] border border-[var(--color-border)] focus:border-[var(--color-accent)]/50 text-[13px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none"
+              className="w-full pl-10 pr-3 py-2 rounded-none bg-[var(--color-bg-2)] border border-[var(--color-border)] focus:border-[var(--color-accent)]/50 text-[13px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none"
             />
             <p id={searchStatusId} role="status" aria-live="polite" className="sr-only">
               {filtered.length} path step{filtered.length === 1 ? "" : "s"} shown for {path.label}.
             </p>
           </div>
-          <div className="inline-flex rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)] p-0.5">
+          <div className="inline-flex rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)] p-0.5">
             {(["all", "open", "done"] as const).map((f) => (
               <button
                 key={f}
@@ -126,7 +126,7 @@ export function PathDetailModal({ path, onClose }: Props) {
                 aria-pressed={filter === f}
                 aria-label={`Show ${f} steps for ${path.label}`}
                 className={cn(
-                    "min-h-10 rounded-md px-3 py-1.5 text-[11.5px] font-semibold uppercase tracking-[0.08em] transition-colors",
+                    "min-h-10 rounded-none px-3 py-1.5 text-[11.5px] font-semibold uppercase tracking-[0.08em] transition-colors",
                   filter === f
                     ? "bg-[var(--color-accent)] text-[#0B1116]"
                     : "text-[var(--color-text-dim)] hover:text-[var(--color-text)]"

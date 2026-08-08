@@ -36,7 +36,7 @@ export function RuneliteOpenButton({ className, compact = false }: { className?:
         type="button"
         onClick={openRunelite}
         className={cn(
-          "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--color-accent)] px-4 py-3 text-[13px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110",
+          "inline-flex min-h-11 items-center justify-center gap-2 rounded-none bg-[var(--color-accent)] px-4 py-3 text-[13px] font-bold text-[var(--color-bg)] transition-all hover:brightness-110",
           compact && "w-full"
         )}
         aria-label="Open RuneLite and copy Scapestack Sync plugin search"

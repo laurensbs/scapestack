@@ -134,7 +134,7 @@ export function Header() {
                 // Staggered fade-in, starting after the wordmark.
                 style={{ animation: `hero-fade 0.5s cubic-bezier(0.22,1,0.36,1) ${0.4 + i * 0.07}s both` }}
                 className={cn(
-                  "group/tool inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[length:var(--text-micro)] font-medium transition-colors",
+                  "group/tool inline-flex items-center gap-1.5 px-3 py-1.5 rounded-none text-[length:var(--text-micro)] font-medium transition-colors",
                   active
                     ? "bg-[var(--color-accent)]/13 text-[var(--color-text)] ring-1 ring-[var(--color-accent)]/35"
                     : "text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-parchment)]/70"
@@ -160,7 +160,7 @@ export function Header() {
         <button
           type="button"
           onClick={() => setMobileOpen((v) => !v)}
-          className="sm:hidden size-11 rounded-md flex items-center justify-center border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
+          className="sm:hidden size-11 rounded-none flex items-center justify-center border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
           aria-controls={mobileNavId}
           aria-expanded={mobileOpen}
@@ -174,7 +174,7 @@ export function Header() {
       {mobileOpen && (
         <div className="fixed inset-x-0 top-14 z-40 max-h-[calc(100dvh-3.5rem)] overflow-y-auto overscroll-contain border-t border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)] shadow-[0_22px_50px_-36px_rgba(0,0,0,0.82)] sm:hidden">
           <nav id={mobileNavId} className="space-y-1 px-4 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-3" aria-label="Mobile trip actions">
-            <div className="mb-3 rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment)] p-3">
+            <div className="mb-3 rounded-none border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment)] p-3">
               <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-gold)]">
                 Your account
               </div>
@@ -197,7 +197,7 @@ export function Header() {
                   aria-current={active ? "page" : undefined}
                   aria-label={`${tool.name}: ${tool.short}`}
                   className={cn(
-                    "group/tool flex min-h-11 items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium",
+                    "group/tool flex min-h-11 items-center gap-2.5 rounded-none px-3 py-2 text-[13px] font-medium",
                     active
                       ? "bg-[var(--color-panel-2)] text-[var(--color-text)]"
                       : "text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-panel-2)]/60"
@@ -351,7 +351,7 @@ function AccountSwitcher({
                 autoCorrect="off"
                 enterKeyHint="go"
                 spellCheck={false}
-                className="min-h-11 min-w-0 flex-1 rounded-md border border-[var(--color-parchment-edge)]/70 bg-[var(--color-bg)] px-3 py-2 text-[16px] font-semibold text-[var(--color-text)] outline-none focus:border-[var(--color-accent)]/55 sm:text-[13px]"
+                className="min-h-11 min-w-0 flex-1 rounded-none border border-[var(--color-parchment-edge)]/70 bg-[var(--color-bg)] px-3 py-2 text-[16px] font-semibold text-[var(--color-text)] outline-none focus:border-[var(--color-accent)]/55 sm:text-[13px]"
               />
               <button
                 type="submit"
@@ -367,11 +367,11 @@ function AccountSwitcher({
           {accounts.length > 0 && (
             <div className="mt-3 space-y-1">
               {accounts.map((account) => (
-                <div key={account.id} className="flex items-center gap-1 rounded-lg hover:bg-[var(--color-bg)]/60">
+                <div key={account.id} className="flex items-center gap-1 rounded-none hover:bg-[var(--color-bg)]/60">
                   <button
                     type="button"
                     onClick={() => pickAccount(account.rsn)}
-                    className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-[length:var(--text-micro)] font-semibold text-[var(--color-text-dim)] transition-colors hover:text-[var(--color-text)]"
+                    className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-none px-2.5 py-2 text-left text-[length:var(--text-micro)] font-semibold text-[var(--color-text-dim)] transition-colors hover:text-[var(--color-text)]"
                   >
                     <span className="truncate">{account.rsn}</span>
                     {account.rsn === activeRsn && <CheckCircle2 className="size-3.5 text-[var(--color-good)]" />}
@@ -379,7 +379,7 @@ function AccountSwitcher({
                   <button
                     type="button"
                     onClick={() => void removeSavedAccount(account.rsn)}
-                    className="mr-1 inline-flex size-7 shrink-0 items-center justify-center rounded-md text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-danger)]/10 hover:text-[var(--color-danger)]"
+                    className="mr-1 inline-flex size-7 shrink-0 items-center justify-center rounded-none text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-danger)]/10 hover:text-[var(--color-danger)]"
                     aria-label={`Remove ${account.rsn}`}
                     title="Remove account"
                   >
@@ -391,7 +391,7 @@ function AccountSwitcher({
           )}
 
           {activeRsn && (
-            <div className="mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[length:var(--text-label)] font-semibold text-[var(--color-text-muted)]">
+            <div className="mt-3 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[length:var(--text-label)] font-semibold text-[var(--color-text-muted)]">
               <span className="text-[var(--color-text)]">{activeRsn}</span>
               <span className="mx-1.5 text-[var(--color-border-strong)]">·</span>
               <span title={bankFreshness} className="inline-flex items-center gap-1">
@@ -410,7 +410,7 @@ function AccountSwitcher({
             <button
               type="button"
               onClick={focusRsnInput}
-              className="grid min-h-[76px] place-items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+              className="grid min-h-[76px] place-items-center rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
             >
               <UserRound className="mb-1 size-5" />
               RSN
@@ -421,7 +421,7 @@ function AccountSwitcher({
                 setOpen(false);
                 setBankModalOpen(true);
               }}
-              className="grid min-h-[76px] place-items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+              className="grid min-h-[76px] place-items-center rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
             >
               <Package className="mb-1 size-5" />
               <span title={bankFreshness} className="inline-flex items-center gap-1">
@@ -432,7 +432,7 @@ function AccountSwitcher({
             <Link
               href={pluginHref}
               onClick={() => setOpen(false)}
-              className="grid min-h-[76px] place-items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+              className="grid min-h-[76px] place-items-center rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
             >
               {runeliteReady ? <RefreshCw className="mb-1 size-5" /> : <PlugZap className="mb-1 size-5" />}
               <span className="inline-flex items-center gap-1">
@@ -448,14 +448,14 @@ function AccountSwitcher({
                 setOpen(false);
                 setConnectModalOpen(true);
               }}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2.5 text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-none border border-[var(--color-border)] px-3 py-2.5 text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
             >
               <Link2 className="size-4" />
               Connect this browser
             </button>
           )}
           {activeRsn && activeAccount?.serverAccountId && (
-            <div className="mt-2 flex items-center justify-center gap-2 rounded-lg border border-[var(--color-gold)]/35 bg-[var(--color-gold)]/5 px-3 py-2.5 text-[12px] font-semibold text-[var(--color-text-secondary)]">
+            <div className="mt-2 flex items-center justify-center gap-2 rounded-none border border-[var(--color-gold)]/35 bg-[var(--color-gold)]/5 px-3 py-2.5 text-[12px] font-semibold text-[var(--color-text-secondary)]">
               <CheckCircle2 className="size-4 text-[var(--color-gold)]" />
               Connected on this browser
             </div>

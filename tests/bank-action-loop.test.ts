@@ -183,7 +183,7 @@ describe("bank action loop", () => {
 
     expect(source).toContain('data-testid="bank-action-loop-card"');
     expect(source).toContain('aria-label={`${step.cta}: ${step.destination}`}');
-    expect(source).toContain("group/bank-action rounded-lg border p-3 text-left");
+    expect(source).toContain("group/bank-action rounded-none border p-3 text-left");
     expect(source).toContain('if (step.id === "dps") return onDps;');
     expect(source).toContain("md:grid-cols-5");
     expect(source).not.toContain("Use this bank in");

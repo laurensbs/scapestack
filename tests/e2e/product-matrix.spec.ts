@@ -78,11 +78,16 @@ test.describe("Scapestack product story matrix", () => {
 
   test("6. saved bank makes the four bank answers usable on /u", async ({ page }) => {
     await seedSavedBank(page, "lauky");
-    await page.goto("/u/lauky");
-    // The device-saved bank feeds bosses, sets, task and money on the account
-    // detail page; all four sections must materialise and settle.
+    // Follow the real entry: /dps hands off to the tool sections, which live
+    // on /u since 2026-08-08. The first rewrite of this test asserted only
+    // that four (possibly empty) sections exist — true without any bank at
+    // all, which the adversarial pass called out. The proof is bank-FED
+    // content: per-boss answers only render when the saved bank parsed.
+    await page.goto("/dps?rsn=lauky&from=e2e");
+    await expect(page).toHaveURL(/\/u\/lauky#bosses/);
     await expect(page.locator("[data-player-tool-section]")).toHaveCount(4);
     await expect(page.locator("[data-player-tools-loading=true]")).toHaveCount(0, { timeout: 15_000 });
+    await expect(page.locator("[data-boss-answer]").first()).toBeVisible({ timeout: 15_000 });
   });
 
   test("7. without a bank, /u explains what RuneLite adds instead of pretending", async ({ page }) => {

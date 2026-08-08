@@ -54,11 +54,11 @@ export function DiscordWebhookCard({ onConfigured }: Props) {
   if (phase.kind === "no-config") {
     return (
       <div className={cn(
-        "mb-5 rounded-xl p-3.5 flex items-start gap-3",
+        "mb-5 rounded-none p-3.5 flex items-start gap-3",
         "bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)]",
         "border border-[var(--color-border)]"
       )}>
-        <div className="size-9 rounded-lg flex items-center justify-center bg-[oklch(0.32_0.05_280/0.3)] text-[oklch(0.74_0.13_280)] shrink-0">
+        <div className="size-9 rounded-none flex items-center justify-center bg-[oklch(0.32_0.05_280/0.3)] text-[oklch(0.74_0.13_280)] shrink-0">
           <MessageSquare className="size-4" />
         </div>
         <div className="flex-1 min-w-0">
@@ -74,7 +74,7 @@ export function DiscordWebhookCard({ onConfigured }: Props) {
             type="button"
             onClick={() => setPhase({ kind: "editing", url: "", label: "", rsn: "" })}
             className={cn(
-              "px-3 py-1.5 rounded-lg text-[12px] font-semibold",
+              "px-3 py-1.5 rounded-none text-[12px] font-semibold",
               "bg-gradient-to-b from-[oklch(0.92_0.14_85)] to-[oklch(0.62_0.16_65)]",
               "text-[oklch(0.15_0.02_50)] border border-[oklch(0.46_0.13_60)]",
               "shadow-[0_2px_0_oklch(0_0_0/0.4)]",
@@ -123,7 +123,7 @@ export function DiscordWebhookCard({ onConfigured }: Props) {
 
     return (
       <div className={cn(
-        "mb-5 rounded-xl p-4",
+        "mb-5 rounded-none p-4",
         "bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)]",
         "border border-[var(--color-gold-soft)]/40"
       )}>
@@ -151,7 +151,7 @@ export function DiscordWebhookCard({ onConfigured }: Props) {
               onChange={(e) => setPhase({ ...phase, url: e.target.value, status: undefined })}
               placeholder="https://discord.com/api/webhooks/123.../abc..."
               className={cn(
-                "w-full px-3 py-2 rounded-md text-[12px] font-mono",
+                "w-full px-3 py-2 rounded-none text-[12px] font-mono",
                 "bg-[var(--color-slot)] border",
                 phase.url && !valid ? "border-[var(--color-danger)]" : "border-[var(--color-border)]",
                 "text-[var(--color-text)] placeholder:text-[var(--color-text-dim)]/60",
@@ -170,7 +170,7 @@ export function DiscordWebhookCard({ onConfigured }: Props) {
                 onChange={(e) => setPhase({ ...phase, rsn: e.target.value })}
                 placeholder="Optional"
                 maxLength={12}
-                className="w-full px-3 py-2 rounded-md text-[12px] bg-[var(--color-slot)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[var(--color-gold-soft)]"
+                className="w-full px-3 py-2 rounded-none text-[12px] bg-[var(--color-slot)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[var(--color-gold-soft)]"
               />
             </div>
             <div>
@@ -181,7 +181,7 @@ export function DiscordWebhookCard({ onConfigured }: Props) {
                 onChange={(e) => setPhase({ ...phase, label: e.target.value })}
                 placeholder="Optional"
                 maxLength={30}
-                className="w-full px-3 py-2 rounded-md text-[12px] bg-[var(--color-slot)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[var(--color-gold-soft)]"
+                className="w-full px-3 py-2 rounded-none text-[12px] bg-[var(--color-slot)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[var(--color-gold-soft)]"
               />
             </div>
           </div>
@@ -199,7 +199,7 @@ export function DiscordWebhookCard({ onConfigured }: Props) {
               onClick={onSave}
               disabled={!phase.url || phase.pinging}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold",
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-none text-[12px] font-semibold",
                 "bg-gradient-to-b from-[oklch(0.92_0.14_85)] to-[oklch(0.62_0.16_65)]",
                 "text-[oklch(0.15_0.02_50)] border border-[oklch(0.46_0.13_60)]",
                 "shadow-[0_2px_0_oklch(0_0_0/0.4)]",
@@ -214,7 +214,7 @@ export function DiscordWebhookCard({ onConfigured }: Props) {
             <button
               type="button"
               onClick={() => setPhase({ kind: "no-config" })}
-              className="px-3 py-1.5 rounded-lg text-[12px] bg-transparent border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
+              className="px-3 py-1.5 rounded-none text-[12px] bg-transparent border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
             >
               Cancel
             </button>
@@ -231,11 +231,11 @@ export function DiscordWebhookCard({ onConfigured }: Props) {
   const { config } = phase;
   return (
     <div className={cn(
-      "mb-5 rounded-xl p-3 flex items-center gap-3",
+      "mb-5 rounded-none p-3 flex items-center gap-3",
       "bg-gradient-to-br from-[oklch(0.22_0.06_280/0.18)] to-[var(--color-bg-2)]",
       "border border-[oklch(0.74_0.13_280)]/40"
     )}>
-      <div className="size-8 rounded-lg flex items-center justify-center bg-[oklch(0.32_0.05_280/0.4)] text-[oklch(0.84_0.13_280)] shrink-0">
+      <div className="size-8 rounded-none flex items-center justify-center bg-[oklch(0.32_0.05_280/0.4)] text-[oklch(0.84_0.13_280)] shrink-0">
         <MessageSquare className="size-4" />
       </div>
       <div className="flex-1 min-w-0">

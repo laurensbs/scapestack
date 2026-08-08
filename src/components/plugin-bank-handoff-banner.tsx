@@ -44,10 +44,10 @@ export function PluginBankHandoffBanner() {
   };
 
   return (
-    <section className="mt-8 rounded-2xl border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/8 p-4 sm:p-5">
+    <section className="mt-8 rounded-none border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/8 p-4 sm:p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex min-w-0 gap-3">
-          <span className="mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/35 text-[var(--color-accent)]">
+          <span className="mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-none border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/35 text-[var(--color-accent)]">
             <DatabaseZap className="size-5" />
           </span>
           <div className="min-w-0">
@@ -69,7 +69,7 @@ export function PluginBankHandoffBanner() {
                   <span
                     key={item.id}
                     title={`${item.name}: ${item.stackValue.toLocaleString()} gp`}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1 text-[11px] text-[var(--color-text-dim)]"
+                    className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1 text-[11px] text-[var(--color-text-dim)]"
                   >
                     <ItemSprite id={item.id} alt="" size={16} />
                     <span className="max-w-[140px] truncate">{item.name}</span>
@@ -78,7 +78,7 @@ export function PluginBankHandoffBanner() {
                 ))}
               </div>
             )}
-            <details className="mt-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/30 px-3 py-2">
+            <details className="mt-3 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/30 px-3 py-2">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[12px] font-bold text-[var(--color-text)] marker:hidden">
                 <span>What sync can add</span>
                 <span className="rounded-full border border-[var(--color-border)] px-2 py-0.5 text-[10px] font-bold text-[var(--color-text-muted)]">
@@ -92,7 +92,7 @@ export function PluginBankHandoffBanner() {
                 {PLUGIN_BANK_SYNC_SIGNALS.map((signal) => (
                   <div
                     key={signal.id}
-                    className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2"
+                    className="rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2"
                   >
                     <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
                       {signal.label}
@@ -114,7 +114,7 @@ export function PluginBankHandoffBanner() {
           <button
             type="button"
             onClick={onClear}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-danger)]/45 hover:text-[var(--color-danger)]"
+            className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-danger)]/45 hover:text-[var(--color-danger)]"
           >
             Clear bank
             <Trash2 className="size-3.5" />
@@ -134,7 +134,7 @@ export function PluginBankHandoffBanner() {
                 key={action.id}
                 href={action.href}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[12px] font-bold transition-colors",
+                  "inline-flex items-center gap-1.5 rounded-none px-3 py-2 text-[12px] font-bold transition-colors",
                   action.primary
                     ? "border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15"
                     : "border border-[var(--color-border)] bg-[var(--color-bg)]/45 text-[var(--color-text)] hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"

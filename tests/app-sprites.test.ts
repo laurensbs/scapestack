@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 
 const uiSpriteFiles = [
   "src/app/goals/goals-client.tsx",
-  "src/app/u/[rsn]/local-bank-summary.tsx",
   "src/components/path-overview.tsx",
   "src/components/path-detail-modal.tsx",
   "src/app/dev/layout/page.tsx",

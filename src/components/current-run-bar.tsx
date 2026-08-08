@@ -50,7 +50,7 @@ export function CurrentRunBar({ className, compact = false }: CurrentRunBarProps
         aria-label="Scapestack account setup"
         className={cn(
           "flex min-w-0 items-center gap-1.5 rounded-full border border-[var(--color-border)] px-2 py-1 text-[11.5px] font-semibold text-[var(--color-text-muted)]",
-          compact ? "w-full justify-between rounded-xl bg-[#101010] px-3 py-2" : "max-w-full bg-[var(--color-bg)]/35",
+          compact ? "w-full justify-between rounded-none bg-[#101010] px-3 py-2" : "max-w-full bg-[var(--color-bg)]/35",
           className
         )}
       >

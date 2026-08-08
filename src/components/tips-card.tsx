@@ -203,7 +203,7 @@ export function TipsCard({ tips, onSearchItems }: TipsCardProps) {
     <div
       role="status"
       aria-live="polite"
-      className="mx-3.5 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3 py-2 text-[11.5px] text-[var(--color-text-dim)]"
+      className="mx-3.5 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-none border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3 py-2 text-[11.5px] text-[var(--color-text-dim)]"
     >
       <span>
         Hidden for now:{" "}
@@ -213,7 +213,7 @@ export function TipsCard({ tips, onSearchItems }: TipsCardProps) {
         type="button"
         onClick={restoreLastDismissedTip}
         aria-label={`Restore hidden tip group ${lastDismissedTip.label}`}
-        className="rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-colors"
+        className="rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-colors"
       >
         Undo hide
       </button>
@@ -226,7 +226,7 @@ export function TipsCard({ tips, onSearchItems }: TipsCardProps) {
     return (
       <section
         className={cn(
-          "mb-5 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]",
+          "mb-5 rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]",
           "animate-[fade-in_0.25s_ease-out]"
         )}
         aria-label="Bank tips"
@@ -242,7 +242,7 @@ export function TipsCard({ tips, onSearchItems }: TipsCardProps) {
         </div>
         {undoDismissBanner}
         <div className="px-3.5 py-3">
-          <div className="rounded-md border border-dashed border-[var(--color-border)] bg-[var(--color-bg-2)]/35 px-3 py-2.5 text-[12px] text-[var(--color-text-dim)]">
+          <div className="rounded-none border border-dashed border-[var(--color-border)] bg-[var(--color-bg-2)]/35 px-3 py-2.5 text-[12px] text-[var(--color-text-dim)]">
             <div className="font-semibold text-[var(--color-text)]">No visible tips right now.</div>
             <p className="mt-1">
               Restore them if you want Scapestack to show the decant, merge and pickup actions for this bank again.
@@ -251,7 +251,7 @@ export function TipsCard({ tips, onSearchItems }: TipsCardProps) {
               type="button"
               onClick={restoreTips}
               aria-label="Restore every hidden bank tip"
-              className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-colors"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-colors"
             >
               Restore tips
             </button>
@@ -264,7 +264,7 @@ export function TipsCard({ tips, onSearchItems }: TipsCardProps) {
   return (
     <section
       className={cn(
-        "mb-5 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]",
+        "mb-5 rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]",
         "animate-[fade-in_0.25s_ease-out]"
       )}
       aria-label="Bank tips"
@@ -370,7 +370,7 @@ function TipGroupRow({ group, onOpen, onDismissGroup, onDismissTip, onSearchItem
       <li style={cardBase}>
         <div
           className={cn(
-            "rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/40",
+            "rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/40",
             "px-3 py-2.5 transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-bg)]/70",
             "h-full flex flex-col"
           )}>
@@ -387,13 +387,13 @@ function TipGroupRow({ group, onOpen, onDismissGroup, onDismissTip, onSearchItem
             onClick={onOpen}
             aria-label={`Open action steps for ${group.label}`}
             className={cn(
-              "mt-1.5 block w-full flex-1 cursor-pointer rounded-sm text-left",
+              "mt-1.5 block w-full flex-1 cursor-pointer rounded-none text-left",
               "focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(134, 166, 217,0.2)]"
             )}
           >
             <div className="text-[12.5px] font-medium leading-snug text-[var(--color-text)]">{group.label}</div>
             <div className="text-[11px] text-[var(--color-text-muted)] leading-snug mt-1">{group.subline}</div>
-            <div className="mt-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 px-2 py-1.5 text-[10.5px] leading-snug text-[var(--color-text-dim)]">
+            <div className="mt-2 rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 px-2 py-1.5 text-[10.5px] leading-snug text-[var(--color-text-dim)]">
               <span className="text-[var(--color-accent)] font-semibold">Action:</span> {action.instruction}
             </div>
           </button>
@@ -406,7 +406,7 @@ function TipGroupRow({ group, onOpen, onDismissGroup, onDismissTip, onSearchItem
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(event) => event.stopPropagation()}
-                  className="rounded-sm bg-[var(--color-bg)] border border-[var(--color-border)] p-0.5 hover:border-[var(--color-accent)] transition-colors"
+                  className="rounded-none bg-[var(--color-bg)] border border-[var(--color-border)] p-0.5 hover:border-[var(--color-accent)] transition-colors"
                   title={`${item.name} · ID ${item.id}`}
                   aria-label={`Open ${item.name} on OSRS Wiki`}
                 >
@@ -440,7 +440,7 @@ function TipGroupRow({ group, onOpen, onDismissGroup, onDismissTip, onSearchItem
     <li style={cardBase}>
       <div
         className={cn(
-          "text-left rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/40",
+          "text-left rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/40",
           "px-3 py-2.5 transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-bg)]/70",
           "h-full flex flex-col w-full"
         )}
@@ -460,13 +460,13 @@ function TipGroupRow({ group, onOpen, onDismissGroup, onDismissTip, onSearchItem
           aria-haspopup="dialog"
           aria-label={`Open action steps for ${group.label}`}
           className={cn(
-            "mt-1.5 block w-full flex-1 cursor-pointer rounded-sm text-left",
+            "mt-1.5 block w-full flex-1 cursor-pointer rounded-none text-left",
             "focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(134, 166, 217,0.2)]"
           )}
         >
           <div className="text-[12.5px] font-medium leading-snug text-[var(--color-text)]">{group.label}</div>
           <div className="text-[11px] text-[var(--color-text-muted)] leading-snug mt-1">{group.subline}</div>
-          <div className="mt-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 px-2 py-1.5 text-[10.5px] leading-snug text-[var(--color-text-dim)]">
+          <div className="mt-2 rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 px-2 py-1.5 text-[10.5px] leading-snug text-[var(--color-text-dim)]">
             <span className="text-[var(--color-accent)] font-semibold">Action:</span> {action.instruction}
           </div>
         </button>
@@ -479,7 +479,7 @@ function TipGroupRow({ group, onOpen, onDismissGroup, onDismissTip, onSearchItem
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(event) => event.stopPropagation()}
-                className="rounded-sm bg-[var(--color-bg)] border border-[var(--color-border)] p-0.5 hover:border-[var(--color-accent)] transition-colors"
+                className="rounded-none bg-[var(--color-bg)] border border-[var(--color-border)] p-0.5 hover:border-[var(--color-accent)] transition-colors"
                 title={`${item.name} · ID ${item.id}`}
                 aria-label={`Open ${item.name} on OSRS Wiki`}
               >
@@ -652,7 +652,7 @@ function TipFocusedView({ panelId, group, onBack, onDismissTip, onDismissGroup, 
         </button>
       </div>
 
-      <div className="mb-3 rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 p-3">
+      <div className="mb-3 rounded-none border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 p-3">
         <div className="text-[10px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
           Do this
         </div>
@@ -664,7 +664,7 @@ function TipFocusedView({ panelId, group, onBack, onDismissTip, onDismissGroup, 
             href={action.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 transition-colors"
+            className="mt-2 inline-flex items-center gap-1.5 rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 transition-colors"
             aria-label={`Open ${action.label} for ${group.label}`}
           >
             {action.label}
@@ -680,7 +680,7 @@ function TipFocusedView({ panelId, group, onBack, onDismissTip, onDismissGroup, 
             <button
               type="button"
               onClick={() => onSearchItems(searchQuery, group.label)}
-              className="mr-2 inline-flex items-center gap-1.5 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 transition-colors"
+              className="mr-2 inline-flex items-center gap-1.5 rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 transition-colors"
               title={`Search bank for ${searchQuery}`}
               aria-label={`Find affected bank items for ${group.label}`}
             >
@@ -692,7 +692,7 @@ function TipFocusedView({ panelId, group, onBack, onDismissTip, onDismissGroup, 
           <button
             type="button"
             onClick={() => { onDismissGroup(); onBack(); }}
-            className="ml-2 inline-flex items-center gap-1.5 rounded-md border border-[var(--color-good)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-good)] hover:bg-[var(--color-good)]/10 transition-colors"
+            className="ml-2 inline-flex items-center gap-1.5 rounded-none border border-[var(--color-good)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-good)] hover:bg-[var(--color-good)]/10 transition-colors"
             aria-label={`Mark ${group.label} tip as done`}
           >
             Mark done
@@ -701,7 +701,7 @@ function TipFocusedView({ panelId, group, onBack, onDismissTip, onDismissGroup, 
         </div>
       </div>
 
-      <ul className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/40 divide-y divide-[var(--color-border)]/50 overflow-hidden">
+      <ul className="rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/40 divide-y divide-[var(--color-border)]/50 overflow-hidden">
         {group.tips.map((t) => (
           <TipChildRow
             key={t.id}
@@ -733,7 +733,7 @@ function CardHeader({ meta, Icon, label, countText, slotsFreed, expandIndicator,
   return (
     <div className="flex items-center gap-2">
       <span className={cn(
-        "size-6 rounded-md flex items-center justify-center shrink-0",
+        "size-6 rounded-none flex items-center justify-center shrink-0",
         "bg-[var(--color-bg)] border border-[var(--color-border)]",
         meta.accent
       )}>
@@ -798,7 +798,7 @@ function TipChildRow({ tip, iconSlots = 4, onDismiss }: {
           <span
             key={i}
             className={cn(
-              "size-9 rounded-md flex items-center justify-center",
+              "size-9 rounded-none flex items-center justify-center",
               item !== null
                 ? "bg-[var(--color-bg)] border border-[var(--color-border)]"
                 : "border border-transparent"
@@ -810,7 +810,7 @@ function TipChildRow({ tip, iconSlots = 4, onDismiss }: {
                 href={wikiSearchUrl(item.name)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex size-full items-center justify-center rounded-md hover:outline hover:outline-1 hover:outline-[var(--color-accent)]"
+                className="flex size-full items-center justify-center rounded-none hover:outline hover:outline-1 hover:outline-[var(--color-accent)]"
                 title={`${item.name} · ID ${item.id}`}
                 aria-label={`Open ${item.name} on OSRS Wiki`}
               >
@@ -906,7 +906,7 @@ function TipCopyButton({ tips, label, compact = false }: {
         {copyState === "copied" ? "Copied" : copyState === "error" ? "Copy failed" : label}
       </button>
       {copyState === "error" && (
-        <span className="block rounded-md border border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8 p-2">
+        <span className="block rounded-none border border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8 p-2">
           <label className="mb-1 block text-[9.5px] font-bold uppercase tracking-[0.14em] text-[var(--color-danger)]">
             Clipboard failed — copy manually
           </label>

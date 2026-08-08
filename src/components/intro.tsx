@@ -258,7 +258,7 @@ export function Intro({ flowStep = 0 }: IntroProps) {
 // so we let it sit centred inside the frame instead.
 function ScreenshotFrame({ src, alt, w, h }: { src: string; alt: string; w: number; h: number }) {
   return (
-    <div className="relative rounded-lg overflow-hidden border border-[var(--color-border-strong)] bg-[var(--color-bg-2)] shadow-[0_18px_40px_-20px_rgb(0_0_0/0.7),0_0_0_1px_rgba(134, 166, 217,0.08)] p-4 flex items-center justify-center">
+    <div className="relative rounded-none overflow-hidden border border-[var(--color-border-strong)] bg-[var(--color-bg-2)] shadow-[0_18px_40px_-20px_rgb(0_0_0/0.7),0_0_0_1px_rgba(134, 166, 217,0.08)] p-4 flex items-center justify-center">
       <span
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-px"

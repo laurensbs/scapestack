@@ -166,7 +166,7 @@ export function BossPicker({ selected, onSelect, className, sortKey }: Props) {
         aria-controls={open ? pickerId : undefined}
         aria-expanded={open}
         className={cn(
-          "inline-flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[12.5px] font-medium transition-colors border",
+          "inline-flex items-center gap-2.5 px-2.5 py-1.5 rounded-none text-[12.5px] font-medium transition-colors border",
           "bg-[var(--color-bg-2)] border-[var(--color-border)] text-[var(--color-text)] hover:border-[var(--color-border-strong)]",
           open && "border-[var(--color-accent)]/40",
           className
@@ -190,7 +190,7 @@ export function BossPicker({ selected, onSelect, className, sortKey }: Props) {
           ref={popoverRef}
           role="dialog"
           aria-label="Choose boss for kill check"
-          className="fixed z-[120] rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-[0_24px_60px_-20px_rgb(0_0_0/0.75)] animate-[pop-in_0.18s_ease-out] origin-top-left flex flex-col"
+          className="fixed z-[120] rounded-none border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-[0_24px_60px_-20px_rgb(0_0_0/0.75)] animate-[pop-in_0.18s_ease-out] origin-top-left flex flex-col"
           style={{
             left: anchor.left,
             top: anchor.top,
@@ -213,7 +213,7 @@ export function BossPicker({ selected, onSelect, className, sortKey }: Props) {
               autoComplete="off"
               spellCheck={false}
               aria-describedby={statusId}
-              className="w-full pl-7 pr-7 py-1.5 rounded-md text-[12.5px] bg-[var(--color-bg-2)] border border-[var(--color-border)] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(134, 166, 217,0.12)]"
+              className="w-full pl-7 pr-7 py-1.5 rounded-none text-[12.5px] bg-[var(--color-bg-2)] border border-[var(--color-border)] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(134, 166, 217,0.12)]"
             />
             <p id={statusId} role="status" aria-live="polite" className="sr-only">
               {query

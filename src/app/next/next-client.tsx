@@ -829,7 +829,7 @@ function NotFoundPreview({ rsn, onRetry }: { rsn: string; onRetry: () => void })
   // purpose; tests/first-run-flow.test.ts asserts this file does not contain
   // them, and a comment quoting them would defeat that.
   //
-  // It also carried the chrome direction B removed — rounded-xl, a gradient
+  // It also carried the chrome direction B removed — rounded-none, a gradient
   // overlay, a backdrop blur and a slide-up — to make the fabrication look
   // like a real result behind glass.
   //
@@ -955,7 +955,7 @@ function NextIntake({
       )}
 
       {cameFromPlugin && (
-        <div className="mb-4 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/8 px-4 py-3 text-left">
+        <div className="mb-4 rounded-none border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/8 px-4 py-3 text-left">
           <div className="flex items-start gap-3">
             <Shield className="mt-0.5 size-4 shrink-0 text-[var(--color-warning)]" />
             <div className="min-w-0 flex-1">
@@ -968,7 +968,7 @@ function NextIntake({
             </div>
             <Link
               href={pluginVerifyHref}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/45 px-2.5 py-1.5 text-[11px] font-bold text-[var(--color-warning)] transition-colors hover:bg-[var(--color-warning)]/10"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-none border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/45 px-2.5 py-1.5 text-[11px] font-bold text-[var(--color-warning)] transition-colors hover:bg-[var(--color-warning)]/10"
             >
               Check RuneLite
               <ArrowRight className="size-3" />
@@ -981,7 +981,7 @@ function NextIntake({
           Bank trip handoff button. The bank is
           already loaded; an RSN is optional and adds stats. */}
       {fromBank && (
-        <div className="mb-4 rounded-lg border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/8 px-4 py-3 flex items-start gap-3 animate-[fade-in_0.3s_ease-out] text-left">
+        <div className="mb-4 rounded-none border border-[var(--color-accent)]/40 bg-[var(--color-accent)]/8 px-4 py-3 flex items-start gap-3 animate-[fade-in_0.3s_ease-out] text-left">
           <Sparkles className="size-4 text-[var(--color-accent)] shrink-0 mt-0.5" />
           <div className="min-w-0 flex-1">
             <p className="text-[13px] text-[var(--color-text)] leading-relaxed">
@@ -1000,7 +1000,7 @@ function NextIntake({
                 {handoffSummary.topItems.map((item) => (
                   <span
                     key={item.id}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1 text-[11px] text-[var(--color-text-dim)]"
+                    className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1 text-[11px] text-[var(--color-text-dim)]"
                     title={`${item.name}: ${item.stackValue.toLocaleString()} gp`}
                   >
                     <ItemSprite id={item.id} alt="" size={15} />
@@ -1015,7 +1015,7 @@ function NextIntake({
               type="button"
               onClick={runWithRoute}
               disabled={loading}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-1.5 rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Plan with this bank
               <ArrowRight className="size-3" />
@@ -1023,7 +1023,7 @@ function NextIntake({
             <button
               type="button"
               onClick={onClearBankHandoff}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-danger)]/45 hover:text-[var(--color-danger)]"
+              className="inline-flex items-center justify-center gap-1.5 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-danger)]/45 hover:text-[var(--color-danger)]"
             >
               Clear bank
               <Trash2 className="size-3" />
@@ -1064,7 +1064,7 @@ function NextIntake({
               aria-describedby="next-show-me-disabled-help"
               disabled={loading || (!rsn.trim() && !fromBank)}
               className={cn(
-                "group/btn relative overflow-hidden rounded-xl m-1.5 px-5 py-3 inline-flex items-center justify-center gap-2",
+                "group/btn relative overflow-hidden rounded-none m-1.5 px-5 py-3 inline-flex items-center justify-center gap-2",
                 "bg-[var(--color-accent)] text-[var(--color-bg)] font-semibold text-[14px]",
                 "hover:brightness-110 transition-all",
                 "disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1445,7 +1445,7 @@ function FirstPlanSharpening({
                     setVisible(false);
                     setBankOpen(true);
                   }}
-                  className="min-h-[92px] rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 p-4 text-left transition-colors hover:border-[var(--color-accent)]"
+                  className="min-h-[92px] rounded-none border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 p-4 text-left transition-colors hover:border-[var(--color-accent)]"
                 >
                   <ClipboardPaste className="size-4 text-[var(--color-accent)]" />
                   <span className="mt-3 block text-[14px] font-bold text-[var(--color-text)]">Add bank</span>
@@ -1455,7 +1455,7 @@ function FirstPlanSharpening({
               {!hasRunelite && (
                 <Link
                   href={syncHref}
-                  className="min-h-[92px] rounded-lg border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 p-4 text-left transition-colors hover:border-[var(--color-accent)]"
+                  className="min-h-[92px] rounded-none border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/45 p-4 text-left transition-colors hover:border-[var(--color-accent)]"
                 >
                   <Sparkles className="size-4 text-[var(--color-accent)]" />
                   <span className="mt-3 block text-[14px] font-bold text-[var(--color-text)]">Add RuneLite</span>
@@ -1800,7 +1800,7 @@ function MakePlanSmarter({
           <button
             type="button"
             onClick={onEdit}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+            className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
           >
             Change input
             <Edit3 className="size-3.5" />
@@ -1808,7 +1808,7 @@ function MakePlanSmarter({
           {!hasBank && (
             <Link
               href={bankOrganizerHref(activeRsn, "next")}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+              className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
             >
               {contextCopy.bankCta}
               <ArrowRight className="size-3.5" />
@@ -1817,7 +1817,7 @@ function MakePlanSmarter({
           {pluginSyncState !== "live" && (
             <Link
               href={syncHref}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
+              className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
             >
               Check RuneLite
               <Sparkles className="size-3.5" />
@@ -1827,14 +1827,14 @@ function MakePlanSmarter({
 
         <p className="text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">{basisNote}</p>
         {expectedPluginSync && pluginSyncState !== "live" && (
-          <div className="rounded-xl border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-4 py-3">
+          <div className="rounded-none border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-4 py-3">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-[12.5px] leading-relaxed text-[var(--color-text-dim)]">
                 RuneLite did not show up yet. Sync again, then check this RSN.
               </p>
               <Link
                 href={syncHref}
-                className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/35 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-warning)] transition-colors hover:bg-[var(--color-warning)]/10"
+                className="inline-flex w-fit items-center gap-1.5 rounded-none border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/35 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-warning)] transition-colors hover:bg-[var(--color-warning)]/10"
               >
                 Check RuneLite
                 <ArrowRight className="size-3.5" />
@@ -1909,10 +1909,10 @@ function NextBankContextStrip({
   };
 
   return (
-    <section className="rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/8 px-4 py-3">
+    <section className="rounded-none border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/8 px-4 py-3">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex min-w-0 gap-3">
-          <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/40">
+          <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-none border border-[var(--color-accent)]/25 bg-[var(--color-bg)]/40">
             <ItemSprite id={20594} alt="" size={25} />
           </span>
           <div className="min-w-0">
@@ -1945,7 +1945,7 @@ function NextBankContextStrip({
               {context.summary.topItems.map((item) => (
                 <span
                   key={item.id}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1 text-[11px] text-[var(--color-text-dim)]"
+                  className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1 text-[11px] text-[var(--color-text-dim)]"
                   title={`${item.name}: ${item.stackValue.toLocaleString()} gp`}
                 >
                   <ItemSprite id={item.id} alt="" size={15} />
@@ -1956,7 +1956,7 @@ function NextBankContextStrip({
               {context.topAreas.map((area) => (
                 <span
                   key={area.name}
-                  className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 px-2 py-1 text-[11px] text-[var(--color-text-muted)]"
+                  className="rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 px-2 py-1 text-[11px] text-[var(--color-text-muted)]"
                   title={area.totalValue > 0 ? `${area.totalValue.toLocaleString()} gp` : undefined}
                 >
                   {area.name} · {area.itemCount}
@@ -1969,7 +1969,7 @@ function NextBankContextStrip({
           <button
             type="button"
             onClick={backToBank}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+            className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
           >
             Review bank
             <ArrowRight className="size-3.5" />
@@ -1981,7 +1981,7 @@ function NextBankContextStrip({
                 onClearStoredBankHandoff();
                 setHandoffCleared(true);
               }}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-danger)]/45 hover:text-[var(--color-danger)]"
+              className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-danger)]/45 hover:text-[var(--color-danger)]"
             >
               Clear bank
               <Trash2 className="size-3.5" />
@@ -1989,28 +1989,28 @@ function NextBankContextStrip({
           )}
           <Link
             href={toolHandoffUrl("/dps", "next", activeRsn)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+            className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
           >
             Check kill
             <Sword className="size-3.5" />
           </Link>
           <Link
             href={toolHandoffUrl("/goals", "next", activeRsn)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+            className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
           >
             Open unlocks
             <Target className="size-3.5" />
           </Link>
           <Link
             href={toolHandoffUrl("/slayer", "next", activeRsn)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+            className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
           >
             Check task
             <Shield className="size-3.5" />
           </Link>
           <Link
             href={toolHandoffUrl("/plugin", "next", activeRsn)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
+            className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
           >
             Check RuneLite
             <Sparkles className="size-3.5" />
@@ -2097,7 +2097,7 @@ function KcPortrait({ rec, size, prominent = false }: {
     // player is trying to read is the opposite of what a reference document
     // does. `prominent` is kept on the signature because callers pass it and
     // it still names which portrait is the headline one.
-    <div className="size-full flex items-center justify-center rounded-md overflow-hidden">
+    <div className="size-full flex items-center justify-center rounded-none overflow-hidden">
       <BossSprite boss={boss} size={size} />
     </div>
   );
@@ -2184,14 +2184,14 @@ function RouteIdentityStrip({ rec, active = false }: { rec: Recommendation; acti
           data-route-boss-slug={sprite.type === "boss" ? sprite.slug : undefined}
           data-route-item-id={sprite.type === "boss" ? sprite.itemId : sprite.itemId}
           className={cn(
-            "group/sprite inline-flex min-w-[52px] flex-col items-center gap-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1.5 transition-transform duration-200",
+            "group/sprite inline-flex min-w-[52px] flex-col items-center gap-1 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-1.5 transition-transform duration-200",
             "hover:-translate-y-0.5 focus-within:-translate-y-0.5",
             active && "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/8"
           )}
           style={active ? { animation: `pop-in 0.42s ease-out ${index * 70}ms both` } : undefined}
         >
           <span
-            className="flex size-8 items-center justify-center rounded-md border border-[var(--color-border)] bg-black/30"
+            className="flex size-8 items-center justify-center rounded-none border border-[var(--color-border)] bg-black/30"
             title={sprite.label}
           >
             {sprite.type === "boss" ? (
@@ -2214,7 +2214,7 @@ function RoutePrimarySprite({ rec, active = false }: { rec: Recommendation; acti
   return (
     <span
       className={cn(
-        "grid size-11 shrink-0 place-items-center overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/45",
+        "grid size-11 shrink-0 place-items-center overflow-hidden rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45",
         active && "border-[var(--color-accent)]/40 bg-[var(--color-accent)]/10"
       )}
       title={sprite ? sprite.label : KIND_META[rec.kind].label}
@@ -2246,7 +2246,7 @@ function RouteStepBrief({
   return (
     <div
       className={cn(
-        "rounded-lg border px-3 py-2",
+        "rounded-none border px-3 py-2",
         tone === "accent"
           ? "border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8"
           : "border-[var(--color-border)] bg-[var(--color-bg)]/35"
@@ -2262,7 +2262,7 @@ function RandomizeRoll({ active }: { active: boolean }) {
   if (!active) return null;
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] px-2 py-1"
+      className="inline-flex items-center gap-1 rounded-none border border-[var(--color-border)] px-2 py-1"
       data-randomize-roll-state="rolling"
       aria-hidden="true"
     >
@@ -3074,7 +3074,7 @@ function RouteCard({
   return (
     <article
       className={cn(
-        "rounded-xl border bg-[var(--color-bg)]/35 transition-colors",
+        "rounded-none border bg-[var(--color-bg)]/35 transition-colors",
         expanded
           ? "border-[var(--color-accent)]/45 bg-[var(--color-bg)]/58 shadow-[0_18px_60px_-34px_rgba(200,154,61,0.55)]"
           : "border-[var(--color-border)] hover:border-[var(--color-accent)]/28 hover:bg-[var(--color-bg)]/48"
@@ -3185,7 +3185,7 @@ function RouteChain({
   );
 
   return (
-    <section className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/42 p-3.5">
+    <section className="rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]/42 p-3.5">
       {content}
     </section>
   );
@@ -3261,7 +3261,7 @@ function ContinueRouteBanner({
     <section
       role="status"
       aria-live="polite"
-      className="rounded-xl border border-[var(--color-accent)]/30 bg-[linear-gradient(135deg,rgba(214,170,72,0.13),rgba(20,15,9,0.68))] px-4 py-3 shadow-[0_16px_48px_rgba(0,0,0,0.22)]"
+      className="rounded-none border border-[var(--color-accent)]/30 bg-[linear-gradient(135deg,rgba(214,170,72,0.13),rgba(20,15,9,0.68))] px-4 py-3 shadow-[0_16px_48px_rgba(0,0,0,0.22)]"
       data-continue-route-memory="true"
     >
       <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -3332,7 +3332,7 @@ function ActionPlanBlock({ rec, compact = false }: { rec: Recommendation; compac
 
   if (compact) {
     return (
-      <div className="mt-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 px-2.5 py-2">
+      <div className="mt-2 rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 px-2.5 py-2">
         <div className="mb-1.5 flex flex-wrap items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
           <span className="text-[var(--color-accent)]">Plan</span>
           <span className="text-[var(--color-text-muted)]">·</span>
@@ -3351,7 +3351,7 @@ function ActionPlanBlock({ rec, compact = false }: { rec: Recommendation; compac
   }
 
   return (
-    <div className="mt-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]/55 p-3.5">
+    <div className="mt-4 rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)]/55 p-3.5">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
         <div className="text-[10.5px] uppercase tracking-[0.18em] font-bold text-[var(--color-accent)]">
           Plan for this session
@@ -3431,7 +3431,7 @@ function ReturnLoopCard({
 
   return (
     <section
-      className="rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/46 px-3.5 py-3"
+      className="rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]/46 px-3.5 py-3"
       data-return-loop-card="true"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -3447,7 +3447,7 @@ function ReturnLoopCard({
           {steps.map((step) => (
             <div
               key={step.label}
-              className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/38 px-3 py-2"
+              className="rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/38 px-3 py-2"
             >
               <div className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--color-accent)]">
                 {step.label}
@@ -3468,7 +3468,7 @@ function ReturnPlanCard({ result, rec }: { result: NextUpResult; rec: Recommenda
   const changed = plan.sinceLastTrip.slice(0, 3);
   return (
     <section
-      className="rounded-xl border border-[var(--color-accent)]/28 bg-[linear-gradient(135deg,rgba(214,170,72,0.10),rgba(17,13,8,0.64))] px-4 py-3"
+      className="rounded-none border border-[var(--color-accent)]/28 bg-[linear-gradient(135deg,rgba(214,170,72,0.10),rgba(17,13,8,0.64))] px-4 py-3"
       data-return-plan-card="true"
     >
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -3483,13 +3483,13 @@ function ReturnPlanCard({ result, rec }: { result: NextUpResult; rec: Recommenda
             {plan.lead}
           </p>
         </div>
-        <div className="rounded-lg border border-[var(--color-accent)]/22 bg-black/20 px-3 py-2 text-[12px] font-bold leading-relaxed text-[var(--color-text)] lg:max-w-[300px]">
+        <div className="rounded-none border border-[var(--color-accent)]/22 bg-black/20 px-3 py-2 text-[12px] font-bold leading-relaxed text-[var(--color-text)] lg:max-w-[300px]">
           Finish after: {recommendationStopPointValue(rec)}
         </div>
       </div>
 
       <div className="mt-3 grid gap-2 md:grid-cols-3">
-        <div className="rounded-lg border border-[var(--color-border)] bg-black/18 px-3 py-2">
+        <div className="rounded-none border border-[var(--color-border)] bg-black/18 px-3 py-2">
           <div className="text-[10px] font-black uppercase tracking-[0.15em] text-[var(--color-accent)]">
             Changed
           </div>
@@ -3497,7 +3497,7 @@ function ReturnPlanCard({ result, rec }: { result: NextUpResult; rec: Recommenda
             {changed.join(" · ")}
           </div>
         </div>
-        <div className="rounded-lg border border-[var(--color-border)] bg-black/18 px-3 py-2">
+        <div className="rounded-none border border-[var(--color-border)] bg-black/18 px-3 py-2">
           <div className="text-[10px] font-black uppercase tracking-[0.15em] text-[var(--color-accent)]">
             Check back
           </div>
@@ -3505,7 +3505,7 @@ function ReturnPlanCard({ result, rec }: { result: NextUpResult; rec: Recommenda
             {plan.checkBack}
           </div>
         </div>
-        <div className="rounded-lg border border-[var(--color-border)] bg-black/18 px-3 py-2">
+        <div className="rounded-none border border-[var(--color-border)] bg-black/18 px-3 py-2">
           <div className="text-[10px] font-black uppercase tracking-[0.15em] text-[var(--color-accent)]">
             Next login
           </div>
@@ -3650,7 +3650,7 @@ function SessionRouteTimeline({
 
   return (
     <section
-      className="rounded-xl border border-[var(--color-border)]/85 bg-[var(--color-panel)]/34 p-3"
+      className="rounded-none border border-[var(--color-border)]/85 bg-[var(--color-panel)]/34 p-3"
       data-session-route-timeline="true"
     >
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
@@ -3662,7 +3662,7 @@ function SessionRouteTimeline({
           <div
             key={`${item.label}:${item.title}`}
             className={cn(
-              "rounded-lg border px-3 py-3",
+              "rounded-none border px-3 py-3",
               item.tone === "accent"
                 ? "border-[var(--color-accent)]/45 bg-[var(--color-accent)]/10"
                 : "border-[var(--color-border)] bg-[var(--color-bg)]/34"
@@ -3778,7 +3778,7 @@ function RouteChainScroll({
 
     return (
       <section
-        className="mt-4 rounded-lg border border-[var(--color-accent)]/28 bg-[var(--color-bg)]/36 px-4 py-4"
+        className="mt-4 rounded-none border border-[var(--color-accent)]/28 bg-[var(--color-bg)]/36 px-4 py-4"
         data-route-chain-scroll="true"
         data-calculable-route="true"
       >
@@ -3811,7 +3811,7 @@ function RouteChainScroll({
                 </span>
                 <div
                   className={cn(
-                    "min-w-0 rounded-md border px-3 py-3 text-left transition-colors",
+                    "min-w-0 rounded-none border px-3 py-3 text-left transition-colors",
                     active
                       ? "border-[var(--color-accent)]/48 bg-[var(--color-accent)]/10"
                       : done
@@ -3837,7 +3837,7 @@ function RouteChainScroll({
                     <button
                       type="button"
                       onClick={() => finishStep(step.id)}
-                      className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-md border border-[var(--color-accent)]/44 bg-[var(--color-accent)]/12 px-3 text-[11px] font-black text-[var(--color-accent)]"
+                      className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-none border border-[var(--color-accent)]/44 bg-[var(--color-accent)]/12 px-3 text-[11px] font-black text-[var(--color-accent)]"
                     >
                       {step.kind === "stop" ? "Finish route" : "Done, next"} <ArrowRight className="size-3.5" />
                     </button>
@@ -3849,7 +3849,7 @@ function RouteChainScroll({
         </ol>
 
         {routeMessage && (
-          <p role="status" className="mt-3 rounded-md border border-[var(--color-warning)]/28 bg-[var(--color-warning)]/8 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text-secondary)]">
+          <p role="status" className="mt-3 rounded-none border border-[var(--color-warning)]/28 bg-[var(--color-warning)]/8 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text-secondary)]">
             {routeMessage}
           </p>
         )}
@@ -3862,7 +3862,7 @@ function RouteChainScroll({
 
   return (
     <section
-      className="mt-4 rounded-lg border border-[var(--color-accent)]/24 bg-[var(--color-bg)]/36 px-4 py-4"
+      className="mt-4 rounded-none border border-[var(--color-accent)]/24 bg-[var(--color-bg)]/36 px-4 py-4"
       data-route-chain-scroll="true"
     >
       <ol className="space-y-3">
@@ -4044,7 +4044,7 @@ function BankProgressSection({ progress }: { progress: SetCompletion[] }) {
         if (!c || !set) return null;
         const missing = set.goals.filter((g) => !c.perGoal[g.id]?.satisfied);
         return (
-          <div className="mt-3 p-3 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)]">
+          <div className="mt-3 p-3 rounded-none bg-[var(--color-panel)] border border-[var(--color-border)]">
             <div className="text-[11px] uppercase tracking-[0.18em] text-[var(--color-text-muted)] mb-2">
               {set.name} — still missing
             </div>
@@ -4566,7 +4566,7 @@ function WhatToDo({
         <div
           role="status"
           aria-live="polite"
-          className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-3.5 py-2.5 text-[12px]"
+          className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-none border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-3.5 py-2.5 text-[12px]"
         >
           <span className="text-[var(--color-text-dim)]">
             Hidden for now: <span className="font-semibold text-[var(--color-text)]">{lastSuppressed.title}</span>.
@@ -4575,7 +4575,7 @@ function WhatToDo({
             <button
               type="button"
               onClick={restoreLastSuppressed}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-warning)] transition-colors hover:bg-[var(--color-warning)]/10"
+              className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-warning)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-warning)] transition-colors hover:bg-[var(--color-warning)]/10"
             >
               Undo hide
             </button>
@@ -4587,7 +4587,7 @@ function WhatToDo({
         <div
           role="status"
           aria-live="polite"
-          className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--color-good)]/30 bg-[var(--color-good)]/10 px-3.5 py-2.5 text-[12px]"
+          className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-none border border-[var(--color-good)]/30 bg-[var(--color-good)]/10 px-3.5 py-2.5 text-[12px]"
         >
           <span className="text-[var(--color-text-dim)]">
             Nice. <span className="font-semibold text-[var(--color-text)]">{lastCompleted.title}</span> is done. Pick the next move.
@@ -4596,14 +4596,14 @@ function WhatToDo({
             <button
               type="button"
               onClick={moveToAnotherPlan}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-good)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-good)] transition-colors hover:bg-[var(--color-good)]/10"
+              className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-good)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-good)] transition-colors hover:bg-[var(--color-good)]/10"
             >
               Next trip
             </button>
             <button
               type="button"
               onClick={restoreLastCompleted}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-good)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-good)] transition-colors hover:bg-[var(--color-good)]/10"
+              className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-good)]/35 bg-[var(--color-bg)]/35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-good)] transition-colors hover:bg-[var(--color-good)]/10"
             >
               Undo done
             </button>
@@ -4640,7 +4640,7 @@ function WhatToDo({
               <div
                 role="status"
                 aria-live="polite"
-                className="rounded-xl border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 px-3.5 py-2.5 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]"
+                className="rounded-none border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 px-3.5 py-2.5 text-[12px] font-semibold leading-relaxed text-[var(--color-text-dim)]"
               >
                 Started: <span className="font-semibold text-[var(--color-text)]">{lastStarted.title}</span>. Mark it done when the finish condition is true.
               </div>
@@ -4656,7 +4656,7 @@ function WhatToDo({
             )}
           </>
         ) : (
-          <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-8 text-center text-[var(--color-text-muted)] text-[13px]">
+          <div className="rounded-none border border-[var(--color-border)] bg-[var(--color-panel)] p-8 text-center text-[var(--color-text-muted)] text-[13px]">
             {hiddenCount > 0
               ? "Every available route is hidden. Restore one to see it again."
               : "No safe trip is available from this account data yet."}
@@ -4699,7 +4699,7 @@ function DiaryReadinessDetail({ rec, rsn }: { rec: Recommendation; rsn?: string 
   };
 
   return (
-    <section className="overflow-hidden rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-bg)]/35">
+    <section className="overflow-hidden rounded-none border border-[var(--color-accent)]/30 bg-[var(--color-bg)]/35">
       <div className="flex items-center gap-3 border-b border-[var(--color-border)] px-3 py-3">
         <ItemSprite id={progress.rewardItemId} alt={progress.rewardName} size={42} />
         <div className="min-w-0 flex-1">
@@ -4715,14 +4715,14 @@ function DiaryReadinessDetail({ rec, rsn }: { rec: Recommendation; rsn?: string 
       {!progress.completionEvidence && nextSweep.length > 0 && (
         <div className="px-3 py-3">
           {progress.blockers.length > 0 && (
-            <p className="mb-3 rounded-md border border-[var(--color-warning)]/25 bg-[var(--color-warning)]/8 px-3 py-2 text-[11.5px] leading-snug text-[var(--color-text-secondary)]">
+            <p className="mb-3 rounded-none border border-[var(--color-warning)]/25 bg-[var(--color-warning)]/8 px-3 py-2 text-[11.5px] leading-snug text-[var(--color-text-secondary)]">
               <span className="font-bold text-[var(--color-warning)]">Before this sweep:</span> {progress.blockers.slice(0, 3).join(" · ")}
             </p>
           )}
           <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">{progress.blockers.length > 0 ? "Next sweep" : "Do these next"}</p>
           <div className="space-y-1.5">
             {nextSweep.map((task) => (
-              <label key={task.id} className="flex cursor-pointer items-start gap-2.5 rounded-md px-2 py-2 transition-colors hover:bg-[var(--color-accent)]/8">
+              <label key={task.id} className="flex cursor-pointer items-start gap-2.5 rounded-none px-2 py-2 transition-colors hover:bg-[var(--color-accent)]/8">
                 <input
                   type="checkbox"
                   checked={task.status === "done"}
@@ -4751,7 +4751,7 @@ function DiaryReadinessDetail({ rec, rsn }: { rec: Recommendation; rsn?: string 
           <summary className="cursor-pointer list-none text-[11.5px] font-semibold text-[var(--color-text-muted)] marker:hidden">See all {remaining.length} remaining tasks</summary>
           <div className="mt-2 space-y-1">
             {later.map((task) => (
-              <label key={task.id} className="flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 hover:bg-[var(--color-accent)]/8">
+              <label key={task.id} className="flex cursor-pointer items-start gap-2 rounded-none px-2 py-1.5 hover:bg-[var(--color-accent)]/8">
                 <input type="checkbox" checked={task.status === "done"} onChange={(event) => toggle(task.id, event.currentTarget.checked)} disabled={!rsn} className="mt-0.5 size-4 accent-[var(--color-accent)]" />
                 <span className="text-[11.5px] leading-snug text-[var(--color-text-secondary)]">{task.label}</span>
               </label>
@@ -4770,7 +4770,7 @@ function QuestRouteDetail({ rec }: { rec: Recommendation }) {
   if (rec.kind !== "quest" || !route) return null;
 
   return (
-    <section className="overflow-hidden rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-bg)]/35">
+    <section className="overflow-hidden rounded-none border border-[var(--color-accent)]/30 bg-[var(--color-bg)]/35">
       <div className="flex items-center gap-3 border-b border-[var(--color-border)] px-3 py-3">
         <ItemSprite id={9813} alt="Quest route" size={42} />
         <div className="min-w-0 flex-1">
@@ -4785,7 +4785,7 @@ function QuestRouteDetail({ rec }: { rec: Recommendation }) {
       <div className="space-y-3 px-3 py-3">
         <p className="text-[12.5px] font-semibold leading-relaxed text-[var(--color-text)]">{route.whyThisBlock}</p>
         {route.completionEvidence === "unknown" && (
-          <p className="rounded-md border border-[var(--color-warning)]/25 bg-[var(--color-warning)]/8 px-3 py-2 text-[11.5px] leading-snug text-[var(--color-text-secondary)]">
+          <p className="rounded-none border border-[var(--color-warning)]/25 bg-[var(--color-warning)]/8 px-3 py-2 text-[11.5px] leading-snug text-[var(--color-text-secondary)]">
             Check RuneLite before committing to the full chain; completed prerequisites are not guessed.
           </p>
         )}
@@ -4837,7 +4837,7 @@ function RecDetailPanel({
   const linkedAction = rec.link ? routeActionForHref(rec.link, actionContext) : null;
   const wikiQuery = recommendationWikiQuery(rec);
   return (
-    <div className="mt-2 px-4 py-3 rounded-lg bg-[var(--color-bg-2)]/40 border border-[var(--color-border)] animate-[fade-in_0.2s_ease-out] space-y-2.5">
+    <div className="mt-2 px-4 py-3 rounded-none bg-[var(--color-bg-2)]/40 border border-[var(--color-border)] animate-[fade-in_0.2s_ease-out] space-y-2.5">
       {rec.kind !== "diary" && !rec.questRoute && !rec.calculableRoute && <ActionPlanBlock rec={rec} />}
       <DiaryReadinessDetail rec={rec} rsn={actionContext.rsn ?? undefined} />
       <QuestRouteDetail rec={rec} />
@@ -4862,7 +4862,7 @@ function RecDetailPanel({
         </p>
       )}
       {whyNot && (
-        <p className="flex gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
+        <p className="flex gap-2 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2 text-[12px] font-semibold leading-relaxed text-[var(--color-text-muted)]">
           <Shield className="mt-0.5 size-3.5 shrink-0 text-[var(--color-text-muted)]" />
           <span>{whyNot}</span>
         </p>
@@ -4897,7 +4897,7 @@ function RecDetailPanel({
               href={wikiSearchUrl(wikiQuery)}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1 text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+              className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2.5 py-1 text-[11.5px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
               aria-label={`Open OSRS Wiki for ${wikiQuery}`}
             >
               OSRS Wiki
@@ -5003,7 +5003,7 @@ function RecHeadlineExpandable({
             aria-describedby="trip-details-description"
             ref={tripDetailsRef}
             tabIndex={-1}
-            className="osrs-frame relative max-h-[92dvh] w-full overflow-y-auto rounded-b-none sm:max-w-2xl sm:rounded-lg"
+            className="osrs-frame relative max-h-[92dvh] w-full overflow-y-auto rounded-b-none sm:max-w-2xl sm:rounded-none"
           >
             <header className="osrs-title-bar sticky top-0 z-10 flex items-start justify-between gap-4 px-5 py-4">
               <div className="min-w-0">

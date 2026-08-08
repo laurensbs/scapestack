@@ -45,7 +45,7 @@ export function ScapestackReadinessRail({
 
   return (
     <section className={cn(
-      "mb-5 overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/55",
+      "mb-5 overflow-hidden rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]/55",
       className
     )}>
       <div className="flex flex-col gap-3 p-3.5 sm:p-4 lg:flex-row lg:items-center lg:justify-between">
@@ -62,7 +62,7 @@ export function ScapestackReadinessRail({
         </div>
         <Link
           href={readiness.primaryAction.href}
-          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[12px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[12px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
         >
           {readiness.primaryAction.label}
           <ArrowRight className="size-4" />
@@ -104,13 +104,13 @@ export function ScapestackReadinessRail({
                       onChange={(event) => setRsnDraft(event.target.value)}
                       placeholder="Type RSN"
                       aria-label="OSRS name for this plan"
-                      className="h-8 min-w-[128px] rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-2.5 text-[11.5px] font-semibold text-[var(--color-text)] outline-none transition-colors placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)]/60"
+                      className="h-8 min-w-[128px] rounded-none border border-[var(--color-border)] bg-[var(--color-bg)] px-2.5 text-[11.5px] font-semibold text-[var(--color-text)] outline-none transition-colors placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)]/60"
                     />
                   )}
                   <Link
                     href={signal.action.href}
                     className={cn(
-                      "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold transition-colors",
+                      "inline-flex items-center gap-1.5 rounded-none border px-2.5 py-1.5 text-[11px] font-bold transition-colors",
                       signal.status === "exact"
                         ? "border-[var(--color-good)]/25 bg-[var(--color-good)]/8 text-[var(--color-good)] hover:bg-[var(--color-good)]/12"
                         : "border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15"

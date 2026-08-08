@@ -19,7 +19,7 @@ export function BuyMeCoffee({ variant = "button", className }: BMCProps) {
         rel="noopener noreferrer"
         title="Support Scapestack with a coffee"
         className={cn(
-          "group flex items-center justify-center size-10 rounded-lg transition-all",
+          "group flex items-center justify-center size-10 rounded-none transition-all",
           "text-[var(--color-text-dim)] hover:bg-[var(--color-accent)] hover:text-[var(--color-bg)]",
           className
         )}
@@ -36,7 +36,7 @@ export function BuyMeCoffee({ variant = "button", className }: BMCProps) {
         target="_blank"
         rel="noopener noreferrer"
         className={cn(
-          "group inline-flex items-center gap-2 rounded-lg px-3 py-2 text-[12px] font-bold",
+          "group inline-flex items-center gap-2 rounded-none px-3 py-2 text-[12px] font-bold",
           "border border-[var(--color-accent)] bg-[var(--color-accent)] text-[var(--color-bg)]",
           "hover:brightness-110 transition-colors",
           className
@@ -54,7 +54,7 @@ export function BuyMeCoffee({ variant = "button", className }: BMCProps) {
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "group inline-flex items-center gap-2.5 rounded-lg px-5 py-3 text-[14px] font-bold tracking-wide",
+        "group inline-flex items-center gap-2.5 rounded-none px-5 py-3 text-[14px] font-bold tracking-wide",
         "border border-[var(--color-accent)] bg-[var(--color-accent)] text-[var(--color-bg)]",
         "hover:brightness-110 transition-colors",
         className

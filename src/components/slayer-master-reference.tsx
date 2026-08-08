@@ -52,7 +52,7 @@ export function SlayerMasterReference() {
           return (
             <li
               key={id}
-              className="rounded-xl border border-[var(--color-accent)]/15 bg-[var(--color-bg)]/40 px-3.5 py-3"
+              className="rounded-none border border-[var(--color-accent)]/15 bg-[var(--color-bg)]/40 px-3.5 py-3"
             >
               <div className="flex items-baseline justify-between gap-2">
                 <span className="text-[14px] font-semibold text-[var(--color-text)]">

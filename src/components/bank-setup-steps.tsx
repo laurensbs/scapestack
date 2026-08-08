@@ -26,13 +26,13 @@ export function BankSetupSteps({ className, compact = false, showBankExample = f
   return (
     <div className={cn("grid gap-3 sm:grid-cols-2", className)}>
       {showBankExample && (
-        <div className="overflow-hidden rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-panel)] sm:col-span-2">
+        <div className="overflow-hidden rounded-none border border-[var(--color-accent)]/25 bg-[var(--color-panel)] sm:col-span-2">
           <div className="relative flex items-center justify-center bg-black p-2">
             <img
               src={BANK_MEMORY_EXAMPLE}
               alt="Bank Memory bank example"
               loading="lazy"
-              className="max-h-[180px] w-full rounded-md object-contain"
+              className="max-h-[180px] w-full rounded-none object-contain"
               onError={(event) => {
                 event.currentTarget.src = "/intro/step2.png";
               }}
@@ -50,8 +50,8 @@ export function BankSetupSteps({ className, compact = false, showBankExample = f
         <div
           key={step.title}
           className={cn(
-            "overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]",
-            !compact && "rounded-xl"
+            "overflow-hidden rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]",
+            !compact && "rounded-none"
           )}
         >
           <div className={cn("relative flex items-center justify-center bg-black p-3", compact ? "min-h-[118px]" : "min-h-[150px]")}>

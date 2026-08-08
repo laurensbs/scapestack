@@ -211,7 +211,7 @@ export function PluginSyncChecker() {
             <button
               type="button"
               onClick={() => setEditingRsn((value) => !value)}
-              className="min-h-11 rounded-lg border border-[var(--color-border)] px-3 text-[12px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-text)]"
+              className="min-h-11 rounded-none border border-[var(--color-border)] px-3 text-[12px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-text)]"
             >
               Use another RSN
             </button>
@@ -371,7 +371,7 @@ function RsnForm({
           spellCheck={false}
           aria-label="Type your OSRS name"
           aria-describedby={`${helpId} ${statusId}`}
-          className="min-h-12 min-w-0 flex-1 rounded-xl border border-[var(--color-border)] bg-black/30 px-4 text-[16px] text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)]/55 sm:text-[15px]"
+          className="min-h-12 min-w-0 flex-1 rounded-none border border-[var(--color-border)] bg-black/30 px-4 text-[16px] text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)]/55 sm:text-[15px]"
         />
         <button
           type="submit"
@@ -440,7 +440,7 @@ function ConnectionError({ message, onRetry, technical = false }: { message: str
         Try again
       </button>
       {technical && (
-        <details className="group w-full rounded-lg border border-[var(--color-border)] bg-black/20 px-3 sm:max-w-sm">
+        <details className="group w-full rounded-none border border-[var(--color-border)] bg-black/20 px-3 sm:max-w-sm">
           <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-[12px] font-bold text-[var(--color-text-dim)] marker:hidden">
             Technical troubleshooting
             <ChevronDown className="size-4 transition-transform group-open:rotate-180" />

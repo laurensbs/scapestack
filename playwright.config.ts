@@ -19,7 +19,10 @@ export default defineConfig({
   webServer: {
     command: `npm run build && npm run start -- --port ${PORT}`,
     url: baseURL,
-    reuseExistingServer: !process.env.CI,
+    // Never reuse: dev and prod share port 4173, and a forgotten dev server
+    // would make the whole gate measure the dev build — the exact lie this
+    // repo's rules exist to prevent.
+    reuseExistingServer: false,
     timeout: 120_000
   },
   projects: [

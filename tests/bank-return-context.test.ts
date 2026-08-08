@@ -43,6 +43,6 @@ describe("bank return context", () => {
   it("keeps the matching profile section while a nameless DPS visitor adds a bank", () => {
     expect(sectionFromBankQuery({ from: "dps" })).toBe("bosses");
     expect(playerToolSectionPath("Lynx Titan", sectionFromBankQuery({ from: "dps" })))
-      .toBe("/p/Lynx%20Titan#bosses");
+      .toBe("/u/Lynx%20Titan#bosses");
   });
 });

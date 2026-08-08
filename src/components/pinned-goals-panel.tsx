@@ -64,7 +64,7 @@ function GoalChoiceTile({ choice, onPin }: { choice: PinnedGoalChoice; onPin: (c
           <span aria-hidden="true" className="text-[length:var(--text-subject)] text-[var(--color-text-muted)]">?</span>
         )}
       </span>
-      <span className="line-clamp-2 text-[length:var(--text-micro)] font-semibold leading-tight text-[var(--color-text)]">
+      <span className="line-clamp-1 text-[length:var(--text-micro)] font-semibold leading-tight text-[var(--color-text)]">
         {choice.target}
       </span>
       <span className="text-[length:var(--text-label)] font-normal uppercase tracking-[0.1em] text-[var(--color-text-muted)]">
@@ -152,7 +152,7 @@ export function PinnedGoalsPanel({
   }
 
   return (
-    <section className="mt-4 border-y border-[var(--color-border)] py-4" aria-labelledby="pinned-goals-title" data-pinned-goals="true">
+    <section className="mt-3 border-y border-[var(--color-border)] py-3" aria-labelledby="pinned-goals-title" data-pinned-goals="true">
       <h2 id="pinned-goals-title" className="scape-section-name">
         Your goals
       </h2>
@@ -178,9 +178,7 @@ export function PinnedGoalsPanel({
                 <li key={goal.key} className="flex min-w-0 items-center gap-3 border-b border-[var(--color-border)] py-3 last:border-b-0">
                   {goal.spriteItemId ? <JournalItemSprite id={goal.spriteItemId} /> : null}
                   <span className="min-w-0 flex-1">
-                    <span className={goal.kind === "item"
-                      ? "block truncate text-[length:var(--text-subject)] font-semibold text-[var(--color-text)]"
-                      : "block truncate text-[length:var(--text-subject)] font-semibold text-[var(--color-text)]"}
+                    <span className="block truncate text-[length:var(--text-subject)] font-semibold text-[var(--color-text)]"
                     >
                       {goal.target}
                     </span>

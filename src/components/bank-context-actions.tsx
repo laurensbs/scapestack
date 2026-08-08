@@ -23,8 +23,8 @@ interface BankContextActionsProps {
   className?: string;
 }
 
-const secondaryClass = "inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]";
-const primaryClass = "inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15";
+const secondaryClass = "inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border-strong)] bg-[var(--color-bg)]/45 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]";
+const primaryClass = "inline-flex items-center gap-1.5 rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-3 py-2 text-[11.5px] font-semibold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15";
 
 const toolActions: Array<Omit<BankContextAction, "href"> & { id: BankContextToolId; path: BankToolPath }> = [
   {

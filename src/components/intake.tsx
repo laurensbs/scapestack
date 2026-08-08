@@ -364,18 +364,18 @@ export function Intake({
             autoCapitalize="none"
             autoCorrect="off"
             spellCheck={false}
-            className="mt-1 min-h-11 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)] px-3 py-2 text-[16px] text-[var(--color-text)] outline-none focus:border-[var(--color-accent)] sm:text-[13.5px]"
+            className="mt-1 min-h-11 w-full rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)] px-3 py-2 text-[16px] text-[var(--color-text)] outline-none focus:border-[var(--color-accent)] sm:text-[13.5px]"
           />
         </div>
       )}
 
       {showEmptyState && !compactSave && (
-        <div className="mb-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]/50 px-4 py-3 flex flex-col gap-3 animate-[fade-in_0.3s_ease-out] sm:flex-row sm:items-center">
+        <div className="mb-4 rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)]/50 px-4 py-3 flex flex-col gap-3 animate-[fade-in_0.3s_ease-out] sm:flex-row sm:items-center">
           <div className="flex -space-x-2 overflow-hidden pb-0.5 sm:shrink-0">
             {PREVIEW_IDS.map((id, i) => (
               <div
                 key={id}
-                className="size-9 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] flex items-center justify-center shadow-[0_2px_8px_-2px_rgb(0_0_0/0.6)]"
+                className="size-9 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)] flex items-center justify-center shadow-[0_2px_8px_-2px_rgb(0_0_0/0.6)]"
                 style={{ zIndex: PREVIEW_IDS.length - i, animation: `pop-in 0.25s ease-out ${i * 0.04}s both` }}
               >
                 <ItemSprite
@@ -401,7 +401,7 @@ export function Intake({
 
       <details
         className={cn(
-          "mb-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 px-4 py-3",
+          "mb-4 rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 px-4 py-3",
           compactSave && "border-[var(--color-accent)]/25 bg-black/18"
         )}
         open={showEmptyState && !compactSave && !optional}
@@ -415,7 +415,7 @@ export function Intake({
       {showCompactReceipt && inputSummary && (
         <div
           data-testid="bank-compact-receipt"
-          className="rounded-xl border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 p-4"
+          className="rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 p-4"
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
@@ -442,7 +442,7 @@ export function Intake({
         <>
           <div
             className={cn(
-              "relative rounded-lg transition-all",
+              "relative rounded-none transition-all",
               dragOver && "ring-2 ring-[var(--color-accent)] ring-offset-2 ring-offset-transparent"
             )}
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
@@ -468,7 +468,7 @@ export function Intake({
             aria-label="Paste RuneLite Bank Memory, Bank Tags or item IDs"
             aria-describedby="bank-paste-help bank-paste-status"
             className={cn(
-              "w-full rounded-lg px-4 py-3.5 font-mono text-[12.5px] leading-relaxed",
+              "w-full rounded-none px-4 py-3.5 font-mono text-[12.5px] leading-relaxed",
               "bg-[var(--color-bg-2)] border border-[var(--color-border)]",
               "focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(134, 166, 217,0.12)]",
               "placeholder:text-[var(--color-text-muted)]",
@@ -488,8 +488,8 @@ export function Intake({
                 : "No bank export detected yet."}
           </p>
           {dragOver && (
-            <div className="absolute inset-0 rounded-lg bg-[var(--color-accent)]/10 border-2 border-dashed border-[var(--color-accent)] flex items-center justify-center pointer-events-none animate-[pop-in_0.18s_ease-out]">
-              <div className="bg-[var(--color-panel)] border border-[var(--color-accent)] px-4 py-2 rounded-md text-[var(--color-accent)] font-medium text-[13px]">
+            <div className="absolute inset-0 rounded-none bg-[var(--color-accent)]/10 border-2 border-dashed border-[var(--color-accent)] flex items-center justify-center pointer-events-none animate-[pop-in_0.18s_ease-out]">
+              <div className="bg-[var(--color-panel)] border border-[var(--color-accent)] px-4 py-2 rounded-none text-[var(--color-accent)] font-medium text-[13px]">
                 Drop your .tsv or .txt
               </div>
             </div>
@@ -536,7 +536,7 @@ export function Intake({
             aria-label={junkFilter ? "Disable junk filter" : "Enable junk filter"}
             title="Hide low-value single-stack items (under 25 gp, no equip slot, no high-alch)"
             className={cn(
-              "ml-auto inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[12px] font-medium transition-all border",
+              "ml-auto inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-none text-[12px] font-medium transition-all border",
               junkFilter
                 ? "bg-[var(--color-accent)]/12 text-[var(--color-accent)] border-[var(--color-accent)]/35 hover:bg-[var(--color-accent)]/18"
                 : "bg-transparent text-[var(--color-text-dim)] border-[var(--color-border)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
@@ -601,7 +601,7 @@ export function Intake({
       {inputSummary && !showCompactReceipt && (
         <div
           data-testid="bank-input-summary"
-          className="mt-3 rounded-lg border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3.5 py-3 animate-[pop-in_0.18s_ease-out]"
+          className="mt-3 rounded-none border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3.5 py-3 animate-[pop-in_0.18s_ease-out]"
         >
           <p className="text-[12.5px] font-semibold text-[var(--color-text)]">{inputSummary.label}</p>
           <p className="mt-1 text-[11.5px] text-[var(--color-text-dim)]">{inputSummary.detail}</p>
@@ -609,16 +609,16 @@ export function Intake({
       )}
 
       {pasteDone && !compactSave && (
-        <div className="mt-3 grid gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 p-3 sm:grid-cols-3">
+        <div className="mt-3 grid gap-2 rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)]/45 p-3 sm:grid-cols-3">
           <Link
             href={nextPlanHref}
-            className="inline-flex items-center justify-center rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-3 py-2 text-[12px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
+            className="inline-flex items-center justify-center rounded-none border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-3 py-2 text-[12px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
           >
             Use for next plan
           </Link>
           <Link
             href={bossCheckHref}
-            className="inline-flex items-center justify-center rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-3 py-2 text-[12px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
+            className="inline-flex items-center justify-center rounded-none border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-3 py-2 text-[12px] font-bold text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/15"
           >
             Check bosses
           </Link>
@@ -626,7 +626,7 @@ export function Intake({
             type="button"
             onClick={submit}
             disabled={loading}
-            className="inline-flex items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] px-3 py-2 text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/40 disabled:opacity-50"
+            className="inline-flex items-center justify-center rounded-none border border-[var(--color-border)] bg-[var(--color-panel)] px-3 py-2 text-[12px] font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)]/40 disabled:opacity-50"
           >
             Organize tabs
           </button>

@@ -233,7 +233,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
                 onClick={copyRuneLiteTab}
                 disabled={!tagString}
                 className={cn(
-                  "inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-[12.5px] font-black transition-all",
+                  "inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-none px-3 py-2 text-[12.5px] font-black transition-all",
                   tagString
                     ? "bg-[var(--color-accent)] text-[#0B1116] hover:brightness-110"
                     : "cursor-not-allowed bg-[var(--color-panel-2)] text-[var(--color-text-muted)]"
@@ -247,7 +247,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
                 href={wikiSearchUrl(boss.name)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2 text-[12.5px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+                className="inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/35 px-3 py-2 text-[12.5px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
               >
                 Boss guide
                 <ExternalLink className="size-3.5" />
@@ -284,7 +284,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
                   </p>
                 </div>
 
-                <div className="grid grid-cols-4 gap-1 rounded-md border border-[var(--color-border-strong)] bg-[#17130d] p-2" data-testid="osrs-inventory-grid">
+                <div className="grid grid-cols-4 gap-1 rounded-none border border-[var(--color-border-strong)] bg-[#17130d] p-2" data-testid="osrs-inventory-grid">
                   {inventoryPlan.inventory.map((slot, index) => (
                     <a
                       key={`${slot.label}-${index}`}
@@ -495,7 +495,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
                       aria-label={active ? `${candidate.name} is selected` : `Switch boss setup to ${candidate.name}`}
                       aria-current={active ? "true" : undefined}
                       className={cn(
-                        "inline-flex size-11 shrink-0 items-center justify-center rounded-lg border bg-[var(--color-bg)]/50 transition-colors",
+                        "inline-flex size-11 shrink-0 items-center justify-center rounded-none border bg-[var(--color-bg)]/50 transition-colors",
                         active
                           ? "border-[var(--color-accent)] bg-[var(--color-accent)]/12 shadow-[0_0_0_2px_rgba(240,176,44,0.18)]"
                           : "border-[var(--color-border)] hover:border-[var(--color-accent)]/55 hover:bg-[var(--color-accent)]/10"
@@ -527,7 +527,7 @@ export function BossDetailModal({ boss, owned, bankItems = [], onClose, onSelect
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md bg-[var(--color-bg-2)] border border-[var(--color-border)] px-2.5 py-2">
+    <div className="rounded-none bg-[var(--color-bg-2)] border border-[var(--color-border)] px-2.5 py-2">
       <div className="text-[9.5px] uppercase tracking-wider text-[var(--color-text-muted)]">{label}</div>
       <div className="text-[18px] font-bold text-[var(--color-text)] font-mono tabular-nums leading-tight">{value}</div>
     </div>
@@ -698,7 +698,7 @@ function GearSlotGrid({ setup }: { setup: Setup }) {
             key={key}
             title={item ? item.name : `${label} (empty)`}
             className={cn(
-              "aspect-square rounded-md border flex items-center justify-center relative overflow-hidden",
+              "aspect-square rounded-none border flex items-center justify-center relative overflow-hidden",
               item
                 ? "bg-[var(--color-bg)] border-[var(--color-border)]"
                 : "bg-[var(--color-bg-2)]/40 border-dashed border-[var(--color-border)]/60"

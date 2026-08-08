@@ -129,7 +129,7 @@ export function SuggestionsPanel({ tabs, onSearchItems }: SuggestionsPanelProps)
         <div
           role="status"
           aria-live="polite"
-          className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3 py-2 text-[11.5px] text-[var(--color-text-dim)]"
+          className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-none border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/8 px-3 py-2 text-[11.5px] text-[var(--color-text-dim)]"
         >
           <span>
             Hidden for now:{" "}
@@ -139,7 +139,7 @@ export function SuggestionsPanel({ tabs, onSearchItems }: SuggestionsPanelProps)
             type="button"
             onClick={restoreLastDismissed}
             aria-label={`Restore hidden suggestion ${lastDismissed.title}`}
-            className="rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-colors"
+            className="rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-colors"
           >
             Undo hide
           </button>
@@ -150,7 +150,7 @@ export function SuggestionsPanel({ tabs, onSearchItems }: SuggestionsPanelProps)
         <div
           role="status"
           aria-live="polite"
-          className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--color-good)]/25 bg-[var(--color-good)]/8 px-3 py-2 text-[11.5px] text-[var(--color-text-dim)]"
+          className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-none border border-[var(--color-good)]/25 bg-[var(--color-good)]/8 px-3 py-2 text-[11.5px] text-[var(--color-text-dim)]"
         >
           <span>
             Marked done for now:{" "}
@@ -160,7 +160,7 @@ export function SuggestionsPanel({ tabs, onSearchItems }: SuggestionsPanelProps)
             type="button"
             onClick={restoreLastCompleted}
             aria-label={`Restore completed suggestion ${lastCompleted.title}`}
-            className="rounded-md border border-[var(--color-good)]/35 bg-[var(--color-good)]/10 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-good)] hover:bg-[var(--color-good)]/15 transition-colors"
+            className="rounded-none border border-[var(--color-good)]/35 bg-[var(--color-good)]/10 px-2.5 py-1 text-[11px] font-semibold text-[var(--color-good)] hover:bg-[var(--color-good)]/15 transition-colors"
           >
             Undo done
           </button>
@@ -181,7 +181,7 @@ export function SuggestionsPanel({ tabs, onSearchItems }: SuggestionsPanelProps)
       </div>
 
       {visible.length === 0 && (
-        <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--color-bg-2)]/35 p-4 text-[12px] text-[var(--color-text-dim)]">
+        <div className="rounded-none border border-dashed border-[var(--color-border)] bg-[var(--color-bg-2)]/35 p-4 text-[12px] text-[var(--color-text-dim)]">
           <div className="font-semibold text-[var(--color-text)]">All smart suggestions are hidden.</div>
           <p className="mt-1">
             Restore them if you want Scapestack to re-check this bank for wiki-backed cleanup ideas or completed actions.
@@ -190,7 +190,7 @@ export function SuggestionsPanel({ tabs, onSearchItems }: SuggestionsPanelProps)
               type="button"
               onClick={reset}
               aria-label="Restore every hidden or completed smart suggestion"
-              className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-colors"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-colors"
             >
             Restore suggestions
           </button>
@@ -246,7 +246,7 @@ function SuggestionCard({
     <div
       aria-label={`Smart suggestion: ${title}`}
       className={cn(
-        "relative group rounded-xl p-3.5",
+        "relative group rounded-none p-3.5",
         "bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)]",
         "border border-[var(--color-border)]",
         "shadow-[inset_0_1px_0_oklch(1_0_0/0.03)]",
@@ -260,7 +260,7 @@ function SuggestionCard({
       />
       <div className="flex items-start gap-2.5">
         <div
-          className="shrink-0 size-7 rounded-md flex items-center justify-center"
+          className="shrink-0 size-7 rounded-none flex items-center justify-center"
           style={{ background: accent.bg, color: accent.fg }}
         >
           <Icon className="size-3.5" />
@@ -289,7 +289,7 @@ function SuggestionCard({
           <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
             {body}
           </p>
-          <div className="mt-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-2.5">
+          <div className="mt-2.5 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-2.5">
             <div className="grid gap-1.5 text-[11px] leading-relaxed text-[var(--color-text-dim)]">
               <div className="flex flex-wrap items-center gap-1.5">
                 <span className="rounded bg-[var(--color-panel)] px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-[0.14em] text-[var(--color-text-muted)]">
@@ -312,7 +312,7 @@ function SuggestionCard({
                   <button
                     type="button"
                     onClick={() => onSearchItems(bankSearchQuery, title)}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2 py-1 text-[11px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2 py-1 text-[11px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-colors"
                     title={`Search bank for ${bankSearchQuery}`}
                     aria-label={`Jump to affected bank items for ${title}`}
                   >
@@ -325,7 +325,7 @@ function SuggestionCard({
                     href={actionHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-semibold transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-none border px-2 py-1 text-[11px] font-semibold transition-colors"
                     style={{ borderColor: accent.line, color: accent.fg, background: accent.bg }}
                     aria-label={`Open primary guide for ${title}`}
                   >
@@ -336,7 +336,7 @@ function SuggestionCard({
                 <button
                   type="button"
                   onClick={onComplete}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-good)]/35 bg-[var(--color-good)]/10 px-2 py-1 text-[11px] font-semibold text-[var(--color-good)] hover:bg-[var(--color-good)]/15 transition-colors"
+                  className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-good)]/35 bg-[var(--color-good)]/10 px-2 py-1 text-[11px] font-semibold text-[var(--color-good)] hover:bg-[var(--color-good)]/15 transition-colors"
                   title="Mark this suggestion done for now"
                   aria-label={`Mark ${title} done for now from quick actions`}
                 >
@@ -357,7 +357,7 @@ function SuggestionCard({
                   href={wikiSearchUrl(item.name)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex size-7 items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]"
+                  className="inline-flex size-7 items-center justify-center rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]"
                   title={`${item.name} · ID ${item.id}`}
                   aria-label={`Open ${item.name} on OSRS Wiki`}
                 >
@@ -367,7 +367,7 @@ function SuggestionCard({
             </div>
           )}
           {suggestion.steps.length > 0 && (
-            <div className="mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-2.5">
+            <div className="mt-3 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-2.5">
               <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
                 <ListChecks className="size-3" />
                 Action plan
@@ -389,7 +389,7 @@ function SuggestionCard({
               <button
                 type="button"
                 onClick={() => onSearchItems(bankSearchQuery, title)}
-                className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-colors"
                 title={`Search bank for ${bankSearchQuery}`}
                 aria-label={`Find affected bank items for ${title}`}
               >
@@ -402,7 +402,7 @@ function SuggestionCard({
                 href={actionHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-[11.5px] font-semibold transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-none border px-2.5 py-1.5 text-[11.5px] font-semibold transition-colors"
                 style={{ borderColor: accent.line, color: accent.fg, background: accent.bg }}
                 aria-label={`Open ${actionLabel ?? "guide"} for ${title}`}
               >
@@ -414,7 +414,7 @@ function SuggestionCard({
               type="button"
               onClick={copySteps}
               aria-label={`Copy action steps for ${title}`}
-              className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-accent)] hover:border-[var(--color-accent)]/40 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-accent)] hover:border-[var(--color-accent)]/40 transition-colors"
             >
               {copyState === "copied" ? <CheckCheck className="size-3" /> : <Copy className="size-3" />}
               {copyState === "copied" ? "Copied" : copyState === "error" ? "Copy failed" : "Copy steps"}
@@ -422,7 +422,7 @@ function SuggestionCard({
             <button
               type="button"
               onClick={onComplete}
-              className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-good)]/35 bg-[var(--color-good)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-good)] hover:bg-[var(--color-good)]/15 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-good)]/35 bg-[var(--color-good)]/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-good)] hover:bg-[var(--color-good)]/15 transition-colors"
               title="Mark this suggestion done for now"
               aria-label={`Mark ${title} done for now`}
             >
@@ -433,14 +433,14 @@ function SuggestionCard({
               type="button"
               onClick={onDismiss}
               aria-label={`Mark ${title} not relevant`}
-              className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)] transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-none border border-[var(--color-border)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)] transition-colors"
             >
               Not relevant
               <X className="size-3" />
             </button>
           </div>
           {copyState === "error" && (
-            <div className="mt-2 rounded-lg border border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8 p-2" aria-live="polite">
+            <div className="mt-2 rounded-none border border-[var(--color-danger)]/25 bg-[var(--color-danger)]/8 p-2" aria-live="polite">
               <label className="mb-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-danger)]">
                 Clipboard failed — copy manually
               </label>

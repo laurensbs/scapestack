@@ -11,7 +11,7 @@ describe("bank RSN prefill", () => {
     expect(pageSource).toContain("rsnFromToolQuery(query)");
     expect(pageSource).toContain("redirect(playerToolSectionPath(rsn, section))");
     expect(playerToolSectionPath(rsnFromToolQuery({ rsn: "Lynx Titan" }), "sets"))
-      .toBe("/p/Lynx%20Titan#sets");
+      .toBe("/u/Lynx%20Titan#sets");
     expect(intakeSource).toContain("initialRsn");
     expect(intakeSource).toContain("rsnFromCurrentUrl");
     expect(intakeSource).toContain("saveStoredRsn(urlRsn)");

@@ -256,7 +256,7 @@ function RsnLookup({
             spellCheck={false}
             aria-describedby="slayer-rsn-help slayer-lookup-status"
             aria-invalid={error ? "true" : undefined}
-            className="min-h-12 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] pl-10 pr-3 text-[15px] text-[var(--color-text)] outline-none focus:border-[var(--color-accent)]"
+            className="min-h-12 w-full rounded-none border border-[var(--color-border)] bg-[var(--color-bg)] pl-10 pr-3 text-[15px] text-[var(--color-text)] outline-none focus:border-[var(--color-accent)]"
           />
         </div>
         <button
@@ -264,7 +264,7 @@ function RsnLookup({
           onClick={onLookup}
           disabled={pending || !rsn.trim()}
           aria-label="Look up Slayer data from Hiscores and RuneLite sync"
-          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[var(--color-accent)] px-5 text-[14px] font-black text-[var(--color-bg)] disabled:opacity-50"
+          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-none bg-[var(--color-accent)] px-5 text-[14px] font-black text-[var(--color-bg)] disabled:opacity-50"
         >
           {pending ? <RotateCw className="size-4 animate-spin" /> : <Swords className="size-4" />}
           {pending ? "Checking" : "Check task"}
@@ -309,7 +309,7 @@ function SlayerTaskRoute({
     <article className="overflow-hidden border border-[var(--color-border-strong)]">
       <div className="p-5 sm:p-7">
         <div className="flex gap-4 sm:gap-5">
-          <div className="flex size-20 shrink-0 items-center justify-center rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-bg)] sm:size-28">
+          <div className="flex size-20 shrink-0 items-center justify-center rounded-none border border-[var(--color-accent)]/30 bg-[var(--color-bg)] sm:size-28">
             <ItemSprite id={decision.bossVariant?.viability.boss.iconItemId ?? 11864} alt="" size={72} />
           </div>
           <div className="min-w-0 flex-1">
@@ -368,11 +368,11 @@ function SlayerTaskRoute({
         )}
 
         <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-          <a href={primaryHref} target={primaryHref.startsWith("http") ? "_blank" : undefined} rel={primaryHref.startsWith("http") ? "noopener noreferrer" : undefined} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[var(--color-accent)] px-5 text-[13px] font-black text-[var(--color-bg)]">
+          <a href={primaryHref} target={primaryHref.startsWith("http") ? "_blank" : undefined} rel={primaryHref.startsWith("http") ? "noopener noreferrer" : undefined} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-none bg-[var(--color-accent)] px-5 text-[13px] font-black text-[var(--color-bg)]">
             {primaryLabel}<ArrowRight className="size-4" />
           </a>
           {actions.dpsHref && !decision.bossVariant && (
-            <a href={actions.dpsHref} className="inline-flex min-h-12 items-center justify-center rounded-lg border border-[var(--color-border)] px-5 text-[13px] font-bold text-[var(--color-text)]">Check owned gear</a>
+            <a href={actions.dpsHref} className="inline-flex min-h-12 items-center justify-center rounded-none border border-[var(--color-border)] px-5 text-[13px] font-bold text-[var(--color-text)]">Check owned gear</a>
           )}
         </div>
       </div>
@@ -385,7 +385,7 @@ function SlayerTaskRoute({
           </summary>
           <div className="flex flex-wrap gap-2 pb-5">
             {[...bankContext.gear, ...bankContext.consumables, ...bankContext.unlocks].slice(0, 12).map((item) => (
-              <span key={item.id} className="inline-flex items-center gap-2 rounded-md border border-[var(--color-border)] px-2.5 py-1.5 text-[11.5px] text-[var(--color-text-dim)]">
+              <span key={item.id} className="inline-flex items-center gap-2 rounded-none border border-[var(--color-border)] px-2.5 py-1.5 text-[11.5px] text-[var(--color-text-dim)]">
                 <ItemSprite id={item.id} alt="" size={18} />{item.name}{item.quantity > 1 ? ` ×${item.quantity.toLocaleString()}` : ""}
               </span>
             ))}
@@ -418,7 +418,7 @@ function NoCurrentTask({
 }) {
   if (pending) return null;
   return (
-    <section className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-5 sm:p-7">
+    <section className="rounded-none border border-[var(--color-border)] bg-[var(--color-panel)] p-5 sm:p-7">
       <div className="max-w-2xl">
         <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--color-accent)]">Next Slayer move</div>
         <h2 className="mt-2 text-[28px] font-bold text-[var(--color-text)]">
@@ -438,7 +438,7 @@ function NoCurrentTask({
               : "Scapestack will not name a master before it has seen your levels."}
         </p>
         {rsn && (
-          <a href={pluginVerifyUrlForSyncedRsn(rsn, "slayer")} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-lg bg-[var(--color-accent)] px-4 text-[13px] font-black text-[var(--color-bg)]">Check RuneLite <ArrowRight className="size-4" /></a>
+          <a href={pluginVerifyUrlForSyncedRsn(rsn, "slayer")} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-none bg-[var(--color-accent)] px-4 text-[13px] font-black text-[var(--color-bg)]">Check RuneLite <ArrowRight className="size-4" /></a>
         )}
       </div>
     </section>

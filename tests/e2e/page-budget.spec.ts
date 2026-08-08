@@ -29,11 +29,9 @@ import { expect, test, type Page } from "@playwright/test";
 
 const PAGE_PATH = "/p/lauky";
 
-// The six Archivo tokens plus the two RuneStar sizes (--text-rs 16px,
-// --text-rs-display 32px), added in the same commit as those tokens — the
-// bitmap faces are pixel-crisp only at multiples of 16, so these two are the
-// only sizes they exist at.
-const ALLOWED_FONT_SIZES = new Set(["11px", "12px", "14px", "16px", "19px", "28px", "32px", "40px"]);
+// The legal (family, size) pairs live inside auditPage: the six Archivo
+// tokens for everything, 16/32/48px for the RuneStar bitmap faces only. A
+// flat size set had no family axis — Archivo at 16px passed off-system.
 const MAX_SECTIONS = 3;
 const MAX_IMAGES = 20;
 const MAX_TEXT_COLOURS = 5;
@@ -41,11 +39,14 @@ const MAX_SEMIBOLD_SHARE = 0.35;
 
 interface PageAudit {
   height: number;
+  expandedHeight: number;
   viewport: { width: number; height: number };
   sections: string[];
-  images: { total: number; emptySrc: number; upscaled: string[] };
+  images: { total: number; emptySrc: number; broken: string[]; upscaled: string[] };
   fontSizes: Record<string, number>;
+  familyViolations: string[];
   weights: Record<string, number>;
+  loudCount: number;
   textBearingCount: number;
   colours: string[];
   horizontalOverflow: number;
@@ -65,40 +66,78 @@ async function auditPage(page: Page): Promise<PageAudit> {
     { timeout: 8_000 }
   ).catch(() => undefined);
   return page.evaluate(() => {
+    // Everything readable counts, INCLUDING content folded inside a closed
+    // <details> — the 2026-08-08 adversarial pass showed the whole demolished
+    // page could otherwise return behind one <summary>, invisible to every
+    // metric except image count.
     const textBearing: Element[] = [];
     for (const el of document.querySelectorAll("body *")) {
       if (el.closest("script,style,noscript")) continue;
-      // Chrome keeps layout boxes for content inside a closed <details>
-      // (content-visibility), so a rect check alone counts text nobody can
-      // see. The reader's page is what is open.
-      const details = el.closest("details:not([open])");
-      if (details && !el.closest("summary")) continue;
       const rect = el.getBoundingClientRect();
-      if (rect.width === 0 && rect.height === 0) continue;
+      if (rect.width === 0 && rect.height === 0 && !el.closest("details:not([open])")) continue;
       const hasText = [...el.childNodes].some(
         (node) => node.nodeType === Node.TEXT_NODE && node.textContent!.trim().length > 0
       );
       if (hasText) textBearing.push(el);
     }
     const fontSizes: Record<string, number> = {};
+    const familyViolations: string[] = [];
     const weights: Record<string, number> = {};
     const colours = new Set<string>();
+    let loudCount = 0;
+    // The scale has a family axis: the RuneStar bitmap faces exist ONLY at
+    // 16/32/48px (their pixel grid breaks anywhere else), and the Archivo
+    // tokens are everything else's whole scale. A size that is legal for one
+    // family is off-system for the other.
+    const RS_FAMILY = /rs(plain|bold|quill)/i;
+    const RS_SIZES = new Set(["16px", "32px", "48px"]);
+    const ARCHIVO_SIZES = new Set(["11px", "12px", "14px", "19px", "28px", "40px"]);
+    // Known limit: the colour count keys on computed `color` and does not
+    // fold in `opacity` tints — nothing on the page uses opacity on text
+    // today, and folding alpha would mis-count anti-aliased edges. If text
+    // opacity ever appears, extend this to composite the effective colour.
     for (const el of textBearing) {
       const cs = getComputedStyle(el);
       fontSizes[cs.fontSize] = (fontSizes[cs.fontSize] ?? 0) + 1;
+      const isRs = RS_FAMILY.test(cs.fontFamily.split(",")[0] ?? "");
+      const legal = isRs ? RS_SIZES : ARCHIVO_SIZES;
+      if (!legal.has(cs.fontSize)) {
+        familyViolations.push(`${cs.fontFamily.split(",")[0]} at ${cs.fontSize}: "${(el.textContent ?? "").trim().slice(0, 30)}"`);
+      }
       weights[cs.fontWeight] = (weights[cs.fontWeight] ?? 0) + 1;
+      if (Number(cs.fontWeight) >= 800) loudCount += 1;
       colours.add(cs.color);
     }
     const images = [...document.querySelectorAll("img")];
+    // A src that 404s has a truthy attribute, complete=true and naturalWidth
+    // 0 — the exact spelling of the 39-holes incident this spec was written
+    // for. Pending lazy images (complete=false) are not blamed.
+    const broken = images
+      .filter((img) => img.complete && img.naturalWidth === 0)
+      .map((img) => (img.getAttribute("src") ?? "(no src)").slice(-60));
     const upscaled = images
       .filter((img) => {
         const rect = img.getBoundingClientRect();
         return Math.max(rect.width, rect.height) >= 40 && img.naturalWidth > 0 && img.naturalWidth < 32;
       })
       .map((img) => `${img.currentSrc.slice(-48)} (${img.naturalWidth}px shown at ${Math.round(img.getBoundingClientRect().width)}px)`);
+    // globals.css sets overflow-x: clip on html/body, which excludes clipped
+    // content from scrollWidth — the naive scrollWidth-clientWidth check can
+    // NEVER fail there. Walk the real right edges instead.
+    let maxRight = 0;
+    for (const el of document.querySelectorAll("body *")) {
+      const rect = el.getBoundingClientRect();
+      if (rect.width === 0 && rect.height === 0) continue;
+      if (rect.right > maxRight) maxRight = rect.right;
+    }
+    const horizontalOverflow = Math.max(0, Math.ceil(maxRight - document.documentElement.clientWidth));
     const actionable = [...document.querySelectorAll<HTMLElement>(
       "main a[href], main button, main input, main select, main [role='button']"
     )]
+      .filter((el) => {
+        const rect = el.getBoundingClientRect();
+        return rect.height > 0 && getComputedStyle(el).visibility !== "hidden";
+      })
       .map((el) => ({
         y: el.getBoundingClientRect().top + window.scrollY,
         label: (el.getAttribute("aria-label") ?? el.textContent ?? "").trim().slice(0, 60) ||
@@ -106,8 +145,17 @@ async function auditPage(page: Page): Promise<PageAudit> {
       }))
       .filter((entry) => entry.label.length > 0)
       .sort((a, b) => a.y - b.y);
+    const collapsedHeight = document.body.scrollHeight;
+    // A fold is for a short remainder, not a hiding place: open everything
+    // and measure again. The expanded page gets a bounded allowance.
+    const allDetails = [...document.querySelectorAll("details")];
+    const wasOpen = allDetails.map((d) => d.open);
+    for (const d of allDetails) d.open = true;
+    const expandedHeight = document.body.scrollHeight;
+    allDetails.forEach((d, i) => { d.open = wasOpen[i]; });
     return {
-      height: document.body.scrollHeight,
+      height: collapsedHeight,
+      expandedHeight,
       viewport: { width: window.innerWidth, height: window.innerHeight },
       sections: [...document.querySelectorAll("main section")].map(
         (section) => section.getAttribute("aria-labelledby") ?? section.getAttribute("aria-label") ?? section.tagName
@@ -115,13 +163,16 @@ async function auditPage(page: Page): Promise<PageAudit> {
       images: {
         total: images.length,
         emptySrc: images.filter((img) => !img.getAttribute("src") && !img.currentSrc).length,
+        broken,
         upscaled
       },
       fontSizes,
+      familyViolations,
       weights,
+      loudCount,
       textBearingCount: textBearing.length,
       colours: [...colours],
-      horizontalOverflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
+      horizontalOverflow,
       firstActionsAboveFold: actionable
         .filter((entry) => entry.y < window.innerHeight)
         .map((entry) => entry.label)
@@ -137,6 +188,12 @@ test.describe("the /p/[rsn] page budget", () => {
       audit.height,
       `page is ${audit.height}px at ${audit.viewport.width}px wide — budget is ${budget}px`
     ).toBeLessThanOrEqual(budget);
+    // A fold is a short remainder, not a hiding place: with every <details>
+    // opened the page gets a bounded allowance, not an exemption.
+    expect(
+      audit.expandedHeight,
+      `page is ${audit.expandedHeight}px with all details open — allowance is ${budget + 1000}px`
+    ).toBeLessThanOrEqual(budget + 1000);
   });
 
   test("the page holds at most three sections", async ({ page }) => {
@@ -150,16 +207,25 @@ test.describe("the /p/[rsn] page budget", () => {
   test("every image is real and drawn at a size its source can carry", async ({ page }) => {
     const audit = await auditPage(page);
     expect(audit.images.emptySrc, "images with an empty src render as holes").toBe(0);
+    expect(audit.images.broken, "images whose src loaded nothing (404s render as holes too)").toEqual([]);
     expect(audit.images.total, "image count").toBeLessThanOrEqual(MAX_IMAGES);
     expect(audit.images.upscaled, "sprites blown up past their source resolution").toEqual([]);
   });
 
   test("type stays on the scale, and semibold stays scarce", async ({ page }) => {
     const audit = await auditPage(page);
-    const offScale = Object.entries(audit.fontSizes).filter(([size]) => !ALLOWED_FONT_SIZES.has(size));
-    expect(offScale, `off-scale font sizes: ${offScale.map(([s, n]) => `${s} x${n}`).join(", ")}`).toEqual([]);
-    const semibold = (audit.weights["600"] ?? 0) + (audit.weights["700"] ?? 0);
+    expect(
+      audit.familyViolations,
+      `off-system (family, size) pairs: ${audit.familyViolations.join(" | ")}`
+    ).toEqual([]);
+    // Everything from 600 up counts toward the scarcity budget — the 55%
+    // semibold defect must not come back one notch heavier as 800.
+    const semibold = Object.entries(audit.weights)
+      .filter(([weight]) => Number(weight) >= 600)
+      .reduce((sum, [, count]) => sum + count, 0);
     const share = semibold / Math.max(1, audit.textBearingCount);
+    // And 800+ is the ONE loud element per screen, by definition.
+    expect(audit.loudCount, "elements at weight 800 or heavier").toBeLessThanOrEqual(1);
     expect(
       share,
       `weight 600/700 on ${semibold} of ${audit.textBearingCount} text-bearing elements (${Math.round(share * 100)}%)`

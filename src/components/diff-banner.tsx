@@ -42,7 +42,7 @@ export function DiffBanner({ diff, onDismiss }: Props) {
 
   return (
     <section
-      className="mb-5 rounded-xl overflow-hidden border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] animate-[slide-up_0.3s_ease-out]"
+      className="mb-5 rounded-none overflow-hidden border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] animate-[slide-up_0.3s_ease-out]"
     >
       {/* Summary row (always visible). Outer is a flex row, only the
           left content area toggles expand; the dismiss X is its own button. */}
@@ -55,7 +55,7 @@ export function DiffBanner({ diff, onDismiss }: Props) {
           className="flex-1 flex items-center gap-3 px-4 py-3 text-left min-w-0"
         >
           <div
-            className="shrink-0 size-9 rounded-lg flex items-center justify-center"
+            className="shrink-0 size-9 rounded-none flex items-center justify-center"
             style={{
               background: up ? "oklch(0.32 0.05 65 / 0.18)" : "oklch(0.32 0.08 25 / 0.18)",
               color: up ? "var(--color-good)" : "var(--color-danger)"

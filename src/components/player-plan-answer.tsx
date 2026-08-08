@@ -78,7 +78,7 @@ export function PlayerPlanAnswer({
 
   return (
     <article
-      className="min-w-0 max-w-full border-b border-[var(--color-border)] pb-5"
+      className="min-w-0 max-w-full border-b border-[var(--color-border)] pb-4"
       data-next-trip-card="true"
       data-player-plan-answer="true"
     >

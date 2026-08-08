@@ -85,7 +85,7 @@ export function MobileActionBar() {
               href={action.href}
               aria-current={action.selected ? "page" : undefined}
               className={cn(
-                "relative flex min-h-14 flex-col items-center justify-center rounded-lg border px-1.5 text-center transition-colors",
+                "relative flex min-h-14 flex-col items-center justify-center rounded-none border px-1.5 text-center transition-colors",
                 action.selected
                   ? "border-[var(--color-accent)]/45 bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
                   : "border-transparent text-[var(--color-text-dim)] hover:border-[var(--color-accent)]/30 hover:text-[var(--color-accent)]"

@@ -80,7 +80,7 @@ function Chart({ kc, denom, dropName }: Props) {
   const halfX = halfKc <= maxKc ? xToPx(halfKc) : null;
 
   return (
-    <div className="mt-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-2)] p-3">
+    <div className="mt-2 rounded-none border border-[var(--color-border)] bg-[var(--color-bg-2)] p-3">
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="w-full h-auto"

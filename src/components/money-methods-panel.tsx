@@ -49,7 +49,7 @@ export function MoneyMethodsPanel({
                     href={wikiMethodUrl(method.page)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/55 px-3 py-2.5 transition-colors hover:border-[var(--color-accent)]/45"
+                    className="block rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]/55 px-3 py-2.5 transition-colors hover:border-[var(--color-accent)]/45"
                   >
                     <p className="tabular-nums text-[length:var(--text-body)] font-semibold text-[var(--color-text)]">
                       {method.activity} · {formatGp(method.gpPerHour)}/hr

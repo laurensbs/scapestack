@@ -27,7 +27,7 @@ export function CopyCommand({ value, label = "Copy" }: CopyCommandProps) {
   return (
     <div
       className={cn(
-        "mt-3 rounded-lg border bg-[var(--color-bg)]",
+        "mt-3 rounded-none border bg-[var(--color-bg)]",
         state === "copied" && "border-[var(--color-good)]/35",
         state === "error" && "border-[var(--color-danger)]/35",
         state === "idle" && "border-[var(--color-border)]"
@@ -52,7 +52,7 @@ export function CopyCommand({ value, label = "Copy" }: CopyCommandProps) {
           className={cn(
             "shrink-0 text-[11.5px] font-semibold transition-colors",
             "inline-flex items-center gap-1.5",
-            longValue ? "m-2 w-fit rounded-md border px-3 py-2" : "border-l px-3",
+            longValue ? "m-2 w-fit rounded-none border px-3 py-2" : "border-l px-3",
             state === "copied" && "border-[var(--color-good)]/35 text-[var(--color-good)] bg-[var(--color-good)]/10",
             state === "error" && "border-[var(--color-danger)]/35 text-[var(--color-danger)] bg-[var(--color-danger)]/10",
             state === "idle" && "border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-panel)]/55"

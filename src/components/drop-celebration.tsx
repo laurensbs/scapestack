@@ -41,7 +41,7 @@ export function DropCelebration({ items }: Props) {
 
   return (
     <div
-      className="relative mb-4 overflow-hidden rounded-xl border border-[var(--color-accent)]/45 bg-gradient-to-r from-[var(--color-accent)]/12 via-[#7c3aed]/12 to-[var(--color-accent)]/12 px-5 py-4 flex items-center gap-4"
+      className="relative mb-4 overflow-hidden rounded-none border border-[var(--color-accent)]/45 bg-gradient-to-r from-[var(--color-accent)]/12 via-[#7c3aed]/12 to-[var(--color-accent)]/12 px-5 py-4 flex items-center gap-4"
       style={{
         animation: closing
           ? "drop-celebrate-out 0.5s ease-in forwards"
@@ -55,7 +55,7 @@ export function DropCelebration({ items }: Props) {
         style={{ animation: closing ? undefined : "drop-celebrate-sweep 1.8s ease-out" }}
       />
 
-      <div className="size-14 shrink-0 rounded-lg bg-[var(--color-bg)] border border-[var(--color-accent)]/50 flex items-center justify-center relative">
+      <div className="size-14 shrink-0 rounded-none bg-[var(--color-bg)] border border-[var(--color-accent)]/50 flex items-center justify-center relative">
         <ItemSprite
           id={headline.iconItemId}
           alt=""
@@ -86,7 +86,7 @@ export function DropCelebration({ items }: Props) {
       <button
         type="button"
         onClick={() => { setClosing(true); setTimeout(() => setVisible(false), 500); }}
-        className="size-7 shrink-0 rounded-md flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg)]/40 transition-colors text-[18px]"
+        className="size-7 shrink-0 rounded-none flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg)]/40 transition-colors text-[18px]"
         aria-label="Dismiss"
       >
         ×

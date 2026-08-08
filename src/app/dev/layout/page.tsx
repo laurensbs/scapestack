@@ -148,7 +148,7 @@ async function buildPositionDiff(spec: FixtureSpec, a: Archetype, b: Archetype):
 async function ArchetypeDiff({ fixture, a, b }: { fixture: FixtureSpec; a: Archetype; b: Archetype }) {
   const rows = await buildPositionDiff(fixture, a, b);
   return (
-    <section className="mb-10 border border-[var(--color-border)] rounded-lg p-5 bg-[var(--color-surface)]">
+    <section className="mb-10 border border-[var(--color-border)] rounded-none p-5 bg-[var(--color-surface)]">
       <h2 className="text-lg font-semibold mb-2">
         Item-position diff — <code>{a}</code> vs <code>{b}</code>
       </h2>
@@ -240,7 +240,7 @@ export default async function DevLayoutPage() {
 
       <ArchetypeDiff fixture={FIXTURES[0]} a="pvm" b="skiller" />
 
-      <section className="mb-10 border border-[var(--color-border)] rounded-lg p-5 bg-[var(--color-surface)]">
+      <section className="mb-10 border border-[var(--color-border)] rounded-none p-5 bg-[var(--color-surface)]">
         <h2 className="text-lg font-semibold mb-3">
           Archetype comparison — MAX_MAIN_BANK
         </h2>
@@ -272,7 +272,7 @@ export default async function DevLayoutPage() {
 
       <div className="space-y-12">
         {allRenders.map(({ spec, archetype, tabs, explanations }, i) => (
-          <section key={i} className="border border-[var(--color-border)] rounded-lg p-5 bg-[var(--color-surface)]">
+          <section key={i} className="border border-[var(--color-border)] rounded-none p-5 bg-[var(--color-surface)]">
             <header className="mb-4">
               <h2 className="text-lg font-semibold">
                 {spec.name}{" "}

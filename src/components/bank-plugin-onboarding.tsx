@@ -36,7 +36,7 @@ export function BankPluginOnboarding() {
     : "RuneLite can skip";
 
   return (
-    <section className="mb-8 overflow-hidden rounded-2xl border border-[var(--color-accent)]/25 bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] shadow-[0_24px_80px_rgba(0,0,0,0.2)]">
+    <section className="mb-8 overflow-hidden rounded-none border border-[var(--color-accent)]/25 bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] shadow-[0_24px_80px_rgba(0,0,0,0.2)]">
       <div className="grid gap-0 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="p-5 sm:p-6">
           <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">
@@ -55,7 +55,7 @@ export function BankPluginOnboarding() {
                 key={action.href}
                 href={action.href}
                 className={cn(
-                  "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold transition-all",
+                  "inline-flex items-center gap-2 rounded-none px-4 py-2.5 text-[13px] font-bold transition-all",
                   action.tone === "primary"
                     ? "bg-[var(--color-accent)] text-[var(--color-bg)] hover:brightness-110"
                     : "border border-[var(--color-border)] bg-[var(--color-bg)]/45 text-[var(--color-text)] hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
@@ -68,7 +68,7 @@ export function BankPluginOnboarding() {
           </div>
           <div className="mt-5 grid gap-2 sm:grid-cols-2">
             {BANK_PLUGIN_ONBOARDING.lanes.map((lane) => (
-              <div key={lane.label} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3.5">
+              <div key={lane.label} className="rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/35 p-3.5">
                 <div className="flex items-center gap-2 text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">
                   <DatabaseZap className="size-3.5" />
                   {lane.label}
@@ -81,7 +81,7 @@ export function BankPluginOnboarding() {
               </div>
             ))}
           </div>
-          <div className="mt-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/30 p-3.5">
+          <div className="mt-5 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/30 p-3.5">
             <div className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
               Simple path
             </div>
@@ -89,7 +89,7 @@ export function BankPluginOnboarding() {
               {BANK_PLUGIN_ONBOARDING.readiness.map((step) => {
                 const StepIcon = step.state === "ready" ? CheckCircle2 : Clock3;
                 return (
-                  <div key={step.title} className="grid gap-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-3 py-2.5">
+                  <div key={step.title} className="grid gap-1 rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]/45 px-3 py-2.5">
                     <div className="flex items-center gap-2 text-[11px] font-bold text-[var(--color-text)]">
                       <StepIcon
                         className={cn(
@@ -112,7 +112,7 @@ export function BankPluginOnboarding() {
         </div>
 
         <aside className="border-t border-[var(--color-border)] bg-[var(--color-bg)]/35 p-5 sm:p-6 lg:border-l lg:border-t-0">
-          <div className={cn("mb-4 rounded-xl border px-3 py-2.5", statusCopy.className)}>
+          <div className={cn("mb-4 rounded-none border px-3 py-2.5", statusCopy.className)}>
             <div className="flex items-center gap-2 text-[10.5px] font-bold uppercase tracking-[0.16em]">
               <Clock3 className="size-3.5" />
               {statusCopy.title}
@@ -130,7 +130,7 @@ export function BankPluginOnboarding() {
               <div
                 key={signal}
                 className={cn(
-                  "flex items-center gap-2 rounded-lg border px-3 py-2 text-[12.5px]",
+                  "flex items-center gap-2 rounded-none border px-3 py-2 text-[12.5px]",
                   isPluginHubLive
                     ? "border-[var(--color-border)] bg-[var(--color-panel)]/60 text-[var(--color-text)]"
                     : "border-[var(--color-warning)]/20 bg-[var(--color-warning)]/5 text-[var(--color-text-dim)]"

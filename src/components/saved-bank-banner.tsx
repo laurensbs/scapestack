@@ -85,8 +85,8 @@ export function SavedBankBanner({
       ref={presentation === "modal" ? dialogRef : undefined}
       tabIndex={presentation === "modal" ? -1 : undefined}
       className={presentation === "modal"
-        ? "relative w-full max-w-md rounded-md overflow-hidden"
-        : "relative w-full rounded-md overflow-hidden text-left animate-[fade-in_0.2s_ease-out]"}
+        ? "relative w-full max-w-md rounded-none overflow-hidden"
+        : "relative w-full rounded-none overflow-hidden text-left animate-[fade-in_0.2s_ease-out]"}
       style={{
         background: "linear-gradient(180deg, var(--color-osrs-wood-light) 0%, var(--color-osrs-wood) 100%)",
         border: "2px solid var(--color-osrs-wood-edge)",
@@ -119,7 +119,7 @@ export function SavedBankBanner({
           type="button"
           onClick={onDismiss}
           aria-label="Close"
-          className="size-6 -mr-1 flex items-center justify-center rounded-sm text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-osrs-wood-edge)] transition-colors"
+          className="size-6 -mr-1 flex items-center justify-center rounded-none text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-osrs-wood-edge)] transition-colors"
         >
           <X className="size-4" />
         </button>
@@ -168,7 +168,7 @@ export function SavedBankBanner({
           <button
             type="button"
             onClick={onTertiary}
-            className="mt-2 w-full rounded-md border border-[var(--color-osrs-wood-edge)] bg-[rgba(7,9,12,0.24)] px-3 py-2 text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+            className="mt-2 w-full rounded-none border border-[var(--color-osrs-wood-edge)] bg-[rgba(7,9,12,0.24)] px-3 py-2 text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
           >
             {tertiaryLabel}
           </button>

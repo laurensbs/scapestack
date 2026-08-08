@@ -44,19 +44,8 @@ describe("RSN profile handoffs", () => {
     expect(source).not.toMatch(/>\s*Analytics\s*</i);
   });
 
-  it("mounts the shared readiness rail on player profiles with local bank detection", () => {
-    const railSource = readFileSync(join(process.cwd(), "src/app/u/[rsn]/profile-readiness-rail.tsx"), "utf8");
-    const readinessSource = readFileSync(join(process.cwd(), "src/lib/scapestack-readiness.ts"), "utf8");
-
-    expect(railSource).toContain('"use client"');
-    expect(railSource).toContain('import { ScapestackReadinessRail } from "@/components/scapestack-readiness-rail";');
-    expect(railSource).toContain('import { latestSnapshot } from "@/lib/snapshot-history";');
-    expect(railSource).toContain("latestSnapshot(rsn)");
-    expect(railSource).toContain("setHasLocalBank(Boolean(snapshot && snapshot.items.length > 0))");
-    expect(railSource).toContain('surface="profile"');
-    expect(railSource).toContain("hasBankContext={hasLocalBank}");
-    expect(railSource).toContain("hasRsn");
-    expect(readinessSource).toContain('export type ScapestackSurface = "bank" | "next" | "dps" | "goals" | "profile" | "slayer";');
-    expect(readinessSource).toContain('profile: "profile"');
-  });
+  // The "mounts the shared readiness rail" guard died here on 2026-08-08: it
+  // source-grepped a component that had not been mounted anywhere since the
+  // 07-30 redirect — a guard green while the feature was dead. The component
+  // is deleted; a guard for a dead feature guards nothing.
 });
