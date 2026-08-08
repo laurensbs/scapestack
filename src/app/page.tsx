@@ -54,7 +54,11 @@ export default async function HomePage() {
                 className="boss-render relative z-10 h-[22rem] w-[26rem] object-contain object-bottom sm:h-[32rem] sm:w-[clamp(23.75rem,40vw,32.5rem)]"
               />
             </span>
-            <figcaption className="absolute bottom-0 right-36 whitespace-nowrap text-center text-[length:var(--text-micro)] font-normal text-[var(--color-text-muted)] sm:left-1/2 sm:right-auto sm:-translate-x-1/2">
+            {/* Under the render, not over it. It was absolutely positioned at
+                the figure's bottom edge, which was invisible while the boss
+                was — the moment the rim made Phantom Muspah readable, the
+                boss's feet landed on top of its own caption. */}
+            <figcaption className="relative z-20 mt-2 whitespace-nowrap text-center text-[length:var(--text-micro)] font-normal text-[var(--color-text-muted)]">
               Today&apos;s boss · {boss.name}
             </figcaption>
           </figure>
