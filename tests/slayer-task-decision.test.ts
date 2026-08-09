@@ -35,7 +35,7 @@ describe("Slayer task decision", () => {
 
   it("keeps Chill and AFK routes away from boss variants", () => {
     const bank = [
-      { id: 24225, name: "Elder maul", quantity: 1 },
+      { id: 21003, name: "Elder maul", quantity: 1 },
       { id: 11865, name: "Slayer helmet (i)", quantity: 1 },
       { id: 139, name: "Prayer potion(3)", quantity: 20 },
       { id: 385, name: "Shark", quantity: 100 }
@@ -57,7 +57,7 @@ describe("Slayer task decision", () => {
     const viable = decideSlayerTask(input("hellhound", {
       mood: "bossing",
       bank: [
-        { id: 24225, name: "Elder maul", quantity: 1 },
+        { id: 21003, name: "Elder maul", quantity: 1 },
         { id: 11865, name: "Slayer helmet (i)", quantity: 1 },
         { id: 139, name: "Prayer potion(3)", quantity: 20 },
         { id: 385, name: "Shark", quantity: 100 }
@@ -112,7 +112,7 @@ describe("Slayer task decision", () => {
     const decision = decideSlayerTask(input("dust_devil", {
       bank: [
         { id: 11865, name: "Slayer helmet (i)", quantity: 1 },
-        { id: 22323, name: "Ancient sceptre", quantity: 1 },
+        { id: 27624, name: "Ancient sceptre", quantity: 1 },
         { id: 27281, name: "Divine rune pouch", quantity: 1 },
         { id: 139, name: "Prayer potion(3)", quantity: 20 },
         { id: 385, name: "Shark", quantity: 100 }

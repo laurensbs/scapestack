@@ -28,8 +28,8 @@ describe("boss trip loadout", () => {
       boss: vorkath,
       bankItems: normalizeBankHandoffItems([
         { id: 12926, name: "Toxic blowpipe", quantity: 1 },
-        { id: 21978, name: "Dragonfire ward", quantity: 1 },
-        { id: 21975, name: "Extended super antifire(4)", quantity: 8 },
+        { id: 22002, name: "Dragonfire ward", quantity: 1 },
+        { id: 22209, name: "Extended super antifire(4)", quantity: 8 },
         { id: 12913, name: "Anti-venom+(4)", quantity: 12 },
         { id: 385, name: "Shark", quantity: 250 },
         { id: 8013, name: "Teleport to house", quantity: 20 }
@@ -53,8 +53,8 @@ describe("boss trip loadout", () => {
     const plan = buildBossInventoryPlan({
       boss: vorkath,
       bankItems: normalizeBankHandoffItems([
-        { id: 12017, name: "Salve amulet(ei)", quantity: 1 },
-        { id: 21975, name: "Extended super antifire(4)", quantity: 4 },
+        { id: 12018, name: "Salve amulet(ei)", quantity: 1 },
+        { id: 22209, name: "Extended super antifire(4)", quantity: 4 },
         { id: 562, name: "Chaos rune", quantity: 500 },
         { id: 4696, name: "Dust rune", quantity: 500 },
         { id: 385, name: "Shark", quantity: 50 }
@@ -76,8 +76,8 @@ describe("boss trip loadout", () => {
       bankItems: normalizeBankHandoffItems([
         { id: runeCrossbow.id, name: runeCrossbow.name, quantity: 1 },
         { id: 22002, name: "Dragonfire ward", quantity: 1 },
-        { id: 19547, name: "Salve amulet(ei)", quantity: 1 },
-        { id: 21975, name: "Extended super antifire(4)", quantity: 4 },
+        { id: 12018, name: "Salve amulet(ei)", quantity: 1 },
+        { id: 22209, name: "Extended super antifire(4)", quantity: 4 },
         { id: 562, name: "Chaos rune", quantity: 500 },
         { id: 4696, name: "Dust rune", quantity: 500 },
         { id: 385, name: "Shark", quantity: 50 }
@@ -129,7 +129,7 @@ describe("boss trip loadout", () => {
         { id: trident.id, name: trident.name, quantity: 1 },
         { id: 2434, name: "Prayer potion(4)", quantity: 8 },
         { id: 385, name: "Shark", quantity: 30 },
-        { id: 19627, name: "Barrows teleport", quantity: 5 }
+        { id: 19629, name: "Barrows teleport", quantity: 5 }
       ]),
       owned: [trident],
       dps: { ...dps(), style: "magic", weapon: trident, setup: { weapon: trident } }

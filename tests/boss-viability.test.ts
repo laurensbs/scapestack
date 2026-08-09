@@ -58,10 +58,10 @@ describe("boss viability", () => {
   it("turns owned gear into a compact test-trip verdict", () => {
     const viability = bossViabilityFromSimpleBank([
       { id: 12926, name: "Toxic blowpipe" },
-      { id: 12002, name: "Necklace of anguish" },
+      { id: 19547, name: "Necklace of anguish" },
       { id: 22109, name: "Ava's assembler" },
-      { id: 27229, name: "Masori body (f)" },
-      { id: 27232, name: "Masori chaps (f)" },
+      { id: 27238, name: "Masori body (f)" },
+      { id: 27241, name: "Masori chaps (f)" },
       { id: 11230, name: "Dragon dart" }
     ], boss("vorkath"));
 

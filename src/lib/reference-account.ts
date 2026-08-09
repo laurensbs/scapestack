@@ -42,7 +42,7 @@ export const REFERENCE_BANK: Array<{ id: number; name: string }> = [
   { id: 7462, name: "Barrows gloves" },
   { id: 21295, name: "Infernal cape" },
   { id: 21907, name: "Vorkath's head" },
-  { id: 12921, name: "Magic fang" }
+  { id: 12932, name: "Magic fang" }
 ];
 
 /** Hiscores-shaped rows, including the Overall total the engine expects. */
