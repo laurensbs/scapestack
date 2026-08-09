@@ -52,6 +52,44 @@ test.describe("the way back to your own page", () => {
   });
 });
 
+test.describe("a second reason to open the page", () => {
+  test("Check again reads the hiscores and says what moved", async ({ page }) => {
+    // /api/account/refresh had been public, rate-limited and self-registering
+    // with no caller anywhere in the product. Every click also writes a
+    // hiscore_snapshot row, which is what the recap, the goal percentage and
+    // the milestone ledger all read — so this control is both the reason to
+    // return and the thing that makes returning measurable.
+    await page.goto("/p/Lynx%20Titan");
+    const control = page.locator("[data-account-refresh] button");
+    await expect(control).toBeVisible();
+
+    const answered = page.waitForResponse((response) =>
+      response.url().includes("/api/account/refresh") && response.request().method() === "POST");
+    await control.click();
+    const response = await answered;
+
+    // The rate limit is one per RSN per ten minutes, shared across browsers
+    // and across runs. Asserting 200 made this test fail whenever it ran twice
+    // in a window — a flaky gate, which is worse than none.
+    //
+    // So the always-true property is asserted every run: the control calls the
+    // endpoint and RENDERS WHAT COMES BACK. That cannot pass on a no-op — a
+    // component that swallowed the answer shows no line at all. Which line is
+    // correct then depends on the status, and any status other than these two
+    // is a failure rather than a shrug.
+    const result = page.locator("[data-refresh-result]");
+    await expect(result).toBeVisible({ timeout: 15_000 });
+
+    if (response.status() === 200) {
+      await expect(result).toHaveText(/\+[\d.,]+[kM]? xp|Nothing moved|First reading/);
+    } else if (response.status() === 429) {
+      await expect(result).toHaveText(/Already checked/);
+    } else {
+      throw new Error(`refresh answered ${response.status()}: ${await response.text()}`);
+    }
+  });
+});
+
 test.describe("three labels, three destinations", () => {
   const SECTIONS = [
     { path: "/dps", section: "bosses", heading: /can i kill this/i },

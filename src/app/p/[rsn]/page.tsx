@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AccountCoverageLine, type AccountCoverageState } from "@/components/account-coverage-line";
+import { AccountRefreshLine } from "@/components/account-refresh-line";
 import { FarmTimersLine } from "@/components/farm-timers-line";
 import { HiscoresUnavailable } from "@/components/hiscores-unavailable";
 import { LastTripLine } from "@/components/last-trip-line";
@@ -205,6 +206,10 @@ export default async function PlayerPage({ params, searchParams }: Props) {
         >
           Full profile
         </Link>
+        {/* The second reason to open this page. On the header line rather than
+            in a section, because /p holds three and a fourth may only land in
+            a commit that removes one. */}
+        <AccountRefreshLine rsn={displayName} />
       </div>
       <div className="mt-1">
         <AccountCoverageLine rsn={displayName} state={coverage} />
