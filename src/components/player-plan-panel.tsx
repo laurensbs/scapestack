@@ -14,6 +14,7 @@ import type { PlanningContextPayload } from "@/lib/planning-context";
 import {
   activePinnedGoal,
   goalTripWhy,
+  servesGoalLabel,
   orderRecommendationsForGoal,
   recommendationMovesPinnedGoal,
   type PinnedGoalBossSource
@@ -273,6 +274,7 @@ export function PlayerPlanPanel({
         planLines={planLines}
         actionContext={{ from: "next", hasBankContext: hasBank, rsn, accountType: result.summary.accountMode.type }}
         goalBar={{ rsn, evidence: goalEvidence, canSync, suggestions: goalSuggestions }}
+        servesGoal={servesGoalLabel(activeRec, activeGoal, goalBossSources)}
         alternatives={alternatives}
         onSelectAlternative={(rec: Recommendation) => setSelectedRecommendationId(rec.id)}
         onRejectHeadline={hideAlternative}

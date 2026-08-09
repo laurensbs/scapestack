@@ -58,6 +58,7 @@ export function PlayerPlanAnswer({
   planLines,
   actionContext,
   goalBar,
+  servesGoal,
   alternatives = [],
   onSelectAlternative,
   onRejectHeadline,
@@ -70,6 +71,8 @@ export function PlayerPlanAnswer({
   actionContext: RecommendationActionContext;
   /** Pinned-goal wiring. Absent on surfaces that have no goals of their own. */
   goalBar?: { rsn: string; evidence: PinnedGoalProgressEvidence; canSync: boolean; suggestions?: readonly NewPinnedGoal[] };
+  /** "Serves your goal: X", or absent when this trip does not move it. */
+  servesGoal?: string | null;
   alternatives?: Recommendation[];
   onSelectAlternative?: (rec: Recommendation) => void;
   onRejectHeadline?: (rec: Recommendation) => void;
@@ -94,6 +97,12 @@ export function PlayerPlanAnswer({
           page — while the goal turns the answer into a consequence of
           something they said. */}
       {goalBar && <GoalBar {...goalBar} />}
+      {/* SPEC §3.1. Only when the trip actually moves the goal — the engine
+          also offers a fallback when nothing does, and a player cannot tell
+          the two apart without this line. */}
+      {servesGoal && (
+        <p className="eyebrow mb-1" data-serves-goal="true">{servesGoal}</p>
+      )}
       <h2 className="flex min-w-0 items-center gap-3 text-[length:var(--text-answer)] font-extrabold! leading-[1.08] text-[var(--color-text)]">
         <RecommendationGlyph rec={rec} />
         <span className="min-w-0 break-words">{decisionCopy.title}</span>

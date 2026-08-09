@@ -365,6 +365,28 @@ export function goalTripWhy(
   return `${rec.title} — this route contains ${goal.target}.`;
 }
 
+/**
+ * SPEC §3.1: "If a trip directly advances the primary goal, it is recommended
+ * first and labeled 'Serves your goal: Fire cape'."
+ *
+ * The distinction this label carries is real and was previously only buried in
+ * prose: a trip that moves the goal reads differently from the fallback the
+ * engine offers when nothing does. Ordering already put the right trip first;
+ * without the label a player cannot tell which of the two they are looking at.
+ *
+ * Null when the trip does not serve the goal — including when there is no
+ * goal. Claiming otherwise would be the product congratulating itself for a
+ * connection it did not make.
+ */
+export function servesGoalLabel(
+  rec: Recommendation,
+  goal: PinnedGoal | null,
+  sources: readonly PinnedGoalBossSource[]
+): string | null {
+  if (!goal) return null;
+  return moveForRecommendation(rec, goal, sources) ? `Serves your goal: ${goal.target}` : null;
+}
+
 export function orderRecommendationsForGoal(
   recommendations: readonly Recommendation[],
   goal: PinnedGoal | null,

@@ -7,6 +7,7 @@ import {
   buildPinnedGoalBossSources,
   claimPinnedGoalCompletionNotice,
   goalTripWhy,
+  servesGoalLabel,
   orderAffordableSetsForGoal,
   orderBossesForGoal
 } from "@/lib/pinned-goal-orientation";
@@ -122,5 +123,49 @@ describe("the player-chosen goal is the subject", () => {
     expect(bosses).toContain("orderBossesForGoal(");
     expect(sets).toContain('className="scape-verdict" data-gate=');
     expect(bosses).toContain('className="scape-verdict" data-gate=');
+  });
+});
+
+describe("Serves your goal (SPEC §3.1)", () => {
+  const goal = createPinnedGoal({ kind: "level", skill: "Slayer", targetLevel: 99 })!;
+  // completionTarget, not the title. The matcher requires structured evidence
+  // that a trip advances the goal and will not infer it from a name — a trip
+  // called "Push Slayer to 93" that carries no target is a string, and
+  // labelling it "Serves your goal" on that basis would be a guess presented
+  // as a fact.
+  const serving: Recommendation = {
+    id: "skill:slayer", kind: "skill", title: "Push Slayer to 93",
+    why: "One block.", score: 100, link: "/slayer",
+    completionTarget: { kind: "skill_level_at_least", skill: "Slayer", target: 93 }
+  };
+  const unrelated: Recommendation = {
+    id: "quest:dt2", kind: "quest", title: "Finish Desert Treasure II",
+    why: "Unlocks bosses.", score: 90, link: "/quests"
+  };
+
+  it("labels a trip that moves the goal, in the spec's exact shape", () => {
+    expect(servesGoalLabel(serving, goal, [])).toBe(`Serves your goal: ${goal.target}`);
+  });
+
+  it("stays silent on a trip that does not move it", () => {
+    // The engine offers a fallback when nothing serves the goal. Labelling
+    // that too would make the label meaningless — it is precisely the
+    // difference between the two the player cannot otherwise see.
+    expect(servesGoalLabel(unrelated, goal, [])).toBeNull();
+  });
+
+  it("stays silent when there is no goal at all", () => {
+    expect(servesGoalLabel(serving, null, [])).toBeNull();
+  });
+
+  it("never labels on a title match alone", () => {
+    // Same title, no completionTarget. If this ever returns a label the
+    // matcher has started guessing from prose, and the label stops being
+    // evidence of anything.
+    const untargeted: Recommendation = {
+      id: "skill:slayer", kind: "skill", title: "Push Slayer to 93",
+      why: "One block.", score: 100, link: "/slayer"
+    };
+    expect(servesGoalLabel(untargeted, goal, [])).toBeNull();
   });
 });

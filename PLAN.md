@@ -228,7 +228,9 @@ this file ticked as I go.
       asserted against each other.
 
       **Onboarding step 1 did NOT land as a separate screen.** See below.
-- [ ] 4. "Serves your goal" label
+- [x] 4. "Serves your goal" label — done. `ci:check` green, 1,841 unit tests.
+      The label fires only on structured evidence (`completionTarget`), never
+      on a title match — guarded.
 - [ ] 5. Weekly recap + Discord (+ email behind a flag)
 - [ ] 6. Empty states
 - [ ] 7. Copy pass
