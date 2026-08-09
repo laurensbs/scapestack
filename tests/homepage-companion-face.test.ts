@@ -121,8 +121,8 @@ describe("the homepage companion face", () => {
 
   it("states the product once and keeps the homepage out of feature-grid territory", () => {
     const page = read("src/app/page.tsx");
-    expect(page).toContain("Your OSRS companion.");
-    expect(page).toContain("Scapestack remembers what you are working toward and tells you the next step.");
+    expect(page).toContain("Stop bankstanding.");
+    expect(page).toContain("Set a goal, and Scapestack tells you the next step every session");
     expect(page).toContain("<HeroIntake />");
     expect(page).not.toMatch(/testimonials?|feature grid|demo account|HomeSpecimen/i);
     expect(page).not.toMatch(/text-\[[0-9.]+px\]/);

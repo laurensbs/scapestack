@@ -50,7 +50,9 @@ export function HeroIntake() {
         type="submit"
         className="inline-flex h-13 items-center justify-center rounded-none bg-[var(--color-accent)] px-6 text-[length:var(--text-body)] font-semibold text-[#0B0906] transition-colors hover:bg-[var(--color-accent-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)] sm:h-12"
       >
-        Open my page
+        {/* SPEC §3.5. "Open my page" named a destination; this names what the
+            player came for. */}
+        Show my next step
       </button>
     </form>
   );

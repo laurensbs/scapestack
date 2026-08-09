@@ -270,7 +270,15 @@ this file ticked as I go.
       rejects first-person-plural — 0 of 1,985 player-written descriptions use
       it — and it fired on the spec's own sentence. Promise kept, pronoun
       changed to "Scapestack".
-- [ ] 7. Copy pass
+- [x] 7. Copy pass
+      Hero, CTA and recap template are §3.5's, verbatim.
+      The collision I flagged was wrong: `/` is **not** in the page-budget
+      spec — that spec only covers `/p/[rsn]`. So there was no budget to fit
+      inside and nothing to ask about. The hero is still split at the spec's
+      own full stop: "Stop bankstanding." is the h1, the rest is the subhead.
+      As one h1 the sentence is three lines of display type with the hook at
+      the end of it. Same words, same order.
+      Eight test files pinned the old strings and were updated with them.
 
 **Two decisions I need from you before item 1:**
 

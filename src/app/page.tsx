@@ -24,11 +24,17 @@ export default async function HomePage() {
       <section className="home-hero relative mx-auto w-full min-w-0 max-w-[var(--width-page)] overflow-hidden">
         <div className="grid min-w-0 items-center sm:min-h-[32rem] sm:grid-cols-[minmax(0,32rem)_minmax(23.75rem,32.5rem)] sm:gap-8">
           <div className="relative z-10 min-w-0 max-w-[32rem] py-8 sm:py-12">
+            {/* SPEC §3.5, split at the spec's own full stop. The sentence is
+                written as one line; as one h1 it is three lines of display
+                type and the hook is buried at the end of it. "Stop
+                bankstanding." is the hook, and the rest is what happens
+                instead — which is what a subhead is for. Same words, in the
+                order the spec wrote them. */}
             <h1 className="max-w-[20ch] text-[length:var(--text-page)] font-extrabold! leading-[1.04] text-[var(--color-text)]">
-              Your OSRS companion.
+              Stop bankstanding.
             </h1>
             <p className="mt-3 max-w-[52ch] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text-secondary)]">
-              Scapestack remembers what you are working toward and tells you the next step.
+              Set a goal, and Scapestack tells you the next step every session — and sends you a Sunday recap of what you banked.
             </p>
             <div className="mt-4 min-w-0">
               <HeroIntake />

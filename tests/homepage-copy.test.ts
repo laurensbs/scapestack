@@ -12,8 +12,8 @@ const source = readFileSync(join(process.cwd(), "src/app/page.tsx"), "utf8");
 describe("homepage first-impression copy", () => {
   it("opens as an OSRS companion with one intake", () => {
     expect(source).not.toContain("BRAND_SECONDARY_TAGLINE");
-    expect(source).toContain("Your OSRS companion.");
-    expect(source).toContain("Scapestack remembers what you are working toward and tells you the next step.");
+    expect(source).toContain("Stop bankstanding.");
+    expect(source).toContain("Set a goal, and Scapestack tells you the next step every session");
     // A reference document gets to the point: no full-viewport hero, no
     // display-size headline, and no eyebrow label above a headline that
     // already says the same thing.
@@ -73,8 +73,8 @@ describe("homepage first-impression copy", () => {
   });
 
   it("ranks promise, intake and proof in that order", () => {
-    const headlineIndex = source.indexOf("Your OSRS companion.");
-    const explanationIndex = source.indexOf("Scapestack remembers what you are working toward and tells you the next step.");
+    const headlineIndex = source.indexOf("Stop bankstanding.");
+    const explanationIndex = source.indexOf("Set a goal, and Scapestack tells you the next step every session");
     const intakeIndex = source.indexOf("<HeroIntake />");
     const proofIndex = source.indexOf('aria-label="What Scapestack checks"');
 
