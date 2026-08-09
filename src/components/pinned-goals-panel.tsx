@@ -7,6 +7,7 @@ import {
   mergePinnedGoals,
   parsePinnedGoal,
   pinnedGoalProgress,
+  PINNED_GOALS_EVENT,
   removePinnedGoalLocally,
   replacePinnedGoalsLocally,
   type PinnedGoal,
@@ -70,14 +71,41 @@ export function PinnedGoalsPanel({
 
   useEffect(() => {
     let active = true;
-    const local = loadPinnedGoals(rsn);
-    setGoals(local);
-    setLoaded(true);
-    if (!canSync) return () => { active = false; };
+
+    // Read on mount AND on every pin.
+    //
+    // This used to run once and then never again, so pinning a goal from the
+    // line at the top of the page left this panel reading "Nothing pinned"
+    // while localStorage already held the goal. The only Remove control in the
+    // product was a full page load behind the truth, and the moment the whole
+    // goal system exists for — the pin visibly landing — did not happen.
+    // GoalBar already dispatches PINNED_GOALS_EVENT; nothing was listening.
+    const readLocal = () => {
+      if (!active) return [] as PinnedGoal[];
+      const local = loadPinnedGoals(rsn);
+      setGoals(local);
+      setLoaded(true);
+      return local;
+    };
+
+    const local = readLocal();
+    window.addEventListener(PINNED_GOALS_EVENT, readLocal);
+    window.addEventListener("storage", readLocal);
+
+    const stop = () => {
+      active = false;
+      window.removeEventListener(PINNED_GOALS_EVENT, readLocal);
+      window.removeEventListener("storage", readLocal);
+    };
+
+    if (!canSync) return stop;
 
     void readServerGoals().then((server) => {
       if (!active || !server) return;
-      const merged = mergePinnedGoals(local, server);
+      // Merge against what is in storage NOW, not against the snapshot taken
+      // when this effect started — a pin landing while the server round trip
+      // was in flight would otherwise be erased by its own reply.
+      const merged = mergePinnedGoals(loadPinnedGoals(rsn), server);
       replacePinnedGoalsLocally(rsn, merged);
       setGoals(merged);
       const serverKeys = new Set(server.map((goal) => goal.key));
@@ -85,7 +113,7 @@ export function PinnedGoalsPanel({
         if (!serverKeys.has(goal.key)) void saveServerGoal(goal);
       }
     });
-    return () => { active = false; };
+    return stop;
   }, [canSync, rsn]);
 
   useEffect(() => {

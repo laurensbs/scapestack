@@ -8,6 +8,7 @@ import { disconnectConnectedAccount, hydrateConnectedAccount } from "@/lib/accou
 import { ACCOUNT_EVENT, getActiveAccount, loadAccountStore, removeAccount, setActiveAccount, type ScapestackAccount } from "@/lib/account-storage";
 import { loadAccountSnapshot } from "@/lib/account-context";
 import { contextualNavHref } from "@/lib/nav-context";
+import { playerPath } from "@/lib/player-route";
 import { clearSavedRsn, loadSavedRsn, saveSavedRsn, SAVED_BANK_EVENT } from "@/lib/saved-bank";
 import { getPrimaryNavTools, getTool, type Tool } from "@/lib/tools";
 import { cn } from "@/lib/utils";
@@ -145,6 +146,7 @@ export function Header() {
               </Link>
             );
           })}
+          <MyPageLink rsn={activeRsn} />
           <AccountSwitcher activeRsn={activeRsn} onActiveRsnChange={setActiveRsn} />
           <span
             className="mx-2 h-5 w-px bg-[var(--color-border)]"
@@ -181,6 +183,7 @@ export function Header() {
               <div className="mt-2">
                 <AccountSwitcher activeRsn={activeRsn} onActiveRsnChange={setActiveRsn} compact />
               </div>
+              <MyPageLink rsn={activeRsn} compact onNavigate={() => setMobileOpen(false)} />
               <p className="mt-2 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
                 Saved once. Used for the next trip.
               </p>
@@ -212,6 +215,47 @@ export function Header() {
         </div>
       )}
     </header>
+  );
+}
+
+/**
+ * The way back to your own page.
+ *
+ * A player who typed their name yesterday has it in localStorage today, and
+ * the chrome carried no link at all to the page it built for them — the only
+ * route back was to retype the name into the hero form. Every other nav
+ * destination is a tool; this is the account.
+ *
+ * Renders nothing without a saved name, because "My page" pointing at a page
+ * for nobody is worse than an absence.
+ */
+function MyPageLink({
+  rsn,
+  compact = false,
+  onNavigate
+}: {
+  rsn: string;
+  compact?: boolean;
+  onNavigate?: () => void;
+}) {
+  const clean = rsn.trim();
+  if (!clean) return null;
+  return (
+    <Link
+      href={playerPath(clean)}
+      onClick={onNavigate}
+      data-my-page-link="true"
+      aria-label={`Open my page: ${clean}`}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-none font-medium text-[var(--color-text-dim)] hover:bg-[var(--color-parchment)]/70 hover:text-[var(--color-text)]",
+        compact
+          ? "mt-2 min-h-11 w-full px-3 py-2 text-[13px]"
+          : "px-2.5 py-1.5 text-[12.5px]"
+      )}
+    >
+      <UserRound className="size-3.5" />
+      My page
+    </Link>
   );
 }
 

@@ -57,7 +57,14 @@ describe("player-facing copy avoids dashboard language", () => {
 
   it("keeps the replacement copy concrete and OSRS-native", () => {
     expect(source).toContain("Add bank once");
-    expect(source).toContain("The answer opens on that player page.");
+    // Each entry point now states the question it answers instead of the one
+    // heading all three used to share. "Bank setup / Add bank once / The
+    // answer opens on that player page" was rendered byte-identically by
+    // "Setup", "Boss" and "Task" — three labels, one form, no bosses on the
+    // page about bosses.
+    expect(bankPageSource).toContain("Can I kill this?");
+    expect(bankPageSource).toContain("Is this task worth it?");
+    expect(bankPageSource).toContain("What can this bank finish?");
     expect(bankPageSource).not.toContain("ScapestackReadinessRail");
     expect(source).toContain("Paste check");
     expect(source).toContain("Pick a boss");

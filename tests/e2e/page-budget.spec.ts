@@ -323,6 +323,17 @@ test.describe("the /p/[rsn] page budget", () => {
     await choice.click();
     await expect(page.locator("[data-goal-bar]")).toHaveAttribute("data-goal-bar", "pinned");
 
+    // The pin has to LAND, without a reload. The goals panel read storage once
+    // on mount and never listened for PINNED_GOALS_EVENT, so pinning left the
+    // roster below reading "Nothing pinned" while localStorage already held
+    // the goal — and the product's only Remove control was a page load behind
+    // the truth. Pinning is the moment the whole goal system exists for.
+    const pinnedName = (await page.locator("[data-goal-bar] summary").innerText()).trim();
+    await expect(page.locator("[data-pinned-goals]")).toContainText(
+      pinnedName.split("\n")[1] ?? pinnedName,
+      { timeout: 5_000 }
+    );
+
     const audit = await auditPage(page, { navigate: false });
     const budget = audit.viewport.width < 700 ? 2800 : 2200;
     expect(audit.height, `pinned page is ${audit.height}px`).toBeLessThanOrEqual(budget);

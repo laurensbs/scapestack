@@ -3,10 +3,56 @@
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { BossRoster } from "@/components/boss-roster";
+import { GoalRoster } from "@/components/goal-roster";
 import { Intake } from "@/components/intake";
+import { SlayerMasterReference } from "@/components/slayer-master-reference";
 import { getActiveAccount } from "@/lib/account-storage";
 import { playerToolSectionPath, type PlayerToolSection } from "@/lib/player-tool-route";
 import { loadSavedRsn } from "@/lib/saved-bank";
+
+/**
+ * What each entry point is actually about.
+ *
+ * "Boss", "Task" and "Setup" in the nav all landed here, and `section` was
+ * used only to decide where to route AFTER a paste — so the three labels
+ * rendered byte-identical copy: "Bank setup / Add bank once". A visitor who
+ * clicked Boss got a paste field and no bosses.
+ *
+ * Each section now says what it answers and shows the roster that answers it.
+ * The roster components already existed and were written for exactly this
+ * ("The always-visible boss roster on /dps"); they were orphaned when the
+ * tool pages became redirects, and have rendered on no page since.
+ */
+const SECTION_COPY: Record<PlayerToolSection, { eyebrow: string; title: string; blurb: string }> = {
+  bosses: {
+    eyebrow: "Bosses",
+    title: "Can I kill this?",
+    blurb: "Every boss with what the game requires to get in. Add your bank and the requirements become a verdict about your account."
+  },
+  task: {
+    eyebrow: "Slayer",
+    title: "Is this task worth it?",
+    blurb: "Every master and what they hand out. Add your bank and Scapestack answers for the task you actually have."
+  },
+  sets: {
+    eyebrow: "Sets",
+    title: "What can this bank finish?",
+    blurb: "The gear sets worth completing and what each one unlocks. Add your bank and the missing pieces get named."
+  },
+  money: {
+    eyebrow: "Money",
+    title: "What pays for my account?",
+    blurb: "Add your bank and your name, and the routes get ranked by what you can actually run."
+  }
+};
+
+function SectionRoster({ section }: { section: PlayerToolSection }) {
+  if (section === "bosses") return <BossRoster />;
+  if (section === "task") return <SlayerMasterReference />;
+  if (section === "sets") return <GoalRoster />;
+  return null;
+}
 
 export function BankIntakeOnly({ section }: { section: PlayerToolSection }) {
   const router = useRouter();
@@ -28,16 +74,18 @@ export function BankIntakeOnly({ section }: { section: PlayerToolSection }) {
     startTransition(() => router.push(playerToolSectionPath(cleanRsn, section)));
   };
 
+  const copy = SECTION_COPY[section];
+
   return (
-    <main className="scape-page max-w-3xl">
+    <main className="scape-page max-w-3xl" data-bank-section={section}>
       <section aria-labelledby="bank-intake-title" className="scape-dialog mx-auto overflow-hidden">
         <div className="border-b border-[var(--color-border)] px-5 py-4 sm:px-6">
-          <p className="eyebrow">Bank setup</p>
+          <p className="eyebrow">{copy.eyebrow}</p>
           <h1 id="bank-intake-title" className="mt-1 text-[28px] font-semibold leading-none text-[var(--color-text)] sm:text-[34px]">
-            Add bank once
+            {copy.title}
           </h1>
           <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-[var(--color-text-dim)]">
-            Add your name and RuneLite bank export. The answer opens on that player page.
+            {copy.blurb}
           </p>
         </div>
         <div className="p-5 sm:p-6">
@@ -58,6 +106,13 @@ export function BankIntakeOnly({ section }: { section: PlayerToolSection }) {
           </Link>
         </div>
       </section>
+
+      {/* The content the label promised, before the paste rather than after
+          it. A page about bosses with no bosses on it is the "dashboardy and
+          empty" complaint in its purest form. */}
+      <div className="mt-8" data-section-roster={section}>
+        <SectionRoster section={section} />
+      </div>
     </main>
   );
 }
