@@ -68,6 +68,16 @@ and nothing described in prose ever has. So: `/p/[rsn]` holds **three sections**
 and a new one may only land in a commit that removes one. See
 `docs/SCAPESTACK-REBUILD-2026-08-02.md`.
 
+**A schema test that reads SQL as text has verified nothing.** Item 1 shipped
+`CREATE UNIQUE INDEX … (taken_at::date)`. A timestamptz cast to date is STABLE,
+not IMMUTABLE, and Postgres rejects it in an index expression. `ensureSyncSchema`
+applies statements in order and caches the promise, so that one line stopped
+every statement after it from ever running — `weekly_progress`, `milestone`,
+every backfill — and made each later call reject from the cache. 1,747 tests were
+green over it, because every schema test in the repo asserted on the SQL string.
+`npm run db:verify` applies all of it to a real database; it exits 2, not 0, when
+`DATABASE_URL` is missing. Run it in any commit that touches `sync-schema.ts`.
+
 **The gate must open the page.** `ci:check` typechecks, unit-tests, smokes,
 audits and builds — 273 test files, none of which render anything. Playwright
 was installed and configured and `npm run e2e` was simply never added to the
