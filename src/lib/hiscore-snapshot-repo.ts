@@ -87,7 +87,7 @@ export async function recordHiscoreSnapshot(input: {
     await client().query(`
       INSERT INTO hiscore_snapshot (account_id, skills, bosses, source)
       VALUES ($1::uuid, $2::jsonb, $3::jsonb, 'cron')
-      ON CONFLICT (account_id, (taken_at::date)) WHERE source = 'cron'
+      ON CONFLICT (account_id, ((taken_at AT TIME ZONE 'UTC')::date)) WHERE source = 'cron'
       DO UPDATE SET skills = EXCLUDED.skills, bosses = EXCLUDED.bosses, taken_at = NOW()
     `, [input.accountId, JSON.stringify(input.skills), JSON.stringify(input.bosses)]);
     return;
@@ -197,21 +197,39 @@ export function hiscoreDelta(
   };
 }
 
-/** Accounts the daily refresh should read, oldest-seen first. */
+/**
+ * Accounts the daily refresh should read, longest-unattempted first.
+ *
+ * Ordered by the ATTEMPT, not by the last successful snapshot. A name that is
+ * not on the hiscores never produces a snapshot, so under a success-ordered
+ * queue it stays at the head forever and takes a slot in every batch — and
+ * once there are more such names than the batch holds, no ranked player is ever
+ * refreshed again. The queue has to drain, and only the attempt drains it.
+ */
 export async function accountsDueForRefresh(limit: number): Promise<Array<{ accountId: string; rsn: string }>> {
   await ensureSyncSchema();
   const rows = await client().query<{ account_id: string; rsn: string }>(`
     SELECT i.account_id, i.rsn
     FROM account_identity i
-    LEFT JOIN LATERAL (
-      SELECT taken_at FROM hiscore_snapshot h
-      WHERE h.account_id = i.account_id AND h.source = 'cron'
-      ORDER BY taken_at DESC LIMIT 1
-    ) last ON TRUE
     WHERE i.deletion_requested_at IS NULL
-      AND (last.taken_at IS NULL OR last.taken_at < NOW() - INTERVAL '20 hours')
-    ORDER BY last.taken_at ASC NULLS FIRST, i.last_seen_at DESC
+      AND (i.hiscore_checked_at IS NULL OR i.hiscore_checked_at < NOW() - INTERVAL '20 hours')
+    ORDER BY i.hiscore_checked_at ASC NULLS FIRST, i.last_seen_at DESC
     LIMIT $1
   `, [limit]);
   return rows.map((row) => ({ accountId: row.account_id, rsn: row.rsn }));
+}
+
+/**
+ * Stamp the attempt, whatever came of it.
+ *
+ * Called on every outcome — snapshot written, Jagex silent, player not ranked —
+ * because this is what moves the account to the back of the queue. Recording it
+ * only on success is precisely the bug the ordering above exists to avoid.
+ */
+export async function markHiscoreChecked(accountId: string): Promise<void> {
+  await ensureSyncSchema();
+  await client().query(
+    `UPDATE account_identity SET hiscore_checked_at = NOW() WHERE account_id = $1::uuid`,
+    [accountId]
+  );
 }

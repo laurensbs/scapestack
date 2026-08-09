@@ -1,16 +1,6 @@
 import { NextResponse } from "next/server";
-import {
-  accountsDueForRefresh,
-  hiscoreDelta,
-  latestHiscoreSnapshot,
-  recordHiscoreSnapshot,
-  snapshotBossesFrom,
-  snapshotSkillsFrom
-} from "@/lib/hiscore-snapshot-repo";
-import { fetchHiscores } from "@/lib/hiscores";
-import { recordMilestones } from "@/lib/milestone-repo";
-import { milestonesFromDelta } from "@/lib/milestone-thresholds";
-import { PLANNING_SOURCE_DEADLINES_MS } from "@/lib/planning-context";
+import { accountsDueForRefresh } from "@/lib/hiscore-snapshot-repo";
+import { HISCORE_REFRESH_DEADLINE_MS, refreshAccountHiscores } from "@/lib/hiscore-refresh";
 
 /**
  * The daily hiscores refresh (SPEC §2.3 job 1).
@@ -22,16 +12,29 @@ import { PLANNING_SOURCE_DEADLINES_MS } from "@/lib/planning-context";
  *
  * Courtesy to Jagex is a hard requirement, not a nicety — the hiscores are an
  * unmetered public endpoint and the OSRS Wiki's acceptable-use guidance is the
- * house style here. Hence: a batch cap, serial requests with a jittered pause,
- * a per-request deadline, and accounts ordered oldest-read-first so a large
- * roster drains evenly across days instead of hammering in one burst.
+ * house style here. Hence: serial requests with a jittered pause, a
+ * per-request deadline, and accounts ordered longest-unattempted first so a
+ * large roster drains evenly across days instead of hammering in one burst.
  */
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 300;
 
-/** Kept under the function's wall clock with room for the final write. */
-const BATCH = 40;
+/**
+ * The batch is bounded by the clock, not by a count.
+ *
+ * A count cannot be: the work per account is a network round trip to someone
+ * else's server, so BATCH × deadline is the worst case and any count large
+ * enough to be useful is also large enough to overrun the function. The
+ * previous shape — 40 accounts, no wall-clock check — held together only
+ * because the per-request deadline was 900ms; at a realistic deadline it runs
+ * for five minutes and is killed mid-write.
+ *
+ * So: take a generous queue, and stop when the time is gone. Whatever is left
+ * is still at the head of the queue tomorrow.
+ */
+const QUEUE = 400;
+const BUDGET_MS = 240_000;
 const PAUSE_MS = 250;
 const JITTER_MS = 250;
 
@@ -58,48 +61,58 @@ function authorised(request: Request): boolean {
 export async function GET(request: Request): Promise<Response> {
   if (!authorised(request)) return unauthorized();
 
-  const due = await accountsDueForRefresh(BATCH);
+  const startedAt = Date.now();
+  const due = await accountsDueForRefresh(QUEUE);
+  let attempted = 0;
   let refreshed = 0;
   let milestones = 0;
   let unreachable = 0;
+  let notRanked = 0;
 
   for (const account of due) {
-    const hiscores = await fetchHiscores(account.rsn, {
-      signal: AbortSignal.timeout(PLANNING_SOURCE_DEADLINES_MS.hiscores)
-    }).catch(() => null);
-    // A silent Jagex is not a player who stopped playing. Skipping leaves
-    // yesterday's row as the newest, so the next run compares against a real
-    // reading instead of writing a flat day that would read as "no progress".
-    if (!hiscores) {
-      unreachable += 1;
-      continue;
-    }
+    // Leave room for one more full request plus its write before the function
+    // is killed. Stopping early is normal: the queue is ordered, so the
+    // accounts not reached today are the first ones reached tomorrow.
+    if (Date.now() - startedAt > BUDGET_MS - HISCORE_REFRESH_DEADLINE_MS) break;
 
-    const after = {
-      takenAt: new Date().toISOString(),
-      skills: snapshotSkillsFrom(hiscores.skills),
-      bosses: snapshotBossesFrom(hiscores.activities),
-      source: "cron" as const
-    };
-    const before = await latestHiscoreSnapshot(account.accountId);
-    await recordHiscoreSnapshot({
+    attempted += 1;
+    const outcome = await refreshAccountHiscores({
       accountId: account.accountId,
-      skills: after.skills,
-      bosses: after.bosses,
+      rsn: account.rsn,
       source: "cron"
     });
-    refreshed += 1;
 
-    const delta = hiscoreDelta(before, after);
-    milestones += await recordMilestones(account.accountId, milestonesFromDelta(before, after, delta));
-
-    if (PAUSE_MS > 0) {
-      await new Promise((resolve) => setTimeout(resolve, PAUSE_MS + Math.random() * JITTER_MS));
+    if (outcome.status === "refreshed") {
+      refreshed += 1;
+      milestones += outcome.milestones;
+    } else if (outcome.status === "not_ranked") {
+      // Jagex answered: this name is not on the hiscores. Counted apart from a
+      // failure because it is not one — it is a real answer about a player too
+      // low to be ranked, and folding the two together would hide an outage
+      // inside a number that looks normal.
+      notRanked += 1;
+    } else {
+      // A silent Jagex is not a player who stopped playing. No snapshot is
+      // written, so the next run compares against a real reading instead of a
+      // flat day that would read as "no progress".
+      unreachable += 1;
     }
+
+    await new Promise((resolve) => setTimeout(resolve, PAUSE_MS + Math.random() * JITTER_MS));
   }
 
   return NextResponse.json(
-    { ok: true, due: due.length, refreshed, unreachable, milestones },
+    {
+      ok: true,
+      due: due.length,
+      attempted,
+      remaining: due.length - attempted,
+      refreshed,
+      notRanked,
+      unreachable,
+      milestones,
+      elapsedMs: Date.now() - startedAt
+    },
     { headers: { "cache-control": "no-store" } }
   );
 }

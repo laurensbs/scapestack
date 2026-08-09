@@ -125,6 +125,42 @@ describe("milestones are crossings, and only of real in-game things", () => {
   });
 });
 
+describe("the daily index Postgres will actually accept", () => {
+  const schema = read("src/lib/sync-schema.ts");
+
+  it("never casts a timestamptz to date inside an index expression", () => {
+    // `taken_at::date` is STABLE, not IMMUTABLE — it depends on the session
+    // TimeZone — and Postgres rejects it in an index outright. This shipped,
+    // and because ensureSyncSchema runs statements in order and caches the
+    // resulting promise, every statement after it never ran and every later
+    // call rejected from the cache. AT TIME ZONE 'UTC' is what makes it
+    // immutable, and the day boundary explicit rather than accidental.
+    const indexes = schema.match(/CREATE (?:UNIQUE )?INDEX[\s\S]*?;/g) ?? [];
+    expect(indexes.length).toBeGreaterThan(0);
+    for (const statement of indexes) {
+      const casts = statement.match(/\w+::date/g) ?? [];
+      for (const cast of casts) {
+        expect(statement, `${cast} in an index expression must go through AT TIME ZONE`)
+          .toContain("AT TIME ZONE");
+      }
+    }
+  });
+
+  it("upserts against the expression the index is actually built on", () => {
+    // ON CONFLICT infers the target by matching the expression textually. A
+    // clause that does not match raises "no unique or exclusion constraint
+    // matching" at WRITE time — the schema applies fine and the cron dies on
+    // its first duplicate day.
+    const index = /CREATE UNIQUE INDEX IF NOT EXISTS hiscore_snapshot_daily_idx\s*\n\s*ON hiscore_snapshot\((.*?)\) WHERE source = 'cron';/
+      .exec(schema)?.[1];
+    expect(index, "the daily index is missing").toBeTruthy();
+    const repo = read("src/lib/hiscore-snapshot-repo.ts");
+    const conflict = /ON CONFLICT \((.*?)\) WHERE source = 'cron'/.exec(repo)?.[1];
+    expect(conflict, "the daily upsert is missing").toBeTruthy();
+    expect(conflict).toBe(index);
+  });
+});
+
 describe("the cron is a good citizen and a closed door", () => {
   const route = read("src/app/api/cron/hiscores/route.ts");
 
@@ -137,16 +173,36 @@ describe("the cron is a good citizen and a closed door", () => {
     expect(route).toContain("Bearer ${secret}");
   });
 
-  it("paces itself: batch cap, per-request deadline, jittered pause", () => {
-    expect(route).toMatch(/const BATCH = \d+;/);
-    expect(route).toContain("AbortSignal.timeout(PLANNING_SOURCE_DEADLINES_MS.hiscores)");
+  it("paces itself: a bounded queue, a wall clock, and a jittered pause", () => {
+    expect(route).toMatch(/const QUEUE = \d+;/);
+    expect(route).toMatch(/const BUDGET_MS = [\d_]+;/);
     expect(route).toContain("PAUSE_MS + Math.random() * JITTER_MS");
+    // Serial. Fanning the queue out in parallel is the one change here that
+    // would turn a courteous job into a burst against an unmetered public
+    // endpoint, and it is easy to make by accident.
+    expect(route).not.toMatch(/Promise\.all|Promise\.allSettled/);
   });
 
   it("skips a silent Jagex instead of writing a flat day", () => {
     // Writing yesterday's numbers again would make the next delta read as
-    // "no progress" for a player who may well have played.
-    expect(route).toMatch(/if \(!hiscores\) \{[\s\S]{0,120}continue;/);
+    // "no progress" for a player who may well have played. The rule lives in
+    // hiscore-refresh now, because the on-demand path has to obey it too.
+    const refresh = read("src/lib/hiscore-refresh.ts");
+    expect(refresh).toMatch(/if \(!reachable\) return \{ status: "unreachable" \};/);
+    expect(refresh.indexOf('if (!reachable) return { status: "unreachable" };'))
+      .toBeLessThan(refresh.indexOf("recordHiscoreSnapshot({"));
+  });
+
+  it("has a check that applies the schema to a database", () => {
+    // Every schema test in this repo asserts on the SQL as TEXT, and text
+    // cannot tell you whether Postgres will accept it. It did not: the daily
+    // index was rejected on every apply, which stopped every statement after
+    // it from running, and 1,797 green tests said nothing.
+    const pkg = JSON.parse(read("package.json")) as { scripts: Record<string, string> };
+    expect(pkg.scripts["db:verify"]).toBeTruthy();
+    const script = read("scripts/verify-schema-applies.mts");
+    // And it must not pass when it verified nothing.
+    expect(script).toContain("process.exit(2)");
   });
 
   it("is scheduled once a day in vercel.json", () => {

@@ -57,7 +57,9 @@ Three things I want you to say yes to before I touch the DB:
 ### 2. Hiscores proxy + daily cron + deltas
 
 - Proxy exists. Add `src/app/api/cron/hiscores/route.ts`, guarded by
-  `CRON_SECRET`, jittered, batched.
+  `CRON_SECRET`, jittered, bounded by a wall clock rather than a fixed count —
+  the work per account is a round trip to someone else's server, so any count
+  large enough to be useful is also large enough to overrun the function.
 - **`vercel.json` does not exist** — needs creating with a `crons` entry. Vercel
   Hobby allows one cron per day, which is exactly what §2.3 job 1 needs; the
   weekly job (item 5) rides the same daily tick and no-ops except on Sunday.
@@ -149,10 +151,35 @@ this file ticked as I go.
       guards sabotage-proved: allowing a `login` milestone kind, narrowing the
       goal CHECK so existing rows break, removing the baseline backfill, and
       dropping the milestone cascade each turn one red.
-- [x] 2. Hiscores cron + deltas — done. `ci:check` green, 1,760 unit tests.
-      **`CRON_SECRET` must be set in the Vercel project or the route stays
-      shut** (it fails closed on purpose). Four guards sabotage-proved; a
-      fifth was found vacuous and rewritten.
+- [x] 2. Hiscores cron + deltas — done. `ci:check` green, 1,804 unit tests,
+      `db:verify` 129/129. **`CRON_SECRET` must be set in the Vercel project
+      or the route stays shut** (it fails closed on purpose). Fourteen guards
+      sabotage-proved.
+
+      Three defects in the first pass, all fixed: the cron read Jagex on
+      `PLANNING_SOURCE_DEADLINES_MS.hiscores`, which is a 900 ms *page* budget
+      and would have punched holes in the time series; the queue was ordered by
+      last **success**, so a name not on the hiscores never succeeds, sorts
+      first forever and starves every ranked player behind it; and a fixed
+      batch of 40 with no wall-clock check overran `maxDuration` at any
+      realistic deadline. The queue is now ordered by `hiscore_checked_at`
+      (attempt, not success) and bounded by the clock.
+
+      Registration-on-visit was added because `account_identity` was only ever
+      written by a plugin sync or a claim — an RSN-only player had no row, so
+      the cron had nothing to iterate for exactly the population
+      `hiscore_snapshot` was split out to serve.
+
+      **Item 1's schema was broken on the database and this is what found
+      it.** The daily unique index used `taken_at::date`; a timestamptz cast to
+      date is STABLE, not IMMUTABLE, and Postgres rejects it in an index
+      expression. `ensureSyncSchema` applies statements in order and caches the
+      promise, so that one line meant `weekly_progress`, `milestone`,
+      `account_visit` and every backfill never ran, and every later call
+      rejected from the cache. 1,747 green tests missed it because all of them
+      assert on the schema as *text*, and text cannot tell you what Postgres
+      will accept. `npm run db:verify` runs it against a real database and
+      exits 2 rather than pass when `DATABASE_URL` is absent.
 - [ ] 3. Goal picker: baseline, types, primary, onboarding step 1
 - [ ] 4. "Serves your goal" label
 - [ ] 5. Weekly recap + Discord (+ email behind a flag)

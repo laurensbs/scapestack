@@ -33,6 +33,7 @@
     "plugin:review-handoff-command": "tsx scripts/print-plugin-review-packet.ts --handoff-command",
     "build:sprites": "node scripts/build-skill-sprites.mjs && node scripts/build-boss-sprites.mjs",
     "db:init": "node scripts/db-init.mjs",
+    "db:verify": "tsx scripts/verify-schema-applies.mts",
     "wiki:sync": "node scripts/wiki-sync.mjs && node scripts/wiki-project.mjs",
     "wiki:check": "node scripts/wiki-sync.mjs --check",
     "wiki:reconcile": "tsx scripts/wiki-reconcile.mts"

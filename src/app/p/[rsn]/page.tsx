@@ -8,6 +8,7 @@ import { PlayerHubShell } from "@/components/player-hub-shell";
 import { PinnedGoalsPanel } from "@/components/pinned-goals-panel";
 import { PlayerPlanPanel } from "@/components/player-plan-panel";
 import { PlayerRoutesPanel } from "@/components/player-routes-panel";
+import { RegisterVisit } from "@/components/register-visit";
 import {
   plannerAccountTypeLabel,
   scapestackAccountTypeToPlannerType
@@ -205,7 +206,12 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   );
 
   return (
-    <PlayerHubShell
+    <>
+      {/* Renders nothing. Puts this player into the daily refresh roster and
+          into the D1/D7 cohort — the cron iterates account_identity, which
+          until now no RSN-only player was ever in. */}
+      <RegisterVisit rsn={displayName} />
+      <PlayerHubShell
       header={header}
       lastTrip={
         <>
@@ -228,6 +234,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
         collectionRoute={collectionRoute}
         unlockRoutes={unlockRoutes}
       />}
-    />
+      />
+    </>
   );
 }

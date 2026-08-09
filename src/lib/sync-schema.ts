@@ -80,6 +80,13 @@ ALTER TABLE account_identity ADD COLUMN IF NOT EXISTS notify_discord_webhook_url
 ALTER TABLE account_identity ADD COLUMN IF NOT EXISTS notify_email TEXT;
 ALTER TABLE account_identity ADD COLUMN IF NOT EXISTS notify_email_verified_at TIMESTAMPTZ;
 ALTER TABLE account_identity ADD COLUMN IF NOT EXISTS notify_weekly_recap BOOLEAN NOT NULL DEFAULT TRUE;
+-- When the daily refresh last ATTEMPTED this account, which is not the same as
+-- when it last succeeded. A name that is not on the hiscores never produces a
+-- snapshot, so ordering the queue by last success sorts it first forever and it
+-- occupies a slot in every batch until the end of time. On a roster with more
+-- unranked names than the batch size, no ranked player is ever refreshed again.
+-- Ordering by the attempt is what makes the queue drain.
+ALTER TABLE account_identity ADD COLUMN IF NOT EXISTS hiscore_checked_at TIMESTAMPTZ;
 CREATE UNIQUE INDEX IF NOT EXISTS account_identity_rsn_idx ON account_identity(rsn);
 
 INSERT INTO account_identity (rsn, display_name, created_at, last_seen_at)
@@ -345,8 +352,19 @@ CREATE INDEX IF NOT EXISTS hiscore_snapshot_account_idx
   ON hiscore_snapshot(account_id, taken_at DESC);
 -- One row per account per day from the cron: a second daily row would make
 -- every delta read as zero.
+--
+-- AT TIME ZONE 'UTC' is load-bearing, not decoration. taken_at::date on a
+-- timestamptz is STABLE, not IMMUTABLE — it depends on the session TimeZone —
+-- and Postgres refuses it in an index expression outright. The statement
+-- errored on every schema apply, and because ensureSyncSchema runs the
+-- statements in order and caches the resulting promise, EVERY statement after
+-- this one never ran and every later call rejected from the cache. The whole
+-- of Phase 1's schema sat behind it.
+--
+-- Nothing in 1,797 unit tests noticed, because none of them apply the schema
+-- to a database. npm run db:verify is the check that can produce a negative.
 CREATE UNIQUE INDEX IF NOT EXISTS hiscore_snapshot_daily_idx
-  ON hiscore_snapshot(account_id, (taken_at::date)) WHERE source = 'cron';
+  ON hiscore_snapshot(account_id, ((taken_at AT TIME ZONE 'UTC')::date)) WHERE source = 'cron';
 
 -- SPEC §2.2 weekly_progress. Materialised by the Sunday recap job; also the
 -- delivery ledger, so "recap delivered" and "recap clicked" are server-side
@@ -388,6 +406,34 @@ CREATE TABLE IF NOT EXISTS milestone (
 );
 CREATE INDEX IF NOT EXISTS milestone_account_idx ON milestone(account_id, achieved_at DESC);
 
+-- §7 D1/D7 return. One row per account per day the player actually opened a
+-- page, which is the only shape that can answer "did they come back on day 7";
+-- last_seen_at holds a single timestamp and cannot.
+--
+-- NOT account_retention, despite the name. That table is about how long DATA is
+-- kept. This is about whether a PLAYER returned, and the two would have been
+-- read into each other for years.
+--
+-- A date and an account id, nothing else: no path, no referrer, no address. It
+-- CASCADEs from the identity, so delete-my-data takes it without being taught.
+CREATE TABLE IF NOT EXISTS account_visit (
+  account_id UUID NOT NULL REFERENCES account_identity(account_id) ON DELETE CASCADE,
+  visit_date DATE NOT NULL,
+  PRIMARY KEY (account_id, visit_date)
+);
+CREATE INDEX IF NOT EXISTS account_visit_date_idx ON account_visit(visit_date DESC);
+
+-- Hashed counters for the limits that have no account to hang off yet: the
+-- on-demand refresh (per RSN) and first registration (per source address).
+-- Only digests are stored, never the address or the name, and rows outside the
+-- window are deleted on write so this needs no scheduled job.
+CREATE TABLE IF NOT EXISTS rate_attempt (
+  scope TEXT NOT NULL,
+  key_hash TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS rate_attempt_lookup_idx ON rate_attempt(scope, key_hash, created_at DESC);
+
 -- A migration that reads a new column backfills it in the same commit
 -- (CLAUDE.md). Every goal pinned before today has no baseline, and a goal with
 -- no baseline reads as progress-from-zero: a level-92 player who pinned 99
@@ -427,6 +473,30 @@ WHERE g.account_id = first.account_id
     SELECT 1 FROM account_pinned_goal p
     WHERE p.account_id = g.account_id AND p.is_primary
   );
+
+-- Backfill in the same commit that adds the column (CLAUDE.md). Left NULL,
+-- every existing account reads as never-attempted and the whole roster becomes
+-- due at once — the first cron run after deploy would then hand Jagex a burst
+-- in one batch instead of the even drain the ordering is there to produce.
+-- Seeded from the newest cron snapshot, which is the last attempt we can prove.
+UPDATE account_identity i
+SET hiscore_checked_at = s.taken_at
+FROM (
+  SELECT DISTINCT ON (account_id) account_id, taken_at
+  FROM hiscore_snapshot
+  WHERE source = 'cron'
+  ORDER BY account_id, taken_at DESC
+) s
+WHERE i.account_id = s.account_id AND i.hiscore_checked_at IS NULL;
+
+-- Same for the visit ledger: an account that has synced or claimed has been
+-- seen, and without a day-zero row every one of them lands in the D1/D7
+-- denominator as a cohort member who never visited at all. That reports a
+-- return rate lower than the truth, which is the direction a metric is least
+-- likely to be questioned in.
+INSERT INTO account_visit (account_id, visit_date)
+SELECT account_id, last_seen_at::date FROM account_identity
+ON CONFLICT DO NOTHING;
 `;
 
 export function syncSchemaStatements(): string[] {
