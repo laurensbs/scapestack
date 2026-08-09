@@ -336,3 +336,58 @@ A page passes only if ALL are true (score each screenshot):
 - **Gold `#f7b538`:** the only hard value recoverable from osrs.design (its site theme-color); everything else stone/parchment is an approximation the agent must reconcile against real screenshots.
 - **Red `#ff0000` / green / cyan / yellow:** OSRS Wiki Chat Interface documents `<col=ff0000>` directly; green (level-up/quest-complete), cyan (info) and yellow (menu-title/hover) follow the game's fully-saturated chat convention. Use them only as status semantics, sparingly.
 - **Copy voice:** modeled on OSRS examine text, which the wiki describes as deliberately injecting "humour or subjective observations" — dry, British, understated. The site's own best lines ("Stop bankstanding.", "Can I kill this?") already nail it; the rebrand keeps them and drags the SaaS jargon ("Setup", "Sync", "Delete my data") into the same voice.
+---
+
+## Section 10 — Phase A outcome and verified amendments (appended 2026-08-09)
+
+### 10.1 Chosen direction
+
+**C — The Field Ledger.** Signature element: **the journal column** — a
+recessed panel with a studded title bar and a black tally footer, at the OSRS
+side panel's real proportions, with the boss standing behind it at full height.
+
+Chosen over A (The Almanac) and B (The Cairn) for one reason that survives
+building: at 390px an OSRS panel is 225px wide, so the signature element gets
+*stronger* on mobile. A's bound spine only exists in two columns and collapses
+into a cream blog post; B's gilt slab has to be re-thought. C is also the only
+one whose layout is a number rather than a judgement — one row template and one
+detail panel absorb all 76 bosses.
+
+Directions were grounded by sampling three real interface PNGs pixel-by-pixel,
+not by eye: `Bank_interface.png` (panel `#494034`, frame `#252522`, title
+`#ff981f`), `Quest_tab.png` (frame `#3e3529`, well `#332b21`, quest names
+coloured by state), `Skills_tab.png` (3-column grid, black total bar), plus
+`osrs.design/foundations`. **Section 1's tokens survived that comparison
+unchanged** — `--stone-700 #3a2f22` against the game's `#3e3529`, `--stone-600
+#4a3d2a` against `#494034`.
+
+### 10.2 Amendment to Section 2 — Pixelify Sans is not a numeral face for ratios
+
+Measured, not asserted: Pixelify Sans renders `5` as a hard S and `7` as a bare
+stem. At **every** size §2 names — 13, 16, 20, 24 and 32px — `1/508` reads as
+`1/808` and `68/70` reads as `68/10`.
+
+§2's own wording already scopes it correctly: "KC, levels, gp, XP, timers" are
+standalone labelled quantities. Ratios, drop rates and fractions are not in
+that list and must not be in this face. Drop rates are the whole `/dps`
+proposition.
+
+**Rule:** `.numeral` (Pixelify Sans) for a single labelled quantity. Fraunces
+with `font-variant-numeric: tabular-nums lining-nums` for every ratio, drop
+rate, fraction and price.
+
+### 10.3 Amendment to Section 1 — `--msg-warn` has a size floor
+
+`#ff0000` measures **3.95:1** on `--stone-800` and **4.43:1** on `--stone-900`.
+Both fail WCAG AA for normal-size text.
+
+**Rule:** red status text renders at 16px/600 minimum, where AA-large (3:1)
+applies, or on a chip that raises the contrast. It is never used for body copy.
+This is a floor, not a preference.
+
+### 10.4 Note on Cinzel
+
+Cinzel has no lowercase — it renders lowercase as small capitals. §2's "keep
+body sentence-case for readability" therefore only ever applied to Fraunces,
+and "Stop bankstanding." will always read as caps. That is the intended
+Roman-inscription effect, not a bug.

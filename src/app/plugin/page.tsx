@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DeleteAccountDataButton } from "@/components/delete-account-data-button";
 import { PluginSyncChecker } from "@/components/plugin-sync-checker";
+import { RecapNumber, ScrollRecap } from "@/components/rebrand/scroll-recap";
 import { WeeklyRecapSettings } from "@/components/weekly-recap-settings";
 import { PLUGIN_VERIFY_SYNC_HASH } from "@/lib/plugin-bank-bridge";
 
@@ -147,6 +148,22 @@ export default function PluginPage() {
             <dt className="text-[13px] font-bold text-[var(--color-text)]">The Sunday recap</dt>
             <dd className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
               Once a week Scapestack can post what you banked — XP, levels, KC, log slots, and how far your goal moved — to a Discord channel you choose. One message, Sunday evening. A week with nothing in it is not sent.
+              {/* REBRAND.md 6.6: show the recap rather than describe it. The
+                  numbers are a worked example, not this account's — a page
+                  that invented a real player's week would be the one thing
+                  §9.3 exists to prevent. */}
+              <div className="mt-3 max-w-sm">
+                <ScrollRecap
+                  rsn="lauky"
+                  lines={[
+                    { label: "XP", value: <RecapNumber>+1.2M</RecapNumber> },
+                    { label: "Slayer", value: <RecapNumber>93</RecapNumber> },
+                    { label: "Zulrah", value: <RecapNumber>+12</RecapNumber> },
+                    { label: "Collection log", value: <RecapNumber>+3</RecapNumber> }
+                  ]}
+                  goal={{ target: "99 Slayer", percent: 82, remainder: "1.2M XP" }}
+                />
+              </div>
               <WeeklyRecapSettings />
             </dd>
           </div>
