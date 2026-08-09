@@ -59,7 +59,7 @@ function GoalChoiceTile({ choice, onPin }: { choice: PinnedGoalChoice; onPin: (c
           // 32px, not 52: chisel serves these at 16-30px native, and 52 was a
           // 3.25x non-integer upscale — the "empty box" look. 32 is an exact
           // 2x for the 16px sources and near-native for the rest.
-          <ItemSprite id={choice.spriteItemId} alt="" size={32} className="pixelated" style={{ filter: "none" }} />
+          <ItemSprite id={choice.spriteItemId} alt="" size={32} className="pixelated" style={{ filter: undefined }} />
         ) : (
           <span aria-hidden="true" className="text-[length:var(--text-subject)] text-[var(--color-text-muted)]">?</span>
         )}

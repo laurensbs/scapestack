@@ -1543,6 +1543,34 @@ body.scapestack-clean-shot main {
   box-shadow: var(--bevel-sunken);
 }
 
+/* Item sprites, same disease as the homepage boss and the same cure.
+   Measured on production 2026-08-08: ELEVEN of fifteen item sprites on
+   /p/lauky measured under 3:1 against their #151009 slot, one of them at
+   1.01:1 — the same luminance as the box it sat in. The page was full of dark
+   rectangles where the game's art should be, which is the dashboard feeling
+   in its most literal form.
+
+   Two things were tried and rejected against real pixels:
+   - Lightening the slot toward the game's own brown made every option WORSE
+     (median 1.68 -> 1.31), because a mid-grey background sits closer to a
+     multi-coloured sprite's own mid-tones.
+   - Mean contrast is the wrong metric at this size; a bont sprite averages to
+     mid-grey whatever it sits on. The honest measure is the share of the
+     sprite's pixels that clear 3:1, the same one used for the boss.
+
+   By that measure: 18% readable now, 29% with rim + lift, and the floor moves
+   from 0% (one sprite completely invisible) to 12%. Lift alone reaches 30% but
+   leaves that floor at 0% — the rim is what guarantees the worst case, the
+   lift is what raises the average, and both are needed. 1.4 rather than 1.7:
+   at 1.7 one sprite blows out 10.9% of its pixels, at 1.4 the worst is 2.1%. */
+.journal-sprite-slot img,
+[data-goal-choice] img {
+  filter:
+    drop-shadow(0 0 1px rgba(201, 169, 97, 1))
+    drop-shadow(0 0 2px rgba(201, 169, 97, 0.8))
+    brightness(1.4) contrast(1.08);
+}
+
 /* A section name in the game's own display face. Weight 400 (the face is the
    emphasis), no tracking, no text-transform — Quill Caps carries its own
    capitals. Only at --text-rs-display: the grid breaks at any other size. */

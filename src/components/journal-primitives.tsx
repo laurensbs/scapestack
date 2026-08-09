@@ -25,7 +25,7 @@ export function JournalSpriteSlot({
 export function JournalItemSprite({ id, alt = "" }: { id: number; alt?: string }) {
   return (
     <JournalSpriteSlot>
-      <ItemSprite id={id} alt={alt} size={32} className="pixelated" style={{ filter: "none" }} />
+      <ItemSprite id={id} alt={alt} size={32} className="pixelated" style={{ filter: undefined }} />
     </JournalSpriteSlot>
   );
 }

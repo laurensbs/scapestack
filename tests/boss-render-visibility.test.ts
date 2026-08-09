@@ -42,6 +42,30 @@ describe("every homepage boss render is accounted for", () => {
     expect(plain, "the lift must not be global").not.toContain("brightness(");
   });
 
+  it("treats item sprites too — they had the same disease", () => {
+    // Eleven of fifteen item sprites on /p/lauky measured under 3:1 against
+    // their slot, one at 1.01:1 — the same luminance as the box it sat in.
+    // The boss treatment shipped for the homepage only, so the player page
+    // stayed full of dark rectangles: the dashboard feeling in its most
+    // literal form.
+    const css = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
+    const rule = css.slice(css.indexOf(".journal-sprite-slot img,"));
+    expect(rule.slice(0, 300)).toContain("drop-shadow");
+    expect(rule.slice(0, 300)).toContain("brightness(1.4)");
+    // 1.4, not 1.7: at 1.7 one sprite blew out 10.9% of its pixels.
+    expect(rule.slice(0, 300)).not.toContain("brightness(1.7)");
+
+    // An inline style beats any rule in this file. Both sprite call sites
+    // passed filter:"none" inline, which is why the treatment could not reach
+    // them until the overrides came out.
+    for (const file of ["src/components/journal-primitives.tsx", "src/components/pinned-goals-panel.tsx"]) {
+      expect(
+        readFileSync(join(process.cwd(), file), "utf8"),
+        `${file} pins filter inline and wins over the stylesheet`
+      ).not.toContain('filter: "none"');
+    }
+  });
+
   it("keeps the plate dark, because lightening it measured backwards", () => {
     const css = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
     const plate = css.slice(css.indexOf(".boss-plate {"), css.indexOf(".boss-plate {") + 400);

@@ -54,7 +54,9 @@ export async function generateMetadata({ params }: Props) {
   const hi = await fetchHiscores(decoded, {
     signal: AbortSignal.timeout(PLANNING_SOURCE_DEADLINES_MS.hiscores)
   });
-  if (!hi) return { title: `${decoded} · Scapestack` };
+  // Bare name: the layout template appends "· Scapestack". With the suffix
+  // here the retry state's tab read "lauky · Scapestack · Scapestack".
+  if (!hi) return { title: decoded };
   const combat = computeCombatLevel(hi.skills);
   const total = computeTotalLevel(hi.skills);
   return {
