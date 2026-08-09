@@ -57,6 +57,8 @@ export interface SpecMetrics {
   recap: {
     weekStart: string;
     built: number;
+    /** Weeks a recap was owed for. Quiet weeks are built but never sent. */
+    sendable: number;
     sent: number;
     clicked: number;
     deliveryPercent: number | null;
@@ -81,9 +83,11 @@ export async function specMetrics(now: Date): Promise<SpecMetrics> {
     recap: {
       weekStart: recap.weekStart,
       built: recap.weeksBuilt,
+      sendable: recap.sendable,
       sent: recap.sent,
       clicked: recap.clicked,
-      deliveryPercent: returnRate(recap.sent, recap.weeksBuilt),
+      // Against sendable, not built. A quiet week is not a delivery failure.
+      deliveryPercent: returnRate(recap.sent, recap.sendable),
       ctrPercent: returnRate(recap.clicked, recap.sent)
     },
     retention: {

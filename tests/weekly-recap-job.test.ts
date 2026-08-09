@@ -61,12 +61,18 @@ const NOW = new Date("2026-08-09T18:00:00.000Z");
 const WEBHOOK = "https://discord.com/api/webhooks/1234567890123456789/abcdefghijklmnopqrstuvwxyz0123456789";
 const CANDIDATE = { accountId: "11111111-1111-4111-8111-111111111111", rsn: "lauky", discordWebhookUrl: WEBHOOK };
 
-function run(post: (url: string, payload: unknown) => Promise<{ status: string } & Record<string, unknown>>) {
+function run(
+  post: (url: string, payload: unknown) => Promise<{ status: string } & Record<string, unknown>>,
+  overrides: Partial<Parameters<typeof runWeeklyRecap>[0]> = {}
+) {
   return runWeeklyRecap({
     now: NOW,
     limit: 10,
-    candidates: async () => [CANDIDATE],
-    post: post as never
+    // One row for the current week; the catch-up week is empty unless a test
+    // says otherwise.
+    candidates: async (week: string) => (week === "2026-08-03" ? [CANDIDATE] : []),
+    post: post as never,
+    ...overrides
   });
 }
 
@@ -139,6 +145,61 @@ describe("the Sunday run", () => {
     const outcome = await run(post);
     expect(post).not.toHaveBeenCalled();
     expect(outcome.sent).toBe(0);
+  });
+
+  it("refuses to send a week that has not finished", async () => {
+    // The route is callable by hand, and that is the only retry path. Without
+    // this a Wednesday invocation builds Monday-to-Wednesday, posts it as
+    // "This week", stamps the row sent — and Sunday's real run then skips the
+    // account. Half a week, announced as a whole one, blocking the whole one.
+    const post = vi.fn(async () => ({ status: "sent" as const }));
+    const outcome = await runWeeklyRecap({
+      now: new Date("2026-08-05T18:00:00.000Z"), // Wednesday, mid-week
+      limit: 10,
+      // Only the week in progress is owed a recap. Last week's is already sent,
+      // so nothing legitimate is left to do on a Wednesday.
+      candidates: async (week: string) => (week === "2026-08-03" ? [CANDIDATE] : []),
+      post: post as never
+    });
+    expect(post).not.toHaveBeenCalled();
+    expect(outcome.sent).toBe(0);
+    expect(outcome.considered).toBe(0);
+  });
+
+  it("comes back for a week whose send failed", async () => {
+    // A failed post released its claim and was then never looked at again,
+    // because the next run only ever asked about ITS week. One Discord 500
+    // cost the player that recap permanently.
+    const post = vi.fn(async () => ({ status: "sent" as const }));
+    const outcome = await run(post, {
+      candidates: async (week: string) => (week === "2026-07-27" ? [CANDIDATE] : [])
+    });
+    expect(outcome.considered).toBe(1);
+    expect(claims[0]?.week).toBe("2026-07-27");
+    expect(outcome.sent).toBe(1);
+  });
+
+  it("stops on the clock and says how many it did not reach", async () => {
+    // A count cannot bound a serial loop whose unit of work is an HTTPS POST
+    // with an 8s ceiling. Being killed mid-POST is the bad case: the claim is
+    // already stamped and nothing releases it, so §7 counts a recap nobody got.
+    const post = vi.fn(async () => ({ status: "sent" as const }));
+    const many = Array.from({ length: 5 }, (_, index) => ({
+      ...CANDIDATE,
+      accountId: `1111111${index}-1111-4111-8111-111111111111`
+    }));
+    let clock = 0;
+    const outcome = await runWeeklyRecap({
+      now: NOW,
+      limit: 10,
+      budgetMs: 30_000,
+      elapsedMs: () => (clock += 9_000),
+      candidates: async (week: string) => (week === "2026-08-03" ? many : []),
+      post: post as never
+    });
+    expect(outcome.ranOutOfTime).toBe(true);
+    expect(outcome.unprocessed).toBeGreaterThan(0);
+    expect(outcome.sent + outcome.unprocessed).toBe(5);
   });
 
   it("says why it built nothing rather than reporting an empty run", async () => {

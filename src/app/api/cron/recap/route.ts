@@ -13,6 +13,15 @@ export const maxDuration = 300;
 
 const LIMIT = 500;
 
+/**
+ * The batch is bounded by the clock as well as by a count, like the hiscores
+ * job next door. The loop is serial and every candidate costs an HTTPS POST
+ * with an 8s ceiling, so 500 × 8s is 4,000 seconds against a 300 second
+ * function — and a kill mid-POST leaves a claim stamped that nothing ever
+ * releases, which reads in §7 as a delivered recap nobody received.
+ */
+const BUDGET_MS = 240_000;
+
 function authorised(request: Request): boolean {
   const secret = process.env.CRON_SECRET;
   // Fails closed, like the hiscores job: a route that posts to third-party
@@ -32,6 +41,7 @@ export async function GET(request: Request): Promise<Response> {
   const outcome = await runWeeklyRecap({
     now: new Date(),
     limit: LIMIT,
+    budgetMs: BUDGET_MS,
     candidates: defaultRecapDeps.candidates,
     post: defaultRecapDeps.post
   });

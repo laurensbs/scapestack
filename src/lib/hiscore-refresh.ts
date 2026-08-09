@@ -116,7 +116,16 @@ export async function refreshAccountHiscores(input: {
   // identical to the last one adds nothing to a time series, and a player
   // pressing Refresh between trips would otherwise write a row every ten
   // minutes for a day in which they did not play.
-  const unchanged = before !== null && identicalReading(before, after);
+  //
+  // The cron is exempt, and that exemption is the whole point. An account
+  // nobody is playing reads identically every day, so deduping the cron left a
+  // hole in the series exactly as long as the break — and the weekly recap
+  // needs a reading from just before the week to describe it. A player who
+  // took two weeks off and came back to a huge week got nothing, which is the
+  // single case §3.3 exists for. One row a day is what the index already
+  // budgets for; a flat row is not noise, it is the evidence that nothing
+  // moved.
+  const unchanged = input.source !== "cron" && before !== null && identicalReading(before, after);
   if (!unchanged) {
     await recordHiscoreSnapshot({
       accountId: input.accountId,

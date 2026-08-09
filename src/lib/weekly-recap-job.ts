@@ -33,14 +33,43 @@ export interface RecapRunOutcome {
   skippedNoData: number;
   failed: number;
   webhooksCleared: number;
+  /** True when the clock budget stopped the run before the queue was done. */
+  ranOutOfTime: boolean;
+  /** How many candidates were left. Silence here would read as "all done". */
+  unprocessed: number;
 }
+
+/** Discord's timeout in discord-webhook.ts, plus room for the write after it. */
+const DISCORD_ROUND_TRIP_MS = 10_000;
 
 export interface RecapRunDeps {
   now: Date;
   limit: number;
   candidates: (week: string, limit: number) => Promise<RecapRecipient[]>;
   post: (url: string, payload: unknown) => Promise<DiscordPostResult>;
+  /**
+   * Wall-clock budget. The loop is serial and every candidate costs an HTTPS
+   * POST with an 8s ceiling, so a count alone cannot bound it — the sibling
+   * hiscores job learned this and this one had not. Without it, a handful of
+   * webhooks pointed at a black hole eat the whole function and every player
+   * below them in the queue silently loses that week.
+   */
+  budgetMs?: number;
+  /** Injected so the budget can be exercised without waiting for real time. */
+  elapsedMs?: () => number;
 }
+
+/**
+ * How many weeks back a run will still send for.
+ *
+ * A recap that failed to deliver — a 500, a rate-limit, a timeout — used to be
+ * released and then never looked at again, because the next run only ever
+ * asked about ITS week. One week of catch-up means a transient Discord problem
+ * costs a delay rather than the message.
+ */
+const CATCH_UP_WEEKS = 1;
+
+const DAY_MS = 86_400_000;
 
 function primaryGoal(goals: readonly PinnedGoal[]): PinnedGoal | null {
   return goals.find((goal) => goal.isPrimary) ?? goals[0] ?? null;
@@ -48,21 +77,70 @@ function primaryGoal(goals: readonly PinnedGoal[]): PinnedGoal | null {
 
 const NO_DATA: readonly WeekSkipReason[] = ["no-baseline", "baseline-too-old", "closing-too-old"];
 
+/** Every week this run may still send for, newest first. */
+function weeksToSend(now: Date): string[] {
+  const weeks: string[] = [];
+  for (let back = 0; back <= CATCH_UP_WEEKS; back += 1) {
+    weeks.push(weekStart(new Date(now.getTime() - back * 7 * DAY_MS)));
+  }
+  return weeks;
+}
+
+/**
+ * Has the week being described actually finished?
+ *
+ * The route is callable by hand with CRON_SECRET, and that is the only way to
+ * retry a failed send. Without this check a Wednesday invocation builds
+ * Monday-to-Wednesday, posts it as "This week", stamps the row as sent — and
+ * Sunday's real run then skips the account. Half a week, announced as a whole
+ * one, blocking the whole one.
+ */
+function weekHasClosed(week: string, now: Date): boolean {
+  // The week starting Monday `week` closes at the end of the following Sunday.
+  const closesAt = new Date(`${week}T00:00:00.000Z`).getTime() + 6 * DAY_MS;
+  return now.getTime() >= closesAt;
+}
+
 export async function runWeeklyRecap(deps: RecapRunDeps): Promise<RecapRunOutcome> {
-  const week = weekStart(deps.now);
-  const candidates = await deps.candidates(week, deps.limit);
+  const budgetMs = deps.budgetMs ?? Number.POSITIVE_INFINITY;
+  const startedAt = Date.now();
+  const elapsed = deps.elapsedMs ?? (() => Date.now() - startedAt);
+
+  const weeks = weeksToSend(deps.now).filter((candidateWeek) => weekHasClosed(candidateWeek, deps.now));
   const outcome: RecapRunOutcome = {
-    weekStart: week,
-    considered: candidates.length,
+    weekStart: weeks[0] ?? weekStart(deps.now),
+    considered: 0,
     built: 0,
     sent: 0,
     skippedQuiet: 0,
     skippedNoData: 0,
     failed: 0,
-    webhooksCleared: 0
+    webhooksCleared: 0,
+    ranOutOfTime: false,
+    unprocessed: 0
   };
 
-  for (const candidate of candidates) {
+  // Newest week first, then last week's stragglers — a player who is owed both
+  // gets the current one, which is the one they can still act on.
+  const queue: Array<{ week: string; candidate: RecapRecipient }> = [];
+  for (const candidateWeek of weeks) {
+    for (const candidate of await deps.candidates(candidateWeek, deps.limit)) {
+      queue.push({ week: candidateWeek, candidate });
+    }
+  }
+  outcome.considered = queue.length;
+
+  for (const [index, entry] of queue.entries()) {
+    // Leave room for one more full Discord round trip. Stopping short is
+    // normal and is reported; being killed mid-POST is not, because the claim
+    // is already stamped and nothing would ever release it.
+    if (elapsed() > budgetMs - DISCORD_ROUND_TRIP_MS) {
+      outcome.ranOutOfTime = true;
+      outcome.unprocessed = queue.length - index;
+      break;
+    }
+
+    const { week, candidate } = entry;
     const [baseline, closing, goals, clog] = await Promise.all([
       hiscoreSnapshotBefore(candidate.accountId, new Date(`${week}T00:00:00.000Z`)),
       latestHiscoreSnapshot(candidate.accountId),
@@ -83,7 +161,11 @@ export async function runWeeklyRecap(deps: RecapRunDeps): Promise<RecapRunOutcom
       // countable, and it does not exist until the row says this recap is ours
       // to send.
       nextStepUrl: `${BRAND_URL}/p/${encodeURIComponent(candidate.rsn)}`,
-      now: deps.now
+      // The end of the week being described, not the moment of the run. The
+      // freshness guard asks "is the closing reading near the end of this
+      // week", and against a wall clock it would reject every catch-up week
+      // for being a week old — which is exactly what a catch-up week is.
+      now: new Date(new Date(`${week}T00:00:00.000Z`).getTime() + 7 * DAY_MS)
     });
 
     if (!built.week) {

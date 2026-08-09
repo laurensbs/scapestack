@@ -128,31 +128,58 @@ export async function recordRecapClick(token: string): Promise<RecapClick | null
 }
 
 /**
+ * How far before the week began a collection-log reading may be taken.
+ *
+ * Plugin syncs are event-driven, not daily, so "the newest sync before the
+ * week" can be months old for anyone who plays without RuneLite open. Without
+ * a bound, a January sync and a sync from this week give a seven-month
+ * difference labelled "this week". The hiscore baseline has had a bound since
+ * it was written; this side had none.
+ */
+const CLOG_BASELINE_MAX_LEAD_DAYS = 14;
+
+/**
  * Collection-log slot counts either side of a week, from RuneLite syncs.
  *
- * Null on each side that has no sync: a hiscores-only account has never told
- * Scapestack anything about its log, and 0 would report the whole thing as
- * this week's gain on the first sync after installing the plugin.
+ * Null on each side that cannot be trusted, and null is not zero:
+ *
+ *  - no sync at all — a hiscores-only account has never told Scapestack
+ *    anything about its log;
+ *  - a sync whose collection log was never LOADED. `collection_log_item_ids`
+ *    is `INTEGER[] NOT NULL`, so a plugin that omitted the log writes an empty
+ *    array and `cardinality` returns 0. Read as a count, that 0 means the
+ *    player owned nothing — and the first sync after they finally open the log
+ *    interface is then reported as 812 slots banked this week. The row already
+ *    records which it was, in `availability->>'collectionLog'`; the previous
+ *    version of this query simply did not look;
+ *  - a reading from too long before the week to describe it.
  */
 export async function clogSlotsAround(
   accountId: string,
   week: string
 ): Promise<{ before: number | null; after: number | null }> {
   await ensureSyncSchema();
-  const rows = await client().query<{ side: string; slots: number }>(`
-    (SELECT 'before' AS side, cardinality(collection_log_item_ids) AS slots
+  const rows = await client().query<{ side: string; slots: number; loaded: boolean }>(`
+    (SELECT 'before' AS side,
+            cardinality(collection_log_item_ids) AS slots,
+            COALESCE(availability->>'collectionLog', 'unknown') = 'available' AS loaded
        FROM sync_snapshot
-      WHERE account_id = $1::uuid AND captured_at < $2::date
+      WHERE account_id = $1::uuid
+        AND captured_at < $2::date
+        AND captured_at >= $2::date - ($3 || ' days')::interval
       ORDER BY captured_at DESC LIMIT 1)
     UNION ALL
-    (SELECT 'after' AS side, cardinality(collection_log_item_ids) AS slots
+    (SELECT 'after' AS side,
+            cardinality(collection_log_item_ids) AS slots,
+            COALESCE(availability->>'collectionLog', 'unknown') = 'available' AS loaded
        FROM sync_snapshot
       WHERE account_id = $1::uuid AND captured_at >= $2::date
       ORDER BY captured_at DESC LIMIT 1)
-  `, [accountId, week]);
+  `, [accountId, week, String(CLOG_BASELINE_MAX_LEAD_DAYS)]);
   const find = (side: string) => {
     const row = rows.find((candidate) => candidate.side === side);
-    return row ? Number(row.slots) : null;
+    if (!row || !row.loaded) return null;
+    return Number(row.slots);
   };
   return { before: find("before"), after: find("after") };
 }
@@ -241,19 +268,30 @@ export async function clearDiscordWebhook(accountId: string): Promise<void> {
 
 export interface RecapDeliveryMetrics {
   weekStart: string;
+  /** Every week materialised, quiet ones included. Context, not a denominator. */
   weeksBuilt: number;
+  /** Weeks that had something in them, so a recap was owed. */
+  sendable: number;
   sent: number;
   clicked: number;
 }
 
 /**
  * §7's recap numbers, read from the ledger rather than from an analytics call.
- * Delivery rate is sent/built; CTR is clicked/sent.
+ *
+ * Delivery is sent/SENDABLE, not sent/built. A quiet week is materialised —
+ * the streak and the history want it — and deliberately never sent, so
+ * counting it in the denominator turned "nothing failed" into "40% delivery"
+ * under a heading that decides whether Phase 3 gets built.
+ *
+ * `qualified_for_streak` is the same predicate the job uses to decide whether
+ * to send, so the two cannot drift apart.
  */
 export async function recapMetrics(week: string): Promise<RecapDeliveryMetrics> {
   await ensureSyncSchema();
-  const rows = await client().query<{ built: string; sent: string; clicked: string }>(`
+  const rows = await client().query<{ built: string; sendable: string; sent: string; clicked: string }>(`
     SELECT COUNT(*) AS built,
+           COUNT(*) FILTER (WHERE qualified_for_streak) AS sendable,
            COUNT(recap_sent_at) AS sent,
            COUNT(recap_clicked_at) AS clicked
     FROM weekly_progress
@@ -263,6 +301,7 @@ export async function recapMetrics(week: string): Promise<RecapDeliveryMetrics> 
   return {
     weekStart: week,
     weeksBuilt: Number(row?.built ?? 0),
+    sendable: Number(row?.sendable ?? 0),
     sent: Number(row?.sent ?? 0),
     clicked: Number(row?.clicked ?? 0)
   };

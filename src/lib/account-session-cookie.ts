@@ -6,7 +6,17 @@ export function readAccountSessionToken(request: Request): string | null {
   for (const part of cookie.split(";")) {
     const [rawName, ...rawValue] = part.trim().split("=");
     if (rawName === ACCOUNT_SESSION_COOKIE) {
-      const value = decodeURIComponent(rawValue.join("="));
+      // decodeURIComponent throws URIError on a malformed escape — a lone "%"
+      // is enough. Uncaught, that turned every account route into a 500, and
+      // the 401 branch that clears the bad cookie was never reached: a player
+      // with a corrupted cookie was locked out of their own account area with
+      // no way back from inside the site. An unreadable cookie is no session.
+      let value: string;
+      try {
+        value = decodeURIComponent(rawValue.join("="));
+      } catch {
+        return null;
+      }
       return value || null;
     }
   }

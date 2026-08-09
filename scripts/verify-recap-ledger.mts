@@ -43,13 +43,26 @@ function check(name: string, condition: boolean, detail = ""): void {
   console.error(`  FAIL ${name}${detail ? ` — ${detail}` : ""}`);
 }
 
-const RSN = `scapestack-ledger-probe-${process.pid}`;
+const RSN_PREFIX = "scapestack-ledger-probe-";
+const RSN = `${RSN_PREFIX}${process.pid}`;
 const WEEK = weekStart(new Date("2026-08-09T18:00:00.000Z"));
 const WEBHOOK = "https://discord.com/api/webhooks/1234567890123456789/abcdefghijklmnopqrstuvwxyz0123456789";
 
 let accountId = "";
 
 try {
+  // Sweep leftovers first. DATABASE_URL points at the live database, and a
+  // process killed between the INSERT below and the DELETE at the end leaves a
+  // real account_identity row behind — one with no deletion mark, so it enters
+  // accountsDueForRefresh and the daily cron asks Jagex about
+  // "scapestack-ledger-probe-9241" every morning forever, while counting in
+  // goalSetRate()'s denominator. Self-healing beats hoping the process lives.
+  const swept = await sql.query(
+    `DELETE FROM account_identity WHERE rsn LIKE $1 RETURNING rsn`,
+    [`${RSN_PREFIX}%`]
+  ) as Array<{ rsn: string }>;
+  if (swept.length > 0) console.log(`  swept ${swept.length} leftover probe account(s)`);
+
   const created = await sql.query(
     `INSERT INTO account_identity (rsn, display_name) VALUES ($1, $1) RETURNING account_id`,
     [RSN]
@@ -132,6 +145,49 @@ try {
   const clog = await clogSlotsAround(accountId, WEEK);
   check("no sync means null, not zero, on both sides",
     clog.before === null && clog.after === null, JSON.stringify(clog));
+
+  // The collection-log reading, against real rows. `collection_log_item_ids`
+  // is INTEGER[] NOT NULL, so a sync whose log was never opened stores an
+  // empty array and cardinality returns 0 — read as a count, that says the
+  // player owned nothing, and the first sync after they finally open the log
+  // is reported as "812 new collection-log slots this week". The row records
+  // which it was, in availability->>'collectionLog'. Text-reading tests cannot
+  // tell any of this; only running it can.
+  const sync = async (capturedAt: string, ids: number[], availability: string) => {
+    await sql.query(`
+      INSERT INTO sync_snapshot (
+        account_id, checksum, summary, account_type, skills, quests_completed,
+        diaries_completed, collection_log_item_ids, bank_summary, availability,
+        plugin_version, captured_at
+      ) VALUES ($1::uuid, $2, '{}'::jsonb, 'regular', '{}'::jsonb, '[]'::jsonb,
+        '[]'::jsonb, $3::int[], '{}'::jsonb, $4::jsonb, 'probe', $5::timestamptz)
+    `, [
+      accountId,
+      `${capturedAt}-${availability}-${ids.length}`.padEnd(64, "0").slice(0, 64),
+      `{${ids.join(",")}}`,
+      JSON.stringify({ collectionLog: availability }),
+      capturedAt
+    ]);
+  };
+
+  await sync("2026-07-30T12:00:00Z", [], "not-loaded");
+  await sync("2026-08-05T12:00:00Z", [1, 2, 3, 4, 5], "available");
+  const notLoaded = await clogSlotsAround(accountId, WEEK);
+  check("a sync whose log was never opened reads as unknown, not as zero",
+    notLoaded.before === null && notLoaded.after === 5, JSON.stringify(notLoaded));
+
+  await sync("2026-08-01T12:00:00Z", [1, 2], "available");
+  const both = await clogSlotsAround(accountId, WEEK);
+  check("two loaded readings give a real difference",
+    both.before === 2 && both.after === 5, JSON.stringify(both));
+
+  await sql.query(`DELETE FROM sync_snapshot WHERE account_id = $1::uuid`, [accountId]);
+  await sync("2026-01-05T12:00:00Z", [1, 2], "available");
+  await sync("2026-08-05T12:00:00Z", [1, 2, 3, 4, 5], "available");
+  const stale = await clogSlotsAround(accountId, WEEK);
+  check("a reading from months before the week is not this week's baseline",
+    stale.before === null, JSON.stringify(stale));
+  await sql.query(`DELETE FROM sync_snapshot WHERE account_id = $1::uuid`, [accountId]);
 
   await clearDiscordWebhook(accountId);
   const cleared = await recapCandidates(WEEK, 50);

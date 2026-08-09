@@ -154,6 +154,25 @@ describe("an outage and an unranked player are different answers", () => {
   });
 });
 
+describe("the cron keeps the series unbroken even when nothing moved", () => {
+  it("writes a flat day rather than a gap", async () => {
+    // The dedupe used to apply to the cron too, and an account nobody is
+    // playing reads identically every day — so a two-week break left a
+    // two-week hole. The weekly recap needs a reading from just before the
+    // week to describe it, so the player who came back and had a huge week
+    // got nothing. That is the one case §3.3 exists for.
+    //
+    // A flat row is not noise. It is the evidence that nothing moved, and the
+    // daily unique index already budgets for one row a day.
+    state.latest = snapshot(92, 6_800_000, 812);
+    const outcome = await refreshAccountHiscores({ accountId: "acc-idle", rsn: "lauky", source: "cron" });
+    expect(outcome.status).toBe("refreshed");
+    expect(state.written).toEqual([{ accountId: "acc-idle", source: "cron" }]);
+    // Still honest about what happened: a written row is not a claim of progress.
+    expect(outcome.status === "refreshed" && outcome.delta.moved).toBe(false);
+  });
+});
+
 describe("the on-demand path does not pad the time series", () => {
   it("writes nothing when the reading is identical to the last one", async () => {
     // One per RSN per ten minutes is 144 rows a day for a player who did not

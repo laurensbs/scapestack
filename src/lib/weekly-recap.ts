@@ -35,8 +35,30 @@ export function compactXp(value: number): string {
     const millions = value / 1_000_000;
     return `${millions >= 10 ? Math.round(millions) : Number(millions.toFixed(1))}M`;
   }
-  if (value >= 1_000) return `${Math.round(value / 1_000)}k`;
+  if (value >= 1_000) {
+    const thousands = Math.round(value / 1_000);
+    // 999,600 rounds to 1000k, which nobody writes. Hand it back to the
+    // millions branch rather than printing a number in the wrong unit.
+    if (thousands >= 1_000) return "1M";
+    return `${thousands}k`;
+  }
   return String(Math.round(value));
+}
+
+/**
+ * A percentage that never rounds an unfinished goal up to done.
+ *
+ * The bar's cells were floored and its label was not, so 99.9% drew nine
+ * cells and read "100%" — a picture and a number disagreeing inside one
+ * component. The headline used the same rounding, which is how a recap came
+ * to say "You're now 100% to your 99 Slayer. 4k XP to go."
+ */
+export function displayPercent(pct: number): number {
+  const clamped = Math.max(0, Math.min(100, Number.isFinite(pct) ? pct : 0));
+  const floored = Math.floor(clamped);
+  // Only an exact 100 is 100. Anything short of it is 99 at most, because the
+  // difference between "done" and "nearly done" is the whole message.
+  return clamped >= 100 ? 100 : Math.min(99, floored);
 }
 
 /**
@@ -47,7 +69,7 @@ export function compactXp(value: number): string {
 export function textProgressBar(pct: number, cells = 10): string {
   const clamped = Math.max(0, Math.min(100, Number.isFinite(pct) ? pct : 0));
   const filled = Math.min(cells, Math.floor((clamped / 100) * cells));
-  return `${"▓".repeat(filled)}${"░".repeat(cells - filled)} ${Math.round(clamped)}%`;
+  return `${"▓".repeat(filled)}${"░".repeat(cells - filled)} ${displayPercent(clamped)}%`;
 }
 
 /**
@@ -99,7 +121,7 @@ export function recapHeadline(week: RecapWeek): string {
     : parts[0] ?? "no tracked gains";
 
   const goalClause = week.goal
-    ? ` You're now ${Math.round(week.goal.pctAfter)}% to your ${week.goal.target}.${week.goal.remainder ? ` ${week.goal.remainder} to go.` : ""}`
+    ? ` You're now ${displayPercent(week.goal.pctAfter)}% to your ${week.goal.target}.${week.goal.remainder ? ` ${week.goal.remainder} to go.` : ""}`
     : "";
 
   return `🔥 This week on ${week.rsn}: ${gains}.${goalClause} Next step →`;

@@ -40,6 +40,12 @@ export function isDiscordWebhookUrl(value: string): boolean {
   // careless parser and resolve to another: https://discord.com@evil.test/.
   // URL parses that correctly, but rejecting them outright costs nothing.
   if (url.username || url.password) return false;
+  // Discord answers on 443 and nothing else. A URL with an explicit port is
+  // still Discord's hostname, so the allowlist above passes it — and
+  // discord.com:1337 is dropped rather than refused, so the connection hangs
+  // until the 8s abort. One such webhook costs the Sunday job 8 seconds every
+  // week forever, and 38 of them consume the entire function.
+  if (url.port) return false;
   return WEBHOOK_PATH.test(url.pathname);
 }
 
@@ -87,9 +93,13 @@ export async function postDiscordWebhook(
       redirect: "manual",
       signal: controller.signal
     });
-    if (response.status === 404 || response.status === 401 || response.status === 403) {
-      return { status: "gone" };
-    }
+    // 404/401: the webhook is deleted or its token is no longer valid. Gone.
+    //
+    // 403 is NOT gone. Discord returns it for Missing Permissions (50013) on a
+    // webhook that still exists — a channel permission change, an AutoMod
+    // rule. Treating it as deleted silently threw away a working webhook and
+    // left the player to work out for themselves why the recaps stopped.
+    if (response.status === 404 || response.status === 401) return { status: "gone" };
     if (!response.ok) return { status: "failed", code: response.status };
     return { status: "sent" };
   } catch {
