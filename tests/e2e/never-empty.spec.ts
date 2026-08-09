@@ -35,8 +35,11 @@ test.describe("never empty", () => {
     const preview = page.locator("[data-demo-plan-preview]");
     await expect(preview).toBeVisible();
     await expect(preview.getByRole("heading", { level: 2 })).not.toBeEmpty();
-    await expect(preview.getByRole("rowheader", { name: "Start" })).toBeVisible();
-    await expect(preview.getByRole("rowheader", { name: "Stop at" })).toBeVisible();
+    // The property is unchanged — the briefing says where you go and when you
+    // stop. REBRAND 6.2 moved it out of a Start / Stop-at table and into an
+    // AdventureBrief, so the same two facts now live in a <dl>.
+    await expect(preview.getByText("You set off:")).toBeVisible();
+    await expect(preview.getByText("Come home when:")).toBeVisible();
 
     // The old copy told the player to do the one thing the cursor already
     // told them. If it comes back, this fails.

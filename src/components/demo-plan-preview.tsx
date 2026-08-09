@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdventureBrief } from "@/components/rebrand/adventure-brief";
 import { computeNextUp } from "@/lib/next-up";
 import {
   buildRecommendationDecision,
@@ -53,29 +54,25 @@ export async function DemoPlanPreview() {
       aria-label="What a plan looks like"
       data-demo-plan-preview="true"
     >
-      <p className="eyebrow">This is what your plan looks like</p>
-      <h2 className="mt-2 text-[length:var(--text-answer)] font-extrabold! leading-[1.08] text-[var(--color-text)]">
-        {copy.title}
-      </h2>
-      <p className="mt-2 max-w-[65ch] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text-dim)]">
-        {copy.why}
-      </p>
+      {/* REBRAND.md 6.2 and 4.2: "This is what your plan looks like" becomes
+          "A sample briefing", and the Start / Stop-at table becomes an
+          AdventureBrief — the same two facts told as an errand rather than as
+          a spreadsheet row. A trip is an errand.
 
-      <div className="scape-table-wrap mt-4">
-        <table className="scape-table" aria-label="The demo account's trip">
-          <tbody>
-            <tr>
-              <th scope="row" className="w-[84px] align-top sm:w-[104px]">Start</th>
-              <td className="[overflow-wrap:anywhere]">{copy.firstStep}</td>
-            </tr>
-            <tr>
-              <th scope="row" className="align-top">Stop at</th>
-              <td className="[overflow-wrap:anywhere]">{copy.stopPoint}</td>
-            </tr>
-          </tbody>
-        </table>
+          This is /next's plan surface for a visitor with no account, which is
+          exactly what 6.2 names. The same table on /p/[rsn] is deliberately
+          left alone: that page carries an enforced five-colour budget, and
+          parchment brings three ink colours with it. Section 6 migrates pages
+          one at a time for this reason. */}
+      <p className="eyebrow">A sample briefing</p>
+      <div className="mt-2">
+        <AdventureBrief
+          title={copy.title}
+          why={copy.why}
+          setOff={copy.firstStep}
+          comeHome={copy.stopPoint}
+        />
       </div>
-
       <p className="mt-3 text-[length:var(--text-micro)] font-normal leading-snug text-[var(--color-text-muted)]">
         {REFERENCE_ACCOUNT_LABEL}: 90 Attack, 92 Ranged, 250 Vorkath. Yours will read your own levels.{" "}
         <Link href="/next?sample=1" className="underline decoration-dotted underline-offset-4 hover:text-[var(--color-text)]">

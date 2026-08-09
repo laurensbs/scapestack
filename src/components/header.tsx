@@ -132,13 +132,24 @@ export function Header() {
                 title={tool.short}
                 aria-current={active ? "page" : undefined}
                 aria-label={`${tool.navLabel ?? tool.name}: ${tool.short}`}
-                // Staggered fade-in, starting after the wordmark.
-                style={{ animation: `hero-fade 0.5s cubic-bezier(0.22,1,0.36,1) ${0.4 + i * 0.07}s both` }}
+                // REBRAND.md 6.0: an OSRS side tab, not a nav pill. The
+                // selected tab is RAISED — a lit top-left edge and a dark
+                // bottom-right one — and the unselected ones are cut into the
+                // wood. That inversion is the whole affordance in the game's
+                // own chrome, and it costs a box-shadow rather than a ring.
+                data-nav-tab={active ? "selected" : "idle"}
+                style={{
+                  animation: `hero-fade 0.5s cubic-bezier(0.22,1,0.36,1) ${0.4 + i * 0.07}s both`,
+                  borderRadius: "var(--radius-sm)",
+                  boxShadow: active
+                    ? "inset 1px 1px 0 var(--bevel-light), inset -1px -1px 0 var(--bevel-dark)"
+                    : "inset 1px 1px 0 var(--bevel-dark), inset -1px -1px 0 rgba(255,236,190,0.08)"
+                }}
                 className={cn(
-                  "group/tool inline-flex items-center gap-1.5 px-3 py-1.5 rounded-none text-[length:var(--text-micro)] font-medium transition-colors",
+                  "group/tool inline-flex items-center gap-1.5 px-3 py-1.5 text-[length:var(--text-micro)] font-medium transition-colors",
                   active
-                    ? "bg-[var(--color-accent)]/13 text-[var(--color-text)] ring-1 ring-[var(--color-accent)]/35"
-                    : "text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-parchment)]/70"
+                    ? "bg-[var(--wood-500)] text-[var(--gold-300)]"
+                    : "bg-[var(--stone-800)] text-[var(--color-text-dim)] hover:text-[var(--color-text)]"
                 )}
               >
                 <Icon data-tool-icon={tool.slug} className={cn("size-3.5", active && "text-[var(--color-accent)]")} />

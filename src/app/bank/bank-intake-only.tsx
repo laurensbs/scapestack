@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { BossRoster } from "@/components/boss-roster";
+import { BankerDialog } from "@/components/rebrand/banker-dialog";
 import { GoalRoster } from "@/components/goal-roster";
 import { Intake } from "@/components/intake";
 import { SlayerMasterReference } from "@/components/slayer-master-reference";
@@ -113,18 +114,29 @@ export function BankIntakeOnly({
           </p>
         </div>
         <div className="p-5 sm:p-6">
-          <Intake
-            onSubmit={openPlayerPage}
-            onSaveOnly={(input, rsn) => openPlayerPage(input, false, rsn)}
-            loading={pending}
-            error={error}
-            askRsn
-            compactSave
-            saveLabel="Open player page"
-          />
-          <p className="mt-4 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
-            Saved on this device only. For automatic bank updates, use the RuneLite sync from your player page.
-          </p>
+          {/* REBRAND.md 5.4 / 6.3. The paste field stays — pasting is what the
+              player actually does, and swapping a working control for a
+              costume is the "renamed tool" failure wearing the other hat. What
+              changes is the frame: a speaker, a name plate and one line of
+              speech, which is a better container for "here is what I need from
+              you" than a form legend.
+
+              The privacy line is inside it and verbatim (§9.3). */}
+          <BankerDialog
+            speaker="Banker"
+            says="Show me what you are carrying and I will tell you what it finishes."
+            footnote="Saved on this device only. For automatic bank updates, use the RuneLite sync from your player page."
+          >
+            <Intake
+              onSubmit={openPlayerPage}
+              onSaveOnly={(input, rsn) => openPlayerPage(input, false, rsn)}
+              loading={pending}
+              error={error}
+              askRsn
+              compactSave
+              saveLabel="Open player page"
+            />
+          </BankerDialog>
           <Link href="/" className="mt-4 inline-flex min-h-11 items-center text-[12px] font-semibold text-[var(--color-accent)] hover:underline">
             Back
           </Link>

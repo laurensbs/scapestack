@@ -38,7 +38,7 @@ function requirementLine(combat: number, slayer: number, quests: string[]): stri
 export function SlayerMasterReference() {
   return (
     <section className="mt-6">
-      <h2 className="text-[19px] font-bold tracking-normal text-[var(--color-text)]">
+      <h2 className="font-[family-name:var(--font-display)] text-[19px] font-bold tracking-normal text-[var(--color-text)]">
         Slayer masters
       </h2>
       <p className="mt-0.5 text-[13px] text-[var(--color-text-dim)]">
@@ -50,28 +50,46 @@ export function SlayerMasterReference() {
           const master = MASTERS[id];
           if (!master) return null;
           return (
-            <li
-              key={id}
-              className="rounded-none border border-[var(--color-accent)]/15 bg-[var(--color-bg)]/40 px-3.5 py-3"
-            >
-              <div className="flex items-baseline justify-between gap-2">
-                <span className="text-[14px] font-semibold text-[var(--color-text)]">
-                  {master.name}
-                </span>
-                <span className="shrink-0 text-[11.5px] text-[var(--color-text-dim)]">
-                  {master.location}
-                </span>
+            <li key={id}>
+              {/* REBRAND.md 5.4 / 6.5: an NPC plaque, not a card. The name is
+                  a carved name plate on wood; the plaque itself is raised
+                  stone. The task range is a Ratio and not a Numeral — Pixelify
+                  renders "50–100" with a 5 that reads as an S (§10.2). */}
+              <div
+                data-master-plaque={id}
+                className="h-full border-2 border-[var(--wood-700)] bg-[var(--stone-700)]"
+                style={{
+                  borderRadius: "var(--radius-md)",
+                  boxShadow: "inset 1px 1px 0 var(--bevel-light), inset -1px -1px 0 var(--bevel-dark)"
+                }}
+              >
+                <div
+                  className="flex items-baseline justify-between gap-2 border-b border-[var(--stone-900)] bg-[var(--wood-500)] px-3 py-1.5"
+                  style={{ boxShadow: "inset 0 1px 0 var(--bevel-light)" }}
+                >
+                  <span className="truncate font-[family-name:var(--font-display)] text-[length:var(--text-body)] font-bold text-[var(--gold-300)]">
+                    {master.name}
+                  </span>
+                  <span className="shrink-0 text-[length:var(--text-label)] text-[var(--stone-text-muted)]">
+                    {master.location}
+                  </span>
+                </div>
+                <div className="px-3 py-2.5">
+                  <p className="text-[length:var(--text-micro)] text-[var(--stone-text-muted)]">
+                    {requirementLine(
+                      master.combatRequirement,
+                      master.slayerRequirement,
+                      master.questRequirements
+                    )}
+                  </p>
+                  <p className="mt-1 text-[length:var(--text-micro)] text-[var(--stone-text-muted)]">
+                    Tasks of{" "}
+                    <span style={{ fontVariantNumeric: "tabular-nums lining-nums" }} className="font-medium text-[var(--stone-text)]">
+                      {master.taskQuantity.min}–{master.taskQuantity.max}
+                    </span>
+                  </p>
+                </div>
               </div>
-              <p className="mt-1 text-[12px] text-[var(--color-text-dim)]">
-                {requirementLine(
-                  master.combatRequirement,
-                  master.slayerRequirement,
-                  master.questRequirements
-                )}
-              </p>
-              <p className="mt-0.5 text-[12px] text-[var(--color-text-dim)]">
-                Tasks of {master.taskQuantity.min}–{master.taskQuantity.max}
-              </p>
             </li>
           );
         })}
