@@ -188,11 +188,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               >
                 OSRS Wiki, CC BY-NC-SA 3.0
               </a>
-              .
+              {/* Share-alike is half the licence and the half a one-line
+                  credit usually drops. Weird Gloop's copyright policy requires
+                  derivatives to be licensed "under the same, or a compatible
+                  license", so the obligation is stated rather than implied. */}
+              , reused here under the same licence.
             </span>
+            {/* VERBATIM, from the Fan Content Policy clause 8.1 (v1.3,
+                30 June 2025). The three words this used to drop — "Limited",
+                "under the terms of", "This content" — are not stylistic: the
+                policy prescribes the sentence, and a paraphrase of a licence
+                notice is not the licence notice. */}
             <span className="mt-1 block text-[var(--color-text-muted)]">
-              Created using intellectual property belonging to Jagex Ltd under the Jagex Fan Content Policy.
-              Not endorsed by or affiliated with Jagex.
+              Created using intellectual property belonging to Jagex Limited under the terms of Jagex&apos;s Fan
+              Content Policy. This content is not endorsed by or affiliated with Jagex.
             </span>
           </footer>
         </div>

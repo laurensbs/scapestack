@@ -485,7 +485,7 @@ export function Intake({
               ? `${inputSummary.label}. ${inputSummary.detail}.`
               : hint
                 ? hint.msg
-                : "No bank export detected yet."}
+                : "Nothing in the bank yet."}
           </p>
           {dragOver && (
             <div className="absolute inset-0 rounded-none bg-[var(--color-accent)]/10 border-2 border-dashed border-[var(--color-accent)] flex items-center justify-center pointer-events-none animate-[pop-in_0.18s_ease-out]">
@@ -517,13 +517,13 @@ export function Intake({
         >
           <Upload className="size-3.5" /> Choose file
         </button>
-        <button type="button" onClick={onPaste} aria-label="Paste bank export from clipboard" className="btn-ghost min-h-11">
+        <button type="button" onClick={onPaste} aria-label="Paste your bank from the clipboard" className="btn-ghost min-h-11">
           <ClipboardPaste className="size-3.5" /> Paste
         </button>
         <button
           type="button"
           onClick={onClear}
-          aria-label="Clear pasted bank export"
+          aria-label="Clear the pasted bank"
           className="btn-ghost min-h-11 hover:text-[var(--color-danger)] hover:border-[var(--color-danger)]/40"
         >
           <Trash2 className="size-3.5" /> Clear
@@ -583,7 +583,7 @@ export function Intake({
           )}
         >
           {fileImportState === "loaded" && "File loaded — review the detected format before organizing."}
-          {fileImportState === "unsupported" && "Unsupported file — choose a .tsv, .txt or .csv bank export."}
+          {fileImportState === "unsupported" && "Unsupported file — choose a .tsv, .txt or .csv."}
         </p>
       )}
 
@@ -653,7 +653,7 @@ export function Intake({
                 ? compactSave
                   ? "Save pasted bank to this device"
                   : "Organize pasted bank into RuneLite-ready tabs"
-                : "Paste a bank export before organizing"
+                : "Paste your bank before organizing"
           }
           disabled={!value.trim() || loading}
           className={cn(

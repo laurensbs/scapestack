@@ -66,7 +66,9 @@ describe("bank intake UX affordances", () => {
     expect(intakeSource).toContain('id="bank-paste-status"');
     expect(intakeSource).toContain('role="status"');
     expect(intakeSource).toContain("Saved on this device only. Bank Memory is best for supplies and GP.");
-    expect(intakeSource).toContain("No bank export detected yet.");
+    // REBRAND.md 4.1: "bank export" is the tool's word for the file, not the
+    // player's for the thing. Empty state per the glossary.
+    expect(intakeSource).toContain("Nothing in the bank yet.");
   });
 
   it("saves a detected bank immediately so the global run bar does not stay on Add bank", () => {
@@ -100,7 +102,7 @@ describe("bank intake UX affordances", () => {
   it("explains why Organize is disabled before a bank paste", () => {
     expect(intakeSource).toContain('aria-describedby="bank-organize-disabled-help"');
     expect(intakeSource).toContain('id="bank-organize-disabled-help"');
-    expect(intakeSource).toContain("Paste a bank export before organizing");
+    expect(intakeSource).toContain("Paste your bank before organizing");
     expect(intakeSource).toContain("Organize pasted bank into RuneLite-ready tabs");
     expect(intakeSource).toContain("Organizing pasted bank");
     expect(intakeSource).toContain("Paste a Bank Memory export, Bank Tags string or item IDs to unlock Organize.");
@@ -111,8 +113,8 @@ describe("bank intake UX affordances", () => {
   it("gives every bank import action a concrete accessible name", () => {
     expect(intakeSource).toContain('aria-label="Load sample bank into the paste box"');
     expect(intakeSource).toContain('aria-label="Choose a Bank Memory, Bank Tags or item ID file"');
-    expect(intakeSource).toContain('aria-label="Paste bank export from clipboard"');
-    expect(intakeSource).toContain('aria-label="Clear pasted bank export"');
+    expect(intakeSource).toContain('aria-label="Paste your bank from the clipboard"');
+    expect(intakeSource).toContain('aria-label="Clear the pasted bank"');
     expect(intakeSource).toContain('aria-label={junkFilter ? "Disable junk filter" : "Enable junk filter"}');
   });
 
@@ -124,7 +126,7 @@ describe("bank intake UX affordances", () => {
     expect(intakeSource).toContain('type="file"');
     expect(intakeSource).toContain('accept=".tsv,.txt,.csv,text/plain,text/tab-separated-values,text/csv"');
     expect(intakeSource).toContain("File loaded — review the detected format before organizing.");
-    expect(intakeSource).toContain("Unsupported file — choose a .tsv, .txt or .csv bank export.");
+    expect(intakeSource).toContain("Unsupported file — choose a .tsv, .txt or .csv.");
   });
 
   it("reuses a known account and can ask only the nameless /bank intake for an RSN", () => {

@@ -1051,7 +1051,7 @@ function bankSourceReceipt(initial: OrganizeResult): {
     confidenceLabel: "Usable fallback",
     confidenceTone: "warn",
     exactLine: "Recognized item IDs can still be organized and used for the next plan.",
-    limitationLine: "Names, quantities, tab names and GP values may be incomplete because the paste was not a full bank export.",
+    limitationLine: "Names, quantities, tab names and GP values may be incomplete because the paste was not a full bank.",
     nextLine: "Use Bank Memory or RuneLite Bank Tags for a cleaner import."
   };
 }

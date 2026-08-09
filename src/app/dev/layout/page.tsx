@@ -231,7 +231,7 @@ export default async function DevLayoutPage() {
         <h1 className="text-2xl font-bold mb-2">Layout dev preview</h1>
         <p className="text-sm text-[var(--color-text-muted)]">
           Renders each test fixture through the organizer + use-case tabs builder.
-          Use this to visually verify layout changes before pasting a real bank export.
+          Use this to visually verify layout changes before pasting a real bank.
         </p>
         <p className="text-xs text-[var(--color-text-muted)] mt-1">
           Total fixtures × archetypes rendered: <strong>{allRenders.length}</strong>

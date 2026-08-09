@@ -61,7 +61,7 @@ export function Intro({ flowStep = 0 }: IntroProps) {
       short: "Bank Memory",
       body: "Plugin Hub -> install \"Bank Memory\" for bank items. RuneLite sync is separate and only helps skip finished quests, diaries, clog and Slayer.",
       illustration: <RuneLiteSideBar />,
-      actionLabel: "I have a bank export",
+      actionLabel: "My bank is copied",
       actionTargetId: "bank-paste-input",
       helperLabel: "Open Bank Memory page",
       helperHref: "https://runelite.net/plugin-hub/show/bank-memory"

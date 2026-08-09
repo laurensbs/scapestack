@@ -83,7 +83,7 @@ export function GoalsClient() {
         startTransition(async () => {
           const hiscores = await hiscoresAction(paramRsn);
           if (!hiscores) {
-            setError(`Could not load Hiscores for "${paramRsn}". Paste a bank export or check the RSN.`);
+            setError(`Could not load Hiscores for "${paramRsn}". Paste your bank, or check the name.`);
             return;
           }
           setItems(goalItemsWithHiscoreUnlocks([], hiscores.skills));

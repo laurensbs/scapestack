@@ -22,6 +22,40 @@ import { BOSS_ACCESS } from "@/lib/content-access-data";
 import { BossSprite } from "@/components/boss-picker";
 
 
+export type ReachBand = "in-reach" | "almost" | "a-dream";
+
+/**
+ * REBRAND.md 5.6 — the Bestiary is grouped by reachability, not listed flat.
+ *
+ * The honest problem: reachability is a fact about a PLAYER, and this roster
+ * renders for visitors who have given no account. The component's own header
+ * comment already refuses to guess there, and it is right to.
+ *
+ * So the bands are absolute when nobody is known — they describe the gate the
+ * GAME puts on the door — and become personal the moment a combat level is
+ * available. Same three groups, same order, one honest label each way. A boss
+ * with no combat gate at all is a walk-in, which is a fact about the boss.
+ */
+function bandFor(boss: Boss, combatLevel: number | null): ReachBand {
+  const gate = COMBAT_GATE[boss.slug] ?? 0;
+  if (combatLevel === null) {
+    if (gate <= 60) return "in-reach";
+    if (gate <= 100) return "almost";
+    return "a-dream";
+  }
+  if (combatLevel >= gate) return "in-reach";
+  if (combatLevel >= gate - 15) return "almost";
+  return "a-dream";
+}
+
+const BAND_ORDER: ReachBand[] = ["in-reach", "almost", "a-dream"];
+
+const BAND_COPY: Record<ReachBand, { known: string; anonymous: string }> = {
+  "in-reach": { known: "In reach", anonymous: "Walk in" },
+  almost: { known: "Almost", anonymous: "Needs a mid-game account" },
+  "a-dream": { known: "A dream", anonymous: "Late game" }
+};
+
 function requirementLine(boss: Boss): string | null {
   const quests = BOSS_ACCESS[boss.slug]?.quests;
   if (quests?.length) return quests.join(" · ");
@@ -44,9 +78,15 @@ function requirementLine(boss: Boss): string | null {
  */
 export function BossRoster({
   onPick,
-  interactive = true
+  interactive = true,
+  combatLevel = null
 }: {
   onPick?: (boss: Boss) => void;
+  /**
+   * The viewer's combat level, when it is known. Null turns the bands from a
+   * verdict about them into a statement about the game — see bandFor.
+   */
+  combatLevel?: number | null;
   /**
    * False where a tile has nowhere to go.
    *
@@ -106,8 +146,28 @@ export function BossRoster({
           No boss matches “{query.trim()}”.
         </p>
       ) : (
-        <ul className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {bosses.map((boss) => {
+        <div className="mt-4 space-y-6">
+          {BAND_ORDER.map((band) => {
+            const group = bosses.filter((boss) => bandFor(boss, combatLevel) === band);
+            if (group.length === 0) return null;
+            const accent =
+              band === "in-reach" ? "var(--msg-good)" : band === "almost" ? "var(--gold-500)" : "var(--stone-text-muted)";
+            return (
+              <div key={band} data-bestiary-band={band}>
+                {/* The header carries the count. A group that says how many it
+                    holds is the game's own quest-list footer, and it is the
+                    difference between a heading and a label. */}
+                <h3
+                  className="flex items-baseline gap-2 border-b border-[var(--color-border)] pb-1 font-[family-name:var(--font-display)] text-[13px] font-bold uppercase tracking-[0.2em]"
+                  style={{ color: accent }}
+                >
+                  {combatLevel === null ? BAND_COPY[band].anonymous : BAND_COPY[band].known}
+                  <span className="text-[11.5px] font-normal tracking-normal text-[var(--color-text-dim)]" style={{ fontVariantNumeric: "tabular-nums" }}>
+                    {group.length}
+                  </span>
+                </h3>
+                <ul className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+{group.map((boss) => {
             const requirement = requirementLine(boss);
             return (
               <li key={boss.slug}>
@@ -147,7 +207,11 @@ export function BossRoster({
               </li>
             );
           })}
-        </ul>
+                </ul>
+              </div>
+            );
+          })}
+        </div>
       )}
     </section>
   );

@@ -97,7 +97,7 @@ export function BankIntakeOnly({
     : {
         eyebrow: "Bank setup",
         title: "Add bank once",
-        blurb: "Add your name and RuneLite bank export. The answer opens on that player page."
+        blurb: "Add your name and paste your bank from RuneLite. The answer opens on that player page."
       };
 
   return (
