@@ -140,3 +140,86 @@ describe("sync schema migrations", () => {
     expect(goalTable).not.toMatch(/public|published|rsn/i);
   });
 });
+
+describe("Phase 1 retention schema (SPEC §2.2)", () => {
+  it("hangs notification channels off the identity, so delete-my-data takes them", () => {
+    // deleteAccountHistory deletes account_identity and everything that
+    // CASCADEs off it. A second `players` table, or notify_* in a table of
+    // their own, would have needed the delete path taught about it — and the
+    // one thing a privacy posture cannot survive is a column the delete
+    // forgot. §1.6.
+    for (const column of [
+      "notify_discord_webhook_url",
+      "notify_email",
+      "notify_email_verified_at",
+      "notify_weekly_recap"
+    ]) {
+      expect(SCHEMA_SQL, `${column} must live on account_identity`)
+        .toContain(`ALTER TABLE account_identity ADD COLUMN IF NOT EXISTS ${column}`);
+    }
+  });
+
+  it("cascades every new table from account_identity", () => {
+    // Same reason: this is what makes "Delete my data" true for the new
+    // tables without a single line of delete code.
+    for (const table of ["hiscore_snapshot", "weekly_progress", "milestone"]) {
+      const start = SCHEMA_SQL.indexOf(`CREATE TABLE IF NOT EXISTS ${table} (`);
+      expect(start, `${table} is missing`).toBeGreaterThan(-1);
+      const body = SCHEMA_SQL.slice(start, SCHEMA_SQL.indexOf(");", start));
+      expect(body, `${table} must cascade from account_identity`)
+        .toContain("REFERENCES account_identity(account_id) ON DELETE CASCADE");
+    }
+  });
+
+  it("makes a hollow badge unrepresentable (PRINCIPLE 1)", () => {
+    // §1.1: every reward maps to a real in-game achievement. Enforced by the
+    // database, not by whoever writes the next insert — the kinds a badge for
+    // opening the site would need simply are not accepted values.
+    const start = SCHEMA_SQL.indexOf("CREATE TABLE IF NOT EXISTS milestone (");
+    const body = SCHEMA_SQL.slice(start, SCHEMA_SQL.indexOf("CREATE INDEX IF NOT EXISTS milestone_account_idx", start));
+    expect(body).toMatch(/CHECK \(kind IN \(/);
+    for (const real of ["level", "kc_threshold", "clog_slot", "ca_tier", "gear_tier_unlocked", "goal_completed"]) {
+      expect(body, `${real} is a real in-game achievement and must be allowed`).toContain(`'${real}'`);
+    }
+    for (const hollow of ["login", "visit", "click", "referral", "signup", "streak_day"]) {
+      expect(body, `${hollow} is not anchored to anything in the game`).not.toContain(`'${hollow}'`);
+    }
+  });
+
+  it("allows exactly one primary goal, in the database", () => {
+    expect(SCHEMA_SQL).toContain("CREATE UNIQUE INDEX IF NOT EXISTS account_pinned_goal_primary_idx");
+    expect(SCHEMA_SQL).toMatch(/account_pinned_goal_primary_idx[\s\S]{0,120}WHERE is_primary/);
+  });
+
+  it("widens the goal-key CHECK without invalidating a single existing row", () => {
+    const check = SCHEMA_SQL.slice(SCHEMA_SQL.indexOf("account_pinned_goal_key_shape\n  CHECK"));
+    const pattern = check.match(/goal_key ~ '(\^[^']+\$)'/)?.[1];
+    expect(pattern, "the widened CHECK pattern is missing").toBeTruthy();
+    const re = new RegExp(pattern!);
+    // The three types that already have rows in production must still pass...
+    for (const existing of ["item:bandos-chestplate", "level:slayer:99", "unlock:barrows-gloves"]) {
+      expect(re.test(existing), `${existing} would be rejected — existing rows would break`).toBe(true);
+    }
+    // ...and the spec's types must now be representable.
+    for (const added of ["skill_xp:slayer:13m", "boss_kc:zulrah:500", "gear_tier:melee:dragon", "clog_slots:700", "ca_tier:hard", "custom:fire-cape"]) {
+      expect(re.test(added), `${added} must be accepted`).toBe(true);
+    }
+    // The drop must precede the add, or a re-run fails on the existing name.
+    expect(SCHEMA_SQL.indexOf("DROP CONSTRAINT IF EXISTS account_pinned_goal_key_shape"))
+      .toBeLessThan(SCHEMA_SQL.indexOf("ADD CONSTRAINT account_pinned_goal_key_shape"));
+  });
+
+  it("backfills baseline and primary in the same commit that adds them", () => {
+    // CLAUDE.md: a migration that reads a new column backfills it in the same
+    // commit. Without a baseline every percentage measures from zero, so a
+    // level-92 player who pins 99 reads as 92% done the moment they set it.
+    expect(SCHEMA_SQL).toMatch(/UPDATE account_pinned_goal g\s*\nSET baseline =/);
+    expect(SCHEMA_SQL).toContain("WHERE g.account_id = s.account_id AND g.baseline IS NULL");
+    expect(SCHEMA_SQL).toMatch(/UPDATE account_pinned_goal g\s*\nSET is_primary = TRUE/);
+  });
+
+  it("keeps one cron hiscore row per account per day", () => {
+    // Two rows on the same day make every delta read as zero.
+    expect(SCHEMA_SQL).toMatch(/hiscore_snapshot_daily_idx[\s\S]{0,140}WHERE source = 'cron'/);
+  });
+});

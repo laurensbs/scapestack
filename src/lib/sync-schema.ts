@@ -70,6 +70,16 @@ ALTER TABLE account_identity ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT
 ALTER TABLE account_identity ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 ALTER TABLE account_identity ADD COLUMN IF NOT EXISTS deletion_requested_at TIMESTAMPTZ;
 ALTER TABLE account_identity ADD COLUMN IF NOT EXISTS delete_after TIMESTAMPTZ;
+-- Notification channels (SPEC §2.2 players.notify_*). These live ON the
+-- identity rather than in a second table, so the existing delete-my-data path
+-- (deleteAccountHistory -> DELETE FROM account_identity) takes them with it.
+-- Discord first per §2.4; the email columns exist but nothing writes them
+-- until a transactional provider is chosen, and when it does it is
+-- double-opt-in (notify_email_verified_at) with one-click unsubscribe.
+ALTER TABLE account_identity ADD COLUMN IF NOT EXISTS notify_discord_webhook_url TEXT;
+ALTER TABLE account_identity ADD COLUMN IF NOT EXISTS notify_email TEXT;
+ALTER TABLE account_identity ADD COLUMN IF NOT EXISTS notify_email_verified_at TIMESTAMPTZ;
+ALTER TABLE account_identity ADD COLUMN IF NOT EXISTS notify_weekly_recap BOOLEAN NOT NULL DEFAULT TRUE;
 CREATE UNIQUE INDEX IF NOT EXISTS account_identity_rsn_idx ON account_identity(rsn);
 
 INSERT INTO account_identity (rsn, display_name, created_at, last_seen_at)
@@ -297,6 +307,126 @@ CREATE TABLE IF NOT EXISTS account_pinned_goal (
   CHECK (goal_key ~ '^(item|level|unlock):[a-z0-9:-]{1,90}$')
 );
 CREATE INDEX IF NOT EXISTS account_pinned_goal_account_idx ON account_pinned_goal(account_id, pinned_at ASC);
+-- SPEC §3.1: percentage is measured from goal start, not from zero. Without a
+-- baseline "82% to your Fire cape" cannot be computed at all — a level-92
+-- player pinning 99 would read as 92% done on day one.
+ALTER TABLE account_pinned_goal ADD COLUMN IF NOT EXISTS baseline JSONB;
+ALTER TABLE account_pinned_goal ADD COLUMN IF NOT EXISTS is_primary BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE account_pinned_goal ADD COLUMN IF NOT EXISTS sort_order INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE account_pinned_goal ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ;
+-- Exactly one primary goal per account (§3.1). A partial unique index states
+-- that as a database fact rather than as a convention the app remembers.
+CREATE UNIQUE INDEX IF NOT EXISTS account_pinned_goal_primary_idx
+  ON account_pinned_goal(account_id) WHERE is_primary;
+-- The original CHECK allowed only item|level|unlock. The spec's nine types
+-- have to fit, and the old three keep working: every existing row stays valid
+-- under the widened pattern, which is why this is a widening and not a
+-- rewrite. Dropped and re-added as a pair so re-running the schema is still
+-- idempotent.
+ALTER TABLE account_pinned_goal DROP CONSTRAINT IF EXISTS account_pinned_goal_goal_key_check;
+ALTER TABLE account_pinned_goal DROP CONSTRAINT IF EXISTS account_pinned_goal_key_shape;
+ALTER TABLE account_pinned_goal ADD CONSTRAINT account_pinned_goal_key_shape
+  CHECK (goal_key ~ '^(item|level|unlock|skill_level|skill_xp|boss_kc|gear_item|gear_tier|quest|diary|clog_slots|ca_tier|custom):[a-z0-9:_-]{1,90}$');
+
+-- SPEC §2.2 hiscore_snapshots. Distinct from sync_snapshot on purpose:
+-- sync_snapshot is plugin-sourced and only exists for players who installed
+-- the plugin, while the daily cron backbone (§2.3 job 1) has to work for
+-- RSN-only players too. This is the table that gives the product a clock.
+CREATE TABLE IF NOT EXISTS hiscore_snapshot (
+  hiscore_snapshot_id BIGSERIAL PRIMARY KEY,
+  account_id UUID NOT NULL REFERENCES account_identity(account_id) ON DELETE CASCADE,
+  taken_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  skills JSONB NOT NULL,
+  bosses JSONB,
+  source TEXT NOT NULL DEFAULT 'cron',
+  CHECK (source IN ('cron', 'manual', 'plugin'))
+);
+CREATE INDEX IF NOT EXISTS hiscore_snapshot_account_idx
+  ON hiscore_snapshot(account_id, taken_at DESC);
+-- One row per account per day from the cron: a second daily row would make
+-- every delta read as zero.
+CREATE UNIQUE INDEX IF NOT EXISTS hiscore_snapshot_daily_idx
+  ON hiscore_snapshot(account_id, (taken_at::date)) WHERE source = 'cron';
+
+-- SPEC §2.2 weekly_progress. Materialised by the Sunday recap job; also the
+-- delivery ledger, so "recap delivered" and "recap clicked" are server-side
+-- facts rather than client-side guesses (§7).
+CREATE TABLE IF NOT EXISTS weekly_progress (
+  account_id UUID NOT NULL REFERENCES account_identity(account_id) ON DELETE CASCADE,
+  week_start DATE NOT NULL,
+  xp_gained BIGINT NOT NULL DEFAULT 0,
+  levels_gained INTEGER NOT NULL DEFAULT 0,
+  kc_gained JSONB NOT NULL DEFAULT '{}'::jsonb,
+  clog_slots_gained INTEGER NOT NULL DEFAULT 0,
+  goal_progress JSONB NOT NULL DEFAULT '{}'::jsonb,
+  qualified_for_streak BOOLEAN NOT NULL DEFAULT FALSE,
+  recap_token TEXT UNIQUE,
+  recap_sent_at TIMESTAMPTZ,
+  recap_channel TEXT,
+  recap_clicked_at TIMESTAMPTZ,
+  PRIMARY KEY (account_id, week_start),
+  CHECK (recap_channel IS NULL OR recap_channel IN ('discord', 'email'))
+);
+CREATE INDEX IF NOT EXISTS weekly_progress_week_idx ON weekly_progress(week_start DESC);
+
+-- SPEC §2.2 milestones. Append-only.
+-- PRINCIPLE 1 IS ENFORCED HERE, not in the application: every kind names a
+-- real in-game achievement. There is deliberately no kind for opening the
+-- site, clicking, or referring anyone — a hollow badge cannot be inserted
+-- because the database will not accept one.
+CREATE TABLE IF NOT EXISTS milestone (
+  milestone_id BIGSERIAL PRIMARY KEY,
+  account_id UUID NOT NULL REFERENCES account_identity(account_id) ON DELETE CASCADE,
+  achieved_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  kind TEXT NOT NULL,
+  payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+  shared BOOLEAN NOT NULL DEFAULT FALSE,
+  CHECK (kind IN (
+    'level', 'kc_threshold', 'clog_slot', 'ca_tier',
+    'gear_tier_unlocked', 'goal_completed', 'adventurer_rank_up'
+  ))
+);
+CREATE INDEX IF NOT EXISTS milestone_account_idx ON milestone(account_id, achieved_at DESC);
+
+-- A migration that reads a new column backfills it in the same commit
+-- (CLAUDE.md). Every goal pinned before today has no baseline, and a goal with
+-- no baseline reads as progress-from-zero: a level-92 player who pinned 99
+-- would see 92% on the day they set it. Seed each one from that account's
+-- newest snapshot so the percentage counts from when the goal was set.
+--
+-- Only skills are backfilled, because skills are the only metric the pre-today
+-- goal types (item|level|unlock) measure against and the only one every
+-- existing snapshot carries. Goals whose baseline cannot be derived keep NULL,
+-- which the reader treats as "unknown" and says so, rather than as zero.
+UPDATE account_pinned_goal g
+SET baseline = jsonb_build_object(
+      'skills', s.skills,
+      'capturedAt', s.captured_at,
+      'backfilled', true
+    )
+FROM (
+  SELECT DISTINCT ON (account_id) account_id, skills, captured_at
+  FROM sync_snapshot
+  ORDER BY account_id, captured_at DESC
+) s
+WHERE g.account_id = s.account_id AND g.baseline IS NULL;
+
+-- The oldest goal per account becomes the primary one. Exactly one, enforced
+-- by account_pinned_goal_primary_idx above; without this every pre-today
+-- account has zero primaries and the goal bar has nothing to pin.
+UPDATE account_pinned_goal g
+SET is_primary = TRUE
+FROM (
+  SELECT DISTINCT ON (account_id) account_id, goal_key
+  FROM account_pinned_goal
+  ORDER BY account_id, pinned_at ASC
+) first
+WHERE g.account_id = first.account_id
+  AND g.goal_key = first.goal_key
+  AND NOT EXISTS (
+    SELECT 1 FROM account_pinned_goal p
+    WHERE p.account_id = g.account_id AND p.is_primary
+  );
 `;
 
 export function syncSchemaStatements(): string[] {
