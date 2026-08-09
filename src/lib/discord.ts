@@ -5,6 +5,7 @@
 import type { BankDiff } from "./diff";
 import type { OrganizedTab } from "./organizer";
 import { BRAND_NAME, BRAND_URL, brandUrl } from "./brand";
+import { isDiscordWebhookUrl } from "./discord-webhook";
 import { ICON_URL } from "./utils";
 
 const STORAGE_KEY = "scapestack-bank:discord-webhook";
@@ -47,8 +48,16 @@ export function clearWebhookConfig(): void {
   } catch {}
 }
 
+/**
+ * One definition, in discord-webhook.ts.
+ *
+ * This used to be a second regex saying almost the same thing. The server's
+ * copy is the one an attacker probes — it decides what the server will dial —
+ * so it is the strict one, and this browser-side check now asks it rather than
+ * drifting away from it. Two rules for one meaning is a bug in waiting.
+ */
 export function isValidDiscordWebhook(url: string): boolean {
-  return /^https:\/\/(discord\.com|discordapp\.com|ptb\.discord\.com|canary\.discord\.com)\/api\/webhooks\/\d+\/[\w-]+$/i.test(url.trim());
+  return isDiscordWebhookUrl(url.trim());
 }
 
 // Throttle: don't spam Discord. Refuse to send within N minutes of last send.

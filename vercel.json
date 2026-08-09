@@ -4,6 +4,10 @@
     {
       "path": "/api/cron/hiscores",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/recap",
+      "schedule": "0 18 * * 0"
     }
   ]
 }

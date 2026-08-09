@@ -40,6 +40,12 @@ export interface HiscoreSnapshotRow {
   source: HiscoreSnapshotSource;
 }
 
+/**
+ * Jagex's summary row. Stored, because the page shows total level and total
+ * XP, but never counted as a skill — it is the sum of the others.
+ */
+const SUMMARY_SKILL = "overall";
+
 /** Unranked reads -1 from Jagex. That is "not on the board", never zero. */
 function ranked(value: number): boolean {
   return Number.isFinite(value) && value >= 0;
@@ -171,6 +177,11 @@ export function hiscoreDelta(
   let levelsGained = 0;
   const levelUps: HiscoreDelta["levelUps"] = [];
   for (const [skill, now] of Object.entries(after.skills)) {
+    // "Overall" is Jagex's own sum of the other rows, not a skill. Counting it
+    // alongside them doubles every XP and level a week ever reports — a 1.2M
+    // week is announced as 2.4M — and there is no reading of the data from
+    // which that number is true.
+    if (skill === SUMMARY_SKILL) continue;
     const was = before.skills[skill];
     if (!was) continue;
     if (Number.isFinite(now.xp) && Number.isFinite(was.xp) && now.xp > was.xp) {

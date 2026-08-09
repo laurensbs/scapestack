@@ -74,6 +74,28 @@ describe("deltas", () => {
     expect(delta.moved).toBe(false);
   });
 
+  it("does not count Overall, which is the sum of the others", () => {
+    // Jagex sends Overall as a summary row. Counting it alongside the skills
+    // doubles every number a recap reports — a 300k week announced as 600k —
+    // and no reading of the data makes that true. Every delta test before this
+    // one omitted Overall from its fixture, which is why it went unnoticed.
+    const before = snapshot({ overall: [1500, 100_000_000], slayer: [92, 6_800_000] });
+    const after = snapshot({ overall: [1501, 100_300_000], slayer: [93, 7_100_000] });
+    const delta = hiscoreDelta(before, after);
+    expect(delta.xpGained).toBe(300_000);
+    expect(delta.levelsGained).toBe(1);
+    expect(delta.levelUps).toEqual([{ skill: "slayer", from: 92, to: 93 }]);
+  });
+
+  it("never awards a milestone for total level", () => {
+    // Total level crosses 60, 70, 80 and 99 in a player's first week. Those
+    // are not achievements, and a recap that announced four of them at once
+    // would be the hollow gamification §1 forbids.
+    const before = snapshot({ overall: [58, 100_000], attack: [20, 5_000] });
+    const after = snapshot({ overall: [72, 180_000], attack: [24, 7_000] });
+    expect(milestonesFromDelta(before, after, hiscoreDelta(before, after))).toEqual([]);
+  });
+
   it("never reports a negative gain when a rank or reading regresses", () => {
     const before = snapshot({ slayer: [92, 6_800_000] }, { zulrah: 812 });
     const after = snapshot({ slayer: [92, 6_700_000] }, { zulrah: 800 });

@@ -231,7 +231,23 @@ this file ticked as I go.
 - [x] 4. "Serves your goal" label — done. `ci:check` green, 1,841 unit tests.
       The label fires only on structured evidence (`completionTarget`), never
       on a title match — guarded.
-- [ ] 5. Weekly recap + Discord (+ email behind a flag)
+- [x] 5. Weekly recap + Discord (+ email behind a flag)
+      `weekly-recap.ts` (copy, pure), `weekly-recap-build.ts` (two readings →
+      a week), `weekly-recap-repo.ts` (ledger), `weekly-recap-job.ts` (send),
+      `/api/cron/recap` Sunday 18:00 UTC, `/r/[token]` for server-side CTR,
+      `/api/account/recap` + the control on `/plugin` so a webhook can be set
+      at all, `/api/metrics` for the four §7 numbers.
+      Email is not sent: the columns exist, nothing writes them, and the job
+      claims channel `'discord'` only. A verified address and a provider come
+      before a first email, per the scope agreed.
+      `scripts/verify-recap-ledger.mts` drives the ledger against a real
+      Postgres — twelve checks, including two concurrent claims producing one
+      token. Sabotaged: removing `AND recap_sent_at IS NULL` fails four of
+      them. Mocks could not have caught it.
+      Found and fixed on the way: `hiscoreDelta` counted Jagex's `overall`
+      summary row as a skill, doubling every XP and level figure and awarding
+      milestones for total level. No delta test had ever put `overall` in a
+      fixture.
 - [ ] 6. Empty states
 - [ ] 7. Copy pass
 

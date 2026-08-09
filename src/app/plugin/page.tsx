@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DeleteAccountDataButton } from "@/components/delete-account-data-button";
 import { PluginSyncChecker } from "@/components/plugin-sync-checker";
+import { WeeklyRecapSettings } from "@/components/weekly-recap-settings";
 import { PLUGIN_VERIFY_SYNC_HASH } from "@/lib/plugin-bank-bridge";
 
 export const revalidate = 300;
@@ -140,6 +141,13 @@ export default function PluginPage() {
             <dt className="text-[13px] font-bold text-[var(--color-text)]">What it does not send</dt>
             <dd className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
               Your password. Your inventory. Your chat. Where you are standing. Screenshots.
+            </dd>
+          </div>
+          <div className="py-4">
+            <dt className="text-[13px] font-bold text-[var(--color-text)]">The Sunday recap</dt>
+            <dd className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
+              Once a week Scapestack can post what you banked — XP, levels, KC, log slots, and how far your goal moved — to a Discord channel you choose. One message, Sunday evening. A week with nothing in it is not sent.
+              <WeeklyRecapSettings />
             </dd>
           </div>
           <div className="py-4 last:pb-0">
