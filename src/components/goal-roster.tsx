@@ -68,7 +68,7 @@ export function GoalRoster({ onPick }: { onPick?: (set: GoalSet) => void }) {
             Every unlock
           </h2>
           <p className="mt-0.5 text-[13px] text-[var(--color-text-dim)]">
-            Pick one to see what it takes. Add your bank and each shows how close you are.
+            What each one takes, before any account. Add your bank and each shows how close you are.
           </p>
         </div>
         <label className="relative sm:w-64">

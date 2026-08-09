@@ -42,7 +42,23 @@ function requirementLine(boss: Boss): string | null {
  * roster renders on the server, gets crawled, and each boss has a URL worth
  * sharing.
  */
-export function BossRoster({ onPick }: { onPick?: (boss: Boss) => void }) {
+export function BossRoster({
+  onPick,
+  interactive = true
+}: {
+  onPick?: (boss: Boss) => void;
+  /**
+   * False where a tile has nowhere to go.
+   *
+   * The link below points at /dps?boss=<slug>, and /dps reads only `rsn` — it
+   * drops `boss` and redirects an anonymous visitor straight back to the page
+   * they clicked from, losing their scroll position in a 59-row grid. So on a
+   * surface with no boss detail to open, the tiles are rows rather than 59
+   * links that cost a round trip to do nothing, and the line above them stops
+   * telling the player to pick one.
+   */
+  interactive?: boolean;
+}) {
   const [query, setQuery] = useState("");
 
   const bosses = useMemo(() => {
@@ -64,7 +80,9 @@ export function BossRoster({ onPick }: { onPick?: (boss: Boss) => void }) {
             Every boss
           </h2>
           <p className="mt-0.5 text-[13px] text-[var(--color-text-dim)]">
-            Pick one to see the trip. Add your bank and each gets a verdict.
+            {interactive
+              ? "Pick one to see the trip. Add your bank and each gets a verdict."
+              : "What the game asks for, before any account. Add your name and each of these gets a verdict about yours."}
           </p>
         </div>
         <label className="relative sm:w-64">
@@ -112,11 +130,15 @@ export function BossRoster({ onPick }: { onPick?: (boss: Boss) => void }) {
                       </span>
                     </>
                   );
-                  return onPick ? (
-                    <button type="button" onClick={() => onPick(boss)} className={tileClass}>
-                      {inner}
-                    </button>
-                  ) : (
+                  if (onPick) {
+                    return (
+                      <button type="button" onClick={() => onPick(boss)} className={tileClass}>
+                        {inner}
+                      </button>
+                    );
+                  }
+                  if (!interactive) return <div className={tileClass}>{inner}</div>;
+                  return (
                     <Link href={`/dps?boss=${boss.slug}`} className={tileClass}>
                       {inner}
                     </Link>

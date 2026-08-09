@@ -125,4 +125,70 @@ test.describe("three labels, three destinations", () => {
     await expect(roster.getByText("Vorkath", { exact: false }).first()).toBeVisible();
     await expect(roster.getByText("Zulrah", { exact: false }).first()).toBeVisible();
   });
+
+  test("no roster tile is a link to the page it is already on", async ({ page }) => {
+    // The first version of this batch mounted BossRoster with its tiles still
+    // linking to /dps?boss=<slug>. /dps reads only `rsn` — it drops the slug
+    // and redirects an anonymous visitor straight back here, so all 59 tiles
+    // cost a round trip, changed nothing, and dropped the player at the top of
+    // a grid they had scrolled through. The previous guard asserted the bosses
+    // were VISIBLE and never clicked one, which is how it shipped.
+    for (const path of ["/dps", "/slayer", "/goals"]) {
+      await page.goto(path);
+      const settled = page.url();
+      const links = page.locator("[data-section-roster] a");
+      const count = await links.count();
+      for (let index = 0; index < count; index += 1) {
+        const href = await links.nth(index).getAttribute("href");
+        expect(href, `${path}: a roster tile links to nowhere`).toBeTruthy();
+        // Resolve it the way the browser would and compare against where we are.
+        const resolved = new URL(href!, settled);
+        expect(
+          resolved.pathname === new URL(settled).pathname && resolved.search === new URL(settled).search,
+          `${path}: tile href ${href} resolves to the page it sits on`
+        ).toBe(false);
+      }
+    }
+  });
+
+  test("nothing tells the player to pick something that does nothing", async ({ page }) => {
+    for (const path of ["/dps", "/goals"]) {
+      await page.goto(path);
+      const roster = page.locator("[data-section-roster]");
+      const clickable = await roster.locator("a, button").count();
+      const text = await roster.innerText();
+      if (clickable === 0) {
+        expect(text, `${path} instructs a click but has nothing clickable`).not.toMatch(/\bPick one\b/i);
+      }
+    }
+  });
+});
+
+test.describe("each entry point agrees with itself", () => {
+  test("the tab title matches the heading", async ({ page }) => {
+    // All four sections served "Can I leave the bank?", so a player reading
+    // "Can I kill this?" on the boss roster had "Can I leave the bank?" in
+    // their tab — and every one of those URLs sits in the sitemap under it.
+    const pairs = [
+      { path: "/dps", heading: /can i kill this/i },
+      { path: "/slayer", heading: /is this task worth it/i },
+      { path: "/goals", heading: /what can this bank finish/i }
+    ];
+    for (const pair of pairs) {
+      await page.goto(pair.path);
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(pair.heading);
+      const title = await page.title();
+      expect(title, `${pair.path} tab says "${title}"`).not.toMatch(/can i leave the bank/i);
+    }
+  });
+
+  test("bare /bank is bank setup, not the sets page", async ({ page }) => {
+    // sectionFromBankQuery falls back to "sets" so a paste always lands
+    // somewhere. Letting that default drive the COPY turned the nav's own
+    // "Setup" into the Sets page — the same defect as three labels sharing one
+    // form, wearing the opposite hat.
+    await page.goto("/bank");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(/add bank once/i);
+    await expect(page.locator("[data-section-roster]")).toHaveCount(0);
+  });
 });

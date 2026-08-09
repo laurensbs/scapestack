@@ -48,13 +48,30 @@ const SECTION_COPY: Record<PlayerToolSection, { eyebrow: string; title: string; 
 };
 
 function SectionRoster({ section }: { section: PlayerToolSection }) {
-  if (section === "bosses") return <BossRoster />;
+  // interactive={false}: every tile links to /dps?boss=<slug>, and /dps reads
+  // only `rsn`. It drops the slug and redirects an anonymous visitor back to
+  // this exact page — a round trip that changes nothing except losing their
+  // scroll position in a 59-row grid.
+  if (section === "bosses") return <BossRoster interactive={false} />;
   if (section === "task") return <SlayerMasterReference />;
   if (section === "sets") return <GoalRoster />;
   return null;
 }
 
-export function BankIntakeOnly({ section }: { section: PlayerToolSection }) {
+export function BankIntakeOnly({
+  section,
+  requested = true
+}: {
+  section: PlayerToolSection;
+  /**
+   * Whether the visitor actually asked for a section.
+   *
+   * sectionFromBankQuery defaults to "sets" so a paste always has somewhere to
+   * land, which is right for routing and wrong for copy — bare /bank is the
+   * nav's "Setup" and it started rendering "What can this bank finish?".
+   */
+  requested?: boolean;
+}) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -74,7 +91,14 @@ export function BankIntakeOnly({ section }: { section: PlayerToolSection }) {
     startTransition(() => router.push(playerToolSectionPath(cleanRsn, section)));
   };
 
-  const copy = SECTION_COPY[section];
+  // Bare /bank is bank setup, which is what its nav label says.
+  const copy = requested
+    ? SECTION_COPY[section]
+    : {
+        eyebrow: "Bank setup",
+        title: "Add bank once",
+        blurb: "Add your name and RuneLite bank export. The answer opens on that player page."
+      };
 
   return (
     <main className="scape-page max-w-3xl" data-bank-section={section}>
@@ -110,9 +134,11 @@ export function BankIntakeOnly({ section }: { section: PlayerToolSection }) {
       {/* The content the label promised, before the paste rather than after
           it. A page about bosses with no bosses on it is the "dashboardy and
           empty" complaint in its purest form. */}
-      <div className="mt-8" data-section-roster={section}>
-        <SectionRoster section={section} />
-      </div>
+      {requested && (
+        <div className="mt-8" data-section-roster={section}>
+          <SectionRoster section={section} />
+        </div>
+      )}
     </main>
   );
 }

@@ -6,6 +6,7 @@ import { usePinnedGoals } from "@/components/use-pinned-goals";
 import {
   createPinnedGoal,
   loadPinnedGoals,
+  PINNED_GOAL_CHOICES,
   pinnedGoalBaselineFrom,
   pinnedGoalChoiceFromInput,
   pinnedGoalProgress,
@@ -104,6 +105,26 @@ function GoalChoiceRow({ choice, onPin }: { choice: PinnedGoalChoice; onPin: (ch
   );
 }
 
+/**
+ * The catalogue's own measurable entries, for when nothing suggested survives.
+ *
+ * Walks rather than maps: the catalogue is a few hundred rows and each test
+ * builds a goal, so it stops as soon as it has enough.
+ */
+function measurableFromCatalogue(
+  limit: number,
+  pinned: ReadonlySet<string>,
+  worthOffering: (choice: PinnedGoalChoice) => boolean
+): PinnedGoalChoice[] {
+  const out: PinnedGoalChoice[] = [];
+  for (const choice of PINNED_GOAL_CHOICES) {
+    if (out.length >= limit) break;
+    if (pinned.has(choice.key)) continue;
+    if (worthOffering(choice)) out.push(choice);
+  }
+  return out;
+}
+
 export function GoalBar({
   rsn,
   evidence,
@@ -130,13 +151,51 @@ export function GoalBar({
   // and a list long enough to need reading is a list that gets skipped. Once
   // they have a goal, the picker is a picker again and shows the full six.
   const suggestionLimit = active ? 6 : 3;
-  const suggested = suggestions
+  const offered = suggestions
     .map(pinnedGoalChoiceFromInput)
-    .filter((choice): choice is PinnedGoalChoice => Boolean(choice && !pinnedKeys.has(choice.key)))
-    .slice(0, suggestionLimit);
+    .filter((choice): choice is PinnedGoalChoice => Boolean(choice && !pinnedKeys.has(choice.key)));
+  const worthwhile = offered.filter(worthOffering).slice(0, suggestionLimit);
+  // Filtering must never empty the picker. An account whose every suggestion
+  // needs RuneLite would otherwise be offered nothing at all, and a goal line
+  // with nothing to pin is worse than one offering a goal it cannot measure —
+  // it is the one control the whole return loop hangs off. Fall back to the
+  // catalogue's own measurable entries, which for a hiscores-only viewer means
+  // levels, XP and KC.
+  const suggested = worthwhile.length > 0
+    ? worthwhile
+    : measurableFromCatalogue(suggestionLimit, pinnedKeys, worthOffering);
   const results = query.trim()
     ? searchPinnedGoalChoices(query).filter((choice) => !pinnedKeys.has(choice.key)).slice(0, 6)
     : suggested;
+
+  /**
+   * Can this page put a number next to that goal?
+   *
+   * The goal line's entire promise is "you are X% to your goal", and for a
+   * visitor who has never paired, the suggestions it offered were item and
+   * unlock goals — kinds whose progress needs a RuneLite sync. Pinning one
+   * produced a goal with nothing beside it. The page's own suggestions were
+   * the ones it could not answer.
+   *
+   * Asked of the engine rather than answered from a hardcoded list of kinds,
+   * so a kind that becomes measurable later starts being offered on its own
+   * instead of waiting for someone to remember this line.
+   */
+  function worthOffering(choice: PinnedGoalChoice): boolean {
+    const now = new Date().toISOString();
+    const goal = createPinnedGoal({
+      ...choice.input,
+      pinnedAt: now,
+      baseline: pinnedGoalBaselineFrom(evidence, now)
+    });
+    if (!goal) return false;
+    const progress = pinnedGoalProgress(goal, evidence);
+    // A number, and room left to move it. Offering an already-finished goal is
+    // not a goal — "pin 60 Attack" to a maxed account is noise, and the page
+    // renders it as a completed verdict, which is a promise about the future
+    // written in the past tense.
+    return progress.percent !== null && !progress.done;
+  }
 
   function pinChoice(choice: PinnedGoalChoice): void {
     const now = new Date().toISOString();
