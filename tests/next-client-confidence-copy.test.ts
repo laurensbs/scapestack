@@ -26,12 +26,12 @@ describe("/next confidence UI copy", () => {
   // voice section bans ("vibe", "session"). They are table rows now — name,
   // one dry line, where it leads — and the row is still one real button.
   it("makes alternative route rows visibly and accessibly clickable", () => {
-    expect(source).toContain("onSelect: (rec: Recommendation) => void;");
-    expect(source).toContain("onHide: (rec: Recommendation) => void;");
-    expect(source).toContain("onClick={() => onSelect(rec)}");
-    expect(source).toContain("onClick={() => onHide(rec)}");
-    expect(source).toContain("aria-label={`Choose ${rec.title}`}");
-    expect(source).toContain("aria-label={`Hide ${rec.title}`}");
+    expect(source).toContain("onSelectAlternative: (rec: Recommendation) => void;");
+    expect(source).toContain("onRejectHeadline: (rec: Recommendation) => void;");
+    expect(source).toContain("onClick={() => onSelectAlternative?.(alt)}");
+    expect(source).toContain("onClick={() => onRejectHeadline?.(rec)}");
+    expect(source).toContain("aria-label={`Choose ${alt.title}`}");
+    expect(source).toContain("aria-label={`Hide ${rec.title} and pick something else`}");
     expect(source).toContain('type="button"');
     expect(source).not.toContain("Two different session routes.");
     expect(source).not.toContain("Choose a different vibe");
@@ -325,9 +325,13 @@ describe("/next confidence UI copy", () => {
     expect(source).not.toContain("onPick={applySessionIntent}");
     expect(source).toContain("pickForRoute(visibleRecs, mood, minutes, routeLens, 0, routePickOptions)");
     expect(source).not.toContain("Change time or pace");
-    expect(source).toContain("Not this?");
-    expect(source).toContain("onSelect={selectAlternative}");
-    expect(source).toContain("onHide={hideRecommendation}");
+        // The "Not this?" table became one line beside the primary action on
+    // 2026-08-08: an <h3>, a <thead> of ROUTE/GOAL/ACTION, two sprites, two
+    // helper sentences and two hide buttons cost 211px to reject the answer
+    // against 286px to state it. The guard follows the promise, not the table.
+    expect(source).toContain("Not tonight?");
+    expect(source).toContain("onSelectAlternative={selectAlternative}");
+    expect(source).toContain("onRejectHeadline={onSuppress}");
     expect(source).toContain("const fallbackRecs = activePick ? activePick.alternatives.slice(0, 2) : [];");
     expect(source).not.toContain("Use these when the main move is blocked or not the session you want.");
     expect(source).not.toContain("Backups");
@@ -378,15 +382,21 @@ describe("/next confidence UI copy", () => {
   // Direction B reverses that on purpose: the alternatives are table rows —
   // name, one dry line, where it leads — under one ruled "Not this?" block.
   it("renders the alternatives as table rows under one ruled block", () => {
-    expect(source).toContain("export function PlayerPlanAlternatives");
+    expect(source).toContain("scape-answer-alts");
     expect(source).not.toContain("function RecRow(");
     expect(source).not.toContain("function RecRowExpandable");
     expect(source).not.toContain("min-h-[136px]");
-    expect(source).toContain("Not this?");
-    expect(source).toContain('aria-label="Alternative routes"');
+        // The "Not this?" table became one line beside the primary action on
+    // 2026-08-08: an <h3>, a <thead> of ROUTE/GOAL/ACTION, two sprites, two
+    // helper sentences and two hide buttons cost 211px to reject the answer
+    // against 286px to state it. The guard follows the promise, not the table.
+    expect(source).toContain("Not tonight?");
+    // Was a <table aria-label="Alternative routes"> with column headers.
+    // Column headers promise a dataset; two rows is not a dataset.
+    expect(source).toContain("alternatives={fallbackRecs}");
     expect(source).toContain("const fallbackRecs = activePick ? activePick.alternatives.slice(0, 2) : [];");
-    expect(source).toContain("onClick={() => onSelect(rec)}");
-    expect(source).toContain("aria-label={`Choose ${rec.title}`}");
+    expect(source).toContain("onClick={() => onSelectAlternative?.(alt)}");
+    expect(source).toContain("aria-label={`Choose ${alt.title}`}");
     expect(source).not.toContain("Other things you can do");
     expect(source).not.toContain("Backup moves");
     expect(source).not.toContain("Use these when the main move is blocked or not the session you want.");
@@ -519,8 +529,10 @@ describe("/next confidence UI copy", () => {
     expect(source).toContain("Want chill?");
     expect(source).toContain("Want action?");
     expect(source).toContain("Prefer unlock?");
-    expect(source).toContain("backupChoicePrompt(rec, headline)");
-    expect(source).toContain("onSelect={selectAlternative}");
+    // backupChoicePrompt wrote a helper sentence per alternative row. One
+    // line of names carries the same job in a fifth of the pixels.
+    expect(source).toContain("alternatives={fallbackRecs}");
+    expect(source).toContain("onSelectAlternative={selectAlternative}");
     expect(source).not.toContain("backupPrompt?: { label: string; helper: string }");
   });
 

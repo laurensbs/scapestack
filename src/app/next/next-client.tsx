@@ -20,7 +20,7 @@ import { AccountModeBadge } from "@/components/account-mode-badge";
 import { XpDropLoader } from "@/components/xp-drop-loader";
 import { ShuffleLoader } from "@/components/shuffle-loader";
 import { QuestCompletionQuestions } from "@/components/quest-completion-questions";
-import { PlayerPlanAlternatives, PlayerPlanAnswer, type PlayerPlanLine } from "@/components/player-plan-answer";
+import { PlayerPlanAnswer, type PlayerPlanLine } from "@/components/player-plan-answer";
 import { BOSSES, type Boss } from "@/lib/bosses";
 import { organizeAction, nextUpAction, planningContextAction } from "@/app/actions";
 import { type HiscoreSkill } from "@/lib/hiscores";
@@ -3700,6 +3700,9 @@ function NextTripCard({
   actionContext,
   onBossOpen,
   onStart,
+  alternatives,
+  onSelectAlternative,
+  onRejectHeadline,
   hasBankContext,
   bankItems,
   accountMode
@@ -3709,6 +3712,9 @@ function NextTripCard({
   actionContext: RecommendationActionContext;
   onBossOpen: (slug: string) => void;
   onStart: (rec: Recommendation) => void;
+  alternatives: Recommendation[];
+  onSelectAlternative: (rec: Recommendation) => void;
+  onRejectHeadline: (rec: Recommendation) => void;
   hasBankContext: boolean;
   bankItems: BankHandoffItem[];
   accountMode: NextUpResult["summary"]["accountMode"];
@@ -3729,6 +3735,9 @@ function NextTripCard({
       decisionCopy={decisionCopy}
       planLines={planLines}
       actionContext={actionContext}
+      alternatives={alternatives}
+      onSelectAlternative={onSelectAlternative}
+      onRejectHeadline={onRejectHeadline}
       onBossOpen={onBossOpen}
       onStart={onStart}
     />
@@ -4639,12 +4648,8 @@ function WhatToDo({
               bankItems={bankItems}
               accountMode={accountMode}
               pluginSyncState={pluginSyncState}
-            />
-            <PlayerPlanAlternatives
-              headline={activePick.headline}
               alternatives={fallbackRecs}
-              onSelect={selectAlternative}
-              onHide={hideRecommendation}
+              onSelectAlternative={selectAlternative}
             />
             {lastStarted && !lastSuppressed && !lastCompleted && (
               <div
@@ -4949,7 +4954,9 @@ function RecHeadlineExpandable({
   hasBankContext,
   bankItems,
   accountMode,
-  pluginSyncState
+  pluginSyncState,
+  alternatives,
+  onSelectAlternative
 }: {
   rec: Recommendation;
   decision: RecommendationDecision;
@@ -4965,6 +4972,8 @@ function RecHeadlineExpandable({
   bankItems: BankHandoffItem[];
   accountMode: NextUpResult["summary"]["accountMode"];
   pluginSyncState: "live" | "stale" | "outdated" | null;
+  alternatives: Recommendation[];
+  onSelectAlternative: (rec: Recommendation) => void;
 }) {
   const [open, setOpen] = useState(false);
   const tripDetailsRef = useDialogA11y<HTMLElement>(open, () => setOpen(false));
@@ -4982,6 +4991,9 @@ function RecHeadlineExpandable({
         rec={rec}
         decision={decision}
         actionContext={actionContext}
+        alternatives={alternatives}
+        onSelectAlternative={onSelectAlternative}
+        onRejectHeadline={onSuppress}
         onBossOpen={onBossOpen}
         onStart={onStart}
         hasBankContext={hasBankContext}

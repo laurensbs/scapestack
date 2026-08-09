@@ -40,6 +40,9 @@ const MAX_SEMIBOLD_SHARE = 0.35;
 interface PageAudit {
   height: number;
   expandedHeight: number;
+  goalControlY: number;
+  altsShare: number;
+  doubledRules: string[];
   viewport: { width: number; height: number };
   sections: string[];
   images: { total: number; emptySrc: number; broken: string[]; upscaled: string[] };
@@ -53,8 +56,8 @@ interface PageAudit {
   firstActionsAboveFold: string[];
 }
 
-async function auditPage(page: Page): Promise<PageAudit> {
-  await page.goto(PAGE_PATH);
+async function auditPage(page: Page, options: { navigate?: boolean } = {}): Promise<PageAudit> {
+  if (options.navigate !== false) await page.goto(PAGE_PATH);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   // The retry state also has an h1 and passes every budget below trivially —
   // 0 sections, 0 images, one screen tall. Without this anchor a hiscores
@@ -162,9 +165,46 @@ async function auditPage(page: Page): Promise<PageAudit> {
     for (const d of allDetails) d.open = true;
     const expandedHeight = document.body.scrollHeight;
     allDetails.forEach((d, i) => { d.open = wasOpen[i]; });
+    const goalControl = document.querySelector("[data-goal-bar] summary");
+    const answer = document.querySelector('[data-player-plan-answer="true"]');
+    const alts = document.querySelector("[data-player-plan-alternatives]");
+    const answerH = answer ? answer.getBoundingClientRect().height : 0;
+    const altsH = alts ? alts.getBoundingClientRect().height : 0;
+    // Two rules close together are one box ending and another starting —
+    // but only at SECTION level. The first version of this walked every
+    // element in main and flagged consecutive rows of a list or table as
+    // stacked rules, which is a list doing its job, not a panel. Only
+    // top-level blocks inside <main> can bound a section.
+    const edges: Array<{ y: number; what: string }> = [];
+    const sectionLevel = new Set<Element>();
+    const main = document.querySelector("main");
+    for (const child of main ? [...main.children] : []) {
+      sectionLevel.add(child);
+      for (const grandchild of child.children) sectionLevel.add(grandchild);
+    }
+    for (const el of sectionLevel) {
+      const cs = getComputedStyle(el);
+      const rect = el.getBoundingClientRect();
+      if (rect.width < document.documentElement.clientWidth * 0.6) continue;
+      if (cs.borderTopWidth !== "0px" && cs.borderTopStyle !== "none") {
+        edges.push({ y: Math.round(rect.top + window.scrollY), what: el.tagName.toLowerCase() + " top" });
+      }
+      if (cs.borderBottomWidth !== "0px" && cs.borderBottomStyle !== "none") {
+        edges.push({ y: Math.round(rect.bottom + window.scrollY), what: el.tagName.toLowerCase() + " bottom" });
+      }
+    }
+    edges.sort((a, b) => a.y - b.y);
+    const doubledRules: string[] = [];
+    for (let i = 1; i < edges.length; i++) {
+      const gap = edges[i].y - edges[i - 1].y;
+      if (gap > 0 && gap < 40) doubledRules.push(`${edges[i - 1].what}@${edges[i - 1].y} + ${edges[i].what}@${edges[i].y}`);
+    }
     return {
       height: collapsedHeight,
       expandedHeight,
+      goalControlY: goalControl ? Math.round(goalControl.getBoundingClientRect().top + window.scrollY) : Number.MAX_SAFE_INTEGER,
+      altsShare: answerH > 0 ? altsH / answerH : 0,
+      doubledRules,
       viewport: { width: window.innerWidth, height: window.innerHeight },
       sections: [...document.querySelectorAll("main section")].map(
         (section) => section.getAttribute("aria-labelledby") ?? section.getAttribute("aria-label") ?? section.tagName
@@ -243,6 +283,52 @@ test.describe("the /p/[rsn] page budget", () => {
       audit.colours.length,
       `distinct text colours: ${audit.colours.join(" ")}`
     ).toBeLessThanOrEqual(MAX_TEXT_COLOURS);
+  });
+
+  test("the goal control is above the fold, and rejecting costs less than answering", async ({ page }) => {
+    const audit = await auditPage(page);
+    // The goal is what makes the page yours. It sat third, below the fold,
+    // behind the answer and a "Not this?" table; a player had to scroll past
+    // the verdict to state an intention.
+    expect(
+      audit.goalControlY,
+      `the goal control is at y=${audit.goalControlY}, fold at ${audit.viewport.height}`
+    ).toBeLessThan(audit.viewport.height);
+    // The alternatives were 211px against the answer's 286px — rejecting the
+    // answer got more vertical space than stating it.
+    expect(
+      audit.altsShare,
+      `alternatives are ${Math.round(audit.altsShare * 100)}% of the answer's height`
+    ).toBeLessThanOrEqual(0.2);
+    // One hairline per boundary. Two full-width rules 20px apart read as the
+    // bottom of one box and the top of another — the most panel-shaped thing
+    // a document can do.
+    expect(
+      audit.doubledRules,
+      `full-width rules stacked within 40px: ${audit.doubledRules.join(", ")}`
+    ).toEqual([]);
+  });
+
+  test("the budget still holds once a goal is pinned", async ({ page }) => {
+    // A budget that only ever measures the resting state approves a state
+    // nobody uses — the same shape as a deploy check that polls for HTTP 200
+    // and approves the previous build. Pinning used to render
+    // .scape-verdict[data-gate="ready"] (#40FF00), a sixth text colour on a
+    // page budgeted to five, and no assertion in this file had ever entered
+    // that state.
+    await page.goto(PAGE_PATH);
+    await page.locator("[data-goal-bar] summary").click();
+    const choice = page.locator("[data-goal-choice]").first();
+    await expect(choice).toBeVisible();
+    await choice.click();
+    await expect(page.locator("[data-goal-bar]")).toHaveAttribute("data-goal-bar", "pinned");
+
+    const audit = await auditPage(page, { navigate: false });
+    const budget = audit.viewport.width < 700 ? 2800 : 2200;
+    expect(audit.height, `pinned page is ${audit.height}px`).toBeLessThanOrEqual(budget);
+    expect(audit.colours.length, `pinned: ${audit.colours.join(" ")}`).toBeLessThanOrEqual(MAX_TEXT_COLOURS);
+    expect(audit.familyViolations).toEqual([]);
+    expect(audit.loudCount).toBeLessThanOrEqual(1);
   });
 
   test("something to act on sits above the fold, and nothing overflows", async ({ page }) => {

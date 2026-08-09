@@ -24,7 +24,7 @@ describe("RSN profile handoffs", () => {
     expect(page).not.toContain("<PlayerSkillsTable");
     expect(page).not.toContain("<AccountTimeline");
     expect(answer).toContain('data-next-trip-card="true"');
-    expect(answer).toContain("Not this?");
+    expect(answer).toContain("Not tonight?");
     expect(skills).toContain('data-account-home-board="true"');
     expect(skills).toContain('<table className="scape-table"');
     expect(skills).toContain('<th scope="col" data-num>Level</th>');

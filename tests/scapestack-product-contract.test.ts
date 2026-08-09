@@ -78,7 +78,7 @@ describe("Scapestack anti-bankstanding product contract", () => {
     // Was "Choose a different vibe" + "Two different session routes." — three
     // heading lines restating each other in banned vocabulary. The
     // alternatives are one ruled table block now.
-    expect(next).toContain("Not this?");
+    expect(next).toContain("Not tonight?");
     expect(next).not.toContain("Choose a different vibe");
     expect(next).not.toContain("Two different session routes.");
     expect(next).toContain("const activePick = useMemo(() =>");

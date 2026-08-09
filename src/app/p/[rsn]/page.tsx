@@ -218,8 +218,10 @@ export default async function PlayerPage({ params, searchParams }: Props) {
         initialContext={context}
         goalEvidence={goalEvidence}
         goalBossSources={goalBossSources}
+        canSync={isOwner}
+        goalSuggestions={suggestedGoals}
       />}
-      goals={<PinnedGoalsPanel rsn={displayName} evidence={goalEvidence} canSync={isOwner} suggestions={suggestedGoals} />}
+      goals={<PinnedGoalsPanel rsn={displayName} evidence={goalEvidence} canSync={isOwner} />}
       routes={<PlayerRoutesPanel
         rsn={displayName}
         maxRoute={maxRoute}

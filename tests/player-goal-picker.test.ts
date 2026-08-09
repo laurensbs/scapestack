@@ -15,11 +15,7 @@ describe("the player goal picker", () => {
     const picker = createElement(PinnedGoalsPanel, {
       rsn: "Lynx Titan",
       canSync: false,
-      evidence: { skills: [] },
-      suggestions: [
-        { kind: "unlock", unlockId: "barrows-gloves" },
-        { kind: "level", skill: "Slayer", targetLevel: 99 }
-      ]
+      evidence: { skills: [] }
     });
     const playerTree = renderToStaticMarkup(createElement(PlayerHubShell, {
       header: createElement("p", null, "Identity"),

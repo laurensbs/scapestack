@@ -1,16 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, EyeOff, ExternalLink, Target } from "lucide-react";
+import { ArrowRight, ExternalLink, Target } from "lucide-react";
 import { BossSprite } from "@/components/boss-picker";
+import { GoalBar } from "@/components/goal-bar";
 import { JournalItemSprite, JournalSpriteSlot } from "@/components/journal-primitives";
 import { BOSSES } from "@/lib/bosses";
 import type { Recommendation } from "@/lib/next-up";
-import { backupChoicePrompt, playerChoiceTag } from "@/lib/player-plan-copy";
-import {
-  recommendationConfidenceEyebrow,
-  type RecommendationDecisionCopy
-} from "@/lib/recommendation-decision";
+import type { RecommendationDecisionCopy } from "@/lib/recommendation-decision";
+import type { NewPinnedGoal, PinnedGoalProgressEvidence } from "@/lib/pinned-goals";
 import {
   primaryActionForRecommendation,
   type RecommendationActionContext
@@ -59,6 +57,10 @@ export function PlayerPlanAnswer({
   decisionCopy,
   planLines,
   actionContext,
+  goalBar,
+  alternatives = [],
+  onSelectAlternative,
+  onRejectHeadline,
   onStart,
   onBossOpen
 }: {
@@ -66,6 +68,11 @@ export function PlayerPlanAnswer({
   decisionCopy: RecommendationDecisionCopy;
   planLines: PlayerPlanLine[];
   actionContext: RecommendationActionContext;
+  /** Pinned-goal wiring. Absent on surfaces that have no goals of their own. */
+  goalBar?: { rsn: string; evidence: PinnedGoalProgressEvidence; canSync: boolean; suggestions?: readonly NewPinnedGoal[] };
+  alternatives?: Recommendation[];
+  onSelectAlternative?: (rec: Recommendation) => void;
+  onRejectHeadline?: (rec: Recommendation) => void;
   onStart?: (rec: Recommendation) => void;
   onBossOpen?: (slug: string) => void;
 }) {
@@ -78,13 +85,15 @@ export function PlayerPlanAnswer({
 
   return (
     <article
-      className="min-w-0 max-w-full border-b border-[var(--color-border)] pb-4"
+      className="min-w-0 max-w-full pb-4"
       data-next-trip-card="true"
       data-player-plan-answer="true"
     >
-      <p className="eyebrow mb-2">
-        {recommendationConfidenceEyebrow(decisionCopy.confidence)}
-      </p>
+      {/* The goal, where the "Do this first" eyebrow used to be. That label
+          told a player nothing — of course it is first, it is the top of the
+          page — while the goal turns the answer into a consequence of
+          something they said. */}
+      {goalBar && <GoalBar {...goalBar} />}
       <h2 className="flex min-w-0 items-center gap-3 text-[length:var(--text-answer)] font-extrabold! leading-[1.08] text-[var(--color-text)]">
         <RecommendationGlyph rec={rec} />
         <span className="min-w-0 break-words">{decisionCopy.title}</span>
@@ -111,7 +120,7 @@ export function PlayerPlanAnswer({
         </table>
       </div>
 
-      <div className="mt-4">
+      <div className="scape-answer-actions">
         {opensBossDetail && rec.bossSlug ? (
           <button
             type="button"
@@ -147,81 +156,26 @@ export function PlayerPlanAnswer({
             </Link>
           )
         ) : null}
-      </div>
-    </article>
-  );
-}
-
-export function PlayerPlanAlternatives({
-  headline,
-  alternatives,
-  onSelect,
-  onHide
-}: {
-  headline: Recommendation;
-  alternatives: Recommendation[];
-  onSelect: (rec: Recommendation) => void;
-  onHide: (rec: Recommendation) => void;
-}) {
-  if (alternatives.length === 0) return null;
-  return (
-    <div role="region" className="pt-4" aria-labelledby="next-alternatives-title" data-player-plan-alternatives="true">
-      <h3 id="next-alternatives-title" className="text-[length:var(--text-subject)] font-semibold text-[var(--color-text)]">
-        Not this?
-      </h3>
-      <div className="scape-table-wrap mt-2">
-        <table className="scape-table" aria-label="Alternative routes">
-          <thead>
-            <tr>
-              <th scope="col">Route</th>
-              <th scope="col">Goal</th>
-              <th scope="col"><span className="sr-only">Action</span></th>
-            </tr>
-          </thead>
-          <tbody>
-            {alternatives.slice(0, 2).map((rec) => {
-              const choice = playerChoiceTag(rec);
-              const prompt = backupChoicePrompt(rec, headline);
-              return (
-                <tr key={rec.id}>
-                  <td className="w-full max-w-0">
-                    <button
-                      type="button"
-                      onClick={() => onSelect(rec)}
-                      aria-label={`Choose ${rec.title}`}
-                      className="block min-h-11 w-full py-1 text-left"
-                    >
-                      <span className="flex min-w-0 items-center gap-3">
-                        <RecommendationGlyph rec={rec} />
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-[length:var(--text-subject)] font-semibold text-[var(--color-text)]">
-                            {rec.title}
-                          </span>
-                          <span className="block max-w-[65ch] text-[length:var(--text-micro)] font-normal leading-snug text-[var(--color-text-muted)]">
-                            {prompt.helper}
-                          </span>
-                        </span>
-                      </span>
-                    </button>
-                  </td>
-                  <td className="whitespace-nowrap align-middle">{choice.label}</td>
-                  <td className="whitespace-nowrap align-middle">
-                    <button
-                      type="button"
-                      onClick={() => onHide(rec)}
-                      aria-label={`Hide ${rec.title}`}
-                      className="inline-flex min-h-11 items-center gap-1.5 px-1.5 text-[length:var(--text-micro)] font-normal text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-danger)]"
-                    >
-                      <EyeOff className="size-3.5" />
-                      Hide
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      
+        {alternatives.length > 0 && (
+          <p className="scape-answer-alts" data-player-plan-alternatives="true">
+            <span>Not tonight?</span>
+            {alternatives.slice(0, 2).map((alt) => (
+              <span key={alt.id} className="contents">
+                <button type="button" onClick={() => onSelectAlternative?.(alt)} aria-label={`Choose ${alt.title}`}>
+                  {alt.title}
+                </button>
+                <span aria-hidden="true">·</span>
+              </span>
+            ))}
+            {/* One control that means "not this, ever", bound to the headline —
+                instead of a hide button per alternative, which asked the player
+                to reject a backup they were seeing for the first time. */}
+            <button type="button" onClick={() => onRejectHeadline?.(rec)} aria-label={`Hide ${rec.title} and pick something else`}>
+              Something else
+            </button>
+          </p>
+        )}
+      </div>    </article>
   );
 }

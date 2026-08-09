@@ -97,11 +97,8 @@ export function PlayerRoutesPanel({
   }, [pinnedGoals, unlockRoutes]);
 
   return (
-    <section className="mt-5 border-t border-[var(--color-border)] pt-3" aria-labelledby="player-routes-title" data-player-routes="true">
+    <section className="scape-section-rule" aria-labelledby="player-routes-title" data-player-routes="true">
       <h2 id="player-routes-title" className="scape-section-name">Your routes</h2>
-      {!pinnedRoute && (
-        <p className="mt-2 max-w-[65ch] text-[length:var(--text-body)] font-normal text-[var(--color-text-muted)]">Pin an unlock goal to put its quest chain here.</p>
-      )}
       {pinnedRoute && <RouteCard route={pinnedRoute} />}
       <RouteCard route={maxRoute} />
       <RouteCard route={collectionRoute} />

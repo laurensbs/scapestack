@@ -55,8 +55,8 @@ describe("accessibility semantics", () => {
 
   it("marks choice controls as selected state, not just styled state", () => {
     expect(read("src/components/session-mood-picker.tsx")).toContain("aria-pressed={selected}");
-    expect(read("src/components/player-plan-answer.tsx")).toContain("aria-label={`Choose ${rec.title}`}");
-    expect(read("src/components/player-plan-answer.tsx")).toContain("aria-label={`Hide ${rec.title}`}");
+    expect(read("src/components/player-plan-answer.tsx")).toContain("aria-label={`Choose ${alt.title}`}");
+    expect(read("src/components/player-plan-answer.tsx")).toContain("aria-label={`Hide ${rec.title} and pick something else`}");
     expect(read("src/app/dps/dps-client.tsx")).toContain("aria-pressed={bossFilter === filter.key}");
     expect(read("src/components/bank-result.tsx")).toContain("aria-pressed={isSelected}");
   });

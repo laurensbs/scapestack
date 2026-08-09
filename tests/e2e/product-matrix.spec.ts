@@ -52,33 +52,42 @@ test.describe("Scapestack product story matrix", () => {
     await page.getByPlaceholder(/type your osrs name/i).fill("Lauky");
     await page.getByRole("button", { name: /plan my next move/i }).click();
     await expect(page.locator("[data-next-trip-card=true]")).toBeVisible();
-    await expect(page.getByRole("region", { name: /not this/i })).toBeVisible();
+    // The alternatives were a <div role="region" aria-label="Not this?">
+    // wrapping a table; they are one line beside the primary action now.
+    await expect(page.locator("[data-player-plan-alternatives]")).toBeVisible();
     await expect(page.getByText("Want a different kind of trip?")).toHaveCount(0);
     await expect(page.getByText("What are you in the mood for?")).toHaveCount(0);
   });
 
-  test("3. sample next plan renders one primary trip and concrete alternatives", async ({ page }) => {
+  test("3. sample next plan names one primary trip and its backups on one line", async ({ page }) => {
     await page.goto("/next?sample=1");
     await expect(page.locator("[data-next-trip-card=true]")).toBeVisible();
-    await expect(page.locator("[data-next-trip-card=true]").getByText(/do this first/i).first()).toBeVisible();
-    const alternatives = page.getByRole("table", { name: "Alternative routes" });
+    // "Do this first" was the confidence eyebrow. The goal line replaced it:
+    // a label saying the answer comes first, at the top of the page, told a
+    // player nothing its position had not already said.
+    const alternatives = page.locator("[data-player-plan-alternatives]");
     await expect(alternatives).toBeVisible();
-    await expect.poll(async () => alternatives.getByRole("row").count()).toBeGreaterThanOrEqual(2);
-    await expect.poll(async () => alternatives.getByRole("button", { name: /^Hide / }).count()).toBeGreaterThanOrEqual(1);
+    await expect(alternatives).toContainText("Not tonight?");
+    await expect.poll(async () => alternatives.getByRole("button").count()).toBeGreaterThanOrEqual(2);
     await expectNoHorizontalOverflow(page);
   });
 
-  test("4. hiding an alternative survives a reload", async ({ page }) => {
+  test("4. rejecting the headline survives a reload", async ({ page }) => {
+    // Per-alternative Hide is gone: it asked a player to reject a backup they
+    // were meeting for the first time, and cost an icon button and a table
+    // column to offer. One control means "not this, ever", bound to the
+    // headline — and the storage behind it is the same, so the promise this
+    // test guards is unchanged.
     await page.goto("/next?sample=1");
-    await expect(page.locator("[data-next-trip-card=true]")).toBeVisible();
-    const alternatives = page.getByRole("table", { name: "Alternative routes" });
-    const firstHide = alternatives.getByRole("button", { name: /^Hide / }).first();
-    const hiddenTitle = (await firstHide.getAttribute("aria-label"))!.replace(/^Hide /, "");
-    await firstHide.click();
-    await expect(alternatives.getByText(hiddenTitle, { exact: true })).toHaveCount(0);
+    const card = page.locator("[data-next-trip-card=true]");
+    await expect(card).toBeVisible();
+    const headline = (await card.getByRole("heading", { level: 2 }).innerText()).trim();
+    await page.getByRole("button", { name: /^Hide .* and pick something else$/ }).click();
+    await expect.poll(async () => (await card.getByRole("heading", { level: 2 }).innerText()).trim())
+      .not.toBe(headline);
     await page.reload();
-    await expect(page.locator("[data-next-trip-card=true]")).toBeVisible();
-    await expect(page.getByRole("table", { name: "Alternative routes" }).getByText(hiddenTitle, { exact: true })).toHaveCount(0);
+    await expect(card).toBeVisible();
+    await expect(card.getByRole("heading", { level: 2 })).not.toHaveText(headline);
   });
 
   test("5. player adds bank once and bank organizer opens", async ({ page }) => {

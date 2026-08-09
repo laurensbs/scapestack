@@ -48,7 +48,7 @@ describe("the canonical player hub", () => {
 
   it("keeps the player blocks in the brief's document order — the answer before everything", async () => {
     const { PlayerHubShell } = await import("@/components/player-hub-shell");
-    const { PlayerPlanAnswer, PlayerPlanAlternatives } = await import("@/components/player-plan-answer");
+    const { PlayerPlanAnswer } = await import("@/components/player-plan-answer");
     const answer: Recommendation = {
       id: "guard:answer",
       kind: "skill",
@@ -86,13 +86,10 @@ describe("the canonical player hub", () => {
             { label: "Bring", value: "Bring this." },
             { label: "Stop at", value: "Stop here." }
           ],
-          actionContext: { from: "next", rsn: "Lynx Titan" }
-        }),
-        createElement(PlayerPlanAlternatives, {
-          headline: answer,
+          actionContext: { from: "next", rsn: "Lynx Titan" },
           alternatives: [alternative],
-          onSelect: vi.fn(),
-          onHide: vi.fn()
+          onSelectAlternative: vi.fn(),
+          onRejectHeadline: vi.fn()
         })
       ),
       goals: createElement("p", null, "Player goals"),
@@ -102,14 +99,16 @@ describe("the canonical player hub", () => {
       "Identity header",
       "Last trip",
       "The answer",
-      "Not this?",
+      "Not tonight?",
       "Player goals",
       "Player routes"
     ].map((label) => html.indexOf(label));
 
     expect(positions.every((position) => position >= 0)).toBe(true);
     expect(positions).toEqual([...positions].sort((a, b) => a - b));
-    expect(html).toContain("Best guess");
+    // "Best guess" was the confidence eyebrow. The goal line replaced it —
+    // a label saying the answer is first, at the top of the page, told a
+    // player nothing the position did not already say.
     expect(html).toContain("No private account data was assumed.");
     expect(html).toContain(">Start<");
     expect(html).toContain(">Bring<");

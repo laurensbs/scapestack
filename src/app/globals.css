@@ -1625,3 +1625,140 @@ body.scapestack-clean-shot main {
     transparent 76%
   );
 }
+
+/* ── The goal bar ───────────────────────────────────────────────────────────
+   The goal is the answer's first line. The whole line is the control, and it
+   is a <details> on purpose: no focus-management code, works without JS, and
+   the page-budget spec's expanded-height pass can see inside it — the
+   React-state picker it replaced was invisible to every gate in this repo. */
+.scape-goal-bar {
+  margin-bottom: 0.5rem;
+}
+
+.scape-goal-bar__line {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  min-height: 44px;
+  padding: 0.35rem 0;
+  cursor: pointer;
+  list-style: none;
+}
+
+.scape-goal-bar__line::-webkit-details-marker { display: none; }
+
+.scape-goal-bar__cue {
+  font-size: var(--text-micro);
+  color: var(--color-text-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.scape-goal-bar__line:hover .scape-goal-bar__cue { color: var(--color-text); }
+
+/* 120ms, opacity only. The shared --animate-fade-in is 280ms, which is menu-
+   slow; the design system puts feedback at 50–150ms. No slide, no scale, so
+   there is nothing for prefers-reduced-motion to substitute. */
+.scape-goal-bar__panel {
+  padding-block: 0.75rem 0.25rem;
+  animation: goal-panel-in 120ms ease-out both;
+}
+
+@keyframes goal-panel-in { from { opacity: 0 } to { opacity: 1 } }
+
+.scape-goal-choices {
+  display: grid;
+  gap: 0.25rem 1.5rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .scape-goal-choices { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.scape-goal-choice {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 44px;
+  padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+  border: 1px solid transparent;
+  background: transparent;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.scape-goal-choice:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface);
+}
+
+.scape-goal-choice__slot {
+  display: flex;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid #000;
+  background: var(--color-slot);
+  box-shadow: var(--bevel-sunken);
+}
+
+.scape-goal-bar__search {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-slot);
+  font-size: var(--text-body);
+  color: var(--color-text);
+}
+
+/* One hairline per boundary, never two. The goals section closed with a
+   border-y and the routes section opened with a border-t twenty pixels
+   later — the bottom of one box and the top of another, which is the most
+   panel-shaped thing a document can do. */
+.scape-section-rule {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
+}
+
+/* The alternatives, on one line beside the primary action. They were a table
+   with ROUTE / GOAL column headers and per-row hide buttons: 211px to reject
+   the answer against 286px to state it. Column headers promise a dataset and
+   two rows is not a dataset. */
+.scape-answer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-top: 1rem;
+}
+
+.scape-answer-alts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-size: var(--text-micro);
+  color: var(--color-text-muted);
+}
+
+.scape-answer-alts button {
+  min-height: 44px;
+  color: var(--color-text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.scape-answer-alts button:hover { color: var(--color-text); }
+
+/* The one state change on this page the player caused and needs acknowledged:
+   pinning a goal, or picking an alternative, silently rewrites the biggest
+   thing on screen. Height snaps; only opacity is timed. */
+@keyframes answer-settle { from { opacity: 0.35 } to { opacity: 1 } }
+
+[data-player-plan-answer="true"] { animation: answer-settle 160ms ease-out both; }

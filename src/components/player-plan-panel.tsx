@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { nextUpAction } from "@/app/actions";
-import { PlayerPlanAnswer, PlayerPlanAlternatives, type PlayerPlanLine } from "@/components/player-plan-answer";
+import { PlayerPlanAnswer, type PlayerPlanLine } from "@/components/player-plan-answer";
 import { QuestCompletionQuestions } from "@/components/quest-completion-questions";
 import { usePinnedGoals } from "@/components/use-pinned-goals";
 import { markAccountTrip } from "@/lib/account-storage";
@@ -18,7 +18,7 @@ import {
   recommendationMovesPinnedGoal,
   type PinnedGoalBossSource
 } from "@/lib/pinned-goal-orientation";
-import type { PinnedGoalProgressEvidence } from "@/lib/pinned-goals";
+import type { NewPinnedGoal, PinnedGoalProgressEvidence } from "@/lib/pinned-goals";
 import {
   buildRecommendationDecision,
   recommendationDecisionCopy,
@@ -61,12 +61,17 @@ export function PlayerPlanPanel({
   rsn,
   initialContext,
   goalEvidence,
-  goalBossSources
+  goalBossSources,
+  canSync,
+  goalSuggestions = []
 }: {
   rsn: string;
   initialContext: PlanningContextPayload;
   goalEvidence: PinnedGoalProgressEvidence;
   goalBossSources: readonly PinnedGoalBossSource[];
+  /** Owner of this page: server-side goal storage is on. */
+  canSync: boolean;
+  goalSuggestions?: readonly NewPinnedGoal[];
 }) {
   const [result, setResult] = useState<NextUpResult | null>(initialContext.initialPlan);
   const [selectedRecommendationId, setSelectedRecommendationId] = useState<string | null>(null);
@@ -267,16 +272,11 @@ export function PlayerPlanPanel({
         decisionCopy={decisionCopy}
         planLines={planLines}
         actionContext={{ from: "next", hasBankContext: hasBank, rsn, accountType: result.summary.accountMode.type }}
-        onStart={rememberStart}
-      />
-      <PlayerPlanAlternatives
-        headline={activeRec}
+        goalBar={{ rsn, evidence: goalEvidence, canSync, suggestions: goalSuggestions }}
         alternatives={alternatives}
-        onSelect={(rec) => {
-          setSelectedRecommendationId(rec.id);
-          document.querySelector("[data-player-plan-answer='true']")?.scrollIntoView({ behavior: "smooth", block: "start" });
-        }}
-        onHide={hideAlternative}
+        onSelectAlternative={(rec: Recommendation) => setSelectedRecommendationId(rec.id)}
+        onRejectHeadline={hideAlternative}
+        onStart={rememberStart}
       />
       {result.questQuestions.length > 0 && (
         <QuestCompletionQuestions

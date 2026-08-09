@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { PlayerPlanAlternatives } from "@/components/player-plan-answer";
+import { PlayerPlanAnswer } from "@/components/player-plan-answer";
 import {
   hidePlayerPlanRecommendation,
   loadRecommendationFeedback
@@ -52,18 +52,32 @@ beforeEach(() => {
 });
 
 describe("answer-first alternatives", () => {
-  it("renders a Hide control for every concrete row and keeps a hidden row gone after reload", () => {
-    const html = renderToStaticMarkup(createElement(PlayerPlanAlternatives, {
-      headline,
+  it("names both alternatives on one line beside the action, with one reject control", () => {
+    // These were a table: an <h3> "Not this?", a <thead> with ROUTE / GOAL /
+    // sr-only ACTION, two 32px sprites, two helper sentences and two
+    // eye-slash Hide buttons — 211px to reject the answer against 286px to
+    // state it. Column headers promise a dataset and two rows is not one.
+    const html = renderToStaticMarkup(createElement(PlayerPlanAnswer, {
+      rec: headline,
+      decisionCopy: {
+        title: headline.title, why: headline.why, firstStep: "Start.", stopPoint: "Stop.",
+        timebox: "60 minutes", requiredSetup: [], confidence: "guess", sourceLine: null
+      },
+      planLines: [],
+      actionContext: { from: "next", rsn: "Lauky" },
       alternatives,
-      onSelect: vi.fn(),
-      onHide: vi.fn()
+      onSelectAlternative: vi.fn(),
+      onRejectHeadline: vi.fn()
     }));
 
-    expect(html).toContain("Not this?");
+    expect(html).toContain("Not tonight?");
     expect(html).toContain("Push Vardorvis to 50 KC");
     expect(html).toContain("Finish While Guthix Sleeps");
-    expect(html.match(/aria-label="Hide [^"]+"/g)).toHaveLength(alternatives.length);
+    // One control that means "not this, ever", bound to the headline —
+    // instead of one hide button per alternative the player has just met.
+    expect(html.match(/aria-label="Hide [^"]+"/g)).toHaveLength(1);
+    expect(html).toContain("Something else");
+    expect(html, "the table grammar must not come back").not.toContain("<thead");
     expect(html).not.toMatch(/mood|15 min|30 min|1 hour|2 hours/i);
 
     hidePlayerPlanRecommendation({
