@@ -119,7 +119,7 @@ function RouteStep({
     <div className="relative grid grid-cols-[24px_minmax(0,1fr)] gap-3 pb-5 last:pb-0">
       {!last && <span className="absolute left-[11px] top-6 h-[calc(100%-12px)] w-px bg-[var(--color-border)]" />}
       <span className={cn(
-        "relative z-10 mt-0.5 flex size-6 items-center justify-center rounded-full border bg-[var(--color-panel)]",
+        "relative z-10 mt-0.5 flex size-6 items-center justify-center rounded-[var(--radius-md)] border bg-[var(--color-panel)]",
         // Three tones, one colour: good and warning resolve to the same hex as
         // default. The icon below is the whole distinction and always was.
         "border-[var(--color-accent)]/45 text-[var(--color-accent)]"

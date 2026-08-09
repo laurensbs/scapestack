@@ -4925,7 +4925,7 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
           )}
           style={{
             color: qtyColor(item.quantity),
-            fontFamily: "var(--font-rs-small), 'Trebuchet MS', sans-serif",
+            fontFamily: "var(--font-sans)",
             letterSpacing: "-0.02em"
           }}
         >
@@ -4952,7 +4952,7 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
           className="absolute bottom-0.5 left-1 text-[9px] font-bold pointer-events-none tabular-nums"
           style={{
             color: "var(--color-osrs-qty-yellow, #ffeb3b)",
-            fontFamily: "var(--font-rs-small), 'Trebuchet MS', sans-serif",
+            fontFamily: "var(--font-sans)",
             textShadow: "1px 1px 0 rgb(0 0 0)"
           }}
           title={`${dose} dose${dose === "1" ? "" : "s"}`}
@@ -5556,7 +5556,7 @@ function QtyColorLegend() {
     <div className="relative group/legend ml-auto">
       <button
         type="button"
-        className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--color-panel)] border border-[var(--color-border)] text-[9.5px] font-mono tabular-nums hover:border-[var(--color-accent)]/40 transition-colors"
+        className="flex items-center gap-1 px-2 py-0.5 rounded-[var(--radius-md)] bg-[var(--color-panel)] border border-[var(--color-border)] text-[9.5px] font-mono tabular-nums hover:border-[var(--color-accent)]/40 transition-colors"
         aria-label="Quantity colour legend"
       >
         <span className="text-[var(--color-osrs-qty-yellow)] font-semibold">1k</span>

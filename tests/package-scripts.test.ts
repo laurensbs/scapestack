@@ -24,6 +24,10 @@ describe("package scripts", () => {
       "npm run typecheck",
       "npm test",
       "npm run smoke",
+      // REBRAND.md Section 3: the forbidden list is build-blocking, and the
+      // file says to run it "before every screenshot pass and before done".
+      // A design rule nobody runs is a design suggestion.
+      "npm run rebrand:lint",
       "npm run audit:next",
       "npm run audit:controller",
       "npm run plugin:release-check",

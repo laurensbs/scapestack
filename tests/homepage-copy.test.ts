@@ -13,7 +13,7 @@ describe("homepage first-impression copy", () => {
   it("opens as an OSRS companion with one intake", () => {
     expect(source).not.toContain("BRAND_SECONDARY_TAGLINE");
     expect(source).toContain("Stop bankstanding.");
-    expect(source).toContain("Set a goal, and Scapestack tells you the next step every session");
+    expect(source).toContain("Tell it your goal. It picks your next trip, tells you when to stop, and posts what you banked each Sunday.");
     // A reference document gets to the point: no full-viewport hero, no
     // display-size headline, and no eyebrow label above a headline that
     // already says the same thing.
@@ -74,9 +74,11 @@ describe("homepage first-impression copy", () => {
 
   it("ranks promise, intake and proof in that order", () => {
     const headlineIndex = source.indexOf("Stop bankstanding.");
-    const explanationIndex = source.indexOf("Set a goal, and Scapestack tells you the next step every session");
+    const explanationIndex = source.indexOf("Tell it your goal. It picks your next trip, tells you when to stop, and posts what you banked each Sunday.");
     const intakeIndex = source.indexOf("<HeroIntake />");
-    const proofIndex = source.indexOf('aria-label="What Scapestack checks"');
+    // The KPI strip it used to look for is deleted (REBRAND.md F6). The proof
+    // survives as one line of flavour, still last, still after the intake.
+    const proofIndex = source.indexOf("The almanac tracks");
 
     expect(headlineIndex).toBeGreaterThan(-1);
     expect(explanationIndex).toBeGreaterThan(-1);

@@ -375,7 +375,7 @@ function SuggestionCard({
               <ol className="space-y-1 text-[11.5px] leading-relaxed text-[var(--color-text-dim)]">
                 {suggestion.steps.map((step, stepIndex) => (
                   <li key={step} className="flex gap-2">
-                    <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-panel)] text-[9px] font-bold text-[var(--color-accent)]">
+                    <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-panel)] text-[9px] font-bold text-[var(--color-accent)]">
                       {stepIndex + 1}
                     </span>
                     <span>{step}</span>

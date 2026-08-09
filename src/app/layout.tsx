@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo } from "next/font/google";
-import localFont from "next/font/local";
+import { Cinzel, Fraunces, Pixelify_Sans } from "next/font/google";
 import Script from "next/script";
 import { Header } from "@/components/header";
 import { MobileActionBar } from "@/components/mobile-action-bar";
@@ -21,59 +20,54 @@ import "./globals.css";
 // first paint and gate on NODE_ENV=production so dev iteration doesn't
 // pollute the dashboard.
 /**
- * The typeface, actually delivered.
+ * Three faces, three jobs — REBRAND.md Section 2.
  *
- * Measured 2026-08-01: the site loaded ZERO webfonts. --font-sans named
- * "Atkinson Hyperlegible", "Avenir Next", "Inter" and "Segoe UI", and on a
- * live page none of the first three resolved — the site rendered in Avenir
- * Next on macOS, Segoe UI on Windows and Roboto on Android. Three faces, none
- * chosen, two of them the literal system UI font of their platform. A product
- * cannot read as anything but a generic web app while that is true.
+ * All SIL OFL 1.1, self-hosted by next/font at build time, so there is no
+ * external request and no flash of fallback.
  *
- * Atkinson Hyperlegible was the wrong ask even if it had loaded: it is the
- * Braille Institute's accessibility face, engineered so low-vision readers
- * cannot confuse letterforms. Deliberately characterless — a road sign.
+ * What this replaces, and why. The site carried Archivo plus RuneStar's CC0
+ * recreations of the game's own interface fonts. Archivo is a competent
+ * grotesque and exactly the "safe" choice the rebrand exists to escape. The
+ * RuneStar faces had a second problem: they reproduce Jagex letterforms, and
+ * REBRAND.md 9.4 rules out font recreations under the Fan Content Policy.
  *
- * Archivo is a grotesque built for dense interfaces: sturdy at 11px, confident
- * at 40px, real tabular figures, and not the face every product reaches for.
- * Self-hosted by next/font at build time, so there is no external request and
- * no flash of fallback. Swapping it is one line here.
+ * Cinzel earns the same feeling honestly. It is a Roman-inscription serif, so
+ * it reads as carved stone by construction rather than by imitating a game
+ * asset — and unlike the bitmap faces it is crisp at any size, which removes
+ * the 16px-multiples-only constraint the old system had to enforce in a test.
  */
-const archivo = Archivo({
+const cinzel = Cinzel({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-archivo",
-  // 400 body, 600 subject, 800 the answer and the wordmark. Hierarchy is
-  // carried by weight and size, never by a second family.
-  weight: ["400", "600", "800"]
+  variable: "--font-cinzel",
+  weight: ["600", "700"]
 });
 
 /**
- * The game's own faces — RuneStar's CC0 recreations of the OSRS interface
- * fonts (release 1.103-0, licence "Public Domain" in each name-table; see
- * src/fonts/README.md). Three, not five: Plain 12 for identity numbers,
- * Bold 12 for buttons, Quill Caps for section names. ~70KB total.
- *
- * These are bitmap-grid faces with unitsPerEm 16 (Quill Caps: 32). They are
- * pixel-crisp ONLY at multiples of 16px — the two tokens --text-rs (16px) and
- * --text-rs-display (32px) are the only legal sizes, enforced by the
- * page-budget spec's exact-size assertion. Archivo remains the body face;
- * a bitmap face at paragraph length is a novelty, not an interface.
+ * Fraunces for everything a player reads. An old-style serif with an optical
+ * WONK axis — warm and editorial, which is what an almanac is, and audibly not
+ * a product sans.
  */
-const rsPlain = localFont({
-  src: "../fonts/RuneScape-Plain-12.ttf",
+const fraunces = Fraunces({
+  subsets: ["latin"],
   display: "swap",
-  variable: "--font-rs"
+  variable: "--font-fraunces",
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"]
 });
-const rsBold = localFont({
-  src: "../fonts/RuneScape-Bold-12.ttf",
+
+/**
+ * Numerals only: KC, levels, gp, XP, timers. Never prose.
+ *
+ * A pixel face gives game numbers the texture of the game without borrowing
+ * anything from it. Restricted to `.numeral` so it cannot leak into a
+ * paragraph, where it would be a novelty rather than an interface.
+ */
+const pixelifySans = Pixelify_Sans({
+  subsets: ["latin"],
   display: "swap",
-  variable: "--font-rs-bold"
-});
-const rsQuillCaps = localFont({
-  src: "../fonts/RuneScape-Quill-Caps.ttf",
-  display: "swap",
-  variable: "--font-rs-quill-caps"
+  variable: "--font-pixelify",
+  weight: ["500", "700"]
 });
 
 const PLAUSIBLE_DOMAIN = "scapestack.org";
@@ -136,7 +130,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`min-h-full ${archivo.variable} ${rsPlain.variable} ${rsBold.variable} ${rsQuillCaps.variable}`}>
+    <html lang="en" className={`min-h-full ${cinzel.variable} ${fraunces.variable} ${pixelifySans.variable}`}>
       <body className="min-h-full subpixel-antialiased font-sans">
         {process.env.NODE_ENV === "production" && (
           <>
@@ -173,6 +167,33 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {" · "}
             <span>{BRAND_TAGLINE}</span>
             {" · Made for Gielinor"}
+            {/* REBRAND.md 9.4. Two obligations, both required to ship.
+
+                The sprites come from the OSRS Wiki under CC BY-NC-SA 3.0 —
+                attribution AND non-commercial. The licence link goes to the
+                wiki's copyright page; the ?action=history link is the wiki's
+                own accepted method of crediting a reused page.
+
+                NON-COMMERCIAL IS A REAL CONSTRAINT, NOT A FORMALITY: the day
+                Scapestack charges for anything, these sprites have to be
+                replaced or separately licensed. Do not ship a paid feature
+                without settling that first. */}
+            <span className="mt-2 block text-[var(--color-text-muted)]">
+              Item and skill icons from the{" "}
+              <a
+                href="https://oldschool.runescape.wiki/w/Old_School_RuneScape_Wiki:Copyrights"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2"
+              >
+                OSRS Wiki, CC BY-NC-SA 3.0
+              </a>
+              .
+            </span>
+            <span className="mt-1 block text-[var(--color-text-muted)]">
+              Created using intellectual property belonging to Jagex Ltd under the Jagex Fan Content Policy.
+              Not endorsed by or affiliated with Jagex.
+            </span>
           </footer>
         </div>
       </body>

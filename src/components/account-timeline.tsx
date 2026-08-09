@@ -278,7 +278,7 @@ export function AccountTimeline({ expectedRsn, className, limit = 6 }: AccountTi
                 <span className="inline-flex min-h-9 items-center gap-2 rounded-full border border-[var(--color-accent)]/35 px-3 text-[var(--color-accent)]">
                   <Bell className="size-3.5" /> Reminder {reminderDue}
                 </span>
-                <button type="button" onClick={removeReminder} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-[var(--color-border)]/70 px-3">
+                <button type="button" onClick={removeReminder} className="inline-flex min-h-9 items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-border)]/70 px-3">
                   <X className="size-3.5" /> Cancel
                 </button>
               </div>

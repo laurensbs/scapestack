@@ -143,8 +143,9 @@ describe("Scapestack branding", () => {
     expect(layoutSource).toContain("publisher: BRAND_NAME");
     expect(layoutSource).toContain("{BRAND_TAGLINE}");
     expect(layoutSource).toContain("Made for Gielinor");
-    expect(layoutSource).toContain('import { Archivo } from "next/font/google"');
-    expect(globalsSource).toContain("--font-sans: var(--font-archivo)");
+    // REBRAND.md Section 2. Three faces, three jobs, all SIL OFL 1.1.
+    expect(layoutSource).toContain('import { Cinzel, Fraunces, Pixelify_Sans } from "next/font/google"');
+    expect(globalsSource).toContain("--font-sans: var(--font-fraunces)");
     // Was pinned to a serif display face. Direction B (2026-07-26) removed
     // the second typeface entirely — a reference tool does not carry an
     // editorial headline face, and it was the loudest generic signal in the

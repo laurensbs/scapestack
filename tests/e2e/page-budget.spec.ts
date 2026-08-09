@@ -29,9 +29,9 @@ import { expect, test, type Page } from "@playwright/test";
 
 const PAGE_PATH = "/p/lauky";
 
-// The legal (family, size) pairs live inside auditPage: the six Archivo
-// tokens for everything, 16/32/48px for the RuneStar bitmap faces only. A
-// flat size set had no family axis — Archivo at 16px passed off-system.
+// The legal (family, size) pairs live inside auditPage: the six scale tokens
+// for everything, and a separate set for Pixelify Sans, which is for game
+// numbers only. A flat size set had no family axis at all.
 const MAX_SECTIONS = 3;
 const MAX_IMAGES = 20;
 const MAX_TEXT_COLOURS = 5;
@@ -97,13 +97,15 @@ async function auditPage(page: Page, options: { navigate?: boolean } = {}): Prom
     const weights: Record<string, number> = {};
     const colours = new Set<string>();
     let loudCount = 0;
-    // The scale has a family axis: the RuneStar bitmap faces exist ONLY at
-    // 16/32/48px (their pixel grid breaks anywhere else), and the Archivo
-    // tokens are everything else's whole scale. A size that is legal for one
-    // family is off-system for the other.
-    const RS_FAMILY = /rs(plain|bold|quill)/i;
-    const RS_SIZES = new Set(["16px", "32px", "48px"]);
-    const ARCHIVO_SIZES = new Set(["11px", "12px", "14px", "19px", "28px", "40px"]);
+    // The scale has a family axis. It used to exist because the RuneStar
+    // bitmap faces broke off their 16px pixel grid; those are gone (REBRAND.md
+    // 9.4 rules out recreations of Jagex faces), and Cinzel is crisp at any
+    // size. The axis survives for a different reason: Pixelify Sans is for
+    // game numbers only, so a pixel face appearing at a body size means it has
+    // leaked into prose — which is the thing worth catching now.
+    const NUMERAL_FAMILY = /pixelify/i;
+    const NUMERAL_SIZES = new Set(["16px", "20px", "24px", "32px", "48px"]);
+    const SCALE_SIZES = new Set(["11px", "12px", "14px", "19px", "28px", "40px"]);
     // Known limit: the colour count keys on computed `color` and does not
     // fold in `opacity` tints — nothing on the page uses opacity on text
     // today, and folding alpha would mis-count anti-aliased edges. If text
@@ -111,8 +113,8 @@ async function auditPage(page: Page, options: { navigate?: boolean } = {}): Prom
     for (const el of textBearing) {
       const cs = getComputedStyle(el);
       fontSizes[cs.fontSize] = (fontSizes[cs.fontSize] ?? 0) + 1;
-      const isRs = RS_FAMILY.test(cs.fontFamily.split(",")[0] ?? "");
-      const legal = isRs ? RS_SIZES : ARCHIVO_SIZES;
+      const isNumeral = NUMERAL_FAMILY.test(cs.fontFamily.split(",")[0] ?? "");
+      const legal = isNumeral ? NUMERAL_SIZES : SCALE_SIZES;
       if (!legal.has(cs.fontSize)) {
         familyViolations.push(`${cs.fontFamily.split(",")[0]} at ${cs.fontSize}: "${(el.textContent ?? "").trim().slice(0, 30)}"`);
       }

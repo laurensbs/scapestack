@@ -153,7 +153,7 @@ export default function PluginPage() {
           <div className="py-4 last:pb-0">
             <dt className="text-[13px] font-bold text-[var(--color-text)]">Turning it off</dt>
             <dd className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
-              Uninstall the plugin, or press Delete my data on Scapestack. Both stop it.
+              Uninstall the plugin, or press Forget me on Scapestack. Both stop it.
               <DeleteAccountDataButton />
             </dd>
           </div>

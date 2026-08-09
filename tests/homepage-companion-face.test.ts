@@ -114,15 +114,17 @@ describe("the homepage companion face", () => {
     expect(facts.bossesChecked).toBe(BOSSES.length);
     expect(facts.questsTracked).toBe(Object.keys(quests).length);
     expect(facts.itemsPriced).toBe(Object.values(itemMeta).filter((item) => Number(item.value) > 0).length);
-    expect(page).toContain("bosses checked");
-    expect(page).toContain("quests tracked");
-    expect(page).toContain("items priced");
+    // REBRAND.md F6 deleted the KPI strip. The counts survive as one line of
+    // flavour, which Section 6.1 explicitly allows — "not as counters".
+    expect(page).toContain("The almanac tracks");
+    expect(page).not.toContain("bosses checked");
+    expect(page).not.toContain("items priced");
   });
 
   it("states the product once and keeps the homepage out of feature-grid territory", () => {
     const page = read("src/app/page.tsx");
     expect(page).toContain("Stop bankstanding.");
-    expect(page).toContain("Set a goal, and Scapestack tells you the next step every session");
+    expect(page).toContain("Tell it your goal. It picks your next trip, tells you when to stop, and posts what you banked each Sunday.");
     expect(page).toContain("<HeroIntake />");
     expect(page).not.toMatch(/testimonials?|feature grid|demo account|HomeSpecimen/i);
     expect(page).not.toMatch(/text-\[[0-9.]+px\]/);
@@ -137,12 +139,11 @@ describe("the homepage companion face", () => {
     expect(page).toContain("font-extrabold!");
     expect(`${page}\n${intake}`).not.toMatch(/\bfont-(?:medium|bold|black)\b/);
 
-    const proofFigures = [...page.matchAll(/<strong className="([^"]+)"/g)].map((match) => match[1]);
-    expect(proofFigures).toHaveLength(3);
-    for (const className of proofFigures) {
-      expect(className).toContain("tabular-nums");
-      expect(className).toContain("font-semibold");
-    }
+    // The three <strong> counters were the KPI strip. REBRAND.md F6 deletes
+    // it: big numbers presented as impressive metrics are the clearest "this
+    // is a SaaS product" signal a page can carry. Nothing on the homepage
+    // shouts a figure any more, which is the assertion now.
+    expect([...page.matchAll(/<strong className="([^"]+)"/g)]).toHaveLength(0);
 
     const inputClass = intake.match(/<input[\s\S]*?className="([^"]+)"/)?.[1];
     const buttonClass = intake.match(/<button[\s\S]*?className="([^"]+)"/)?.[1];

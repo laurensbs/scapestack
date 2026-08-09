@@ -3336,7 +3336,7 @@ function ActionPlanBlock({ rec, compact = false }: { rec: Recommendation; compac
           Plan for this session
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-panel)] px-2 py-0.5 text-[10.5px] font-semibold text-[var(--color-text-dim)]">
+          <span className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-panel)] px-2 py-0.5 text-[10.5px] font-semibold text-[var(--color-text-dim)]">
             {plan.timebox}
           </span>
         </div>

@@ -115,3 +115,19 @@ player: dry, second-person, quantified. Count in ticks, trips, KC and multiples
 of drop rate — never in "hours saved".
 
 Full list, with sources: `docs/design/SCAPESTACK-DESIGN-SYSTEM.md`.
+
+## Design tokens
+
+Design tokens live in `src/app/design-tokens.ts` and `REBRAND.md` — start from
+them, never from generic defaults. The direction is **"weathered Gielinor
+almanac / in-world adventurer's tool"**: aged parchment and carved stone.
+
+`npm run rebrand:lint` is in `ci:check` and is build-blocking. It fails on
+Inter/Roboto/system-ui, Tailwind's default greys and gradients, `rounded-full`
+on a panel or a button, `shadow-lg`, and coloured left-border strips — the
+patterns that make a page read as machine-made SaaS.
+
+Three faces, three jobs: **Cinzel** headings, **Fraunces** body, **Pixelify
+Sans** for game numbers only. All SIL OFL 1.1. Never add a recreation of a
+Jagex face, whatever licence it claims — `REBRAND.md` §9.4 rules them out under
+the Fan Content Policy, which is why the RuneStar files were deleted.

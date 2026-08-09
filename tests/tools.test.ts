@@ -43,7 +43,10 @@ describe("tool registry", () => {
 
     expect(PRIMARY_NAV_SLUGS).toEqual(["next", "bank", "dps"]);
     expect(primary.map((tool) => tool.slug)).toEqual(["next", "bank", "dps"]);
-    expect(primary.map((tool) => tool.navLabel)).toEqual(["Today", "Setup", "Boss"]);
+    // REBRAND.md Section 4.3: Setup -> Kit, Boss -> Bestiary. "Setup" is a
+    // configuration screen in a SaaS product; "Kit" is what a player calls
+    // the gear they take out. Ten characters is still the ceiling.
+    expect(primary.map((tool) => tool.navLabel)).toEqual(["Today", "Kit", "Bestiary"]);
     expect(primary.every((tool) => (tool.navLabel ?? tool.name).length <= 10)).toBe(true);
   });
 
@@ -55,7 +58,7 @@ describe("tool registry", () => {
     expect(getTool("dps")?.description).toContain("first trip, stop point and upgrade check");
     expect(getTool("slayer")).toMatchObject({
       href: "/slayer",
-      navLabel: "Task",
+      navLabel: "Slayer",
       status: "live"
     });
   });

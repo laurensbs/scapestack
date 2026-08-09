@@ -26,7 +26,7 @@ describe("Scapestack anti-bankstanding product contract", () => {
     const direction = read("docs/scapestack-product-direction.md");
 
     expect(homepage).toContain("Stop bankstanding.");
-    expect(homepage).toContain("Set a goal, and Scapestack tells you the next step every session");
+    expect(homepage).toContain("Tell it your goal. It picks your next trip, tells you when to stop, and posts what you banked each Sunday.");
     // Was `toContain("HeroBossTripPreview")`. The rotating boss illustration
     // went with direction B; the promise this case guards is the copy, and the
     // homepage now goes directly from its promise to the one-field intake.

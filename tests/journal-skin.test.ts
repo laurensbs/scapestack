@@ -184,11 +184,14 @@ describe("the Journal skin", () => {
     const eyebrowRule = globals.match(/\.eyebrow\s*\{[^}]*\}/s)?.[0] ?? "";
     expect(tableRule).toContain("font-size: var(--text-body);");
     expect(tableCellRule).toContain("font-variant-numeric: tabular-nums;");
-    // The command button speaks RuneScape Bold 12 at its native grid size.
-    // Weight 400: the face is already bold, and faux-bolding a bitmap smears.
-    expect(commandRule).toContain("font-size: var(--text-rs);");
+    // The command button speaks the display face. It used to speak RuneScape
+    // Bold 12, a recreation of a Jagex face that REBRAND.md 9.4 rules out
+    // under the Fan Content Policy — and being a bitmap grid, it was crisp
+    // only at multiples of 16px, which this file had to enforce as a rule.
+    // Cinzel is crisp at any size, so the size assertion is an ordinary one.
+    expect(commandRule).toContain("font-size: var(--text-body);");
     expect(commandRule).toContain("font-weight: 400;");
-    expect(commandRule).toContain("var(--font-rs-bold)");
+    expect(commandRule).toContain("var(--font-display)");
     expect(commandRule).toContain("box-shadow: var(--bevel-raised);");
     expect(statusRule).toContain("font-weight: 600;");  // the mark glyph itself
     // Chrome carries no weight: the eyebrow distinguishes itself with case

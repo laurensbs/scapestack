@@ -11,7 +11,7 @@ export function DeleteAccountDataButton() {
   const [message, setMessage] = useState("");
 
   const remove = async () => {
-    if (!window.confirm("Delete your Scapestack data?")) return;
+    if (!window.confirm("Forget everything Scapestack knows about you?")) return;
     setState("deleting");
     setMessage("");
     try {
@@ -20,7 +20,7 @@ export function DeleteAccountDataButton() {
       if (!response.ok) throw new Error(body.error || "Could not delete your data");
       if (body.account?.rsn) unlinkServerAccount(body.account.rsn);
       setState("deleted");
-      setMessage("Your Scapestack data is deleted.");
+      setMessage("Forgotten. Nothing of yours is left here.");
     } catch (cause) {
       setState("error");
       setMessage(cause instanceof Error ? cause.message : "Could not delete your data");
@@ -36,7 +36,7 @@ export function DeleteAccountDataButton() {
         className="btn-ghost min-h-11 px-4 text-[12px] font-bold disabled:opacity-50"
       >
         {state === "deleting" ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Trash2 className="size-4" aria-hidden="true" />}
-        {state === "deleted" ? "Data deleted" : "Delete my data"}
+        {state === "deleted" ? "Forgotten" : "Forget me"}
       </button>
       {message ? (
         <p role="status" className="mt-2 text-[12px] leading-relaxed text-[var(--color-text-muted)]">{message}</p>

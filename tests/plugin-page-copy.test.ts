@@ -17,7 +17,8 @@ describe("plugin page copy constants", () => {
     expect(pageSource).toContain("What it does not send");
     expect(pageSource).toContain("Turning it off");
     expect(pageSource).toContain("The RuneLite warning");
-    expect(pageSource).toContain("Delete my data");
+    // REBRAND.md 4.2: label only, behaviour unchanged.
+    expect(pageSource).toContain("Forget me");
     expect(pageSource).toContain("Sync on login is optional and off by default.");
     expect(pageSource).toContain("Bank can be turned off at any time.");
     expect(pageSource).not.toContain("Setup help");

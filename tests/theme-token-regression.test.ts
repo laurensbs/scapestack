@@ -99,13 +99,19 @@ describe("theme token regressions", () => {
     const display = globalsCss.match(/--font-display:\s*([^;]+);/);
     expect(sans, "--font-sans should still be declared").toBeTruthy();
     expect(display, "--font-display should still be declared").toBeTruthy();
-    // Checked by naming the serif faces, not by matching /serif$/ — every
-    // sans stack ends in "sans-serif" and would trip that.
-    for (const face of ["Iowan Old Style", "Georgia", "Charter"]) {
+    // Inverted by REBRAND.md Section 2, deliberately. This used to assert
+    // that headings and body share one face — the right call for a reference
+    // tool built on a grotesque, and the wrong one for an almanac. The
+    // direction is carved stone over warm editorial, so the two faces MUST
+    // differ, and hierarchy comes from the pairing rather than from size.
+    expect(display![1], "headings must not share the body face").not.toBe(sans![1]);
+    expect(display![1]).toContain("var(--font-cinzel)");
+    expect(sans![1]).toContain("var(--font-fraunces)");
+    // The forbidden list is the point of the assertion, not the pairing.
+    for (const face of ["Inter", "Roboto", "system-ui", "Space Grotesk", "Geist", "Archivo"]) {
       expect(display![1], face).not.toContain(face);
+      expect(sans![1], face).not.toContain(face);
     }
-    expect(display![1]).toBe(sans![1]);
-    expect(display![1]).toContain("var(--font-archivo)");
   });
 
   it("defines the shared visual primitives for the reset", () => {

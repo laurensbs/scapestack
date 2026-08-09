@@ -133,19 +133,15 @@
   --text-subject: 19px;
   --text-answer: 28px;
   --text-page: 40px;
-  /* The game's own faces are bitmap grids — unitsPerEm 16 (Quill Caps: 32) —
-     and are pixel-crisp ONLY at multiples of 16px. These two sizes are the
-     only ones they may render at; the page-budget spec enforces the set. */
-  --text-rs: 16px;
-  --text-rs-display: 32px;
-
-  /* Fonts — mature app typography with a restrained OSRS-adjacent serif accent. */
-  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  /* Headings share the body face. The serif display made every page read
-     as editorial; weight and size carry hierarchy instead. */
-  --font-display: var(--font-archivo), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* REBRAND.md Section 2. Three faces, three jobs, all SIL OFL 1.1.
+     Forbidden here and everywhere: Inter, Roboto, Open Sans, Lato, Arial,
+     system-ui, Poppins, Space Grotesk, Geist, Montserrat — and any recreation
+     of a Jagex face. scripts/rebrand-lint.mjs fails the build on all of them,
+     which is why the fallbacks below are Georgia and generic serif rather
+     than the system stack this file used to name. */
+  --font-sans: var(--font-fraunces), Georgia, serif;
+  --font-display: var(--font-cinzel), Georgia, serif;
   --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, Consolas, monospace;
-  --font-rs-small: "RuneScape Small", "Trebuchet MS", ui-sans-serif, system-ui, sans-serif;
 
   /* Shadows */
   /* A rule states a boundary; a shadow implies a depth this product does not
@@ -459,6 +455,77 @@
     from { opacity: 0; transform: scale(0.92); filter: blur(8px); }
     to   { opacity: 1; transform: scale(1);    filter: blur(0); }
   }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   REBRAND.md Section 1 — design tokens. Written verbatim from that file.
+
+   Direction (REBRAND.md 0.6): "weathered Gielinor almanac / in-world
+   adventurer's tool". Aged parchment and carved stone. Not neon fantasy, not
+   glassmorphism, not dark SaaS.
+
+   Provenance, per REBRAND.md's own note: the chat colours are the OSRS Wiki's
+   documented in-game markup values (`<col=ff0000>` for red). --gold-500 is
+   osrs.design's own meta-theme-color. --stone-900 already matched this site's
+   theme-color before the rebrand. The stone/parchment ramps are community
+   approximations and were reconciled against osrs.design/foundations and real
+   bank / quest-journal screenshots in the Section 7 loop.
+
+   Rules that ship with these tokens:
+   - Page background is --stone-900. Reading content sits on --parchment-100.
+   - No colour outside this palette. No Tailwind blue/indigo/purple/slate/zinc.
+   - Panels never exceed --radius-md. rounded-2xl / rounded-full on a panel is
+     a build-blocking failure (Section 3, F8).
+   - Depth is a hard bevel, never a blur (F11).
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  /* --- Surfaces: carved stone + aged parchment --- */
+  --stone-900: #1c1811;   /* darkest frame / page background (matches site theme-color) */
+  --stone-800: #2a2118;   /* deep stone recess */
+  --stone-700: #3a2f22;   /* panel background (dark) */
+  --stone-600: #4a3d2a;   /* raised stone / bevel base */
+  --stone-500: #6b5a3e;   /* stone edge highlight */
+  --wood-700:  #3e2f1c;   /* wood trim dark */
+  --wood-500:  #6b4f2e;   /* wood trim */
+
+  /* --- Parchment: the reading surface --- */
+  --parchment-100: #fcf5e5; /* lightest parchment (primary text surface) */
+  --parchment-200: #f1e4c9; /* parchment shadowed */
+  --parchment-300: #e3d2a8; /* parchment edge / aged */
+  --parchment-line: #d8c096; /* rule lines on parchment */
+
+  /* --- Ink (text on parchment) --- */
+  --ink-900: #241a10;   /* primary body ink */
+  --ink-700: #4a3a26;   /* secondary ink */
+  --ink-500: #7a6647;   /* muted ink / captions */
+
+  /* --- Text on stone --- */
+  --stone-text: #f2e6cc;      /* primary text on dark stone */
+  --stone-text-muted: #b8a380;
+
+  /* --- Accents: OSRS gold + carved gilt --- */
+  --gold-500: #f7b538;   /* primary accent — confirmed osrs.design accent */
+  --gold-600: #d99a24;   /* pressed / darker gold */
+  --gold-300: #ffd766;   /* gold highlight */
+
+  /* --- Semantic / status: OSRS chat conventions (VERIFIED red from OSRS Wiki) --- */
+  --msg-good:  #22cc22;  /* "can do it" / level-up / quest-complete — game green */
+  --msg-warn:  #ff0000;  /* blocker / missing requirement — game red (Wiki: ff0000) */
+  --msg-info:  #00b8b8;  /* neutral note — game cyan */
+  --title-yellow: #ffff00; /* menu-title / hover-text yellow (use sparingly) */
+
+  /* --- Borders / bevels --- */
+  --bevel-light: rgba(255, 236, 190, 0.35); /* top/left carved highlight */
+  --bevel-dark:  rgba(0, 0, 0, 0.55);        /* bottom/right carved shadow */
+
+  /* --- Radius: OSRS UI is squared, not pill-shaped --- */
+  --radius-sm: 2px;
+  --radius-md: 3px;   /* max default radius; NEVER exceed 4px on panels */
+
+  /* --- Type --- */
+  --font-display: "Cinzel", serif;         /* carved-stone headings */
+  --font-body:    "Fraunces", Georgia, serif; /* warm editorial body */
+  --font-numeral: "Pixelify Sans", monospace;  /* KC / levels / gp counters */
 }
 
 /* Outside @theme so it survives Tailwind v4's keyframe-pruning — same
@@ -861,8 +928,8 @@ body {
   box-shadow: var(--bevel-raised);
   background: rgba(7, 6, 4, 0.5);
   padding: 0.5rem 0.9rem;
-  font-family: var(--font-rs-bold), "Trebuchet MS", var(--font-sans);
-  font-size: var(--text-rs);
+  font-family: var(--font-display);
+  font-size: var(--text-body);
   font-weight: 400;
   color: var(--color-text-dim);
   transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 120ms ease;
@@ -970,8 +1037,8 @@ body {
   border-radius: var(--radius-control);
   border: 2px solid #000;
   box-shadow: var(--bevel-raised);
-  font-family: var(--font-rs-bold), "Trebuchet MS", var(--font-sans);
-  font-size: var(--text-rs);
+  font-family: var(--font-display);
+  font-size: var(--text-body);
   font-weight: 400;
   letter-spacing: 0;
   /* 947D46, not the registry's 8A7340: dark text on that stone measured
@@ -1573,10 +1640,10 @@ body.scapestack-clean-shot main {
 
 /* A section name in the game's own display face. Weight 400 (the face is the
    emphasis), no tracking, no text-transform — Quill Caps carries its own
-   capitals. Only at --text-rs-display: the grid breaks at any other size. */
+   capitals, on the answer step of the scale. */
 .scape-section-name {
-  font-family: var(--font-rs-quill-caps), var(--font-display);
-  font-size: var(--text-rs-display);
+  font-family: var(--font-display);
+  font-size: var(--text-answer);
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;

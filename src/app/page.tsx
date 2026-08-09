@@ -34,7 +34,7 @@ export default async function HomePage() {
               Stop bankstanding.
             </h1>
             <p className="mt-3 max-w-[52ch] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text-secondary)]">
-              Set a goal, and Scapestack tells you the next step every session — and sends you a Sunday recap of what you banked.
+              Tell it your goal. It picks your next trip, tells you when to stop, and posts what you banked each Sunday.
             </p>
             <div className="mt-4 min-w-0">
               <HeroIntake />
@@ -70,23 +70,18 @@ export default async function HomePage() {
           </figure>
         </div>
 
-        <ul
-          aria-label="What Scapestack checks"
-          className="relative z-10 mt-3 grid grid-cols-3 border-y border-[var(--color-border)] py-3 text-center sm:mt-4 sm:py-4"
-        >
-          <li className="border-r border-[var(--color-border)] px-2">
-            <strong className="block tabular-nums text-[length:var(--text-subject)] font-semibold text-[var(--color-data-level)]">{proof.bossesChecked}</strong>
-            <span className="text-[length:var(--text-micro)] font-semibold text-[var(--color-text-muted)]">bosses checked</span>
-          </li>
-          <li className="border-r border-[var(--color-border)] px-2">
-            <strong className="block tabular-nums text-[length:var(--text-subject)] font-semibold text-[var(--color-data-combat)]">{proof.questsTracked}</strong>
-            <span className="text-[length:var(--text-micro)] font-semibold text-[var(--color-text-muted)]">quests tracked</span>
-          </li>
-          <li className="px-2">
-            <strong className="block tabular-nums text-[length:var(--text-subject)] font-semibold text-[var(--color-data-xp)]">{proof.itemsPriced.toLocaleString("en-GB")}</strong>
-            <span className="text-[length:var(--text-micro)] font-semibold text-[var(--color-text-muted)]">items priced</span>
-          </li>
-        </ul>
+        {/* REBRAND.md F6: the KPI strip is deleted, not restyled. Three big
+            numbers presented as impressive metrics is the single clearest
+            "this is a SaaS product" signal a page can carry, and it said
+            nothing a player wanted — nobody arrives asking how many bosses the
+            site knows about.
+
+            Section 6.1 allows the numbers to survive as flavour on a stone
+            plaque rather than as counters, so they do: one quiet line, no
+            emphasis, no grid, no cell borders. */}
+        <p className="relative z-10 mt-4 text-[length:var(--text-micro)] font-normal text-[var(--color-text-muted)]">
+          The almanac tracks {proof.bossesChecked} bosses and {proof.questsTracked} quests.
+        </p>
       </section>
     </main>
   );

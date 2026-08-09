@@ -44,7 +44,7 @@ export const TOOLS: Tool[] = [
     slug: "bank",
     href: "/bank",
     name: "Can I leave?",
-    navLabel: "Setup",
+    navLabel: "Kit",
     short: "Add bank once for the next trip",
     tagline: "Bank in → leave the bank",
     description:
@@ -82,7 +82,7 @@ export const TOOLS: Tool[] = [
     slug: "dps",
     href: "/dps",
     name: "Can I kill this?",
-    navLabel: "Boss",
+    navLabel: "Bestiary",
     short: "Check a boss trip from this setup",
     tagline: "Add bank → one boss verdict",
     description:
@@ -96,7 +96,7 @@ export const TOOLS: Tool[] = [
     slug: "slayer",
     href: "/slayer",
     name: "Task Check",
-    navLabel: "Task",
+    navLabel: "Slayer",
     short: "Kill, skip, extend, burst or cannon",
     tagline: "Task → route, supplies, stop point",
     description:

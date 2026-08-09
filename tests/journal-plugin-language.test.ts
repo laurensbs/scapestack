@@ -57,7 +57,7 @@ describe("the plain-language RuneLite connection", () => {
       "What it sends",
       "What it does not send",
       "Turning it off",
-      "Delete my data",
+      "Forget me",
       "submits your IP address and comprehensive account data to a 3rd-party server not controlled or verified by RuneLite developers.",
       "That is accurate."
     ];
