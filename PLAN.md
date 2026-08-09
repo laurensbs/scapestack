@@ -149,7 +149,10 @@ this file ticked as I go.
       guards sabotage-proved: allowing a `login` milestone kind, narrowing the
       goal CHECK so existing rows break, removing the baseline backfill, and
       dropping the milestone cascade each turn one red.
-- [ ] 2. Hiscores cron + deltas ← needs `vercel.json` and `CRON_SECRET`
+- [x] 2. Hiscores cron + deltas — done. `ci:check` green, 1,760 unit tests.
+      **`CRON_SECRET` must be set in the Vercel project or the route stays
+      shut** (it fails closed on purpose). Four guards sabotage-proved; a
+      fifth was found vacuous and rewritten.
 - [ ] 3. Goal picker: baseline, types, primary, onboarding step 1
 - [ ] 4. "Serves your goal" label
 - [ ] 5. Weekly recap + Discord (+ email behind a flag)
