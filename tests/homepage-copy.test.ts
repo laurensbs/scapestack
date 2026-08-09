@@ -78,7 +78,7 @@ describe("homepage first-impression copy", () => {
     const intakeIndex = source.indexOf("<HeroIntake />");
     // The KPI strip it used to look for is deleted (REBRAND.md F6). The proof
     // survives as one line of flavour, still last, still after the intake.
-    const proofIndex = source.indexOf("The almanac tracks");
+    const proofIndex = source.indexOf("The almanac holds");
 
     expect(headlineIndex).toBeGreaterThan(-1);
     expect(explanationIndex).toBeGreaterThan(-1);

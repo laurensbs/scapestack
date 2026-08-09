@@ -42,7 +42,11 @@ test.describe("Scapestack product story matrix", () => {
   test("1. first-time player sees RSN -> one plan promise", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Stop bankstanding." })).toBeVisible();
-    await expect(page.getByPlaceholder(/your osrs name/i)).toBeVisible();
+    // The field now carries a VISIBLE label ("Your name in Gielinor") where it
+    // used to have an sr-only one and a "Your OSRS name" placeholder. Finding
+    // it by label rather than by placeholder is both more robust and the
+    // accurate description: a placeholder is an example, not a name.
+    await expect(page.getByLabel(/name in Gielinor/i)).toBeVisible();
     await expect(page.getByRole("button", { name: /show my next step/i })).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });

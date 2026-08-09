@@ -45,9 +45,10 @@ describe("Phase 6 homepage intake", () => {
     expect(heroMarkup).toContain('required=""');
     expect(heroMarkup).not.toContain('role="dialog"');
     expect(pageMarkup.match(/<h1\b/g)).toHaveLength(1);
-    // Two now: the subhead, and the one-line almanac plaque that replaced
-    // the deleted KPI strip (REBRAND.md F6, Section 6.1).
-    expect(pageMarkup.match(/<p\b/g)).toHaveLength(2);
+    // Three: the eyebrow, the subhead, and the boss caption. The almanac
+    // count is no longer a <p> — REBRAND direction C folds it into the
+    // column's black tally bar, which is where the game puts a total.
+    expect(pageMarkup.match(/<p\b/g)).toHaveLength(3);
     expect(pageMarkup).not.toContain("HomeSpecimen");
 
     expect(source).toContain("router.push(playerPath(cleanRsn))");

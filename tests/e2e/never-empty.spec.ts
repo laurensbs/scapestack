@@ -16,7 +16,11 @@ test.describe("never empty", () => {
   test("/ without an RSN is a populated page, not an empty funnel", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Stop bankstanding." })).toBeVisible();
-    await expect(page.getByPlaceholder(/your osrs name/i)).toBeVisible();
+    // The field now carries a VISIBLE label ("Your name in Gielinor") where it
+    // used to have an sr-only one and a "Your OSRS name" placeholder. Finding
+    // it by label rather than by placeholder is both more robust and the
+    // accurate description: a placeholder is an example, not a name.
+    await expect(page.getByLabel(/name in Gielinor/i)).toBeVisible();
     // The day-seeded boss render is the page's subject; it must actually
     // have pixels, not just a slot.
     const subject = page.locator("[data-home-boss-subject]");

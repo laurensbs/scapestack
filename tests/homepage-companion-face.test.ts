@@ -28,9 +28,15 @@ describe("the homepage companion face", () => {
     expect(page).toContain("<Image");
     expect(page).toContain("width={boss.width}");
     expect(page).toContain("height={boss.height}");
-    expect(page).toContain('sizes="(max-width: 639px) 420px, (max-width: 1199px) 40vw, 520px"');
-    expect(page).toContain("opacity-[0.16] sm:opacity-100");
-    expect(page).toContain("sm:relative sm:right-auto");
+    // The column narrowed the phone slot from 420px to 352px.
+    expect(page).toContain('sizes="(max-width: 639px) 352px, (max-width: 1199px) 40vw, 520px"');
+    // The boss used to be absolutely positioned and faded to 16% behind the
+    // copy on phones. REBRAND direction C puts it IN FLOW and FIRST on
+    // mobile: the mockup kept it behind the column, which clipped it off the
+    // top at 390px and failed Section 8's "an in-world device is visible
+    // above the fold". These two assertions are what that order replaced.
+    expect(page).toContain("order-1");
+    expect(page).toContain("sm:order-2");
     // The plate moved into globals.css as .boss-plate when the render got its
     // rim-light: measured 2026-08-08, nine of the twelve homepage bosses sat
     // under 3:1 against the ground and were effectively invisible.
@@ -42,7 +48,13 @@ describe("the homepage companion face", () => {
     // The rim is what makes a dark render legible at all — drop-shadow layers
     // outline a transparent PNG the way the game outlines an NPC.
     expect(globals).toMatch(/\.boss-render[\s\S]{0,200}drop-shadow/);
-    expect(page).toContain("blur-xl");
+    // Inverted by REBRAND F11. This pinned a blurred ellipse under the
+    // render — a soft ground shadow on a page whose entire depth language is
+    // now hard-edged. The rim above still grounds the boss, and it is a
+    // drop-shadow outline rather than a blur blob. Asserting the ABSENCE is
+    // the stronger check: a blur anywhere on this page is the SaaS card's
+    // signature sneaking back.
+    expect(page).not.toMatch(/\bblur-(?:sm|md|lg|xl|2xl|3xl)\b/);
     expect(page).not.toContain("/api/sprite/item/");
     expect(page).not.toContain("unoptimized");
     expect(route).toContain("scapestack-boss-render-proxy/1.0");
@@ -116,7 +128,7 @@ describe("the homepage companion face", () => {
     expect(facts.itemsPriced).toBe(Object.values(itemMeta).filter((item) => Number(item.value) > 0).length);
     // REBRAND.md F6 deleted the KPI strip. The counts survive as one line of
     // flavour, which Section 6.1 explicitly allows — "not as counters".
-    expect(page).toContain("The almanac tracks");
+    expect(page).toContain("The almanac holds");
     expect(page).not.toContain("bosses checked");
     expect(page).not.toContain("items priced");
   });

@@ -22,9 +22,18 @@ export function HeroIntake() {
   };
 
   return (
-    <form onSubmit={submit} className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-      <label htmlFor="hero-rsn-input" className="sr-only">
-        OSRS name
+    <form onSubmit={submit} className="grid gap-2">
+      {/* REBRAND.md Section 7 direction C, the Field Ledger. The slot is cut
+          INTO the stone — inverted bevel, dark bottom-right on top-left — and
+          the button is a raised gold face above it. Stacked rather than
+          side-by-side because that is the shape an OSRS side panel has, and
+          because the column is 460px at every width, so one grammar serves
+          both breakpoints instead of two. */}
+      <label
+        htmlFor="hero-rsn-input"
+        className="font-[family-name:var(--font-body)] text-[length:var(--text-label)] font-semibold uppercase tracking-[0.18em] text-[var(--stone-text-muted)]"
+      >
+        Your name in Gielinor
       </label>
       <input
         id="hero-rsn-input"
@@ -32,7 +41,7 @@ export function HeroIntake() {
         type="text"
         value={rsn}
         onChange={(event) => setRsn(event.target.value)}
-        placeholder="Your OSRS name"
+        placeholder="e.g. Zezima"
         maxLength={12}
         required
         autoComplete="off"
@@ -40,7 +49,11 @@ export function HeroIntake() {
         autoCorrect="off"
         enterKeyHint="go"
         spellCheck={false}
-        className="h-13 min-w-0 rounded-none border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3.5 text-[length:var(--text-subject)] font-normal text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)] sm:h-12"
+        className="h-12 w-full min-w-0 border border-[var(--stone-900)] bg-[var(--stone-900)] px-3 font-[family-name:var(--font-body)] text-[length:var(--text-subject)] font-normal text-[var(--stone-text)] outline-none placeholder:text-[var(--stone-text-muted)] focus:border-[var(--gold-500)]"
+        style={{
+          borderRadius: "var(--radius-sm)",
+          boxShadow: "inset 1px 1px 0 var(--bevel-dark), inset -1px -1px 0 rgba(255,236,190,0.10)"
+        }}
       />
       {/* Not disabled: on first paint rsn is always "" — SSR and pre-hydration
           both — so the page's only call to action rendered grey-on-grey and
@@ -48,12 +61,18 @@ export function HeroIntake() {
           name, so the button can stay alive and just do nothing. */}
       <button
         type="submit"
-        className="inline-flex h-13 items-center justify-center rounded-none bg-[var(--color-accent)] px-6 text-[length:var(--text-body)] font-semibold text-[#0B0906] transition-colors hover:bg-[var(--color-accent-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)] sm:h-12"
+        className="h-12 w-full font-[family-name:var(--font-body)] text-[length:var(--text-body)] font-semibold text-[var(--ink-900)] transition-[filter] hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-300)]"
+        style={{
+          background: "var(--gold-500)",
+          borderRadius: "var(--radius-sm)",
+          boxShadow: "inset 1px 1px 0 var(--bevel-light), inset -1px -1px 0 var(--bevel-dark)"
+        }}
       >
-        {/* SPEC §3.5. "Open my page" named a destination; this names what the
-            player came for. */}
         Show my next step
       </button>
+      <p className="font-[family-name:var(--font-body)] text-[length:var(--text-micro)] font-normal italic text-[var(--stone-text-muted)]">
+        Free. Your bank stays in this browser.
+      </p>
     </form>
   );
 }

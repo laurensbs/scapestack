@@ -22,33 +22,26 @@ export default async function HomePage() {
   return (
     <main data-home-page="true" className="scape-page pb-2 pt-2 sm:px-8 sm:pb-10 sm:pt-10">
       <section className="home-hero relative mx-auto w-full min-w-0 max-w-[var(--width-page)] overflow-hidden">
-        <div className="grid min-w-0 items-center sm:min-h-[32rem] sm:grid-cols-[minmax(0,32rem)_minmax(23.75rem,32.5rem)] sm:gap-8">
-          <div className="relative z-10 min-w-0 max-w-[32rem] py-8 sm:py-12">
-            {/* SPEC §3.5, split at the spec's own full stop. The sentence is
-                written as one line; as one h1 it is three lines of display
-                type and the hook is buried at the end of it. "Stop
-                bankstanding." is the hook, and the rest is what happens
-                instead — which is what a subhead is for. Same words, in the
-                order the spec wrote them. */}
-            <h1 className="max-w-[20ch] text-[length:var(--text-page)] font-extrabold! leading-[1.04] text-[var(--color-text)]">
-              Stop bankstanding.
-            </h1>
-            <p className="mt-3 max-w-[52ch] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--color-text-secondary)]">
-              Tell it your goal. It picks your next trip, tells you when to stop, and posts what you banked each Sunday.
-            </p>
-            <div className="mt-4 min-w-0">
-              <HeroIntake />
-            </div>
-          </div>
+        {/* REBRAND.md Section 7, direction C — the Field Ledger. The signature
+            element is this column: a recessed panel with a studded title bar
+            and a black tally footer, at the proportions an OSRS side panel
+            actually has, with the boss standing behind it at full height.
 
+            DOM order is boss-then-column, and that is the whole mobile fix.
+            The direction was chosen because a 225px panel gets STRONGER at
+            390px rather than collapsing — but the mockup put the boss behind
+            the column, which at phone width clipped it off the top of the
+            screen and failed Section 8's "an in-world device is visible above
+            the fold". Ordering it first costs one `sm:order` pair and the
+            boss is the first thing a phone sees. */}
+        <div className="grid min-w-0 gap-6 sm:min-h-[34rem] sm:grid-cols-[minmax(0,29rem)_minmax(0,1fr)] sm:items-center sm:gap-10">
           <figure
             data-home-boss-subject="true"
             data-boss-dark={bossIsDark > 0 && bossIsDark < 3 ? "true" : undefined}
-            className="pointer-events-none absolute -right-32 top-0 z-0 flex h-80 w-[26rem] flex-col items-center justify-end sm:relative sm:right-auto sm:h-[32rem] sm:w-auto"
+            className="relative order-1 mx-auto flex h-56 w-full max-w-[22rem] flex-col items-center justify-end sm:order-2 sm:h-[34rem] sm:max-w-none"
           >
-            <span className="relative flex h-full w-full items-end justify-center opacity-[0.16] sm:opacity-100">
+            <span className="relative flex h-full w-full items-end justify-center">
               <span aria-hidden="true" className="boss-plate absolute inset-4" />
-              <span aria-hidden="true" className="absolute bottom-8 h-10 w-[68%] rounded-[50%] bg-black/45 blur-xl" />
               <Image
                 src={`/api/sprite/boss/${boss.slug}`}
                 alt=""
@@ -56,32 +49,70 @@ export default async function HomePage() {
                 width={boss.width}
                 height={boss.height}
                 priority
-                sizes="(max-width: 639px) 420px, (max-width: 1199px) 40vw, 520px"
-                className="boss-render relative z-10 h-[22rem] w-[26rem] object-contain object-bottom sm:h-[32rem] sm:w-[clamp(23.75rem,40vw,32.5rem)]"
+                sizes="(max-width: 639px) 352px, (max-width: 1199px) 40vw, 520px"
+                className="boss-render relative z-10 h-full w-auto object-contain object-bottom"
               />
             </span>
-            {/* Under the render, not over it. It was absolutely positioned at
-                the figure's bottom edge, which was invisible while the boss
-                was — the moment the rim made Phantom Muspah readable, the
-                boss's feet landed on top of its own caption. */}
-            <figcaption className="relative z-20 mt-2 whitespace-nowrap text-center text-[length:var(--text-micro)] font-normal text-[var(--color-text-muted)]">
-              Today&apos;s boss · {boss.name}
+            {/* A chat line, per direction C: the game says this sort of thing
+                in cyan, so the boss's name is the only coloured word. */}
+            <figcaption className="relative z-20 mt-2 whitespace-nowrap text-center text-[length:var(--text-micro)] font-normal text-[var(--stone-text-muted)]">
+              Today&apos;s boss ·{" "}
+              <span style={{ color: "var(--msg-info)" }}>{boss.name}</span>
             </figcaption>
           </figure>
+
+          <div
+            data-ledger-column="true"
+            className="relative z-10 order-2 min-w-0 border-2 border-[var(--wood-700)] bg-[var(--stone-700)] sm:order-1"
+            style={{
+              borderRadius: "var(--radius-md)",
+              boxShadow: "inset 1px 1px 0 var(--bevel-light), inset -1px -1px 0 var(--bevel-dark)"
+            }}
+          >
+            <div
+              className="flex items-center justify-between gap-2 border-b border-[var(--stone-900)] bg-[var(--stone-800)] px-3 py-2"
+              style={{ boxShadow: "inset 0 1px 0 var(--bevel-light)" }}
+            >
+              <span aria-hidden="true" className="size-[3px] shrink-0 bg-[var(--stone-500)]" />
+              <span className="font-[family-name:var(--font-display)] text-[length:var(--text-micro)] font-semibold uppercase tracking-[0.28em] text-[var(--gold-500)]">
+                Scapestack
+              </span>
+              <span aria-hidden="true" className="size-[3px] shrink-0 bg-[var(--stone-500)]" />
+            </div>
+
+            <div className="px-4 py-5 sm:px-5 sm:py-6">
+              <p className="eyebrow">An adventurer&apos;s tool</p>
+              {/* SPEC §3.5, split at the spec's own full stop. "Stop
+                  bankstanding." is the hook; the rest is what happens instead,
+                  which is what a subhead is for. */}
+              <h1 className="mt-2 max-w-[16ch] text-[length:var(--text-answer)] font-extrabold! leading-[1.06] text-[var(--stone-text)] sm:text-[length:var(--text-page)]">
+                Stop bankstanding.
+              </h1>
+              <p className="mt-3 max-w-[44ch] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--stone-text-muted)]">
+                Tell it your goal. It picks your next trip, tells you when to stop, and posts what you banked each Sunday.
+              </p>
+              <div className="mt-5 min-w-0">
+                <HeroIntake />
+              </div>
+            </div>
+
+            {/* The black tally bar. REBRAND F6 deleted the KPI strip; Section
+                6.1 allows the numbers as flavour, and a tally bar is exactly
+                where the game puts a total. The counts are Fraunces tabular,
+                not Pixelify — §10.2. */}
+            <div className="border-t border-[var(--stone-900)] bg-[var(--stone-900)] px-4 py-2 text-center text-[length:var(--text-micro)] font-normal text-[var(--stone-text-muted)]">
+              The almanac holds{" "}
+              <span className="text-[var(--stone-text)]" style={{ fontVariantNumeric: "tabular-nums lining-nums" }}>
+                {proof.bossesChecked}
+              </span>{" "}
+              bosses and{" "}
+              <span className="text-[var(--stone-text)]" style={{ fontVariantNumeric: "tabular-nums lining-nums" }}>
+                {proof.questsTracked}
+              </span>{" "}
+              quests.
+            </div>
+          </div>
         </div>
-
-        {/* REBRAND.md F6: the KPI strip is deleted, not restyled. Three big
-            numbers presented as impressive metrics is the single clearest
-            "this is a SaaS product" signal a page can carry, and it said
-            nothing a player wanted — nobody arrives asking how many bosses the
-            site knows about.
-
-            Section 6.1 allows the numbers to survive as flavour on a stone
-            plaque rather than as counters, so they do: one quiet line, no
-            emphasis, no grid, no cell borders. */}
-        <p className="relative z-10 mt-4 text-[length:var(--text-micro)] font-normal text-[var(--color-text-muted)]">
-          The almanac tracks {proof.bossesChecked} bosses and {proof.questsTracked} quests.
-        </p>
       </section>
     </main>
   );
