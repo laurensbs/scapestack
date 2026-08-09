@@ -175,6 +175,15 @@ export function GoalBar({
       </summary>
 
       <div className="scape-goal-bar__panel" data-goal-picker="true">
+        {/* SPEC §3.4's promise, inside the panel rather than on the summary
+            line. The line is one row on a page with a height budget; this is
+            where a player who opened the picker is actually deciding, and it
+            is the only place the sentence has room to be read. */}
+        {!active && (
+          <p className="mb-2 text-[length:var(--text-micro)] font-normal leading-snug text-[var(--color-text-muted)]" data-goal-empty-promise="true">
+            No goal yet. Pick one — a Fire cape, 99 Slayer, full Bandos — and Scapestack tracks how close you are. Every session, every week.
+          </p>
+        )}
         {results.length > 0 ? (
           <div className="scape-goal-choices">
             {results.map((choice) => (

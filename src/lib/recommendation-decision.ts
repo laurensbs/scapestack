@@ -2,6 +2,7 @@ import type { AccountStageId } from "./account-stage";
 import type { PlannerAccountType } from "./account-type";
 import type { Mood, RouteLens, TimeBudget } from "./mood";
 import type { Recommendation, RecKind } from "./next-up";
+import { BOSSES } from "./bosses";
 import {
   assessRecommendationHonesty,
   recommendationBankWouldChangePlan,
@@ -9,6 +10,23 @@ import {
 } from "./recommendation-honesty";
 
 export const RECOMMENDATION_DECISION_VERSION = 1 as const;
+
+/**
+ * The boss's name as a player would say it.
+ *
+ * The recommendation carries a slug for routing and a title for display; the
+ * slug is not a word. Prefer the catalogue's name, then the rec's own title,
+ * and only then the slug — with its hyphens undone, so even the fallback is a
+ * phrase rather than a path segment.
+ */
+function bossDisplayName(rec: Recommendation): string {
+  const slug = rec.bossSlug;
+  if (!slug) return rec.title;
+  const known = BOSSES.find((boss) => boss.slug === slug);
+  if (known) return known.name;
+  if (rec.title) return rec.title;
+  return slug.replace(/-/g, " ").replace(/^./, (letter) => letter.toUpperCase());
+}
 
 export type RecommendationFactProvenance = "public_stats" | "bank" | "runelite" | "preference";
 
@@ -333,7 +351,16 @@ export function buildRecommendationDecision(input: BuildRecommendationDecisionIn
 
   const reasons: RecommendationDecisionFact[] = [];
   if (winner.kind === "kc" && winner.kcMeta && input.hasPublicStats) {
-    reasons.push({ code: "boss_kc_progress", provenance: "public_stats", subject: winner.bossSlug ?? winner.title, value: winner.kcMeta.kc });
+    // The boss's NAME, not its slug. The slug is a URL identifier, and it was
+    // being dropped straight into a sentence a player reads: "vardorvis is
+    // already at 15 KC". Falling back to the slug when the name is unknown
+    // would keep the bug for exactly the bosses nobody tested.
+    reasons.push({
+      code: "boss_kc_progress",
+      provenance: "public_stats",
+      subject: bossDisplayName(winner),
+      value: winner.kcMeta.kc
+    });
   }
   if (input.hasBank && honesty.bankWouldChangePlan) {
     reasons.push({ code: "bank_context_used", provenance: "bank", subject: winner.kind });

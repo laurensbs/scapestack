@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { updatesSince } from "@/lib/game-updates";
 import { loadPlanningContext } from "@/lib/planning-context";
+import { DemoPlanPreview } from "@/components/demo-plan-preview";
 import { LastTripLine } from "@/components/last-trip-line";
 import { classifyAbsence, isReturningAbsence, latestActivity } from "@/lib/returning-player";
 import { resolveViewerRsn } from "@/lib/viewer-account";
@@ -76,6 +77,7 @@ async function NextPlanBootstrap({
       <NextClient
         initialQueryString={queryString}
         initialPlanningContext={initialPlanningContext}
+        demoPlan={<DemoPlanPreview />}
       />
     </>
   );

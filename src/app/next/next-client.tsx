@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useMemo, useEffect, useCallback } from "react";
+import { useState, useTransition, useMemo, useEffect, useCallback, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -24,6 +24,7 @@ import { PlayerPlanAnswer, type PlayerPlanLine } from "@/components/player-plan-
 import { BOSSES, type Boss } from "@/lib/bosses";
 import { organizeAction, nextUpAction, planningContextAction } from "@/app/actions";
 import { type HiscoreSkill } from "@/lib/hiscores";
+import { REFERENCE_BANK, referenceNextUpInput, referenceSkills } from "@/lib/reference-account";
 import { GOAL_SETS, normaliseCompletion, type SetCompletion } from "@/lib/goals";
 import type { HoursToMaxSummary } from "@/lib/hours-to-max";
 import { getActiveAccount, markAccountPluginBankStatus, markAccountRuneliteProgress, markAccountTrip } from "@/lib/account-storage";
@@ -196,46 +197,14 @@ const ROUTE_ITEM_IDS = {
   pietyPrayer: 10976
 } as const;
 
-const SAMPLE_SKILL_NAMES = [
-  "Attack", "Defence", "Strength", "Hitpoints", "Ranged", "Prayer",
-  "Magic", "Cooking", "Woodcutting", "Fletching", "Fishing", "Firemaking",
-  "Crafting", "Smithing", "Mining", "Herblore", "Agility", "Thieving",
-  "Slayer", "Farming", "Runecraft", "Hunter", "Construction", "Sailing"
-];
-
-const SAMPLE_LEVELS: Record<string, number> = {
-  Attack: 90, Defence: 80, Strength: 90, Hitpoints: 85, Ranged: 92,
-  Prayer: 74, Magic: 85, Cooking: 80, Woodcutting: 70, Fletching: 80,
-  Fishing: 70, Firemaking: 70, Crafting: 75, Smithing: 70, Mining: 72,
-  Herblore: 78, Agility: 70, Thieving: 80, Slayer: 80, Farming: 75,
-  Runecraft: 70, Hunter: 70, Construction: 75, Sailing: 34
-};
-
-const SAMPLE_BANK = [
-  { id: 4151, name: "Abyssal whip" },
-  { id: 28688, name: "Blazing blowpipe" },
-  { id: 11804, name: "Bandos godsword" },
-  { id: 11832, name: "Bandos chestplate" },
-  { id: 11834, name: "Bandos tassets" },
-  { id: 19553, name: "Amulet of torture" },
-  { id: 12954, name: "Dragon defender" },
-  { id: 7462, name: "Barrows gloves" },
-  { id: 21295, name: "Infernal cape" },
-  { id: 21907, name: "Vorkath's head" },
-  { id: 12921, name: "Magic fang" }
-];
-
-function sampleSkills(): HiscoreSkill[] {
-  const skills = SAMPLE_SKILL_NAMES.map((name, index) => ({
-    id: index + 1,
-    name,
-    rank: 100_000,
-    level: SAMPLE_LEVELS[name] ?? 1,
-    xp: SAMPLE_LEVELS[name] >= 99 ? 13_034_431 : 737_627
-  }));
-  const total = skills.reduce((sum, skill) => sum + skill.level, 0);
-  return [{ id: 0, name: "Overall", rank: 100_000, level: total, xp: 0 }, ...skills];
-}
+// The demo account lives in reference-account.ts and nowhere else.
+//
+// This file used to carry a byte-identical second copy of its levels and bank.
+// Two demo accounts is the same defect as two colour scales: whichever one is
+// edited, the other silently disagrees, and the preview on the page would stop
+// matching the plan the button produces.
+const SAMPLE_BANK = REFERENCE_BANK;
+const sampleSkills = referenceSkills;
 
 function savedBankForRun(primaryRsn: string, fallbackRsn = ""): SavedBank | null {
   const primary = primaryRsn.trim();
@@ -355,10 +324,18 @@ function KindGlyph({
 
 export function NextClient({
   initialQueryString,
-  initialPlanningContext
+  initialPlanningContext,
+  demoPlan
 }: {
   initialQueryString: string;
   initialPlanningContext: PlanningContextPayload | null;
+  /**
+   * The demo account's real plan, rendered on the server and handed in
+   * (SPEC §3.4). A prop rather than an import because the engine reads the
+   * quest dataset from disk; computing it here would drag that into the
+   * client bundle and onto the first paint.
+   */
+  demoPlan?: ReactNode;
 }) {
   const [view, setView] = useState<"intake" | "result" | "not-found">("intake");
   const [result, setResult] = useState<NextUpResult | null>(null);
@@ -479,28 +456,9 @@ export function NextClient({
         } catch {
           // Demo still works in /next if storage is unavailable; DPS handoff is best-effort.
         }
-        const sampleInput: NextUpInput = {
-          skills: sampleSkills(),
-          bank,
-          questPoints: 180,
-          bossKc: {
-            Vorkath: 250,
-            Zulrah: 180,
-            Vardorvis: 15
-          },
-          accountMeta: {
-            displayName: "Demo PvMer",
-            accountType: "regular",
-            ehp: 420,
-            ehb: 85,
-            lastChangedAt: null
-          },
-          syncedSources: {
-            wom: false,
-            collectionLog: false,
-            scapestack: null
-          }
-        };
+        // The same input the server renders the preview from, so the plan this
+        // button produces is the plan the player was just shown.
+        const sampleInput: NextUpInput = referenceNextUpInput();
         setActivePlannerInput(sampleInput);
         setResult(await nextUpAction(sampleInput));
         setView("result");
@@ -778,6 +736,7 @@ export function NextClient({
         onUseSaved={useSaved}
         onDismissSaved={() => setSavedBank(null)}
         onClearBankHandoff={clearStoredBankHandoff}
+        demoPlan={demoPlan}
       />
     );
   }
@@ -890,7 +849,7 @@ function NotFoundPreview({ rsn, onRetry }: { rsn: string; onRetry: () => void })
 // gives a "show me what this looks like" preview. Adding a bank is opt-in
 // for optional bank context.
 function NextIntake({
-  onRun, loading, error, fromBank, savedBank, savedRsn, cameFromPlugin, onUseSaved, onDismissSaved, onClearBankHandoff
+  onRun, loading, error, fromBank, savedBank, savedRsn, cameFromPlugin, onUseSaved, onDismissSaved, onClearBankHandoff, demoPlan
 }: {
   onRun: (opts: NextRunOptions) => void;
   loading: boolean;
@@ -902,6 +861,7 @@ function NextIntake({
   onUseSaved: (bank: SavedBank) => void;
   onDismissSaved: () => void;
   onClearBankHandoff: () => void;
+  demoPlan?: ReactNode;
 }) {
   // Pre-fill RSN from the remembered value so a returning player doesn't
   // re-type their name. The bank-save and rsn-save are independent — we
@@ -1089,13 +1049,16 @@ function NextIntake({
             aria-live="polite"
             className="border-t border-[var(--color-border)] px-5 py-2 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]"
           >
+            {/* SPEC §3.4: what the site does with the name, not an instruction
+                to type one. "Enter an OSRS name to get one clear next move"
+                stood here and said nothing a player could not already see. */}
             {loading
               ? "Building one clear plan…"
               : rsn.trim()
               ? "One name is enough. Bank or RuneLite can make it sharper later."
               : fromBank
               ? "Bank added. Add a name for stats and KC."
-              : "Enter an OSRS name to get one clear next move."}
+              : "Scapestack reads your hiscores and picks one trip that actually moves you forward today."}
           </p>
 
           {/* Tijdens loading verschijnt de ShuffleLoader onder de input
@@ -1160,6 +1123,12 @@ function NextIntake({
           Try a {SAMPLE_LABEL}
         </button>
       </div>
+
+      {/* SPEC §3.4. Rendered on the server from the demo account's real
+          levels and bank, so the page shows the product working rather than a
+          sentence promising that it will. Hidden while a plan is loading —
+          two answers on screen at once is the dashboard this is replacing. */}
+      {!loading && demoPlan}
 
       <p className="mt-8 text-[11.5px] text-[var(--color-text-muted)] text-center leading-relaxed">
         {cameFromPlugin

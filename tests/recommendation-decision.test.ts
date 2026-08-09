@@ -43,6 +43,33 @@ function build(overrides: Partial<Parameters<typeof buildRecommendationDecision>
   });
 }
 
+describe("the copy says a boss's name, not its URL slug", () => {
+  it("names the boss the way a player would", () => {
+    // "vardorvis is already at 15 KC" shipped, lowercase, in the sentence
+    // under the headline. A slug is a path segment; it is not a word, and no
+    // test had ever read this string.
+    const copy = recommendationDecisionCopy(build(), { hasBank: true, hasRuneLite: true });
+    const line = `${copy.why} ${copy.sourceLine ?? ""}`;
+    expect(line).toContain("Vorkath is already at 48 KC");
+    expect(line).not.toContain("vorkath");
+  });
+
+  it("does not fall back to a raw slug for a boss it has never heard of", () => {
+    const copy = recommendationDecisionCopy(
+      build({
+        winner: recommendation({
+          id: "kc:some-new-boss:50",
+          title: "Push Some New Boss to 50 KC",
+          bossSlug: "some-new-boss"
+        })
+      }),
+      { hasBank: true, hasRuneLite: true }
+    );
+    const line = `${copy.why} ${copy.sourceLine ?? ""}`;
+    expect(line).not.toContain("some-new-boss");
+  });
+});
+
 describe("RecommendationDecision contract", () => {
   it("makes goal, stop point and machine-readable completion inseparable", () => {
     const decision = build();

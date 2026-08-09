@@ -16,6 +16,7 @@
 //      rather than as restrained.
 
 import type { HiscoreSkill } from "./hiscores";
+import type { NextUpInput } from "./next-up";
 
 /** Named so a reader knows what they are looking at in a screenshot. */
 export const REFERENCE_ACCOUNT_LABEL = "Demo account";
@@ -55,4 +56,29 @@ export function referenceSkills(): HiscoreSkill[] {
   }));
   const total = skills.reduce((sum, skill) => sum + skill.level, 0);
   return [{ id: 0, name: "Overall", rank: 100_000, level: total, xp: 0 }, ...skills];
+}
+
+/**
+ * The exact input behind "Try a sample plan".
+ *
+ * Lives here so the preview rendered under the empty input on /next and the
+ * plan the button produces are the same computation. A preview that shows one
+ * trip and a button that produces another is worse than no preview: it makes
+ * the demo look staged, which is the one thing it exists to disprove.
+ */
+export function referenceNextUpInput(): NextUpInput {
+  return {
+    skills: referenceSkills(),
+    bank: REFERENCE_BANK.map((item) => ({ ...item })),
+    questPoints: 180,
+    bossKc: { Vorkath: 250, Zulrah: 180, Vardorvis: 15 },
+    accountMeta: {
+      displayName: "Demo PvMer",
+      accountType: "regular",
+      ehp: 420,
+      ehb: 85,
+      lastChangedAt: null
+    },
+    syncedSources: { wom: false, collectionLog: false, scapestack: null }
+  };
 }

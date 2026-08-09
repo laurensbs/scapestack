@@ -168,9 +168,17 @@ export function AddBankModal({
               />
             </div>
             <div>
-              <p className="text-[12.5px] font-bold leading-snug text-[var(--color-text)] sm:text-[13.5px]">Copy item data from Bank Memory</p>
+              {/* SPEC §3.4: the promise before the instruction. What the
+                  player gets for pasting is the reason they will; how to copy
+                  it out of RuneLite only matters once they have decided. */}
+              <p className="text-[12.5px] font-bold leading-snug text-[var(--color-text)] sm:text-[13.5px]">Paste your bank once</p>
+              {/* §3.4's sentence, second person. The spec writes it as "then
+                  we know what you already own"; this repo's voice lint refuses
+                  "we know" — 0 of 1,985 player-written plugin descriptions say
+                  "we". The promise is the spec's; the pronoun is the repo's. */}
               <p className="mt-1 text-[11px] leading-relaxed text-[var(--color-text-muted)] sm:text-[12px]">
-                Right-click your saved bank in RuneLite, copy item data, then paste or drop the export below.
+                Then Scapestack knows what you already own, and never nags you about items sitting in your chest.
+                <span className="mt-1 block">Right-click your saved bank in RuneLite, copy item data, then paste or drop the export below.</span>
               </p>
               <p className="mt-1.5 inline-flex items-center gap-1.5 text-[10.5px] font-semibold text-[var(--color-accent)] sm:mt-2 sm:text-[11.5px]">
                 <CheckCircle2 className="size-3.5" />

@@ -248,7 +248,28 @@ this file ticked as I go.
       summary row as a skill, doubling every XP and level figure and awarding
       milestones for total level. No delta test had ever put `overall` in a
       fixture.
-- [ ] 6. Empty states
+- [x] 6. Empty states
+      `/next` empty renders `DemoPlanPreview` — the engine's real answer about
+      the demo account, computed on the server so it costs no client bundle.
+      The bare sentence is gone from `/next`, the goal picker carries §3.4's
+      promise inside the panel (not on the summary line, which is inside the
+      height budget), and the bank modal leads with the promise instead of the
+      instruction. Guarded by a new `never-empty` e2e; hiding the preview
+      fails it.
+      `plugin-sync-checker.tsx:237` was on my list and should not have been:
+      that string is inside an `sr-only` live region, where "Enter an OSRS
+      name to check RuneLite" is a correct status, not a bare empty state.
+      Two demo accounts became one: `next-client.tsx` carried a byte-identical
+      copy of `reference-account.ts`'s levels and bank, so the preview and the
+      "Try a sample plan" button could have drifted apart.
+      Found on the way: `buildRecommendationDecision` put a boss SLUG into
+      player-facing copy — "vardorvis is already at 15 KC", lowercase, in the
+      sentence under every KC headline. Guarded.
+      Deviation from §3.4's literal copy: the spec writes "then we know what
+      you already own" and "we'll track how close you are". `voice-lint`
+      rejects first-person-plural — 0 of 1,985 player-written descriptions use
+      it — and it fired on the spec's own sentence. Promise kept, pronoun
+      changed to "Scapestack".
 - [ ] 7. Copy pass
 
 **Two decisions I need from you before item 1:**

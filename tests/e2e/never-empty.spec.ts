@@ -27,6 +27,31 @@ test.describe("never empty", () => {
     ), { timeout: 10_000 }).toBeGreaterThan(0);
   });
 
+  test("/next with nothing typed shows a real plan, not a promise of one", async ({ page }) => {
+    // SPEC §3.4: no page renders a bare input and one sentence. The proof
+    // that this is the engine and not a screenshot is that the trip has the
+    // same structure a real answer has — a decision, and what to do about it.
+    await page.goto("/next");
+    const preview = page.locator("[data-demo-plan-preview]");
+    await expect(preview).toBeVisible();
+    await expect(preview.getByRole("heading", { level: 2 })).not.toBeEmpty();
+    await expect(preview.getByRole("rowheader", { name: "Start" })).toBeVisible();
+    await expect(preview.getByRole("rowheader", { name: "Stop at" })).toBeVisible();
+
+    // The old copy told the player to do the one thing the cursor already
+    // told them. If it comes back, this fails.
+    await expect(page.getByText("Enter an OSRS name to get one clear next move")).toHaveCount(0);
+
+    // A slug is a path segment, not a word — "vardorvis is already at 15 KC"
+    // reached production. The property is that whatever is named in that
+    // clause is capitalised the way a player writes it. A blanket ban on
+    // hyphenated lowercase words was the first shape of this and it flagged
+    // "mid-session", which is just English.
+    const body = (await preview.textContent()) ?? "";
+    const named = body.match(/(\S+) is already at/);
+    if (named) expect(named[1]).toMatch(/^[A-Z]/);
+  });
+
   test("a never-synced account still gets an answer from hiscores alone", async ({ page }) => {
     // Lynx Titan: permanently on the hiscores, never synced with Scapestack.
     await page.goto("/p/Lynx%20Titan");

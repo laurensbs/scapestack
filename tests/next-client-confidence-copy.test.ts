@@ -630,7 +630,12 @@ describe("/next confidence UI copy", () => {
   it("explains why the /next submit CTA is disabled", () => {
     expect(source).toContain('aria-describedby="next-show-me-disabled-help"');
     expect(source).toContain('id="next-show-me-disabled-help"');
-    expect(source).toContain("Enter an OSRS name to get one clear next move.");
+    // SPEC §3.4 replaced the old string. It said "Enter an OSRS name to get
+    // one clear next move" — an instruction to do the one thing the cursor
+    // was already blinking in. The help text now says what the site does with
+    // the name, which is the part a player cannot see.
+    expect(source).toContain("Scapestack reads your hiscores and picks one trip");
+    expect(source).not.toContain("Enter an OSRS name to get one clear next move.");
     expect(source).toContain("Bank added. Add a name for stats and KC.");
     expect(source).not.toContain("gear-only plan");
   });
