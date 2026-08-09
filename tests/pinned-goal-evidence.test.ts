@@ -31,18 +31,19 @@ describe("pinned goal evidence", () => {
       questsCompleted: ["Priest in Peril", "Fairytale I - Growing Pains", "Fairytale II - Cure a Queen"],
       bankItems: [{ id: 772, name: "Dramen staff", quantity: 1 }]
     });
-    expect(pinnedGoalProgress(goal, exact)).toEqual({ fraction: "3/3", done: true, note: null });
+    expect(pinnedGoalProgress(goal, exact)).toEqual({ fraction: "3/3", percent: 100, done: true, note: null });
     const itemGoal = createPinnedGoal({ kind: "item", goalId: "fire-cape" })!;
     const itemEvidence = buildPinnedGoalEvidence({
       skills: [],
       quests,
       bankItems: [{ id: 6570, name: "Fire cape", quantity: 1 }]
     });
-    expect(pinnedGoalProgress(itemGoal, itemEvidence)).toEqual({ fraction: "1/1", done: true, note: null });
+    expect(pinnedGoalProgress(itemGoal, itemEvidence)).toEqual({ fraction: "1/1", percent: 100, done: true, note: null });
 
     const hiscoresOnly = buildPinnedGoalEvidence({ skills: [], quests });
     expect(pinnedGoalProgress(goal, hiscoresOnly)).toEqual({
       fraction: null,
+      percent: null,
       done: false,
       note: "Needs RuneLite to see finished quests"
     });

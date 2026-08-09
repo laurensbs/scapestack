@@ -14,6 +14,10 @@ export function HeroIntake() {
     const cleanRsn = rsn.trim();
     if (!cleanRsn) return;
     saveSavedRsn(cleanRsn);
+    // Straight to the answer, deliberately. Onboarding step 1 (§3.1) lives on
+    // that page as the opened goal line, not as a screen in front of it —
+    // tests/first-run-flow.test.ts holds the name → answer path open, and it
+    // is guarding a setup screen this repo already removed once.
     router.push(playerPath(cleanRsn));
   };
 

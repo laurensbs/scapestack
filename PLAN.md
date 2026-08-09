@@ -79,6 +79,25 @@ Three things I want you to say yes to before I touch the DB:
   suggested goals → pick or skip. `pinnedGoalSuggestionsFromPlan` already
   produces the suggestions; this is a routing and copy change, not new logic.
 
+  **Built as the goal line's empty state, not as a screen — and this is the one
+  decision in item 3 worth your overrule.** A `/start/[rsn]` route was written
+  and then deleted, because two tests fail the moment it exists:
+  `tests/first-run-flow.test.ts` ("saves a fresh RSN and opens its canonical
+  answer **without setup**") and `tests/hero-intake-copy.test.ts`. They are not
+  stale assertions — they were written to hold open a path this repo cleared by
+  *removing* a first-run setup screen, and they name that screen's dead symbols
+  (`markAccountFirstSetupSeen`, `setShowFirstSetup`, `role="dialog"`) so it
+  cannot come back. Adding an interstitial withdraws that promise, and it also
+  makes every new player pay for the planning context twice.
+
+  So: `/p/[rsn]`'s goal line asks "What are you working toward?" above the
+  fold, one click opens **three** suggestions rather than six, and the trip is
+  already rendered underneath so ignoring the question costs nothing. That is
+  RSN → suggested goals → pick or skip, on one page.
+
+  If you want the literal separate screen, say so and the two guards come out
+  with it — but they should come out on purpose, not as collateral.
+
 ### 4. Goal-aware `/next` — mostly done, needs the label
 
 Prioritisation is live (a pinned goal already reorders and can synthesise a trip
@@ -180,7 +199,35 @@ this file ticked as I go.
       assert on the schema as *text*, and text cannot tell you what Postgres
       will accept. `npm run db:verify` runs it against a real database and
       exits 2 rather than pass when `DATABASE_URL` is absent.
-- [ ] 3. Goal picker: baseline, types, primary, onboarding step 1
+- [x] 3. Goal picker: baseline, types, primary, onboarding step 1 — done.
+      `ci:check` green, 1,837 unit tests, `db:verify` 129/129. Nine guards
+      sabotage-proved.
+
+      **Baseline** is captured at the moment of pinning, from the evidence the
+      page is already rendering, and the percentage is measured from it. Level
+      goals are measured in XP rather than levels — 92 → 99 Slayer is 6.5M XP,
+      and counting it in levels calls the first 100k one seventh done. No
+      baseline reads as unknown, never as 0%.
+
+      **Six types** added: `skill_xp`, `boss_kc`, `quest`, `diary`,
+      `clog_slots`, `ca_tier`. `gear_tier` and `gear_item` are deliberately
+      NOT among them — gear tiers are Phase 2 (see the table above) — and
+      `custom` has no way to be measured, so it would be a goal the product
+      can only ever shrug at. Quest and diary are absent from the *static*
+      picker list because quest-db and diary-db read from disk with node:fs;
+      they are pinnable and arrive as server-side suggestions.
+
+      **`is_primary`** is read by the goal line, which had been showing
+      `goals[0]` — the OLDEST pin, by accident of the sort order, so a goal set
+      months ago outranked the one set this morning.
+
+      **Item 1 left the delete guard behind**: it widened the `goal_key` CHECK
+      to the spec's types and left `deleteAccountPinnedGoal` matching only
+      `item|level|unlock` with no underscore. Every new kind could have been
+      pinned and then never removed. The regex and the CHECK are now one rule,
+      asserted against each other.
+
+      **Onboarding step 1 did NOT land as a separate screen.** See below.
 - [ ] 4. "Serves your goal" label
 - [ ] 5. Weekly recap + Discord (+ email behind a flag)
 - [ ] 6. Empty states

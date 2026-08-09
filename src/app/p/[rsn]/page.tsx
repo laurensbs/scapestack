@@ -134,7 +134,14 @@ export default async function PlayerPage({ params, searchParams }: Props) {
     quests,
     questsCompleted: exactDomain("quests") ? exactSync?.questsCompleted : undefined,
     diariesCompleted: exactDomain("diaries") ? exactSync?.diariesCompleted : undefined,
-    bankItems: exactBank
+    bankItems: exactBank,
+    // Boss KC comes from the hiscores, so it works without the plugin. The
+    // collection log and combat achievements do not, and stay undefined rather
+    // than 0 when unread — a goal cannot report progress from a number nobody
+    // has looked at.
+    activities: hi.activities,
+    clogSlots: exactDomain("collectionLog") ? exactSync?.collectionLogItemIds?.length : undefined,
+    caPoints: exactSync?.combatAchievements?.points
   });
   const suggestedGoals = pinnedGoalSuggestionsFromPlan(context.initialPlan);
   const maxRoute = buildMaxRoute(context.initialPlan?.maxEstimate.perSkill ?? []);

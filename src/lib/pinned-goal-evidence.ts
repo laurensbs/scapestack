@@ -1,3 +1,4 @@
+import { BOSSES } from "./bosses";
 import { computeCombatLevel, type HiscoreSkill } from "./hiscores";
 import { GOAL_SETS } from "./goals";
 import type { PinnedGoalProgressEvidence } from "./pinned-goals";
@@ -10,6 +11,12 @@ interface EvidenceInput {
   questsCompleted?: readonly string[];
   diariesCompleted?: ReadonlyArray<{ region: string; tier: "Easy" | "Medium" | "Hard" | "Elite" }>;
   bankItems?: ReadonlyArray<{ id: number; name: string; quantity: number }>;
+  /** Hiscore activity rows, for boss KC goals. Unranked entries read -1. */
+  activities?: ReadonlyArray<{ name: string; score: number }>;
+  /** Collection log slots filled. Plugin-only; undefined means unread. */
+  clogSlots?: number;
+  /** Combat achievement points. Plugin contract v4; undefined means unread. */
+  caPoints?: number;
 }
 
 function normalized(value: string): string {
@@ -123,11 +130,38 @@ function unlockProgress(
   };
 }
 
+/**
+ * Hiscore activity rows keyed by boss slug.
+ *
+ * An unranked activity reads -1 from Jagex and is dropped, not stored as 0.
+ * Zero would later read as "killed it zero times", a claim the hiscores never
+ * made — the same false zero the collection log work already paid for.
+ */
+function bossKcFrom(activities: EvidenceInput["activities"]): Record<string, number> | undefined {
+  if (!activities) return undefined;
+  const bySlug = new Map(BOSSES.map((boss) => [normalized(boss.name), boss.slug] as const));
+  const kc: Record<string, number> = {};
+  for (const activity of activities) {
+    if (!activity?.name || !Number.isFinite(activity.score) || activity.score < 0) continue;
+    const slug = bySlug.get(normalized(activity.name));
+    if (slug) kc[slug] = activity.score;
+  }
+  return kc;
+}
+
 export function buildPinnedGoalEvidence(input: EvidenceInput): PinnedGoalProgressEvidence {
   const ownedItemGoalIds = itemGoalIdsOwned(input.bankItems);
   return {
-    skills: input.skills.map((skill) => ({ name: skill.name, level: skill.level })),
+    // XP travels with the level now. A percentage between two levels cannot be
+    // computed without it, and dropping it here is what made every level goal
+    // measurable only in whole levels.
+    skills: input.skills.map((skill) => ({ name: skill.name, level: skill.level, xp: skill.xp })),
     ownedItemGoalIds,
+    bossKc: bossKcFrom(input.activities),
+    questsCompleted: input.questsCompleted,
+    diariesCompleted: input.diariesCompleted,
+    clogSlots: input.clogSlots,
+    caPoints: input.caPoints,
     unlocks: Object.fromEntries(UNLOCK_GOAL_DEFINITIONS.map((definition) => [
       definition.id,
       unlockProgress(definition, input, ownedItemGoalIds)

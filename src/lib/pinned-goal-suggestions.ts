@@ -1,11 +1,18 @@
 import { GOAL_SETS } from "./goals";
-import { LEVEL_GOAL_SKILLS, pinnedGoalChoiceFromInput, type NewPinnedGoal } from "./pinned-goals";
+import { createPinnedGoal, LEVEL_GOAL_SKILLS, pinnedGoalChoiceFromInput, type NewPinnedGoal } from "./pinned-goals";
 import type { NextUpResult } from "./next-up";
 
-function suggestionKey(goal: NewPinnedGoal): string {
-  if (goal.kind === "item") return `item:${goal.goalId}`;
-  if (goal.kind === "unlock") return `unlock:${goal.unlockId}`;
-  return `level:${goal.skill.toLowerCase()}:${goal.targetLevel}`;
+/**
+ * The canonical key, from the model rather than rebuilt here.
+ *
+ * The local copy this replaces produced `level:${skill.toLowerCase()}:${n}`
+ * while createPinnedGoal produces `level:${normalizedKeyPart(skill)}:${n}`.
+ * They agree for every current skill name and would have stopped agreeing the
+ * moment one contained a space — two keys for one goal, so the dedupe below
+ * would have offered it twice and the pinned-key filter would have missed it.
+ */
+function suggestionKey(goal: NewPinnedGoal): string | null {
+  return createPinnedGoal(goal)?.key ?? null;
 }
 
 /**
@@ -17,7 +24,8 @@ export function pinnedGoalSuggestionsFromPlan(plan: NextUpResult | null): NewPin
   const suggestions = new Map<string, NewPinnedGoal>();
   const add = (goal: NewPinnedGoal | null) => {
     if (!goal || suggestions.size >= 6 || !pinnedGoalChoiceFromInput(goal)) return;
-    suggestions.set(suggestionKey(goal), goal);
+    const key = suggestionKey(goal);
+    if (key) suggestions.set(key, goal);
   };
 
   for (const completion of plan.readiness) {

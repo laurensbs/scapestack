@@ -63,7 +63,7 @@ describe("RuneLite panel answer receipt", () => {
       recommendation,
       input,
       goal,
-      { fraction: "7/10", done: false, note: null }
+      { fraction: "7/10", percent: 70, done: false, note: null }
     )).toEqual({
       title: "Monkey Madness I",
       detail: "toward Barrows gloves",

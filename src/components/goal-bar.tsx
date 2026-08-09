@@ -5,10 +5,14 @@ import { ItemSprite } from "@/components/item-sprite";
 import { usePinnedGoals } from "@/components/use-pinned-goals";
 import {
   createPinnedGoal,
-  pinGoalLocally,
+  loadPinnedGoals,
+  pinnedGoalBaselineFrom,
   pinnedGoalChoiceFromInput,
   pinnedGoalProgress,
+  primaryPinnedGoal,
+  replacePinnedGoalsLocally,
   searchPinnedGoalChoices,
+  withPrimaryPinnedGoal,
   type NewPinnedGoal,
   type PinnedGoalChoice,
   type PinnedGoalProgressEvidence
@@ -32,6 +36,18 @@ import {
  * roster and the route steps, so the page speaks one row language instead of
  * three. Search goes last and small — a player who can see "95 Fletching" as a
  * row does not need to type it.
+ *
+ * Onboarding step 1 (SPEC §3.1) is this line in its empty state: the question
+ * above the fold, three suggestions one click away, and the trip already
+ * rendered underneath so ignoring it costs nothing. It is deliberately not a
+ * screen in front of the answer — tests/first-run-flow.test.ts holds the
+ * name → answer path open, guarding a first-run setup screen this repo
+ * already removed once.
+ *
+ * The disclosure is also deliberately not `open` on arrival. `open` is a DOM
+ * property React keeps rewriting, so it fights the player's own toggling, and
+ * goals load from localStorage in an effect — every returning player would get
+ * the picker open for a frame and then snapped shut.
  */
 
 async function saveServerGoal(goal: { key: string }): Promise<void> {
@@ -40,6 +56,28 @@ async function saveServerGoal(goal: { key: string }): Promise<void> {
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ goal })
   }).catch(() => null);
+}
+
+/**
+ * How far along, as ONE number.
+ *
+ * The percentage when there is a baseline behind it (§3.1), the raw fraction
+ * otherwise — never both. "92/99" and "0%" side by side are two scales for one
+ * meaning, and a second way to say the same thing is a bug in the design
+ * system rather than a variant. They also read as contradicting each other on
+ * the day a goal is pinned, which is the day the line matters most.
+ */
+function GoalProgressValue({ percent, fraction }: { percent: number | null; fraction: string | null }) {
+  const value = percent === null ? fraction : `${Math.round(percent)}%`;
+  if (!value) return null;
+  return (
+    <span
+      data-goal-progress={percent === null ? "fraction" : "percent"}
+      className="shrink-0 tabular-nums text-[length:var(--text-body)] font-normal text-[var(--color-data-level)]"
+    >
+      {value}
+    </span>
+  );
 }
 
 function GoalChoiceRow({ choice, onPin }: { choice: PinnedGoalChoice; onPin: (choice: PinnedGoalChoice) => void }) {
@@ -81,21 +119,40 @@ export function GoalBar({
   const [query, setQuery] = useState("");
   const detailsRef = useRef<HTMLDetailsElement>(null);
 
-  const active = goals[0] ?? null;
+  // The primary goal, not goals[0]. The old read took the oldest pin by
+  // accident of the sort order, so a goal set two months ago outranked the one
+  // set this morning and the player had no way to say which they meant.
+  const active = primaryPinnedGoal(goals);
   const progress = active ? pinnedGoalProgress(active, evidence) : null;
   const pinnedKeys = new Set(goals.map((goal) => goal.key));
+  // Onboarding step 1 (§3.1) is this, and it is three rows rather than six.
+  // A player with nothing pinned is being asked a question for the first time,
+  // and a list long enough to need reading is a list that gets skipped. Once
+  // they have a goal, the picker is a picker again and shows the full six.
+  const suggestionLimit = active ? 6 : 3;
   const suggested = suggestions
     .map(pinnedGoalChoiceFromInput)
     .filter((choice): choice is PinnedGoalChoice => Boolean(choice && !pinnedKeys.has(choice.key)))
-    .slice(0, 6);
+    .slice(0, suggestionLimit);
   const results = query.trim()
     ? searchPinnedGoalChoices(query).filter((choice) => !pinnedKeys.has(choice.key)).slice(0, 6)
     : suggested;
 
   function pinChoice(choice: PinnedGoalChoice): void {
-    const goal = createPinnedGoal(choice.input);
+    const now = new Date().toISOString();
+    // The baseline is taken here or never. This is the only moment the page
+    // knows what the account looked like when the player committed, and §3.1's
+    // percentage is measured from exactly that.
+    const goal = createPinnedGoal({
+      ...choice.input,
+      pinnedAt: now,
+      baseline: pinnedGoalBaselineFrom(evidence, now),
+      // Pinning from the goal line is the player naming what they are working
+      // toward. That is the definition of the primary goal.
+      isPrimary: true
+    });
     if (!goal || pinnedKeys.has(goal.key)) return;
-    pinGoalLocally(rsn, goal);
+    replacePinnedGoalsLocally(rsn, withPrimaryPinnedGoal([...loadPinnedGoals(rsn), goal], goal.key));
     setQuery("");
     // Closing the disclosure IS the confirmation: the line above it now reads
     // the goal's name and the answer under it re-renders. A "Pinned — …"
@@ -111,13 +168,9 @@ export function GoalBar({
         <span className="min-w-0 flex-1 truncate text-[length:var(--text-body)] font-normal text-[var(--color-text)]">
           {active
             ? active.target
-            : "Nothing pinned — tonight is just the nearest thing."}
+            : "What are you working toward?"}
         </span>
-        {progress?.fraction && (
-          <span className="shrink-0 tabular-nums text-[length:var(--text-body)] font-normal text-[var(--color-data-level)]">
-            {progress.fraction}
-          </span>
-        )}
+        <GoalProgressValue percent={progress?.percent ?? null} fraction={progress?.fraction ?? null} />
         <span className="scape-goal-bar__cue shrink-0">{active ? "Change" : "Pin a goal"}</span>
       </summary>
 
