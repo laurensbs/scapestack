@@ -187,11 +187,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 className="underline underline-offset-2"
               >
                 OSRS Wiki, CC BY-NC-SA 3.0
-              </a>
-              {/* Share-alike is half the licence and the half a one-line
-                  credit usually drops. Weird Gloop's copyright policy requires
-                  derivatives to be licensed "under the same, or a compatible
-                  license", so the obligation is stated rather than implied. */}
+              </a>{/* Comma kept against the closing tag. Browsers collapse a
+                  newline here anyway — measured, innerText reads
+                  "CC BY-NC-SA 3.0, reused" either way — so this is tidiness,
+                  not a fix.
+
+                  Share-alike is half the licence and the half a one-line
+                  credit usually drops: Weird Gloop's policy requires
+                  derivatives "under the same, or a compatible license", so
+                  the obligation is stated rather than implied. */}
               , reused here under the same licence.
             </span>
             {/* VERBATIM, from the Fan Content Policy clause 8.1 (v1.3,
