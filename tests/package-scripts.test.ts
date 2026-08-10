@@ -28,6 +28,11 @@ describe("package scripts", () => {
       // file says to run it "before every screenshot pass and before done".
       // A design rule nobody runs is a design suggestion.
       "npm run rebrand:lint",
+      // Four artefacts that each came back at least once: shadcn, Inter, the
+      // stat-counter row, and the Setup/Boss nav labels. Separate from
+      // rebrand:lint because that one is a design gate and this one is a
+      // "never again" list.
+      "npm run lint:forbidden",
       "npm run audit:next",
       "npm run audit:controller",
       "npm run plugin:release-check",

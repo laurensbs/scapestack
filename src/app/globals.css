@@ -522,6 +522,25 @@
   --radius-sm: 2px;
   --radius-md: 3px;   /* max default radius; NEVER exceed 4px on panels */
 
+  /* --- Semantic aliases ---------------------------------------------------
+     Five names for the five decisions a component actually makes: what is the
+     page, what is a raised surface, what is text, what is the one accent, what
+     is secondary.
+
+     They are ALIASES, not new values. A second palette living beside the first
+     is how a design system ends up with two greys that are almost the same and
+     nobody can say which is correct — so every one of these resolves into the
+     ramp above and none of them introduces a colour.
+
+     --ink is deliberately the on-stone text, not the on-parchment ink: the
+     page ground is stone, and parchment is the exception that names itself
+     (--parchment-100 / --ink-900) where it is used. */
+  --bg:      var(--stone-900);
+  --surface: var(--stone-700);
+  --ink:     var(--stone-text);
+  --accent:  var(--gold-500);
+  --muted:   var(--stone-text-muted);
+
   /* --- Type --- */
   --font-display: "Cinzel", serif;         /* carved-stone headings */
   --font-body:    "Fraunces", Georgia, serif; /* warm editorial body */
@@ -735,7 +754,10 @@ html, body {
   }
 }
 
-/* Hierarchy comes from weight and size, not from a second typeface. */
+/* h1-h3 are Cinzel; everything else is Fraunces (--font-sans, set on body).
+   This comment used to read "hierarchy comes from weight and size, not from a
+   second typeface" — true for the grotesque this replaced, and inverted by
+   REBRAND.md Section 2. The pairing IS the hierarchy now. */
 h1, h2, h3 {
   font-family: var(--font-display);
   font-weight: 600;
@@ -767,7 +789,10 @@ body {
   background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #4A4A4A;
+  /* Was #4A4A4A — a pure neutral, the only one left in the sheet. Even the
+     scrollbar is stone now; a cool grey against a warm page reads as a
+     borrowed part. */
+  background: var(--stone-600);
   background-clip: padding-box;
 }
 

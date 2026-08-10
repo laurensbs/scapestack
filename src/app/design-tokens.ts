@@ -95,7 +95,10 @@ export const FONTS = {
  * the system cannot drift apart.
  */
 export const FORBIDDEN_FONTS = [
-  "Inter",
+  // This array IS the forbidden list, so it has to be allowed to name what it
+  // forbids — otherwise the rule fails on its own source of truth.
+  "Inter", // lint-forbidden-allow
+
   "Roboto",
   "Open Sans",
   "Lato",

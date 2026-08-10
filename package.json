@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "next dev --turbopack --port 4173",
     "build": "next build",
-    "ci:check": "npm run typecheck && npm test && npm run smoke && npm run rebrand:lint && npm run audit:next && npm run audit:controller && npm run plugin:release-check && npm run build && npm run e2e",
+    "ci:check": "npm run typecheck && npm test && npm run smoke && npm run rebrand:lint && npm run lint:forbidden && npm run audit:next && npm run audit:controller && npm run plugin:release-check && npm run build && npm run e2e",
     "start": "next start --port 4173",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
@@ -37,7 +37,8 @@
     "wiki:sync": "node scripts/wiki-sync.mjs && node scripts/wiki-project.mjs",
     "wiki:check": "node scripts/wiki-sync.mjs --check",
     "wiki:reconcile": "tsx scripts/wiki-reconcile.mts",
-    "rebrand:lint": "node scripts/rebrand-lint.mjs"
+    "rebrand:lint": "node scripts/rebrand-lint.mjs",
+    "lint:forbidden": "node scripts/lint-forbidden.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
