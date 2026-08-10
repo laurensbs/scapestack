@@ -126,8 +126,13 @@ async function auditPage(page: Page, options: { navigate?: boolean } = {}): Prom
     // A src that 404s has a truthy attribute, complete=true and naturalWidth
     // 0 — the exact spelling of the 39-holes incident this spec was written
     // for. Pending lazy images (complete=false) are not blamed.
+    // naturalWidth <= 1, not === 0. The sprite routes answer an unknown slug
+    // with a deliberate 68-byte transparent 1x1 PNG, which keeps next/image on
+    // one code path — and is "loaded" as far as the DOM is concerned. A check
+    // for zero cannot see it. This repo already paid for 39 empty <img>; a
+    // 1x1 placeholder is the same hole one step subtler.
     const broken = images
-      .filter((img) => img.complete && img.naturalWidth === 0)
+      .filter((img) => img.complete && img.naturalWidth <= 1)
       .map((img) => (img.getAttribute("src") ?? "(no src)").slice(-60));
     const upscaled = images
       .filter((img) => {

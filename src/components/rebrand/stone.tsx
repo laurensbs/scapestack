@@ -88,23 +88,41 @@ export function ParchmentNote({
   children,
   className,
   ruled = false,
+  variant = "note",
   ...rest
 }: {
   children: ReactNode;
   className?: string;
   /** Faint rule lines, as an almanac page has. Off by default. */
   ruled?: boolean;
+  /**
+   * "warning" marks the page — a red rule down the binding edge and a
+   * slightly darker ground, the way an annotated almanac flags a passage.
+   *
+   * Deliberately NOT a red left-border strip: that is REBRAND F7, "the single
+   * most reliable AI tell". This is a 2px rule inside the border on the
+   * BINDING side, reading as ink on the page rather than as a status chip
+   * bolted to a card. The distinction is thin and it is the whole point.
+   */
+  variant?: "note" | "warning";
 } & React.HTMLAttributes<HTMLDivElement>) {
+  const warning = variant === "warning";
   return (
     <div
       {...rest}
-      data-parchment-note="true"
+      data-parchment-note={warning ? "warning" : "note"}
       className={cn(
-        "border border-[var(--parchment-300)] bg-[var(--parchment-100)] p-3 font-[family-name:var(--font-body)] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--ink-900)] sm:p-4",
+        "border p-3 font-[family-name:var(--font-body)] text-[length:var(--text-body)] font-normal leading-relaxed text-[var(--ink-900)] sm:p-4",
+        warning
+          ? "border-[var(--parchment-line)] bg-[var(--parchment-200)] pl-4 sm:pl-5"
+          : "border-[var(--parchment-300)] bg-[var(--parchment-100)]",
         className
       )}
       style={{
         borderRadius: "var(--radius-md)",
+        // The marked binding edge. Inset, so it is part of the page rather
+        // than a strip attached to a card (F7).
+        ...(warning ? { borderLeft: "2px solid var(--msg-warn)" } : {}),
         // A hard 2px offset, no blur — paper lying on stone, not floating.
         boxShadow: "2px 2px 0 var(--bevel-dark)",
         // The aging is a repeating gradient rather than an image: no request,
