@@ -3055,7 +3055,7 @@ function RouteCard({
       className={cn(
         "rounded-none border bg-[var(--color-bg)]/35 transition-colors",
         expanded
-          ? "border-[var(--color-accent)]/45 bg-[var(--color-bg)]/58 shadow-[0_18px_60px_-34px_rgba(200,154,61,0.55)]"
+          ? "border-[var(--color-accent)]/45 bg-[var(--color-bg)]/58"
           : "border-[var(--color-border)] hover:border-[var(--color-accent)]/28 hover:bg-[var(--color-bg)]/48"
       )}
       data-route-card="true"
@@ -3240,7 +3240,7 @@ function ContinueRouteBanner({
     <section
       role="status"
       aria-live="polite"
-      className="rounded-none border border-[var(--color-accent)]/30 bg-[linear-gradient(135deg,rgba(214,170,72,0.13),rgba(20,15,9,0.68))] px-4 py-3 shadow-[0_16px_48px_rgba(0,0,0,0.22)]"
+      className="rounded-none border border-[var(--color-accent)]/30 bg-[linear-gradient(135deg,rgba(214,170,72,0.13),rgba(20,15,9,0.68))] px-4 py-3"
       data-continue-route-memory="true"
     >
       <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

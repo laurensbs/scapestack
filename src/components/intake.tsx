@@ -375,7 +375,7 @@ export function Intake({
             {PREVIEW_IDS.map((id, i) => (
               <div
                 key={id}
-                className="size-9 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)] flex items-center justify-center shadow-[0_2px_8px_-2px_rgb(0_0_0/0.6)]"
+                className="size-9 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)] flex items-center justify-center"
                 style={{ zIndex: PREVIEW_IDS.length - i, animation: `pop-in 0.25s ease-out ${i * 0.04}s both` }}
               >
                 <ItemSprite

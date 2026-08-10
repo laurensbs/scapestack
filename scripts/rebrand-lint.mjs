@@ -73,6 +73,26 @@ const RULES = [
     why: "REBRAND.md F11: depth is a hard bevel — light top-left, dark bottom-right — never a blur."
   },
   {
+    id: "F11b",
+    label: "arbitrary shadow with a blur radius",
+    // Tailwind's NAMED shadows were banned and arbitrary ones were not, so
+    // shadow-[0_14px_42px_...] sat on the site header — the one element every
+    // page carries — through a green lint for a whole rebrand. The third
+    // length in a box-shadow is the blur; over 4px it is a soft shadow
+    // whatever it is spelled as.
+    pattern: /shadow-\[[^\]]*?_(?:[5-9]|\d{2,})px_/,
+    why: "REBRAND.md F11: a blur radius over 4px is a soft shadow. Offsets are fine; blur is not."
+  },
+  {
+    id: "F10",
+    label: "frosted panel",
+    // Scoped to chrome and panels, not scrims. A dark scrim behind a modal is
+    // a focus device; a translucent blurred PANEL is glassmorphism, which is
+    // what F10 actually names.
+    pattern: /<(?:header|nav|footer)[^>]*backdrop-blur|class[nN]ame=[^>]*(?:panel|card)[^>]*backdrop-blur/,
+    why: "REBRAND.md F10: no glassmorphism. Chrome and panels are opaque stone."
+  },
+  {
     id: "F7",
     label: "coloured left-border strip",
     pattern: /\bborder-l-4\b|\bborder-l-\[/,

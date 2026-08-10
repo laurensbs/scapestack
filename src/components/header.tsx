@@ -32,35 +32,35 @@ export function Header() {
   const mobileNavId = "scapestack-mobile-nav";
 
   useEffect(() => {
-    const syncQuery = () => setContextQuery(window.location.search);
-    syncQuery();
-    window.addEventListener("popstate", syncQuery);
-    return () => window.removeEventListener("popstate", syncQuery);
+  const syncQuery = () => setContextQuery(window.location.search);
+  syncQuery();
+  window.addEventListener("popstate", syncQuery);
+  return () => window.removeEventListener("popstate", syncQuery);
   }, [pathname]);
 
   useEffect(() => {
-    const syncAccount = () => {
-      const snapshot = loadAccountSnapshot();
-      if (snapshot.rsn) {
-        if (!snapshot.account) saveSavedRsn(snapshot.rsn);
-        setActiveRsn(snapshot.rsn);
-      } else {
-        setActiveRsn("");
-      }
-    };
-    syncAccount();
-    window.addEventListener(ACCOUNT_EVENT, syncAccount);
-    window.addEventListener(SAVED_BANK_EVENT, syncAccount);
-    window.addEventListener("storage", syncAccount);
-    return () => {
-      window.removeEventListener(ACCOUNT_EVENT, syncAccount);
-      window.removeEventListener(SAVED_BANK_EVENT, syncAccount);
-      window.removeEventListener("storage", syncAccount);
-    };
+  const syncAccount = () => {
+  const snapshot = loadAccountSnapshot();
+  if (snapshot.rsn) {
+  if (!snapshot.account) saveSavedRsn(snapshot.rsn);
+  setActiveRsn(snapshot.rsn);
+  } else {
+  setActiveRsn("");
+  }
+  };
+  syncAccount();
+  window.addEventListener(ACCOUNT_EVENT, syncAccount);
+  window.addEventListener(SAVED_BANK_EVENT, syncAccount);
+  window.addEventListener("storage", syncAccount);
+  return () => {
+  window.removeEventListener(ACCOUNT_EVENT, syncAccount);
+  window.removeEventListener(SAVED_BANK_EVENT, syncAccount);
+  window.removeEventListener("storage", syncAccount);
+  };
   }, []);
 
   useEffect(() => {
-    void hydrateConnectedAccount().catch(() => null);
+  void hydrateConnectedAccount().catch(() => null);
   }, []);
 
   const navTools = getPrimaryNavTools();
@@ -70,162 +70,168 @@ export function Header() {
   const onHome = pathname === "/";
 
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-30 h-14 shrink-0",
-        "border-b border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/92 shadow-[0_14px_42px_-34px_rgba(0,0,0,0.9)] backdrop-blur-md"
-      )}
-    >
-      <div className="mx-auto max-w-7xl h-full px-4 sm:px-6 flex items-center justify-between gap-3">
-        {/* Wordmark + page title. Lowercase text keeps the header quiet;
-            the route accent handles identity without a heavy logo tile. */}
-        <div className="flex items-baseline gap-3 min-w-0">
-          <Link
-            href="/"
-            aria-label="Scapestack home"
-            className={cn(
-              "group flex min-h-11 shrink-0 items-center leading-none",
-              "text-[length:var(--text-subject)] font-semibold tracking-normal lowercase drop-shadow-[1px_1px_0_rgba(0,0,0,0.85)]"
-            )}
-          >
-            <span
-              className="text-[var(--color-text)] group-hover:text-[var(--color-text-secondary)] transition-colors"
-              style={{ animation: "hero-fade 0.55s cubic-bezier(0.22,1,0.36,1) 0.05s both" }}
-            >
-              scape
-            </span>
-            <span
-              className="text-[var(--color-gold)] group-hover:brightness-110 transition-[filter]"
-              style={{ animation: "hero-fade 0.55s cubic-bezier(0.22,1,0.36,1) 0.18s both" }}
-            >
-              stack
-            </span>
-          </Link>
-          {/* Breadcrumb-style page label on desktop only — fades in after
-              the wordmark settles so the eye lands on the brand first. */}
-          {title && (
-            <div
-              className="hidden sm:flex items-baseline gap-2 text-[12px] text-[var(--color-text-muted)] truncate"
-              style={{ animation: "hero-fade 0.5s cubic-bezier(0.22,1,0.36,1) 0.32s both" }}
-            >
-              <span className="text-[var(--color-border-strong)]">·</span>
-              <span className="font-medium text-[var(--color-text-secondary)] truncate tracking-normal">{title}</span>
-            </div>
-          )}
-        </div>
+  <header
+  style={{ boxShadow: "inset 0 1px 0 var(--bevel-light), 0 1px 0 var(--bevel-dark)" }}
+  className={cn(
+ "sticky top-0 z-30 h-14 shrink-0",
+  // REBRAND F10 and F11, both landed here at once: a frosted panel
+  // (backdrop-blur-md) wearing a 42px-blur drop shadow, on the one
+  // element every page carries. The chrome is opaque stone now, and its
+  // depth is the same hard bevel as every other surface — a lit top
+  // edge and a dark bottom one.
+ "border-b border-[var(--wood-700)] bg-[var(--stone-800)]"
+  )}
+  >
+  <div className="mx-auto max-w-7xl h-full px-4 sm:px-6 flex items-center justify-between gap-3">
+  {/* Wordmark + page title. Lowercase text keeps the header quiet;
+  the route accent handles identity without a heavy logo tile. */}
+  <div className="flex items-baseline gap-3 min-w-0">
+  <Link
+  href="/"
+  aria-label="Scapestack home"
+  className={cn(
+ "group flex min-h-11 shrink-0 items-center leading-none",
+ "text-[length:var(--text-subject)] font-semibold tracking-normal lowercase drop-shadow-[1px_1px_0_rgba(0,0,0,0.85)]"
+  )}
+  >
+  <span
+  className="text-[var(--color-text)] group-hover:text-[var(--color-text-secondary)] transition-colors"
+  style={{ animation: "hero-fade 0.55s cubic-bezier(0.22,1,0.36,1) 0.05s both" }}
+  >
+  scape
+  </span>
+  <span
+  className="text-[var(--color-gold)] group-hover:brightness-110 transition-[filter]"
+  style={{ animation: "hero-fade 0.55s cubic-bezier(0.22,1,0.36,1) 0.18s both" }}
+  >
+  stack
+  </span>
+  </Link>
+  {/* Breadcrumb-style page label on desktop only — fades in after
+  the wordmark settles so the eye lands on the brand first. */}
+  {title && (
+  <div
+  className="hidden sm:flex items-baseline gap-2 text-[12px] text-[var(--color-text-muted)] truncate"
+  style={{ animation: "hero-fade 0.5s cubic-bezier(0.22,1,0.36,1) 0.32s both" }}
+  >
+  <span className="text-[var(--color-border-strong)]">·</span>
+  <span className="font-medium text-[var(--color-text-secondary)] truncate tracking-normal">{title}</span>
+  </div>
+  )}
+  </div>
 
-        {/* Desktop nav — primary live tools + a discreet BMC icon. The icon
-            variant stays muted until hover so it doesn't compete with the
-            page content, but is always one click away from anywhere in
-            the app. */}
-        <nav className="hidden sm:flex items-center gap-1" aria-label="Primary trip actions">
-          {navTools.map((tool, i) => {
-            const Icon = tool.icon;
-            const href = contextualNavHref(tool.href, pathname, contextQuery, activeRsn);
-            const active =
-              currentTool?.slug === tool.slug ||
-              (tool.href === "/" && onHome);
-            return (
-              <Link
-                key={tool.slug}
-                href={href}
-                title={tool.short}
-                aria-current={active ? "page" : undefined}
-                aria-label={`${tool.navLabel ?? tool.name}: ${tool.short}`}
-                // REBRAND.md 6.0: an OSRS side tab, not a nav pill. The
-                // selected tab is RAISED — a lit top-left edge and a dark
-                // bottom-right one — and the unselected ones are cut into the
-                // wood. That inversion is the whole affordance in the game's
-                // own chrome, and it costs a box-shadow rather than a ring.
-                data-nav-tab={active ? "selected" : "idle"}
-                style={{
-                  animation: `hero-fade 0.5s cubic-bezier(0.22,1,0.36,1) ${0.4 + i * 0.07}s both`,
-                  borderRadius: "var(--radius-sm)",
-                  boxShadow: active
-                    ? "inset 1px 1px 0 var(--bevel-light), inset -1px -1px 0 var(--bevel-dark)"
-                    : "inset 1px 1px 0 var(--bevel-dark), inset -1px -1px 0 rgba(255,236,190,0.08)"
-                }}
-                className={cn(
-                  "group/tool inline-flex items-center gap-1.5 px-3 py-1.5 text-[length:var(--text-micro)] font-medium transition-colors",
-                  active
-                    ? "bg-[var(--wood-500)] text-[var(--gold-300)]"
-                    : "bg-[var(--stone-800)] text-[var(--color-text-dim)] hover:text-[var(--color-text)]"
-                )}
-              >
-                <Icon data-tool-icon={tool.slug} className={cn("size-3.5", active && "text-[var(--color-accent)]")} />
-                {tool.navLabel ?? tool.name}
-              </Link>
-            );
-          })}
-          <MyPageLink rsn={activeRsn} />
-          <AccountSwitcher activeRsn={activeRsn} onActiveRsnChange={setActiveRsn} />
-          <span
-            className="mx-2 h-5 w-px bg-[var(--color-border)]"
-            aria-hidden="true"
-            style={{ animation: `hero-fade 0.4s ease-out ${0.4 + navTools.length * 0.07}s both` }}
-          />
-          <span style={{ animation: `hero-fade 0.5s cubic-bezier(0.22,1,0.36,1) ${0.4 + navTools.length * 0.07 + 0.06}s both` }}>
-            <BuyMeCoffee variant="icon" className="!size-8" />
-          </span>
-        </nav>
+  {/* Desktop nav — primary live tools + a discreet BMC icon. The icon
+  variant stays muted until hover so it doesn't compete with the
+  page content, but is always one click away from anywhere in
+  the app. */}
+  <nav className="hidden sm:flex items-center gap-1" aria-label="Primary trip actions">
+  {navTools.map((tool, i) => {
+  const Icon = tool.icon;
+  const href = contextualNavHref(tool.href, pathname, contextQuery, activeRsn);
+  const active =
+  currentTool?.slug === tool.slug ||
+  (tool.href === "/" && onHome);
+  return (
+  <Link
+  key={tool.slug}
+  href={href}
+  title={tool.short}
+  aria-current={active ? "page" : undefined}
+  aria-label={`${tool.navLabel ?? tool.name}: ${tool.short}`}
+  // REBRAND.md 6.0: an OSRS side tab, not a nav pill. The
+  // selected tab is RAISED — a lit top-left edge and a dark
+  // bottom-right one — and the unselected ones are cut into the
+  // wood. That inversion is the whole affordance in the game's
+  // own chrome, and it costs a box-shadow rather than a ring.
+  data-nav-tab={active ? "selected" : "idle"}
+  style={{
+  animation: `hero-fade 0.5s cubic-bezier(0.22,1,0.36,1) ${0.4 + i * 0.07}s both`,
+  borderRadius: "var(--radius-sm)",
+  boxShadow: active
+  ? "inset 1px 1px 0 var(--bevel-light), inset -1px -1px 0 var(--bevel-dark)"
+  : "inset 1px 1px 0 var(--bevel-dark), inset -1px -1px 0 rgba(255,236,190,0.08)"
+  }}
+  className={cn(
+ "group/tool inline-flex items-center gap-1.5 px-3 py-1.5 text-[length:var(--text-micro)] font-medium transition-colors",
+  active
+  ? "bg-[var(--wood-500)] text-[var(--gold-300)]"
+  : "bg-[var(--stone-800)] text-[var(--color-text-dim)] hover:text-[var(--color-text)]"
+  )}
+  >
+  <Icon data-tool-icon={tool.slug} className={cn("size-3.5", active && "text-[var(--color-accent)]")} />
+  {tool.navLabel ?? tool.name}
+  </Link>
+  );
+  })}
+  <MyPageLink rsn={activeRsn} />
+  <AccountSwitcher activeRsn={activeRsn} onActiveRsnChange={setActiveRsn} />
+  <span
+  className="mx-2 h-5 w-px bg-[var(--color-border)]"
+  aria-hidden="true"
+  style={{ animation: `hero-fade 0.4s ease-out ${0.4 + navTools.length * 0.07}s both` }}
+  />
+  <span style={{ animation: `hero-fade 0.5s cubic-bezier(0.22,1,0.36,1) ${0.4 + navTools.length * 0.07 + 0.06}s both` }}>
+  <BuyMeCoffee variant="icon" className="!size-8" />
+  </span>
+  </nav>
 
-        {/* Mobile hamburger */}
-        <button
-          type="button"
-          onClick={() => setMobileOpen((v) => !v)}
-          className="sm:hidden size-11 rounded-none flex items-center justify-center border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
-          aria-label={mobileOpen ? "Close menu" : "Open menu"}
-          aria-controls={mobileNavId}
-          aria-expanded={mobileOpen}
-        >
-          {mobileOpen ? <X className="size-4" /> : <Menu className="size-4" />}
-        </button>
-      </div>
+  {/* Mobile hamburger */}
+  <button
+  type="button"
+  onClick={() => setMobileOpen((v) => !v)}
+  className="sm:hidden size-11 rounded-none flex items-center justify-center border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
+  aria-label={mobileOpen ? "Close menu" : "Open menu"}
+  aria-controls={mobileNavId}
+  aria-expanded={mobileOpen}
+  >
+  {mobileOpen ? <X className="size-4" /> : <Menu className="size-4" />}
+  </button>
+  </div>
 
-      {/* Mobile drawer — shown when hamburger is open. Slides down from
-          beneath the header bar; click anywhere inside to navigate. */}
-      {mobileOpen && (
-        <div className="fixed inset-x-0 top-14 z-40 max-h-[calc(100dvh-3.5rem)] overflow-y-auto overscroll-contain border-t border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)] shadow-[0_22px_50px_-36px_rgba(0,0,0,0.82)] sm:hidden">
-          <nav id={mobileNavId} className="space-y-1 px-4 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-3" aria-label="Mobile trip actions">
-            <div className="mb-3 rounded-none border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment)] p-3">
-              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-gold)]">
-                Your account
-              </div>
-              <div className="mt-2">
-                <AccountSwitcher activeRsn={activeRsn} onActiveRsnChange={setActiveRsn} compact />
-              </div>
-              <MyPageLink rsn={activeRsn} compact onNavigate={() => setMobileOpen(false)} />
-              <p className="mt-2 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
-                Saved once. Used for the next trip.
-              </p>
-            </div>
-            {DRAWER_NAV_SLUGS.map(getTool).filter((tool): tool is Tool => Boolean(tool)).map((tool) => {
-              const Icon = tool.icon;
-              const href = contextualNavHref(tool.href, pathname, contextQuery, activeRsn);
-              const active = currentTool?.slug === tool.slug;
-              return (
-                <Link
-                  key={tool.slug}
-                  href={href}
-                  onClick={() => setMobileOpen(false)}
-                  aria-current={active ? "page" : undefined}
-                  aria-label={`${tool.name}: ${tool.short}`}
-                  className={cn(
-                    "group/tool flex min-h-11 items-center gap-2.5 rounded-none px-3 py-2 text-[13px] font-medium",
-                    active
-                      ? "bg-[var(--color-panel-2)] text-[var(--color-text)]"
-                      : "text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-panel-2)]/60"
-                  )}
-                >
-                  <Icon data-tool-icon={tool.slug} className={cn("size-4", active && "text-[var(--color-accent)]")} />
-                  {tool.name}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-      )}
-    </header>
+  {/* Mobile drawer — shown when hamburger is open. Slides down from
+  beneath the header bar; click anywhere inside to navigate. */}
+  {mobileOpen && (
+  <div className="fixed inset-x-0 top-14 z-40 max-h-[calc(100dvh-3.5rem)] overflow-y-auto overscroll-contain border-t border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]  sm:hidden">
+  <nav id={mobileNavId} className="space-y-1 px-4 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-3" aria-label="Mobile trip actions">
+  <div className="mb-3 rounded-none border border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment)] p-3">
+  <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-gold)]">
+  Your account
+  </div>
+  <div className="mt-2">
+  <AccountSwitcher activeRsn={activeRsn} onActiveRsnChange={setActiveRsn} compact />
+  </div>
+  <MyPageLink rsn={activeRsn} compact onNavigate={() => setMobileOpen(false)} />
+  <p className="mt-2 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
+  Saved once. Used for the next trip.
+  </p>
+  </div>
+  {DRAWER_NAV_SLUGS.map(getTool).filter((tool): tool is Tool => Boolean(tool)).map((tool) => {
+  const Icon = tool.icon;
+  const href = contextualNavHref(tool.href, pathname, contextQuery, activeRsn);
+  const active = currentTool?.slug === tool.slug;
+  return (
+  <Link
+  key={tool.slug}
+  href={href}
+  onClick={() => setMobileOpen(false)}
+  aria-current={active ? "page" : undefined}
+  aria-label={`${tool.name}: ${tool.short}`}
+  className={cn(
+ "group/tool flex min-h-11 items-center gap-2.5 rounded-none px-3 py-2 text-[13px] font-medium",
+  active
+  ? "bg-[var(--color-panel-2)] text-[var(--color-text)]"
+  : "text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-panel-2)]/60"
+  )}
+  >
+  <Icon data-tool-icon={tool.slug} className={cn("size-4", active && "text-[var(--color-accent)]")} />
+  {tool.name}
+  </Link>
+  );
+  })}
+  </nav>
+  </div>
+  )}
+  </header>
   );
 }
 
@@ -252,21 +258,21 @@ function MyPageLink({
   const clean = rsn.trim();
   if (!clean) return null;
   return (
-    <Link
-      href={playerPath(clean)}
-      onClick={onNavigate}
-      data-my-page-link="true"
-      aria-label={`Open my page: ${clean}`}
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-none font-medium text-[var(--color-text-dim)] hover:bg-[var(--color-parchment)]/70 hover:text-[var(--color-text)]",
-        compact
-          ? "mt-2 min-h-11 w-full px-3 py-2 text-[13px]"
-          : "px-2.5 py-1.5 text-[12.5px]"
-      )}
-    >
-      <UserRound className="size-3.5" />
-      My page
-    </Link>
+  <Link
+  href={playerPath(clean)}
+  onClick={onNavigate}
+  data-my-page-link="true"
+  aria-label={`Open my page: ${clean}`}
+  className={cn(
+ "inline-flex items-center gap-1.5 rounded-none font-medium text-[var(--color-text-dim)] hover:bg-[var(--color-parchment)]/70 hover:text-[var(--color-text)]",
+  compact
+  ? "mt-2 min-h-11 w-full px-3 py-2 text-[13px]"
+  : "px-2.5 py-1.5 text-[12.5px]"
+  )}
+  >
+  <UserRound className="size-3.5" />
+  My page
+  </Link>
   );
 }
 
@@ -290,73 +296,73 @@ function AccountSwitcher({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(() => {
-    const store = loadAccountStore();
-    setAccounts(store.accounts);
-    const snapshot = loadAccountSnapshot();
-    const active = snapshot.account;
-    const nextRsn = snapshot.rsn;
-    onActiveRsnChange(nextRsn);
-    setDraft(nextRsn);
-    setHasSavedSetup(snapshot.hasBankContext);
-    setBankDetail(snapshot.bankDetail);
-    setRuneliteDetail(snapshot.runeliteDetail);
+  const store = loadAccountStore();
+  setAccounts(store.accounts);
+  const snapshot = loadAccountSnapshot();
+  const active = snapshot.account;
+  const nextRsn = snapshot.rsn;
+  onActiveRsnChange(nextRsn);
+  setDraft(nextRsn);
+  setHasSavedSetup(snapshot.hasBankContext);
+  setBankDetail(snapshot.bankDetail);
+  setRuneliteDetail(snapshot.runeliteDetail);
   }, [onActiveRsnChange]);
 
   useEffect(() => {
-    refresh();
-    window.addEventListener(ACCOUNT_EVENT, refresh);
-    window.addEventListener(SAVED_BANK_EVENT, refresh);
-    window.addEventListener("storage", refresh);
-    return () => {
-      window.removeEventListener(ACCOUNT_EVENT, refresh);
-      window.removeEventListener(SAVED_BANK_EVENT, refresh);
-      window.removeEventListener("storage", refresh);
-    };
+  refresh();
+  window.addEventListener(ACCOUNT_EVENT, refresh);
+  window.addEventListener(SAVED_BANK_EVENT, refresh);
+  window.addEventListener("storage", refresh);
+  return () => {
+  window.removeEventListener(ACCOUNT_EVENT, refresh);
+  window.removeEventListener(SAVED_BANK_EVENT, refresh);
+  window.removeEventListener("storage", refresh);
+  };
   }, [refresh]);
 
   useEffect(() => {
-    setDraft(activeRsn);
+  setDraft(activeRsn);
   }, [activeRsn]);
 
   const saveAccount = (event: FormEvent) => {
-    event.preventDefault();
-    const clean = draft.trim();
-    if (!clean) return;
-    saveSavedRsn(clean);
-    setActiveAccount(clean);
-    onActiveRsnChange(clean);
-    refresh();
-    setOpen(false);
+  event.preventDefault();
+  const clean = draft.trim();
+  if (!clean) return;
+  saveSavedRsn(clean);
+  setActiveAccount(clean);
+  onActiveRsnChange(clean);
+  refresh();
+  setOpen(false);
   };
 
   const pickAccount = (rsn: string) => {
-    setActiveAccount(rsn);
-    saveSavedRsn(rsn);
-    onActiveRsnChange(rsn);
-    refresh();
-    setOpen(false);
+  setActiveAccount(rsn);
+  saveSavedRsn(rsn);
+  onActiveRsnChange(rsn);
+  refresh();
+  setOpen(false);
   };
 
   const removeSavedAccount = async (rsn: string) => {
-    const confirmed = window.confirm(`Remove ${rsn} from Scapestack on this device?`);
-    if (!confirmed) return;
-    const removingActive = rsn === activeRsn;
-    const removingLegacy = loadSavedRsn()?.trim().toLowerCase() === rsn.trim().toLowerCase();
-    const connected = accounts.find((account) => account.rsn === rsn)?.serverAccountId;
-    if (connected) await disconnectConnectedAccount(rsn);
-    if (removingActive || removingLegacy) clearSavedRsn();
-    removeAccount(rsn);
-    const nextActive = getActiveAccount();
-    if (nextActive?.rsn) saveSavedRsn(nextActive.rsn);
-    refresh();
+  const confirmed = window.confirm(`Remove ${rsn} from Scapestack on this device?`);
+  if (!confirmed) return;
+  const removingActive = rsn === activeRsn;
+  const removingLegacy = loadSavedRsn()?.trim().toLowerCase() === rsn.trim().toLowerCase();
+  const connected = accounts.find((account) => account.rsn === rsn)?.serverAccountId;
+  if (connected) await disconnectConnectedAccount(rsn);
+  if (removingActive || removingLegacy) clearSavedRsn();
+  removeAccount(rsn);
+  const nextActive = getActiveAccount();
+  if (nextActive?.rsn) saveSavedRsn(nextActive.rsn);
+  refresh();
   };
 
   const focusRsnInput = () => {
-    setOpen(true);
-    window.setTimeout(() => {
-      inputRef.current?.focus();
-      inputRef.current?.select();
-    }, 0);
+  setOpen(true);
+  window.setTimeout(() => {
+  inputRef.current?.focus();
+  inputRef.current?.select();
+  }, 0);
   };
 
   const accountLabel = activeRsn || "Add RSN";
@@ -368,167 +374,167 @@ function AccountSwitcher({
   const runeliteLabel = runeliteReady ? "Refresh RuneLite" : "Add RuneLite";
 
   return (
-    <div className={cn("relative", compact ? "w-full" : "hidden sm:block")}>
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        className={cn(
-          "scapestack-account-pill px-2.5 py-1.5 text-[12px] font-semibold transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]",
-          activeRsn ? "text-[var(--color-text)]" : "text-[var(--color-text-dim)]",
-          compact && "w-full justify-between px-3 py-2"
-        )}
-        aria-expanded={open}
-        aria-label={activeRsn ? `Current account ${activeRsn}` : "Add OSRS account"}
-      >
-        <span className="inline-flex min-w-0 items-center gap-1.5">
-          <UserRound className="size-3.5 shrink-0 text-[var(--color-accent)]" />
-          <span className="max-w-[120px] truncate">{accountLabel}</span>
-        </span>
-        <ChevronDown className={cn("size-3.5 shrink-0 transition-transform", open && "rotate-180")} />
-      </button>
+  <div className={cn("relative", compact ? "w-full" : "hidden sm:block")}>
+  <button
+  type="button"
+  onClick={() => setOpen((value) => !value)}
+  className={cn(
+ "scapestack-account-pill px-2.5 py-1.5 text-[12px] font-semibold transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]",
+  activeRsn ? "text-[var(--color-text)]" : "text-[var(--color-text-dim)]",
+  compact && "w-full justify-between px-3 py-2"
+  )}
+  aria-expanded={open}
+  aria-label={activeRsn ? `Current account ${activeRsn}` : "Add OSRS account"}
+  >
+  <span className="inline-flex min-w-0 items-center gap-1.5">
+  <UserRound className="size-3.5 shrink-0 text-[var(--color-accent)]" />
+  <span className="max-w-[120px] truncate">{accountLabel}</span>
+  </span>
+  <ChevronDown className={cn("size-3.5 shrink-0 transition-transform", open && "rotate-180")} />
+  </button>
 
-      {open && (
-        <div className={cn(
-          "scapestack-modal z-40 mt-2 p-3",
-          compact ? "w-full" : "absolute right-0 w-[340px]"
-        )}>
-          <form onSubmit={saveAccount} className="space-y-2">
-            <div className="flex gap-2">
-              <input
-                ref={inputRef}
-                id="header-account-rsn"
-                value={draft}
-                onChange={(event) => setDraft(event.target.value)}
-                placeholder="Type RSN"
-                maxLength={12}
-                autoComplete="off"
-                autoCapitalize="none"
-                autoCorrect="off"
-                enterKeyHint="go"
-                spellCheck={false}
-                className="min-h-11 min-w-0 flex-1 rounded-none border border-[var(--color-parchment-edge)]/70 bg-[var(--color-bg)] px-3 py-2 text-[16px] font-semibold text-[var(--color-text)] outline-none focus:border-[var(--color-accent)]/55 sm:text-[13px]"
-              />
-              <button
-                type="submit"
-                disabled={!draft.trim()}
-                className="btn-primary px-3 py-2 text-[12px] disabled:opacity-50"
-              >
-                <Plus className="size-3.5" />
-                Use
-              </button>
-            </div>
-          </form>
+  {open && (
+  <div className={cn(
+ "scapestack-modal z-40 mt-2 p-3",
+  compact ? "w-full" : "absolute right-0 w-[340px]"
+  )}>
+  <form onSubmit={saveAccount} className="space-y-2">
+  <div className="flex gap-2">
+  <input
+  ref={inputRef}
+  id="header-account-rsn"
+  value={draft}
+  onChange={(event) => setDraft(event.target.value)}
+  placeholder="Type RSN"
+  maxLength={12}
+  autoComplete="off"
+  autoCapitalize="none"
+  autoCorrect="off"
+  enterKeyHint="go"
+  spellCheck={false}
+  className="min-h-11 min-w-0 flex-1 rounded-none border border-[var(--color-parchment-edge)]/70 bg-[var(--color-bg)] px-3 py-2 text-[16px] font-semibold text-[var(--color-text)] outline-none focus:border-[var(--color-accent)]/55 sm:text-[13px]"
+  />
+  <button
+  type="submit"
+  disabled={!draft.trim()}
+  className="btn-primary px-3 py-2 text-[12px] disabled:opacity-50"
+  >
+  <Plus className="size-3.5" />
+  Use
+  </button>
+  </div>
+  </form>
 
-          {accounts.length > 0 && (
-            <div className="mt-3 space-y-1">
-              {accounts.map((account) => (
-                <div key={account.id} className="flex items-center gap-1 rounded-none hover:bg-[var(--color-bg)]/60">
-                  <button
-                    type="button"
-                    onClick={() => pickAccount(account.rsn)}
-                    className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-none px-2.5 py-2 text-left text-[length:var(--text-micro)] font-semibold text-[var(--color-text-dim)] transition-colors hover:text-[var(--color-text)]"
-                  >
-                    <span className="truncate">{account.rsn}</span>
-                    {account.rsn === activeRsn && <CheckCircle2 className="size-3.5 text-[var(--color-good)]" />}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void removeSavedAccount(account.rsn)}
-                    className="mr-1 inline-flex size-7 shrink-0 items-center justify-center rounded-none text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-danger)]/10 hover:text-[var(--color-danger)]"
-                    aria-label={`Remove ${account.rsn}`}
-                    title="Remove account"
-                  >
-                    <X className="size-3.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+  {accounts.length > 0 && (
+  <div className="mt-3 space-y-1">
+  {accounts.map((account) => (
+  <div key={account.id} className="flex items-center gap-1 rounded-none hover:bg-[var(--color-bg)]/60">
+  <button
+  type="button"
+  onClick={() => pickAccount(account.rsn)}
+  className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-none px-2.5 py-2 text-left text-[length:var(--text-micro)] font-semibold text-[var(--color-text-dim)] transition-colors hover:text-[var(--color-text)]"
+  >
+  <span className="truncate">{account.rsn}</span>
+  {account.rsn === activeRsn && <CheckCircle2 className="size-3.5 text-[var(--color-good)]" />}
+  </button>
+  <button
+  type="button"
+  onClick={() => void removeSavedAccount(account.rsn)}
+  className="mr-1 inline-flex size-7 shrink-0 items-center justify-center rounded-none text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-danger)]/10 hover:text-[var(--color-danger)]"
+  aria-label={`Remove ${account.rsn}`}
+  title="Remove account"
+  >
+  <X className="size-3.5" />
+  </button>
+  </div>
+  ))}
+  </div>
+  )}
 
-          {activeRsn && (
-            <div className="mt-3 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[length:var(--text-label)] font-semibold text-[var(--color-text-muted)]">
-              <span className="text-[var(--color-text)]">{activeRsn}</span>
-              <span className="mx-1.5 text-[var(--color-border-strong)]">·</span>
-              <span title={bankFreshness} className="inline-flex items-center gap-1">
-                {hasSavedSetup && <CheckCircle2 className="size-3 text-[var(--color-accent)]" />}
-                {bankStatusLabel}
-              </span>
-              <span className="mx-1.5 text-[var(--color-border-strong)]">·</span>
-              <span className="inline-flex items-center gap-1">
-                {runeliteReady && <CheckCircle2 className="size-3 text-[var(--color-accent)]" />}
-                <span title={runeliteDetail}>{runeliteLabel}</span>
-              </span>
-            </div>
-          )}
+  {activeRsn && (
+  <div className="mt-3 rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-3 py-2 text-[length:var(--text-label)] font-semibold text-[var(--color-text-muted)]">
+  <span className="text-[var(--color-text)]">{activeRsn}</span>
+  <span className="mx-1.5 text-[var(--color-border-strong)]">·</span>
+  <span title={bankFreshness} className="inline-flex items-center gap-1">
+  {hasSavedSetup && <CheckCircle2 className="size-3 text-[var(--color-accent)]" />}
+  {bankStatusLabel}
+  </span>
+  <span className="mx-1.5 text-[var(--color-border-strong)]">·</span>
+  <span className="inline-flex items-center gap-1">
+  {runeliteReady && <CheckCircle2 className="size-3 text-[var(--color-accent)]" />}
+  <span title={runeliteDetail}>{runeliteLabel}</span>
+  </span>
+  </div>
+  )}
 
-          <div className="mt-3 grid grid-cols-3 gap-2 border-t border-[var(--color-border)] pt-3">
-            <button
-              type="button"
-              onClick={focusRsnInput}
-              className="grid min-h-[76px] place-items-center rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
-            >
-              <UserRound className="mb-1 size-5" />
-              RSN
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                setBankModalOpen(true);
-              }}
-              className="grid min-h-[76px] place-items-center rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
-            >
-              <Package className="mb-1 size-5" />
-              <span title={bankFreshness} className="inline-flex items-center gap-1">
-                {hasSavedSetup && <CheckCircle2 className="size-3 text-[var(--color-accent)]" />}
-                {bankStatusLabel}
-              </span>
-            </button>
-            <Link
-              href={pluginHref}
-              onClick={() => setOpen(false)}
-              className="grid min-h-[76px] place-items-center rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
-            >
-              {runeliteReady ? <RefreshCw className="mb-1 size-5" /> : <PlugZap className="mb-1 size-5" />}
-              <span className="inline-flex items-center gap-1">
-                {runeliteReady && <CheckCircle2 className="size-3 text-[var(--color-accent)]" />}
-                <span title={runeliteDetail}>{runeliteLabel}</span>
-              </span>
-            </Link>
-          </div>
-          {activeRsn && !activeAccount?.serverAccountId && (
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                setConnectModalOpen(true);
-              }}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-none border border-[var(--color-border)] px-3 py-2.5 text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
-            >
-              <Link2 className="size-4" />
-              Connect this browser
-            </button>
-          )}
-          {activeRsn && activeAccount?.serverAccountId && (
-            <div className="mt-2 flex items-center justify-center gap-2 rounded-none border border-[var(--color-gold)]/35 bg-[var(--color-gold)]/5 px-3 py-2.5 text-[12px] font-semibold text-[var(--color-text-secondary)]">
-              <CheckCircle2 className="size-4 text-[var(--color-gold)]" />
-              Connected on this browser
-            </div>
-          )}
-        </div>
-      )}
-      <AddBankModal
-        open={bankModalOpen}
-        onClose={() => setBankModalOpen(false)}
-        rsn={activeRsn}
-        source="header"
-      />
-      <ConnectBrowserModal
-        open={connectModalOpen}
-        rsn={activeRsn}
-        onClose={() => setConnectModalOpen(false)}
-        onConnected={refresh}
-      />
-    </div>
+  <div className="mt-3 grid grid-cols-3 gap-2 border-t border-[var(--color-border)] pt-3">
+  <button
+  type="button"
+  onClick={focusRsnInput}
+  className="grid min-h-[76px] place-items-center rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+  >
+  <UserRound className="mb-1 size-5" />
+  RSN
+  </button>
+  <button
+  type="button"
+  onClick={() => {
+  setOpen(false);
+  setBankModalOpen(true);
+  }}
+  className="grid min-h-[76px] place-items-center rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+  >
+  <Package className="mb-1 size-5" />
+  <span title={bankFreshness} className="inline-flex items-center gap-1">
+  {hasSavedSetup && <CheckCircle2 className="size-3 text-[var(--color-accent)]" />}
+  {bankStatusLabel}
+  </span>
+  </button>
+  <Link
+  href={pluginHref}
+  onClick={() => setOpen(false)}
+  className="grid min-h-[76px] place-items-center rounded-none border border-[var(--color-border)] bg-[var(--color-bg)]/45 px-2 py-3 text-center text-[11px] font-bold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+  >
+  {runeliteReady ? <RefreshCw className="mb-1 size-5" /> : <PlugZap className="mb-1 size-5" />}
+  <span className="inline-flex items-center gap-1">
+  {runeliteReady && <CheckCircle2 className="size-3 text-[var(--color-accent)]" />}
+  <span title={runeliteDetail}>{runeliteLabel}</span>
+  </span>
+  </Link>
+  </div>
+  {activeRsn && !activeAccount?.serverAccountId && (
+  <button
+  type="button"
+  onClick={() => {
+  setOpen(false);
+  setConnectModalOpen(true);
+  }}
+  className="mt-2 flex w-full items-center justify-center gap-2 rounded-none border border-[var(--color-border)] px-3 py-2.5 text-[12px] font-semibold text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-accent)]/55 hover:text-[var(--color-accent)]"
+  >
+  <Link2 className="size-4" />
+  Connect this browser
+  </button>
+  )}
+  {activeRsn && activeAccount?.serverAccountId && (
+  <div className="mt-2 flex items-center justify-center gap-2 rounded-none border border-[var(--color-gold)]/35 bg-[var(--color-gold)]/5 px-3 py-2.5 text-[12px] font-semibold text-[var(--color-text-secondary)]">
+  <CheckCircle2 className="size-4 text-[var(--color-gold)]" />
+  Connected on this browser
+  </div>
+  )}
+  </div>
+  )}
+  <AddBankModal
+  open={bankModalOpen}
+  onClose={() => setBankModalOpen(false)}
+  rsn={activeRsn}
+  source="header"
+  />
+  <ConnectBrowserModal
+  open={connectModalOpen}
+  rsn={activeRsn}
+  onClose={() => setConnectModalOpen(false)}
+  onConnected={refresh}
+  />
+  </div>
   );
 }

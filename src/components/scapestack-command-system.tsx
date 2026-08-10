@@ -18,7 +18,7 @@ export function ScapestackCommandSystem() {
     <section
       id="command-system"
       aria-labelledby="command-system-title"
-      className="mb-20 rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]/68 p-4 shadow-[0_20px_70px_rgba(0,0,0,0.22)] sm:p-5"
+      className="mb-20 rounded-none border border-[var(--color-border)] bg-[var(--color-panel)]/68 p-4 sm:p-5"
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-sm">

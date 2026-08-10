@@ -36,7 +36,7 @@ export function BankPluginOnboarding() {
     : "RuneLite can skip";
 
   return (
-    <section className="mb-8 overflow-hidden rounded-none border border-[var(--color-accent)]/25 bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)] shadow-[0_24px_80px_rgba(0,0,0,0.2)]">
+    <section className="mb-8 overflow-hidden rounded-none border border-[var(--color-accent)]/25 bg-gradient-to-br from-[var(--color-panel)] to-[var(--color-bg-2)]">
       <div className="grid gap-0 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="p-5 sm:p-6">
           <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--color-accent)]">

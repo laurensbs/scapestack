@@ -26,7 +26,7 @@ export function BossSprite({ boss, size = 28 }: { boss: Boss; size?: number }) {
         title={fallbackLabel}
         data-boss-sprite-fallback="missing"
         data-boss-sprite-missing-slug={boss.slug}
-        className="inline-flex items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-accent)]/14 text-[9px] font-black leading-none text-[var(--color-accent)] shadow-[0_0_10px_rgba(134, 166, 217,0.25)]"
+        className="inline-flex items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-accent)]/14 text-[9px] font-black leading-none text-[var(--color-accent)]"
         style={{ width: Math.max(16, size * 0.65), height: Math.max(16, size * 0.65) }}
       >
         <span aria-hidden="true">?</span>
@@ -190,7 +190,7 @@ export function BossPicker({ selected, onSelect, className, sortKey }: Props) {
           ref={popoverRef}
           role="dialog"
           aria-label="Choose boss for kill check"
-          className="fixed z-[120] rounded-none border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-[0_24px_60px_-20px_rgb(0_0_0/0.75)] animate-[pop-in_0.18s_ease-out] origin-top-left flex flex-col"
+          className="fixed z-[120] rounded-none border border-[var(--color-border-strong)] bg-[var(--color-panel)] animate-[pop-in_0.18s_ease-out] origin-top-left flex flex-col"
           style={{
             left: anchor.left,
             top: anchor.top,

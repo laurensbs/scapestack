@@ -550,7 +550,7 @@ function BankDecisionHero({
               More
               <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" />
             </summary>
-            <div className="absolute right-0 z-20 mt-2 hidden w-52 rounded-none border border-[var(--color-border)] bg-[var(--color-panel)] p-2 shadow-[0_18px_55px_rgba(0,0,0,0.28)] group-open:block">
+            <div className="absolute right-0 z-20 mt-2 hidden w-52 rounded-none border border-[var(--color-border)] bg-[var(--color-panel)] p-2 group-open:block">
               <button
                 type="button"
                 onClick={() => onSecondary(decision.secondaryAction)}
@@ -716,7 +716,7 @@ function SmartTidyWizard({
 
   return (
     <section
-      className="mb-3 rounded-none border border-[var(--color-accent)]/30 bg-[var(--color-panel)]/82 p-3 shadow-[0_24px_70px_-36px_rgba(0,0,0,0.75)] sm:p-4"
+      className="mb-3 rounded-none border border-[var(--color-accent)]/30 bg-[var(--color-panel)]/82 p-3 sm:p-4"
       aria-label="Smart Tidy setup"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -2162,7 +2162,7 @@ export function BankResult({
           className={cn(
             "group/frame relative mt-3 min-w-0 overflow-hidden rounded-none",
             "transition-[border-color,box-shadow] duration-300 ease-out",
-            "hover:border-[var(--color-accent)]/30 hover:shadow-[0_28px_70px_-28px_rgb(0_0_0/0.75),0_0_0_1px_rgba(134, 166, 217,0.18)]",
+            "hover:border-[var(--color-accent)]/30 hover:",
             reorgFlash && "animate-[reshuffle_0.55s_cubic-bezier(0.22,1,0.36,1),mint-sweep_0.7s_ease-out]"
           )}
           style={{
@@ -2320,7 +2320,7 @@ export function BankResult({
               className={cn(
                 "rounded-none flex items-center justify-center",
                 "bg-[var(--color-osrs-slot)] border-2 border-[var(--color-accent)]",
-                "shadow-[0_12px_28px_-8px_rgb(0_0_0/0.7),0_0_0_4px_rgba(134, 166, 217,0.15)]",
+                "",
                 "animate-[pop-in_0.16s_cubic-bezier(0.22,1,0.36,1)] cursor-grabbing"
               )}
               // Match the lifted slot's real size so the overlay stays
@@ -3895,7 +3895,7 @@ function LayoutPopup({
       aria-label="Bank layout preferences"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="w-full max-w-md rounded-none border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-[0_30px_80px_-20px_rgb(0_0_0/0.85)] overflow-hidden animate-[pop-in_0.22s_cubic-bezier(0.22,1,0.36,1)]">
+      <div className="w-full max-w-md rounded-none border border-[var(--color-border-strong)] bg-[var(--color-panel)] overflow-hidden animate-[pop-in_0.22s_cubic-bezier(0.22,1,0.36,1)]">
         <header className="flex items-center justify-between px-5 py-3 border-b border-[var(--color-border)]">
           <div className="flex items-center gap-2">
             <GripVertical className="size-4 text-[var(--color-accent)]" />
@@ -4211,7 +4211,7 @@ function TabButton({ tab, num, total, active, hovered, draggingTo, onClick, sear
           className="fixed z-[100] pointer-events-none animate-[tooltip-in_0.16s_cubic-bezier(0.22,1,0.36,1)]"
           style={{ left: tipPos.x, top: tipPos.y, transform: "translateX(-50%)" }}
         >
-          <div className="rounded-none border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-[0_12px_30px_-10px_rgb(0_0_0/0.7)] px-3 py-2.5 w-[220px]">
+          <div className="rounded-none border border-[var(--color-border-strong)] bg-[var(--color-panel)] px-3 py-2.5 w-[220px]">
             <div className="flex items-center justify-between gap-2 mb-1.5">
               <span className="text-[12px] font-semibold text-[var(--color-text)] truncate">{tab.name}</span>
               <span className="text-[10px] text-[var(--color-text-muted)] tabular-nums shrink-0">
@@ -4875,7 +4875,7 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
           "relative h-full w-full cursor-grab active:cursor-grabbing",
           "bg-[var(--color-osrs-slot)] border-r border-b border-[var(--color-border)]/40",
           "flex items-center justify-center select-none",
-          "hover:bg-[var(--color-panel-2)] hover:outline hover:outline-2 hover:outline-[var(--color-accent)] hover:outline-offset-[-2px] hover:z-10 hover:shadow-[0_0_18px_-4px_rgba(134, 166, 217,0.4)]",
+          "hover:bg-[var(--color-panel-2)] hover:outline hover:outline-2 hover:outline-[var(--color-accent)] hover:outline-offset-[-2px] hover:z-10 hover:",
           "transition-[background-color,outline-color,box-shadow,transform] duration-150",
           "[&:hover>img]:scale-[1.07]",
           isDragging && "opacity-25",
@@ -5004,7 +5004,7 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
           "absolute right-0 top-0 z-20 flex size-3 opacity-75 group-hover:opacity-100 group-focus-within:opacity-100",
           "items-center justify-center overflow-hidden rounded-none border border-[var(--color-border)]",
           "bg-[rgba(7,9,12,0.86)] p-0 text-[0px] font-semibold",
-          "text-[var(--color-text-dim)] shadow-[0_8px_18px_-10px_rgb(0_0_0/0.9)]",
+          "text-[var(--color-text-dim)]",
           "hover:border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
         )}
         title={`Open item ID details for ${item.name}`}
@@ -5022,7 +5022,7 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
           "absolute right-0 bottom-0 z-20 flex size-3 sm:hidden sm:group-hover:flex sm:group-focus-within:flex",
           "items-center justify-center overflow-hidden rounded-none border border-[var(--color-accent)]/35",
           "bg-[rgba(7,9,12,0.86)] p-0 text-[0px] font-semibold",
-          "text-[var(--color-accent)] shadow-[0_8px_18px_-10px_rgb(0_0_0/0.9)]",
+          "text-[var(--color-accent)]",
           "hover:bg-[var(--color-accent)]/15"
         )}
         title={`Open ${item.name} on the OSRS Wiki`}
@@ -5044,7 +5044,7 @@ function ItemSlot({ item, hasPrices, hasQty, isJunk = false, isStale = false, go
             className={cn(
               "bg-[var(--color-panel)] border border-[var(--color-border-strong)]",
               "px-3 py-2.5 rounded-none text-[11.5px] whitespace-nowrap",
-              "shadow-[0_14px_30px_-10px_rgb(0_0_0/0.7)]",
+              "",
               "min-w-[220px]"
             )}
           >
@@ -5229,7 +5229,7 @@ function ItemDetailDialog({
         onClick={onClose}
       />
       <section
-        className="relative w-full max-w-lg rounded-none border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-[0_28px_90px_-24px_rgb(0_0_0/0.85)] overflow-hidden animate-[pop-in_0.2s_cubic-bezier(0.22,1,0.36,1)]"
+        className="relative w-full max-w-lg rounded-none border border-[var(--color-border-strong)] bg-[var(--color-panel)] overflow-hidden animate-[pop-in_0.2s_cubic-bezier(0.22,1,0.36,1)]"
         onClick={(event) => event.stopPropagation()}
       >
         <header className="flex items-start gap-3 p-4 border-b border-[var(--color-border)] bg-[var(--color-bg-2)]/35">
@@ -5529,7 +5529,7 @@ function JunkTile({ item, tab }: { item: OrganizedItem; tab: string }) {
           className={cn(
             "fixed z-[100] -translate-x-1/2 pointer-events-none",
             "rounded-none border border-[var(--color-border-strong)] bg-[var(--color-panel)]",
-            "px-2.5 py-1.5 shadow-[0_8px_24px_-8px_rgb(0_0_0/0.7)]",
+            "px-2.5 py-1.5",
             "animate-[tooltip-in_0.16s_cubic-bezier(0.22,1,0.36,1)]"
           )}
         >
@@ -5564,7 +5564,7 @@ function QtyColorLegend() {
         <span className="text-[var(--color-osrs-qty-green)] font-semibold">10M</span>
       </button>
       <div className="absolute right-0 top-full mt-2 z-40 pointer-events-none opacity-0 group-hover/legend:opacity-100 group-hover/legend:translate-y-0 translate-y-[-4px] transition-all duration-150 delay-100">
-        <div className="rounded-none border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-[0_12px_30px_-10px_rgb(0_0_0/0.7)] px-3 py-2.5 w-[210px]">
+        <div className="rounded-none border border-[var(--color-border-strong)] bg-[var(--color-panel)] px-3 py-2.5 w-[210px]">
           <div className="text-[10.5px] uppercase tracking-wider text-[var(--color-text-muted)] font-semibold mb-1.5">Stack colours</div>
           <ul className="space-y-1 text-[11.5px]">
             <li className="flex items-center justify-between">

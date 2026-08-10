@@ -806,7 +806,7 @@ function GoalUnlockModal({
         onClick={onClose}
         className="fixed inset-0 cursor-default"
       />
-      <section className="osrs-frame relative mx-auto w-full max-w-2xl overflow-hidden text-left shadow-[0_32px_90px_-22px_rgba(0,0,0,0.95)]">
+      <section className="osrs-frame relative mx-auto w-full max-w-2xl overflow-hidden text-left">
         <header className="osrs-title-bar flex items-start justify-between gap-4 px-5 py-4 sm:px-6">
           <div className="flex min-w-0 gap-4">
             <span className="grid size-20 shrink-0 place-items-center rounded-none border border-[var(--color-accent)]/35 bg-black/35">

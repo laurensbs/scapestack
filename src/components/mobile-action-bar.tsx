@@ -74,7 +74,7 @@ export function MobileActionBar() {
   return (
     <nav
       aria-label="Mobile quick actions"
-      className="mobile-action-bar fixed inset-x-0 bottom-0 z-40 border-t border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/94 px-2 pt-2 shadow-[0_-18px_50px_-36px_rgba(0,0,0,0.95)] backdrop-blur-md sm:hidden"
+      className="mobile-action-bar fixed inset-x-0 bottom-0 z-40 border-t border-[var(--color-parchment-edge)]/70 bg-[var(--color-parchment-dark)]/94 px-2 pt-2 backdrop-blur-md sm:hidden"
     >
       <div className={cn("mx-auto grid max-w-md gap-1.5", isPlanningPath ? "grid-cols-4" : "grid-cols-5")}>
         {actions.map((action) => {
